@@ -1,23 +1,12 @@
 import React, { Component } from 'react'
 import { YAxis, AreaChart, Legend, XAxis } from 'recharts'
-import Xo from 'xo-lib'
-
+//import Xo from 'xo-lib'
+import { getObject, xoCall } from './utils'
 import { Area } from 'recharts'
-
-const xo = new Xo({ url: '/' })
-
-xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
-const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
-const xoCall = (method: any, params: any) =>
-  signedIn.then(() => xo.call(method, params))
-
-const getObjects = (id: any) =>
-  xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
-
 const NB_VALUES = 118
 
 const tabId = [
-  '8d752a5b-f5a8-b3af-85b4-5a475be3c1a9',
+  'e4b49f04-e7dd-d5f9-e14a-0842d6af84fe',
   '402b4559-217c-e9df-53b8-b548c2616e92',
   'f4953eb3-f17f-2822-bffe-2101f84b532d',
 ]
@@ -30,32 +19,23 @@ export default class Visualization extends Component<any, any> {
     return (
       <div>
         <div>
-          <VmsMemoryStats vmIds={tabId} />
-        </div>
-        <div>
-          <VmsCpuStats vmIds={tabId} />
-        </div>
-        <div>
           <VmsDiskStats vmIds={tabId} />
         </div>
         <div>
           <VmsNetworkStats vmIds={tabId} />
+        </div>
+        <div>
+          <VmsMemoryStats vmIds={tabId} />
+        </div>
+        <div>
+          <VmsCpuStats vmIds={tabId} />
         </div>
       </div>
     )
   }
 }
 
-class VmsMemoryStats extends Component<any, any> {
-  state: any = {
-    vmId: 0,
-  }
-  render() {
-    return this.props.vmIds.map((vmId: any) => (
-      <VmMemoryStats vmId={vmId} key={vmId} />
-    ))
-  }
-}
+const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
 
 class VmsCpuStats extends Component<any, any> {
   state: any = {
@@ -65,165 +45,6 @@ class VmsCpuStats extends Component<any, any> {
     return this.props.vmIds.map((vmId: any) => (
       <VmCpuStats vmId={vmId} key={vmId} />
     ))
-  }
-}
-
-class VmsDiskStats extends Component<any, any> {
-  state: any = {
-    vmId: 0,
-    valueMaxDisk: 0,
-  }
-  setMaxDisk = (value: number) => {
-    if (this.state.valueMaxDisk < value) {
-      this.setState({
-        valueMaxDisk: value,
-      })
-    }
-  }
-  render() {
-    return this.props.vmIds.map((vmId: any) => (
-      <VmDiskStats
-        vmId={vmId}
-        key={vmId}
-        setMaxDisk={this.setMaxDisk}
-        valueMaxDisk={this.state.valueMaxDisk}
-      />
-    ))
-  }
-}
-class VmsNetworkStats extends Component<any, any> {
-  state: any = {
-    vmId: 0,
-    valueMaxNetwork: 0,
-  }
-
-  setMaxNetwork = (value: number) => {
-    if (this.state.valueMaxNetwork < value) {
-      this.setState({
-        valueMaxNetwork: value,
-      })
-    }
-  }
-
-  render() {
-    return this.props.vmIds.map((vmId: any) => (
-      <VmNetworkStats
-        vmId={vmId}
-        key={vmId}
-        setMaxNetwork={this.setMaxNetwork}
-        valueMaxNetwork={this.state.valueMaxNetwork}
-      />
-    ))
-  }
-}
-
-const allColors = [
-  '#493BD8',
-  '#ADD83B',
-  '#D83BB7',
-  '#3BC1D8',
-  '#aabd8a',
-  '#667772',
-  '#FA8072',
-  '#800080',
-  '#00FF00',
-  '#8abda7',
-  '#cee866',
-  '#6f9393',
-  '#bb97cd',
-  '#8778db',
-  '#2f760b',
-  '#a9578a',
-  '#C0C0C0',
-  '#000080',
-  '#000000',
-  '#800000',
-]
-
-class VmMemoryStats extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
-    maxMemory: 0,
-    dataMemory: [],
-  }
-  componentDidMount() {
-    setInterval(this.fetchStatsVm.bind(this), 5e3)
-  }
-
-  fetchStatsVm = () => {
-    getObjects(this.props.vmId).then((vm: any) => {
-      this.setState({ maxMemory: vm.memory.dynamic[1] })
-    })
-
-    xoCall('vm.stats', {
-      id: this.props.vmId,
-      granularity: this.state.granularity,
-    }).then(
-      ({ endTimestamp, interval, stats: { memory, memoryFree = memory } }) => {
-        let newDataMemory: any[] = []
-        let dataMemory: any[] = []
-
-        newDataMemory = memoryFree.map(
-          (value: any, index: any) => memory[index] - value
-        )
-
-        for (var i = 0; i < NB_VALUES; i++) {
-          const valuesMemory: any = {}
-          valuesMemory.time =
-            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          valuesMemory.memory = newDataMemory[i]
-          dataMemory.push(valuesMemory)
-        }
-        this.setState({
-          dataMemory,
-        })
-      }
-    )
-  }
-
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
-  }
-
-  render() {
-    return (
-      <div>
-        <div>Memory usage</div>
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.state.dataMemory}
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
-          >
-            <Legend iconType='rect' iconSize={10} />
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => this.formatBytes(tick, 0)}
-              domain={[0, this.state.maxMemory]}
-            />
-            <Area
-              type='monotone'
-              dataKey='memory'
-              stroke='#493BD8'
-              fill='#493BD8'
-            />
-          </AreaChart>
-        </div>
-        <br />
-      </div>
-    )
   }
 }
 
@@ -274,25 +95,21 @@ class VmCpuStats extends Component<any, any> {
             width={400}
             height={100}
             data={this.state.cpuDataVm}
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            margin={GRAPH_CONFIG}
           >
             <YAxis
               domain={[0, 100]}
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' %'}
+              tickFormatter={value => value + ' %'}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
+            {/* <Legend iconType='rect' iconSize={10} /> */}
             <Area
               isAnimationActive={false}
               type='monotone'
               dataKey='cpu'
-              stroke='#493BD8'
-              fill='#493BD8'
+              stroke='#e6e600'
+              fill='#e6e600'
             />
           </AreaChart>
         </div>
@@ -301,65 +118,57 @@ class VmCpuStats extends Component<any, any> {
   }
 }
 
-class VmDiskStats extends Component<any, any> {
+class VmsMemoryStats extends Component<any, any> {
+  state: any = {
+    vmId: 0,
+  }
+
+  render() {
+    return this.props.vmIds.map((vmId: any) => (
+      <VmMemoryStats vmId={vmId} key={vmId} />
+    ))
+  }
+}
+class VmMemoryStats extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-    diskDataVm: [],
-    disksWriting: [],
-    disksReading: [],
-    maxDisk: 0,
+    format: 'LTS',
+    maxMemory: 0,
+    dataMemory: [],
   }
   componentDidMount() {
-    setInterval(this.fetchVmDiskStats.bind(this), 5e3)
+    setInterval(this.fetchStatsVm.bind(this), 5e3)
   }
-  fetchVmDiskStats = () => {
+
+  fetchStatsVm = () => {
+    getObject(this.props.vmId).then((vm: any) => {
+      this.setState({ maxMemory: vm.memory.dynamic[1] })
+    })
+
     xoCall('vm.stats', {
       id: this.props.vmId,
       granularity: this.state.granularity,
-    }).then(({ endTimestamp, interval, stats: { xvds } }) => {
-      this.setState({ disksWriting: Object.keys(xvds.w) })
-      this.setState({ disksReading: Object.keys(xvds.r) })
+    }).then(
+      ({ endTimestamp, interval, stats: { memory, memoryFree = memory } }) => {
+        let newDataMemory: any[] = []
+        let dataMemory: any[] = []
 
-      let diskDataVm: any[] = []
+        newDataMemory = memoryFree.map(
+          (value: any, index: any) => memory[index] - value
+        )
 
-      for (var i = 0; i < NB_VALUES; i++) {
-        let ValuesDisk: any = {}
-
-        this.state.disksWriting.forEach((property: string | number) => {
-          const diskValuesWriting = xvds.w[property][i]
-
-          if (
-            this.state.maxDiskW === undefined ||
-            diskValuesWriting > this.state.maxDiskW
-          ) {
-            this.setState({ maxDiskW: diskValuesWriting })
-          }
-          ValuesDisk[`xvds_${property}_(w)`] = xvds.w[property][i]
+        for (var i = 0; i < NB_VALUES; i++) {
+          const valuesMemory: any = {}
+          valuesMemory.time =
+            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+          valuesMemory.memory = newDataMemory[i]
+          dataMemory.push(valuesMemory)
+        }
+        this.setState({
+          dataMemory,
         })
-
-        this.state.disksReading.forEach((property: string | number) => {
-          const diskValuesReading = xvds.r[property][i]
-
-          if (
-            this.state.maxDiskR === undefined ||
-            diskValuesReading > this.state.maxDiskR
-          ) {
-            this.setState({ maxDiskR: diskValuesReading })
-          }
-
-          ValuesDisk[`xvds_${property}_(r)`] = xvds.r[property][i]
-        })
-
-        ValuesDisk.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-        diskDataVm.push(ValuesDisk)
       }
-
-      this.setState({
-        maxDisk: Math.max(this.state.maxDiskW, this.state.maxDiskR),
-      })
-      this.setState({ diskDataVm })
-    })
-    this.props.setMaxDisk(this.state.maxDisk)
+    )
   }
 
   formatBytes(bytes: any, decimals = 2) {
@@ -368,120 +177,124 @@ class VmDiskStats extends Component<any, any> {
     const dm = decimals < 0 ? 0 : decimals
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
   }
 
   render() {
     return (
       <div>
-        <br />
-        <div>Disk throughput</div>
-        <br />
+        <div>Memory usage</div>
         <div>
           <AreaChart
             width={400}
             height={100}
-            data={this.state.diskDataVm}
-            syncId='vm'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            data={this.state.dataMemory}
+            margin={GRAPH_CONFIG}
           >
+            {/* <Legend iconType='rect' iconSize={10} /> */}
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000000, this.props.valueMaxDisk)]}
+              tickFormatter={value => this.formatBytes(value, 0)}
+              domain={[0, this.state.maxMemory]}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
-
-            {[...this.state.disksWriting, ...this.state.disksReading].map(
-              (property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={`xvds_${property}_(${
-                    index < this.state.disksWriting.length ? 'w' : 'r'
-                  })`}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                />
-              )
-            )}
+            <Area type='monotone' dataKey='memory' stroke='blue' fill='blue' />
           </AreaChart>
         </div>
+        <br />
       </div>
     )
   }
 }
 
-//
+class VmsNetworkStats extends Component<any, any> {
+  state: any = {
+    vmId: 0,
+    max: 0,
+    allData: [],
+  }
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
+  }
+  fetchAll() {
+    Promise.all(this.props.vmIds.map((idVm: any) => this.fetchOne(idVm))).then(
+      allData => {
+        this.setState({ max: 0 })
+        this.setState({ allData: [] })
+        allData.forEach((currentVm: any) => {
+          this.updateData(
+            currentVm.endTimestamp,
+            currentVm.interval,
+            currentVm.stats
+          )
+        })
+      }
+    )
+  }
+
+  fetchOne = (idVm: string) =>
+    xoCall('vm.stats', {
+      id: idVm,
+      granularity: this.state.granularity,
+    })
+
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+
+    data.networksTransmissionVm = Object.keys(stats.vifs.tx)
+    data.networksReceptionVm = Object.keys(stats.vifs.rx)
+
+    let vmNetworkData: any[] = []
+    for (var i = 0; i < NB_VALUES; i++) {
+      let valuesNetwork: any = {}
+
+      data.networksTransmissionVm.forEach((property: string | number) => {
+        const networkValuesTransmission = stats.vifs.tx[property][i]
+        if (
+          data.maxNetworkT === undefined ||
+          networkValuesTransmission > data.maxNetworkT
+        ) {
+          data.maxNetworkT = networkValuesTransmission
+        }
+        valuesNetwork[`vifs_${property}_(tx)`] = stats.vifs.tx[property][i]
+      })
+
+      data.networksReceptionVm.forEach((property: string | number) => {
+        const networkValuesReception = stats.vifs.rx[property][i]
+        if (
+          data.maxNetworkR === undefined ||
+          networkValuesReception > data.maxNetworkR
+        ) {
+          data.maxNetworkR = networkValuesReception
+        }
+        valuesNetwork[`vifs_${property}_(rx)`] = stats.vifs.rx[property][i]
+      })
+      valuesNetwork.time =
+        (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+      vmNetworkData.push(valuesNetwork)
+    }
+    const maxNetwork = Math.max(data.maxNetworkR, data.maxNetworkT)
+    data.values = vmNetworkData
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxNetwork) })
+  }
+
+  render() {
+    return this.state.allData.map((currentData: any) => (
+      <VmNetworkStats max={this.state.max} data={currentData} />
+    ))
+  }
+}
 
 class VmNetworkStats extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-    networkDataVm: [],
-    networksTransmissionVm: [],
-    networksReceptionVm: [],
-    maxNetworkVm: 0,
-  }
-
-  componentDidMount() {
-    setInterval(this.fetchVmNetworkStats.bind(this), 5e3)
-  }
-
-  fetchVmNetworkStats = () => {
-    xoCall('vm.stats', {
-      id: this.props.vmId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, interval, stats: { vifs } }) => {
-      this.setState({ networksTransmissionVm: Object.keys(vifs.tx) })
-      this.setState({ networksReceptionVm: Object.keys(vifs.rx) })
-      let networkDataVm: any[] = []
-      for (var i = 0; i < NB_VALUES; i++) {
-        let valuesNetwork: any = {}
-        this.state.networksTransmissionVm.forEach(
-          (property: string | number) => {
-            const networkValues = vifs.tx[property][i]
-            if (
-              this.state.maxNetworkTx === undefined ||
-              networkValues > this.state.maxNetworkTx
-            ) {
-              this.setState({ maxNetworkTx: networkValues })
-            }
-            valuesNetwork[`vifs_${property}_(tx)`] = vifs.tx[property][i]
-          }
-        )
-
-        this.state.networksReceptionVm.forEach((property: string | number) => {
-          const networkValuesR = vifs.rx[property][i]
-          if (
-            this.state.maxNetworkRx === undefined ||
-            networkValuesR > this.state.maxNetworkRx
-          ) {
-            this.setState({ maxNetworkRx: networkValuesR })
-          }
-          valuesNetwork[`vifs_${property}_(rx)`] = vifs.rx[property][i]
-        })
-
-        valuesNetwork.time =
-          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-        networkDataVm.push(valuesNetwork)
-      }
-
-      this.setState({
-        maxNetworkVm: Math.max(
-          this.state.maxNetworkTx,
-          this.state.maxNetworkRx
-        ),
-      })
-
-      this.setState({ networkDataVm })
-    })
-    this.props.setMaxNetwork(this.state.maxNetworkVm)
   }
 
   formatBytes(bytes: any, decimals = 2) {
@@ -501,36 +314,175 @@ class VmNetworkStats extends Component<any, any> {
         <br />
         <div>
           <AreaChart
-            width={400}
+            width={430}
             height={100}
-            data={this.state.networkDataVm}
-            syncId='vm'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            data={this.props.data.values}
+            margin={GRAPH_CONFIG}
           >
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000, this.props.valueMaxNetwork)]}
+              tickFormatter={value => this.formatBytes(value, 2)}
+              domain={[0, Math.max(1, this.props.max)]}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
+            {/*  <Legend iconType='rect' iconSize={10} /> */}
             {[
-              ...this.state.networksTransmissionVm,
-              ...this.state.networksReceptionVm,
+              ...this.props.data.networksTransmissionVm,
+              ...this.props.data.networksReceptionVm,
             ].map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`vifs_${property}_(${
-                  index < this.state.networksTransmissionVm.length ? 'tx' : 'rx'
+                  index < this.props.data.networksTransmissionVm.length
+                    ? 'tx'
+                    : 'rx'
                 })`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
+                stroke='#66ccff'
+                fill='#66ccff'
+                key={index}
+              />
+            ))}
+          </AreaChart>
+        </div>
+      </div>
+    )
+  }
+}
+
+class VmsDiskStats extends Component<any, any> {
+  state: any = {
+    vmId: 0,
+    max: 0,
+    allData: [],
+  }
+
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
+  }
+
+  fetchAll() {
+    Promise.all(this.props.vmIds.map((idVm: any) => this.fetchOne(idVm))).then(
+      allData => {
+        this.setState({ max: 0 })
+        this.setState({ allData: [] })
+        allData.forEach((currentVm: any) => {
+          this.updateData(
+            currentVm.endTimestamp,
+            currentVm.interval,
+            currentVm.stats
+          )
+        })
+      }
+    )
+  }
+
+  fetchOne = (idVm: string) =>
+    xoCall('vm.stats', {
+      id: idVm,
+      granularity: this.state.granularity,
+    })
+
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+    data.disksWriting = Object.keys(stats.xvds.w)
+    data.disksReading = Object.keys(stats.xvds.r)
+
+    let diskDataVm: any[] = []
+
+    for (var i = 0; i < NB_VALUES; i++) {
+      let ValuesDisk: any = {}
+
+      data.disksWriting.forEach((property: string | number) => {
+        const diskValuesWriting = stats.xvds.w[property][i]
+
+        if (data.maxDiskW === undefined || diskValuesWriting > data.maxDiskW) {
+          data.maxDiskW = diskValuesWriting
+        }
+        ValuesDisk[`xvds_${property}_(w)`] = stats.xvds.w[property][i]
+      })
+
+      data.disksReading.forEach((property: string | number) => {
+        const diskValuesReading = stats.xvds.r[property][i]
+
+        if (data.maxDiskR === undefined || diskValuesReading > data.maxDiskR) {
+          data.maxDiskR = diskValuesReading
+        }
+
+        ValuesDisk[`xvds_${property}_(r)`] = stats.xvds.r[property][i]
+      })
+
+      ValuesDisk.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+      diskDataVm.push(ValuesDisk)
+    }
+
+    const maxDisk = Math.max(data.maxDiskW, data.maxDiskR)
+    data.values = diskDataVm
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxDisk) })
+  }
+
+  render() {
+    return this.state.allData.map((currentData: any) => (
+      <VmDiskStats max={this.state.max} data={currentData} />
+    ))
+  }
+}
+
+class VmDiskStats extends Component<any, any> {
+  state: any = {
+    granularity: 'seconds',
+  }
+  formatBytes(bytes: any, decimals = 2) {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  }
+
+  render() {
+    return (
+      <div>
+        <br />
+        <div>Disk throughput</div>
+        <br />
+        <div>
+          <AreaChart
+            width={400}
+            height={100}
+            data={this.props.data.values}
+            syncId='vm'
+            margin={GRAPH_CONFIG}
+          >
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              tickFormatter={value => this.formatBytes(value, 2)}
+              domain={[0, Math.max(1, this.props.max)]}
+              hide={true}
+            />
+            {/* <Legend iconType='rect' iconSize={10} /> */}
+
+            {[
+              ...this.props.data.disksWriting,
+              ...this.props.data.disksReading,
+            ].map((property: any, index: any) => (
+              <Area
+                connectNulls
+                isAnimationActive={false}
+                type='monotone'
+                dataKey={`xvds_${property}_(${
+                  index < this.props.data.disksWriting.length ? 'w' : 'r'
+                })`}
+                stroke='#015b00'
+                fill='#015b00'
               />
             ))}
           </AreaChart>

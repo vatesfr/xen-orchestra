@@ -4,15 +4,7 @@ import { YAxis, AreaChart, Legend } from 'recharts'
 import Xo from 'xo-lib'
 
 import { Area } from 'recharts'
-import { number } from 'prop-types'
-
-const xo = new Xo({ url: '/' })
-
-xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
-const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
-const xoCall = (method: any, params: any) =>
-  signedIn.then(() => xo.call(method, params))
-
+import { xoCall } from './utils'
 const NB_VALUES = 118
 const tabId = [
   'a5954951-3dfa-42b8-803f-4bc270b22a0b',
@@ -20,28 +12,6 @@ const tabId = [
   'a889b334-5ea2-c43d-f0c0-9fb8e7c42425',
 ]
 
-const allColors = [
-  '#493BD8',
-  '#ADD83B',
-  '#D83BB7',
-  '#3BC1D8',
-  '#aabd8a',
-  '#667772',
-  '#FA8072',
-  '#800080',
-  '#00FF00',
-  '#8abda7',
-  '#cee866',
-  '#6f9393',
-  '#bb97cd',
-  '#8778db',
-  '#2f760b',
-  '#a9578a',
-  '#C0C0C0',
-  '#000080',
-  '#000000',
-  '#800000',
-]
 export default class Visualization extends Component<any, any> {
   state: any = {
     srIds: 0,
@@ -67,30 +37,76 @@ export default class Visualization extends Component<any, any> {
   }
 }
 
-
-
-
+const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
 
 class StoragesIowaitStats extends Component<any, any> {
   state: any = {
     srId: 0,
-    valueMaxIowait: 0,
+    max: 0,
+    allData: [],
   }
-  setMaxIowait = (value: number) => {
-    if (this.state.valueMaxIowait < value) {
-      this.setState({
-        valueMaxIowait: value,
+
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
+  }
+  fetchAll() {
+    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+      allData => {
+        this.setState({ max: 0 })
+        this.setState({ allData: [] })
+        allData.forEach((currentVm: any) => {
+          this.updateData(
+            currentVm.endTimestamp,
+            currentVm.interval,
+            currentVm.stats
+          )
+        })
+      }
+    )
+  }
+
+  fetchOne = (idVm: string) =>
+    xoCall('sr.stats', {
+      id: idVm,
+      granularity: this.state.granularity,
+    })
+
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+    data.iowaitSr = Object.keys(stats.iowait)
+
+    let dataSrIowait: any[] = []
+
+    for (var i = 0; i < NB_VALUES; i++) {
+      let valuesSrIowait: any = {}
+      data.iowaitSr.forEach((property: string | number) => {
+        //
+        const iowaitValuesMax = stats.iowait[property][i]
+        if (
+          data.maxIowaitGlobal === undefined ||
+          iowaitValuesMax > data.maxIowaitGlobal
+        ) {
+          data.maxIowaitGlobal = iowaitValuesMax
+        }
+        valuesSrIowait[`iowait_${property}`] = stats.iowait[property][i]
       })
+      valuesSrIowait.time =
+        (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+      dataSrIowait.push(valuesSrIowait)
     }
+    data.values = dataSrIowait
+    const maxIowait = data.maxIowaitGlobal
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxIowait) })
   }
   render() {
-    return this.props.srIds.map((srId: any) => (
-      <StorageIowaitStats
-        srId={srId}
-        key={srId}
-        setMaxIowait={this.setMaxIowait}
-        valueMaxIowait={this.state.valueMaxIowait}
-      />
+    return this.state.allData.map((currentData: any) => (
+      <StorageIowaitStats max={this.state.max} data={currentData} />
     ))
   }
 }
@@ -98,23 +114,77 @@ class StoragesIowaitStats extends Component<any, any> {
 class StoragesIopsStats extends Component<any, any> {
   state: any = {
     srId: 0,
-    valueMaxIops: 0,
+    max: 0,
+    allData: [],
   }
-  setMaxGlobal = (maxGlobal: number) => {
-    if (this.state.valueMaxIops < maxGlobal) {
-      this.setState({
-        valueMaxIops: maxGlobal,
+
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
+  }
+
+  fetchAll() {
+    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+      allData => {
+        this.setState({ max: 0 })
+        this.setState({ allData: [] })
+        allData.forEach((currentVm: any) => {
+          this.updateData(
+            currentVm.endTimestamp,
+            currentVm.interval,
+            currentVm.stats
+          )
+        })
+      }
+    )
+  }
+
+  fetchOne = (idVm: string) =>
+    xoCall('sr.stats', {
+      id: idVm,
+      granularity: this.state.granularity,
+    })
+
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+    data.iopsSr = Object.keys(stats.iops)
+    const iopsData: any[] = []
+    //
+
+    for (var i = 0; i < NB_VALUES; i++) {
+      const valuesSrIops: any = {}
+
+      valuesSrIops.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+
+      data.iopsSr.forEach((property: string | number) => {
+        const iops = stats.iops[property][i]
+        if (
+          data.maxIOPS === undefined ||
+          iops > data.maxIOPS
+        ) {
+          data.maxIOPS = iops
+        }
+        valuesSrIops[`iops_${property}`] = stats.iops[property][i]
       })
+
+     /*  data.iopsSr.forEach((property: string | number) => {
+        data.maxIOPS = Math.max(...stats.iops[property])
+      }) */
+      iopsData.push(valuesSrIops)
     }
+    const maxIopsGlobal = data.maxIOPS
+    data.values = iopsData
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxIopsGlobal) })
   }
+
   render() {
-    return this.props.srIds.map((srId: any) => (
-      <StorageIopsStats
-        srId={srId}
-        key={srId}
-        setMaxGlobal={this.setMaxGlobal}
-        valueMaxIops={this.state.valueMaxIops}
-      />
+    return this.state.allData.map((currentData: any) => (
+      <StorageIopsStats max={this.state.max} data={currentData} />
     ))
   }
 }
@@ -122,24 +192,70 @@ class StoragesIopsStats extends Component<any, any> {
 class StoragesLatencyStats extends Component<any, any> {
   state: any = {
     srId: 0,
-    valueMaxLatency: 0,
+    max: 0,
+    allData: [],
   }
 
-  setMaxLatency = (value: number) => {
-    if (this.state.valueMaxLatency < value) {
-      this.setState({
-        valueMaxLatency: value,
-      })
-    }
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
   }
+
+  fetchAll() {
+    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+      allData => {
+        this.setState({ max: 0 })
+        this.setState({ allData: [] })
+        allData.forEach((currentVm: any) => {
+          this.updateData(
+            currentVm.endTimestamp,
+            currentVm.interval,
+            currentVm.stats
+          )
+        })
+      }
+    )
+  }
+
+  fetchOne = (idVm: string) =>
+    xoCall('sr.stats', {
+      id: idVm,
+      granularity: this.state.granularity,
+    })
+
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+    data.latencySr = Object.keys(stats.latency)
+    const latencyData: any[] = []
+
+    for (var i = 0; i < NB_VALUES; i++) {
+      const valuesSrLatency: any = {}
+      data.latencySr.forEach((property: string | number) => {
+        valuesSrLatency[`latency_${property}`] = stats.latency[property][i]
+      })
+
+      valuesSrLatency.time =
+        (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+      latencyData.push(valuesSrLatency)
+    }
+
+    data.latencySr.forEach((property: string | number) => {
+      data.maxLatency = Math.max(...stats.latency[property])
+    })
+    data.values = latencyData
+    const maxLatencyGlobal = data.maxLatency
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxLatencyGlobal) })
+  }
+
   render() {
-    return this.props.srIds.map((srId: any) => (
-      <StorageLatencyStats
-        srId={srId}
-        key={srId}
-        setMaxLatency={this.setMaxLatency}
-        valueMaxLatency={this.state.valueMaxLatency}
-      />
+    return this.state.allData.map((currentData: any) => (
+      <StorageLatencyStats max={this.state.max} data={currentData} />
     ))
   }
 }
@@ -147,24 +263,71 @@ class StoragesLatencyStats extends Component<any, any> {
 class StoragesThroughputStats extends Component<any, any> {
   state: any = {
     srId: 0,
-    valueMaxThroughput: 0,
+    max: 0,
+    allData: [],
   }
 
-  setMaxThroughput = (value: number) => {
-    if (this.state.valueMaxThroughput < value) {
-      this.setState({
-        valueMaxThroughput: value,
-      })
-    }
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
   }
+
+  fetchAll() {
+    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+      allData => {
+        this.setState({ max: 0 })
+        this.setState({ allData: [] })
+        allData.forEach((currentVm: any) => {
+          this.updateData(
+            currentVm.endTimestamp,
+            currentVm.interval,
+            currentVm.stats
+          )
+        })
+      }
+    )
+  }
+  fetchOne = (idVm: string) =>
+    xoCall('sr.stats', {
+      id: idVm,
+      granularity: this.state.granularity,
+    })
+
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+
+    data.throSr = Object.keys(stats.ioThroughput)
+    const throughputData: any[] = []
+    for (var i = 0; i < NB_VALUES; i++) {
+      const valuesSrThro: any = {}
+      data.throSr.forEach((property: string | number) => {
+        const throughputValuesMax = stats.ioThroughput[property][i]
+        if (
+          data.maxNetworkR === undefined ||
+          throughputValuesMax > data.maxNetworkR
+        ) {
+          data.maxNetworkR = throughputValuesMax
+        }
+        valuesSrThro[`thr_${property}`] = stats.ioThroughput[property][i]
+      })
+      valuesSrThro.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+      throughputData.push(valuesSrThro)
+    }
+
+    data.values = throughputData
+    const maxThroughputGlobal = data.maxNetworkR
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxThroughputGlobal) })
+  }
+
   render() {
-    return this.props.srIds.map((srId: any) => (
-      <StorageThroughputStats
-        srId={srId}
-        key={srId}
-        setMaxThroughput={this.setMaxThroughput}
-        valueMaxThroughput={this.state.valueMaxThroughput}
-      />
+    return this.state.allData.map((currentData: any) => (
+      <StorageThroughputStats max={this.state.max} data={currentData} />
     ))
   }
 }
@@ -172,42 +335,6 @@ class StoragesThroughputStats extends Component<any, any> {
 class StorageLatencyStats extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-    latencyData: [],
-    latencySr: [],
-    maxLatency: 0,
-  }
-
-  componentDidMount() {
-    setInterval(this.fetchSrStats.bind(this), 5e3)
-  }
-
-  fetchSrStats = () => {
-    xoCall('sr.stats', {
-      id: this.props.srId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, interval, stats: { latency } }) => {
-      this.setState({ latencySr: Object.keys(latency) })
-
-      const latencyData: any[] = []
-
-      for (var i = 0; i < NB_VALUES; i++) {
-        const valuesSrLatency: any = {}
-        this.state.latencySr.forEach((property: string | number) => {
-          const latencyValues = latency[property][i]
-          if(this.state.maxLatency === undefined || latencyValues> this.state.maxLatency ){
-            this.setState({ maxLatency: latencyValues })
-          }
-          valuesSrLatency[`latency_${property}`] = latency[property][i]
-        })
-        valuesSrLatency.time =
-          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-        latencyData.push(valuesSrLatency)
-      }
-
-      this.setState({ latencyData })
-    })
-
-    this.props.setMaxLatency(this.state.maxLatency)
   }
 
   render() {
@@ -219,28 +346,23 @@ class StorageLatencyStats extends Component<any, any> {
           <AreaChart
             width={400}
             height={100}
-            data={this.state.latencyData}
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            data={this.props.data.values}
+            margin={GRAPH_CONFIG}
           >
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' ms'}
-              domain={[0, Math.max(30, this.props.valueMaxLatency)]}
+              domain={[0, Math.max(1, this.props.max)]}
             />
             <Legend iconType='rect' iconSize={10} />
-            {this.state.latencySr.map((property: any, index: any) => (
+            {this.props.data.latencySr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`latency_${property}`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
+                stroke='#6f9393'
+                fill='#6f9393'
               />
             ))}
           </AreaChart>
@@ -253,50 +375,6 @@ class StorageLatencyStats extends Component<any, any> {
 class StorageIopsStats extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-    iopsData: [],
-    iopsSr: [],
-    localMaxIops: 0,
-    maxIpos: 0,
-    valueMaxIops: 0,
-  }
-
-  componentDidMount() {
-    setInterval(this.fetchSrStats.bind(this), 5e3)
-  }
-
-  fetchSrStats = () => {
-    xoCall('sr.stats', {
-      id: this.props.srId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, stats: { iops }, interval }) => {
-      this.setState({ iopsSr: Object.keys(iops) })
-
-      const iopsData: any[] = []
-
-      for (var i = 0; i < NB_VALUES; i++) {
-        const valuesSrIops: any = {}
-
-        valuesSrIops.time =
-          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-
-        this.state.iopsSr.forEach((property: string | number) => {
-          const iopsValue = iops[property][i]
-          if (
-            this.state.maxIpos === undefined ||
-            iopsValue > this.state.maxIpos
-          ) {
-            this.setState({ maxIpos: iopsValue })
-          }
-          valuesSrIops[`iops_${property}`] = iopsValue
-        })
-
-        iopsData.push(valuesSrIops)
-      }
-
-      this.setState({ iopsData })
-    })
-
-    this.props.setMaxGlobal(this.state.maxIpos)
   }
 
   render() {
@@ -308,29 +386,24 @@ class StorageIopsStats extends Component<any, any> {
           <AreaChart
             width={400}
             height={100}
-            data={this.state.iopsData}
+            data={this.props.data.values}
             syncId='sr'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            margin={GRAPH_CONFIG}
           >
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' IOPS'}
-              domain={[0, Math.max(40, this.props.valueMaxIops)]}
+              domain={[0, Math.max(1, this.props.max)]}
             />
             <Legend iconType='rect' iconSize={10} />
-            {this.state.iopsSr.map((property: any, index: any) => (
+            {this.props.data.iopsSr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`iops_${property}`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
+                stroke='#493BD8'
+                fill='#493BD8'
               />
             ))}
           </AreaChart>
@@ -343,38 +416,6 @@ class StorageIopsStats extends Component<any, any> {
 class StorageIowaitStats extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-    dataSrIowait: [],
-    iowaitSr: [],
-    maxIOwait: 0,
-  }
-  componentDidMount() {
-    setInterval(this.fetchSrStats.bind(this), 5e3)
-  }
-
-  fetchSrStats = () => {
-    xoCall('sr.stats', {
-      id: this.props.srId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, interval, stats: { iowait } }) => {
-      this.setState({ iowaitSr: Object.keys(iowait) })
-
-      const dataSrIowait: any[] = []
-
-      for (var i = 0; i < NB_VALUES; i++) {
-        const valuesSrIowait: any = {}
-        this.state.iowaitSr.forEach((property: string | number) => {
-          valuesSrIowait[`iowait_${property}`] = iowait[property][i]
-        })
-        valuesSrIowait.time =
-          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-        dataSrIowait.push(valuesSrIowait)
-      }
-      this.state.iowaitSr.forEach((property: string | number) => {
-        this.setState({ maxIOwait: Math.max(...iowait[property]) })
-      })
-      this.setState({ dataSrIowait })
-    })
-    this.props.setMaxIowait(this.state.maxIOwait)
   }
 
   render() {
@@ -386,28 +427,23 @@ class StorageIowaitStats extends Component<any, any> {
           <AreaChart
             width={400}
             height={100}
-            data={this.state.dataSrIowait}
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            data={this.props.data.values}
+            margin={GRAPH_CONFIG}
           >
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' %'}
-              domain={[0, Math.max(5, this.props.valueMaxIowait)]}
+              domain={[0, Math.max(0.0001, this.props.max)]}
             />
             <Legend iconType='rect' iconSize={10} />
-            {this.state.iowaitSr.map((property: any, index: any) => (
+            {this.props.data.iowaitSr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`iowait_${property}`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
+                stroke='#8078dc'
+                fill='#8078dc'
               />
             ))}
           </AreaChart>
@@ -420,40 +456,6 @@ class StorageIowaitStats extends Component<any, any> {
 class StorageThroughputStats extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-    throughputData: [],
-    throSr: [],
-    maxIoThroughput: 0,
-  }
-
-  componentDidMount() {
-    setInterval(this.fetchSrStats.bind(this), 5e3)
-  }
-
-  fetchSrStats = () => {
-    xoCall('sr.stats', {
-      id: this.props.srId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, interval, stats: { ioThroughput } }) => {
-      this.setState({ throSr: Object.keys(ioThroughput) })
-      const throughputData: any[] = []
-      for (var i = 0; i < NB_VALUES; i++) {
-        const valuesSrThro: any = {}
-        this.state.throSr.forEach((property: string | number) => {
-        const throughputValue= ioThroughput[property][i]
-        if(this.state.maxIoThroughput=== undefined || throughputValue> this.state.maxIoThroughput){
-          this.setState({ maxIoThroughput: throughputValue })
-        }
-        
-          valuesSrThro[`thr_${property}`] = ioThroughput[property][i]
-        })
-        valuesSrThro.time =
-          (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-        throughputData.push(valuesSrThro)
-      }
-
-      this.setState({ throughputData })
-    })
-    this.props.setMaxThroughput(this.state.maxIoThroughput)
   }
 
   formatBytes(bytes: any, decimals = 2) {
@@ -484,7 +486,7 @@ class StorageThroughputStats extends Component<any, any> {
           <AreaChart
             width={400}
             height={100}
-            data={this.state.throughputData}
+            data={this.props.data.values}
             syncId='sr'
             margin={{
               top: 5,
@@ -496,18 +498,18 @@ class StorageThroughputStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000, this.props.valueMaxThroughput)]}
+              domain={[0, Math.max(1, this.props.max)]}
             />
 
             <Legend iconType='rect' iconSize={10} />
-            {this.state.throSr.map((property: any, index: any) => (
+            {this.props.data.throSr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`thr_${property}`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
+                stroke='#66ccff'
+                fill='#66ccff'
               />
             ))}
           </AreaChart>

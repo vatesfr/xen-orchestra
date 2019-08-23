@@ -12,7 +12,7 @@ const Visualization2 = React.lazy(() => import('./Visualization/miniStatsVm'))
 const VisualizationMiniStatsHost = React.lazy(() => import('./Visualization/miniStatsHost'))
 const VisualizationMiniStatsStorage = React.lazy(() => import('./Visualization/miniStatsStorage'))
 const VisualizationSr = React.lazy(() => import('./Visualization/storageStats'))
-
+const VisualizationOverview = React.lazy(() => import('./Visualization/overview'))
 //import Visualization2 from './Visualization/mini-stats'
 
 
@@ -72,8 +72,7 @@ export default withStore(
           <Route path='/storage' component={VisualizationSr}/>
           <Route path='/miniStatsHost' component={VisualizationMiniStatsHost}/>
           <Route path='/miniStatsStorage' component={VisualizationMiniStatsStorage}/>
-         
-          
+          <Route path='/overview' component={VisualizationOverview}/>
         </React.Suspense>
       </HelmetProvider>
     </Router>

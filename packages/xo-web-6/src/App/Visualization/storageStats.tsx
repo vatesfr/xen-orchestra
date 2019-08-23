@@ -10,20 +10,14 @@ import {
   CartesianGrid,
 } from 'recharts'
 
-import Xo from 'xo-lib'
-import moment, { max } from 'moment'
+import { allColors, xoCall } from './utils'
+import moment from 'moment'
 const NB_VALUES = 118
-
-const xo = new Xo({ url: '/' })
-xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
-const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
-const xoCall = (method:string, params:object) => signedIn.then(() => xo.call(method, params))
 
 export default class Visualization extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
-
     //  SR
     //  IOPS
     iopsData: [],
@@ -149,7 +143,10 @@ export default class Visualization extends Component<any, any> {
       <div>
         <div>
           <form>
-            <select onChange={this.setGranularity} value={this.state.granularity}>
+            <select
+              onChange={this.setGranularity}
+              value={this.state.granularity}
+            >
               <option value='seconds'>Last 10 minutes</option>
               <option value='minutes'>Last 2 hours</option>
               <option value='hours'>Last week</option>
@@ -181,28 +178,7 @@ export default class Visualization extends Component<any, any> {
     )
   }
 }
-const allColors = [
-  '#493BD8',
-  '#ADD83B',
-  '#D83BB7',
-  '#3BC1D8',
-  '#aabd8a',
-  '#667772',
-  '#FA8072',
-  '#800080',
-  '#00FF00',
-  '#8abda7',
-  '#cee866',
-  '#6f9393',
-  '#bb97cd',
-  '#8778db',
-  '#2f760b',
-  '#a9578a',
-  '#C0C0C0',
-  '#000080',
-  '#000000',
-  '#800000',
-]
+const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
 
 class SrIOPSGraph extends Component<any, any> {
   state: any = {
@@ -210,7 +186,7 @@ class SrIOPSGraph extends Component<any, any> {
     endIndexIopsSR: 0,
   }
 
-  handleChangeIopsSR = (res: any) => {
+  handleSrIopsZoomChange = (res: any) => {
     this.setState({ startIndexIopsSR: res.startIndex })
     this.setState({ endIndexIopsSR: res.endIndex })
   }
@@ -229,23 +205,18 @@ class SrIOPSGraph extends Component<any, any> {
             height={300}
             data={this.props.iopsData}
             syncId='sr'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            margin={GRAPH_CONFIG}
           >
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' IOPS'}
+              tickFormatter={value => value + ' IOPS'}
               domain={[0, Math.max(40, this.props.maxIOPS)]}
             />
             <Tooltip />
             <Brush
-              onChange={this.handleChangeIopsSR}
+              onChange={this.handleSrIopsZoomChange}
               startIndex={this.state.startIndexIopsSR}
               endIndex={this.state.endIndexIopsSR}
             >
@@ -253,38 +224,33 @@ class SrIOPSGraph extends Component<any, any> {
                 width={830}
                 height={300}
                 data={this.props.iopsData}
-                margin={{
-                  top: 5,
-                  right: 20,
-                  left: 90,
-                  bottom: 5,
-                }}
+                margin={GRAPH_CONFIG}
               >
-                {this.props.iopsSr
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={`iops_${property}`}
-                      stroke={allColors[index]}
-                      fill={allColors[index]}
-                    />
-                  ))}
+                {this.props.iopsSr.map((property: any, index: any) => (
+                  <Area
+                    connectNulls
+                    isAnimationActive={false}
+                    type='monotone'
+                    dataKey={`iops_${property}`}
+                    stroke={allColors[index]}
+                    fill={allColors[index]}
+                    key={index}
+                  />
+                ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.iopsSr
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={`iops_${property}`}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                />
-              ))}
+            {this.props.iopsSr.map((property: any, index: any) => (
+              <Area
+                connectNulls
+                isAnimationActive={false}
+                type='monotone'
+                dataKey={`iops_${property}`}
+                stroke={allColors[index]}
+                fill={allColors[index]}
+                key={index}
+              />
+            ))}
           </AreaChart>
         </div>
       </div>
@@ -298,7 +264,7 @@ class SrIOThroGraph extends Component<any, any> {
     endIndexIOSR: 0,
   }
 
-  handleChangeIOSR = (res: any) => {
+  handleSrIOZoomChange = (res: any) => {
     this.setState({ startIndexIOSR: res.startIndex })
     this.setState({ endIndexIOSR: res.endIndex })
   }
@@ -333,23 +299,18 @@ class SrIOThroGraph extends Component<any, any> {
             height={300}
             data={this.props.throughputData}
             syncId='sr'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            margin={GRAPH_CONFIG}
           >
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(1000000, this.props.maxIoThroughput)]}
+              tickFormatter={value => this.formatBytes(value, 2)}
+              domain={[0, Math.max(1024e3, this.props.maxIoThroughput)]}
             />
             <Tooltip />
             <Brush
-              onChange={this.handleChangeIOSR}
+              onChange={this.handleSrIOZoomChange}
               startIndex={this.state.startIndexIOSR}
               endIndex={this.state.endIndexIOSR}
             >
@@ -364,31 +325,31 @@ class SrIOThroGraph extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.throSr
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={`thr_${property}`}
-                      stroke={allColors[index]}
-                      fill={allColors[index]}
-                    />
-                  ))}
+                {this.props.throSr.map((property: any, index: any) => (
+                  <Area
+                    connectNulls
+                    isAnimationActive={false}
+                    type='monotone'
+                    dataKey={`thr_${property}`}
+                    stroke={allColors[index]}
+                    fill={allColors[index]}
+                    key={index}
+                  />
+                ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.throSr
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={`thr_${property}`}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                />
-              ))}
+            {this.props.throSr.map((property: any, index: any) => (
+              <Area
+                connectNulls
+                isAnimationActive={false}
+                type='monotone'
+                dataKey={`thr_${property}`}
+                stroke={allColors[index]}
+                fill={allColors[index]}
+                key={index}
+              />
+            ))}
           </AreaChart>
         </div>
       </div>
@@ -402,7 +363,7 @@ class SrLatencyGraph extends Component<any, any> {
     endIndexLatencySR: 0,
   }
 
-  handleChangeLatencySR = (res: any) => {
+  handleSrLatencyZoomChange = (res: any) => {
     this.setState({ startIndexLatencySR: res.startIndex })
     this.setState({ endIndexLatencySR: res.endIndex })
   }
@@ -418,23 +379,18 @@ class SrLatencyGraph extends Component<any, any> {
             height={300}
             data={this.props.latencyData}
             syncId='sr'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            margin={GRAPH_CONFIG}
           >
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' ms'}
+              tickFormatter={value => value + ' ms'}
               domain={[0, Math.max(30, this.props.maxLatency)]}
             />
             <Tooltip />
             <Brush
-              onChange={this.handleChangeLatencySR}
+              onChange={this.handleSrLatencyZoomChange}
               startIndex={this.state.startIndexLatencySR}
               endIndex={this.state.endIndexLatencySR}
             >
@@ -442,38 +398,33 @@ class SrLatencyGraph extends Component<any, any> {
                 width={830}
                 height={300}
                 data={this.props.latencyData}
-                margin={{
-                  top: 5,
-                  right: 20,
-                  left: 90,
-                  bottom: 5,
-                }}
+                margin={GRAPH_CONFIG}
               >
-                {this.props.latencySr
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={`latency_${property}`}
-                      stroke={allColors[index]}
-                      fill={allColors[index]}
-                    />
-                  ))}
+                {this.props.latencySr.map((property: any, index: any) => (
+                  <Area
+                    connectNulls
+                    isAnimationActive={false}
+                    type='monotone'
+                    dataKey={`latency_${property}`}
+                    stroke={allColors[index]}
+                    fill={allColors[index]}
+                    key={index}
+                  />
+                ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.latencySr
-              .map((property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={`latency_${property}`}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                />
-              ))}
+            {this.props.latencySr.map((property: any, index: any) => (
+              <Area
+                connectNulls
+                isAnimationActive={false}
+                type='monotone'
+                dataKey={`latency_${property}`}
+                stroke={allColors[index]}
+                fill={allColors[index]}
+                key={index}
+              />
+            ))}
           </AreaChart>
         </div>
       </div>
@@ -487,7 +438,7 @@ class SrIoWaitGraph extends Component<any, any> {
     endIndexIOwaitSR: 0,
   }
 
-  handleChangeIOwaitSR = (res: any) => {
+  handleSrIowaitZoomChange = (res: any) => {
     this.setState({ startIndexIOwaitSR: res.startIndex })
     this.setState({ endIndexIOwaitSR: res.endIndex })
   }
@@ -503,23 +454,18 @@ class SrIoWaitGraph extends Component<any, any> {
             height={300}
             data={this.props.dataSrIowait}
             syncId='sr'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
+            margin={GRAPH_CONFIG}
           >
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' %'}
+              tickFormatter={value => value + ' %'}
               domain={[0, Math.max(5, this.props.maxIOwait)]}
             />
             <Tooltip />
             <Brush
-              onChange={this.handleChangeIOwaitSR}
+              onChange={this.handleSrIowaitZoomChange}
               startIndex={this.state.startIndexIOwaitSR}
               endIndex={this.state.endIndexIOwaitSR}
             >
@@ -527,38 +473,33 @@ class SrIoWaitGraph extends Component<any, any> {
                 width={830}
                 height={300}
                 data={this.props.dataSrIowait}
-                margin={{
-                  top: 5,
-                  right: 20,
-                  left: 90,
-                  bottom: 5,
-                }}
+                margin={GRAPH_CONFIG}
               >
-                {this.props.iowaitSr
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={`iowait_${property}`}
-                      stroke={allColors[index]}
-                      fill={allColors[index]}
-                    />
-                  ))}
+                {this.props.iowaitSr.map((property: any, index: any) => (
+                  <Area
+                    connectNulls
+                    isAnimationActive={false}
+                    type='monotone'
+                    dataKey={`iowait_${property}`}
+                    stroke={allColors[index]}
+                    fill={allColors[index]}
+                    key={index}
+                  />
+                ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.iowaitSr
-                  .map((property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={`iowait_${property}`}
-                      stroke={allColors[index]}
-                      fill={allColors[index]}
-                    />
-                  ))}
+            {this.props.iowaitSr.map((property: any, index: any) => (
+              <Area
+                connectNulls
+                isAnimationActive={false}
+                type='monotone'
+                dataKey={`iowait_${property}`}
+                stroke={allColors[index]}
+                fill={allColors[index]}
+                key={index}
+              />
+            ))}
           </AreaChart>
         </div>
       </div>

@@ -1,22 +1,10 @@
-
 import React, { Component } from 'react'
-import { YAxis, AreaChart, Legend } from 'recharts'
+import { YAxis, AreaChart, Legend, XAxis } from 'recharts'
 import Xo from 'xo-lib'
 
 import { Area } from 'recharts'
-
-const xo = new Xo({ url: '/' })
-
-xo.open().then(() => xo.signIn({ email: 'admin@admin.net', password: 'admin' }))
-const signedIn = new Promise(resolve => xo.once('authenticated', resolve))
-const xoCall = (method: any, params: any) =>
-  signedIn.then(() => xo.call(method, params))
-
-const getObjects = (id: any) =>
-  xoCall('xo.getAllObjects', { filter: { id } }).then(objects => objects[id])
-
+import { getObject, xoCall } from './utils'
 const NB_VALUES = 118
-
 const tabId = [
   'b54bf91f-51d7-4af5-b1b3-f14dcf1146ee',
   '139efd4b-5544-4f83-9090-a93d351dffbe',
@@ -24,490 +12,437 @@ const tabId = [
 ]
 
 export default class Visualization extends Component<any, any> {
-    state: any = {
-        hostIds: 0,
-      }
-      render() {
-        return (
-          <div>
-          <div>
-            <HostsMemoryStats hostIds={tabId} />
-          </div>
-          <div>
-            <HostsCpuStats hostIds={tabId} />
-          </div>
-          <div>
-            <HostsNetworkStats hostIds={tabId} />
-          </div>
-          <div>
-            <HostsLoadStats hostIds={tabId} />
-          </div>
-         </div>
-        
-        )
-      }   
-}
-class HostsMemoryStats extends Component<any, any> {
-    state: any = {
-      hostId: 0,
-    }
-    render() {
-      return this.props.hostIds.map((hostId: any) => (
-        <HostMemoryStats hostId={hostId} key={hostId} />
-      ))
-    }
+  state: any = {
+    hostIds: 0,
   }
+  render() {
+    return (
+      <div>
+        <div>
+          <HostsMemoryStats hostIds={tabId} />
+        </div>
+        <div>
+          <HostsCpuStats hostIds={tabId} />
+        </div>
+        <div>
+          <HostsNetworkStats hostIds={tabId} />
+        </div>
+        <div>
+          <HostsLoadStats hostIds={tabId} />
+        </div>
+      </div>
+    )
+  }
+}
+const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
+class HostsMemoryStats extends Component<any, any> {
+  state: any = {
+    hostId: 0,
+  }
+  render() {
+    return this.props.hostIds.map((hostId: any) => (
+      <HostMemoryStats hostId={hostId} key={hostId} />
+    ))
+  }
+}
 
 class HostsCpuStats extends Component<any, any> {
-    state: any = {
-      hostId: 0,
-    }
-    render() {
-      return this.props.hostIds.map((hostId: any) => (
-        <HostCpuStats hostId={hostId} key={hostId} />
-      ))
-    }
+  state: any = {
+    hostId: 0,
   }
+  render() {
+    return this.props.hostIds.map((hostId: any) => (
+      <HostCpuStats hostId={hostId} key={hostId} />
+    ))
+  }
+}
 
 class HostsNetworkStats extends Component<any, any> {
-    state: any = {
-      hostId: 0,
-      valueMaxNetwork: 0,
-    }
-
-    setMaxNetwork = (value: number) => {
-      if (this.state.valueMaxNetwork < value) {
-        this.setState({
-          valueMaxNetwork: value,
-        })
-       
-      }
-    }
-
-    render() {
-      return this.props.hostIds.map((hostId: any) => (
-        <HostNetworkStats hostId={hostId} key={hostId}  setMaxNetwork={this.setMaxNetwork} valueMaxNetwork={this.state.valueMaxNetwork} />
-      ))
-    }
+  state: any = {
+    hostId: 0,
+    max: 0,
+    allData: [],
   }
 
-  class HostsLoadStats extends Component<any, any> {
-    state: any = {
-      hostId: 0,
-      valueMaxLoad:0
-    }
-
-    setMaxLoad = (value: number) => {
-      if (this.state.valueMaxLoad < value) {
-        this.setState({
-          valueMaxLoad: value,
-        })
-      }
-    }
-
-    render() {
-      return this.props.hostIds.map((hostId: any) => (
-        <HostLoadStats hostId={hostId} key={hostId} setMaxLoad={this.setMaxLoad} valueMaxLoad={this.state.valueMaxLoad}/>
-      ))
-    }
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
   }
-
-  const allColors = [
-    '#493BD8',
-    '#ADD83B',
-    '#D83BB7',
-    '#3BC1D8',
-    '#aabd8a',
-    '#667772',
-    '#FA8072',
-    '#800080',
-    '#00FF00',
-    '#8abda7',
-    '#cee866',
-    '#6f9393',
-    '#bb97cd',
-    '#8778db',
-    '#2f760b',
-    '#a9578a',
-    '#C0C0C0',
-    '#000080',
-    '#000000',
-    '#800000',
-  ]
-
-  class HostMemoryStats extends Component<any, any> {
-
-    state: any = {
-      granularity: 'seconds',
-      format: 'LTS',
-      maxMemoryHost: 0,
-      dataMemory: [],
-    }
-    componentDidMount() {
-      setInterval(this.fetchStatsHost.bind(this), 5e3)
-    }
-  
-    fetchStatsHost = () => {
-      getObjects(this.props.hostId).then((host: any) => {
-        this.setState({ maxMemoryHost: host.memory.size })
+  fetchAll() {
+    Promise.all(
+      this.props.hostIds.map((idVm: any) => this.fetchOne(idVm))
+    ).then(allData => {
+      this.setState({ max: 0 })
+      this.setState({ allData: [] })
+      allData.forEach((currentVm: any) => {
+        this.updateData(
+          currentVm.endTimestamp,
+          currentVm.interval,
+          currentVm.stats
+        )
       })
-      xoCall('host.stats', {
-        host: this.props.hostId,
-        granularity: this.state.granularity,
-      }).then(
-        ({ endTimestamp, interval, stats: { memory, memoryFree = memory } }) => {
-          let newDataMemory: any[] = []
-          let dataMemory: any[] = []
-  
-          newDataMemory = memoryFree.map(
-            (value: any, index: any) => memory[index] - value
-          )
-  
-          for (var i = 0; i < NB_VALUES; i++) {
-            const valuesMemory: any = {}
-            valuesMemory.time =
-              (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-            valuesMemory.memory = newDataMemory[i]
-            dataMemory.push(valuesMemory)
-          }
-          this.setState({
-            dataMemory,
-          })
-        }
-      )
-    }
-  
-    formatBytes(bytes: any, decimals = 2) {
-      if (bytes === 0) return '0 B'
-      const k = 1024
-      const dm = decimals < 0 ? 0 : decimals
-      const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
-    }
-  
-    render() {
-      return (
-        <div>
-          <div>Memory usage</div>
-          <div>
-            <AreaChart
-              width={400}
-              height={100}
-              data={this.state.dataMemory}
-              margin={{
-                top: 5,
-                right: 20,
-                left: 90,
-                bottom: 5,
-              }}
-            >
-              <Legend iconType='rect' iconSize={10} />
-              <YAxis
-                tick={{ fontSize: '11px' }}
-                tickFormatter={tick => this.formatBytes(tick, 0)}
-                domain={[0, this.state.maxMemoryHost]}
-              />
-              <Area
-                type='monotone'
-                dataKey='memory'
-                stroke='#493BD8'
-                fill='#493BD8'
-              />
-            </AreaChart>
-          </div>
-          <br />
-        </div>
-      )
-    }
+    })
   }
 
-  class HostCpuStats extends Component<any, any> {
-    state: any = {
-      granularity: 'seconds',
-      cpusVm: [],
-      cpuDataVm: [],
-      dataCpu: [],
-    }
-    componentDidMount() {
-      setInterval(this.fetchVmStats.bind(this), 5e3)
-    }
-  
-    fetchVmStats = () => {
-      
-      xoCall('host.stats', {
-        host: this.props.hostId,
-        granularity: this.state.granularity,
-      }).then(
-        ({
-          endTimestamp,
-          stats: { cpus },
-          interval,
-        
-        }) => {
-         
-          this.setState({ cpusVm: Object.keys(cpus) })
-  
-          let cpuDataVm: any[] = []
-          const averageCpu: any[] = []
+  fetchOne = (idVm: string) =>
+    xoCall('host.stats', {
+      host: idVm,
+      granularity: this.state.granularity,
+    })
 
-          for (var i = 0; i < NB_VALUES; i++) {
-            averageCpu[i] = 0
-            for (var j = 0; j < this.state.cpusVm.length; j++) {
-              averageCpu[i] += cpus[j][i] / this.state.cpusVm.length
-            }
-          }
-  
-          for (var i = 0; i < NB_VALUES; i++) {
-            let valuesCpus: any = {}
-            valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000   
-            valuesCpus.cpu = averageCpu[i]    
-            cpuDataVm.push(valuesCpus)       
-          }
-         
-          this.setState({ cpuDataVm})
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+    data.networksTransmissionVm = Object.keys(stats.pifs.tx)
+    data.networksReceptionVm = Object.keys(stats.pifs.rx)
+
+    let networkDataVm: any[] = []
+
+    for (var i = 0; i < NB_VALUES; i++) {
+      let valuesNetwork: any = {}
+
+      data.networksTransmissionVm.forEach((property: string | number) => {
+        const networkValuesTransmission = stats.pifs.tx[property][i]
+        if (
+          data.maxNetworkT === undefined ||
+          networkValuesTransmission > data.maxNetworkT
+        ) {
+          data.maxNetworkT = networkValuesTransmission
         }
-      )
+        valuesNetwork[`pifs_${property}_(tx)`] = stats.pifs.tx[property][i]
+      })
+
+      data.networksReceptionVm.forEach((property: string | number) => {
+        const networkValuesReception = stats.pifs.rx[property][i]
+        if (
+          data.maxNetworkR === undefined ||
+          networkValuesReception > data.maxNetworkR
+        ) {
+          data.maxNetworkR = networkValuesReception
+        }
+        valuesNetwork[`pifs_${property}_(rx)`] = stats.pifs.rx[property][i]
+      })
+
+      valuesNetwork.time =
+        (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+      networkDataVm.push(valuesNetwork)
     }
-    render() {
-      return (
-        <div>
-          <div>CPU usage</div>
-          <br />
-          <div>
-            <AreaChart
-              width={400}
-              height={100}
-              data={this.state.cpuDataVm}
-              syncId='vm'
-              margin={{
-                top: 5,
-                right: 20,
-                left: 90,
-                bottom: 5,
-              }}
-            >
-              <YAxis
-                domain={[0, 100]}
-                tick={{ fontSize: '11px' }}
-                tickFormatter={tick => tick + ' %'}
-              /> 
-              <Legend iconType='rect' iconSize={10} />
-                  <Area
-                    connectNulls
-                    isAnimationActive={false}
-                    type='monotone'
-                    dataKey='cpu'
-                    stroke='blue'
-                    fill='blue'
-                  />
-            </AreaChart>
-          </div>
-        </div>
-      )
-    }
+    const maxNetwork = Math.max(data.maxNetworkR, data.maxNetworkT)
+    data.values = networkDataVm
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxNetwork) })
+  }
+  render() {
+    return this.state.allData.map((currentData: any) => (
+      <HostNetworkStats max={this.state.max} data={currentData} />
+    ))
+  }
+}
+
+class HostsLoadStats extends Component<any, any> {
+  state: any = {
+    hostId: 0,
+    max: 0,
+    allData: [],
   }
 
+  componentDidMount() {
+    setInterval(this.fetchAll.bind(this), 5e3)
+  }
+  fetchAll() {
+    Promise.all(
+      this.props.hostIds.map((idVm: any) => this.fetchOne(idVm))
+    ).then(allData => {
+      this.setState({ max: 0 })
+      this.setState({ allData: [] })
+      allData.forEach((currentVm: any) => {
+        this.updateData(
+          currentVm.endTimestamp,
+          currentVm.interval,
+          currentVm.stats
+        )
+      })
+    })
+  }
 
-  class HostNetworkStats extends Component<any, any> {
-    state: any = {
-        granularity: 'seconds',
-      networkDataVm: [],
-      networksTransmissionVm: [],
-      networksReceptionVm: [],
-      maxNetworkVm: 0,
+  fetchOne = (idVm: string) =>
+    xoCall('host.stats', {
+      host: idVm,
+      granularity: this.state.granularity,
+    })
+
+  computeMax(value: number) {
+    return this.state.max < value ? value : this.state.max
+  }
+
+  updateData(endTimestamp: any, interval: any, stats: any) {
+    const data: any = {}
+    let loadDataHost: any[] = []
+    for (var i = 0; i < NB_VALUES; i++) {
+      let valuesLoad: any = {}
+      valuesLoad.load = stats.load[i]
+      valuesLoad.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+      loadDataHost.push(valuesLoad)
     }
-  
-    componentDidMount() {
-      setInterval(this.fetchVmNetworkStats.bind(this), 5e3)
-    }
-  
-    fetchVmNetworkStats = () => {
     
-      xoCall('host.stats', {
-        host: this.props.hostId,
-        granularity: this.state.granularity,
-      }).then(
-        ({
-          endTimestamp,
-          interval,
-          stats: { pifs },
-        }) => {
-        
-          this.setState({ networksTransmissionVm: Object.keys(pifs.tx) })
-          this.setState({ networksReceptionVm: Object.keys(pifs.rx) })
-  
-          let networkDataVm: any[] = [] 
-  
-          for (var i = 0; i < NB_VALUES; i++) {
-          
-            let valuesNetwork: any = {}
-
-            this.state.networksTransmissionVm.forEach((property: string | number) => {
-              const networkValueT= pifs.tx[property][i]
-              if(this.state.maxNetworkTx === undefined || networkValueT > this.state.maxNetworkTx){
-              this.setState({ maxNetworkTx: networkValueT })
-              }
-              valuesNetwork[`pifs_${property}_(tx)`] = pifs.tx[property][i]
-            })
-  
-            this.state.networksReceptionVm.forEach((property: string | number) => {
-              const networkValueR= pifs.rx[property][i]
-              if(this.state.maxNetworkRx === undefined || networkValueR > this.state.maxNetworkRx){
-                this.setState({ maxNetworkRx: networkValueR })
-              }
-
-              valuesNetwork[`pifs_${property}_(rx)`] = pifs.rx[property][i]
-            })  
-            valuesNetwork.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000  
-            networkDataVm.push(valuesNetwork)
-
-          }
-          this.setState({ maxNetworkVm :Math.max(
-            this.state.maxNetworkTx,
-            this.state.maxNetworkRx
-          ) }) 
-  
-          this.setState({ networkDataVm})
-        }
-      )
-      this.props.setMaxNetwork(this.state.maxNetworkVm)
-    }
-   
-    formatBytes(bytes: any, decimals = 2) {
-      if (bytes === 0) return '0 B'
-      const k = 1024
-      const dm = decimals < 0 ? 0 : decimals
-      const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-    }
-  
-    render() {
-      return (
-        <div>
-          <br />
-          <div>Network throughput</div>
-          <br />
-          <div>
-            <AreaChart
-              width={430}
-              height={130}
-              data={this.state.networkDataVm}
-              syncId='vm'
-              margin={{
-                top: 5,
-                right: 20,
-                left: 90,
-                bottom: 5,
-              }}
-            >
-             
-              <YAxis
-                tick={{ fontSize: '11px' }}
-                tickFormatter={tick => this.formatBytes(tick, 2)}
-                domain={[0, Math.max(1000000, this.props.valueMaxNetwork)]}
-              /> 
-              <Legend iconType='rect' iconSize={10} />
-              {[ ...this.state.networksTransmissionVm, ...this.state.networksReceptionVm]
-                    .map((property: any, index: any) => (
-                      <Area
-                        connectNulls
-                        isAnimationActive={false}
-                        type='monotone'
-                        dataKey={`pifs_${property}_(${index < this.state.networksTransmissionVm.length ? 'tx' : 'rx'})`}
-                        stroke={allColors[index]}
-                        fill={allColors[index]}
-                      />
-                    ))}
-            </AreaChart>
-          </div>
-        </div>
-      )
-    }
+    data.values = loadDataHost
+    const maxLoad = Math.max(...stats.load)
+    const tmpAllData: any[] = this.state.allData
+    tmpAllData.push(data)
+    this.setState({ allData: tmpAllData })
+    this.setState({ max: this.computeMax(maxLoad) })
   }
 
-  class HostLoadStats extends Component<any, any> {
-   state:any={
+  render() {
+    return this.state.allData.map((currentData: any) => (
+      <HostLoadStats max={this.state.max} data={currentData} />
+    ))
+  }
+}
+
+class HostMemoryStats extends Component<any, any> {
+  state: any = {
     granularity: 'seconds',
-    maxLoad:0,
-    loadDataHost:[]
-   }
+    format: 'LTS',
+    maxMemoryHost: 0,
+    dataMemory: [],
+  }
+  componentDidMount() {
+    setInterval(this.fetchStatsHost.bind(this), 5e3)
+  }
 
-    componentDidMount() {
-        setInterval(this.fetchHostStats.bind(this), 5e3)
-      }
-    
-      fetchHostStats = () => {
-      
-       
-        xoCall('host.stats', {
-          host: this.props.hostId,
-          granularity: this.state.granularity,
-        }).then(
-          ({
-            endTimestamp,
-            interval,
-            stats: { load },
-           
-          }) => {
-   
-            let loadDataHost: any[] = []
-       
-            for (var i = 0; i < NB_VALUES; i++) {
-           
-              let valuesLoad: any = {}
-              valuesLoad.load = load[i]
-              valuesLoad.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-              loadDataHost.push(valuesLoad)
-            }
-    
-            this.setState({maxLoad:  Math.max(...load)})
-    
-            this.setState({
-              loadDataHost,
-            })
-          }
+  fetchStatsHost = () => {
+    getObject(this.props.hostId).then((host: any) => {
+      this.setState({ maxMemoryHost: host.memory.size })
+    })
+    xoCall('host.stats', {
+      host: this.props.hostId,
+      granularity: this.state.granularity,
+    }).then(
+      ({ endTimestamp, interval, stats: { memory, memoryFree = memory } }) => {
+        let newDataMemory: any[] = []
+        let dataMemory: any[] = []
+
+        newDataMemory = memoryFree.map(
+          (value: any, index: any) => memory[index] - value
         )
 
-        this.props.setMaxLoad(this.state.maxLoad)
+        for (var i = 0; i < NB_VALUES; i++) {
+          const valuesMemory: any = {}
+          valuesMemory.time =
+            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+          valuesMemory.memory = newDataMemory[i]
+          dataMemory.push(valuesMemory)
+        }
+        this.setState({
+          dataMemory,
+        })
       }
-  
-    render() {
-      return (
+    )
+  }
+
+  formatBytes(bytes: any, decimals = 2) {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
+  }
+
+  render() {
+    return (
+      <div>
+        <div>Memory usage</div>
         <div>
-          <div>Load average </div>
-          <br />
-          <div>
-            <AreaChart
-              width={400}
-              height={100}
-              data={this.state.loadDataHost}
-              
-              margin={{
-                top: 5,
-                right: 20,
-                left: 90,
-                bottom: 5,
-              }}
-            >
-              
-              <YAxis
-                tick={{ fontSize: '11px' }}
-                domain={[0, Math.max(1, this.props.valueMaxLoad)]}
-              />
-        
-              <Legend iconType='rect' iconSize={10} />
+          <AreaChart
+            width={400}
+            height={100}
+            data={this.state.dataMemory}
+            margin={GRAPH_CONFIG}
+          >
+            <Legend iconType='rect' iconSize={10} />
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              tickFormatter={tick => this.formatBytes(tick, 0)}
+              domain={[0, this.state.maxMemoryHost]}
+            />
+            <Area
+              type='monotone'
+              dataKey='memory'
+              stroke='#ADD83B'
+              fill='#ADD83B'
+            />
+          </AreaChart>
+        </div>
+        <br />
+      </div>
+    )
+  }
+}
+
+class HostCpuStats extends Component<any, any> {
+  state: any = {
+    granularity: 'seconds',
+    cpusVm: [],
+    cpuDataVm: [],
+    dataCpu: [],
+  }
+  componentDidMount() {
+    setInterval(this.fetchVmStats.bind(this), 5e3)
+  }
+
+  fetchVmStats = () => {
+    xoCall('host.stats', {
+      host: this.props.hostId,
+      granularity: this.state.granularity,
+    }).then(({ endTimestamp, stats: { cpus }, interval }) => {
+      this.setState({ cpusVm: Object.keys(cpus) })
+
+      let cpuDataVm: any[] = []
+      const averageCpu: any[] = []
+      for (var i = 0; i < NB_VALUES; i++) {
+        averageCpu[i] = 0
+        for (var j = 0; j < this.state.cpusVm.length; j++) {
+          averageCpu[i] += cpus[j][i] / this.state.cpusVm.length
+        }
+      }
+
+      for (var i = 0; i < NB_VALUES; i++) {
+        let valuesCpus: any = {}
+        valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
+        valuesCpus.cpu = averageCpu[i]
+        cpuDataVm.push(valuesCpus)
+      }
+
+      this.setState({ cpuDataVm })
+    })
+  }
+  render() {
+    return (
+      <div>
+        <div>CPU usage</div>
+        <br />
+        <div>
+          <AreaChart
+            width={400}
+            height={100}
+            data={this.state.cpuDataVm}
+            syncId='vm'
+            margin={GRAPH_CONFIG}
+          >
+            <YAxis
+              domain={[0, 100]}
+              tick={{ fontSize: '11px' }}
+              tickFormatter={tick => tick + ' %'}
+            />
+            <Legend iconType='rect' iconSize={10} />
+            <Area
+              connectNulls
+              isAnimationActive={false}
+              type='monotone'
+              dataKey='cpu'
+              stroke='#015b00'
+              fill='#015b00'
+            />
+          </AreaChart>
+        </div>
+      </div>
+    )
+  }
+}
+
+class HostNetworkStats extends Component<any, any> {
+  state: any = {
+    granularity: 'seconds',
+  }
+
+  formatBytes(bytes: any, decimals = 2) {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  }
+
+  render() {
+    return (
+      <div>
+        <br />
+        <div>Network throughput</div>
+        <br />
+        <div>
+          <AreaChart
+            width={430}
+            height={130}
+            data={this.props.data.values}
+            margin={GRAPH_CONFIG}
+          >
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              tickFormatter={tick => this.formatBytes(tick, 2)}
+              domain={[0, Math.max(100, this.props.max)]}
+            />
+            <Legend iconType='rect' iconSize={10} />
+            {[
+              ...this.props.data.networksTransmissionVm,
+              ...this.props.data.networksReceptionVm,
+            ].map((property: any, index: any) => (
               <Area
+                connectNulls
+                isAnimationActive={false}
                 type='monotone'
-                dataKey='load'
+                dataKey={`pifs_${property}_(${
+                  index < this.props.data.networksTransmissionVm.length
+                    ? 'tx'
+                    : 'rx'
+                })`}
                 stroke='#493BD8'
                 fill='#493BD8'
               />
-            </AreaChart>
-          </div>
+            ))}
+          </AreaChart>
         </div>
-      )
-    }
+      </div>
+    )
   }
-  
+}
+
+class HostLoadStats extends Component<any, any> {
+  state: any = {
+    granularity: 'seconds',
+  }
+
+  render() {
+    return (
+      <div>
+        <div>Load average </div>
+        <br />
+        <div>
+          <AreaChart
+            width={430}
+            height={100}
+            data={this.props.data.values}
+            margin={GRAPH_CONFIG}
+          >
+            <YAxis
+              tick={{ fontSize: '11px' }}
+              domain={[0, Math.max(1, this.props.max)]}
+            />
+            <Legend iconType='rect' iconSize={10} />
+            <Area
+              type='monotone'
+              dataKey='load'
+              stroke='#493BD8'
+              fill='#493BD8'
+            />
+          </AreaChart>
+        </div>
+      </div>
+    )
+  }
+}
