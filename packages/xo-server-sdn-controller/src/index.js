@@ -103,6 +103,17 @@ function updateNetworkOtherConfig(network) {
   )
 }
 
+// -----------------------------------------------------------------------------
+
+function createPassword() {
+  const chars = [
+    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!',
+  ]
+
+  return [...Array(16)].map(i => chars[(Math.random() * chars.length) | 0])
+    .join``
+}
+
 // =============================================================================
 
 class SDNController extends EventEmitter {
@@ -1231,12 +1242,8 @@ class SDNController extends EventEmitter {
       otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
 
-    const chars = [
-      ...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!',
-    ]
-    const password = network.other_config.encrypted === 'true'
-      ? [...Array(16)].map(i => chars[(Math.random() * chars.length) | 0])
-          .join``
+    const password = otherConfig['xo:sdn-controller:encrypted'] === 'true'
+      ? createPassword()
       : undefined
 
     let bridgeName
