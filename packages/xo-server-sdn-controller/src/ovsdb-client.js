@@ -59,7 +59,6 @@ export class OvsdbClient {
 
     const socket = await this._connect()
     const index = ++this._numberOfPortAndInterface
-
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
       networkName,
@@ -437,7 +436,6 @@ export class OvsdbClient {
 
   async _sendOvsdbTransaction(params, socket) {
     const stream = socket
-
     const requestId = ++this._requestID
     const req = {
       id: requestId,
