@@ -58,8 +58,7 @@ export class OvsdbClient {
     this._adding.push(adding)
 
     const socket = await this._connect()
-    const index = this._numberOfPortAndInterface
-    ++this._numberOfPortAndInterface
+    const index = ++this._numberOfPortAndInterface
 
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
@@ -257,9 +256,9 @@ export class OvsdbClient {
     for (let i = pos; i < data.length; ++i) {
       const c = data.charAt(i)
       if (c === '{') {
-        depth++
+        ++depth
       } else if (c === '}') {
-        depth--
+        --depth
         if (depth === 0) {
           const object = JSON.parse(buffer + data.substr(0, i + 1))
           objects.push(object)
@@ -439,8 +438,7 @@ export class OvsdbClient {
   async _sendOvsdbTransaction(params, socket) {
     const stream = socket
 
-    const requestId = this._requestID
-    ++this._requestID
+    const requestId = ++this._requestID
     const req = {
       id: requestId,
       method: 'transact',
