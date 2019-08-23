@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import cookies from 'cookies-js'
 import debounce from 'lodash/debounce'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -109,11 +110,16 @@ export default class TabConsole extends Component {
   )
 
   _openSshMore = async () => {
+    const cookieKey = `${this.props.vm.uuid}/ssh-user-name`
+    const suggestedUsername = cookies.get(cookieKey) || 'root'
     const username = await form({
-      defaultValue: 'root',
+      defaultValue: suggestedUsername,
       header: <span>{_('sshUsernameLabel')}</span>,
       render: props => <this._sshName {...props} />,
     })
+    if (username !== suggestedUsername) {
+      cookies.set(cookieKey, username)
+    }
     window.open(`ssh://${username}@${this.props.vm.addresses['0/ip']}`)
   }
 
