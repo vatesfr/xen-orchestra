@@ -739,8 +739,7 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const encapsulation = network.other_config.encapsulation || 'gre'
-    const { vni = '0' } = network.other_config
+    const { encapsulation = 'gre', vni = '0' } = network.other_config
     let bridgeName
     try {
       bridgeName = await hostClient.addInterfaceAndPort(
