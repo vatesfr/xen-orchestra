@@ -210,12 +210,7 @@ class SDNController extends EventEmitter {
             if (network.other_config.pif_device === undefined) {
               const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
               const pif = xapi.getObjectByRef(tunnel.transport_PIF)
-              await xapi.call(
-                'network.add_to_other_config',
-                network.$ref,
-                'pif_device',
-                pif.device
-              )
+              await network.update_other_config('pif_device', pif.device)
             }
 
             this._poolNetworks.push({
