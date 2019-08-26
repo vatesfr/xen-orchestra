@@ -11,7 +11,6 @@ import { map, mapValues, orderBy } from 'lodash'
 import { subscribePlugins, subscribeAllResourceCatalog } from 'xo'
 
 import Resource from './resource'
-import './style.css'
 
 // ==================================================================
 

@@ -80,12 +80,12 @@ export default decorate([
       },
     },
     computed: {
-      isFromSources: () => +process.env.XOA_PLAN === 5,
+      isFromSources: () => +process.env.XOA_PLAN > 4,
       poolName: ({ pool }) => pool && pool.name_label,
     },
   }),
   injectState,
-  ({ name, namespace, os, popularity, size, version, id, effects, state }) => (
+  ({ effects, id, name, namespace, os, popularity, size, state, version }) => (
     <Card shadow>
       <CardHeader>{name}</CardHeader>
       <CardBlock className='text-center'>
