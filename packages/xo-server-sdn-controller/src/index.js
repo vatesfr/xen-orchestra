@@ -210,12 +210,7 @@ class SDNController extends EventEmitter {
             if (network.other_config.pif_device === undefined) {
               const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
               const pif = xapi.getObjectByRef(tunnel.transport_PIF)
-              await xapi.call(
-                'network.add_to_other_config',
-                network.$ref,
-                'pif_device',
-                pif.device
-              )
+              await network.update_other_config('pif_device', pif.device)
             }
 
             this._poolNetworks.push({
@@ -421,10 +416,7 @@ class SDNController extends EventEmitter {
 
     if (!pif.currently_attached) {
       const tunnel = this._getHostTunnelForNetwork(pif.$host, pif.network)
-      await pif.$xapi.call('tunnel.set_status', tunnel.$ref, {
-        active: 'false',
-      })
-
+      await tunnel.set_status({ active: 'false' })
       if (poolNetwork.starCenter !== pif.host) {
         return
       }
@@ -707,13 +699,12 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const xapi = host.$xapi
     const tunnel = this._getHostTunnelForNetwork(host, network.$ref)
     const starCenterTunnel = this._getHostTunnelForNetwork(
       starCenter,
       network.$ref
     )
-    await xapi.call('tunnel.set_status', tunnel.$ref, { active: 'false' })
+    await tunnel.set_status({ active: 'false' })
 
     const hostClient = find(
       this._ovsdbClients,
@@ -768,8 +759,8 @@ class SDNController extends EventEmitter {
     if (bridgeName !== undefined) {
       const activeStatus = { active: 'true', key: bridgeName }
       await Promise.all([
-        xapi.call('tunnel.set_status', tunnel.$ref, activeStatus),
-        xapi.call('tunnel.set_status', starCenterTunnel.$ref, activeStatus),
+        tunnel.set_status(activeStatus),
+        starCenterTunnel.set_status(activeStatus),
       ])
     }
   }
@@ -834,12 +825,12 @@ class SDNController extends EventEmitter {
       }
     }
 
-    for (const poolNetwork of this._poolNetworks) {
-      const tunnel = this._getHostTunnelForNetwork(host, poolNetwork.network)
-      await host.$xapi.call('tunnel.set_status', tunnel.$ref, {
-        active: 'false',
+    await Promise.all(
+      map(this._poolNetworks, poolNetwork => {
+        const tunnel = this._getHostTunnelForNetwork(host, poolNetwork.network)
+        return tunnel.set_status({ active: 'false' })
       })
-    }
+    )
   }
 
   // ---------------------------------------------------------------------------
