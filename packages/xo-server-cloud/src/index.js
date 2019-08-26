@@ -28,7 +28,7 @@ class XoServerCloud {
     const getAllResourceCatalog = () => this._getAllCatalog()
     getAllResourceCatalog.description =
       'Get the list of all available resources'
-    getAllResourceCatalog.permission = 'view'
+    getAllResourceCatalog.permission = 'admin'
 
     const registerResource = ({ namespace }) =>
       this._registerResource(namespace)

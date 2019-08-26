@@ -28,7 +28,7 @@ downloadAndInstallResource.params = {
 }
 
 downloadAndInstallResource.resolve = {
-  sr: ['sr', 'SR', 'view'],
+  sr: ['sr', 'SR', 'administrate'],
 }
 
-downloadAndInstallResource.permission = 'view'
+downloadAndInstallResource.permission = 'admin'
