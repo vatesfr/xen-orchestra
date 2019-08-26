@@ -144,7 +144,7 @@ const NewNetwork = decorate([
         pif.physical &&
         pif.ip_configuration_mode !== 'None' &&
         pif.$host === (pool && pool.master),
-      pifNetworkPredicate: ({ networks }) => (pif, key) => {
+      networkPifPredicate: ({ networks }) => (pif, key) => {
         const pool = networks[key].pool
         return (
           pif.physical &&
@@ -152,7 +152,7 @@ const NewNetwork = decorate([
           pif.$host === (pool !== undefined && pool.master)
         )
       },
-      poolNetworkPredicate: ({ networks }, { pool: rootPool }) => (
+      networkPoolPredicate: ({ networks }, { pool: rootPool }) => (
         pool,
         index
       ) =>
@@ -349,7 +349,7 @@ const NewNetwork = decorate([
                                       }
                                       value={pool}
                                       predicate={pool =>
-                                        state.poolNetworkPredicate(pool, key)
+                                        state.networkPoolPredicate(pool, key)
                                       }
                                       required
                                     />
@@ -367,7 +367,7 @@ const NewNetwork = decorate([
                                       }
                                       value={pif}
                                       predicate={pif =>
-                                        state.pifNetworkPredicate(pif, key)
+                                        state.networkPifPredicate(pif, key)
                                       }
                                       required
                                     />
