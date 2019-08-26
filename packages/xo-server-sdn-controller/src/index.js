@@ -418,12 +418,8 @@ class SDNController extends EventEmitter {
         xoPif,
       })
 
-      await pool.$xapi.call(
-        'network.add_to_other_config',
-        poolNetwork.network,
-        'cross_pool_network_uuid',
-        uuid
-      )
+      const network = pool.$xapi.getObjectByRef(poolNetwork.network)
+      await network.update_other_config('cross_pool_network_uuid', uuid)
 
       crossPoolNetwork.pools.push(poolNetwork.pool)
       crossPoolNetwork.networks.push(poolNetwork.network)
