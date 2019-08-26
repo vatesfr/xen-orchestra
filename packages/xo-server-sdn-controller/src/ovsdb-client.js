@@ -58,7 +58,6 @@ export class OvsdbClient {
     const adding = { id: networkUuid, addr: remoteAddress }
     this._adding.push(adding)
 
-    const index = ++this._numberOfPortAndInterface
     const socket = await this._connect()
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
@@ -87,6 +86,7 @@ export class OvsdbClient {
       return bridgeName
     }
 
+    const index = ++this._numberOfPortAndInterface
     const interfaceName = bridgeName + '_iface' + index
     const portName = bridgeName + '_port' + index
 
