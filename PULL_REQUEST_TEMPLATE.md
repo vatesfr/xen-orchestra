@@ -4,6 +4,7 @@
 
 - [ ] PR reference the relevant issue (e.g. `Fixes #007`)
 - [ ] if UI changes, a screenshot has been added to the PR
+- [ ] if method added to `xo-server` API, the corresponding test has been added to `xo-server-test`
 - [ ] `CHANGELOG.unreleased.md`:
    - enhancement/bug fix entry added
    - list of packages to release updated (`${name} v${new version}`)
