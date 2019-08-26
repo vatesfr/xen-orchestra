@@ -126,7 +126,8 @@ describe("user", () => {
 After each run of the tests, check that snapshots are not inadvertently modified.
 
 - ⚠ Jest known issue ⚠  
-If a test timeout is triggered the next async tests can fail, it is due to an inadvertently modified snapshots.
+If a test timeout is triggered the next async tests can fail, it's due to an inadvertently modified snapshots.
+As a workaround, you can clean your git working tree and re-run jest using a large timeout: `> yarn test --testTimeout=100000`
 
 ## Contributions
 
