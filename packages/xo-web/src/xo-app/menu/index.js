@@ -354,7 +354,7 @@ export default class Menu extends Component {
           },
         ],
       },
-      {
+      isAdmin && {
         to: '/hub',
         icon: 'menu-hub',
         label: 'hubPage',
