@@ -733,20 +733,22 @@ class SDNController extends EventEmitter {
     const { encapsulation = 'gre', vni = '0' } = network.other_config
     let bridgeName
     try {
-      bridgeName = await hostClient.addInterfaceAndPort(
-        network.uuid,
-        network.name_label,
-        starCenterClient.host.address,
-        encapsulation,
-        vni
-      )
-      await starCenterClient.addInterfaceAndPort(
-        network.uuid,
-        network.name_label,
-        hostClient.host.address,
-        encapsulation,
-        vni
-      )
+      ;[bridgeName] = await Promise.all([
+        hostClient.addInterfaceAndPort(
+          network.uuid,
+          network.name_label,
+          starCenterClient.host.address,
+          encapsulation,
+          vni
+        ),
+        starCenterClient.addInterfaceAndPort(
+          network.uuid,
+          network.name_label,
+          hostClient.host.address,
+          encapsulation,
+          vni
+        ),
+      ])
     } catch (error) {
       log.error('Error while connecting host to private network', {
         error,
