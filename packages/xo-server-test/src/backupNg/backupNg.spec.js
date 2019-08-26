@@ -22,7 +22,7 @@ const validateRootTask = (log, props) =>
     ...props,
   })
 
-const validateVmTask = (task, vmId, props = {}) => {
+const validateVmTask = (task, vmId, props) => {
   expect(task).toMatchSnapshot({
     data: {
       id: expect.any(String),
@@ -506,7 +506,7 @@ describe('backupNg', () => {
     })
     expect(backupLogs.length).toBe(nExecutions)
 
-    backupLogs.forEach(({ tasks, ...log }, key) => {
+    backupLogs.forEach(({ tasks = [], ...log }, key) => {
       validateRootTask(log, {
         data: {
           mode: 'delta',
@@ -523,11 +523,11 @@ describe('backupNg', () => {
         transfer: 0,
         vm: 0,
       }
-      tasks.forEach(({ tasks, ...vmTask }) => {
+      tasks.forEach(({ tasks = [], ...vmTask }) => {
         if (vmTask.data !== undefined && vmTask.data.type === 'VM') {
           validateVmTask(vmTask, vmToBackup, { status: 'success' })
           numberOfTasks.vm++
-          tasks.forEach(({ tasks, ...subTask }) => {
+          tasks.forEach(({ tasks = [], ...subTask }) => {
             if (subTask.message === 'snapshot') {
               validateSnapshotTask(subTask, { status: 'success' })
               numberOfTasks.snapshot++
