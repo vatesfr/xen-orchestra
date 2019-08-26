@@ -157,6 +157,46 @@ class XoConnection extends Xo {
     return find(await this.call('schedule.getAll'), predicate)
   }
 
+  async runBackupJob(jobId, scheduleId, { remotes, nExecutions = 1 }) {
+    for (let i = 0; i < nExecutions; i++) {
+      await xo.call('backupNg.runJob', { id: jobId, schedule: scheduleId })
+    }
+    const backups = {}
+    if (remotes !== undefined) {
+      const backupsByRemote = await xo.call('backupNg.listVmBackups', {
+        remotes,
+      })
+      forOwn(backupsByRemote, (backupsByVm, remoteId) => {
+        backups[remoteId] = []
+        forOwn(backupsByVm, vmBackups => {
+          vmBackups.forEach(
+            ({ jobId: backupJobId, scheduleId: backupScheduleId, id }) => {
+              if (jobId === backupJobId && scheduleId === backupScheduleId) {
+                this._tempResourceDisposers.push('backupNg.deleteVmBackup', {
+                  id,
+                })
+                backups[remoteId].push(id)
+              }
+            }
+          )
+        })
+      })
+    }
+
+    forOwn(this.objects.all, (obj, id) => {
+      if (
+        obj.other !== undefined &&
+        obj.other['xo:backup:job'] === jobId &&
+        obj.other['xo:backup:schedule'] === scheduleId
+      ) {
+        this._tempResourceDisposers.push('vm.delete', {
+          id,
+        })
+      }
+    })
+    return backups
+  }
+
   async _cleanDisposers(disposers) {
     for (let n = disposers.length - 1; n > 0; ) {
       const params = disposers[n--]
