@@ -774,17 +774,14 @@ class SDNController extends EventEmitter {
   async _electNewPoolCenter(crossPoolNetwork) {
     delete crossPoolNetwork.poolCenter
 
+    let centerPoolNetwork
     const crossPoolCenter = crossPoolNetwork.pools.find(poolRef => {
-      const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
-      return poolNetwork.starCenter !== undefined
+      centerPoolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
+      return centerPoolNetwork.starCenter !== undefined
     })
     if (crossPoolCenter !== undefined) {
-      const poolNetwork = this._getPoolNetwork(
-        crossPoolCenter,
-        crossPoolNetwork
-      )
       const xapi = find(this._xapis, xapi => xapi.pool.$ref === crossPoolCenter)
-      const network = xapi.getObjectByRef(poolNetwork.network)
+      const network = xapi.getObjectByRef(centerPoolNetwork.network)
       const pool = xapi.getObjectByRef(crossPoolCenter)
       crossPoolNetwork.poolCenter = crossPoolCenter
       log.debug('New pool center in cross-pool network', {
@@ -799,10 +796,6 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const centerPoolNetwork = this._getPoolNetwork(
-      crossPoolNetwork.poolCenter,
-      crossPoolNetwork
-    )
     await this._resetCrossPoolConnections(
       centerPoolNetwork,
       crossPoolNetwork.uuid
@@ -1072,22 +1065,24 @@ class SDNController extends EventEmitter {
     // Use centerNetwork VNI by convention
     const { encapsulation = 'gre', vni = '0' } = centerNetwork.other_config
     try {
-      await client.addInterfaceAndPort(
-        network.uuid,
-        network.name_label,
-        centerClient.host.address,
-        encapsulation,
-        vni,
-        centerNetwork.uuid
-      )
-      await centerClient.addInterfaceAndPort(
-        centerNetwork.uuid,
-        centerNetwork.name_label,
-        client.host.address,
-        encapsulation,
-        vni,
-        network.uuid
-      )
+      await Promise.all([
+        client.addInterfaceAndPort(
+          network.uuid,
+          network.name_label,
+          centerClient.host.address,
+          encapsulation,
+          vni,
+          centerNetwork.uuid
+        ),
+        centerClient.addInterfaceAndPort(
+          centerNetwork.uuid,
+          centerNetwork.name_label,
+          client.host.address,
+          encapsulation,
+          vni,
+          network.uuid
+        ),
+      ])
     } catch (error) {
       log.error('Error while connecting networks', {
         error,
@@ -1098,6 +1093,7 @@ class SDNController extends EventEmitter {
         centerPool: centerClient.host.$pool.name_label,
         uuid,
       })
+      return
     }
     log.debug('Networks connected', {
       network: network.name_label,
