@@ -2157,6 +2157,7 @@ const messages = {
   hubXvaProgressMessage: 'Click here to see progress',
   hubHideInstalledPoolMsg:
     'We are hiding pools with already installed template',
+  hubHideExceedSizeSrMsg: 'We are hiding SRs that exceed template size',
 
   // Licenses
   xosanUnregisteredDisclaimer:

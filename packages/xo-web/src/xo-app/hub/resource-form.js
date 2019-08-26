@@ -6,7 +6,6 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Container } from 'grid'
 import { SelectPool, SelectSr } from 'select-objects'
-import { error } from 'notification'
 import { isSrWritable } from 'xo'
 import { injectState, provideState } from 'reaclette'
 
@@ -20,13 +19,18 @@ export default decorate([
     }),
     effects: {
       initialize() {
-        return { poolPredicate: pool => pool.uuid !== this.props.uuid }
+        return {
+          // hide pools with already installed template
+          poolPredicate: pool => pool.uuid !== this.props.uuid,
+        }
       },
       async handleSelectedPool(_, pool) {
         this.state.pool = pool
         this.state.sr = pool.default_SR
         this.state.srPredicate = sr =>
-          sr.$pool === this.state.pool.id && isSrWritable(sr)
+          sr.$pool === this.state.pool.id &&
+          this.props.xvaSize < sr.size &&
+          isSrWritable(sr)
 
         this.props.onChange({
           pool,
@@ -34,15 +38,11 @@ export default decorate([
         })
       },
       async handleSelectedSr(_, sr) {
-        if (this.props.xvaSize > sr.size) {
-          error('Select SR', 'Not Enough Free Disk Space')
-        } else {
-          this.state.sr = sr === '' ? undefined : sr
-          this.props.onChange({
-            sr: sr === '' ? undefined : sr,
-            pool: this.state.pool,
-          })
-        }
+        this.state.sr = sr === '' ? undefined : sr
+        this.props.onChange({
+          sr: sr === '' ? undefined : sr,
+          pool: this.state.pool,
+        })
       },
     },
   }),
@@ -65,7 +65,13 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('vmImportToSr')}</label>
+        <label>
+          {_('vmImportToSr')}
+          &nbsp;
+          <Tooltip content={_('hubHideExceedSizeSrMsg')}>
+            <Icon icon='info' />
+          </Tooltip>
+        </label>
         <SelectSr
           disabled={!pool}
           onChange={effects.handleSelectedSr}

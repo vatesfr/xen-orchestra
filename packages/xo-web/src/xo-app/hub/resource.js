@@ -42,7 +42,7 @@ export default decorate([
         } else {
           const resourceParams = await form({
             render: props => (
-              <ResourceForm {...props} xvaSize={size} uuid={uuid} />
+              <ResourceForm {...props} xvaSize={this.props.size} uuid={uuid} />
             ),
             header: (
               <span>
