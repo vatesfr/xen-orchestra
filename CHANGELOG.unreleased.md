@@ -28,5 +28,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-sdn-controller v0.3.0
 - xo-server v5.50.0
 - xo-web v5.50.0
