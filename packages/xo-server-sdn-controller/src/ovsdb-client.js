@@ -328,7 +328,7 @@ export class OvsdbClient {
           remoteAddress,
           socket
         )
-        if (hasRemote === true) {
+        if (hasRemote) {
           return true
         }
       }
