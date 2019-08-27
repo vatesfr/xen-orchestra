@@ -1248,7 +1248,6 @@ class SDNController extends EventEmitter {
 
     let bridgeName
     try {
-<<<<<<< HEAD
       ;[bridgeName] = await Promise.all([
         hostClient.addInterfaceAndPort(
           network.uuid,
