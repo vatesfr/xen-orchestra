@@ -82,8 +82,8 @@ export class OvsdbClient {
       return bridgeName
     }
 
-    const interfaceName = 'tunnel_iface' + index
-    const portName = 'tunnel_port' + index
+    const interfaceName = bridgeName + '_iface' + index
+    const portName = bridgeName + '_port' + index
 
     // Add interface and port to the bridge
     const options = ['map', [['remote_ip', remoteAddress], ['key', key]]]
