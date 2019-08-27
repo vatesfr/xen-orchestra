@@ -1,3 +1,4 @@
+import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import {
   extractProperty,
@@ -479,20 +480,16 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   pbd(obj) {
-    const deviceConfig = obj.device_config
     return {
       type: 'PBD',
 
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config:
-        deviceConfig.cifspassword !== undefined
-          ? {
-              ...deviceConfig,
-              cifspassword: '* obfuscated *',
-            }
-          : deviceConfig,
+      deviceConfig: sensitiveValues.replace(
+        obj.device_config,
+        '* obfuscated *'
+      ),
       otherConfig: obj.other_config,
     }
   },
