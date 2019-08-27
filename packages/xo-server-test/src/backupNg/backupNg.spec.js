@@ -446,7 +446,7 @@ describe('backupNg', () => {
   })
 
   test('execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval', async () => {
-    jest.setTimeout(12e6)
+    jest.setTimeout(12e5)
     const {
       vms: { default: defaultVm, vmToBackup = defaultVm },
       remotes: { default: defaultRemote, remote1, remote2 = defaultRemote },
