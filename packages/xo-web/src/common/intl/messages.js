@@ -572,7 +572,7 @@ const messages = {
   newSrDescPlaceHolder: 'Storage description',
   newSrAddressPlaceHolder: 'Address',
   newSrAddressNfsPlaceHolder: 'Address, e.g 192.168.100.5',
-  newSrAddressSmbPlaceHolder: 'Address, e.g //192.168.100.51/smb',
+  newSrAddressSmbPlaceHolder: 'Address, e.g \\192.168.100.51/smb',
   newSrPortPlaceHolder: '[port]',
   newSrUsernamePlaceHolder: 'Username',
   newSrPasswordPlaceHolder: 'Password',
