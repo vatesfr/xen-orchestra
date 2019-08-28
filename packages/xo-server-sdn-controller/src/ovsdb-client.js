@@ -146,7 +146,7 @@ export class OvsdbClient {
     let opResult
     do {
       opResult = jsonObjects[0].result[i]
-      if (opResult !== undefined && opResult.error !== undefined) {
+      if (opResult?.error !== undefined) {
         error = opResult.error
         details = opResult.details
       }

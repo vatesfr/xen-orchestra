@@ -714,8 +714,7 @@ class SDNController extends EventEmitter {
   _setControllerNeeded(xapi) {
     const controller = find(xapi.objects.all, { $type: 'SDN_controller' })
     return !(
-      controller !== undefined &&
-      controller.protocol === PROTOCOL &&
+      controller?.protocol === PROTOCOL &&
       controller.address === '' &&
       controller.port === 0
     )
@@ -818,7 +817,7 @@ class SDNController extends EventEmitter {
 
     for (const host of hosts) {
       const pif = find(host.$PIFs, { network: network.$ref })
-      if (pif !== undefined && pif.currently_attached && host.$metrics.live) {
+      if (pif?.currently_attached && host.$metrics.live) {
         newCenter = host
       }
     }
