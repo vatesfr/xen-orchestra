@@ -686,7 +686,7 @@ export default class New extends Component {
                           id='srServer'
                           className='form-control'
                           placeholder={formatMessage(
-                            messages.newSrAddressPlaceHolder
+                            messages.newSrAddressNfsPlaceHolder
                           )}
                           ref='server'
                           required
@@ -858,7 +858,7 @@ export default class New extends Component {
                         id='srServer'
                         className='form-control'
                         placeholder={formatMessage(
-                          messages.newSrAddressPlaceHolder
+                          messages.newSrAddressSmbPlaceHolder
                         )}
                         ref='server'
                         required
