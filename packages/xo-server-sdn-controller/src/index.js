@@ -4,7 +4,7 @@ import NodeOpenssl from 'node-openssl-cert'
 import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, forEach, map, omitBy } from 'lodash'
+import { filter, find, forEach, forOwn, map, omitBy } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -522,7 +522,7 @@ class SDNController extends EventEmitter {
             poolNetwork => poolNetwork.network !== networkRef
           )
 
-          forEach(this._crossPoolNetworks, crossPoolNetwork => {
+          forOwn(this._crossPoolNetworks, crossPoolNetwork => {
             crossPoolNetwork.networks = crossPoolNetwork.networks.filter(
               ref => ref !== networkRef
             )
