@@ -3,7 +3,6 @@ import hrp from 'http-request-plus'
 
 const WS_URL = 'ws://localhost:9001'
 const HTTP_URL = 'http://localhost:9002'
-const FREE_CATALOG_ROUTE = '/free'
 
 // ===================================================================
 
@@ -195,7 +194,7 @@ class XoServerCloud {
       throw new Error('cannot get download token')
     }
 
-    const response = await hrp(`${HTTP_URL}${FREE_CATALOG_ROUTE}`, {
+    const response = await hrp(`${HTTP_URL}?mode=free`, {
       headers: {
         Authorization: `Bearer ${downloadToken}`,
       },
