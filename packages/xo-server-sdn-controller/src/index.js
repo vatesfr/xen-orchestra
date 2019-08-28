@@ -127,9 +127,6 @@ class SDNController extends EventEmitter {
 
     this._overrideCerts = false
 
-    // VNI: VxLAN Network Identifier, it is used by OpenVSwitch
-    // to route traffic of different networks in a single tunnel.
-    // See: https://tools.ietf.org/html/rfc7348
     this._prevVni = 0
   }
 
@@ -387,7 +384,17 @@ class SDNController extends EventEmitter {
 
     const pif = this._xo.getXapiObject(xoPif)
 
-    // Create the private network
+    /*
+    Create the private network
+    Attributes on created VM snapshots:
+
+    - `other_config`:
+      - `private_pool_wide`: `true` if the network is created (and so must be managed) by a SDN Controller
+      - `encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
+      - `pif_device`       : PIF on which the tunnels are created, must be physical and have an IP configuration
+      - `vni`              : VxLAN Network Identifier, it is used by OpenVSwitch to route traffic of different networks in a single tunnel
+                             See: https://tools.ietf.org/html/rfc7348
+    */
     const privateNetworkRef = await pool.$xapi.call('network.create', {
       name_label: networkName,
       name_description: networkDescription,
