@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [SDN Controller] Add possibility to create cross-pool private networks (PR [#4405](https://github.com/vatesfr/xen-orchestra/pull/4405))
+
 ### Bug fixes
 
 - [PBD] Obfuscate cifs password from device config [#4384](https://github.com/vatesfr/xen-orchestra/issues/4384) (PR [#4401](https://github.com/vatesfr/xen-orchestra/pull/4401))
@@ -20,5 +22,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-sdn-controller v0.2.0
 - xo-server v5.49.0
 - xo-web v5.49.0

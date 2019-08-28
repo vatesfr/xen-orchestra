@@ -1752,6 +1752,7 @@ const messages = {
   pillBonded: 'Bonded',
   bondedNetwork: 'Bonded network',
   privateNetwork: 'Private network',
+  addPool: 'Add pool',
 
   // ----- Add host -----
   hosts: 'Hosts',
