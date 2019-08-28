@@ -1231,6 +1231,12 @@ class SDNController extends EventEmitter {
     }
 
     if (bridgeName !== undefined) {
+      /*
+      See: https://xapi-project.github.io/xapi/design/tunnelling.html
+      - `status`:
+        - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
+        - `key`   : Corresponding OpenVSwitch bridge name (empty if `active` is `false`)
+      */
       const activeStatus = { active: 'true', key: bridgeName }
       await Promise.all([
         tunnel.set_status(activeStatus),

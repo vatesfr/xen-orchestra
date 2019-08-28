@@ -90,7 +90,16 @@ export class OvsdbClient {
     const interfaceName = bridgeName + '_iface' + index
     const portName = bridgeName + '_port' + index
 
-    // Add interface and port to the bridge
+    /*
+    Add interface and port to the bridge
+    - `options`:
+      - `remote_ip`: Remote IP of the tunnel
+      - `key`      : Network VNI
+
+    - `other_config`:
+      - `cross_pool`       : UUID of the remote network connected by the tunnel
+      - `private_pool_wide`: `true` if created (and managed) by a SDN Controller
+    */
     const options = ['map', [['remote_ip', remoteAddress], ['key', key]]]
     const otherConfig =
       remoteNetwork !== undefined
