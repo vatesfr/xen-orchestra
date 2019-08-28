@@ -191,8 +191,8 @@ class SDNController extends EventEmitter {
 
     this._unsetApiMethods = this._xo.addApiMethods({
       sdnController: {
-        createPrivateNetwork,
         createCrossPoolPrivateNetwork,
+        createPrivateNetwork,
       },
     })
 
@@ -579,8 +579,7 @@ class SDNController extends EventEmitter {
 
         const crossPoolNetwork = find(
           this._crossPoolNetworks,
-          crossPoolNetwork =>
-            crossPoolNetwork.networks.includes(pif.$network.$ref)
+          crossPoolNetwork => crossPoolNetwork.networks.includes(pif.network)
         )
         if (crossPoolNetwork !== undefined) {
           if (crossPoolNetwork.poolCenter !== undefined) {
@@ -607,7 +606,7 @@ class SDNController extends EventEmitter {
             log.debug(
               'First available pool becomes pool center of cross-pool network',
               {
-                network: pif.$network.$ref,
+                network: pif.network,
                 pool: host.$pool.name_label,
                 uuid: crossPoolNetwork.uuid,
               }
@@ -864,10 +863,7 @@ class SDNController extends EventEmitter {
       })
 
       // Re-elect a cross-pool center if needed
-      if (
-        crossPoolNetwork !== undefined &&
-        crossPoolNetwork.poolCenter === network.$pool.$ref
-      ) {
+      if (crossPoolNetwork?.poolCenter === network.$pool.$ref) {
         const centerPoolNetwork = this._getPoolNetwork(
           crossPoolNetwork.poolCenter,
           crossPoolNetwork
