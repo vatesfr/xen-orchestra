@@ -11,6 +11,14 @@ const OVSDB_PORT = 6640
 // =============================================================================
 
 export class OvsdbClient {
+  /*
+  Create an SSL connection to an XCP-ng host.
+  Interact with the host's OpenVSwitch (OVS) daemon to create and manage the virtual bridges
+  corresponding to the private networks with OVSDB (OpenVSwitch DataBase) Protocol.
+  See:
+   - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
+   - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
+  */
   constructor(host, clientKey, clientCert, caCert) {
     this._numberOfPortAndInterface = 0
     this._requestId = 0
