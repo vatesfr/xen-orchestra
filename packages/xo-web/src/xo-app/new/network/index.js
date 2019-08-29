@@ -220,6 +220,7 @@ const NewNetwork = decorate([
                 networkDescription: description,
                 encapsulation: encapsulation,
                 xoPifIds: pifIds,
+                encrypted: encrypted,
               })
             })()
           : createPrivateNetwork({

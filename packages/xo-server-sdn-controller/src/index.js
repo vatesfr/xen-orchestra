@@ -247,6 +247,7 @@ class SDNController extends EventEmitter {
           type: 'string',
         },
       },
+      encrypted: { type: 'boolean' },
     }
 
     this._unsetApiMethods = this._xo.addApiMethods({
@@ -467,6 +468,7 @@ class SDNController extends EventEmitter {
     networkDescription,
     encapsulation,
     xoPifIds,
+    encrypted,
   }) {
     const uuid = uuidv4()
     const crossPoolNetwork = {
@@ -495,6 +497,7 @@ class SDNController extends EventEmitter {
         encapsulation,
         xoPif,
         vni,
+        encrypted,
       })
 
       const network = pool.$xapi.getObjectByRef(poolNetwork.network)
@@ -1148,6 +1151,10 @@ class SDNController extends EventEmitter {
     const encapsulation =
       otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
+    const password = otherConfig['xo:sdn-controller:encrypted'] === 'true'
+      ? createPassword()
+      : undefined
+
     try {
       await Promise.all([
         client.addInterfaceAndPort(
@@ -1156,6 +1163,7 @@ class SDNController extends EventEmitter {
           centerClient.host.address,
           encapsulation,
           vni,
+          password,
           centerNetwork.uuid
         ),
         centerClient.addInterfaceAndPort(
@@ -1164,6 +1172,7 @@ class SDNController extends EventEmitter {
           client.host.address,
           encapsulation,
           vni,
+          password,
           network.uuid
         ),
       ])
