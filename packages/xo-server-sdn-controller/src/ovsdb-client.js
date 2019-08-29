@@ -111,11 +111,6 @@ export class OvsdbClient {
     const portName = bridgeName + '_port' + index
 
     // Add interface and port to the bridge
-    const otherConfig =
-      remoteNetwork !== undefined
-        ? ['map', [['xo:sdn-controller:cross-pool', remoteNetwork]]]
-        : ['map', [['xo:sdn-controller:private-pool-wide', 'true']]]
-
     const options =
       password !== undefined
         ? [
@@ -123,6 +118,12 @@ export class OvsdbClient {
             [['remote_ip', remoteAddress], ['key', key], ['psk', password]],
           ]
         : ['map', [['remote_ip', remoteAddress], ['key', key]]]
+
+    const otherConfig =
+      remoteNetwork !== undefined
+        ? ['map', [['xo:sdn-controller:cross-pool', remoteNetwork]]]
+        : ['map', [['xo:sdn-controller:private-pool-wide', 'true']]]
+
     const addInterfaceOperation = {
       op: 'insert',
       table: 'Interface',
