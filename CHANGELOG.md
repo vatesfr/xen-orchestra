@@ -4,6 +4,19 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+- xo-server v5.49.0
+- xo-web v5.49.0
+
+## **5.38.0** (2019-08-29)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
 - [VM/Attach disk] Display confirmation modal when VDI is already attached [#3381](https://github.com/vatesfr/xen-orchestra/issues/3381) (PR [#4366](https://github.com/vatesfr/xen-orchestra/pull/4366))
 - [Zstd]
   - [VM/copy, VM/export] Only show zstd option when it's supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PRs [#4326](https://github.com/vatesfr/xen-orchestra/pull/4326) [#4368](https://github.com/vatesfr/xen-orchestra/pull/4368))
@@ -28,7 +41,7 @@
 
 ## **5.37.1** (2019-08-06)
 
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 
@@ -84,8 +97,6 @@
 - xo-web v5.46.0
 
 ## **5.36.0** (2019-06-27)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Highlights
 
