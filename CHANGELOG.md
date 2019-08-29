@@ -24,7 +24,7 @@
 - xo-server-sdn-controller v0.2.0
 - xo-server-usage-report v0.7.3
 - xo-server v5.48.0
-- xo-web v5.48.0
+- xo-web v5.48.1
 
 ## **5.37.1** (2019-08-06)
 
