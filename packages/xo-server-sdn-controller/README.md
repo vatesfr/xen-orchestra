@@ -13,11 +13,11 @@ For installing XO and the plugins from the sources, please take a look at [the d
 In the network creation view:
 - Select a `pool` and `Private network`
 - Select on which interface to create the network's tunnels
+- Select the encapsulation: choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic on all the network's hosts
 - Select other pools to add them to the network if wanted
 - Create the network
 
-Choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic.
-The following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
+NB: The following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
 `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
 
 ### Configuration
