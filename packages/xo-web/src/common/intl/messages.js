@@ -570,7 +570,7 @@ const messages = {
   newSrCreate: 'Create',
   newSrNamePlaceHolder: 'Storage name',
   newSrDescPlaceHolder: 'Storage description',
-  newSrIscsiAddressPlaceHolder: 'e.g 93.184.216.34 or nfs.example.net',
+  newSrIscsiAddressPlaceHolder: 'e.g 93.184.216.34 or iscsi.example.net',
   newSrNfsAddressPlaceHolder: 'e.g 93.184.216.34 or nfs.example.net',
   newSrSmbAddressPlaceHolder: 'e.g \\\\server\\sharename',
   newSrPortPlaceHolder: '[port]',
