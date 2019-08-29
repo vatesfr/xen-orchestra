@@ -17,7 +17,6 @@
 - [VM/Attach disk] Fix checking VDI mode (PR [#4373](https://github.com/vatesfr/xen-orchestra/pull/4373))
 - [VM revert] Snapshot before: add admin ACLs on created snapshot [#4331](https://github.com/vatesfr/xen-orchestra/issues/4331) (PR [#4391](https://github.com/vatesfr/xen-orchestra/pull/4391))
 - [Network] Fixed "invalid parameters" error when creating bonded network [#4425](https://github.com/vatesfr/xen-orchestra/issues/4425) (PR [#4429](https://github.com/vatesfr/xen-orchestra/pull/4429))
-- [SR/new] Fix unclear addresses format [#4450](https://github.com/vatesfr/xen-orchestra/issues/4450) (PR [#4460](https://github.com/vatesfr/xen-orchestra/pull/4460))
 
 ### Released packages
 

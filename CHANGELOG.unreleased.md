@@ -10,6 +10,7 @@
 ### Bug fixes
 
 - [PBD] Obfuscate cifs password from device config [#4384](https://github.com/vatesfr/xen-orchestra/issues/4384) (PR [#4401](https://github.com/vatesfr/xen-orchestra/pull/4401))
+- [SR/new] Fix unclear addresses format [#4450](https://github.com/vatesfr/xen-orchestra/issues/4450) (PR [#4460](https://github.com/vatesfr/xen-orchestra/pull/4460))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
