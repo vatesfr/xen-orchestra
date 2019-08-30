@@ -20,12 +20,12 @@ class XoServerCloud {
   }
 
   async load() {
-    const getResourceCatalog = () => this._getCatalog({})
+    const getResourceCatalog = () => this._getCatalog()
     getResourceCatalog.description =
       "Get the list of user's available resources"
     getResourceCatalog.permission = 'admin'
 
-    const getAllResourceCatalog = () => this._getCatalog({ all: true })
+    const getAllResourceCatalog = () => this._getAllCatalog()
     getAllResourceCatalog.description =
       'Get the list of all available resources'
     getAllResourceCatalog.permission = 'admin'
@@ -76,13 +76,18 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getCatalog({ all }) {
-    let catalog
-    if (all) {
-      catalog = await this._updater.call('getAllResourceCatalog')
-    } else {
-      catalog = await this._updater.call('getResourceCatalog')
+  async _getCatalog() {
+    const catalog = await this._updater.call('getResourceCatalog')
+
+    if (!catalog) {
+      throw new Error('cannot get catalog')
     }
+
+    return catalog
+  }
+
+  async _getAllCatalog() {
+    const catalog = await this._updater.call('getAllResourceCatalog')
 
     if (!catalog) {
       throw new Error('cannot get catalog')
@@ -93,13 +98,18 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaces({ free }) {
-    let catalog
-    if (free) {
-      catalog = await this._getCatalog({ all: true })
-    } else {
-      catalog = await this._getCatalog({})
+  async _getNamespaces() {
+    const catalog = await this._getCatalog()
+
+    if (!catalog._namespaces) {
+      throw new Error('cannot get namespaces')
     }
+
+    return catalog._namespaces
+  }
+
+  async _getAllNamespaces() {
+    const catalog = await this._getAllCatalog()
 
     if (!catalog._namespaces) {
       throw new Error('cannot get namespaces')
@@ -111,7 +121,7 @@ class XoServerCloud {
   // ----------------------------------------------------------------
 
   async _registerResource(namespace) {
-    const _namespace = (await this._getNamespaces({}))[namespace]
+    const _namespace = (await this._getNamespaces())[namespace]
 
     if (_namespace === undefined) {
       throw new Error(`${namespace} is not available`)
@@ -127,7 +137,7 @@ class XoServerCloud {
   // ----------------------------------------------------------------
 
   async _getNamespaceCatalog(namespace) {
-    const namespaceCatalog = (await this._getCatalog({}))[namespace]
+    const namespaceCatalog = (await this._getCatalog())[namespace]
 
     if (!namespaceCatalog) {
       throw new Error(`cannot get catalog: ${namespace} not registered`)
@@ -138,8 +148,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _requestResource(namespace, id, version, free) {
-    const _namespace = (await this._getNamespaces({}))[namespace]
+  async _requestResource(namespace, id, version) {
+    const _namespace = (await this._getNamespaces())[namespace]
 
     if (!_namespace || !_namespace.registered) {
       throw new Error(`cannot get resource: ${namespace} not registered`)
@@ -175,9 +185,9 @@ class XoServerCloud {
   }
 
   async _requestFreeResource(namespace, id, version) {
-    const _namespace = (await this._getNamespaces({ free: true }))[namespace]
+    const _namespace = (await this._getAllNamespaces())[namespace]
 
-    if (!_namespace) {
+    if (_namespace === undefined) {
       throw new Error(`cannot get resource: ${namespace}`)
     }
 
@@ -190,7 +200,7 @@ class XoServerCloud {
       }
     )
 
-    if (!downloadToken) {
+    if (downloadToken === undefined) {
       throw new Error('cannot get download token')
     }
 
