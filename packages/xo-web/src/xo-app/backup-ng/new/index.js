@@ -1005,12 +1005,12 @@ export default decorate([
                     <div>
                       <FormFeedback
                         component={SelectVm}
+                        error={state.showErrors ? state.missingVms : undefined}
                         message={_('missingVms')}
                         multi
                         onChange={effects.setVms}
-                        error={state.showErrors ? state.missingVms : undefined}
-                        value={state.vms}
                         predicate={state.vmPredicate}
+                        value={state.vms}
                       />
                       {compression === 'zstd' && (
                         <ZstdChecker vms={state.selectedVmIds} />
