@@ -150,7 +150,9 @@ class SDNController extends EventEmitter {
 
   async load() {
     // Expose method to create pool-wide private network
-    const createPrivateNetwork = this._createPrivateNetwork.bind(this)
+    const createPrivateNetwork = params =>
+      this._createPrivateNetwork({ ...params, vni: ++this._prevVni })
+
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
     createPrivateNetwork.params = {
@@ -333,6 +335,7 @@ class SDNController extends EventEmitter {
     networkDescription,
     encapsulation,
     xoPif,
+    vni,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
@@ -349,7 +352,7 @@ class SDNController extends EventEmitter {
         private_pool_wide: 'true',
         encapsulation: encapsulation,
         pif_device: pif.device,
-        vni: String(++this._prevVni),
+        vni: String(vni),
       },
     })
 
@@ -400,6 +403,7 @@ class SDNController extends EventEmitter {
 
     log.debug('New cross-pool network created', { uuid })
 
+    const vni = ++this._prevVni
     for (const xoPoolId of xoPoolIds) {
       const xoPool = this._xo.getObject(xoPoolId, 'pool')
       const pool = this._xo.getXapiObject(xoPool)
@@ -416,6 +420,7 @@ class SDNController extends EventEmitter {
         networkDescription,
         encapsulation,
         xoPif,
+        vni,
       })
 
       const network = pool.$xapi.getObjectByRef(poolNetwork.network)
