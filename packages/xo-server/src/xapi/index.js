@@ -749,9 +749,7 @@ export default class Xapi extends XapiBase {
       const children =
         childrenMap !== undefined
           ? childrenMap[vdi.uuid]
-          : vdi.$SR.$VDIs.filter(
-              _ => _ !== undefined && _.sm_config['vhd-parent'] === vdi.uuid
-            )
+          : vdi.$SR.$VDIs.filter(_ => _?.sm_config['vhd-parent'] === vdi.uuid)
 
       if (
         children.length === 1 &&
