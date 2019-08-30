@@ -150,10 +150,9 @@ class SDNController extends EventEmitter {
 
   async load() {
     // Expose method to create pool-wide private network
-    const createPrivateNetwork = params => {
-      params.vni = ++this._prevVni
-      return this._createPrivateNetwork(params).bind(this)
-    }
+    const createPrivateNetwork = params =>
+      this._createPrivateNetwork({ ...params, vni: ++this._prevVni })
+
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
     createPrivateNetwork.params = {
