@@ -38,6 +38,8 @@ module.exports = {
     // disabled because XAPI objects are using camel case
     camelcase: ['off'],
 
+    'react/jsx-handler-names': 'off',
+
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-var': 'error',
     'node/no-extraneous-import': 'error',
