@@ -16,17 +16,17 @@ export class OvsdbClient {
   Interact with the host's OpenVSwitch (OVS) daemon to create and manage the virtual bridges
   corresponding to the private networks with OVSDB (OpenVSwitch DataBase) Protocol.
   See:
-    - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
-    - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
+  - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
+  - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
 
   Attributes on created OVS bridges and ports
-    - `other_config`:
-      - `cross_pool`       : UUID of the remote network connected by the tunnel
-      - `private_pool_wide`: `true` if created (and managed) by a SDN Controller
+  - `other_config`:
+    - `cross_pool`       : UUID of the remote network connected by the tunnel
+    - `private_pool_wide`: `true` if created (and managed) by a SDN Controller
 
-    - `options`:
-      - `key`      : Network's VNI
-      - `remote_ip`: Remote IP of the tunnel
+  - `options`:
+    - `key`      : Network's VNI
+    - `remote_ip`: Remote IP of the tunnel
   */
 
   constructor(host, clientKey, clientCert, caCert) {

@@ -116,9 +116,9 @@ class SDNController extends EventEmitter {
                            See: https://tools.ietf.org/html/rfc7348
 
   Attributes on created tunnels: See: https://xapi-project.github.io/xapi/design/tunnelling.html
-    - `status`:
-      - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
-      - `key`   : Corresponding OpenVSwitch bridge name (empty if `active` is `false`)
+  - `status`:
+    - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
+    - `key`   : Corresponding OpenVSwitch bridge name (empty if `active` is `false`)
   */
 
   constructor({ xo, getDataDir }) {
