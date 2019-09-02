@@ -1147,7 +1147,7 @@ export default class BackupNg {
       }
 
       const compress = getJobCompression(job)
-      const { $pool: pool } = snapshot
+      const pool = snapshot.$pool
       if (
         compress === 'zstd' &&
         pool.restrictions.restrict_zstd_export !== 'false'
