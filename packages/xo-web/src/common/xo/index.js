@@ -741,7 +741,10 @@ export const stopHosts = hosts => {
     title: _('stopHostsModalTitle', { nHosts }),
     body: _('stopHostsModalMessage', { nHosts }),
   }).then(
-    () => map(hosts, host => _call('host.stop', { id: resolveId(host) })),
+    () =>
+      Promise.all(
+        map(hosts, host => _call('host.stop', { id: resolveId(host) }))
+      ),
     noop
   )
 }
@@ -780,7 +783,10 @@ export const emergencyShutdownHosts = hosts => {
   return confirm({
     title: _('emergencyShutdownHostsModalTitle', { nHosts }),
     body: _('emergencyShutdownHostsModalMessage', { nHosts }),
-  }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
+  }).then(
+    () => Promise.all(map(hosts, host => emergencyShutdownHost(host))),
+    noop
+  )
 }
 
 export const isHostTimeConsistentWithXoaTime = host =>
@@ -1028,7 +1034,10 @@ export const stopVms = (vms, force = false) =>
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length }),
   }).then(
-    () => map(vms, vm => _call('vm.stop', { id: resolveId(vm), force })),
+    () =>
+      Promise.all(
+        map(vms, vm => _call('vm.stop', { id: resolveId(vm), force }))
+      ),
     noop
   )
 
@@ -1628,7 +1637,10 @@ export const deleteVifs = vifs =>
     title: _('deleteVifsModalTitle', { nVifs: vifs.length }),
     body: _('deleteVifsModalMessage', { nVifs: vifs.length }),
   }).then(
-    () => map(vifs, vif => _call('vif.delete', { id: resolveId(vif) })),
+    () =>
+      Promise.all(
+        map(vifs, vif => _call('vif.delete', { id: resolveId(vif) }))
+      ),
     noop
   )
 
@@ -1921,9 +1933,11 @@ export const deleteSchedules = schedules =>
     title: _('deleteSchedulesModalTitle', { nSchedules: schedules.length }),
     body: _('deleteSchedulesModalMessage', { nSchedules: schedules.length }),
   }).then(() =>
-    map(schedules, schedule =>
-      _call('schedule.delete', { id: resolveId(schedule) })::tap(
-        subscribeSchedules.forceRefresh
+    Promise.all(
+      map(schedules, schedule =>
+        _call('schedule.delete', { id: resolveId(schedule) })::tap(
+          subscribeSchedules.forceRefresh
+        )
       )
     )
   )
