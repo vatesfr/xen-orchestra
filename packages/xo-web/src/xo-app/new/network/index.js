@@ -294,6 +294,14 @@ const NewNetwork = decorate([
                       value={isPrivate}
                     />{' '}
                     <label>{_('privateNetwork')}</label>
+                    <div>
+                      <em>
+                        <Icon icon='info' />{' '}
+                        <a href='https://xen-orchestra.com/docs/sdn_controller.html'>
+                          {_('newNetworkSdnControllerTip')}
+                        </a>
+                      </em>
+                    </div>
                   </div>
                 </Section>
                 <Section icon='info' title='newNetworkInfo'>
