@@ -1146,12 +1146,13 @@ export default class BackupNg {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
-      const compress = getJobCompression(job)
+      let compress = getJobCompression(job)
       const pool = snapshot.$pool
       if (
         compress === 'zstd' &&
         pool.restrictions.restrict_zstd_export !== 'false'
       ) {
+        compress = false
         logger.warning(
           `Zstd is not supported on the pool ${pool.name_label}, the VM will be exported without compression`,
           {
