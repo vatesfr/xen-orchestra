@@ -16,7 +16,7 @@ In the network creation view:
 - Select a `pool`
 - Select `Private network`
 - Select on which interface to create the network's tunnels
-- Select the encapsulation: choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic on all the network's hosts (see requirements)
+- Select the encapsulation: choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic on all the network's hosts (see [the requirements](#requirements))
 - Select other `pool`s to add them to the network if wanted
   - For each added `pool`: select the interface on which to create the tunnels
 - Create the network
