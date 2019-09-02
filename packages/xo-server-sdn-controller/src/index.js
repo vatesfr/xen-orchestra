@@ -106,6 +106,21 @@ function updateNetworkOtherConfig(network) {
 // =============================================================================
 
 class SDNController extends EventEmitter {
+  /*
+  Attributes on created networks:
+  - `other_config`:
+    - `encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
+    - `pif_device`       : PIF on which the tunnels are created, must be physical and have an IP configuration
+    - `private_pool_wide`: `true` if the network is created (and so must be managed) by a SDN Controller
+    - `vni`              : VxLAN Network Identifier, it is used by OpenVSwitch to route traffic of different networks in a single tunnel
+                           See: https://tools.ietf.org/html/rfc7348
+
+  Attributes on created tunnels: See: https://xapi-project.github.io/xapi/design/tunnelling.html
+    - `status`:
+      - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
+      - `key`   : Corresponding OpenVSwitch bridge name (empty if `active` is `false`)
+  */
+
   constructor({ xo, getDataDir }) {
     super()
 
@@ -384,17 +399,7 @@ class SDNController extends EventEmitter {
 
     const pif = this._xo.getXapiObject(xoPif)
 
-    /*
-    Create the private network
-    Attributes on created VM snapshots:
-
-    - `other_config`:
-      - `private_pool_wide`: `true` if the network is created (and so must be managed) by a SDN Controller
-      - `encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
-      - `pif_device`       : PIF on which the tunnels are created, must be physical and have an IP configuration
-      - `vni`              : VxLAN Network Identifier, it is used by OpenVSwitch to route traffic of different networks in a single tunnel
-                             See: https://tools.ietf.org/html/rfc7348
-    */
+    // Create the private network
     const privateNetworkRef = await pool.$xapi.call('network.create', {
       name_label: networkName,
       name_description: networkDescription,
@@ -1231,12 +1236,6 @@ class SDNController extends EventEmitter {
     }
 
     if (bridgeName !== undefined) {
-      /*
-      See: https://xapi-project.github.io/xapi/design/tunnelling.html
-      - `status`:
-        - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
-        - `key`   : Corresponding OpenVSwitch bridge name (empty if `active` is `false`)
-      */
       const activeStatus = { active: 'true', key: bridgeName }
       await Promise.all([
         tunnel.set_status(activeStatus),
