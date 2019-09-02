@@ -6,29 +6,9 @@ XO Server plugin that allows the creation of pool-wide and cross-pool private ne
 
 For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
-## Usage
+## Documentation
 
-### Network creation
-
-In the network creation view:
-- Select a `pool` and `Private network`
-- Select on which interface to create the network's tunnels
-- Select the encapsulation: choice is offer between `GRE` and `VxLAN`, if `VxLAN` is chosen, then the port 4789 must be open for UDP traffic on all the network's hosts
-- Select other pools to add them to the network if wanted
-- Create the network
-
-*NB:* The following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
-- `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
-
-### Configuration
-
-Like all other xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
-
-The plugin's configuration contains:
-- `cert-dir`: A path where to find the certificates to create SSL connections with the hosts.
-If none is provided, the plugin will create its own self-signed certificates.
-- `override-certs`: Whether or not to uninstall an already existing SDN controller CA certificate in order to replace it by the plugin's one.
+Please see the plugin's [official the documentation](https://xen-orchestra.com/docs/sdn_controller.html).
 
 ## Contributions
 
