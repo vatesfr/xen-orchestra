@@ -486,7 +486,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      deviceConfig: sensitiveValues.replace(
+      device_config: sensitiveValues.replace(
         obj.device_config,
         '* obfuscated *'
       ),
