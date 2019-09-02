@@ -116,11 +116,11 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
-const checkRetentions = (value, { copyMode, exportMode, snapshotMode }) =>
+const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
-  (copyMode && value.copyRetention > 0) ||
-  (exportMode && value.exportRetention > 0) ||
-  (snapshotMode && value.snapshotRetention > 0)
+  (copyMode && schedule.copyRetention > 0) ||
+  (exportMode && schedule.exportRetention > 0) ||
+  (snapshotMode && schedule.snapshotRetention > 0)
 
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
