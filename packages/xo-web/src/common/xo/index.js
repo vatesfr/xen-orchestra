@@ -149,7 +149,7 @@ export const connectStore = store => {
         parseNdJson(data, object => {
           objects[object.id] = object
         })
-        store.dispatch(updateObjects(objects))
+        store.dispatch(updateObjects(objects, true))
       })
   })
   xo.on('notification', notification => {

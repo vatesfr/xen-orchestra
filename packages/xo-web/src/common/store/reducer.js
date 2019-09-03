@@ -98,7 +98,10 @@ export default {
       byType: {},
     },
     {
-      [actions.updateObjects]: ({ all, byType: prevByType }, updates) => {
+      [actions.updateObjects]: (
+        { all, byType: prevByType, fetched = false },
+        { updates, initialFetch }
+      ) => {
         const byType = { ...prevByType }
         const get = type => {
           const curr = byType[type]
@@ -125,7 +128,11 @@ export default {
           }
         }
 
-        return { all, byType, fetched: true }
+        if (initialFetch) {
+          fetched = true
+        }
+
+        return { all, byType, fetched }
       },
     }
   ),

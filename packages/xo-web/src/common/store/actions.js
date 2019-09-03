@@ -30,7 +30,13 @@ export const selectLang = createAction('SELECT_LANG', lang => lang)
 export const connected = createAction('CONNECTED')
 export const disconnected = createAction('DISCONNECTED')
 
-export const updateObjects = createAction('UPDATE_OBJECTS', updates => updates)
+export const updateObjects = createAction(
+  'UPDATE_OBJECTS',
+  (updates, initialFetch) => ({
+    initialFetch,
+    updates,
+  })
+)
 export const updatePermissions = createAction(
   'UPDATE_PERMISSIONS',
   permissions => permissions
