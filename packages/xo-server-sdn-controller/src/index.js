@@ -74,56 +74,27 @@ async function fileExists(path) {
 
 // 2019-09-03
 // Compatibility code, to be removed in 1 year.
-async function updateNetworkOtherConfig(network) {
-  const networkOtherConfig = network.other_config
-
-  const privatePoolWide = networkOtherConfig.private_pool_wide
-  if (privatePoolWide !== undefined) {
-    await Promise.all([
-      network.update_other_config(
-        'xo:sdn-controller:private-pool-wide',
-        privatePoolWide
-      ),
-      network.update_other_config('private_pool_wide', null),
-    ])
-  }
-
-  const crossPoolUuid = networkOtherConfig.cross_pool_network_uuid
-  if (crossPoolUuid !== undefined) {
-    await Promise.all([
-      network.update_other_config(
-        'xo:sdn-controller:cross-pool-network-uuid',
-        crossPoolUuid
-      ),
-      network.update_other_config('cross_pool_network_uuid', null),
-    ])
-  }
-
-  const pifDevice = networkOtherConfig.pif_device
-  if (pifDevice !== undefined) {
-    await Promise.all([
-      network.update_other_config('xo:sdn-controller:pif-device', pifDevice),
-      network.update_other_config('pif_device', null),
-    ])
-  }
-
-  const { vni, encapsulation } = networkOtherConfig
-  if (vni !== undefined) {
-    await Promise.all([
-      network.update_other_config('xo:sdn-controller:vni', vni),
-      network.update_other_config('vni', null),
-    ])
-  }
-
-  if (encapsulation !== undefined) {
-    await Promise.all([
-      network.update_other_config(
-        'xo:sdn-controller:encapsulation',
-        encapsulation
-      ),
-      network.update_other_config('encapsulation', null),
-    ])
-  }
+function updateNetworkOtherConfig(network) {
+  return Promise.all(
+    map(
+      {
+        'cross-pool-network-uuid': 'cross_pool_network_uuid',
+        encapsulation: 'encapsulation',
+        'pif-device': 'pif_device',
+        'private-pool-wide': 'private_pool_wide',
+        vni: 'vni',
+      },
+      (oldKey, newKey) => {
+        const value = network.other_config[oldKey]
+        if (value !== undefined) {
+          return network.update_other_config({
+            [oldKey]: null,
+            [`xo:sdn-controller:${newKey}`]: value,
+          })
+        }
+      }
+    )
+  )
 }
 
 // =============================================================================
