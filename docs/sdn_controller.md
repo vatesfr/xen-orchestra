@@ -37,7 +37,7 @@ If none is provided, the plugin will create its own self-signed certificates.
 ## Requirements
 
 > All requirements are met by running up to date XCP-ng hosts.
-
+>
 > On older XCP-ng hosts, or hosts running Citrix Hypervisor, changes might have to be done manually.
 
 To be able to use `VxLAN`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
