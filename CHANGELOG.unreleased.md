@@ -12,6 +12,7 @@
 ### Bug fixes
 
 - [PBD] Obfuscate cifs password from device config [#4384](https://github.com/vatesfr/xen-orchestra/issues/4384) (PR [#4401](https://github.com/vatesfr/xen-orchestra/pull/4401))
+- [patching] Avoid overloading XCP-ng by by reducing the frequency of yum update checks [#4358](https://github.com/vatesfr/xen-orchestra/issues/4358) (PR [#4477](https://github.com/vatesfr/xen-orchestra/pull/4477))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
