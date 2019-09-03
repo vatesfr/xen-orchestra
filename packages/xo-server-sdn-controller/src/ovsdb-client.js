@@ -94,8 +94,8 @@ export class OvsdbClient {
     const options = ['map', [['remote_ip', remoteAddress], ['key', key]]]
     const otherConfig =
       remoteNetwork !== undefined
-        ? ['map', [['cross_pool', remoteNetwork]]]
-        : ['map', [['private_pool_wide', 'true']]]
+        ? ['map', [['xo:sdn-controller:cross-pool', remoteNetwork]]]
+        : ['map', [['xo:sdn-controller:private-pool-wide', 'true']]]
 
     const addInterfaceOperation = {
       op: 'insert',
@@ -217,12 +217,20 @@ export class OvsdbClient {
       }
 
       forOwn(selectResult.other_config[1], config => {
-        const shouldDelete =
+        // 2019-09-03
+        // Compatibility code, to be removed in 1 year.
+        const oldShouldDelete =
           (config[0] === 'private_pool_wide' && !crossPoolOnly) ||
           (config[0] === 'cross_pool' &&
             (remoteNetwork === undefined || remoteNetwork === config[1]))
 
-        if (shouldDelete) {
+        const shouldDelete =
+          (config[0] === 'xo:sdn-controller:private-pool-wide' &&
+            !crossPoolOnly) ||
+          (config[0] === 'xo:sdn-controller:cross-pool' &&
+            (remoteNetwork === undefined || remoteNetwork === config[1]))
+
+        if (shouldDelete || oldShouldDelete) {
           portsToDelete.push(['uuid', portUuid])
         }
       })

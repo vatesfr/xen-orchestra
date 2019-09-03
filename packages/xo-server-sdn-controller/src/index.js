@@ -70,6 +70,39 @@ async function fileExists(path) {
   return true
 }
 
+// -----------------------------------------------------------------------------
+
+// 2019-09-03
+// Compatibility code, to be removed in 1 year.
+function updateNetworkOtherConfig(network) {
+  return Promise.all(
+    map(
+      {
+        'cross-pool-network-uuid': 'cross_pool_network_uuid',
+        encapsulation: 'encapsulation',
+        'pif-device': 'pif_device',
+        'private-pool-wide': 'private_pool_wide',
+        vni: 'vni',
+      },
+      (oldKey, newKey) => {
+        const namespacedKey = `xo:sdn-controller:${newKey}`
+        if (network.other_config[namespacedKey] !== undefined) {
+          // Nothing to do the update has been done already
+          return
+        }
+
+        const value = network.other_config[oldKey]
+        if (value !== undefined) {
+          return network.update_other_config({
+            [oldKey]: null,
+            [namespacedKey]: value,
+          })
+        }
+      }
+    )
+  )
+}
+
 // =============================================================================
 
 class SDNController extends EventEmitter {
@@ -219,11 +252,17 @@ class SDNController extends EventEmitter {
         const noVniNetworks = []
         await Promise.all(
           map(networks, async network => {
-            if (network.other_config.private_pool_wide !== 'true') {
+            // 2019-09-03
+            // Compatibility code, to be removed in 1 year.
+            await updateNetworkOtherConfig(network)
+            network = await network.$xapi.barrier(network.$ref)
+
+            const otherConfig = network.other_config
+            if (otherConfig['xo:sdn-controller:private-pool-wide'] !== 'true') {
               return
             }
 
-            const { vni } = network.other_config
+            const vni = otherConfig['xo:sdn-controller:vni']
             if (vni === undefined) {
               noVniNetworks.push(network)
             } else {
@@ -241,10 +280,13 @@ class SDNController extends EventEmitter {
             // 2019-08-22
             // This is used to add the pif_device to networks created before this version. (v0.1.2)
             // This will be removed in 1 year.
-            if (network.other_config.pif_device === undefined) {
+            if (otherConfig['xo:sdn-controller:pif-device'] === undefined) {
               const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
               const pif = xapi.getObjectByRef(tunnel.transport_PIF)
-              await network.update_other_config('pif_device', pif.device)
+              await network.update_other_config(
+                'xo:sdn-controller:pif-device',
+                pif.device
+              )
             }
 
             this._poolNetworks.push({
@@ -258,7 +300,7 @@ class SDNController extends EventEmitter {
             }
 
             const crossPoolNetworkUuid =
-              network.other_config.cross_pool_network_uuid
+              otherConfig['xo:sdn-controller:cross-pool-network-uuid']
             if (crossPoolNetworkUuid !== undefined) {
               let crossPoolNetwork = this._crossPoolNetworks[
                 crossPoolNetworkUuid
@@ -293,7 +335,10 @@ class SDNController extends EventEmitter {
         // This will be removed in 1 year.
         await Promise.all(
           map(noVniNetworks, async network => {
-            await network.update_other_config('vni', String(++this._prevVni))
+            await network.update_other_config(
+              'xo:sdn-controller:vni',
+              String(++this._prevVni)
+            )
 
             // Re-elect a center to apply the VNI
             const center = await this._electNewCenter(network, true)
@@ -349,10 +394,10 @@ class SDNController extends EventEmitter {
       MTU: 0,
       other_config: {
         automatic: 'false',
-        private_pool_wide: 'true',
-        encapsulation: encapsulation,
-        pif_device: pif.device,
-        vni: String(vni),
+        'xo:sdn-controller:encapsulation': encapsulation,
+        'xo:sdn-controller:pif-device': pif.device,
+        'xo:sdn-controller:private-pool-wide': 'true',
+        'xo:sdn-controller:vni': String(vni),
       },
     })
 
@@ -424,7 +469,10 @@ class SDNController extends EventEmitter {
       })
 
       const network = pool.$xapi.getObjectByRef(poolNetwork.network)
-      await network.update_other_config('cross_pool_network_uuid', uuid)
+      await network.update_other_config(
+        'xo:sdn-controller:cross-pool-network-uuid',
+        uuid
+      )
 
       crossPoolNetwork.pools.push(poolNetwork.pool)
       crossPoolNetwork.networks.push(poolNetwork.network)
@@ -671,7 +719,8 @@ class SDNController extends EventEmitter {
           }
 
           const network = host.$xapi.getObjectByRef(poolNetwork.network)
-          const pifDevice = network.other_config.pif_device || 'eth0'
+          const pifDevice =
+            network.other_config['xo:sdn-controller:pif-device'] ?? 'eth0'
           this._createTunnel(host, network, pifDevice)
         }
 
@@ -1059,7 +1108,10 @@ class SDNController extends EventEmitter {
     const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
 
     // Use centerNetwork VNI by convention
-    const { encapsulation = 'gre', vni = '0' } = centerNetwork.other_config
+    const otherConfig = centerNetwork.other_config
+    const encapsulation =
+      otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
+    const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
     try {
       await Promise.all([
         client.addInterfaceAndPort(
@@ -1140,7 +1192,10 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const { encapsulation = 'gre', vni = '0' } = network.other_config
+    const otherConfig = network.other_config
+    const encapsulation =
+      otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
+    const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
     let bridgeName
     try {
       ;[bridgeName] = await Promise.all([
