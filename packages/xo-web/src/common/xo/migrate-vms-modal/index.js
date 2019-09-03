@@ -262,6 +262,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
   _toggleSmartVifMapping = () =>
     this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
+  compareContainers = (pool1, pool2) => {
+    const poolIds = map(this.props.vms, (value, _) => value.$poolId)
+    return poolIds.includes(pool1.id) ? -1 : poolIds.includes(pool2.id) ? 1 : 0
+  }
+
   render() {
     const {
       defaultSrConnectedToHost,
@@ -281,6 +286,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             <Col size={6}>{_('migrateVmSelectHost')}</Col>
             <Col size={6}>
               <SelectHost
+                compareContainers={this.compareContainers}
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 value={host}
