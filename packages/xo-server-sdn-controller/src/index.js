@@ -85,6 +85,11 @@ function updateNetworkOtherConfig(network) {
         vni: 'vni',
       },
       (oldKey, newKey) => {
+        if (network.other_config[newKey] !== undefined) {
+          // Nothing to do the update has been done already
+          return
+        }
+
         const value = network.other_config[oldKey]
         if (value !== undefined) {
           return network.update_other_config({
@@ -245,11 +250,11 @@ class SDNController extends EventEmitter {
         const networks = filter(xapi.objects.all, { $type: 'network' })
         const noVniNetworks = []
         await Promise.all(
-          map(networks, async networkObj => {
+          map(networks, async network => {
             // 2019-09-03
             // Compatibility code, to be removed in 1 year.
-            await updateNetworkOtherConfig(networkObj)
-            const network = await networkObj.$xapi.barrier(networkObj.$ref)
+            await updateNetworkOtherConfig(network)
+            network = await network.$xapi.barrier(network.$ref)
 
             const otherConfig = network.other_config
             if (otherConfig['xo:sdn-controller:private-pool-wide'] !== 'true') {
