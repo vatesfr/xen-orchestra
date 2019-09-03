@@ -4,6 +4,8 @@
 
 The SDN Controller enables a user to **create pool-wide and cross-pool** (since XOA 5.48.1) **private networks**.
 
+![](./assets/sdn-controller.png)
+
 ## How does it work?
 
 Please read the [dedicated devblog on the SDN Controller](https://xen-orchestra.com/blog/xo-sdn-controller/) and its [extension for cross-pool private networks](https://xen-orchestra.com/blog/devblog-3-extending-the-sdn-controller/).
