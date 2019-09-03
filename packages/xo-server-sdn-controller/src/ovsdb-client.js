@@ -19,11 +19,12 @@ export class OvsdbClient {
   - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
   - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
 
-  Attributes on created OVS interfaces:
+  Attributes on created OVS ports (corresponds to a XAPI `PIF` or `VIF`):
   - `other_config`:
     - `xo:sdn-controller:cross-pool`       : UUID of the remote network connected by the tunnel
     - `xo:sdn-controller:private-pool-wide`: `true` if created (and managed) by a SDN Controller
 
+  Attributes on created OVS interfaces:
   - `options`:
     - `key`      : Network's VNI
     - `remote_ip`: Remote IP of the tunnel
