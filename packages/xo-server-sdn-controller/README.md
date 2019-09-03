@@ -8,7 +8,7 @@ For installing XO and the plugins from the sources, please take a look at [the d
 
 ## Documentation
 
-Please see the plugin's [official the documentation](https://xen-orchestra.com/docs/sdn_controller.html).
+Please see the plugin's [official documentation](https://xen-orchestra.com/docs/sdn_controller.html).
 
 ## Contributions
 
