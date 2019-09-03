@@ -274,10 +274,11 @@ class SDNController extends EventEmitter {
         const networks = filter(xapi.objects.all, { $type: 'network' })
         const noVniNetworks = []
         await Promise.all(
-          map(networks, async network => {
+          map(networks, async networkObj => {
             // 2019-09-03
             // Compatibility code, to be removed in 1 year.
-            await updateNetworkOtherConfig(network)
+            await updateNetworkOtherConfig(networkObj)
+            const network = await networkObj.$xapi.barrier(networkObj.$ref)
 
             const otherConfig = network.other_config
             if (otherConfig['xo:sdn-controller:private-pool-wide'] !== 'true') {
