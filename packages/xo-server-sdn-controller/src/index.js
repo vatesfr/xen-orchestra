@@ -85,7 +85,8 @@ function updateNetworkOtherConfig(network) {
         vni: 'vni',
       },
       (oldKey, newKey) => {
-        if (network.other_config[newKey] !== undefined) {
+        const namespacedKey = `xo:sdn-controller:${newKey}`
+        if (network.other_config[namespacedKey] !== undefined) {
           // Nothing to do the update has been done already
           return
         }
@@ -94,7 +95,7 @@ function updateNetworkOtherConfig(network) {
         if (value !== undefined) {
           return network.update_other_config({
             [oldKey]: null,
-            [`xo:sdn-controller:${newKey}`]: value,
+            [namespacedKey]: value,
           })
         }
       }
