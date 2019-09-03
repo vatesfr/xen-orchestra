@@ -21,8 +21,8 @@ export class OvsdbClient {
 
   Attributes on created OVS bridges and ports
   - `other_config`:
-    - `cross_pool`       : UUID of the remote network connected by the tunnel
-    - `private_pool_wide`: `true` if created (and managed) by a SDN Controller
+    - `xo:sdn-controller:cross-pool`       : UUID of the remote network connected by the tunnel
+    - `xo:sdn-controller:private-pool-wide`: `true` if created (and managed) by a SDN Controller
 
   - `options`:
     - `key`      : Network's VNI

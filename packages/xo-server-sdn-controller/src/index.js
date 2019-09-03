@@ -109,11 +109,12 @@ class SDNController extends EventEmitter {
   /*
   Attributes on created networks:
   - `other_config`:
-    - `encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
-    - `pif_device`       : PIF on which the tunnels are created, must be physical and have an IP configuration
-    - `private_pool_wide`: `true` if the network is created (and so must be managed) by a SDN Controller
-    - `vni`              : VxLAN Network Identifier, it is used by OpenVSwitch to route traffic of different networks in a single tunnel
-                           See: https://tools.ietf.org/html/rfc7348
+    - `xo:sdn-controller:encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
+    - `xo:sdn-controller:pif-device`       : PIF on which the tunnels are created, must be physical and have an IP configuration
+    - `xo:sdn-controller:private-pool-wide`: `true` if the network is created (and so must be managed) by a SDN Controller
+    - `xo:sdn-controller:vni`              : VxLAN Network Identifier,
+        it is used by OpenVSwitch to route traffic of different networks in a single tunnel
+        See: https://tools.ietf.org/html/rfc7348
 
   Attributes on created tunnels: See: https://xapi-project.github.io/xapi/design/tunnelling.html
   - `status`:
@@ -405,6 +406,8 @@ class SDNController extends EventEmitter {
       name_description: networkDescription,
       MTU: 0,
       other_config: {
+        // Set `automatic` to false so XenCenter does not get confused
+        // See: https://citrix.github.io/xenserver-sdk/#network
         automatic: 'false',
         'xo:sdn-controller:encapsulation': encapsulation,
         'xo:sdn-controller:pif-device': pif.device,
