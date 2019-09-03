@@ -263,7 +263,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
   compareContainers = (pool1, pool2) => {
-    const poolIds = map(this.props.vms, (value, _) => value.$poolId)
+    const poolIds = map(this.props.vms, '$pool')
     return poolIds.includes(pool1.id) ? -1 : poolIds.includes(pool2.id) ? 1 : 0
   }
 
