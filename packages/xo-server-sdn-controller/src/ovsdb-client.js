@@ -19,7 +19,7 @@ export class OvsdbClient {
   - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
   - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
 
-  Attributes on created OVS bridges and ports
+  Attributes on created OVS interfaces:
   - `other_config`:
     - `xo:sdn-controller:cross-pool`       : UUID of the remote network connected by the tunnel
     - `xo:sdn-controller:private-pool-wide`: `true` if created (and managed) by a SDN Controller

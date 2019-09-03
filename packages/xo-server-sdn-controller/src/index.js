@@ -110,7 +110,7 @@ class SDNController extends EventEmitter {
   Attributes on created networks:
   - `other_config`:
     - `xo:sdn-controller:encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
-    - `xo:sdn-controller:pif-device`       : PIF on which the tunnels are created, must be physical and have an IP configuration
+    - `xo:sdn-controller:pif-device`       : PIF device on which the tunnels are created, must be physical and have an IP configuration
     - `xo:sdn-controller:private-pool-wide`: `true` if the network is created (and so must be managed) by a SDN Controller
     - `xo:sdn-controller:vni`              : VxLAN Network Identifier,
         it is used by OpenVSwitch to route traffic of different networks in a single tunnel
@@ -119,7 +119,7 @@ class SDNController extends EventEmitter {
   Attributes on created tunnels: See: https://xapi-project.github.io/xapi/design/tunnelling.html
   - `status`:
     - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
-    - `key`   : Corresponding OpenVSwitch bridge name (empty if `active` is `false`)
+    - `key`   : Corresponding OpenVSwitch bridge name (missing if `active` is `false`)
   */
 
   constructor({ xo, getDataDir }) {
