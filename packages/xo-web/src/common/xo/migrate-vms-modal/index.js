@@ -119,6 +119,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
         return network => networks[network.id]
       }
     )
+
+    this._getSelectedVmsPoolIds = createSelector(
+      () => this.props.vms,
+      vms => map(vms, '$pool')
+    )
   }
 
   componentDidMount() {
@@ -263,7 +268,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
   compareContainers = (pool1, pool2) => {
-    const poolIds = map(this.props.vms, '$pool')
+    const poolIds = this._getSelectedVmsPoolIds()
     return poolIds.includes(pool1.id) ? -1 : poolIds.includes(pool2.id) ? 1 : 0
   }
 
