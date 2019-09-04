@@ -363,11 +363,6 @@ const NewNetwork = decorate([
                           value={encrypted}
                         />{' '}
                         <label>{_('newNetworkEncrypted')}</label>
-                        <div>
-                          <em>
-                            <Icon icon='info' /> {_('newNetworkEncryptedTip')}
-                          </em>
-                        </div>
                         <div className='mt-1'>
                           {state.networks.map(({ pool, pif }, key) => (
                             <div key={key}>

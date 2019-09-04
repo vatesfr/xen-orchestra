@@ -1756,8 +1756,6 @@ const messages = {
   newNetworkType: 'Type',
   newNetworkEncapsulation: 'Encapsulation',
   newNetworkEncrypted: 'Encrypted',
-  newNetworkEncryptedTip:
-    'To encrypt a network, the hosts need openvswitch-ipsec and libreswan packages',
   newNetworkSdnControllerTip:
     'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
   deleteNetwork: 'Delete network',

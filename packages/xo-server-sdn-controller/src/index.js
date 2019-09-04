@@ -121,6 +121,7 @@ class SDNController extends EventEmitter {
   Attributes on created networks:
   - `other_config`:
     - `xo:sdn-controller:encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
+    - `xo:sdn-controller:encrypted`        : `true` if the network is encrypted
     - `xo:sdn-controller:pif-device`       : PIF device on which the tunnels are created, must be physical and have an IP configuration
     - `xo:sdn-controller:private-pool-wide`: `true` if the network is created (and so must be managed) by a SDN Controller
     - `xo:sdn-controller:vni`              : VxLAN Network Identifier,

@@ -19,6 +19,7 @@ In the network creation view:
 - Select `Private network`
 - Select an interface on which to create the network's tunnels
 - Select the encapsulation: a choice is offered between `GRE` and `VxLAN`, if `VxLAN` is chosen, then port 4789 must be open for UDP traffic on all the network's hosts (see [the requirements](#requirements))
+- Choose if the network should be encrypted or not
 - Select other `pool`s to add them to the network if desired
   - For each added `pool`: select an interface on which to create the tunnels
 - Create the network
@@ -44,5 +45,5 @@ If none is provided, the plugin will create its own self-signed certificates.
 >
 > On older XCP-ng hosts, or hosts running Citrix Hypervisor, changes might have to be done manually.
 
-To be able to use `VxLAN`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
-- `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
+- To be able to use `VxLAN`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted: `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
+- To be able to encrypt the networks, `libreswan` and `openvswitch-ipsec` packages must be installed on all the hosts.
