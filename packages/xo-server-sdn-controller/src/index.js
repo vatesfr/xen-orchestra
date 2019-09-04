@@ -1177,6 +1177,15 @@ class SDNController extends EventEmitter {
     }
 
     const tunnel = this._getHostTunnelForNetwork(host, network.$ref)
+    if (tunnel === undefined) {
+      log.info('Unable to add host to network: no tunnel available', {
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+      return
+    }
+
     const starCenterTunnel = this._getHostTunnelForNetwork(
       starCenter,
       network.$ref
@@ -1236,6 +1245,7 @@ class SDNController extends EventEmitter {
         host: host.name_label,
         pool: host.$pool.name_label,
       })
+      return
     }
 
     if (bridgeName !== undefined) {
