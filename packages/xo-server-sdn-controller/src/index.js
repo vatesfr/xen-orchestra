@@ -106,6 +106,22 @@ function updateNetworkOtherConfig(network) {
 // =============================================================================
 
 class SDNController extends EventEmitter {
+  /*
+  Attributes on created networks:
+  - `other_config`:
+    - `xo:sdn-controller:encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
+    - `xo:sdn-controller:pif-device`       : PIF device on which the tunnels are created, must be physical and have an IP configuration
+    - `xo:sdn-controller:private-pool-wide`: `true` if the network is created (and so must be managed) by a SDN Controller
+    - `xo:sdn-controller:vni`              : VxLAN Network Identifier,
+        it is used by OpenVSwitch to route traffic of different networks in a single tunnel
+        See: https://tools.ietf.org/html/rfc7348
+
+  Attributes on created tunnels: See: https://xapi-project.github.io/xapi/design/tunnelling.html
+  - `status`:
+    - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
+    - `key`   : Corresponding OpenVSwitch bridge name (missing if `active` is `false`)
+  */
+
   constructor({ xo, getDataDir }) {
     super()
 
@@ -127,9 +143,6 @@ class SDNController extends EventEmitter {
 
     this._overrideCerts = false
 
-    // VNI: VxLAN Network Identifier, it is used by OpenVSwitch
-    // to route traffic of different networks in a single tunnel.
-    // See: https://tools.ietf.org/html/rfc7348
     this._prevVni = 0
   }
 
@@ -393,6 +406,8 @@ class SDNController extends EventEmitter {
       name_description: networkDescription,
       MTU: 0,
       other_config: {
+        // Set `automatic` to false so XenCenter does not get confused
+        // See: https://citrix.github.io/xenserver-sdk/#network
         automatic: 'false',
         'xo:sdn-controller:encapsulation': encapsulation,
         'xo:sdn-controller:pif-device': pif.device,

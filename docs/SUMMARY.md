@@ -55,6 +55,7 @@
    * [Emergency Shutdown](emergency_shutdown.md)
    * [Auto scalability](auto_scalability.md)
    * [Forecaster](forecaster.md)
+   * [SDN Controller](sdn_controller.md)
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [How to contribute?](contributing.md)
