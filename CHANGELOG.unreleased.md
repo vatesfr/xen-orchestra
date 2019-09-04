@@ -13,6 +13,7 @@
 
 - [PBD] Obfuscate cifs password from device config [#4384](https://github.com/vatesfr/xen-orchestra/issues/4384) (PR [#4401](https://github.com/vatesfr/xen-orchestra/pull/4401))
 - [XOSAN] Fix "invalid parameters" error on creating a SR (PR [#4478](https://github.com/vatesfr/xen-orchestra/pull/4478))
+- [Backup restore & Replication] Don't copy `sm_config` to new VDIs which might leads to useless coalesces [#4482](https://github.com/vatesfr/xen-orchestra/issues/4482) (PR [#4484](https://github.com/vatesfr/xen-orchestra/pull/4484))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
