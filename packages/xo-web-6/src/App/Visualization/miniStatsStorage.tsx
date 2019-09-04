@@ -1,8 +1,5 @@
 import React, { Component } from 'react'
-
-import { YAxis, AreaChart, Legend } from 'recharts'
-import Xo from 'xo-lib'
-
+import { YAxis, AreaChart } from 'recharts'
 import { Area } from 'recharts'
 import { xoCall } from './utils'
 const NB_VALUES = 118
@@ -50,7 +47,7 @@ class StoragesIowaitStats extends Component<any, any> {
     setInterval(this.fetchAll.bind(this), 5e3)
   }
   fetchAll() {
-    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+    Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
         this.setState({ max: 0 })
         this.setState({ allData: [] })
@@ -65,9 +62,9 @@ class StoragesIowaitStats extends Component<any, any> {
     )
   }
 
-  fetchOne = (idVm: string) =>
+  fetchOne = (idSr: string) =>
     xoCall('sr.stats', {
-      id: idVm,
+      id: idSr,
       granularity: this.state.granularity,
     })
 
@@ -123,7 +120,7 @@ class StoragesIopsStats extends Component<any, any> {
   }
 
   fetchAll() {
-    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+    Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
         this.setState({ max: 0 })
         this.setState({ allData: [] })
@@ -138,9 +135,9 @@ class StoragesIopsStats extends Component<any, any> {
     )
   }
 
-  fetchOne = (idVm: string) =>
+  fetchOne = (idSr: string) =>
     xoCall('sr.stats', {
-      id: idVm,
+      id: idSr,
       granularity: this.state.granularity,
     })
 
@@ -160,18 +157,11 @@ class StoragesIopsStats extends Component<any, any> {
 
       data.iopsSr.forEach((property: string | number) => {
         const iops = stats.iops[property][i]
-        if (
-          data.maxIOPS === undefined ||
-          iops > data.maxIOPS
-        ) {
+        if (data.maxIOPS === undefined || iops > data.maxIOPS) {
           data.maxIOPS = iops
         }
         valuesSrIops[`iops_${property}`] = stats.iops[property][i]
       })
-
-     /*  data.iopsSr.forEach((property: string | number) => {
-        data.maxIOPS = Math.max(...stats.iops[property])
-      }) */
       iopsData.push(valuesSrIops)
     }
     const maxIopsGlobal = data.maxIOPS
@@ -201,7 +191,7 @@ class StoragesLatencyStats extends Component<any, any> {
   }
 
   fetchAll() {
-    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+    Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
         this.setState({ max: 0 })
         this.setState({ allData: [] })
@@ -216,9 +206,9 @@ class StoragesLatencyStats extends Component<any, any> {
     )
   }
 
-  fetchOne = (idVm: string) =>
+  fetchOne = (idSr: string) =>
     xoCall('sr.stats', {
-      id: idVm,
+      id: idSr,
       granularity: this.state.granularity,
     })
 
@@ -272,7 +262,7 @@ class StoragesThroughputStats extends Component<any, any> {
   }
 
   fetchAll() {
-    Promise.all(this.props.srIds.map((idVm: any) => this.fetchOne(idVm))).then(
+    Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
         this.setState({ max: 0 })
         this.setState({ allData: [] })
@@ -286,9 +276,9 @@ class StoragesThroughputStats extends Component<any, any> {
       }
     )
   }
-  fetchOne = (idVm: string) =>
+  fetchOne = (idSr: string) =>
     xoCall('sr.stats', {
-      id: idVm,
+      id: idSr,
       granularity: this.state.granularity,
     })
 
@@ -353,16 +343,16 @@ class StorageLatencyStats extends Component<any, any> {
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' ms'}
               domain={[0, Math.max(1, this.props.max)]}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
             {this.props.data.latencySr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`latency_${property}`}
-                stroke='#6f9393'
-                fill='#6f9393'
+                stroke='#66ccff'
+                fill='#66ccff'
               />
             ))}
           </AreaChart>
@@ -394,16 +384,16 @@ class StorageIopsStats extends Component<any, any> {
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' IOPS'}
               domain={[0, Math.max(1, this.props.max)]}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
             {this.props.data.iopsSr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`iops_${property}`}
-                stroke='#493BD8'
-                fill='#493BD8'
+                stroke='#006666'
+                fill='#006666'
               />
             ))}
           </AreaChart>
@@ -434,16 +424,16 @@ class StorageIowaitStats extends Component<any, any> {
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' %'}
               domain={[0, Math.max(0.0001, this.props.max)]}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
             {this.props.data.iowaitSr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`iowait_${property}`}
-                stroke='#8078dc'
-                fill='#8078dc'
+                stroke='blue'
+                fill='blue'
               />
             ))}
           </AreaChart>
@@ -499,17 +489,16 @@ class StorageThroughputStats extends Component<any, any> {
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
               domain={[0, Math.max(1, this.props.max)]}
+              hide={true}
             />
-
-            <Legend iconType='rect' iconSize={10} />
             {this.props.data.throSr.map((property: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`thr_${property}`}
-                stroke='#66ccff'
-                fill='#66ccff'
+                stroke='#e6e600'
+                fill='#e6e600'
               />
             ))}
           </AreaChart>
@@ -518,3 +507,4 @@ class StorageThroughputStats extends Component<any, any> {
     )
   }
 }
+

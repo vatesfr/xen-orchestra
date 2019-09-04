@@ -1,14 +1,12 @@
 import React, { Component } from 'react'
-import { YAxis, AreaChart, Legend, XAxis } from 'recharts'
-//import Xo from 'xo-lib'
+import { YAxis, AreaChart } from 'recharts'
 import { getObject, xoCall } from './utils'
 import { Area } from 'recharts'
 const NB_VALUES = 118
-
 const tabId = [
-  'e4b49f04-e7dd-d5f9-e14a-0842d6af84fe',
+  '40fec8ff-e0cf-aa79-ad3a-985ef582f10c',
   '402b4559-217c-e9df-53b8-b548c2616e92',
-  'f4953eb3-f17f-2822-bffe-2101f84b532d',
+  'ebd131c8-d8df-144a-5997-f1969da1f022',
 ]
 
 export default class Visualization extends Component<any, any> {
@@ -103,7 +101,6 @@ class VmCpuStats extends Component<any, any> {
               tickFormatter={value => value + ' %'}
               hide={true}
             />
-            {/* <Legend iconType='rect' iconSize={10} /> */}
             <Area
               isAnimationActive={false}
               type='monotone'
@@ -191,7 +188,6 @@ class VmMemoryStats extends Component<any, any> {
             data={this.state.dataMemory}
             margin={GRAPH_CONFIG}
           >
-            {/* <Legend iconType='rect' iconSize={10} /> */}
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={value => this.formatBytes(value, 0)}
@@ -314,7 +310,7 @@ class VmNetworkStats extends Component<any, any> {
         <br />
         <div>
           <AreaChart
-            width={430}
+            width={400}
             height={100}
             data={this.props.data.values}
             margin={GRAPH_CONFIG}
@@ -325,7 +321,6 @@ class VmNetworkStats extends Component<any, any> {
               domain={[0, Math.max(1, this.props.max)]}
               hide={true}
             />
-            {/*  <Legend iconType='rect' iconSize={10} /> */}
             {[
               ...this.props.data.networksTransmissionVm,
               ...this.props.data.networksReceptionVm,
@@ -468,8 +463,6 @@ class VmDiskStats extends Component<any, any> {
               domain={[0, Math.max(1, this.props.max)]}
               hide={true}
             />
-            {/* <Legend iconType='rect' iconSize={10} /> */}
-
             {[
               ...this.props.data.disksWriting,
               ...this.props.data.disksReading,
@@ -481,8 +474,8 @@ class VmDiskStats extends Component<any, any> {
                 dataKey={`xvds_${property}_(${
                   index < this.props.data.disksWriting.length ? 'w' : 'r'
                 })`}
-                stroke='#015b00'
-                fill='#015b00'
+                stroke='#006666'
+                fill='#006666'
               />
             ))}
           </AreaChart>

@@ -9,7 +9,7 @@ import {
   Brush,
   CartesianGrid,
 } from 'recharts'
-import moment, { max } from 'moment'
+import moment from 'moment'
 import { allColors, getObject, xoCall } from './utils'
 const NB_VALUES = 118
 

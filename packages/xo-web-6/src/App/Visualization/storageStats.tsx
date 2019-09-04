@@ -9,7 +9,6 @@ import {
   Brush,
   CartesianGrid,
 } from 'recharts'
-
 import { allColors, xoCall } from './utils'
 import moment from 'moment'
 const NB_VALUES = 118

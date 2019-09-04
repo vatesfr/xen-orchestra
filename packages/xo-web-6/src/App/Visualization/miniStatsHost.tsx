@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
-import { YAxis, AreaChart, Legend, XAxis } from 'recharts'
-import Xo from 'xo-lib'
-
+import { YAxis, AreaChart } from 'recharts'
 import { Area } from 'recharts'
 import { getObject, xoCall } from './utils'
 const NB_VALUES = 118
@@ -69,23 +67,23 @@ class HostsNetworkStats extends Component<any, any> {
   }
   fetchAll() {
     Promise.all(
-      this.props.hostIds.map((idVm: any) => this.fetchOne(idVm))
+      this.props.hostIds.map((idHost: any) => this.fetchOne(idHost))
     ).then(allData => {
       this.setState({ max: 0 })
       this.setState({ allData: [] })
-      allData.forEach((currentVm: any) => {
+      allData.forEach((currentHost: any) => {
         this.updateData(
-          currentVm.endTimestamp,
-          currentVm.interval,
-          currentVm.stats
+          currentHost.endTimestamp,
+          currentHost.interval,
+          currentHost.stats
         )
       })
     })
   }
 
-  fetchOne = (idVm: string) =>
+  fetchOne = (idHost: string) =>
     xoCall('host.stats', {
-      host: idVm,
+      host: idHost,
       granularity: this.state.granularity,
     })
 
@@ -154,23 +152,23 @@ class HostsLoadStats extends Component<any, any> {
   }
   fetchAll() {
     Promise.all(
-      this.props.hostIds.map((idVm: any) => this.fetchOne(idVm))
+      this.props.hostIds.map((idHost: any) => this.fetchOne(idHost))
     ).then(allData => {
       this.setState({ max: 0 })
       this.setState({ allData: [] })
-      allData.forEach((currentVm: any) => {
+      allData.forEach((currentHost: any) => {
         this.updateData(
-          currentVm.endTimestamp,
-          currentVm.interval,
-          currentVm.stats
+          currentHost.endTimestamp,
+          currentHost.interval,
+          currentHost.stats
         )
       })
     })
   }
 
-  fetchOne = (idVm: string) =>
+  fetchOne = (idHost: string) =>
     xoCall('host.stats', {
-      host: idVm,
+      host: idHost,
       granularity: this.state.granularity,
     })
 
@@ -187,7 +185,7 @@ class HostsLoadStats extends Component<any, any> {
       valuesLoad.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
       loadDataHost.push(valuesLoad)
     }
-    
+
     data.values = loadDataHost
     const maxLoad = Math.max(...stats.load)
     const tmpAllData: any[] = this.state.allData
@@ -264,17 +262,17 @@ class HostMemoryStats extends Component<any, any> {
             data={this.state.dataMemory}
             margin={GRAPH_CONFIG}
           >
-            <Legend iconType='rect' iconSize={10} />
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 0)}
               domain={[0, this.state.maxMemoryHost]}
+              hide={true}
             />
             <Area
               type='monotone'
               dataKey='memory'
-              stroke='#ADD83B'
-              fill='#ADD83B'
+              stroke='#006666'
+              fill='#006666'
             />
           </AreaChart>
         </div>
@@ -338,15 +336,15 @@ class HostCpuStats extends Component<any, any> {
               domain={[0, 100]}
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => tick + ' %'}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
             <Area
               connectNulls
               isAnimationActive={false}
               type='monotone'
               dataKey='cpu'
-              stroke='#015b00'
-              fill='#015b00'
+              stroke='#66ccff'
+              fill='#66ccff'
             />
           </AreaChart>
         </div>
@@ -386,8 +384,8 @@ class HostNetworkStats extends Component<any, any> {
               tick={{ fontSize: '11px' }}
               tickFormatter={tick => this.formatBytes(tick, 2)}
               domain={[0, Math.max(100, this.props.max)]}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
             {[
               ...this.props.data.networksTransmissionVm,
               ...this.props.data.networksReceptionVm,
@@ -401,8 +399,8 @@ class HostNetworkStats extends Component<any, any> {
                     ? 'tx'
                     : 'rx'
                 })`}
-                stroke='#493BD8'
-                fill='#493BD8'
+                stroke='blue'
+                fill='blue'
               />
             ))}
           </AreaChart>
@@ -432,13 +430,15 @@ class HostLoadStats extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               domain={[0, Math.max(1, this.props.max)]}
+              hide={true}
             />
-            <Legend iconType='rect' iconSize={10} />
             <Area
+              isAnimationActive={false}
+              connectNulls
               type='monotone'
               dataKey='load'
-              stroke='#493BD8'
-              fill='#493BD8'
+              stroke='#e6e600'
+              fill='#e6e600'
             />
           </AreaChart>
         </div>

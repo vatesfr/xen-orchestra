@@ -45,12 +45,12 @@ export default class Visualization extends Component<any, any> {
   }
 
   fetchVmStats = () => {
-    getObject('e4b49f04-e7dd-d5f9-e14a-0842d6af84fe').then((vm: any) => {
+    getObject('402b4559-217c-e9df-53b8-b548c2616e92').then((vm: any) => {
       this.setState({ memoryMaxVm: vm.memory.dynamic[1] })
     })
 
     xoCall('vm.stats', {
-      id: 'e4b49f04-e7dd-d5f9-e14a-0842d6af84fe',
+      id: '402b4559-217c-e9df-53b8-b548c2616e92',
       granularity: this.state.granularity,
     }).then(
       ({
@@ -264,6 +264,7 @@ class CpuVmGraph extends Component<any, any> {
                     fill={allColors[index]}
                     key={index}
                     stackId="3"
+                  
                   />
                 ))}
               </AreaChart>
@@ -430,6 +431,7 @@ class NetworkVmGraph extends Component<any, any> {
                     stroke={allColors[index]}
                     fill={allColors[index]}
                     key={index}
+                    
                   />
                 ))}
               </AreaChart>
@@ -523,6 +525,7 @@ class DiskVmGraph extends Component<any, any> {
                       stroke={allColors[index]}
                       fill={allColors[index]}
                       key={index}
+                      stopOpacity={0}
                     />
                   )
                 )}
