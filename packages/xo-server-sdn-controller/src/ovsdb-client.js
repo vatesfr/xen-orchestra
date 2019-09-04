@@ -18,6 +18,7 @@ export class OvsdbClient {
   See:
   - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
   - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
+  - OVS IPSEC     : http://docs.openvswitch.org/en/latest/howto/ipsec/
 
   Attributes on created OVS ports (corresponds to a XAPI `PIF` or `VIF`):
   - `other_config`:
