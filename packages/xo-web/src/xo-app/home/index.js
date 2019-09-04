@@ -1156,7 +1156,7 @@ export default class Home extends Component {
       noResourceSets,
     } = this.props
 
-    if (!areObjectsFetched || this._getFilter() === undefined) {
+    if (!areObjectsFetched) {
       return (
         <CenterPanel>
           <h2>
