@@ -56,6 +56,18 @@ remove.params = {
 
 // -------------------------------------------------------------------
 
+export function get({ id }) {
+  return this.getXenServer(id)
+}
+
+get.description = 'get a registered Xen server'
+
+get.permission = 'admin'
+
+get.params = {
+  id: { type: 'string' },
+}
+
 // TODO: remove this function when users are integrated to the main
 // collection.
 export function getAll() {

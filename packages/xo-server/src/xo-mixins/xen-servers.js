@@ -492,27 +492,37 @@ export default class {
       : 'connecting'
   }
 
+  _makePublicServerObject(server) {
+    const { id } = server
+    const xapi = this._xapis[id]
+    const lastEventFetchedTimestamp = xapi?.lastEventFetchedTimestamp
+    if (
+      lastEventFetchedTimestamp !== undefined &&
+      Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
+    ) {
+      server.error = xapi.watchEventsError
+    }
+    server.status = this._getXenServerStatus(id)
+    if (server.status === 'connected') {
+      server.poolId = xapi.pool.uuid
+    }
+
+    // Do not expose password.
+    delete server.password
+    return server
+  }
+
+  async getXenServer(id) {
+    return this._makePublicServerObject(
+      (await this._servers.first({ id })).properties
+    )
+  }
+
   async getAllXenServers() {
     const servers = await this._servers.get()
-    const xapis = this._xapis
-    forEach(servers, server => {
-      const lastEventFetchedTimestamp =
-        xapis[server.id]?.lastEventFetchedTimestamp
-      if (
-        lastEventFetchedTimestamp !== undefined &&
-        Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
-      ) {
-        server.error = xapis[server.id].watchEventsError
-      }
-      server.status = this._getXenServerStatus(server.id)
-      if (server.status === 'connected') {
-        server.poolId = xapis[server.id].pool.uuid
-      }
-
-      // Do not expose password.
-      delete server.password
+    servers.forEach((server, i, servers) => {
+      servers[i] = this._makePublicServerObject(server)
     })
-
     return servers
   }
 
