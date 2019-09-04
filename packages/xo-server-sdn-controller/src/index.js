@@ -424,10 +424,10 @@ class SDNController extends EventEmitter {
         // See: https://citrix.github.io/xenserver-sdk/#network
         automatic: 'false',
         'xo:sdn-controller:encapsulation': encapsulation,
+        'xo:sdn-controller:encrypted': encrypted ? 'true' : 'false',
         'xo:sdn-controller:pif-device': pif.device,
         'xo:sdn-controller:private-pool-wide': 'true',
         'xo:sdn-controller:vni': String(vni),
-        'xo:sdn-controller:encrypted': encrypted ? 'true' : 'false',
       },
     })
 
@@ -1151,9 +1151,10 @@ class SDNController extends EventEmitter {
     const encapsulation =
       otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
-    const password = otherConfig['xo:sdn-controller:encrypted'] === 'true'
-      ? createPassword()
-      : undefined
+    const password =
+      otherConfig['xo:sdn-controller:encrypted'] === 'true'
+        ? createPassword()
+        : undefined
 
     try {
       await Promise.all([
@@ -1251,9 +1252,10 @@ class SDNController extends EventEmitter {
       otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
 
-    const password = otherConfig['xo:sdn-controller:encrypted'] === 'true'
-      ? createPassword()
-      : undefined
+    const password =
+      otherConfig['xo:sdn-controller:encrypted'] === 'true'
+        ? createPassword()
+        : undefined
 
     let bridgeName
     try {
