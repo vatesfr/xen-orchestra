@@ -51,6 +51,7 @@
     "bootstrap": "^4.3.1",
     "chart.js": "^2.8.0",
     "dygraphs": "^2.1.0",
+    "human-format": "^0.10.1",
     "moment": "^2.24.0",
     "react-bootstrap": "^1.0.0-beta.9",
     "react-chartjs-2": "^2.7.6",

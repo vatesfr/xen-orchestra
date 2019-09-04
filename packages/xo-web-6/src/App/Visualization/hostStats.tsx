@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import moment from 'moment'
 import { allColors, getObject, xoCall } from './utils'
+import humanFormat from 'human-format'
 const NB_VALUES = 118
 
 export default class Visualization extends Component<any, any> {
@@ -279,14 +280,6 @@ class MemoryHostGraph extends Component<any, any> {
     this.setState({ startIndexMemoryHost: res.startIndex })
     this.setState({ endIndexMemoryHost: res.endIndex })
   }
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-  }
 
   render() {
     return (
@@ -305,7 +298,9 @@ class MemoryHostGraph extends Component<any, any> {
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 2)}
+              tickFormatter={value =>
+                humanFormat(value, { scale: 'binary', unit: 'B' })
+              }
               domain={[0, this.props.memoryMaxHost]}
             />
             <Tooltip />
@@ -353,15 +348,6 @@ class NetworkHostGraph extends Component<any, any> {
     this.setState({ endIndexNetworkHost: res.endIndex })
   }
 
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-  }
-
   render() {
     return (
       <div>
@@ -380,7 +366,9 @@ class NetworkHostGraph extends Component<any, any> {
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 2)}
+              tickFormatter={value =>
+                humanFormat(value, { scale: 'binary', unit: 'B' })
+              }
               domain={[0, Math.max(1024e3, this.props.networksReceptionHost)]}
             />
             <Tooltip />

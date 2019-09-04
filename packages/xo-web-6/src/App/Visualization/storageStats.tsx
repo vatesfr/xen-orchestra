@@ -11,6 +11,8 @@ import {
 } from 'recharts'
 import { allColors, xoCall } from './utils'
 import moment from 'moment'
+import humanFormat from 'human-format'
+
 const NB_VALUES = 118
 
 export default class Visualization extends Component<any, any> {
@@ -268,25 +270,6 @@ class SrIOThroGraph extends Component<any, any> {
     this.setState({ endIndexIOSR: res.endIndex })
   }
 
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B/s'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = [
-      'B/s',
-      'KB/s',
-      'MB/s',
-      'GB/s',
-      'TB/s',
-      'PB/s',
-      'EB/s',
-      'ZB/s',
-      'YB/s',
-    ]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-  }
-
   render() {
     return (
       <div>
@@ -304,7 +287,9 @@ class SrIOThroGraph extends Component<any, any> {
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 2)}
+              tickFormatter={value =>
+                humanFormat(value, { scale: 'binary', unit: 'B' })
+              }
               domain={[0, Math.max(1024e3, this.props.maxIoThroughput)]}
             />
             <Tooltip />

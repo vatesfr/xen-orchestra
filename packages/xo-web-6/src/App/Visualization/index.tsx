@@ -12,6 +12,7 @@ import {
 
 import { allColors, getObject, xoCall } from './utils'
 import moment from 'moment'
+import humanFormat from 'human-format'
 const NB_VALUES = 118
 
 export default class Visualization extends Component<any, any> {
@@ -238,7 +239,7 @@ class CpuVmGraph extends Component<any, any> {
             <CartesianGrid strokeDasharray='3 3' />
             <XAxis dataKey='time' />
             <YAxis
-              domain={[0, 100*this.props.vmCpus.length]}
+              domain={[0, 100]}
               tick={{ fontSize: '11px' }}
               tickFormatter={value => value + ' %'}
             />
@@ -263,8 +264,6 @@ class CpuVmGraph extends Component<any, any> {
                     stroke={allColors[index]}
                     fill={allColors[index]}
                     key={index}
-                    stackId="3"
-                  
                   />
                 ))}
               </AreaChart>
@@ -299,15 +298,6 @@ class MemoryVmGraph extends Component<any, any> {
     this.setState({ endIndexMemoryVm: res.endIndex })
   }
 
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
-  }
-
   render() {
     return (
       <div>
@@ -325,7 +315,9 @@ class MemoryVmGraph extends Component<any, any> {
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 0)}
+              tickFormatter={value =>
+                humanFormat(value, { scale: 'binary', unit: 'B' })
+              }
               domain={[0, this.props.memoryMaxVm]}
             />
             <Tooltip />
@@ -373,15 +365,6 @@ class NetworkVmGraph extends Component<any, any> {
     this.setState({ endIndexNetworkVm: res.endIndex })
   }
 
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-  }
-
   render() {
     return (
       <div>
@@ -400,7 +383,9 @@ class NetworkVmGraph extends Component<any, any> {
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 2)}
+              tickFormatter={value =>
+                humanFormat(value, { scale: 'binary', unit: 'B' })
+              }
               domain={[0, Math.max(1024e3, this.props.maxNetworkVm)]}
             />
             <Tooltip />
@@ -431,7 +416,6 @@ class NetworkVmGraph extends Component<any, any> {
                     stroke={allColors[index]}
                     fill={allColors[index]}
                     key={index}
-                    
                   />
                 ))}
               </AreaChart>
@@ -471,15 +455,6 @@ class DiskVmGraph extends Component<any, any> {
     this.setState({ endIndexDiskVm: res.endIndex })
   }
 
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-  }
-
   render() {
     return (
       <div>
@@ -498,7 +473,9 @@ class DiskVmGraph extends Component<any, any> {
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 2)}
+              tickFormatter={value =>
+                humanFormat(value, { scale: 'binary', unit: 'B' })
+              }
               domain={[0, Math.max(1024e6, this.props.maxDisk)]}
             />
             <Tooltip />
@@ -525,7 +502,6 @@ class DiskVmGraph extends Component<any, any> {
                       stroke={allColors[index]}
                       fill={allColors[index]}
                       key={index}
-                      stopOpacity={0}
                     />
                   )
                 )}

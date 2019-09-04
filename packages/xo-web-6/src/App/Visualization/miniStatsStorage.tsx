@@ -507,4 +507,3 @@ class StorageThroughputStats extends Component<any, any> {
     )
   }
 }
-
