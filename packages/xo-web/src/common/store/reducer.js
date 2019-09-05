@@ -1,5 +1,4 @@
 import cookies from 'cookies-js'
-import { groupBy } from 'lodash'
 
 import invoke from '../invoke'
 
@@ -97,10 +96,11 @@ export default {
     {
       all: {}, // Mutable for performance!
       byType: {},
+      fetched: false,
     },
     {
       [actions.updateObjects]: (
-        { all, byType: prevByType, fetched = false },
+        { all, byType: prevByType, fetched },
         updates
       ) => {
         const byType = { ...prevByType }
@@ -131,9 +131,8 @@ export default {
 
         return { all, byType, fetched }
       },
-      [actions.fetchObjects]: (_, all) => ({
-        all,
-        byType: groupBy(all, 'type'),
+      [actions.markObjectsFetched]: state => ({
+        ...state,
         fetched: true,
       }),
     }
