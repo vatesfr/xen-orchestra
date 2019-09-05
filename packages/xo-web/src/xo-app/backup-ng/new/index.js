@@ -10,6 +10,7 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import UserError from 'user-error'
+import ZstdChecker from 'zstd-checker'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
@@ -607,6 +608,7 @@ export default decorate([
           get(() => hostsById[$container].version) ||
             get(() => hostsById[poolsById[$container].master].version)
         ),
+      selectedVmIds: state => resolveIds(state.vms),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
       propSettings: (_, { job }) =>
@@ -1000,15 +1002,20 @@ export default decorate([
                       />
                     </Upgrade>
                   ) : (
-                    <FormFeedback
-                      component={SelectVm}
-                      message={_('missingVms')}
-                      multi
-                      onChange={effects.setVms}
-                      error={state.showErrors ? state.missingVms : undefined}
-                      value={state.vms}
-                      predicate={state.vmPredicate}
-                    />
+                    <div>
+                      <FormFeedback
+                        component={SelectVm}
+                        error={state.showErrors ? state.missingVms : undefined}
+                        message={_('missingVms')}
+                        multi
+                        onChange={effects.setVms}
+                        predicate={state.vmPredicate}
+                        value={state.vms}
+                      />
+                      {compression === 'zstd' && (
+                        <ZstdChecker vms={state.selectedVmIds} />
+                      )}
+                    </div>
                   )}
                 </CardBlock>
               </Card>
