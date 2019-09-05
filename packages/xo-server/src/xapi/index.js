@@ -753,7 +753,6 @@ export default class Xapi extends XapiBase {
       // an unmanaged VDI should not have exactly one child: they
       // should coalesce
       const children = childrenMap[vdi.uuid]
-
       if (
         children.length === 1 &&
         !children[0].managed // some SRs do not coalesce the leaf
