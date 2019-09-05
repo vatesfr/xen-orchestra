@@ -218,6 +218,7 @@ const NewNetwork = decorate([
                 encapsulation: encapsulation,
                 xoPifIds: pifIds,
                 encrypted,
+                mtu: +mtu,
               })
             })()
           : createPrivateNetwork({
@@ -227,6 +228,7 @@ const NewNetwork = decorate([
               encapsulation: encapsulation,
               pifId: pif.id,
               encrypted,
+              mtu: +mtu,
             })
         : createNetwork({
             description,
@@ -343,6 +345,15 @@ const NewNetwork = decorate([
                       type='text'
                       value={description}
                     />
+                    <label>{_('newNetworkMtu')}</label>
+                    <input
+                      className='form-control'
+                      name='mtu'
+                      onChange={effects.linkState}
+                      placeholder={formatMessage(messages.newNetworkDefaultMtu)}
+                      type='text'
+                      value={mtu}
+                    />
                     {isPrivate ? (
                       <div>
                         <label>{_('newNetworkEncapsulation')}</label>
@@ -423,17 +434,6 @@ const NewNetwork = decorate([
                       </div>
                     ) : (
                       <div>
-                        <label>{_('newNetworkMtu')}</label>
-                        <input
-                          className='form-control'
-                          name='mtu'
-                          onChange={effects.linkState}
-                          placeholder={formatMessage(
-                            messages.newNetworkDefaultMtu
-                          )}
-                          type='text'
-                          value={mtu}
-                        />
                         {bonded ? (
                           <div>
                             <label>{_('newNetworkBondMode')}</label>
