@@ -43,6 +43,7 @@ import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
   disconnected,
+  fetchObjects,
   signedIn,
   signedOut,
   updateObjects,
@@ -149,7 +150,7 @@ export const connectStore = store => {
         parseNdJson(data, object => {
           objects[object.id] = object
         })
-        store.dispatch(updateObjects(objects, true))
+        store.dispatch(fetchObjects(objects))
       })
   })
   xo.on('notification', notification => {

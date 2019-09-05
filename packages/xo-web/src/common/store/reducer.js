@@ -1,4 +1,5 @@
 import cookies from 'cookies-js'
+import { groupBy } from 'lodash'
 
 import invoke from '../invoke'
 
@@ -100,7 +101,7 @@ export default {
     {
       [actions.updateObjects]: (
         { all, byType: prevByType, fetched = false },
-        { updates, initialFetch }
+        updates
       ) => {
         const byType = { ...prevByType }
         const get = type => {
@@ -128,12 +129,13 @@ export default {
           }
         }
 
-        if (initialFetch) {
-          fetched = true
-        }
-
         return { all, byType, fetched }
       },
+      [actions.fetchObjects]: (_, all) => ({
+        all,
+        byType: groupBy(all, 'type'),
+        fetched: true,
+      }),
     }
   ),
 
