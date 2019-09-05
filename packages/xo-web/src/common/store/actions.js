@@ -32,7 +32,6 @@ export const disconnected = createAction('DISCONNECTED')
 
 export const markObjectsFetched = createAction('OBJECTS_FETCHED')
 export const updateObjects = createAction('UPDATE_OBJECTS', updates => updates)
-
 export const updatePermissions = createAction(
   'UPDATE_PERMISSIONS',
   permissions => permissions
