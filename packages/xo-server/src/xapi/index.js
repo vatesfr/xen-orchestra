@@ -1692,12 +1692,15 @@ export default class Xapi extends XapiBase {
   }
 
   async createVdi({
+    // blindly copying `sm_config` from another VDI can create problems,
+    // therefore it is ignored by this method
+    //
+    // see https://github.com/vatesfr/xen-orchestra/issues/4482
     name_description,
     name_label,
     other_config = {},
     read_only = false,
     sharable = false,
-    sm_config,
     SR,
     tags,
     type = 'user',
@@ -1717,7 +1720,6 @@ export default class Xapi extends XapiBase {
         other_config,
         read_only: Boolean(read_only),
         sharable: Boolean(sharable),
-        sm_config,
         SR: sr.$ref,
         tags,
         type,
