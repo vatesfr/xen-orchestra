@@ -188,12 +188,6 @@ const NewNetwork = decorate([
         pifs,
         vlan,
       } = state
-      const poolIds = [pool.id]
-      const pifIds = [pif.id]
-      for (const network of networks) {
-        poolIds.push(network.pool.id)
-        pifIds.push(network.pif.id)
-      }
       return bonded
         ? createBondedNetwork({
             bondMode: bondMode.value,
@@ -205,13 +199,21 @@ const NewNetwork = decorate([
           })
         : isPrivate
         ? networks.length > 0
-          ? createCrossPoolPrivateNetwork({
-              xoPoolIds: poolIds,
-              networkName: name,
-              networkDescription: description,
-              encapsulation: encapsulation,
-              xoPifIds: pifIds,
-            })
+          ? (() => {
+              const poolIds = [pool.id]
+              const pifIds = [pif.id]
+              for (const network of networks) {
+                poolIds.push(network.pool.id)
+                pifIds.push(network.pif.id)
+              }
+              return createCrossPoolPrivateNetwork({
+                xoPoolIds: poolIds,
+                networkName: name,
+                networkDescription: description,
+                encapsulation: encapsulation,
+                xoPifIds: pifIds,
+              })
+            })()
           : createPrivateNetwork({
               poolId: pool.id,
               networkName: name,
