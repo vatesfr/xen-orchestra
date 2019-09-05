@@ -43,6 +43,7 @@ import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
   disconnected,
+  markObjectsFetched,
   signedIn,
   signedOut,
   updateObjects,
@@ -150,6 +151,7 @@ export const connectStore = store => {
           objects[object.id] = object
         })
         store.dispatch(updateObjects(objects))
+        store.dispatch(markObjectsFetched())
       })
   })
   xo.on('notification', notification => {

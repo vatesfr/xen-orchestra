@@ -96,9 +96,13 @@ export default {
     {
       all: {}, // Mutable for performance!
       byType: {},
+      fetched: false,
     },
     {
-      [actions.updateObjects]: ({ all, byType: prevByType }, updates) => {
+      [actions.updateObjects]: (
+        { all, byType: prevByType, fetched },
+        updates
+      ) => {
         const byType = { ...prevByType }
         const get = type => {
           const curr = byType[type]
@@ -125,8 +129,12 @@ export default {
           }
         }
 
-        return { all, byType, fetched: true }
+        return { all, byType, fetched }
       },
+      [actions.markObjectsFetched]: state => ({
+        ...state,
+        fetched: true,
+      }),
     }
   ),
 
