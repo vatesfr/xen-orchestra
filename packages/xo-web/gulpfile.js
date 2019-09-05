@@ -261,7 +261,11 @@ gulp.task(function buildScripts() {
       ],
     }),
     require('gulp-sourcemaps').init({ loadMaps: true }),
-    PRODUCTION && require('gulp-uglify/composer')(require('uglify-es'))(),
+    PRODUCTION &&
+      require('gulp-uglify/composer')(require('uglify-es'))({
+        // 2019-09-04 Disabling inline optimization until https://github.com/mishoo/UglifyJS2/issues/2842 is fixed
+        compress: { inline: false },
+      }),
     dest()
   )
 })

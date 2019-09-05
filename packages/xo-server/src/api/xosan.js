@@ -821,12 +821,14 @@ export const createSR = defer(async function(
 createSR.description = 'create gluster VM'
 createSR.permission = 'admin'
 createSR.params = {
+  brickSize: { type: 'number', optional: true },
   srs: {
     type: 'array',
     items: {
       type: 'string',
     },
   },
+  template: { type: 'object' },
   pif: {
     type: 'string',
   },

@@ -1748,6 +1748,8 @@ const messages = {
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
   newNetworkEncapsulation: 'Encapsulation',
+  newNetworkSdnControllerTip:
+    'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
