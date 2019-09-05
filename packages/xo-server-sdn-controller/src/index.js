@@ -207,6 +207,7 @@ class SDNController extends EventEmitter {
       networkDescription: { type: 'string' },
       encapsulation: { type: 'string' },
       pifId: { type: 'string' },
+      mtu: { type: 'string' },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
@@ -235,6 +236,7 @@ class SDNController extends EventEmitter {
           type: 'string',
         },
       },
+      mtu: { type: 'string' },
     }
 
     this._unsetApiMethods = this._xo.addApiMethods({
@@ -394,6 +396,7 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPif,
     vni,
+    mtu,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
@@ -404,7 +407,7 @@ class SDNController extends EventEmitter {
     const privateNetworkRef = await pool.$xapi.call('network.create', {
       name_label: networkName,
       name_description: networkDescription,
-      MTU: 0,
+      MTU: +mtu,
       other_config: {
         // Set `automatic` to false so XenCenter does not get confused
         // See: https://citrix.github.io/xenserver-sdk/#network
@@ -453,6 +456,7 @@ class SDNController extends EventEmitter {
     networkDescription,
     encapsulation,
     xoPifIds,
+    mtu,
   }) {
     const uuid = uuidv4()
     const crossPoolNetwork = {
@@ -481,6 +485,7 @@ class SDNController extends EventEmitter {
         encapsulation,
         xoPif,
         vni,
+        mtu,
       })
 
       const network = pool.$xapi.getObjectByRef(poolNetwork.network)
