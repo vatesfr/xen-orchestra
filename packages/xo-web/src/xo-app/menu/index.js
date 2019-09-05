@@ -195,32 +195,32 @@ export default class Menu extends Component {
         label: 'selfServicePage',
       },
       isAdmin && {
-        to: '/backup-ng/overview',
+        to: '/backup/overview',
         icon: 'menu-backup',
-        label: <span>Backup NG</span>,
+        label: 'backupPage',
         subMenu: [
           {
-            to: '/backup-ng/overview',
+            to: '/backup/overview',
             icon: 'menu-backup-overview',
             label: 'backupOverviewPage',
           },
           {
-            to: '/backup-ng/new',
+            to: '/backup/new',
             icon: 'menu-backup-new',
             label: 'backupNewPage',
           },
           {
-            to: '/backup-ng/restore',
+            to: '/backup/restore',
             icon: 'menu-backup-restore',
             label: 'backupRestorePage',
           },
           {
-            to: '/backup-ng/file-restore',
+            to: '/backup/file-restore',
             icon: 'menu-backup-file-restore',
             label: 'backupFileRestorePage',
           },
           {
-            to: '/backup-ng/health',
+            to: '/backup/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
           },

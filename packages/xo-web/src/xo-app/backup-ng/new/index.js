@@ -1033,7 +1033,7 @@ export default decorate([
                     handler={effects.editJob}
                     icon='save'
                     redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup-ng'
+                      state.isJobInvalid ? undefined : '/backup'
                     }
                     size='large'
                   >
@@ -1046,7 +1046,7 @@ export default decorate([
                     handler={effects.createJob}
                     icon='save'
                     redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup-ng'
+                      state.isJobInvalid ? undefined : '/backup'
                     }
                     size='large'
                   >

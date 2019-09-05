@@ -306,7 +306,7 @@ class JobsTable extends React.Component {
         icon: 'preview',
       },
       {
-        handler: (job, { goTo }) => goTo(`/backup-ng/${job.id}/edit`),
+        handler: (job, { goTo }) => goTo(`/backup/${job.id}/edit`),
         label: _('formEdit'),
         icon: 'edit',
         level: 'primary',
@@ -359,7 +359,7 @@ const HealthNavTab = decorate([
     nLoneSnapshots: createGetLoneSnapshots.count(),
   }),
   ({ nLoneSnapshots }) => (
-    <NavLink to='/backup-ng/health'>
+    <NavLink to='/backup/health'>
       <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
       {nLoneSnapshots > 0 && (
         <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
@@ -380,16 +380,16 @@ const HEADER = (
       </Col>
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
-          <NavLink exact to='/backup-ng/overview'>
+          <NavLink exact to='/backup/overview'>
             <Icon icon='menu-backup-overview' /> {_('backupOverviewPage')}
           </NavLink>
-          <NavLink to='/backup-ng/new'>
+          <NavLink to='/backup/new'>
             <Icon icon='menu-backup-new' /> {_('backupNewPage')}
           </NavLink>
-          <NavLink to='/backup-ng/restore'>
+          <NavLink to='/backup/restore'>
             <Icon icon='menu-backup-restore' /> {_('backupRestorePage')}
           </NavLink>
-          <NavLink to='/backup-ng/file-restore'>
+          <NavLink to='/backup/file-restore'>
             <Icon icon='menu-backup-file-restore' />{' '}
             {_('backupFileRestorePage')}
           </NavLink>

@@ -21,7 +21,6 @@ import { Container, Row, Col } from 'grid'
 // } from 'react-key-handler'
 
 import About from './about'
-import Backup from './backup'
 import BackupNg from './backup-ng'
 import Dashboard from './dashboard'
 import Home from './home'
@@ -31,6 +30,7 @@ import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert, FormModal } from 'modal'
 import New from './new'
+import NewBackup from './backup/new'
 import NewVm from './new-vm'
 import Pool from './pool'
 import Self from './self'
@@ -75,12 +75,16 @@ const BODY_STYLE = {
 
 @routes('home', {
   about: About,
-  backup: Backup,
-  'backup-ng': BackupNg,
+  backup: BackupNg,
+  'backup-ng/*': {
+    onEnter: ({ location }, replace) =>
+      replace(location.pathname.replace('/backup-ng', '/backup')),
+  },
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': Host,
   jobs: Jobs,
+  'legacy-backup/new': NewBackup,
   new: New,
   'pools/:id': Pool,
   self: Self,
@@ -106,9 +110,11 @@ export default class XoApp extends Component {
   static contextTypes = {
     router: PropTypes.object,
   }
+
   static childContextTypes = {
     shortcuts: PropTypes.object.isRequired,
   }
+
   getChildContext = () => ({ shortcuts: shortcutManager })
 
   displayOpenSourceDisclaimer() {

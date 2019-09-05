@@ -325,7 +325,7 @@ const normalizeMainParams = params => {
   currentUser: getUser,
   vms: createGetObjectsOfType('VM'),
 })
-export default class New extends Component {
+export default class NewBackup extends Component {
   _getParams = createSelector(
     () => this.props.job,
     () => this.props.schedule,
