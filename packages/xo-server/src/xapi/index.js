@@ -734,9 +734,19 @@ export default class Xapi extends XapiBase {
       const { SR } = vdi
       let childrenMap = cache[SR]
       if (childrenMap === undefined) {
+        const xapi = vdi.$xapi
         childrenMap = cache[SR] = groupBy(
-          vdi.$SR.$VDIs,
-          _ => _.sm_config['vhd-parent']
+          vdi.$SR.VDIs,
+
+          // if for any reasons, the VDI is undefined, simply ignores it instead
+          // of failing
+          ref => {
+            try {
+              return xapi.getObjectByRef(ref).sm_config['vhd-parent']
+            } catch (error) {
+              log.warn('missing VDI in _assertHealthyVdiChain', { error })
+            }
+          }
         )
       }
 
