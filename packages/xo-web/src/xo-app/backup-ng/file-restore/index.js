@@ -223,7 +223,8 @@ export default class Restore extends Component {
       <Upgrade place='restoreBackup' available={4}>
         <div>
           <RestoreFileLegacy />
-          <div className='mb-1'>
+          <div className='mt-1 mb-1'>
+            <h3>{_('backupFileRestorePage')}</h3>
             <ActionButton
               btnStyle='primary'
               handler={this._refreshBackupList}
