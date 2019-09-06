@@ -272,6 +272,7 @@ export default class Restore extends Component {
     return (
       <Upgrade place='restoreBackup' available={2}>
         <div>
+          <RestoreLegacy />
           <div className='mb-1'>
             <ActionButton
               btnStyle='primary'
@@ -291,7 +292,6 @@ export default class Restore extends Component {
           />
           <br />
           <Logs />
-          <RestoreLegacy />
         </div>
       </Upgrade>
     )
