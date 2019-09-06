@@ -64,7 +64,11 @@ export default class TabConsole extends Component {
   }
 
   _sendCtrlAltDel = async () => {
-    await confirm({ body: _('ctrlAltDelConfirmation') })
+    await confirm({
+      icon: 'vm-keyboard',
+      title: _('ctrlAltDelButtonLabel'),
+      body: _('ctrlAltDelConfirmation'),
+    })
     this.refs.noVnc.sendCtrlAltDel()
   }
 
@@ -111,16 +115,17 @@ export default class TabConsole extends Component {
 
   _openSshMore = async () => {
     const cookieKey = `${this.props.vm.uuid}/ssh-user-name`
-    const suggestedUsername = cookies.get(cookieKey) || 'root'
     const username = await form({
-      defaultValue: suggestedUsername,
+      defaultValue: cookies.get(cookieKey) || 'root',
       header: <span>{_('sshUsernameLabel')}</span>,
       render: props => <this._sshName {...props} />,
     })
-    if (username !== suggestedUsername) {
+    if (username !== (cookies.get(cookieKey) || 'root')) {
       cookies.set(cookieKey, username)
     }
-    window.open(`ssh://${username}@${this.props.vm.addresses['0/ip']}`)
+    window.open(
+      `ssh://${encodeURIComponent(username)}@${this.props.vm.addresses['0/ip']}`
+    )
   }
 
   render() {
