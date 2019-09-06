@@ -102,23 +102,21 @@ export default class TabConsole extends Component {
     window.open(`ssh://root@${this.props.vm.addresses['0/ip']}`)
   }
 
-  _sshName = ({ value, onChange }) => (
-    <div>
-      <input
-        type='text'
-        className='form-control'
-        onChange={onChange}
-        value={value}
-      />
-    </div>
-  )
-
   _openSshMore = async () => {
     const cookieKey = `${this.props.vm.uuid}/ssh-user-name`
     const username = await form({
       defaultValue: cookies.get(cookieKey) || 'root',
       header: _('sshUsernameLabel'),
-      render: props => <this._sshName {...props} />,
+      render: ({ value, onChange }) => (
+        <div>
+          <input
+            type='text'
+            className='form-control'
+            onChange={onChange}
+            value={value}
+          />
+        </div>
+      ),
     })
     if (username !== (cookies.get(cookieKey) || 'root')) {
       cookies.set(cookieKey, username)
