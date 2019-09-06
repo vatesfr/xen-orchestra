@@ -24,6 +24,9 @@ In the network creation view:
 - Create the network
 - Have fun! ☺
 
+***NB:***
+- All hosts in a private network must be able to reach the other hosts' management interface.
+
 ### Configuration
 
 Like all other xo-server plugins, it can be configured directly via
