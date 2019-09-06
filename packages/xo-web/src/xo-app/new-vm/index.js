@@ -237,6 +237,9 @@ class Vif extends BaseComponent {
   const getPool = createGetObject((_, props) => props.location.query.pool)
   const getPools = createGetObjectsOfType('pool')
   const getSrs = createGetObjectsOfType('SR')
+  const getTemplate = createGetObject(
+    (_, props) => props.location.query.template
+  )
   const getTemplates = createGetObjectsOfType('VM-template').sort()
   const getUserSshKeys = createSelector(
     (_, props) => {
@@ -257,6 +260,7 @@ class Vif extends BaseComponent {
       props.pool === undefined // to get objects as a self user
     ),
     srs: getSrs(state, props),
+    template: getTemplate(state, props),
     templates: getTemplates(state, props),
     userSshKeys: getUserSshKeys(state, props),
   })
@@ -1017,7 +1021,7 @@ export default class NewVm extends BaseComponent {
                   onChange={this._initTemplate}
                   placeholder={_('newVmSelectTemplate')}
                   predicate={this._getVmPredicate()}
-                  value={template}
+                  value={template || this.props.template}
                 />
               ) : (
                 <SelectResourceSetsVmTemplate
