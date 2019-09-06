@@ -14,8 +14,6 @@ import {
   isFunction,
   isPlainObject,
   isString,
-  join,
-  keys,
   map,
   mapValues,
   pick,
@@ -360,7 +358,7 @@ export const resolveResourceSets = resourceSets =>
 // Creates a string replacer based on a pattern and a list of rules
 //
 // ```js
-// const myReplacer = buildTemplate('{name}_COPY_{name}_{id}_%', {
+// const myReplacer = buildTemplate('{name}_COPY_\{name}_{id}_%\%', {
 //   '{name}': vm => vm.name_label,
 //   '{id}': vm => vm.id,
 //   '%': (_, i) => i
@@ -371,13 +369,22 @@ export const resolveResourceSets = resourceSets =>
 //   id: 42,
 // }, 32)
 //
-// newString === 'foo_COPY_foo_42_32'
+// newString === 'foo_COPY_foo_42_32%'
 // ```
 export function buildTemplate(pattern, rules) {
-  const regExp = new RegExp(join(map(keys(rules), escapeRegExp), '|'), 'g')
+  const syntaxesToReplace = []
+  Object.keys(rules).forEach(syntax =>
+    syntaxesToReplace.push(escapeRegExp(syntax), escapeRegExp(`\\${syntax}`))
+  )
+  syntaxesToReplace.push(escapeRegExp('\\\\'))
+
+  const regExp = new RegExp(syntaxesToReplace.join('|'), 'g')
   return (...params) =>
     replace(pattern, regExp, match => {
       const rule = rules[match]
+      if (rule === undefined) {
+        return match.slice(1)
+      }
       return isFunction(rule) ? rule(...params) : rule
     })
 }
