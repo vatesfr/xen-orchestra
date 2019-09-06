@@ -25,7 +25,8 @@ In the network creation view:
 - Have fun! ☺
 
 ***NB:***
-- All hosts in a private network must be able to reach the other hosts' [management interface](https://support.citrix.com/article/CTX205717).
+- All hosts in a private network must be able to reach the other hosts' management interface.
+> The term ‘management interface’ is used to indicate the IP-enabled NIC that carries the management traffic.
 
 ### Configuration
 
