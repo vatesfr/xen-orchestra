@@ -123,7 +123,6 @@ export class OvsdbClient {
         type: encapsulation,
         options: options,
         name: interfaceName,
-        other_config: otherConfig,
       },
       'uuid-name': 'new_iface',
     }
