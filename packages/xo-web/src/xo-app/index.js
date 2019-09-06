@@ -33,6 +33,7 @@ import Modal, { alert, FormModal } from 'modal'
 import New from './new'
 import NewVm from './new-vm'
 import Pool from './pool'
+import RedirectToBackup from './redirect-to-backup'
 import Self from './self'
 import Settings from './settings'
 import Sr from './sr'
@@ -75,8 +76,8 @@ const BODY_STYLE = {
 
 @routes('home', {
   about: About,
-  backup: Backup,
-  'backup-ng': BackupNg,
+  backup: BackupNg,
+  'backup-ng': RedirectToBackup,
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': Host,
