@@ -117,7 +117,7 @@ export default class TabConsole extends Component {
     const cookieKey = `${this.props.vm.uuid}/ssh-user-name`
     const username = await form({
       defaultValue: cookies.get(cookieKey) || 'root',
-      header: <span>{_('sshUsernameLabel')}</span>,
+      header: _('sshUsernameLabel'),
       render: props => <this._sshName {...props} />,
     })
     if (username !== (cookies.get(cookieKey) || 'root')) {
