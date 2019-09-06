@@ -24,6 +24,10 @@ In the network creation view:
 - Create the network
 - Have fun! ☺
 
+***NB:***
+- All hosts in a private network must be able to reach the other hosts' management interface.
+> The term ‘management interface’ is used to indicate the IP-enabled NIC that carries the management traffic.
+
 ### Configuration
 
 Like all other xo-server plugins, it can be configured directly via
