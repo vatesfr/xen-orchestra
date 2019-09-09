@@ -7,11 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup NG/New] Improve new schedule form feedback [#3831](https://github.com/vatesfr/xen-orchestra/issues/3831) (PR [#4131](https://github.com/vatesfr/xen-orchestra/pull/4131))
-
 ### Bug fixes
 
-- [Backup NG/New schedule] Fix errors displayed behind the form [#3831](https://github.com/vatesfr/xen-orchestra/issues/3831) (PR [#4131](https://github.com/vatesfr/xen-orchestra/pull/4131))
+- [Backup NG/New schedule] Properly show user errors in the form [#3831](https://github.com/vatesfr/xen-orchestra/issues/3831) (PR [#4131](https://github.com/vatesfr/xen-orchestra/pull/4131))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
