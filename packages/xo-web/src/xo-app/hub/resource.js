@@ -56,18 +56,16 @@ export default decorate([
           })
           this.state.loading = true
           try {
-            const vmUuid = await downloadAndInstallResource({
+            const templateId = await downloadAndInstallResource({
               namespace,
               id,
               version,
               sr: resourceParams.sr,
             })
             success('XVA import', 'XVA installed successfuly')
-            if (deploy) {
-              this.props.router.push(`vms/${vmUuid}`)
-            } else {
-              this.props.router.push(`/home?p=1&s=${name}&t=VM-template`)
-            }
+            this.props.router.push(
+              `/vms/new?pool=${resourceParams.pool.$pool}&template=${templateId}`
+            )
           } catch (_error) {
             error('Error', _error.message)
           } finally {
@@ -117,7 +115,7 @@ export default decorate([
         ) : (
           <Row>
             <br />
-            <Col size={6}>
+            <Col size={12}>
               <ActionButton
                 block
                 handler={effects.install}
@@ -129,21 +127,6 @@ export default decorate([
                 size='meduim'
               >
                 {_('hubInstallXva')}
-              </ActionButton>
-            </Col>
-            <Col size={6}>
-              <ActionButton
-                block
-                handler={effects.install}
-                data-name={name}
-                data-namespace={namespace}
-                data-id={id}
-                data-version={version}
-                data-deploy
-                icon={'deploy'}
-                size='meduim'
-              >
-                {_('hubDeployXva')}
               </ActionButton>
             </Col>
             <br />

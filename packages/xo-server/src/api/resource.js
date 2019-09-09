@@ -1,3 +1,5 @@
+import xapiObjectToXo from '../xapi-object-to-xo'
+
 export async function downloadAndInstallResource({
   namespace,
   id,
@@ -14,7 +16,8 @@ export async function downloadAndInstallResource({
     srId: sr.id,
     type: 'xva',
   })
-  return vm.uuid
+  console.log(xapiObjectToXo(vm))
+  return xapiObjectToXo(vm).id
 }
 
 downloadAndInstallResource.description =
