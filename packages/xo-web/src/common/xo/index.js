@@ -1303,7 +1303,7 @@ export const migrateVm = async (vm, host) => {
         body: _('forceVmMigrateModalMessage'),
         title: _('forceVmMigrateModalTitle'),
       })
-      _call('vm.migrate', { vm: vm.id, force: true, ...params })
+      await _call('vm.migrate', { vm: vm.id, force: true, ...params })
     }
     throw error
   }
