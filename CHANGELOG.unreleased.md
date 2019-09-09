@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/Advanced] Fix "vm.set_domain_type" is not a function on switching virtualization mode (PV/HVM) [#4348](https://github.com/vatesfr/xen-orchestra/issues/4348) (PR [#4504](https://github.com/vatesfr/xen-orchestra/pull/4504))
+- [VM/Advanced] Fix `"vm.set_domain_type" is not a function` error on switching virtualization mode (PV/HVM) [#4348](https://github.com/vatesfr/xen-orchestra/issues/4348) (PR [#4504](https://github.com/vatesfr/xen-orchestra/pull/4504))
 
 ### Released packages
 
