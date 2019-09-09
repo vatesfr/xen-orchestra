@@ -115,7 +115,7 @@ const COLUMNS_VM_PV = [
       />
     ),
     name: _('vdiNameLabel'),
-    sortCriteria: ({ vdi }) => vdi.name_label,
+    sortCriteria: 'vdi.name_label',
     default: true,
   },
   {
@@ -126,7 +126,7 @@ const COLUMNS_VM_PV = [
       />
     ),
     name: _('vdiNameDescription'),
-    sortCriteria: ({ vdi }) => vdi.name_description,
+    sortCriteria: 'vdi.name_description',
   },
   {
     itemRenderer: ({ vdi }) => (
@@ -136,7 +136,7 @@ const COLUMNS_VM_PV = [
       />
     ),
     name: _('vdiSize'),
-    sortCriteria: ({ vdi }) => vdi.size,
+    sortCriteria: 'vdi.size',
   },
   {
     component: VdiSr,
@@ -288,13 +288,13 @@ class NewDisk extends Component {
     const diskLimit = this._getResourceSetDiskLimit()
     const resourceSet = this._getResolvedResourceSet()
 
-    const selectSr_ =
+    const SelectSr_ =
       isAdmin || resourceSet == null ? SelectSr : SelectResourceSetsSr
 
     return (
       <form id='newDiskForm'>
         <div className='form-group'>
-          <selectSr_
+          <SelectSr_
             onChange={this.linkState('sr')}
             predicate={this._getSrPredicate()}
             required
