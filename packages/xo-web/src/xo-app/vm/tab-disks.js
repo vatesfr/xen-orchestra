@@ -814,8 +814,12 @@ export default class TabDisks extends Component {
     (vbds, vdis, srs) =>
       compact(
         map(vbds, vbd => {
-          const vdi = vdis[vbd.VDI]
-          return vdi !== undefined && { ...vbd, vdi, vdiSr: srs[vdi.$SR] }
+          let vdi
+          return (
+            !vbd.is_cd_drive &&
+            ((vdi = vdis[vbd.VDI]),
+            vdi !== undefined && { ...vbd, vdi, vdiSr: srs[vdi.$SR] })
+          )
         })
       )
   )
