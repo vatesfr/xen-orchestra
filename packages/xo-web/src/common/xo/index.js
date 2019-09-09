@@ -1285,10 +1285,15 @@ export const deleteSnapshots = vms =>
 
 import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
 export const migrateVm = async (vm, host) => {
-  const params = await confirm({
-    title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vm={vm} host={host} />,
-  })
+  let params
+  try {
+    params = await confirm({
+      title: _('migrateVmModalTitle'),
+      body: <MigrateVmModalBody vm={vm} host={host} />,
+    })
+  } catch (error) {
+    return
+  }
 
   if (!params.targetHost) {
     return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
@@ -1299,11 +1304,15 @@ export const migrateVm = async (vm, host) => {
   } catch (error) {
     if (error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
       // Retry with force.
-      await confirm({
-        body: _('forceVmMigrateModalMessage'),
-        title: _('forceVmMigrateModalTitle'),
-      })
-      await _call('vm.migrate', { vm: vm.id, force: true, ...params })
+      try {
+        await confirm({
+          body: _('forceVmMigrateModalMessage'),
+          title: _('forceVmMigrateModalTitle'),
+        })
+      } catch (error) {
+        return
+      }
+      return _call('vm.migrate', { vm: vm.id, force: true, ...params })
     }
     throw error
   }
