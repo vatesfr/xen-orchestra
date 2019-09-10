@@ -21,7 +21,7 @@ import { Container, Row, Col } from 'grid'
 // } from 'react-key-handler'
 
 import About from './about'
-import BackupNg from './backup-ng'
+import Backup from './backup-ng'
 import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
@@ -30,7 +30,7 @@ import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert, FormModal } from 'modal'
 import New from './new'
-import NewBackup from './backup/new'
+import NewLegacyBackup from './backup-ng/new-legacy-backup'
 import NewVm from './new-vm'
 import Pool from './pool'
 import Self from './self'
@@ -75,7 +75,7 @@ const BODY_STYLE = {
 
 @routes('home', {
   about: About,
-  backup: BackupNg,
+  backup: Backup,
   'backup-ng/*': {
     onEnter: ({ location }, replace) =>
       replace(location.pathname.replace('/backup-ng', '/backup')),
@@ -84,7 +84,7 @@ const BODY_STYLE = {
   home: Home,
   'hosts/:id': Host,
   jobs: Jobs,
-  'legacy-backup/new': NewBackup,
+  'legacy-backup/new': NewLegacyBackup,
   new: New,
   'pools/:id': Pool,
   self: Self,

@@ -42,6 +42,7 @@ import FileRestore from './file-restore'
 import getSettingsWithNonDefaultValue from './_getSettingsWithNonDefaultValue'
 import Health from './health'
 import NewVmBackup, { NewMetadataBackup } from './new'
+import OverviewLegacy from './overview-legacy'
 import Restore, { RestoreMetadata } from './restore'
 import { destructPattern } from './utils'
 
@@ -338,15 +339,19 @@ class JobsTable extends React.Component {
 
 const Overview = () => (
   <div>
-    <Card>
-      <CardHeader>
-        <Icon icon='backup' /> {_('backupJobs')}
-      </CardHeader>
-      <CardBlock>
-        <JobsTable />
-      </CardBlock>
-    </Card>
-    <LogsTable />
+    <OverviewLegacy />
+    <div className='mt-2 mb-1'>
+      <h3>{_('backup')}</h3>
+      <Card>
+        <CardHeader>
+          <Icon icon='backup' /> {_('backupJobs')}
+        </CardHeader>
+        <CardBlock>
+          <JobsTable />
+        </CardBlock>
+      </Card>
+      <LogsTable />
+    </div>
   </div>
 )
 

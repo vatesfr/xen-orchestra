@@ -131,7 +131,6 @@ export default class FileRestore extends Component {
         <em>
           <Icon icon='info' /> {_('restoreBackupsInfo')}
         </em>
-
         <SortedTable
           collection={backupInfoByVm}
           columns={VM_COLUMNS}
