@@ -180,7 +180,7 @@ const OPTIONS = {
       {
         handler: (vmIds, _, { setHomeVmIdsSelection }, { router }) => {
           setHomeVmIdsSelection(vmIds)
-          router.push('backup-ng/new/vms')
+          router.push('backup/new/vms')
         },
         icon: 'backup',
         labelId: 'backupLabel',
