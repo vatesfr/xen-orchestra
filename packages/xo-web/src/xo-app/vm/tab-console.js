@@ -98,8 +98,10 @@ export default class TabConsole extends Component {
     this.setState({ minimalLayout: !this.state.minimalLayout })
   }
 
-  _openSsh = () => {
-    window.open(`ssh://root@${this.props.vm.addresses['0/ip']}`)
+  _openSsh = (username = 'root') => {
+    window.location = `ssh://${encodeURIComponent(username)}@${
+      this.props.vm.addresses['0/ip']
+    }`
   }
 
   _openSshMore = async () => {
@@ -121,9 +123,7 @@ export default class TabConsole extends Component {
     if (username !== (cookies.get(cookieKey) || 'root')) {
       cookies.set(cookieKey, username)
     }
-    window.open(
-      `ssh://${encodeURIComponent(username)}@${this.props.vm.addresses['0/ip']}`
-    )
+    this._openSsh(username)
   }
 
   render() {
