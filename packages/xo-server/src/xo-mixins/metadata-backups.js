@@ -3,7 +3,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors } from 'promise-toolbox'
 
-import debounceWithKey from '../_pDebounceWithKey'
+import { debounceWithKey } from '../_pDebounceWithKey'
 import parseDuration from '../_parseDuration'
 import { type Xapi } from '../xapi'
 import {
