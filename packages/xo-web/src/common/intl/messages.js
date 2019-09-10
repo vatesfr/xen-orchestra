@@ -2146,6 +2146,7 @@ const messages = {
   // Hub
   hubPage: 'Hub',
   hubInstallXva: 'Install',
+  hubCreateXva: 'Create',
   hubDeployXva: 'Deploy',
   hubSortBy: 'Sort by',
   hubSortByName: 'Name',

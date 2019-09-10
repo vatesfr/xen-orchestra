@@ -16,7 +16,7 @@ export async function downloadAndInstallResource({
     srId: sr.id,
     type: 'xva',
   })
-  console.log(xapiObjectToXo(vm))
+  await vm.update_other_config('xva_id', id)
   return xapiObjectToXo(vm).id
 }
 
