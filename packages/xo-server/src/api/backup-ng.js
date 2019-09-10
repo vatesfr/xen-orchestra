@@ -302,7 +302,7 @@ export async function fetchFiles(params) {
   filename += '.zip'
 
   return this.registerHttpRequest(handleFetchFiles, params, {
-    suffix: encodeURI(`/${filename}`),
+    suffix: '/' + encodeURIComponent(filename),
   }).then(url => ({ $getFrom: url }))
 }
 
