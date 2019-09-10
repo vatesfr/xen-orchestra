@@ -261,7 +261,7 @@ export default decorate([
     <Upgrade place='restoreMetadataBackup' available={3}>
       <div>
         <div className='mb-1'>
-          <ButtonLink to='backup-ng/restore'>
+          <ButtonLink to='backup/restore'>
             <Icon icon='backup' /> {_('vms')}
           </ButtonLink>
         </div>

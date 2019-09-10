@@ -282,7 +282,7 @@ export default class Restore extends Component {
             >
               {_('restoreResfreshList')}
             </ActionButton>{' '}
-            <ButtonLink to='backup-ng/restore/metadata'>
+            <ButtonLink to='backup/restore/metadata'>
               <Icon icon='database' /> {_('metadata')}
             </ButtonLink>
           </div>

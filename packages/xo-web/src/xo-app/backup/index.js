@@ -412,10 +412,10 @@ const ChooseBackupType = () => (
         <Card>
           <CardHeader>{_('backupType')}</CardHeader>
           <CardBlock className='text-md-center'>
-            <ButtonLink to='backup-ng/new/vms'>
+            <ButtonLink to='backup/new/vms'>
               <Icon icon='backup' /> {_('backupVms')}
             </ButtonLink>{' '}
-            <ButtonLink to='backup-ng/new/metadata'>
+            <ButtonLink to='backup/new/metadata'>
               <Icon icon='database' /> {_('backupMetadata')}
             </ButtonLink>
           </CardBlock>
