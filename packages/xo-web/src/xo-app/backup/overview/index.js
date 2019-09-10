@@ -242,6 +242,7 @@ class JobsTable extends React.Component {
             compression,
             concurrency,
             fullInterval,
+            offlineBackup,
             offlineSnapshot,
             reportWhen,
             timeout,
@@ -263,6 +264,14 @@ class JobsTable extends React.Component {
               )}
               {fullInterval !== undefined && (
                 <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>
+              )}
+              {offlineBackup !== undefined && (
+                <Li>
+                  {_.keyValue(
+                    _('offlineBackup'),
+                    _(offlineBackup ? 'stateEnabled' : 'stateDisabled')
+                  )}
+                </Li>
               )}
               {offlineSnapshot !== undefined && (
                 <Li>

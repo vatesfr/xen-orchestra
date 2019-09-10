@@ -453,6 +453,9 @@ const messages = {
   backupName: 'Name',
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
+  offlineBackup: 'Offline backup',
+  offlineBackupInfo:
+    'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',

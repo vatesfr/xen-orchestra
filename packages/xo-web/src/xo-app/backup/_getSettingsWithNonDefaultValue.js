@@ -6,6 +6,7 @@ const DEFAULTS = {
   compression: '',
   concurrency: 0,
   fullInterval: 0,
+  offlineBackup: false,
   offlineSnapshot: false,
   reportWhen: 'failure',
   timeout: 0,
@@ -16,6 +17,7 @@ const MODES = {
 
   compression: 'full',
   fullInterval: 'delta',
+  offlineBackup: 'full',
 }
 
 const getSettingsWithNonDefaultValue = (mode, settings) =>

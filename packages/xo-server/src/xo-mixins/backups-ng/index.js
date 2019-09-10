@@ -53,7 +53,7 @@ import {
   type Xapi,
   TAG_COPY_SRC,
 } from '../../xapi'
-import { getVmDisks } from '../../xapi/utils'
+import { formatDateTime, getVmDisks } from '../../xapi/utils'
 import {
   resolveRelativeFromFile,
   safeDateFormat,
@@ -75,6 +75,7 @@ type Settings = {|
   deleteFirst?: boolean,
   copyRetention?: number,
   exportRetention?: number,
+  offlineBackup?: boolean,
   offlineSnapshot?: boolean,
   reportWhen?: ReportWhen,
   snapshotRetention?: number,
@@ -147,6 +148,7 @@ const defaultSettings: Settings = {
   deleteFirst: false,
   exportRetention: 0,
   fullInterval: 0,
+  offlineBackup: false,
   offlineSnapshot: false,
   reportWhen: 'failure',
   snapshotRetention: 0,
@@ -479,16 +481,21 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 // Attributes on created VM snapshots:
 //
 // - `other_config`:
-//    - `xo:backup:datetime` = snapshot.snapshot_time (allow sorting replicated VMs)
 //    - `xo:backup:deltaChainLength` = n (number of delta copies/replicated since a full)
 //    - `xo:backup:exported` = 'true' (added at the end of the backup)
+//
+// Attributes on created VMs and created snapshots:
+//
+// - `other_config`:
+//    - `xo:backup:datetime`: format is UTC %Y%m%dT%H:%M:%SZ
+//       - from snapshots: snapshot.snapshot_time
+//       - with offline backup: formatDateTime(Date.now())
 //    - `xo:backup:job` = job.id
 //    - `xo:backup:schedule` = schedule.id
 //    - `xo:backup:vm` = vm.uuid
 //
 // Attributes of created VMs:
 //
-// - all snapshots attributes (see above)
 // - `name_label`: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
 // - tag:
 //    - copy in delta mode: `Continuous Replication`
@@ -1023,6 +1030,12 @@ export default class BackupNg {
       throw new Error('copy, export and snapshot retentions cannot both be 0')
     }
 
+    const isOfflineBackup =
+      mode === 'full' && getSetting(settings, 'offlineBackup', [vmUuid, ''])
+    if (isOfflineBackup && snapshotRetention > 0) {
+      throw new Error('offline backup is not compatible with rolling snapshot')
+    }
+
     if (
       !some(
         vm.$VBDs,
@@ -1032,110 +1045,139 @@ export default class BackupNg {
       throw new Error('no disks found')
     }
 
-    const snapshots = vm.$snapshots
-      .filter(_ => _.other_config['xo:backup:job'] === jobId)
-      .sort(compareSnapshotTime)
+    let baseSnapshot, exported: Vm, exportDateTime
+    if (isOfflineBackup) {
+      exported = vm
+      exportDateTime = formatDateTime(Date.now())
+      if (vm.power_state === 'Running') {
+        await wrapTask(
+          {
+            logger,
+            message: 'shutdown VM',
+            parentId: taskId,
+          },
+          xapi.shutdownVm(vm)
+        )
+        $defer(() => xapi.startVm(vm))
+      }
+    } else {
+      const snapshots = vm.$snapshots
+        .filter(_ => _.other_config['xo:backup:job'] === jobId)
+        .sort(compareSnapshotTime)
 
-    const bypassVdiChainsCheck: boolean = getSetting(
-      settings,
-      'bypassVdiChainsCheck',
-      [vmUuid, '']
-    )
-    if (!bypassVdiChainsCheck) {
-      xapi._assertHealthyVdiChains(vm)
-    }
+      const bypassVdiChainsCheck: boolean = getSetting(
+        settings,
+        'bypassVdiChainsCheck',
+        [vmUuid, '']
+      )
+      if (!bypassVdiChainsCheck) {
+        xapi._assertHealthyVdiChains(vm)
+      }
 
-    const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [
-      vmUuid,
-      '',
-    ])
-    const startAfterSnapshot = offlineSnapshot && vm.power_state === 'Running'
-    if (startAfterSnapshot) {
+      const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [
+        vmUuid,
+        '',
+      ])
+      const startAfterSnapshot = offlineSnapshot && vm.power_state === 'Running'
+      if (startAfterSnapshot) {
+        await wrapTask(
+          {
+            logger,
+            message: 'shutdown VM',
+            parentId: taskId,
+          },
+          xapi.shutdownVm(vm)
+        )
+      }
+
+      exported = (await wrapTask(
+        {
+          logger,
+          message: 'snapshot',
+          parentId: taskId,
+          result: _ => _.uuid,
+        },
+        xapi._snapshotVm(
+          $cancelToken,
+          vm,
+          `[XO Backup ${job.name}] ${vm.name_label}`
+        )
+      ): any)
+
+      if (startAfterSnapshot) {
+        ignoreErrors.call(xapi.startVm(vm))
+      }
+
       await wrapTask(
         {
           logger,
-          message: 'shutdown VM',
+          message: 'add metadata to snapshot',
           parentId: taskId,
         },
-        xapi.shutdownVm(vm)
-      )
-    }
-
-    let snapshot: Vm = (await wrapTask(
-      {
-        logger,
-        message: 'snapshot',
-        parentId: taskId,
-        result: _ => _.uuid,
-      },
-      xapi._snapshotVm(
-        $cancelToken,
-        vm,
-        `[XO Backup ${job.name}] ${vm.name_label}`
-      )
-    ): any)
-
-    if (startAfterSnapshot) {
-      ignoreErrors.call(xapi.startVm(vm))
-    }
-
-    await wrapTask(
-      {
-        logger,
-        message: 'add metadata to snapshot',
-        parentId: taskId,
-      },
-      snapshot.update_other_config({
-        'xo:backup:datetime': snapshot.snapshot_time,
-        'xo:backup:job': jobId,
-        'xo:backup:schedule': scheduleId,
-        'xo:backup:vm': vmUuid,
-      })
-    )
-
-    snapshot = await xapi.barrier(snapshot.$ref)
-
-    let baseSnapshot
-    if (mode === 'delta') {
-      baseSnapshot = findLast(
-        snapshots,
-        _ => 'xo:backup:exported' in _.other_config
+        exported.update_other_config({
+          'xo:backup:datetime': exported.snapshot_time,
+          'xo:backup:job': jobId,
+          'xo:backup:schedule': scheduleId,
+          'xo:backup:vm': vmUuid,
+        })
       )
 
-      // JFT 2018-10-02: support previous snapshots which did not have this
-      // entry, can be removed after 2018-12.
-      if (baseSnapshot === undefined) {
-        baseSnapshot = last(snapshots)
-      }
-    }
-    snapshots.push(snapshot)
+      exported = await xapi.barrier(exported.$ref)
 
-    // snapshots to delete due to the snapshot retention settings
-    const snapshotsToDelete = flatMap(
-      groupBy(snapshots, _ => _.other_config['xo:backup:schedule']),
-      (snapshots, scheduleId) =>
-        getOldEntries(
-          getSetting(settings, 'snapshotRetention', [scheduleId]),
-          snapshots
+      if (mode === 'delta') {
+        baseSnapshot = findLast(
+          snapshots,
+          _ => 'xo:backup:exported' in _.other_config
         )
-    )
 
-    // delete unused snapshots
-    await asyncMap(snapshotsToDelete, vm => {
-      // snapshot and baseSnapshot should not be deleted right now
-      if (vm !== snapshot && vm !== baseSnapshot) {
-        return xapi.deleteVm(vm)
+        // JFT 2018-10-02: support previous snapshots which did not have this
+        // entry, can be removed after 2018-12.
+        if (baseSnapshot === undefined) {
+          baseSnapshot = last(snapshots)
+        }
       }
-    })
+      snapshots.push(exported)
 
-    snapshot = ((await wrapTask(
-      {
-        logger,
-        message: 'waiting for uptodate snapshot record',
-        parentId: taskId,
-      },
-      xapi.barrier(snapshot.$ref)
-    ): any): Vm)
+      // snapshots to delete due to the snapshot retention settings
+      const snapshotsToDelete = flatMap(
+        groupBy(snapshots, _ => _.other_config['xo:backup:schedule']),
+        (snapshots, scheduleId) =>
+          getOldEntries(
+            getSetting(settings, 'snapshotRetention', [scheduleId]),
+            snapshots
+          )
+      )
+
+      // delete unused snapshots
+      await asyncMap(snapshotsToDelete, vm => {
+        // snapshot and baseSnapshot should not be deleted right now
+        if (vm !== exported && vm !== baseSnapshot) {
+          return xapi.deleteVm(vm)
+        }
+      })
+
+      exported = ((await wrapTask(
+        {
+          logger,
+          message: 'waiting for uptodate snapshot record',
+          parentId: taskId,
+        },
+        xapi.barrier(exported.$ref)
+      ): any): Vm)
+
+      if (mode === 'full' && snapshotsToDelete.includes(exported)) {
+        // TODO: do not create the snapshot if there are no snapshotRetention and
+        // the VM is not running
+        $defer.call(xapi, 'deleteVm', exported)
+      } else if (mode === 'delta') {
+        if (snapshotsToDelete.includes(exported)) {
+          $defer.onFailure.call(xapi, 'deleteVm', exported)
+        }
+        if (snapshotsToDelete.includes(baseSnapshot)) {
+          $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
+        }
+      }
+    }
 
     if (copyRetention === 0 && exportRetention === 0) {
       return
@@ -1151,14 +1193,8 @@ export default class BackupNg {
     const metadataFilename = `${vmDir}/${basename}.json`
 
     if (mode === 'full') {
-      // TODO: do not create the snapshot if there are no snapshotRetention and
-      // the VM is not running
-      if (snapshotsToDelete.includes(snapshot)) {
-        $defer.call(xapi, 'deleteVm', snapshot)
-      }
-
       let compress = getJobCompression(job)
-      const pool = snapshot.$pool
+      const pool = exported.$pool
       if (
         compress === 'zstd' &&
         pool.restrictions.restrict_zstd_export !== 'false'
@@ -1175,10 +1211,10 @@ export default class BackupNg {
       let xva: any = await wrapTask(
         {
           logger,
-          message: 'start snapshot export',
+          message: 'start VM export',
           parentId: taskId,
         },
-        xapi.exportVm($cancelToken, snapshot, {
+        xapi.exportVm($cancelToken, exported, {
           compress,
         })
       )
@@ -1203,7 +1239,7 @@ export default class BackupNg {
         timestamp: now,
         version: '2.0.0',
         vm,
-        vmSnapshot: snapshot,
+        vmSnapshot: exported.id !== vm.id ? exported : undefined,
         xva: `./${dataBasename}`,
       }
       const dataFilename = `${vmDir}/${dataBasename}`
@@ -1343,7 +1379,15 @@ export default class BackupNg {
                     'start',
                     'Start operation for this vm is blocked, clone it if you want to use it.'
                   ),
-                  vm.update_other_config('xo:backup:sr', srUuid),
+                  !isOfflineBackup
+                    ? vm.update_other_config('xo:backup:sr', srUuid)
+                    : vm.update_other_config({
+                        'xo:backup:datetime': exportDateTime,
+                        'xo:backup:job': jobId,
+                        'xo:backup:schedule': scheduleId,
+                        'xo:backup:sr': srUuid,
+                        'xo:backup:vm': exported.uuid,
+                      }),
                 ])
 
                 if (!deleteFirst) {
@@ -1356,13 +1400,6 @@ export default class BackupNg {
         noop // errors are handled in logs
       )
     } else if (mode === 'delta') {
-      if (snapshotsToDelete.includes(snapshot)) {
-        $defer.onFailure.call(xapi, 'deleteVm', snapshot)
-      }
-      if (snapshotsToDelete.includes(baseSnapshot)) {
-        $defer.onSuccess.call(xapi, 'deleteVm', baseSnapshot)
-      }
-
       let deltaChainLength = 0
       let fullVdisRequired
       await (async () => {
@@ -1470,7 +1507,7 @@ export default class BackupNg {
           message: 'start snapshot export',
           parentId: taskId,
         },
-        xapi.exportDeltaVm($cancelToken, snapshot, baseSnapshot, {
+        xapi.exportDeltaVm($cancelToken, exported, baseSnapshot, {
           fullVdisRequired,
         })
       )
@@ -1492,7 +1529,7 @@ export default class BackupNg {
             }/${basename}.vhd`
         ),
         vm,
-        vmSnapshot: snapshot,
+        vmSnapshot: exported,
       }
 
       const jsonMetadata = JSON.stringify(metadata)
@@ -1728,7 +1765,7 @@ export default class BackupNg {
 
       if (!isFull) {
         ignoreErrors.call(
-          snapshot.update_other_config(
+          exported.update_other_config(
             'xo:backup:deltaChainLength',
             String(deltaChainLength)
           )
@@ -1738,14 +1775,16 @@ export default class BackupNg {
       throw new Error(`no exporter for backup mode ${mode}`)
     }
 
-    await wrapTask(
-      {
-        logger,
-        message: 'set snapshot.other_config[xo:backup:exported]',
-        parentId: taskId,
-      },
-      snapshot.update_other_config('xo:backup:exported', 'true')
-    )
+    if (!isOfflineBackup) {
+      await wrapTask(
+        {
+          logger,
+          message: 'set snapshot.other_config[xo:backup:exported]',
+          parentId: taskId,
+        },
+        exported.update_other_config('xo:backup:exported', 'true')
+      )
+    }
   }
 
   async _deleteDeltaVmBackups(

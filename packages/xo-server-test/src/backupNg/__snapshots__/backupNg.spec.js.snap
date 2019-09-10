@@ -55,6 +55,74 @@ Object {
 }
 `;
 
+exports[`backupNg create and execute backup with enabled offline backup 1`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "VM",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 2`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "SR",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 3`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 4`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg create and execute backup with enabled offline backup 5`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
 exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 1`] = `
 Object {
   "data": Object {

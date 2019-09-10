@@ -90,7 +90,13 @@ const ThinProvisionedTip = ({ label }) => (
 
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
+const normalizeSettings = ({
+  copyMode,
+  exportMode,
+  offlineBackupEnabled,
+  settings,
+  snapshotMode,
+}) =>
   settings.map(setting =>
     defined(
       setting.copyRetention,
@@ -100,9 +106,10 @@ const normalizeSettings = ({ settings, exportMode, copyMode, snapshotMode }) =>
       ? {
           copyRetention: copyMode ? setting.copyRetention : undefined,
           exportRetention: exportMode ? setting.exportRetention : undefined,
-          snapshotRetention: snapshotMode
-            ? setting.snapshotRetention
-            : undefined,
+          snapshotRetention:
+            snapshotMode && !offlineBackupEnabled
+              ? setting.snapshotRetention
+              : undefined,
         }
       : setting
   )
@@ -200,6 +207,7 @@ export default decorate([
             ({ id, ...schedule }) => schedule
           )
           settings = normalizeSettings({
+            offlineBackupEnabled: state.offlineBackupEnabled,
             settings: state.settings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
@@ -211,12 +219,14 @@ export default decorate([
             [id]: DEFAULT_SCHEDULE,
           }
           settings = {
+            '': state.settings && state.settings.get(''),
             [id]: {
               copyRetention: state.copyMode ? DEFAULT_RETENTION : undefined,
               exportRetention: state.exportMode ? DEFAULT_RETENTION : undefined,
-              snapshotRetention: state.snapshotMode
-                ? DEFAULT_RETENTION
-                : undefined,
+              snapshotRetention:
+                state.snapshotMode && !state.offlineBackupEnabled
+                  ? DEFAULT_RETENTION
+                  : undefined,
             },
           }
         }
@@ -300,6 +310,7 @@ export default decorate([
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression,
           settings: normalizeSettings({
+            offlineBackupEnabled: state.offlineBackupEnabled,
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
@@ -545,6 +556,15 @@ export default decorate([
           value,
         })
       },
+      setOfflineBackup: (
+        { setGlobalSettings },
+        { target: { checked: value } }
+      ) => () => {
+        setGlobalSettings({
+          name: 'offlineBackup',
+          value,
+        })
+      },
     },
     computed: {
       compressionId: generateId,
@@ -553,6 +573,11 @@ export default decorate([
       inputFullIntervalId: generateId,
       inputTimeoutId: generateId,
 
+      offlineBackupEnabled: ({
+        isFull,
+        propSettings,
+        settings = propSettings,
+      }) => isFull && Boolean(settings.getIn(['', 'offlineBackup'])),
       vmsPattern: ({ _vmsPattern }, { job }) =>
         defined(
           _vmsPattern,
@@ -655,6 +680,7 @@ export default decorate([
     const {
       concurrency,
       fullInterval,
+      offlineBackup,
       offlineSnapshot,
       reportWhen = 'failure',
       timeout,
@@ -691,6 +717,7 @@ export default decorate([
                     <ActionButton
                       active={state.snapshotMode}
                       data-mode='snapshotMode'
+                      disabled={state.offlineBackupEnabled}
                       handler={effects.toggleMode}
                       icon='rolling-snapshot'
                     >
@@ -943,30 +970,47 @@ export default decorate([
                         </FormGroup>
                       )}
                       {state.isFull && (
+                        <div>
+                          <FormGroup>
+                            <label htmlFor={state.compressionId}>
+                              <strong>{_('compression')}</strong>
+                            </label>
+                            <SelectCompression
+                              id={state.compressionId}
+                              onChange={effects.setCompression}
+                              value={compression}
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                            <label>
+                              <strong>{_('offlineBackup')}</strong>{' '}
+                              <Tooltip content={_('offlineBackupInfo')}>
+                                <Icon icon='info' />
+                              </Tooltip>{' '}
+                              <input
+                                checked={offlineBackup}
+                                onChange={effects.setOfflineBackup}
+                                type='checkbox'
+                              />
+                            </label>
+                          </FormGroup>
+                        </div>
+                      )}
+                      {!state.offlineBackupEnabled && (
                         <FormGroup>
-                          <label htmlFor={state.compressionId}>
-                            <strong>{_('compression')}</strong>
+                          <label>
+                            <strong>{_('offlineSnapshot')}</strong>{' '}
+                            <Tooltip content={_('offlineSnapshotInfo')}>
+                              <Icon icon='info' />
+                            </Tooltip>{' '}
+                            <input
+                              checked={offlineSnapshot}
+                              onChange={effects.setOfflineSnapshot}
+                              type='checkbox'
+                            />
                           </label>
-                          <SelectCompression
-                            id={state.compressionId}
-                            onChange={effects.setCompression}
-                            value={compression}
-                          />
                         </FormGroup>
                       )}
-                      <FormGroup>
-                        <label>
-                          <strong>{_('offlineSnapshot')}</strong>{' '}
-                          <Tooltip content={_('offlineSnapshotInfo')}>
-                            <Icon icon='info' />
-                          </Tooltip>{' '}
-                          <input
-                            checked={offlineSnapshot}
-                            onChange={effects.setOfflineSnapshot}
-                            type='checkbox'
-                          />
-                        </label>
-                      </FormGroup>
                     </div>
                   )}
                 </CardBlock>
