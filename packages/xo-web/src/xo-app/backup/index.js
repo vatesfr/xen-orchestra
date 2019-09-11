@@ -19,7 +19,8 @@ import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetLoneSnapshots, createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
-import { isEmpty, map, groupBy, some } from 'lodash'
+import { isEmpty, keyBy, map, groupBy, some } from 'lodash'
+import { injectState, provideState } from 'reaclette'
 import { NavLink, NavTabs } from 'nav'
 import {
   cancelJob,
@@ -30,6 +31,7 @@ import {
   runMetadataBackupJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
+  subscribeJobs,
   subscribeMetadataBackupJobs,
   subscribeSchedules,
 } from 'xo'
@@ -337,23 +339,50 @@ class JobsTable extends React.Component {
   }
 }
 
-const Overview = () => (
-  <div>
-    <OverviewLegacy />
-    <div className='mt-2 mb-1'>
-      <h3>{_('backup')}</h3>
-      <Card>
-        <CardHeader>
-          <Icon icon='backup' /> {_('backupJobs')}
-        </CardHeader>
-        <CardBlock>
-          <JobsTable />
-        </CardBlock>
-      </Card>
-      <LogsTable />
+const jobKeyToLabel = {
+  continuousReplication: _('continuousReplication'),
+  deltaBackup: _('deltaBackup'),
+  disasterRecovery: _('disasterRecovery'),
+  rollingBackup: _('backup'),
+  rollingSnapshot: _('rollingSnapshot'),
+}
+
+const Overview = decorate([
+  addSubscriptions({
+    jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
+    schedules: cb =>
+      subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
+  }),
+  provideState({
+    computed: {
+      haveLegacyBackups: (_, { jobs, schedules }) =>
+        jobs === undefined || schedules === undefined
+          ? false
+          : some(schedules, schedule => {
+              const job = jobs[schedule.jobId]
+              return job !== undefined && jobKeyToLabel[job.key]
+            }),
+    },
+  }),
+  injectState,
+  ({ state: { haveLegacyBackups } }) => (
+    <div>
+      {haveLegacyBackups && <OverviewLegacy />}
+      <div className='mt-2 mb-1'>
+        {haveLegacyBackups && <h3>{_('backup')}</h3>}
+        <Card>
+          <CardHeader>
+            <Icon icon='backup' /> {_('backupJobs')}
+          </CardHeader>
+          <CardBlock>
+            <JobsTable />
+          </CardBlock>
+        </Card>
+        <LogsTable />
+      </div>
     </div>
-  </div>
-)
+  ),
+])
 
 const HealthNavTab = decorate([
   addSubscriptions({
