@@ -347,7 +347,7 @@ describe('backupNg', () => {
   test('execute three times a rolling snapshot with 2 as retention & revert to an old state', async () => {
     jest.setTimeout(6e4)
     await xo.createTempServer(config.servers.default)
-    const { id: vmId } = await xo.createTempVm({
+    let vm = await xo.createTempVm({
       name_label: 'XO Test Temp',
       name_description: 'Creating a temporary vm',
       template: config.templates.default,
@@ -364,7 +364,7 @@ describe('backupNg', () => {
     const { id: jobId } = await xo.createTempBackupNgJob({
       ...defaultBackupNg,
       vms: {
-        id: vmId,
+        id: vm.id,
       },
       schedules: {
         [scheduleTempId]: DEFAULT_SCHEDULE,
@@ -377,32 +377,30 @@ describe('backupNg', () => {
 
     const schedule = await xo.getSchedule({ jobId })
     expect(typeof schedule).toBe('object')
+
     for (let i = 0; i < 3; i++) {
-      const oldSnapshots = xo.objects.all[vmId].snapshots
       await xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })
-      await xo.waitObjectState(vmId, ({ snapshots }) => {
+      vm = await xo.waitObjectState(vm.id, ({ snapshots }) => {
         // Test on updating snapshots.
-        expect(snapshots).not.toEqual(oldSnapshots)
+        expect(snapshots).not.toEqual(vm.snapshots)
       })
     }
 
-    const { snapshots, videoram: oldVideoram } = xo.objects.all[vmId]
-
     // Test on the retention, how many snapshots should be saved.
-    expect(snapshots.length).toBe(2)
+    expect(vm.snapshots.length).toBe(2)
 
     const newVideoram = 16
-    await xo.call('vm.set', { id: vmId, videoram: newVideoram })
-    await xo.waitObjectState(vmId, ({ videoram }) => {
+    await xo.call('vm.set', { id: vm.id, videoram: newVideoram })
+    await xo.waitObjectState(vm.id, ({ videoram }) => {
       expect(videoram).toBe(newVideoram.toString())
     })
 
     await xo.call('vm.revert', {
-      snapshot: snapshots[0],
+      snapshot: vm.snapshots[0],
     })
 
-    await xo.waitObjectState(vmId, ({ videoram }) => {
-      expect(videoram).toBe(oldVideoram)
+    await xo.waitObjectState(vm.id, ({ videoram }) => {
+      expect(videoram).toBe(vm.videoram)
     })
 
     const [
@@ -442,7 +440,7 @@ describe('backupNg', () => {
       message: expect.any(String),
       start: expect.any(Number),
     })
-    expect(vmTask.data.id).toBe(vmId)
+    expect(vmTask.data.id).toBe(vm.id)
   })
 
   test('execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval', async () => {
