@@ -20,6 +20,8 @@ import { SelectPool } from 'select-objects'
 import * as FormGrid from 'form-grid'
 import { forEach, find } from 'lodash'
 
+import ResourceForm from './resource-form'
+
 const subscribeAlert = () =>
   alert(
     _('hubResourceAlert'),
@@ -51,26 +53,50 @@ export default decorate([
     effects: {
       initialize: () => {},
       async install(__, { name, namespace, id, size, version }) {
-        const { isFromSources, selectedInstallPools } = this.state
+        const {
+          isFromSources,
+          selectedInstallPools,
+          installPoolPredicate,
+          isTemplateInstalledOnAllPools,
+        } = this.state
         if (isFromSources) {
           subscribeAlert()
         } else {
-          this.state.loading = true
-          for (const pool of selectedInstallPools) {
-            try {
-              const templateId = await downloadAndInstallResource({
-                namespace,
-                id,
-                version,
-                sr: pool.default_SR,
-              })
-              success('XVA import', 'XVA installed successfuly')
-              this.state.selectedInstallPools = []
-            } catch (_error) {
-              error('Error', _error.message)
-            }
-          }
-          this.state.loading = false
+          const resourceParams = await form({
+            render: props => (
+              <ResourceForm
+                {...props}
+                installPoolPredicate={installPoolPredicate}
+                isTemplateInstalledOnAllPools={isTemplateInstalledOnAllPools}
+              />
+            ),
+            header: (
+              <span>
+                <Icon icon='add-vm' /> {name}
+              </span>
+            ),
+            size: 'medium',
+            handler: value => {
+              return value
+            },
+          })
+
+          // this.state.loading = true
+          // for (const pool of selectedInstallPools) {
+          //   try {
+          //     const templateId = await downloadAndInstallResource({
+          //       namespace,
+          //       id,
+          //       version,
+          //       sr: pool.default_SR,
+          //     })
+          //     success('XVA import', 'XVA installed successfuly')
+          //     this.state.selectedInstallPools = []
+          //   } catch (_error) {
+          //     error('Error', _error.message)
+          //   }
+          // }
+          // this.state.loading = false
         }
       },
       async create() {
