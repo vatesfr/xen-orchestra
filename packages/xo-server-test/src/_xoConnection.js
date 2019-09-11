@@ -87,7 +87,7 @@ class XoConnection extends Xo {
     while (true) {
       try {
         await predicate(obj)
-        return
+        return obj
       } catch (_) {}
       // If failed, wait for next object state/update and retry.
       obj = await this.waitObject(id)
@@ -119,12 +119,9 @@ class XoConnection extends Xo {
   async createTempVm(params) {
     const id = await this.call('vm.create', params)
     this._tempResourceDisposers.push('vm.delete', { id })
-    let vm
-    await this.waitObjectState(id, updatedVm => {
-      if (updatedVm.type !== 'VM') throw new Error('retry')
-      vm = updatedVm
+    return this.waitObjectState(id, vm => {
+      if (vm.type !== 'VM') throw new Error('retry')
     })
-    return vm
   }
 
   async createTempRemote(params) {
