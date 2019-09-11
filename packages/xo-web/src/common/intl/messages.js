@@ -133,7 +133,6 @@ const messages = {
   backupFileRestorePage: 'File restore',
   schedule: 'Schedule',
   newVmBackup: 'New VM backup',
-  editVmBackup: 'Edit VM backup',
   backup: 'Backup',
   rollingSnapshot: 'Rolling Snapshot',
   deltaBackup: 'Delta Backup',

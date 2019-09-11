@@ -13,18 +13,16 @@ import SmartBackupPreview, {
   destructPattern,
 } from 'smart-backup'
 import uncontrollableInput from 'uncontrollable-input'
-import Upgrade from 'xoa-upgrade'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { connectStore, EMPTY_OBJECT } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, getUser } from 'selectors'
+import { createJob, createSchedule, getRemote } from 'xo'
 import { createSelector } from 'reselect'
+import { forEach, isArray, map, mapValues, noop } from 'lodash'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
-import { forEach, isArray, map, mapValues, noop } from 'lodash'
-
-import { createJob, createSchedule, getRemote, editJob, editSchedule } from 'xo'
 
 // ===================================================================
 // FIXME: missing most of translation. Can't be done in a dumb way, some of the word are keyword for XO-Server parameters...
@@ -215,15 +213,6 @@ const CONTINUOUS_REPLICATION_SCHEMA = {
   required: COMMON_SCHEMA.required.concat('sr'),
 }
 
-let REQUIRED_XOA_PLAN
-if (process.env.XOA_PLAN < 4) {
-  REQUIRED_XOA_PLAN = {
-    deltaBackup: 3,
-    disasterRecovery: 3,
-    continuousReplication: 4,
-  }
-}
-
 // ===================================================================
 
 const BACKUP_METHOD_TO_INFO = {
@@ -298,6 +287,7 @@ class TimeoutInput extends Component {
 
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
 const DEFAULT_TIMEZONE = moment.tz.guess()
+const DEVELOPMENT = process.env.NODE_ENV === 'development'
 
 // xo-web v5.7.1 introduced a bug where an extra level
 // ({ id: { id: <id> } }) was introduced for the VM param.
@@ -408,8 +398,6 @@ export default class NewLegacyBackup extends Component {
   )
 
   _handleSubmit = async () => {
-    const { props, state } = this
-
     const method = this._getValue('job', 'method')
     const backupInfo = BACKUP_METHOD_TO_INFO[method]
 
@@ -417,7 +405,7 @@ export default class NewLegacyBackup extends Component {
     const vms = this._getVmsParam()
 
     const job = {
-      ...state.job,
+      ...this.state.job,
 
       type: 'call',
       key: backupInfo.jobKey,
@@ -487,20 +475,6 @@ export default class NewLegacyBackup extends Component {
       }
     }
 
-    // Update backup schedule.
-    const oldJob = props.job
-    if (oldJob) {
-      job.id = oldJob.id
-      await editJob(job)
-
-      return editSchedule({
-        id: props.schedule.id,
-        cron: scheduling.cronPattern,
-        enabled,
-        timezone: scheduling.timezone,
-      })
-    }
-
     if (job.timeout === null) {
       delete job.timeout // only needed for job edition
     }
@@ -553,13 +527,10 @@ export default class NewLegacyBackup extends Component {
     const smartBackupMode = !isArray(vms.vms)
 
     return (
-      <Upgrade place='newBackup' required={2}>
+      DEVELOPMENT && (
         <form id='form-new-vm-backup'>
           <Wizard>
-            <Section
-              icon='backup'
-              title={this.props.job ? 'editVmBackup' : 'newVmBackup'}
-            >
+            <Section icon='backup' title='newVmBackup'>
               <Container>
                 <Row>
                   <Col>
@@ -647,20 +618,18 @@ export default class NewLegacyBackup extends Component {
                         </fieldset>
                         {smartBackupMode ? (
                           <div>
-                            <Upgrade place='newBackup' required={3}>
-                              <GenericInput
-                                label={
-                                  <span>
-                                    <Icon icon='vm' /> {_('vmsToBackup')}
-                                  </span>
-                                }
-                                onChange={this.linkState('vmsParam')}
-                                required
-                                schema={SMART_SCHEMA}
-                                uiSchema={SMART_UI_SCHEMA}
-                                value={vms}
-                              />
-                            </Upgrade>
+                            <GenericInput
+                              label={
+                                <span>
+                                  <Icon icon='vm' /> {_('vmsToBackup')}
+                                </span>
+                              }
+                              onChange={this.linkState('vmsParam')}
+                              required
+                              schema={SMART_SCHEMA}
+                              uiSchema={SMART_UI_SCHEMA}
+                              value={vms}
+                            />
                             <SmartBackupPreview
                               pattern={this._constructPattern(vms)}
                               vms={this.props.vms}
@@ -700,42 +669,30 @@ export default class NewLegacyBackup extends Component {
               <Container>
                 <Row>
                   <Col>
-                    {process.env.XOA_PLAN < 4 &&
-                    backupInfo &&
-                    process.env.XOA_PLAN <
-                      REQUIRED_XOA_PLAN[backupInfo.jobKey] ? (
-                      <Upgrade
-                        place='newBackup'
-                        available={REQUIRED_XOA_PLAN[backupInfo.jobKey]}
-                      />
-                    ) : smartBackupMode && process.env.XOA_PLAN < 3 ? (
-                      <Upgrade place='newBackup' available={3} />
-                    ) : (
-                      <fieldset className='pull-right pt-1'>
-                        <ActionButton
-                          btnStyle='primary'
-                          className='mr-1'
-                          disabled={!backupInfo}
-                          form='form-new-vm-backup'
-                          handler={this._handleSubmit}
-                          icon='save'
-                          redirectOnSuccess='/backup/overview'
-                          size='large'
-                        >
-                          {_('saveBackupJob')}
-                        </ActionButton>
-                        <Button onClick={this._handleReset} size='large'>
-                          {_('selectTableReset')}
-                        </Button>
-                      </fieldset>
-                    )}
+                    <fieldset className='pull-right pt-1'>
+                      <ActionButton
+                        btnStyle='primary'
+                        className='mr-1'
+                        disabled={!backupInfo}
+                        form='form-new-vm-backup'
+                        handler={this._handleSubmit}
+                        icon='save'
+                        redirectOnSuccess='/backup/overview'
+                        size='large'
+                      >
+                        {_('saveBackupJob')}
+                      </ActionButton>
+                      <Button onClick={this._handleReset} size='large'>
+                        {_('selectTableReset')}
+                      </Button>
+                    </fieldset>
                   </Col>
                 </Row>
               </Container>
             </Section>
           </Wizard>
         </form>
-      </Upgrade>
+      )
     )
   }
 }
