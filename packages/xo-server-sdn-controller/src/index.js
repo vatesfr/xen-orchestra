@@ -1026,6 +1026,10 @@ class SDNController extends EventEmitter {
         host: host.name_label,
         pool: host.$pool.name_label,
       })
+
+      if (error.code === 'INTERNAL_ERROR') {
+        throw error
+      }
       return
     }
 
