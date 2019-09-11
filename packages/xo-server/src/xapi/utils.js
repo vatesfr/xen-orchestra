@@ -332,7 +332,7 @@ export const makeEditObject = specs => {
 
 export const useUpdateSystem = host => {
   // Match Xen Center's condition: https://github.com/xenserver/xenadmin/blob/f3a64fc54bbff239ca6f285406d9034f57537d64/XenModel/Utils/Helpers.cs#L420
-  return versionSatisfies(host.software_version.platform_version, '^2.1.1')
+  return versionSatisfies(host.software_version.platform_version, '>=2.1.1')
 }
 
 export const canSrHaveNewVdiOfSize = (sr, minSize) =>
