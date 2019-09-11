@@ -65,9 +65,7 @@ export default decorate([
                 sr: pool.default_SR,
               })
               success('XVA import', 'XVA installed successfuly')
-              return {
-                selectedInstallPools: [],
-              }
+              this.state.selectedInstallPools = []
             } catch (_error) {
               error('Error', _error.message)
             }
@@ -83,6 +81,7 @@ export default decorate([
           this.props.router.push(
             `/vms/new?pool=${selectedCreatePool.$pool}&template=${template.id}`
           )
+          this.state.selectedCreatePool = undefined
         }
       },
       updateSelectedInstallPools(_, selectedInstallPools) {
@@ -135,7 +134,18 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, id, name, namespace, os, popularity, size, state, version }) => (
+  ({
+    totalDiskSize,
+    effects,
+    id,
+    name,
+    namespace,
+    os,
+    popularity,
+    size,
+    state,
+    version,
+  }) => (
     <Card shadow>
       <CardHeader>{name}</CardHeader>
       <CardBlock className='text-center'>
@@ -156,9 +166,14 @@ export default decorate([
           {'  '}
           <strong>{formatSize(size)}</strong>
         </div>
+        <div>
+          <span className='text-muted'>{_('hubTotalDiskSize')}</span>
+          {'  '}
+          <strong>{formatSize(totalDiskSize)}</strong>
+        </div>
         <hr />
         {state.loading ? (
-          <div>
+          <div className='mb-3'>
             <a href='/#/tasks' target='_blank'>
               {_('hubXvaProgressMessage')}
             </a>
@@ -168,7 +183,6 @@ export default decorate([
           <form id={state.idInstallForm}>
             <Tooltip content={_('hubHideInstalledPoolMsg')}>
               <SelectPool
-                autoFocus
                 className='mb-1'
                 disabled={state.isTemplateInstalledOnAllPools}
                 multi
@@ -184,6 +198,7 @@ export default decorate([
               data-name={name}
               data-namespace={namespace}
               data-version={version}
+              disabled={state.isTemplateInstalledOnAllPools}
               form={state.idInstallForm}
               handler={effects.install}
               icon={'add'}
@@ -196,7 +211,6 @@ export default decorate([
         <hr />
         <form id={state.idCreateForm}>
           <SelectPool
-            autoFocus
             className='mb-1'
             disabled={state.template === undefined}
             onChange={effects.updateSelectedCreatePool}
@@ -206,6 +220,7 @@ export default decorate([
           />
           <ActionButton
             block
+            disabled={state.template === undefined}
             form={state.idCreateForm}
             handler={effects.create}
             icon={'add'}

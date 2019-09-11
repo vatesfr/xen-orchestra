@@ -2155,6 +2155,7 @@ const messages = {
   hubXvaOs: 'OS',
   hubXvaVersion: 'VERSION',
   hubXvaSize: 'SIZE',
+  hubTotalDiskSize: 'TOTAL DISK SIZE',
   hubXvaProgressMessage: 'Click here to see progress',
   hubHideInstalledPoolMsg:
     'We are hiding pools with already installed template',
