@@ -1027,10 +1027,7 @@ class SDNController extends EventEmitter {
         pool: host.$pool.name_label,
       })
 
-      if (error?.code === 'INTERNAL_ERROR') {
-        throw error
-      }
-      return
+      throw error
     }
 
     log.debug('New tunnel added', {
