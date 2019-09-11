@@ -123,7 +123,7 @@ const JOB_COLUMNS = [
               handler={migrateBackupSchedule}
               handlerParam={schedule.jobId}
               icon='migrate-job'
-              tooltip={_('migrateToBackupNg')}
+              tooltip={_('migrateToBackup')}
             />
             <ActionRowButton
               btnStyle='danger'
@@ -180,7 +180,6 @@ export default class OverviewLegacy extends Component {
       if (!schedules || !jobs) {
         return []
       }
-
       return map(schedules, schedule => {
         const job = jobs[schedule.jobId]
         const { items } = job.paramsVector
@@ -232,8 +231,6 @@ export default class OverviewLegacy extends Component {
             </CardHeader>
             <CardBlock>
               <div className='alert alert-warning'>
-                {_('backupDeprecatedMessage')}
-                <br />
                 <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
                   {_('backupMigrationLink')}
                 </a>

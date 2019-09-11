@@ -212,9 +212,6 @@ export default {
   // Original text: "XOSAN"
   xosan: 'XOSAN',
 
-  // Original text: 'Warning: Backup is deprecated, use Backup NG instead.'
-  backupDeprecatedMessage: undefined,
-
   // Original text: 'How to migrate to Backup NG'
   backupMigrationLink: undefined,
 
@@ -991,7 +988,7 @@ export default {
   redirectToMatchingVms: "Eşleşen VM'leri görmek için tıklayın",
 
   // Original text: 'Migrate to backup NG'
-  migrateToBackupNg: undefined,
+  migrateToBackup: undefined,
 
   // Original text: "There are no matching VMs!"
   noMatchingVms: 'Hiç eşleşen VM yok',

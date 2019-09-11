@@ -123,10 +123,8 @@ const messages = {
   newServerPage: 'Server',
   newImport: 'Import',
   xosan: 'XOSAN',
-  backupDeprecatedMessage:
-    'Warning: Backup is deprecated, use Backup NG instead.',
   moveRestoreLegacyMessage: 'Warning: Your legacy backups can be found here',
-  backupMigrationLink: 'How to migrate to Backup NG',
+  backupMigrationLink: 'How to migrate to Backup',
   backupNgNewPage: 'Create a new backup with Backup NG',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
@@ -432,13 +430,13 @@ const messages = {
   jobUserNotFound: "This job's creator no longer exists",
   backupUserNotFound: "This backup's creator no longer exists",
   redirectToMatchingVms: 'Click here to see the matching VMs',
-  migrateToBackupNg: 'Migrate to Backup NG',
+  migrateToBackup: 'Migrate to Backup',
   noMatchingVms: 'There are no matching VMs!',
   allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
-  migrateBackupSchedule: 'Migrate to Backup NG',
+  migrateBackupSchedule: 'Migrate to Backup',
   migrateBackupScheduleMessage:
-    'This will convert the old backup job to a Backup NG job. This operation is not reversible. Do you want to continue?',
+    'This will convert the old backup job to the new Backup job. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
