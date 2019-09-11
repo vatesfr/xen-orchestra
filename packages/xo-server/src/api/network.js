@@ -111,6 +111,9 @@ export async function set({
 }
 
 set.params = {
+  id: {
+    type: 'string',
+  },
   automatic: {
     type: 'boolean',
     optional: true,
