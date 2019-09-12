@@ -7,17 +7,13 @@ describe('vm', () => {
   describe('.set() :', () => {
     it('set properties to null', async () => {
       await xo.createTempServer(config.servers.default)
-      const vm = await xo.createTempVm({
-        coresPerSocket: 1,
-        cpuCap: 1,
-        name_label: 'XO Test',
-        template: config.templates.templateWithoutDisks,
-      })
 
-      expect(vm).toMatchObject({
+      const props = {
         coresPerSocket: 1,
         cpuCap: 1,
-      })
+      }
+      const vm = await xo.createTempVm(props)
+      expect(vm).toMatchObject(props)
 
       await xo.call('vm.set', {
         coresPerSocket: null,
