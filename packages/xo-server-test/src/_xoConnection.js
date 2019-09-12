@@ -117,7 +117,11 @@ class XoConnection extends Xo {
   }
 
   async createTempVm(params) {
-    const id = await this.call('vm.create', params)
+    const id = await this.call('vm.create', {
+      name_label: 'XO Test',
+      template: config.templates.templateWithoutDisks,
+      ...params,
+    })
     this._tempResourceDisposers.push('vm.delete', { id })
     return this.waitObjectState(id, vm => {
       if (vm.type !== 'VM') throw new Error('retry')

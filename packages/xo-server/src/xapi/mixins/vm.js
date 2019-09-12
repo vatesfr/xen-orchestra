@@ -286,7 +286,10 @@ export default {
 
     coresPerSocket: {
       set: (coresPerSocket, vm) =>
-        vm.update_platform('cores-per-socket', String(coresPerSocket)),
+        vm.update_platform(
+          'cores-per-socket',
+          coresPerSocket !== null ? String(coresPerSocket) : null
+        ),
     },
 
     CPUs: 'cpus',
@@ -312,7 +315,8 @@ export default {
 
     cpuCap: {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
-      set: (cap, vm) => vm.update_VCPUs_params('cap', String(cap)),
+      set: (cap, vm) =>
+        vm.update_VCPUs_params('cap', cap !== null ? String(cap) : null),
     },
 
     cpuMask: {
