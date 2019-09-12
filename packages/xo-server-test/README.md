@@ -56,7 +56,7 @@ describe("user", () => {
 
 `src/issues/index.js`
 ```js
- describe ("issues", () => {
+ describe ("issue", () => {
   test("5454", () => {
     /* some tests */
   })
