@@ -1,5 +1,3 @@
-import xapiObjectToXo from '../xapi-object-to-xo'
-
 export async function downloadAndInstallResource({
   namespace,
   id,
@@ -11,13 +9,11 @@ export async function downloadAndInstallResource({
   }
   const xapi = this.getXapi(sr.$poolId)
   const stream = await this.requestFreeResource(namespace, id, version)
-  const vm = await xapi.importVm(stream, {
+  await xapi.importVm(stream, {
     data: undefined,
     srId: sr.id,
     type: 'xva',
   })
-  await vm.update_other_config('xva_id', id)
-  return xapiObjectToXo(vm).id
 }
 
 downloadAndInstallResource.description =

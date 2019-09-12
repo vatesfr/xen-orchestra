@@ -2156,10 +2156,9 @@ const messages = {
   hubXvaVersion: 'VERSION',
   hubXvaSize: 'SIZE',
   hubTotalDiskSize: 'TOTAL DISK SIZE',
-  hubXvaProgressMessage: 'Click here to see progress',
+  hubXvaProgressMessage: 'see progress',
   hubHideInstalledPoolMsg:
     'We are hiding pools with already installed template',
-  hubHideExceedSizeSrMsg: 'We are hiding SRs that exceed template size',
 
   // Licenses
   xosanUnregisteredDisclaimer:

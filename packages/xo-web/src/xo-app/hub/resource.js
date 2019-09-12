@@ -1,11 +1,8 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import Button from 'button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
-import ImportProgress from './import-progress'
 import React from 'react'
-import Tooltip from 'tooltip'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
 import { alert, form } from 'modal'
@@ -13,12 +10,9 @@ import { downloadAndInstallResource } from 'xo'
 import { error, success } from 'notification'
 import { connectStore, formatSize } from 'utils'
 import { injectState, provideState } from 'reaclette'
-import { generateId } from 'reaclette-utils'
 import { withRouter } from 'react-router'
 import { createGetObjectsOfType } from 'selectors'
-import { SelectPool } from 'select-objects'
-import * as FormGrid from 'form-grid'
-import { forEach, find } from 'lodash'
+import { find } from 'lodash'
 
 import ResourceForm from './resource-form'
 
@@ -48,17 +42,11 @@ export default decorate([
     initialState: () => ({
       loading: false,
       selectedInstallPools: [],
-      selectedCreatePool: undefined,
     }),
     effects: {
       initialize: () => {},
       async install(__, { name, namespace, id, size, version }) {
-        const {
-          isFromSources,
-          selectedInstallPools,
-          installPoolPredicate,
-          isTemplateInstalledOnAllPools,
-        } = this.state
+        const { isFromSources, installPoolPredicate } = this.state
         if (isFromSources) {
           subscribeAlert()
         } else {
@@ -66,8 +54,8 @@ export default decorate([
             render: props => (
               <ResourceForm
                 {...props}
-                installPoolPredicate={installPoolPredicate}
-                isTemplateInstalledOnAllPools={isTemplateInstalledOnAllPools}
+                multi
+                poolPredicate={installPoolPredicate}
               />
             ),
             header: (
@@ -81,33 +69,46 @@ export default decorate([
             },
           })
 
-          // this.state.loading = true
-          // for (const pool of selectedInstallPools) {
-          //   try {
-          //     const templateId = await downloadAndInstallResource({
-          //       namespace,
-          //       id,
-          //       version,
-          //       sr: pool.default_SR,
-          //     })
-          //     success('XVA import', 'XVA installed successfuly')
-          //     this.state.selectedInstallPools = []
-          //   } catch (_error) {
-          //     error('Error', _error.message)
-          //   }
-          // }
-          // this.state.loading = false
+          this.state.loading = true
+          for (const pool of resourceParams.pools) {
+            try {
+              await downloadAndInstallResource({
+                namespace,
+                id,
+                version,
+                sr: pool.default_SR,
+              })
+              success('XVA import', 'XVA installed successfuly')
+            } catch (_error) {
+              error('Error', _error.message)
+            }
+          }
+          this.state.loading = false
         }
       },
-      async create() {
-        const { isFromSources, selectedCreatePool, template } = this.state
+      async create(__, { name }) {
+        const { isFromSources, createPoolPredicate, template } = this.state
         if (isFromSources) {
           subscribeAlert()
         } else {
+          const resourceParams = await form({
+            render: props => (
+              <ResourceForm {...props} poolPredicate={createPoolPredicate} />
+            ),
+            header: (
+              <span>
+                <Icon icon='add-vm' /> {name}
+              </span>
+            ),
+            size: 'medium',
+            handler: value => {
+              return value
+            },
+          })
+          const { $pool } = resourceParams.pool
           this.props.router.push(
-            `/vms/new?pool=${selectedCreatePool.$pool}&template=${template.id}`
+            `/vms/new?pool=${$pool}&template=${template.id}`
           )
-          this.state.selectedCreatePool = undefined
         }
       },
       updateSelectedInstallPools(_, selectedInstallPools) {
@@ -125,8 +126,6 @@ export default decorate([
       },
     },
     computed: {
-      idInstallForm: generateId,
-      idCreateForm: generateId,
       isFromSources: () => +process.env.XOA_PLAN > 4,
       poolName: ({ pool }) => pool && pool.name_label,
       template: (_, { id, templates }) => {
@@ -198,63 +197,46 @@ export default decorate([
           <strong>{formatSize(totalDiskSize)}</strong>
         </div>
         <hr />
-        {state.loading ? (
-          <div className='mb-3'>
-            <a href='/#/tasks' target='_blank'>
-              {_('hubXvaProgressMessage')}
-            </a>
-            <ImportProgress />
-          </div>
-        ) : (
-          <form id={state.idInstallForm}>
-            <Tooltip content={_('hubHideInstalledPoolMsg')}>
-              <SelectPool
-                className='mb-1'
+        <Row>
+          <Col mediumSize={6}>
+            {state.loading ? (
+              <div className='mb-3'>
+                <a href='/#/tasks' target='_blank'>
+                  {_('hubXvaProgressMessage')}
+                </a>
+                <progress className='progress' />
+              </div>
+            ) : (
+              <ActionButton
+                block
+                data-id={id}
+                data-name={name}
+                data-namespace={namespace}
+                data-version={version}
                 disabled={state.isTemplateInstalledOnAllPools}
-                multi
-                onChange={effects.updateSelectedInstallPools}
-                predicate={state.installPoolPredicate}
-                required
-                value={state.selectedInstallPools}
-              />
-            </Tooltip>
+                form={state.idInstallForm}
+                handler={effects.install}
+                icon={'add'}
+                size='meduim'
+              >
+                {_('hubInstallXva')}
+              </ActionButton>
+            )}
+          </Col>
+          <Col mediumSize={6}>
             <ActionButton
               block
-              data-id={id}
               data-name={name}
-              data-namespace={namespace}
-              data-version={version}
-              disabled={state.isTemplateInstalledOnAllPools}
-              form={state.idInstallForm}
-              handler={effects.install}
+              disabled={state.template === undefined}
+              form={state.idCreateForm}
+              handler={effects.create}
               icon={'add'}
               size='meduim'
             >
-              {_('hubInstallXva')}
+              {_('hubCreateXva')}
             </ActionButton>
-          </form>
-        )}
-        <hr />
-        <form id={state.idCreateForm}>
-          <SelectPool
-            className='mb-1'
-            disabled={state.template === undefined}
-            onChange={effects.updateSelectedCreatePool}
-            predicate={state.createPoolPredicate}
-            required
-            value={state.selectedCreatePool}
-          />
-          <ActionButton
-            block
-            disabled={state.template === undefined}
-            form={state.idCreateForm}
-            handler={effects.create}
-            icon={'add'}
-            size='meduim'
-          >
-            {_('hubCreateXva')}
-          </ActionButton>
-        </form>
+          </Col>
+        </Row>
       </CardBlock>
     </Card>
   ),

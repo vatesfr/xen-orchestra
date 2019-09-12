@@ -6,51 +6,45 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Container } from 'grid'
 import { SelectPool } from 'select-objects'
-import { isSrWritable } from 'xo'
 import { injectState, provideState } from 'reaclette'
 
 export default decorate([
   provideState({
-    initialState: ({ installPoolPredicate }) => ({
-      selectedInstallPools: [],
-      installPoolPredicate,
+    initialState: ({ multi }) => ({
+      pools: multi ? [] : undefined,
     }),
     effects: {
-      initialize() {
-        // return {
-        //   // hide pools with already installed template
-        //   poolPredicate: pool => pool.uuid !== this.props.uuid,
-        // }
-      },
-      updateSelectedInstallPools(_, selectedInstallPools) {
+      handlePools(_, pools) {
         this.props.onChange({
-          selectedInstallPools,
+          pools,
+          pool: pools,
         })
         return {
-          selectedInstallPools,
+          pools,
         }
       },
     },
   }),
   injectState,
-  ({ effects, state }) => (
+  ({ effects, state, poolPredicate, multi }) => (
     <Container>
       <FormGrid.Row>
         <label>
           {_('vmImportToPool')}
           &nbsp;
-          <Tooltip content={_('hubHideInstalledPoolMsg')}>
-            <Icon icon='info' />
-          </Tooltip>
+          {multi && (
+            <Tooltip content={_('hubHideInstalledPoolMsg')}>
+              <Icon icon='info' />
+            </Tooltip>
+          )}
         </label>
         <SelectPool
           className='mb-1'
-          disabled={state.isTemplateInstalledOnAllPools}
-          multi
-          onChange={effects.updateSelectedInstallPools}
-          predicate={state.installPoolPredicate}
+          multi={multi}
+          onChange={effects.handlePools}
+          predicate={poolPredicate}
           required
-          value={state.selectedInstallPools}
+          value={state.pools}
         />
       </FormGrid.Row>
     </Container>
