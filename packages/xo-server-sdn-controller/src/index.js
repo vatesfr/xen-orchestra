@@ -739,7 +739,7 @@ class SDNController extends EventEmitter {
           await this._createTunnel(host, network, pifDevice)
         }
 
-        this._addHostToPoolNetworks(host)
+        await this._addHostToPoolNetworks(host)
       }
     }
   }
