@@ -15,14 +15,15 @@ src
 |   |     └─ index.spec.js.snap
 |   └─ index.spec.js
 ├─ job
+|   └─ index.spec.js
+├─ issues
 ¦   └─ index.spec.js
-¦
 ¦
 ├─ _xoConnection.js
 └─ util.js
 ```
 
-The tests can describe xo methods or scenarios:
+The tests can describe xo methods , scenarios or issues:
 ```javascript
 import xo from "../_xoConnection";
 
@@ -46,6 +47,12 @@ describe("user", () => {
   });
 
 });
+
+describe ("issues", () => {
+  test("5454", () => {
+    /* some tests */
+  })
+})
 ```
 
 ### Best practices
