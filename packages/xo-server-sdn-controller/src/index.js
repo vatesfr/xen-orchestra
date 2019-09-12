@@ -60,7 +60,7 @@ async function fileExists(path) {
   try {
     await fromCallback(access, path, constants.F_OK)
   } catch (error) {
-    if (error.code === 'ENOENT') {
+    if (error?.code === 'ENOENT') {
       return false
     }
 
