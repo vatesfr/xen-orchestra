@@ -736,10 +736,10 @@ class SDNController extends EventEmitter {
           const network = host.$xapi.getObjectByRef(poolNetwork.network)
           const pifDevice =
             network.other_config['xo:sdn-controller:pif-device'] ?? 'eth0'
-          this._createTunnel(host, network, pifDevice)
+          await this._createTunnel(host, network, pifDevice)
         }
 
-        this._addHostToPoolNetworks(host)
+        await this._addHostToPoolNetworks(host)
       }
     }
   }
