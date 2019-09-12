@@ -541,17 +541,21 @@ class SDNController extends EventEmitter {
 
   _objectsUpdated(objects) {
     return Promise.all(
-      map(objects, object => {
-        const { $type } = object
-
-        if ($type === 'PIF') {
-          return this._pifUpdated(object)
-        }
-        if ($type === 'host') {
-          return this._hostUpdated(object)
-        }
-        if ($type === 'host_metrics') {
-          return this._hostMetricsUpdated(object)
+      map(objects, async object => {
+        try {
+          const { $type } = object
+          if ($type === 'PIF') {
+            await this._pifUpdated(object)
+          } else if ($type === 'host') {
+            await this._hostUpdated(object)
+          } else if ($type === 'host_metrics') {
+            await this._hostMetricsUpdated(object)
+          }
+        } catch (error) {
+          log.error('Error in _objectsUpdated', {
+            error,
+            object,
+          })
         }
       })
     )
@@ -560,46 +564,53 @@ class SDNController extends EventEmitter {
   _objectsRemoved(xapi, objects) {
     return Promise.all(
       map(objects, async (object, id) => {
-        this._ovsdbClients = this._ovsdbClients.filter(
-          client => client.host.$id !== id
-        )
+        try {
+          this._ovsdbClients = this._ovsdbClients.filter(
+            client => client.host.$id !== id
+          )
 
-        // If a Star center host is removed: re-elect a new center where needed
-        const starCenterRef = this._starCenters.get(id)
-        if (starCenterRef !== undefined) {
-          this._starCenters.delete(id)
-          const poolNetworks = filter(this._poolNetworks, {
-            starCenter: starCenterRef,
-          })
-          for (const poolNetwork of poolNetworks) {
-            const network = xapi.getObjectByRef(poolNetwork.network)
-            const newCenter = await this._electNewCenter(network, true)
-            poolNetwork.starCenter = newCenter?.$ref
-            if (newCenter !== undefined) {
-              this._starCenters.set(newCenter.$id, newCenter.$ref)
+          // If a Star center host is removed: re-elect a new center where needed
+          const starCenterRef = this._starCenters.get(id)
+          if (starCenterRef !== undefined) {
+            this._starCenters.delete(id)
+            const poolNetworks = filter(this._poolNetworks, {
+              starCenter: starCenterRef,
+            })
+            for (const poolNetwork of poolNetworks) {
+              const network = xapi.getObjectByRef(poolNetwork.network)
+              const newCenter = await this._electNewCenter(network, true)
+              poolNetwork.starCenter = newCenter?.$ref
+              if (newCenter !== undefined) {
+                this._starCenters.set(newCenter.$id, newCenter.$ref)
+              }
             }
+            return
           }
-          return
-        }
 
-        // If a network is removed, clean this._poolNetworks from it
-        const networkRef = this._networks.get(id)
-        if (networkRef !== undefined) {
-          this._networks.delete(id)
-          this._poolNetworks = this._poolNetworks.filter(
-            poolNetwork => poolNetwork.network !== networkRef
-          )
-
-          forOwn(this._crossPoolNetworks, crossPoolNetwork => {
-            crossPoolNetwork.networks = crossPoolNetwork.networks.filter(
-              ref => ref !== networkRef
+          // If a network is removed, clean this._poolNetworks from it
+          const networkRef = this._networks.get(id)
+          if (networkRef !== undefined) {
+            this._networks.delete(id)
+            this._poolNetworks = this._poolNetworks.filter(
+              poolNetwork => poolNetwork.network !== networkRef
             )
-          })
 
-          this._crossPoolNetworks = omitBy(
-            this._crossPoolNetworks,
-            crossPoolNetwork => crossPoolNetwork.networks.length === 0
-          )
+            forOwn(this._crossPoolNetworks, crossPoolNetwork => {
+              crossPoolNetwork.networks = crossPoolNetwork.networks.filter(
+                ref => ref !== networkRef
+              )
+            })
+
+            this._crossPoolNetworks = omitBy(
+              this._crossPoolNetworks,
+              crossPoolNetwork => crossPoolNetwork.networks.length === 0
+            )
+          }
+        } catch (error) {
+          log.error('Error in _objectsRemoved', {
+            error,
+            object,
+          })
         }
       })
     )
