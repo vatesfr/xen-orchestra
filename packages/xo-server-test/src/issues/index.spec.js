@@ -3,7 +3,7 @@
 import config from '../_config'
 import xo from '../_xoConnection'
 
-describe('issues', () => {
+describe('issue', () => {
   test('4507', async () => {
     await xo.createTempServer(config.servers.default)
 

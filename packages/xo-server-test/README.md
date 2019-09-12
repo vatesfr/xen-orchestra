@@ -23,8 +23,12 @@ src
 └─ util.js
 ```
 
-The tests can describe xo methods , scenarios or issues:
-```javascript
+The tests can describe:
+
+  - XO methods or scenarios:
+
+`src/user/index.js`
+```js
 import xo from "../_xoConnection";
 
 describe("user", () => {
@@ -47,8 +51,12 @@ describe("user", () => {
   });
 
 });
+```
+  - issues
 
-describe ("issues", () => {
+`src/issues/index.js`
+```js
+ describe ("issues", () => {
   test("5454", () => {
     /* some tests */
   })
