@@ -382,6 +382,7 @@ export function buildTemplate(pattern, rules) {
   return (...params) =>
     replace(pattern, regExp, match => {
       const rule = rules[match]
+      // delete the backslash in case of escaped syntax
       if (rule === undefined) {
         return match.slice(1)
       }
