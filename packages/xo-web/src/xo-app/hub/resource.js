@@ -5,14 +5,15 @@ import Icon from 'icon'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
+import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { alert, form } from 'modal'
-import { downloadAndInstallResource } from 'xo'
-import { error, success } from 'notification'
 import { connectStore, formatSize } from 'utils'
+import { createGetObjectsOfType } from 'selectors'
+import { downloadAndInstallResource, deleteTemplates } from 'xo'
+import { error, success } from 'notification'
+import { find } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
-import { createGetObjectsOfType } from 'selectors'
-import { find } from 'lodash'
 
 import ResourceForm from './resource-form'
 
@@ -45,7 +46,7 @@ export default decorate([
     }),
     effects: {
       initialize: () => {},
-      async install(__, { name, namespace, id, size, version }) {
+      async install(__, { name, namespace, id, version }) {
         const { isFromSources, installPoolPredicate } = this.state
         if (isFromSources) {
           subscribeAlert()
@@ -111,6 +112,9 @@ export default decorate([
           )
         }
       },
+      async deleteTemplates() {
+        return deleteTemplates([this.state.template])
+      },
       updateSelectedInstallPools(_, selectedInstallPools) {
         return {
           selectedInstallPools,
@@ -166,20 +170,26 @@ export default decorate([
     name,
     namespace,
     os,
-    popularity,
     size,
     state,
     version,
   }) => (
     <Card shadow>
-      <CardHeader>{name}</CardHeader>
+      <CardHeader>
+        {name}
+        <span className='pull-right'>
+          <DropdownButton bsStyle='link' id='sort' title={''}>
+            <MenuItem onClick={effects.deleteTemplates}>
+              <Icon icon='delete' fixedWidth /> {_('delete')}
+            </MenuItem>
+          </DropdownButton>
+        </span>
+        <br />
+      </CardHeader>
       <CardBlock className='text-center'>
         <div>
           <span className='text-muted'>{_('hubXvaOs')}</span>{' '}
           <strong>{os}</strong>
-          <span className='pull-right'>
-            {popularity} <Icon icon='plan-trial' />
-          </span>
         </div>
         <div>
           <span className='text-muted'>{_('hubXvaVersion')}</span>
@@ -230,7 +240,7 @@ export default decorate([
               disabled={state.template === undefined}
               form={state.idCreateForm}
               handler={effects.create}
-              icon={'add'}
+              icon={'deploy'}
               size='meduim'
             >
               {_('hubCreateXva')}

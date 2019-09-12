@@ -9,11 +9,12 @@ export async function downloadAndInstallResource({
   }
   const xapi = this.getXapi(sr.$poolId)
   const stream = await this.requestFreeResource(namespace, id, version)
-  await xapi.importVm(stream, {
+  const vm = await xapi.importVm(stream, {
     data: undefined,
     srId: sr.id,
     type: 'xva',
   })
+  await vm.update_other_config('xva_id', id)
 }
 
 downloadAndInstallResource.description =
