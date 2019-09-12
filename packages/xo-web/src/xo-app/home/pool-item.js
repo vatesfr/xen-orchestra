@@ -11,7 +11,7 @@ import { Col } from 'grid'
 import { Text } from 'editable'
 import { addTag, editPool, getHostMissingPatches, removeTag } from 'xo'
 import { connectStore, formatSizeShort } from 'utils'
-import { flatten, map, size, uniq } from 'lodash'
+import { compact, flatten, map, size, uniq } from 'lodash'
 import {
   createGetObjectsOfType,
   createGetHostMetrics,
@@ -32,7 +32,7 @@ import styles from './index.css'
     getPoolHosts,
     hosts => {
       return Promise.all(map(hosts, host => getHostMissingPatches(host))).then(
-        patches => uniq(map(flatten(patches), 'name'))
+        patches => uniq(map(flatten(compact(patches)), 'name'))
       )
     }
   )

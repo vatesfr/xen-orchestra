@@ -172,3 +172,11 @@ export const patchPrecheckFailed = create(20, ({ errorType, patch }) => ({
   },
   message: `patch precheck failed: ${errorType}`,
 }))
+
+export const missingPatchesFetchFailed = create(21, ({ host, reason }) => ({
+  data: {
+    objectId: host,
+    reason,
+  },
+  message: 'cannot fetch missing patches',
+}))
