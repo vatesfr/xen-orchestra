@@ -372,20 +372,21 @@ export const resolveResourceSets = resourceSets =>
 // newString === 'foo_COPY_foo_42_32%'
 // ```
 export function buildTemplate(pattern, rules) {
-  const syntaxesToReplace = []
-  Object.keys(rules).forEach(syntax =>
-    syntaxesToReplace.push(escapeRegExp(syntax), escapeRegExp(`\\${syntax}`))
+  const rulesWithEscapes = { ...rules, '\\\\': '\\' }
+  const regExp = new RegExp(
+    [
+      ...Object.keys(rules).map(syntax => {
+        const syntaxWithBackslash = `\\${syntax}`
+        rulesWithEscapes[syntaxWithBackslash] = syntax
+        return `${escapeRegExp(syntax)}|${escapeRegExp(syntaxWithBackslash)}`
+      }),
+      escapeRegExp('\\\\'),
+    ].join('|'),
+    'g'
   )
-  syntaxesToReplace.push(escapeRegExp('\\\\'))
-
-  const regExp = new RegExp(syntaxesToReplace.join('|'), 'g')
   return (...params) =>
     replace(pattern, regExp, match => {
-      const rule = rules[match]
-      // delete the backslash in case of escape syntax
-      if (rule === undefined) {
-        return match.slice(1)
-      }
+      const rule = rulesWithEscapes[match]
       return isFunction(rule) ? rule(...params) : rule
     })
 }

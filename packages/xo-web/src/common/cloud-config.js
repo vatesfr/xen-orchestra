@@ -9,18 +9,22 @@ import { alert } from './modal'
 const AVAILABLE_TEMPLATE_VARS = {
   '{name}': 'templateNameInfo',
   '%': 'templateIndexInfo',
-  '\\': 'templateEscape',
-  '\\\\': 'templateAntiSlash',
+  '\\\\': 'templateBackslash',
 }
 
 const showAvailableTemplateVars = () =>
   alert(
     _('availableTemplateVarsTitle'),
-    <ul>
-      {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
-        <li key={key}>{_.keyValue(key, _(value))}</li>
-      ))}
-    </ul>
+    <div>
+      <ul>
+        {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
+          <li key={key}>{_.keyValue(key, _(value))}</li>
+        ))}
+      </ul>
+      <span className='text-info'>
+        <Icon icon='info' /> {_('templateEscape')}
+      </span>
+    </div>
   )
 
 const showNetworkConfigInfo = () =>

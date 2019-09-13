@@ -1324,9 +1324,8 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
-  templateAntiSlash: 'will be replaced by "\\"',
-  templateEscape:
-    'used to escape the template variables, e.g: "\\%" will be replaced by "%" instead of the VM\'s index',
+  templateBackslash: 'will be replaced by "\\"',
+  templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError:
     'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
