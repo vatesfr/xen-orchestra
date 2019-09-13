@@ -156,7 +156,9 @@ const Updates = decorate([
         const { email = xoaRegisterState.email, password } = state
         await xoaUpdater.register(email, password, isRegistered)
 
-        return initialRegistrationState()
+        if (state.isRegistered) {
+          return initialRegistrationState()
+        }
       },
       resetChannel: initialChannelState,
       resetProxyConfig: initialProxyState,
