@@ -254,7 +254,7 @@ export const parseSize = size => {
 
 // -------------------------------------------------------------------
 
-const NotFound = () => <h1>{_('errorPageNotFound')}</h1>
+const _NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 
 // Decorator to declare routes on a component.
 //
@@ -288,7 +288,7 @@ export const routes = (indexRoute, childRoutes) => target => {
   }
 
   if (childRoutes) {
-    childRoutes.push({ component: NotFound, path: '*' })
+    childRoutes.push({ component: _NotFound, path: '*' })
   }
 
   target.route = {
@@ -668,7 +668,7 @@ export const adminOnly = Component =>
   connectStore({
     _isAdmin: isAdmin,
   })(({ _isAdmin, ...props }) =>
-    _isAdmin ? <Component {...props} /> : <NotFound />
+    _isAdmin ? <Component {...props} /> : <_NotFound />
   )
 
 // ===================================================================
