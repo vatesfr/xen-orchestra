@@ -252,6 +252,7 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
+      proxyFormId: generateId,
     },
   }),
   injectState,
@@ -412,7 +413,7 @@ const Updates = decorate([
               {_('proxySettings')} {state.isProxyConfigEdited ? '*' : ''}
             </CardHeader>
             <CardBlock>
-              <form>
+              <form id={state.proxyFormId} className='form'>
                 <fieldset disabled={COMMUNITY}>
                   <div className='form-group'>
                     <input
@@ -463,6 +464,7 @@ const Updates = decorate([
                   <ActionButton
                     icon='save'
                     btnStyle='primary'
+                    form={state.proxyFormId}
                     handler={effects.configure}
                   >
                     {_('formSave')}
