@@ -26,6 +26,8 @@ The **fastest and most secure way** to install Xen Orchestra is to use our web d
 
 > **Note:** no data will be sent to our servers, it's running only between your browser and your host!
 
+![](./assets/deploy_form.png)
+
 ### Via a bash script
 
 Alternatively, you can deploy it by connecting to your XenServer host and executing the following:
