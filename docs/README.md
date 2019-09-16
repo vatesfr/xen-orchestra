@@ -13,11 +13,11 @@ It aims to be easy to use on any device supporting modern web technologies (HTML
 
 ## XOA quick deploy
 
-SSH to your XenServer, and execute the following:
+Log in to your account and use the deploy form available on [this page](https://xen-orchestra.com/#!/xoa)
 
-```
-bash -c "$(curl -s http://xoa.io/deploy)"
-```
+> **Note:** no data will be sent to our servers, it's running only between your browser and your host!
+
+![](./assets/deploy_form.png)
 
 ### XOA credentials
 
