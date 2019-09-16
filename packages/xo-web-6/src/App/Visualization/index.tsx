@@ -26,19 +26,19 @@ export default class Visualization extends Component<any, any> {
 
     //  Memory
     vmMemoryData: [],
-    memoryMaxVm: 0,
+    vmMemoryMax: 0,
 
     //  Network
     vmNetworkData: [],
-    networksTransmissionVm: [],
-    networksReceptionVm: [],
-    maxNetworkVm: 0,
+    vmNetworksTransmission: [],
+    vmNetworksReception: [],
+    vmNetworkMax: 0,
 
     //  Disk
     vmDiskData: [],
-    disksWriting: [],
-    disksReading: [],
-    maxDisk: 0,
+    vmDisksWriting: [],
+    vmDisksReading: [],
+    vmDiskMax: 0,
   }
 
   componentDidMount() {
@@ -47,7 +47,7 @@ export default class Visualization extends Component<any, any> {
 
   fetchVmStats = () => {
     getObject('402b4559-217c-e9df-53b8-b548c2616e92').then((vm: any) => {
-      this.setState({ memoryMaxVm: vm.memory.dynamic[1] })
+      this.setState({ vmMemoryMax: vm.memory.dynamic[1] })
     })
 
     xoCall('vm.stats', {
@@ -70,89 +70,91 @@ export default class Visualization extends Component<any, any> {
         }
 
         this.setState({ vmCpus: Object.keys(cpus) })
-        this.setState({ networksTransmissionVm: Object.keys(vifs.tx) })
-        this.setState({ networksReceptionVm: Object.keys(vifs.rx) })
-        this.setState({ disksWriting: Object.keys(xvds.w) })
-        this.setState({ disksReading: Object.keys(xvds.r) })
-
+        this.setState({ vmNetworksTransmission: Object.keys(vifs.tx) })
+        this.setState({ vmNetworksReception: Object.keys(vifs.rx) })
+        this.setState({ vmDisksWriting: Object.keys(xvds.w) })
+        this.setState({ vmDisksReading: Object.keys(xvds.r) })
         let vmCpuData: any[] = []
         let vmMemoryData: any[] = []
         let vmNetworkData: any[] = []
         let vmDiskData: any[] = []
-        let newDataMemory: any[] = []
+        let vmMemoryNewData: any[] = []
 
-        newDataMemory = memoryFree.map(
+        vmMemoryNewData = memoryFree.map(
           (value: any, index: any) => memory[index] - value
         )
 
         for (var i = 0; i < NB_VALUES; i++) {
-          let valuesCpus: any = {}
-          let valuesMemory: any = {}
-          let valuesNetwork: any = {}
-          let ValuesDisk: any = {}
+          let vmCpusValues: any = {}
+          let vmMemoryValues: any = {}
+          let vmNetworkValues: any = {}
+          let vmDiskValues: any = {}
 
-          valuesCpus.time = moment(
+          vmCpusValues.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
           ).format(format)
 
           this.state.vmCpus.forEach((property: string | number) => {
-            valuesCpus[`cpu${property}`] = cpus[property][i]
+            vmCpusValues[`cpu${property}`] = cpus[property][i]
           })
 
-          this.state.networksTransmissionVm.forEach(
+          this.state.vmNetworksTransmission.forEach(
             (property: string | number) => {
-              valuesNetwork[`vifs_${property}_(tx)`] = vifs.tx[property][i]
+              vmNetworkValues[`vifs_${property}_(tx)`] = vifs.tx[property][i]
             }
           )
 
-          this.state.networksReceptionVm.forEach(
+          this.state.vmNetworksReception.forEach(
             (property: string | number) => {
-              valuesNetwork[`vifs_${property}_(rx)`] = vifs.rx[property][i]
+              vmNetworkValues[`vifs_${property}_(rx)`] = vifs.rx[property][i]
             }
           )
 
-          this.state.disksWriting.forEach((property: string | number) => {
-            ValuesDisk[`xvds_${property}_(w)`] = xvds.w[property][i]
+          this.state.vmDisksWriting.forEach((property: string | number) => {
+            vmDiskValues[`xvds_${property}_(w)`] = xvds.w[property][i]
           })
 
-          this.state.disksReading.forEach((property: string | number) => {
-            ValuesDisk[`xvds_${property}_(r)`] = xvds.r[property][i]
+          this.state.vmDisksReading.forEach((property: string | number) => {
+            vmDiskValues[`xvds_${property}_(r)`] = xvds.r[property][i]
           })
 
-          valuesMemory.memory = newDataMemory[i]
-          valuesMemory.time = valuesCpus.time
-          valuesNetwork.time = valuesCpus.time
-          ValuesDisk.time = valuesCpus.time
-          vmDiskData.push(ValuesDisk)
-          vmCpuData.push(valuesCpus)
-          vmNetworkData.push(valuesNetwork)
-          vmMemoryData.push(valuesMemory)
+          vmMemoryValues.memory = vmMemoryNewData[i]
+          vmMemoryValues.time = vmCpusValues.time
+          vmNetworkValues.time = vmCpusValues.time
+          vmDiskValues.time = vmCpusValues.time
+          vmDiskData.push(vmDiskValues)
+          vmCpuData.push(vmCpusValues)
+          vmNetworkData.push(vmNetworkValues)
+          vmMemoryData.push(vmMemoryValues)
         }
 
-        this.state.networksTransmissionVm.forEach(
+        this.state.vmNetworksTransmission.forEach(
           (property: string | number) => {
             this.setState({ maxNetworkTx: Math.max(...vifs.tx[property]) })
           }
         )
 
-        this.state.networksReceptionVm.forEach((property: string | number) => {
+        this.state.vmNetworksReception.forEach((property: string | number) => {
           this.setState({ maxNetworkRx: Math.max(...vifs.rx[property]) })
         })
 
-        this.state.maxNetworkVm = Math.max(
+        this.state.vmNetworkMax = Math.max(
           this.state.maxNetworkTx,
           this.state.maxNetworkRx
         )
 
-        this.state.disksWriting.forEach((property: string | number) => {
+        this.state.vmDisksWriting.forEach((property: string | number) => {
           this.setState({ maxDiskW: Math.max(...xvds.w[property]) })
         })
 
-        this.state.disksReading.forEach((property: string | number) => {
+        this.state.vmDisksReading.forEach((property: string | number) => {
           this.setState({ maxDiskR: Math.max(...xvds.r[property]) })
         })
 
-        this.state.maxDisk = Math.max(this.state.maxDiskW, this.state.maxDiskR)
+        this.state.vmDiskMax = Math.max(
+          this.state.maxDiskW,
+          this.state.maxDiskR
+        )
         this.setState({ vmCpuData, vmMemoryData, vmNetworkData, vmDiskData })
       }
     )
@@ -180,25 +182,25 @@ export default class Visualization extends Component<any, any> {
             </select>
           </form>
         </div>
-        <CpuVmGraph
+        <VmCpuGraph
           vmCpuData={this.state.vmCpuData}
           vmCpus={this.state.vmCpus}
         />
-        <MemoryVmGraph
+        <VmMemoryGraph
           vmMemoryData={this.state.vmMemoryData}
-          memoryMaxVm={this.state.memoryMaxVm}
+          vmMemoryMax={this.state.vmMemoryMax}
         />
-        <NetworkVmGraph
+        <VmNetworkGraph
           vmNetworkData={this.state.vmNetworkData}
-          networksTransmissionVm={this.state.networksTransmissionVm}
-          networksReceptionVm={this.state.networksReceptionVm}
-          maxNetworkVm={this.state.maxNetworkVm}
+          vmNetworksTransmission={this.state.vmNetworksTransmission}
+          vmNetworksReception={this.state.vmNetworksReception}
+          vmNetworkMax={this.state.vmNetworkMax}
         />
-        <DiskVmGraph
+        <VmDiskGraph
           vmDiskData={this.state.vmDiskData}
-          disksWriting={this.state.disksWriting}
-          disksReading={this.state.disksReading}
-          maxDisk={this.state.maxDisk}
+          vmDisksWriting={this.state.vmDisksWriting}
+          vmDisksReading={this.state.vmDisksReading}
+          vmDiskMax={this.state.vmDiskMax}
         />
       </div>
     )
@@ -207,16 +209,16 @@ export default class Visualization extends Component<any, any> {
 
 const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
 
-class CpuVmGraph extends Component<any, any> {
+class VmCpuGraph extends Component<any, any> {
   state: any = {
-    startIndexCpuVm: 0,
-    endIndexCpuVm: 0,
+    vmCpuStartIndex: 0,
+    vmCpuEndIndex: 0,
   }
 
   handleVmCpuZoomChange = (res: any) => {
     this.setState({
-      startIndexCpuVm: res.startIndex,
-      endIndexCpuVm: res.endIndex,
+      vmCpuStartIndex: res.startIndex,
+      vmCpuEndIndex: res.endIndex,
     })
   }
 
@@ -246,8 +248,8 @@ class CpuVmGraph extends Component<any, any> {
             <Tooltip />
             <Brush
               onChange={this.handleVmCpuZoomChange}
-              startIndex={this.state.startIndexCpuVm}
-              endIndex={this.state.endIndexCpuVm}
+              startIndex={this.state.vmCpuStartIndex}
+              endIndex={this.state.vmCpuEndIndex}
             >
               <AreaChart
                 width={830}
@@ -287,7 +289,7 @@ class CpuVmGraph extends Component<any, any> {
   }
 }
 
-class MemoryVmGraph extends Component<any, any> {
+class VmMemoryGraph extends Component<any, any> {
   state: any = {
     startIndexMemoryVm: 0,
     endIndexMemoryVm: 0,
@@ -318,7 +320,7 @@ class MemoryVmGraph extends Component<any, any> {
               tickFormatter={value =>
                 humanFormat(value, { scale: 'binary', unit: 'B' })
               }
-              domain={[0, this.props.memoryMaxVm]}
+              domain={[0, this.props.vmMemoryMax]}
             />
             <Tooltip />
             <Brush
@@ -354,7 +356,7 @@ class MemoryVmGraph extends Component<any, any> {
   }
 }
 
-class NetworkVmGraph extends Component<any, any> {
+class VmNetworkGraph extends Component<any, any> {
   state: any = {
     startIndexNetworkVm: 0,
     endIndexNetworkVm: 0,
@@ -386,7 +388,7 @@ class NetworkVmGraph extends Component<any, any> {
               tickFormatter={value =>
                 humanFormat(value, { scale: 'binary', unit: 'B' })
               }
-              domain={[0, Math.max(1024e3, this.props.maxNetworkVm)]}
+              domain={[0, Math.max(1024e3, this.props.vmNetworkMax)]}
             />
             <Tooltip />
             <Brush
@@ -401,15 +403,15 @@ class NetworkVmGraph extends Component<any, any> {
                 margin={GRAPH_CONFIG}
               >
                 {[
-                  ...this.props.networksTransmissionVm,
-                  ...this.props.networksReceptionVm,
+                  ...this.props.vmNetworksTransmission,
+                  ...this.props.vmNetworksReception,
                 ].map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
                     type='monotone'
                     dataKey={`vifs_${property}_(${
-                      index < this.props.networksTransmissionVm.length
+                      index < this.props.vmNetworksTransmission.length
                         ? 'tx'
                         : 'rx'
                     })`}
@@ -422,15 +424,15 @@ class NetworkVmGraph extends Component<any, any> {
             </Brush>
             <Legend iconType='rect' iconSize={18} />
             {[
-              ...this.props.networksTransmissionVm,
-              ...this.props.networksReceptionVm,
+              ...this.props.vmNetworksTransmission,
+              ...this.props.vmNetworksReception,
             ].map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`vifs_${property}_(${
-                  index < this.props.networksTransmissionVm.length ? 'tx' : 'rx'
+                  index < this.props.vmNetworksTransmission.length ? 'tx' : 'rx'
                 })`}
                 stroke={allColors[index]}
                 fill={allColors[index]}
@@ -444,7 +446,7 @@ class NetworkVmGraph extends Component<any, any> {
   }
 }
 
-class DiskVmGraph extends Component<any, any> {
+class VmDiskGraph extends Component<any, any> {
   state: any = {
     startIndexDiskVm: 0,
     endIndexDiskVm: 0,
@@ -476,7 +478,7 @@ class DiskVmGraph extends Component<any, any> {
               tickFormatter={value =>
                 humanFormat(value, { scale: 'binary', unit: 'B' })
               }
-              domain={[0, Math.max(1024e6, this.props.maxDisk)]}
+              domain={[0, Math.max(1024e6, this.props.vmDiskMax)]}
             />
             <Tooltip />
             <Brush
@@ -490,32 +492,33 @@ class DiskVmGraph extends Component<any, any> {
                 data={this.state.vmDiskData}
                 margin={GRAPH_CONFIG}
               >
-                {[...this.props.disksWriting, ...this.props.disksReading].map(
-                  (property: any, index: any) => (
-                    <Area
-                      connectNulls
-                      isAnimationActive={false}
-                      type='monotone'
-                      dataKey={`xvds_${property}_(${
-                        index < this.props.disksWriting.length ? 'w' : 'r'
-                      })`}
-                      stroke={allColors[index]}
-                      fill={allColors[index]}
-                      key={index}
-                    />
-                  )
-                )}
+                {[
+                  ...this.props.vmDisksWriting,
+                  ...this.props.vmDisksReading,
+                ].map((property: any, index: any) => (
+                  <Area
+                    connectNulls
+                    isAnimationActive={false}
+                    type='monotone'
+                    dataKey={`xvds_${property}_(${
+                      index < this.props.vmDisksWriting.length ? 'w' : 'r'
+                    })`}
+                    stroke={allColors[index]}
+                    fill={allColors[index]}
+                    key={index}
+                  />
+                ))}
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {[...this.props.disksWriting, ...this.props.disksReading].map(
+            {[...this.props.vmDisksWriting, ...this.props.vmDisksReading].map(
               (property: any, index: any) => (
                 <Area
                   connectNulls
                   isAnimationActive={false}
                   type='monotone'
                   dataKey={`xvds_${property}_(${
-                    index < this.props.disksWriting.length ? 'w' : 'r'
+                    index < this.props.vmDisksWriting.length ? 'w' : 'r'
                   })`}
                   stroke={allColors[index]}
                   fill={allColors[index]}

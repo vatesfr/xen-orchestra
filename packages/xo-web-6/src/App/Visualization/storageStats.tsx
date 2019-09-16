@@ -21,24 +21,24 @@ export default class Visualization extends Component<any, any> {
     format: 'LTS',
     //  SR
     //  IOPS
-    iopsData: [],
-    iopsSr: [],
-    maxIOPS: 0,
+    srIopsData: [],
+    srIops: [],
+    srIopsMax: 0,
 
     //  IO Throughput
-    throughputData: [],
-    throSr: [],
-    maxIoThroughput: 0,
+    srIoThroughputData: [],
+    srIoThroughputs: [],
+    srIoThroughputMax: 0,
 
     //  Latency
-    latencyData: [],
-    latencySr: [],
-    maxLatency: 0,
+    srLatencyData: [],
+    srLatency: [],
+    srLatencyMax: 0,
 
     //  IOwait
-    dataSrIowait: [],
-    iowaitSr: [],
-    maxIOwait: 0,
+    srIowaitData: [],
+    srIowait: [],
+    srIowaitMax: 0,
   }
 
   componentDidMount() {
@@ -65,70 +65,75 @@ export default class Visualization extends Component<any, any> {
           format = 'l'
         }
 
-        this.setState({ iopsSr: Object.keys(iops) })
-        this.setState({ throSr: Object.keys(ioThroughput) })
-        this.setState({ latencySr: Object.keys(latency) })
-        this.setState({ iowaitSr: Object.keys(iowait) })
+        this.setState({ srIops: Object.keys(iops) })
+        this.setState({ srIoThroughputs: Object.keys(ioThroughput) })
+        this.setState({ srLatency: Object.keys(latency) })
+        this.setState({ srIowait: Object.keys(iowait) })
 
-        const iopsData: any[] = []
-        const throughputData: any[] = []
-        const latencyData: any[] = []
-        const dataSrIowait: any[] = []
+        const srIopsData: any[] = []
+        const srIoThroughputData: any[] = []
+        const srLatencyData: any[] = []
+        const srIowaitData: any[] = []
 
         for (var i = 0; i < NB_VALUES; i++) {
-          const valuesSrIops: any = {}
-          const valuesSrThro: any = {}
-          const valuesSrLatency: any = {}
-          const valuesSrIowait: any = {}
+          const srIopsValues: any = {}
+          const srThroValues: any = {}
+          const srLatencyValues: any = {}
+          const srIowaitValues: any = {}
 
-          valuesSrIops.time = moment(
+          srIopsValues.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
           ).format(format)
 
-          this.state.iopsSr.forEach((property: string | number) => {
-            valuesSrIops[`iops_${property}`] = iops[property][i]
+          this.state.srIops.forEach((property: string | number) => {
+            srIopsValues[`iops_${property}`] = iops[property][i]
           })
 
-          this.state.throSr.forEach((property: string | number) => {
-            valuesSrThro[`thr_${property}`] = ioThroughput[property][i]
+          this.state.srIoThroughputs.forEach((property: string | number) => {
+            srThroValues[`thr_${property}`] = ioThroughput[property][i]
           })
 
-          this.state.latencySr.forEach((property: string | number) => {
-            valuesSrLatency[`latency_${property}`] = latency[property][i]
+          this.state.srLatency.forEach((property: string | number) => {
+            srLatencyValues[`latency_${property}`] = latency[property][i]
           })
 
-          this.state.iowaitSr.forEach((property: string | number) => {
-            valuesSrIowait[`iowait_${property}`] = iowait[property][i]
+          this.state.srIowait.forEach((property: string | number) => {
+            srIowaitValues[`iowait_${property}`] = iowait[property][i]
           })
 
-          valuesSrLatency.time = valuesSrIops.time
-          valuesSrThro.time = valuesSrIops.time
-          valuesSrIowait.time = valuesSrIops.time
+          srLatencyValues.time = srIopsValues.time
+          srThroValues.time = srIopsValues.time
+          srIowaitValues.time = srIopsValues.time
 
-          iopsData.push(valuesSrIops)
-          throughputData.push(valuesSrThro)
-          latencyData.push(valuesSrLatency)
-          dataSrIowait.push(valuesSrIowait)
+          srIopsData.push(srIopsValues)
+          srIoThroughputData.push(srThroValues)
+          srLatencyData.push(srLatencyValues)
+          srIowaitData.push(srIowaitValues)
         }
 
-        this.state.latencySr.forEach((property: string | number) => {
-          this.setState({ maxLatency: Math.max(...latency[property]) })
+        this.state.srLatency.forEach((property: string | number) => {
+          this.setState({ srLatencyMax: Math.max(...latency[property]) })
         })
 
-        this.state.iopsSr.forEach((property: string | number) => {
-          this.setState({ maxIOPS: Math.max(...iops[property]) })
+        this.state.srIops.forEach((property: string | number) => {
+          this.setState({ srIopsMax: Math.max(...iops[property]) })
         })
 
-        this.state.iowaitSr.forEach((property: string | number) => {
-          this.setState({ maxIOwait: Math.max(...iowait[property]) })
+        this.state.srIowait.forEach((property: string | number) => {
+          this.setState({ srIowaitMax: Math.max(...iowait[property]) })
         })
 
-        this.state.throSr.forEach((property: string | number) => {
+        this.state.srIoThroughputs.forEach((property: string | number) => {
           this.setState({
-            maxIoThroughput: Math.max(...ioThroughput[property]),
+            srIoThroughputMax: Math.max(...ioThroughput[property]),
           })
         })
-        this.setState({ iopsData, throughputData, latencyData, dataSrIowait })
+        this.setState({
+          srIopsData,
+          srIoThroughputData,
+          srLatencyData,
+          srIowaitData,
+        })
       }
     )
   }
@@ -156,24 +161,24 @@ export default class Visualization extends Component<any, any> {
           </form>
         </div>
         <SrIOPSGraph
-          iopsData={this.state.iopsData}
-          iopsSr={this.state.iopsSr}
-          maxIOPS={this.state.maxIOPS}
+          srIopsData={this.state.srIopsData}
+          srIops={this.state.srIops}
+          srIopsMax={this.state.srIopsMax}
         />
         <SrIOThroGraph
-          throughputData={this.state.throughputData}
-          throSr={this.state.throSr}
-          maxIoThroughput={this.state.maxIoThroughput}
+          srIoThroughputData={this.state.srIoThroughputData}
+          srIoThroughputs={this.state.srIoThroughputs}
+          srIoThroughputMax={this.state.srIoThroughputMax}
         />
         <SrLatencyGraph
-          latencyData={this.state.latencyData}
-          latencySr={this.state.latencySr}
-          maxLatency={this.state.maxLatency}
+          srLatencyData={this.state.srLatencyData}
+          srLatency={this.state.srLatency}
+          srLatencyMax={this.state.srLatencyMax}
         />
         <SrIoWaitGraph
-          dataSrIowait={this.state.dataSrIowait}
-          iowaitSr={this.state.iowaitSr}
-          maxIOwait={this.state.maxIOwait}
+          srIowaitData={this.state.srIowaitData}
+          srIowait={this.state.srIowait}
+          srIowaitMax={this.state.srIowaitMax}
         />
       </div>
     )
@@ -204,7 +209,7 @@ class SrIOPSGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.iopsData}
+            data={this.props.srIopsData}
             syncId='sr'
             margin={GRAPH_CONFIG}
           >
@@ -213,7 +218,7 @@ class SrIOPSGraph extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={value => value + ' IOPS'}
-              domain={[0, Math.max(40, this.props.maxIOPS)]}
+              domain={[0, Math.max(40, this.props.srIopsMax)]}
             />
             <Tooltip />
             <Brush
@@ -224,10 +229,10 @@ class SrIOPSGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.iopsData}
+                data={this.props.srIopsData}
                 margin={GRAPH_CONFIG}
               >
-                {this.props.iopsSr.map((property: any, index: any) => (
+                {this.props.srIops.map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
@@ -241,7 +246,7 @@ class SrIOPSGraph extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.iopsSr.map((property: any, index: any) => (
+            {this.props.srIops.map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
@@ -279,7 +284,7 @@ class SrIOThroGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.throughputData}
+            data={this.props.srIoThroughputData}
             syncId='sr'
             margin={GRAPH_CONFIG}
           >
@@ -290,7 +295,7 @@ class SrIOThroGraph extends Component<any, any> {
               tickFormatter={value =>
                 humanFormat(value, { scale: 'binary', unit: 'B' })
               }
-              domain={[0, Math.max(1024e3, this.props.maxIoThroughput)]}
+              domain={[0, Math.max(1024e3, this.props.srIoThroughputMax)]}
             />
             <Tooltip />
             <Brush
@@ -301,7 +306,7 @@ class SrIOThroGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.throughputData}
+                data={this.props.srIoThroughputData}
                 margin={{
                   top: 5,
                   right: 20,
@@ -309,7 +314,7 @@ class SrIOThroGraph extends Component<any, any> {
                   bottom: 5,
                 }}
               >
-                {this.props.throSr.map((property: any, index: any) => (
+                {this.props.srIoThroughputs.map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
@@ -323,7 +328,7 @@ class SrIOThroGraph extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.throSr.map((property: any, index: any) => (
+            {this.props.srIoThroughputs.map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
@@ -361,7 +366,7 @@ class SrLatencyGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.latencyData}
+            data={this.props.srLatencyData}
             syncId='sr'
             margin={GRAPH_CONFIG}
           >
@@ -370,7 +375,7 @@ class SrLatencyGraph extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={value => value + ' ms'}
-              domain={[0, Math.max(30, this.props.maxLatency)]}
+              domain={[0, Math.max(30, this.props.srLatencyMax)]}
             />
             <Tooltip />
             <Brush
@@ -381,10 +386,10 @@ class SrLatencyGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.latencyData}
+                data={this.props.srLatencyData}
                 margin={GRAPH_CONFIG}
               >
-                {this.props.latencySr.map((property: any, index: any) => (
+                {this.props.srLatency.map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
@@ -398,7 +403,7 @@ class SrLatencyGraph extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.latencySr.map((property: any, index: any) => (
+            {this.props.srLatency.map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
@@ -436,7 +441,7 @@ class SrIoWaitGraph extends Component<any, any> {
           <AreaChart
             width={830}
             height={300}
-            data={this.props.dataSrIowait}
+            data={this.props.srIowaitData}
             syncId='sr'
             margin={GRAPH_CONFIG}
           >
@@ -445,7 +450,7 @@ class SrIoWaitGraph extends Component<any, any> {
             <YAxis
               tick={{ fontSize: '11px' }}
               tickFormatter={value => value + ' %'}
-              domain={[0, Math.max(5, this.props.maxIOwait)]}
+              domain={[0, Math.max(5, this.props.srIowaitMax)]}
             />
             <Tooltip />
             <Brush
@@ -456,10 +461,10 @@ class SrIoWaitGraph extends Component<any, any> {
               <AreaChart
                 width={830}
                 height={300}
-                data={this.props.dataSrIowait}
+                data={this.props.srIowaitData}
                 margin={GRAPH_CONFIG}
               >
-                {this.props.iowaitSr.map((property: any, index: any) => (
+                {this.props.srIowait.map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
@@ -473,7 +478,7 @@ class SrIoWaitGraph extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.iowaitSr.map((property: any, index: any) => (
+            {this.props.srIowait.map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}

@@ -17,45 +17,45 @@ export default class Visualization extends Component<any, any> {
     return (
       <div>
         <div>
-          <HostsMemoryStats hostIds={tabId} />
+          <HostsMemoryGraph hostIds={tabId} />
         </div>
         <div>
-          <HostsCpuStats hostIds={tabId} />
+          <HostsCpuGraph hostIds={tabId} />
         </div>
         <div>
-          <HostsNetworkStats hostIds={tabId} />
+          <HostsNetworkGraph hostIds={tabId} />
         </div>
         <div>
-          <HostsLoadStats hostIds={tabId} />
+          <HostsLoadGraph hostIds={tabId} />
         </div>
       </div>
     )
   }
 }
 const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
-class HostsMemoryStats extends Component<any, any> {
+class HostsMemoryGraph extends Component<any, any> {
   state: any = {
     hostId: 0,
   }
   render() {
     return this.props.hostIds.map((hostId: any) => (
-      <HostMemoryStats hostId={hostId} key={hostId} />
+      <HostMemoryGraph hostId={hostId} key={hostId} />
     ))
   }
 }
 
-class HostsCpuStats extends Component<any, any> {
+class HostsCpuGraph extends Component<any, any> {
   state: any = {
     hostId: 0,
   }
   render() {
     return this.props.hostIds.map((hostId: any) => (
-      <HostCpuStats hostId={hostId} key={hostId} />
+      <HostCpuGraph hostId={hostId} key={hostId} />
     ))
   }
 }
 
-class HostsNetworkStats extends Component<any, any> {
+class HostsNetworkGraph extends Component<any, any> {
   state: any = {
     hostId: 0,
     max: 0,
@@ -135,12 +135,12 @@ class HostsNetworkStats extends Component<any, any> {
   }
   render() {
     return this.state.allData.map((currentData: any) => (
-      <HostNetworkStats max={this.state.max} data={currentData} />
+      <HostNetworkGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class HostsLoadStats extends Component<any, any> {
+class HostsLoadGraph extends Component<any, any> {
   state: any = {
     hostId: 0,
     max: 0,
@@ -196,12 +196,12 @@ class HostsLoadStats extends Component<any, any> {
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <HostLoadStats max={this.state.max} data={currentData} />
+      <HostLoadGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class HostMemoryStats extends Component<any, any> {
+class HostMemoryGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
@@ -282,7 +282,7 @@ class HostMemoryStats extends Component<any, any> {
   }
 }
 
-class HostCpuStats extends Component<any, any> {
+class HostCpuGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     cpusVm: [],
@@ -353,7 +353,7 @@ class HostCpuStats extends Component<any, any> {
   }
 }
 
-class HostNetworkStats extends Component<any, any> {
+class HostNetworkGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
   }
@@ -410,7 +410,7 @@ class HostNetworkStats extends Component<any, any> {
   }
 }
 
-class HostLoadStats extends Component<any, any> {
+class HostLoadGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
   }

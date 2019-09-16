@@ -17,16 +17,16 @@ export default class Visualization extends Component<any, any> {
     return (
       <div>
         <div>
-          <VmsDiskStats vmIds={tabId} />
+          <VmsDiskGraph vmIds={tabId} />
         </div>
         <div>
-          <VmsNetworkStats vmIds={tabId} />
+          <VmsNetworkGraph vmIds={tabId} />
         </div>
         <div>
-          <VmsMemoryStats vmIds={tabId} />
+          <VmsMemoryGraph vmIds={tabId} />
         </div>
         <div>
-          <VmsCpuStats vmIds={tabId} />
+          <VmsCpuGraph vmIds={tabId} />
         </div>
       </div>
     )
@@ -35,18 +35,18 @@ export default class Visualization extends Component<any, any> {
 
 const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
 
-class VmsCpuStats extends Component<any, any> {
+class VmsCpuGraph extends Component<any, any> {
   state: any = {
     vmId: 0,
   }
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <VmCpuStats vmId={vmId} key={vmId} />
+      <VmCpuGraph vmId={vmId} key={vmId} />
     ))
   }
 }
 
-class VmCpuStats extends Component<any, any> {
+class VmCpuGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
@@ -79,6 +79,7 @@ class VmCpuStats extends Component<any, any> {
 
         cpuDataVm.push(valuesCpus)
       }
+
       this.setState({ cpuDataVm })
     })
   }
@@ -115,18 +116,18 @@ class VmCpuStats extends Component<any, any> {
   }
 }
 
-class VmsMemoryStats extends Component<any, any> {
+class VmsMemoryGraph extends Component<any, any> {
   state: any = {
     vmId: 0,
   }
 
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <VmMemoryStats vmId={vmId} key={vmId} />
+      <VmMemoryGraph vmId={vmId} key={vmId} />
     ))
   }
 }
-class VmMemoryStats extends Component<any, any> {
+class VmMemoryGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
@@ -168,15 +169,6 @@ class VmMemoryStats extends Component<any, any> {
     )
   }
 
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
-  }
-
   render() {
     return (
       <div>
@@ -190,7 +182,6 @@ class VmMemoryStats extends Component<any, any> {
           >
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 0)}
               domain={[0, this.state.maxMemory]}
               hide={true}
             />
@@ -203,7 +194,7 @@ class VmMemoryStats extends Component<any, any> {
   }
 }
 
-class VmsNetworkStats extends Component<any, any> {
+class VmsNetworkGraph extends Component<any, any> {
   state: any = {
     vmId: 0,
     max: 0,
@@ -283,23 +274,14 @@ class VmsNetworkStats extends Component<any, any> {
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <VmNetworkStats max={this.state.max} data={currentData} />
+      <VmNetworkGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class VmNetworkStats extends Component<any, any> {
+class VmNetworkGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-  }
-
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
   render() {
@@ -317,7 +299,6 @@ class VmNetworkStats extends Component<any, any> {
           >
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 2)}
               domain={[0, Math.max(1, this.props.max)]}
               hide={true}
             />
@@ -346,7 +327,7 @@ class VmNetworkStats extends Component<any, any> {
   }
 }
 
-class VmsDiskStats extends Component<any, any> {
+class VmsDiskGraph extends Component<any, any> {
   state: any = {
     vmId: 0,
     max: 0,
@@ -425,22 +406,14 @@ class VmsDiskStats extends Component<any, any> {
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <VmDiskStats max={this.state.max} data={currentData} />
+      <VmDiskGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class VmDiskStats extends Component<any, any> {
+class VmDiskGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-  }
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
   render() {
@@ -459,7 +432,6 @@ class VmDiskStats extends Component<any, any> {
           >
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={value => this.formatBytes(value, 2)}
               domain={[0, Math.max(1, this.props.max)]}
               hide={true}
             />

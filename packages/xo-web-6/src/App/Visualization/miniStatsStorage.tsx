@@ -18,16 +18,16 @@ export default class Visualization extends Component<any, any> {
     return (
       <div>
         <div>
-          <StoragesIopsStats srIds={tabId} />
+          <StoragesIopsGraph srIds={tabId} />
         </div>
         <div>
-          <StoragesLatencyStats srIds={tabId} />
+          <StoragesLatencyGraph srIds={tabId} />
         </div>
         <div>
-          <StoragesIowaitStats srIds={tabId} />
+          <StoragesIowaitGraph srIds={tabId} />
         </div>
         <div>
-          <StoragesThroughputStats srIds={tabId} />
+          <StoragesThroughputGraph srIds={tabId} />
         </div>
       </div>
     )
@@ -36,7 +36,7 @@ export default class Visualization extends Component<any, any> {
 
 const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
 
-class StoragesIowaitStats extends Component<any, any> {
+class StoragesIowaitGraph extends Component<any, any> {
   state: any = {
     srId: 0,
     max: 0,
@@ -103,12 +103,12 @@ class StoragesIowaitStats extends Component<any, any> {
   }
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageIowaitStats max={this.state.max} data={currentData} />
+      <StorageIowaitGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class StoragesIopsStats extends Component<any, any> {
+class StoragesIopsGraph extends Component<any, any> {
   state: any = {
     srId: 0,
     max: 0,
@@ -174,12 +174,12 @@ class StoragesIopsStats extends Component<any, any> {
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageIopsStats max={this.state.max} data={currentData} />
+      <StorageIopsGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class StoragesLatencyStats extends Component<any, any> {
+class StoragesLatencyGraph extends Component<any, any> {
   state: any = {
     srId: 0,
     max: 0,
@@ -245,12 +245,12 @@ class StoragesLatencyStats extends Component<any, any> {
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageLatencyStats max={this.state.max} data={currentData} />
+      <StorageLatencyGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class StoragesThroughputStats extends Component<any, any> {
+class StoragesThroughputGraph extends Component<any, any> {
   state: any = {
     srId: 0,
     max: 0,
@@ -317,12 +317,12 @@ class StoragesThroughputStats extends Component<any, any> {
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageThroughputStats max={this.state.max} data={currentData} />
+      <StorageThroughputGraph max={this.state.max} data={currentData} />
     ))
   }
 }
 
-class StorageLatencyStats extends Component<any, any> {
+class StorageLatencyGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
   }
@@ -362,7 +362,7 @@ class StorageLatencyStats extends Component<any, any> {
   }
 }
 
-class StorageIopsStats extends Component<any, any> {
+class StorageIopsGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
   }
@@ -403,7 +403,7 @@ class StorageIopsStats extends Component<any, any> {
   }
 }
 
-class StorageIowaitStats extends Component<any, any> {
+class StorageIowaitGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
   }
@@ -443,28 +443,9 @@ class StorageIowaitStats extends Component<any, any> {
   }
 }
 
-class StorageThroughputStats extends Component<any, any> {
+class StorageThroughputGraph extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
-  }
-
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B/s'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = [
-      'B/s',
-      'KB/s',
-      'MB/s',
-      'GB/s',
-      'TB/s',
-      'PB/s',
-      'EB/s',
-      'ZB/s',
-      'YB/s',
-    ]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
   render() {
@@ -487,7 +468,6 @@ class StorageThroughputStats extends Component<any, any> {
           >
             <YAxis
               tick={{ fontSize: '11px' }}
-              tickFormatter={tick => this.formatBytes(tick, 2)}
               domain={[0, Math.max(1, this.props.max)]}
               hide={true}
             />

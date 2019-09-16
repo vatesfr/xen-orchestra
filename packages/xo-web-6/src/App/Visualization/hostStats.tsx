@@ -22,21 +22,21 @@ export default class Visualization extends Component<any, any> {
     //  Host
     //  cpu
     hostCpuData: [],
-    cpusHost: [],
+    hostCpus: [],
 
     // Memory
     hostMemoryData: [],
-    memoryMaxHost: 0,
+    hostMemoryMax: 0,
 
     //  Network
     hostNetworkData: [],
-    networksRxHost: [],
-    networksTransmissionHost: [],
-    networksReceptionHost: [],
+    hostNetworksReception: [],
+    hostNetworksTransmission: [],
+    hostNetworksMax: [],
 
     //  Load
     hostLoadData: [],
-    maxLoad: 0,
+    hostLoadMax: 0,
   }
 
   componentDidMount() {
@@ -45,7 +45,7 @@ export default class Visualization extends Component<any, any> {
 
   fetchHostStats = () => {
     getObject('b54bf91f-51d7-4af5-b1b3-f14dcf1146ee').then((host: any) => {
-      this.setState({ memoryMaxHost: host.memory.size })
+      this.setState({ hostMemoryMax: host.memory.size })
     })
 
     xoCall('host.stats', {
@@ -68,68 +68,71 @@ export default class Visualization extends Component<any, any> {
         }
 
         this.setState({
-          cpusHost: Object.keys(cpus),
-          networksRxHost: Object.keys(pifs.rx),
-          networksTransmissionHost: Object.keys(pifs.tx),
+          hostCpus: Object.keys(cpus),
+          hostNetworksReception: Object.keys(pifs.rx),
+          hostNetworksTransmission: Object.keys(pifs.tx),
         })
         let hostCpuData: any[] = []
-
         let hostMemoryData: any[] = []
         let hostNetworkData: any[] = []
         let hostLoadData: any[] = []
-        let newDataMemory: any = []
+        let hostMemoryNewData: any = []
 
-        newDataMemory = memoryFree.map(
+        hostMemoryNewData = memoryFree.map(
           (value: any, index: any) => memory[index] - value
         )
 
         for (var i = 0; i < NB_VALUES; i++) {
-          let valuesHost: any = {}
-          let valuesHostMemory: any = {}
-          let valuesHostNetwork: any = {}
-          let valuesLoad: any = {}
+          let hostCpusValues: any = {}
+          let hostMemoryValues: any = {}
+          let hostNetworkValues: any = {}
+          let hostLoadValues: any = {}
 
-          valuesHost.time = moment(
+          hostCpusValues.time = moment(
             (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
           ).format(format)
 
-          this.state.cpusHost.forEach((property: string | number) => {
-            valuesHost[`cpu${property}`] = cpus[property][i]
+          this.state.hostCpus.forEach((property: string | number) => {
+            hostCpusValues[`cpu${property}`] = cpus[property][i]
           })
 
-          this.state.networksRxHost.forEach((property: string | number) => {
-            valuesHostNetwork[`pifs_${property}_(rx)`] = pifs.rx[property][i]
-          })
-
-          this.state.networksTransmissionHost.forEach(
+          this.state.hostNetworksReception.forEach(
             (property: string | number) => {
-              valuesHostNetwork[`pifs_${property}_(tx)`] = pifs.tx[property][i]
+              hostNetworkValues[`pifs_${property}_(rx)`] = pifs.rx[property][i]
             }
           )
 
-          valuesLoad.load = load[i]
-          valuesHostMemory.memory = newDataMemory[i]
-          valuesHostMemory.time = valuesHost.time
-          valuesHostNetwork.time = valuesHost.time
-          valuesLoad.time = valuesHost.time
-          hostCpuData.push(valuesHost)
-          hostNetworkData.push(valuesHostNetwork)
-          hostLoadData.push(valuesLoad)
-          hostMemoryData.push(valuesHostMemory)
+          this.state.hostNetworksTransmission.forEach(
+            (property: string | number) => {
+              hostNetworkValues[`pifs_${property}_(tx)`] = pifs.tx[property][i]
+            }
+          )
+
+          hostLoadValues.load = load[i]
+          hostMemoryValues.memory = hostMemoryNewData[i]
+          hostMemoryValues.time = hostCpusValues.time
+          hostNetworkValues.time = hostCpusValues.time
+          hostLoadValues.time = hostCpusValues.time
+          hostCpuData.push(hostCpusValues)
+          hostNetworkData.push(hostNetworkValues)
+          hostLoadData.push(hostLoadValues)
+          hostMemoryData.push(hostMemoryValues)
         }
-        this.setState({ maxLoad: Math.max(...load) })
-        this.state.networksTransmissionHost.forEach(
+        this.setState({ hostLoadMax: Math.max(...load) })
+        this.state.hostNetworksTransmission.forEach(
           (property: string | number) => {
             this.setState({ maxNetworkTx: Math.max(...pifs.tx[property]) })
           }
         )
 
-        this.state.networksRxHost.forEach((property: string | number) => {
-          this.setState({ maxNetworkRx: Math.max(...pifs.rx[property]) })
-        })
+        this.state.hostNetworksReception.forEach(
+          (property: string | number) => {
+            this.setState({ maxNetworkRx: Math.max(...pifs.rx[property]) })
+          }
+        )
 
         this.setState({
-          networksReceptionHost: Math.max(
+          hostNetworksMax: Math.max(
             this.state.maxNetworkTx,
             this.state.maxNetworkRx
           ),
@@ -167,39 +170,38 @@ export default class Visualization extends Component<any, any> {
             </select>
           </form>
         </div>
-
-        <CpuHostGraph
+        <HostCpuGraph
           hostCpuData={this.state.hostCpuData}
-          cpusHost={this.state.cpusHost}
+          hostCpus={this.state.hostCpus}
         />
-        <MemoryHostGraph
+        <HostMemoryGraph
           hostMemoryData={this.state.hostMemoryData}
-          memoryMaxHost={this.state.memoryMaxHost}
+          hostMemoryMax={this.state.hostMemoryMax}
         />
-        <NetworkHostGraph
+        <HostNetworkGraph
           hostNetworkData={this.state.hostNetworkData}
-          networksRxHost={this.state.networksRxHost}
-          networksTransmissionHost={this.state.networksTransmissionHost}
-          networksReceptionHost={this.state.networksReceptionHost}
+          hostNetworksReception={this.state.hostNetworksReception}
+          hostNetworksTransmission={this.state.hostNetworksTransmission}
+          hostNetworksMax={this.state.hostNetworksMax}
         />
-        <LoadHostGraph
+        <HostLoadGraph
           hostLoadData={this.state.hostLoadData}
-          maxLoad={this.state.maxLoad}
+          hostLoadMax={this.state.hostLoadMax}
         />
       </div>
     )
   }
 }
 
-class CpuHostGraph extends Component<any, any> {
+class HostCpuGraph extends Component<any, any> {
   state = {
-    startIndexCpuHost: 0,
-    endIndexCpuHost: 0,
+    hostCpuStartIndex: 0,
+    hostCpuEndIndex: 0,
   }
 
   handleHostCpuZoomChange = (res: any) => {
-    this.setState({ startIndexCpuHost: res.startIndex })
-    this.setState({ endIndexCpuHost: res.endIndex })
+    this.setState({ hostCpuStartIndex: res.startIndex })
+    this.setState({ hostCpuEndIndex: res.endIndex })
   }
 
   render() {
@@ -229,8 +231,8 @@ class CpuHostGraph extends Component<any, any> {
             <Tooltip />
             <Brush
               onChange={this.handleHostCpuZoomChange}
-              startIndex={this.state.startIndexCpuHost}
-              endIndex={this.state.endIndexCpuHost}
+              startIndex={this.state.hostCpuStartIndex}
+              endIndex={this.state.hostCpuEndIndex}
             >
               <AreaChart
                 width={830}
@@ -238,7 +240,7 @@ class CpuHostGraph extends Component<any, any> {
                 data={this.props.hostCpuData}
                 margin={GRAPH_CONIF}
               >
-                {this.props.cpusHost.map((property: any, index: any) => (
+                {this.props.hostCpus.map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
@@ -252,7 +254,7 @@ class CpuHostGraph extends Component<any, any> {
               </AreaChart>
             </Brush>
             <Legend iconType='rect' iconSize={18} />
-            {this.props.cpusHost.map((property: any, index: any) => (
+            {this.props.hostCpus.map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
@@ -270,7 +272,7 @@ class CpuHostGraph extends Component<any, any> {
   }
 }
 
-class MemoryHostGraph extends Component<any, any> {
+class HostMemoryGraph extends Component<any, any> {
   state = {
     startIndexMemoryHost: 0,
     endIndexMemoryHost: 0,
@@ -301,7 +303,7 @@ class MemoryHostGraph extends Component<any, any> {
               tickFormatter={value =>
                 humanFormat(value, { scale: 'binary', unit: 'B' })
               }
-              domain={[0, this.props.memoryMaxHost]}
+              domain={[0, this.props.hostMemoryMax]}
             />
             <Tooltip />
             <Brush
@@ -337,7 +339,7 @@ class MemoryHostGraph extends Component<any, any> {
   }
 }
 
-class NetworkHostGraph extends Component<any, any> {
+class HostNetworkGraph extends Component<any, any> {
   state = {
     startIndexNetworkHost: 0,
     endIndexNetworkHost: 0,
@@ -369,7 +371,7 @@ class NetworkHostGraph extends Component<any, any> {
               tickFormatter={value =>
                 humanFormat(value, { scale: 'binary', unit: 'B' })
               }
-              domain={[0, Math.max(1024e3, this.props.networksReceptionHost)]}
+              domain={[0, Math.max(1024e3, this.props.hostNetworksMax)]}
             />
             <Tooltip />
             <Brush
@@ -384,15 +386,17 @@ class NetworkHostGraph extends Component<any, any> {
                 margin={GRAPH_CONIF}
               >
                 {[
-                  ...this.props.networksRxHost,
-                  ...this.props.networksTransmissionHost,
+                  ...this.props.hostNetworksReception,
+                  ...this.props.hostNetworksTransmission,
                 ].map((property: any, index: any) => (
                   <Area
                     connectNulls
                     isAnimationActive={false}
                     type='monotone'
                     dataKey={`pifs_${property}_(${
-                      index < this.props.networksRxHost.length ? 'rx' : 'tx'
+                      index < this.props.hostNetworksReception.length
+                        ? 'rx'
+                        : 'tx'
                     })`}
                     stroke={allColors[index]}
                     fill={allColors[index]}
@@ -403,15 +407,15 @@ class NetworkHostGraph extends Component<any, any> {
             </Brush>
             <Legend iconType='rect' iconSize={18} />
             {[
-              ...this.props.networksRxHost,
-              ...this.props.networksTransmissionHost,
+              ...this.props.hostNetworksReception,
+              ...this.props.hostNetworksTransmission,
             ].map((property: any, index: any) => (
               <Area
                 connectNulls
                 isAnimationActive={false}
                 type='monotone'
                 dataKey={`pifs_${property}_(${
-                  index < this.props.networksRxHost.length ? 'rx' : 'tx'
+                  index < this.props.hostNetworksReception.length ? 'rx' : 'tx'
                 })`}
                 stroke={allColors[index]}
                 fill={allColors[index]}
@@ -426,7 +430,7 @@ class NetworkHostGraph extends Component<any, any> {
 }
 const GRAPH_CONIF = { top: 5, right: 20, left: 90, bottom: 5 }
 
-class LoadHostGraph extends Component<any, any> {
+class HostLoadGraph extends Component<any, any> {
   state = {
     startIndexLoadHost: 0,
     endIndexLoadHost: 0,
@@ -454,7 +458,7 @@ class LoadHostGraph extends Component<any, any> {
             <XAxis dataKey='time' />
             <YAxis
               tick={{ fontSize: '11px' }}
-              domain={[0, Math.max(1, this.props.maxLoad)]}
+              domain={[0, Math.max(1, this.props.hostLoadMax)]}
             />
             <Tooltip />
             <Brush
