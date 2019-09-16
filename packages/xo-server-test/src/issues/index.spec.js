@@ -39,14 +39,13 @@ describe('issue', () => {
     await xo.createTempServer(config.servers.default)
 
     const oldName = 'Old XO Test name'
-    const network = await xo.createTempNetwork({ name: oldName })
-    expect(network.name_label).toBe(oldName)
+    const { id, name_label } = await xo.createTempNetwork({ name: oldName })
+    expect(name_label).toBe(oldName)
 
-    const id = network.uuid
     const newName = 'New XO Test name'
     await xo.call('network.set', { id, name_label: newName })
-    await xo.waitObjectState(id, ({ name_label: nameLabel }) => {
-      expect(nameLabel).toBe(newName)
+    await xo.waitObjectState(id, ({ name_label }) => {
+      expect(name_label).toBe(newName)
     })
   })
 })

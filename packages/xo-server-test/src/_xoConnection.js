@@ -129,13 +129,13 @@ class XoConnection extends Xo {
   }
 
   async createTempNetwork(params) {
-    const network = await this.call('network.create', {
+    const id = await this.call('network.create', {
       name: 'XO Test',
       pool: config.pools.default,
       ...params,
     })
-    this._tempResourceDisposers.push('network.delete', { id: network.uuid })
-    return network
+    this._tempResourceDisposers.push('network.delete', { id })
+    return this.getOrWaitObject(id)
   }
 
   async createTempRemote(params) {
