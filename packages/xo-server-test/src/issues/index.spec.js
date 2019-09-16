@@ -24,4 +24,14 @@ describe('issue', () => {
       expect(vm.cpuCap).toBe(undefined)
     })
   })
+
+  test('4523', async () => {
+    const id = await xo.call('network.create', {
+      name: 'XO Test',
+      pool: config.pools.default,
+    })
+    expect(typeof id).toBe('string')
+
+    await xo.call('network.delete', { id })
+  })
 })
