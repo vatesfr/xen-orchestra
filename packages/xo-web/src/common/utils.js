@@ -9,6 +9,7 @@ import {
   escapeRegExp,
   every,
   forEach,
+  forOwn,
   isArray,
   isEmpty,
   isFunction,
@@ -372,21 +373,18 @@ export const resolveResourceSets = resourceSets =>
 // newString === 'foo_COPY_foo_42_32%'
 // ```
 export function buildTemplate(pattern, rules) {
-  const rulesWithEscapes = { ...rules, '\\\\': '\\' }
-  const regExp = new RegExp(
-    [
-      ...Object.keys(rules).map(syntax => {
-        const syntaxWithBackslash = `\\${syntax}`
-        rulesWithEscapes[syntaxWithBackslash] = syntax
-        return `${escapeRegExp(syntax)}|${escapeRegExp(syntaxWithBackslash)}`
-      }),
-      escapeRegExp('\\\\'),
-    ].join('|'),
-    'g'
-  )
+  const rulesWithTheirEscape = { '\\\\': '\\' }
+  const escapedSyntaxes = [escapeRegExp('\\\\')]
+  forOwn(rules, (rule, syntax) => {
+    rulesWithTheirEscape[syntax] = rule
+    rulesWithTheirEscape[`\\${syntax}`] = syntax
+
+    escapedSyntaxes.push(escapeRegExp(syntax), escapeRegExp(`\\${syntax}`))
+  })
+  const regExp = new RegExp(escapedSyntaxes.join('|'), 'g')
   return (...params) =>
     replace(pattern, regExp, match => {
-      const rule = rulesWithEscapes[match]
+      const rule = rulesWithTheirEscape[match]
       return isFunction(rule) ? rule(...params) : rule
     })
 }
