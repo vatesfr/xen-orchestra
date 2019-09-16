@@ -17,7 +17,7 @@ Log in to your account and use the deploy form available on [this page](https://
 
 > **Note:** no data will be sent to our servers, it's running only between your browser and your host!
 
-![](./assets/deploy_form.png)
+[![](./assets/deploy_form.png)](https://xen-orchestra.com/#!/xoa)
 
 ### XOA credentials
 
