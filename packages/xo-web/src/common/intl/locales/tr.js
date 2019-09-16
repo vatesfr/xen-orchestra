@@ -988,7 +988,7 @@ export default {
   redirectToMatchingVms: "Eşleşen VM'leri görmek için tıklayın",
 
   // Original text: 'Migrate to backup NG'
-  migrateToBackup: undefined,
+  migrateToBackupNg: undefined,
 
   // Original text: "There are no matching VMs!"
   noMatchingVms: 'Hiç eşleşen VM yok',

@@ -12,14 +12,14 @@ import { createGetLoneSnapshots } from 'selectors'
 import { NavLink, NavTabs } from 'nav'
 import { subscribeSchedules } from 'xo'
 
-import Page from '../page'
-
 import Edit from './edit'
 import FileRestore from './file-restore'
 import Health from './health'
 import NewVmBackup, { NewMetadataBackup } from './new'
 import Overview from './overview'
 import Restore, { RestoreMetadata } from './restore'
+
+import Page from '../page'
 
 const HealthNavTab = decorate([
   addSubscriptions({

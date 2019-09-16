@@ -110,11 +110,9 @@ export default class XoApp extends Component {
   static contextTypes = {
     router: PropTypes.object,
   }
-
   static childContextTypes = {
     shortcuts: PropTypes.object.isRequired,
   }
-
   getChildContext = () => ({ shortcuts: shortcutManager })
 
   displayOpenSourceDisclaimer() {
