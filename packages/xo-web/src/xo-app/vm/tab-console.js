@@ -121,7 +121,9 @@ export default class TabConsole extends Component {
       ),
     })
     if (username !== (cookies.get(cookieKey) || 'root')) {
-      cookies.set(cookieKey, username)
+      // seems to be seconds
+      const expires = 31 * 3600 * 24
+      cookies.set(cookieKey, username, { expires })
     }
     this._openSsh(username)
   }
