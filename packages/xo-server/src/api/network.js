@@ -21,7 +21,7 @@ export async function create({
       mtu: +mtu,
       vlan: +vlan,
     })
-  )
+  ).id
 }
 
 create.params = {
