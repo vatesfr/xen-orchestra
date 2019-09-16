@@ -9,7 +9,6 @@ import { alert } from './modal'
 const AVAILABLE_TEMPLATE_VARS = {
   '{name}': 'templateNameInfo',
   '%': 'templateIndexInfo',
-  '\\\\': 'templateBackslash',
 }
 
 const showAvailableTemplateVars = () =>
