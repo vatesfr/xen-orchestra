@@ -7,7 +7,7 @@ import { Container, Col, Row } from 'grid'
 import { addSubscriptions } from 'utils'
 import { injectState, provideState } from 'reaclette'
 import { map, mapValues, orderBy } from 'lodash'
-import { subscribePlugins, subscribeAllResourceCatalog } from 'xo'
+import { subscribeResourceCatalog } from 'xo'
 
 import Resource from './resource'
 
@@ -29,8 +29,7 @@ const HEADER = (
 
 export default decorate([
   addSubscriptions({
-    catalog: subscribeAllResourceCatalog,
-    plugins: subscribePlugins,
+    catalog: subscribeResourceCatalog({ hub: true }),
   }),
   provideState({
     initialState: () => ({

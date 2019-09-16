@@ -26,13 +26,13 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, state, poolPredicate, multi }) => (
+  ({ effects, install, multi, state, poolPredicate }) => (
     <Container>
       <FormGrid.Row>
         <label>
           {_('vmImportToPool')}
           &nbsp;
-          {multi && (
+          {install && (
             <Tooltip content={_('hubHideInstalledPoolMsg')}>
               <Icon icon='info' />
             </Tooltip>

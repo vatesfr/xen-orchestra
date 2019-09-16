@@ -5,13 +5,12 @@ import Icon from 'icon'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
-import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { alert, form } from 'modal'
 import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
 import { error, success } from 'notification'
-import { find } from 'lodash'
+import { isEmpty, find, filter } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
 
@@ -54,9 +53,10 @@ export default decorate([
           const resourceParams = await form({
             render: props => (
               <ResourceForm
-                {...props}
+                install
                 multi
                 poolPredicate={installPoolPredicate}
+                {...props}
               />
             ),
             header: (
@@ -88,13 +88,17 @@ export default decorate([
         }
       },
       async create(__, { name }) {
-        const { isFromSources, createPoolPredicate, template } = this.state
+        const {
+          isFromSources,
+          createPoolPredicate,
+          installedTemplates,
+        } = this.state
         if (isFromSources) {
           subscribeAlert()
         } else {
           const resourceParams = await form({
             render: props => (
-              <ResourceForm {...props} poolPredicate={createPoolPredicate} />
+              <ResourceForm poolPredicate={createPoolPredicate} {...props} />
             ),
             header: (
               <span>
@@ -107,13 +111,35 @@ export default decorate([
             },
           })
           const { $pool } = resourceParams.pool
-          this.props.router.push(
-            `/vms/new?pool=${$pool}&template=${template.id}`
-          )
+          const { id } = find(installedTemplates, ['$pool', $pool])
+          this.props.router.push(`/vms/new?pool=${$pool}&template=${id}`)
         }
       },
-      async deleteTemplates() {
-        return deleteTemplates([this.state.template])
+      async deleteTemplates(__, { name }) {
+        const { createPoolPredicate } = this.state
+        const resourceParams = await form({
+          render: props => (
+            <ResourceForm
+              delete
+              multi
+              poolPredicate={createPoolPredicate}
+              {...props}
+            />
+          ),
+          header: (
+            <span>
+              <Icon icon='vm-delete' /> {name}
+            </span>
+          ),
+          size: 'medium',
+          handler: value => {
+            return value
+          },
+        })
+        const _templates = filter(this.state.installedTemplates, template =>
+          find(resourceParams.pools, ['$pool', template.$pool])
+        )
+        await deleteTemplates(_templates)
       },
       updateSelectedInstallPools(_, selectedInstallPools) {
         return {
@@ -132,31 +158,32 @@ export default decorate([
     computed: {
       isFromSources: () => +process.env.XOA_PLAN > 4,
       poolName: ({ pool }) => pool && pool.name_label,
-      template: (_, { id, templates }) => {
-        return find(templates, ['other.xva_id', id])
-      },
-      isTemplateInstalledOnAllPools: ({ template }, { pools }) => {
+      installedTemplates: (_, { id, templates }) =>
+        filter(templates, ['other.xva_id', id]),
+      isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) => {
         let _isTemplateInstalledOnAllPools = true
-        if (template === undefined) {
+        if (isEmpty(installedTemplates)) {
           _isTemplateInstalledOnAllPools = false
         }
         for (const $pool in pools) {
-          if (template && template.$pool !== $pool) {
+          if (find(installedTemplates, ['$pool', $pool]) === undefined) {
             _isTemplateInstalledOnAllPools = false
             break
           }
         }
         return _isTemplateInstalledOnAllPools
       },
-      installPoolPredicate: ({ template }) => {
-        if (template) {
-          return pool => template.$pool !== pool.$pool
+      installPoolPredicate: ({ installedTemplates }) => {
+        if (isEmpty(installedTemplates)) {
+          return () => true
         }
-        return () => true
+        return pool =>
+          find(installedTemplates, ['$pool', pool.$pool]) === undefined
       },
-      createPoolPredicate: ({ template }) => {
-        if (template) {
-          return pool => template.$pool === pool.$pool
+      createPoolPredicate: ({ installedTemplates }) => {
+        if (installedTemplates) {
+          return pool =>
+            find(installedTemplates, ['$pool', pool.$pool]) !== undefined
         }
         return () => true
       },
@@ -177,13 +204,17 @@ export default decorate([
     <Card shadow>
       <CardHeader>
         {name}
-        <span className='pull-right'>
-          <DropdownButton bsStyle='link' id='sort' title={''}>
-            <MenuItem onClick={effects.deleteTemplates}>
-              <Icon icon='delete' fixedWidth /> {_('delete')}
-            </MenuItem>
-          </DropdownButton>
-        </span>
+        <ActionButton
+          className='pull-right'
+          color='light'
+          data-name={name}
+          disabled={isEmpty(state.installedTemplates)}
+          handler={effects.deleteTemplates}
+          size='small'
+          style={{ border: 'none' }}
+        >
+          <Icon icon='delete' size='xs' />
+        </ActionButton>
         <br />
       </CardHeader>
       <CardBlock className='text-center'>
@@ -209,35 +240,26 @@ export default decorate([
         <hr />
         <Row>
           <Col mediumSize={6}>
-            {state.loading ? (
-              <div className='mb-3'>
-                <a href='/#/tasks' target='_blank'>
-                  {_('hubXvaProgressMessage')}
-                </a>
-                <progress className='progress' />
-              </div>
-            ) : (
-              <ActionButton
-                block
-                data-id={id}
-                data-name={name}
-                data-namespace={namespace}
-                data-version={version}
-                disabled={state.isTemplateInstalledOnAllPools}
-                form={state.idInstallForm}
-                handler={effects.install}
-                icon={'add'}
-                size='meduim'
-              >
-                {_('hubInstallXva')}
-              </ActionButton>
-            )}
+            <ActionButton
+              block
+              data-id={id}
+              data-name={name}
+              data-namespace={namespace}
+              data-version={version}
+              disabled={state.isTemplateInstalledOnAllPools}
+              form={state.idInstallForm}
+              handler={effects.install}
+              icon={'add'}
+              size='meduim'
+            >
+              {_('hubInstallXva')}
+            </ActionButton>
           </Col>
           <Col mediumSize={6}>
             <ActionButton
               block
               data-name={name}
-              disabled={state.template === undefined}
+              disabled={isEmpty(state.installedTemplates)}
               form={state.idCreateForm}
               handler={effects.create}
               icon={'deploy'}

@@ -20,15 +20,10 @@ class XoServerCloud {
   }
 
   async load() {
-    const getResourceCatalog = () => this._getCatalog()
+    const getResourceCatalog = ({ hub } = {}) => this._getCatalog({ hub })
     getResourceCatalog.description =
       "Get the list of user's available resources"
     getResourceCatalog.permission = 'admin'
-
-    const getAllResourceCatalog = () => this._getAllCatalog()
-    getAllResourceCatalog.description =
-      'Get the list of all available resources'
-    getAllResourceCatalog.permission = 'admin'
 
     const registerResource = ({ namespace }) =>
       this._registerResource(namespace)
@@ -42,19 +37,15 @@ class XoServerCloud {
 
     this._unsetApiMethods = this._xo.addApiMethods({
       cloud: {
-        getAllResourceCatalog,
         getResourceCatalog,
         registerResource,
       },
     })
-    this._unsetRequestResource = (() => {
-      this._xo.defineProperty('requestResource', this._requestResource, this)
-      this._xo.defineProperty(
-        'requestFreeResource',
-        this._requestFreeResource,
-        this
-      )
-    })()
+    this._unsetRequestResource = this._xo.defineProperty(
+      'requestResource',
+      this._requestResource,
+      this
+    )
 
     const updater = (this._updater = new Client(WS_URL))
     const connect = () =>
@@ -76,18 +67,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getCatalog() {
-    const catalog = await this._updater.call('getResourceCatalog')
-
-    if (!catalog) {
-      throw new Error('cannot get catalog')
-    }
-
-    return catalog
-  }
-
-  async _getAllCatalog() {
-    const catalog = await this._updater.call('getAllResourceCatalog')
+  async _getCatalog({ hub } = {}) {
+    const catalog = await this._updater.call('getResourceCatalog', { hub })
 
     if (!catalog) {
       throw new Error('cannot get catalog')
@@ -98,18 +79,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaces() {
-    const catalog = await this._getCatalog()
-
-    if (!catalog._namespaces) {
-      throw new Error('cannot get namespaces')
-    }
-
-    return catalog._namespaces
-  }
-
-  async _getAllNamespaces() {
-    const catalog = await this._getAllCatalog()
+  async _getNamespaces({ hub } = {}) {
+    const catalog = await this._getCatalog({ hub })
 
     if (!catalog._namespaces) {
       throw new Error('cannot get namespaces')
@@ -136,8 +107,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaceCatalog(namespace) {
-    const namespaceCatalog = (await this._getCatalog())[namespace]
+  async _getNamespaceCatalog(namespace, hub) {
+    const namespaceCatalog = (await this._getCatalog({ hub }))[namespace]
 
     if (!namespaceCatalog) {
       throw new Error(`cannot get catalog: ${namespace} not registered`)
@@ -148,14 +119,13 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _requestResource(namespace, id, version) {
-    const _namespace = (await this._getNamespaces())[namespace]
+  async _requestResource(namespace, id, version, hub) {
+    const _namespace = (await this._getNamespaces({ hub }))[namespace]
 
-    if (!_namespace || !_namespace.registered) {
+    if (!hub && (!_namespace || !_namespace.registered)) {
       throw new Error(`cannot get resource: ${namespace} not registered`)
     }
-
-    const { _token: token } = await this._getNamespaceCatalog(namespace)
+    const { _token: token } = await this._getNamespaceCatalog(namespace, hub)
 
     // 2018-03-20 Extra check: getResourceDownloadToken seems to be called without a token in some cases
     if (token === undefined) {
@@ -166,6 +136,8 @@ class XoServerCloud {
       token,
       id,
       version,
+      namespace,
+      hub,
     })
 
     if (!downloadToken) {
@@ -173,38 +145,6 @@ class XoServerCloud {
     }
 
     const response = await hrp(HTTP_URL, {
-      headers: {
-        Authorization: `Bearer ${downloadToken}`,
-      },
-    })
-
-    // currently needed for XenApi#putResource()
-    response.length = response.headers['content-length']
-
-    return response
-  }
-
-  async _requestFreeResource(namespace, id, version) {
-    const _namespace = (await this._getAllNamespaces())[namespace]
-
-    if (_namespace === undefined) {
-      throw new Error(`cannot get resource: ${namespace}`)
-    }
-
-    const downloadToken = await this._updater.call(
-      'getFreeResourceDownloadToken',
-      {
-        namespace,
-        id,
-        version,
-      }
-    )
-
-    if (downloadToken === undefined) {
-      throw new Error('cannot get download token')
-    }
-
-    const response = await hrp(`${HTTP_URL}?mode=free`, {
       headers: {
         Authorization: `Bearer ${downloadToken}`,
       },

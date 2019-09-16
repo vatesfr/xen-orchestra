@@ -8,7 +8,7 @@ export async function downloadAndInstallResource({
     throw new Error('requestResource is not a function')
   }
   const xapi = this.getXapi(sr.$poolId)
-  const stream = await this.requestFreeResource(namespace, id, version)
+  const stream = await this.requestResource(namespace, id, version, true)
   const vm = await xapi.importVm(stream, {
     data: undefined,
     srId: sr.id,

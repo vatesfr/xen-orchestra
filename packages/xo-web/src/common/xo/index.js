@@ -345,13 +345,8 @@ export const subscribeRoles = createSubscription(
 
 export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
-export const subscribeResourceCatalog = createSubscription(() =>
-  _call('cloud.getResourceCatalog')
-)
-
-export const subscribeAllResourceCatalog = createSubscription(() =>
-  _call('cloud.getAllResourceCatalog')
-)
+export const subscribeResourceCatalog = ({ hub }) =>
+  createSubscription(() => _call('cloud.getResourceCatalog', { hub }))
 
 const getNotificationCookie = () => {
   const notificationCookie = cookies.get(
@@ -2901,7 +2896,8 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 // XOSAN packs -----------------------------------------------------------------
 
-export const getResourceCatalog = () => _call('cloud.getResourceCatalog')
+export const getResourceCatalog = ({ hub } = {}) =>
+  _call('cloud.getResourceCatalog', { hub: Boolean(hub) })
 
 export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
