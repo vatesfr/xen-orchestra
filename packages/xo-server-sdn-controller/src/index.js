@@ -106,9 +106,8 @@ function updateNetworkOtherConfig(network) {
 // -----------------------------------------------------------------------------
 
 function createPassword() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'.split(
-    ''
-  )
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
   return Array.from({ length: 16 }, _ => sample(chars)).join('')
 }
 
@@ -217,7 +216,7 @@ class SDNController extends EventEmitter {
       networkDescription: { type: 'string' },
       encapsulation: { type: 'string' },
       pifId: { type: 'string' },
-      encrypted: { type: 'boolean', default: false },
+      encrypted: { type: 'boolean', optional: true },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
@@ -246,7 +245,7 @@ class SDNController extends EventEmitter {
           type: 'string',
         },
       },
-      encrypted: { type: 'boolean', default: false },
+      encrypted: { type: 'boolean', optional: true },
     }
 
     this._unsetApiMethods = this._xo.addApiMethods({
@@ -406,7 +405,7 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPif,
     vni,
-    encrypted,
+    encrypted = false,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
@@ -423,7 +422,7 @@ class SDNController extends EventEmitter {
         // See: https://citrix.github.io/xenserver-sdk/#network
         automatic: 'false',
         'xo:sdn-controller:encapsulation': encapsulation,
-        'xo:sdn-controller:encrypted': encrypted ? 'true' : 'false',
+        'xo:sdn-controller:encrypted': encrypted ? 'true' : undefined,
         'xo:sdn-controller:pif-device': pif.device,
         'xo:sdn-controller:private-pool-wide': 'true',
         'xo:sdn-controller:vni': String(vni),
@@ -467,7 +466,7 @@ class SDNController extends EventEmitter {
     networkDescription,
     encapsulation,
     xoPifIds,
-    encrypted,
+    encrypted = false,
   }) {
     const uuid = uuidv4()
     const crossPoolNetwork = {
