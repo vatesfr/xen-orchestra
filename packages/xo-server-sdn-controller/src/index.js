@@ -109,7 +109,7 @@ function createPassword() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'.split(
     ''
   )
-  return Array.from({ length: 16 }, _ => sample(chars))
+  return Array.from({ length: 16 }, _ => sample(chars)).join('')
 }
 
 // =============================================================================
