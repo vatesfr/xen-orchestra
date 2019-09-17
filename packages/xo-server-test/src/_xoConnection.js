@@ -116,6 +116,16 @@ class XoConnection extends Xo {
     return job
   }
 
+  async createTempNetwork(params) {
+    const id = await this.call('network.create', {
+      name: 'XO Test',
+      pool: config.pools.default,
+      ...params,
+    })
+    this._tempResourceDisposers.push('network.delete', { id })
+    return this.getOrWaitObject(id)
+  }
+
   async createTempVm(params) {
     const id = await this.call('vm.create', {
       name_label: 'XO Test',
@@ -126,16 +136,6 @@ class XoConnection extends Xo {
     return this.waitObjectState(id, vm => {
       if (vm.type !== 'VM') throw new Error('retry')
     })
-  }
-
-  async createTempNetwork(params) {
-    const id = await this.call('network.create', {
-      name: 'XO Test',
-      pool: config.pools.default,
-      ...params,
-    })
-    this._tempResourceDisposers.push('network.delete', { id })
-    return this.getOrWaitObject(id)
   }
 
   async createTempRemote(params) {
