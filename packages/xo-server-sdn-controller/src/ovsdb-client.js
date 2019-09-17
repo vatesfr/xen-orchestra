@@ -18,6 +18,7 @@ export class OvsdbClient {
   See:
   - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
   - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
+  - OVS IPSEC     : http://docs.openvswitch.org/en/latest/howto/ipsec/
 
   Attributes on created OVS ports (corresponds to a XAPI `PIF` or `VIF`):
   - `other_config`:
@@ -65,6 +66,7 @@ export class OvsdbClient {
     remoteAddress,
     encapsulation,
     key,
+    password,
     remoteNetwork
   ) {
     if (
@@ -111,6 +113,10 @@ export class OvsdbClient {
 
     // Add interface and port to the bridge
     const options = ['map', [['remote_ip', remoteAddress], ['key', key]]]
+    if (password !== undefined) {
+      options[1].push(['psk', password])
+    }
+
     const otherConfig =
       remoteNetwork !== undefined
         ? ['map', [['xo:sdn-controller:cross-pool', remoteNetwork]]]

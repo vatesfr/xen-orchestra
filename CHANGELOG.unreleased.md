@@ -9,6 +9,7 @@
 
 - [VM/disks] Don't hide disks that are attached to the same VM twice [#4400](https://github.com/vatesfr/xen-orchestra/issues/4400) (PR [#4414](https://github.com/vatesfr/xen-orchestra/pull/4414))
 - [VM/console] Add a button to connect to the VM via the local SSH client (PR [#4415](https://github.com/vatesfr/xen-orchestra/pull/4415))
+- [SDN Controller] Add possibility to encrypt private networks (PR [#4441](https://github.com/vatesfr/xen-orchestra/pull/4441))
 
 ### Bug fixes
 
@@ -28,5 +29,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-sdn-controller v0.3.0
 - xo-server v5.50.0
 - xo-web v5.50.0

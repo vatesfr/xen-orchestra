@@ -1755,6 +1755,9 @@ const messages = {
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
   newNetworkEncapsulation: 'Encapsulation',
+  newNetworkEncrypted: 'Encrypted',
+  encryptionWarning:
+    'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
   newNetworkSdnControllerTip:
     'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
   deleteNetwork: 'Delete network',
