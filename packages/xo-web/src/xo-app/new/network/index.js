@@ -229,7 +229,7 @@ const NewNetwork = decorate([
               networkDescription: description,
               encapsulation: encapsulation,
               pifId: pif.id,
-              encrypted: encrypted,
+              encrypted,
             })
         : createNetwork({
             description,
