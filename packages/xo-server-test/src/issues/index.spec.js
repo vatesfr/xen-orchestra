@@ -25,16 +25,6 @@ describe('issue', () => {
     })
   })
 
-  test('4523', async () => {
-    const id = await xo.call('network.create', {
-      name: 'XO Test',
-      pool: config.pools.default,
-    })
-    expect(typeof id).toBe('string')
-
-    await xo.call('network.delete', { id })
-  })
-
   test('4514', async () => {
     await xo.createTempServer(config.servers.default)
 
@@ -47,5 +37,15 @@ describe('issue', () => {
     await xo.waitObjectState(id, ({ name_label }) => {
       expect(name_label).toBe(newName)
     })
+  })
+
+  test('4523', async () => {
+    const id = await xo.call('network.create', {
+      name: 'XO Test',
+      pool: config.pools.default,
+    })
+    expect(typeof id).toBe('string')
+
+    await xo.call('network.delete', { id })
   })
 })

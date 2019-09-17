@@ -111,9 +111,6 @@ export async function set({
 }
 
 set.params = {
-  id: {
-    type: 'string',
-  },
   automatic: {
     type: 'boolean',
     optional: true,
@@ -121,6 +118,9 @@ set.params = {
   defaultIsLocked: {
     type: 'boolean',
     optional: true,
+  },
+  id: {
+    type: 'string',
   },
   name_description: {
     type: 'string',
