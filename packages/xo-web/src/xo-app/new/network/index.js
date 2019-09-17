@@ -129,10 +129,7 @@ const NewNetwork = decorate([
         }
       },
       toggleEncrypted() {
-        const { encrypted } = this.state
-        return {
-          encrypted: !encrypted,
-        }
+        return { encrypted: !this.state.encrypted }
       },
     },
     computed: {

@@ -4,7 +4,7 @@ import NodeOpenssl from 'node-openssl-cert'
 import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, forOwn, map, omitBy } from 'lodash'
+import { filter, find, forOwn, map, omitBy, sample } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -106,12 +106,10 @@ function updateNetworkOtherConfig(network) {
 // -----------------------------------------------------------------------------
 
 function createPassword() {
-  const chars = [
-    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!',
-  ]
-
-  return [...Array(16)].map(i => chars[(Math.random() * chars.length) | 0])
-    .join``
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'.split(
+    ''
+  )
+  return Array.from({ length: 16 }, _ => sample(chars))
 }
 
 // =============================================================================
@@ -219,7 +217,7 @@ class SDNController extends EventEmitter {
       networkDescription: { type: 'string' },
       encapsulation: { type: 'string' },
       pifId: { type: 'string' },
-      encrypted: { type: 'boolean' },
+      encrypted: { type: 'boolean', default: false },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
@@ -248,7 +246,7 @@ class SDNController extends EventEmitter {
           type: 'string',
         },
       },
-      encrypted: { type: 'boolean' },
+      encrypted: { type: 'boolean', default: false },
     }
 
     this._unsetApiMethods = this._xo.addApiMethods({
