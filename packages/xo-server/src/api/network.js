@@ -119,6 +119,9 @@ set.params = {
     type: 'boolean',
     optional: true,
   },
+  id: {
+    type: 'string',
+  },
   name_description: {
     type: 'string',
     optional: true,
