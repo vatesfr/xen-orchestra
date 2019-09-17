@@ -93,7 +93,7 @@ export async function fetchFiles({ format = 'zip', ...params }) {
     handleFetchFiles,
     { ...params, format },
     {
-      suffix: encodeURI(`/${fileName}`),
+      suffix: '/' + encodeURIComponent(fileName),
     }
   ).then(url => ({ $getFrom: url }))
 }

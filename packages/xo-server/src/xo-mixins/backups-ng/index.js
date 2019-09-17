@@ -1146,6 +1146,21 @@ export default class BackupNg {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
+      let compress = getJobCompression(job)
+      const pool = snapshot.$pool
+      if (
+        compress === 'zstd' &&
+        pool.restrictions.restrict_zstd_export !== 'false'
+      ) {
+        compress = false
+        logger.warning(
+          `Zstd is not supported on the pool ${pool.name_label}, the VM will be exported without compression`,
+          {
+            event: 'task.warning',
+            taskId,
+          }
+        )
+      }
       let xva: any = await wrapTask(
         {
           logger,
@@ -1153,7 +1168,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: getJobCompression(job),
+          compress,
         })
       )
       const exportTask = xva.task

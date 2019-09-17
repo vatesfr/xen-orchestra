@@ -1189,7 +1189,7 @@ async function export_({ vm, compress }) {
 
   return {
     $getFrom: await this.registerHttpRequest(handleExport, data, {
-      suffix: encodeURI(`/${vm.name_label}.xva`),
+      suffix: '/' + encodeURIComponent(`${vm.name_label}.xva`),
     }),
   }
 }

@@ -3,6 +3,9 @@
   email = ''
   password = ''
 
+[pools]
+  default = ''
+
 [servers]
   [servers.default]
     username = ''

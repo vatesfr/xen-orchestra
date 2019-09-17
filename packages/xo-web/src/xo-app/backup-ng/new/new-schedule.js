@@ -1,5 +1,7 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
+import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { Card, CardBlock } from 'card'
@@ -9,7 +11,7 @@ import { Number } from 'form'
 
 import { FormGroup, Input } from './../utils'
 
-export default decorate([
+const New = decorate([
   provideState({
     computed: {
       formId: generateId,
@@ -54,9 +56,14 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, state, modes, value: schedule }) => (
+  ({ effects, missingRetentions, modes, state, value: schedule }) => (
     <Card>
       <CardBlock>
+        {missingRetentions && (
+          <div className='text-danger text-md-center'>
+            <Icon icon='alarm' /> {_('retentionNeeded')}
+          </div>
+        )}
         <FormGroup>
           <label htmlFor={state.idInputName}>
             <strong>{_('formName')}</strong>
@@ -119,3 +126,12 @@ export default decorate([
     </Card>
   ),
 ])
+
+New.propTypes = {
+  missingRetentions: PropTypes.bool,
+  modes: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.object.isRequired,
+}
+
+export { New as default }

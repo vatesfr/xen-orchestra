@@ -199,7 +199,18 @@ function main(args) {
     return exports[fnName](args.slice(1))
   }
 
-  return exports.call(args)
+  return exports.call(args).catch(error => {
+    if (!(error != null && error.code === 10 && 'errors' in error.data)) {
+      throw error
+    }
+
+    const lines = [error.message]
+    const { errors } = error.data
+    errors.forEach(error => {
+      lines.push(`  property ${error.property}: ${error.message}`)
+    })
+    throw lines.join('\n')
+  })
 }
 exports = module.exports = main
 

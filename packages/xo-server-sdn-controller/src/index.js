@@ -4,7 +4,7 @@ import NodeOpenssl from 'node-openssl-cert'
 import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, forEach, forOwn, map, omitBy } from 'lodash'
+import { filter, find, forOwn, map, omitBy } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -60,7 +60,7 @@ async function fileExists(path) {
   try {
     await fromCallback(access, path, constants.F_OK)
   } catch (error) {
-    if (error.code === 'ENOENT') {
+    if (error?.code === 'ENOENT') {
       return false
     }
 
@@ -522,7 +522,7 @@ class SDNController extends EventEmitter {
   }
 
   _objectsAdded(objects) {
-    forEach(objects, object => {
+    forOwn(objects, object => {
       const { $type } = object
 
       if ($type === 'host') {
@@ -540,26 +540,28 @@ class SDNController extends EventEmitter {
   }
 
   _objectsUpdated(objects) {
-    return Promise.all(
-      map(objects, object => {
+    forOwn(objects, async object => {
+      try {
         const { $type } = object
-
         if ($type === 'PIF') {
-          return this._pifUpdated(object)
+          await this._pifUpdated(object)
+        } else if ($type === 'host') {
+          await this._hostUpdated(object)
+        } else if ($type === 'host_metrics') {
+          await this._hostMetricsUpdated(object)
         }
-        if ($type === 'host') {
-          return this._hostUpdated(object)
-        }
-        if ($type === 'host_metrics') {
-          return this._hostMetricsUpdated(object)
-        }
-      })
-    )
+      } catch (error) {
+        log.error('Error in _objectsUpdated', {
+          error,
+          object,
+        })
+      }
+    })
   }
 
   _objectsRemoved(xapi, objects) {
-    return Promise.all(
-      map(objects, async (object, id) => {
+    forOwn(objects, async (object, id) => {
+      try {
         this._ovsdbClients = this._ovsdbClients.filter(
           client => client.host.$id !== id
         )
@@ -601,8 +603,13 @@ class SDNController extends EventEmitter {
             crossPoolNetwork => crossPoolNetwork.networks.length === 0
           )
         }
-      })
-    )
+      } catch (error) {
+        log.error('Error in _objectsRemoved', {
+          error,
+          object,
+        })
+      }
+    })
   }
 
   async _pifUpdated(pif) {
@@ -736,10 +743,10 @@ class SDNController extends EventEmitter {
           const network = host.$xapi.getObjectByRef(poolNetwork.network)
           const pifDevice =
             network.other_config['xo:sdn-controller:pif-device'] ?? 'eth0'
-          this._createTunnel(host, network, pifDevice)
+          await this._createTunnel(host, network, pifDevice)
         }
 
-        this._addHostToPoolNetworks(host)
+        await this._addHostToPoolNetworks(host)
       }
     }
   }
