@@ -32,6 +32,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/template v0.0.0
 - @xen-orchestra/cron v1.0.4
 - xo-server-sdn-controller v0.3.0
 - xo-server v5.50.0
