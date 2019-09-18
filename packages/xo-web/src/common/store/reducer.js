@@ -92,6 +92,15 @@ export default {
       homeVmIdsSelection,
   }),
 
+  // This state is used temporarily to keep loading state in hub
+  hubInstallLoadingState: combineActionHandlers(
+    {},
+    {
+      [actions.setHubInstallLoadingState]: (_, hubInstallLoadingState) =>
+        hubInstallLoadingState,
+    }
+  ),
+
   objects: combineActionHandlers(
     {
       all: {}, // Mutable for performance!

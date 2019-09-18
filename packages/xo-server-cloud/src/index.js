@@ -20,7 +20,8 @@ class XoServerCloud {
   }
 
   async load() {
-    const getResourceCatalog = ({ hub } = {}) => this._getCatalog({ hub })
+    const getResourceCatalog = ({ filters } = {}) =>
+      this._getCatalog({ filters })
     getResourceCatalog.description =
       "Get the list of user's available resources"
     getResourceCatalog.permission = 'admin'
@@ -67,8 +68,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getCatalog({ hub } = {}) {
-    const catalog = await this._updater.call('getResourceCatalog', { hub })
+  async _getCatalog({ filters } = {}) {
+    const catalog = await this._updater.call('getResourceCatalog', { filters })
 
     if (!catalog) {
       throw new Error('cannot get catalog')
@@ -79,8 +80,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaces({ hub } = {}) {
-    const catalog = await this._getCatalog({ hub })
+  async _getNamespaces() {
+    const catalog = await this._getCatalog()
 
     if (!catalog._namespaces) {
       throw new Error('cannot get namespaces')
@@ -108,7 +109,9 @@ class XoServerCloud {
   // ----------------------------------------------------------------
 
   async _getNamespaceCatalog(namespace, hub) {
-    const namespaceCatalog = (await this._getCatalog({ hub }))[namespace]
+    const namespaceCatalog = (await this._getCatalog({ filters: { hub } }))[
+      namespace
+    ]
 
     if (!namespaceCatalog) {
       throw new Error(`cannot get catalog: ${namespace} not registered`)
@@ -120,12 +123,12 @@ class XoServerCloud {
   // ----------------------------------------------------------------
 
   async _requestResource(namespace, id, version, hub) {
-    const _namespace = (await this._getNamespaces({ hub }))[namespace]
+    const _namespace = (await this._getNamespaces())[namespace]
+    const { _token: token } = await this._getNamespaceCatalog(namespace, hub)
 
     if (!hub && (!_namespace || !_namespace.registered)) {
       throw new Error(`cannot get resource: ${namespace} not registered`)
     }
-    const { _token: token } = await this._getNamespaceCatalog(namespace, hub)
 
     // 2018-03-20 Extra check: getResourceDownloadToken seems to be called without a token in some cases
     if (token === undefined) {
@@ -136,8 +139,6 @@ class XoServerCloud {
       token,
       id,
       version,
-      namespace,
-      hub,
     })
 
     if (!downloadToken) {

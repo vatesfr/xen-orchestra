@@ -6,7 +6,7 @@ import React from 'react'
 import { Container, Col, Row } from 'grid'
 import { addSubscriptions } from 'utils'
 import { injectState, provideState } from 'reaclette'
-import { map, mapValues, orderBy } from 'lodash'
+import { isEmpty, map, mapValues, orderBy } from 'lodash'
 import { subscribeResourceCatalog } from 'xo'
 
 import Resource from './resource'
@@ -29,7 +29,7 @@ const HEADER = (
 
 export default decorate([
   addSubscriptions({
-    catalog: subscribeResourceCatalog({ hub: true }),
+    catalog: subscribeResourceCatalog({ filters: { hub: true } }),
   }),
   provideState({
     initialState: () => ({
@@ -52,18 +52,24 @@ export default decorate([
   }),
   injectState,
   ({ state: { resources } }) => (
-    <Page
-      header={HEADER}
-      title='hubPage'
-      formatTitle
-      className='background-page'
-    >
+    <Page header={HEADER} title='hubPage' formatTitle>
       <Row>
-        {map(resources, (info, namespace) => (
-          <Col key={namespace} mediumSize={3}>
-            <Resource className='card-style' namespace={namespace} {...info} />
-          </Col>
-        ))}
+        {isEmpty(resources) ? (
+          <h2 className='text-muted'>
+            &nbsp; {_('hubVmNoAvailableMsg')}
+            <Icon icon='alarm' color='yellow' />
+          </h2>
+        ) : (
+          map(resources, (info, namespace) => (
+            <Col key={namespace} mediumSize={3}>
+              <Resource
+                className='card-style'
+                namespace={namespace}
+                {...info}
+              />
+            </Col>
+          ))
+        )}
       </Row>
     </Page>
   ),

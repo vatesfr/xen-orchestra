@@ -36,6 +36,7 @@ export default decorate([
     return {
       templates: getTemplates,
       pools: getPools,
+      hubInstallLoadingState: state => state.hubInstallLoadingState,
     }
   }),
   provideState({
@@ -46,7 +47,12 @@ export default decorate([
     effects: {
       initialize: () => {},
       async install(__, { name, namespace, id, version }) {
-        const { isFromSources, installPoolPredicate } = this.state
+        const { setHubInstallLoadingState } = this.props
+        const {
+          isFromSources,
+          hubInstallLoadingState,
+          installPoolPredicate,
+        } = this.state
         if (isFromSources) {
           subscribeAlert()
         } else {
@@ -70,7 +76,10 @@ export default decorate([
             },
           })
 
-          this.state.loading = true
+          setHubInstallLoadingState({
+            ...hubInstallLoadingState,
+            [id]: true,
+          })
           for (const pool of resourceParams.pools) {
             try {
               await downloadAndInstallResource({
@@ -79,12 +88,15 @@ export default decorate([
                 version,
                 sr: pool.default_SR,
               })
-              success('XVA import', 'XVA installed successfuly')
+              success('XVA import', _('hubSuccessfulInstallMsg'))
             } catch (_error) {
               error('Error', _error.message)
             }
           }
-          this.state.loading = false
+          setHubInstallLoadingState({
+            ...hubInstallLoadingState,
+            [id]: false,
+          })
         }
       },
       async create(__, { name }) {
@@ -160,6 +172,8 @@ export default decorate([
       poolName: ({ pool }) => pool && pool.name_label,
       installedTemplates: (_, { id, templates }) =>
         filter(templates, ['other.xva_id', id]),
+      installLoadingState: (_, { hubInstallLoadingState, id }) =>
+        hubInstallLoadingState[id],
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) => {
         let _isTemplateInstalledOnAllPools = true
         if (isEmpty(installedTemplates)) {
@@ -251,6 +265,7 @@ export default decorate([
               handler={effects.install}
               icon={'add'}
               size='meduim'
+              pending={state.installLoadingState}
             >
               {_('hubInstallXva')}
             </ActionButton>
