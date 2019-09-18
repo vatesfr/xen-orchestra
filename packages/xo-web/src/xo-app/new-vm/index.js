@@ -307,7 +307,7 @@ export default class NewVm extends BaseComponent {
   // Utils -----------------------------------------------------------------------
 
   get _isDiskTemplate() {
-    const { template } = this.state.state
+    const { template } = this.props
     return (
       template &&
       template.template_info.disks.length === 0 &&
@@ -356,13 +356,8 @@ export default class NewVm extends BaseComponent {
   }
 
   _selfCreate = () => {
-    const {
-      CPUs,
-      VDIs,
-      existingDisks,
-      memoryDynamicMax,
-      template,
-    } = this.state.state
+    const { CPUs, VDIs, existingDisks, memoryDynamicMax } = this.state.state
+    const { template } = this.props
     const disksSize = sumBy(VDIs, 'size') + sumBy(existingDisks, 'size')
     const templateDisksSize = sumBy(template.template_info.disks, 'size')
     const templateMemoryDynamicMax = template.memory.dynamic[1]
@@ -477,6 +472,7 @@ export default class NewVm extends BaseComponent {
     })
 
     const resourceSet = this._getResourceSet()
+    const { template } = this.props
 
     const data = {
       affinityHost: state.affinityHost && state.affinityHost.id,
@@ -484,7 +480,7 @@ export default class NewVm extends BaseComponent {
       existingDisks: state.existingDisks,
       installation,
       name_label: state.name_label,
-      template: state.template.id,
+      template: template.id,
       VDIs: state.VDIs,
       VIFs: _VIFs,
       resourceSet: resourceSet && resourceSet.id,
@@ -521,7 +517,12 @@ export default class NewVm extends BaseComponent {
       return this._reset()
     }
 
-    this._setState({ template })
+    const { pathname } = this.props.location
+
+    this.context.router.push({
+      pathname,
+      query: template && { pool: template.$pool, template: template.id },
+    })
 
     const storeState = store.getState()
     const isInResourceSet = this._getIsInResourceSet()
@@ -575,7 +576,6 @@ export default class NewVm extends BaseComponent {
     this._setState({
       // infos
       name_label,
-      template,
       name_description,
       nameLabels: map(Array(+state.nbVms), (_, index) =>
         replacer({ name_label, name_description, template }, index + 1)
@@ -640,7 +640,7 @@ export default class NewVm extends BaseComponent {
   _getSrPredicate = createSelector(
     this._getIsInPool,
     this._getIsInResourceSet,
-    () => this.state.state.template,
+    () => this.props.template,
     () => this.props.pool === undefined,
     (isInPool, isInResourceSet, template, self) => disk =>
       (self ? isInResourceSet(disk.id) : isInPool(disk)) &&
@@ -658,7 +658,7 @@ export default class NewVm extends BaseComponent {
     this._getIsInPool,
     this._getIsInResourceSet,
     () => this.props.pool === undefined,
-    () => this.state.state.template,
+    () => this.props.template,
     (isInPool, isInResourceSet, self, template) => network =>
       (self ? isInResourceSet(network.id) : isInPool(network)) &&
       template !== undefined &&
@@ -757,12 +757,12 @@ export default class NewVm extends BaseComponent {
   )
 
   _isCoreOs = createSelector(
-    () => this.state.template,
+    () => this.props.template,
     template => template && template.name_label === 'CoreOS'
   )
 
   _isHvm = createSelector(
-    () => this.state.template,
+    () => this.props.template,
     template => template && template.virtualizationMode === 'hvm'
   )
 
@@ -850,6 +850,7 @@ export default class NewVm extends BaseComponent {
   }
   _addVdi = () => {
     const { state } = this.state
+    const { template } = this.props
 
     this._setState({
       VDIs: [
@@ -860,7 +861,7 @@ export default class NewVm extends BaseComponent {
             (state.name_label || 'disk') +
             '_' +
             generateReadableRandomString(5),
-          SR: this._getDefaultSr(state.template),
+          SR: this._getDefaultSr(template),
           type: 'system',
         },
       ],
@@ -874,12 +875,13 @@ export default class NewVm extends BaseComponent {
     })
   }
   _addInterface = () => {
+    const { template } = this.props
     const { state } = this.state
 
     this._setState({
       VIFs: [
         ...state.VIFs,
-        { network: this._getDefaultNetworkIds(state.template)[0] },
+        { network: this._getDefaultNetworkIds(template)[0] },
       ],
     })
   }
@@ -1006,7 +1008,12 @@ export default class NewVm extends BaseComponent {
   // INFO ------------------------------------------------------------------------
 
   _renderInfo = () => {
-    const { name_description, name_label, template } = this.state.state
+    const { name_description, name_label } = this.state.state
+    const { template } = this.props
+    // initialize template only when previous values are empty
+    if (template && name_description === '' && name_label === '') {
+      this._initTemplate(template)
+    }
     return (
       <Section
         icon='new-vm-infos'
@@ -1021,7 +1028,7 @@ export default class NewVm extends BaseComponent {
                   onChange={this._initTemplate}
                   placeholder={_('newVmSelectTemplate')}
                   predicate={this._getVmPredicate()}
-                  value={defined(template, this.props.template)}
+                  value={template}
                 />
               ) : (
                 <SelectResourceSetsVmTemplate
@@ -1052,17 +1059,14 @@ export default class NewVm extends BaseComponent {
     )
   }
   _isInfoDone = () => {
-    const { template, name_label } = this.state.state
+    const { name_label } = this.state.state
+    const { template } = this.props
     return name_label && template
   }
 
   _renderPerformances = () => {
-    const {
-      coresPerSocket,
-      CPUs,
-      memoryDynamicMax,
-      template,
-    } = this.state.state
+    const { coresPerSocket, CPUs, memoryDynamicMax } = this.state.state
+    const { template } = this.props
     const memoryThreshold = get(() => template.memory.static[0])
 
     return (
@@ -1140,7 +1144,8 @@ export default class NewVm extends BaseComponent {
   }
 
   _renderInstallSettings = () => {
-    const { template, coreOsDefaultTemplateError } = this.state.state
+    const { coreOsDefaultTemplateError } = this.state.state
+    const { template } = this.props
     if (!template) {
       return
     }
@@ -1384,8 +1389,8 @@ export default class NewVm extends BaseComponent {
       installMethod,
       installNetwork,
       sshKeys,
-      template,
     } = this.state.state
+    const { template } = this.props
     switch (installMethod) {
       case 'customConfig':
         return (

@@ -8,7 +8,6 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM/disks] Don't hide disks that are attached to the same VM twice [#4400](https://github.com/vatesfr/xen-orchestra/issues/4400) (PR [#4414](https://github.com/vatesfr/xen-orchestra/pull/4414))
-- [New VM] create new VM with predefined template ID in URL [#4494](https://github.com/vatesfr/xen-orchestra/issues/4494) (PR [#4500](https://github.com/vatesfr/xen-orchestra/pull/4500))
 
 ### Bug fixes
 
