@@ -1,7 +1,7 @@
 /* eslint-env jest */
 import buildTemplate from '.'
 
-it('builds a template', () => {
+it("correctly replaces the template's variables", () => {
   const replacer = buildTemplate(
     '{property}_\\{property}_\\\\{property}_{constant}_%_FOO',
     {
