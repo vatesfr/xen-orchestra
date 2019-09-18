@@ -20,9 +20,9 @@ const showAvailableTemplateVars = () =>
           <li key={key}>{_.keyValue(key, _(value))}</li>
         ))}
       </ul>
-      <span className='text-info'>
+      <div className='text-info'>
         <Icon icon='info' /> {_('templateEscape')}
-      </span>
+      </div>
     </div>
   )
 
