@@ -1,4 +1,3 @@
-import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'julien-f-unzip'
@@ -337,7 +336,7 @@ export default {
 
   // INSTALL -------------------------------------------------------------------
 
-  _xcpUpdate(hosts) {
+  async _xcpUpdate(hosts) {
     if (hosts === undefined) {
       hosts = filter(this.objects.all, { $type: 'host' })
     } else {
@@ -347,7 +346,8 @@ export default {
       )
     }
 
-    return asyncMap(hosts, async host => {
+    hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
+    for (const host of hosts) {
       const update = await this.call(
         'host.call_plugin',
         host.$ref,
@@ -364,7 +364,7 @@ export default {
           String(Date.now() / 1000)
         )
       }
-    })
+    }
   },
 
   // Legacy XS patches: upload a patch on a pool before installing it
