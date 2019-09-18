@@ -109,9 +109,9 @@ export default class Tags extends Component {
 
   _addExistingTags = () =>
     confirm({
+      body: <SelectExistingTag />,
       icon: 'add',
       title: _('addExistingTags'),
-      body: <SelectExistingTag />,
     }).then(tags => tags.map(this._addTag))
 
   _focus = () => {
