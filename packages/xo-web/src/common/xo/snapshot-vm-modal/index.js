@@ -1,9 +1,10 @@
 import _ from 'intl'
 import React from 'react'
 import BaseComponent from 'base-component'
+import buildTemplate from '@xen-orchestra/build-template'
 import { forEach } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
-import { buildTemplate, connectStore } from 'utils'
+import { connectStore } from 'utils'
 import { Container, Col, Row } from 'grid'
 
 const RULES = {
