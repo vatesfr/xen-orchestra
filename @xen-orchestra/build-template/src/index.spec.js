@@ -10,7 +10,5 @@ it('builds a template', () => {
       '%': (_, i) => i,
     }
   )
-  expect(replacer({ name: 'toto' }, 5)).toBe(
-    'toto_{property}_\\toto_1235_5_FOO'
-  )
+  expect(replacer({ name: 'bar' }, 5)).toBe('bar_{property}_\\bar_1235_5_FOO')
 })
