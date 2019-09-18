@@ -49,9 +49,9 @@ export default decorate([
       async install(__, { name, namespace, id, version }) {
         const { setHubInstallLoadingState } = this.props
         const {
-          isFromSources,
           hubInstallLoadingState,
           installPoolPredicate,
+          isFromSources,
         } = this.state
         if (isFromSources) {
           subscribeAlert()
@@ -205,7 +205,6 @@ export default decorate([
   }),
   injectState,
   ({
-    totalDiskSize,
     effects,
     id,
     name,
@@ -213,6 +212,7 @@ export default decorate([
     os,
     size,
     state,
+    totalDiskSize,
     version,
   }) => (
     <Card shadow>
