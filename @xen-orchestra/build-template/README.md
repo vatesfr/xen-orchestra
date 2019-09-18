@@ -12,8 +12,7 @@ Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
 
 ## Usage
 
-
-Creates a string replacer based on a pattern and a list of rules
+Create a string replacer based on a pattern and a list of rules.
 
 ```js
 const myReplacer = buildTemplate('{name}_COPY_\{name}_{id}_%\%', {
