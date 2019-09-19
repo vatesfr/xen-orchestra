@@ -285,7 +285,9 @@ export default class NewVm extends BaseComponent {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.template !== this.props.template) {
+    if (
+      get(() => prevProps.template.id) !== get(() => this.props.template.id)
+    ) {
       this._initTemplate(this.props.template)
     }
   }
