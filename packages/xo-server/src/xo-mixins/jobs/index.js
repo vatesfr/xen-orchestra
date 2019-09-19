@@ -244,23 +244,23 @@ export default class Jobs {
 
   async _runJob(job: Job, schedule?: Schedule, data_?: any) {
     const logger = this._logger
-    const { id, key, mode, name, settings, type, userId } = job
+    const { id, type } = job
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
       data:
         type === 'backup' || type === 'metadataBackup'
           ? {
               // $FlowFixMe only defined for BackupJob
-              mode,
-              reportWhen: settings['']?.reportWhen ?? 'failure',
+              mode: job.mode,
+              reportWhen: job.settings['']?.reportWhen ?? 'failure',
             }
           : undefined,
       event: 'job.start',
-      userId,
+      userId: job.userId,
       jobId: id,
-      jobName: name,
+      jobName: job.name,
       scheduleId: schedule?.id,
       // $FlowFixMe only defined for CallJob
-      key,
+      key: job.key,
       type,
     })
 
