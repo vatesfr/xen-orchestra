@@ -1032,7 +1032,7 @@ export default class NewVm extends BaseComponent {
                   onChange={this._onChangeTemplate}
                   placeholder={_('newVmSelectTemplate')}
                   predicate={this._getVmPredicate()}
-                  value={defined(template, this.props.template)}
+                  value={template}
                 />
               ) : (
                 <SelectResourceSetsVmTemplate
