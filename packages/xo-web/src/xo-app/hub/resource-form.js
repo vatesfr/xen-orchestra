@@ -5,7 +5,6 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container } from 'grid'
-import { error } from 'notification'
 import { SelectPool } from 'select-objects'
 import { injectState, provideState } from 'reaclette'
 
@@ -16,25 +15,12 @@ export default decorate([
     }),
     effects: {
       handlePools(__, pools) {
-        let noDefaultSrPool
-        for (const pool of pools) {
-          if (pool.default_SR === undefined) {
-            noDefaultSrPool = pool
-          }
-        }
-        if (noDefaultSrPool) {
-          error(
-            'Error',
-            _('hubNoDefaultSrMessage', { pool: noDefaultSrPool.name_label })
-          )
-        } else {
-          this.props.onChange({
-            pools,
-            pool: pools,
-          })
-          return {
-            pools,
-          }
+        this.props.onChange({
+          pools,
+          pool: pools,
+        })
+        return {
+          pools,
         }
       },
     },

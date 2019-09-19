@@ -40,6 +40,7 @@ import {
   isEmpty,
   join,
   map,
+  noop,
   size,
   slice,
   sum,
@@ -280,7 +281,12 @@ export default class NewVm extends BaseComponent {
   }
 
   componentDidMount() {
-    this._reset()
+    this._reset(() => {
+      const { template } = this.props
+      if (template !== undefined) {
+        this._initTemplate(this.props.template)
+      }
+    })
   }
 
   componentDidUpdate(prevProps) {
@@ -338,28 +344,31 @@ export default class NewVm extends BaseComponent {
 
   // Actions ---------------------------------------------------------------------
 
-  _reset = () => {
-    this._replaceState({
-      bootAfterCreate: true,
-      CPUs: '',
-      cpuCap: '',
-      cpuWeight: '',
-      existingDisks: {},
-      fastClone: true,
-      hvmBootFirmware: '',
-      installMethod: 'noConfigDrive',
-      multipleVms: false,
-      name_label: '',
-      name_description: '',
-      nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
-      namePattern: '{name}%',
-      nbVms: NB_VMS_MIN,
-      VDIs: [],
-      VIFs: [],
-      seqStart: 1,
-      share: false,
-      tags: [],
-    })
+  _reset = (callback = noop) => {
+    this._replaceState(
+      {
+        bootAfterCreate: true,
+        CPUs: '',
+        cpuCap: '',
+        cpuWeight: '',
+        existingDisks: {},
+        fastClone: true,
+        hvmBootFirmware: '',
+        installMethod: 'noConfigDrive',
+        multipleVms: false,
+        name_label: '',
+        name_description: '',
+        nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
+        namePattern: '{name}%',
+        nbVms: NB_VMS_MIN,
+        VDIs: [],
+        VIFs: [],
+        seqStart: 1,
+        share: false,
+        tags: [],
+      },
+      callback
+    )
   }
 
   _selfCreate = () => {
