@@ -12,6 +12,8 @@ import Tooltip from './tooltip'
 import { confirm } from './modal'
 import { SelectTag } from './select-objects'
 
+import { noop } from './utils'
+
 const INPUT_STYLE = {
   maxWidth: '8em',
 }
@@ -57,6 +59,7 @@ class SelectExistingTag extends Component {
 
 export default class Tags extends Component {
   static propTypes = {
+    hasSelectExistingTag: PropTypes.bool,
     labels: PropTypes.arrayOf(PropTypes.string).isRequired,
     onAdd: PropTypes.func,
     onChange: PropTypes.func,
@@ -112,7 +115,7 @@ export default class Tags extends Component {
       body: <SelectExistingTag />,
       icon: 'add',
       title: _('addExistingTags'),
-    }).then(tags => tags.map(this._addTag))
+    }).then(tags => tags.map(this._addTag), noop)
 
   _focus = () => {
     this._focused = true
@@ -126,7 +129,14 @@ export default class Tags extends Component {
   }
 
   render() {
-    const { labels, onAdd, onChange, onClick, onDelete } = this.props
+    const {
+      hasSelectExistingTag,
+      labels,
+      onAdd,
+      onChange,
+      onClick,
+      onDelete,
+    } = this.props
 
     const deleteTag = (onDelete || onChange) && this._deleteTag
 
@@ -147,7 +157,7 @@ export default class Tags extends Component {
           <span onClick={this._startEdit} style={ADD_TAG_STYLE}>
             <Icon icon='add-tag' />
           </span>
-        ) : (
+        ) : hasSelectExistingTag ? (
           <span
             className='form-inline'
             onBlur={this._stopEditIfUnfocused}
@@ -170,10 +180,25 @@ export default class Tags extends Component {
               </span>
             </span>
           </span>
+        ) : (
+          <span>
+            <input
+              autoFocus
+              className='form-control'
+              onBlur={this._stopEdit}
+              onKeyDown={this._onKeyDown}
+              style={INPUT_STYLE}
+              type='text'
+            />
+          </span>
         )}
       </span>
     )
   }
+}
+
+Tags.defaultProps = {
+  hasSelectExistingTag: true,
 }
 
 export const Tag = ({ type, label, onDelete, onClick }) => (
