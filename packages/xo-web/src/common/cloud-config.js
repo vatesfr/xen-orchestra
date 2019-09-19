@@ -14,11 +14,16 @@ const AVAILABLE_TEMPLATE_VARS = {
 const showAvailableTemplateVars = () =>
   alert(
     _('availableTemplateVarsTitle'),
-    <ul>
-      {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
-        <li key={key}>{_.keyValue(key, _(value))}</li>
-      ))}
-    </ul>
+    <div>
+      <ul>
+        {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
+          <li key={key}>{_.keyValue(key, _(value))}</li>
+        ))}
+      </ul>
+      <div className='text-info'>
+        <Icon icon='info' /> {_('templateEscape')}
+      </div>
+    </div>
   )
 
 const showNetworkConfigInfo = () =>

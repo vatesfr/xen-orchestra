@@ -15,6 +15,10 @@ import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import Wizard, { Section } from 'wizard'
+import { compileTemplate } from '@xen-orchestra/template'
+import { confirm } from 'modal'
+import { Container, Row, Col } from 'grid'
+import { injectIntl } from 'react-intl'
 import {
   AvailableTemplateVars,
   CAN_CLOUD_INIT,
@@ -22,9 +26,6 @@ import {
   DEFAULT_NETWORK_CONFIG_TEMPLATE,
   NetworkConfigInfo,
 } from 'cloud-config'
-import { confirm } from 'modal'
-import { Container, Row, Col } from 'grid'
-import { injectIntl } from 'react-intl'
 import {
   Input as DebounceInput,
   Textarea as DebounceTextarea,
@@ -78,7 +79,6 @@ import {
 import { SizeInput, Toggle } from 'form'
 import {
   addSubscriptions,
-  buildTemplate,
   connectStore,
   formatSize,
   getCoresPerSocketPossibilities,
@@ -744,7 +744,7 @@ export default class NewVm extends BaseComponent {
   )
 
   _buildTemplate = pattern =>
-    buildTemplate(pattern, {
+    compileTemplate(pattern, {
       '{name}': state => state.name_label || '',
       '%': (_, i) => i,
     })

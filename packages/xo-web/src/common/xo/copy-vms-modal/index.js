@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import map from 'lodash/map'
 import React from 'react'
+import { compileTemplate } from '@xen-orchestra/template'
 import { injectIntl } from 'react-intl'
 
 import BaseComponent from 'base-component'
@@ -8,7 +9,7 @@ import SingleLineRow from 'single-line-row'
 import Upgrade from 'xoa-upgrade'
 import { Col } from 'grid'
 import { SelectSr } from 'select-objects'
-import { buildTemplate, connectStore } from 'utils'
+import { connectStore } from 'utils'
 
 import SelectCompression from '../../select-compression'
 import ZstdChecker from '../../zstd-checker'
@@ -35,7 +36,7 @@ class CopyVmsModalBody extends BaseComponent {
     const names = namePattern
       ? map(
           resolvedVms,
-          buildTemplate(namePattern, {
+          compileTemplate(namePattern, {
             '{name}': vm => vm.name_label,
             '{id}': vm => vm.id,
           })

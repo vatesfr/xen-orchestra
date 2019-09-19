@@ -6,7 +6,6 @@ import { connect } from 'react-redux'
 import { FormattedDate } from 'react-intl'
 import {
   clone,
-  escapeRegExp,
   every,
   forEach,
   isArray,
@@ -14,12 +13,9 @@ import {
   isFunction,
   isPlainObject,
   isString,
-  join,
-  keys,
   map,
   mapValues,
   pick,
-  replace,
   sample,
   some,
 } from 'lodash'
@@ -354,33 +350,6 @@ export const resolveResourceSet = resourceSet => {
 
 export const resolveResourceSets = resourceSets =>
   map(resourceSets, resolveResourceSet)
-
-// -------------------------------------------------------------------
-
-// Creates a string replacer based on a pattern and a list of rules
-//
-// ```js
-// const myReplacer = buildTemplate('{name}_COPY_{name}_{id}_%', {
-//   '{name}': vm => vm.name_label,
-//   '{id}': vm => vm.id,
-//   '%': (_, i) => i
-// })
-//
-// const newString = myReplacer({
-//   name_label: 'foo',
-//   id: 42,
-// }, 32)
-//
-// newString === 'foo_COPY_foo_42_32'
-// ```
-export function buildTemplate(pattern, rules) {
-  const regExp = new RegExp(join(map(keys(rules), escapeRegExp), '|'), 'g')
-  return (...params) =>
-    replace(pattern, regExp, match => {
-      const rule = rules[match]
-      return isFunction(rule) ? rule(...params) : rule
-    })
-}
 
 // ===================================================================
 
