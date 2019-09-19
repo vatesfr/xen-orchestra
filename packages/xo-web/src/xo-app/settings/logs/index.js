@@ -38,9 +38,7 @@ const LogMessage = ({ item: log }) => {
   const { error } = log.data
   return (
     <span>
-      <pre className={styles.widthLimit}>
-        {log.data.error && log.data.error.message}
-      </pre>
+      <pre className={styles.widthLimit}>{get(() => error.message)}</pre>
       {get(() => error.code) === 'LICENCE_RESTRICTION' ? (
         <a href='https://xcp-ng.org/' rel='noopener noreferrer' target='_blank'>
           {_('logSuggestXcpNg')}
