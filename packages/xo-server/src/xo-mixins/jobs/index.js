@@ -243,7 +243,6 @@ export default class Jobs {
   }
 
   async _runJob(job: Job, schedule?: Schedule, data_?: any) {
-    const app = this._app
     const logger = this._logger
     const { id, key, mode, name, settings, type, userId } = job
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
@@ -265,12 +264,12 @@ export default class Jobs {
       type,
     })
 
+    const app = this._app
     const runningJobs = this._runningJobs
-    const jobIsRunning = id in runningJobs
     const runs = this._runs
     let session
     try {
-      if (jobIsRunning) {
+      if (id in runningJobs) {
         throw new Error(`the job (${id}) is already running`)
       }
 
@@ -283,35 +282,45 @@ export default class Jobs {
       this.updateJob({ id, runId: runJobId })::ignoreErrors()
       runningJobs[id] = runJobId
 
-      const { cancel, token } = CancelToken.source()
-      runs[runJobId] = { cancel }
+      try {
+        const { cancel, token } = CancelToken.source()
+        runs[runJobId] = { cancel }
 
-      session = app.createUserConnection()
-      session.set('user_id', job.userId)
+        session = app.createUserConnection()
+        session.set('user_id', job.userId)
 
-      const status = await executor({
-        app,
-        cancelToken: token,
-        data: data_,
-        job,
-        logger,
-        runJobId,
-        schedule,
-        session,
-      })
-      await logger.notice(
-        `Execution terminated for ${job.id}.`,
-        {
-          event: 'job.end',
+        const status = await executor({
+          app,
+          cancelToken: token,
+          data: data_,
+          job,
+          logger,
           runJobId,
-        },
-        true
-      )
+          schedule,
+          session,
+        })
 
-      app.emit('job:terminated', runJobId, {
-        type: job.type,
-        status,
-      })
+        await logger.notice(
+          `Execution terminated for ${job.id}.`,
+          {
+            event: 'job.end',
+            runJobId,
+          },
+          true
+        )
+
+        app.emit('job:terminated', runJobId, {
+          type: job.type,
+          status,
+        })
+      } finally {
+        this.updateJob({ id, runId: null })::ignoreErrors()
+        delete runningJobs[id]
+        delete runs[runJobId]
+        if (session !== undefined) {
+          session.close()
+        }
+      }
     } catch (error) {
       await logger.error(
         `The execution of ${id} has failed.`,
@@ -326,15 +335,6 @@ export default class Jobs {
         type: job.type,
       })
       throw error
-    } finally {
-      if (!jobIsRunning) {
-        this.updateJob({ id, runId: null })::ignoreErrors()
-        delete runningJobs[id]
-        delete runs[runJobId]
-        if (session !== undefined) {
-          session.close()
-        }
-      }
     }
   }
 
