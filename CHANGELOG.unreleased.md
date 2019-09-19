@@ -24,7 +24,7 @@
 - [Backup NG] Fix race conditions that could lead to disabled jobs still running (PR [4510](https://github.com/vatesfr/xen-orchestra/pull/4510))
 - [XOA] Remove "Updates" and "Licenses" tabs for non admin users (PR [#4526](https://github.com/vatesfr/xen-orchestra/pull/4526))
 - [New VM] Ability to escape [cloud config template](https://xen-orchestra.com/blog/xen-orchestra-5-21/#cloudconfigtemplates) variables [#4486](https://github.com/vatesfr/xen-orchestra/issues/4486) (PR [#4501](https://github.com/vatesfr/xen-orchestra/pull/4501))
-- [Backup NG] Fix ignored backup execution if it's already running [#4497](https://github.com/vatesfr/xen-orchestra/issues/4497) (PR [4534](https://github.com/vatesfr/xen-orchestra/pull/4534))
+- [Backup NG] Properly log and report if job is already running [#4497](https://github.com/vatesfr/xen-orchestra/issues/4497) (PR [4534](https://github.com/vatesfr/xen-orchestra/pull/4534))
 
 ### Released packages
 
