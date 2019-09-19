@@ -265,10 +265,11 @@ export default class Jobs {
     })
 
     const app = this._app
-    const runningJobs = this._runningJobs
-    const runs = this._runs
-    let session
     try {
+      const runningJobs = this._runningJobs
+      const runs = this._runs
+      let session
+
       if (id in runningJobs) {
         throw new Error(`the job (${id}) is already running`)
       }
