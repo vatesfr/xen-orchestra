@@ -267,8 +267,6 @@ export default class Jobs {
     const app = this._app
     try {
       const runningJobs = this._runningJobs
-      const runs = this._runs
-      let session
 
       if (id in runningJobs) {
         throw new Error(`the job (${id}) is already running`)
@@ -283,6 +281,8 @@ export default class Jobs {
       this.updateJob({ id, runId: runJobId })::ignoreErrors()
       runningJobs[id] = runJobId
 
+      const runs = this._runs
+      let session
       try {
         const { cancel, token } = CancelToken.source()
         runs[runJobId] = { cancel }
