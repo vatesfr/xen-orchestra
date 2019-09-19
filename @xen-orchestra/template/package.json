@@ -1,11 +1,11 @@
 {
-  "name": "@xen-orchestra/build-template",
+  "name": "@xen-orchestra/template",
   "version": "0.0.0",
   "license": "ISC",
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/build-template",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/template",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "@xen-orchestra/build-template",
+    "directory": "@xen-orchestra/template",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -28,8 +28,6 @@
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "@babel/preset-flow": "^7.0.0",
-    "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^5.1.3",
     "rimraf": "^3.0.0"
   },

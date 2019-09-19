@@ -1,7 +1,7 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import BaseComponent from 'base-component'
-import buildTemplate from '@xen-orchestra/build-template'
+import buildTemplate from '@xen-orchestra/template'
 import Button from 'button'
 import classNames from 'classnames'
 import defined, { get } from '@xen-orchestra/defined'

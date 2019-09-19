@@ -1,5 +1,5 @@
 import _, { messages } from 'intl'
-import buildTemplate from '@xen-orchestra/build-template'
+import buildTemplate from '@xen-orchestra/template'
 import map from 'lodash/map'
 import React from 'react'
 import { injectIntl } from 'react-intl'

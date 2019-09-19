@@ -1,7 +1,7 @@
 import _ from 'intl'
 import React from 'react'
 import BaseComponent from 'base-component'
-import buildTemplate from '@xen-orchestra/build-template'
+import buildTemplate from '@xen-orchestra/template'
 import { forEach } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { connectStore } from 'utils'

@@ -1,8 +1,8 @@
 /* eslint-env jest */
-import buildTemplate from '.'
+import compileTemplate from '.'
 
 it("correctly replaces the template's variables", () => {
-  const replacer = buildTemplate(
+  const replacer = compileTemplate(
     '{property}_\\{property}_\\\\{property}_{constant}_%_FOO',
     {
       '{property}': obj => obj.name,

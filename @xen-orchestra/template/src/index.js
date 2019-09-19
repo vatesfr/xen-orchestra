@@ -1,15 +1,13 @@
-import { escapeRegExp } from 'lodash'
+import escapeRegExp from 'lodash/escapeRegExp'
 
 const compareLengthDesc = (a, b) => b.length - a.length
 
-export default (pattern, rules) => {
-  const keys = Object.keys(rules)
-  keys.push('\\')
-  const matches = keys
+export default function compileTemplate(pattern, rules) {
+  const matches = Object.keys(rules)
     .sort(compareLengthDesc)
     .map(escapeRegExp)
     .join('|')
-  const regExp = new RegExp(`\\\\(?:${matches})|${matches}`, 'g')
+  const regExp = new RegExp(`\\\\(?:\\\\|${matches})|${matches}`, 'g')
   return (...params) =>
     pattern.replace(regExp, match => {
       if (match[0] === '\\') {
