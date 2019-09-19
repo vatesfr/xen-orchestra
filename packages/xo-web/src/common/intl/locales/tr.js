@@ -212,6 +212,9 @@ export default {
   // Original text: "XOSAN"
   xosan: 'XOSAN',
 
+  // Original text: 'Warning: Backup is deprecated, use Backup NG instead.'
+  backupDeprecatedMessage: undefined,
+
   // Original text: 'How to migrate to Backup NG'
   backupMigrationLink: undefined,
 
