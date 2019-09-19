@@ -21,6 +21,7 @@
 - [Backup NG/logs] Show warning when zstd compression is selected but not supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4375](https://github.com/vatesfr/xen-orchestra/pull/4375)
 - [Patches] Fix patches installation for CH 8.0 (PR [#4511](https://github.com/vatesfr/xen-orchestra/pull/4511))
 - [Network] Fix inability to set a network name [#4514](https://github.com/vatesfr/xen-orchestra/issues/4514) (PR [4510](https://github.com/vatesfr/xen-orchestra/pull/4510))
+- [Backup NG] Fix race conditions that could lead to disabled jobs still running (PR [4510](https://github.com/vatesfr/xen-orchestra/pull/4510))
 
 ### Released packages
 
@@ -29,6 +30,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/cron v1.0.4
 - xo-server-sdn-controller v0.3.0
 - xo-server v5.50.0
 - xo-web v5.50.0
