@@ -22,6 +22,7 @@
 - [Patches] Fix patches installation for CH 8.0 (PR [#4511](https://github.com/vatesfr/xen-orchestra/pull/4511))
 - [Network] Fix inability to set a network name [#4514](https://github.com/vatesfr/xen-orchestra/issues/4514) (PR [4510](https://github.com/vatesfr/xen-orchestra/pull/4510))
 - [Backup NG] Fix race conditions that could lead to disabled jobs still running (PR [4510](https://github.com/vatesfr/xen-orchestra/pull/4510))
+- [XOA] Remove "Updates" and "Licenses" tabs for non admin users (PR [#4526](https://github.com/vatesfr/xen-orchestra/pull/4526))
 
 ### Released packages
 
