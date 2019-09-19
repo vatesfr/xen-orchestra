@@ -18,7 +18,8 @@ In the network creation view:
 - Select a `pool`
 - Select `Private network`
 - Select an interface on which to create the network's tunnels
-- Select the encapsulation: a choice is offered between `GRE` and `VxLAN`, if `VxLAN` is chosen, then port 4789 must be open for UDP traffic on all the network's hosts (see [the requirements](#requirements))
+- Select the encapsulation: a choice is offered between `GRE` and `VxLAN`, if `VxLAN` is chosen, then port 4789 must be open for UDP traffic on all the network's hosts (see [the requirements](#vxlan))
+- Choose if the network should be encrypted or not (see [the requirements](#encryption) to use encryption)
 - Select other `pool`s to add them to the network if desired
   - For each added `pool`: select an interface on which to create the tunnels
 - Create the network
@@ -27,6 +28,7 @@ In the network creation view:
 ***NB:***
 - All hosts in a private network must be able to reach the other hosts' management interface.
 > The term ‘management interface’ is used to indicate the IP-enabled NIC that carries the management traffic.
+- Only 1 encrypted GRE network and 1 encrypted VxLAN network per pool can exist at a time due to Open vSwitch limitation.
 
 ### Configuration
 
@@ -40,9 +42,19 @@ If none is provided, the plugin will create its own self-signed certificates.
 
 ## Requirements
 
-> All requirements are met by running up to date XCP-ng hosts.
->
-> On older XCP-ng hosts, or hosts running Citrix Hypervisor, changes might have to be done manually.
+### VxLAN
 
-To be able to use `VxLAN`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted:
-- `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
+- On XCP-ng prior to 7.6:
+  - To be able to use `VxLAN`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `VxLAN` is wanted: `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m udp --dport 4789 -j ACCEPT`
+
+### Encryption
+
+> Encryption is not available prior to 8.0.
+
+- On XCP-ng 8.0:
+  - To be able to encrypt the networks, `openvswitch-ipsec` package must be installed on all the hosts:
+    - `yum install openvswitch-ipsec --enablerepo=xcp-ng-testing`
+    - `systemctl enable ipsec`
+    - `systemctl enable openvswitch-ipsec`
+    - `systemctl start ipsec`
+    - `systemctl start openvswitch-ipsec`

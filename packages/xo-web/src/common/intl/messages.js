@@ -984,11 +984,18 @@ const messages = {
   // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  ctrlAltDelConfirmation: 'Send Ctrl+Alt+Del to VM?',
   multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
   sendToClipboard: 'Send to clipboard',
+  sshRootTooltip: 'Connect using external SSH tool as root',
+  sshRootLabel: 'SSH',
+  sshUserTooltip: 'Connect using external SSH tool as user…',
+  sshUserLabel: 'SSH as…',
+  sshUsernameLabel: 'SSH user name',
+  sshNeedClientTools: 'No IP address reported by client tools',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1748,6 +1755,9 @@ const messages = {
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
   newNetworkEncapsulation: 'Encapsulation',
+  newNetworkEncrypted: 'Encrypted',
+  encryptionWarning:
+    'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
   newNetworkSdnControllerTip:
     'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
   deleteNetwork: 'Delete network',

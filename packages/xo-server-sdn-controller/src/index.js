@@ -4,7 +4,7 @@ import NodeOpenssl from 'node-openssl-cert'
 import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, forOwn, map, omitBy } from 'lodash'
+import { filter, find, forOwn, map, omitBy, sample } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -103,6 +103,14 @@ function updateNetworkOtherConfig(network) {
   )
 }
 
+// -----------------------------------------------------------------------------
+
+function createPassword() {
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
+  return Array.from({ length: 16 }, _ => sample(chars)).join('')
+}
+
 // =============================================================================
 
 class SDNController extends EventEmitter {
@@ -110,6 +118,7 @@ class SDNController extends EventEmitter {
   Attributes on created networks:
   - `other_config`:
     - `xo:sdn-controller:encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
+    - `xo:sdn-controller:encrypted`        : `true` if the network is encrypted
     - `xo:sdn-controller:pif-device`       : PIF device on which the tunnels are created, must be physical and have an IP configuration
     - `xo:sdn-controller:private-pool-wide`: `true` if the network is created (and so must be managed) by a SDN Controller
     - `xo:sdn-controller:vni`              : VxLAN Network Identifier,
@@ -197,7 +206,11 @@ class SDNController extends EventEmitter {
   async load() {
     // Expose method to create pool-wide private network
     const createPrivateNetwork = params =>
-      this._createPrivateNetwork({ ...params, vni: ++this._prevVni })
+      this._createPrivateNetwork({
+        encrypted: false,
+        ...params,
+        vni: ++this._prevVni,
+      })
 
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
@@ -207,6 +220,7 @@ class SDNController extends EventEmitter {
       networkDescription: { type: 'string' },
       encapsulation: { type: 'string' },
       pifId: { type: 'string' },
+      encrypted: { type: 'boolean', optional: true },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
@@ -214,9 +228,9 @@ class SDNController extends EventEmitter {
     }
 
     // Expose method to create cross-pool private network
-    const createCrossPoolPrivateNetwork = this._createCrossPoolPrivateNetwork.bind(
-      this
-    )
+    const createCrossPoolPrivateNetwork = params =>
+      this._createCrossPoolPrivateNetwork({ encrypted: false, ...params })
+
     createCrossPoolPrivateNetwork.description =
       'Creates a cross-pool private network on selected pools'
     createCrossPoolPrivateNetwork.params = {
@@ -235,6 +249,7 @@ class SDNController extends EventEmitter {
           type: 'string',
         },
       },
+      encrypted: { type: 'boolean', optional: true },
     }
 
     this._unsetApiMethods = this._xo.addApiMethods({
@@ -394,6 +409,7 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPif,
     vni,
+    encrypted,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
@@ -410,6 +426,7 @@ class SDNController extends EventEmitter {
         // See: https://citrix.github.io/xenserver-sdk/#network
         automatic: 'false',
         'xo:sdn-controller:encapsulation': encapsulation,
+        'xo:sdn-controller:encrypted': encrypted ? 'true' : undefined,
         'xo:sdn-controller:pif-device': pif.device,
         'xo:sdn-controller:private-pool-wide': 'true',
         'xo:sdn-controller:vni': String(vni),
@@ -453,6 +470,7 @@ class SDNController extends EventEmitter {
     networkDescription,
     encapsulation,
     xoPifIds,
+    encrypted,
   }) {
     const uuid = uuidv4()
     const crossPoolNetwork = {
@@ -481,6 +499,7 @@ class SDNController extends EventEmitter {
         encapsulation,
         xoPif,
         vni,
+        encrypted,
       })
 
       const network = pool.$xapi.getObjectByRef(poolNetwork.network)
@@ -1134,6 +1153,11 @@ class SDNController extends EventEmitter {
     const encapsulation =
       otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
+    const password =
+      otherConfig['xo:sdn-controller:encrypted'] === 'true'
+        ? createPassword()
+        : undefined
+
     try {
       await Promise.all([
         client.addInterfaceAndPort(
@@ -1142,6 +1166,7 @@ class SDNController extends EventEmitter {
           centerClient.host.address,
           encapsulation,
           vni,
+          password,
           centerNetwork.uuid
         ),
         centerClient.addInterfaceAndPort(
@@ -1150,6 +1175,7 @@ class SDNController extends EventEmitter {
           client.host.address,
           encapsulation,
           vni,
+          password,
           network.uuid
         ),
       ])
@@ -1227,6 +1253,12 @@ class SDNController extends EventEmitter {
     const encapsulation =
       otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
+
+    const password =
+      otherConfig['xo:sdn-controller:encrypted'] === 'true'
+        ? createPassword()
+        : undefined
+
     let bridgeName
     try {
       ;[bridgeName] = await Promise.all([
@@ -1235,14 +1267,16 @@ class SDNController extends EventEmitter {
           network.name_label,
           starCenterClient.host.address,
           encapsulation,
-          vni
+          vni,
+          password
         ),
         starCenterClient.addInterfaceAndPort(
           network.uuid,
           network.name_label,
           hostClient.host.address,
           encapsulation,
-          vni
+          vni,
+          password
         ),
       ])
     } catch (error) {

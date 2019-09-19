@@ -1,12 +1,18 @@
 import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
-import forOwn from 'lodash/forOwn'
 import fromEvent from 'promise-toolbox/fromEvent'
 import { connect } from 'tls'
+import { forOwn, toPairs } from 'lodash'
 
 const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
 
 const OVSDB_PORT = 6640
+
+// =============================================================================
+
+function toMap(object) {
+  return ['map', toPairs(object)]
+}
 
 // =============================================================================
 
@@ -18,6 +24,7 @@ export class OvsdbClient {
   See:
   - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
   - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
+  - OVS IPSEC     : http://docs.openvswitch.org/en/latest/howto/ipsec/
 
   Attributes on created OVS ports (corresponds to a XAPI `PIF` or `VIF`):
   - `other_config`:
@@ -65,6 +72,7 @@ export class OvsdbClient {
     remoteAddress,
     encapsulation,
     key,
+    password,
     remoteNetwork
   ) {
     if (
@@ -110,32 +118,36 @@ export class OvsdbClient {
     const portName = bridgeName + '_port' + index
 
     // Add interface and port to the bridge
-    const options = ['map', [['remote_ip', remoteAddress], ['key', key]]]
-    const otherConfig =
-      remoteNetwork !== undefined
-        ? ['map', [['xo:sdn-controller:cross-pool', remoteNetwork]]]
-        : ['map', [['xo:sdn-controller:private-pool-wide', 'true']]]
-
+    const options = { remote_ip: remoteAddress, key: key }
+    if (password !== undefined) {
+      options.psk = password
+    }
     const addInterfaceOperation = {
       op: 'insert',
       table: 'Interface',
       row: {
         type: encapsulation,
-        options: options,
+        options: toMap(options),
         name: interfaceName,
       },
       'uuid-name': 'new_iface',
     }
+
     const addPortOperation = {
       op: 'insert',
       table: 'Port',
       row: {
         name: portName,
         interfaces: ['set', [['named-uuid', 'new_iface']]],
-        other_config: otherConfig,
+        other_config: toMap(
+          remoteNetwork !== undefined
+            ? { 'xo:sdn-controller:cross-pool': remoteNetwork }
+            : { 'xo:sdn-controller:private-pool-wide': 'true' }
+        ),
       },
       'uuid-name': 'new_port',
     }
+
     const mutateBridgeOperation = {
       op: 'mutate',
       table: 'Bridge',
@@ -325,11 +337,7 @@ export class OvsdbClient {
 
   async _getBridgeUuidForNetwork(networkUuid, networkName, socket) {
     const where = [
-      [
-        'external_ids',
-        'includes',
-        ['map', [['xs-network-uuids', networkUuid]]],
-      ],
+      ['external_ids', 'includes', toMap({ 'xs-network-uuids': networkUuid })],
     ]
     const selectResult = await this._select(
       'Bridge',
