@@ -1,8 +1,8 @@
 // @flow
 
 import asyncMap from '@xen-orchestra/async-map'
-import { ignoreErrors } from 'promise-toolbox'
 import { createSchedule } from '@xen-orchestra/cron'
+import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -48,7 +48,6 @@ export default class Scheduling {
     remove: Function,
     update: Function,
   |}
-
   _runs: { __proto__: null, [string]: () => void }
 
   constructor(app: any) {
