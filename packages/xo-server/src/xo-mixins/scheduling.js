@@ -2,6 +2,7 @@
 
 import asyncMap from '@xen-orchestra/async-map'
 import { createSchedule } from '@xen-orchestra/cron'
+import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -155,7 +156,9 @@ export default class Scheduling {
       this._runs[id] = createSchedule(
         schedule.cron,
         schedule.timezone
-      ).startJob(() => this._app.runJobSequence([schedule.jobId], schedule))
+      ).startJob(() => {
+        ignoreErrors.call(this._app.runJobSequence([schedule.jobId], schedule))
+      })
     }
   }
 
