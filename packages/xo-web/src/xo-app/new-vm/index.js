@@ -520,16 +520,18 @@ export default class NewVm extends BaseComponent {
       : createVm(data)
   }
 
+  _onChangeTemplate = template => {
+    const { pathname, query } = this.props.location
+    this.context.router.push({
+      pathname,
+      query: { ...query, template: template && template.id },
+    })
+  }
+
   _initTemplate = template => {
     if (!template) {
       return this._reset()
     }
-
-    const { pathname } = this.props.location
-    this.context.router.push({
-      pathname,
-      query: template && { pool: template.$pool, template: template.id },
-    })
 
     const storeState = store.getState()
     const isInResourceSet = this._getIsInResourceSet()
@@ -1028,14 +1030,14 @@ export default class NewVm extends BaseComponent {
             <span className={styles.inlineSelect}>
               {this.props.pool ? (
                 <SelectVmTemplate
-                  onChange={this._initTemplate}
+                  onChange={this._onChangeTemplate}
                   placeholder={_('newVmSelectTemplate')}
                   predicate={this._getVmPredicate()}
                   value={template}
                 />
               ) : (
                 <SelectResourceSetsVmTemplate
-                  onChange={this._initTemplate}
+                  onChange={this._onChangeTemplate}
                   placeholder={_('newVmSelectTemplate')}
                   resourceSet={this._getResolvedResourceSet()}
                   value={template}
