@@ -266,40 +266,26 @@ export default class Jobs {
     })
 
     const runningJobs = this._runningJobs
-    const executor = this._executors[type]
     const jobIsRunning = id in runningJobs
-    if (jobIsRunning || executor === undefined) {
-      const error = new Error(
-        jobIsRunning
-          ? `the job (${id}) is already running`
-          : `cannot run job (${id}): no executor for type ${type}`
-      )
-      await logger.error(
-        `The execution of ${id} has failed.`,
-        {
-          event: 'job.end',
-          runJobId,
-          error: serializeError(error),
-        },
-        true
-      )
-      app.emit('job:terminated', runJobId, {
-        type: job.type,
-      })
-      throw error
-    }
-
-    // runId is a temporary property used to check if the report is sent after the server interruption
-    this.updateJob({ id, runId: runJobId })::ignoreErrors()
-    runningJobs[id] = runJobId
-
     const runs = this._runs
-
-    const { cancel, token } = CancelToken.source()
-    runs[runJobId] = { cancel }
-
     let session
     try {
+      if (jobIsRunning) {
+        throw new Error(`the job (${id}) is already running`)
+      }
+
+      const executor = this._executors[type]
+      if (executor === undefined) {
+        throw new Error(`cannot run job (${id}): no executor for type ${type}`)
+      }
+
+      // runId is a temporary property used to check if the report is sent after the server interruption
+      this.updateJob({ id, runId: runJobId })::ignoreErrors()
+      runningJobs[id] = runJobId
+
+      const { cancel, token } = CancelToken.source()
+      runs[runJobId] = { cancel }
+
       session = app.createUserConnection()
       session.set('user_id', job.userId)
 
@@ -341,11 +327,13 @@ export default class Jobs {
       })
       throw error
     } finally {
-      this.updateJob({ id, runId: null })::ignoreErrors()
-      delete runningJobs[id]
-      delete runs[runJobId]
-      if (session !== undefined) {
-        session.close()
+      if (!jobIsRunning) {
+        this.updateJob({ id, runId: null })::ignoreErrors()
+        delete runningJobs[id]
+        delete runs[runJobId]
+        if (session !== undefined) {
+          session.close()
+        }
       }
     }
   }
