@@ -2,7 +2,7 @@ import escapeRegExp from 'lodash/escapeRegExp'
 
 const compareLengthDesc = (a, b) => b.length - a.length
 
-export default function compileTemplate(pattern, rules) {
+export function compileTemplate(pattern, rules) {
   const matches = Object.keys(rules)
     .sort(compareLengthDesc)
     .map(escapeRegExp)

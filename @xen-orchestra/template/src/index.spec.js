@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import compileTemplate from '.'
+import { compileTemplate } from '.'
 
 it("correctly replaces the template's variables", () => {
   const replacer = compileTemplate(

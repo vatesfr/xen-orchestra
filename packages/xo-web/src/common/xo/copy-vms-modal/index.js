@@ -1,7 +1,7 @@
 import _, { messages } from 'intl'
-import buildTemplate from '@xen-orchestra/template'
 import map from 'lodash/map'
 import React from 'react'
+import { compileTemplate } from '@xen-orchestra/template'
 import { injectIntl } from 'react-intl'
 
 import BaseComponent from 'base-component'
@@ -36,7 +36,7 @@ class CopyVmsModalBody extends BaseComponent {
     const names = namePattern
       ? map(
           resolvedVms,
-          buildTemplate(namePattern, {
+          compileTemplate(namePattern, {
             '{name}': vm => vm.name_label,
             '{id}': vm => vm.id,
           })

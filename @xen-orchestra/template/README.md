@@ -13,7 +13,7 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/templ
 Create a string replacer based on a pattern and a list of rules.
 
 ```js
-const myReplacer = buildTemplate('{name}_COPY_\{name}_{id}_%\%', {
+const myReplacer = compileTemplate('{name}_COPY_\{name}_{id}_%\%', {
   '{name}': vm => vm.name_label,
   '{id}': vm => vm.id,
   '%': (_, i) => i
