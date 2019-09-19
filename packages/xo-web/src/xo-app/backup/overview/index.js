@@ -16,8 +16,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
-import { injectState, provideState } from 'reaclette'
-import { isEmpty, keyBy, map, groupBy, some } from 'lodash'
+import { isEmpty, map, groupBy, some } from 'lodash'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -27,7 +26,6 @@ import {
   runMetadataBackupJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
-  subscribeJobs,
   subscribeMetadataBackupJobs,
   subscribeSchedules,
 } from 'xo'
@@ -82,14 +80,6 @@ const MODES = [
     test: job => job.xoMetadata,
   },
 ]
-
-const legacyJobKeyToLabel = {
-  continuousReplication: _('continuousReplication'),
-  deltaBackup: _('deltaBackup'),
-  disasterRecovery: _('disasterRecovery'),
-  rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot'),
-}
 
 const _deleteBackupJobs = items => {
   const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(
@@ -338,27 +328,13 @@ class JobsTable extends React.Component {
 
 const Overview = decorate([
   addSubscriptions({
-    jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
-    schedules: cb =>
-      subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
+    schedules: subscribeSchedules,
   }),
-  provideState({
-    computed: {
-      showLegacyBackupJobs: (_, { jobs, schedules }) =>
-        jobs === undefined || schedules === undefined
-          ? false
-          : some(schedules, schedule => {
-              const job = jobs[schedule.jobId]
-              return job !== undefined && legacyJobKeyToLabel[job.key]
-            }),
-    },
-  }),
-  injectState,
-  ({ state: { showLegacyBackupJobs } }) => (
+  ({ schedules }) => (
     <div>
-      {showLegacyBackupJobs && <LegacyOverview />}
+      {!isEmpty(schedules) && <LegacyOverview />}
       <div className='mt-2 mb-1'>
-        {showLegacyBackupJobs && <h3>{_('backup')}</h3>}
+        {!isEmpty(schedules) && <h3>{_('backup')}</h3>}
         <Card>
           <CardHeader>
             <Icon icon='backup' /> {_('backupJobs')}
