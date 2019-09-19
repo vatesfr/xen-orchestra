@@ -340,6 +340,7 @@ export default class NewVm extends BaseComponent {
       existingDisks: {},
       fastClone: true,
       hvmBootFirmware: '',
+      initializedTemplate: false,
       installMethod: 'noConfigDrive',
       multipleVms: false,
       name_label: '',
@@ -518,7 +519,6 @@ export default class NewVm extends BaseComponent {
     }
 
     const { pathname } = this.props.location
-
     this.context.router.push({
       pathname,
       query: template && { pool: template.$pool, template: template.id },
@@ -604,6 +604,7 @@ export default class NewVm extends BaseComponent {
           SR: this._getDefaultSr(template),
         }
       }),
+      initializedTemplate: true,
     })
 
     if (this._isCoreOs()) {
@@ -1008,10 +1009,13 @@ export default class NewVm extends BaseComponent {
   // INFO ------------------------------------------------------------------------
 
   _renderInfo = () => {
-    const { name_description, name_label } = this.state.state
+    const {
+      initializedTemplate,
+      name_description,
+      name_label,
+    } = this.state.state
     const { template } = this.props
-    // initialize template only when previous values are empty
-    if (template && name_description === '' && name_label === '') {
+    if (template !== undefined && !initializedTemplate) {
       this._initTemplate(template)
     }
     return (
