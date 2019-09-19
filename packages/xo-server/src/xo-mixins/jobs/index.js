@@ -243,47 +243,51 @@ export default class Jobs {
   }
 
   async _runJob(job: Job, schedule?: Schedule, data_?: any) {
-    const { id } = job
-
-    const runningJobs = this._runningJobs
-    if (id in runningJobs) {
-      throw new Error(`job ${id} is already running`)
-    }
-
-    const { type } = job
-    const executor = this._executors[type]
-    if (executor === undefined) {
-      throw new Error(`cannot run job ${id}: no executor for type ${type}`)
-    }
-
-    let data
-    if (type === 'backup') {
-      // $FlowFixMe only defined for BackupJob
-      const settings = job.settings['']
-      data = {
-        // $FlowFixMe only defined for BackupJob
-        mode: job.mode,
-        reportWhen: (settings && settings.reportWhen) || 'failure',
-      }
-    }
-    if (type === 'metadataBackup') {
-      data = {
-        reportWhen: job.settings['']?.reportWhen ?? 'failure',
-      }
-    }
-
+    const app = this._app
     const logger = this._logger
+    const { id, key, mode, name, settings, type, userId } = job
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
-      data,
+      data:
+        type === 'backup' || type === 'metadataBackup'
+          ? {
+              // $FlowFixMe only defined for BackupJob
+              mode,
+              reportWhen: settings['']?.reportWhen ?? 'failure',
+            }
+          : undefined,
       event: 'job.start',
-      userId: job.userId,
+      userId,
       jobId: id,
-      jobName: job.name,
+      jobName: name,
       scheduleId: schedule?.id,
       // $FlowFixMe only defined for CallJob
-      key: job.key,
+      key,
       type,
     })
+
+    const runningJobs = this._runningJobs
+    const executor = this._executors[type]
+    const jobIsRunning = id in runningJobs
+    if (jobIsRunning || executor === undefined) {
+      const error = new Error(
+        jobIsRunning
+          ? `the job (${id}) is already running`
+          : `cannot run job (${id}): no executor for type ${type}`
+      )
+      await logger.error(
+        `The execution of ${id} has failed.`,
+        {
+          event: 'job.end',
+          runJobId,
+          error: serializeError(error),
+        },
+        true
+      )
+      app.emit('job:terminated', runJobId, {
+        type: job.type,
+      })
+      throw error
+    }
 
     // runId is a temporary property used to check if the report is sent after the server interruption
     this.updateJob({ id, runId: runJobId })::ignoreErrors()
@@ -295,7 +299,6 @@ export default class Jobs {
     runs[runJobId] = { cancel }
 
     let session
-    const app = this._app
     try {
       session = app.createUserConnection()
       session.set('user_id', job.userId)

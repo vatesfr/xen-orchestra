@@ -1,6 +1,7 @@
 // @flow
 
 import asyncMap from '@xen-orchestra/async-map'
+import { ignoreErrors } from 'promise-toolbox'
 import { createSchedule } from '@xen-orchestra/cron'
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
@@ -47,6 +48,7 @@ export default class Scheduling {
     remove: Function,
     update: Function,
   |}
+
   _runs: { __proto__: null, [string]: () => void }
 
   constructor(app: any) {
@@ -155,7 +157,9 @@ export default class Scheduling {
       this._runs[id] = createSchedule(
         schedule.cron,
         schedule.timezone
-      ).startJob(() => this._app.runJobSequence([schedule.jobId], schedule))
+      ).startJob(() => {
+        ignoreErrors.call(this._app.runJobSequence([schedule.jobId], schedule))
+      })
     }
   }
 
