@@ -84,6 +84,7 @@ const BODY_STYLE = {
   home: Home,
   'hosts/:id': Host,
   jobs: Jobs,
+  // For test/development purposes. It can be removed after a while.
   'legacy-backup/new': NewLegacyBackup,
   new: New,
   'pools/:id': Pool,
