@@ -433,7 +433,7 @@ const messages = {
   backupOwner: 'Backup owner',
   migrateBackupSchedule: 'Migrate to Backup',
   migrateBackupScheduleMessage:
-    'This will convert the old backup job to the new Backup job. This operation is not reversible. Do you want to continue?',
+    'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:

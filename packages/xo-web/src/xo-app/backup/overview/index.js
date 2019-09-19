@@ -35,7 +35,7 @@ import {
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import { destructPattern } from '../utils'
 import LogsTable, { LogStatus } from '../../logs/backup-ng'
-import OverviewLegacy from '../overview-legacy'
+import LegacyOverview from '../overview-legacy'
 
 const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
 const Li = props => (
@@ -344,7 +344,7 @@ const Overview = decorate([
   }),
   provideState({
     computed: {
-      haveLegacyBackups: (_, { jobs, schedules }) =>
+      showLegacyBackupJobs: (_, { jobs, schedules }) =>
         jobs === undefined || schedules === undefined
           ? false
           : some(schedules, schedule => {
@@ -354,11 +354,11 @@ const Overview = decorate([
     },
   }),
   injectState,
-  ({ state: { haveLegacyBackups } }) => (
+  ({ state: { showLegacyBackupJobs } }) => (
     <div>
-      {haveLegacyBackups && <OverviewLegacy />}
+      {showLegacyBackupJobs && <LegacyOverview />}
       <div className='mt-2 mb-1'>
-        {haveLegacyBackups && <h3>{_('backup')}</h3>}
+        {showLegacyBackupJobs && <h3>{_('backup')}</h3>}
         <Card>
           <CardHeader>
             <Icon icon='backup' /> {_('backupJobs')}

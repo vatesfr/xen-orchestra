@@ -146,7 +146,7 @@ const JOB_COLUMNS = [
   schedules: cb => subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
   users: subscribeUsers,
 })
-export default class OverviewLegacy extends Component {
+export default class LegacyOverview extends Component {
   static contextTypes = {
     router: PropTypes.object,
   }
