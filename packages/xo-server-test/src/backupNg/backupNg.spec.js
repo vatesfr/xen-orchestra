@@ -370,7 +370,10 @@ describe('backupNg', () => {
         [scheduleTempId]: DEFAULT_SCHEDULE,
       },
       settings: {
-        ...defaultBackupNg.settings,
+        '': {
+          bypassVdiChainsCheck: true,
+          reportWhen: 'never',
+        },
         [scheduleTempId]: { snapshotRetention: 2 },
       },
     })
@@ -475,8 +478,9 @@ describe('backupNg', () => {
       },
       settings: {
         '': {
-          reportWhen: 'never',
+          bypassVdiChainsCheck: true,
           fullInterval,
+          reportWhen: 'never',
         },
         [remoteId1]: { deleteFirst: true },
         [scheduleTempId]: { exportRetention },
