@@ -123,7 +123,7 @@ const messages = {
   newServerPage: 'Server',
   newImport: 'Import',
   xosan: 'XOSAN',
-  backupMigrationLink: 'How to migrate to Backup',
+  backupMigrationLink: 'How to migrate to the new backup system',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
