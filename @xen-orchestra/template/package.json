@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/template",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "ISC",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/template",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -38,7 +38,7 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
-    "postversion": "npm publish"
+    "postversion": "npm publish --access public"
   },
   "dependencies": {
     "lodash": "^4.17.15"
