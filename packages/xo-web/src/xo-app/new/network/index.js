@@ -218,7 +218,7 @@ const NewNetwork = decorate([
                 encapsulation: encapsulation,
                 xoPifIds: pifIds,
                 encrypted,
-                mtu: +mtu,
+                mtu: mtu !== '' ? +mtu : undefined,
               })
             })()
           : createPrivateNetwork({
@@ -228,7 +228,7 @@ const NewNetwork = decorate([
               encapsulation: encapsulation,
               pifId: pif.id,
               encrypted,
-              mtu: +mtu,
+              mtu: mtu !== '' ? +mtu : undefined,
             })
         : createNetwork({
             description,
