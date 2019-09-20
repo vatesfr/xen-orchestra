@@ -9,7 +9,7 @@ import {
   unauthorized,
 } from 'xo-common/api-errors'
 
-import { forEach, map, mapFilter, parseSize } from '../utils'
+import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils'
 
 // ===================================================================
 
@@ -1189,7 +1189,11 @@ async function export_({ vm, compress }) {
 
   return {
     $getFrom: await this.registerHttpRequest(handleExport, data, {
-      suffix: '/' + encodeURIComponent(`${vm.name_label}.xva`),
+      suffix:
+        '/' +
+        encodeURIComponent(
+          `${safeDateFormat(new Date())} - ${vm.name_label}.xva`
+        ),
     }),
   }
 }
