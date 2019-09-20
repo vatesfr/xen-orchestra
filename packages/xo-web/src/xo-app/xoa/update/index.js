@@ -221,11 +221,12 @@ const Updates = decorate([
         ? () => ({ 'xen-orchestra': 'sources' })
         : async function() {
             const {
+              engine,
               installer,
               updater,
               npm,
             } = await xoaUpdater.getLocalManifest()
-            return { ...installer, ...updater, ...npm }
+            return { ...engine, ...installer, ...updater, ...npm }
           },
       isDisconnected: (_, { xoaUpdaterState }) =>
         xoaUpdater === 'disconnected' || xoaUpdaterState === 'error',
