@@ -208,6 +208,7 @@ class SDNController extends EventEmitter {
     const createPrivateNetwork = params =>
       this._createPrivateNetwork({
         encrypted: false,
+        mtu: 0,
         ...params,
         vni: ++this._prevVni,
       })
@@ -221,6 +222,7 @@ class SDNController extends EventEmitter {
       encapsulation: { type: 'string' },
       pifId: { type: 'string' },
       encrypted: { type: 'boolean', optional: true },
+      mtu: { type: 'integer', optional: true },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
@@ -229,7 +231,7 @@ class SDNController extends EventEmitter {
 
     // Expose method to create cross-pool private network
     const createCrossPoolPrivateNetwork = params =>
-      this._createCrossPoolPrivateNetwork({ encrypted: false, ...params })
+      this._createCrossPoolPrivateNetwork({ encrypted: false, mtu: 0, ...params })
 
     createCrossPoolPrivateNetwork.description =
       'Creates a cross-pool private network on selected pools'
@@ -250,6 +252,7 @@ class SDNController extends EventEmitter {
         },
       },
       encrypted: { type: 'boolean', optional: true },
+      mtu: { type: 'integer', optional: true },
     }
 
     this._unsetApiMethods = this._xo.addApiMethods({
@@ -410,6 +413,7 @@ class SDNController extends EventEmitter {
     xoPif,
     vni,
     encrypted,
+    mtu,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
@@ -420,7 +424,7 @@ class SDNController extends EventEmitter {
     const privateNetworkRef = await pool.$xapi.call('network.create', {
       name_label: networkName,
       name_description: networkDescription,
-      MTU: 0,
+      MTU: mtu,
       other_config: {
         // Set `automatic` to false so XenCenter does not get confused
         // See: https://citrix.github.io/xenserver-sdk/#network
@@ -471,6 +475,7 @@ class SDNController extends EventEmitter {
     encapsulation,
     xoPifIds,
     encrypted,
+    mtu,
   }) {
     const uuid = uuidv4()
     const crossPoolNetwork = {
@@ -500,6 +505,7 @@ class SDNController extends EventEmitter {
         xoPif,
         vni,
         encrypted,
+        mtu,
       })
 
       const network = pool.$xapi.getObjectByRef(poolNetwork.network)
