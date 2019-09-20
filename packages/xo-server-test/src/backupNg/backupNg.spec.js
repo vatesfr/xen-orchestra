@@ -66,6 +66,8 @@ const validateOperationTask = (task, props) => {
   })
 }
 
+// Note: on testing multiple backup Execution on the same VM, you need to bypass the check
+// of the VDI chains by setting 'bypassVdiChainsCheck' to true. See https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
 describe('backupNg', () => {
   let defaultBackupNg
 
