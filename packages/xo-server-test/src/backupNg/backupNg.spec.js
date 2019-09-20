@@ -66,6 +66,10 @@ const validateOperationTask = (task, props) => {
   })
 }
 
+// Note: `bypassVdiChainsCheck` must be enabled because the XAPI might be not
+// able to coalesce VDIs as fast as the tests run.
+//
+// See https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
 describe('backupNg', () => {
   let defaultBackupNg
 
@@ -370,7 +374,10 @@ describe('backupNg', () => {
         [scheduleTempId]: DEFAULT_SCHEDULE,
       },
       settings: {
-        ...defaultBackupNg.settings,
+        '': {
+          bypassVdiChainsCheck: true,
+          reportWhen: 'never',
+        },
         [scheduleTempId]: { snapshotRetention: 2 },
       },
     })
@@ -475,8 +482,9 @@ describe('backupNg', () => {
       },
       settings: {
         '': {
-          reportWhen: 'never',
+          bypassVdiChainsCheck: true,
           fullInterval,
+          reportWhen: 'never',
         },
         [remoteId1]: { deleteFirst: true },
         [scheduleTempId]: { exportRetention },
