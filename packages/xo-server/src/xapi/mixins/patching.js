@@ -6,7 +6,7 @@ import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
 import { debounce } from '../../decorators'
-import debounceWithKey from '../../_pDebounceWithKey'
+import { debounceWithKey } from '../../_pDebounceWithKey'
 import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
 import { extractOpaqueRef, useUpdateSystem } from '../utils'

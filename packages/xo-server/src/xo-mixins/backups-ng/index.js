@@ -44,6 +44,7 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import parseDuration from '../../_parseDuration'
+import { debounceWithKey } from '../../_pDebounceWithKey'
 import {
   type DeltaVmExport,
   type DeltaVmImport,
@@ -821,56 +822,66 @@ export default class BackupNg {
     )()
   }
 
+  @debounceWithKey.decorate(10e3, function keyFn(remoteId) {
+    return [this, remoteId]
+  })
+  async _listVmBackupsOnRemote(remoteId: string) {
+    const app = this._app
+    const backupsByVm = {}
+    try {
+      const handler = await app.getRemoteHandler(remoteId)
+
+      const entries = (await handler.list(BACKUP_DIR).catch(error => {
+        if (error == null || error.code !== 'ENOENT') {
+          throw error
+        }
+        return []
+      })).filter(name => name !== 'index.json')
+
+      await Promise.all(
+        entries.map(async vmUuid => {
+          // $FlowFixMe don't know what is the problem (JFT)
+          const backups = await this._listVmBackups(handler, vmUuid)
+
+          if (backups.length === 0) {
+            return
+          }
+
+          // inject an id usable by importVmBackupNg()
+          backups.forEach(backup => {
+            backup.id = `${remoteId}/${backup._filename}`
+
+            const { vdis, vhds } = backup
+            backup.disks =
+              vhds === undefined
+                ? []
+                : Object.keys(vhds).map(vdiId => {
+                    const vdi = vdis[vdiId]
+                    return {
+                      id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                      name: vdi.name_label,
+                      uuid: vdi.uuid,
+                    }
+                  })
+          })
+
+          backupsByVm[vmUuid] = backups
+        })
+      )
+    } catch (error) {
+      log.warn(`listVmBackups for remote ${remoteId}:`, { error })
+    }
+    return backupsByVm
+  }
+
   async listVmBackupsNg(remotes: string[]) {
     const backupsByVmByRemote: $Dict<$Dict<Metadata[]>> = {}
 
-    const app = this._app
     await Promise.all(
       remotes.map(async remoteId => {
-        try {
-          const handler = await app.getRemoteHandler(remoteId)
-
-          const entries = (await handler.list(BACKUP_DIR).catch(error => {
-            if (error == null || error.code !== 'ENOENT') {
-              throw error
-            }
-            return []
-          })).filter(name => name !== 'index.json')
-
-          const backupsByVm = (backupsByVmByRemote[remoteId] = {})
-          await Promise.all(
-            entries.map(async vmUuid => {
-              // $FlowFixMe don't know what is the problem (JFT)
-              const backups = await this._listVmBackups(handler, vmUuid)
-
-              if (backups.length === 0) {
-                return
-              }
-
-              // inject an id usable by importVmBackupNg()
-              backups.forEach(backup => {
-                backup.id = `${remoteId}/${backup._filename}`
-
-                const { vdis, vhds } = backup
-                backup.disks =
-                  vhds === undefined
-                    ? []
-                    : Object.keys(vhds).map(vdiId => {
-                        const vdi = vdis[vdiId]
-                        return {
-                          id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
-                          name: vdi.name_label,
-                          uuid: vdi.uuid,
-                        }
-                      })
-              })
-
-              backupsByVm[vmUuid] = backups
-            })
-          )
-        } catch (error) {
-          log.warn(`listVmBackups for remote ${remoteId}:`, { error })
-        }
+        backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(
+          remoteId
+        )
       })
     )
 
