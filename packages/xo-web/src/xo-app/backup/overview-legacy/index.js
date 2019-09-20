@@ -123,7 +123,7 @@ const JOB_COLUMNS = [
               handler={migrateBackupSchedule}
               handlerParam={schedule.jobId}
               icon='migrate-job'
-              tooltip={_('migrateToBackup')}
+              tooltip={_('migrateBackupSchedule')}
             />
             <ActionRowButton
               btnStyle='danger'
