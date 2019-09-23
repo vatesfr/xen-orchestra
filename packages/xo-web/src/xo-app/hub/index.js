@@ -1,14 +1,14 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
-import Page from '../page'
 import React from 'react'
-import { Container, Col, Row } from 'grid'
 import { addSubscriptions } from 'utils'
+import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, mapValues, orderBy } from 'lodash'
 import { subscribeResourceCatalog } from 'xo'
 
+import Page from '../page'
 import Resource from './resource'
 
 // ==================================================================
