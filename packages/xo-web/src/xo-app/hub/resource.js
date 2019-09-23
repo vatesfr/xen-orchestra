@@ -70,9 +70,6 @@ export default decorate([
               </span>
             ),
             size: 'medium',
-            handler: value => {
-              return value
-            },
           })
 
           setHubInstallLoadingState({
