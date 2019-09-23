@@ -6,7 +6,7 @@ export async function downloadAndInstallResource({
 }) {
   if (this.requestResource === undefined) {
     throw new Error(
-      '<xo-server-cloud plugin> may not be loaded or <requestResource> function may not be appart of it'
+      'xo-server-cloud plugin may not be loaded or requestResource function may not be appart of it'
     )
   }
   const xapi = this.getXapi(sr.$poolId)

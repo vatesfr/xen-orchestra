@@ -5,7 +5,7 @@ import React from 'react'
 import { addSubscriptions } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, map, mapValues, orderBy } from 'lodash'
+import { isEmpty, map, orderBy } from 'lodash'
 import { subscribeResourceCatalog } from 'xo'
 
 import Page from '../page'
@@ -13,18 +13,10 @@ import Resource from './resource'
 
 // ==================================================================
 
-const DEFAULT_SORT_OPTION = {
-  labelId: 'hubSortByName',
-  sortBy: 'name',
-  sortOrder: 'asc',
-}
-
 const HEADER = (
-  <Container>
-    <h2>
-      <Icon icon='menu-hub' /> {_('hubPage')}
-    </h2>
-  </Container>
+  <h2>
+    <Icon icon='menu-hub' /> {_('hubPage')}
+  </h2>
 )
 
 export default decorate([
@@ -32,20 +24,18 @@ export default decorate([
     catalog: subscribeResourceCatalog({ filters: { hub: true } }),
   }),
   provideState({
-    initialState: () => ({
-      sortBy: DEFAULT_SORT_OPTION.sortBy,
-      sortOrder: DEFAULT_SORT_OPTION.sortOrder,
-    }),
+    initialState: () => ({}),
     computed: {
-      resources: ({ availableResources, sortBy, sortOrder }) =>
-        orderBy(availableResources, res => res[sortBy], sortOrder),
+      resources: ({ availableResources }) =>
+        orderBy(availableResources, res => res.name, 'asc'),
       availableResources: (_, { catalog }) => {
-        if (catalog !== undefined) {
-          delete catalog._namespaces
+        const _catalog = { ...catalog }
+        if (_catalog !== undefined) {
+          delete _catalog._namespaces
         }
-        return map(mapValues(catalog, 'xva'), (info, namespace) => ({
-          ...info,
+        return map(_catalog, (entry, namespace) => ({
           namespace,
+          ...entry.xva,
         }))
       },
     },
@@ -53,24 +43,24 @@ export default decorate([
   injectState,
   ({ state: { resources } }) => (
     <Page header={HEADER} title='hubPage' formatTitle>
-      <Row>
-        {isEmpty(resources) ? (
-          <h2 className='text-muted'>
-            &nbsp; {_('hubVmNoAvailableMsg')}
-            <Icon icon='alarm' color='yellow' />
-          </h2>
-        ) : (
-          map(resources, (info, namespace) => (
-            <Col key={namespace} mediumSize={3}>
-              <Resource
-                className='card-style'
-                namespace={namespace}
-                {...info}
-              />
+      <Container>
+        <Row>
+          {isEmpty(resources) ? (
+            <Col>
+              <h2 className='text-muted'>
+                &nbsp; {_('hubVmNoAvailableMsg')}
+                <Icon icon='alarm' color='yellow' />
+              </h2>
             </Col>
-          ))
-        )}
-      </Row>
+          ) : (
+            map(resources, data => (
+              <Col key={data.namespace} mediumSize={3}>
+                <Resource {...data} />
+              </Col>
+            ))
+          )}
+        </Row>
+      </Container>
     </Page>
   ),
 ])
