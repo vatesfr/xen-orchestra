@@ -122,13 +122,14 @@ class XoServerCloud {
 
   async _requestResource(namespace, id, version, hub) {
     const _namespace = (await this._getNamespaces())[namespace]
-    const { _token: token } = await this._getNamespaceCatalog(namespace, {
-      filters: { hub },
-    })
 
     if (!hub && (!_namespace || !_namespace.registered)) {
       throw new Error(`cannot get resource: ${namespace} not registered`)
     }
+
+    const { _token: token } = await this._getNamespaceCatalog(namespace, {
+      filters: { hub },
+    })
 
     // 2018-03-20 Extra check: getResourceDownloadToken seems to be called without a token in some cases
     if (token === undefined) {
