@@ -45,7 +45,6 @@ export default decorate([
       selectedInstallPools: [],
     }),
     effects: {
-      initialize: () => {},
       async install(__, { name, namespace, id, version }) {
         const { setHubInstallLoadingState } = this.props
         const {
@@ -263,7 +262,7 @@ export default decorate([
               disabled={state.isTemplateInstalledOnAllPools}
               form={state.idInstallForm}
               handler={effects.install}
-              icon={'add'}
+              icon='add'
               size='meduim'
               pending={state.installLoadingState}
             >
@@ -277,7 +276,7 @@ export default decorate([
               disabled={isEmpty(state.installedTemplates)}
               form={state.idCreateForm}
               handler={effects.create}
-              icon={'deploy'}
+              icon='deploy'
               size='meduim'
             >
               {_('hubCreateXva')}
