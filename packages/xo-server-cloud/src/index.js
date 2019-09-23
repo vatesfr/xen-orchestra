@@ -108,10 +108,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaceCatalog(namespace, hub) {
-    const namespaceCatalog = (await this._getCatalog({ filters: { hub } }))[
-      namespace
-    ]
+  async _getNamespaceCatalog(namespace, filters) {
+    const namespaceCatalog = (await this._getCatalog(filters))[namespace]
 
     if (!namespaceCatalog) {
       throw new Error(`cannot get catalog: ${namespace} not registered`)
@@ -124,7 +122,9 @@ class XoServerCloud {
 
   async _requestResource(namespace, id, version, hub) {
     const _namespace = (await this._getNamespaces())[namespace]
-    const { _token: token } = await this._getNamespaceCatalog(namespace, hub)
+    const { _token: token } = await this._getNamespaceCatalog(namespace, {
+      filters: { hub },
+    })
 
     if (!hub && (!_namespace || !_namespace.registered)) {
       throw new Error(`cannot get resource: ${namespace} not registered`)
