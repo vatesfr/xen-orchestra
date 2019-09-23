@@ -28,16 +28,11 @@ export default decorate([
     computed: {
       resources: ({ availableResources }) =>
         orderBy(availableResources, res => res.name, 'asc'),
-      availableResources: (_, { catalog }) => {
-        const _catalog = { ...catalog }
-        if (_catalog !== undefined) {
-          delete _catalog._namespaces
-        }
-        return map(_catalog, (entry, namespace) => ({
+      availableResources: (_, { catalog }) =>
+        map(catalog, (entry, namespace) => ({
           namespace,
           ...entry.xva,
-        }))
-      },
+        })),
     },
   }),
   injectState,
