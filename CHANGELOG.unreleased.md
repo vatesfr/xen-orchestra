@@ -17,6 +17,7 @@
 - [xo-server-transport-icinga2] Add support of [icinga2](https://icinga.com/docs/icinga2/latest/doc/12-icinga2-api/) for reporting services status [#4563](https://github.com/vatesfr/xen-orchestra/issues/4563) (PR [#4573](https://github.com/vatesfr/xen-orchestra/pull/4573))
 - [Hub] Ability to update existing template (PR [#4613](https://github.com/vatesfr/xen-orchestra/pull/4613))
 - [Menu] Remove the legacy backup entry [#4467](https://github.com/vatesfr/xen-orchestra/issues/4467) (PR [#4476](https://github.com/vatesfr/xen-orchestra/pull/4476))
+- [Menu] Remove legacy backup entry [#4467](https://github.com/vatesfr/xen-orchestra/issues/4467) (PR [#4476](https://github.com/vatesfr/xen-orchestra/pull/4476))
 
 ### Bug fixes
 
