@@ -3,6 +3,7 @@ import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 import { forEach, isFunction } from 'lodash'
+import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api'
@@ -219,17 +220,29 @@ export default class Api {
       throw new MethodNotFound(name)
     }
 
-    // FIXME: it can cause issues if there any property assignments in
-    // XO methods called from the API.
-    const context = Object.create(xo, {
-      api: {
-        // Used by system.*().
-        value: this,
-      },
-      session: {
-        value: session,
-      },
-    })
+    // create the context which is an augmented XO
+    const context = (() => {
+      const descriptors = {
+        api: {
+          // Used by system.*().
+          value: this,
+        },
+        session: {
+          value: session,
+        },
+      }
+
+      let obj = xo
+      do {
+        Object.getOwnPropertyNames(obj).forEach(name => {
+          if (!(name in descriptors)) {
+            descriptors[name] = getBoundPropertyDescriptor(obj, name, xo)
+          }
+        })
+      } while ((obj = Reflect.getPrototypeOf(obj)) !== null)
+
+      return Object.create(null, descriptors)
+    })()
 
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
