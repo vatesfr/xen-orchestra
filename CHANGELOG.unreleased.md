@@ -26,5 +26,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xen-api v0.27.2
 - xo-server v5.51.0
 - xo-web v5.51.0
