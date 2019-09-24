@@ -92,5 +92,3 @@ export const DEFAULT_NETWORK_CONFIG_TEMPLATE = `#network:
 #    name: eth0
 #    subnets:
 #      - type: dhcp`
-
-export const CAN_CLOUD_INIT = +process.env.XOA_PLAN > 3

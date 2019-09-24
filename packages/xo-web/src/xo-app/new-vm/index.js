@@ -21,7 +21,6 @@ import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import {
   AvailableTemplateVars,
-  CAN_CLOUD_INIT,
   DEFAULT_CLOUD_CONFIG_TEMPLATE,
   DEFAULT_NETWORK_CONFIG_TEMPLATE,
   NetworkConfigInfo,
@@ -1189,20 +1188,17 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <LineItem>
-              <Tooltip content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}>
-                <label>
-                  <input
-                    checked={installMethod === 'SSH'}
-                    disabled={!CAN_CLOUD_INIT}
-                    name='installMethod'
-                    onChange={this._linkState('installMethod')}
-                    type='radio'
-                    value='SSH'
-                  />
-                  &nbsp;
-                  {_('newVmSshKey')}
-                </label>
-              </Tooltip>
+              <label>
+                <input
+                  checked={installMethod === 'SSH'}
+                  name='installMethod'
+                  onChange={this._linkState('installMethod')}
+                  type='radio'
+                  value='SSH'
+                />
+                &nbsp;
+                {_('newVmSshKey')}
+              </label>
               &nbsp;
               <span className={classNames('input-group', styles.fixedWidth)}>
                 <DebounceInput
@@ -1230,20 +1226,17 @@ export default class NewVm extends BaseComponent {
             </LineItem>
             <br />
             <LineItem>
-              <Tooltip content={CAN_CLOUD_INIT ? undefined : _('premiumOnly')}>
-                <label>
-                  <input
-                    checked={installMethod === 'customConfig'}
-                    disabled={!CAN_CLOUD_INIT}
-                    name='installMethod'
-                    onChange={this._linkState('installMethod')}
-                    type='radio'
-                    value='customConfig'
-                  />
-                  &nbsp;
-                  {_('newVmCustomConfig')}
-                </label>
-              </Tooltip>
+              <label>
+                <input
+                  checked={installMethod === 'customConfig'}
+                  name='installMethod'
+                  onChange={this._linkState('installMethod')}
+                  type='radio'
+                  value='customConfig'
+                />
+                &nbsp;
+                {_('newVmCustomConfig')}
+              </label>
               &nbsp;
               <AvailableTemplateVars />
               &nbsp;
