@@ -7,7 +7,6 @@ import Tooltip from 'tooltip'
 import { Container } from 'grid'
 import { SelectPool } from 'select-objects'
 import { error } from 'notification'
-import { forEach } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 
 export default decorate([
@@ -17,22 +16,9 @@ export default decorate([
     }),
     effects: {
       handlePools(__, pools) {
-        let noDefaultSR = false
-        forEach(pools, (pool, key) => {
-          // pools is an Array
-          if (Number.isInteger(key)) {
-            if (pool.default_SR === undefined) {
-              noDefaultSR = true
-              return false
-            }
-          } else {
-            // pools is an Object
-            if (!Object.keys(pools).includes('default_SR')) {
-              noDefaultSR = true
-              return false
-            }
-          }
-        })
+        const noDefaultSR = Array.isArray(pools)
+          ? pools.some(pool => pool.default_SR === undefined)
+          : pools.default_SR === undefined
         if (noDefaultSR) {
           error('Error', _('hubNoDefaultSrMsg'))
         } else {

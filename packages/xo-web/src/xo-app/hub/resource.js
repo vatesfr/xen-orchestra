@@ -10,7 +10,7 @@ import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
 import { error, success } from 'notification'
-import { isEmpty, find, filter } from 'lodash'
+import { find, filter } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
 
@@ -41,7 +41,6 @@ export default decorate([
   }),
   provideState({
     initialState: () => ({
-      loading: false,
       selectedInstallPools: [],
     }),
     effects: {
@@ -114,9 +113,6 @@ export default decorate([
               </span>
             ),
             size: 'medium',
-            handler: value => {
-              return value
-            },
           })
           const { $pool } = resourceParams.pool
           const { id } = find(installedTemplates, ['$pool', $pool])
@@ -140,9 +136,6 @@ export default decorate([
             </span>
           ),
           size: 'medium',
-          handler: value => {
-            return value
-          },
         })
         const _templates = filter(this.state.installedTemplates, template =>
           find(resourceParams.pools, ['$pool', template.$pool])
@@ -165,14 +158,13 @@ export default decorate([
     },
     computed: {
       isFromSources: () => +process.env.XOA_PLAN > 4,
-      poolName: ({ pool }) => pool && pool.name_label,
       installedTemplates: (_, { id, templates }) =>
         filter(templates, ['other.xva_id', id]),
       installLoadingState: (_, { hubInstallLoadingState, id }) =>
         hubInstallLoadingState[id],
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) => {
         let _isTemplateInstalledOnAllPools = true
-        if (isEmpty(installedTemplates)) {
+        if (installedTemplates.length === 0) {
           _isTemplateInstalledOnAllPools = false
         }
         for (const $pool in pools) {
@@ -183,20 +175,11 @@ export default decorate([
         }
         return _isTemplateInstalledOnAllPools
       },
-      installPoolPredicate: ({ installedTemplates }) => {
-        if (isEmpty(installedTemplates)) {
-          return () => true
-        }
-        return pool =>
-          find(installedTemplates, ['$pool', pool.$pool]) === undefined
-      },
-      createPoolPredicate: ({ installedTemplates }) => {
-        if (installedTemplates) {
-          return pool =>
-            find(installedTemplates, ['$pool', pool.$pool]) !== undefined
-        }
-        return () => true
-      },
+      installPoolPredicate: ({ installedTemplates }) => pool =>
+        !installedTemplates.some(template => template.$pool === pool.id),
+      createPoolPredicate: ({ installedTemplates }) => pool =>
+        installedTemplates.length === 0 ||
+        installedTemplates.some(template => template.$pool === pool.id),
     },
   }),
   injectState,
@@ -218,7 +201,7 @@ export default decorate([
           className='pull-right'
           color='light'
           data-name={name}
-          disabled={isEmpty(state.installedTemplates)}
+          disabled={state.installedTemplates.length === 0}
           handler={effects.deleteTemplates}
           size='small'
           style={{ border: 'none' }}
@@ -260,7 +243,6 @@ export default decorate([
               form={state.idInstallForm}
               handler={effects.install}
               icon='add'
-              size='meduim'
               pending={state.installLoadingState}
             >
               {_('hubInstallXva')}
@@ -270,11 +252,10 @@ export default decorate([
             <ActionButton
               block
               data-name={name}
-              disabled={isEmpty(state.installedTemplates)}
+              disabled={state.installedTemplates.length === 0}
               form={state.idCreateForm}
               handler={effects.create}
               icon='deploy'
-              size='meduim'
             >
               {_('hubCreateXva')}
             </ActionButton>

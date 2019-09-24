@@ -24,7 +24,6 @@ export default decorate([
     catalog: subscribeResourceCatalog({ filters: { hub: true } }),
   }),
   provideState({
-    initialState: () => ({}),
     computed: {
       resources: ({ availableResources }) =>
         orderBy(availableResources, res => res.name, 'asc'),
