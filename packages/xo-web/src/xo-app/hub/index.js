@@ -2,7 +2,7 @@ import _ from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, adminOnly } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, orderBy } from 'lodash'
@@ -20,18 +20,21 @@ const HEADER = (
 )
 
 export default decorate([
+  adminOnly,
   addSubscriptions({
     catalog: subscribeResourceCatalog({ filters: { hub: true } }),
   }),
   provideState({
     computed: {
-      resources: ({ availableResources }) =>
-        orderBy(availableResources, res => res.name, 'asc'),
-      availableResources: (_, { catalog }) =>
-        map(catalog, (entry, namespace) => ({
-          namespace,
-          ...entry.xva,
-        })),
+      resources: (_, { catalog }) =>
+        orderBy(
+          map(catalog, (entry, namespace) => ({
+            namespace,
+            ...entry.xva,
+          })),
+          'name',
+          'asc'
+        ),
     },
   }),
   injectState,

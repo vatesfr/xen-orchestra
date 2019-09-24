@@ -6,7 +6,7 @@ import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
 import { alert, form } from 'modal'
-import { connectStore, formatSize } from 'utils'
+import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
 import { error, success } from 'notification'
@@ -44,68 +44,71 @@ export default decorate([
       selectedInstallPools: [],
     }),
     effects: {
-      async install(__, { name, namespace, id, version }) {
-        const { setHubInstallLoadingState } = this.props
+      async install() {
+        const {
+          id,
+          name,
+          namespace,
+          setHubInstallLoadingState,
+          version,
+        } = this.props
         const {
           hubInstallLoadingState,
-          installPoolPredicate,
+          isTemplateInstalled,
           isFromSources,
         } = this.state
         if (isFromSources) {
           subscribeAlert()
-        } else {
-          const resourceParams = await form({
-            render: props => (
-              <ResourceForm
-                install
-                multi
-                poolPredicate={installPoolPredicate}
-                {...props}
-              />
-            ),
-            header: (
-              <span>
-                <Icon icon='add-vm' /> {name}
-              </span>
-            ),
-            size: 'medium',
-          })
-
-          setHubInstallLoadingState({
-            ...hubInstallLoadingState,
-            [id]: true,
-          })
-          for (const pool of resourceParams.pools) {
-            try {
-              await downloadAndInstallResource({
-                namespace,
-                id,
-                version,
-                sr: pool.default_SR,
-              })
-              success('XVA import', _('hubSuccessfulInstallMsg'))
-            } catch (_error) {
-              error('Error', _error.message)
-            }
-          }
-          setHubInstallLoadingState({
-            ...hubInstallLoadingState,
-            [id]: false,
-          })
+          return
         }
+        const resourceParams = await form({
+          render: props => (
+            <ResourceForm
+              install
+              multi
+              poolPredicate={isTemplateInstalled}
+              {...props}
+            />
+          ),
+          header: (
+            <span>
+              <Icon icon='add-vm' /> {name}
+            </span>
+          ),
+          size: 'medium',
+        })
+
+        setHubInstallLoadingState({
+          ...hubInstallLoadingState,
+          [id]: true,
+        })
+        for (const pool of resourceParams.pools) {
+          try {
+            await downloadAndInstallResource({
+              namespace,
+              id,
+              version,
+              sr: pool.default_SR,
+            })
+            success('XVA import', _('hubSuccessfulInstallMsg'))
+          } catch (_error) {
+            error('Error', _error.message)
+          }
+        }
+        setHubInstallLoadingState({
+          ...hubInstallLoadingState,
+          [id]: false,
+        })
       },
-      async create(__, { name }) {
-        const {
-          isFromSources,
-          createPoolPredicate,
-          installedTemplates,
-        } = this.state
+      async create() {
+        const { isFromSources, isPoolCreated, installedTemplates } = this.state
+        const { name } = this.props
         if (isFromSources) {
           subscribeAlert()
         } else {
           const resourceParams = await form({
             render: props => (
-              <ResourceForm poolPredicate={createPoolPredicate} {...props} />
+              <ResourceForm poolPredicate={isPoolCreated} {...props} />
             ),
             header: (
               <span>
@@ -115,18 +118,18 @@ export default decorate([
             size: 'medium',
           })
           const { $pool } = resourceParams.pool
-          const { id } = find(installedTemplates, ['$pool', $pool])
+          const { id } = find(installedTemplates, { $pool })
           this.props.router.push(`/vms/new?pool=${$pool}&template=${id}`)
         }
       },
       async deleteTemplates(__, { name }) {
-        const { createPoolPredicate } = this.state
+        const { isPoolCreated } = this.state
         const resourceParams = await form({
           render: props => (
             <ResourceForm
               delete
               multi
-              poolPredicate={createPoolPredicate}
+              poolPredicate={isPoolCreated}
               {...props}
             />
           ),
@@ -138,7 +141,7 @@ export default decorate([
           size: 'medium',
         })
         const _templates = filter(this.state.installedTemplates, template =>
-          find(resourceParams.pools, ['$pool', template.$pool])
+          find(resourceParams.pools, { $pool: template.$pool })
         )
         await deleteTemplates(_templates)
       },
@@ -157,19 +160,21 @@ export default decorate([
       },
     },
     computed: {
-      isFromSources: () => +process.env.XOA_PLAN > 4,
+      isFromSources: () => getXoaPlan(process.env.XOA_PLAN) === 'Community',
       installedTemplates: (_, { id, templates }) =>
         filter(templates, ['other.xva_id', id]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
-        installedTemplates.every(pools, pool =>
+        installedTemplates.every(pool =>
           installedTemplates.some(template => template.$pool === pool.id)
         ),
-      installPoolPredicate: ({ installedTemplates }) => pool =>
-        !installedTemplates.some(template => template.$pool === pool.id),
-      createPoolPredicate: ({ installedTemplates }) => pool =>
+      isTemplateInstalled: ({ installedTemplates }) => pool =>
+        installedTemplates.find(template => template.$pool !== pool.id) !==
+        undefined,
+      isPoolCreated: ({ installedTemplates }) => pool =>
         installedTemplates.length === 0 ||
-        installedTemplates.some(template => template.$pool === pool.id),
+        installedTemplates.find(template => template.$pool !== pool.id) ===
+          undefined,
     },
   }),
   injectState,
@@ -178,7 +183,6 @@ export default decorate([
     hubInstallLoadingState,
     id,
     name,
-    namespace,
     os,
     size,
     state,
@@ -226,23 +230,18 @@ export default decorate([
           <Col mediumSize={6}>
             <ActionButton
               block
-              data-id={id}
-              data-name={name}
-              data-namespace={namespace}
-              data-version={version}
               disabled={state.isTemplateInstalledOnAllPools}
               form={state.idInstallForm}
               handler={effects.install}
               icon='add'
               pending={hubInstallLoadingState[id]}
             >
-              {_('hubInstallXva')}
+              {_('install')}
             </ActionButton>
           </Col>
           <Col mediumSize={6}>
             <ActionButton
               block
-              data-name={name}
               disabled={state.installedTemplates.length === 0}
               form={state.idCreateForm}
               handler={effects.create}

@@ -2145,9 +2145,8 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
-  hubInstallXva: 'Install',
-  hubNoDefaultSrMsg: 'The pool selected has no default SR',
-  hubSuccessfulInstallMsg: 'VM installed successfuly',
+  hubNoDefaultSrMsg: 'The selected pool has no default SR',
+  hubSuccessfulInstallMsg: 'VM installed successfully',
   hubVmNoAvailableMsg: 'No VMs available ',
   hubCreateXva: 'Create',
   hubDeployXva: 'Deploy',
@@ -2155,13 +2154,12 @@ const messages = {
   hubSortByName: 'Name',
   hubSortByPopularity: 'Popularity',
   hubResourceAlert: 'Resource alert',
-  hubXvaOs: 'OS',
-  hubXvaVersion: 'VERSION',
-  hubXvaSize: 'SIZE',
-  hubTotalDiskSize: 'TOTAL DISK SIZE',
+  hubXvaOs: 'Os',
+  hubXvaVersion: 'Version',
+  hubXvaSize: 'Size',
+  hubTotalDiskSize: 'Total disk size',
   hubXvaProgressMessage: 'see progress',
-  hubHideInstalledPoolMsg:
-    'We are hiding pools with already installed template',
+  hubHideInstalledPoolMsg: 'Already installed templates are hidden',
 
   // Licenses
   xosanUnregisteredDisclaimer:

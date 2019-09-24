@@ -15,11 +15,11 @@ export default decorate([
       pools: multi ? [] : undefined,
     }),
     effects: {
-      handlePools(__, pools) {
-        const noDefaultSR = Array.isArray(pools)
+      onChangePool(__, pools) {
+        const noDefaultSr = Array.isArray(pools)
           ? pools.some(pool => pool.default_SR === undefined)
           : pools.default_SR === undefined
-        if (noDefaultSR) {
+        if (noDefaultSr) {
           error('Error', _('hubNoDefaultSrMsg'))
         } else {
           this.props.onChange({
@@ -49,7 +49,7 @@ export default decorate([
         <SelectPool
           className='mb-1'
           multi={multi}
-          onChange={effects.handlePools}
+          onChange={effects.onChangePool}
           predicate={poolPredicate}
           required
           value={state.pools}
