@@ -2158,7 +2158,6 @@ const messages = {
   hubXvaVersion: 'Version',
   hubXvaSize: 'Size',
   hubTotalDiskSize: 'Total disk size',
-  hubXvaProgressMessage: 'see progress',
   hubHideInstalledPoolMsg: 'Already installed templates are hidden',
 
   // Licenses
