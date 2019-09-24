@@ -29,6 +29,7 @@ Object {
   "name": "default-backupNg",
   "settings": Object {
     "": Object {
+      "bypassVdiChainsCheck": true,
       "reportWhen": "never",
     },
   },
@@ -136,6 +137,7 @@ Object {
   "end": Any<Number>,
   "id": Any<String>,
   "jobId": Any<String>,
+  "jobName": "default-backupNg",
   "message": "backup",
   "scheduleId": Any<String>,
   "start": Any<Number>,
@@ -259,6 +261,7 @@ Object {
   "end": Any<Number>,
   "id": Any<String>,
   "jobId": Any<String>,
+  "jobName": "default-backupNg",
   "message": "backup",
   "scheduleId": Any<String>,
   "start": Any<Number>,
@@ -382,6 +385,7 @@ Object {
   "end": Any<Number>,
   "id": Any<String>,
   "jobId": Any<String>,
+  "jobName": "default-backupNg",
   "message": "backup",
   "scheduleId": Any<String>,
   "start": Any<Number>,

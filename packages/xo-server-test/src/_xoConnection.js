@@ -110,8 +110,32 @@ class XoConnection extends Xo {
     return id
   }
 
-  async createTempBackupNgJob(params) {
-    const job = await this.call('backupNg.createJob', params)
+  async createTempBackupNgJob({
+    settings: { '': globalSetting, ...settings } = {},
+    ...params
+  } = {}) {
+    const job = await this.call('backupNg.createJob', {
+      mode: 'full',
+      name: 'default-backupNg',
+      vms: {
+        id: config.vms.default,
+      },
+      ...params,
+      settings: {
+        '': {
+          // it must be enabled because the XAPI might be not able to coalesce VDIs
+          // as fast as the tests run
+          //
+          // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
+          bypassVdiChainsCheck: true,
+
+          // it must be 'never' to avoid race conditions with the plugin Backup Report
+          reportWhen: 'never',
+          ...globalSetting,
+        },
+        ...settings,
+      },
+    })
     this._tempResourceDisposers.push('backupNg.deleteJob', { id: job.id })
     return job
   }

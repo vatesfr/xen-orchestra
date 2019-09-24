@@ -66,51 +66,35 @@ const validateOperationTask = (task, props) => {
   })
 }
 
-// Note: `bypassVdiChainsCheck` must be enabled because the XAPI might be not
-// able to coalesce VDIs as fast as the tests run.
-//
-// See https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
 describe('backupNg', () => {
-  let defaultBackupNg
-
-  beforeAll(() => {
-    defaultBackupNg = {
-      name: 'default-backupNg',
-      mode: 'full',
-      vms: {
-        id: config.vms.default,
-      },
-      settings: {
-        '': {
-          reportWhen: 'never',
-        },
-      },
-    }
-  })
-
   describe('.createJob() :', () => {
     it('creates a new backup job without schedules', async () => {
-      const backupNg = await xo.createTempBackupNgJob(defaultBackupNg)
+      const vms = {
+        id: config.vms.default,
+      }
+      const backupNg = await xo.createTempBackupNgJob({ vms })
       expect(backupNg).toMatchSnapshot({
         id: expect.any(String),
         userId: expect.any(String),
         vms: expect.any(Object),
       })
-      expect(backupNg.vms).toEqual(defaultBackupNg.vms)
+      expect(backupNg.vms).toEqual(vms)
       expect(backupNg.userId).toBe(xo._user.id)
     })
 
     it('creates a new backup job with schedules', async () => {
+      const vms = {
+        id: config.vms.default,
+      }
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: { snapshotRetention: 1 },
         },
+        vms,
       })
 
       const backupNgJob = await xo.call('backupNg.getJob', { id: jobId })
@@ -121,7 +105,7 @@ describe('backupNg', () => {
         settings: expect.any(Object),
         vms: expect.any(Object),
       })
-      expect(backupNgJob.vms).toEqual(defaultBackupNg.vms)
+      expect(backupNgJob.vms).toEqual(vms)
       expect(backupNgJob.userId).toBe(xo._user.id)
 
       expect(Object.keys(backupNgJob.settings).length).toBe(2)
@@ -142,12 +126,15 @@ describe('backupNg', () => {
     it('deletes a backup job', async () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.call('backupNg.createJob', {
-        ...defaultBackupNg,
+        mode: 'full',
+        name: 'default-backupNg',
+        vms: {
+          id: config.vms.default,
+        },
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: { snapshotRetention: 1 },
         },
       })
@@ -173,14 +160,13 @@ describe('backupNg', () => {
 
   describe('.runJob() :', () => {
     it('fails trying to run a backup job without schedule', async () => {
-      const { id } = await xo.createTempBackupNgJob(defaultBackupNg)
+      const { id } = await xo.createTempBackupNgJob()
       await expect(xo.call('backupNg.runJob', { id })).rejects.toMatchSnapshot()
     })
 
     it('fails trying to run a backup job with no matching VMs', async () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -205,7 +191,6 @@ describe('backupNg', () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -238,12 +223,10 @@ describe('backupNg', () => {
 
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: { snapshotRetention: 1 },
         },
         vms: {
@@ -294,7 +277,6 @@ describe('backupNg', () => {
       await xo.createTempServer(config.servers.default)
       const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
       const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
         remotes: {
           id: remoteId,
         },
@@ -302,7 +284,6 @@ describe('backupNg', () => {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: {},
         },
         srs: {
@@ -366,7 +347,6 @@ describe('backupNg', () => {
 
     const scheduleTempId = randomId()
     const { id: jobId } = await xo.createTempBackupNgJob({
-      ...defaultBackupNg,
       vms: {
         id: vm.id,
       },
@@ -374,10 +354,6 @@ describe('backupNg', () => {
         [scheduleTempId]: DEFAULT_SCHEDULE,
       },
       settings: {
-        '': {
-          bypassVdiChainsCheck: true,
-          reportWhen: 'never',
-        },
         [scheduleTempId]: { snapshotRetention: 2 },
       },
     })
@@ -482,9 +458,7 @@ describe('backupNg', () => {
       },
       settings: {
         '': {
-          bypassVdiChainsCheck: true,
           fullInterval,
-          reportWhen: 'never',
         },
         [remoteId1]: { deleteFirst: true },
         [scheduleTempId]: { exportRetention },
