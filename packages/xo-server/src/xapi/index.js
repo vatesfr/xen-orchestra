@@ -2041,6 +2041,7 @@ export default class Xapi extends XapiBase {
       )
     )
   }
+
   @deferrable
   async createNetwork(
     $defer,
@@ -2358,14 +2359,22 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async assertConsistentHostServerTime(hostRef) {
-    const delta =
+  async _getHostServerTimeShift(hostRef) {
+    return Math.abs(
       parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
-      Date.now()
-    if (Math.abs(delta) > 30e3) {
+        Date.now()
+    )
+  }
+
+  async isHostServerTimeConsistent(hostRef) {
+    return (await this._getHostServerTimeShift(hostRef)) < 30e3
+  }
+
+  async assertConsistentHostServerTime(hostRef) {
+    if (!(await this.isHostServerTimeConsistent(hostRef))) {
       throw new Error(
         `host server time and XOA date are not consistent with each other (${ms(
-          delta
+          await this._getHostServerTimeShift(hostRef)
         )})`
       )
     }
