@@ -105,22 +105,22 @@ export default decorate([
         const { name } = this.props
         if (isFromSources) {
           subscribeAlert()
-        } else {
-          const resourceParams = await form({
-            render: props => (
-              <ResourceForm poolPredicate={isPoolCreated} {...props} />
-            ),
-            header: (
-              <span>
-                <Icon icon='add-vm' /> {name}
-              </span>
-            ),
-            size: 'medium',
-          })
-          const { $pool } = resourceParams.pool
-          const { id } = find(installedTemplates, { $pool })
-          this.props.router.push(`/vms/new?pool=${$pool}&template=${id}`)
+          return
         }
+        const resourceParams = await form({
+          render: props => (
+            <ResourceForm poolPredicate={isPoolCreated} {...props} />
+          ),
+          header: (
+            <span>
+              <Icon icon='add-vm' /> {name}
+            </span>
+          ),
+          size: 'medium',
+        })
+        const { $pool } = resourceParams.pool
+        const { id } = find(installedTemplates, { $pool })
+        this.props.router.push(`/vms/new?pool=${$pool}&template=${id}`)
       },
       async deleteTemplates(__, { name }) {
         const { isPoolCreated } = this.state
