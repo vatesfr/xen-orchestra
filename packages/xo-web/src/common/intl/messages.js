@@ -1318,7 +1318,6 @@ const messages = {
   newVmSshKey: 'SSH key',
   noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
-  premiumOnly: 'Only available in Premium',
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
   availableTemplateVarsTitle: 'Available template variables',
