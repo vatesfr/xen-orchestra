@@ -160,21 +160,11 @@ export default decorate([
       isFromSources: () => +process.env.XOA_PLAN > 4,
       installedTemplates: (_, { id, templates }) =>
         filter(templates, ['other.xva_id', id]),
-      installLoadingState: (_, { hubInstallLoadingState, id }) =>
-        hubInstallLoadingState[id],
-      isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) => {
-        let _isTemplateInstalledOnAllPools = true
-        if (installedTemplates.length === 0) {
-          _isTemplateInstalledOnAllPools = false
-        }
-        for (const $pool in pools) {
-          if (find(installedTemplates, ['$pool', $pool]) === undefined) {
-            _isTemplateInstalledOnAllPools = false
-            break
-          }
-        }
-        return _isTemplateInstalledOnAllPools
-      },
+      isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
+        installedTemplates.length > 0 &&
+        installedTemplates.every(pools, pool =>
+          installedTemplates.some(template => template.$pool === pool.id)
+        ),
       installPoolPredicate: ({ installedTemplates }) => pool =>
         !installedTemplates.some(template => template.$pool === pool.id),
       createPoolPredicate: ({ installedTemplates }) => pool =>
@@ -185,6 +175,7 @@ export default decorate([
   injectState,
   ({
     effects,
+    hubInstallLoadingState,
     id,
     name,
     namespace,
@@ -243,7 +234,7 @@ export default decorate([
               form={state.idInstallForm}
               handler={effects.install}
               icon='add'
-              pending={state.installLoadingState}
+              pending={hubInstallLoadingState[id]}
             >
               {_('hubInstallXva')}
             </ActionButton>
