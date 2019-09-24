@@ -48,7 +48,7 @@ export default decorate([
               </h2>
             </Col>
           ) : (
-            map(resources, data => (
+            resources.map(data => (
               <Col key={data.namespace} mediumSize={3}>
                 <Resource {...data} />
               </Col>
