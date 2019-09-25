@@ -20,7 +20,7 @@ export default decorate([
           ? pools.some(pool => pool.default_SR === undefined)
           : pools.default_SR === undefined
         if (noDefaultSr) {
-          error(_('error'), _('noDefaultSr'))
+          error(_('hubSrErrorTitle'), _('noDefaultSr'))
         } else {
           this.props.onChange({
             pools,

@@ -2155,6 +2155,7 @@ const messages = {
   size: 'Size',
   totalDiskSize: 'Total disk size',
   hideInstalledPool: 'Already installed templates are hidden',
+  hubSrErrorTitle: 'Missing property',
 
   // Licenses
   xosanUnregisteredDisclaimer:
