@@ -1033,14 +1033,6 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
 
-"@marsaud/smb2@^0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.13.0.tgz#01b851a3658f668eeeb0ff97f427c18c1c2e44da"
-  integrity sha512-lT/egJdaaf40nlQmsx7fPaJDoVLtTMH012lKj2EKNlFiahmYKhQaP4L0+dL74mb1KOw/Ql5gyWNm3+amgsWayw==
-  dependencies:
-    ntlm "~0.1.1"
-    readable-stream "^3.0.6"
-
 "@marsaud/smb2@^0.14.0":
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.14.0.tgz#f59939f422bd38531a0beb95becbbc73acf20657"
@@ -1218,25 +1210,6 @@
   integrity sha512-lwwgizwk/bIIU+3ELORkyuOgDjCh7zuWDFqRtPPhhVgq9N1F7CvLNKg1TX4f2duwtKQ0p044Au9r1PLIXHrIzQ==
   dependencies:
     "@types/yargs-parser" "*"
-
-"@xen-orchestra/fs@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-0.9.0.tgz#97cba000ab2de821c4170780717ee2d8f82ed754"
-  integrity sha512-LFvN3KB9r5QeqnKcwb7UJLhPKSvzCTDXUl0q+QjsfLkpF7ffxKjy702x+rsuS83UGUbHUgX78lbZnEdAvb4PMQ==
-  dependencies:
-    "@marsaud/smb2" "^0.13.0"
-    "@sindresorhus/df" "^2.1.0"
-    "@xen-orchestra/async-map" "^0.0.0"
-    decorator-synchronized "^0.5.0"
-    execa "^1.0.0"
-    fs-extra "^7.0.0"
-    get-stream "^4.0.0"
-    lodash "^4.17.4"
-    promise-toolbox "^0.12.1"
-    readable-stream "^3.0.6"
-    through2 "^3.0.0"
-    tmp "^0.1.0"
-    xo-remote-parser "^0.5.0"
 
 "@xmpp/jid@^0.0.2":
   version "0.0.2"
@@ -4141,12 +4114,19 @@ create-react-class@^15.5.1, create-react-class@^15.6.0:
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
 
-cross-env@^5.1.1, cross-env@^5.1.3, cross-env@^5.1.4, cross-env@^5.1.5, cross-env@^5.2.0:
+cross-env@^5.1.1, cross-env@^5.1.3, cross-env@^5.1.4, cross-env@^5.2.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-5.2.1.tgz#b2c76c1ca7add66dc874d11798466094f551b34d"
   integrity sha512-1yHhtcfAd1r4nwQgknowuUNfIT9E8dOMMspC36g45dN+iD1blloi7xp8X/xAIDnjHWyt1uQ8PHk2fkNaym7soQ==
   dependencies:
     cross-spawn "^6.0.5"
+
+cross-env@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-6.0.0.tgz#3c8e71440ea20aa6faaf5aec541235efc565dac6"
+  integrity sha512-G/B6gtkjgthT8AP/xN1wdj5Xe18fVyk58JepK8GxpUbqcz3hyWxegocMbvnZK+KoTslwd0ACZ3woi/DVUdVjyQ==
+  dependencies:
+    cross-spawn "^7.0.0"
 
 cross-spawn-async@^2.1.1:
   version "2.2.5"
@@ -4189,6 +4169,15 @@ cross-spawn@^6.0.0, cross-spawn@^6.0.5:
     nice-try "^1.0.4"
     path-key "^2.0.1"
     semver "^5.5.0"
+    shebang-command "^1.2.0"
+    which "^1.2.9"
+
+cross-spawn@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.0.tgz#21ef9470443262f33dba80b2705a91db959b2e03"
+  integrity sha512-6U/8SMK2FBNnB21oQ4+6Nsodxanw1gTkntYA2zBdkFYFu3ZDx65P2ONEXGSvob/QS6REjVHQ9zxzdOafwFdstw==
+  dependencies:
+    path-key "^3.1.0"
     shebang-command "^1.2.0"
     which "^1.2.9"
 
@@ -6294,15 +6283,6 @@ fs-extra@^2.0.0:
     graceful-fs "^4.1.2"
     jsonfile "^2.1.0"
 
-fs-extra@^7.0.0:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-7.0.1.tgz#4f189c44aa123b895f722804f55ea23eadc348e9"
-  integrity sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw==
-  dependencies:
-    graceful-fs "^4.1.2"
-    jsonfile "^4.0.0"
-    universalify "^0.1.0"
-
 fs-extra@^8.0.1:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-8.1.0.tgz#49d43c45a88cd9677668cb7be1b46efdb8d2e1c0"
@@ -7041,7 +7021,7 @@ helmet-csp@2.9.2:
     content-security-policy-builder "2.1.0"
     dasherize "2.0.0"
 
-helmet@^3.15.1:
+helmet@^3.20.0:
   version "3.21.1"
   resolved "https://registry.yarnpkg.com/helmet/-/helmet-3.21.1.tgz#b0ab7c63fc30df2434be27e7e292a9523b3147e9"
   integrity sha512-IC/54Lxvvad2YiUdgLmPlNFKLhNuG++waTF5KPYq/Feo3NNhqMFbcLAlbVkai+9q0+4uxjxGPJ9bNykG+3zZNg==
@@ -8773,12 +8753,12 @@ koa-convert@^1.2.0:
     co "^4.6.0"
     koa-compose "^3.0.0"
 
-koa-helmet@^4.0.0:
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/koa-helmet/-/koa-helmet-4.2.1.tgz#6f6598aa1dbde501c5f7e92b80a5358690cc13d8"
-  integrity sha512-CzN14/hH/su37Pj4rarXZfR/NQZbbnmCU6cS3WLnEQyvZO3Mp6oMayNVAnR08dKZShhCYpIN8cuJwD5g34oQ/w==
+koa-helmet@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/koa-helmet/-/koa-helmet-5.1.0.tgz#b6273b9633db3e9e74182e7b10e75ff86b57cbff"
+  integrity sha512-tBl1z+W2FnjjYdVYdy0zYoZxqimS2XPMczAZP+N2Cr0glhTYu+H1W04U/LQNY64Ly9OO6nZCxhfuYNy1BYSpZA==
   dependencies:
-    helmet "^3.15.1"
+    helmet "^3.20.0"
 
 koa-is-json@^1.0.0:
   version "1.0.0"
@@ -11046,7 +11026,7 @@ path-key@^2.0.0, path-key@^2.0.1:
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-2.0.1.tgz#411cadb574c5a140d3a4b1910d40d80cc9f40b40"
   integrity sha1-QRyttXTFoUDTpLGRDUDYDMn0C0A=
 
-path-key@^3.0.0:
+path-key@^3.0.0, path-key@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-3.1.0.tgz#99a10d870a803bdd5ee6f0470e58dfcd2f9a54d3"
   integrity sha512-8cChqz0RP6SHJkMt48FW0A7+qUOn+OsnOsVtzI59tZ8m+5bCSk7hzwET0pulwOM2YMn9J1efb07KB9l9f30SGg==
@@ -12755,7 +12735,7 @@ right-align@^0.1.1:
   dependencies:
     align-text "^0.1.1"
 
-rimraf@2, rimraf@^2.5.4, rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
+rimraf@2, rimraf@^2.5.4, rimraf@^2.6.1, rimraf@^2.6.3:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.7.1.tgz#35797f13a7fdadc566142c29d4f07ccad483e3ec"
   integrity sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==
@@ -14795,29 +14775,6 @@ xdg-basedir@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-3.0.0.tgz#496b2cc109eca8dbacfe2dc72b603c17c5870ad4"
   integrity sha1-SWsswQnsqNus/i3HK2A8F8WHCtQ=
-
-xen-api@^0.25.1:
-  version "0.25.2"
-  resolved "https://registry.yarnpkg.com/xen-api/-/xen-api-0.25.2.tgz#6de81da296507d5d0dcc137aa06a90c36f1cc120"
-  integrity sha512-1QmJr2M9Zjcl0rcdNNWygY/HwZeNFw+ylLFTBWi3Z9PWin63AR9y+ujBYA/LgBLyQUPT/CjLJ0AOLWbvkxq4TQ==
-  dependencies:
-    bind-property-descriptor "^1.0.0"
-    blocked "^1.2.1"
-    debug "^4.0.1"
-    event-to-promise "^0.8.0"
-    exec-promise "^0.7.0"
-    http-request-plus "^0.8.0"
-    jest-diff "^24.0.0"
-    json-rpc-protocol "^0.13.1"
-    kindof "^2.0.0"
-    lodash "^4.17.4"
-    make-error "^1.3.0"
-    minimist "^1.2.0"
-    ms "^2.1.1"
-    promise-toolbox "^0.12.1"
-    pw "0.0.4"
-    xmlrpc "^1.3.2"
-    xo-collection "^0.4.1"
 
 xml-crypto@^1.1.4:
   version "1.4.0"
