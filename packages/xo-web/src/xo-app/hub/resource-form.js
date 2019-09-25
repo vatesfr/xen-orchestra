@@ -20,7 +20,7 @@ export default decorate([
           ? pools.some(pool => pool.default_SR === undefined)
           : pools.default_SR === undefined
         if (noDefaultSr) {
-          error('Error', _('hubNoDefaultSrMsg'))
+          error('Error', _('noDefaultSr'))
         } else {
           this.props.onChange({
             pools,
@@ -41,7 +41,7 @@ export default decorate([
           {_('vmImportToPool')}
           &nbsp;
           {install && (
-            <Tooltip content={_('hubHideInstalledPoolMsg')}>
+            <Tooltip content={_('hideInstalledPool')}>
               <Icon icon='info' />
             </Tooltip>
           )}

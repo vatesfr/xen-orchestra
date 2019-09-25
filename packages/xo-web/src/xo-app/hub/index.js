@@ -45,7 +45,7 @@ export default decorate([
           {isEmpty(resources) ? (
             <Col>
               <h2 className='text-muted'>
-                &nbsp; {_('hubVmNoAvailableMsg')}
+                &nbsp; {_('vmNoAvailable')}
                 <Icon icon='alarm' color='yellow' />
               </h2>
             </Col>

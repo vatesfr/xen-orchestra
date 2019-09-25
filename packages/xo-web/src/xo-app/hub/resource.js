@@ -52,12 +52,8 @@ export default decorate([
           setHubInstallLoadingState,
           version,
         } = this.props
-        const {
-          hubInstallLoadingState,
-          isTemplateInstalled,
-          isFromSources,
-        } = this.state
-        if (isFromSources) {
+        const { hubInstallLoadingState, isTemplateInstalled } = this.state
+        if (getXoaPlan(process.env.XOA_PLAN) === 'Community') {
           subscribeAlert()
           return
         }
@@ -82,18 +78,20 @@ export default decorate([
           ...hubInstallLoadingState,
           [id]: true,
         })
-        for (const pool of resourceParams.pools) {
-          try {
-            await downloadAndInstallResource({
-              namespace,
-              id,
-              version,
-              sr: pool.default_SR,
-            })
-            success('XVA import', _('hubSuccessfulInstallMsg'))
-          } catch (_error) {
-            error('Error', _error.message)
-          }
+        try {
+          await Promise.all(
+            resourceParams.pools.map(pool =>
+              downloadAndInstallResource({
+                namespace,
+                id,
+                version,
+                sr: pool.default_SR,
+              })
+            )
+          )
+          success('XVA import', _('successfulInstall'))
+        } catch (_error) {
+          error('Error', _error.message)
         }
         setHubInstallLoadingState({
           ...hubInstallLoadingState,
@@ -101,9 +99,9 @@ export default decorate([
         })
       },
       async create() {
-        const { isFromSources, isPoolCreated, installedTemplates } = this.state
+        const { isPoolCreated, installedTemplates } = this.state
         const { name } = this.props
-        if (isFromSources) {
+        if (getXoaPlan(process.env.XOA_PLAN) === 'Community') {
           subscribeAlert()
           return
         }
@@ -119,8 +117,12 @@ export default decorate([
           size: 'medium',
         })
         const { $pool } = resourceParams.pool
-        const { id } = find(installedTemplates, { $pool })
-        this.props.router.push(`/vms/new?pool=${$pool}&template=${id}`)
+        const pool = find(installedTemplates, { $pool })
+        if (pool !== undefined) {
+          this.props.router.push(`/vms/new?pool=${$pool}&template=${pool.id}`)
+        } else {
+          throw new Error(`can't find id for pool: ${$pool}`)
+        }
       },
       async deleteTemplates(__, { name }) {
         const { isPoolCreated } = this.state
@@ -160,12 +162,11 @@ export default decorate([
       },
     },
     computed: {
-      isFromSources: () => getXoaPlan(process.env.XOA_PLAN) === 'Community',
       installedTemplates: (_, { id, templates }) =>
         filter(templates, ['other.xva_id', id]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
-        installedTemplates.every(pool =>
+        pools.every(pool =>
           installedTemplates.some(template => template.$pool === pool.id)
         ),
       isTemplateInstalled: ({ installedTemplates }) => pool =>
@@ -207,21 +208,20 @@ export default decorate([
       </CardHeader>
       <CardBlock className='text-center'>
         <div>
-          <span className='text-muted'>{_('hubXvaOs')}</span>{' '}
-          <strong>{os}</strong>
+          <span className='text-muted'>{_('os')}</span> <strong>{os}</strong>
         </div>
         <div>
-          <span className='text-muted'>{_('hubXvaVersion')}</span>
+          <span className='text-muted'>{_('version')}</span>
           {'  '}
           <strong>{version}</strong>
         </div>
         <div>
-          <span className='text-muted'>{_('hubXvaSize')}</span>
+          <span className='text-muted'>{_('size')}</span>
           {'  '}
           <strong>{formatSize(size)}</strong>
         </div>
         <div>
-          <span className='text-muted'>{_('hubTotalDiskSize')}</span>
+          <span className='text-muted'>{_('totalDiskSize')}</span>
           {'  '}
           <strong>{formatSize(totalDiskSize)}</strong>
         </div>
@@ -247,7 +247,7 @@ export default decorate([
               handler={effects.create}
               icon='deploy'
             >
-              {_('hubCreateXva')}
+              {_('create')}
             </ActionButton>
           </Col>
         </Row>
