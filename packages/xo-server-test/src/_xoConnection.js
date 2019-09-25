@@ -129,7 +129,7 @@ class XoConnection extends Xo {
           // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
           bypassVdiChainsCheck: true,
 
-          // it must be 'never' to avoid race conditions with the plugin Backup Report
+          // it must be 'never' to avoid race conditions with the plugin `backup-reports`
           reportWhen: 'never',
           ...globalSetting,
         },
