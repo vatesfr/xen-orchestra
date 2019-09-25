@@ -28,7 +28,7 @@ export default decorate([
     computed: {
       resources: (_, { catalog }) =>
         orderBy(
-          map(omit(catalog, ['_namespaces']), (entry, namespace) => ({
+          map(omit(catalog, '_namespaces'), (entry, namespace) => ({
             namespace,
             ...entry.xva,
           })),
