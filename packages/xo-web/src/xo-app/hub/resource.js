@@ -89,9 +89,9 @@ export default decorate([
               })
             )
           )
-          success('XVA import', _('successfulInstall'))
+          success(_('hubImportNotificationTitle'), _('successfulInstall'))
         } catch (_error) {
-          error('Error', _error.message)
+          error(_('hubImportNotificationTitle'), _error.message)
         }
         setHubInstallLoadingState({
           ...hubInstallLoadingState,

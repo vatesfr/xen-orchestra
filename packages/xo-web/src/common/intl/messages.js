@@ -2156,6 +2156,7 @@ const messages = {
   totalDiskSize: 'Total disk size',
   hideInstalledPool: 'Already installed templates are hidden',
   hubSrErrorTitle: 'Missing property',
+  hubImportNotificationTitle: 'XVA import',
 
   // Licenses
   xosanUnregisteredDisclaimer:
