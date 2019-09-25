@@ -26,15 +26,20 @@ export default decorate([
   }),
   provideState({
     computed: {
-      resources: (_, { catalog }) =>
-        orderBy(
-          map(catalog, (entry, namespace) => ({
-            namespace,
-            ...entry.xva,
-          })),
-          'name',
-          'asc'
-        ),
+      resources: (_, { catalog }) => {
+        if (catalog !== undefined) {
+          const _catalog = { ...catalog }
+          delete _catalog._namespaces
+          return orderBy(
+            map(_catalog, (entry, namespace) => ({
+              namespace,
+              ...entry.xva,
+            })),
+            'name',
+            'asc'
+          )
+        }
+      },
     },
   }),
   injectState,

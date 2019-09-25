@@ -346,14 +346,7 @@ export const subscribeRoles = createSubscription(
 export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = ({ filters } = {}) =>
-  createSubscription(() =>
-    _call('cloud.getResourceCatalog', { filters }).then(catalog => {
-      if (catalog !== undefined) {
-        delete catalog._namespaces
-      }
-      return catalog
-    })
-  )
+  createSubscription(() => _call('cloud.getResourceCatalog', { filters }))
 
 const getNotificationCookie = () => {
   const notificationCookie = cookies.get(
