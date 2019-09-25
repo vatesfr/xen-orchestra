@@ -117,9 +117,11 @@ export default decorate([
           size: 'medium',
         })
         const { $pool } = resourceParams.pool
-        const pool = find(installedTemplates, { $pool })
-        if (pool !== undefined) {
-          this.props.router.push(`/vms/new?pool=${$pool}&template=${pool.id}`)
+        const template = find(installedTemplates, { $pool })
+        if (template !== undefined) {
+          this.props.router.push(
+            `/vms/new?pool=${$pool}&template=${template.id}`
+          )
         } else {
           throw new Error(`can't find template for pool: ${$pool}`)
         }
