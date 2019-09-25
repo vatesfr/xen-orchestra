@@ -1,8 +1,8 @@
 import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
-import forOwn from 'lodash/forOwn'
 import fromEvent from 'promise-toolbox/fromEvent'
 import { connect } from 'tls'
+import { forOwn, toPairs } from 'lodash'
 
 const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
 
@@ -10,37 +10,58 @@ const OVSDB_PORT = 6640
 
 // =============================================================================
 
+function toMap(object) {
+  return ['map', toPairs(object)]
+}
+
+// =============================================================================
+
 export class OvsdbClient {
+  /*
+  Create an SSL connection to an XCP-ng host.
+  Interact with the host's OpenVSwitch (OVS) daemon to create and manage the virtual bridges
+  corresponding to the private networks with OVSDB (OpenVSwitch DataBase) Protocol.
+  See:
+  - OVSDB Protocol: https://tools.ietf.org/html/rfc7047
+  - OVS Tunneling : http://docs.openvswitch.org/en/latest/howto/tunneling/
+  - OVS IPSEC     : http://docs.openvswitch.org/en/latest/howto/ipsec/
+
+  Attributes on created OVS ports (corresponds to a XAPI `PIF` or `VIF`):
+  - `other_config`:
+    - `xo:sdn-controller:cross-pool`       : UUID of the remote network connected by the tunnel
+    - `xo:sdn-controller:private-pool-wide`: `true` if created (and managed) by a SDN Controller
+
+  Attributes on created OVS interfaces:
+  - `options`:
+    - `key`      : Network's VNI
+    - `remote_ip`: Remote IP of the tunnel
+  */
+
   constructor(host, clientKey, clientCert, caCert) {
-    this._host = host
     this._numberOfPortAndInterface = 0
-    this._requestID = 0
+    this._requestId = 0
+
+    this._adding = []
+
+    this.host = host
 
     this.updateCertificates(clientKey, clientCert, caCert)
 
-    log.debug(`[${this._host.name_label}] New OVSDB client`)
+    log.debug('New OVSDB client', {
+      host: this.host.name_label,
+    })
   }
 
   // ---------------------------------------------------------------------------
-
-  get address() {
-    return this._host.address
-  }
-
-  get host() {
-    return this._host.$ref
-  }
-
-  get id() {
-    return this._host.$id
-  }
 
   updateCertificates(clientKey, clientCert, caCert) {
     this._clientKey = clientKey
     this._clientCert = clientCert
     this._caCert = caCert
 
-    log.debug(`[${this._host.name_label}] Certificates have been updated`)
+    log.debug('Certificates have been updated', {
+      host: this.host.name_label,
+    })
   }
 
   // ---------------------------------------------------------------------------
@@ -49,19 +70,32 @@ export class OvsdbClient {
     networkUuid,
     networkName,
     remoteAddress,
-    encapsulation
+    encapsulation,
+    key,
+    password,
+    remoteNetwork
   ) {
-    const socket = await this._connect()
-    const index = this._numberOfPortAndInterface
-    ++this._numberOfPortAndInterface
+    if (
+      this._adding.find(
+        elem => elem.id === networkUuid && elem.addr === remoteAddress
+      ) !== undefined
+    ) {
+      return
+    }
+    const adding = { id: networkUuid, addr: remoteAddress }
+    this._adding.push(adding)
 
+    const socket = await this._connect()
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
       networkName,
       socket
     )
-    if (bridgeUuid == null) {
+    if (bridgeUuid === undefined) {
       socket.destroy()
+      this._adding = this._adding.filter(
+        elem => elem.id !== networkUuid || elem.addr !== remoteAddress
+      )
       return
     }
 
@@ -73,35 +107,47 @@ export class OvsdbClient {
     )
     if (alreadyExist) {
       socket.destroy()
-      return
+      this._adding = this._adding.filter(
+        elem => elem.id !== networkUuid || elem.addr !== remoteAddress
+      )
+      return bridgeName
     }
 
-    const interfaceName = 'tunnel_iface' + index
-    const portName = 'tunnel_port' + index
+    const index = ++this._numberOfPortAndInterface
+    const interfaceName = bridgeName + '_iface' + index
+    const portName = bridgeName + '_port' + index
 
     // Add interface and port to the bridge
-    const options = ['map', [['remote_ip', remoteAddress]]]
+    const options = { remote_ip: remoteAddress, key: key }
+    if (password !== undefined) {
+      options.psk = password
+    }
     const addInterfaceOperation = {
       op: 'insert',
       table: 'Interface',
       row: {
         type: encapsulation,
-        options: options,
+        options: toMap(options),
         name: interfaceName,
-        other_config: ['map', [['private_pool_wide', 'true']]],
       },
       'uuid-name': 'new_iface',
     }
+
     const addPortOperation = {
       op: 'insert',
       table: 'Port',
       row: {
         name: portName,
         interfaces: ['set', [['named-uuid', 'new_iface']]],
-        other_config: ['map', [['private_pool_wide', 'true']]],
+        other_config: toMap(
+          remoteNetwork !== undefined
+            ? { 'xo:sdn-controller:cross-pool': remoteNetwork }
+            : { 'xo:sdn-controller:private-pool-wide': 'true' }
+        ),
       },
       'uuid-name': 'new_port',
     }
+
     const mutateBridgeOperation = {
       op: 'mutate',
       table: 'Bridge',
@@ -115,7 +161,11 @@ export class OvsdbClient {
       mutateBridgeOperation,
     ]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (jsonObjects == null) {
+
+    this._adding = this._adding.filter(
+      elem => elem.id !== networkUuid || elem.addr !== remoteAddress
+    )
+    if (jsonObjects === undefined) {
       socket.destroy()
       return
     }
@@ -126,48 +176,64 @@ export class OvsdbClient {
     let opResult
     do {
       opResult = jsonObjects[0].result[i]
-      if (opResult != null && opResult.error != null) {
+      if (opResult?.error !== undefined) {
         error = opResult.error
         details = opResult.details
       }
       ++i
-    } while (opResult && !error)
+    } while (opResult !== undefined && error === undefined)
 
-    if (error != null) {
-      log.error(
-        `[${this._host.name_label}] Error while adding port: '${portName}' and interface: '${interfaceName}' to bridge: '${bridgeName}' on network: '${networkName}' because: ${error}: ${details}`
-      )
+    if (error !== undefined) {
+      log.error('Error while adding port and interface to bridge', {
+        error,
+        details,
+        port: portName,
+        interface: interfaceName,
+        bridge: bridgeName,
+        network: networkName,
+        host: this.host.name_label,
+      })
       socket.destroy()
       return
     }
 
-    log.debug(
-      `[${this._host.name_label}] Port: '${portName}' and interface: '${interfaceName}' added to bridge: '${bridgeName}' on network: '${networkName}'`
-    )
+    log.debug('Port and interface added to bridge', {
+      port: portName,
+      interface: interfaceName,
+      bridge: bridgeName,
+      network: networkName,
+      host: this.host.name_label,
+    })
     socket.destroy()
+    return bridgeName
   }
 
-  async resetForNetwork(networkUuid, networkName) {
+  async resetForNetwork(
+    networkUuid,
+    networkName,
+    crossPoolOnly,
+    remoteNetwork
+  ) {
     const socket = await this._connect()
     const [bridgeUuid, bridgeName] = await this._getBridgeUuidForNetwork(
       networkUuid,
       networkName,
       socket
     )
-    if (bridgeUuid == null) {
+    if (bridgeUuid === undefined) {
       socket.destroy()
       return
     }
 
     // Delete old ports created by a SDN controller
     const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
-    if (ports == null) {
+    if (ports === undefined) {
       socket.destroy()
       return
     }
     const portsToDelete = []
-    for (let i = 0; i < ports.length; ++i) {
-      const portUuid = ports[i][1]
+    for (const port of ports) {
+      const portUuid = port[1]
 
       const where = [['_uuid', '==', ['uuid', portUuid]]]
       const selectResult = await this._select(
@@ -176,15 +242,25 @@ export class OvsdbClient {
         where,
         socket
       )
-      if (selectResult == null) {
+      if (selectResult === undefined) {
         continue
       }
 
       forOwn(selectResult.other_config[1], config => {
-        if (config[0] === 'private_pool_wide' && config[1] === 'true') {
-          log.debug(
-            `[${this._host.name_label}] Adding port: '${selectResult.name}' to delete list from bridge: '${bridgeName}'`
-          )
+        // 2019-09-03
+        // Compatibility code, to be removed in 1 year.
+        const oldShouldDelete =
+          (config[0] === 'private_pool_wide' && !crossPoolOnly) ||
+          (config[0] === 'cross_pool' &&
+            (remoteNetwork === undefined || remoteNetwork === config[1]))
+
+        const shouldDelete =
+          (config[0] === 'xo:sdn-controller:private-pool-wide' &&
+            !crossPoolOnly) ||
+          (config[0] === 'xo:sdn-controller:cross-pool' &&
+            (remoteNetwork === undefined || remoteNetwork === config[1]))
+
+        if (shouldDelete || oldShouldDelete) {
           portsToDelete.push(['uuid', portUuid])
         }
       })
@@ -205,21 +281,25 @@ export class OvsdbClient {
 
     const params = ['Open_vSwitch', mutateBridgeOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (jsonObjects == null) {
+    if (jsonObjects === undefined) {
       socket.destroy()
       return
     }
     if (jsonObjects[0].error != null) {
-      log.error(
-        `[${this._host.name_label}] Couldn't delete ports from bridge: '${bridgeName}' because: ${jsonObjects.error}`
-      )
+      log.error('Error while deleting ports from bridge', {
+        error: jsonObjects[0].error,
+        bridge: bridgeName,
+        host: this.host.name_label,
+      })
       socket.destroy()
       return
     }
 
-    log.debug(
-      `[${this._host.name_label}] Deleted ${jsonObjects[0].result[0].count} ports from bridge: '${bridgeName}'`
-    )
+    log.debug('Ports deleted from bridge', {
+      nPorts: jsonObjects[0].result[0].count,
+      bridge: bridgeName,
+      host: this.host.name_label,
+    })
     socket.destroy()
   }
 
@@ -235,9 +315,9 @@ export class OvsdbClient {
     for (let i = pos; i < data.length; ++i) {
       const c = data.charAt(i)
       if (c === '{') {
-        depth++
+        ++depth
       } else if (c === '}') {
-        depth--
+        --depth
         if (depth === 0) {
           const object = JSON.parse(buffer + data.substr(0, i + 1))
           objects.push(object)
@@ -257,11 +337,7 @@ export class OvsdbClient {
 
   async _getBridgeUuidForNetwork(networkUuid, networkName, socket) {
     const where = [
-      [
-        'external_ids',
-        'includes',
-        ['map', [['xs-network-uuids', networkUuid]]],
-      ],
+      ['external_ids', 'includes', toMap({ 'xs-network-uuids': networkUuid })],
     ]
     const selectResult = await this._select(
       'Bridge',
@@ -269,15 +345,16 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (selectResult == null) {
-      return [null, null]
+    if (selectResult === undefined) {
+      log.error('No bridge found for network', {
+        network: networkName,
+        host: this.host.name_label,
+      })
+      return []
     }
 
     const bridgeUuid = selectResult._uuid[1]
     const bridgeName = selectResult.name
-    log.debug(
-      `[${this._host.name_label}] Found bridge: '${bridgeName}' for network: '${networkName}'`
-    )
 
     return [bridgeUuid, bridgeName]
   }
@@ -289,26 +366,25 @@ export class OvsdbClient {
     socket
   ) {
     const ports = await this._getBridgePorts(bridgeUuid, bridgeName, socket)
-    if (ports == null) {
-      return
+    if (ports === undefined) {
+      return false
     }
 
-    for (let i = 0; i < ports.length; ++i) {
-      const portUuid = ports[i][1]
+    for (const port of ports) {
+      const portUuid = port[1]
       const interfaces = await this._getPortInterfaces(portUuid, socket)
-      if (interfaces == null) {
+      if (interfaces === undefined) {
         continue
       }
 
-      let j
-      for (j = 0; j < interfaces.length; ++j) {
-        const interfaceUuid = interfaces[j][1]
+      for (const iface of interfaces) {
+        const interfaceUuid = iface[1]
         const hasRemote = await this._interfaceHasRemote(
           interfaceUuid,
           remoteAddress,
           socket
         )
-        if (hasRemote === true) {
+        if (hasRemote) {
           return true
         }
       }
@@ -320,8 +396,8 @@ export class OvsdbClient {
   async _getBridgePorts(bridgeUuid, bridgeName, socket) {
     const where = [['_uuid', '==', ['uuid', bridgeUuid]]]
     const selectResult = await this._select('Bridge', ['ports'], where, socket)
-    if (selectResult == null) {
-      return null
+    if (selectResult === undefined) {
+      return
     }
 
     return selectResult.ports[0] === 'set'
@@ -337,8 +413,8 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (selectResult == null) {
-      return null
+    if (selectResult === undefined) {
+      return
     }
 
     return selectResult.interfaces[0] === 'set'
@@ -354,12 +430,11 @@ export class OvsdbClient {
       where,
       socket
     )
-    if (selectResult == null) {
+    if (selectResult === undefined) {
       return false
     }
 
-    for (let i = 0; i < selectResult.options[1].length; ++i) {
-      const option = selectResult.options[1][i]
+    for (const option of selectResult.options[1]) {
       if (option[0] === 'remote_ip' && option[1] === remoteAddress) {
         return true
       }
@@ -380,28 +455,36 @@ export class OvsdbClient {
 
     const params = ['Open_vSwitch', selectOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (jsonObjects == null) {
+    if (jsonObjects === undefined) {
       return
     }
     const jsonResult = jsonObjects[0].result[0]
-    if (jsonResult.error != null) {
-      log.error(
-        `[${this._host.name_label}] Couldn't retrieve: '${columns}' in: '${table}' because: ${jsonResult.error}: ${jsonResult.details}`
-      )
-      return null
+    if (jsonResult.error !== undefined) {
+      log.error('Error while selecting columns', {
+        error: jsonResult.error,
+        details: jsonResult.details,
+        columns,
+        table,
+        where,
+        host: this.host.name_label,
+      })
+      return
     }
 
     if (jsonResult.rows.length === 0) {
-      log.error(
-        `[${this._host.name_label}] No '${columns}' found in: '${table}' where: '${where}'`
-      )
-      return null
+      log.error('No result for select', {
+        columns,
+        table,
+        where,
+        host: this.host.name_label,
+      })
+      return
     }
 
     // For now all select operations should return only 1 row
     assert(
       jsonResult.rows.length === 1,
-      `[${this._host.name_label}] There should exactly 1 row when searching: '${columns}' in: '${table}' where: '${where}'`
+      `[${this.host.name_label}] There should be exactly 1 row when searching: '${columns}' in: '${table}' where: '${where}'`
     )
 
     return jsonResult.rows[0]
@@ -409,9 +492,7 @@ export class OvsdbClient {
 
   async _sendOvsdbTransaction(params, socket) {
     const stream = socket
-
-    const requestId = this._requestID
-    ++this._requestID
+    const requestId = ++this._requestId
     const req = {
       id: requestId,
       method: 'transact',
@@ -421,10 +502,11 @@ export class OvsdbClient {
     try {
       stream.write(JSON.stringify(req))
     } catch (error) {
-      log.error(
-        `[${this._host.name_label}] Error while writing into stream: ${error}`
-      )
-      return null
+      log.error('Error while writing into stream', {
+        error,
+        host: this.host.name_label,
+      })
+      return
     }
 
     let result
@@ -434,10 +516,11 @@ export class OvsdbClient {
       try {
         result = await fromEvent(stream, 'data', {})
       } catch (error) {
-        log.error(
-          `[${this._host.name_label}] Error while waiting for stream data: ${error}`
-        )
-        return null
+        log.error('Error while waiting for stream data', {
+          error,
+          host: this.host.name_label,
+        })
+        return
       }
 
       jsonObjects = this._parseJson(result)
@@ -454,7 +537,7 @@ export class OvsdbClient {
       ca: this._caCert,
       key: this._clientKey,
       cert: this._clientCert,
-      host: this._host.address,
+      host: this.host.address,
       port: OVSDB_PORT,
       rejectUnauthorized: false,
       requestCert: false,
@@ -464,18 +547,20 @@ export class OvsdbClient {
     try {
       await fromEvent(socket, 'secureConnect', {})
     } catch (error) {
-      log.error(
-        `[${this._host.name_label}] TLS connection failed because: ${error}: ${error.code}`
-      )
+      log.error('TLS connection failed', {
+        error,
+        code: error.code,
+        host: this.host.name_label,
+      })
       throw error
     }
 
-    log.debug(`[${this._host.name_label}] TLS connection successful`)
-
     socket.on('error', error => {
-      log.error(
-        `[${this._host.name_label}] OVSDB client socket error: ${error} with code: ${error.code}`
-      )
+      log.error('Socket error', {
+        error,
+        code: error.code,
+        host: this.host.name_label,
+      })
     })
 
     return socket

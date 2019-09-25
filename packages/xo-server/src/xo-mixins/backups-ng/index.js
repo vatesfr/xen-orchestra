@@ -19,6 +19,7 @@ import {
   isEmpty,
   last,
   mapValues,
+  merge,
   noop,
   some,
   sum,
@@ -43,6 +44,7 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import parseDuration from '../../_parseDuration'
+import { debounceWithKey } from '../../_pDebounceWithKey'
 import {
   type DeltaVmExport,
   type DeltaVmImport,
@@ -560,7 +562,7 @@ export default class BackupNg {
 
       const executor: Executor = async ({
         cancelToken,
-        data: vmsId,
+        data,
         job: job_,
         logger,
         runJobId,
@@ -569,6 +571,8 @@ export default class BackupNg {
         if (schedule === undefined) {
           throw new Error('backup job cannot run without a schedule')
         }
+
+        let vmsId = data?.vms
 
         const job: BackupJob = (job_: any)
         const vmsPattern = job.vms
@@ -623,7 +627,9 @@ export default class BackupNg {
           }))
         )
 
-        const timeout = getSetting(job.settings, 'timeout', [''])
+        const settings = merge(job.settings, data?.settings)
+
+        const timeout = getSetting(settings, 'timeout', [''])
         if (timeout !== 0) {
           const source = CancelToken.source([cancelToken])
           cancelToken = source.token
@@ -656,6 +662,7 @@ export default class BackupNg {
               schedule,
               logger,
               taskId,
+              settings,
               srs,
               remotes
             )
@@ -663,7 +670,7 @@ export default class BackupNg {
             // 2018-07-20, JFT: vmTimeout is disabled for the time being until
             // we figure out exactly how it should behave.
             //
-            // const vmTimeout: number = getSetting(job.settings, 'vmTimeout', [
+            // const vmTimeout: number = getSetting(settings, 'vmTimeout', [
             //   uuid,
             //   scheduleId,
             // ])
@@ -692,9 +699,7 @@ export default class BackupNg {
           }
         }
 
-        const concurrency: number = getSetting(job.settings, 'concurrency', [
-          '',
-        ])
+        const concurrency: number = getSetting(settings, 'concurrency', [''])
         if (concurrency !== 0) {
           handleVm = limitConcurrency(concurrency)(handleVm)
           logger.notice('vms', {
@@ -818,56 +823,66 @@ export default class BackupNg {
     )()
   }
 
+  @debounceWithKey.decorate(10e3, function keyFn(remoteId) {
+    return [this, remoteId]
+  })
+  async _listVmBackupsOnRemote(remoteId: string) {
+    const app = this._app
+    const backupsByVm = {}
+    try {
+      const handler = await app.getRemoteHandler(remoteId)
+
+      const entries = (await handler.list(BACKUP_DIR).catch(error => {
+        if (error == null || error.code !== 'ENOENT') {
+          throw error
+        }
+        return []
+      })).filter(name => name !== 'index.json')
+
+      await Promise.all(
+        entries.map(async vmUuid => {
+          // $FlowFixMe don't know what is the problem (JFT)
+          const backups = await this._listVmBackups(handler, vmUuid)
+
+          if (backups.length === 0) {
+            return
+          }
+
+          // inject an id usable by importVmBackupNg()
+          backups.forEach(backup => {
+            backup.id = `${remoteId}/${backup._filename}`
+
+            const { vdis, vhds } = backup
+            backup.disks =
+              vhds === undefined
+                ? []
+                : Object.keys(vhds).map(vdiId => {
+                    const vdi = vdis[vdiId]
+                    return {
+                      id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                      name: vdi.name_label,
+                      uuid: vdi.uuid,
+                    }
+                  })
+          })
+
+          backupsByVm[vmUuid] = backups
+        })
+      )
+    } catch (error) {
+      log.warn(`listVmBackups for remote ${remoteId}:`, { error })
+    }
+    return backupsByVm
+  }
+
   async listVmBackupsNg(remotes: string[]) {
     const backupsByVmByRemote: $Dict<$Dict<Metadata[]>> = {}
 
-    const app = this._app
     await Promise.all(
       remotes.map(async remoteId => {
-        try {
-          const handler = await app.getRemoteHandler(remoteId)
-
-          const entries = (await handler.list(BACKUP_DIR).catch(error => {
-            if (error == null || error.code !== 'ENOENT') {
-              throw error
-            }
-            return []
-          })).filter(name => name !== 'index.json')
-
-          const backupsByVm = (backupsByVmByRemote[remoteId] = {})
-          await Promise.all(
-            entries.map(async vmUuid => {
-              // $FlowFixMe don't know what is the problem (JFT)
-              const backups = await this._listVmBackups(handler, vmUuid)
-
-              if (backups.length === 0) {
-                return
-              }
-
-              // inject an id usable by importVmBackupNg()
-              backups.forEach(backup => {
-                backup.id = `${remoteId}/${backup._filename}`
-
-                const { vdis, vhds } = backup
-                backup.disks =
-                  vhds === undefined
-                    ? []
-                    : Object.keys(vhds).map(vdiId => {
-                        const vdi = vdis[vdiId]
-                        return {
-                          id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
-                          name: vdi.name_label,
-                          uuid: vdi.uuid,
-                        }
-                      })
-              })
-
-              backupsByVm[vmUuid] = backups
-            })
-          )
-        } catch (error) {
-          log.warn(`listVmBackups for remote ${remoteId}:`, { error })
-        }
+        backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(
+          remoteId
+        )
       })
     )
 
@@ -933,6 +948,7 @@ export default class BackupNg {
     schedule: Schedule,
     logger: any,
     taskId: string,
+    settings: Settings,
     srs: any[],
     remotes: any[]
   ): Promise<void> {
@@ -960,7 +976,7 @@ export default class BackupNg {
       )
     }
 
-    const { id: jobId, mode, settings } = job
+    const { id: jobId, mode } = job
     const { id: scheduleId } = schedule
 
     let exportRetention: number = getSetting(settings, 'exportRetention', [
@@ -1022,7 +1038,7 @@ export default class BackupNg {
       .sort(compareSnapshotTime)
 
     const bypassVdiChainsCheck: boolean = getSetting(
-      job.settings,
+      settings,
       'bypassVdiChainsCheck',
       [vmUuid, '']
     )
@@ -1142,6 +1158,21 @@ export default class BackupNg {
         $defer.call(xapi, 'deleteVm', snapshot)
       }
 
+      let compress = getJobCompression(job)
+      const pool = snapshot.$pool
+      if (
+        compress === 'zstd' &&
+        pool.restrictions.restrict_zstd_export !== 'false'
+      ) {
+        compress = false
+        logger.warning(
+          `Zstd is not supported on the pool ${pool.name_label}, the VM will be exported without compression`,
+          {
+            event: 'task.warning',
+            taskId,
+          }
+        )
+      }
       let xva: any = await wrapTask(
         {
           logger,
@@ -1149,7 +1180,7 @@ export default class BackupNg {
           parentId: taskId,
         },
         xapi.exportVm($cancelToken, snapshot, {
-          compress: getJobCompression(job),
+          compress,
         })
       )
       const exportTask = xva.task

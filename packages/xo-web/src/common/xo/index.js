@@ -43,6 +43,7 @@ import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
   disconnected,
+  markObjectsFetched,
   signedIn,
   signedOut,
   updateObjects,
@@ -150,6 +151,7 @@ export const connectStore = store => {
           objects[object.id] = object
         })
         store.dispatch(updateObjects(objects))
+        store.dispatch(markObjectsFetched())
       })
   })
   xo.on('notification', notification => {
@@ -564,7 +566,6 @@ export const getPatchesDifference = (source, target) =>
     target: resolveId(target),
   })
 
-import AddHostModalBody from './add-host-modal' // eslint-disable-line import/first
 export const addHostToPool = (pool, host) => {
   if (host) {
     return confirm({
@@ -582,18 +583,23 @@ export const addHostToPool = (pool, host) => {
       })
     )
   }
+}
 
-  return confirm({
+import AddHostsModalBody from './add-hosts-modal' // eslint-disable-line import/first
+export const addHostsToPool = pool =>
+  confirm({
     icon: 'add',
-    title: _('addHostModalTitle'),
-    body: <AddHostModalBody pool={pool} />,
+    title: _('addHostsLabel'),
+    body: <AddHostsModalBody pool={pool} />,
   }).then(params => {
-    if (!params.host) {
+    const { hosts } = params
+    if (isEmpty(hosts)) {
       error(_('addHostNoHost'), _('addHostNoHostMessage'))
       return
     }
+
     return _call('pool.mergeInto', {
-      source: params.host.$pool,
+      sources: map(hosts, '$pool'),
       target: pool.id,
       force: true,
     }).catch(error => {
@@ -601,10 +607,12 @@ export const addHostToPool = (pool, host) => {
         throw error
       }
 
-      error(_('addHostErrorTitle'), _('addHostNotHomogeneousErrorMessage'))
+      error(
+        _('addHostsErrorTitle', { nHosts: hosts.length }),
+        _('addHostNotHomogeneousErrorMessage')
+      )
     })
-  }, noop)
-}
+  })
 
 export const detachHost = host =>
   confirm({
@@ -737,7 +745,10 @@ export const stopHosts = hosts => {
     title: _('stopHostsModalTitle', { nHosts }),
     body: _('stopHostsModalMessage', { nHosts }),
   }).then(
-    () => map(hosts, host => _call('host.stop', { id: resolveId(host) })),
+    () =>
+      Promise.all(
+        map(hosts, host => _call('host.stop', { id: resolveId(host) }))
+      ),
     noop
   )
 }
@@ -776,7 +787,10 @@ export const emergencyShutdownHosts = hosts => {
   return confirm({
     title: _('emergencyShutdownHostsModalTitle', { nHosts }),
     body: _('emergencyShutdownHostsModalMessage', { nHosts }),
-  }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
+  }).then(
+    () => Promise.all(map(hosts, host => emergencyShutdownHost(host))),
+    noop
+  )
 }
 
 export const isHostTimeConsistentWithXoaTime = host =>
@@ -1024,7 +1038,10 @@ export const stopVms = (vms, force = false) =>
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length }),
   }).then(
-    () => map(vms, vm => _call('vm.stop', { id: resolveId(vm), force })),
+    () =>
+      Promise.all(
+        map(vms, vm => _call('vm.stop', { id: resolveId(vm), force }))
+      ),
     noop
   )
 
@@ -1453,7 +1470,7 @@ export const importVms = (vms, sr) =>
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = vm =>
   confirm({
-    body: <ExportVmModalBody />,
+    body: <ExportVmModalBody vm={vm} />,
     icon: 'export',
     title: _('exportVmLabel'),
   }).then(compress => {
@@ -1624,7 +1641,10 @@ export const deleteVifs = vifs =>
     title: _('deleteVifsModalTitle', { nVifs: vifs.length }),
     body: _('deleteVifsModalMessage', { nVifs: vifs.length }),
   }).then(
-    () => map(vifs, vif => _call('vif.delete', { id: resolveId(vif) })),
+    () =>
+      Promise.all(
+        map(vifs, vif => _call('vif.delete', { id: resolveId(vif) }))
+      ),
     noop
   )
 
@@ -1651,7 +1671,9 @@ export const createNetwork = params => _call('network.create', params)
 export const createBondedNetwork = params =>
   _call('network.createBonded', params)
 export const createPrivateNetwork = params =>
-  _call('plugin.SDNController.createPrivateNetwork', params)
+  _call('sdnController.createPrivateNetwork', params)
+export const createCrossPoolPrivateNetwork = params =>
+  _call('sdnController.createCrossPoolPrivateNetwork', params)
 
 export const deleteNetwork = network =>
   confirm({
@@ -1915,9 +1937,11 @@ export const deleteSchedules = schedules =>
     title: _('deleteSchedulesModalTitle', { nSchedules: schedules.length }),
     body: _('deleteSchedulesModalMessage', { nSchedules: schedules.length }),
   }).then(() =>
-    map(schedules, schedule =>
-      _call('schedule.delete', { id: resolveId(schedule) })::tap(
-        subscribeSchedules.forceRefresh
+    Promise.all(
+      map(schedules, schedule =>
+        _call('schedule.delete', { id: resolveId(schedule) })::tap(
+          subscribeSchedules.forceRefresh
+        )
       )
     )
   )
@@ -2002,7 +2026,16 @@ export const editBackupNgJob = props =>
 
 export const getBackupNgJob = id => _call('backupNg.getJob', { id })
 
-export const runBackupNgJob = params => _call('backupNg.runJob', params)
+export const runBackupNgJob = ({ force, ...params }) => {
+  if (force) {
+    params.settings = {
+      '': {
+        bypassVdiChainsCheck: true,
+      },
+    }
+  }
+  return _call('backupNg.runJob', params)
+}
 
 export const listVmBackups = remotes =>
   _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })

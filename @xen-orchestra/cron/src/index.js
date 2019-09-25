@@ -5,9 +5,16 @@ import parse from './parse'
 
 const MAX_DELAY = 2 ** 31 - 1
 
+function nextDelay(schedule) {
+  const now = schedule._createDate()
+  return next(schedule._schedule, now) - now
+}
+
 class Job {
   constructor(schedule, fn) {
     const wrapper = () => {
+      this._isRunning = true
+
       let result
       try {
         result = fn()
@@ -22,23 +29,34 @@ class Job {
       }
     }
     const scheduleNext = () => {
-      const delay = schedule._nextDelay()
-      this._timeout =
-        delay < MAX_DELAY
-          ? setTimeout(wrapper, delay)
-          : setTimeout(scheduleNext, MAX_DELAY)
+      this._isRunning = false
+
+      if (this._isEnabled) {
+        const delay = nextDelay(schedule)
+        this._timeout =
+          delay < MAX_DELAY
+            ? setTimeout(wrapper, delay)
+            : setTimeout(scheduleNext, MAX_DELAY)
+      }
     }
 
+    this._isEnabled = false
+    this._isRunning = false
     this._scheduleNext = scheduleNext
     this._timeout = undefined
   }
 
   start() {
     this.stop()
-    this._scheduleNext()
+
+    this._isEnabled = true
+    if (!this._isRunning) {
+      this._scheduleNext()
+    }
   }
 
   stop() {
+    this._isEnabled = false
     clearTimeout(this._timeout)
   }
 }
@@ -66,11 +84,6 @@ class Schedule {
       dates[i] = (date = next(schedule, date)).toDate()
     }
     return dates
-  }
-
-  _nextDelay() {
-    const now = this._createDate()
-    return next(this._schedule, now) - now
   }
 
   startJob(fn) {

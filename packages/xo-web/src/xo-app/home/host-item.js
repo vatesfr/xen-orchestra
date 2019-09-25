@@ -65,12 +65,22 @@ export default class HostItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
+  _getHostState = createSelector(
+    () => this.props.item.power_state,
+    () => this.props.item.enabled,
+    () => this.props.item.current_operations,
+    (powerState, enabled, operations) =>
+      !isEmpty(operations)
+        ? 'Busy'
+        : powerState === 'Running' && !enabled
+        ? 'Disabled'
+        : powerState
+  )
+
   render() {
     const { item: host, container, expandAll, selected, nVms } = this.props
-    const toolTipContent =
-      host.power_state === `Running` && !host.enabled
-        ? `disabled`
-        : _(`powerState${host.power_state}`)
+    const state = this._getHostState()
+
     return (
       <div className={styles.item}>
         <BlockLink to={`/hosts/${host.id}`}>
@@ -86,25 +96,19 @@ export default class HostItem extends Component {
                 &nbsp;&nbsp;
                 <Tooltip
                   content={
-                    isEmpty(host.current_operations) ? (
-                      toolTipContent
-                    ) : (
-                      <div>
-                        {toolTipContent}
-                        {' ('}
-                        {map(host.current_operations)[0]}
-                        {')'}
-                      </div>
-                    )
+                    <span>
+                      {_(`powerState${state}`)}
+                      {state === 'Busy' && (
+                        <span>
+                          {' ('}
+                          {map(host.current_operations)[0]}
+                          {')'}
+                        </span>
+                      )}
+                    </span>
                   }
                 >
-                  {!isEmpty(host.current_operations) ? (
-                    <Icon icon='busy' />
-                  ) : host.power_state === 'Running' && !host.enabled ? (
-                    <Icon icon='disabled' />
-                  ) : (
-                    <Icon icon={`${host.power_state.toLowerCase()}`} />
-                  )}
+                  <Icon icon={state.toLowerCase()} />
                 </Tooltip>
                 &nbsp;&nbsp;
                 <Ellipsis>

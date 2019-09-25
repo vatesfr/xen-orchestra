@@ -13,7 +13,6 @@ import includes from 'lodash/includes'
 import proxyConsole from './proxy-console'
 import pw from 'pw'
 import serveStatic from 'serve-static'
-import startsWith from 'lodash/startsWith'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
@@ -332,7 +331,7 @@ async function registerPluginsInPath(path) {
 
   await Promise.all(
     mapToArray(files, name => {
-      if (startsWith(name, PLUGIN_PREFIX)) {
+      if (name.startsWith(PLUGIN_PREFIX)) {
         return registerPluginWrapper.call(
           this,
           `${path}/${name}`,
@@ -428,7 +427,7 @@ const setUpProxies = (express, opts, xo) => {
     const { url } = req
 
     for (const prefix in opts) {
-      if (startsWith(url, prefix)) {
+      if (url.startsWith(prefix)) {
         const target = opts[prefix]
 
         proxy.web(req, res, {
@@ -452,7 +451,7 @@ const setUpProxies = (express, opts, xo) => {
     const { url } = req
 
     for (const prefix in opts) {
-      if (startsWith(url, prefix)) {
+      if (url.startsWith(prefix)) {
         const target = opts[prefix]
 
         proxy.ws(req, socket, head, {

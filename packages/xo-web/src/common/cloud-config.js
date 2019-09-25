@@ -14,11 +14,16 @@ const AVAILABLE_TEMPLATE_VARS = {
 const showAvailableTemplateVars = () =>
   alert(
     _('availableTemplateVarsTitle'),
-    <ul>
-      {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
-        <li key={key}>{_.keyValue(key, _(value))}</li>
-      ))}
-    </ul>
+    <div>
+      <ul>
+        {map(AVAILABLE_TEMPLATE_VARS, (value, key) => (
+          <li key={key}>{_.keyValue(key, _(value))}</li>
+        ))}
+      </ul>
+      <div className='text-info'>
+        <Icon icon='info' /> {_('templateEscape')}
+      </div>
+    </div>
   )
 
 const showNetworkConfigInfo = () =>
@@ -87,5 +92,3 @@ export const DEFAULT_NETWORK_CONFIG_TEMPLATE = `#network:
 #    name: eth0
 #    subnets:
 #      - type: dhcp`
-
-export const CAN_CLOUD_INIT = +process.env.XOA_PLAN > 3

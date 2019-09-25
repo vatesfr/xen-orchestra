@@ -5,6 +5,7 @@ import { format, JsonRpcError } from 'json-rpc-peer'
 export async function set({
   host,
 
+  iscsiIqn,
   multipathing,
   name_label: nameLabel,
   name_description: nameDescription,
@@ -12,6 +13,13 @@ export async function set({
   host = this.getXapiObject(host)
 
   await Promise.all([
+    iscsiIqn !== undefined &&
+      (host.iscsi_iqn !== undefined
+        ? host.set_iscsi_iqn(iscsiIqn)
+        : host.update_other_config(
+            'iscsi_iqn',
+            iscsiIqn === '' ? null : iscsiIqn
+          )),
     nameDescription !== undefined && host.set_name_description(nameDescription),
     nameLabel !== undefined && host.set_name_label(nameLabel),
     multipathing !== undefined &&
@@ -23,6 +31,7 @@ set.description = 'changes the properties of an host'
 
 set.params = {
   id: { type: 'string' },
+  iscsiIqn: { type: 'string', optional: true },
   name_label: {
     type: 'string',
     optional: true,
@@ -212,12 +221,7 @@ emergencyShutdownHost.resolve = {
 // -------------------------------------------------------------------
 
 export async function isHostServerTimeConsistent({ host }) {
-  try {
-    await this.getXapi(host).assertConsistentHostServerTime(host._xapiRef)
-    return true
-  } catch (e) {
-    return false
-  }
+  return this.getXapi(host).isHostServerTimeConsistent(host._xapiRef)
 }
 
 isHostServerTimeConsistent.params = {

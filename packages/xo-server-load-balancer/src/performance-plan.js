@@ -126,9 +126,7 @@ export default class PerformancePlan extends Plan {
       destinationAverages.memoryFree -= vmAverages.memory
 
       debug(
-        `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${
-          exceededHost.id
-        }).`
+        `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`
       )
       optimizationsCount++
 
@@ -143,9 +141,7 @@ export default class PerformancePlan extends Plan {
 
     await Promise.all(promises)
     debug(
-      `Performance mode: ${optimizationsCount} optimizations for Host (${
-        exceededHost.id
-      }).`
+      `Performance mode: ${optimizationsCount} optimizations for Host (${exceededHost.id}).`
     )
   }
 }

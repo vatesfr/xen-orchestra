@@ -31,7 +31,6 @@ import {
   isEmpty,
   noop,
   omit,
-  startsWith,
   uniq,
 } from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
@@ -735,9 +734,19 @@ export default class Xapi extends XapiBase {
       const { SR } = vdi
       let childrenMap = cache[SR]
       if (childrenMap === undefined) {
+        const xapi = vdi.$xapi
         childrenMap = cache[SR] = groupBy(
-          vdi.$SR.$VDIs,
-          _ => _.sm_config['vhd-parent']
+          vdi.$SR.VDIs,
+
+          // if for any reasons, the VDI is undefined, simply ignores it instead
+          // of failing
+          ref => {
+            try {
+              return xapi.getObjectByRef(ref).sm_config['vhd-parent']
+            } catch (error) {
+              log.warn('missing VDI in _assertHealthyVdiChain', { error })
+            }
+          }
         )
       }
 
@@ -830,7 +839,7 @@ export default class Xapi extends XapiBase {
       }
 
       // If the VDI name start with `[NOBAK]`, do not export it.
-      if (startsWith(vdi.name_label, '[NOBAK]')) {
+      if (vdi.name_label.startsWith('[NOBAK]')) {
         // FIXME: find a way to not create the VDI snapshot in the
         // first time.
         //
@@ -1159,6 +1168,9 @@ export default class Xapi extends XapiBase {
         {
           force: 'true',
         }
+        // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
+        // might need to be changed one day.
+        // {},
       )::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
         pDelay(1e4).then(loop)
       )
@@ -1680,12 +1692,15 @@ export default class Xapi extends XapiBase {
   }
 
   async createVdi({
+    // blindly copying `sm_config` from another VDI can create problems,
+    // therefore it is ignored by this method
+    //
+    // see https://github.com/vatesfr/xen-orchestra/issues/4482
     name_description,
     name_label,
     other_config = {},
     read_only = false,
     sharable = false,
-    sm_config,
     SR,
     tags,
     type = 'user',
@@ -1705,7 +1720,6 @@ export default class Xapi extends XapiBase {
         other_config,
         read_only: Boolean(read_only),
         sharable: Boolean(sharable),
-        sm_config,
         SR: sr.$ref,
         tags,
         type,
@@ -2027,6 +2041,7 @@ export default class Xapi extends XapiBase {
       )
     )
   }
+
   @deferrable
   async createNetwork(
     $defer,
@@ -2344,14 +2359,22 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async assertConsistentHostServerTime(hostRef) {
-    const delta =
+  async _getHostServerTimeShift(hostRef) {
+    return Math.abs(
       parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
-      Date.now()
-    if (Math.abs(delta) > 30e3) {
+        Date.now()
+    )
+  }
+
+  async isHostServerTimeConsistent(hostRef) {
+    return (await this._getHostServerTimeShift(hostRef)) < 30e3
+  }
+
+  async assertConsistentHostServerTime(hostRef) {
+    if (!(await this.isHostServerTimeConsistent(hostRef))) {
       throw new Error(
         `host server time and XOA date are not consistent with each other (${ms(
-          delta
+          await this._getHostServerTimeShift(hostRef)
         )})`
       )
     }

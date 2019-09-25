@@ -1,5 +1,4 @@
-import { startsWith } from 'lodash'
-
+import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import {
   extractProperty,
@@ -78,6 +77,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
+      zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -119,7 +119,7 @@ const TRANSFORMS = {
           size: update.installation_size,
         }
 
-        if (startsWith(update.name_label, 'XS')) {
+        if (update.name_label.startsWith('XS')) {
           // It's a patch update but for homogeneity, we're still using pool_patches
         } else {
           supplementalPacks.push(formattedUpdate)
@@ -143,7 +143,8 @@ const TRANSFORMS = {
       },
       current_operations: obj.current_operations,
       hostname: obj.hostname,
-      iSCSI_name: otherConfig.iscsi_iqn || null,
+      iscsiIqn: obj.iscsi_iqn ?? otherConfig.iscsi_iqn ?? '',
+      zstdSupported: obj.license_params.restrict_zstd_export === 'false',
       license_params: obj.license_params,
       license_server: obj.license_server,
       license_expiry: toTimestamp(obj.license_params.expiry),
@@ -265,6 +266,17 @@ const TRANSFORMS = {
       }
     }
 
+    // Build a { taskId → operation } map instead of forwarding the
+    // { taskRef → operation } map directly
+    const currentOperations = {}
+    const { $xapi } = obj
+    forEach(obj.current_operations, (operation, ref) => {
+      const task = $xapi.getObjectByRef(ref, undefined)
+      if (task !== undefined) {
+        currentOperations[task.$id] = operation
+      }
+    })
+
     const vm = {
       // type is redefined after for controllers/, templates &
       // snapshots.
@@ -281,7 +293,7 @@ const TRANSFORMS = {
             ? +metrics.VCPUs_number
             : +obj.VCPUs_at_startup,
       },
-      current_operations: obj.current_operations,
+      current_operations: currentOperations,
       docker: (function() {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
@@ -474,7 +486,10 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: obj.device_config,
+      device_config: sensitiveValues.replace(
+        obj.device_config,
+        '* obfuscated *'
+      ),
       otherConfig: obj.other_config,
     }
   },
@@ -519,6 +534,7 @@ const TRANSFORMS = {
 
       name_description: obj.name_description,
       name_label: obj.name_label,
+      parent: obj.sm_config['vhd-parent'],
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,

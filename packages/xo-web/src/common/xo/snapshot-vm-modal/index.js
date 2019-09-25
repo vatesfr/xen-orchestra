@@ -1,10 +1,11 @@
 import _ from 'intl'
 import React from 'react'
 import BaseComponent from 'base-component'
-import { forEach } from 'lodash'
-import { createGetObjectsOfType } from 'selectors'
-import { buildTemplate, connectStore } from 'utils'
+import { compileTemplate } from '@xen-orchestra/template'
+import { connectStore } from 'utils'
 import { Container, Col, Row } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
+import { forEach } from 'lodash'
 
 const RULES = {
   '{date}': () => new Date().toISOString(),
@@ -30,8 +31,8 @@ export default class SnapshotVmModalBody extends BaseComponent {
       return { names: {}, descriptions: {}, saveMemory }
     }
 
-    const generateName = buildTemplate(namePattern, RULES)
-    const generateDescription = buildTemplate(descriptionPattern, RULES)
+    const generateName = compileTemplate(namePattern, RULES)
+    const generateDescription = compileTemplate(descriptionPattern, RULES)
     const names = {}
     const descriptions = {}
 

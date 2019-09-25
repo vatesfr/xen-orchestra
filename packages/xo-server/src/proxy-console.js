@@ -13,9 +13,7 @@ export default function proxyConsole(ws, vmConsole, sessionId) {
     hostname = address
 
     log.warn(
-      `host is missing in console (${vmConsole.uuid}) URI (${
-        vmConsole.location
-      }) using host address (${address}) as fallback`
+      `host is missing in console (${vmConsole.uuid}) URI (${vmConsole.location}) using host address (${address}) as fallback`
     )
   }
 

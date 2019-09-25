@@ -27,8 +27,8 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^0.9.0",
-    "cli-progress": "^2.0.0",
+    "@xen-orchestra/fs": "^0.10.1",
+    "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
     "struct-fu": "^1.2.0",
@@ -43,7 +43,7 @@
     "execa": "^2.0.2",
     "index-modules": "^0.3.0",
     "promise-toolbox": "^0.13.0",
-    "rimraf": "^2.6.1",
+    "rimraf": "^3.0.0",
     "tmp": "^0.1.0"
   },
   "scripts": {

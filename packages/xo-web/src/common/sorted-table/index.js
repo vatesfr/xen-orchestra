@@ -24,7 +24,6 @@ import {
   isFunction,
   map,
   sortBy,
-  startsWith,
 } from 'lodash'
 
 import ActionRowButton from '../action-row-button'
@@ -327,7 +326,7 @@ export default class SortedTable extends Component {
             const { props } = this
             const userData = {}
             Object.keys(props).forEach(key => {
-              if (startsWith(key, 'data-')) {
+              if (key.startsWith('data-')) {
                 userData[key.slice(5)] = props[key]
               }
             })

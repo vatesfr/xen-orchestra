@@ -259,7 +259,7 @@ export default {
     affinityHost: {
       get: 'affinity',
       set: (value, vm) =>
-        vm.set_affinity(value ? this.getObject(value).$ref : NULL_REF),
+        vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : NULL_REF),
     },
 
     autoPoweron: {
@@ -276,19 +276,20 @@ export default {
         if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
           throw new Error(`The virtualization mode must be 'pv' or 'hvm'`)
         }
-        return vm
-          .set_domain_type(virtualizationMode)
-          ::pCatch({ code: 'MESSAGE_METHOD_UNKNOWN' }, () =>
-            vm.set_HVM_boot_policy(
+        return vm.set_domain_type !== undefined
+          ? vm.set_domain_type(virtualizationMode)
+          : vm.set_HVM_boot_policy(
               virtualizationMode === 'hvm' ? 'Boot order' : ''
             )
-          )
       },
     },
 
     coresPerSocket: {
       set: (coresPerSocket, vm) =>
-        vm.update_platform('cores-per-socket', String(coresPerSocket)),
+        vm.update_platform(
+          'cores-per-socket',
+          coresPerSocket !== null ? String(coresPerSocket) : null
+        ),
     },
 
     CPUs: 'cpus',
@@ -306,13 +307,16 @@ export default {
       get: vm => +vm.VCPUs_at_startup,
       set: [
         'VCPUs_at_startup',
-        (value, vm) => isVmRunning(vm) && vm.set_VCPUs_number_live(value),
+        (value, vm) =>
+          isVmRunning(vm) &&
+          vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),
       ],
     },
 
     cpuCap: {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
-      set: (cap, vm) => vm.update_VCPUs_params('cap', String(cap)),
+      set: (cap, vm) =>
+        vm.update_VCPUs_params('cap', cap !== null ? String(cap) : null),
     },
 
     cpuMask: {
@@ -461,8 +465,9 @@ export default {
 
   async revertVm(snapshotId, snapshotBefore = true) {
     const snapshot = this.getObject(snapshotId)
+    let newSnapshot
     if (snapshotBefore) {
-      await this._snapshotVm(snapshot.$snapshot_of)
+      newSnapshot = await this._snapshotVm(snapshot.$snapshot_of)
     }
     await this.callAsync('VM.revert', snapshot.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
@@ -473,6 +478,7 @@ export default {
         this.resumeVm(vm.$id)::ignoreErrors()
       }
     }
+    return newSnapshot
   },
 
   async resumeVm(vmId) {

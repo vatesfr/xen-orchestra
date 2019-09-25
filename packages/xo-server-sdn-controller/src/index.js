@@ -1,9 +1,10 @@
 import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
 import NodeOpenssl from 'node-openssl-cert'
+import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
-import { filter, find, forOwn, map } from 'lodash'
+import { filter, find, forOwn, map, omitBy, sample } from 'lodash'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { join } from 'path'
 
@@ -48,7 +49,6 @@ export const configurationSchema = {
 
 async function fileWrite(path, data) {
   await fromCallback(writeFile, path, data)
-  log.debug(`${path} successfully written`)
 }
 
 async function fileRead(path) {
@@ -60,7 +60,7 @@ async function fileExists(path) {
   try {
     await fromCallback(access, path, constants.F_OK)
   } catch (error) {
-    if (error.code === 'ENOENT') {
+    if (error?.code === 'ENOENT') {
       return false
     }
 
@@ -70,9 +70,67 @@ async function fileExists(path) {
   return true
 }
 
+// -----------------------------------------------------------------------------
+
+// 2019-09-03
+// Compatibility code, to be removed in 1 year.
+function updateNetworkOtherConfig(network) {
+  return Promise.all(
+    map(
+      {
+        'cross-pool-network-uuid': 'cross_pool_network_uuid',
+        encapsulation: 'encapsulation',
+        'pif-device': 'pif_device',
+        'private-pool-wide': 'private_pool_wide',
+        vni: 'vni',
+      },
+      (oldKey, newKey) => {
+        const namespacedKey = `xo:sdn-controller:${newKey}`
+        if (network.other_config[namespacedKey] !== undefined) {
+          // Nothing to do the update has been done already
+          return
+        }
+
+        const value = network.other_config[oldKey]
+        if (value !== undefined) {
+          return network.update_other_config({
+            [oldKey]: null,
+            [namespacedKey]: value,
+          })
+        }
+      }
+    )
+  )
+}
+
+// -----------------------------------------------------------------------------
+
+function createPassword() {
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
+  return Array.from({ length: 16 }, _ => sample(chars)).join('')
+}
+
 // =============================================================================
 
 class SDNController extends EventEmitter {
+  /*
+  Attributes on created networks:
+  - `other_config`:
+    - `xo:sdn-controller:encapsulation`    : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
+    - `xo:sdn-controller:encrypted`        : `true` if the network is encrypted
+    - `xo:sdn-controller:pif-device`       : PIF device on which the tunnels are created, must be physical and have an IP configuration
+    - `xo:sdn-controller:private-pool-wide`: `true` if the network is created (and so must be managed) by a SDN Controller
+    - `xo:sdn-controller:vni`              : VxLAN Network Identifier,
+        it is used by OpenVSwitch to route traffic of different networks in a single tunnel
+        See: https://tools.ietf.org/html/rfc7348
+
+  Attributes on created tunnels: See: https://xapi-project.github.io/xapi/design/tunnelling.html
+  - `status`:
+    - `active`: `true` if the corresponding OpenVSwitch bridge is correctly configured and working
+    - `key`   : Corresponding OpenVSwitch bridge name (missing if `active` is `false`)
+  */
+
   constructor({ xo, getDataDir }) {
     super()
 
@@ -80,11 +138,8 @@ class SDNController extends EventEmitter {
 
     this._getDataDir = getDataDir
 
-    this._clientKey = null
-    this._clientCert = null
-    this._caCert = null
-
     this._poolNetworks = []
+    this._crossPoolNetworks = {}
     this._ovsdbClients = []
     this._newHosts = []
 
@@ -97,7 +152,7 @@ class SDNController extends EventEmitter {
 
     this._overrideCerts = false
 
-    this._unsetApiMethod = null
+    this._prevVni = 0
   }
 
   // ---------------------------------------------------------------------------
@@ -106,7 +161,7 @@ class SDNController extends EventEmitter {
     this._overrideCerts = configuration['override-certs']
     let certDirectory = configuration['cert-dir']
 
-    if (certDirectory == null) {
+    if (certDirectory === undefined) {
       log.debug(`No cert-dir provided, using default self-signed certificates`)
       certDirectory = await this._getDataDir()
 
@@ -137,8 +192,7 @@ class SDNController extends EventEmitter {
       client.updateCertificates(this._clientKey, this._clientCert, this._caCert)
     })
     const updatedPools = []
-    for (let i = 0; i < this._poolNetworks.length; ++i) {
-      const poolNetwork = this._poolNetworks[i]
+    for (const poolNetwork of this._poolNetworks) {
       if (updatedPools.includes(poolNetwork.pool)) {
         continue
       }
@@ -150,7 +204,15 @@ class SDNController extends EventEmitter {
   }
 
   async load() {
-    const createPrivateNetwork = this._createPrivateNetwork.bind(this)
+    // Expose method to create pool-wide private network
+    const createPrivateNetwork = params =>
+      this._createPrivateNetwork({
+        encrypted: false,
+        mtu: 0,
+        ...params,
+        vni: ++this._prevVni,
+      })
+
     createPrivateNetwork.description =
       'Creates a pool-wide private network on a selected pool'
     createPrivateNetwork.params = {
@@ -158,55 +220,178 @@ class SDNController extends EventEmitter {
       networkName: { type: 'string' },
       networkDescription: { type: 'string' },
       encapsulation: { type: 'string' },
+      pifId: { type: 'string' },
+      encrypted: { type: 'boolean', optional: true },
+      mtu: { type: 'integer', optional: true },
     }
     createPrivateNetwork.resolve = {
       xoPool: ['poolId', 'pool', ''],
+      xoPif: ['pifId', 'PIF', ''],
     }
-    this._unsetApiMethod = this._xo.addApiMethod(
-      'plugin.SDNController.createPrivateNetwork',
-      createPrivateNetwork
-    )
+
+    // Expose method to create cross-pool private network
+    const createCrossPoolPrivateNetwork = params =>
+      this._createCrossPoolPrivateNetwork({ encrypted: false, mtu: 0, ...params })
+
+    createCrossPoolPrivateNetwork.description =
+      'Creates a cross-pool private network on selected pools'
+    createCrossPoolPrivateNetwork.params = {
+      xoPoolIds: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+      networkName: { type: 'string' },
+      networkDescription: { type: 'string' },
+      encapsulation: { type: 'string' },
+      xoPifIds: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+      encrypted: { type: 'boolean', optional: true },
+      mtu: { type: 'integer', optional: true },
+    }
+
+    this._unsetApiMethods = this._xo.addApiMethods({
+      sdnController: {
+        createCrossPoolPrivateNetwork,
+        createPrivateNetwork,
+      },
+    })
 
     // FIXME: we should monitor when xapis are added/removed
-    forOwn(this._xo.getAllXapis(), async xapi => {
-      await xapi.objectsFetched
+    this._xapis = this._xo.getAllXapis()
+    await Promise.all(
+      map(this._xapis, async xapi => {
+        await xapi.objectsFetched
 
-      if (this._setControllerNeeded(xapi) === false) {
+        if (this._setControllerNeeded(xapi)) {
+          return
+        }
+
         this._cleaners.push(await this._manageXapi(xapi))
-
         const hosts = filter(xapi.objects.all, { $type: 'host' })
-        await Promise.all(
-          map(hosts, async host => {
-            this._createOvsdbClient(host)
-          })
-        )
+        for (const host of hosts) {
+          this._createOvsdbClient(host)
+        }
 
-        // Add already existing pool-wide private networks
+        // Add already existing pool-wide & cross-pool private networks
         const networks = filter(xapi.objects.all, { $type: 'network' })
-        forOwn(networks, async network => {
-          if (network.other_config.private_pool_wide === 'true') {
-            log.debug(
-              `Adding network: '${network.name_label}' for pool: '${network.$pool.name_label}' to managed networks`
-            )
+        const noVniNetworks = []
+        await Promise.all(
+          map(networks, async network => {
+            // 2019-09-03
+            // Compatibility code, to be removed in 1 year.
+            await updateNetworkOtherConfig(network)
+            network = await network.$xapi.barrier(network.$ref)
+
+            const otherConfig = network.other_config
+            if (otherConfig['xo:sdn-controller:private-pool-wide'] !== 'true') {
+              return
+            }
+
+            const vni = otherConfig['xo:sdn-controller:vni']
+            if (vni === undefined) {
+              noVniNetworks.push(network)
+            } else {
+              this._prevVni = Math.max(this._prevVni, +vni)
+            }
+
+            log.debug('Adding network to managed networks', {
+              network: network.name_label,
+              pool: network.$pool.name_label,
+            })
             const center = await this._electNewCenter(network, true)
+
+            // Previously created network didn't store `pif_device`
+            //
+            // 2019-08-22
+            // This is used to add the pif_device to networks created before this version. (v0.1.2)
+            // This will be removed in 1 year.
+            if (otherConfig['xo:sdn-controller:pif-device'] === undefined) {
+              const tunnel = this._getHostTunnelForNetwork(center, network.$ref)
+              const pif = xapi.getObjectByRef(tunnel.transport_PIF)
+              await network.update_other_config(
+                'xo:sdn-controller:pif-device',
+                pif.device
+              )
+            }
+
             this._poolNetworks.push({
               pool: network.$pool.$ref,
               network: network.$ref,
-              starCenter: center ? center.$ref : null,
+              starCenter: center?.$ref,
             })
             this._networks.set(network.$id, network.$ref)
-            if (center != null) {
+            if (center !== undefined) {
               this._starCenters.set(center.$id, center.$ref)
             }
-          }
-        })
-      }
-    })
+
+            const crossPoolNetworkUuid =
+              otherConfig['xo:sdn-controller:cross-pool-network-uuid']
+            if (crossPoolNetworkUuid !== undefined) {
+              let crossPoolNetwork = this._crossPoolNetworks[
+                crossPoolNetworkUuid
+              ]
+              if (crossPoolNetwork === undefined) {
+                crossPoolNetwork = {
+                  pools: [],
+                  networks: [],
+                  uuid: crossPoolNetworkUuid,
+                }
+                log.debug('Adding cross-pool network', {
+                  uuid: crossPoolNetworkUuid,
+                })
+                this._crossPoolNetworks[crossPoolNetworkUuid] = crossPoolNetwork
+              }
+
+              crossPoolNetwork.pools.push(network.$pool.$ref)
+              crossPoolNetwork.networks.push(network.$ref)
+              log.debug('Pool network added to cross-pool network', {
+                network: network.name_label,
+                pool: network.$pool.name_label,
+                uuid: crossPoolNetworkUuid,
+              })
+            }
+          })
+        )
+
+        // Add VNI to other config of networks without VNI
+        //
+        // 2019-08-22
+        // This is used to add the VNI to networks created before this version. (v0.1.3)
+        // This will be removed in 1 year.
+        await Promise.all(
+          map(noVniNetworks, async network => {
+            await network.update_other_config(
+              'xo:sdn-controller:vni',
+              String(++this._prevVni)
+            )
+
+            // Re-elect a center to apply the VNI
+            const center = await this._electNewCenter(network, true)
+            if (center !== undefined) {
+              this._starCenters.set(center.$id, center.$ref)
+            }
+          })
+        )
+      })
+    )
+
+    await Promise.all(
+      map(this._crossPoolNetworks, crossPoolNetwork =>
+        this._electNewPoolCenter(crossPoolNetwork)
+      )
+    )
   }
 
   async unload() {
     this._ovsdbClients = []
     this._poolNetworks = []
+    this._crossPoolNetworks = {}
     this._newHosts = []
 
     this._networks.clear()
@@ -215,7 +400,7 @@ class SDNController extends EventEmitter {
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners = []
 
-    this._unsetApiMethod()
+    this._unsetApiMethods()
   }
 
   // ===========================================================================
@@ -225,48 +410,121 @@ class SDNController extends EventEmitter {
     networkName,
     networkDescription,
     encapsulation,
+    xoPif,
+    vni,
+    encrypted,
+    mtu,
   }) {
     const pool = this._xo.getXapiObject(xoPool)
     await this._setPoolControllerIfNeeded(pool)
+
+    const pif = this._xo.getXapiObject(xoPif)
 
     // Create the private network
     const privateNetworkRef = await pool.$xapi.call('network.create', {
       name_label: networkName,
       name_description: networkDescription,
-      MTU: 0,
+      MTU: mtu,
       other_config: {
+        // Set `automatic` to false so XenCenter does not get confused
+        // See: https://citrix.github.io/xenserver-sdk/#network
         automatic: 'false',
-        private_pool_wide: 'true',
-        encapsulation: encapsulation,
+        'xo:sdn-controller:encapsulation': encapsulation,
+        'xo:sdn-controller:encrypted': encrypted ? 'true' : undefined,
+        'xo:sdn-controller:pif-device': pif.device,
+        'xo:sdn-controller:private-pool-wide': 'true',
+        'xo:sdn-controller:vni': String(vni),
       },
     })
 
     const privateNetwork = await pool.$xapi._getOrWaitObject(privateNetworkRef)
 
-    log.info(
-      `Private network '${privateNetwork.name_label}' has been created for pool '${pool.name_label}'`
-    )
+    log.info('New private network created', {
+      network: privateNetwork.name_label,
+      pool: pool.name_label,
+    })
 
     // For each pool's host, create a tunnel to the private network
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
     await Promise.all(
       map(hosts, async host => {
-        await this._createTunnel(host, privateNetwork)
+        await this._createTunnel(host, privateNetwork, pif.device)
         this._createOvsdbClient(host)
       })
     )
 
     const center = await this._electNewCenter(privateNetwork, false)
-    this._poolNetworks.push({
+    const poolNetwork = {
       pool: pool.$ref,
       network: privateNetwork.$ref,
-      starCenter: center ? center.$ref : null,
-      encapsulation: encapsulation,
-    })
+      starCenter: center?.$ref,
+    }
+    this._poolNetworks.push(poolNetwork)
     this._networks.set(privateNetwork.$id, privateNetwork.$ref)
-    if (center != null) {
+    if (center !== undefined) {
       this._starCenters.set(center.$id, center.$ref)
     }
+
+    return poolNetwork
+  }
+
+  async _createCrossPoolPrivateNetwork({
+    xoPoolIds,
+    networkName,
+    networkDescription,
+    encapsulation,
+    xoPifIds,
+    encrypted,
+    mtu,
+  }) {
+    const uuid = uuidv4()
+    const crossPoolNetwork = {
+      pools: [],
+      networks: [],
+      uuid,
+    }
+
+    log.debug('New cross-pool network created', { uuid })
+
+    const vni = ++this._prevVni
+    for (const xoPoolId of xoPoolIds) {
+      const xoPool = this._xo.getObject(xoPoolId, 'pool')
+      const pool = this._xo.getXapiObject(xoPool)
+
+      const xoPifId = find(xoPifIds, id => {
+        const pif = this._xo.getXapiObject(this._xo.getObject(id, 'PIF'))
+        return pif.$pool.$ref === pool.$ref
+      })
+      const xoPif = this._xo.getObject(xoPifId, 'PIF')
+
+      const poolNetwork = await this._createPrivateNetwork({
+        xoPool,
+        networkName,
+        networkDescription,
+        encapsulation,
+        xoPif,
+        vni,
+        encrypted,
+        mtu,
+      })
+
+      const network = pool.$xapi.getObjectByRef(poolNetwork.network)
+      await network.update_other_config(
+        'xo:sdn-controller:cross-pool-network-uuid',
+        uuid
+      )
+
+      crossPoolNetwork.pools.push(poolNetwork.pool)
+      crossPoolNetwork.networks.push(poolNetwork.network)
+      log.debug('Pool network added to cross-pool network', {
+        network: networkName,
+        pool: pool.name_label,
+        uuid,
+      })
+    }
+
+    await this._electNewPoolCenter(crossPoolNetwork)
+    this._crossPoolNetworks[uuid] = crossPoolNetwork
   }
 
   // ---------------------------------------------------------------------------
@@ -288,60 +546,63 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _objectsAdded(objects) {
-    await Promise.all(
-      map(objects, async object => {
-        const { $type } = object
+  _objectsAdded(objects) {
+    forOwn(objects, object => {
+      const { $type } = object
 
-        if ($type === 'host') {
-          log.debug(
-            `New host: '${object.name_label}' in pool: '${object.$pool.name_label}'`
-          )
+      if ($type === 'host') {
+        log.debug('New host', {
+          host: object.name_label,
+          pool: object.$pool.name_label,
+        })
 
-          if (find(this._newHosts, { $ref: object.$ref }) == null) {
-            this._newHosts.push(object)
-          }
-          this._createOvsdbClient(object)
+        if (find(this._newHosts, { $ref: object.$ref }) === undefined) {
+          this._newHosts.push(object)
         }
-      })
-    )
+        this._createOvsdbClient(object)
+      }
+    })
   }
 
-  async _objectsUpdated(objects) {
-    await Promise.all(
-      map(objects, async (object, id) => {
+  _objectsUpdated(objects) {
+    forOwn(objects, async object => {
+      try {
         const { $type } = object
-
         if ($type === 'PIF') {
           await this._pifUpdated(object)
         } else if ($type === 'host') {
           await this._hostUpdated(object)
+        } else if ($type === 'host_metrics') {
+          await this._hostMetricsUpdated(object)
         }
-      })
-    )
+      } catch (error) {
+        log.error('Error in _objectsUpdated', {
+          error,
+          object,
+        })
+      }
+    })
   }
 
-  async _objectsRemoved(xapi, objects) {
-    await Promise.all(
-      map(objects, async (object, id) => {
-        const client = find(this._ovsdbClients, { id: id })
-        if (client != null) {
-          this._ovsdbClients.splice(this._ovsdbClients.indexOf(client), 1)
-        }
+  _objectsRemoved(xapi, objects) {
+    forOwn(objects, async (object, id) => {
+      try {
+        this._ovsdbClients = this._ovsdbClients.filter(
+          client => client.host.$id !== id
+        )
 
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
-        if (starCenterRef != null) {
+        if (starCenterRef !== undefined) {
           this._starCenters.delete(id)
           const poolNetworks = filter(this._poolNetworks, {
             starCenter: starCenterRef,
           })
-          for (let i = 0; i < poolNetworks.length; ++i) {
-            const poolNetwork = poolNetworks[i]
-            const network = await xapi._getOrWaitObject(poolNetwork.network)
+          for (const poolNetwork of poolNetworks) {
+            const network = xapi.getObjectByRef(poolNetwork.network)
             const newCenter = await this._electNewCenter(network, true)
-            poolNetwork.starCenter = newCenter ? newCenter.$ref : null
-            if (newCenter != null) {
+            poolNetwork.starCenter = newCenter?.$ref
+            if (newCenter !== undefined) {
               this._starCenters.set(newCenter.$id, newCenter.$ref)
             }
           }
@@ -350,135 +611,182 @@ class SDNController extends EventEmitter {
 
         // If a network is removed, clean this._poolNetworks from it
         const networkRef = this._networks.get(id)
-        if (networkRef != null) {
+        if (networkRef !== undefined) {
           this._networks.delete(id)
-          const poolNetwork = find(this._poolNetworks, {
-            network: networkRef,
-          })
-          if (poolNetwork != null) {
-            this._poolNetworks.splice(
-              this._poolNetworks.indexOf(poolNetwork),
-              1
+          this._poolNetworks = this._poolNetworks.filter(
+            poolNetwork => poolNetwork.network !== networkRef
+          )
+
+          forOwn(this._crossPoolNetworks, crossPoolNetwork => {
+            crossPoolNetwork.networks = crossPoolNetwork.networks.filter(
+              ref => ref !== networkRef
             )
-          }
+          })
+
+          this._crossPoolNetworks = omitBy(
+            this._crossPoolNetworks,
+            crossPoolNetwork => crossPoolNetwork.networks.length === 0
+          )
         }
-      })
-    )
+      } catch (error) {
+        log.error('Error in _objectsRemoved', {
+          error,
+          object,
+        })
+      }
+    })
   }
 
   async _pifUpdated(pif) {
     // Only if PIF is in a private network
     const poolNetwork = find(this._poolNetworks, { network: pif.network })
-    if (poolNetwork == null) {
+    if (poolNetwork === undefined) {
       return
     }
 
     if (!pif.currently_attached) {
+      const tunnel = this._getHostTunnelForNetwork(pif.$host, pif.network)
+      await tunnel.set_status({ active: 'false' })
       if (poolNetwork.starCenter !== pif.host) {
         return
       }
 
       log.debug(
-        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' star-center host: '${pif.$host.name_label}' has been unplugged, electing a new host`
+        'PIF of star-center host has been unplugged, electing a new star-center',
+        {
+          pif: pif.device,
+          network: pif.$network.name_label,
+          host: pif.$host.name_label,
+          pool: pif.$pool.name_label,
+        }
       )
       const newCenter = await this._electNewCenter(pif.$network, true)
-      poolNetwork.starCenter = newCenter ? newCenter.$ref : null
+      poolNetwork.starCenter = newCenter?.$ref
       this._starCenters.delete(pif.$host.$id)
-      if (newCenter != null) {
+      if (newCenter !== undefined) {
         this._starCenters.set(newCenter.$id, newCenter.$ref)
       }
     } else {
-      if (poolNetwork.starCenter == null) {
+      if (poolNetwork.starCenter === undefined) {
         const host = pif.$host
-        log.debug(
-          `First available host: '${host.name_label}' becomes star center of network: '${pif.$network.name_label}'`
-        )
+        log.debug('First available host becomes star center of network', {
+          host: host.name_label,
+          network: pif.$network.name_label,
+          pool: pif.$pool.name_label,
+        })
         poolNetwork.starCenter = pif.host
         this._starCenters.set(host.$id, host.$ref)
+
+        const crossPoolNetwork = find(
+          this._crossPoolNetworks,
+          crossPoolNetwork => crossPoolNetwork.networks.includes(pif.network)
+        )
+        if (crossPoolNetwork !== undefined) {
+          if (crossPoolNetwork.poolCenter !== undefined) {
+            const centerPoolNetwork = this._getPoolNetwork(
+              crossPoolNetwork.poolCenter,
+              crossPoolNetwork
+            )
+            await this._resetCrossPoolConnections(
+              poolNetwork,
+              crossPoolNetwork.uuid
+            )
+            await this._clearCenterPoolFromNetwork(
+              centerPoolNetwork,
+              poolNetwork,
+              crossPoolNetwork.uuid
+            )
+            await this._connectNetworks(
+              poolNetwork,
+              centerPoolNetwork,
+              crossPoolNetwork.uuid
+            )
+          } else {
+            crossPoolNetwork.poolCenter = host.$pool.$ref
+            log.debug(
+              'First available pool becomes pool center of cross-pool network',
+              {
+                network: pif.network,
+                pool: host.$pool.name_label,
+                uuid: crossPoolNetwork.uuid,
+              }
+            )
+          }
+        }
       }
 
-      log.debug(
-        `PIF: '${pif.device}' of network: '${pif.$network.name_label}' host: '${pif.$host.name_label}' has been plugged`
-      )
+      log.debug('PIF plugged', {
+        pif: pif.device,
+        network: pif.$network.name_label,
+        host: pif.$host.name_label,
+        pool: pif.$pool.name_label,
+      })
 
-      const starCenter = await pif.$xapi._getOrWaitObject(
-        poolNetwork.starCenter
-      )
+      const starCenter = pif.$xapi.getObjectByRef(poolNetwork.starCenter)
       await this._addHostToNetwork(pif.$host, pif.$network, starCenter)
     }
   }
 
   async _hostUpdated(host) {
-    const xapi = host.$xapi
-
     if (host.enabled) {
       if (host.PIFs.length === 0) {
         return
       }
 
-      const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
       const newHost = find(this._newHosts, { $ref: host.$ref })
-      if (newHost != null) {
-        this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
-        try {
-          await xapi.call('pool.certificate_sync')
-        } catch (error) {
-          log.error(
-            `Couldn't sync SDN controller ca certificate in pool: '${host.$pool.name_label}' because: ${error}`
-          )
-        }
-      }
-      for (let i = 0; i < tunnels.length; ++i) {
-        const tunnel = tunnels[i]
-        const accessPIF = await xapi._getOrWaitObject(tunnel.access_PIF)
-        if (accessPIF.host !== host.$ref) {
-          continue
-        }
+      if (newHost !== undefined) {
+        this._newHosts = this._newHosts.slice(
+          this._newHosts.indexOf(newHost),
+          1
+        )
 
-        const poolNetwork = find(this._poolNetworks, {
-          network: accessPIF.network,
+        log.debug('Sync pool certificates', {
+          newHost: host.name_label,
+          pool: host.$pool.name_label,
         })
-        if (poolNetwork == null) {
-          continue
-        }
-
-        if (accessPIF.currently_attached) {
-          continue
-        }
-
-        log.debug(
-          `Pluging PIF: '${accessPIF.device}' for host: '${host.name_label}' on network: '${accessPIF.$network.name_label}'`
-        )
         try {
-          await xapi.call('PIF.plug', accessPIF.$ref)
+          await host.$xapi.call('pool.certificate_sync')
         } catch (error) {
-          log.error(
-            `XAPI error while pluging PIF: '${accessPIF.device}' on host: '${host.name_label}' for network: '${accessPIF.$network.name_label}'`
+          log.error('Error while syncing SDN controller CA certificate', {
+            error,
+            pool: host.$pool.name_label,
+          })
+        }
+
+        const poolNetworks = filter(this._poolNetworks, {
+          pool: host.$pool.$ref,
+        })
+        for (const poolNetwork of poolNetworks) {
+          const tunnel = this._getHostTunnelForNetwork(
+            host,
+            poolNetwork.network
           )
+          if (tunnel !== undefined) {
+            continue
+          }
+
+          const network = host.$xapi.getObjectByRef(poolNetwork.network)
+          const pifDevice =
+            network.other_config['xo:sdn-controller:pif-device'] ?? 'eth0'
+          await this._createTunnel(host, network, pifDevice)
         }
 
-        const starCenter = await host.$xapi._getOrWaitObject(
-          poolNetwork.starCenter
-        )
-        await this._addHostToNetwork(host, accessPIF.$network, starCenter)
-      }
-    } else {
-      const poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
-      for (let i = 0; i < poolNetworks.length; ++i) {
-        const poolNetwork = poolNetworks[i]
-        const network = await host.$xapi._getOrWaitObject(poolNetwork.network)
-        log.debug(
-          `Star center host: '${host.name_label}' of network: '${network.name_label}' in pool: '${host.$pool.name_label}' is no longer reachable, electing a new host`
-        )
-
-        const newCenter = await this._electNewCenter(network, true)
-        poolNetwork.starCenter = newCenter ? newCenter.$ref : null
-        this._starCenters.delete(host.$id)
-        if (newCenter != null) {
-          this._starCenters.set(newCenter.$id, newCenter.$ref)
-        }
+        await this._addHostToPoolNetworks(host)
       }
     }
+  }
+
+  _hostMetricsUpdated(hostMetrics) {
+    const ovsdbClient = find(
+      this._ovsdbClients,
+      client => client.host.metrics === hostMetrics.$ref
+    )
+
+    if (hostMetrics.live) {
+      return this._addHostToPoolNetworks(ovsdbClient.host)
+    }
+
+    return this._hostUnreachable(ovsdbClient.host)
   }
 
   // ---------------------------------------------------------------------------
@@ -490,21 +798,24 @@ class SDNController extends EventEmitter {
     }
 
     const controller = find(pool.$xapi.objects.all, { $type: 'SDN_controller' })
-    if (controller != null) {
+    if (controller !== undefined) {
       await pool.$xapi.call('SDN_controller.forget', controller.$ref)
-      log.debug(`Remove old SDN controller from pool: '${pool.name_label}'`)
+      log.debug('Old SDN controller removed', {
+        pool: pool.name_label,
+      })
     }
 
     await pool.$xapi.call('SDN_controller.introduce', PROTOCOL)
-    log.debug(`Set SDN controller of pool: '${pool.name_label}'`)
+    log.debug('SDN controller has been set', {
+      pool: pool.name_label,
+    })
     this._cleaners.push(await this._manageXapi(pool.$xapi))
   }
 
   _setControllerNeeded(xapi) {
     const controller = find(xapi.objects.all, { $type: 'SDN_controller' })
     return !(
-      controller != null &&
-      controller.protocol === PROTOCOL &&
+      controller?.protocol === PROTOCOL &&
       controller.address === '' &&
       controller.port === 0
     )
@@ -520,15 +831,16 @@ class SDNController extends EventEmitter {
         needInstall = true
       } else if (this._overrideCerts) {
         await xapi.call('pool.certificate_uninstall', SDN_CONTROLLER_CERT)
-        log.debug(
-          `Old SDN Controller CA certificate uninstalled on pool: '${xapi.pool.name_label}'`
-        )
+        log.debug('Old SDN controller CA certificate uninstalled', {
+          pool: xapi.pool.name_label,
+        })
         needInstall = true
       }
     } catch (error) {
-      log.error(
-        `Couldn't retrieve certificate list of pool: '${xapi.pool.name_label}'`
-      )
+      log.error('Error while retrieving certificate list', {
+        error,
+        pool: xapi.pool.name_label,
+      })
     }
     if (!needInstall) {
       return
@@ -541,88 +853,361 @@ class SDNController extends EventEmitter {
         this._caCert.toString()
       )
       await xapi.call('pool.certificate_sync')
-      log.debug(
-        `SDN controller CA certificate install in pool: '${xapi.pool.name_label}'`
-      )
+      log.debug('SDN controller CA certficate installed', {
+        pool: xapi.pool.name_label,
+      })
     } catch (error) {
-      log.error(
-        `Couldn't install SDN controller CA certificate in pool: '${xapi.pool.name_label}' because: ${error}`
-      )
+      log.error('Error while installing SDN controller CA certificate', {
+        error,
+        pool: xapi.pool.name_label,
+      })
     }
   }
 
   // ---------------------------------------------------------------------------
 
+  async _electNewPoolCenter(crossPoolNetwork) {
+    delete crossPoolNetwork.poolCenter
+
+    let centerPoolNetwork
+    const crossPoolCenter = crossPoolNetwork.pools.find(poolRef => {
+      centerPoolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
+      return centerPoolNetwork.starCenter !== undefined
+    })
+    if (crossPoolCenter !== undefined) {
+      const xapi = find(this._xapis, xapi => xapi.pool.$ref === crossPoolCenter)
+      const network = xapi.getObjectByRef(centerPoolNetwork.network)
+      const pool = xapi.getObjectByRef(crossPoolCenter)
+      crossPoolNetwork.poolCenter = crossPoolCenter
+      log.debug('New pool center in cross-pool network', {
+        network: network.name_label,
+        poolCenter: pool.name_label,
+        uuid: crossPoolNetwork.uuid,
+      })
+    } else {
+      log.error('No available pool center for cross-pool network', {
+        uuid: crossPoolNetwork.uuid,
+      })
+      return
+    }
+
+    await this._resetCrossPoolConnections(
+      centerPoolNetwork,
+      crossPoolNetwork.uuid
+    )
+    for (const poolRef of crossPoolNetwork.pools) {
+      if (poolRef === crossPoolNetwork.poolCenter) {
+        continue
+      }
+
+      const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
+      await this._resetCrossPoolConnections(poolNetwork, crossPoolNetwork.uuid)
+      await this._connectNetworks(
+        poolNetwork,
+        centerPoolNetwork,
+        crossPoolNetwork.uuid
+      )
+    }
+  }
+
   async _electNewCenter(network, resetNeeded) {
     const pool = network.$pool
 
-    let newCenter = null
+    let newCenter
     const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
+
+    for (const host of hosts) {
+      const pif = find(host.$PIFs, { network: network.$ref })
+      if (pif?.currently_attached && host.$metrics.live) {
+        newCenter = host
+      }
+    }
+
     await Promise.all(
       map(hosts, async host => {
-        if (resetNeeded) {
-          // Clean old ports and interfaces
-          const hostClient = find(this._ovsdbClients, { host: host.$ref })
-          if (hostClient != null) {
-            try {
-              await hostClient.resetForNetwork(network.uuid, network.name_label)
-            } catch (error) {
-              log.error(
-                `Couldn't reset network: '${network.name_label}' for host: '${host.name_label}' in pool: '${network.$pool.name_label}' because: ${error}`
-              )
-              return
-            }
-          }
-        }
-
-        if (newCenter != null) {
+        if (!resetNeeded) {
           return
         }
 
-        const pif = find(host.$PIFs, { network: network.$ref })
-        if (pif != null && pif.currently_attached && host.enabled) {
-          newCenter = host
+        // Clean old ports and interfaces
+        const hostClient = find(
+          this._ovsdbClients,
+          client => client.host.$ref === host.$ref
+        )
+        if (hostClient !== undefined) {
+          try {
+            await hostClient.resetForNetwork(
+              network.uuid,
+              network.name_label,
+              false
+            )
+          } catch (error) {
+            log.error('Error while resetting private network', {
+              error,
+              network: network.name_label,
+              host: host.name_label,
+              pool: network.$pool.name_label,
+            })
+          }
         }
       })
     )
 
-    if (newCenter == null) {
-      log.error(
-        `Unable to elect a new star-center host to network: '${network.name_label}' for pool: '${network.$pool.name_label}' because there's no available host`
-      )
-      return null
+    const crossPoolNetwork = find(this._crossPoolNetworks, crossPoolNetwork =>
+      crossPoolNetwork.networks.includes(network.$ref)
+    )
+    if (newCenter === undefined) {
+      log.error('No available host to elect new star-center', {
+        network: network.name_label,
+        pool: network.$pool.name_label,
+      })
+
+      // Re-elect a cross-pool center if needed
+      if (crossPoolNetwork?.poolCenter === network.$pool.$ref) {
+        const centerPoolNetwork = this._getPoolNetwork(
+          crossPoolNetwork.poolCenter,
+          crossPoolNetwork
+        )
+        delete centerPoolNetwork.starCenter
+        await this._electNewPoolCenter(crossPoolNetwork)
+      }
+
+      return
     }
 
     // Recreate star topology
     await Promise.all(
-      await map(hosts, async host => {
-        await this._addHostToNetwork(host, network, newCenter)
-      })
+      map(hosts, host => this._addHostToNetwork(host, network, newCenter))
     )
 
-    log.info(
-      `New star center host elected: '${newCenter.name_label}' in network: '${network.name_label}'`
-    )
+    log.info('New star-center elected', {
+      center: newCenter.name_label,
+      network: network.name_label,
+      pool: network.$pool.name_label,
+    })
+
+    // If the network is cross-pool: reconnect to other networks
+    if (crossPoolNetwork !== undefined) {
+      const centerPoolNetwork = this._getPoolNetwork(
+        crossPoolNetwork.poolCenter,
+        crossPoolNetwork
+      )
+      if (crossPoolNetwork.poolCenter === newCenter.$pool.$ref) {
+        centerPoolNetwork.starCenter = newCenter.$ref
+        await this._resetCrossPoolConnections(
+          centerPoolNetwork,
+          crossPoolNetwork.uuid
+        )
+        for (const poolRef of crossPoolNetwork.pools) {
+          if (poolRef === crossPoolNetwork.poolCenter) {
+            continue
+          }
+          const poolNetwork = this._getPoolNetwork(poolRef, crossPoolNetwork)
+          await this._resetCrossPoolConnections(
+            poolNetwork,
+            crossPoolNetwork.uuid
+          )
+          await this._connectNetworks(
+            poolNetwork,
+            centerPoolNetwork,
+            crossPoolNetwork.uuid
+          )
+        }
+      } else {
+        const poolNetwork = this._getPoolNetwork(
+          newCenter.$pool.$ref,
+          crossPoolNetwork
+        )
+        poolNetwork.starCenter = newCenter.$ref
+        await this._resetCrossPoolConnections(poolNetwork)
+        await this._clearCenterPoolFromNetwork(
+          centerPoolNetwork,
+          poolNetwork,
+          crossPoolNetwork.uuid
+        )
+        await this._connectNetworks(
+          poolNetwork,
+          centerPoolNetwork,
+          crossPoolNetwork.uuid
+        )
+      }
+    }
 
     return newCenter
   }
 
-  async _createTunnel(host, network) {
-    const pif = host.$PIFs.find(
-      pif => pif.physical && pif.ip_configuration_mode !== 'None'
-    )
-    if (pif == null) {
-      log.error(
-        `No PIF found to create tunnel on host: '${host.name_label}' for network: '${network.name_label}'`
-      )
+  async _createTunnel(host, network, pifDevice) {
+    const hostPif = find(host.$PIFs, { device: pifDevice })
+    if (hostPif === undefined) {
+      log.error("Can't create tunnel: no available PIF", {
+        pif: pifDevice,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
       return
     }
 
-    await host.$xapi.call('tunnel.create', pif.$ref, network.$ref)
-    log.debug(
-      `Tunnel added on host '${host.name_label}' for network '${network.name_label}'`
-    )
+    try {
+      await host.$xapi.call('tunnel.create', hostPif.$ref, network.$ref)
+    } catch (error) {
+      log.error('Error while creating tunnel', {
+        error,
+        pif: pifDevice,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+      return
+    }
+
+    log.debug('New tunnel added', {
+      pif: pifDevice,
+      network: network.name_label,
+      host: host.name_label,
+      pool: host.$pool.name_label,
+    })
   }
+
+  // ---------------------------------------------------------------------------
+
+  async _clearCenterPoolFromNetwork(
+    centerPoolNetwork,
+    poolNetwork,
+    crossPoolNetworkUuid
+  ) {
+    const centerClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === centerPoolNetwork.starCenter
+    )
+    if (centerClient === undefined) {
+      return
+    }
+
+    const client = find(
+      this._ovsdbClients,
+      client => client.host.$ref === poolNetwork.starCenter
+    )
+    if (client === undefined) {
+      return
+    }
+
+    const centerNetwork = centerClient.host.$xapi.getObjectByRef(
+      centerPoolNetwork.network
+    )
+    const remoteNetwork = client.host.$xapi.getObjectByRef(poolNetwork.network)
+    try {
+      await centerClient.resetForNetwork(
+        centerNetwork.uuid,
+        centerNetwork.name_label,
+        true,
+        remoteNetwork.uuid
+      )
+    } catch (error) {
+      log.error('Error while clearing pool center from network', {
+        error,
+        network: remoteNetwork.name_label,
+        host: client.host.name_label,
+        remotePool: remoteNetwork.$pool.name_label,
+        uuid: crossPoolNetworkUuid,
+      })
+    }
+  }
+
+  async _resetCrossPoolConnections(poolNetwork, uuid) {
+    const client = find(
+      this._ovsdbClients,
+      client => client.host.$ref === poolNetwork.starCenter
+    )
+    if (client === undefined) {
+      return
+    }
+
+    const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
+    try {
+      await client.resetForNetwork(network.uuid, network.name_label, true)
+    } catch (error) {
+      log.error('Error while resetting cross pool connections', {
+        error,
+        network: network.name_label,
+        host: client.host.name_label,
+        uuid,
+      })
+    }
+  }
+
+  async _connectNetworks(poolNetwork, centerPoolNetwork, uuid) {
+    const client = find(
+      this._ovsdbClients,
+      client => client.host.$ref === poolNetwork.starCenter
+    )
+    if (client === undefined) {
+      return
+    }
+
+    const centerClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === centerPoolNetwork.starCenter
+    )
+    const centerNetwork = centerClient.host.$xapi.getObjectByRef(
+      centerPoolNetwork.network
+    )
+    const network = client.host.$xapi.getObjectByRef(poolNetwork.network)
+
+    // Use centerNetwork VNI by convention
+    const otherConfig = centerNetwork.other_config
+    const encapsulation =
+      otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
+    const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
+    const password =
+      otherConfig['xo:sdn-controller:encrypted'] === 'true'
+        ? createPassword()
+        : undefined
+
+    try {
+      await Promise.all([
+        client.addInterfaceAndPort(
+          network.uuid,
+          network.name_label,
+          centerClient.host.address,
+          encapsulation,
+          vni,
+          password,
+          centerNetwork.uuid
+        ),
+        centerClient.addInterfaceAndPort(
+          centerNetwork.uuid,
+          centerNetwork.name_label,
+          client.host.address,
+          encapsulation,
+          vni,
+          password,
+          network.uuid
+        ),
+      ])
+    } catch (error) {
+      log.error('Error while connecting networks', {
+        error,
+        network: network.name_label,
+        host: client.host.name_label,
+        pool: client.host.$pool.name_label,
+        centerHost: centerClient.host.name_label,
+        centerPool: centerClient.host.$pool.name_label,
+        uuid,
+      })
+      return
+    }
+    log.debug('Networks connected', {
+      network: network.name_label,
+      host: client.host.name_label,
+      pool: client.host.$pool.name_label,
+      centerHost: centerClient.host.name_label,
+      centerPool: centerClient.host.$pool.name_label,
+      uuid,
+    })
+  }
+
+  // ---------------------------------------------------------------------------
 
   async _addHostToNetwork(host, network, starCenter) {
     if (host.$ref === starCenter.$ref) {
@@ -630,54 +1215,209 @@ class SDNController extends EventEmitter {
       return
     }
 
-    const hostClient = find(this._ovsdbClients, {
-      host: host.$ref,
-    })
-    if (hostClient == null) {
-      log.error(`No OVSDB client found for host: '${host.name_label}'`)
+    const tunnel = this._getHostTunnelForNetwork(host, network.$ref)
+    if (tunnel === undefined) {
+      log.info('Unable to add host to network: no tunnel available', {
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
       return
     }
 
-    const starCenterClient = find(this._ovsdbClients, {
-      host: starCenter.$ref,
-    })
-    if (starCenterClient == null) {
-      log.error(
-        `No OVSDB client found for star-center host: '${starCenter.name_label}'`
-      )
+    const starCenterTunnel = this._getHostTunnelForNetwork(
+      starCenter,
+      network.$ref
+    )
+    await tunnel.set_status({ active: 'false' })
+
+    const hostClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === host.$ref
+    )
+    if (hostClient === undefined) {
+      log.error('No OVSDB client found', {
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
       return
     }
 
+    const starCenterClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === starCenter.$ref
+    )
+    if (starCenterClient === undefined) {
+      log.error('No OVSDB client found for star-center', {
+        host: starCenter.name_label,
+        pool: starCenter.$pool.name_label,
+      })
+      return
+    }
+
+    const otherConfig = network.other_config
     const encapsulation =
-      network.other_config.encapsulation != null
-        ? network.other_config.encapsulation
-        : 'gre'
+      otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
+    const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
 
+    const password =
+      otherConfig['xo:sdn-controller:encrypted'] === 'true'
+        ? createPassword()
+        : undefined
+
+    let bridgeName
     try {
-      await hostClient.addInterfaceAndPort(
-        network.uuid,
-        network.name_label,
-        starCenterClient.address,
-        encapsulation
-      )
-      await starCenterClient.addInterfaceAndPort(
-        network.uuid,
-        network.name_label,
-        hostClient.address,
-        encapsulation
-      )
+      ;[bridgeName] = await Promise.all([
+        hostClient.addInterfaceAndPort(
+          network.uuid,
+          network.name_label,
+          starCenterClient.host.address,
+          encapsulation,
+          vni,
+          password
+        ),
+        starCenterClient.addInterfaceAndPort(
+          network.uuid,
+          network.name_label,
+          hostClient.host.address,
+          encapsulation,
+          vni,
+          password
+        ),
+      ])
     } catch (error) {
-      log.error(
-        `Couldn't add host: '${host.name_label}' to network: '${network.name_label}' in pool: '${host.$pool.name_label}' because: ${error}`
-      )
+      log.error('Error while connecting host to private network', {
+        error,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+      return
     }
+
+    if (bridgeName !== undefined) {
+      const activeStatus = { active: 'true', key: bridgeName }
+      await Promise.all([
+        tunnel.set_status(activeStatus),
+        starCenterTunnel.set_status(activeStatus),
+      ])
+    }
+  }
+
+  async _addHostToPoolNetworks(host) {
+    const xapi = host.$xapi
+
+    const tunnels = filter(xapi.objects.all, { $type: 'tunnel' })
+    for (const tunnel of tunnels) {
+      const accessPif = xapi.getObjectByRef(tunnel.access_PIF)
+      if (accessPif.host !== host.$ref) {
+        continue
+      }
+
+      const poolNetwork = find(this._poolNetworks, {
+        network: accessPif.network,
+      })
+      if (poolNetwork === undefined || accessPif.currently_attached) {
+        continue
+      }
+
+      try {
+        await xapi.call('PIF.plug', accessPif.$ref)
+      } catch (error) {
+        log.error('Error while plugging PIF', {
+          error,
+          pif: accessPif.device,
+          network: accessPif.$network.name_label,
+          host: host.name_label,
+          pool: host.$pool.name_label,
+        })
+        continue
+      }
+
+      log.debug('PIF plugged', {
+        pif: accessPif.device,
+        network: accessPif.$network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+
+      const starCenter = xapi.getObjectByRef(poolNetwork.starCenter)
+      await this._addHostToNetwork(host, accessPif.$network, starCenter)
+    }
+  }
+
+  async _hostUnreachable(host) {
+    let poolNetworks = filter(this._poolNetworks, { starCenter: host.$ref })
+    for (const poolNetwork of poolNetworks) {
+      const network = host.$xapi.getObjectByRef(poolNetwork.network)
+      log.debug('Unreachable star-center, electing a new one', {
+        network: network.name_label,
+        center: host.name_label,
+        pool: host.$pool.name_label,
+      })
+
+      const newCenter = await this._electNewCenter(network, true)
+      poolNetwork.starCenter = newCenter?.$ref
+      this._starCenters.delete(host.$id)
+      if (newCenter !== undefined) {
+        this._starCenters.set(newCenter.$id, newCenter.$ref)
+      }
+    }
+
+    poolNetworks = this._poolNetworks.filter(
+      poolNetwork => poolNetwork.pool === host.$pool.$ref
+    )
+    await Promise.all(
+      map(poolNetworks, poolNetwork => {
+        const tunnel = this._getHostTunnelForNetwork(host, poolNetwork.network)
+        if (tunnel !== undefined) {
+          return tunnel.set_status({ active: 'false' })
+        }
+      })
+    )
+  }
+
+  // ---------------------------------------------------------------------------
+
+  _getPoolNetwork(poolRef, crossPoolNetwork) {
+    const xapi = find(this._xapis, xapi => xapi.pool.$ref === poolRef)
+    const networkRef = find(crossPoolNetwork.networks, networkRef => {
+      try {
+        const network = xapi.getObjectByRef(networkRef)
+        return network.$pool.$ref === poolRef
+      } catch (error) {
+        return false
+      }
+    })
+
+    return find(this._poolNetworks, {
+      pool: poolRef,
+      network: networkRef,
+    })
+  }
+
+  _getHostTunnelForNetwork(host, networkRef) {
+    const pif = find(host.$PIFs, { network: networkRef })
+    if (pif === undefined) {
+      return
+    }
+
+    const tunnel = find(host.$xapi.objects.all, {
+      $type: 'tunnel',
+      access_PIF: pif.$ref,
+    })
+
+    return tunnel
   }
 
   // ---------------------------------------------------------------------------
 
   _createOvsdbClient(host) {
-    const foundClient = find(this._ovsdbClients, { host: host.$ref })
-    if (foundClient != null) {
+    const foundClient = find(
+      this._ovsdbClients,
+      client => client.host.$ref === host.$ref
+    )
+    if (foundClient !== undefined) {
       return foundClient
     }
 
@@ -717,15 +1457,22 @@ class SDNController extends EventEmitter {
       subject: subject,
     }
 
-    openssl.generateRSAPrivateKey(rsakeyoptions, (err, cakey, cmd) => {
-      if (err) {
-        log.error(`Error while generating CA private key: ${err}`)
+    // In all the following callbacks, `error` is:
+    // - either an error object if there was an error
+    // - or a boolean set to `false` if no error occurred
+    openssl.generateRSAPrivateKey(rsakeyoptions, (error, cakey, cmd) => {
+      if (error !== false) {
+        log.error('Error while generating CA private key', {
+          error,
+        })
         return
       }
 
-      openssl.generateCSR(cacsroptions, cakey, null, (err, csr, cmd) => {
-        if (err) {
-          log.error(`Error while generating CA certificate: ${err}`)
+      openssl.generateCSR(cacsroptions, cakey, null, (error, csr, cmd) => {
+        if (error !== false) {
+          log.error('Error while generating CA certificate', {
+            error,
+          })
           return
         }
 
@@ -734,45 +1481,58 @@ class SDNController extends EventEmitter {
           cacsroptions,
           cakey,
           null,
-          async (err, cacrt, cmd) => {
-            if (err) {
-              log.error(`Error while signing CA certificate: ${err}`)
+          async (error, cacrt, cmd) => {
+            if (error !== false) {
+              log.error('Error while signing CA certificate', {
+                error,
+              })
               return
             }
 
             await fileWrite(join(dataDir, CA_CERT), cacrt)
             openssl.generateRSAPrivateKey(
               rsakeyoptions,
-              async (err, key, cmd) => {
-                if (err) {
-                  log.error(`Error while generating private key: ${err}`)
+              async (error, key, cmd) => {
+                if (error !== false) {
+                  log.error('Error while generating private key', {
+                    error,
+                  })
                   return
                 }
 
                 await fileWrite(join(dataDir, CLIENT_KEY), key)
-                openssl.generateCSR(csroptions, key, null, (err, csr, cmd) => {
-                  if (err) {
-                    log.error(`Error while generating certificate: ${err}`)
-                    return
-                  }
-                  openssl.CASignCSR(
-                    csr,
-                    cacsroptions,
-                    false,
-                    cacrt,
-                    cakey,
-                    null,
-                    async (err, crt, cmd) => {
-                      if (err) {
-                        log.error(`Error while signing certificate: ${err}`)
-                        return
-                      }
-
-                      await fileWrite(join(dataDir, CLIENT_CERT), crt)
-                      this.emit('certWritten')
+                openssl.generateCSR(
+                  csroptions,
+                  key,
+                  null,
+                  (error, csr, cmd) => {
+                    if (error !== false) {
+                      log.error('Error while generating certificate', {
+                        error,
+                      })
+                      return
                     }
-                  )
-                })
+                    openssl.CASignCSR(
+                      csr,
+                      cacsroptions,
+                      false,
+                      cacrt,
+                      cakey,
+                      null,
+                      async (error, crt, cmd) => {
+                        if (error !== false) {
+                          log.error('Error while signing certificate', {
+                            error,
+                          })
+                          return
+                        }
+
+                        await fileWrite(join(dataDir, CLIENT_CERT), crt)
+                        this.emit('certWritten')
+                      }
+                    )
+                  }
+                )
               }
             )
           }

@@ -293,6 +293,10 @@ export default class {
   async connectXenServer(id) {
     const server = (await this._getXenServer(id)).properties
 
+    if (this._getXenServerStatus(id) !== 'disconnected') {
+      throw new Error('the server is already connected')
+    }
+
     const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: server.allowUnauthorized,
       readOnly: server.readOnly,

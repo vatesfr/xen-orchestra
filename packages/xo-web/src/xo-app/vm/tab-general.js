@@ -14,6 +14,7 @@ import { FormattedRelative, FormattedDate } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 import { Number, Size } from 'editable'
 import {
+  createCollectionWrapper,
   createFinder,
   createGetObjectsOfType,
   createGetVmLastShutdownTime,
@@ -48,6 +49,15 @@ export default connectStore(() => {
 
   return {
     lastShutdownTime: createGetVmLastShutdownTime(),
+    tasks: createGetObjectsOfType('task')
+      .pick(
+        createSelector(
+          (_, { vm }) => vm.current_operations,
+          createCollectionWrapper(Object.keys)
+        )
+      )
+      .filter({ status: 'pending' })
+      .sort(),
     vgpu: getAttachedVgpu,
     vgpuTypes: getVgpuTypes,
   }
@@ -55,6 +65,7 @@ export default connectStore(() => {
   ({
     lastShutdownTime,
     statsOverview,
+    tasks,
     vgpu,
     vgpuTypes,
     vm,
@@ -63,7 +74,6 @@ export default connectStore(() => {
     const {
       addresses,
       CPUs: cpus,
-      current_operations: currentOperations,
       id,
       installTime,
       memory,
@@ -221,12 +231,18 @@ export default connectStore(() => {
             </h2>
           </Col>
         </Row>
-        {isEmpty(currentOperations) ? null : (
+        {isEmpty(tasks) ? null : (
           <Row className='text-xs-center'>
             <Col>
-              <h4>
-                {_('vmCurrentStatus')} {map(currentOperations)[0]}
-              </h4>
+              <h4>{_('vmCurrentStatus')}</h4>
+              {map(tasks, task => (
+                <p>
+                  <strong>{task.name_label}</strong>
+                  {task.progress > 0 && (
+                    <span>: {Math.round(task.progress * 100)}%</span>
+                  )}
+                </p>
+              ))}
             </Col>
           </Row>
         )}

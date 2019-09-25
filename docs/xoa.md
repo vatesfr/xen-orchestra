@@ -22,26 +22,36 @@ For use on huge infrastructure (more than 500+ VMs), feel free to increase the R
 
 ### The quickest way
 
-The fastest way to install Xen Orchestra is to use our appliance deploy script. You can deploy it by connecting to your XenServer host and executing the following:
+The **fastest and most secure way** to install Xen Orchestra is to use our web deploy page. Go on https://xen-orchestra.com/#!/xoa and follow instructions.
+
+> **Note:** no data will be sent to our servers, it's running only between your browser and your host!
+
+![](./assets/deploy_form.png)
+
+### Via a bash script
+
+Alternatively, you can deploy it by connecting to your XenServer host and executing the following:
 
 ```
 bash -c "$(curl -s http://xoa.io/deploy)"
 ```
-**Note:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.  
 
-Now follow the instructions:
+> **Note:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
+
+Follow the instructions:
 
 * Your IP configuration will be requested: it's set to **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
 * If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS should be provided.
 * XOA will be deployed on your default storage repository. You can move it elsewhere anytime after.
 
-### The alternative
+### Via download the XVA
 
 Download XOA from xen-orchestra.com. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
 
 After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` or with XenCenter.
 
 ## First Login
+
 Once you have started the VM, you can access the web UI by putting the IP you configured during deployment into your web browser. If you did not configure an IP or are unsure, try one of the following methods to find it:  
 
 * Run `xe vm-list params=name-label,networks | grep -A 1 XOA` on your host

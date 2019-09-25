@@ -10,6 +10,7 @@ import SelectCompression from 'select-compression'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import UserError from 'user-error'
+import ZstdChecker from 'zstd-checker'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
@@ -124,6 +125,12 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
+const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
+  (!copyMode && !exportMode && !snapshotMode) ||
+  (copyMode && schedule.copyRetention > 0) ||
+  (exportMode && schedule.exportRetention > 0) ||
+  (snapshotMode && schedule.snapshotRetention > 0)
+
 const createDoesRetentionExist = name => {
   const predicate = setting => setting[name] > 0
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
@@ -133,7 +140,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
   setHomeVmIdsSelection([]) // Clear preselected vmIds
   return {
     _displayAdvancedSettings: undefined,
-     _proxyId: undefined,
+    _proxyId: undefined,
     _vmsPattern: undefined,
     backupMode: false,
     compression: undefined,
@@ -223,21 +230,41 @@ export default decorate([
           }
         }
 
-        await createBackupNgJob({
-          compression: state.compression,
-          mode: state.isDelta ? 'delta' : 'full',
-          name: state.name,
-          proxy: state.proxyId === null ? undefined : state.proxyId,
-          schedules: mapValues(
+        let schedules, settings
+        if (!isEmpty(state.schedules)) {
+          schedules = mapValues(
             state.schedules,
             ({ id, ...schedule }) => schedule
-          ),
-          settings: normalizeSettings({
+          )
+          settings = normalizeSettings({
             settings: state.settings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
             snapshotMode: state.snapshotMode,
-          }).toObject(),
+          }).toObject()
+        } else {
+          const id = generateId()
+          schedules = {
+            [id]: DEFAULT_SCHEDULE,
+          }
+          settings = {
+            [id]: {
+              copyRetention: state.copyMode ? DEFAULT_RETENTION : undefined,
+              exportRetention: state.exportMode ? DEFAULT_RETENTION : undefined,
+              snapshotRetention: state.snapshotMode
+                ? DEFAULT_RETENTION
+                : undefined,
+            },
+          }
+        }
+
+        await createBackupNgJob({
+          name: state.name,
+          mode: state.isDelta ? 'delta' : 'full',
+          compression: state.compression,
+          proxy: state.proxyId === null ? undefined : state.proxyId,
+          schedules,
+          settings,
           remotes:
             state.deltaMode || state.backupMode
               ? constructPattern(state.remotes)
@@ -417,11 +444,13 @@ export default decorate([
         { copyMode, exportMode, snapshotMode },
         { intl: { formatMessage } }
       ) => {
+        const modes = { copyMode, exportMode, snapshotMode }
         const schedule = await form({
           defaultValue: storedSchedule,
           render: props => (
             <NewSchedule
-              modes={{ copyMode, exportMode, snapshotMode }}
+              missingRetentions={!checkRetentions(props.value, modes)}
+              modes={modes}
               {...props}
             />
           ),
@@ -432,13 +461,7 @@ export default decorate([
           ),
           size: 'large',
           handler: value => {
-            if (
-              !(
-                (exportMode && value.exportRetention > 0) ||
-                (copyMode && value.copyRetention > 0) ||
-                (snapshotMode && value.snapshotRetention > 0)
-              )
-            ) {
+            if (!checkRetentions(value, modes)) {
               throw new UserError(_('newScheduleError'), _('retentionNeeded'))
             }
             return value
@@ -600,13 +623,16 @@ export default decorate([
       missingRemotes: state =>
         (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
       missingSrs: state => (state.drMode || state.crMode) && isEmpty(state.srs),
-      missingSchedules: state => isEmpty(state.schedules),
-      missingExportRetention: state =>
-        state.exportMode && !state.exportRetentionExists,
-      missingCopyRetention: state =>
-        state.copyMode && !state.copyRetentionExists,
-      missingSnapshotRetention: state =>
-        state.snapshotMode && !state.snapshotRetentionExists,
+      missingSchedules: (state, { job }) =>
+        job !== undefined && isEmpty(state.schedules),
+      missingExportRetention: (state, { job }) =>
+        job !== undefined && state.exportMode && !state.exportRetentionExists,
+      missingCopyRetention: (state, { job }) =>
+        job !== undefined && state.copyMode && !state.copyRetentionExists,
+      missingSnapshotRetention: (state, { job }) =>
+        job !== undefined &&
+        state.snapshotMode &&
+        !state.snapshotRetentionExists,
       exportMode: state => state.backupMode || state.deltaMode,
       copyMode: state => state.drMode || state.crMode,
       exportRetentionExists: createDoesRetentionExist('exportRetention'),
@@ -626,6 +652,7 @@ export default decorate([
           get(() => hostsById[$container].version) ||
             get(() => hostsById[poolsById[$container].master].version)
         ),
+      selectedVmIds: state => resolveIds(state.vms),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ proxyId, remotes }) => remote => {
         if (proxyId === null) {
@@ -1039,15 +1066,20 @@ export default decorate([
                       />
                     </Upgrade>
                   ) : (
-                    <FormFeedback
-                      component={SelectVm}
-                      message={_('missingVms')}
-                      multi
-                      onChange={effects.setVms}
-                      error={state.showErrors ? state.missingVms : undefined}
-                      value={state.vms}
-                      predicate={state.vmPredicate}
-                    />
+                    <div>
+                      <FormFeedback
+                        component={SelectVm}
+                        error={state.showErrors ? state.missingVms : undefined}
+                        message={_('missingVms')}
+                        multi
+                        onChange={effects.setVms}
+                        predicate={state.vmPredicate}
+                        value={state.vms}
+                      />
+                      {compression === 'zstd' && (
+                        <ZstdChecker vms={state.selectedVmIds} />
+                      )}
+                    </div>
                   )}
                 </CardBlock>
               </Card>

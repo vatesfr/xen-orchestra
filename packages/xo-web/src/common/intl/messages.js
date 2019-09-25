@@ -21,6 +21,7 @@ const messages = {
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
+  tryXoa: 'Try XOA for free and deploy it here.',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -571,7 +572,9 @@ const messages = {
   newSrCreate: 'Create',
   newSrNamePlaceHolder: 'Storage name',
   newSrDescPlaceHolder: 'Storage description',
-  newSrAddressPlaceHolder: 'Address',
+  newSrIscsiAddressPlaceHolder: 'e.g 93.184.216.34 or iscsi.example.net',
+  newSrNfsAddressPlaceHolder: 'e.g 93.184.216.34 or nfs.example.net',
+  newSrSmbAddressPlaceHolder: 'e.g \\\\server\\sharename',
   newSrPortPlaceHolder: '[port]',
   newSrUsernamePlaceHolder: 'Username',
   newSrPasswordPlaceHolder: 'Password',
@@ -686,6 +689,15 @@ const messages = {
   vmConsoleLabel: 'Console',
   backupLabel: 'Backup',
 
+  // ----- SR general tab -----
+  baseCopyTooltip:
+    '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
+  diskTooltip: '{name} ({usage})',
+  snapshotsTooltip:
+    '{n, number} snapshot{n, plural, one {} other {s}} ({usage})',
+  vdiOnVmTooltip: '{name} ({usage}) on {vmName}',
+  vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})',
+
   // ----- SR advanced tab -----
 
   srUnhealthyVdiDepth: 'Depth',
@@ -763,14 +775,14 @@ const messages = {
   // ----- Pool actions ------
   addSrLabel: 'Add SR',
   addVmLabel: 'Add VM',
-  addHostLabel: 'Add Host',
+  addHostsLabel: 'Add hosts',
   missingPatchesPool:
     'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   missingPatchesHost:
-    'This host needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
+    'The selected host{nHosts, plural, one {} other {s}} need{nHosts, plural, one {s} other {}} to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.',
   patchUpdateNoInstall:
-    'This host cannot be added to the pool because the patches are not homogeneous.',
-  addHostErrorTitle: 'Adding host failed',
+    'The selected host{nHosts, plural, one {} other {s}} cannot be added to the pool because the patches are not homogeneous.',
+  addHostsErrorTitle: 'Adding host{nHosts, plural, one {} other {s}} failed',
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
 
@@ -796,6 +808,9 @@ const messages = {
   // ----- host stat tab -----
   statLoad: 'Load average',
   // ----- host advanced tab -----
+  editHostIscsiIqnTitle: 'Edit iSCSI IQN',
+  editHostIscsiIqnMessage:
+    'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
   memoryHostState:
     'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
@@ -806,7 +821,7 @@ const messages = {
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
-  hostIscsiName: 'iSCSI name',
+  hostIscsiIqn: 'iSCSI IQN',
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
@@ -843,6 +858,7 @@ const messages = {
   supplementalPackInstallSuccessTitle: 'Installation success',
   supplementalPackInstallSuccessMessage:
     'Supplemental pack successfully installed.',
+  uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
   pifDeviceLabel: 'Device',
@@ -935,6 +951,8 @@ const messages = {
   powerStateRunning: 'Running',
   powerStateSuspended: 'Suspended',
   powerStatePaused: 'Paused',
+  powerStateDisabled: 'Disabled',
+  powerStateBusy: 'Busy',
 
   // ----- VM home -----
   vmCurrentStatus: 'Current status:',
@@ -968,9 +986,18 @@ const messages = {
   // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  ctrlAltDelConfirmation: 'Send Ctrl+Alt+Del to VM?',
+  multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
+  sendToClipboard: 'Send to clipboard',
+  sshRootTooltip: 'Connect using external SSH tool as root',
+  sshRootLabel: 'SSH',
+  sshUserTooltip: 'Connect using external SSH tool as user…',
+  sshUserLabel: 'SSH as…',
+  sshUsernameLabel: 'SSH user name',
+  sshNeedClientTools: 'No IP address reported by client tools',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -986,8 +1013,10 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
-  vdiAttachDeviceButton: 'Attach disk',
   vbdCreateDeviceButton: 'New disk',
+  vdiAttachDevice: 'Attach disk',
+  vdiAttachDeviceConfirm:
+    'The selected VDI is already attached to this VM. Are you sure you want to continue?',
   vdiBootOrder: 'Boot order',
   vdiNameLabel: 'Name',
   vdiNameDescription: 'Description',
@@ -1291,12 +1320,12 @@ const messages = {
   newVmSshKey: 'SSH key',
   noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
-  premiumOnly: 'Only available in Premium',
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError:
     'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -1693,6 +1722,9 @@ const messages = {
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
+  notSupportedZstdWarning:
+    'Zstd is not supported on {nVms, number} VM{nVms, plural, one {} other {s}}',
+  notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
 
@@ -1727,15 +1759,21 @@ const messages = {
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
   newNetworkEncapsulation: 'Encapsulation',
+  newNetworkEncrypted: 'Encrypted',
+  encryptionWarning:
+    'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
+  newNetworkSdnControllerTip:
+    'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
   pillBonded: 'Bonded',
   bondedNetwork: 'Bonded network',
   privateNetwork: 'Private network',
+  addPool: 'Add pool',
 
   // ----- Add host -----
-  addHostSelectHost: 'Host',
+  hosts: 'Hosts',
   addHostNoHost: 'No host',
   addHostNoHostMessage: 'No host selected to be added',
 
@@ -1743,8 +1781,8 @@ const messages = {
   xenOrchestraServer: 'Xen Orchestra server',
   xenOrchestraWeb: 'Xen Orchestra web client',
   noProSupport: 'Professional support missing!',
-  noProductionUse: 'Use in production at your own risk',
-  downloadXoaFromWebsite: 'You can download the turnkey appliance at {website}',
+  productionUse: 'Want to use in production?',
+  getSupport: 'Get pro support with the Xen Orchestra Appliance at {website}',
   bugTracker: 'Bug Tracker',
   bugTrackerText: 'Issues? Report it!',
   community: 'Community',
@@ -1784,11 +1822,8 @@ const messages = {
   refresh: 'Refresh',
   upgrade: 'Upgrade',
   downgrade: 'Downgrade',
-  noUpdaterCommunity: 'No updater available for Community Edition',
   considerSubscribe:
     'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
-  noUpdaterWarning:
-    'Manual update could break your current installation due to dependencies issues, do it with caution',
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
@@ -1818,6 +1853,8 @@ const messages = {
   unlistedChannelName: 'Unlisted channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
+  updaterCommunity:
+    'The Web updater, the release channels and the proxy settings are available in XOA.',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
@@ -1892,12 +1929,13 @@ const messages = {
   OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
-  others: 'Others',
+  others: '{nOthers, number} other{nOthers, plural, one {} other {s}}',
 
   // ----- Logs -----
   logUser: 'User',
   logMessage: 'Message',
   logSuggestXcpNg: 'Use XCP-ng to get rid of restrictions',
+  logXapiError: 'This is a XenServer/XCP-ng error',
   logError: 'Error',
   logTitle: 'Logs',
   logDisplayDetails: 'Display details',
@@ -1922,7 +1960,9 @@ const messages = {
   reportBug: 'Report a bug',
   unhealthyVdiChainError: 'Job canceled to protect the VDI chain',
   backupRestartVm: "Restart VM's backup",
+  backupForceRestartVm: "Force restart VM's backup",
   backupRestartFailedVms: "Restart failed VMs' backup",
+  backupForceRestartFailedVms: "Force restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
 
   // ----- IPs ------
@@ -1986,7 +2026,6 @@ const messages = {
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
   downloadConfig: 'Download current config',
-  noConfigImportCommunity: 'No config import available for Community Edition',
 
   // ----- SR -----
   srReconnectAllModalTitle: 'Reconnect all hosts',
@@ -2032,7 +2071,7 @@ const messages = {
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create',
-  xosanCommunity: 'No XOSAN available for Community Edition',
+  xosanCommunity: 'XOSAN is available in XOA',
   xosanNew: 'New',
   xosanAdvanced: 'Advanced',
   xosanRemoveSubvolumes: 'Remove subvolumes',

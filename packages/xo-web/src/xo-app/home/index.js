@@ -314,7 +314,6 @@ const DEFAULT_TYPE = 'VM'
   )
 
   return {
-    areObjectsFetched,
     noServersConnected,
   }
 })
@@ -327,23 +326,12 @@ class NoObjectsWithoutServers extends Component {
 
   render() {
     const {
-      areObjectsFetched,
       isAdmin,
       isPoolAdmin,
       noRegisteredServers,
       noResourceSets,
       noServersConnected,
     } = this.props
-
-    if (!areObjectsFetched) {
-      return (
-        <CenterPanel>
-          <h2>
-            <img src='assets/loading.svg' />
-          </h2>
-        </CenterPanel>
-      )
-    }
 
     if (noServersConnected && isAdmin) {
       return (
@@ -461,6 +449,7 @@ const NoObjects = props =>
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
 
   return {
+    areObjectsFetched,
     isAdmin,
     isPoolAdmin: getIsPoolAdmin,
     items: createSelector(
@@ -1160,7 +1149,22 @@ export default class Home extends Component {
   // ---------------------------------------------------------------------------
 
   render() {
-    const { isAdmin, isPoolAdmin, noResourceSets } = this.props
+    const {
+      areObjectsFetched,
+      isAdmin,
+      isPoolAdmin,
+      noResourceSets,
+    } = this.props
+
+    if (!areObjectsFetched) {
+      return (
+        <CenterPanel>
+          <h2>
+            <img src='assets/loading.svg' />
+          </h2>
+        </CenterPanel>
+      )
+    }
 
     const nItems = this._getNumberOfItems()
 

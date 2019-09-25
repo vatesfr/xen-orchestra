@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import { isFunction, startsWith } from 'lodash'
+import { isFunction } from 'lodash'
 
 import Button from './button'
 import Component from './base-component'
@@ -73,7 +73,7 @@ export default class ActionButton extends Component {
       let empty = true
       handlerParam = {}
       Object.keys(props).forEach(key => {
-        if (startsWith(key, 'data-')) {
+        if (key.startsWith('data-')) {
           empty = false
           handlerParam[key.slice(5)] = props[key]
         }

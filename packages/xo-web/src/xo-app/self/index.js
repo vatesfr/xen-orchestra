@@ -25,12 +25,7 @@ import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
-import {
-  addSubscriptions,
-  adminOnly,
-  connectStore,
-  resolveIds
-} from 'utils'
+import { addSubscriptions, adminOnly, connectStore, resolveIds } from 'utils'
 import {
   createGetObjectsOfType,
   createSelector,

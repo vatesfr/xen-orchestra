@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`user .changePassword() : changes the actual user password 1`] = `true`;
+
+exports[`user .changePassword() : changes the actual user password 2`] = `[JsonRpcError: invalid credentials]`;
+
+exports[`user .changePassword() : fails trying to change the password with invalid oldPassword 1`] = `[JsonRpcError: invalid credentials]`;
+
+exports[`user .create() : creates a user with permission 1`] = `
+Object {
+  "email": "wayne2@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "user",
+  "preferences": Object {},
+}
+`;
+
+exports[`user .create() : creates a user without permission 1`] = `
+Object {
+  "email": "wayne1@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "preferences": Object {},
+}
+`;
+
+exports[`user .create() : fails trying to create a user with an email already used 1`] = `[JsonRpcError: unknown error from the peer]`;
+
+exports[`user .create() : fails trying to create a user without email 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`user .create() : fails trying to create a user without password 1`] = `[JsonRpcError: invalid parameters]`;
+
+exports[`user .delete() : fails trying to delete a user with a nonexistent user 1`] = `[JsonRpcError: no such user nonexistentId]`;
+
+exports[`user .delete() : fails trying to delete itself 1`] = `[JsonRpcError: a user cannot delete itself]`;
+
+exports[`user .getAll() : gets all the users created 1`] = `
+Object {
+  "email": "wayne4@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "user",
+  "preferences": Object {},
+}
+`;
+
+exports[`user .getAll() : gets all the users created 2`] = `
+Object {
+  "email": "wayne5@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "user",
+  "preferences": Object {},
+}
+`;
+
+exports[`user .set() : fails trying to set a password with a non admin user connection 1`] = `[JsonRpcError: this properties can only changed by an administrator]`;
+
+exports[`user .set() : fails trying to set a permission with a non admin user connection 1`] = `[JsonRpcError: this properties can only changed by an administrator]`;
+
+exports[`user .set() : fails trying to set a property of a nonexistant user 1`] = `[JsonRpcError: no such user non-existent-id]`;
+
+exports[`user .set() : fails trying to set an email with a non admin user connection 1`] = `[JsonRpcError: this properties can only changed by an administrator]`;
+
+exports[`user .set() : fails trying to set its own permission as a non admin user 1`] = `[JsonRpcError: this properties can only changed by an administrator]`;
+
+exports[`user .set() : fails trying to set its own permission as an admin 1`] = `[JsonRpcError: a user cannot change its own permission]`;
+
+exports[`user .set() : sets a password 1`] = `
+Object {
+  "email": "wayne3@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "none",
+  "preferences": Object {},
+}
+`;
+
+exports[`user .set() : sets a permission 1`] = `
+Object {
+  "email": "wayne3@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "user",
+  "preferences": Object {},
+}
+`;
+
+exports[`user .set() : sets a preference 1`] = `
+Object {
+  "email": "wayne3@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "none",
+  "preferences": Object {
+    "filters": Object {
+      "VM": Object {
+        "test": "name_label: test",
+      },
+    },
+  },
+}
+`;
+
+exports[`user .set() : sets an email 1`] = `
+Object {
+  "email": "wayne_modified@vates.fr",
+  "groups": Array [],
+  "id": Any<String>,
+  "permission": "none",
+  "preferences": Object {},
+}
+`;

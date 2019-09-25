@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import endsWith from 'lodash/endsWith'
 import Icon from 'icon'
 import React from 'react'
 import replace from 'lodash/replace'
@@ -192,7 +191,7 @@ export default class RestoreFileModalBody extends Component {
     select.blur()
     select.focus()
 
-    const isFile = file.id !== '..' && !endsWith(file.path, '/')
+    const isFile = file.id !== '..' && !file.path.endsWith('/')
     if (isFile) {
       const { selectedFiles } = this.state
       if (!includes(selectedFiles, file)) {
@@ -228,7 +227,7 @@ export default class RestoreFileModalBody extends Component {
   _selectAllFolderFiles = () => {
     this.setState({
       selectedFiles: (this.state.selectedFiles || []).concat(
-        filter(this._getSelectableFiles(), ({ path }) => !endsWith(path, '/'))
+        filter(this._getSelectableFiles(), ({ path }) => !path.endsWith('/'))
       ),
     })
   }

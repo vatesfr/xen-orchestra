@@ -183,9 +183,7 @@ export const configurationSchema = {
             description: Object.keys(HOST_FUNCTIONS)
               .map(
                 k =>
-                  `  * ${k} (${HOST_FUNCTIONS[k].unit}): ${
-                    HOST_FUNCTIONS[k].description
-                  }`
+                  `  * ${k} (${HOST_FUNCTIONS[k].unit}): ${HOST_FUNCTIONS[k].description}`
               )
               .join('\n'),
             type: 'string',
@@ -233,9 +231,7 @@ export const configurationSchema = {
             description: Object.keys(VM_FUNCTIONS)
               .map(
                 k =>
-                  `  * ${k} (${VM_FUNCTIONS[k].unit}): ${
-                    VM_FUNCTIONS[k].description
-                  }`
+                  `  * ${k} (${VM_FUNCTIONS[k].unit}): ${VM_FUNCTIONS[k].description}`
               )
               .join('\n'),
             type: 'string',
@@ -284,9 +280,7 @@ export const configurationSchema = {
             description: Object.keys(SR_FUNCTIONS)
               .map(
                 k =>
-                  `  * ${k} (${SR_FUNCTIONS[k].unit}): ${
-                    SR_FUNCTIONS[k].description
-                  }`
+                  `  * ${k} (${SR_FUNCTIONS[k].unit}): ${SR_FUNCTIONS[k].description}`
               )
               .join('\n'),
             type: 'string',
@@ -414,9 +408,7 @@ ${monitorBodies.join('\n')}`
   }
 
   _parseDefinition(definition) {
-    const alarmId = `${definition.objectType}|${definition.variableName}|${
-      definition.alarmTriggerLevel
-    }`
+    const alarmId = `${definition.objectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
     const typeFunction =
       TYPE_FUNCTION_MAP[definition.objectType][definition.variableName]
     const parseData = (result, uuid) => {
@@ -468,9 +460,7 @@ ${monitorBodies.join('\n')}`
       ...definition,
       alarmId,
       vmFunction: typeFunction,
-      title: `${typeFunction.name} ${definition.comparator} ${
-        definition.alarmTriggerLevel
-      }${typeFunction.unit}`,
+      title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
       snapshot: async () => {
         return Promise.all(
           map(definition.uuids, async uuid => {
@@ -664,9 +654,7 @@ ${entry.listItem}
         subject: `[Xen Orchestra] − Performance Alert ${subjectSuffix}`,
         markdown:
           markdownBody +
-          `\n\n\nSent from Xen Orchestra [perf-alert plugin](${
-            this._configuration.baseUrl
-          }#/settings/plugins)\n`,
+          `\n\n\nSent from Xen Orchestra [perf-alert plugin](${this._configuration.baseUrl}#/settings/plugins)\n`,
       })
     } else {
       throw new Error('The email alert system has a configuration issue.')

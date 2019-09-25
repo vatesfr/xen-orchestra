@@ -1,14 +1,25 @@
 import BaseComponent from 'base-component'
 import React from 'react'
+import Upgrade from 'xoa-upgrade'
+import { injectIntl } from 'react-intl'
 
 import _, { messages } from '../../intl'
 import SelectCompression from '../../select-compression'
 import SingleLineRow from '../../single-line-row'
-import Upgrade from 'xoa-upgrade'
 import { Col } from '../../grid'
+import { connectStore } from '../../utils'
+import { createGetObject, createSelector } from '../../selectors'
 import { SelectSr } from '../../select-objects'
-import { injectIntl } from 'react-intl'
 
+@connectStore(
+  {
+    isZstdSupported: createSelector(
+      createGetObject((_, { vm }) => vm.$container),
+      container => container === undefined || container.zstdSupported
+    ),
+  },
+  { withRef: true }
+)
 class CopyVmModalBody extends BaseComponent {
   state = {
     compression: '',
@@ -27,7 +38,10 @@ class CopyVmModalBody extends BaseComponent {
   }
 
   render() {
-    const { formatMessage } = this.props.intl
+    const {
+      intl: { formatMessage },
+      isZstdSupported,
+    } = this.props
     const { compression, copyMode, name, sr } = this.state
 
     return process.env.XOA_PLAN > 2 ? (
@@ -81,6 +95,7 @@ class CopyVmModalBody extends BaseComponent {
               <SelectCompression
                 disabled={copyMode !== 'fullCopy'}
                 onChange={this.linkState('compression')}
+                showZstd={isZstdSupported}
                 value={compression}
               />
             </Col>
