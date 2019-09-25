@@ -121,7 +121,7 @@ export default decorate([
         if (pool !== undefined) {
           this.props.router.push(`/vms/new?pool=${$pool}&template=${pool.id}`)
         } else {
-          throw new Error(`can't find id for pool: ${$pool}`)
+          throw new Error(`can't find template for pool: ${$pool}`)
         }
       },
       async deleteTemplates(__, { name }) {
@@ -166,8 +166,10 @@ export default decorate([
         filter(templates, ['other.xva_id', id]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
-        pools.every(pool =>
-          installedTemplates.some(template => template.$pool === pool.id)
+        pools.every(
+          pool =>
+            installedTemplates.find(template => template.$pool === pool.id) !==
+            undefined
         ),
       isTemplateInstalled: ({ installedTemplates }) => pool =>
         installedTemplates.find(template => template.$pool === pool.id) ===
