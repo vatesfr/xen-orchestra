@@ -170,12 +170,11 @@ export default decorate([
           installedTemplates.some(template => template.$pool === pool.id)
         ),
       isTemplateInstalled: ({ installedTemplates }) => pool =>
-        installedTemplates.find(template => template.$pool !== pool.id) !==
+        installedTemplates.find(template => template.$pool === pool.id) ===
         undefined,
       isPoolCreated: ({ installedTemplates }) => pool =>
-        installedTemplates.length === 0 ||
-        installedTemplates.find(template => template.$pool !== pool.id) ===
-          undefined,
+        installedTemplates.find(template => template.$pool === pool.id) !==
+        undefined,
     },
   }),
   injectState,
