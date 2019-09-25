@@ -29,5 +29,5 @@
 
 - xen-api v0.27.2
 - xo-server-cloud v0.3.0
-- xo-server v5.51.0
-- xo-web v5.51.0
+- xo-server v5.52.0
+- xo-web v5.52.0
