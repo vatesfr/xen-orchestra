@@ -2,7 +2,7 @@ import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'julien-f-unzip'
 import { filter, find, pickBy, some } from 'lodash'
-import { missingPatchesFetchFailed } from 'xo-common/api-errors'
+import { listMissingPatchesFailed } from 'xo-common/api-errors'
 
 import ensureArray from '../../_ensureArray'
 import { debounce } from '../../decorators'
@@ -50,9 +50,14 @@ async function _listXcpUpdates(host) {
       {}
     )
   )
+
   if (patches.error !== undefined) {
-    throw missingPatchesFetchFailed({ host: host.$id, reason: patches.error })
+    throw listMissingPatchesFailed({
+      host: host.$id,
+      reason: patches.error,
+    })
   }
+
   return patches
 }
 
