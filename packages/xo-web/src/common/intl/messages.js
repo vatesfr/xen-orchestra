@@ -2157,6 +2157,7 @@ const messages = {
   hideInstalledPool: 'Already installed templates are hidden',
   hubSrErrorTitle: 'Missing property',
   hubImportNotificationTitle: 'XVA import',
+  hubMissingTemplateForPoolError: "can't find template for pool: {pool}",
 
   // Licenses
   xosanUnregisteredDisclaimer:

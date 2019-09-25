@@ -123,7 +123,7 @@ export default decorate([
             `/vms/new?pool=${$pool}&template=${template.id}`
           )
         } else {
-          throw new Error(`can't find template for pool: ${$pool}`)
+          throw new Error(_('hubMissingTemplateForPoolError'), { pool: $pool })
         }
       },
       async deleteTemplates(__, { name }) {
