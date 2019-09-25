@@ -5,7 +5,7 @@ import React from 'react'
 import { addSubscriptions, adminOnly } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, map, orderBy } from 'lodash'
+import { isEmpty, map, omit, orderBy } from 'lodash'
 import { subscribeResourceCatalog } from 'xo'
 
 import Page from '../page'
@@ -26,20 +26,15 @@ export default decorate([
   }),
   provideState({
     computed: {
-      resources: (_, { catalog }) => {
-        if (catalog !== undefined) {
-          const _catalog = { ...catalog }
-          delete _catalog._namespaces
-          return orderBy(
-            map(_catalog, (entry, namespace) => ({
-              namespace,
-              ...entry.xva,
-            })),
-            'name',
-            'asc'
-          )
-        }
-      },
+      resources: (_, { catalog }) =>
+        orderBy(
+          map(omit(catalog, ['_namespaces']), (entry, namespace) => ({
+            namespace,
+            ...entry.xva,
+          })),
+          'name',
+          'asc'
+        ),
     },
   }),
   injectState,
