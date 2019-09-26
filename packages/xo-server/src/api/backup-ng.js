@@ -185,7 +185,7 @@ getAllLogs.params = {
   ndjson: { type: 'boolean', optional: true },
 }
 
-export async function getLogs({
+export function getLogs({
   after,
   before,
   limit,
