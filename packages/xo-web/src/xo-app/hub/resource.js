@@ -54,7 +54,7 @@ export default decorate([
           version,
         } = this.props
         const { isTemplateInstalled } = this.state
-        if (getXoaPlan(process.env.XOA_PLAN) === 'Community') {
+        if (getXoaPlan(+process.env.XOA_PLAN) === 'Community') {
           subscribeAlert()
           return
         }
@@ -96,7 +96,7 @@ export default decorate([
       async create() {
         const { isPoolCreated, installedTemplates } = this.state
         const { name } = this.props
-        if (getXoaPlan(process.env.XOA_PLAN) === 'Community') {
+        if (getXoaPlan(+process.env.XOA_PLAN) === 'Community') {
           subscribeAlert()
           return
         }
