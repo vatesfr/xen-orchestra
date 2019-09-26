@@ -124,7 +124,7 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _requestResource({ hub, id, namespace, version }) {
+  async _requestResource({ hub = false, id, namespace, version }) {
     const _namespace = (await this._getNamespaces())[namespace]
 
     if (!hub && (!_namespace || !_namespace.registered)) {
