@@ -4,8 +4,11 @@ import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
 import { find, forOwn } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
+import { utcFormat } from 'd3-time-format'
 
 import config from './_config'
+
+const formatDate = utcFormat('%Y-%m-%dT%H:%M:%SZ')
 
 const getDefaultCredentials = () => {
   const { email, password } = config.xoConnection
@@ -116,10 +119,7 @@ class XoConnection extends Xo {
   } = {}) {
     const job = await this.call('backupNg.createJob', {
       mode: 'full',
-      name: 'default-backupNg',
-      vms: {
-        id: config.vms.default,
-      },
+      name: `xo-server-test ${formatDate(Date.now())}`,
       ...params,
       settings: {
         '': {

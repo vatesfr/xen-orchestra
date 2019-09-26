@@ -160,7 +160,11 @@ describe('backupNg', () => {
 
   describe('.runJob() :', () => {
     it('fails trying to run a backup job without schedule', async () => {
-      const { id } = await xo.createTempBackupNgJob()
+      const { id } = await xo.createTempBackupNgJob({
+        vms: {
+          id: config.vms.default,
+        },
+      })
       await expect(xo.call('backupNg.runJob', { id })).rejects.toMatchSnapshot()
     })
 
@@ -288,6 +292,9 @@ describe('backupNg', () => {
         },
         srs: {
           id: config.srs.default,
+        },
+        vms: {
+          id: config.vms.default,
         },
       })
 

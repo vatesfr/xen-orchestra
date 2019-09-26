@@ -4,7 +4,7 @@ exports[`backupNg .createJob() : creates a new backup job with schedules 1`] = `
 Object {
   "id": Any<String>,
   "mode": "full",
-  "name": "default-backupNg",
+  "name": "xo-server-test 2019-09-25T15:27:57Z",
   "settings": Any<Object>,
   "type": "backup",
   "userId": Any<String>,
@@ -26,7 +26,7 @@ exports[`backupNg .createJob() : creates a new backup job without schedules 1`] 
 Object {
   "id": Any<String>,
   "mode": "full",
-  "name": "default-backupNg",
+  "name": "xo-server-test 2019-09-25T15:27:57Z",
   "settings": Object {
     "": Object {
       "bypassVdiChainsCheck": true,
