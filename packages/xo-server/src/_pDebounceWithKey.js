@@ -16,6 +16,10 @@ function scheduleRemoveCacheEntry(keys, expires) {
 
 const defaultKeyFn = () => []
 
+const { slice } = Array.prototype
+
+export const REMOVE_CACHE_ENTRY = {}
+
 // debounce an async function so that all subsequent calls in a delay receive
 // the same result
 //
@@ -26,7 +30,14 @@ const defaultKeyFn = () => []
 export const debounceWithKey = (fn, delay, keyFn = defaultKeyFn) => {
   const cache = new MultiKeyMap()
   const delayFn = typeof delay === 'number' ? () => delay : delay
-  return function() {
+  return function(arg) {
+    if (arg === REMOVE_CACHE_ENTRY) {
+      return removeCacheEntry(
+        cache,
+        ensureArray(keyFn.apply(this, slice.call(arguments, 1)))
+      )
+    }
+
     const keys = ensureArray(keyFn.apply(this, arguments))
     let promise = cache.get(keys)
     if (promise === undefined) {
