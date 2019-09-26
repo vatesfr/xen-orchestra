@@ -3,6 +3,7 @@ import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 
 import createNdJsonStream from '../_createNdJsonStream'
+import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { safeDateFormat } from '../utils'
 
 export function createJob({ schedules, ...job }) {
@@ -184,20 +185,19 @@ getAllLogs.params = {
   ndjson: { type: 'boolean', optional: true },
 }
 
-export function getLogs({
+export async function getLogs({
   after,
   before,
   limit,
 
-  // it's a temporary work-around which will be removed
+  // TODO: it's a temporary work-around which should be removed
   // when the consolidated logs will be stored in the DB
-  _forceRefresh,
+  _forceRefresh = false,
+
   ...filter
 }) {
-  return this.getBackupNgLogsSorted(
-    { after, before, limit, filter },
-    _forceRefresh
-  )
+  await this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+  return this.getBackupNgLogsSorted({ after, before, limit, filter })
 }
 
 getLogs.permission = 'admin'

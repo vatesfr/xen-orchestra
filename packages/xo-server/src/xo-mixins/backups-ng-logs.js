@@ -1,7 +1,7 @@
 import ms from 'ms'
 import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
 
-import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
+import { debounceWithKey } from '../_pDebounceWithKey'
 
 const isSkippedError = error =>
   error.message === 'no disks found' ||
@@ -199,14 +199,7 @@ export default {
     }
   ),
 
-  async getBackupNgLogsSorted(
-    { after, before, filter, limit },
-    _forceRefresh = false
-  ) {
-    if (_forceRefresh) {
-      await this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
-    }
-
+  async getBackupNgLogsSorted({ after, before, filter, limit }) {
     let logs = await this.getBackupNgLogs()
 
     // convert to array
