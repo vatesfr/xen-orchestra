@@ -10,7 +10,7 @@ test('clear the cache of debounced function', async () => {
     function() {
       return Promise.resolve(++i)
     },
-    120e3,
+    1,
     id => id
   )
 
