@@ -221,7 +221,7 @@ describe('backupNg', () => {
       expect(typeof schedule).toBe('object')
 
       await xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })
-      const [log] = await xo.call('backupNg.getLogs', {
+      const [log] = await xo.getBackupLogs({
         scheduleId: schedule.id,
       })
       expect(log.warnings).toMatchSnapshot()
@@ -260,7 +260,7 @@ describe('backupNg', () => {
           tasks: [vmTask],
           ...log
         },
-      ] = await xo.call('backupNg.getLogs', {
+      ] = await xo.getBackupLogs({
         jobId,
         scheduleId: schedule.id,
       })
@@ -319,7 +319,7 @@ describe('backupNg', () => {
           tasks: [task],
           ...log
         },
-      ] = await xo.call('backupNg.getLogs', {
+      ] = await xo.getBackupLogs({
         jobId,
         scheduleId: schedule.id,
       })
@@ -415,7 +415,7 @@ describe('backupNg', () => {
         tasks: [{ tasks: subTasks, ...vmTask }],
         ...log
       },
-    ] = await xo.call('backupNg.getLogs', {
+    ] = await xo.getBackupLogs({
       jobId,
       scheduleId: schedule.id,
     })
@@ -506,7 +506,7 @@ describe('backupNg', () => {
       expect(backups.length).toBe(exportRetention)
     )
 
-    const backupLogs = await xo.call('backupNg.getLogs', {
+    const backupLogs = await xo.getBackupLogs({
       jobId,
       scheduleId: schedule.id,
     })
