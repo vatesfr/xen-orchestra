@@ -184,13 +184,16 @@ getAllLogs.params = {
   ndjson: { type: 'boolean', optional: true },
 }
 
-export function getLogs(
-  { after, before, limit, ...filter },
+export function getLogs({
+  after,
+  before,
+  limit,
 
   // it's a temporary work-around which will be removed
   // when the consolidated logs will be stored in the DB
-  _forceRefresh
-) {
+  _forceRefresh,
+  ...filter
+}) {
   return this.getBackupNgLogsSorted(
     { after, before, limit, filter },
     _forceRefresh

@@ -211,7 +211,7 @@ class XoConnection extends Xo {
   }
 
   getBackupLogs(filter) {
-    return this.call('backupNg.getLogs', filter, true)
+    return this.call('backupNg.getLogs', { _forceRefresh: true, ...filter })
   }
 
   async _cleanDisposers(disposers) {
