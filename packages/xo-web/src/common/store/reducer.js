@@ -1,4 +1,5 @@
 import cookies from 'cookies-js'
+import { omit } from 'lodash'
 
 import invoke from '../invoke'
 
@@ -92,12 +93,20 @@ export default {
       homeVmIdsSelection,
   }),
 
-  // This state is used temporarily to keep loading state in hub
-  hubInstallLoadingState: combineActionHandlers(
+  /**
+   * This state is used temporarily to keep loading state of template installation in hub
+   * @param {object} hubInstallingResources A map of { <templateId>: <loadingState }
+   * @param {boolean} hubInstallingResources[<templateId>] true: loading / false: no operation
+   */
+  hubInstallingResources: combineActionHandlers(
     {},
     {
-      [actions.setHubInstallLoadingState]: (_, hubInstallLoadingState) =>
-        hubInstallLoadingState,
+      [actions.markHubResourceAsInstalling]: (
+        prevHubInstallingResources,
+        hubInstallingResources
+      ) => ({ ...prevHubInstallingResources, ...hubInstallingResources }),
+      [actions.markHubResourceAsInstalled]: (prevHubInstallingResources, id) =>
+        omit(prevHubInstallingResources, id),
     }
   ),
 

@@ -2883,7 +2883,7 @@ const downloadAndInstallXosanPack = (pack, pool, { version }) =>
   })
 
 export const downloadAndInstallResource = ({ namespace, id, version, sr }) =>
-  _call('hub.downloadAndInstallResource', {
+  _call('cloud.downloadAndInstallResource', {
     namespace,
     id,
     version,

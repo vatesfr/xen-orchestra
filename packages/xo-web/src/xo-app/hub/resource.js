@@ -36,7 +36,7 @@ export default decorate([
     return {
       templates: getTemplates,
       pools: getPools,
-      hubInstallLoadingState: state => state.hubInstallLoadingState,
+      hubInstallingResources: state => state.hubInstallingResources,
     }
   }),
   provideState({
@@ -49,10 +49,11 @@ export default decorate([
           id,
           name,
           namespace,
-          setHubInstallLoadingState,
+          markHubResourceAsInstalled,
+          markHubResourceAsInstalling,
           version,
         } = this.props
-        const { hubInstallLoadingState, isTemplateInstalled } = this.state
+        const { isTemplateInstalled } = this.state
         if (getXoaPlan(process.env.XOA_PLAN) === 'Community') {
           subscribeAlert()
           return
@@ -74,10 +75,7 @@ export default decorate([
           size: 'medium',
         })
 
-        setHubInstallLoadingState({
-          ...hubInstallLoadingState,
-          [id]: true,
-        })
+        markHubResourceAsInstalling(id)
         try {
           await Promise.all(
             resourceParams.pools.map(pool =>
@@ -93,10 +91,7 @@ export default decorate([
         } catch (_error) {
           error(_('hubImportNotificationTitle'), _error.message)
         }
-        setHubInstallLoadingState({
-          ...hubInstallLoadingState,
-          [id]: false,
-        })
+        markHubResourceAsInstalled(id)
       },
       async create() {
         const { isPoolCreated, installedTemplates } = this.state
@@ -165,7 +160,7 @@ export default decorate([
     },
     computed: {
       installedTemplates: (_, { id, templates }) =>
-        filter(templates, ['other.xva_id', id]),
+        filter(templates, ['other.xo:resource:xva:id', id]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
@@ -184,7 +179,7 @@ export default decorate([
   injectState,
   ({
     effects,
-    hubInstallLoadingState,
+    hubInstallingResources,
     id,
     name,
     os,
@@ -237,7 +232,7 @@ export default decorate([
               form={state.idInstallForm}
               handler={effects.install}
               icon='add'
-              pending={hubInstallLoadingState[id]}
+              pending={hubInstallingResources[id]}
             >
               {_('install')}
             </ActionButton>

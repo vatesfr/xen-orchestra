@@ -38,8 +38,29 @@ class XoServerCloud {
     }
     registerResource.permission = 'admin'
 
+    const downloadAndInstallResource = this._downloadAndInstallResource.bind(
+      this
+    )
+
+    downloadAndInstallResource.description =
+      'Download and install a resource via cloud plugin'
+
+    downloadAndInstallResource.params = {
+      id: { type: 'string' },
+      namespace: { type: 'string' },
+      version: { type: 'string' },
+      sr: { type: 'string' },
+    }
+
+    downloadAndInstallResource.resolve = {
+      sr: ['sr', 'SR', 'administrate'],
+    }
+
+    downloadAndInstallResource.permission = 'admin'
+
     this._unsetApiMethods = this._xo.addApiMethods({
       cloud: {
+        downloadAndInstallResource,
         getResourceCatalog,
         registerResource,
       },
@@ -90,6 +111,27 @@ class XoServerCloud {
     }
 
     return catalog._namespaces
+  }
+
+  // ----------------------------------------------------------------
+
+  async _downloadAndInstallResource({ id, namespace, sr, version }) {
+    const stream = await this._requestResource({
+      hub: true,
+      id,
+      namespace,
+      version,
+    })
+    const vm = await this._xo.getXapi(sr.$poolId).importVm(stream, {
+      srId: sr.id,
+      type: 'xva',
+    })
+    // await vm.update_other_config('xva_id', id)
+    await vm.update_other_config({
+      'xo:resource:namespace': namespace,
+      'xo:resource:xva:version': version,
+      'xo:resource:xva:id': id,
+    })
   }
 
   // ----------------------------------------------------------------
