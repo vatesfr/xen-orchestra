@@ -210,9 +210,8 @@ class XoConnection extends Xo {
     return backups
   }
 
-  async getBackupLogs(filter) {
-    await this.call('backupNg.clearLogsCache')
-    return this.call('backupNg.getLogs', filter)
+  getBackupLogs(filter) {
+    return this.call('backupNg.getLogs', filter, true)
   }
 
   async _cleanDisposers(disposers) {
