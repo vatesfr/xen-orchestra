@@ -14,9 +14,9 @@ test('clear the cache of debounced function', async () => {
     id => id
   )
 
-  await expect(debouncedFn(key)).resolves.toBe(1)
-  await expect(debouncedFn(key)).resolves.toBe(1)
+  expect(await debouncedFn(key)).toBe(1)
+  expect(await debouncedFn(key)).toBe(1)
 
-  await debouncedFn(REMOVE_CACHE_ENTRY, key)
-  await expect(debouncedFn(key)).resolves.toBe(2)
+  debouncedFn(REMOVE_CACHE_ENTRY, key)
+  expect(await debouncedFn(key)).toBe(2)
 })
