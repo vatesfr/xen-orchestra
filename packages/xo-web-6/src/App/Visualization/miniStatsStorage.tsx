@@ -1,12 +1,17 @@
 import React, { Component } from 'react'
-import { YAxis, AreaChart } from 'recharts'
-import { Area } from 'recharts'
 import { xoCall } from './utils'
+import {
+  StorageThroughputGraph,
+  StorageLatencyGraph,
+  StorageIopsGraph,
+  StorageIowaitGraph,
+} from './miniStats'
+
 const NB_VALUES = 118
 const tabId = [
   'a5954951-3dfa-42b8-803f-4bc270b22a0b',
   '9a208896-fff9-caa0-d3ab-6ada542ae8ca',
-  'a889b334-5ea2-c43d-f0c0-9fb8e7c42425',
+  'ff33495d-68c4-0aa7-193a-229c261390b8',
 ]
 
 export default class Visualization extends Component<any, any> {
@@ -34,8 +39,6 @@ export default class Visualization extends Component<any, any> {
   }
 }
 
-const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
-
 class StoragesIowaitGraph extends Component<any, any> {
   state: any = {
     srId: 0,
@@ -49,8 +52,7 @@ class StoragesIowaitGraph extends Component<any, any> {
   fetchAll() {
     Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
-        this.setState({ max: 0 })
-        this.setState({ allData: [] })
+        this.setState({ max: 0, allData: [] })
         allData.forEach((currentVm: any) => {
           this.updateData(
             currentVm.endTimestamp,
@@ -98,12 +100,16 @@ class StoragesIowaitGraph extends Component<any, any> {
     const maxIowait = data.maxIowaitGlobal
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxIowait) })
+    this.setState({ allData: tmpAllData, max: this.computeMax(maxIowait) })
   }
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageIowaitGraph max={this.state.max} data={currentData} />
+      <div>
+        <h3>IOwait</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <StorageIowaitGraph max={this.state.max} data={currentData} />
+        </div>
+      </div>
     ))
   }
 }
@@ -122,8 +128,7 @@ class StoragesIopsGraph extends Component<any, any> {
   fetchAll() {
     Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
-        this.setState({ max: 0 })
-        this.setState({ allData: [] })
+        this.setState({ max: 0, allData: [] })
         allData.forEach((currentVm: any) => {
           this.updateData(
             currentVm.endTimestamp,
@@ -168,13 +173,17 @@ class StoragesIopsGraph extends Component<any, any> {
     data.values = iopsData
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxIopsGlobal) })
+    this.setState({ allData: tmpAllData, max: this.computeMax(maxIopsGlobal) })
   }
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageIopsGraph max={this.state.max} data={currentData} />
+      <div>
+        <h3>IOPS</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <StorageIopsGraph max={this.state.max} data={currentData} />
+        </div>
+      </div>
     ))
   }
 }
@@ -193,8 +202,7 @@ class StoragesLatencyGraph extends Component<any, any> {
   fetchAll() {
     Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
-        this.setState({ max: 0 })
-        this.setState({ allData: [] })
+        this.setState({ max: 0, allData: [] })
         allData.forEach((currentVm: any) => {
           this.updateData(
             currentVm.endTimestamp,
@@ -239,13 +247,20 @@ class StoragesLatencyGraph extends Component<any, any> {
     const maxLatencyGlobal = data.maxLatency
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxLatencyGlobal) })
+    this.setState({
+      allData: tmpAllData,
+      max: this.computeMax(maxLatencyGlobal),
+    })
   }
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageLatencyGraph max={this.state.max} data={currentData} />
+      <div>
+        <h3> Latency </h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <StorageLatencyGraph max={this.state.max} data={currentData} />
+        </div>
+      </div>
     ))
   }
 }
@@ -264,8 +279,7 @@ class StoragesThroughputGraph extends Component<any, any> {
   fetchAll() {
     Promise.all(this.props.srIds.map((idSr: any) => this.fetchOne(idSr))).then(
       allData => {
-        this.setState({ max: 0 })
-        this.setState({ allData: [] })
+        this.setState({ max: 0, allData: [] })
         allData.forEach((currentVm: any) => {
           this.updateData(
             currentVm.endTimestamp,
@@ -311,179 +325,20 @@ class StoragesThroughputGraph extends Component<any, any> {
     const maxThroughputGlobal = data.maxNetworkR
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxThroughputGlobal) })
+    this.setState({
+      allData: tmpAllData,
+      max: this.computeMax(maxThroughputGlobal),
+    })
   }
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <StorageThroughputGraph max={this.state.max} data={currentData} />
+      <div>
+        <h3>IO throughput </h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <StorageThroughputGraph max={this.state.max} data={currentData} />
+        </div>
+      </div>
     ))
-  }
-}
-
-class StorageLatencyGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  render() {
-    return (
-      <div>
-        <div> Latency </div>
-        <br />
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.props.data.values}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' ms'}
-              domain={[0, Math.max(1, this.props.max)]}
-              hide={true}
-            />
-            {this.props.data.latencySr.map((property: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`latency_${property}`}
-                stroke='#66ccff'
-                fill='#66ccff'
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
-  }
-}
-
-class StorageIopsGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  render() {
-    return (
-      <div>
-        <br />
-        <div>IOPS (IOPS)</div>
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.props.data.values}
-            syncId='sr'
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' IOPS'}
-              domain={[0, Math.max(1, this.props.max)]}
-              hide={true}
-            />
-            {this.props.data.iopsSr.map((property: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`iops_${property}`}
-                stroke='#006666'
-                fill='#006666'
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
-  }
-}
-
-class StorageIowaitGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  render() {
-    return (
-      <div>
-        <div>IOwait</div>
-        <br />
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.props.data.values}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' %'}
-              domain={[0, Math.max(0.0001, this.props.max)]}
-              hide={true}
-            />
-            {this.props.data.iowaitSr.map((property: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`iowait_${property}`}
-                stroke='blue'
-                fill='blue'
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
-  }
-}
-
-class StorageThroughputGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  render() {
-    return (
-      <div>
-        <div>IO throughput </div>
-        <br />
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.props.data.values}
-            syncId='sr'
-            margin={{
-              top: 5,
-              right: 20,
-              left: 90,
-              bottom: 5,
-            }}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              domain={[0, Math.max(1, this.props.max)]}
-              hide={true}
-            />
-            {this.props.data.throSr.map((property: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`thr_${property}`}
-                stroke='#e6e600'
-                fill='#e6e600'
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
   }
 }

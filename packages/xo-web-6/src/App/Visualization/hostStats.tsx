@@ -1,17 +1,13 @@
 import React, { Component } from 'react'
-import {
-  XAxis,
-  YAxis,
-  AreaChart,
-  Tooltip,
-  Legend,
-  Area,
-  Brush,
-  CartesianGrid,
-} from 'recharts'
 import moment from 'moment'
-import { allColors, getObject, xoCall } from './utils'
-import humanFormat from 'human-format'
+import { getObject, xoCall } from './utils'
+import {
+  HostCpuGraph,
+  HostLoadGraph,
+  HostNetworkGraph,
+  HostMemoryGraph,
+} from './stats'
+
 const NB_VALUES = 118
 
 export default class Visualization extends Component<any, any> {
@@ -26,17 +22,20 @@ export default class Visualization extends Component<any, any> {
 
     // Memory
     hostMemoryData: [],
-    hostMemoryMax: 0,
+    total: 0,
 
     //  Network
     hostNetworkData: [],
     hostNetworksReception: [],
     hostNetworksTransmission: [],
     hostNetworksMax: [],
+    hostNetworkIntervalMin: 1024e2,
 
     //  Load
     hostLoadData: [],
     hostLoadMax: 0,
+    hostLoadIntervalMin: 1,
+    syncId: 'b54bf91f-51d7-4af5-b1b3-f14dcf1146ee',
   }
 
   componentDidMount() {
@@ -45,7 +44,7 @@ export default class Visualization extends Component<any, any> {
 
   fetchHostStats = () => {
     getObject('b54bf91f-51d7-4af5-b1b3-f14dcf1146ee').then((host: any) => {
-      this.setState({ hostMemoryMax: host.memory.size })
+      this.setState({ total: host.memory.size })
     })
 
     xoCall('host.stats', {
@@ -170,324 +169,39 @@ export default class Visualization extends Component<any, any> {
             </select>
           </form>
         </div>
-        <HostCpuGraph
-          hostCpuData={this.state.hostCpuData}
-          hostCpus={this.state.hostCpus}
-        />
-        <HostMemoryGraph
-          hostMemoryData={this.state.hostMemoryData}
-          hostMemoryMax={this.state.hostMemoryMax}
-        />
-        <HostNetworkGraph
-          hostNetworkData={this.state.hostNetworkData}
-          hostNetworksReception={this.state.hostNetworksReception}
-          hostNetworksTransmission={this.state.hostNetworksTransmission}
-          hostNetworksMax={this.state.hostNetworksMax}
-        />
-        <HostLoadGraph
-          hostLoadData={this.state.hostLoadData}
-          hostLoadMax={this.state.hostLoadMax}
-        />
-      </div>
-    )
-  }
-}
-
-class HostCpuGraph extends Component<any, any> {
-  state = {
-    hostCpuStartIndex: 0,
-    hostCpuEndIndex: 0,
-  }
-
-  handleHostCpuZoomChange = (res: any) => {
-    this.setState({ hostCpuStartIndex: res.startIndex })
-    this.setState({ hostCpuEndIndex: res.endIndex })
-  }
-
-  render() {
-    return (
-      <div>
-        <div>
-          <h2>Host stats </h2>
+        <h3>CPU usage</h3>
+        <div style={{ width: '500px', height: '300px' }}>
+          <HostCpuGraph
+            data={this.state.hostCpuData}
+            syncId={this.state.syncId}
+          />
         </div>
         <br />
-        <div>CPU usage</div>
-        <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.hostCpuData}
-            syncId='host'
-            margin={GRAPH_CONIF}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              domain={[0, 100]}
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value => value + '%'}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleHostCpuZoomChange}
-              startIndex={this.state.hostCpuStartIndex}
-              endIndex={this.state.hostCpuEndIndex}
-            >
-              <AreaChart
-                width={830}
-                height={300}
-                data={this.props.hostCpuData}
-                margin={GRAPH_CONIF}
-              >
-                {this.props.hostCpus.map((property: any, index: any) => (
-                  <Area
-                    connectNulls
-                    isAnimationActive={false}
-                    type='monotone'
-                    dataKey={`cpu${property}`}
-                    stroke={allColors[index]}
-                    fill={allColors[index]}
-                    key={index}
-                  />
-                ))}
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            {this.props.hostCpus.map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`cpu${property}`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
-                key={index}
-              />
-            ))}
-          </AreaChart>
+        <div style={{ width: '500px', height: '300px' }}>
+          <h3>Memory usage </h3>
+          <HostMemoryGraph
+            data={this.state.hostMemoryData}
+            total={this.state.total}
+            syncId={this.state.syncId}
+          />
         </div>
-      </div>
-    )
-  }
-}
-
-class HostMemoryGraph extends Component<any, any> {
-  state = {
-    startIndexMemoryHost: 0,
-    endIndexMemoryHost: 0,
-  }
-
-  handleHostMemoryZoomChange = (res: any) => {
-    this.setState({ startIndexMemoryHost: res.startIndex })
-    this.setState({ endIndexMemoryHost: res.endIndex })
-  }
-
-  render() {
-    return (
-      <div>
-        <div>Memory usage </div>
         <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.hostMemoryData}
-            syncId='host'
-            margin={GRAPH_CONIF}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value =>
-                humanFormat(value, { scale: 'binary', unit: 'B' })
-              }
-              domain={[0, this.props.hostMemoryMax]}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleHostMemoryZoomChange}
-              startIndex={this.state.startIndexMemoryHost}
-              endIndex={this.state.endIndexMemoryHost}
-            >
-              <AreaChart
-                width={830}
-                height={300}
-                data={this.props.hostMemoryData}
-                margin={GRAPH_CONIF}
-              >
-                <Area
-                  type='monotone'
-                  dataKey='memory'
-                  stroke='#493BD8'
-                  fill='#493BD8'
-                />
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            <Area
-              type='monotone'
-              dataKey='memory'
-              stroke='#493BD8'
-              fill='#493BD8'
-            />
-          </AreaChart>
+        <h3>Network throughput </h3>
+        <div style={{ width: '500px', height: '300px' }}>
+          <HostNetworkGraph
+            data={this.state.hostNetworkData}
+            threshold={this.state.hostNetworkIntervalMin}
+            syncId={this.state.syncId}
+          />
         </div>
-      </div>
-    )
-  }
-}
-
-class HostNetworkGraph extends Component<any, any> {
-  state = {
-    startIndexNetworkHost: 0,
-    endIndexNetworkHost: 0,
-  }
-
-  handleHostNetworkZoomChange = (res: any) => {
-    this.setState({ startIndexNetworkHost: res.startIndex })
-    this.setState({ endIndexNetworkHost: res.endIndex })
-  }
-
-  render() {
-    return (
-      <div>
         <br />
-        <div>Network throughput </div>
-        <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.hostNetworkData}
-            syncId='host'
-            margin={GRAPH_CONIF}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value =>
-                humanFormat(value, { scale: 'binary', unit: 'B' })
-              }
-              domain={[0, Math.max(1024e3, this.props.hostNetworksMax)]}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleHostNetworkZoomChange}
-              startIndex={this.state.startIndexNetworkHost}
-              endIndex={this.state.endIndexNetworkHost}
-            >
-              <AreaChart
-                width={830}
-                height={300}
-                data={this.props.hostNetworkData}
-                margin={GRAPH_CONIF}
-              >
-                {[
-                  ...this.props.hostNetworksReception,
-                  ...this.props.hostNetworksTransmission,
-                ].map((property: any, index: any) => (
-                  <Area
-                    connectNulls
-                    isAnimationActive={false}
-                    type='monotone'
-                    dataKey={`pifs_${property}_(${
-                      index < this.props.hostNetworksReception.length
-                        ? 'rx'
-                        : 'tx'
-                    })`}
-                    stroke={allColors[index]}
-                    fill={allColors[index]}
-                    key={index}
-                  />
-                ))}
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            {[
-              ...this.props.hostNetworksReception,
-              ...this.props.hostNetworksTransmission,
-            ].map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`pifs_${property}_(${
-                  index < this.props.hostNetworksReception.length ? 'rx' : 'tx'
-                })`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
-                key={index}
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
-  }
-}
-const GRAPH_CONIF = { top: 5, right: 20, left: 90, bottom: 5 }
-
-class HostLoadGraph extends Component<any, any> {
-  state = {
-    startIndexLoadHost: 0,
-    endIndexLoadHost: 0,
-  }
-
-  handleHostLoadZoomChange = (res: any) => {
-    this.setState({ startIndexLoadHost: res.startIndex })
-    this.setState({ endIndexLoadHost: res.endIndex })
-  }
-
-  render() {
-    return (
-      <div>
-        <div>Load average </div>
-        <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.hostLoadData}
-            syncId='host'
-            margin={GRAPH_CONIF}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              domain={[0, Math.max(1, this.props.hostLoadMax)]}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleHostLoadZoomChange}
-              startIndex={this.state.startIndexLoadHost}
-              endIndex={this.state.endIndexLoadHost}
-            >
-              <AreaChart
-                width={830}
-                height={300}
-                data={this.props.hostLoadData}
-                margin={GRAPH_CONIF}
-              >
-                <Area
-                  type='monotone'
-                  dataKey='load'
-                  stroke='#493BD8'
-                  fill='#493BD8'
-                />
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            <Area
-              type='monotone'
-              dataKey='load'
-              stroke='#493BD8'
-              fill='#493BD8'
-            />
-          </AreaChart>
+        <h3>Load average </h3>
+        <div style={{ width: '500px', height: '300px' }}>
+          <HostLoadGraph
+            data={this.state.hostLoadData}
+            threshold={this.state.hostLoadIntervalMin}
+            syncId={this.state.syncId}
+          />
         </div>
       </div>
     )

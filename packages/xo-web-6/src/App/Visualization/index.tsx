@@ -1,44 +1,33 @@
 import React, { Component } from 'react'
-import {
-  XAxis,
-  YAxis,
-  AreaChart,
-  Tooltip,
-  Legend,
-  Area,
-  Brush,
-  CartesianGrid,
-} from 'recharts'
-
-import { allColors, getObject, xoCall } from './utils'
+import { getObject, xoCall } from './utils'
 import moment from 'moment'
-import humanFormat from 'human-format'
+import { VmDiskGraph, VmNetworkGraph, VmMemoryGraph, VmCpuGraph } from './stats'
+
 const NB_VALUES = 118
 
 export default class Visualization extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
-    //  VM
-    //  Cpu
+    // VM
+    // Cpu
     vmCpuData: [],
     vmCpus: [],
 
-    //  Memory
+    // Memory
     vmMemoryData: [],
-    vmMemoryMax: 0,
+    total: 0,
 
-    //  Network
+    // Network
     vmNetworkData: [],
-    vmNetworksTransmission: [],
-    vmNetworksReception: [],
     vmNetworkMax: 0,
+    vmNetworkIntervalMin: 1024e2,
 
-    //  Disk
+    // Disk
     vmDiskData: [],
-    vmDisksWriting: [],
-    vmDisksReading: [],
     vmDiskMax: 0,
+    vmDiskIntervalMin: 1024e3,
+    syncId: '402b4559-217c-e9df-53b8-b548c2616e92',
   }
 
   componentDidMount() {
@@ -47,7 +36,7 @@ export default class Visualization extends Component<any, any> {
 
   fetchVmStats = () => {
     getObject('402b4559-217c-e9df-53b8-b548c2616e92').then((vm: any) => {
-      this.setState({ vmMemoryMax: vm.memory.dynamic[1] })
+      this.setState({ total: vm.memory.dynamic[1] })
     })
 
     xoCall('vm.stats', {
@@ -69,11 +58,14 @@ export default class Visualization extends Component<any, any> {
           format = 'l'
         }
 
-        this.setState({ vmCpus: Object.keys(cpus) })
-        this.setState({ vmNetworksTransmission: Object.keys(vifs.tx) })
-        this.setState({ vmNetworksReception: Object.keys(vifs.rx) })
-        this.setState({ vmDisksWriting: Object.keys(xvds.w) })
-        this.setState({ vmDisksReading: Object.keys(xvds.r) })
+        this.setState({
+          vmCpus: Object.keys(cpus),
+          vmNetworksTransmission: Object.keys(vifs.tx),
+          vmNetworksReception: Object.keys(vifs.rx),
+          vmDisksWriting: Object.keys(xvds.w),
+          vmDisksReading: Object.keys(xvds.r),
+        })
+
         let vmCpuData: any[] = []
         let vmMemoryData: any[] = []
         let vmNetworkData: any[] = []
@@ -127,7 +119,6 @@ export default class Visualization extends Component<any, any> {
           vmNetworkData.push(vmNetworkValues)
           vmMemoryData.push(vmMemoryValues)
         }
-
         this.state.vmNetworksTransmission.forEach(
           (property: string | number) => {
             this.setState({ maxNetworkTx: Math.max(...vifs.tx[property]) })
@@ -182,351 +173,36 @@ export default class Visualization extends Component<any, any> {
             </select>
           </form>
         </div>
-        <VmCpuGraph
-          vmCpuData={this.state.vmCpuData}
-          vmCpus={this.state.vmCpus}
-        />
-        <VmMemoryGraph
-          vmMemoryData={this.state.vmMemoryData}
-          vmMemoryMax={this.state.vmMemoryMax}
-        />
-        <VmNetworkGraph
-          vmNetworkData={this.state.vmNetworkData}
-          vmNetworksTransmission={this.state.vmNetworksTransmission}
-          vmNetworksReception={this.state.vmNetworksReception}
-          vmNetworkMax={this.state.vmNetworkMax}
-        />
-        <VmDiskGraph
-          vmDiskData={this.state.vmDiskData}
-          vmDisksWriting={this.state.vmDisksWriting}
-          vmDisksReading={this.state.vmDisksReading}
-          vmDiskMax={this.state.vmDiskMax}
-        />
-      </div>
-    )
-  }
-}
-
-const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
-
-class VmCpuGraph extends Component<any, any> {
-  state: any = {
-    vmCpuStartIndex: 0,
-    vmCpuEndIndex: 0,
-  }
-
-  handleVmCpuZoomChange = (res: any) => {
-    this.setState({
-      vmCpuStartIndex: res.startIndex,
-      vmCpuEndIndex: res.endIndex,
-    })
-  }
-
-  render() {
-    return (
-      <div>
-        <div>
-          <h2>VMs stats </h2>
+        <h3>CPU usage</h3>
+        <div style={{ width: '500px', height: '300px' }}>
+          <VmCpuGraph data={this.state.vmCpuData} syncId={this.state.syncId} />
         </div>
-        <div>CPU usage</div>
         <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.vmCpuData}
-            syncId='vm'
-            margin={GRAPH_CONFIG}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              domain={[0, 100]}
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value => value + ' %'}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleVmCpuZoomChange}
-              startIndex={this.state.vmCpuStartIndex}
-              endIndex={this.state.vmCpuEndIndex}
-            >
-              <AreaChart
-                width={830}
-                height={350}
-                data={this.props.vmCpuData}
-                margin={GRAPH_CONFIG}
-              >
-                {this.props.vmCpus.map((property: any, index: any) => (
-                  <Area
-                    connectNulls
-                    isAnimationActive={false}
-                    type='monotone'
-                    dataKey={`cpu${property}`}
-                    stroke={allColors[index]}
-                    fill={allColors[index]}
-                    key={index}
-                  />
-                ))}
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            {this.props.vmCpus.map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`cpu${property}`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
-                key={index}
-              />
-            ))}
-          </AreaChart>
+        <h3>Memory usage</h3>
+        <div style={{ width: '500px', height: '300px' }}>
+          <VmMemoryGraph
+            data={this.state.vmMemoryData}
+            total={this.state.total}
+            syncId={this.state.syncId}
+          />
         </div>
-      </div>
-    )
-  }
-}
-
-class VmMemoryGraph extends Component<any, any> {
-  state: any = {
-    startIndexMemoryVm: 0,
-    endIndexMemoryVm: 0,
-  }
-
-  handleVmMemoryZoomChange = (res: any) => {
-    this.setState({ startIndexMemoryVm: res.startIndex })
-    this.setState({ endIndexMemoryVm: res.endIndex })
-  }
-
-  render() {
-    return (
-      <div>
-        <div>Memory usage</div>
         <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.vmMemoryData}
-            syncId='vm'
-            margin={GRAPH_CONFIG}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value =>
-                humanFormat(value, { scale: 'binary', unit: 'B' })
-              }
-              domain={[0, this.props.vmMemoryMax]}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleVmMemoryZoomChange}
-              startIndex={this.state.startIndexMemoryVm}
-              endIndex={this.state.endIndexMemoryVm}
-            >
-              <AreaChart
-                width={830}
-                height={300}
-                data={this.props.vmMemoryData}
-                margin={GRAPH_CONFIG}
-              >
-                <Area
-                  type='monotone'
-                  dataKey='memory'
-                  stroke='#493BD8'
-                  fill='#493BD8'
-                />
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            <Area
-              type='monotone'
-              dataKey='memory'
-              stroke='#493BD8'
-              fill='#493BD8'
-            />
-          </AreaChart>
+        <h3>Network throughput</h3>
+        <div style={{ width: '500px', height: '300px' }}>
+          <VmNetworkGraph
+            data={this.state.vmNetworkData}
+            threshold={this.state.vmNetworkIntervalMin}
+            syncId={this.state.syncId}
+          />
         </div>
-      </div>
-    )
-  }
-}
-
-class VmNetworkGraph extends Component<any, any> {
-  state: any = {
-    startIndexNetworkVm: 0,
-    endIndexNetworkVm: 0,
-  }
-
-  handleVmNetworkZoomChange = (res: any) => {
-    this.setState({ startIndexNetworkVm: res.startIndex })
-    this.setState({ endIndexNetworkVm: res.endIndex })
-  }
-
-  render() {
-    return (
-      <div>
         <br />
-        <div>Network throughput</div>
-        <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.vmNetworkData}
-            syncId='vm'
-            margin={GRAPH_CONFIG}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value =>
-                humanFormat(value, { scale: 'binary', unit: 'B' })
-              }
-              domain={[0, Math.max(1024e3, this.props.vmNetworkMax)]}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleVmNetworkZoomChange}
-              startIndex={this.state.startIndexNetworkVm}
-              endIndex={this.state.endIndexNetworkVm}
-            >
-              <AreaChart
-                width={830}
-                height={300}
-                data={this.props.vmNetworkData}
-                margin={GRAPH_CONFIG}
-              >
-                {[
-                  ...this.props.vmNetworksTransmission,
-                  ...this.props.vmNetworksReception,
-                ].map((property: any, index: any) => (
-                  <Area
-                    connectNulls
-                    isAnimationActive={false}
-                    type='monotone'
-                    dataKey={`vifs_${property}_(${
-                      index < this.props.vmNetworksTransmission.length
-                        ? 'tx'
-                        : 'rx'
-                    })`}
-                    stroke={allColors[index]}
-                    fill={allColors[index]}
-                    key={index}
-                  />
-                ))}
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            {[
-              ...this.props.vmNetworksTransmission,
-              ...this.props.vmNetworksReception,
-            ].map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`vifs_${property}_(${
-                  index < this.props.vmNetworksTransmission.length ? 'tx' : 'rx'
-                })`}
-                stroke={allColors[index]}
-                fill={allColors[index]}
-                key={index}
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
-  }
-}
-
-class VmDiskGraph extends Component<any, any> {
-  state: any = {
-    startIndexDiskVm: 0,
-    endIndexDiskVm: 0,
-  }
-
-  handleVMDiskZoomChange = (res: any) => {
-    this.setState({ startIndexDiskVm: res.startIndex })
-    this.setState({ endIndexDiskVm: res.endIndex })
-  }
-
-  render() {
-    return (
-      <div>
-        <br />
-        <div>Disk throughput</div>
-        <br />
-        <div>
-          <AreaChart
-            width={830}
-            height={300}
-            data={this.props.vmDiskData}
-            syncId='vm'
-            margin={GRAPH_CONFIG}
-          >
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='time' />
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value =>
-                humanFormat(value, { scale: 'binary', unit: 'B' })
-              }
-              domain={[0, Math.max(1024e6, this.props.vmDiskMax)]}
-            />
-            <Tooltip />
-            <Brush
-              onChange={this.handleVMDiskZoomChange}
-              startIndex={this.state.startIndexDiskVm}
-              endIndex={this.state.endIndexDiskVm}
-            >
-              <AreaChart
-                width={830}
-                height={300}
-                data={this.state.vmDiskData}
-                margin={GRAPH_CONFIG}
-              >
-                {[
-                  ...this.props.vmDisksWriting,
-                  ...this.props.vmDisksReading,
-                ].map((property: any, index: any) => (
-                  <Area
-                    connectNulls
-                    isAnimationActive={false}
-                    type='monotone'
-                    dataKey={`xvds_${property}_(${
-                      index < this.props.vmDisksWriting.length ? 'w' : 'r'
-                    })`}
-                    stroke={allColors[index]}
-                    fill={allColors[index]}
-                    key={index}
-                  />
-                ))}
-              </AreaChart>
-            </Brush>
-            <Legend iconType='rect' iconSize={18} />
-            {[...this.props.vmDisksWriting, ...this.props.vmDisksReading].map(
-              (property: any, index: any) => (
-                <Area
-                  connectNulls
-                  isAnimationActive={false}
-                  type='monotone'
-                  dataKey={`xvds_${property}_(${
-                    index < this.props.vmDisksWriting.length ? 'w' : 'r'
-                  })`}
-                  stroke={allColors[index]}
-                  fill={allColors[index]}
-                  key={index}
-                />
-              )
-            )}
-          </AreaChart>
+        <h3>Disk throughput</h3>
+        <div style={{ width: '500px', height: '300px' }}>
+          <VmDiskGraph
+            data={this.state.vmDiskData}
+            threshold={this.state.vmDiskIntervalMin}
+            syncId={this.state.syncId}
+          />
         </div>
       </div>
     )

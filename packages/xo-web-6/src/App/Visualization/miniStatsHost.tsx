@@ -1,12 +1,17 @@
 import React, { Component } from 'react'
-import { YAxis, AreaChart } from 'recharts'
-import { Area } from 'recharts'
-import { getObject, xoCall } from './utils'
+import { xoCall } from './utils'
+import {
+  HostMemoryGraph,
+  HostCpuGraph,
+  HostNetworkGraph,
+  HostLoadGraph,
+} from './miniStats'
+
 const NB_VALUES = 118
 const tabId = [
   'b54bf91f-51d7-4af5-b1b3-f14dcf1146ee',
-  '139efd4b-5544-4f83-9090-a93d351dffbe',
-  '73bb5ce0-f720-4621-bd68-98341b094bad',
+  'e90874ee-c3e9-407a-9507-dcb334dc8519',
+  'e5f83a8e-ac73-4dbd-bc22-d9f2fb580341',
 ]
 
 export default class Visualization extends Component<any, any> {
@@ -32,14 +37,19 @@ export default class Visualization extends Component<any, any> {
     )
   }
 }
-const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
+
 class HostsMemoryGraph extends Component<any, any> {
   state: any = {
     hostId: 0,
   }
   render() {
     return this.props.hostIds.map((hostId: any) => (
-      <HostMemoryGraph hostId={hostId} key={hostId} />
+      <div>
+        <h3>Memory usage</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <HostMemoryGraph hostId={hostId} key={hostId} />
+        </div>
+      </div>
     ))
   }
 }
@@ -50,7 +60,12 @@ class HostsCpuGraph extends Component<any, any> {
   }
   render() {
     return this.props.hostIds.map((hostId: any) => (
-      <HostCpuGraph hostId={hostId} key={hostId} />
+      <div>
+        <h3>CPU usage</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <HostCpuGraph hostId={hostId} key={hostId} />
+        </div>
+      </div>
     ))
   }
 }
@@ -69,8 +84,7 @@ class HostsNetworkGraph extends Component<any, any> {
     Promise.all(
       this.props.hostIds.map((idHost: any) => this.fetchOne(idHost))
     ).then(allData => {
-      this.setState({ max: 0 })
-      this.setState({ allData: [] })
+      this.setState({ max: 0, allData: [] })
       allData.forEach((currentHost: any) => {
         this.updateData(
           currentHost.endTimestamp,
@@ -130,12 +144,16 @@ class HostsNetworkGraph extends Component<any, any> {
     data.values = networkDataVm
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxNetwork) })
+    this.setState({ allData: tmpAllData, max: this.computeMax(maxNetwork) })
   }
   render() {
     return this.state.allData.map((currentData: any) => (
-      <HostNetworkGraph max={this.state.max} data={currentData} />
+      <div>
+        <h3>Network throughput</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <HostNetworkGraph max={this.state.max} data={currentData} />
+        </div>
+      </div>
     ))
   }
 }
@@ -154,8 +172,7 @@ class HostsLoadGraph extends Component<any, any> {
     Promise.all(
       this.props.hostIds.map((idHost: any) => this.fetchOne(idHost))
     ).then(allData => {
-      this.setState({ max: 0 })
-      this.setState({ allData: [] })
+      this.setState({ max: 0, allData: [] })
       allData.forEach((currentHost: any) => {
         this.updateData(
           currentHost.endTimestamp,
@@ -190,259 +207,17 @@ class HostsLoadGraph extends Component<any, any> {
     const maxLoad = Math.max(...stats.load)
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxLoad) })
+    this.setState({ allData: tmpAllData, max: this.computeMax(maxLoad) })
   }
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <HostLoadGraph max={this.state.max} data={currentData} />
+      <div>
+        <h3>Load average </h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <HostLoadGraph max={this.state.max} data={currentData} />
+        </div>
+      </div>
     ))
-  }
-}
-
-class HostMemoryGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
-    maxMemoryHost: 0,
-    dataMemory: [],
-  }
-  componentDidMount() {
-    setInterval(this.fetchStatsHost.bind(this), 5e3)
-  }
-
-  fetchStatsHost = () => {
-    getObject(this.props.hostId).then((host: any) => {
-      this.setState({ maxMemoryHost: host.memory.size })
-    })
-    xoCall('host.stats', {
-      host: this.props.hostId,
-      granularity: this.state.granularity,
-    }).then(
-      ({ endTimestamp, interval, stats: { memory, memoryFree = memory } }) => {
-        let newDataMemory: any[] = []
-        let dataMemory: any[] = []
-
-        newDataMemory = memoryFree.map(
-          (value: any, index: any) => memory[index] - value
-        )
-
-        for (var i = 0; i < NB_VALUES; i++) {
-          const valuesMemory: any = {}
-          valuesMemory.time =
-            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          valuesMemory.memory = newDataMemory[i]
-          dataMemory.push(valuesMemory)
-        }
-        this.setState({
-          dataMemory,
-        })
-      }
-    )
-  }
-
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + '' + sizes[i]
-  }
-
-  render() {
-    return (
-      <div>
-        <div>Memory usage</div>
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.state.dataMemory}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => this.formatBytes(tick, 0)}
-              domain={[0, this.state.maxMemoryHost]}
-              hide={true}
-            />
-            <Area
-              type='monotone'
-              dataKey='memory'
-              stroke='#006666'
-              fill='#006666'
-            />
-          </AreaChart>
-        </div>
-        <br />
-      </div>
-    )
-  }
-}
-
-class HostCpuGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-    cpusVm: [],
-    cpuDataVm: [],
-    dataCpu: [],
-  }
-  componentDidMount() {
-    setInterval(this.fetchVmStats.bind(this), 5e3)
-  }
-
-  fetchVmStats = () => {
-    xoCall('host.stats', {
-      host: this.props.hostId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, stats: { cpus }, interval }) => {
-      this.setState({ cpusVm: Object.keys(cpus) })
-
-      let cpuDataVm: any[] = []
-      const averageCpu: any[] = []
-      for (var i = 0; i < NB_VALUES; i++) {
-        averageCpu[i] = 0
-        for (var j = 0; j < this.state.cpusVm.length; j++) {
-          averageCpu[i] += cpus[j][i] / this.state.cpusVm.length
-        }
-      }
-
-      for (var i = 0; i < NB_VALUES; i++) {
-        let valuesCpus: any = {}
-        valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-        valuesCpus.cpu = averageCpu[i]
-        cpuDataVm.push(valuesCpus)
-      }
-
-      this.setState({ cpuDataVm })
-    })
-  }
-  render() {
-    return (
-      <div>
-        <div>CPU usage</div>
-        <br />
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.state.cpuDataVm}
-            syncId='vm'
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              domain={[0, 100]}
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => tick + ' %'}
-              hide={true}
-            />
-            <Area
-              connectNulls
-              isAnimationActive={false}
-              type='monotone'
-              dataKey='cpu'
-              stroke='#66ccff'
-              fill='#66ccff'
-            />
-          </AreaChart>
-        </div>
-      </div>
-    )
-  }
-}
-
-class HostNetworkGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  formatBytes(bytes: any, decimals = 2) {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-  }
-
-  render() {
-    return (
-      <div>
-        <br />
-        <div>Network throughput</div>
-        <br />
-        <div>
-          <AreaChart
-            width={430}
-            height={130}
-            data={this.props.data.values}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              tickFormatter={tick => this.formatBytes(tick, 2)}
-              domain={[0, Math.max(100, this.props.max)]}
-              hide={true}
-            />
-            {[
-              ...this.props.data.networksTransmissionVm,
-              ...this.props.data.networksReceptionVm,
-            ].map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`pifs_${property}_(${
-                  index < this.props.data.networksTransmissionVm.length
-                    ? 'tx'
-                    : 'rx'
-                })`}
-                stroke='blue'
-                fill='blue'
-              />
-            ))}
-          </AreaChart>
-        </div>
-      </div>
-    )
-  }
-}
-
-class HostLoadGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  render() {
-    return (
-      <div>
-        <div>Load average </div>
-        <br />
-        <div>
-          <AreaChart
-            width={430}
-            height={100}
-            data={this.props.data.values}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              domain={[0, Math.max(1, this.props.max)]}
-              hide={true}
-            />
-            <Area
-              isAnimationActive={false}
-              connectNulls
-              type='monotone'
-              dataKey='load'
-              stroke='#e6e600'
-              fill='#e6e600'
-            />
-          </AreaChart>
-        </div>
-      </div>
-    )
   }
 }

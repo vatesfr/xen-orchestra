@@ -1,13 +1,18 @@
 import React, { Component } from 'react'
-import { YAxis, AreaChart } from 'recharts'
-import { getObject, xoCall } from './utils'
-import { Area } from 'recharts'
+import { xoCall } from './utils'
 const NB_VALUES = 118
 const tabId = [
   '40fec8ff-e0cf-aa79-ad3a-985ef582f10c',
   '402b4559-217c-e9df-53b8-b548c2616e92',
   'ebd131c8-d8df-144a-5997-f1969da1f022',
 ]
+
+import {
+  VmCpuGraph,
+  VmMemoryGraph,
+  VmNetworkGraph,
+  VmDiskGraph,
+} from './miniStats'
 
 export default class Visualization extends Component<any, any> {
   state: any = {
@@ -33,86 +38,19 @@ export default class Visualization extends Component<any, any> {
   }
 }
 
-const GRAPH_CONFIG = { top: 5, right: 20, left: 90, bottom: 5 }
-
 class VmsCpuGraph extends Component<any, any> {
   state: any = {
     vmId: 0,
   }
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <VmCpuGraph vmId={vmId} key={vmId} />
-    ))
-  }
-}
-
-class VmCpuGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
-    cpusVm: [],
-    cpuDataVm: [],
-  }
-  componentDidMount() {
-    setInterval(this.fetchCpuVmStats.bind(this), 5e3)
-  }
-
-  fetchCpuVmStats = () => {
-    xoCall('vm.stats', {
-      id: this.props.vmId,
-      granularity: this.state.granularity,
-    }).then(({ endTimestamp, stats: { cpus }, interval }) => {
-      this.setState({ cpusVm: Object.keys(cpus) })
-
-      let cpuDataVm: any[] = []
-      const averageCpu: any[] = []
-      for (var i = 0; i < NB_VALUES; i++) {
-        averageCpu[i] = 0
-        for (var j = 0; j < this.state.cpusVm.length; j++) {
-          averageCpu[i] += cpus[j][i] / this.state.cpusVm.length
-        }
-      }
-      for (var i = 0; i < NB_VALUES; i++) {
-        let valuesCpus: any = {}
-        valuesCpus.time = (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-        valuesCpus.cpu = averageCpu[i]
-
-        cpuDataVm.push(valuesCpus)
-      }
-
-      this.setState({ cpuDataVm })
-    })
-  }
-
-  render() {
-    return (
       <div>
-        <div>CPU usage</div>
-        <br />
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.state.cpuDataVm}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              domain={[0, 100]}
-              tick={{ fontSize: '11px' }}
-              tickFormatter={value => value + ' %'}
-              hide={true}
-            />
-            <Area
-              isAnimationActive={false}
-              type='monotone'
-              dataKey='cpu'
-              stroke='#e6e600'
-              fill='#e6e600'
-            />
-          </AreaChart>
+        <h3>CPU usage</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <VmCpuGraph vmId={vmId} key={vmId} />
         </div>
       </div>
-    )
+    ))
   }
 }
 
@@ -123,74 +61,13 @@ class VmsMemoryGraph extends Component<any, any> {
 
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <VmMemoryGraph vmId={vmId} key={vmId} />
-    ))
-  }
-}
-class VmMemoryGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-    format: 'LTS',
-    maxMemory: 0,
-    dataMemory: [],
-  }
-  componentDidMount() {
-    setInterval(this.fetchStatsVm.bind(this), 5e3)
-  }
-
-  fetchStatsVm = () => {
-    getObject(this.props.vmId).then((vm: any) => {
-      this.setState({ maxMemory: vm.memory.dynamic[1] })
-    })
-
-    xoCall('vm.stats', {
-      id: this.props.vmId,
-      granularity: this.state.granularity,
-    }).then(
-      ({ endTimestamp, interval, stats: { memory, memoryFree = memory } }) => {
-        let newDataMemory: any[] = []
-        let dataMemory: any[] = []
-
-        newDataMemory = memoryFree.map(
-          (value: any, index: any) => memory[index] - value
-        )
-
-        for (var i = 0; i < NB_VALUES; i++) {
-          const valuesMemory: any = {}
-          valuesMemory.time =
-            (endTimestamp - (NB_VALUES - i - 1) * interval) * 1000
-          valuesMemory.memory = newDataMemory[i]
-          dataMemory.push(valuesMemory)
-        }
-        this.setState({
-          dataMemory,
-        })
-      }
-    )
-  }
-
-  render() {
-    return (
       <div>
-        <div>Memory usage</div>
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.state.dataMemory}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              domain={[0, this.state.maxMemory]}
-              hide={true}
-            />
-            <Area type='monotone' dataKey='memory' stroke='blue' fill='blue' />
-          </AreaChart>
+        <h3>Memory usage</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <VmMemoryGraph vmId={vmId} key={vmId} />
         </div>
-        <br />
       </div>
-    )
+    ))
   }
 }
 
@@ -206,8 +83,7 @@ class VmsNetworkGraph extends Component<any, any> {
   fetchAll() {
     Promise.all(this.props.vmIds.map((idVm: any) => this.fetchOne(idVm))).then(
       allData => {
-        this.setState({ max: 0 })
-        this.setState({ allData: [] })
+        this.setState({ max: 0, allData: [] })
         allData.forEach((currentVm: any) => {
           this.updateData(
             currentVm.endTimestamp,
@@ -268,62 +144,18 @@ class VmsNetworkGraph extends Component<any, any> {
     data.values = vmNetworkData
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxNetwork) })
+    this.setState({ allData: tmpAllData, max: this.computeMax(maxNetwork) })
   }
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <VmNetworkGraph max={this.state.max} data={currentData} />
-    ))
-  }
-}
-
-class VmNetworkGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  render() {
-    return (
       <div>
-        <br />
-        <div>Network throughput</div>
-        <br />
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.props.data.values}
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              domain={[0, Math.max(1, this.props.max)]}
-              hide={true}
-            />
-            {[
-              ...this.props.data.networksTransmissionVm,
-              ...this.props.data.networksReceptionVm,
-            ].map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`vifs_${property}_(${
-                  index < this.props.data.networksTransmissionVm.length
-                    ? 'tx'
-                    : 'rx'
-                })`}
-                stroke='#66ccff'
-                fill='#66ccff'
-                key={index}
-              />
-            ))}
-          </AreaChart>
+        <h3>Network throughput</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <VmNetworkGraph max={this.state.max} data={currentData} />
         </div>
       </div>
-    )
+    ))
   }
 }
 
@@ -341,8 +173,7 @@ class VmsDiskGraph extends Component<any, any> {
   fetchAll() {
     Promise.all(this.props.vmIds.map((idVm: any) => this.fetchOne(idVm))).then(
       allData => {
-        this.setState({ max: 0 })
-        this.setState({ allData: [] })
+        this.setState({ max: 0, allData: [] })
         allData.forEach((currentVm: any) => {
           this.updateData(
             currentVm.endTimestamp,
@@ -384,7 +215,6 @@ class VmsDiskGraph extends Component<any, any> {
 
       data.disksReading.forEach((property: string | number) => {
         const diskValuesReading = stats.xvds.r[property][i]
-
         if (data.maxDiskR === undefined || diskValuesReading > data.maxDiskR) {
           data.maxDiskR = diskValuesReading
         }
@@ -400,59 +230,17 @@ class VmsDiskGraph extends Component<any, any> {
     data.values = diskDataVm
     const tmpAllData: any[] = this.state.allData
     tmpAllData.push(data)
-    this.setState({ allData: tmpAllData })
-    this.setState({ max: this.computeMax(maxDisk) })
+    this.setState({ allData: tmpAllData, max: this.computeMax(maxDisk) })
   }
 
   render() {
     return this.state.allData.map((currentData: any) => (
-      <VmDiskGraph max={this.state.max} data={currentData} />
-    ))
-  }
-}
-
-class VmDiskGraph extends Component<any, any> {
-  state: any = {
-    granularity: 'seconds',
-  }
-
-  render() {
-    return (
       <div>
-        <br />
-        <div>Disk throughput</div>
-        <br />
-        <div>
-          <AreaChart
-            width={400}
-            height={100}
-            data={this.props.data.values}
-            syncId='vm'
-            margin={GRAPH_CONFIG}
-          >
-            <YAxis
-              tick={{ fontSize: '11px' }}
-              domain={[0, Math.max(1, this.props.max)]}
-              hide={true}
-            />
-            {[
-              ...this.props.data.disksWriting,
-              ...this.props.data.disksReading,
-            ].map((property: any, index: any) => (
-              <Area
-                connectNulls
-                isAnimationActive={false}
-                type='monotone'
-                dataKey={`xvds_${property}_(${
-                  index < this.props.data.disksWriting.length ? 'w' : 'r'
-                })`}
-                stroke='#006666'
-                fill='#006666'
-              />
-            ))}
-          </AreaChart>
+        <h3>Disk throughput</h3>
+        <div style={{ width: '200px', height: '100px' }}>
+          <VmDiskGraph max={this.state.max} data={currentData} />
         </div>
       </div>
-    )
+    ))
   }
 }
