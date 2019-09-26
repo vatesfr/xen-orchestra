@@ -2,21 +2,28 @@
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from './_pDebounceWithKey'
 
-test('clear the cache of debounced function', async () => {
-  const key = 2
+describe('REMOVE_CACHE_ENTRY', () => {
+  it('clears the cache', async () => {
+    let i = 0
+    const debouncedFn = debounceWithKey(
+      function() {
+        return Promise.resolve(++i)
+      },
+      Infinity,
+      id => id
+    )
 
-  let i = 0
-  const debouncedFn = debounceWithKey(
-    function() {
-      return Promise.resolve(++i)
-    },
-    1,
-    id => id
-  )
+    // not cached accross keys
+    expect(await debouncedFn(1)).toBe(1)
+    expect(await debouncedFn(2)).toBe(2)
 
-  expect(await debouncedFn(key)).toBe(1)
-  expect(await debouncedFn(key)).toBe(1)
+    // retrieve the already cached values
+    expect(await debouncedFn(1)).toBe(1)
+    expect(await debouncedFn(2)).toBe(2)
 
-  debouncedFn(REMOVE_CACHE_ENTRY, key)
-  expect(await debouncedFn(key)).toBe(2)
+    // an entry for a specific key can be removed
+    debouncedFn(REMOVE_CACHE_ENTRY, 1)
+    expect(await debouncedFn(1)).toBe(3)
+    expect(await debouncedFn(2)).toBe(2)
+  })
 })
