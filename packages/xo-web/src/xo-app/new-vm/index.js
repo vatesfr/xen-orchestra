@@ -40,7 +40,6 @@ import {
   isEmpty,
   join,
   map,
-  noop,
   size,
   slice,
   sum,
@@ -344,7 +343,7 @@ export default class NewVm extends BaseComponent {
 
   // Actions ---------------------------------------------------------------------
 
-  _reset = (callback = noop) => {
+  _reset = callback => {
     this._replaceState(
       {
         bootAfterCreate: true,

@@ -93,18 +93,14 @@ export default {
       homeVmIdsSelection,
   }),
 
-  /**
-   * This state is used temporarily to keep loading state of template installation in hub
-   * @param {object} hubInstallingResources A map of { <templateId>: <loadingState }
-   * @param {boolean} hubInstallingResources[<templateId>] true: loading / false: no operation
-   */
+  // whether a resource is currently being installed: `hubInstallingResources[<template id>]`
   hubInstallingResources: combineActionHandlers(
     {},
     {
       [actions.markHubResourceAsInstalling]: (
         prevHubInstallingResources,
-        hubInstallingResources
-      ) => ({ ...prevHubInstallingResources, ...hubInstallingResources }),
+        id
+      ) => ({ ...prevHubInstallingResources, [id]: true }),
       [actions.markHubResourceAsInstalled]: (prevHubInstallingResources, id) =>
         omit(prevHubInstallingResources, id),
     }

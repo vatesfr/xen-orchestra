@@ -58,13 +58,9 @@ export const setHomeVmIdsSelection = createAction(
   'SET_HOME_VM_IDS_SELECTION',
   homeVmIdsSelection => homeVmIdsSelection
 )
-export const setHubInstallLoadingState = createAction(
-  'SET_HUB_INSTALL_LOADING_STATE',
-  hubInstallLoadingState => hubInstallLoadingState
-)
 export const markHubResourceAsInstalling = createAction(
   'MARK_HUB_RESOURCE_AS_INSTALLING',
-  id => ({ [id]: true })
+  id => id
 )
 export const markHubResourceAsInstalled = createAction(
   'MARK_HUB_RESOURCE_AS_INSTALLED',
