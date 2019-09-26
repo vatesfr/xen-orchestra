@@ -196,7 +196,9 @@ export async function getLogs({
 
   ...filter
 }) {
-  await this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+  if (_forceRefresh) {
+    await this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+  }
   return this.getBackupNgLogsSorted({ after, before, limit, filter })
 }
 
