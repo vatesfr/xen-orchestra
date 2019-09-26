@@ -7,7 +7,7 @@ test('clear the cache of debounced function', async () => {
 
   let i = 0
   const debouncedFn = debounceWithKey(
-    function(id) {
+    function() {
       return Promise.resolve(++i)
     },
     120e3,
