@@ -349,6 +349,10 @@ export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
 )
 
+export const subscribeHubResourceCatalog = createSubscription(() =>
+  _call('cloud.getResourceCatalog', { filters: { hub: true } })
+)
+
 const getNotificationCookie = () => {
   const notificationCookie = cookies.get(
     `notifications:${store.getState().user.id}`
@@ -2871,13 +2875,24 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 // XOSAN packs -----------------------------------------------------------------
 
-export const getResourceCatalog = () => _call('cloud.getResourceCatalog')
+export const getResourceCatalog = ({ filters } = {}) =>
+  _call('cloud.getResourceCatalog', { filters })
+
+export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
 const downloadAndInstallXosanPack = (pack, pool, { version }) =>
   _call('xosan.downloadAndInstallXosanPack', {
     id: resolveId(pack),
     version,
     pool: resolveId(pool),
+  })
+
+export const downloadAndInstallResource = ({ namespace, id, version, sr }) =>
+  _call('cloud.downloadAndInstallResource', {
+    namespace,
+    id,
+    version,
+    sr: resolveId(sr),
   })
 
 import UpdateXosanPacksModal from './update-xosan-packs-modal' // eslint-disable-line import/first

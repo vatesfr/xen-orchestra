@@ -27,6 +27,7 @@ import BackupNg from './backup-ng'
 import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
+import Hub from './hub'
 import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert, FormModal } from 'modal'
@@ -93,6 +94,7 @@ const BODY_STYLE = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  hub: Hub,
 })
 @connectStore(state => {
   return {

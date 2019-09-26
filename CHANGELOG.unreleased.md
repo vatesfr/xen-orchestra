@@ -12,6 +12,7 @@
 - [New VM] Cloud Init available for all plans (PR [#4543](https://github.com/vatesfr/xen-orchestra/pull/4543))
 - [Servers] IPv6 addresses can be used [#4520](https://github.com/vatesfr/xen-orchestra/issues/4520) (PR [#4521](https://github.com/vatesfr/xen-orchestra/pull/4521)) \
   Note: They must enclosed in brackets to differentiate with the port, e.g.: `[2001:db8::7334]` or `[ 2001:db8::7334]:4343`
+- [HUB] VM template store [#1918](https://github.com/vatesfr/xen-orchestra/issues/1918) (PR [#4442](https://github.com/vatesfr/xen-orchestra/pull/4442))
 
 ### Bug fixes
 
@@ -27,5 +28,6 @@
 > Rule of thumb: add packages on top.
 
 - xen-api v0.27.2
+- xo-server-cloud v0.3.0
 - xo-server v5.51.0
 - xo-web v5.51.0

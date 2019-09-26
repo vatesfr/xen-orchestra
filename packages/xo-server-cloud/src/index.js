@@ -20,9 +20,13 @@ class XoServerCloud {
   }
 
   async load() {
-    const getResourceCatalog = () => this._getCatalog()
-    getResourceCatalog.description = 'Get the list of all available resources'
+    const getResourceCatalog = this._getCatalog.bind(this)
+    getResourceCatalog.description =
+      "Get the list of user's available resources"
     getResourceCatalog.permission = 'admin'
+    getResourceCatalog.params = {
+      filters: { type: 'object', optional: true },
+    }
 
     const registerResource = ({ namespace }) =>
       this._registerResource(namespace)
@@ -34,8 +38,29 @@ class XoServerCloud {
     }
     registerResource.permission = 'admin'
 
+    const downloadAndInstallResource = this._downloadAndInstallResource.bind(
+      this
+    )
+
+    downloadAndInstallResource.description =
+      'Download and install a resource via cloud plugin'
+
+    downloadAndInstallResource.params = {
+      id: { type: 'string' },
+      namespace: { type: 'string' },
+      version: { type: 'string' },
+      sr: { type: 'string' },
+    }
+
+    downloadAndInstallResource.resolve = {
+      sr: ['sr', 'SR', 'administrate'],
+    }
+
+    downloadAndInstallResource.permission = 'admin'
+
     this._unsetApiMethods = this._xo.addApiMethods({
       cloud: {
+        downloadAndInstallResource,
         getResourceCatalog,
         registerResource,
       },
@@ -66,8 +91,8 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getCatalog() {
-    const catalog = await this._updater.call('getResourceCatalog')
+  async _getCatalog({ filters } = {}) {
+    const catalog = await this._updater.call('getResourceCatalog', { filters })
 
     if (!catalog) {
       throw new Error('cannot get catalog')
@@ -90,6 +115,26 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
+  async _downloadAndInstallResource({ id, namespace, sr, version }) {
+    const stream = await this._requestResource({
+      hub: true,
+      id,
+      namespace,
+      version,
+    })
+    const vm = await this._xo.getXapi(sr.$poolId).importVm(stream, {
+      srId: sr.id,
+      type: 'xva',
+    })
+    await vm.update_other_config({
+      'xo:resource:namespace': namespace,
+      'xo:resource:xva:version': version,
+      'xo:resource:xva:id': id,
+    })
+  }
+
+  // ----------------------------------------------------------------
+
   async _registerResource(namespace) {
     const _namespace = (await this._getNamespaces())[namespace]
 
@@ -106,8 +151,10 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaceCatalog(namespace) {
-    const namespaceCatalog = (await this._getCatalog())[namespace]
+  async _getNamespaceCatalog({ hub, namespace }) {
+    const namespaceCatalog = (await this._getCatalog({ filters: { hub } }))[
+      namespace
+    ]
 
     if (!namespaceCatalog) {
       throw new Error(`cannot get catalog: ${namespace} not registered`)
@@ -118,14 +165,17 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _requestResource(namespace, id, version) {
+  async _requestResource({ hub = false, id, namespace, version }) {
     const _namespace = (await this._getNamespaces())[namespace]
 
-    if (!_namespace || !_namespace.registered) {
+    if (!hub && (!_namespace || !_namespace.registered)) {
       throw new Error(`cannot get resource: ${namespace} not registered`)
     }
 
-    const { _token: token } = await this._getNamespaceCatalog(namespace)
+    const { _token: token } = await this._getNamespaceCatalog({
+      hub,
+      namespace,
+    })
 
     // 2018-03-20 Extra check: getResourceDownloadToken seems to be called without a token in some cases
     if (token === undefined) {

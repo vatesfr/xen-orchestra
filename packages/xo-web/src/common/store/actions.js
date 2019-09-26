@@ -58,3 +58,11 @@ export const setHomeVmIdsSelection = createAction(
   'SET_HOME_VM_IDS_SELECTION',
   homeVmIdsSelection => homeVmIdsSelection
 )
+export const markHubResourceAsInstalling = createAction(
+  'MARK_HUB_RESOURCE_AS_INSTALLING',
+  id => id
+)
+export const markHubResourceAsInstalled = createAction(
+  'MARK_HUB_RESOURCE_AS_INSTALLED',
+  id => id
+)

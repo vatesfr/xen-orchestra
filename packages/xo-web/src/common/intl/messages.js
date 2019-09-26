@@ -2143,6 +2143,21 @@ const messages = {
   xosanIssueHostNotInNetwork:
     'Will configure the host xosan network device with a static IP address and plug it in.',
 
+  // Hub
+  hubPage: 'Hub',
+  noDefaultSr: 'The selected pool has no default SR',
+  successfulInstall: 'VM installed successfully',
+  vmNoAvailable: 'No VMs available ',
+  create: 'Create',
+  hubResourceAlert: 'Resource alert',
+  os: 'OS',
+  version: 'Version',
+  size: 'Size',
+  totalDiskSize: 'Total disk size',
+  hideInstalledPool: 'Already installed templates are hidden',
+  hubSrErrorTitle: 'Missing property',
+  hubImportNotificationTitle: 'XVA import',
+
   // Licenses
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',

@@ -277,6 +277,10 @@
     @extend .fa;
     @extend .fa-thumbs-up;
   }
+  &-deploy {
+    @extend .fa;
+    @extend .fa-rocket;
+  }
 
   // Backups
   &-backup {
@@ -885,6 +889,10 @@
   &-menu-xosan {
     @extend .fa;
     @extend .fa-database;
+  }
+  &-menu-hub {
+    @extend .fa;
+    @extend .fa-cubes;
   }
   // New VM
   &-new-vm {
