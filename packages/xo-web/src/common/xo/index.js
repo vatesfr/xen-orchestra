@@ -345,8 +345,13 @@ export const subscribeRoles = createSubscription(
 
 export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
-export const subscribeResourceCatalog = ({ filters } = {}) =>
-  createSubscription(() => _call('cloud.getResourceCatalog', { filters }))
+export const subscribeResourceCatalog = createSubscription(() =>
+  _call('cloud.getResourceCatalog')
+)
+
+export const subscribeHubResourceCatalog = createSubscription(() =>
+  _call('cloud.getResourceCatalog', { filters: { hub: true } })
+)
 
 const getNotificationCookie = () => {
   const notificationCookie = cookies.get(

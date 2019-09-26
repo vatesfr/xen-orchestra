@@ -6,7 +6,7 @@ import { addSubscriptions, adminOnly } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, omit, orderBy } from 'lodash'
-import { subscribeResourceCatalog } from 'xo'
+import { subscribeHubResourceCatalog } from 'xo'
 
 import Page from '../page'
 import Resource from './resource'
@@ -22,7 +22,7 @@ const HEADER = (
 export default decorate([
   adminOnly,
   addSubscriptions({
-    catalog: subscribeResourceCatalog({ filters: { hub: true } }),
+    catalog: subscribeHubResourceCatalog,
   }),
   provideState({
     computed: {
