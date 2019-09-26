@@ -200,16 +200,6 @@ getLogs.params = {
   '*': { type: 'any' },
 }
 
-export function clearLogsCache() {
-  return this.clearBackupNgLogs()
-}
-
-clearLogsCache.permission = 'admin'
-
-clearLogsCache.params = {
-  runId: { type: 'string', optional: true },
-}
-
 // -----------------------------------------------------------------------------
 
 export function deleteVmBackup({ id }) {
