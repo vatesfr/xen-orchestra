@@ -210,6 +210,10 @@ class XoConnection extends Xo {
     return backups
   }
 
+  getBackupLogs(filter) {
+    return this.call('backupNg.getLogs', { _forceRefresh: true, ...filter })
+  }
+
   async _cleanDisposers(disposers) {
     for (let n = disposers.length - 1; n > 0; ) {
       const params = disposers[n--]
