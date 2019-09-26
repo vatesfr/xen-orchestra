@@ -199,7 +199,14 @@ export default {
     }
   ),
 
-  async getBackupNgLogsSorted({ after, before, filter, limit }) {
+  async getBackupNgLogsSorted(
+    { after, before, filter, limit },
+    _forceRefresh = false
+  ) {
+    if (_forceRefresh) {
+      await this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+    }
+
     let logs = await this.getBackupNgLogs()
 
     // convert to array
@@ -241,9 +248,5 @@ export default {
     logs = logs.slice(i, j)
 
     return logs
-  },
-
-  clearBackupNgLogs(runId) {
-    return this.getBackupNgLogs(REMOVE_CACHE_ENTRY, runId)
   },
 }

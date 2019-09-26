@@ -184,8 +184,11 @@ getAllLogs.params = {
   ndjson: { type: 'boolean', optional: true },
 }
 
-export function getLogs({ after, before, limit, ...filter }) {
-  return this.getBackupNgLogsSorted({ after, before, limit, filter })
+export function getLogs({ after, before, limit, ...filter }, _forceRefresh) {
+  return this.getBackupNgLogsSorted(
+    { after, before, limit, filter },
+    _forceRefresh
+  )
 }
 
 getLogs.permission = 'admin'
