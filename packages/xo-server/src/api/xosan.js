@@ -1164,11 +1164,11 @@ async function _prepareGlusterVm(
 }
 
 async function _importGlusterVM(xapi, template, lvmsrId) {
-  const templateStream = await this.requestResource(
-    'xosan',
-    template.id,
-    template.version
-  )
+  const templateStream = await this.requestResource({
+    id: template.id,
+    namespace: 'xosan',
+    version: template.version,
+  })
   const newVM = await xapi.importVm(templateStream, {
     srId: lvmsrId,
     type: 'xva',
@@ -1535,8 +1535,11 @@ export async function downloadAndInstallXosanPack({ id, version, pool }) {
   }
 
   const xapi = this.getXapi(pool.id)
-  const res = await this.requestResource('xosan', id, version)
-
+  const res = await this.requestResource({
+    id,
+    namespace: 'xosan',
+    version,
+  })
   await xapi.installSupplementalPackOnAllHosts(res)
   await xapi.pool.update_other_config(
     'xosan_pack_installation_time',

@@ -9,7 +9,12 @@ export async function downloadAndInstallResource({
       'xo-server-cloud plugin may not be loaded or requestResource is not a function'
     )
   }
-  const stream = await this.requestResource(namespace, id, version, true)
+  const stream = await this.requestResource({
+    hub: true,
+    id,
+    namespace,
+    version,
+  })
   const vm = await this.getXapi(sr.$poolId).importVm(stream, {
     srId: sr.id,
     type: 'xva',

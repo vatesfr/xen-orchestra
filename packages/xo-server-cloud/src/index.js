@@ -20,11 +20,13 @@ class XoServerCloud {
   }
 
   async load() {
-    const getResourceCatalog = ({ filters } = {}) =>
-      this._getCatalog({ filters })
+    const getResourceCatalog = this._getCatalog.bind(this)
     getResourceCatalog.description =
       "Get the list of user's available resources"
     getResourceCatalog.permission = 'admin'
+    getResourceCatalog.params = {
+      filters: { type: 'object', optional: true },
+    }
 
     const registerResource = ({ namespace }) =>
       this._registerResource(namespace)
@@ -108,8 +110,10 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _getNamespaceCatalog(namespace, filters) {
-    const namespaceCatalog = (await this._getCatalog(filters))[namespace]
+  async _getNamespaceCatalog({ hub, namespace }) {
+    const namespaceCatalog = (await this._getCatalog({ filters: { hub } }))[
+      namespace
+    ]
 
     if (!namespaceCatalog) {
       throw new Error(`cannot get catalog: ${namespace} not registered`)
@@ -120,15 +124,16 @@ class XoServerCloud {
 
   // ----------------------------------------------------------------
 
-  async _requestResource(namespace, id, version, hub) {
+  async _requestResource({ hub, id, namespace, version }) {
     const _namespace = (await this._getNamespaces())[namespace]
 
     if (!hub && (!_namespace || !_namespace.registered)) {
       throw new Error(`cannot get resource: ${namespace} not registered`)
     }
 
-    const { _token: token } = await this._getNamespaceCatalog(namespace, {
-      filters: { hub },
+    const { _token: token } = await this._getNamespaceCatalog({
+      hub,
+      namespace,
     })
 
     // 2018-03-20 Extra check: getResourceDownloadToken seems to be called without a token in some cases
