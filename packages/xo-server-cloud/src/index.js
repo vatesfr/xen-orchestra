@@ -126,7 +126,6 @@ class XoServerCloud {
       srId: sr.id,
       type: 'xva',
     })
-    // await vm.update_other_config('xva_id', id)
     await vm.update_other_config({
       'xo:resource:namespace': namespace,
       'xo:resource:xva:version': version,
