@@ -19,7 +19,8 @@ const createTransport = config => {
     }
   }
 
-  let { filter, transport } = config
+  let { filter } = config
+  let transport = createTransport(config.transport)
   const level = resolve(config.level)
 
   if (filter !== undefined) {
