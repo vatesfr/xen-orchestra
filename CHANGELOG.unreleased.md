@@ -13,6 +13,7 @@
 - [Servers] IPv6 addresses can be used [#4520](https://github.com/vatesfr/xen-orchestra/issues/4520) (PR [#4521](https://github.com/vatesfr/xen-orchestra/pull/4521)) \
   Note: They must enclosed in brackets to differentiate with the port, e.g.: `[2001:db8::7334]` or `[ 2001:db8::7334]:4343`
 - [HUB] VM template store [#1918](https://github.com/vatesfr/xen-orchestra/issues/1918) (PR [#4442](https://github.com/vatesfr/xen-orchestra/pull/4442))
+- [Home/bulk vm migration] Display same-pool hosts first in the selector [#4462](https://github.com/vatesfr/xen-orchestra/issues/4462) (PR [#4474](https://github.com/vatesfr/xen-orchestra/pull/4474))
 
 ### Bug fixes
 
