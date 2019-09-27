@@ -153,7 +153,6 @@ class StoragesIopsGraph extends Component<any, any> {
     const data: any = {}
     data.iopsSr = Object.keys(stats.iops)
     const iopsData: any[] = []
-    //
 
     for (var i = 0; i < NB_VALUES; i++) {
       const valuesSrIops: any = {}

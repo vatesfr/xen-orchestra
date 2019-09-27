@@ -14,6 +14,7 @@ export default class Visualization extends Component<any, any> {
   state: any = {
     granularity: 'seconds',
     format: 'LTS',
+
     //  SR
     //  IOPS
     srIopsData: [],
