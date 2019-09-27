@@ -112,7 +112,7 @@ export default class NewXosan extends Component {
   }
 
   _checkPacks = pool =>
-    getResourceCatalog().then(
+    getResourceCatalog({ filters: {} }).then(
       catalog => {
         if (catalog === undefined || catalog.xosan === undefined) {
           this.setState({

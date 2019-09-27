@@ -346,7 +346,7 @@ export const subscribeRoles = createSubscription(
 export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() =>
-  _call('cloud.getResourceCatalog')
+  _call('cloud.getResourceCatalog', { filters: {} })
 )
 
 export const subscribeHubResourceCatalog = createSubscription(() =>
