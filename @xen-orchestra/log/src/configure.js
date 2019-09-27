@@ -51,11 +51,12 @@ const symbol =
     ? Symbol.for('@xen-orchestra/log')
     : '@@@xen-orchestra/log'
 
+const { env } = process
 global[symbol] = createTransport({
   // display warnings or above, and all that are enabled via DEBUG or
   // NODE_DEBUG env
-  filter: process.env.DEBUG || process.env.NODE_DEBUG,
-  level: LEVELS.INFO,
+  filter: env.DEBUG || env.NODE_DEBUG,
+  level: resolve(env.LOG_LEVEL, LEVELS.INFO),
 
   transport: createConsoleTransport(),
 })
