@@ -12,15 +12,20 @@ const DEFAULT_SCHEDULE = {
   cron: '0 * * * * *',
 }
 
-const validateRootTask = (log, props) =>
+export const getDefaultName = () => `xo-server-test ${new Date().toISOString()}`
+
+const validateRootTask = (log, props, expected) => {
   expect(log).toMatchSnapshot({
     end: expect.any(Number),
     id: expect.any(String),
     jobId: expect.any(String),
+    jobName: expect.any(String),
     scheduleId: expect.any(String),
     start: expect.any(Number),
     ...props,
   })
+  expect(log).toMatchObject(expected)
+}
 
 const validateVmTask = (task, vmId, props) => {
   expect(task).toMatchSnapshot({
@@ -69,15 +74,23 @@ const validateOperationTask = (task, props) => {
 describe('backupNg', () => {
   describe('.createJob() :', () => {
     it('creates a new backup job without schedules', async () => {
+      const name = getDefaultName()
       const vms = {
         id: config.vms.default,
       }
-      const backupNg = await xo.createTempBackupNgJob({ vms })
+      const backupNg = await xo.createTempBackupNgJob({
+        mode: 'full',
+        name,
+        vms,
+      })
+
       expect(backupNg).toMatchSnapshot({
         id: expect.any(String),
+        name: expect.any(String),
         userId: expect.any(String),
         vms: expect.any(Object),
       })
+      expect(backupNg.name).toBe(name)
       expect(backupNg.vms).toEqual(vms)
       expect(backupNg.userId).toBe(xo._user.id)
     })
@@ -86,8 +99,11 @@ describe('backupNg', () => {
       const vms = {
         id: config.vms.default,
       }
+      const name = getDefaultName()
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
+        mode: 'full',
+        name,
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -101,11 +117,13 @@ describe('backupNg', () => {
 
       expect(backupNgJob).toMatchSnapshot({
         id: expect.any(String),
-        userId: expect.any(String),
+        name: expect.any(String),
         settings: expect.any(Object),
+        userId: expect.any(String),
         vms: expect.any(Object),
       })
       expect(backupNgJob.vms).toEqual(vms)
+      expect(backupNgJob.name).toEqual(name)
       expect(backupNgJob.userId).toBe(xo._user.id)
 
       expect(Object.keys(backupNgJob.settings).length).toBe(2)
@@ -127,7 +145,7 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.call('backupNg.createJob', {
         mode: 'full',
-        name: 'default-backupNg',
+        name: getDefaultName(),
         vms: {
           id: config.vms.default,
         },
@@ -161,6 +179,8 @@ describe('backupNg', () => {
   describe('.runJob() :', () => {
     it('fails trying to run a backup job without schedule', async () => {
       const { id } = await xo.createTempBackupNgJob({
+        mode: 'full',
+        name: getDefaultName(),
         vms: {
           id: config.vms.default,
         },
@@ -171,6 +191,8 @@ describe('backupNg', () => {
     it('fails trying to run a backup job with no matching VMs', async () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
+        mode: 'full',
+        name: getDefaultName(),
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -195,6 +217,8 @@ describe('backupNg', () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
+        mode: 'full',
+        name: getDefaultName(),
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -220,13 +244,17 @@ describe('backupNg', () => {
       jest.setTimeout(8e3)
       await xo.createTempServer(config.servers.default)
       const { id: vmIdWithoutDisks } = await xo.createTempVm({
-        name_label: 'XO Test Without Disks',
         name_description: 'Creating a vm without disks',
+        name_label: getDefaultName(),
         template: config.templates.templateWithoutDisks,
       })
 
       const scheduleTempId = randomId()
+      const jobName = getDefaultName()
+      const mode = 'full'
       const { id: jobId } = await xo.createTempBackupNgJob({
+        mode,
+        name: jobName,
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -251,13 +279,19 @@ describe('backupNg', () => {
         jobId,
         scheduleId: schedule.id,
       })
-      expect(log).toMatchSnapshot({
-        end: expect.any(Number),
-        id: expect.any(String),
-        jobId: expect.any(String),
-        scheduleId: expect.any(String),
-        start: expect.any(Number),
-      })
+
+      validateRootTask(
+        log,
+        {
+          data: {
+            mode,
+            reportWhen: 'never',
+          },
+          message: 'backup',
+          status: 'skipped',
+        },
+        { jobName }
+      )
 
       expect(vmTask).toMatchSnapshot({
         end: expect.any(Number),
@@ -280,7 +314,11 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       await xo.createTempServer(config.servers.default)
       const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
+      const jobName = getDefaultName()
+      const mode = 'full'
       const { id: jobId } = await xo.createTempBackupNgJob({
+        mode,
+        name: jobName,
         remotes: {
           id: remoteId,
         },
@@ -312,13 +350,18 @@ describe('backupNg', () => {
         scheduleId: schedule.id,
       })
 
-      expect(log).toMatchSnapshot({
-        end: expect.any(Number),
-        id: expect.any(String),
-        jobId: expect.any(String),
-        scheduleId: expect.any(String),
-        start: expect.any(Number),
-      })
+      validateRootTask(
+        log,
+        {
+          data: {
+            mode,
+            reportWhen: 'never',
+          },
+          message: 'backup',
+          status: 'failure',
+        },
+        { jobName }
+      )
 
       expect(task).toMatchSnapshot({
         data: {
@@ -340,7 +383,7 @@ describe('backupNg', () => {
     jest.setTimeout(6e4)
     await xo.createTempServer(config.servers.default)
     let vm = await xo.createTempVm({
-      name_label: 'XO Test Temp',
+      name_label: getDefaultName(),
       name_description: 'Creating a temporary vm',
       template: config.templates.default,
       VDIs: [
@@ -353,7 +396,11 @@ describe('backupNg', () => {
     })
 
     const scheduleTempId = randomId()
+    const jobName = getDefaultName()
+    const mode = 'full'
     const { id: jobId } = await xo.createTempBackupNgJob({
+      mode,
+      name: jobName,
       vms: {
         id: vm.id,
       },
@@ -403,13 +450,18 @@ describe('backupNg', () => {
       scheduleId: schedule.id,
     })
 
-    expect(log).toMatchSnapshot({
-      end: expect.any(Number),
-      id: expect.any(String),
-      jobId: expect.any(String),
-      scheduleId: expect.any(String),
-      start: expect.any(Number),
-    })
+    validateRootTask(
+      log,
+      {
+        data: {
+          mode,
+          reportWhen: 'never',
+        },
+        message: 'backup',
+        status: 'success',
+      },
+      { jobName }
+    )
 
     const subTaskSnapshot = subTasks.find(
       ({ message }) => message === 'snapshot'
@@ -453,8 +505,11 @@ describe('backupNg', () => {
     const exportRetention = 2
     const fullInterval = 2
     const scheduleTempId = randomId()
+    const jobName = getDefaultName()
+    const mode = 'delta'
     const { id: jobId } = await xo.createTempBackupNgJob({
-      mode: 'delta',
+      mode,
+      name: jobName,
       remotes: {
         id: {
           __or: remotes,
@@ -494,14 +549,18 @@ describe('backupNg', () => {
     expect(backupLogs.length).toBe(nExecutions)
 
     backupLogs.forEach(({ tasks = [], ...log }, key) => {
-      validateRootTask(log, {
-        data: {
-          mode: 'delta',
-          reportWhen: 'never',
+      validateRootTask(
+        log,
+        {
+          data: {
+            mode,
+            reportWhen: 'never',
+          },
+          message: 'backup',
+          status: 'success',
         },
-        message: 'backup',
-        status: 'success',
-      })
+        { jobName }
+      )
 
       const numberOfTasks = {
         export: 0,

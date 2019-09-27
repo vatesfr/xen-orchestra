@@ -2,13 +2,10 @@
 import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import { find, forOwn } from 'lodash'
+import { find, forOwn, update } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
-import { utcFormat } from 'd3-time-format'
 
 import config from './_config'
-
-const formatDate = utcFormat('%Y-%m-%dT%H:%M:%SZ')
 
 const getDefaultCredentials = () => {
   const { email, password } = config.xoConnection
@@ -113,29 +110,22 @@ class XoConnection extends Xo {
     return id
   }
 
-  async createTempBackupNgJob({
-    settings: { '': globalSetting, ...settings } = {},
-    ...params
-  } = {}) {
-    const job = await this.call('backupNg.createJob', {
-      mode: 'full',
-      name: `xo-server-test ${formatDate(Date.now())}`,
-      ...params,
-      settings: {
-        '': {
-          // it must be enabled because the XAPI might be not able to coalesce VDIs
-          // as fast as the tests run
-          //
-          // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
-          bypassVdiChainsCheck: true,
+  async createTempBackupNgJob(params) {
+    const job = await this.call(
+      'backupNg.createJob',
+      update(params, 'settings.', globalSetting => ({
+        // it must be enabled because the XAPI might be not able to coalesce VDIs
+        // as fast as the tests run
+        //
+        // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
+        bypassVdiChainsCheck: true,
 
-          // it must be 'never' to avoid race conditions with the plugin `backup-reports`
-          reportWhen: 'never',
-          ...globalSetting,
-        },
-        ...settings,
-      },
-    })
+        // it must be 'never' to avoid race conditions with the plugin `backup-reports`
+        reportWhen: 'never',
+        ...globalSetting,
+      }))
+    )
+
     this._tempResourceDisposers.push('backupNg.deleteJob', { id: job.id })
     return job
   }
