@@ -1,26 +1,23 @@
 import LEVELS, { NAMES } from '../levels'
 
-// Bind console methods (necessary for browsers)
-/* eslint-disable no-console */
-const debugConsole = console.log.bind(console)
-const infoConsole = console.info.bind(console)
-const warnConsole = console.warn.bind(console)
-const errorConsole = console.error.bind(console)
-/* eslint-enable no-console */
-
 const { ERROR, INFO, WARN } = LEVELS
 
 const consoleTransport = ({ data, level, namespace, message, time }) => {
   const fn =
+    /* eslint-disable no-console */
     level < INFO
-      ? debugConsole
+      ? console.log
       : level < WARN
-      ? infoConsole
+      ? console.info
       : level < ERROR
-      ? warnConsole
-      : errorConsole
+      ? console.warn
+      : console.error
+  /* eslint-enable no-console */
 
-  fn('%s - %s - [%s] %s', time.toISOString(), namespace, NAMES[level], message)
-  data != null && fn(data)
+  const args = [time.toISOString(), namespace, NAMES[level], message]
+  if (data != null) {
+    args.push(data)
+  }
+  fn.apply(console, args)
 }
 export default () => consoleTransport
