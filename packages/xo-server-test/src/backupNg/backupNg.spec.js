@@ -12,8 +12,6 @@ const DEFAULT_SCHEDULE = {
   cron: '0 * * * * *',
 }
 
-export const getDefaultName = () => `xo-server-test ${new Date().toISOString()}`
-
 const validateRootTask = (log, props, expected) => {
   expect(log).toMatchSnapshot({
     end: expect.any(Number),
@@ -74,15 +72,13 @@ const validateOperationTask = (task, props) => {
 describe('backupNg', () => {
   describe('.createJob() :', () => {
     it('creates a new backup job without schedules', async () => {
-      const name = getDefaultName()
-      const vms = {
-        id: config.vms.default,
-      }
-      const backupNg = await xo.createTempBackupNgJob({
+      const jobInput = {
         mode: 'full',
-        name,
-        vms,
-      })
+        vms: {
+          id: config.vms.default,
+        },
+      }
+      const backupNg = await xo.createTempBackupNgJob(jobInput)
 
       expect(backupNg).toMatchSnapshot({
         id: expect.any(String),
@@ -90,28 +86,26 @@ describe('backupNg', () => {
         userId: expect.any(String),
         vms: expect.any(Object),
       })
-      expect(backupNg.name).toBe(name)
-      expect(backupNg.vms).toEqual(vms)
+      expect(backupNg.name).toBe(jobInput.name)
+      expect(backupNg.vms).toEqual(jobInput.vms)
       expect(backupNg.userId).toBe(xo._user.id)
     })
 
     it('creates a new backup job with schedules', async () => {
-      const vms = {
-        id: config.vms.default,
-      }
-      const name = getDefaultName()
       const scheduleTempId = randomId()
-      const { id: jobId } = await xo.createTempBackupNgJob({
+      const jobInput = {
         mode: 'full',
-        name,
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
         },
-        vms,
-      })
+        vms: {
+          id: config.vms.default,
+        },
+      }
+      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
       const backupNgJob = await xo.call('backupNg.getJob', { id: jobId })
 
@@ -122,8 +116,8 @@ describe('backupNg', () => {
         userId: expect.any(String),
         vms: expect.any(Object),
       })
-      expect(backupNgJob.vms).toEqual(vms)
-      expect(backupNgJob.name).toEqual(name)
+      expect(backupNgJob.vms).toEqual(jobInput.vms)
+      expect(backupNgJob.name).toEqual(jobInput.name)
       expect(backupNgJob.userId).toBe(xo._user.id)
 
       expect(Object.keys(backupNgJob.settings).length).toBe(2)
@@ -145,7 +139,7 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.call('backupNg.createJob', {
         mode: 'full',
-        name: getDefaultName(),
+        name: `xo-server-test ${new Date().toISOString()}`,
         vms: {
           id: config.vms.default,
         },
@@ -179,8 +173,6 @@ describe('backupNg', () => {
   describe('.runJob() :', () => {
     it('fails trying to run a backup job without schedule', async () => {
       const { id } = await xo.createTempBackupNgJob({
-        mode: 'full',
-        name: getDefaultName(),
         vms: {
           id: config.vms.default,
         },
@@ -191,8 +183,6 @@ describe('backupNg', () => {
     it('fails trying to run a backup job with no matching VMs', async () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        mode: 'full',
-        name: getDefaultName(),
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -217,8 +207,6 @@ describe('backupNg', () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        mode: 'full',
-        name: getDefaultName(),
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -245,16 +233,12 @@ describe('backupNg', () => {
       await xo.createTempServer(config.servers.default)
       const { id: vmIdWithoutDisks } = await xo.createTempVm({
         name_description: 'Creating a vm without disks',
-        name_label: getDefaultName(),
         template: config.templates.templateWithoutDisks,
       })
 
       const scheduleTempId = randomId()
-      const jobName = getDefaultName()
-      const mode = 'full'
-      const { id: jobId } = await xo.createTempBackupNgJob({
-        mode,
-        name: jobName,
+      const jobInput = {
+        mode: 'full',
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -264,7 +248,8 @@ describe('backupNg', () => {
         vms: {
           id: vmIdWithoutDisks,
         },
-      })
+      }
+      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
       const schedule = await xo.getSchedule({ jobId })
       expect(typeof schedule).toBe('object')
@@ -284,13 +269,13 @@ describe('backupNg', () => {
         log,
         {
           data: {
-            mode,
+            mode: jobInput.mode,
             reportWhen: 'never',
           },
           message: 'backup',
           status: 'skipped',
         },
-        { jobName }
+        { jobName: jobInput.name }
       )
 
       expect(vmTask).toMatchSnapshot({
@@ -314,11 +299,8 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       await xo.createTempServer(config.servers.default)
       const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
-      const jobName = getDefaultName()
-      const mode = 'full'
-      const { id: jobId } = await xo.createTempBackupNgJob({
-        mode,
-        name: jobName,
+      const jobInput = {
+        mode: 'full',
         remotes: {
           id: remoteId,
         },
@@ -334,7 +316,8 @@ describe('backupNg', () => {
         vms: {
           id: config.vms.default,
         },
-      })
+      }
+      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
       const schedule = await xo.getSchedule({ jobId })
       expect(typeof schedule).toBe('object')
@@ -354,13 +337,13 @@ describe('backupNg', () => {
         log,
         {
           data: {
-            mode,
+            mode: jobInput.mode,
             reportWhen: 'never',
           },
           message: 'backup',
           status: 'failure',
         },
-        { jobName }
+        { jobName: jobInput.name }
       )
 
       expect(task).toMatchSnapshot({
@@ -383,7 +366,6 @@ describe('backupNg', () => {
     jest.setTimeout(6e4)
     await xo.createTempServer(config.servers.default)
     let vm = await xo.createTempVm({
-      name_label: getDefaultName(),
       name_description: 'Creating a temporary vm',
       template: config.templates.default,
       VDIs: [
@@ -396,11 +378,8 @@ describe('backupNg', () => {
     })
 
     const scheduleTempId = randomId()
-    const jobName = getDefaultName()
-    const mode = 'full'
-    const { id: jobId } = await xo.createTempBackupNgJob({
-      mode,
-      name: jobName,
+    const jobInput = {
+      mode: 'full',
       vms: {
         id: vm.id,
       },
@@ -410,7 +389,8 @@ describe('backupNg', () => {
       settings: {
         [scheduleTempId]: { snapshotRetention: 2 },
       },
-    })
+    }
+    const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
     const schedule = await xo.getSchedule({ jobId })
     expect(typeof schedule).toBe('object')
@@ -454,13 +434,13 @@ describe('backupNg', () => {
       log,
       {
         data: {
-          mode,
+          mode: jobInput.mode,
           reportWhen: 'never',
         },
         message: 'backup',
         status: 'success',
       },
-      { jobName }
+      { jobName: jobInput.name }
     )
 
     const subTaskSnapshot = subTasks.find(
@@ -505,11 +485,8 @@ describe('backupNg', () => {
     const exportRetention = 2
     const fullInterval = 2
     const scheduleTempId = randomId()
-    const jobName = getDefaultName()
-    const mode = 'delta'
-    const { id: jobId } = await xo.createTempBackupNgJob({
-      mode,
-      name: jobName,
+    const jobInput = {
+      mode: 'delta',
       remotes: {
         id: {
           __or: remotes,
@@ -528,7 +505,8 @@ describe('backupNg', () => {
       vms: {
         id: vmToBackup,
       },
-    })
+    }
+    const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
     const schedule = await xo.getSchedule({ jobId })
     expect(typeof schedule).toBe('object')
@@ -553,13 +531,13 @@ describe('backupNg', () => {
         log,
         {
           data: {
-            mode,
+            mode: jobInput.mode,
             reportWhen: 'never',
           },
           message: 'backup',
           status: 'success',
         },
-        { jobName }
+        { jobName: jobInput.name }
       )
 
       const numberOfTasks = {

@@ -2,7 +2,7 @@
 import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import { find, forOwn, update } from 'lodash'
+import { defaultsDeep, find, forOwn } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
 
 import config from './_config'
@@ -11,6 +11,8 @@ const getDefaultCredentials = () => {
   const { email, password } = config.xoConnection
   return { email, password }
 }
+
+const getDefaultName = () => `xo-server-test ${new Date().toISOString()}`
 
 class XoConnection extends Xo {
   constructor(opts) {
@@ -111,20 +113,24 @@ class XoConnection extends Xo {
   }
 
   async createTempBackupNgJob(params) {
-    const job = await this.call(
-      'backupNg.createJob',
-      update(params, 'settings.', globalSetting => ({
-        // it must be enabled because the XAPI might be not able to coalesce VDIs
-        // as fast as the tests run
-        //
-        // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
-        bypassVdiChainsCheck: true,
+    // mutate and inject default values
+    defaultsDeep(params, {
+      mode: 'full',
+      name: getDefaultName(),
+      settings: {
+        '': {
+          // it must be enabled because the XAPI might be not able to coalesce VDIs
+          // as fast as the tests run
+          //
+          // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
+          bypassVdiChainsCheck: true,
 
-        // it must be 'never' to avoid race conditions with the plugin `backup-reports`
-        reportWhen: 'never',
-        ...globalSetting,
-      }))
-    )
+          // it must be 'never' to avoid race conditions with the plugin `backup-reports`
+          reportWhen: 'never',
+        },
+      },
+    })
+    const job = await this.call('backupNg.createJob', params)
 
     this._tempResourceDisposers.push('backupNg.deleteJob', { id: job.id })
     return job
@@ -142,7 +148,7 @@ class XoConnection extends Xo {
 
   async createTempVm(params) {
     const id = await this.call('vm.create', {
-      name_label: 'XO Test',
+      name_label: getDefaultName(),
       template: config.templates.templateWithoutDisks,
       ...params,
     })
