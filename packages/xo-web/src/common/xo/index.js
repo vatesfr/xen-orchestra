@@ -2875,7 +2875,7 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 // XOSAN packs -----------------------------------------------------------------
 
-export const getResourceCatalog = ({ filters } = {}) =>
+export const getResourceCatalog = ({ filters }) =>
   _call('cloud.getResourceCatalog', { filters })
 
 export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
