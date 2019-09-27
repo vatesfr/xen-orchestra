@@ -131,7 +131,6 @@ class XoConnection extends Xo {
       },
     })
     const job = await this.call('backupNg.createJob', params)
-
     this._tempResourceDisposers.push('backupNg.deleteJob', { id: job.id })
     return job
   }
