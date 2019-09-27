@@ -10,7 +10,8 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from 'recharts'
-import { allColors } from './utils'
+
+import allColors from './_colors'
 import humanFormat from 'human-format'
 
 const AXIS_STYLE = { fontSize: '0.7em' }

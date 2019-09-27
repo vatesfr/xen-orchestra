@@ -44,10 +44,10 @@ class HostsMemoryGraph extends Component<any, any> {
   }
   render() {
     return this.props.hostIds.map((hostId: any) => (
-      <div>
+      <div key={hostId}>
         <h3>Memory usage</h3>
         <div style={{ width: '200px', height: '100px' }}>
-          <HostMemoryGraph hostId={hostId} key={hostId} />
+          <HostMemoryGraph hostId={hostId} />
         </div>
       </div>
     ))
@@ -60,10 +60,10 @@ class HostsCpuGraph extends Component<any, any> {
   }
   render() {
     return this.props.hostIds.map((hostId: any) => (
-      <div>
+      <div key={hostId}>
         <h3>CPU usage</h3>
         <div style={{ width: '200px', height: '100px' }}>
-          <HostCpuGraph hostId={hostId} key={hostId} />
+          <HostCpuGraph hostId={hostId} />
         </div>
       </div>
     ))

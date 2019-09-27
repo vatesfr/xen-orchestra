@@ -44,10 +44,10 @@ class VmsCpuGraph extends Component<any, any> {
   }
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <div>
+      <div key={vmId}>
         <h3>CPU usage</h3>
         <div style={{ width: '200px', height: '100px' }}>
-          <VmCpuGraph vmId={vmId} key={vmId} />
+          <VmCpuGraph vmId={vmId} />
         </div>
       </div>
     ))
@@ -61,10 +61,10 @@ class VmsMemoryGraph extends Component<any, any> {
 
   render() {
     return this.props.vmIds.map((vmId: any) => (
-      <div>
+      <div key={vmId}>
         <h3>Memory usage</h3>
         <div style={{ width: '200px', height: '100px' }}>
-          <VmMemoryGraph vmId={vmId} key={vmId} />
+          <VmMemoryGraph vmId={vmId} />
         </div>
       </div>
     ))
