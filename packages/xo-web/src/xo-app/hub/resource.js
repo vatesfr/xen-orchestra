@@ -197,11 +197,11 @@ export default decorate([
           data-name={name}
           disabled={state.installedTemplates.length === 0}
           handler={effects.deleteTemplates}
+          icon='delete'
           size='small'
           style={{ border: 'none' }}
-        >
-          <Icon icon='delete' size='xs' />
-        </ActionButton>
+          tooltip={_('remove')}
+        />
         <br />
       </CardHeader>
       <CardBlock className='text-center'>
