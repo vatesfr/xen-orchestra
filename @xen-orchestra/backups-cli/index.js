@@ -83,7 +83,7 @@ async function handleVm(vmDir) {
       console.warn('Error while checking VHD', path)
       console.warn('  ', error)
       if (error != null && error.code === 'ERR_ASSERTION') {
-        console.warn('  deleting…')
+        force && console.warn('  deleting…')
         console.warn('')
         force && (await fs.unlink(path))
       }
@@ -109,7 +109,7 @@ async function handleVm(vmDir) {
 
         console.warn('Error while checking VHD', child)
         console.warn('  missing parent', parent)
-        console.warn('  deleting…')
+        force && console.warn('  deleting…')
         console.warn('')
         force && deletions.push(fs.unlink(child))
       }
@@ -141,11 +141,11 @@ async function handleVm(vmDir) {
       const linkedXva = resolve(vmDir, metadata.xva)
 
       if (xvas.has(linkedXva)) {
-        unusedXvas.delete(resolve(vmDir, linkedXva))
+        unusedXvas.delete(linkedXva)
       } else {
         console.warn('Error while checking backup', json)
         console.warn('  missing file', linkedXva)
-        console.warn('  deleting…')
+        force && console.warn('  deleting…')
         console.warn('')
         force && (await fs.unlink(json))
       }
@@ -164,7 +164,7 @@ async function handleVm(vmDir) {
           .forEach(linkedVhd => {
             console.warn('  missing file', linkedVhd)
           })
-        console.warn('  deleting…')
+        force && console.warn('  deleting…')
         console.warn('')
         force && (await fs.unlink(json))
       }
@@ -174,7 +174,7 @@ async function handleVm(vmDir) {
   await Promise.all([
     asyncMap(unusedXvas, path => {
       console.warn('Unused XVA', path)
-      console.warn('  deleting…')
+      force && console.warn('  deleting…')
       console.warn('')
       return force && fs.unlink(path)
     }),
