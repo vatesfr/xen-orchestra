@@ -94,14 +94,14 @@ async function handleVm(vmDir) {
   {
     const deletions = []
 
-    const check = (parent, child) => {
+    const deleteIfOrphan = (parent, child) => {
       // no longer needs to be checked
       delete vhdParents[child]
 
       // check the ancestors first
       const grandparent = vhdParents[parent]
       if (grandparent !== undefined) {
-        check(grandparent, parent)
+        deleteIfOrphan(grandparent, parent)
       }
 
       if (!vhds.has(parent)) {
@@ -120,7 +120,7 @@ async function handleVm(vmDir) {
     // >
     // > -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in#Deleted_added_or_modified_properties
     for (const child in vhdParents) {
-      check(vhdParents[child], child)
+      deleteIfOrphan(vhdParents[child], child)
     }
 
     await Promise.all(deletions)
@@ -130,6 +130,11 @@ async function handleVm(vmDir) {
     entries.filter(_ => _.endsWith('.json')),
     entries.filter(_ => _.endsWith('.xva')),
   ])
+
+  // TODO: find a fast way to check XVAs validity
+  //
+  // maybe reading the end of the file looking for a file named
+  // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
 
   const unusedVhds = new Set(vhds)
   const unusedXvas = new Set(xvas)
@@ -180,7 +185,7 @@ async function handleVm(vmDir) {
     }),
   ])
 
-  // TODO: merge>/remove unused VHDs
+  // TODO: merge/remove unused VHDs
   // if (unusedVhds.size !== 0) {
   //   console.log({ unusedVhds });
   // }
