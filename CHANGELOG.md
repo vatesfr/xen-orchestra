@@ -47,7 +47,7 @@
 - xo-server-sdn-controller v0.3.0
 - @xen-orchestra/template v0.1.0
 - xo-server v5.50.1
-- xo-web v5.50.1
+- xo-web v5.50.2
 
 
 ## **5.38.0** (2019-08-29)

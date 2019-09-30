@@ -11,8 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Hub] Fix responsive hub VMs [#4557](https://github.com/vatesfr/xen-orchestra/issues/4557) (PR [#4558](https://github.com/vatesfr/xen-orchestra/pull/4558))
-- [Hub/resource] Fix icon remove button (PR [#4559](https://github.com/vatesfr/xen-orchestra/pull/4559))
 
 ### Released packages
 
