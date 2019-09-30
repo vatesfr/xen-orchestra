@@ -69,6 +69,7 @@ const listVhds = pipe([
 async function handleVm(vmDir) {
   const vhds = new Set()
   const vhdParents = { __proto__: null }
+  const vhdChildren = { __proto__: null }
 
   // remove broken VHDs
   await asyncMap(await listVhds(vmDir), async path => {
@@ -77,7 +78,18 @@ async function handleVm(vmDir) {
       await vhd.readHeaderAndFooter()
       vhds.add(path)
       if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
-        vhdParents[path] = resolve(basename(path), vhd.header.parentUnicodeName)
+        const parent = resolve(basename(path), vhd.header.parentUnicodeName)
+        vhdParents[path] = parent
+        if (parent in vhdChildren) {
+          const error = new Error(
+            'this script does not support multiple VHD children'
+          )
+          error.parent = parent
+          error.child1 = vhdChildren[parent]
+          error.child2 = path
+          throw error // should we throw?
+        }
+        vhdChildren[parent] = path
       }
     } catch (error) {
       console.warn('Error while checking VHD', path)
@@ -177,6 +189,9 @@ async function handleVm(vmDir) {
   })
 
   await Promise.all([
+    asyncMap(unusedVhds, path => {
+      // TODO: find the longest chain to remove/merge
+    }),
     asyncMap(unusedXvas, path => {
       console.warn('Unused XVA', path)
       force && console.warn('  deleting…')
