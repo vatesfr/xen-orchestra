@@ -40,13 +40,7 @@ const asyncMap = curryRight((iterable, fn) =>
   )
 )
 
-const fpify = method => (...args) =>
-  function(thisArg) {
-    return method.apply(thisArg, args)
-  }
-
-const filter = fpify([].filter)
-const endsWith = fpify(''.endsWith)
+const filter = (...args) => thisArg => thisArg.filter(...args)
 
 const readDir = path =>
   fs.readdir(path).then(
@@ -69,7 +63,7 @@ const listVhds = pipe([
   flatten,
   asyncMap(readDir),
   flatten,
-  filter(endsWith('.vhd')),
+  filter(_ => _.endsWith('.vhd')),
 ])
 
 async function handleVm(vmDir) {
@@ -133,8 +127,8 @@ async function handleVm(vmDir) {
   }
 
   const [jsons, xvas] = await readDir(vmDir).then(entries => [
-    entries.filter(endsWith('.json')),
-    entries.filter(endsWith('.xva')),
+    entries.filter(_ => _.endsWith('.json')),
+    entries.filter(_ => _.endsWith('.xva')),
   ])
 
   const unusedVhds = new Set(vhds)
