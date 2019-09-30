@@ -12,18 +12,14 @@ const DEFAULT_SCHEDULE = {
   cron: '0 * * * * *',
 }
 
-const validateRootTask = (log, props, expected) => {
-  expect(log).toMatchSnapshot({
+const validateRootTask = (log, expected) =>
+  expect(log).toEqual({
     end: expect.any(Number),
     id: expect.any(String),
-    jobId: expect.any(String),
-    jobName: expect.any(String),
-    scheduleId: expect.any(String),
+    message: 'backup',
     start: expect.any(Number),
-    ...props,
+    ...expected,
   })
-  expect(log).toMatchObject(expected)
-}
 
 const validateVmTask = (task, vmId, props) => {
   expect(task).toMatchSnapshot({
@@ -105,9 +101,7 @@ describe('backupNg', () => {
           id: config.vms.default,
         },
       }
-      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
-
-      const backupNgJob = await xo.call('backupNg.getJob', { id: jobId })
+      const backupNgJob = await xo.createTempBackupNgJob(jobInput)
 
       expect(backupNgJob).toMatchSnapshot({
         id: expect.any(String),
@@ -121,7 +115,7 @@ describe('backupNg', () => {
       expect(backupNgJob.userId).toBe(xo._user.id)
 
       expect(Object.keys(backupNgJob.settings).length).toBe(2)
-      const schedule = await xo.getSchedule({ jobId })
+      const schedule = await xo.getSchedule({ jobId: backupNgJob.id })
       expect(typeof schedule).toBe('object')
       expect(backupNgJob.settings[schedule.id]).toEqual({
         snapshotRetention: 1,
@@ -238,7 +232,6 @@ describe('backupNg', () => {
 
       const scheduleTempId = randomId()
       const jobInput = {
-        mode: 'full',
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
         },
@@ -265,18 +258,16 @@ describe('backupNg', () => {
         scheduleId: schedule.id,
       })
 
-      validateRootTask(
-        log,
-        {
-          data: {
-            mode: jobInput.mode,
-            reportWhen: 'never',
-          },
-          message: 'backup',
-          status: 'skipped',
+      validateRootTask(log, {
+        data: {
+          mode: jobInput.mode,
+          reportWhen: jobInput.settings[''].reportWhen,
         },
-        { jobName: jobInput.name }
-      )
+        jobId,
+        jobName: jobInput.name,
+        scheduleId: schedule.id,
+        status: 'skipped',
+      })
 
       expect(vmTask).toMatchSnapshot({
         end: expect.any(Number),
@@ -300,7 +291,6 @@ describe('backupNg', () => {
       await xo.createTempServer(config.servers.default)
       const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
       const jobInput = {
-        mode: 'full',
         remotes: {
           id: remoteId,
         },
@@ -333,18 +323,16 @@ describe('backupNg', () => {
         scheduleId: schedule.id,
       })
 
-      validateRootTask(
-        log,
-        {
-          data: {
-            mode: jobInput.mode,
-            reportWhen: 'never',
-          },
-          message: 'backup',
-          status: 'failure',
+      validateRootTask(log, {
+        data: {
+          mode: jobInput.mode,
+          reportWhen: jobInput.settings[''].reportWhen,
         },
-        { jobName: jobInput.name }
-      )
+        jobId,
+        jobName: jobInput.name,
+        scheduleId: schedule.id,
+        status: 'failure',
+      })
 
       expect(task).toMatchSnapshot({
         data: {
@@ -379,7 +367,6 @@ describe('backupNg', () => {
 
     const scheduleTempId = randomId()
     const jobInput = {
-      mode: 'full',
       vms: {
         id: vm.id,
       },
@@ -430,18 +417,16 @@ describe('backupNg', () => {
       scheduleId: schedule.id,
     })
 
-    validateRootTask(
-      log,
-      {
-        data: {
-          mode: jobInput.mode,
-          reportWhen: 'never',
-        },
-        message: 'backup',
-        status: 'success',
+    validateRootTask(log, {
+      data: {
+        mode: jobInput.mode,
+        reportWhen: jobInput.settings[''].reportWhen,
       },
-      { jobName: jobInput.name }
-    )
+      jobId,
+      jobName: jobInput.name,
+      scheduleId: schedule.id,
+      status: 'success',
+    })
 
     const subTaskSnapshot = subTasks.find(
       ({ message }) => message === 'snapshot'
@@ -527,18 +512,16 @@ describe('backupNg', () => {
     expect(backupLogs.length).toBe(nExecutions)
 
     backupLogs.forEach(({ tasks = [], ...log }, key) => {
-      validateRootTask(
-        log,
-        {
-          data: {
-            mode: jobInput.mode,
-            reportWhen: 'never',
-          },
-          message: 'backup',
-          status: 'success',
+      validateRootTask(log, {
+        data: {
+          mode: jobInput.mode,
+          reportWhen: jobInput.settings[''].reportWhen,
         },
-        { jobName: jobInput.name }
-      )
+        jobId,
+        jobName: jobInput.name,
+        scheduleId: schedule.id,
+        status: 'success',
+      })
 
       const numberOfTasks = {
         export: 0,
