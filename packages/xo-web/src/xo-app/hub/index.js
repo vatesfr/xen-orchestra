@@ -51,7 +51,7 @@ export default decorate([
             </Col>
           ) : (
             resources.map(data => (
-              <Col key={data.namespace} mediumSize={3}>
+              <Col key={data.namespace} mediumSize={6} largeSize={4}>
                 <Resource {...data} />
               </Col>
             ))
