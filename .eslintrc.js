@@ -21,7 +21,7 @@ module.exports = {
 
   overrides: [
     {
-      files: ['cli.js', '*-cli.js', 'packages/*cli*/**/*.js'],
+      files: ['cli.js', '*-cli.js', '**/*cli*/**/*.js'],
       rules: {
         'no-console': 'off',
       },
