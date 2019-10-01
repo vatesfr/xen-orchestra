@@ -8,6 +8,11 @@ import decorate from './apply-decorators'
 import Icon from './icon'
 import { Select } from './form'
 
+const DEFAULT_OPTION = {
+  label: _('vmChooseCoresPerSocket'),
+  value: 0,
+}
+
 const PROP_TYPES = {
   maxCores: PropTypes.number,
   maxVcpus: PropTypes.number,
@@ -21,13 +26,13 @@ const MAX_VM_SOCKETS = 16
 const SelectCoresPerSocket = decorate([
   provideState({
     computed: {
-      options: (state, { maxCores, maxVcpus, value }) => {
-        const options = [
-          {
-            label: _('vmChooseCoresPerSocket'),
-            value: 0,
-          },
-        ]
+      isValidValue: (state, { maxCores, maxVcpus, value }) =>
+        value === DEFAULT_OPTION.value ||
+        (maxVcpus % value === 0 && !state.valueExceedsLimits),
+      valueExceedsLimits: ({ maxCores, maxVcpus, value }) =>
+        value > maxCores || maxVcpus / value > MAX_VM_SOCKETS,
+      options: ({ isValidValue }, { maxCores, maxVcpus, value }) => {
+        const options = [DEFAULT_OPTION]
 
         if (maxCores === undefined || maxVcpus === undefined) {
           return options
@@ -35,7 +40,6 @@ const SelectCoresPerSocket = decorate([
 
         const ratio = maxVcpus / MAX_VM_SOCKETS
 
-        let isSelectedValueInOptions = value === 0
         for (
           let coresPerSocket = maxCores;
           coresPerSocket >= ratio;
@@ -49,31 +53,14 @@ const SelectCoresPerSocket = decorate([
               }),
               value: coresPerSocket,
             })
-            if (!isSelectedValueInOptions) {
-              isSelectedValueInOptions = coresPerSocket === value
-            }
           }
         }
 
-        if (!isSelectedValueInOptions) {
+        if (!isValidValue) {
           options.push({
-            label: (
-              <span>
-                {_('vmCoresPerSocketInvalidValue', {
-                  nCores: value,
-                })}{' '}
-                (
-                <span className='text-danger'>
-                  <Icon icon='error' />{' '}
-                  {maxVcpus % value !== 0
-                    ? _('vmCoresPerSocketNotDivisor')
-                    : _('vmCoresPerSocketExceedLimit', {
-                        limit: MAX_VM_SOCKETS,
-                      })}
-                </span>
-                )
-              </span>
-            ),
+            label: _('vmCoresPerSocketInvalidValue', {
+              nCores: value,
+            }),
             value,
           })
         }
@@ -83,14 +70,27 @@ const SelectCoresPerSocket = decorate([
     },
   }),
   injectState,
-  ({ state, value }) => (
-    <Select
-      options={state.options}
-      required
-      simpleValue
-      value={value}
-      {...state.selectProps}
-    />
+  ({ maxCores, state, value }) => (
+    <div>
+      <Select
+        options={state.options}
+        required
+        simpleValue
+        value={value}
+        {...state.selectProps}
+      />
+      {!state.isValidValue && (
+        <span className='text-danger'>
+          <Icon icon='error' />{' '}
+          {state.valueExceedsLimits
+            ? _('vmCoresPerSocketExceedsLimit', {
+                maxSockets: MAX_VM_SOCKETS,
+                maxCores,
+              })
+            : _('vmCoresPerSocketNotDivisor')}
+        </span>
+      )}
+    </div>
   ),
 ])
 

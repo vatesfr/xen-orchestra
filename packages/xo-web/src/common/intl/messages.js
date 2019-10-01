@@ -1160,9 +1160,9 @@ const messages = {
   vmCoresPerSocketNone: 'None',
   vmCoresPerSocketInvalidValue:
     '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
-  vmCoresPerSocketNotDivisor: 'Not a divisor of the max VM CPUs',
-  vmCoresPerSocketExceedLimit:
-    'The number of sockets exceed the limit ({limit, number})',
+  vmCoresPerSocketNotDivisor: "Not a divisor of the VM's max CPUs",
+  vmCoresPerSocketExceedsLimit:
+    'The selected value exceeds limits ({maxSockets, number} sockets {maxCores, number} cores)',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmVgpu: 'vGPU',
