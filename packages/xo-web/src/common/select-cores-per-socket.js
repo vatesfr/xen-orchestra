@@ -80,7 +80,7 @@ const SelectCoresPerSocket = decorate([
         {...state.selectProps}
       />
       {!state.isValidValue && (
-        <span className='text-danger'>
+        <div className='text-danger'>
           <Icon icon='error' />{' '}
           {state.valueExceedsLimits
             ? _('vmCoresPerSocketExceedsLimit', {
@@ -88,7 +88,7 @@ const SelectCoresPerSocket = decorate([
                 maxCores,
               })
             : _('vmCoresPerSocketNotDivisor')}
-        </span>
+        </div>
       )}
     </div>
   ),
