@@ -259,7 +259,11 @@ class Vif extends BaseComponent {
       props.pool === undefined // to get objects as a self user
     ),
     srs: getSrs(state, props),
-    template: getTemplate(state, props),
+    template: getTemplate(
+      state,
+      props,
+      props.location.query.resourceSet !== undefined
+    ),
     templates: getTemplates(state, props),
     userSshKeys: getUserSshKeys(state, props),
   })
