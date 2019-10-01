@@ -23,8 +23,8 @@ if (force) {
 
 // -----------------------------------------------------------------------------
 
-const { basename, resolve } = require('path')
 const { curryRight, flatten } = require('lodash')
+const { dirname, resolve } = require('path')
 const { pipe, promisifyAll } = require('promise-toolbox')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
 const Vhd = require('vhd-lib').default
@@ -78,7 +78,7 @@ async function handleVm(vmDir) {
       await vhd.readHeaderAndFooter()
       vhds.add(path)
       if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
-        const parent = resolve(basename(path), vhd.header.parentUnicodeName)
+        const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
         vhdParents[path] = parent
         if (parent in vhdChildren) {
           const error = new Error(
