@@ -12,6 +12,37 @@ const DEFAULT_SCHEDULE = {
   cron: '0 * * * * *',
 }
 
+// it only support one schedule
+const validateBackupJob = async (xo, input, output) => {
+  const expectedObj = {
+    id: expect.any(String),
+    mode: input.mode,
+    name: input.name,
+    type: 'backup',
+    settings: {
+      '': input.settings[''],
+    },
+    userId: xo._user.id,
+    vms: input.vms,
+  }
+
+  const schedules = input.schedules
+  if (schedules !== undefined) {
+    const scheduleTmpId = Object.keys(schedules)[0]
+    const scheduleOutput = await xo.getSchedule({ jobId: output.id })
+    expect(scheduleOutput).toEqual({
+      ...schedules[scheduleTmpId],
+      enabled: false,
+      id: expect.any(String),
+      jobId: output.id,
+    })
+
+    expectedObj.settings[scheduleOutput.id] = input.settings[scheduleTmpId]
+  }
+
+  expect(output).toEqual(expectedObj)
+}
+
 const validateRootTask = (log, expected) =>
   expect(log).toEqual({
     end: expect.any(Number),
@@ -67,29 +98,20 @@ const validateOperationTask = (task, props) => {
 
 describe('backupNg', () => {
   describe('.createJob() :', () => {
-    it('creates a new backup job without schedules', async () => {
-      const jobInput = {
+    it.only('creates a new backup job without schedules', async () => {
+      const input = {
         mode: 'full',
         vms: {
           id: config.vms.default,
         },
       }
-      const backupNg = await xo.createTempBackupNgJob(jobInput)
-
-      expect(backupNg).toMatchSnapshot({
-        id: expect.any(String),
-        name: expect.any(String),
-        userId: expect.any(String),
-        vms: expect.any(Object),
-      })
-      expect(backupNg.name).toBe(jobInput.name)
-      expect(backupNg.vms).toEqual(jobInput.vms)
-      expect(backupNg.userId).toBe(xo._user.id)
+      const output = await xo.createTempBackupNgJob(input)
+      validateBackupJob(xo, input, output)
     })
 
-    it('creates a new backup job with schedules', async () => {
+    it.only('creates a new backup job with schedules', async () => {
       const scheduleTempId = randomId()
-      const jobInput = {
+      const input = {
         mode: 'full',
         schedules: {
           [scheduleTempId]: DEFAULT_SCHEDULE,
@@ -101,30 +123,8 @@ describe('backupNg', () => {
           id: config.vms.default,
         },
       }
-      const backupNgJob = await xo.createTempBackupNgJob(jobInput)
-
-      expect(backupNgJob).toMatchSnapshot({
-        id: expect.any(String),
-        name: expect.any(String),
-        settings: expect.any(Object),
-        userId: expect.any(String),
-        vms: expect.any(Object),
-      })
-      expect(backupNgJob.vms).toEqual(jobInput.vms)
-      expect(backupNgJob.name).toEqual(jobInput.name)
-      expect(backupNgJob.userId).toBe(xo._user.id)
-
-      expect(Object.keys(backupNgJob.settings).length).toBe(2)
-      const schedule = await xo.getSchedule({ jobId: backupNgJob.id })
-      expect(typeof schedule).toBe('object')
-      expect(backupNgJob.settings[schedule.id]).toEqual({
-        snapshotRetention: 1,
-      })
-
-      expect(schedule).toMatchSnapshot({
-        id: expect.any(String),
-        jobId: expect.any(String),
-      })
+      const output = await xo.createTempBackupNgJob(input)
+      validateBackupJob(xo, input, output)
     })
   })
 

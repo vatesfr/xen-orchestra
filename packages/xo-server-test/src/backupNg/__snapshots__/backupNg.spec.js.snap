@@ -1,44 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`backupNg .createJob() : creates a new backup job with schedules 1`] = `
-Object {
-  "id": Any<String>,
-  "mode": "full",
-  "name": Any<String>,
-  "settings": Any<Object>,
-  "type": "backup",
-  "userId": Any<String>,
-  "vms": Any<Object>,
-}
-`;
-
-exports[`backupNg .createJob() : creates a new backup job with schedules 2`] = `
-Object {
-  "cron": "0 * * * * *",
-  "enabled": false,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "name": "scheduleTest",
-}
-`;
-
-exports[`backupNg .createJob() : creates a new backup job without schedules 1`] = `
-Object {
-  "id": Any<String>,
-  "mode": "full",
-  "name": Any<String>,
-  "settings": Object {
-    "": Object {
-      "bypassVdiChainsCheck": true,
-      "reportWhen": "never",
-    },
-  },
-  "type": "backup",
-  "userId": Any<String>,
-  "vms": Any<Object>,
-}
-`;
-
 exports[`backupNg .runJob() : fails trying to run a backup job with a VM without disks 1`] = `
 Object {
   "data": Object {
