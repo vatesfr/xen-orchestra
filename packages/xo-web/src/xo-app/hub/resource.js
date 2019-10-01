@@ -83,7 +83,7 @@ export default decorate([
                 namespace,
                 id,
                 version,
-                sr: pool.default_SR,
+                sr: resourceParams.sr,
               })
             )
           )
@@ -111,7 +111,7 @@ export default decorate([
           ),
           size: 'medium',
         })
-        const { $pool } = resourceParams.pool
+        const { $pool } = resourceParams.pools
         const template = find(installedTemplates, { $pool })
         if (template !== undefined) {
           this.props.router.push(

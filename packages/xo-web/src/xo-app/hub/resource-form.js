@@ -3,9 +3,12 @@ import _ from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
-import { Container } from 'grid'
-import { SelectPool } from 'select-objects'
+import { Container, Col } from 'grid'
+import { find } from 'lodash'
+import { SelectPool, SelectSr } from 'select-objects'
+import { isSrWritable } from 'xo'
 import { error } from 'notification'
 import { injectState, provideState } from 'reaclette'
 
@@ -13,6 +16,7 @@ export default decorate([
   provideState({
     initialState: ({ multi }) => ({
       pools: multi ? [] : undefined,
+      mapPoolsSrs: {},
     }),
     effects: {
       onChangePool(__, pools) {
@@ -24,17 +28,39 @@ export default decorate([
         } else {
           this.props.onChange({
             pools,
-            pool: pools,
+            mapPoolsSrs: this.state.mapPoolsSrs,
           })
           return {
             pools,
           }
         }
       },
+      onChangeSr(__, sr) {
+        const { mapPoolsSrs, pools } = this.state
+        const _mapPoolsSrs = { ...mapPoolsSrs, [sr.$pool]: sr }
+        this.props.onChange({
+          pools,
+          mapPoolsSrs: _mapPoolsSrs,
+        })
+        return {
+          mapPoolsSrs: _mapPoolsSrs,
+        }
+      },
+    },
+    computed: {
+      isSrSelectDisabled: ({ pools }) =>
+        Array.isArray(pools) ? pools.length === 0 : pools === undefined,
+      isMultiplePools: ({ pools }) => Array.isArray(pools) && pools.length > 1,
     },
   }),
   injectState,
-  ({ effects, install, multi, state, poolPredicate }) => (
+  ({
+    effects,
+    install,
+    multi,
+    state: { isMultiplePools, isSrSelectDisabled, pools, mapPoolsSrs },
+    poolPredicate,
+  }) => (
     <Container>
       <FormGrid.Row>
         <label>
@@ -52,9 +78,48 @@ export default decorate([
           onChange={effects.onChangePool}
           predicate={poolPredicate}
           required
-          value={state.pools}
+          value={pools}
         />
       </FormGrid.Row>
+      {install && isMultiplePools ? (
+        <Container>
+          <SingleLineRow>
+            <Col size={6}>
+              <strong>{_('pool')}</strong>
+            </Col>
+            <Col size={6}>
+              <strong>{_('vdiSr')}</strong>
+            </Col>
+          </SingleLineRow>
+          {pools.map(pool => (
+            <SingleLineRow key={pool.uuid} className='mt-1'>
+              <Col size={6}>{pool.name_label}</Col>
+              <Col size={6}>
+                <SelectSr
+                  onChange={effects.onChangeSr}
+                  predicate={sr => sr.$pool === pool.id && isSrWritable(sr)}
+                  value={mapPoolsSrs[pool.id]}
+                />
+              </Col>
+            </SingleLineRow>
+          ))}
+        </Container>
+      ) : (
+        install && (
+          <FormGrid.Row>
+            <label>{_('vmImportToSr')}</label>
+            <SelectSr
+              disabled={isSrSelectDisabled}
+              onChange={effects.onChangeSr}
+              predicate={sr =>
+                find(pools, { id: sr.$pool }) !== undefined && isSrWritable(sr)
+              }
+              required
+              value={mapPoolsSrs[pools.id]}
+            />
+          </FormGrid.Row>
+        )
+      )}
     </Container>
   ),
 ])
