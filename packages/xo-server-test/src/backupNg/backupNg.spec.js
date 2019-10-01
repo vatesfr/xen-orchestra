@@ -98,7 +98,7 @@ const validateOperationTask = (task, props) => {
 
 describe('backupNg', () => {
   describe('.createJob() :', () => {
-    it.only('creates a new backup job without schedules', async () => {
+    it('creates a new backup job without schedules', async () => {
       const input = {
         mode: 'full',
         vms: {
@@ -109,7 +109,7 @@ describe('backupNg', () => {
       validateBackupJob(xo, input, output)
     })
 
-    it.only('creates a new backup job with schedules', async () => {
+    it('creates a new backup job with schedules', async () => {
       const scheduleTempId = randomId()
       const input = {
         mode: 'full',
