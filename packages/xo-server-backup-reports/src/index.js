@@ -354,7 +354,7 @@ class BackupReportsXoPlugin {
         log.jobName
       } ${STATUS_ICON[log.status]}`,
       markdown: toMarkdown(markdown),
-      nagiosStatus: log.status === 'success' ? 0 : 2,
+      success: log.status === 'success',
       nagiosMarkdown:
         log.status === 'success'
           ? `[Xen Orchestra] [Success] Metadata backup report for ${log.jobName}`
@@ -390,7 +390,7 @@ class BackupReportsXoPlugin {
           log.status
         } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
         markdown: toMarkdown(markdown),
-        nagiosStatus: 2,
+        success: false,
         nagiosMarkdown: `[Xen Orchestra] [${log.status}] Backup report for ${jobName} - Error : ${log.result.message}`,
       })
     }
@@ -646,7 +646,7 @@ class BackupReportsXoPlugin {
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
         STATUS_ICON[log.status]
       }`,
-      nagiosStatus: log.status === 'success' ? 0 : 2,
+      success: log.status === 'success',
       nagiosMarkdown:
         log.status === 'success'
           ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
@@ -656,7 +656,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport({ markdown, subject, nagiosStatus, nagiosMarkdown }) {
+  _sendReport({ markdown, subject, success, nagiosMarkdown }) {
     const xo = this._xo
     return Promise.all([
       xo.sendEmail !== undefined &&
@@ -676,8 +676,13 @@ class BackupReportsXoPlugin {
         }),
       xo.sendPassiveCheck !== undefined &&
         xo.sendPassiveCheck({
-          status: nagiosStatus,
+          status: success ? 0 : 2,
           message: nagiosMarkdown,
+        }),
+      xo.sendIcinga2Status !== undefined &&
+        xo.sendIcinga2Status({
+          status: success ? 'OK' : 'CRITICAL',
+          message: markdown,
         }),
     ])
   }
@@ -708,7 +713,7 @@ class BackupReportsXoPlugin {
       return this._sendReport({
         subject: `[Xen Orchestra] ${globalStatus} ${icon}`,
         markdown,
-        nagiosStatus: 2,
+        success: false,
         nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Error : ${error.message}`,
       })
     }
@@ -904,7 +909,7 @@ class BackupReportsXoPlugin {
           ? ICON_FAILURE
           : ICON_SKIPPED
       }`,
-      nagiosStatus: globalSuccess ? 0 : 2,
+      success: globalSuccess,
       nagiosMarkdown: globalSuccess
         ? `[Xen Orchestra] [Success] Backup report for ${tag}`
         : `[Xen Orchestra] [${

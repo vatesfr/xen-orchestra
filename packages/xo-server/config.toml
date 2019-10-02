@@ -66,7 +66,7 @@ vmBackupSizeTimeout = '2 seconds'
 #includeSubDomains = false
 
 [[http.listen]]
-port = 80
+port = 8080
 
 # These options are applied to all listen entries.
 [http.listenOptions]
@@ -94,3 +94,7 @@ timeout = 600e3
 
 # see https:#github.com/vatesfr/xen-orchestra/issues/3419
 # useSudo = false
+
+[http.proxies]
+#'/any/url' = 'http://localhost:54722'
+'/api/updater' = 'http://localhost:9001'
