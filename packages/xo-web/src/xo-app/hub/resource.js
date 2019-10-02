@@ -1,5 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import marked from 'marked'
@@ -217,20 +218,20 @@ export default decorate([
         <br />
       </CardHeader>
       <CardBlock className='text-center'>
-        <div>
-          <span className='text-muted'>{_('os')}</span> <strong>{os}</strong>
-          {description !== undefined && (
-            <span className='pull-right'>
-              <a
-                className='text-secondary'
-                style={{ cursor: 'pointer' }}
-                onClick={effects.showDescription}
-              >
-                <Icon icon='info' /> {_('vmNameDescription')}
-              </a>
-            </span>
-          )}
-        </div>
+        <Row>
+          <Col mediumSize={6}>
+            <span className='text-muted'>{_('os')}</span> <strong>{os}</strong>
+          </Col>
+          <Col mediumSize={6}>
+            {description !== undefined && (
+              <div className='pull-right'>
+                <Button onClick={effects.showDescription}>
+                  <Icon icon='info' /> {_('vmNameDescription')}
+                </Button>
+              </div>
+            )}
+          </Col>
+        </Row>
         <div>
           <span className='text-muted'>{_('version')}</span>
           {'  '}
