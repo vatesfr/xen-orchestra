@@ -6,10 +6,9 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
-import { find } from 'lodash'
+import { find, first } from 'lodash'
 import { SelectPool, SelectSr } from 'select-objects'
 import { isSrWritable } from 'xo'
-import { error } from 'notification'
 import { injectState, provideState } from 'reaclette'
 
 export default decorate([
@@ -20,24 +19,26 @@ export default decorate([
     }),
     effects: {
       onChangePool(__, pools) {
-        const noDefaultSr = Array.isArray(pools)
-          ? pools.some(pool => pool.default_SR === undefined)
-          : pools.default_SR === undefined
-        if (noDefaultSr) {
-          error(_('hubSrErrorTitle'), _('noDefaultSr'))
-        } else {
-          this.props.onChange({
-            pools,
-            mapPoolsSrs: this.state.mapPoolsSrs,
-          })
-          return {
-            pools,
+        this.props.onChange({
+          pools,
+          mapPoolsSrs: this.state.mapPoolsSrs,
+        })
+        const _mapPoolsSrs = {}
+        if (Array.isArray(pools)) {
+          for (const pool of pools) {
+            _mapPoolsSrs[pool.id] = pool.default_SR
           }
+        } else {
+          _mapPoolsSrs[pools.id] = pools.default_SR
+        }
+        return {
+          pools,
+          mapPoolsSrs: _mapPoolsSrs,
         }
       },
       onChangeSr(__, sr) {
         const { mapPoolsSrs, pools } = this.state
-        const _mapPoolsSrs = { ...mapPoolsSrs, [sr.$pool]: sr }
+        const _mapPoolsSrs = { ...mapPoolsSrs, [sr.$pool]: sr.id }
         this.props.onChange({
           pools,
           mapPoolsSrs: _mapPoolsSrs,
@@ -82,7 +83,7 @@ export default decorate([
         />
       </FormGrid.Row>
       {install && isMultiplePools ? (
-        <Container>
+        <div>
           <SingleLineRow>
             <Col size={6}>
               <strong>{_('pool')}</strong>
@@ -91,6 +92,7 @@ export default decorate([
               <strong>{_('vdiSr')}</strong>
             </Col>
           </SingleLineRow>
+          <hr />
           {pools.map(pool => (
             <SingleLineRow key={pool.uuid} className='mt-1'>
               <Col size={6}>{pool.name_label}</Col>
@@ -98,12 +100,13 @@ export default decorate([
                 <SelectSr
                   onChange={effects.onChangeSr}
                   predicate={sr => sr.$pool === pool.id && isSrWritable(sr)}
+                  required
                   value={mapPoolsSrs[pool.id]}
                 />
               </Col>
             </SingleLineRow>
           ))}
-        </Container>
+        </div>
       ) : (
         install && (
           <FormGrid.Row>
@@ -115,7 +118,9 @@ export default decorate([
                 find(pools, { id: sr.$pool }) !== undefined && isSrWritable(sr)
               }
               required
-              value={mapPoolsSrs[pools.id]}
+              value={
+                pools.length > 0 ? mapPoolsSrs[first(pools).id] : undefined
+              }
             />
           </FormGrid.Row>
         )

@@ -83,7 +83,7 @@ export default decorate([
                 namespace,
                 id,
                 version,
-                sr: resourceParams.sr,
+                sr: resourceParams.mapPoolsSrs[pool.id],
               })
             )
           )

@@ -2153,7 +2153,6 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
-  noDefaultSr: 'The selected pool has no default SR',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
   create: 'Create',
@@ -2163,7 +2162,6 @@ const messages = {
   size: 'Size',
   totalDiskSize: 'Total disk size',
   hideInstalledPool: 'Already installed templates are hidden',
-  hubSrErrorTitle: 'Missing property',
   hubImportNotificationTitle: 'XVA import',
 
   // Licenses
