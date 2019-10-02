@@ -680,7 +680,7 @@ ${entry.listItem}
       },
     }
     if (xapiObject.$type === 'VM') {
-      payload['vm_uuid'] = xapiObject.uuid
+      payload.vm_uuid = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
     return JSON5.parse(

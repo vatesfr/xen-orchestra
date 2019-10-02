@@ -916,7 +916,7 @@ export class SelectResourceSetsVdi extends React.PureComponent {
     () => this.props.resourceSet,
     ({ objectsByType }) => {
       const { srPredicate } = this.props
-      const srs = objectsByType['SR']
+      const srs = objectsByType.SR
       return srPredicate ? filter(srs, srPredicate) : srs
     }
   )

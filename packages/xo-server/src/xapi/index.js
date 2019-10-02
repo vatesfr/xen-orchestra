@@ -1576,7 +1576,7 @@ export default class Xapi extends XapiBase {
       }
     } else {
       // Find the original template by name (*sigh*).
-      const templateNameLabel = vm.other_config['base_template_name']
+      const templateNameLabel = vm.other_config.base_template_name
       const template =
         templateNameLabel &&
         find(

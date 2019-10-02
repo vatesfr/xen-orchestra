@@ -154,7 +154,7 @@ class IpsCell extends BaseComponent {
                   value={newIps || ''}
                 />{' '}
                 <ActionButton
-                  form={`newIpForm`}
+                  form='newIpForm'
                   icon='save'
                   btnStyle='primary'
                   handler={this._addIps}

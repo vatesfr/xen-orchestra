@@ -468,14 +468,14 @@ export default class Scheduler extends Component {
               optionRenderer={getMonthName}
               options={MONTHS}
               onChange={this._monthChange}
-              value={cronPatternArr[PICKTIME_TO_ID['month']]}
+              value={cronPatternArr[PICKTIME_TO_ID.month]}
             />
           </Col>
           <Col largeSize={6}>
             <DayPicker
               onChange={this._dayChange}
-              monthDayPattern={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
-              weekDayPattern={cronPatternArr[PICKTIME_TO_ID['weekDay']]}
+              monthDayPattern={cronPatternArr[PICKTIME_TO_ID.monthDay]}
+              weekDayPattern={cronPatternArr[PICKTIME_TO_ID.weekDay]}
             />
           </Col>
         </Row>
@@ -485,7 +485,7 @@ export default class Scheduler extends Component {
               labelId='Hour'
               options={HOURS}
               onChange={this._hourChange}
-              value={cronPatternArr[PICKTIME_TO_ID['hour']]}
+              value={cronPatternArr[PICKTIME_TO_ID.hour]}
             />
           </Col>
           <Col largeSize={6}>
@@ -493,7 +493,7 @@ export default class Scheduler extends Component {
               labelId='Minute'
               options={MINS}
               onChange={this._minuteChange}
-              value={cronPatternArr[PICKTIME_TO_ID['minute']]}
+              value={cronPatternArr[PICKTIME_TO_ID.minute]}
             />
           </Col>
         </Row>
