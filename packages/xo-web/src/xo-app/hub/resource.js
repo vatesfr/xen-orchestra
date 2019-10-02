@@ -163,7 +163,7 @@ export default decorate([
           this.props.name,
           <div
             dangerouslySetInnerHTML={{
-              __html: marked(this.props.description || ''),
+              __html: marked(this.props.description),
             }}
           />
         )
@@ -189,6 +189,7 @@ export default decorate([
   }),
   injectState,
   ({
+    description,
     effects,
     hubInstallingResources,
     id,
@@ -218,15 +219,17 @@ export default decorate([
       <CardBlock className='text-center'>
         <div>
           <span className='text-muted'>{_('os')}</span> <strong>{os}</strong>
-          <span className='pull-right'>
-            <a
-              className='text-secondary'
-              style={{ cursor: 'pointer' }}
-              onClick={effects.showDescription}
-            >
-              <Icon icon='info' /> {_('vmNameDescription')}
-            </a>
-          </span>
+          {description !== undefined && (
+            <span className='pull-right'>
+              <a
+                className='text-secondary'
+                style={{ cursor: 'pointer' }}
+                onClick={effects.showDescription}
+              >
+                <Icon icon='info' /> {_('vmNameDescription')}
+              </a>
+            </span>
+          )}
         </div>
         <div>
           <span className='text-muted'>{_('version')}</span>
