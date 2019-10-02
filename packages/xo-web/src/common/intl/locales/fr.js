@@ -2184,16 +2184,6 @@ export default {
   // Original text: "Default behavior"
   vmChooseCoresPerSocket: 'Comportement par défaut',
 
-  // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmCoresPerSocket:
-    '{nSockets, number} socket{nSockets, plural, one {} other {s}} avec {nCores, number} cœur{nCores, plural, one {} other {s}} par socket',
-
-  // Original text: "Incorrect cores per socket value"
-  vmCoresPerSocketIncorrectValue: 'Valeur incorrecte de cœurs par socket',
-
-  // Original text: "Please change the selected value to fix it."
-  vmCoresPerSocketIncorrectValueSolution: 'Veuillez modifier la valeur.',
-
   // Original text: "Memory limits (min/max)"
   vmMemoryLimitsLabel: 'Limites de mémoire (min/max)',
 

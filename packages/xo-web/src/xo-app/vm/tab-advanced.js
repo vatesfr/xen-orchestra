@@ -265,7 +265,7 @@ class CoresPerSocket extends Component {
             value={coresPerSocket}
           />
         ) : coresPerSocket !== 0 ? (
-          _('vmCoresPerSocket', {
+          _('vmSocketsWithCoresPerSocket', {
             nSockets: cpus.max / coresPerSocket,
             nCores: coresPerSocket,
           })
