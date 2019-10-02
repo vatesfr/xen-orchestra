@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
+import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
@@ -157,6 +158,16 @@ export default decorate([
       redirectToTaskPage() {
         this.props.router.push('/tasks')
       },
+      showDescription() {
+        alert(
+          this.props.name,
+          <div
+            dangerouslySetInnerHTML={{
+              __html: marked(this.props.description || ''),
+            }}
+          />
+        )
+      },
     },
     computed: {
       installedTemplates: (_, { id, templates }) =>
@@ -207,6 +218,15 @@ export default decorate([
       <CardBlock className='text-center'>
         <div>
           <span className='text-muted'>{_('os')}</span> <strong>{os}</strong>
+          <span className='pull-right'>
+            <a
+              className='text-secondary'
+              style={{ cursor: 'pointer' }}
+              onClick={effects.showDescription}
+            >
+              <Icon icon='info' /> {_('vmNameDescription')}
+            </a>
+          </span>
         </div>
         <div>
           <span className='text-muted'>{_('version')}</span>
