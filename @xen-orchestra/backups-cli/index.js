@@ -66,6 +66,7 @@ const listVhds = pipe([
   filter(_ => _.endsWith('.vhd')),
 ])
 
+// TODO: add lock on VM dir
 async function handleVm(vmDir) {
   const vhds = new Set()
   const vhdParents = { __proto__: null }
@@ -188,10 +189,33 @@ async function handleVm(vmDir) {
     }
   })
 
+  // TODO: parallelize by vm/job/vdi
+  const unusedVhdsDeletion = []
+  const vhdChainsByParent = {}
+  unusedVhds.forEach(function deleteIfChildless(vhd) {
+    // no longer needs to be checked
+    unusedVhds.delete(vhd)
+
+    const child = vhdChildren[vhd]
+    if (child !== undefined) {
+      let chain
+      if (unusedVhds.has(child)) {
+        //
+        chain = deleteIfChildless(child)
+        if (chain !== undefined) {
+          chain.push(vhd)
+          return chain
+        }
+      } else {
+        return [child]
+      }
+    }
+    force && unusedVhdsDeletion.push(fs.unlink(vhd))
+  })
+  // TODO: merge remaining chains
+
   await Promise.all([
-    asyncMap(unusedVhds, path => {
-      // TODO: find the longest chain to remove/merge
-    }),
+    unusedVhdsDeletion,
     asyncMap(unusedXvas, path => {
       console.warn('Unused XVA', path)
       force && console.warn('  deleting…')
