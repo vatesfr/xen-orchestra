@@ -127,7 +127,7 @@ describe('backupNg', () => {
   describe('.delete() :', () => {
     it('deletes a backup job', async () => {
       const scheduleTempId = randomId()
-      const { id: jobId } = await xo.call('backupNg.createJob', {
+      const jobId = await xo.call('backupNg.createJob', {
         mode: 'full',
         name: getDefaultName(),
         vms: {
