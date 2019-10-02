@@ -6,13 +6,7 @@ import { defaultsDeep, find, forOwn } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
 
 import config from './_config'
-
-const getDefaultCredentials = () => {
-  const { email, password } = config.xoConnection
-  return { email, password }
-}
-
-const getDefaultName = () => `xo-server-test ${new Date().toISOString()}`
+import { getDefaultCredentials, getDefaultName } from './_defaultValues'
 
 class XoConnection extends Xo {
   constructor(opts) {
@@ -130,9 +124,9 @@ class XoConnection extends Xo {
         },
       },
     })
-    const job = await this.call('backupNg.createJob', params)
-    this._tempResourceDisposers.push('backupNg.deleteJob', { id: job.id })
-    return job
+    const id = await this.call('backupNg.createJob', params)
+    this._tempResourceDisposers.push('backupNg.deleteJob', { id })
+    return this.call('backupNg.getJob', { id })
   }
 
   async createTempNetwork(params) {

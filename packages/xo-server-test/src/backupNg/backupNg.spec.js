@@ -6,41 +6,37 @@ import { noSuchObject } from 'xo-common/api-errors'
 import config from '../_config'
 import randomId from '../_randomId'
 import xo from '../_xoConnection'
-
-const DEFAULT_SCHEDULE = {
-  name: 'scheduleTest',
-  cron: '0 * * * * *',
-}
+import { getDefaultName, getDefaultSchedule } from '../_defaultValues'
 
 // it only support one schedule
-const validateBackupJob = async (xo, input, output) => {
+const validateBackupJob = async (xo, jobInput, jobOutput) => {
   const expectedObj = {
     id: expect.any(String),
-    mode: input.mode,
-    name: input.name,
+    mode: jobInput.mode,
+    name: jobInput.name,
     type: 'backup',
     settings: {
-      '': input.settings[''],
+      '': jobInput.settings[''],
     },
     userId: xo._user.id,
-    vms: input.vms,
+    vms: jobInput.vms,
   }
 
-  const schedules = input.schedules
+  const schedules = jobInput.schedules
   if (schedules !== undefined) {
     const scheduleTmpId = Object.keys(schedules)[0]
-    const scheduleOutput = await xo.getSchedule({ jobId: output.id })
+    const scheduleOutput = await xo.getSchedule({ jobId: jobOutput.id })
     expect(scheduleOutput).toEqual({
       ...schedules[scheduleTmpId],
       enabled: false,
       id: expect.any(String),
-      jobId: output.id,
+      jobId: jobOutput.id,
     })
 
-    expectedObj.settings[scheduleOutput.id] = input.settings[scheduleTmpId]
+    expectedObj.settings[scheduleOutput.id] = jobInput.settings[scheduleTmpId]
   }
 
-  expect(output).toEqual(expectedObj)
+  expect(jobOutput).toEqual(expectedObj)
 }
 
 const validateRootTask = (log, expected) =>
@@ -99,22 +95,22 @@ const validateOperationTask = (task, props) => {
 describe('backupNg', () => {
   describe('.createJob() :', () => {
     it('creates a new backup job without schedules', async () => {
-      const input = {
+      const jobInput = {
         mode: 'full',
         vms: {
           id: config.vms.default,
         },
       }
-      const output = await xo.createTempBackupNgJob(input)
-      validateBackupJob(xo, input, output)
+      const jobOutput = await xo.createTempBackupNgJob(jobInput)
+      await validateBackupJob(xo, jobInput, jobOutput)
     })
 
     it('creates a new backup job with schedules', async () => {
       const scheduleTempId = randomId()
-      const input = {
+      const jobInput = {
         mode: 'full',
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -123,8 +119,8 @@ describe('backupNg', () => {
           id: config.vms.default,
         },
       }
-      const output = await xo.createTempBackupNgJob(input)
-      validateBackupJob(xo, input, output)
+      const jobOutput = await xo.createTempBackupNgJob(jobInput)
+      await validateBackupJob(xo, jobInput, jobOutput)
     })
   })
 
@@ -133,12 +129,12 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.call('backupNg.createJob', {
         mode: 'full',
-        name: `xo-server-test ${new Date().toISOString()}`,
+        name: getDefaultName(),
         vms: {
           id: config.vms.default,
         },
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -178,7 +174,7 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -202,7 +198,7 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -233,7 +229,7 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       const jobInput = {
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -295,7 +291,7 @@ describe('backupNg', () => {
           id: remoteId,
         },
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: {},
@@ -371,7 +367,7 @@ describe('backupNg', () => {
         id: vm.id,
       },
       schedules: {
-        [scheduleTempId]: DEFAULT_SCHEDULE,
+        [scheduleTempId]: getDefaultSchedule(),
       },
       settings: {
         [scheduleTempId]: { snapshotRetention: 2 },
@@ -478,7 +474,7 @@ describe('backupNg', () => {
         },
       },
       schedules: {
-        [scheduleTempId]: DEFAULT_SCHEDULE,
+        [scheduleTempId]: getDefaultSchedule(),
       },
       settings: {
         '': {
