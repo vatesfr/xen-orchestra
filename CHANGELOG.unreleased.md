@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [HUB] Display template description (PR [#4575](https://github.com/vatesfr/xen-orchestra/pull/4575))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
