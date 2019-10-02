@@ -10,6 +10,7 @@ import { NavLink, NavTabs } from 'nav'
 import Update from './update'
 import Licenses from './licenses'
 import Notifications, { NotificationTag } from './notifications'
+import Support from './support'
 
 const Header = ({ isAdmin }) => (
   <Container>
@@ -35,6 +36,11 @@ const Header = ({ isAdmin }) => (
             <Icon icon='menu-notification' /> {_('notificationsPage')}{' '}
             <NotificationTag />
           </NavLink>
+          {isAdmin && (
+            <NavLink to='/xoa/support'>
+              <Icon icon='menu-support' /> {_('supportPage')}
+            </NavLink>
+          )}
         </NavTabs>
       </Col>
     </Row>
@@ -45,6 +51,7 @@ const Xoa = routes('xoa', {
   update: Update,
   licenses: Licenses,
   notifications: Notifications,
+  support: Support,
 })(
   connectStore({
     isAdmin,
