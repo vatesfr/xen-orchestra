@@ -21,12 +21,9 @@ export default decorate([
     effects: {
       onChangePool(__, pools) {
         const _defaultSrByPool = this.state.mapPoolsSrs
-        if (Array.isArray(pools)) {
-          for (const pool of differenceBy(pools, this.state.pools, 'id')) {
-            _defaultSrByPool[pool.id] = pool.default_SR
-          }
-        } else {
-          _defaultSrByPool[pools.id] = pools.default_SR
+        const _pools = Array.isArray(pools) ? pools : [pools]
+        for (const pool of differenceBy(_pools, this.state.pools, 'id')) {
+          _defaultSrByPool[pool.id] = pool.default_SR
         }
         this.props.onChange({
           pools,
