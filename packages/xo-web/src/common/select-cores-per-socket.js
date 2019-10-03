@@ -6,6 +6,8 @@ import { omit } from 'lodash'
 
 import decorate from './apply-decorators'
 import Icon from './icon'
+import Tooltip from './tooltip'
+import { InlineSelect } from './inline-components'
 import { Select } from './form'
 
 const DEFAULT_OPTION = {
@@ -73,23 +75,29 @@ const SelectCoresPerSocket = decorate([
   injectState,
   ({ maxCores, state, value }) => (
     <div>
-      <Select
-        options={state.options}
-        required
-        simpleValue
-        value={value}
-        {...state.selectProps}
-      />
+      <InlineSelect>
+        <Select
+          options={state.options}
+          required
+          simpleValue
+          value={value}
+          {...state.selectProps}
+        />
+      </InlineSelect>
+      &nbsp;
       {!state.isValidValue && (
-        <div className='text-danger'>
-          <Icon icon='error' />{' '}
-          {state.valueExceedsLimits
-            ? _('vmCoresPerSocketExceedsLimit', {
-                maxSockets: MAX_VM_SOCKETS,
-                maxCores,
-              })
-            : _('vmCoresPerSocketNotDivisor')}
-        </div>
+        <Tooltip
+          content={
+            state.valueExceedsLimits
+              ? _('vmCoresPerSocketExceedsLimit', {
+                  maxSockets: MAX_VM_SOCKETS,
+                  maxCores,
+                })
+              : _('vmCoresPerSocketNotDivisor')
+          }
+        >
+          <Icon icon='error' size='lg' />
+        </Tooltip>
       )}
     </div>
   ),
