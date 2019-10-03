@@ -6,6 +6,7 @@ import ndjson from 'ndjson'
 import parseArgs from 'minimist'
 import sublevel from 'level-sublevel'
 import util from 'util'
+import { join as joinPath } from 'path'
 import { repair as repairDb } from 'level'
 
 import { forEach } from './utils'
@@ -174,6 +175,7 @@ export default async function main() {
   }
 
   const config = await appConf.load('xo-server', {
+    appDir: joinPath(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
 
