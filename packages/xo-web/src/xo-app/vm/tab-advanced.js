@@ -400,7 +400,7 @@ const Acls = decorate([
     computed: {
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
       resolvedAcls: ({ rawAcls }, { users, groups }) => {
-        if (users === undefined && groups === undefined) {
+        if (users === undefined || groups === undefined) {
           return []
         }
         return rawAcls.map(({ subject, ...acl }) => ({
