@@ -23,11 +23,12 @@ if (force) {
 
 // -----------------------------------------------------------------------------
 
+const assert = require('assert')
+const { createSyntheticStream, default: Vhd, mergeVhd } = require('vhd-lib')
 const { curryRight, flatten } = require('lodash')
 const { dirname, resolve } = require('path')
-const { pipe, promisifyAll } = require('promise-toolbox')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
-const Vhd = require('vhd-lib').default
+const { pipe, promisifyAll } = require('promise-toolbox')
 
 const fs = promisifyAll(require('fs'))
 const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
@@ -55,6 +56,38 @@ const readDir = path =>
   )
 
 // -----------------------------------------------------------------------------
+
+// chain is an array of VHD from child to ancestor
+//
+// the whole chain will be merged into child and all ancestors deleted
+async function mergeVhdChain(chain) {
+  assert(chain.length >= 2)
+
+  const child = chain[0]
+  const ancestors = chain.slice(1).reverse()
+
+  console.warn('Unused ancestors of VHD', child)
+  ancestors.forEach(ancestor => {
+    console.warn('  ')
+  })
+  force && console.warn('  merging…')
+  console.warn('')
+  if (force) {
+    const parent =
+      ancestors.length === 1
+        ? ancestors[0]
+        : await createSyntheticStream(handler, ancestors)
+
+    await mergeVhd(handler, parent, handler, child)
+  }
+
+  await asyncMap(ancestors, ancestor => {
+    console.warn('Unused VHD', ancestor)
+    force && console.warn('  deleting…')
+    console.warn('')
+    return force && fs.unlink(ancestor)
+  })
+}
 
 const listVhds = pipe([
   vmDir => vmDir + '/vdis',
@@ -191,28 +224,58 @@ async function handleVm(vmDir) {
 
   // TODO: parallelize by vm/job/vdi
   const unusedVhdsDeletion = []
-  const vhdChainsByParent = {}
-  unusedVhds.forEach(function deleteIfChildless(vhd) {
-    // no longer needs to be checked
-    unusedVhds.delete(vhd)
+  {
+    // VHD chains (as list from child to ancestor) to merge indexed by last
+    // ancestor
+    const vhdChainsToMerge = { __proto__: null }
 
-    const child = vhdChildren[vhd]
-    if (child !== undefined) {
-      let chain
-      if (unusedVhds.has(child)) {
-        //
-        chain = deleteIfChildless(child)
+    const toCheck = new Set(unusedVhds)
+
+    const deleteIfChildless = vhd => {
+      console.log('deleteIfChildless', vhd)
+      const chain = vhdChainsToMerge[vhd]
+      if (chain !== undefined) {
+        delete vhdChainsToMerge[vhd]
+        return chain
+      }
+
+      if (!unusedVhds.has(vhd)) {
+        return [vhd]
+      }
+
+      // no longer needs to be checked
+      toCheck.delete(vhd)
+
+      const child = vhdChildren[vhd]
+      if (child !== undefined) {
+        const chain = deleteIfChildless(child)
         if (chain !== undefined) {
           chain.push(vhd)
           return chain
         }
-      } else {
-        return [child]
       }
+
+      const parent = vhdParents[vhd]
+      if (parent !== undefined) {
+        delete vhdChildren[parent]
+      }
+      console.warn('Unused VHD', vhd)
+      force && console.warn('  deleting…')
+      console.warn('')
+      force && unusedVhdsDeletion.push(fs.unlink(vhd))
     }
-    force && unusedVhdsDeletion.push(fs.unlink(vhd))
-  })
-  // TODO: merge remaining chains
+
+    toCheck.forEach(vhd => {
+      const chain = deleteIfChildless(vhd)
+      if (chain !== undefined) {
+        vhdChainsToMerge[vhd] = chain
+      }
+    })
+
+    Object.keys(vhdChainsToMerge).forEach(key => {
+      unusedVhdsDeletion.push(mergeVhdChain(vhdChainsToMerge[key]))
+    })
+  }
 
   await Promise.all([
     unusedVhdsDeletion,
