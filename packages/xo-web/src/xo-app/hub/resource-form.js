@@ -6,7 +6,7 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
-import { differenceBy, find, first } from 'lodash'
+import { differenceBy, isEmpty, sortBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { Pool } from 'render-xo-item'
@@ -49,18 +49,13 @@ export default decorate([
         }
       },
     },
-    computed: {
-      isSrSelectDisabled: ({ pools }) =>
-        Array.isArray(pools) ? pools.length === 0 : pools === undefined,
-      isMultiplePools: ({ pools }) => Array.isArray(pools) && pools.length > 1,
-    },
   }),
   injectState,
   ({
     effects,
     install,
     multi,
-    state: { isMultiplePools, isSrSelectDisabled, pools, mapPoolsSrs },
+    state: { pools, mapPoolsSrs },
     poolPredicate,
   }) => (
     <Container>
@@ -83,7 +78,7 @@ export default decorate([
           value={pools}
         />
       </FormGrid.Row>
-      {install && isMultiplePools ? (
+      {install && multi && !isEmpty(pools) && (
         <div>
           <SingleLineRow>
             <Col size={6}>
@@ -94,7 +89,7 @@ export default decorate([
             </Col>
           </SingleLineRow>
           <hr />
-          {pools.map(pool => (
+          {sortBy(pools, 'name_label').map(pool => (
             <SingleLineRow key={pool.uuid} className='mt-1'>
               <Col size={6}>
                 <Pool id={pool.id} link />
@@ -110,23 +105,6 @@ export default decorate([
             </SingleLineRow>
           ))}
         </div>
-      ) : (
-        install && (
-          <FormGrid.Row>
-            <label>{_('vmImportToSr')}</label>
-            <SelectSr
-              disabled={isSrSelectDisabled}
-              onChange={effects.onChangeSr}
-              predicate={sr =>
-                find(pools, { id: sr.$pool }) !== undefined && isSrWritable(sr)
-              }
-              required
-              value={
-                pools.length > 0 ? mapPoolsSrs[first(pools).id] : undefined
-              }
-            />
-          </FormGrid.Row>
-        )
       )}
     </Container>
   ),
