@@ -412,7 +412,6 @@ const messages = {
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
   deleteSelectedSchedules: 'Delete selected schedules',
-  LegacyBackup: 'Legacy backup',
   noScheduledJobs: 'No scheduled jobs.',
   legacySnapshotsLink: 'You can delete all your legacy backup snapshots.',
   newSchedule: 'New schedule',

@@ -224,7 +224,7 @@ export default class LegacyOverview extends Component {
     return (
       schedules.length !== 0 && (
         <div>
-          <h3>{_('LegacyBackup')}</h3>
+          <h3>Legacy backup</h3>
           <Card>
             <CardHeader>
               <Icon icon='schedule' /> {_('backupSchedules')}
