@@ -7,9 +7,10 @@ import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
 import { find, first } from 'lodash'
-import { SelectPool, SelectSr } from 'select-objects'
-import { isSrWritable } from 'xo'
 import { injectState, provideState } from 'reaclette'
+import { isSrWritable } from 'xo'
+import { Pool } from 'render-xo-item'
+import { SelectPool, SelectSr } from 'select-objects'
 
 export default decorate([
   provideState({
@@ -23,17 +24,14 @@ export default decorate([
           pools,
           mapPoolsSrs: this.state.mapPoolsSrs,
         })
-        const _mapPoolsSrs = {}
-        if (Array.isArray(pools)) {
-          for (const pool of pools) {
-            _mapPoolsSrs[pool.id] = pool.default_SR
-          }
-        } else {
-          _mapPoolsSrs[pools.id] = pools.default_SR
+        const _defaultSrByPool = {}
+        pools = Array.isArray(pools) ? pools : [pools]
+        for (const pool of pools) {
+          _defaultSrByPool[pool.id] = pool.default_SR
         }
         return {
           pools,
-          mapPoolsSrs: _mapPoolsSrs,
+          mapPoolsSrs: _defaultSrByPool,
         }
       },
       onChangeSr(__, sr) {
@@ -95,7 +93,9 @@ export default decorate([
           <hr />
           {pools.map(pool => (
             <SingleLineRow key={pool.uuid} className='mt-1'>
-              <Col size={6}>{pool.name_label}</Col>
+              <Col size={6}>
+                <Pool id={pool.id} link />
+              </Col>
               <Col size={6}>
                 <SelectSr
                   onChange={effects.onChangeSr}
