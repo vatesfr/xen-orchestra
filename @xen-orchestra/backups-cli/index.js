@@ -57,36 +57,46 @@ const readDir = path =>
 
 // -----------------------------------------------------------------------------
 
-// chain is an array of VHD from child to ancestor
+// chain is an array of VHD from child to parent
 //
-// the whole chain will be merged into child and all ancestors deleted
+// the whole chain will be merged into parent, parent will be renamed to child
+// and all the others will deleted
 async function mergeVhdChain(chain) {
   assert(chain.length >= 2)
 
   const child = chain[0]
-  const ancestors = chain.slice(1).reverse()
+  const parent = chain[chain.length - 1]
+  const children = chain.slice(0, -1).reverse()
 
-  console.warn('Unused ancestors of VHD', child)
-  ancestors.forEach(ancestor => {
-    console.warn('  ')
-  })
+  console.warn('Unused parents of VHD', child)
+  chain
+    .slice(1)
+    .reverse()
+    .forEach(parent => {
+      console.warn(' ', parent)
+    })
   force && console.warn('  merging…')
   console.warn('')
   if (force) {
-    const parent =
-      ancestors.length === 1
-        ? ancestors[0]
-        : await createSyntheticStream(handler, ancestors)
-
-    await mergeVhd(handler, parent, handler, child)
+    await mergeVhd(
+      handler,
+      parent,
+      handler,
+      children.length === 1
+        ? child
+        : await createSyntheticStream(handler, children)
+    )
   }
 
-  await asyncMap(ancestors, ancestor => {
-    console.warn('Unused VHD', ancestor)
-    force && console.warn('  deleting…')
-    console.warn('')
-    return force && fs.unlink(ancestor)
-  })
+  await Promise.all([
+    fs.rename(parent, child),
+    asyncMap(children.slice(0, -1), child => {
+      console.warn('Unused VHD', child)
+      force && console.warn('  deleting…')
+      console.warn('')
+      return force && fs.unlink(child)
+    }),
+  ])
 }
 
 const listVhds = pipe([
@@ -232,9 +242,8 @@ async function handleVm(vmDir) {
     const toCheck = new Set(unusedVhds)
 
     const deleteIfChildless = vhd => {
-      console.log('deleteIfChildless', vhd)
-      const chain = vhdChainsToMerge[vhd]
-      if (chain !== undefined) {
+      if (vhd in vhdChainsToMerge) {
+        const chain = vhdChainsToMerge[vhd]
         delete vhdChainsToMerge[vhd]
         return chain
       }
@@ -255,10 +264,6 @@ async function handleVm(vmDir) {
         }
       }
 
-      const parent = vhdParents[vhd]
-      if (parent !== undefined) {
-        delete vhdChildren[parent]
-      }
       console.warn('Unused VHD', vhd)
       force && console.warn('  deleting…')
       console.warn('')
@@ -266,14 +271,14 @@ async function handleVm(vmDir) {
     }
 
     toCheck.forEach(vhd => {
-      const chain = deleteIfChildless(vhd)
-      if (chain !== undefined) {
-        vhdChainsToMerge[vhd] = chain
-      }
+      vhdChainsToMerge[vhd] = deleteIfChildless(vhd)
     })
 
     Object.keys(vhdChainsToMerge).forEach(key => {
-      unusedVhdsDeletion.push(mergeVhdChain(vhdChainsToMerge[key]))
+      const chain = vhdChainsToMerge[key]
+      if (chain !== undefined) {
+        unusedVhdsDeletion.push(mergeVhdChain(chain))
+      }
     })
   }
 
