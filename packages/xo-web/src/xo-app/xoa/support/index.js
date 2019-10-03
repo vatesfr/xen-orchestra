@@ -33,8 +33,8 @@ const Support = decorate([
             <CardHeader>{_('checkXoa')}</CardHeader>
             <CardBlock>
               <ActionButton
-                handler={effects.getXoaCheck}
                 btnStyle='success'
+                handler={effects.getXoaCheck}
                 icon=''
               >
                 {' '}
