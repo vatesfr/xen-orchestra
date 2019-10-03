@@ -6,7 +6,7 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
-import { find, first } from 'lodash'
+import { differenceBy, find, first } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { Pool } from 'render-xo-item'
@@ -20,15 +20,18 @@ export default decorate([
     }),
     effects: {
       onChangePool(__, pools) {
+        const _defaultSrByPool = this.state.mapPoolsSrs
+        if (Array.isArray(pools)) {
+          for (const pool of differenceBy(pools, this.state.pools, 'id')) {
+            _defaultSrByPool[pool.id] = pool.default_SR
+          }
+        } else {
+          _defaultSrByPool[pools.id] = pools.default_SR
+        }
         this.props.onChange({
           pools,
-          mapPoolsSrs: this.state.mapPoolsSrs,
+          mapPoolsSrs: _defaultSrByPool,
         })
-        const _defaultSrByPool = {}
-        pools = Array.isArray(pools) ? pools : [pools]
-        for (const pool of pools) {
-          _defaultSrByPool[pool.id] = pool.default_SR
-        }
         return {
           pools,
           mapPoolsSrs: _defaultSrByPool,
