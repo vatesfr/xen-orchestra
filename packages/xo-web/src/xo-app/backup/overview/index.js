@@ -16,7 +16,8 @@ import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
 import { createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
-import { isEmpty, map, groupBy, some } from 'lodash'
+import { injectState, provideState } from 'reaclette'
+import { isEmpty, keyBy, map, groupBy, some } from 'lodash'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -26,6 +27,7 @@ import {
   runMetadataBackupJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
+  subscribeJobs,
   subscribeMetadataBackupJobs,
   subscribeSchedules,
 } from 'xo'
@@ -326,15 +328,36 @@ class JobsTable extends React.Component {
   }
 }
 
+const LegacyJobKeyToLabel = {
+  continuousReplication: _('continuousReplication'),
+  deltaBackup: _('deltaBackup'),
+  disasterRecovery: _('disasterRecovery'),
+  rollingBackup: _('backup'),
+  rollingSnapshot: _('rollingSnapshot'),
+}
+
 const Overview = decorate([
   addSubscriptions({
+    legacyJobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
     schedules: subscribeSchedules,
   }),
-  ({ schedules }) => (
+  provideState({
+    computed: {
+      haveLegacyBackups: (_, { legacyJobs, schedules }) =>
+        legacyJobs === undefined || schedules === undefined
+          ? false
+          : some(schedules, schedule => {
+              const job = legacyJobs[schedule.jobId]
+              return job !== undefined && LegacyJobKeyToLabel[job.key]
+            }),
+    },
+  }),
+  injectState,
+  ({ state: { haveLegacyBackups } }) => (
     <div>
-      {!isEmpty(schedules) && <LegacyOverview />}
+      {haveLegacyBackups && <LegacyOverview />}
       <div className='mt-2 mb-1'>
-        {!isEmpty(schedules) && <h3>{_('backup')}</h3>}
+        {haveLegacyBackups && <h3>{_('backup')}</h3>}
         <Card>
           <CardHeader>
             <Icon icon='backup' /> {_('backupJobs')}
