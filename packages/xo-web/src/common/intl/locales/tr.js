@@ -2659,8 +2659,19 @@ export default {
   // Original text: "Default behavior"
   vmChooseCoresPerSocket: 'Varsayılan davranış',
 
+  // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
+  vmSocketsWithCoresPerSocket:
+    '{nSockets, number} soket ve her sokette  {nCores, number} çekirdek',
+
   // Original text: "None"
   vmCoresPerSocketNone: 'Yok',
+
+  // Original text: "Incorrect cores per socket value"
+  vmCoresPerSocketIncorrectValue: 'Soket başına geçersiz çekirdek sayısı',
+
+  // Original text: "Please change the selected value to fix it."
+  vmCoresPerSocketIncorrectValueSolution:
+    'Düzeltmek için lütfen seçili değeri değiştirin',
 
   // Original text: 'disabled'
   vmHaDisabled: undefined,

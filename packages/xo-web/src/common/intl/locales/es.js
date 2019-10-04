@@ -2141,6 +2141,15 @@ export default {
   // Original text: 'Default behavior'
   vmChooseCoresPerSocket: undefined,
 
+  // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
+  vmSocketsWithCoresPerSocket: undefined,
+
+  // Original text: 'Incorrect cores per socket value'
+  vmCoresPerSocketIncorrectValue: undefined,
+
+  // Original text: 'Please change the selected value to fix it.'
+  vmCoresPerSocketIncorrectValueSolution: undefined,
+
   // Original text: "Memory limits (min/max)"
   vmMemoryLimitsLabel: 'Límites de memoria (min/max)',
 

@@ -7,7 +7,6 @@ import { omit } from 'lodash'
 import decorate from './apply-decorators'
 import Icon from './icon'
 import Tooltip from './tooltip'
-import { InlineSelect } from './inline-components'
 import { Select } from './form'
 
 const DEFAULT_OPTION = {
@@ -19,6 +18,12 @@ const PROP_TYPES = {
   maxCores: PropTypes.number,
   maxVcpus: PropTypes.number,
   value: PropTypes.number.isRequired,
+}
+
+const SELECT_STYLE = {
+  display: 'inline-block',
+  fontSize: '1rem',
+  width: '20em',
 }
 
 // https://github.com/xcp-ng/xenadmin/blob/0160cd0119fae3b871eef656c23e2b76fcc04cb5/XenModel/XenAPI-Extensions/VM.cs#L62
@@ -40,12 +45,14 @@ const SelectCoresPerSocket = decorate([
           return options
         }
 
-        const ratio = maxVcpus / MAX_VM_SOCKETS
+        const minCores = maxVcpus / MAX_VM_SOCKETS
 
-        // cores per socket should be a divisor of the max cpus and should not exceeds the cores and sockets limit
+        // cores per socket must be a divisor of the max vCPUs and must not exceed the cores and sockets limit
+        // e.g: with maxCores = 4, maxSockets = 16 and maxVCPUS = 6
+        // 2 cores per socket is a valid value and 4 cores per socket isn't a valid value
         for (
           let coresPerSocket = maxCores;
-          coresPerSocket >= ratio;
+          coresPerSocket >= minCores;
           coresPerSocket--
         ) {
           if (maxVcpus % coresPerSocket === 0) {
@@ -75,7 +82,7 @@ const SelectCoresPerSocket = decorate([
   injectState,
   ({ maxCores, state, value }) => (
     <div>
-      <InlineSelect>
+      <span className={SELECT_STYLE}>
         <Select
           options={state.options}
           required
@@ -83,7 +90,7 @@ const SelectCoresPerSocket = decorate([
           value={value}
           {...state.selectProps}
         />
-      </InlineSelect>
+      </span>
       &nbsp;
       {!state.isValidValue && (
         <Tooltip
