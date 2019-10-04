@@ -56,7 +56,11 @@ const isValidTar = async path => {
       return false
     }
 
-    const buf = await fs.read(fd, 0, 1024, size - 1024 - 1)
+    const buf = Buffer.allocUnsafe(1024)
+    assert.strictEqual(
+      await fs.read(fd, buf, 0, buf.length, size - 1 - buf.length),
+      buf.length
+    )
     return buf.every(_ => _ === 0)
   } finally {
     fs.close(fd).catch(noop)
@@ -206,7 +210,7 @@ async function handleVm(vmDir) {
 
   const [jsons, xvas] = await readDir(vmDir).then(entries => [
     entries.filter(_ => _.endsWith('.json')),
-    entries.filter(_ => _.endsWith('.xva')),
+    new Set(entries.filter(_ => _.endsWith('.xva'))),
   ])
 
   await asyncMap(xvas, async path => {
