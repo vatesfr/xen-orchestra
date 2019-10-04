@@ -289,7 +289,7 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
 let formModalState
 export const form = ({
   component,
-  defaultValue,
+  defaultValue = {},
   handler = identity,
   header,
   render,
