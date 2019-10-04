@@ -113,14 +113,18 @@ async function mergeVhdChain(chain) {
   force && console.warn('  merging…')
   console.warn('')
   if (force) {
-    await mergeVhd(
-      handler,
-      parent,
-      handler,
-      children.length === 1
-        ? child
-        : await createSyntheticStream(handler, children)
-    )
+    // `mergeVhd` does not work with a stream, either
+    // - makes it accept a stream
+    // - or create synthetic VHD which is not a stream
+    throw new Error('FIXME')
+    // await mergeVhd(
+    //   handler,
+    //   parent,
+    //   handler,
+    //   children.length === 1
+    //     ? child
+    //     : await createSyntheticStream(handler, children)
+    // )
   }
 
   await Promise.all([
