@@ -49,7 +49,7 @@ const filter = (...args) => thisArg => thisArg.filter(...args)
 // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
 const isValidTar = async path => {
   const { size } = await fs.stat(path)
-  if (size > 1024 && size % 512 !== 0) {
+  if (size <= 1024 || size % 512 !== 0) {
     return false
   }
 
@@ -210,6 +210,8 @@ async function handleVm(vmDir) {
 
   await asyncMap(xvas, async path => {
     if (!(await isValidTar(path))) {
+      xvas.delete(path)
+
       console.warn('Detected broken XVA', path)
       force && console.warn('  deleting…')
       console.warn('')
@@ -266,7 +268,7 @@ async function handleVm(vmDir) {
 
     const toCheck = new Set(unusedVhds)
 
-    const deleteIfChildless = vhd => {
+    const getUsedChildChainOrDelete = vhd => {
       if (vhd in vhdChainsToMerge) {
         const chain = vhdChainsToMerge[vhd]
         delete vhdChainsToMerge[vhd]
@@ -282,7 +284,7 @@ async function handleVm(vmDir) {
 
       const child = vhdChildren[vhd]
       if (child !== undefined) {
-        const chain = deleteIfChildless(child)
+        const chain = getUsedChildChainOrDelete(child)
         if (chain !== undefined) {
           chain.push(vhd)
           return chain
@@ -296,7 +298,7 @@ async function handleVm(vmDir) {
     }
 
     toCheck.forEach(vhd => {
-      vhdChainsToMerge[vhd] = deleteIfChildless(vhd)
+      vhdChainsToMerge[vhd] = getUsedChildChainOrDelete(vhd)
     })
 
     Object.keys(vhdChainsToMerge).forEach(key => {
