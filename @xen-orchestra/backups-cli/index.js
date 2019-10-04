@@ -24,6 +24,7 @@ if (force) {
 // -----------------------------------------------------------------------------
 
 const assert = require('assert')
+const lockfile = require('proper-lockfile')
 const { createSyntheticStream, default: Vhd, mergeVhd } = require('vhd-lib')
 const { curryRight, flatten } = require('lodash')
 const { dirname, resolve } = require('path')
@@ -327,8 +328,14 @@ async function handleVm(vmDir) {
 
 // -----------------------------------------------------------------------------
 
-asyncMap(args, vmDir =>
-  handleVm(resolve(vmDir)).catch(error =>
+asyncMap(args, async vmDir => {
+  vmDir = resolve(vmDir)
+  const release = await lockfile.lock(vmDir)
+  try {
+    await handleVm(vmDir)
+  } catch (error) {
     console.error('handleVm', vmDir, error)
-  )
-).catch(error => console.error('main', error))
+  } finally {
+    await release()
+  }
+}).catch(error => console.error('main', error))
