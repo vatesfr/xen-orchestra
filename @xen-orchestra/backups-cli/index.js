@@ -55,6 +55,8 @@ const filter = (...args) => thisArg => thisArg.filter(...args)
 //
 // maybe reading the end of the file looking for a file named
 // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
+//
+// https://github.com/npm/node-tar/issues/234#issuecomment-538190295
 const isValidTar = async path => {
   const fd = await fs.open(path, 'r')
   try {
