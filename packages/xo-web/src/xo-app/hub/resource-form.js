@@ -14,47 +14,34 @@ import { SelectPool, SelectSr } from 'select-objects'
 
 export default decorate([
   provideState({
-    initialState: ({ multi }) => ({
-      pools: multi ? [] : undefined,
-      mapPoolsSrs: {},
-    }),
     effects: {
       onChangePool(__, pools) {
-        const _defaultSrByPool = this.state.mapPoolsSrs
-        const _pools = Array.isArray(pools) ? pools : [pools]
-        for (const pool of differenceBy(_pools, this.state.pools, 'id')) {
-          _defaultSrByPool[pool.id] = pool.default_SR
+        const { multi, onChange, value } = this.props
+        const _defaultSrByPool = value.mapPoolsSrs
+        if (multi) {
+          const _pool = Array.isArray(pools) ? pools : [pools]
+          for (const pool of differenceBy(_pool, value.pools, 'id')) {
+            _defaultSrByPool[pool.id] = pool.default_SR
+          }
         }
-        this.props.onChange({
-          pools,
-          mapPoolsSrs: _defaultSrByPool,
-        })
-        return {
-          pools,
-          mapPoolsSrs: _defaultSrByPool,
-        }
+        const changes = { mapPoolsSrs: _defaultSrByPool }
+        multi ? (changes.pools = pools) : (changes.pool = pools)
+        onChange({ ...value, ...changes })
       },
       onChangeSr(__, sr) {
-        const { mapPoolsSrs, pools } = this.state
-        const _mapPoolsSrs = { ...mapPoolsSrs, [sr.$pool]: sr.id }
+        const _mapPoolsSrs = {
+          ...this.props.value.mapPoolsSrs,
+          [sr.$pool]: sr.id,
+        }
         this.props.onChange({
-          pools,
+          ...this.props.value,
           mapPoolsSrs: _mapPoolsSrs,
         })
-        return {
-          mapPoolsSrs: _mapPoolsSrs,
-        }
       },
     },
   }),
   injectState,
-  ({
-    effects,
-    install,
-    multi,
-    state: { pools, mapPoolsSrs },
-    poolPredicate,
-  }) => (
+  ({ effects, install, multi, poolPredicate, value }) => (
     <Container>
       <FormGrid.Row>
         <label>
@@ -72,10 +59,10 @@ export default decorate([
           onChange={effects.onChangePool}
           predicate={poolPredicate}
           required
-          value={pools}
+          value={multi ? value.pools : value.pool}
         />
       </FormGrid.Row>
-      {install && multi && !isEmpty(pools) && (
+      {install && multi && !isEmpty(value.pools) && (
         <div>
           <SingleLineRow>
             <Col size={6}>
@@ -86,7 +73,7 @@ export default decorate([
             </Col>
           </SingleLineRow>
           <hr />
-          {sortBy(pools, 'name_label').map(pool => (
+          {sortBy(value.pools, 'name_label').map(pool => (
             <SingleLineRow key={pool.uuid} className='mt-1'>
               <Col size={6}>
                 <Pool id={pool.id} link />
@@ -96,7 +83,7 @@ export default decorate([
                   onChange={effects.onChangeSr}
                   predicate={sr => sr.$pool === pool.id && isSrWritable(sr)}
                   required
-                  value={mapPoolsSrs[pool.id]}
+                  value={value.mapPoolsSrs[pool.id]}
                 />
               </Col>
             </SingleLineRow>

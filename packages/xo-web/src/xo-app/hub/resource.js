@@ -41,7 +41,7 @@ export default decorate([
   }),
   provideState({
     initialState: () => ({
-      selectedInstallPools: [],
+      pool: undefined,
     }),
     effects: {
       async install() {
@@ -59,6 +59,10 @@ export default decorate([
           return
         }
         const resourceParams = await form({
+          defaultValue: {
+            mapPoolsSrs: {},
+            pools: [],
+          },
           render: props => (
             <ResourceForm
               install
@@ -101,6 +105,10 @@ export default decorate([
           return
         }
         const resourceParams = await form({
+          defaultValue: {
+            mapPoolsSrs: {},
+            pool: undefined,
+          },
           render: props => (
             <ResourceForm poolPredicate={isPoolCreated} {...props} />
           ),
@@ -111,7 +119,7 @@ export default decorate([
           ),
           size: 'medium',
         })
-        const { $pool } = resourceParams.pools
+        const { $pool } = resourceParams.pool
         const template = find(installedTemplates, { $pool })
         if (template !== undefined) {
           this.props.router.push(
@@ -124,6 +132,10 @@ export default decorate([
       async deleteTemplates(__, { name }) {
         const { isPoolCreated } = this.state
         const resourceParams = await form({
+          defaultValue: {
+            mapPoolsSrs: {},
+            pools: [],
+          },
           render: props => (
             <ResourceForm
               delete
@@ -143,11 +155,6 @@ export default decorate([
           find(resourceParams.pools, { $pool: template.$pool })
         )
         await deleteTemplates(_templates)
-      },
-      updateSelectedInstallPools(_, selectedInstallPools) {
-        return {
-          selectedInstallPools,
-        }
       },
       updateSelectedCreatePool(_, selectedCreatePool) {
         return {
