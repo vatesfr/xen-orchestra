@@ -33,7 +33,7 @@ const MAX_VM_SOCKETS = 16
 const SelectCoresPerSocket = decorate([
   provideState({
     computed: {
-      isValidValue: (state, { maxCores, maxVcpus, value }) =>
+      isValidValue: (state, { maxVcpus, value }) =>
         value === DEFAULT_OPTION.value ||
         (maxVcpus % value === 0 && !state.valueExceedsLimits),
       valueExceedsLimits: ({ maxCores, maxVcpus, value }) =>
