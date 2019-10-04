@@ -286,7 +286,6 @@ export default class Menu extends Component {
             icon: 'menu-support',
             label: 'supportPage',
           },
-          ,
         ],
       },
       isAdmin && {

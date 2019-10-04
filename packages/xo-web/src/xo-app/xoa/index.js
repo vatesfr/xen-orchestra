@@ -7,10 +7,10 @@ import { Container, Row, Col } from 'grid'
 import { isAdmin } from 'selectors'
 import { NavLink, NavTabs } from 'nav'
 
-import Update from './update'
 import Licenses from './licenses'
 import Notifications, { NotificationTag } from './notifications'
 import Support from './support'
+import Update from './update'
 
 const Header = ({ isAdmin }) => (
   <Container>
@@ -48,10 +48,10 @@ const Header = ({ isAdmin }) => (
 )
 
 const Xoa = routes('xoa', {
-  update: Update,
   licenses: Licenses,
   notifications: Notifications,
   support: Support,
+  update: Update,
 })(
   connectStore({
     isAdmin,

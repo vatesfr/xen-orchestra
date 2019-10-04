@@ -155,6 +155,7 @@ const messages = {
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
   checkXoa: 'Check XOA',
+  xoaCheck: 'XOA check',
 
   // ----- Sign out -----
   signOut: 'Sign out',

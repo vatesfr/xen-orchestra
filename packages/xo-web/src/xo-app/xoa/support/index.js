@@ -1,60 +1,46 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import AnsiUp from 'ansi_up'
 import decorate from 'apply-decorators'
 import React from 'react'
 import { adminOnly } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { getXoaCheck } from 'xo'
+import { getCheckXoa } from 'xo'
+
+const ansiUp = new AnsiUp()
 
 const Support = decorate([
   adminOnly,
   provideState({
-    initialState: () => ({ stdoutXoaCheck: [], stderrXoaCheck: [] }),
+    initialState: () => ({ stdoutCheckXoa: '' }),
     effects: {
-      async getXoaCheck() {
-        const result = await getXoaCheck()
-        const { stdout, stderr } = result
-        return {
-          stdoutXoaCheck:
-            stdout !== undefined ? stdout.split('\n') : result.split('\n'),
-          stderrXoaCheck: stderr !== undefined ? stderr.split('\n') : [],
-        }
-      },
+      initialize: async () => ({ stdoutCheckXoa: await getCheckXoa() }),
+      getCheckXoa: async () => ({ stdoutCheckXoa: await getCheckXoa() }),
     },
   }),
   injectState,
-  ({ effects, state: { stderrXoaCheck, stdoutXoaCheck } }) => (
+  ({ effects, state: { stdoutCheckXoa } }) => (
     <Container>
       <Row>
         <Col mediumSize={6}>
           <Card>
-            <CardHeader>{_('checkXoa')}</CardHeader>
+            <CardHeader>{_('xoaCheck')}</CardHeader>
             <CardBlock>
               <ActionButton
                 btnStyle='success'
-                handler={effects.getXoaCheck}
-                icon=''
+                handler={effects.getCheckXoa}
+                icon='diagnosis'
               >
-                {' '}
                 {_('checkXoa')}
               </ActionButton>
               <hr />
-              <span className='text-danger'>
-                {stderrXoaCheck.map((err, key) => (
-                  <div key={key}>
-                    <span>{err}</span>
-                  </div>
-                ))}
-              </span>
-              <span className='text-success'>
-                {stdoutXoaCheck.map((res, key) => (
-                  <div key={key}>
-                    <span>{res}</span>
-                  </div>
-                ))}
-              </span>
+              <pre
+                dangerouslySetInnerHTML={{
+                  __html: ansiUp.ansi_to_html(stdoutCheckXoa),
+                }}
+              />
             </CardBlock>
           </Card>
         </Col>
