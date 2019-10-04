@@ -43,6 +43,27 @@ const asyncMap = curryRight((iterable, fn) =>
 
 const filter = (...args) => thisArg => thisArg.filter(...args)
 
+// TODO: better check?
+//
+// maybe reading the end of the file looking for a file named
+// /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
+const isValidTar = async path => {
+  const { size } = await fs.stat(path)
+  if (size > 1024 && size % 512 !== 0) {
+    return false
+  }
+
+  const fd = await fs.open(path, 'r')
+  try {
+    const buf = await fs.read(fd, 0, 1024, size - 1024 - 1)
+    return buf.every(_ => _ === 0)
+  } finally {
+    fs.close(fd).catch(noop)
+  }
+}
+
+const noop = Function.prototype
+
 const readDir = path =>
   fs.readdir(path).then(
     entries => {
@@ -187,10 +208,14 @@ async function handleVm(vmDir) {
     entries.filter(_ => _.endsWith('.xva')),
   ])
 
-  // TODO: find a fast way to check XVAs validity
-  //
-  // maybe reading the end of the file looking for a file named
-  // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
+  await asyncMap(xvas, async path => {
+    if (!(await isValidTar(path))) {
+      console.warn('Detected broken XVA', path)
+      force && console.warn('  deleting…')
+      console.warn('')
+      force && (await fs.unlink(path))
+    }
+  })
 
   const unusedVhds = new Set(vhds)
   const unusedXvas = new Set(xvas)
