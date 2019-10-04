@@ -339,6 +339,9 @@ async function handleVm(vmDir) {
 
 asyncMap(args, async vmDir => {
   vmDir = resolve(vmDir)
+
+  // TODO: implement this in `xo-server`, not easy because not compatible with
+  // `@xen-orchestra/fs`.
   const release = await lockfile.lock(vmDir)
   try {
     await handleVm(vmDir)
