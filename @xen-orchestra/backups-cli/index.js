@@ -45,6 +45,13 @@ const asyncMap = curryRight((iterable, fn) =>
 const filter = (...args) => thisArg => thisArg.filter(...args)
 
 // TODO: better check?
+
+// our heuristic is not good enough, there has been some false positives
+// (detected as invalid by us but valid by `tar` and imported with success),
+// either:
+// - these files were normal but the check is incorrect
+// - these files were invalid but without data loss
+// - these files were invalid but with silent data loss
 //
 // maybe reading the end of the file looking for a file named
 // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
@@ -214,13 +221,11 @@ async function handleVm(vmDir) {
   ])
 
   await asyncMap(xvas, async path => {
+    // check is not good enough to delete the file, the best we can do is report
+    // it
     if (!(await isValidTar(path))) {
-      xvas.delete(path)
-
-      console.warn('Detected broken XVA', path)
-      force && console.warn('  deleting…')
+      console.warn('Potential broken XVA', path)
       console.warn('')
-      force && (await handler.unlink(path))
     }
   })
 
