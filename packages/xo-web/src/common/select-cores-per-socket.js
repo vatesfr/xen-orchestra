@@ -82,7 +82,7 @@ const SelectCoresPerSocket = decorate([
   injectState,
   ({ maxCores, state, value }) => (
     <div>
-      <span className={SELECT_STYLE}>
+      <span style={SELECT_STYLE}>
         <Select
           options={state.options}
           required
