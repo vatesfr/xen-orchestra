@@ -1,12 +1,13 @@
 import * as FormGrid from 'form-grid'
 import _ from 'intl'
 import decorate from 'apply-decorators'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
 import { Container, Col } from 'grid'
-import { differenceBy, isEmpty, sortBy } from 'lodash'
+import { isEmpty, sortBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { Pool } from 'render-xo-item'
@@ -17,14 +18,7 @@ export default decorate([
     effects: {
       onChangePool(__, pools) {
         const { multi, onChange, value } = this.props
-        const _defaultSrByPool = value.mapPoolsSrs
-        if (multi) {
-          const _pool = Array.isArray(pools) ? pools : [pools]
-          for (const pool of differenceBy(_pool, value.pools, 'id')) {
-            _defaultSrByPool[pool.id] = pool.default_SR
-          }
-        }
-        const changes = { mapPoolsSrs: _defaultSrByPool }
+        const changes = {}
         multi ? (changes.pools = pools) : (changes.pool = pools)
         onChange({ ...value, ...changes })
       },
@@ -83,7 +77,7 @@ export default decorate([
                   onChange={effects.onChangeSr}
                   predicate={sr => sr.$pool === pool.id && isSrWritable(sr)}
                   required
-                  value={value.mapPoolsSrs[pool.id]}
+                  value={defined(value.mapPoolsSrs[pool.id], pool.default_SR)}
                 />
               </Col>
             </SingleLineRow>
