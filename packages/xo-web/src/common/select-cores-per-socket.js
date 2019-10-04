@@ -26,6 +26,11 @@ const SELECT_STYLE = {
   width: '20em',
 }
 
+const LINE_ITEM_STYLE = {
+  alignItems: 'center',
+  display: 'flex',
+}
+
 // https://github.com/xcp-ng/xenadmin/blob/0160cd0119fae3b871eef656c23e2b76fcc04cb5/XenModel/XenAPI-Extensions/VM.cs#L62
 const MAX_VM_SOCKETS = 16
 
@@ -81,7 +86,7 @@ const SelectCoresPerSocket = decorate([
   }),
   injectState,
   ({ maxCores, state, value }) => (
-    <div>
+    <div style={LINE_ITEM_STYLE}>
       <span style={SELECT_STYLE}>
         <Select
           options={state.options}
