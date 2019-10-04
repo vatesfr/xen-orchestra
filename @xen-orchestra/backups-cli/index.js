@@ -48,13 +48,13 @@ const filter = (...args) => thisArg => thisArg.filter(...args)
 // maybe reading the end of the file looking for a file named
 // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
 const isValidTar = async path => {
-  const { size } = await fs.stat(path)
-  if (size <= 1024 || size % 512 !== 0) {
-    return false
-  }
-
   const fd = await fs.open(path, 'r')
   try {
+    const { size } = await fs.fstat(fd)
+    if (size <= 1024 || size % 512 !== 0) {
+      return false
+    }
+
     const buf = await fs.read(fd, 0, 1024, size - 1024 - 1)
     return buf.every(_ => _ === 0)
   } finally {
