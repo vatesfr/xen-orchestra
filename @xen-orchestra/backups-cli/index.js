@@ -120,7 +120,7 @@ async function mergeVhdChain(chain) {
       console.warn('Unused VHD', child)
       force && console.warn('  deleting…')
       console.warn('')
-      return force && fs.unlink(child)
+      return force && handler.unlink(child)
     }),
   ])
 }
@@ -167,7 +167,7 @@ async function handleVm(vmDir) {
       if (error != null && error.code === 'ERR_ASSERTION') {
         force && console.warn('  deleting…')
         console.warn('')
-        force && (await fs.unlink(path))
+        force && (await handler.unlink(path))
       }
     }
   })
@@ -193,7 +193,7 @@ async function handleVm(vmDir) {
         console.warn('  missing parent', parent)
         force && console.warn('  deleting…')
         console.warn('')
-        force && deletions.push(fs.unlink(child))
+        force && deletions.push(handler.unlink(child))
       }
     }
 
@@ -220,7 +220,7 @@ async function handleVm(vmDir) {
       console.warn('Detected broken XVA', path)
       force && console.warn('  deleting…')
       console.warn('')
-      force && (await fs.unlink(path))
+      force && (await handler.unlink(path))
     }
   })
 
@@ -240,7 +240,7 @@ async function handleVm(vmDir) {
         console.warn('  missing file', linkedXva)
         force && console.warn('  deleting…')
         console.warn('')
-        force && (await fs.unlink(json))
+        force && (await handler.unlink(json))
       }
     } else if (mode === 'delta') {
       let linkedVhds = metadata.vhds
@@ -259,7 +259,7 @@ async function handleVm(vmDir) {
           })
         force && console.warn('  deleting…')
         console.warn('')
-        force && (await fs.unlink(json))
+        force && (await handler.unlink(json))
       }
     }
   })
@@ -299,7 +299,7 @@ async function handleVm(vmDir) {
       console.warn('Unused VHD', vhd)
       force && console.warn('  deleting…')
       console.warn('')
-      force && unusedVhdsDeletion.push(fs.unlink(vhd))
+      force && unusedVhdsDeletion.push(handler.unlink(vhd))
     }
 
     toCheck.forEach(vhd => {
@@ -320,7 +320,7 @@ async function handleVm(vmDir) {
       console.warn('Unused XVA', path)
       force && console.warn('  deleting…')
       console.warn('')
-      return force && fs.unlink(path)
+      return force && handler.unlink(path)
     }),
   ])
 
