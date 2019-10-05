@@ -334,11 +334,6 @@ async function handleVm(vmDir) {
       return force && handler.unlink(path)
     }),
   ])
-
-  // TODO: merge/remove unused VHDs
-  // if (unusedVhds.size !== 0) {
-  //   console.log({ unusedVhds });
-  // }
 }
 
 // -----------------------------------------------------------------------------
