@@ -14,6 +14,7 @@ import { type Readable, type Writable } from 'stream'
 
 import normalizePath from './_normalizePath'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
+import { parseGlob } from './_parseGlob'
 
 const { dirname } = path.posix
 
@@ -256,6 +257,12 @@ export default class RemoteHandlerAbstract {
       this._getSize(typeof file === 'string' ? normalizePath(file) : file),
       this._timeout
     )
+  }
+
+  // basic glob support, only `*` is supported
+  async glob(pattern) {
+    const parts = parseGlob(pattern)
+    // TODO
   }
 
   async list(
