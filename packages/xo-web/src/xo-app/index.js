@@ -84,7 +84,7 @@ const BODY_STYLE = {
   home: Home,
   'hosts/:id': Host,
   jobs: Jobs,
-  // Date: 03/10/2019.
+  // 2019-10-03
   // For test/development purposes. It can be removed after a while.
   // To remove it, it's necessary to remove
   //   - all messages only used in 'xo-app/backup/new-legacy-backup/index.js'
