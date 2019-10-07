@@ -248,12 +248,11 @@ class Vgpus extends Component {
 }
 
 class CoresPerSocket extends Component {
-  _onChange = value =>
-    editVm(this.props.vm, { coresPerSocket: value === 0 ? null : value })
+  _onChange = coresPerSocket => editVm(this.props.vm, { coresPerSocket })
 
   render() {
     const { container, vm } = this.props
-    const { coresPerSocket = 0, CPUs: cpus } = vm
+    const { coresPerSocket = null, CPUs: cpus } = vm
 
     return (
       <div>
@@ -264,7 +263,7 @@ class CoresPerSocket extends Component {
             onChange={this._onChange}
             value={coresPerSocket}
           />
-        ) : coresPerSocket !== 0 ? (
+        ) : coresPerSocket !== null ? (
           _('vmSocketsWithCoresPerSocket', {
             nSockets: cpus.max / coresPerSocket,
             nCores: coresPerSocket,

@@ -11,7 +11,7 @@ import { Select } from './form'
 
 const DEFAULT_OPTION = {
   label: _('vmChooseCoresPerSocket'),
-  value: 0,
+  value: null,
 }
 
 const PROP_TYPES = {
@@ -40,9 +40,12 @@ const SelectCoresPerSocket = decorate([
     computed: {
       isValidValue: (state, { maxVcpus, value }) =>
         value === DEFAULT_OPTION.value ||
-        (maxVcpus % value === 0 && !state.valueExceedsLimits),
-      valueExceedsLimits: ({ maxCores, maxVcpus, value }) =>
-        value > maxCores || maxVcpus / value > MAX_VM_SOCKETS,
+        (maxVcpus % value === 0 &&
+          !state.valueExceedsCoresLimit &&
+          !state.valueExceedsSocketsLimit),
+      valueExceedsCoresLimit: (state, { maxCores, value }) => value > maxCores,
+      valueExceedsSocketsLimit: (state, { maxCores, maxVcpus, value }) =>
+        maxVcpus / value > MAX_VM_SOCKETS,
       options: ({ isValidValue }, { maxCores, maxVcpus, value }) => {
         const options = [DEFAULT_OPTION]
 
@@ -100,10 +103,11 @@ const SelectCoresPerSocket = decorate([
       {!state.isValidValue && (
         <Tooltip
           content={
-            state.valueExceedsLimits
-              ? _('vmCoresPerSocketExceedsLimit', {
+            state.valueExceedsCoresLimit
+              ? _('vmCoresPerSocketExceedsCoresLimit', { maxCores })
+              : state.valueExceedsSocketsLimit
+              ? _('vmCoresPerSocketExceedsSocketsLimit', {
                   maxSockets: MAX_VM_SOCKETS,
-                  maxCores,
                 })
               : _('vmCoresPerSocketNotDivisor')
           }

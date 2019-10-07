@@ -347,7 +347,7 @@ export default class NewVm extends BaseComponent {
     this._replaceState(
       {
         bootAfterCreate: true,
-        coresPerSocket: 0,
+        coresPerSocket: null,
         CPUs: '',
         cpuCap: '',
         cpuWeight: '',
@@ -502,7 +502,7 @@ export default class NewVm extends BaseComponent {
       resourceSet: resourceSet && resourceSet.id,
       // vm.set parameters
       coresPerSocket:
-        state.coresPerSocket === 0 ? undefined : state.coresPerSocket,
+        state.coresPerSocket === null ? undefined : state.coresPerSocket,
       CPUs: state.CPUs,
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
