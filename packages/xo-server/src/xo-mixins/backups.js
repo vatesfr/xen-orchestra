@@ -139,22 +139,20 @@ const listPartitions = (() => {
   })
 
   return device =>
-    execa
-      .stdout('partx', [
-        '--bytes',
-        '--output=NR,START,SIZE,NAME,UUID,TYPE',
-        '--pairs',
-        device.path,
-      ])
-      .then(stdout =>
-        mapFilter(splitLines(stdout), line => {
-          const partition = parseLine(line)
-          const { type } = partition
-          if (type != null && !IGNORED[+type]) {
-            return partition
-          }
-        })
-      )
+    execa('partx', [
+      '--bytes',
+      '--output=NR,START,SIZE,NAME,UUID,TYPE',
+      '--pairs',
+      device.path,
+    ]).then(({ stdout }) =>
+      mapFilter(splitLines(stdout), line => {
+        const partition = parseLine(line)
+        const { type } = partition
+        if (type != null && !IGNORED[+type]) {
+          return partition
+        }
+      })
+    )
 })()
 
 // handle LVM logical volumes automatically
@@ -271,7 +269,7 @@ const mountLvmPv = (device, partition) => {
   }
   args.push('--show', '-f', device.path)
 
-  return execa.stdout('losetup', args).then(stdout => {
+  return execa('losetup', args).then(({ stdout }) => {
     const path = trim(stdout)
     return {
       path,
