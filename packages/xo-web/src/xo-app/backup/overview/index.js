@@ -328,7 +328,7 @@ class JobsTable extends React.Component {
   }
 }
 
-const LegacyJobKeyToLabel = {
+const legacyJobKeyToLabel = {
   continuousReplication: _('continuousReplication'),
   deltaBackup: _('deltaBackup'),
   disasterRecovery: _('disasterRecovery'),
@@ -348,7 +348,7 @@ const Overview = decorate([
           ? false
           : some(schedules, schedule => {
               const job = legacyJobs[schedule.jobId]
-              return job !== undefined && LegacyJobKeyToLabel[job.key]
+              return job !== undefined && legacyJobKeyToLabel[job.key]
             }),
     },
   }),
