@@ -252,7 +252,7 @@ class CoresPerSocket extends Component {
 
   render() {
     const { container, vm } = this.props
-    const { coresPerSocket = null, CPUs: cpus } = vm
+    const { coresPerSocket, CPUs: cpus } = vm
 
     return (
       <div>
@@ -263,7 +263,7 @@ class CoresPerSocket extends Component {
             onChange={this._onChange}
             value={coresPerSocket}
           />
-        ) : coresPerSocket !== null ? (
+        ) : coresPerSocket !== undefined ? (
           _('vmSocketsWithCoresPerSocket', {
             nSockets: cpus.max / coresPerSocket,
             nCores: coresPerSocket,

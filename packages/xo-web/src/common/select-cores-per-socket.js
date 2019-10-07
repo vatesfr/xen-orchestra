@@ -9,15 +9,10 @@ import Icon from './icon'
 import Tooltip from './tooltip'
 import { Select } from './form'
 
-const DEFAULT_OPTION = {
-  label: _('vmChooseCoresPerSocket'),
-  value: null,
-}
-
 const PROP_TYPES = {
   maxCores: PropTypes.number,
   maxVcpus: PropTypes.number,
-  value: PropTypes.number.isRequired,
+  value: PropTypes.number,
 }
 
 const SELECT_STYLE = {
@@ -39,7 +34,7 @@ const SelectCoresPerSocket = decorate([
   provideState({
     computed: {
       isValidValue: (state, { maxVcpus, value }) =>
-        value === DEFAULT_OPTION.value ||
+        value == null ||
         (maxVcpus % value === 0 &&
           !state.valueExceedsCoresLimit &&
           !state.valueExceedsSocketsLimit),
@@ -47,7 +42,7 @@ const SelectCoresPerSocket = decorate([
       valueExceedsSocketsLimit: (state, { maxCores, maxVcpus, value }) =>
         maxVcpus / value > MAX_VM_SOCKETS,
       options: ({ isValidValue }, { maxCores, maxVcpus, value }) => {
-        const options = [DEFAULT_OPTION]
+        const options = []
 
         if (maxCores === undefined || maxVcpus === undefined) {
           return options
@@ -93,7 +88,7 @@ const SelectCoresPerSocket = decorate([
       <span style={SELECT_STYLE}>
         <Select
           options={state.options}
-          required
+          placeholder={_('vmChooseCoresPerSocket')}
           simpleValue
           value={value}
           {...state.selectProps}

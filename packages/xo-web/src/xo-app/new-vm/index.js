@@ -347,7 +347,7 @@ export default class NewVm extends BaseComponent {
     this._replaceState(
       {
         bootAfterCreate: true,
-        coresPerSocket: null,
+        coresPerSocket: undefined,
         CPUs: '',
         cpuCap: '',
         cpuWeight: '',
