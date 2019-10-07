@@ -47,15 +47,8 @@ export const configurationSchema = {
 
 // =============================================================================
 
-async function fileWrite(path, data) {
-  await fromCallback(writeFile, path, data)
-}
-
-async function fileRead(path) {
-  const result = await fromCallback(readFile, path)
-  return result
-}
-
+const fileWrite = (path, data) => fromCallback(writeFile, path, data)
+const fileRead = path => fromCallback(readFile, path)
 async function fileExists(path) {
   try {
     await fromCallback(access, path, constants.F_OK)
@@ -74,8 +67,8 @@ async function fileExists(path) {
 
 // 2019-09-03
 // Compatibility code, to be removed in 1 year.
-function updateNetworkOtherConfig(network) {
-  return Promise.all(
+const updateNetworkOtherConfig = network =>
+  Promise.all(
     map(
       {
         'cross-pool-network-uuid': 'cross_pool_network_uuid',
@@ -101,15 +94,12 @@ function updateNetworkOtherConfig(network) {
       }
     )
   )
-}
 
 // -----------------------------------------------------------------------------
 
-function createPassword() {
-  const chars =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
-  return Array.from({ length: 16 }, _ => sample(chars)).join('')
-}
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
+const createPassword = () =>
+  Array.from({ length: 16 }, _ => sample(CHARS)).join('')
 
 // =============================================================================
 
