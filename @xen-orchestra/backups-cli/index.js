@@ -67,7 +67,7 @@ const isValidTar = async path => {
 
     const buf = Buffer.allocUnsafe(1024)
     assert.strictEqual(
-      await fs.read(fd, buf, 0, buf.length, size - 1 - buf.length),
+      await fs.read(fd, buf, 0, buf.length, size - buf.length),
       buf.length
     )
     return buf.every(_ => _ === 0)
@@ -92,7 +92,7 @@ const readDir = path =>
 
 // -----------------------------------------------------------------------------
 
-// chain is an array of VHD from child to parent
+// chain is an array of VHDs from child to parent
 //
 // the whole chain will be merged into parent, parent will be renamed to child
 // and all the others will deleted
@@ -108,13 +108,13 @@ async function mergeVhdChain(chain) {
     .slice(1)
     .reverse()
     .forEach(parent => {
-      console.warn(' ', parent)
+      console.warn('  ', parent)
     })
   force && console.warn('  merging…')
   console.warn('')
   if (force) {
     // `mergeVhd` does not work with a stream, either
-    // - makes it accept a stream
+    // - make it accept a stream
     // - or create synthetic VHD which is not a stream
     throw new Error('FIXME')
     // await mergeVhd(
@@ -238,6 +238,8 @@ async function handleVm(vmDir) {
   const unusedVhds = new Set(vhds)
   const unusedXvas = new Set(xvas)
 
+  // compile the list of unused XVAs and VHDs, and remove backup metadata which
+  // reference a missing XVA/VHD
   await asyncMap(jsons, async json => {
     const metadata = JSON.parse(await fs.readFile(json))
     const { mode } = metadata
@@ -254,10 +256,10 @@ async function handleVm(vmDir) {
         force && (await handler.unlink(json))
       }
     } else if (mode === 'delta') {
-      let linkedVhds = metadata.vhds
-      linkedVhds = Object.keys(linkedVhds).map(key =>
-        resolve(vmDir, linkedVhds[key])
-      )
+      const linkedVhds = (() => {
+        const { vhds } = metadata
+        return Object.keys(vhds).map(key => resolve(vmDir, vhds[key]))
+      })()
 
       if (linkedVhds.every(_ => vhds.has(_))) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
