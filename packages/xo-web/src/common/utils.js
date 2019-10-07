@@ -81,12 +81,12 @@ const _normalizeMapStateToProps = mapper => {
     return state => pick(state, mapper)
   }
 
-  if (isFunction(mapper)) {
+  if (typeof mapper === 'function') {
     const factoryOrMapper = (state, props) => {
       const result = mapper(state, props)
 
       // Properly handles factory pattern.
-      if (isFunction(result)) {
+      if (typeof result === 'function') {
         mapper = result
         return factoryOrMapper
       }
@@ -261,7 +261,7 @@ export const routes = (indexRoute, childRoutes) => target => {
   if (isArray(indexRoute)) {
     childRoutes = indexRoute
     indexRoute = undefined
-  } else if (isFunction(indexRoute)) {
+  } else if (typeof indexRoute === 'function') {
     indexRoute = {
       component: indexRoute,
     }

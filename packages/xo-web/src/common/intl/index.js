@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
-import { every, isFunction, isString } from 'lodash'
+import { every, isString } from 'lodash'
 
 import locales from './locales'
 import messages from './messages'
@@ -32,7 +32,7 @@ const getMessage = (props, messageId, values, render) => {
     throw new Error(`no message defined for ${messageId}`)
   }
 
-  if (isFunction(values)) {
+  if (typeof values === 'function') {
     render = values
     values = undefined
   }

@@ -42,7 +42,6 @@ import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
   forEach,
-  isFunction,
   map,
   mapToArray,
   pAll,
@@ -174,7 +173,7 @@ export default class Xapi extends XapiBase {
   //
   // TODO: implements a timeout.
   _waitObject(predicate) {
-    if (isFunction(predicate)) {
+    if (typeof predicate === 'function') {
       const { promise, resolve } = defer()
 
       const unregister = this._registerGenericWatcher(obj => {

@@ -29,13 +29,7 @@ import { ensureDir, readdir, readFile } from 'fs-extra'
 
 import parseDuration from './_parseDuration'
 import Xo from './xo'
-import {
-  forEach,
-  isArray,
-  isFunction,
-  mapToArray,
-  pFromCallback,
-} from './utils'
+import { forEach, isArray, mapToArray, pFromCallback } from './utils'
 
 import bodyParser from 'body-parser'
 import connectFlash from 'connect-flash'
@@ -281,15 +275,16 @@ async function registerPlugin(pluginPath, pluginName) {
 
   // The default export can be either a factory or directly a plugin
   // instance.
-  const instance = isFunction(factory)
-    ? factory({
-        xo: this,
-        getDataDir: () => {
-          const dir = `${this._config.datadir}/${pluginName}`
-          return ensureDir(dir).then(() => dir)
-        },
-      })
-    : factory
+  const instance =
+    typeof factory === 'function'
+      ? factory({
+          xo: this,
+          getDataDir: () => {
+            const dir = `${this._config.datadir}/${pluginName}`
+            return ensureDir(dir).then(() => dir)
+          },
+        })
+      : factory
 
   await this.registerPlugin(
     pluginName,

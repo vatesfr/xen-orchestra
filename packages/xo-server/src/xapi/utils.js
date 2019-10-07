@@ -11,7 +11,6 @@ import {
   forEach,
   isArray,
   isBoolean,
-  isFunction,
   isInteger,
   isString,
   map,
@@ -142,7 +141,7 @@ export const makeEditObject = specs => {
     return get
   }
   const normalizeSet = (set, name) => {
-    if (isFunction(set)) {
+    if (typeof set === 'function') {
       return set
     }
 
@@ -212,7 +211,7 @@ export const makeEditObject = specs => {
     }
 
     forEach(spec.constraints, (constraint, constraintName) => {
-      if (!isFunction(constraint)) {
+      if (!typeof constraint === 'function') {
         throw new Error('constraint must be a function')
       }
 
