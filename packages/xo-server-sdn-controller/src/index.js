@@ -5,7 +5,7 @@ import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
 import { filter, find, forOwn, map, omitBy, sample } from 'lodash'
-import { fromCallback, fromEvent } from 'promise-toolbox'
+import { fromCallback, fromEvent, promisify } from 'promise-toolbox'
 import { join } from 'path'
 
 import { OvsdbClient } from './ovsdb-client'
@@ -47,8 +47,8 @@ export const configurationSchema = {
 
 // =============================================================================
 
-const fileWrite = (path, data) => fromCallback(writeFile, path, data)
-const fileRead = path => fromCallback(readFile, path)
+const fileWrite = promisify(writeFile)
+const fileRead = promisify(readFile)
 async function fileExists(path) {
   try {
     await fromCallback(access, path, constants.F_OK)
