@@ -37,7 +37,7 @@ export default async function createSyntheticStream(handler, paths) {
     if (typeof paths === 'string') {
       let path = paths
       let vhd
-      while ((vhd = (await open(path).footer.diskType) !== DISK_TYPE_DYNAMIC)) {
+      while ((vhd = await open(path)).footer.diskType !== DISK_TYPE_DYNAMIC) {
         path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
       }
     } else {
