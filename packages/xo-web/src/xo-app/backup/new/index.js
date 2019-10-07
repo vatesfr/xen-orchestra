@@ -22,7 +22,7 @@ import { createGetObjectsOfType, getUser } from 'selectors'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { SelectSubject } from 'select-objects'
-import { forEach, isArray, map, mapValues, noop } from 'lodash'
+import { forEach, map, mapValues, noop } from 'lodash'
 
 import { createJob, createSchedule, getRemote, editJob, editSchedule } from 'xo'
 
@@ -362,7 +362,7 @@ export default class New extends Component {
             $pool: destructPattern($pool),
             power_state: pattern.power_state,
             tags: destructPattern(tags, tags =>
-              map(tags, tag => (isArray(tag) ? tag[0] : tag))
+              map(tags, tag => (Array.isArray(tag) ? tag[0] : tag))
             ),
           },
         }
@@ -423,7 +423,7 @@ export default class New extends Component {
       key: backupInfo.jobKey,
       paramsVector: {
         type: 'crossProduct',
-        items: isArray(vms.vms)
+        items: Array.isArray(vms.vms)
           ? [
               {
                 type: 'set',
@@ -550,7 +550,7 @@ export default class New extends Component {
     const vms = this._getVmsParam()
 
     const backupInfo = BACKUP_METHOD_TO_INFO[method]
-    const smartBackupMode = !isArray(vms.vms)
+    const smartBackupMode = !Array.isArray(vms.vms)
 
     return (
       <Upgrade place='newBackup' required={2}>

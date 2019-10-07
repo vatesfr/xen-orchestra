@@ -8,7 +8,6 @@ import {
   forEach,
   groupBy,
   identity,
-  isArray,
   isArrayLike,
   isEmpty,
   isFunction,
@@ -71,7 +70,7 @@ const _SELECTOR_PLACEHOLDER = Symbol('selector placeholder')
 const _create2 = (...inputs) => {
   const resultFn = inputs.pop()
 
-  if (inputs.length === 1 && isArray(inputs[0])) {
+  if (inputs.length === 1 && Array.isArray(inputs[0])) {
     inputs = inputs[0]
   }
 
@@ -84,7 +83,7 @@ const _create2 = (...inputs) => {
     if (isFunction(input)) {
       inputSelectors.push(input)
       inputs[i] = _SELECTOR_PLACEHOLDER
-    } else if (isArray(input) && input.length === 1) {
+    } else if (Array.isArray(input) && input.length === 1) {
       inputs[i] = input[0]
     }
   }

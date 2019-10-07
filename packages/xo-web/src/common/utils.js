@@ -8,7 +8,6 @@ import {
   clone,
   every,
   forEach,
-  isArray,
   isEmpty,
   isFunction,
   isPlainObject,
@@ -258,7 +257,7 @@ const NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 //
 // TODO: add support for function childRoutes (getChildRoutes).
 export const routes = (indexRoute, childRoutes) => target => {
-  if (isArray(indexRoute)) {
+  if (Array.isArray(indexRoute)) {
     childRoutes = indexRoute
     indexRoute = undefined
   } else if (isFunction(indexRoute)) {

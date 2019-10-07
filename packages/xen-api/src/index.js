@@ -4,7 +4,7 @@ import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { EventEmitter } from 'events'
-import { isArray, map, noop, omit } from 'lodash'
+import { map, noop, omit } from 'lodash'
 import {
   cancelable,
   defer,
@@ -113,7 +113,7 @@ export class Xapi extends EventEmitter {
     this._watchedTypes = undefined
     const { watchEvents } = opts
     if (watchEvents !== false) {
-      if (isArray(watchEvents)) {
+      if (Array.isArray(watchEvents)) {
         this._watchedTypes = watchEvents
       }
       this.watchEvents()
@@ -1075,7 +1075,7 @@ export class Xapi extends EventEmitter {
         const $field = (field in RESERVED_FIELDS ? '$$' : '$') + field
 
         const value = data[field]
-        if (isArray(value)) {
+        if (Array.isArray(value)) {
           if (value.length === 0 || isOpaqueRef(value[0])) {
             getters[$field] = function() {
               const value = this[field]
