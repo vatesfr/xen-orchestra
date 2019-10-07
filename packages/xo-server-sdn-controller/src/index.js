@@ -231,7 +231,11 @@ class SDNController extends EventEmitter {
 
     // Expose method to create cross-pool private network
     const createCrossPoolPrivateNetwork = params =>
-      this._createCrossPoolPrivateNetwork({ encrypted: false, mtu: 0, ...params })
+      this._createCrossPoolPrivateNetwork({
+        encrypted: false,
+        mtu: 0,
+        ...params,
+      })
 
     createCrossPoolPrivateNetwork.description =
       'Creates a cross-pool private network on selected pools'
