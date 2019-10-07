@@ -8,8 +8,7 @@ import randomId from '../_randomId'
 import xo from '../_xoConnection'
 import { getDefaultName, getDefaultSchedule } from '../_defaultValues'
 
-// it only support one schedule
-const validateBackupJob = async (xo, jobInput, jobOutput) => {
+const validateBackupJob = (jobInput, jobOutput, createdSchedule) => {
   const expectedObj = {
     id: expect.any(String),
     mode: jobInput.mode,
@@ -25,15 +24,14 @@ const validateBackupJob = async (xo, jobInput, jobOutput) => {
   const schedules = jobInput.schedules
   if (schedules !== undefined) {
     const scheduleTmpId = Object.keys(schedules)[0]
-    const scheduleOutput = await xo.getSchedule({ jobId: jobOutput.id })
-    expect(scheduleOutput).toEqual({
+    expect(createdSchedule).toEqual({
       ...schedules[scheduleTmpId],
       enabled: false,
       id: expect.any(String),
       jobId: jobOutput.id,
     })
 
-    expectedObj.settings[scheduleOutput.id] = jobInput.settings[scheduleTmpId]
+    expectedObj.settings[createdSchedule.id] = jobInput.settings[scheduleTmpId]
   }
 
   expect(jobOutput).toEqual(expectedObj)
@@ -102,7 +100,7 @@ describe('backupNg', () => {
         },
       }
       const jobOutput = await xo.createTempBackupNgJob(jobInput)
-      await validateBackupJob(xo, jobInput, jobOutput)
+      validateBackupJob(jobInput, jobOutput)
     })
 
     it('creates a new backup job with schedules', async () => {
@@ -120,7 +118,11 @@ describe('backupNg', () => {
         },
       }
       const jobOutput = await xo.createTempBackupNgJob(jobInput)
-      await validateBackupJob(xo, jobInput, jobOutput)
+      validateBackupJob(
+        jobInput,
+        jobOutput,
+        await xo.getSchedule({ jobId: jobOutput.id })
+      )
     })
   })
 
