@@ -9,7 +9,6 @@ import { satisfies as versionSatisfies } from 'semver'
 import {
   camelToSnakeCase,
   forEach,
-  isArray,
   isBoolean,
   isFunction,
   isInteger,
@@ -48,7 +47,7 @@ export const prepareXapiParam = param => {
   if (isBoolean(param)) {
     return asBoolean(param)
   }
-  if (isArray(param)) {
+  if (Array.isArray(param)) {
     return map(param, prepareXapiParam)
   }
   if (isPlainObject(param)) {
@@ -176,7 +175,7 @@ export const makeEditObject = specs => {
       }
     }
 
-    if (!isArray(set)) {
+    if (!Array.isArray(set)) {
       throw new Error('must be an array, a function or a string')
     }
 
