@@ -17,7 +17,7 @@ import { confirm } from 'modal'
 import { createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, keyBy, map, groupBy, some } from 'lodash'
+import { isEmpty, map, groupBy, some } from 'lodash'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -328,28 +328,22 @@ class JobsTable extends React.Component {
   }
 }
 
-const legacyJobKeyToLabel = {
-  continuousReplication: _('continuousReplication'),
-  deltaBackup: _('deltaBackup'),
-  disasterRecovery: _('disasterRecovery'),
-  rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot'),
-}
+const legacyJobKey = [
+  'continuousReplication',
+  'deltaBackup',
+  'disasterRecovery',
+  'backup',
+  'rollingSnapshot',
+]
 
 const Overview = decorate([
   addSubscriptions({
-    legacyJobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
-    schedules: subscribeSchedules,
+    legacyJobs: subscribeJobs,
   }),
   provideState({
     computed: {
-      haveLegacyBackups: (_, { legacyJobs, schedules }) =>
-        legacyJobs === undefined || schedules === undefined
-          ? false
-          : some(schedules, schedule => {
-              const job = legacyJobs[schedule.jobId]
-              return job !== undefined && legacyJobKeyToLabel[job.key]
-            }),
+      haveLegacyBackups: (_, { legacyJobs }) =>
+        some(legacyJobs, job => legacyJobKey.includes(job.key)),
     },
   }),
   injectState,
