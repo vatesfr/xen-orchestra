@@ -11,7 +11,6 @@ import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { SelectHost } from 'select-objects'
 import {
-  assign,
   filter,
   forEach,
   get,
@@ -159,7 +158,7 @@ export const connectStore = store => {
       return
     }
 
-    assign(updates, notification.params.items)
+    Object.assign(updates, notification.params.items)
     sendUpdates()
   })
   subscribePermissions(permissions =>

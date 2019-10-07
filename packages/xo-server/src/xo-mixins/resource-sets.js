@@ -1,7 +1,6 @@
 import asyncMap from '@xen-orchestra/async-map'
 import synchronized from 'decorator-synchronized'
 import {
-  assign,
   every,
   forEach,
   isObject,
@@ -123,7 +122,7 @@ export default class {
   }
 
   async computeVmResourcesUsage(vm) {
-    return assign(
+    return Object.assign(
       computeVmResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
       await this._xo.computeVmIpPoolsUsage(vm)
     )

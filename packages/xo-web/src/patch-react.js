@@ -1,6 +1,6 @@
 import logError from 'log-error'
 import React from 'react'
-import { assign, isFunction } from 'lodash'
+import { isFunction } from 'lodash'
 
 // Avoid global breakage if a component fails to render.
 //
@@ -43,7 +43,7 @@ React.createElement = (createElement => {
           prototype.render = wrapRender(render)
           Component._patched = Component // itself
         } else {
-          arguments[0] = Component._patched = assign(
+          arguments[0] = Component._patched = Object.assign(
             wrapRender(Component),
             Component
           )

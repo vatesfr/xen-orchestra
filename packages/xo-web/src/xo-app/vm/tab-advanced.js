@@ -39,7 +39,6 @@ import {
   osFamily,
 } from 'utils'
 import {
-  assign,
   every,
   filter,
   find,
@@ -166,7 +165,7 @@ class ResourceSetItem extends Component {
     () => this.props.resourceSets,
     () => this.props.id,
     (resourceSets, id) =>
-      assign(find(resourceSets, { id }), { type: 'resourceSet' })
+      Object.assign(find(resourceSets, { id }), { type: 'resourceSet' })
   )
 
   render() {

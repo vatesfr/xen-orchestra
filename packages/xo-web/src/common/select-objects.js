@@ -2,7 +2,6 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
-  assign,
   filter,
   flatten,
   forEach,
@@ -642,7 +641,7 @@ export const SelectHighLevelObject = makeStoreSelect(
       getSrs,
       getVms,
       (hosts, networks, pools, srs, vms) =>
-        sortBy(assign({}, hosts, networks, pools, srs, vms), [
+        sortBy(Object.assign({}, hosts, networks, pools, srs, vms), [
           'type',
           'name_label',
         ])

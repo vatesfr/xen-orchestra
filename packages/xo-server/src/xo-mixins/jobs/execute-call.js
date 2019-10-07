@@ -1,7 +1,7 @@
 import asyncMap from '@xen-orchestra/async-map'
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
-import { assign, filter, isEmpty, map, mapValues } from 'lodash'
+import { filter, isEmpty, map, mapValues } from 'lodash'
 
 import { crossProduct } from '../../math'
 import { serializeError, thunkToArray } from '../../utils'
@@ -82,7 +82,11 @@ export default async function executeJobCall({
       params,
       start: Date.now(),
     })
-    let promise = app.callApiMethod(session, job.method, assign({}, params))
+    let promise = app.callApiMethod(
+      session,
+      job.method,
+      Object.assign({}, params)
+    )
     if (job.timeout) {
       promise = promise::timeout(job.timeout)
     }

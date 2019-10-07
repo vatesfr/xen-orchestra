@@ -21,7 +21,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { assign, isEmpty, map, pick, sortBy } from 'lodash'
+import { isEmpty, map, pick, sortBy } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -338,7 +338,7 @@ export default class Host extends Component {
     if (!host) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'host',
         'hostPatches',

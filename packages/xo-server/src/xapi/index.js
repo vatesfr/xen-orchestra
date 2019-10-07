@@ -82,7 +82,7 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
 //  export * from './utils'
-require('lodash/assign')(module.exports, require('./utils'))
+Object.assign(module.exports, require('./utils'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'
