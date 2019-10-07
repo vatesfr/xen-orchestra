@@ -2,11 +2,11 @@
 import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import { defaultsDeep, find, forOwn } from 'lodash'
+import { defaultsDeep, find, forOwn, pick } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
 
 import config from './_config'
-import { getDefaultCredentials, getDefaultName } from './_defaultValues'
+import { getDefaultName } from './_defaultValues'
 
 class XoConnection extends Xo {
   constructor(opts) {
@@ -68,7 +68,10 @@ class XoConnection extends Xo {
   }
 
   @defer
-  async connect($defer, credentials = getDefaultCredentials()) {
+  async connect(
+    $defer,
+    credentials = pick(config.xoConnection, 'email', 'password')
+  ) {
     await this.open()
     $defer.onFailure(() => this.close())
 
