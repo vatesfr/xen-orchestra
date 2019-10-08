@@ -2921,4 +2921,4 @@ export const unlockXosan = (licenseId, srId) =>
 
 // Support --------------------------------------------------------------------
 
-export const getCheckXoa = () => _call('xoa.check')
+export const checkXoa = () => _call('xoa.check')

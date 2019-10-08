@@ -7,7 +7,7 @@ import { adminOnly } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { getCheckXoa } from 'xo'
+import { checkXoa } from 'xo'
 
 const ansiUp = new AnsiUp()
 
@@ -16,8 +16,8 @@ const Support = decorate([
   provideState({
     initialState: () => ({ stdoutCheckXoa: '' }),
     effects: {
-      initialize: async () => ({ stdoutCheckXoa: await getCheckXoa() }),
-      getCheckXoa: async () => ({ stdoutCheckXoa: await getCheckXoa() }),
+      initialize: async () => ({ stdoutCheckXoa: await checkXoa() }),
+      checkXoa: async () => ({ stdoutCheckXoa: await checkXoa() }),
     },
   }),
   injectState,
@@ -30,7 +30,7 @@ const Support = decorate([
             <CardBlock>
               <ActionButton
                 btnStyle='success'
-                handler={effects.getCheckXoa}
+                handler={effects.checkXoa}
                 icon='diagnosis'
               >
                 {_('checkXoa')}
