@@ -12,7 +12,24 @@ import once from 'lodash/once'
 import Router from 'koa-router'
 import Zone from 'node-zone'
 
+import { version as serverVersion } from '../../../package.json'
+
 const { debug, warn } = createLogger('xo:proxy:api')
+
+function* getMethodsInfo() {
+  const methods = this._methods
+  for (const name in methods) {
+    const { description, params = {} } = methods[name]
+    yield { description, name, params }
+  }
+}
+
+function* listMethods() {
+  const methods = this._methods
+  for (const name in methods) {
+    yield name
+  }
+}
 
 const ndJsonStream = asyncIteratorToStream(async function*(
   responseId,
@@ -58,7 +75,8 @@ export default class Api {
       }
 
       const isAsyncIterable =
-        result != null &&
+        result !== null &&
+        typeof result === 'object' &&
         (typeof result[Symbol.iterator] === 'function' ||
           typeof result[Symbol.asyncIterator] === 'function')
       if (isAsyncIterable) {
@@ -81,6 +99,40 @@ export default class Api {
     httpServer.on('request', koa.callback())
 
     this.addMethods({
+      system: {
+        getMethodsInfo: [
+          getMethodsInfo.bind(this),
+          {
+            description: 'returns the signatures of all available API methods',
+          },
+        ],
+        getServerVersion: [
+          () => serverVersion,
+          {
+            description: 'returns the version of xo-server',
+          },
+        ],
+        listMethods: [
+          listMethods.bind(this),
+          {
+            description: 'returns the name of all available API methods',
+          },
+        ],
+        methodSignature: [
+          ({ method: name }) => {
+            const method = this._methods[name]
+            if (method === undefined) {
+              throw errors.noSuchObject('method', name)
+            }
+
+            const { description, params = {} } = method
+            return { description, name, params }
+          },
+          {
+            description: 'returns the signature of an API method',
+          },
+        ],
+      },
       test: {
         range: [
           function*({ start = 0, stop, step }) {
