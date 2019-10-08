@@ -48,18 +48,30 @@ Usage: xo-proxy-cli <XO proxy URL> <authentication token> <method> [<param>=<val
     .readAll('utf8'))
     .split(/\r?\n/)
     .filter(_ => _.length !== 0)
-  const result = await parse.result(lines[0])
-  if (
-    result !== null &&
-    typeof result === 'object' &&
-    Object.keys(result).length === 1 &&
-    result.$responseType === 'ndjson'
-  ) {
-    for (let i = 1, n = lines.length; i < n; ++i) {
-      console.log(JSON.parse(lines[i]))
+  try {
+    const result = await parse.result(lines[0])
+    if (
+      result !== null &&
+      typeof result === 'object' &&
+      Object.keys(result).length === 1 &&
+      result.$responseType === 'ndjson'
+    ) {
+      for (let i = 1, n = lines.length; i < n; ++i) {
+        console.log(JSON.parse(lines[i]))
+      }
+    } else {
+      console.log(result)
     }
-  } else {
-    console.log(result)
+  } catch (error) {
+    if (!(error?.code === 10 && 'errors' in error.data)) {
+      throw error
+    }
+
+    // we should be able to do better but the messages returned by ajv are not
+    // precise enough
+    //
+    // see https://github.com/epoberezkin/ajv/issues/1099
+    throw error.data.errors
   }
 }
 main(process.argv.slice(2)).then(
@@ -67,7 +79,7 @@ main(process.argv.slice(2)).then(
     process.exit(0)
   },
   error => {
-    console.error('exception in main', error)
+    console.error('exception in main:', error)
 
     process.exit(1)
   }
