@@ -3,6 +3,10 @@
 > Keep in mind the changelog is addressed to **users** and should be
 > understandable by them.
 
+### Breaking changes
+
+- `xo-server` requires Node 8.
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
