@@ -2185,7 +2185,7 @@ export default {
   vmChooseCoresPerSocket: 'Comportement par défaut',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} avec {nCores, number} cœur{nCores, plural, one {} other {s}} par socket',
 
   // Original text: "Incorrect cores per socket value"

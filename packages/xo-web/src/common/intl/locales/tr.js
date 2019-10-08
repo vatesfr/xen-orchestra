@@ -2660,7 +2660,7 @@ export default {
   vmChooseCoresPerSocket: 'Varsayılan davranış',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} soket ve her sokette  {nCores, number} çekirdek',
 
   // Original text: "None"
