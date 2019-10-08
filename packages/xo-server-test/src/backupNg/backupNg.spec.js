@@ -6,20 +6,44 @@ import { noSuchObject } from 'xo-common/api-errors'
 import config from '../_config'
 import randomId from '../_randomId'
 import xo from '../_xoConnection'
+import { getDefaultName, getDefaultSchedule } from '../_defaultValues'
 
-const DEFAULT_SCHEDULE = {
-  name: 'scheduleTest',
-  cron: '0 * * * * *',
+const validateBackupJob = (jobInput, jobOutput, createdSchedule) => {
+  const expectedObj = {
+    id: expect.any(String),
+    mode: jobInput.mode,
+    name: jobInput.name,
+    type: 'backup',
+    settings: {
+      '': jobInput.settings[''],
+    },
+    userId: xo._user.id,
+    vms: jobInput.vms,
+  }
+
+  const schedules = jobInput.schedules
+  if (schedules !== undefined) {
+    const scheduleTmpId = Object.keys(schedules)[0]
+    expect(createdSchedule).toEqual({
+      ...schedules[scheduleTmpId],
+      enabled: false,
+      id: expect.any(String),
+      jobId: jobOutput.id,
+    })
+
+    expectedObj.settings[createdSchedule.id] = jobInput.settings[scheduleTmpId]
+  }
+
+  expect(jobOutput).toEqual(expectedObj)
 }
 
-const validateRootTask = (log, props) =>
-  expect(log).toMatchSnapshot({
+const validateRootTask = (log, expected) =>
+  expect(log).toEqual({
     end: expect.any(Number),
     id: expect.any(String),
-    jobId: expect.any(String),
-    scheduleId: expect.any(String),
+    message: 'backup',
     start: expect.any(Number),
-    ...props,
+    ...expected,
   })
 
 const validateVmTask = (task, vmId, props) => {
@@ -66,88 +90,55 @@ const validateOperationTask = (task, props) => {
   })
 }
 
-// Note: `bypassVdiChainsCheck` must be enabled because the XAPI might be not
-// able to coalesce VDIs as fast as the tests run.
-//
-// See https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
 describe('backupNg', () => {
-  let defaultBackupNg
-
-  beforeAll(() => {
-    defaultBackupNg = {
-      name: 'default-backupNg',
-      mode: 'full',
-      vms: {
-        id: config.vms.default,
-      },
-      settings: {
-        '': {
-          reportWhen: 'never',
-        },
-      },
-    }
-  })
-
   describe('.createJob() :', () => {
     it('creates a new backup job without schedules', async () => {
-      const backupNg = await xo.createTempBackupNgJob(defaultBackupNg)
-      expect(backupNg).toMatchSnapshot({
-        id: expect.any(String),
-        userId: expect.any(String),
-        vms: expect.any(Object),
-      })
-      expect(backupNg.vms).toEqual(defaultBackupNg.vms)
-      expect(backupNg.userId).toBe(xo._user.id)
+      const jobInput = {
+        mode: 'full',
+        vms: {
+          id: config.vms.default,
+        },
+      }
+      const jobOutput = await xo.createTempBackupNgJob(jobInput)
+      validateBackupJob(jobInput, jobOutput)
     })
 
     it('creates a new backup job with schedules', async () => {
       const scheduleTempId = randomId()
-      const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
+      const jobInput = {
+        mode: 'full',
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: { snapshotRetention: 1 },
         },
-      })
-
-      const backupNgJob = await xo.call('backupNg.getJob', { id: jobId })
-
-      expect(backupNgJob).toMatchSnapshot({
-        id: expect.any(String),
-        userId: expect.any(String),
-        settings: expect.any(Object),
-        vms: expect.any(Object),
-      })
-      expect(backupNgJob.vms).toEqual(defaultBackupNg.vms)
-      expect(backupNgJob.userId).toBe(xo._user.id)
-
-      expect(Object.keys(backupNgJob.settings).length).toBe(2)
-      const schedule = await xo.getSchedule({ jobId })
-      expect(typeof schedule).toBe('object')
-      expect(backupNgJob.settings[schedule.id]).toEqual({
-        snapshotRetention: 1,
-      })
-
-      expect(schedule).toMatchSnapshot({
-        id: expect.any(String),
-        jobId: expect.any(String),
-      })
+        vms: {
+          id: config.vms.default,
+        },
+      }
+      const jobOutput = await xo.createTempBackupNgJob(jobInput)
+      validateBackupJob(
+        jobInput,
+        jobOutput,
+        await xo.getSchedule({ jobId: jobOutput.id })
+      )
     })
   })
 
   describe('.delete() :', () => {
     it('deletes a backup job', async () => {
       const scheduleTempId = randomId()
-      const { id: jobId } = await xo.call('backupNg.createJob', {
-        ...defaultBackupNg,
+      const jobId = await xo.call('backupNg.createJob', {
+        mode: 'full',
+        name: getDefaultName(),
+        vms: {
+          id: config.vms.default,
+        },
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: { snapshotRetention: 1 },
         },
       })
@@ -173,16 +164,19 @@ describe('backupNg', () => {
 
   describe('.runJob() :', () => {
     it('fails trying to run a backup job without schedule', async () => {
-      const { id } = await xo.createTempBackupNgJob(defaultBackupNg)
+      const { id } = await xo.createTempBackupNgJob({
+        vms: {
+          id: config.vms.default,
+        },
+      })
       await expect(xo.call('backupNg.runJob', { id })).rejects.toMatchSnapshot()
     })
 
     it('fails trying to run a backup job with no matching VMs', async () => {
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -205,9 +199,8 @@ describe('backupNg', () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
       const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
           [scheduleTempId]: { snapshotRetention: 1 },
@@ -231,25 +224,23 @@ describe('backupNg', () => {
       jest.setTimeout(8e3)
       await xo.createTempServer(config.servers.default)
       const { id: vmIdWithoutDisks } = await xo.createTempVm({
-        name_label: 'XO Test Without Disks',
         name_description: 'Creating a vm without disks',
         template: config.templates.templateWithoutDisks,
       })
 
       const scheduleTempId = randomId()
-      const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
+      const jobInput = {
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: { snapshotRetention: 1 },
         },
         vms: {
           id: vmIdWithoutDisks,
         },
-      })
+      }
+      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
       const schedule = await xo.getSchedule({ jobId })
       expect(typeof schedule).toBe('object')
@@ -264,12 +255,16 @@ describe('backupNg', () => {
         jobId,
         scheduleId: schedule.id,
       })
-      expect(log).toMatchSnapshot({
-        end: expect.any(Number),
-        id: expect.any(String),
-        jobId: expect.any(String),
-        scheduleId: expect.any(String),
-        start: expect.any(Number),
+
+      validateRootTask(log, {
+        data: {
+          mode: jobInput.mode,
+          reportWhen: jobInput.settings[''].reportWhen,
+        },
+        jobId,
+        jobName: jobInput.name,
+        scheduleId: schedule.id,
+        status: 'skipped',
       })
 
       expect(vmTask).toMatchSnapshot({
@@ -293,22 +288,24 @@ describe('backupNg', () => {
       const scheduleTempId = randomId()
       await xo.createTempServer(config.servers.default)
       const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
-      const { id: jobId } = await xo.createTempBackupNgJob({
-        ...defaultBackupNg,
+      const jobInput = {
         remotes: {
           id: remoteId,
         },
         schedules: {
-          [scheduleTempId]: DEFAULT_SCHEDULE,
+          [scheduleTempId]: getDefaultSchedule(),
         },
         settings: {
-          ...defaultBackupNg.settings,
           [scheduleTempId]: {},
         },
         srs: {
           id: config.srs.default,
         },
-      })
+        vms: {
+          id: config.vms.default,
+        },
+      }
+      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
       const schedule = await xo.getSchedule({ jobId })
       expect(typeof schedule).toBe('object')
@@ -324,12 +321,15 @@ describe('backupNg', () => {
         scheduleId: schedule.id,
       })
 
-      expect(log).toMatchSnapshot({
-        end: expect.any(Number),
-        id: expect.any(String),
-        jobId: expect.any(String),
-        scheduleId: expect.any(String),
-        start: expect.any(Number),
+      validateRootTask(log, {
+        data: {
+          mode: jobInput.mode,
+          reportWhen: jobInput.settings[''].reportWhen,
+        },
+        jobId,
+        jobName: jobInput.name,
+        scheduleId: schedule.id,
+        status: 'failure',
       })
 
       expect(task).toMatchSnapshot({
@@ -352,7 +352,6 @@ describe('backupNg', () => {
     jest.setTimeout(6e4)
     await xo.createTempServer(config.servers.default)
     let vm = await xo.createTempVm({
-      name_label: 'XO Test Temp',
       name_description: 'Creating a temporary vm',
       template: config.templates.default,
       VDIs: [
@@ -365,22 +364,18 @@ describe('backupNg', () => {
     })
 
     const scheduleTempId = randomId()
-    const { id: jobId } = await xo.createTempBackupNgJob({
-      ...defaultBackupNg,
+    const jobInput = {
       vms: {
         id: vm.id,
       },
       schedules: {
-        [scheduleTempId]: DEFAULT_SCHEDULE,
+        [scheduleTempId]: getDefaultSchedule(),
       },
       settings: {
-        '': {
-          bypassVdiChainsCheck: true,
-          reportWhen: 'never',
-        },
         [scheduleTempId]: { snapshotRetention: 2 },
       },
-    })
+    }
+    const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
     const schedule = await xo.getSchedule({ jobId })
     expect(typeof schedule).toBe('object')
@@ -420,12 +415,15 @@ describe('backupNg', () => {
       scheduleId: schedule.id,
     })
 
-    expect(log).toMatchSnapshot({
-      end: expect.any(Number),
-      id: expect.any(String),
-      jobId: expect.any(String),
-      scheduleId: expect.any(String),
-      start: expect.any(Number),
+    validateRootTask(log, {
+      data: {
+        mode: jobInput.mode,
+        reportWhen: jobInput.settings[''].reportWhen,
+      },
+      jobId,
+      jobName: jobInput.name,
+      scheduleId: schedule.id,
+      status: 'success',
     })
 
     const subTaskSnapshot = subTasks.find(
@@ -470,7 +468,7 @@ describe('backupNg', () => {
     const exportRetention = 2
     const fullInterval = 2
     const scheduleTempId = randomId()
-    const { id: jobId } = await xo.createTempBackupNgJob({
+    const jobInput = {
       mode: 'delta',
       remotes: {
         id: {
@@ -478,13 +476,11 @@ describe('backupNg', () => {
         },
       },
       schedules: {
-        [scheduleTempId]: DEFAULT_SCHEDULE,
+        [scheduleTempId]: getDefaultSchedule(),
       },
       settings: {
         '': {
-          bypassVdiChainsCheck: true,
           fullInterval,
-          reportWhen: 'never',
         },
         [remoteId1]: { deleteFirst: true },
         [scheduleTempId]: { exportRetention },
@@ -492,7 +488,8 @@ describe('backupNg', () => {
       vms: {
         id: vmToBackup,
       },
-    })
+    }
+    const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
     const schedule = await xo.getSchedule({ jobId })
     expect(typeof schedule).toBe('object')
@@ -515,10 +512,12 @@ describe('backupNg', () => {
     backupLogs.forEach(({ tasks = [], ...log }, key) => {
       validateRootTask(log, {
         data: {
-          mode: 'delta',
-          reportWhen: 'never',
+          mode: jobInput.mode,
+          reportWhen: jobInput.settings[''].reportWhen,
         },
-        message: 'backup',
+        jobId,
+        jobName: jobInput.name,
+        scheduleId: schedule.id,
         status: 'success',
       })
 
