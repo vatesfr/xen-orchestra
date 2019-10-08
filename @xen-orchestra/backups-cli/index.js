@@ -189,24 +189,26 @@ async function handleVm(vmDir) {
   {
     const deletions = []
 
-    const deleteIfOrphan = (parent, child) => {
-      // no longer needs to be checked
-      delete vhdParents[child]
-
-      // check the ancestors first
-      const grandparent = vhdParents[parent]
-      if (grandparent !== undefined) {
-        deleteIfOrphan(grandparent, parent)
+    // return true if the VHD has been deleted or is missing
+    const deleteIfOrphan = vhd => {
+      const parent = vhdParents[vhd]
+      if (parent === undefined) {
+        return
       }
 
-      if (!vhds.has(parent)) {
-        vhds.delete(child)
+      // no longer needs to be checked
+      delete vhdParents[vhd]
 
-        console.warn('Error while checking VHD', child)
+      deleteIfOrphan(parent)
+
+      if (!vhds.has(parent)) {
+        vhds.delete(vhd)
+
+        console.warn('Error while checking VHD', vhd)
         console.warn('  missing parent', parent)
         force && console.warn('  deleting…')
         console.warn('')
-        force && deletions.push(handler.unlink(child))
+        force && deletions.push(handler.unlink(vhd))
       }
     }
 
@@ -215,7 +217,7 @@ async function handleVm(vmDir) {
     // >
     // > -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in#Deleted_added_or_modified_properties
     for (const child in vhdParents) {
-      deleteIfOrphan(vhdParents[child], child)
+      deleteIfOrphan(child)
     }
 
     await Promise.all(deletions)
