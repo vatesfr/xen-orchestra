@@ -130,6 +130,9 @@ export default class Api {
           },
           {
             description: 'returns the signature of an API method',
+            params: {
+              method: { type: 'string' },
+            },
           },
         ],
       },
