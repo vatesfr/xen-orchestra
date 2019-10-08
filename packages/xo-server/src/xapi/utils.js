@@ -211,7 +211,7 @@ export const makeEditObject = specs => {
     }
 
     forEach(spec.constraints, (constraint, constraintName) => {
-      if (!typeof constraint === 'function') {
+      if (typeof constraint !== 'function') {
         throw new Error('constraint must be a function')
       }
 
