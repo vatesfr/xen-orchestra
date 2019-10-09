@@ -268,6 +268,8 @@ async function handleVm(vmDir) {
         return Object.keys(vhds).map(key => resolve(vmDir, vhds[key]))
       })()
 
+      // FIXME: find better approach by keeping as much of the backup as
+      // possible (existing disks) even if one disk is missing
       if (linkedVhds.every(_ => vhds.has(_))) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
       } else {
