@@ -186,12 +186,16 @@ export default class Api {
       type: 'object',
     })
 
-    methods[name] = params => {
+    const m = params => {
       if (!validate(params)) {
         throw errors.invalidParameters(validate.errors)
       }
       return method(params)
     }
+    m.description = description
+    m.params = params
+
+    methods[name] = m
 
     return once(() => {
       delete methods[name]
