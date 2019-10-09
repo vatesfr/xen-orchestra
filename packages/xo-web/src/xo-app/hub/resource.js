@@ -1,8 +1,10 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
+import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
@@ -171,6 +173,68 @@ export default decorate([
       redirectToTaskPage() {
         this.props.router.push('/tasks')
       },
+      showDescription() {
+        const {
+          description,
+          cloudInitReady,
+          guestTools,
+          name,
+          network,
+          user,
+          password,
+        } = this.props
+        alert(
+          name,
+          <div>
+            <div
+              className='text-muted'
+              dangerouslySetInnerHTML={{
+                __html: marked(description),
+              }}
+            />
+            <div>
+              <Icon icon='pool' />
+              &nbsp;{_('cloudInit')}
+              <Icon
+                className='pull-right'
+                color={cloudInitReady ? 'green' : 'red'}
+                icon={cloudInitReady ? 'success' : 'new-vm-remove'}
+              />
+            </div>
+            <hr />
+            <div>
+              <Icon icon='settings' />
+              &nbsp;{_('guestTools')}
+              <Icon
+                className='pull-right'
+                color={guestTools ? 'green' : 'red'}
+                icon={guestTools ? 'success' : 'new-vm-remove'}
+              />
+            </div>
+            <hr />
+            {network !== undefined && (
+              <div>
+                <Icon icon='network' />
+                &nbsp;{_('newVmNetworkLabel')}
+                <span className='pull-right font-weight-bold'>{network}</span>
+              </div>
+            )}
+            <hr />
+            {!cloudInitReady && user !== undefined && password !== undefined && (
+              <div>
+                <Icon icon='user' />
+                &nbsp;{_('credentials')}
+                <span className='pull-right'>
+                  <span>{_('username')}</span>:&nbsp;
+                  <span className='font-weight-bold'>{user}</span>,&nbsp;
+                  <span>{_('password')}</span>:&nbsp;
+                  <span className='font-weight-bold'>{password}</span>
+                </span>
+              </div>
+            )}
+          </div>
+        )
+      },
     },
     computed: {
       installedTemplates: (_, { namespace, templates }) =>
@@ -192,15 +256,14 @@ export default decorate([
   }),
   injectState,
   ({
+    description,
     effects,
     hubInstallingResources,
     id,
     name,
-    os,
     size,
     state,
     totalDiskSize,
-    version,
   }) => (
     <Card shadow>
       <CardHeader>
@@ -218,15 +281,21 @@ export default decorate([
         />
         <br />
       </CardHeader>
-      <CardBlock className='text-center'>
-        <div>
-          <span className='text-muted'>{_('os')}</span> <strong>{os}</strong>
-        </div>
-        <div>
-          <span className='text-muted'>{_('version')}</span>
-          {'  '}
-          <strong>{version}</strong>
-        </div>
+      <CardBlock>
+        <div
+          className='text-muted'
+          dangerouslySetInnerHTML={{
+            __html: marked(description),
+          }}
+        />
+        <Button
+          color='secondary'
+          className='pull-right'
+          onClick={effects.showDescription}
+          size='small'
+        >
+          <Icon icon='info' /> {_('moreDetails')}
+        </Button>
         <div>
           <span className='text-muted'>{_('size')}</span>
           {'  '}
