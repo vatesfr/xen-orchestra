@@ -58,21 +58,27 @@ const filter = (...args) => thisArg => thisArg.filter(...args)
 //
 // https://github.com/npm/node-tar/issues/234#issuecomment-538190295
 const isValidTar = async path => {
-  const fd = await fs.open(path, 'r')
   try {
-    const { size } = await fs.fstat(fd)
-    if (size <= 1024 || size % 512 !== 0) {
-      return false
-    }
+    const fd = await fs.open(path, 'r')
+    try {
+      const { size } = await fs.fstat(fd)
+      if (size <= 1024 || size % 512 !== 0) {
+        return false
+      }
 
-    const buf = Buffer.allocUnsafe(1024)
-    assert.strictEqual(
-      await fs.read(fd, buf, 0, buf.length, size - buf.length),
-      buf.length
-    )
-    return buf.every(_ => _ === 0)
-  } finally {
-    fs.close(fd).catch(noop)
+      const buf = Buffer.allocUnsafe(1024)
+      assert.strictEqual(
+        await fs.read(fd, buf, 0, buf.length, size - buf.length),
+        buf.length
+      )
+      return buf.every(_ => _ === 0)
+    } finally {
+      fs.close(fd).catch(noop)
+    }
+  } catch (error) {
+    // never throw, log and report as valid to avoid side effects
+    console.error('isValidTar', path, error)
+    return true
   }
 }
 
