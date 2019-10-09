@@ -16,21 +16,6 @@ import { version as serverVersion } from '../../../package.json'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
-function* getMethodsInfo() {
-  const methods = this._methods
-  for (const name in methods) {
-    const { description, params = {} } = methods[name]
-    yield { description, name, params }
-  }
-}
-
-function* listMethods() {
-  const methods = this._methods
-  for (const name in methods) {
-    yield name
-  }
-}
-
 const ndJsonStream = asyncIteratorToStream(async function*(
   responseId,
   iterable
@@ -101,7 +86,13 @@ export default class Api {
     this.addMethods({
       system: {
         getMethodsInfo: [
-          getMethodsInfo.bind(this),
+          function*() {
+            const methods = this._methods
+            for (const name in methods) {
+              const { description, params = {} } = methods[name]
+              yield { description, name, params }
+            }
+          }.bind(this),
           {
             description: 'returns the signatures of all available API methods',
           },
@@ -113,7 +104,12 @@ export default class Api {
           },
         ],
         listMethods: [
-          listMethods.bind(this),
+          function*() {
+            const methods = this._methods
+            for (const name in methods) {
+              yield name
+            }
+          }.bind(this),
           {
             description: 'returns the name of all available API methods',
           },
