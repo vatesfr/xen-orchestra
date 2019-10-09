@@ -154,7 +154,6 @@ const listVhds = pipe([
   filter(_ => _.endsWith('.vhd')),
 ])
 
-// TODO: add lock on VM dir
 async function handleVm(vmDir) {
   const vhds = new Set()
   const vhdParents = { __proto__: null }
