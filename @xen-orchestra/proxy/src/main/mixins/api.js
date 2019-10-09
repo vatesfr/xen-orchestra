@@ -109,45 +109,38 @@ export default class Api {
     })
   }
 
-  addMethod(
-    name,
-    method,
-    { description = method.description, params = method.params } = {}
-  ) {
+  addMethod(name, method, { description, params = {} } = {}) {
     const methods = this._methods
 
     if (name in methods) {
       throw new Error(`API method ${name} already exists`)
     }
 
-    if (params !== undefined) {
-      const validate = this._ajv.compile({
-        // we want additional properties to be disabled by default
-        additionalProperties: params['*'] || false,
+    const ajv = this._ajv
+    const validate = ajv.compile({
+      // we want additional properties to be disabled by default
+      additionalProperties: params['*'] || false,
 
-        properties: params,
+      properties: params,
 
-        // we want params to be required by default unless explicitly marked so
-        // we use property `optional` instead of object `required`
-        required: Object.keys(params).filter(name => {
-          const param = params[name]
-          const required = !param.optional
-          delete param.optional
-          return required
-        }),
+      // we want params to be required by default unless explicitly marked so
+      // we use property `optional` instead of object `required`
+      required: Object.keys(params).filter(name => {
+        const param = params[name]
+        const required = !param.optional
+        delete param.optional
+        return required
+      }),
 
-        type: 'object',
-      })
-      const rawMethod = method
-      method = params => {
-        if (!validate(params)) {
-          throw errors.invalidParameters(validate.errors)
-        }
-        return rawMethod(params)
+      type: 'object',
+    })
+
+    methods[name] = params => {
+      if (!validate(params)) {
+        throw errors.invalidParameters(validate.errors)
       }
+      return method(params)
     }
-
-    methods[name] = method
 
     return once(() => {
       delete methods[name]
