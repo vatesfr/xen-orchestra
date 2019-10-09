@@ -128,7 +128,7 @@ async function mergeVhdChain(chain) {
   }
 
   await Promise.all([
-    fs.rename(parent, child),
+    force && fs.rename(parent, child),
     asyncMap(children.slice(0, -1), child => {
       console.warn('Unused VHD', child)
       force && console.warn('  deleting…')
