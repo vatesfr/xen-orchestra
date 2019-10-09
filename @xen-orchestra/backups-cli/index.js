@@ -116,7 +116,7 @@ async function mergeVhdChain(chain) {
     // `mergeVhd` does not work with a stream, either
     // - make it accept a stream
     // - or create synthetic VHD which is not a stream
-    throw new Error('FIXME')
+    return console.warn('TODO: implement merge')
     // await mergeVhd(
     //   handler,
     //   parent,
