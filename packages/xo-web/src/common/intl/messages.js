@@ -156,6 +156,7 @@ const messages = {
   freeUpgrade: 'Free upgrade!',
   checkXoa: 'Check XOA',
   xoaCheck: 'XOA check',
+  checkXoaCommunity: 'XOA check is available in XOA.',
 
   // ----- Sign out -----
   signOut: 'Sign out',

@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import AnsiUp from 'ansi_up'
 import decorate from 'apply-decorators'
 import React from 'react'
-import { adminOnly } from 'utils'
+import { adminOnly, getXoaPlan } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
@@ -27,21 +27,27 @@ const Support = decorate([
         <Col mediumSize={6}>
           <Card>
             <CardHeader>{_('xoaCheck')}</CardHeader>
-            <CardBlock>
-              <ActionButton
-                btnStyle='success'
-                handler={effects.checkXoa}
-                icon='diagnosis'
-              >
-                {_('checkXoa')}
-              </ActionButton>
-              <hr />
-              <pre
-                dangerouslySetInnerHTML={{
-                  __html: ansiUp.ansi_to_html(stdoutCheckXoa),
-                }}
-              />
-            </CardBlock>
+            {getXoaPlan() === 'Community' ? (
+              <CardBlock>
+                <span className='text-info'>{_('checkXoaCommunity')}</span>
+              </CardBlock>
+            ) : (
+              <CardBlock>
+                <ActionButton
+                  btnStyle='success'
+                  handler={effects.checkXoa}
+                  icon='diagnosis'
+                >
+                  {_('checkXoa')}
+                </ActionButton>
+                <hr />
+                <pre
+                  dangerouslySetInnerHTML={{
+                    __html: ansiUp.ansi_to_html(stdoutCheckXoa),
+                  }}
+                />
+              </CardBlock>
+            )}
           </Card>
         </Col>
       </Row>
