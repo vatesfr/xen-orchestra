@@ -10,13 +10,16 @@ import { injectState, provideState } from 'reaclette'
 import { checkXoa } from 'xo'
 
 const ansiUp = new AnsiUp()
+const COMMUNITY = getXoaPlan() === 'Community'
 
 const Support = decorate([
   adminOnly,
   provideState({
     initialState: () => ({ stdoutCheckXoa: '' }),
     effects: {
-      initialize: async () => ({ stdoutCheckXoa: await checkXoa() }),
+      initialize: async () => ({
+        stdoutCheckXoa: COMMUNITY ? '' : await checkXoa(),
+      }),
       checkXoa: async () => ({ stdoutCheckXoa: await checkXoa() }),
     },
   }),
@@ -27,7 +30,7 @@ const Support = decorate([
         <Col mediumSize={6}>
           <Card>
             <CardHeader>{_('xoaCheck')}</CardHeader>
-            {getXoaPlan() === 'Community' ? (
+            {COMMUNITY ? (
               <CardBlock>
                 <span className='text-info'>{_('checkXoaCommunity')}</span>
               </CardBlock>
