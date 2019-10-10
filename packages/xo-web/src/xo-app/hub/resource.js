@@ -159,8 +159,8 @@ export default decorate([
       },
     },
     computed: {
-      installedTemplates: (_, { id, templates }) =>
-        filter(templates, ['other.xo:resource:xva:id', id]),
+      installedTemplates: (_, { namespace, templates }) =>
+        filter(templates, ['other.xo:resource:namespace', namespace]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
