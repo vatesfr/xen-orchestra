@@ -25,7 +25,7 @@ if (force) {
 
 const assert = require('assert')
 const lockfile = require('proper-lockfile')
-const { createSyntheticStream, default: Vhd, mergeVhd } = require('vhd-lib')
+const { default: Vhd } = require('vhd-lib')
 const { curryRight, flatten } = require('lodash')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
