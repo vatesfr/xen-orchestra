@@ -281,6 +281,11 @@ export default class Menu extends Component {
             label: 'notificationsPage',
             extra: <NotificationTag />,
           },
+          isAdmin && {
+            to: 'xoa/support',
+            icon: 'menu-support',
+            label: 'supportPage',
+          },
         ],
       },
       isAdmin && {

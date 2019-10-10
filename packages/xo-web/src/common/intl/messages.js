@@ -100,6 +100,7 @@ const messages = {
   updatePage: 'Updates',
   licensesPage: 'Licenses',
   notificationsPage: 'Notifications',
+  supportPage: 'Support',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
@@ -154,6 +155,9 @@ const messages = {
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
+  checkXoa: 'Check XOA',
+  xoaCheck: 'XOA check',
+  checkXoaCommunity: 'XOA check is available in XOA.',
 
   // ----- Sign out -----
   signOut: 'Sign out',
