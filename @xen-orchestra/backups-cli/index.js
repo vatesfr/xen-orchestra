@@ -271,11 +271,15 @@ async function handleVm(vmDir) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
       } else {
         console.warn('Error while checking backup', json)
-        linkedVhds
-          .filter(_ => !vhds.has(_))
-          .forEach(linkedVhd => {
-            console.warn('  missing file', linkedVhd)
-          })
+        const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
+        console.warn(
+          '  %i/%i missing VHDs',
+          missingVhds.length,
+          linkedVhds.length
+        )
+        missingVhds.forEach(vhd => {
+          console.warn('  ', vhd)
+        })
         force && console.warn('  deleting…')
         console.warn('')
         force && (await handler.unlink(json))
