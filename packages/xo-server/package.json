@@ -30,7 +30,7 @@
     "bin": "bin"
   },
   "engines": {
-    "node": ">=6"
+    "node": ">=8"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.1",
@@ -61,7 +61,7 @@
     "escape-string-regexp": "^1.0.5",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
-    "execa": "^1.0.0",
+    "execa": "^2.0.5",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
     "fatfs": "^0.10.4",
