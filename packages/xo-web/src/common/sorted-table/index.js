@@ -19,7 +19,6 @@ import {
   findIndex,
   forEach,
   get as getProperty,
-  isArray,
   isEmpty,
   isFunction,
   map,
@@ -221,7 +220,7 @@ const Action = decorate([
       icon: ({ items }, { icon, userData }) =>
         isFunction(icon) ? icon(items, userData) : icon,
       items: (_, { items, grouped }) =>
-        isArray(items) || !grouped ? items : [items],
+        Array.isArray(items) || !grouped ? items : [items],
       label: ({ items }, { label, userData }) =>
         isFunction(label) ? label(items, userData) : label,
       level: ({ items }, { level, userData }) =>

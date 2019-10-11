@@ -1,6 +1,5 @@
 import forEachRight from 'lodash/forEachRight'
 import forEach from 'lodash/forEach'
-import isArray from 'lodash/isArray'
 import isIp from 'is-ip'
 import some from 'lodash/some'
 
@@ -76,7 +75,7 @@ export const getNextIpV4 = ip => {
 }
 
 export const formatIps = ips => {
-  if (!isArray(ips)) {
+  if (!Array.isArray(ips)) {
     throw new Error('ips must be an array')
   }
   if (ips.length === 0) {

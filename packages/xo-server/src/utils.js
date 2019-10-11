@@ -256,7 +256,6 @@ export const safeDateParse = utcParse('%Y%m%dT%H%M%SZ')
 //
 // Exports them from here to avoid direct dependencies on lodash/
 export { default as forEach } from 'lodash/forEach'
-export { default as isArray } from 'lodash/isArray'
 export { default as isBoolean } from 'lodash/isBoolean'
 export { default as isEmpty } from 'lodash/isEmpty'
 export { default as isFunction } from 'lodash/isFunction'

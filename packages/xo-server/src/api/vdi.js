@@ -1,7 +1,7 @@
 // FIXME: rename to disk.*
 
 import { invalidParameters } from 'xo-common/api-errors'
-import { isArray, reduce } from 'lodash'
+import { reduce } from 'lodash'
 
 import { parseSize } from '../utils'
 
@@ -85,7 +85,7 @@ export async function set(params) {
       continue
     }
 
-    for (const field of isArray(fields) ? fields : [fields]) {
+    for (const field of Array.isArray(fields) ? fields : [fields]) {
       await xapi.call(`VDI.set_${field}`, ref, `${params[param]}`)
     }
   }
