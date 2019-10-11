@@ -12,7 +12,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Metadata backup] Fix failure metadata backup reported as successful [#4596](https://github.com/vatesfr/xen-orchestra/issues/4596) (PR [#4598](https://github.com/vatesfr/xen-orchestra/pull/4598))
+- [Metadata backup] Fix failure backup reported as successful [#4596](https://github.com/vatesfr/xen-orchestra/issues/4596) (PR [#4598](https://github.com/vatesfr/xen-orchestra/pull/4598))
 
 ### Released packages
 
