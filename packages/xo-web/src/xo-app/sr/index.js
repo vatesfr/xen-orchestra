@@ -11,7 +11,7 @@ import { Container, Row, Col } from 'grid'
 import { editSr } from 'xo'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
-import { assign, map, pick } from 'lodash'
+import { map, pick } from 'lodash'
 import { connectStore, routes } from 'utils'
 import {
   createGetObject,
@@ -184,7 +184,7 @@ export default class Sr extends Component {
     if (!sr) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'hosts',
         'logs',

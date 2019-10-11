@@ -1,4 +1,3 @@
-import assign from 'lodash/assign'
 import Client, {
   AbortedConnection,
   ConnectionError,
@@ -298,7 +297,7 @@ class XoaUpdater extends EventEmitter {
     } catch (error) {
       return this._xoaStateError(error)
     } finally {
-      this.emit('trialState', assign({}, this._xoaState))
+      this.emit('trialState', Object.assign({}, this._xoaState))
     }
   }
 
@@ -367,7 +366,7 @@ class XoaUpdater extends EventEmitter {
     while (this._log.length > 10) {
       this._log.shift()
     }
-    this.emit('log', map(this._log, item => assign({}, item)))
+    this.emit('log', map(this._log, item => Object.assign({}, item)))
   }
 
   async getConfiguration() {
@@ -377,7 +376,7 @@ class XoaUpdater extends EventEmitter {
     } catch (error) {
       this._configuration = {}
     } finally {
-      this.emit('configuration', assign({}, this._configuration))
+      this.emit('configuration', Object.assign({}, this._configuration))
     }
   }
 
@@ -406,7 +405,7 @@ class XoaUpdater extends EventEmitter {
     } catch (error) {
       this._configuration = {}
     } finally {
-      this.emit('configuration', assign({}, this._configuration))
+      this.emit('configuration', Object.assign({}, this._configuration))
     }
   }
 }

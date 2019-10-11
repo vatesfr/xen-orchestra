@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { assign, find, map } from 'lodash'
+import { find, map } from 'lodash'
 
 import { config, rejectionOf, xo } from './util'
 
@@ -151,7 +151,7 @@ describe('server', () => {
 
     it('connects to a Xen server', async () => {
       const serverId = await addServer(
-        assign({ autoConnect: false }, config.xenServer1)
+        Object.assign({ autoConnect: false }, config.xenServer1)
       )
 
       await xo.call('server.connect', {
@@ -184,7 +184,7 @@ describe('server', () => {
     let serverId
     beforeEach(async () => {
       serverId = await addServer(
-        assign({ autoConnect: false }, config.xenServer1)
+        Object.assign({ autoConnect: false }, config.xenServer1)
       )
       await xo.call('server.connect', {
         id: serverId,

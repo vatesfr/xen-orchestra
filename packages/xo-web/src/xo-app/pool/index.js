@@ -1,5 +1,4 @@
 import _ from 'intl'
-import assign from 'lodash/assign'
 import Copiable from 'copiable'
 import Icon from 'icon'
 import PoolActionBar from './action-bar'
@@ -163,7 +162,7 @@ export default class Pool extends Component {
     if (!pool) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'hosts',
         'logs',
