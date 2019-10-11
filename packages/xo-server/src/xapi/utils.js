@@ -9,7 +9,6 @@ import { satisfies as versionSatisfies } from 'semver'
 import {
   camelToSnakeCase,
   forEach,
-  isBoolean,
   isInteger,
   isString,
   map,
@@ -43,7 +42,7 @@ export const prepareXapiParam = param => {
   if (isInteger(param)) {
     return asInteger(param)
   }
-  if (isBoolean(param)) {
+  if (typeof param === 'boolean') {
     return asBoolean(param)
   }
   if (Array.isArray(param)) {
