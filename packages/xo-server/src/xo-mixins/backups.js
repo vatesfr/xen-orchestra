@@ -1,7 +1,6 @@
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
-import escapeStringRegexp from 'escape-string-regexp'
 import execa from 'execa'
 import splitLines from 'split-lines'
 import { CancelToken, fromEvent, ignoreErrors } from 'promise-toolbox'
@@ -10,7 +9,16 @@ import { createReadStream, readdir, stat } from 'fs'
 import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import { basename, dirname } from 'path'
-import { filter, find, includes, once, range, sortBy, trim } from 'lodash'
+import {
+  escapeRegExp,
+  filter,
+  find,
+  includes,
+  once,
+  range,
+  sortBy,
+  trim,
+} from 'lodash'
 import {
   chainVhd,
   createSyntheticStream as createVhdReadStream,
@@ -860,7 +868,7 @@ export default class {
     const files = await handler.list('.')
 
     const reg = new RegExp(
-      '^[^_]+_' + escapeStringRegexp(`${tag}_${vm.name_label}.xva`)
+      '^[^_]+_' + escapeRegExp(`${tag}_${vm.name_label}.xva`)
     )
     const backups = sortBy(filter(files, fileName => reg.test(fileName)))
 
@@ -885,9 +893,7 @@ export default class {
 
     xapi._assertHealthyVdiChains(vm)
 
-    const reg = new RegExp(
-      '^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag) + '_'
-    )
+    const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeRegExp(tag) + '_')
     const snapshots = sortBy(
       filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)),
       'name_label'
@@ -924,9 +930,7 @@ export default class {
     const transferStart = Date.now()
     tag = 'DR_' + tag
     const reg = new RegExp(
-      '^' +
-        escapeStringRegexp(`${vm.name_label}_${tag}_`) +
-        '[0-9]{8}T[0-9]{6}Z$'
+      '^' + escapeRegExp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$'
     )
 
     const targetXapi = this._xo.getXapi(sr)
