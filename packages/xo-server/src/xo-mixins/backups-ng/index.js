@@ -10,6 +10,7 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
+import { pipeline } from 'readable-stream'
 import {
   countBy,
   findLast,
@@ -29,7 +30,7 @@ import {
   CancelToken,
   ignoreErrors,
   pFinally,
-  pFromEvent,
+  pFromCallback,
   timeout,
 } from 'promise-toolbox'
 import Vhd, {
@@ -343,8 +344,7 @@ const writeStream = async (
   const tmpPath = `${dirname(path)}/.${basename(path)}`
   const output = await handler.createOutputStream(tmpPath, { checksum })
   try {
-    input.pipe(output)
-    await pFromEvent(output, 'finish')
+    await pFromCallback(pipeline, input, output)
     await output.checksumWritten
     // $FlowFixMe
     await input.task
