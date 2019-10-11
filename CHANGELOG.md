@@ -4,6 +4,17 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+
+## **5.39.1** (2019-10-11)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
 - [Support] Ability to check the XOA on the user interface [#4513](https://github.com/vatesfr/xen-orchestra/issues/4513) (PR [#4574](https://github.com/vatesfr/xen-orchestra/pull/4574))
 
 ### Bug fixes
@@ -17,8 +28,6 @@
 
 
 ## **5.39.0** (2019-09-30)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Highlights
 
