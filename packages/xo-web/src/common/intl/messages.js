@@ -2152,6 +2152,7 @@ const messages = {
     'Will configure the host xosan network device with a static IP address and plug it in.',
 
   // Hub
+  sr: 'SR',
   hubPage: 'Hub',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',

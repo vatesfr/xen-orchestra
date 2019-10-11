@@ -16,26 +16,29 @@ import { SelectPool, SelectSr } from 'select-objects'
 export default decorate([
   provideState({
     effects: {
-      onChangePool(__, pools) {
+      onChangePools(__, pools) {
         const { multi, onChange, value } = this.props
-        const changes = {}
-        multi ? (changes.pools = pools) : (changes.pool = pools)
-        onChange({ ...value, ...changes })
+        onChange({
+          ...value,
+          [multi ? 'pools' : 'pool']: pools,
+        })
       },
       onChangeSr(__, sr) {
-        const _mapPoolsSrs = {
-          ...this.props.value.mapPoolsSrs,
-          [sr.$pool]: sr.id,
-        }
         this.props.onChange({
           ...this.props.value,
-          mapPoolsSrs: _mapPoolsSrs,
+          mapPoolsSrs: {
+            ...this.props.value.mapPoolsSrs,
+            [sr.$pool]: sr.id,
+          },
         })
       },
     },
+    computed: {
+      sortedPools: (_, { value }) => sortBy(value.pools, 'name_label'),
+    },
   }),
   injectState,
-  ({ effects, install, multi, poolPredicate, value }) => (
+  ({ effects, install, multi, poolPredicate, state, value }) => (
     <Container>
       <FormGrid.Row>
         <label>
@@ -50,7 +53,7 @@ export default decorate([
         <SelectPool
           className='mb-1'
           multi={multi}
-          onChange={effects.onChangePool}
+          onChange={effects.onChangePools}
           predicate={poolPredicate}
           required
           value={multi ? value.pools : value.pool}
@@ -63,11 +66,11 @@ export default decorate([
               <strong>{_('pool')}</strong>
             </Col>
             <Col size={6}>
-              <strong>{_('vdiSr')}</strong>
+              <strong>{_('sr')}</strong>
             </Col>
           </SingleLineRow>
           <hr />
-          {sortBy(value.pools, 'name_label').map(pool => (
+          {state.sortedPools.map(pool => (
             <SingleLineRow key={pool.uuid} className='mt-1'>
               <Col size={6}>
                 <Pool id={pool.id} link />
