@@ -11,7 +11,6 @@ import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import {
-  assign,
   filter,
   find,
   flatMap,
@@ -174,7 +173,7 @@ export default class Restore extends Component {
         }
       })
 
-      assign(data, { first, last, count, id: vmId, size })
+      Object.assign(data, { first, last, count, id: vmId, size })
     })
 
     forEach(backupDataByVm, ({ backups }, vmId) => {

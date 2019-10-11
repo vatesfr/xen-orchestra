@@ -2,13 +2,11 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
-  assign,
   filter,
   flatten,
   forEach,
   groupBy,
   includes,
-  isArray,
   isEmpty,
   isInteger,
   isString,
@@ -63,7 +61,7 @@ const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 const getIds = value =>
   value == null || isString(value) || isInteger(value)
     ? value
-    : isArray(value)
+    : Array.isArray(value)
     ? map(value, getIds)
     : value.id
 
@@ -88,7 +86,7 @@ const options = props => ({
 })
 
 const getObjectsById = objects =>
-  keyBy(isArray(objects) ? objects : flatten(toArray(objects)), 'id')
+  keyBy(Array.isArray(objects) ? objects : flatten(toArray(objects)), 'id')
 
 // ===================================================================
 
@@ -156,7 +154,7 @@ class GenericSelect extends React.Component {
           })
         }
       }
-      if (isArray(ids)) {
+      if (Array.isArray(ids)) {
         ids.forEach(addIfMissing)
       } else {
         addIfMissing(ids)
@@ -189,7 +187,7 @@ class GenericSelect extends React.Component {
 
       let options
       if (containers === undefined) {
-        if (__DEV__ && !isArray(objects)) {
+        if (__DEV__ && !Array.isArray(objects)) {
           throw new Error(
             `${name}: without xoContainers, xoObjects must be an array`
           )
@@ -200,7 +198,7 @@ class GenericSelect extends React.Component {
           : objects
         ).map(getOption)
       } else {
-        if (__DEV__ && isArray(objects)) {
+        if (__DEV__ && Array.isArray(objects)) {
           throw new Error(
             `${name}: with xoContainers, xoObjects must be an object`
           )
@@ -250,7 +248,7 @@ class GenericSelect extends React.Component {
       this._getObjectsById,
       value => value,
       (objectsById, value) =>
-        isArray(value)
+        Array.isArray(value)
           ? map(value, value => objectsById[value.value])
           : objectsById[value.value]
     )
@@ -643,7 +641,7 @@ export const SelectHighLevelObject = makeStoreSelect(
       getSrs,
       getVms,
       (hosts, networks, pools, srs, vms) =>
-        sortBy(assign({}, hosts, networks, pools, srs, vms), [
+        sortBy(Object.assign({}, hosts, networks, pools, srs, vms), [
           'type',
           'name_label',
         ])
@@ -932,7 +930,7 @@ export class SelectResourceSetsVdi extends React.PureComponent {
     () => this.props.resourceSet,
     ({ objectsByType }) => {
       const { srPredicate } = this.props
-      const srs = objectsByType['SR']
+      const srs = objectsByType.SR
       return srPredicate ? filter(srs, srPredicate) : srs
     }
   )

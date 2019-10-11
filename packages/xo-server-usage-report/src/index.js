@@ -5,7 +5,6 @@ import humanFormat from 'human-format'
 import { createSchedule } from '@xen-orchestra/cron'
 import { minify } from 'html-minifier'
 import {
-  assign,
   concat,
   differenceBy,
   filter,
@@ -418,7 +417,7 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
     }))
   )
 
-  return assign(
+  return Object.assign(
     computeMeans(vmsStats, [
       'cpu',
       'ram',
@@ -446,7 +445,7 @@ function computeGlobalHostsStats({ haltedHosts, hostsStats, xo }) {
     }))
   )
 
-  return assign(
+  return Object.assign(
     computeMeans(hostsStats, [
       'cpu',
       'ram',

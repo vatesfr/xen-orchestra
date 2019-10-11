@@ -4,7 +4,7 @@ import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
 import { PluginsMetadata } from '../models/plugin-metadata'
-import { isFunction, mapToArray } from '../utils'
+import { mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -65,9 +65,9 @@ export default class {
       id,
       instance,
       name,
-      testable: isFunction(instance.test),
+      testable: typeof instance.test === 'function',
       testSchema,
-      unloadable: isFunction(instance.unload),
+      unloadable: typeof instance.unload === 'function',
       version,
     })
 

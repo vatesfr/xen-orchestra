@@ -1,6 +1,6 @@
 import JSON5 from 'json5'
 import { createSchedule } from '@xen-orchestra/cron'
-import { assign, forOwn, map, mean } from 'lodash'
+import { forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
 const COMPARATOR_FN = {
@@ -483,7 +483,7 @@ ${monitorBodies.join('\n')}`
                 result.rrd = await this.getRrd(result.object, observationPeriod)
                 if (result.rrd !== null) {
                   const data = parseData(result.rrd, result.object.uuid)
-                  assign(result, {
+                  Object.assign(result, {
                     data,
                     value: data.getDisplayableValue(),
                     shouldAlarm: data.shouldAlarm(),
@@ -496,7 +496,7 @@ ${monitorBodies.join('\n')}`
                   definition.alarmTriggerLevel
                 )
                 const data = getter(result.object)
-                assign(result, {
+                Object.assign(result, {
                   value: data.getDisplayableValue(),
                   shouldAlarm: data.shouldAlarm(),
                 })
@@ -680,7 +680,7 @@ ${entry.listItem}
       },
     }
     if (xapiObject.$type === 'VM') {
-      payload['vm_uuid'] = xapiObject.uuid
+      payload.vm_uuid = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
     return JSON5.parse(

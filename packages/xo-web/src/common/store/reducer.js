@@ -1,4 +1,5 @@
 import cookies from 'cookies-js'
+import { omit } from 'lodash'
 
 import invoke from '../invoke'
 
@@ -91,6 +92,19 @@ export default {
     [actions.setHomeVmIdsSelection]: (_, homeVmIdsSelection) =>
       homeVmIdsSelection,
   }),
+
+  // whether a resource is currently being installed: `hubInstallingResources[<template id>]`
+  hubInstallingResources: combineActionHandlers(
+    {},
+    {
+      [actions.markHubResourceAsInstalling]: (
+        prevHubInstallingResources,
+        id
+      ) => ({ ...prevHubInstallingResources, [id]: true }),
+      [actions.markHubResourceAsInstalled]: (prevHubInstallingResources, id) =>
+        omit(prevHubInstallingResources, id),
+    }
+  ),
 
   objects: combineActionHandlers(
     {

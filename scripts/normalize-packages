@@ -65,7 +65,7 @@ require('exec-promise')(() =>
     const originalScripts = scripts
 
     if (!pkg.private && !('postversion' in scripts)) {
-      scripts = { ...scripts, postversion: 'npm publish' }
+      scripts = { ...scripts, postversion: 'npm publish --access public' }
     }
 
     const prepublish = scripts.prepublish

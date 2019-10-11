@@ -25,13 +25,13 @@
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.4.4",
     "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/preset-env": "^7.4.4",
-    "cross-env": "^5.2.0"
+    "cross-env": "^6.0.3"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.1.4",
+    "@xen-orchestra/log": "^0.2.0",
     "lodash": "^4.17.11",
-    "node-openssl-cert": "^0.0.97",
-    "promise-toolbox": "^0.13.0",
+    "node-openssl-cert": "^0.0.98",
+    "promise-toolbox": "^0.14.0",
     "uuid": "^3.3.2"
   },
   "private": true

@@ -17,7 +17,6 @@ const getKeys = require('lodash/keys')
 const hrp = require('http-request-plus').default
 const humanFormat = require('human-format')
 const identity = require('lodash/identity')
-const isArray = require('lodash/isArray')
 const isObject = require('lodash/isObject')
 const micromatch = require('micromatch')
 const nicePipe = require('nice-pipe')
@@ -298,7 +297,11 @@ async function listCommands(args) {
       str.push(
         name,
         '=<',
-        type == null ? 'unknown type' : isArray(type) ? type.join('|') : type,
+        type == null
+          ? 'unknown type'
+          : Array.isArray(type)
+          ? type.join('|')
+          : type,
         '>'
       )
 

@@ -2,7 +2,7 @@ import levelup from 'level-party'
 import sublevel from 'level-sublevel'
 import { ensureDir } from 'fs-extra'
 
-import { forEach, isFunction, promisify } from '../utils'
+import { forEach, promisify } from '../utils'
 
 // ===================================================================
 
@@ -32,7 +32,7 @@ const levelHas = db => {
 const levelPromise = db => {
   const dbP = {}
   forEach(db, (value, name) => {
-    if (!isFunction(value)) {
+    if (typeof value !== 'function') {
       return
     }
 

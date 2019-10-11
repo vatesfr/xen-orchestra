@@ -8,7 +8,6 @@ import {
   clone,
   every,
   forEach,
-  isArray,
   isEmpty,
   isFunction,
   isPlainObject,
@@ -81,12 +80,12 @@ const _normalizeMapStateToProps = mapper => {
     return state => pick(state, mapper)
   }
 
-  if (isFunction(mapper)) {
+  if (typeof mapper === 'function') {
     const factoryOrMapper = (state, props) => {
       const result = mapper(state, props)
 
       // Properly handles factory pattern.
-      if (isFunction(result)) {
+      if (typeof result === 'function') {
         mapper = result
         return factoryOrMapper
       }
@@ -252,16 +251,16 @@ export const parseSize = size => {
 
 // -------------------------------------------------------------------
 
-const _NotFound = () => <h1>{_('errorPageNotFound')}</h1>
+const NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 
 // Decorator to declare routes on a component.
 //
 // TODO: add support for function childRoutes (getChildRoutes).
 export const routes = (indexRoute, childRoutes) => target => {
-  if (isArray(indexRoute)) {
+  if (Array.isArray(indexRoute)) {
     childRoutes = indexRoute
     indexRoute = undefined
-  } else if (isFunction(indexRoute)) {
+  } else if (typeof indexRoute === 'function') {
     indexRoute = {
       component: indexRoute,
     }
@@ -286,7 +285,7 @@ export const routes = (indexRoute, childRoutes) => target => {
   }
 
   if (childRoutes) {
-    childRoutes.push({ component: _NotFound, path: '*' })
+    childRoutes.push({ component: NotFound, path: '*' })
   }
 
   target.route = {
@@ -449,26 +448,6 @@ export const isXosanPack = ({ name }) => name.startsWith('XOSAN')
 
 // ===================================================================
 
-export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
-  // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
-  const maxVCPUs = 16
-
-  const options = []
-  if (maxCoresPerSocket !== undefined && vCPUs !== '') {
-    const ratio = vCPUs / maxVCPUs
-
-    for (
-      let coresPerSocket = maxCoresPerSocket;
-      coresPerSocket >= ratio;
-      coresPerSocket--
-    ) {
-      if (vCPUs % coresPerSocket === 0) options.push(coresPerSocket)
-    }
-  }
-
-  return options
-}
-
 // Generates a random human-readable string of length `length`
 // Useful to generate random default names intended for the UI user
 export const generateReadableRandomString = (() => {
@@ -629,7 +608,7 @@ export const adminOnly = Component =>
   connectStore({
     _isAdmin: isAdmin,
   })(({ _isAdmin, ...props }) =>
-    _isAdmin ? <Component {...props} /> : <_NotFound />
+    _isAdmin ? <Component {...props} /> : <NotFound />
   )
 
 // ===================================================================

@@ -13,11 +13,22 @@ for (const name in LEVELS) {
   NAMES[LEVELS[name]] = name
 }
 
-export const resolve = level => {
-  if (typeof level === 'string') {
-    level = LEVELS[level.toUpperCase()]
+// resolves to the number representation of a level
+//
+// returns `defaultLevel` if invalid
+export const resolve = (level, defaultLevel) => {
+  const type = typeof level
+  if (type === 'number') {
+    if (level in NAMES) {
+      return level
+    }
+  } else if (type === 'string') {
+    const nLevel = LEVELS[level.toUpperCase()]
+    if (nLevel !== undefined) {
+      return nLevel
+    }
   }
-  return level
+  return defaultLevel
 }
 
 Object.freeze(LEVELS)

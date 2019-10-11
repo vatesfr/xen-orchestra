@@ -475,7 +475,7 @@ export default class New extends Component {
   }
 
   _handleAuthChoice = () => {
-    const auth = this.refs['auth'].checked
+    const auth = this.refs.auth.checked
     this.setState({
       auth,
     })

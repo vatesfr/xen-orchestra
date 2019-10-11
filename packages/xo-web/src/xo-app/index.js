@@ -2,7 +2,6 @@ import Component from 'base-component'
 import cookies from 'cookies-js'
 import DocumentTitle from 'react-document-title'
 import Icon from 'icon'
-import isArray from 'lodash/isArray'
 import Link from 'link'
 import map from 'lodash/map'
 import PropTypes from 'prop-types'
@@ -27,6 +26,7 @@ import BackupNg from './backup-ng'
 import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
+import Hub from './hub'
 import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert, FormModal } from 'modal'
@@ -93,6 +93,7 @@ const BODY_STYLE = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  hub: Hub,
 })
 @connectStore(state => {
   return {
@@ -186,7 +187,9 @@ export default class XoApp extends Component {
                       message && (
                         <Row key={`${contextKey}_${key}`}>
                           <Col size={2} className='text-xs-right'>
-                            <strong>{isArray(keys) ? keys[0] : keys}</strong>
+                            <strong>
+                              {Array.isArray(keys) ? keys[0] : keys}
+                            </strong>
                           </Col>
                           <Col size={10}>{message}</Col>
                         </Row>

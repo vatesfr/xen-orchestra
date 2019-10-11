@@ -7,7 +7,6 @@ const promisify = require('bluebird').promisify
 const readFile = promisify(require('fs').readFile)
 const writeFile = promisify(require('fs').writeFile)
 
-const assign = require('lodash/assign')
 const l33t = require('l33teral')
 const mkdirp = promisify(require('mkdirp'))
 const xdgBasedir = require('xdg-basedir')
@@ -41,7 +40,7 @@ const save = (exports.save = function(config) {
 
 exports.set = function(data) {
   return load().then(function(config) {
-    return save(assign(config, data))
+    return save(Object.assign(config, data))
   })
 }
 

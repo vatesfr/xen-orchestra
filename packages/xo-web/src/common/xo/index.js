@@ -11,7 +11,6 @@ import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { SelectHost } from 'select-objects'
 import {
-  assign,
   filter,
   forEach,
   get,
@@ -159,7 +158,7 @@ export const connectStore = store => {
       return
     }
 
-    assign(updates, notification.params.items)
+    Object.assign(updates, notification.params.items)
     sendUpdates()
   })
   subscribePermissions(permissions =>
@@ -349,6 +348,10 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
+)
+
+export const subscribeHubResourceCatalog = createSubscription(() =>
+  _call('cloud.getResourceCatalog', { filters: { hub: true } })
 )
 
 const getNotificationCookie = () => {
@@ -2884,13 +2887,24 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 // XOSAN packs -----------------------------------------------------------------
 
-export const getResourceCatalog = () => _call('cloud.getResourceCatalog')
+export const getResourceCatalog = ({ filters } = {}) =>
+  _call('cloud.getResourceCatalog', { filters })
+
+export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
 const downloadAndInstallXosanPack = (pack, pool, { version }) =>
   _call('xosan.downloadAndInstallXosanPack', {
     id: resolveId(pack),
     version,
     pool: resolveId(pool),
+  })
+
+export const downloadAndInstallResource = ({ namespace, id, version, sr }) =>
+  _call('cloud.downloadAndInstallResource', {
+    namespace,
+    id,
+    version,
+    sr: resolveId(sr),
   })
 
 import UpdateXosanPacksModal from './update-xosan-packs-modal' // eslint-disable-line import/first
@@ -2916,3 +2930,7 @@ export const getLicense = (productId, boundObjectId) =>
 
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, sr: srId })
+
+// Support --------------------------------------------------------------------
+
+export const checkXoa = () => _call('xoa.check')

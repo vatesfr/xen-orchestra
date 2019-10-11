@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { isEmpty, isFunction, isString, map, pick } from 'lodash'
+import { isEmpty, isString, map, pick } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
@@ -101,7 +101,7 @@ class Editable extends Component {
 
     return this.__save(
       () => this.state.previous,
-      isFunction(onUndo) ? onUndo : props.onChange
+      typeof onUndo === 'function' ? onUndo : props.onChange
     )
   }
 

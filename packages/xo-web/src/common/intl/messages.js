@@ -50,6 +50,7 @@ const messages = {
   backupJobs: 'Backup jobs',
   iscsiSessions:
     '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
+  requiresAdminPermissions: 'Requires admin permissions',
   proxy: 'Proxy',
 
   // ----- Modals -----
@@ -100,6 +101,7 @@ const messages = {
   updatePage: 'Updates',
   licensesPage: 'Licenses',
   notificationsPage: 'Notifications',
+  supportPage: 'Support',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
@@ -154,6 +156,9 @@ const messages = {
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
+  checkXoa: 'Check XOA',
+  xoaCheck: 'XOA check',
+  checkXoaCommunity: 'XOA check is available in XOA.',
 
   // ----- Sign out -----
   signOut: 'Sign out',
@@ -1156,12 +1161,16 @@ const messages = {
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNone: 'None',
-  vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
-  vmCoresPerSocketIncorrectValueSolution:
-    'Please change the selected value to fix it.',
+  vmCoresPerSocket:
+    '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocketNotDivisor: "Not a divisor of the VM's max CPUs",
+  vmCoresPerSocketExceedsCoresLimit:
+    'The selected value exceeds the cores limit ({maxCores, number})',
+  vmCoresPerSocketExceedsSocketsLimit:
+    'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmVgpu: 'vGPU',
@@ -2146,6 +2155,21 @@ const messages = {
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:
     'Will configure the host xosan network device with a static IP address and plug it in.',
+
+  // Hub
+  hubPage: 'Hub',
+  noDefaultSr: 'The selected pool has no default SR',
+  successfulInstall: 'VM installed successfully',
+  vmNoAvailable: 'No VMs available ',
+  create: 'Create',
+  hubResourceAlert: 'Resource alert',
+  os: 'OS',
+  version: 'Version',
+  size: 'Size',
+  totalDiskSize: 'Total disk size',
+  hideInstalledPool: 'Already installed templates are hidden',
+  hubSrErrorTitle: 'Missing property',
+  hubImportNotificationTitle: 'XVA import',
 
   // Licenses
   xosanUnregisteredDisclaimer:

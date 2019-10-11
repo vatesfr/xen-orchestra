@@ -42,7 +42,6 @@ import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
   forEach,
-  isFunction,
   map,
   mapToArray,
   pAll,
@@ -82,7 +81,7 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
 //  export * from './utils'
-require('lodash/assign')(module.exports, require('./utils'))
+Object.assign(module.exports, require('./utils'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'
@@ -174,7 +173,7 @@ export default class Xapi extends XapiBase {
   //
   // TODO: implements a timeout.
   _waitObject(predicate) {
-    if (isFunction(predicate)) {
+    if (typeof predicate === 'function') {
       const { promise, resolve } = defer()
 
       const unregister = this._registerGenericWatcher(obj => {
@@ -1576,7 +1575,7 @@ export default class Xapi extends XapiBase {
       }
     } else {
       // Find the original template by name (*sigh*).
-      const templateNameLabel = vm.other_config['base_template_name']
+      const templateNameLabel = vm.other_config.base_template_name
       const template =
         templateNameLabel &&
         find(

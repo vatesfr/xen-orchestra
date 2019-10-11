@@ -1,61 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`backupNg .createJob() : creates a new backup job with schedules 1`] = `
-Object {
-  "id": Any<String>,
-  "mode": "full",
-  "name": "default-backupNg",
-  "settings": Any<Object>,
-  "type": "backup",
-  "userId": Any<String>,
-  "vms": Any<Object>,
-}
-`;
-
-exports[`backupNg .createJob() : creates a new backup job with schedules 2`] = `
-Object {
-  "cron": "0 * * * * *",
-  "enabled": false,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "name": "scheduleTest",
-}
-`;
-
-exports[`backupNg .createJob() : creates a new backup job without schedules 1`] = `
-Object {
-  "id": Any<String>,
-  "mode": "full",
-  "name": "default-backupNg",
-  "settings": Object {
-    "": Object {
-      "reportWhen": "never",
-    },
-  },
-  "type": "backup",
-  "userId": Any<String>,
-  "vms": Any<Object>,
-}
-`;
-
 exports[`backupNg .runJob() : fails trying to run a backup job with a VM without disks 1`] = `
-Object {
-  "data": Object {
-    "mode": "full",
-    "reportWhen": "never",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "jobName": "default-backupNg",
-  "message": "backup",
-  "scheduleId": Any<String>,
-  "start": Any<Number>,
-  "status": "skipped",
-}
-`;
-
-exports[`backupNg .runJob() : fails trying to run a backup job with a VM without disks 2`] = `
 Object {
   "data": Object {
     "id": Any<String>,
@@ -94,23 +39,6 @@ exports[`backupNg .runJob() : fails trying to run a backup job without schedule 
 exports[`backupNg .runJob() : fails trying to run backup job without retentions 1`] = `
 Object {
   "data": Object {
-    "mode": "full",
-    "reportWhen": "never",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "jobName": "default-backupNg",
-  "message": "backup",
-  "scheduleId": Any<String>,
-  "start": Any<Number>,
-  "status": "failure",
-}
-`;
-
-exports[`backupNg .runJob() : fails trying to run backup job without retentions 2`] = `
-Object {
-  "data": Object {
     "id": Any<String>,
     "type": "VM",
   },
@@ -130,22 +58,6 @@ Object {
 exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 1`] = `
 Object {
   "data": Object {
-    "mode": "delta",
-    "reportWhen": "never",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "message": "backup",
-  "scheduleId": Any<String>,
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 2`] = `
-Object {
-  "data": Object {
     "id": Any<String>,
     "type": "VM",
   },
@@ -157,7 +69,7 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 3`] = `
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 2`] = `
 Object {
   "end": Any<Number>,
   "id": Any<String>,
@@ -168,7 +80,7 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 4`] = `
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 3`] = `
 Object {
   "data": Object {
     "id": Any<String>,
@@ -178,6 +90,19 @@ Object {
   "end": Any<Number>,
   "id": Any<String>,
   "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 4`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
   "start": Any<Number>,
   "status": "success",
 }
@@ -198,19 +123,6 @@ Object {
 
 exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 6`] = `
 Object {
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "size": Any<Number>,
-  },
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 7`] = `
-Object {
   "data": Object {
     "id": Any<String>,
     "isFull": true,
@@ -219,6 +131,19 @@ Object {
   "end": Any<Number>,
   "id": Any<String>,
   "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 7`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
   "start": Any<Number>,
   "status": "success",
 }
@@ -239,35 +164,6 @@ Object {
 
 exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 9`] = `
 Object {
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "size": Any<Number>,
-  },
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 10`] = `
-Object {
-  "data": Object {
-    "mode": "delta",
-    "reportWhen": "never",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "message": "backup",
-  "scheduleId": Any<String>,
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 11`] = `
-Object {
   "data": Object {
     "id": Any<String>,
     "type": "VM",
@@ -280,7 +176,7 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 12`] = `
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 10`] = `
 Object {
   "end": Any<Number>,
   "id": Any<String>,
@@ -291,7 +187,7 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 13`] = `
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 11`] = `
 Object {
   "data": Object {
     "id": Any<String>,
@@ -306,7 +202,7 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 14`] = `
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 12`] = `
 Object {
   "end": Any<Number>,
   "id": Any<String>,
@@ -314,6 +210,34 @@ Object {
   "result": Object {
     "size": Any<Number>,
   },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 13`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 14`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": false,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
   "start": Any<Number>,
   "status": "success",
 }
@@ -334,62 +258,18 @@ Object {
 
 exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 16`] = `
 Object {
-  "data": Object {
-    "id": Any<String>,
-    "isFull": false,
-    "type": "remote",
-  },
   "end": Any<Number>,
   "id": Any<String>,
   "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
   "start": Any<Number>,
   "status": "success",
 }
 `;
 
 exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 17`] = `
-Object {
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "size": Any<Number>,
-  },
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 18`] = `
-Object {
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "size": Any<Number>,
-  },
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 19`] = `
-Object {
-  "data": Object {
-    "mode": "delta",
-    "reportWhen": "never",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "message": "backup",
-  "scheduleId": Any<String>,
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 20`] = `
 Object {
   "data": Object {
     "id": Any<String>,
@@ -403,12 +283,53 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 21`] = `
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 18`] = `
 Object {
   "end": Any<Number>,
   "id": Any<String>,
   "message": "snapshot",
   "result": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 19`] = `
+Object {
+  "data": Object {
+    "id": Any<String>,
+    "isFull": true,
+    "type": "remote",
+  },
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 20`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
+  "start": Any<Number>,
+  "status": "success",
+}
+`;
+
+exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 21`] = `
+Object {
+  "end": Any<Number>,
+  "id": Any<String>,
+  "message": Any<String>,
+  "result": Object {
+    "size": Any<Number>,
+  },
   "start": Any<Number>,
   "status": "success",
 }
@@ -455,65 +376,7 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 25`] = `
-Object {
-  "data": Object {
-    "id": Any<String>,
-    "isFull": true,
-    "type": "remote",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 26`] = `
-Object {
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "size": Any<Number>,
-  },
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retention and 2 as fullInterval 27`] = `
-Object {
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "size": Any<Number>,
-  },
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
 exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 1`] = `
-Object {
-  "data": Object {
-    "mode": "full",
-    "reportWhen": "never",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "jobId": Any<String>,
-  "jobName": "default-backupNg",
-  "message": "backup",
-  "scheduleId": Any<String>,
-  "start": Any<Number>,
-  "status": "success",
-}
-`;
-
-exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 2`] = `
 Object {
   "end": Any<Number>,
   "id": Any<String>,
@@ -524,7 +387,7 @@ Object {
 }
 `;
 
-exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 3`] = `
+exports[`backupNg execute three times a rolling snapshot with 2 as retention & revert to an old state 2`] = `
 Object {
   "data": Object {
     "id": Any<String>,

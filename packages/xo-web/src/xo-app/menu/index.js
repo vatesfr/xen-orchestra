@@ -281,6 +281,11 @@ export default class Menu extends Component {
             label: 'notificationsPage',
             extra: <NotificationTag />,
           },
+          isAdmin && {
+            to: 'xoa/support',
+            icon: 'menu-support',
+            label: 'supportPage',
+          },
         ],
       },
       isAdmin && {
@@ -353,6 +358,11 @@ export default class Menu extends Component {
             label: 'jobsSchedulingPage',
           },
         ],
+      },
+      isAdmin && {
+        to: '/hub',
+        icon: 'menu-hub',
+        label: 'hubPage',
       },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       !noOperatablePools && {

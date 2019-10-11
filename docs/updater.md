@@ -41,6 +41,20 @@ However, if you want to start a manual check, you can do it by clicking on the "
 
 ![](./assets/xo5updatebutton.png)
 
+#### Release channel
+In Xen Orchestra, you can make a choice between two different release channels.
+
+##### Stable
+The stable channel is intended to be a version of Xen Orchestra that is already **one month old** (and therefore will benefit from one month of community feedback and various fixes). This way, users more concerned with the stability of their appliance will have the option to stay on a slightly older (and tested) version of XO (still supported by our pro support).
+
+##### Latest
+
+The latest channel will include all the latest improvements available in Xen Orchestra. The version available in latest has already been QA'd by our team, but issues may still occur once deployed in vastly varying environments, such as our user base has.
+
+> To select the release channel of your choice, go to the XOA > Updates view.
+
+![](./assets/release-channels.png)
+
 #### Upgrade
 
 If a new version is found, you'll have an upgrade button and its tooltip displayed:

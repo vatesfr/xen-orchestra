@@ -5,7 +5,7 @@ import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { flatten, forEach, identity, isArray, map, sortedIndex } from 'lodash'
+import { flatten, forEach, identity, map, sortedIndex } from 'lodash'
 
 import _ from './intl'
 import Button from './button'
@@ -262,7 +262,7 @@ const TimePicker = decorate([
   provideState({
     effects: {
       onChange: (_, value) => ({ optionsValues }, { onChange }) => {
-        if (isArray(value)) {
+        if (Array.isArray(value)) {
           value = value.length === optionsValues.length ? '*' : value.join(',')
         } else {
           value = `*/${value}`
@@ -468,14 +468,14 @@ export default class Scheduler extends Component {
               optionRenderer={getMonthName}
               options={MONTHS}
               onChange={this._monthChange}
-              value={cronPatternArr[PICKTIME_TO_ID['month']]}
+              value={cronPatternArr[PICKTIME_TO_ID.month]}
             />
           </Col>
           <Col largeSize={6}>
             <DayPicker
               onChange={this._dayChange}
-              monthDayPattern={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
-              weekDayPattern={cronPatternArr[PICKTIME_TO_ID['weekDay']]}
+              monthDayPattern={cronPatternArr[PICKTIME_TO_ID.monthDay]}
+              weekDayPattern={cronPatternArr[PICKTIME_TO_ID.weekDay]}
             />
           </Col>
         </Row>
@@ -485,7 +485,7 @@ export default class Scheduler extends Component {
               labelId='Hour'
               options={HOURS}
               onChange={this._hourChange}
-              value={cronPatternArr[PICKTIME_TO_ID['hour']]}
+              value={cronPatternArr[PICKTIME_TO_ID.hour]}
             />
           </Col>
           <Col largeSize={6}>
@@ -493,7 +493,7 @@ export default class Scheduler extends Component {
               labelId='Minute'
               options={MINS}
               onChange={this._minuteChange}
-              value={cronPatternArr[PICKTIME_TO_ID['minute']]}
+              value={cronPatternArr[PICKTIME_TO_ID.minute]}
             />
           </Col>
         </Row>

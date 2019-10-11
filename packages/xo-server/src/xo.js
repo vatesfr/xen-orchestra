@@ -9,7 +9,6 @@ import {
   forEach,
   includes,
   isEmpty,
-  isFunction,
   isString,
   iteratee,
   map as mapToArray,
@@ -210,7 +209,7 @@ export default class Xo extends EventEmitter {
     }
 
     // For security, prevent from accessing `this`.
-    if (isFunction(value)) {
+    if (typeof value === 'function') {
       value = (value =>
         function() {
           return value.apply(thisArg, arguments)

@@ -3,11 +3,12 @@ import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 
 import createNdJsonStream from '../_createNdJsonStream'
+import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { safeDateFormat } from '../utils'
 
 export function createJob({ schedules, ...job }) {
   job.userId = this.user.id
-  return this.createBackupNgJob(job, schedules)
+  return this.createBackupNgJob(job, schedules).then(({ id }) => id)
 }
 
 createJob.permission = 'admin'
@@ -192,7 +193,20 @@ getAllLogs.params = {
   ndjson: { type: 'boolean', optional: true },
 }
 
-export function getLogs({ after, before, limit, ...filter }) {
+export function getLogs({
+  after,
+  before,
+  limit,
+
+  // TODO: it's a temporary work-around which should be removed
+  // when the consolidated logs will be stored in the DB
+  _forceRefresh = false,
+
+  ...filter
+}) {
+  if (_forceRefresh) {
+    this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+  }
   return this.getBackupNgLogsSorted({ after, before, limit, filter })
 }
 

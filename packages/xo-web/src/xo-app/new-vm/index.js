@@ -11,6 +11,7 @@ import Page from '../page'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SelectBootFirmware from 'select-boot-firmware'
+import SelectCoresPerSocket from 'select-cores-per-socket'
 import store from 'store'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
@@ -80,7 +81,6 @@ import {
   addSubscriptions,
   connectStore,
   formatSize,
-  getCoresPerSocketPossibilities,
   generateReadableRandomString,
   resolveIds,
 } from 'utils'
@@ -259,7 +259,7 @@ class Vif extends BaseComponent {
       props.pool === undefined // to get objects as a self user
     ),
     srs: getSrs(state, props),
-    template: getTemplate(state, props),
+    template: getTemplate(state, props, props.pool === undefined),
     templates: getTemplates(state, props),
     userSshKeys: getUserSshKeys(state, props),
   })
@@ -280,7 +280,12 @@ export default class NewVm extends BaseComponent {
   }
 
   componentDidMount() {
-    this._reset()
+    this._reset(() => {
+      const { template } = this.props
+      if (template !== undefined) {
+        this._initTemplate(this.props.template)
+      }
+    })
   }
 
   componentDidUpdate(prevProps) {
@@ -338,28 +343,32 @@ export default class NewVm extends BaseComponent {
 
   // Actions ---------------------------------------------------------------------
 
-  _reset = () => {
-    this._replaceState({
-      bootAfterCreate: true,
-      CPUs: '',
-      cpuCap: '',
-      cpuWeight: '',
-      existingDisks: {},
-      fastClone: true,
-      hvmBootFirmware: '',
-      installMethod: 'noConfigDrive',
-      multipleVms: false,
-      name_label: '',
-      name_description: '',
-      nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
-      namePattern: '{name}%',
-      nbVms: NB_VMS_MIN,
-      VDIs: [],
-      VIFs: [],
-      seqStart: 1,
-      share: false,
-      tags: [],
-    })
+  _reset = callback => {
+    this._replaceState(
+      {
+        bootAfterCreate: true,
+        coresPerSocket: undefined,
+        CPUs: '',
+        cpuCap: '',
+        cpuWeight: '',
+        existingDisks: {},
+        fastClone: true,
+        hvmBootFirmware: '',
+        installMethod: 'noConfigDrive',
+        multipleVms: false,
+        name_label: '',
+        name_description: '',
+        nameLabels: map(Array(NB_VMS_MIN), (_, index) => `VM_${index + 1}`),
+        namePattern: '{name}%',
+        nbVms: NB_VMS_MIN,
+        VDIs: [],
+        VIFs: [],
+        seqStart: 1,
+        share: false,
+        tags: [],
+      },
+      callback
+    )
   }
 
   _selfCreate = () => {
@@ -492,7 +501,8 @@ export default class NewVm extends BaseComponent {
       VIFs: _VIFs,
       resourceSet: resourceSet && resourceSet.id,
       // vm.set parameters
-      coresPerSocket: state.coresPerSocket,
+      coresPerSocket:
+        state.coresPerSocket === null ? undefined : state.coresPerSocket,
       CPUs: state.CPUs,
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
@@ -751,17 +761,6 @@ export default class NewVm extends BaseComponent {
   _getVgpuTypePredicate = createSelector(
     () => this.props.pool,
     pool => vgpuType => pool !== undefined && pool.id === vgpuType.$pool
-  )
-
-  _getCoresPerSocketPossibilities = createSelector(
-    () => {
-      const { pool } = this.props
-      if (pool !== undefined) {
-        return pool.cpus.cores
-      }
-    },
-    () => this.state.state.CPUs,
-    getCoresPerSocketPossibilities
   )
 
   _isCoreOs = createSelector(
@@ -1071,7 +1070,17 @@ export default class NewVm extends BaseComponent {
   _renderPerformances = () => {
     const { coresPerSocket, CPUs, memoryDynamicMax } = this.state.state
     const { template } = this.props
+    const { pool } = this.props
     const memoryThreshold = get(() => template.memory.static[0])
+    const selectCoresPerSocket = (
+      <SelectCoresPerSocket
+        disabled={pool === undefined}
+        maxCores={get(() => pool.cpus.cores)}
+        maxVcpus={get(() => template.CPUs.max)}
+        onChange={this._linkState('coresPerSocket')}
+        value={coresPerSocket}
+      />
+    )
 
     return (
       <Section
@@ -1106,29 +1115,13 @@ export default class NewVm extends BaseComponent {
             )}
           </Item>
           <Item label={_('vmCpuTopology')}>
-            <select
-              className='form-control'
-              onChange={this._linkState('coresPerSocket')}
-              value={coresPerSocket}
-            >
-              {_('vmChooseCoresPerSocket', message => (
-                <option value=''>{message}</option>
-              ))}
-              {map(this._getCoresPerSocketPossibilities(), coresPerSocket =>
-                _(
-                  'vmCoresPerSocket',
-                  {
-                    nSockets: CPUs / coresPerSocket,
-                    nCores: coresPerSocket,
-                  },
-                  message => (
-                    <option key={coresPerSocket} value={coresPerSocket}>
-                      {message}
-                    </option>
-                  )
-                )
-              )}
-            </select>
+            {pool !== undefined ? (
+              selectCoresPerSocket
+            ) : (
+              <Tooltip content={_('requiresAdminPermissions')}>
+                {selectCoresPerSocket}
+              </Tooltip>
+            )}
           </Item>
         </SectionContent>
       </Section>
