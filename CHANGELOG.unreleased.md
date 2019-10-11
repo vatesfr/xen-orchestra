@@ -21,6 +21,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-backup-reports v0.16.3
 - vhd-lib v0.7.1
 - xo-server v5.52.0
 - xo-web v5.52.0
