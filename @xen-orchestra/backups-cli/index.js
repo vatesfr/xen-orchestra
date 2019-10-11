@@ -53,6 +53,9 @@ const filter = (...args) => thisArg => thisArg.filter(...args)
 // - these files were invalid but without data loss
 // - these files were invalid but with silent data loss
 //
+// FIXME: the heuristic does not work if the XVA is compressed, we need to
+// implement a specific test for it
+//
 // maybe reading the end of the file looking for a file named
 // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
 //
