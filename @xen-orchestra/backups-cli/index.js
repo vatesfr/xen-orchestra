@@ -88,13 +88,22 @@ const isValidTar = async path => {
 const noop = Function.prototype
 
 const readDir = path =>
-  fs.readdir(path).then(entries => {
-    entries.forEach((entry, i) => {
-      entries[i] = `${path}/${entry}`
-    })
+  fs.readdir(path).then(
+    entries => {
+      entries.forEach((entry, i) => {
+        entries[i] = `${path}/${entry}`
+      })
 
-    return entries
-  })
+      return entries
+    },
+    error => {
+      // a missing dir is by definition empty
+      if (error != null && error.code === 'ENOENT') {
+        return []
+      }
+      throw error
+    }
+  )
 
 // -----------------------------------------------------------------------------
 
