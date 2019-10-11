@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import isString from 'lodash/isString'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -160,7 +159,7 @@ export default class Tooltip extends Component {
       return <span />
     }
 
-    if (isString(children)) {
+    if (typeof children === 'string') {
       return <span>{children}</span>
     }
 

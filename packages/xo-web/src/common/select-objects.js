@@ -9,7 +9,6 @@ import {
   includes,
   isEmpty,
   isInteger,
-  isString,
   keyBy,
   keys,
   map,
@@ -58,7 +57,7 @@ import {
 const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 
 const getIds = value =>
-  value == null || isString(value) || isInteger(value)
+  value == null || typeof value === 'string' || isInteger(value)
     ? value
     : Array.isArray(value)
     ? map(value, getIds)

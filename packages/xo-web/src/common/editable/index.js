@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { isEmpty, isString, map, pick } from 'lodash'
+import { isEmpty, map, pick } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
@@ -132,7 +132,9 @@ class Editable extends Component {
     } catch (error) {
       this.setState({
         // `error` may be undefined if the action has been cancelled
-        error: error !== undefined && (isString(error) ? error : error.message),
+        error:
+          error !== undefined &&
+          (typeof error === 'string' ? error : error.message),
         saving: false,
       })
       logError(error)
