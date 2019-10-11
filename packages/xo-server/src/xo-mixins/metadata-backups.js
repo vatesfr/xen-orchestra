@@ -493,12 +493,14 @@ export default class metadataBackup {
             handlers[id] = handler
           },
           error => {
-            logger.warning(`unable to get the handler for the remote (${id})`, {
-              event: 'task.warning',
-              taskId: runJobId,
+            logInstantFailureTask(logger, {
               data: {
-                error,
+                type: 'remote',
+                id,
               },
+              error,
+              message: `unable to get the handler for the remote (${id})`,
+              parentId: runJobId,
             })
           }
         )
