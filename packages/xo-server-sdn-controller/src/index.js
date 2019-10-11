@@ -5,7 +5,7 @@ import uuidv4 from 'uuid/v4'
 import { access, constants, readFile, writeFile } from 'fs'
 import { EventEmitter } from 'events'
 import { filter, find, forOwn, map, omitBy, sample } from 'lodash'
-import { fromCallback, fromEvent, promisify } from 'promise-toolbox'
+import { fromCallback, promisify } from 'promise-toolbox'
 import { join } from 'path'
 
 import { OvsdbClient } from './ovsdb-client'
@@ -101,6 +101,102 @@ const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
 const createPassword = () =>
   Array.from({ length: 16 }, _ => sample(CHARS)).join('')
 
+// -----------------------------------------------------------------------------
+
+async function generateCertificatesAndKey(dataDir) {
+  const openssl = new NodeOpenssl()
+  const rsaKeyOptions = {
+    rsa_keygen_bits: 4096,
+    format: 'PKCS8',
+  }
+  const subject = {
+    countryName: 'XX',
+    localityName: 'Default City',
+    organizationName: 'Default Company LTD',
+  }
+  const csrOptions = {
+    hash: 'sha256',
+    startdate: new Date('1984-02-04 00:00:00'),
+    enddate: new Date('2143-06-04 04:16:23'),
+    subject: subject,
+  }
+  const caCsrOptions = {
+    hash: 'sha256',
+    days: NB_DAYS,
+    subject: subject,
+  }
+
+  let operation
+  try {
+    // CA Cert
+    operation = 'Generating CA private key'
+    const caKey = await fromCallback.call(
+      openssl,
+      'generateRSAPrivateKey',
+      rsaKeyOptions
+    )
+
+    operation = 'Generating CA certificate'
+    const caCsr = await fromCallback.call(
+      openssl,
+      'generateCSR',
+      caCsrOptions,
+      caKey,
+      null
+    )
+
+    operation = 'Signing CA certificate'
+    const caCrt = await fromCallback.call(
+      openssl,
+      'selfSignCSR',
+      caCsr,
+      caCsrOptions,
+      caKey,
+      null
+    )
+    await fileWrite(join(dataDir, CA_CERT), caCrt)
+
+    // Cert
+    operation = 'Generating private key'
+    const key = await fromCallback.call(
+      openssl,
+      'generateRSAPrivateKey',
+      rsaKeyOptions
+    )
+    await fileWrite(join(dataDir, CLIENT_KEY), key)
+
+    operation = 'Generating certificate'
+    const csr = await fromCallback.call(
+      openssl,
+      'generateCSR',
+      csrOptions,
+      key,
+      null
+    )
+
+    operation = 'Signing certificate'
+    const crt = await fromCallback.call(
+      openssl,
+      'CASignCSR',
+      csr,
+      caCsrOptions,
+      false,
+      caCrt,
+      caKey,
+      null
+    )
+    await fileWrite(join(dataDir, CLIENT_CERT), crt)
+  } catch (error) {
+    log.error('Error while generating certificates and keys', {
+      operation,
+      error,
+    })
+    throw error
+  }
+
+  log.debug('All certificates have been successfully written')
+}
+
 // =============================================================================
 
 class SDNController extends EventEmitter {
@@ -167,7 +263,7 @@ class SDNController extends EventEmitter {
         )
 
         log.debug(`No default self-signed certificates exists, creating them`)
-        await this._generateCertificatesAndKey(certDirectory)
+        await generateCertificatesAndKey(certDirectory)
       }
     }
     // TODO: verify certificates and create new certificates if needed
@@ -1423,119 +1519,6 @@ class SDNController extends EventEmitter {
     )
     this._ovsdbClients.push(client)
     return client
-  }
-
-  // ---------------------------------------------------------------------------
-
-  async _generateCertificatesAndKey(dataDir) {
-    const openssl = new NodeOpenssl()
-
-    const rsakeyoptions = {
-      rsa_keygen_bits: 4096,
-      format: 'PKCS8',
-    }
-    const subject = {
-      countryName: 'XX',
-      localityName: 'Default City',
-      organizationName: 'Default Company LTD',
-    }
-    const csroptions = {
-      hash: 'sha256',
-      startdate: new Date('1984-02-04 00:00:00'),
-      enddate: new Date('2143-06-04 04:16:23'),
-      subject: subject,
-    }
-    const cacsroptions = {
-      hash: 'sha256',
-      days: NB_DAYS,
-      subject: subject,
-    }
-
-    // In all the following callbacks, `error` is:
-    // - either an error object if there was an error
-    // - or a boolean set to `false` if no error occurred
-    openssl.generateRSAPrivateKey(rsakeyoptions, (error, cakey, cmd) => {
-      if (error !== false) {
-        log.error('Error while generating CA private key', {
-          error,
-        })
-        return
-      }
-
-      openssl.generateCSR(cacsroptions, cakey, null, (error, csr, cmd) => {
-        if (error !== false) {
-          log.error('Error while generating CA certificate', {
-            error,
-          })
-          return
-        }
-
-        openssl.selfSignCSR(
-          csr,
-          cacsroptions,
-          cakey,
-          null,
-          async (error, cacrt, cmd) => {
-            if (error !== false) {
-              log.error('Error while signing CA certificate', {
-                error,
-              })
-              return
-            }
-
-            await fileWrite(join(dataDir, CA_CERT), cacrt)
-            openssl.generateRSAPrivateKey(
-              rsakeyoptions,
-              async (error, key, cmd) => {
-                if (error !== false) {
-                  log.error('Error while generating private key', {
-                    error,
-                  })
-                  return
-                }
-
-                await fileWrite(join(dataDir, CLIENT_KEY), key)
-                openssl.generateCSR(
-                  csroptions,
-                  key,
-                  null,
-                  (error, csr, cmd) => {
-                    if (error !== false) {
-                      log.error('Error while generating certificate', {
-                        error,
-                      })
-                      return
-                    }
-                    openssl.CASignCSR(
-                      csr,
-                      cacsroptions,
-                      false,
-                      cacrt,
-                      cakey,
-                      null,
-                      async (error, crt, cmd) => {
-                        if (error !== false) {
-                          log.error('Error while signing certificate', {
-                            error,
-                          })
-                          return
-                        }
-
-                        await fileWrite(join(dataDir, CLIENT_CERT), crt)
-                        this.emit('certWritten')
-                      }
-                    )
-                  }
-                )
-              }
-            )
-          }
-        )
-      })
-    })
-
-    await fromEvent(this, 'certWritten', {})
-    log.debug('All certificates have been successfully written')
   }
 }
 

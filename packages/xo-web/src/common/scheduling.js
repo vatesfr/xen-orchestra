@@ -5,7 +5,7 @@ import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { flatten, forEach, identity, isArray, map, sortedIndex } from 'lodash'
+import { flatten, forEach, identity, map, sortedIndex } from 'lodash'
 
 import _ from './intl'
 import Button from './button'
@@ -262,7 +262,7 @@ const TimePicker = decorate([
   provideState({
     effects: {
       onChange: (_, value) => ({ optionsValues }, { onChange }) => {
-        if (isArray(value)) {
+        if (Array.isArray(value)) {
           value = value.length === optionsValues.length ? '*' : value.join(',')
         } else {
           value = `*/${value}`

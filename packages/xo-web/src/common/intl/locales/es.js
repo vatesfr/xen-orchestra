@@ -2142,7 +2142,7 @@ export default {
   vmChooseCoresPerSocket: undefined,
 
   // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: undefined,
+  vmSocketsWithCoresPerSocket: undefined,
 
   // Original text: 'Incorrect cores per socket value'
   vmCoresPerSocketIncorrectValue: undefined,

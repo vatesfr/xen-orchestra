@@ -8,7 +8,7 @@ import { safeDateFormat } from '../utils'
 
 export function createJob({ schedules, ...job }) {
   job.userId = this.user.id
-  return this.createBackupNgJob(job, schedules)
+  return this.createBackupNgJob(job, schedules).then(({ id }) => id)
 }
 
 createJob.permission = 'admin'

@@ -12,7 +12,7 @@ import {
   getOneHost,
   waitObjectState,
 } from './util'
-import { assign, map } from 'lodash'
+import { map } from 'lodash'
 import eventToPromise from 'event-to-promise'
 
 // ===================================================================
@@ -33,7 +33,7 @@ describe('vbd', () => {
 
     serverId = await xo.call(
       'server.add',
-      assign({ autoConnect: false }, config.xenServer1)
+      Object.assign({ autoConnect: false }, config.xenServer1)
     )
     await xo.call('server.connect', { id: serverId })
     await eventToPromise(xo.objects, 'finish')

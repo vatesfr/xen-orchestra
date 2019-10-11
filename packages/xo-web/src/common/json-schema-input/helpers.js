@@ -1,6 +1,5 @@
 import React from 'react'
 import includes from 'lodash/includes'
-import isArray from 'lodash/isArray'
 import marked from 'marked'
 
 import { Col, Row } from 'grid'
@@ -14,7 +13,7 @@ export const getType = schema => {
 
   const type = schema.type
 
-  if (isArray(type)) {
+  if (Array.isArray(type)) {
     if (includes(type, 'integer')) {
       return 'integer'
     }

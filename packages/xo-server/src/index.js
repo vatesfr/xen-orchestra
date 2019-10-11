@@ -29,7 +29,7 @@ import { ensureDir, readdir, readFile } from 'fs-extra'
 
 import parseDuration from './_parseDuration'
 import Xo from './xo'
-import { forEach, isArray, mapToArray, pFromCallback } from './utils'
+import { forEach, mapToArray, pFromCallback } from './utils'
 
 import bodyParser from 'body-parser'
 import connectFlash from 'connect-flash'
@@ -463,7 +463,7 @@ const setUpProxies = (express, opts, xo) => {
 
 const setUpStaticFiles = (express, opts) => {
   forEach(opts, (paths, url) => {
-    if (!isArray(paths)) {
+    if (!Array.isArray(paths)) {
       paths = [paths]
     }
 

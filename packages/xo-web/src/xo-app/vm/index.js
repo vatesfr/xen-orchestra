@@ -8,7 +8,7 @@ import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
 import { Host, Pool } from 'render-xo-item'
 import { Text, XoSelect } from 'editable'
-import { assign, isEmpty, map, pick } from 'lodash'
+import { isEmpty, map, pick } from 'lodash'
 import { editVm, fetchVmStats, isVmRunning, migrateVm } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, routes } from 'utils'
@@ -295,7 +295,7 @@ export default class Vm extends BaseComponent {
       return <h1>{_('statusLoading')}</h1>
     }
 
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'container',
         'pool',

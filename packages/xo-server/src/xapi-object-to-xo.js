@@ -3,7 +3,6 @@ import ensureArray from './_ensureArray'
 import {
   extractProperty,
   forEach,
-  isArray,
   isEmpty,
   mapFilter,
   mapToArray,
@@ -27,7 +26,7 @@ function link(obj, prop, idField = '$id') {
     return dynamicValue // Properly handles null and undefined.
   }
 
-  if (isArray(dynamicValue)) {
+  if (Array.isArray(dynamicValue)) {
     return mapToArray(dynamicValue, idField)
   }
 

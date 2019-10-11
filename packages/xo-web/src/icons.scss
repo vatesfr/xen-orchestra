@@ -830,6 +830,10 @@
     @extend .fa;
     @extend .fa-bell;
   }
+  &-menu-support {
+    @extend .fa;
+    @extend .fa-support;
+  }
   &-menu-settings {
     @extend .fa;
     @extend .fa-cog;

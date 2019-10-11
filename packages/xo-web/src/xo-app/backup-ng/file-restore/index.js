@@ -17,7 +17,6 @@ import {
   subscribeRemotes,
 } from 'xo'
 import {
-  assign,
   filter,
   find,
   flatMap,
@@ -149,7 +148,7 @@ export default class Restore extends Component {
         count++
       })
 
-      assign(data, { first, last, count, id: vmId })
+      Object.assign(data, { first, last, count, id: vmId })
     })
 
     forEach(backupDataByVm, ({ backups }, vmId) => {

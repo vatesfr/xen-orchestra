@@ -8,7 +8,6 @@ import {
   clone,
   every,
   forEach,
-  isArray,
   isEmpty,
   isFunction,
   isPlainObject,
@@ -258,7 +257,7 @@ const NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 //
 // TODO: add support for function childRoutes (getChildRoutes).
 export const routes = (indexRoute, childRoutes) => target => {
-  if (isArray(indexRoute)) {
+  if (Array.isArray(indexRoute)) {
     childRoutes = indexRoute
     indexRoute = undefined
   } else if (typeof indexRoute === 'function') {
@@ -448,26 +447,6 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
 export const isXosanPack = ({ name }) => name.startsWith('XOSAN')
 
 // ===================================================================
-
-export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
-  // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
-  const maxVCPUs = 16
-
-  const options = []
-  if (maxCoresPerSocket !== undefined && vCPUs !== '') {
-    const ratio = vCPUs / maxVCPUs
-
-    for (
-      let coresPerSocket = maxCoresPerSocket;
-      coresPerSocket >= ratio;
-      coresPerSocket--
-    ) {
-      if (vCPUs % coresPerSocket === 0) options.push(coresPerSocket)
-    }
-  }
-
-  return options
-}
 
 // Generates a random human-readable string of length `length`
 // Useful to generate random default names intended for the UI user
