@@ -10,7 +10,6 @@ import {
   identity,
   isArrayLike,
   isEmpty,
-  isFunction,
   keys,
   map,
   orderBy,
@@ -80,7 +79,7 @@ const _create2 = (...inputs) => {
   for (let i = 0; i < n; ++i) {
     const input = inputs[i]
 
-    if (isFunction(input)) {
+    if (typeof input === 'function') {
       inputSelectors.push(input)
       inputs[i] = _SELECTOR_PLACEHOLDER
     } else if (Array.isArray(input) && input.length === 1) {
@@ -351,7 +350,9 @@ export const createSortForType = invoke(() => {
   const getOrders = type => ordersByType[type]
 
   const autoSelector = (type, fn) =>
-    isFunction(type) ? (state, props) => fn(type(state, props)) : [fn(type)]
+    typeof type === 'function'
+      ? (state, props) => fn(type(state, props))
+      : [fn(type)]
 
   return (type, collection) =>
     createSort(
@@ -422,9 +423,11 @@ const _extendCollectionSelector = (selector, objectsType) => {
 // - sort: returns a selector which returns the objects appropriately
 //         sorted (groupBy can be chained)
 export const createGetObjectsOfType = type => {
-  const getObjects = isFunction(type)
-    ? (state, props) => state.objects.byType[type(state, props)] || EMPTY_OBJECT
-    : state => state.objects.byType[type] || EMPTY_OBJECT
+  const getObjects =
+    typeof type === 'function'
+      ? (state, props) =>
+          state.objects.byType[type(state, props)] || EMPTY_OBJECT
+      : state => state.objects.byType[type] || EMPTY_OBJECT
 
   return _extendCollectionSelector(
     createFilter(getObjects, _getPermissionsPredicate),

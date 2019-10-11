@@ -2,7 +2,7 @@ import createLogger from '@xen-orchestra/log'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
-import { forEach, isFunction } from 'lodash'
+import { forEach } from 'lodash'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { MethodNotFound } from 'json-rpc-peer'
 
@@ -183,7 +183,7 @@ export default class Api {
     const addMethod = (method, name) => {
       name = base + name
 
-      if (isFunction(method)) {
+      if (typeof method === 'function') {
         removes.push(this.addApiMethod(name, method))
         return
       }

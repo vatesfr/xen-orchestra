@@ -20,7 +20,6 @@ import {
   forEach,
   get as getProperty,
   isEmpty,
-  isFunction,
   map,
   sortBy,
 } from 'lodash'
@@ -214,17 +213,17 @@ const Action = decorate([
   provideState({
     computed: {
       disabled: ({ items }, { disabled, userData }) =>
-        isFunction(disabled) ? disabled(items, userData) : disabled,
+        typeof disabled === 'function' ? disabled(items, userData) : disabled,
       handler: ({ items }, { handler, userData }) => () =>
         handler(items, userData),
       icon: ({ items }, { icon, userData }) =>
-        isFunction(icon) ? icon(items, userData) : icon,
+        typeof icon === 'function' ? icon(items, userData) : icon,
       items: (_, { items, grouped }) =>
         Array.isArray(items) || !grouped ? items : [items],
       label: ({ items }, { label, userData }) =>
-        isFunction(label) ? label(items, userData) : label,
+        typeof label === 'function' ? label(items, userData) : label,
       level: ({ items }, { level, userData }) =>
-        isFunction(level) ? level(items, userData) : level,
+        typeof level === 'function' ? level(items, userData) : level,
     },
   }),
   injectState,
@@ -492,7 +491,9 @@ export default class SortedTable extends Component {
             if (item !== undefined) {
               if (rowLink !== undefined) {
                 this.context.router.push(
-                  isFunction(rowLink) ? rowLink(item, userData) : rowLink
+                  typeof rowLink === 'function'
+                    ? rowLink(item, userData)
+                    : rowLink
                 )
               } else if (rowAction !== undefined) {
                 rowAction(item, userData)
@@ -784,7 +785,7 @@ export default class SortedTable extends Component {
         className={state.highlighted === i ? styles.highlight : undefined}
         key={id}
         tagName='tr'
-        to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
+        to={typeof rowLink === 'function' ? rowLink(item, userData) : rowLink}
       >
         {selectionColumn}
         {columns}
