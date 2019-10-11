@@ -346,6 +346,8 @@ export default {
       )
     }
 
+    // XCP-ng hosts need to be updated one at a time starting with the pool master
+    // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
     for (const host of hosts) {
       const update = await this.call(
