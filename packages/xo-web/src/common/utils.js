@@ -11,7 +11,6 @@ import {
   isEmpty,
   isFunction,
   isPlainObject,
-  isString,
   map,
   mapValues,
   pick,
@@ -264,7 +263,7 @@ export const routes = (indexRoute, childRoutes) => target => {
     indexRoute = {
       component: indexRoute,
     }
-  } else if (isString(indexRoute)) {
+  } else if (typeof indexRoute === 'string') {
     indexRoute = {
       onEnter: invoke(indexRoute, pathname => (state, replace) => {
         const current = state.location.pathname
@@ -306,7 +305,7 @@ export const routes = (indexRoute, childRoutes) => target => {
 // function foo (param = throwFn('param is required')) {}
 // ```
 export const throwFn = error => () => {
-  throw isString(error) ? new Error(error) : error
+  throw typeof error === 'string' ? new Error(error) : error
 }
 
 // ===================================================================
