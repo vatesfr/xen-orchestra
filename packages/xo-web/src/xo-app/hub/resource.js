@@ -76,6 +76,12 @@ export default decorate([
           size: 'medium',
         })
 
+        resourceParams.pools.forEach(pool => {
+          if (!(pool.id in resourceParams.mapPoolsSrs)) {
+            resourceParams.mapPoolsSrs[pool.id] = pool.default_SR
+          }
+        })
+
         markHubResourceAsInstalling(id)
         try {
           await Promise.all(
