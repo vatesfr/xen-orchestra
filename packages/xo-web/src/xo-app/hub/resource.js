@@ -40,9 +40,6 @@ export default decorate([
     }
   }),
   provideState({
-    initialState: () => ({
-      pool: undefined,
-    }),
     effects: {
       async install() {
         const {
@@ -106,7 +103,6 @@ export default decorate([
         }
         const resourceParams = await form({
           defaultValue: {
-            mapPoolsSrs: {},
             pool: undefined,
           },
           render: props => (
@@ -133,7 +129,6 @@ export default decorate([
         const { isPoolCreated } = this.state
         const resourceParams = await form({
           defaultValue: {
-            mapPoolsSrs: {},
             pools: [],
           },
           render: props => (
@@ -155,11 +150,6 @@ export default decorate([
           find(resourceParams.pools, { $pool: template.$pool })
         )
         await deleteTemplates(_templates)
-      },
-      updateSelectedCreatePool(_, selectedCreatePool) {
-        return {
-          selectedCreatePool,
-        }
       },
       redirectToTaskPage() {
         this.props.router.push('/tasks')

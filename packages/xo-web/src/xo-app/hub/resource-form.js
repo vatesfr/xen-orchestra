@@ -24,10 +24,11 @@ export default decorate([
         })
       },
       onChangeSr(__, sr) {
+        const { value } = this.props
         this.props.onChange({
-          ...this.props.value,
+          ...value,
           mapPoolsSrs: {
-            ...this.props.value.mapPoolsSrs,
+            ...value.mapPoolsSrs,
             [sr.$pool]: sr.id,
           },
         })
@@ -71,7 +72,7 @@ export default decorate([
           </SingleLineRow>
           <hr />
           {state.sortedPools.map(pool => (
-            <SingleLineRow key={pool.uuid} className='mt-1'>
+            <SingleLineRow key={pool.id} className='mt-1'>
               <Col size={6}>
                 <Pool id={pool.id} link />
               </Col>
