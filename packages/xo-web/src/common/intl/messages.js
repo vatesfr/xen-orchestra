@@ -20,6 +20,7 @@ const messages = {
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
+  sr: 'SR',
   tryXoa: 'Try XOA for free and deploy it here.',
 
   editableLongClickPlaceholder: 'Long click to edit',
@@ -2152,7 +2153,6 @@ const messages = {
     'Will configure the host xosan network device with a static IP address and plug it in.',
 
   // Hub
-  sr: 'SR',
   hubPage: 'Hub',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
