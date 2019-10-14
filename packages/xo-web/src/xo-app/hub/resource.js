@@ -151,6 +151,16 @@ export default decorate([
         )
         await deleteTemplates(_templates)
       },
+      updateSelectedInstallPools(_, selectedInstallPools) {
+        return {
+          selectedInstallPools,
+        }
+      },
+      updateSelectedCreatePool(_, selectedCreatePool) {
+        return {
+          selectedCreatePool,
+        }
+      },
       redirectToTaskPage() {
         this.props.router.push('/tasks')
       },
