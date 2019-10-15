@@ -41,7 +41,9 @@ export default decorate([
     }
   }),
   provideState({
-    initialState: () => ({}),
+    initialState: () => ({
+      selectedInstallPools: [],
+    }),
     effects: {
       async install() {
         const {
