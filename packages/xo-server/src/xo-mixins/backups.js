@@ -17,7 +17,6 @@ import {
   once,
   range,
   sortBy,
-  trim,
 } from 'lodash'
 import {
   chainVhd,
@@ -278,7 +277,7 @@ const mountLvmPv = (device, partition) => {
   args.push('--show', '-f', device.path)
 
   return execa('losetup', args).then(({ stdout }) => {
-    const path = trim(stdout)
+    const path = stdout.trim()
     return {
       path,
       unmount: once(() =>
