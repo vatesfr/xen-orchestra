@@ -9,7 +9,6 @@ import {
   forEach,
   includes,
   isEmpty,
-  isString,
   iteratee,
   map as mapToArray,
   stubTrue,
@@ -72,7 +71,8 @@ export default class Xo extends EventEmitter {
 
     if (
       type != null &&
-      ((isString(type) && type !== obj.type) || !includes(type, obj.type)) // Array
+      ((typeof type === 'string' && type !== obj.type) ||
+        !includes(type, obj.type)) // Array
     ) {
       throw noSuchObject(key, type)
     }

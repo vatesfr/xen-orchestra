@@ -27,7 +27,6 @@ import {
   identity,
   includes,
   isEmpty,
-  isString,
   keys,
   map,
   mapValues,
@@ -649,7 +648,7 @@ export default class Home extends Component {
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
   _setFilter(filter, props = this.props, replace) {
-    if (!isString(filter)) {
+    if (typeof filter !== 'string') {
       filter = filter.toString()
     }
 

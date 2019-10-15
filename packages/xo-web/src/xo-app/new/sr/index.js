@@ -568,10 +568,11 @@ export default class New extends Component {
 
     let { name, description } = this.refs
 
-    name = name.trim()
-    description = description.trim()
+    name = name.value.trim()
+    description = description.value.trim()
     if (isEmpty(name) || isEmpty(description)) {
       error('Missing General Parameters', 'Please complete General Information')
+      return
     }
 
     const method = type === 'nfsiso' ? reattachSrIso : reattachSr
