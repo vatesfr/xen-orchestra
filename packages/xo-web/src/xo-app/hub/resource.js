@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -40,6 +41,7 @@ export default decorate([
     }
   }),
   provideState({
+    initialState: () => ({}),
     effects: {
       async install() {
         const {
@@ -76,12 +78,6 @@ export default decorate([
           size: 'medium',
         })
 
-        resourceParams.pools.forEach(pool => {
-          if (!(pool.id in resourceParams.mapPoolsSrs)) {
-            resourceParams.mapPoolsSrs[pool.id] = pool.default_SR
-          }
-        })
-
         markHubResourceAsInstalling(id)
         try {
           await Promise.all(
@@ -90,7 +86,10 @@ export default decorate([
                 namespace,
                 id,
                 version,
-                sr: resourceParams.mapPoolsSrs[pool.id],
+                sr: defined(
+                  resourceParams.mapPoolsSrs[pool.id],
+                  pool.default_SR
+                ),
               })
             )
           )

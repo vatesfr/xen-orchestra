@@ -24,8 +24,8 @@ export default decorate([
         })
       },
       onChangeSr(__, sr) {
-        const { value } = this.props
-        this.props.onChange({
+        const { onChange, value } = this.props
+        onChange({
           ...value,
           mapPoolsSrs: {
             ...value.mapPoolsSrs,
