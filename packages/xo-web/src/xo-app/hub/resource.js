@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -59,6 +60,10 @@ export default decorate([
           return
         }
         const resourceParams = await form({
+          defaultValue: {
+            mapPoolsSrs: {},
+            pools: [],
+          },
           render: props => (
             <ResourceForm
               install
@@ -83,7 +88,10 @@ export default decorate([
                 namespace,
                 id,
                 version,
-                sr: pool.default_SR,
+                sr: defined(
+                  resourceParams.mapPoolsSrs[pool.id],
+                  pool.default_SR
+                ),
               })
             )
           )
@@ -101,6 +109,9 @@ export default decorate([
           return
         }
         const resourceParams = await form({
+          defaultValue: {
+            pool: undefined,
+          },
           render: props => (
             <ResourceForm poolPredicate={isPoolCreated} {...props} />
           ),
@@ -124,6 +135,9 @@ export default decorate([
       async deleteTemplates(__, { name }) {
         const { isPoolCreated } = this.state
         const resourceParams = await form({
+          defaultValue: {
+            pools: [],
+          },
           render: props => (
             <ResourceForm
               delete
