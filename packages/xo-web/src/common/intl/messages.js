@@ -2154,6 +2154,7 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
+  noDefaultSr: 'The selected pool has no default SR',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
   create: 'Create',

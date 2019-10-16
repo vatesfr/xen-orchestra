@@ -13,11 +13,13 @@ import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
 import { error, success } from 'notification'
-import { find, filter } from 'lodash'
+import { find, filter, map, omit, startCase } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
 
 import ResourceForm from './resource-form'
+
+const EXCLUSIVE_FIELDS = ['description', 'longDescription']
 
 const subscribeAlert = () =>
   alert(
@@ -175,63 +177,39 @@ export default decorate([
       },
       showDescription() {
         const {
-          description,
-          cloudInitReady,
-          guestTools,
+          data: { public: _public },
           name,
-          network,
-          user,
-          password,
         } = this.props
+        delete _public.any
         alert(
           name,
           <div>
-            <div
-              className='text-muted'
-              dangerouslySetInnerHTML={{
-                __html: marked(description),
-              }}
-            />
-            <div>
-              <Icon icon='pool' />
-              &nbsp;{_('cloudInit')}
-              <Icon
-                className='pull-right'
-                color={cloudInitReady ? 'green' : 'red'}
-                icon={cloudInitReady ? 'success' : 'new-vm-remove'}
-              />
-            </div>
-            <hr />
-            <div>
-              <Icon icon='settings' />
-              &nbsp;{_('guestTools')}
-              <Icon
-                className='pull-right'
-                color={guestTools ? 'green' : 'red'}
-                icon={guestTools ? 'success' : 'new-vm-remove'}
-              />
-            </div>
-            <hr />
-            {network !== undefined && (
-              <div>
-                <Icon icon='network' />
-                &nbsp;{_('newVmNetworkLabel')}
-                <span className='pull-right font-weight-bold'>{network}</span>
+            {EXCLUSIVE_FIELDS.filter(field => field in _public).map(field => (
+              <div key={field}>
+                <strong>{startCase(field).toLowerCase()}</strong>
+                <p>{_public[field]}</p>
+                <hr />
               </div>
-            )}
-            <hr />
-            {!cloudInitReady && user !== undefined && password !== undefined && (
-              <div>
-                <Icon icon='user' />
-                &nbsp;{_('credentials')}
+            ))}
+            {map(omit(_public, EXCLUSIVE_FIELDS), (value, key) => (
+              <div key={key}>
+                {startCase(key).toLowerCase()}
+                &nbsp;
                 <span className='pull-right'>
-                  <span>{_('username')}</span>:&nbsp;
-                  <span className='font-weight-bold'>{user}</span>,&nbsp;
-                  <span>{_('password')}</span>:&nbsp;
-                  <span className='font-weight-bold'>{password}</span>
+                  {typeof value === 'boolean' ? (
+                    <Icon
+                      color={value ? 'green' : 'red'}
+                      icon={value ? 'success' : 'new-vm-remove'}
+                    />
+                  ) : key.toLowerCase().includes('size') ? (
+                    <strong>{formatSize(value)}</strong>
+                  ) : (
+                    <strong>{value}</strong>
+                  )}
                 </span>
+                <hr />
               </div>
-            )}
+            ))}
           </div>
         )
       },
@@ -256,7 +234,10 @@ export default decorate([
   }),
   injectState,
   ({
-    description,
+    data: {
+      public: { description },
+    },
+    description: _description,
     effects,
     hubInstallingResources,
     id,
@@ -285,7 +266,7 @@ export default decorate([
         <div
           className='text-muted'
           dangerouslySetInnerHTML={{
-            __html: marked(description),
+            __html: marked(defined(description, _description)),
           }}
         />
         <Button
