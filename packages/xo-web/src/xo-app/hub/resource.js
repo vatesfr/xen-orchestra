@@ -7,7 +7,7 @@ import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
-import { alert, form } from 'modal'
+import { alert, confirm, form } from 'modal'
 import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
@@ -62,6 +62,7 @@ export default decorate([
           namespace,
           markHubResourceAsInstalled,
           markHubResourceAsInstalling,
+          templates,
           version,
         } = this.props
         const { isTemplateInstalled } = this.state
@@ -90,26 +91,48 @@ export default decorate([
           size: 'medium',
         })
 
-        markHubResourceAsInstalling(id)
-        try {
-          await Promise.all(
-            resourceParams.pools.map(pool =>
-              downloadAndInstallResource({
-                namespace,
-                id,
-                version,
-                sr: defined(
-                  resourceParams.mapPoolsSrs[pool.id],
-                  pool.default_SR
-                ),
-              })
+        const install = async () => {
+          markHubResourceAsInstalling(id)
+          try {
+            await Promise.all(
+              resourceParams.pools.map(pool =>
+                downloadAndInstallResource({
+                  namespace,
+                  id,
+                  version,
+                  sr: defined(
+                    resourceParams.mapPoolsSrs[pool.id],
+                    pool.default_SR
+                  ),
+                })
+              )
             )
-          )
-          success(_('hubImportNotificationTitle'), _('successfulInstall'))
-        } catch (_error) {
-          error(_('hubImportNotificationTitle'), _error.message)
+            success(_('hubImportNotificationTitle'), _('successfulInstall'))
+          } catch (_error) {
+            error(_('hubImportNotificationTitle'), _error.message)
+          }
+          markHubResourceAsInstalled(id)
         }
-        markHubResourceAsInstalled(id)
+
+        const installedTemplates = filter(templates, [
+          'other.xo:resource:namespace',
+          namespace,
+        ])
+        const olderTemplates = filter(installedTemplates, template =>
+          find(resourceParams.pools, { $pool: template.$pool })
+        )
+
+        if (olderTemplates.length > 0) {
+          confirm({
+            title: _('hubUpdateTemplateModalTitle'),
+            body: _('hubUpdateTemplateModalBody'),
+          }).then(async () => {
+            await deleteTemplates(olderTemplates)
+            await install()
+          })
+        } else {
+          await install()
+        }
       },
       async create() {
         const { isPoolCreated, installedTemplates } = this.state
@@ -241,8 +264,6 @@ export default decorate([
       },
     },
     computed: {
-      installedTemplates: (_, { namespace, templates }) =>
-        filter(templates, ['other.xo:resource:namespace', namespace]),
       description: (
         _,
         {
@@ -260,6 +281,8 @@ export default decorate([
             }}
           />
         ),
+      installedTemplates: (_, { id, templates }) =>
+        filter(templates, ['other.xo:resource:xva:id', id]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
