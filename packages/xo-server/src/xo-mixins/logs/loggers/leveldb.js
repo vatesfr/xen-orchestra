@@ -1,4 +1,3 @@
-import highland from 'highland'
 import { ignoreErrors } from 'promise-toolbox'
 
 import AbstractLogger from './abstract'
@@ -48,10 +47,8 @@ export default class LevelDbLogger extends AbstractLogger {
     return key
   }
 
-  createReadStream() {
-    return highland(this._db.createReadStream()).filter(
-      ({ value }) => value.namespace === this._namespace
-    )
+  getAll() {
+    return this._db.getAll({ namespace: this._namespace })
   }
 
   del(id) {

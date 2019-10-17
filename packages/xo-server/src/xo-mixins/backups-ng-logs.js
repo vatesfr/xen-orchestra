@@ -1,7 +1,13 @@
+import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
 import ms from 'ms'
 import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
 
 import { debounceWithKey } from '../_pDebounceWithKey'
+
+const logger = createLogger('xo:xo-mixins:backups-ng-logs')
+
+const STORE_NAMESPACE = 'backupTask'
 
 const isSkippedError = error =>
   error.message === 'no disks found' ||
@@ -65,139 +71,197 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 //   status: 'pending' | 'failure' | 'interrupted' | 'skipped' | 'success',
 //   tasks?: Task[],
 // }
-export default {
-  getBackupNgLogs: debounceWithKey(
-    async function getBackupNgLogs(runId?: string) {
-      const [jobLogs, restoreLogs, restoreMetadataLogs] = await Promise.all([
-        this.getLogs('jobs'),
-        this.getLogs('restore'),
-        this.getLogs('metadataRestore'),
-      ])
+export default class BackupNgLogs {
+  constructor(app, { backup }) {
+    this._app = app
+    app.on('clean', () =>
+      app.getStore(STORE_NAMESPACE).then(db => db.gc(backup.nKeptTasks))
+    )
+  }
 
-      const { runningJobs, runningRestores, runningMetadataRestores } = this
-      const consolidated = {}
-      const started = {}
+  @debounceWithKey.decorate(10e3, function keyFn(runId) {
+    return [this, runId]
+  })
+  async getBackupNgLogs(runId?: string) {
+    const app = this._app
+    const backupTaskStore = await app.getStore(STORE_NAMESPACE)
 
-      const handleLog = ({ data, time, message }, id) => {
-        const { event } = data
-        if (event === 'job.start') {
-          if (
-            (data.type === 'backup' || data.key === undefined) &&
-            (runId === undefined || runId === id)
-          ) {
-            const { scheduleId, jobId } = data
-            consolidated[id] = started[id] = {
-              data: data.data,
-              id,
-              jobId,
-              jobName: data.jobName,
-              message: 'backup',
-              scheduleId,
-              start: time,
-              status: runningJobs[jobId] === id ? 'pending' : 'interrupted',
-            }
-          }
-        } else if (event === 'job.end') {
-          const { runJobId } = data
-          const log = started[runJobId]
-          if (log !== undefined) {
-            delete started[runJobId]
-            log.end = time
-            log.status = computeStatusAndSortTasks(
-              getStatus((log.result = data.error)),
-              log.tasks
-            )
-          }
-        } else if (event === 'task.start') {
-          const task = {
+    const consolidated = await backupTaskStore.getAll()
+    // if the requested log is already consolidated, simply returns it
+    if (runId !== undefined && consolidated[runId] !== undefined) {
+      return consolidated[runId]
+    }
+
+    const [jobLogs, restoreLogs, restoreMetadataLogs] = await Promise.all([
+      app.getLogs('jobs'),
+      app.getLogs('restore'),
+      app.getLogs('metadataRestore'),
+    ])
+
+    const { runningJobs, runningRestores, runningMetadataRestores } = app
+    const started = {}
+
+    // used in order to clean subtasks when the global task finish
+    const tasksByTopParent = {}
+    // an optimization to get the hight level parent
+    const topParentByTask = {}
+
+    const finishedTasks = []
+    const storeBackupTasks = async () => {
+      const logsStore = await app.getStore('logs')
+      return asyncMap(finishedTasks, async id => {
+        await backupTaskStore.put(id, consolidated[id])
+        return asyncMap(tasksByTopParent[id], id => logsStore.del(id))
+      })
+    }
+
+    const handleLog = ({ data, time, message }, id) => {
+      const { event } = data
+      if (event === 'job.start') {
+        if (
+          (data.type === 'backup' || data.key === undefined) &&
+          (runId === undefined || runId === id)
+        ) {
+          const { scheduleId, jobId } = data
+          const isRunning = runningJobs[jobId] === id
+          const status = isRunning ? 'pending' : 'interrupted'
+          consolidated[id] = started[id] = {
             data: data.data,
             id,
-            message,
+            jobId,
+            jobName: data.jobName,
+            message: 'backup',
+            scheduleId,
             start: time,
+            status,
           }
-          const { parentId } = data
-          let parent
-          if (parentId === undefined && (runId === undefined || runId === id)) {
-            // top level task
-            task.status =
-              (message === 'restore' && !runningRestores.has(id)) ||
-              (message === 'metadataRestore' &&
-                !runningMetadataRestores.has(id))
-                ? 'interrupted'
-                : 'pending'
-            consolidated[id] = started[id] = task
-          } else if ((parent = started[parentId]) !== undefined) {
-            // sub-task for which the parent exists
-            task.status = parent.status
-            started[id] = task
-            ;(parent.tasks || (parent.tasks = [])).push(task)
+          if (!isRunning) {
+            finishedTasks.push(id)
           }
-        } else if (event === 'task.end') {
-          const { taskId } = data
-          const log = started[taskId]
-          if (log !== undefined) {
-            // TODO: merge/transfer work-around
-            delete started[taskId]
-            log.end = time
-            log.status = computeStatusAndSortTasks(
-              getStatus((log.result = data.result), data.status),
-              log.tasks
-            )
+          tasksByTopParent[id] = [id]
+        }
+      } else if (event === 'job.end') {
+        const { runJobId } = data
+        const log = started[runJobId]
+        if (log !== undefined) {
+          delete started[runJobId]
+          log.end = time
+          log.status = computeStatusAndSortTasks(
+            getStatus((log.result = data.error)),
+            log.tasks
+          )
+
+          tasksByTopParent[runJobId].push(id)
+          finishedTasks.push(runJobId)
+        }
+      } else if (event === 'task.start') {
+        const task = {
+          data: data.data,
+          id,
+          message,
+          start: time,
+        }
+        const { parentId } = data
+        let parent
+        if (parentId === undefined && (runId === undefined || runId === id)) {
+          // top level task
+          const isRunning =
+            runningRestores.has(id) || runningMetadataRestores.has(id)
+          task.status = isRunning ? 'pending' : 'interrupted'
+          consolidated[id] = started[id] = task
+
+          if (!isRunning) {
+            finishedTasks.push(id)
           }
-        } else if (event === 'task.warning') {
-          const parent = started[data.taskId]
-          parent !== undefined &&
-            (parent.warnings || (parent.warnings = [])).push({
-              data: data.data,
-              message,
-            })
-        } else if (event === 'task.info') {
-          const parent = started[data.taskId]
-          parent !== undefined &&
-            (parent.infos || (parent.infos = [])).push({
-              data: data.data,
-              message,
-            })
-        } else if (event === 'jobCall.start') {
-          const parent = started[data.runJobId]
-          if (parent !== undefined) {
-            ;(parent.tasks || (parent.tasks = [])).push(
-              (started[id] = {
-                data: {
-                  type: 'VM',
-                  id: data.params.id,
-                },
-                id,
-                start: time,
-                status: parent.status,
-              })
-            )
-          }
-        } else if (event === 'jobCall.end') {
-          const { runCallId } = data
-          const log = started[runCallId]
-          if (log !== undefined) {
-            delete started[runCallId]
-            log.end = time
-            log.status = computeStatusAndSortTasks(
-              getStatus((log.result = data.error)),
-              log.tasks
-            )
+          tasksByTopParent[id] = [id]
+        } else if ((parent = started[parentId]) !== undefined) {
+          // sub-task for which the parent exists
+          task.status = parent.status
+          started[id] = task
+          ;(parent.tasks || (parent.tasks = [])).push(task)
+
+          const topParent = topParentByTask[parentId] ?? parentId
+          topParentByTask[id] = topParent
+          tasksByTopParent[topParent].push(id)
+        }
+      } else if (event === 'task.end') {
+        const { taskId } = data
+        const log = started[taskId]
+        if (log !== undefined) {
+          // TODO: merge/transfer work-around
+          delete started[taskId]
+          log.end = time
+          log.status = computeStatusAndSortTasks(
+            getStatus((log.result = data.result), data.status),
+            log.tasks
+          )
+
+          tasksByTopParent[topParentByTask[taskId] ?? taskId].push(id)
+
+          // top level task
+          if (tasksByTopParent[taskId] !== undefined) {
+            finishedTasks.push(taskId)
           }
         }
+      } else if (event === 'task.warning') {
+        const parent = started[data.taskId]
+        if (parent !== undefined) {
+          ;(parent.warnings || (parent.warnings = [])).push({
+            data: data.data,
+            message,
+          })
+          tasksByTopParent[topParentByTask[parent.id] ?? parent.id].push(id)
+        }
+      } else if (event === 'task.info') {
+        const parent = started[data.taskId]
+        if (parent !== undefined) {
+          ;(parent.infos || (parent.infos = [])).push({
+            data: data.data,
+            message,
+          })
+          tasksByTopParent[topParentByTask[parent.id] ?? parent.id].push(id)
+        }
+      } else if (event === 'jobCall.start') {
+        const parent = started[data.runJobId]
+        if (parent !== undefined) {
+          ;(parent.tasks || (parent.tasks = [])).push(
+            (started[id] = {
+              data: {
+                type: 'VM',
+                id: data.params.id,
+              },
+              id,
+              start: time,
+              status: parent.status,
+            })
+          )
+        }
+      } else if (event === 'jobCall.end') {
+        const { runCallId } = data
+        const log = started[runCallId]
+        if (log !== undefined) {
+          delete started[runCallId]
+          log.end = time
+          log.status = computeStatusAndSortTasks(
+            getStatus((log.result = data.error)),
+            log.tasks
+          )
+        }
       }
-
-      forEach(jobLogs, handleLog)
-      forEach(restoreLogs, handleLog)
-      forEach(restoreMetadataLogs, handleLog)
-
-      return runId === undefined ? consolidated : consolidated[runId]
-    },
-    10e3,
-    function keyFn(runId) {
-      return [this, runId]
     }
-  ),
+
+    forEach(jobLogs, handleLog)
+    forEach(restoreLogs, handleLog)
+    forEach(restoreMetadataLogs, handleLog)
+
+    storeBackupTasks().catch(error => {
+      logger.warn('Error on storing task logs', {
+        error,
+      })
+    })
+
+    return runId === undefined ? consolidated : consolidated[runId]
+  }
 
   async getBackupNgLogsSorted({ after, before, filter, limit }) {
     let logs = await this.getBackupNgLogs()
@@ -241,5 +305,5 @@ export default {
     logs = logs.slice(i, j)
 
     return logs
-  },
+  }
 }
