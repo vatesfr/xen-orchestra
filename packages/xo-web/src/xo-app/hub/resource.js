@@ -13,13 +13,14 @@ import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
 import { error, success } from 'notification'
-import { find, filter, map, omit, startCase } from 'lodash'
+import { find, filter, isEmpty, map, omit, startCase } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
 
 import ResourceForm from './resource-form'
 
-const EXCLUSIVE_FIELDS = ['description', 'longDescription']
+const BANNED_FIELDS = ['description']
+const EXCLUSIVE_FIELDS = ['longDescription']
 
 const subscribeAlert = () =>
   alert(
@@ -184,32 +185,42 @@ export default decorate([
         alert(
           name,
           <div>
-            {EXCLUSIVE_FIELDS.filter(field => field in _public).map(field => (
-              <div key={field}>
-                <strong>{startCase(field).toLowerCase()}</strong>
-                <p>{_public[field]}</p>
-                <hr />
+            {isEmpty(_public) ? (
+              <p>{_('hubTemplateDescriptionNotAvailable')}</p>
+            ) : (
+              <div>
+                {EXCLUSIVE_FIELDS.filter(field => field in _public).map(
+                  field => (
+                    <div key={field}>
+                      <p>{_public[field]}</p>
+                      <hr />
+                    </div>
+                  )
+                )}
+                {map(
+                  omit(_public, EXCLUSIVE_FIELDS.concat(BANNED_FIELDS)),
+                  (value, key) => (
+                    <div key={key}>
+                      {startCase(key).toLowerCase()}
+                      &nbsp;
+                      <span className='pull-right'>
+                        {typeof value === 'boolean' ? (
+                          <Icon
+                            color={value ? 'green' : 'red'}
+                            icon={value ? 'success' : 'new-vm-remove'}
+                          />
+                        ) : key.toLowerCase().includes('size') ? (
+                          <strong>{formatSize(value)}</strong>
+                        ) : (
+                          <strong>{value}</strong>
+                        )}
+                      </span>
+                      <hr />
+                    </div>
+                  )
+                )}
               </div>
-            ))}
-            {map(omit(_public, EXCLUSIVE_FIELDS), (value, key) => (
-              <div key={key}>
-                {startCase(key).toLowerCase()}
-                &nbsp;
-                <span className='pull-right'>
-                  {typeof value === 'boolean' ? (
-                    <Icon
-                      color={value ? 'green' : 'red'}
-                      icon={value ? 'success' : 'new-vm-remove'}
-                    />
-                  ) : key.toLowerCase().includes('size') ? (
-                    <strong>{formatSize(value)}</strong>
-                  ) : (
-                    <strong>{value}</strong>
-                  )}
-                </span>
-                <hr />
-              </div>
-            ))}
+            )}
           </div>
         )
       },
@@ -270,7 +281,6 @@ export default decorate([
           }}
         />
         <Button
-          color='secondary'
           className='pull-right'
           onClick={effects.showDescription}
           size='small'

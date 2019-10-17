@@ -2165,6 +2165,8 @@ const messages = {
   totalDiskSize: 'Total disk size',
   hideInstalledPool: 'Already installed templates are hidden',
   hubImportNotificationTitle: 'XVA import',
+  hubTemplateDescriptionNotAvailable:
+    'No available description for this template',
 
   // Licenses
   xosanUnregisteredDisclaimer:
