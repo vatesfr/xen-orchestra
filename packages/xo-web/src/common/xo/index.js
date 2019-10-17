@@ -2919,3 +2919,11 @@ export const unlockXosan = (licenseId, srId) =>
 // Support --------------------------------------------------------------------
 
 export const checkXoa = () => _call('xoa.check')
+
+export const closeTunnel = () => _call('xoa.closeSupportTunnel')
+
+export const getTunnelState = () => _call('xoa.getTunnelState')
+
+export const openTunnel = () => _call('xoa.openSupportTunnel')
+
+export const subscribeTunnelState = createSubscription(getTunnelState)
