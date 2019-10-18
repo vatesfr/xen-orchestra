@@ -80,7 +80,7 @@ const Support = decorate([
                       btnStyle='primary'
                       disabled={COMMUNITY}
                       handler={closeTunnel}
-                      icon='hidden'
+                      icon='remove'
                     >
                       {_('closeTunnel')}
                     </ActionButton>
@@ -89,7 +89,7 @@ const Support = decorate([
                       btnStyle='success'
                       disabled={COMMUNITY}
                       handler={openTunnel}
-                      icon='shown'
+                      icon='open-tunnel'
                     >
                       {_('openTunnel')}
                     </ActionButton>
