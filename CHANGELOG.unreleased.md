@@ -13,6 +13,7 @@
 
 - [Hub] Ability to select SR in hub VM installation (PR [#4571](https://github.com/vatesfr/xen-orchestra/pull/4571))
 - [Hub] Display more info about downloadable templates (PR [#4593](https://github.com/vatesfr/xen-orchestra/pull/4593))
+- [Support] Ability to open and close support tunnel from the user interface [#4513](https://github.com/vatesfr/xen-orchestra/issues/4513) (PR [#4616](https://github.com/vatesfr/xen-orchestra/pull/4616))
 
 ### Bug fixes
 
