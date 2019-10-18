@@ -1673,8 +1673,6 @@ export const createBondedNetwork = params =>
   _call('network.createBonded', params)
 export const createPrivateNetwork = params =>
   _call('sdnController.createPrivateNetwork', params)
-export const createCrossPoolPrivateNetwork = params =>
-  _call('sdnController.createCrossPoolPrivateNetwork', params)
 
 export const deleteNetwork = network =>
   confirm({
