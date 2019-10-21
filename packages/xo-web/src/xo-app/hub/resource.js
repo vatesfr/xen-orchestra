@@ -184,7 +184,6 @@ export default decorate([
           data: { public: _public },
           name,
         } = this.props
-        const fields = omit(_public, EXCLUSIVE_FIELDS.concat(BANNED_FIELDS))
         alert(
           name,
           <div>
@@ -204,24 +203,27 @@ export default decorate([
                 </Ul>
                 <br />
                 <Ul>
-                  {map(fields, (value, key) => (
-                    <Li key={key}>
-                      {startCase(key).toLowerCase()}
-                      &nbsp;
-                      <span className='pull-right'>
-                        {typeof value === 'boolean' ? (
-                          <Icon
-                            color={value ? 'green' : 'red'}
-                            icon={value ? 'success' : 'close'}
-                          />
-                        ) : key.toLowerCase().endsWith('size') ? (
-                          <strong>{formatSize(value)}</strong>
-                        ) : (
-                          <strong>{value}</strong>
-                        )}
-                      </span>
-                    </Li>
-                  ))}
+                  {map(
+                    omit(_public, [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS]),
+                    (value, key) => (
+                      <Li key={key}>
+                        {startCase(key).toLowerCase()}
+                        &nbsp;
+                        <span className='pull-right'>
+                          {typeof value === 'boolean' ? (
+                            <Icon
+                              color={value ? 'green' : 'red'}
+                              icon={value ? 'success' : 'close'}
+                            />
+                          ) : key.toLowerCase().endsWith('size') ? (
+                            <strong>{formatSize(value)}</strong>
+                          ) : (
+                            <strong>{value}</strong>
+                          )}
+                        </span>
+                      </Li>
+                    )
+                  )}
                 </Ul>
               </div>
             )}
@@ -240,7 +242,9 @@ export default decorate([
           },
           description: _description,
         }
-      ) => defined(description, _description),
+      ) => ({
+        __html: marked(defined(description, _description)),
+      }),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
@@ -285,9 +289,7 @@ export default decorate([
       <CardBlock>
         <div
           className='text-muted'
-          dangerouslySetInnerHTML={{
-            __html: marked(defined(state.description)),
-          }}
+          dangerouslySetInnerHTML={state.description}
         />
         <Button
           className='pull-right'
