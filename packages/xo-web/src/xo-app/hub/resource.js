@@ -24,6 +24,7 @@ const Ul = props => <ul {...props} className='list-group' />
 
 const BANNED_FIELDS = ['any', 'description']
 const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
+const STATIC_FIELDS = [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS]
 
 const subscribeAlert = () =>
   alert(
@@ -203,27 +204,24 @@ export default decorate([
                 </Ul>
                 <br />
                 <Ul>
-                  {map(
-                    omit(_public, [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS]),
-                    (value, key) => (
-                      <Li key={key}>
-                        {startCase(key).toLowerCase()}
-                        &nbsp;
-                        <span className='pull-right'>
-                          {typeof value === 'boolean' ? (
-                            <Icon
-                              color={value ? 'green' : 'red'}
-                              icon={value ? 'success' : 'close'}
-                            />
-                          ) : key.toLowerCase().endsWith('size') ? (
-                            <strong>{formatSize(value)}</strong>
-                          ) : (
-                            <strong>{value}</strong>
-                          )}
-                        </span>
-                      </Li>
-                    )
-                  )}
+                  {map(omit(_public, STATIC_FIELDS), (value, key) => (
+                    <Li key={key}>
+                      {startCase(key).toLowerCase()}
+                      &nbsp;
+                      <span className='pull-right'>
+                        {typeof value === 'boolean' ? (
+                          <Icon
+                            color={value ? 'green' : 'red'}
+                            icon={value ? 'success' : 'close'}
+                          />
+                        ) : key.toLowerCase().endsWith('size') ? (
+                          <strong>{formatSize(value)}</strong>
+                        ) : (
+                          <strong>{value}</strong>
+                        )}
+                      </span>
+                    </Li>
+                  ))}
                 </Ul>
               </div>
             )}
