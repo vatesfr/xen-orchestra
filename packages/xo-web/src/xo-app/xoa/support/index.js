@@ -37,7 +37,7 @@ const Support = decorate([
   ({
     effects,
     state: { stdoutCheckXoa, stdoutSupportTunnel },
-    tunnelState = { open: false },
+    tunnelState: { open, stdout } = { open: false, stdout: '' },
   }) => (
     <Container>
       {COMMUNITY && (
@@ -74,8 +74,8 @@ const Support = decorate([
             <CardHeader>{_('supportTunnel')}</CardHeader>
             <CardBlock>
               <Row>
-                <Col mediumSize={6}>
-                  {tunnelState.open ? (
+                <Col>
+                  {open ? (
                     <ActionButton
                       btnStyle='primary'
                       disabled={COMMUNITY}
@@ -97,7 +97,7 @@ const Support = decorate([
                 </Col>
               </Row>
               <hr />
-              {tunnelState.open ? (
+              {open || (!open && stdout !== '') ? (
                 <pre dangerouslySetInnerHTML={stdoutSupportTunnel} />
               ) : (
                 <span>{_('supportTunnelClosed')}</span>

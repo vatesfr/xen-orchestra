@@ -2920,10 +2920,16 @@ export const unlockXosan = (licenseId, srId) =>
 
 export const checkXoa = () => _call('xoa.check')
 
-export const closeTunnel = () => _call('xoa.closeSupportTunnel')
+export const closeTunnel = () =>
+  _call('xoa.closeSupportTunnel')::tap(subscribeTunnelState.forceRefresh)
 
-export const getTunnelState = () => _call('xoa.getTunnelState')
+export const openTunnel = () =>
+  _call('xoa.openSupportTunnel')::tap(() => {
+    subscribeTunnelState.forceRefresh()
+    // timeout: to bring the tunnel state as fast as possible.
+    setTimeout(subscribeTunnelState.forceRefresh, 1000)
+  })
 
-export const openTunnel = () => _call('xoa.openSupportTunnel')
-
-export const subscribeTunnelState = createSubscription(getTunnelState)
+export const subscribeTunnelState = createSubscription(() =>
+  _call('xoa.getTunnelState')
+)
