@@ -196,9 +196,7 @@ export default decorate([
                   {EXCLUSIVE_FIELDS.map(fieldKey => {
                     const field = _public[fieldKey]
                     return field !== undefined ? (
-                      <Li key={fieldKey}>
-                        <p>{field}</p>
-                      </Li>
+                      <Li key={fieldKey}>{field}</Li>
                     ) : null
                   })}
                 </Ul>
@@ -207,7 +205,6 @@ export default decorate([
                   {map(omit(_public, STATIC_FIELDS), (value, key) => (
                     <Li key={key}>
                       {startCase(key).toLowerCase()}
-                      &nbsp;
                       <span className='pull-right'>
                         {typeof value === 'boolean' ? (
                           <Icon
