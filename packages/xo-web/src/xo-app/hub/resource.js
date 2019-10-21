@@ -19,8 +19,11 @@ import { withRouter } from 'react-router'
 
 import ResourceForm from './resource-form'
 
-const BANNED_FIELDS = ['description']
-const EXCLUSIVE_FIELDS = ['longDescription']
+const Li = props => <li {...props} className='list-group-item' />
+const Ul = props => <ul {...props} className='list-group' />
+
+const BANNED_FIELDS = ['any', 'description']
+const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
 
 const subscribeAlert = () =>
   alert(
@@ -181,44 +184,45 @@ export default decorate([
           data: { public: _public },
           name,
         } = this.props
-        delete _public.any
+        const fields = omit(_public, EXCLUSIVE_FIELDS.concat(BANNED_FIELDS))
         alert(
           name,
           <div>
-            {isEmpty(_public) ? (
+            {isEmpty(omit(_public, BANNED_FIELDS)) ? (
               <p>{_('hubTemplateDescriptionNotAvailable')}</p>
             ) : (
               <div>
-                {EXCLUSIVE_FIELDS.filter(field => field in _public).map(
-                  field => (
-                    <div key={field}>
-                      <p>{_public[field]}</p>
-                      <hr />
-                    </div>
-                  )
-                )}
-                {map(
-                  omit(_public, EXCLUSIVE_FIELDS.concat(BANNED_FIELDS)),
-                  (value, key) => (
-                    <div key={key}>
+                <Ul>
+                  {EXCLUSIVE_FIELDS.map(fieldKey => {
+                    const field = _public[fieldKey]
+                    return field !== undefined ? (
+                      <Li key={fieldKey}>
+                        <p>{field}</p>
+                      </Li>
+                    ) : null
+                  })}
+                </Ul>
+                <br />
+                <Ul>
+                  {map(fields, (value, key) => (
+                    <Li key={key}>
                       {startCase(key).toLowerCase()}
                       &nbsp;
                       <span className='pull-right'>
                         {typeof value === 'boolean' ? (
                           <Icon
                             color={value ? 'green' : 'red'}
-                            icon={value ? 'success' : 'new-vm-remove'}
+                            icon={value ? 'success' : 'close'}
                           />
-                        ) : key.toLowerCase().includes('size') ? (
+                        ) : key.toLowerCase().endsWith('size') ? (
                           <strong>{formatSize(value)}</strong>
                         ) : (
                           <strong>{value}</strong>
                         )}
                       </span>
-                      <hr />
-                    </div>
-                  )
-                )}
+                    </Li>
+                  ))}
+                </Ul>
               </div>
             )}
           </div>
@@ -228,6 +232,15 @@ export default decorate([
     computed: {
       installedTemplates: (_, { namespace, templates }) =>
         filter(templates, ['other.xo:resource:namespace', namespace]),
+      description: (
+        _,
+        {
+          data: {
+            public: { description },
+          },
+          description: _description,
+        }
+      ) => defined(description, _description),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
@@ -245,10 +258,6 @@ export default decorate([
   }),
   injectState,
   ({
-    data: {
-      public: { description },
-    },
-    description: _description,
     effects,
     hubInstallingResources,
     id,
@@ -277,7 +286,7 @@ export default decorate([
         <div
           className='text-muted'
           dangerouslySetInnerHTML={{
-            __html: marked(defined(description, _description)),
+            __html: marked(defined(state.description)),
           }}
         />
         <Button

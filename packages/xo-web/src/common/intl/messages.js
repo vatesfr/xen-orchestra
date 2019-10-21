@@ -17,6 +17,7 @@ const messages = {
   notifications: 'Notifications',
   noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
+  moreDetails: 'More details',
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
