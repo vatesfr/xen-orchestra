@@ -107,22 +107,21 @@ export default decorate([
             )
           )
           success(_('hubImportNotificationTitle'), _('successfulInstall'))
+          const installedTemplates = filter(templates, [
+            'other.xo:resource:namespace',
+            namespace,
+          ])
+          const olderTemplates = filter(installedTemplates, template =>
+            find(resourceParams.pools, { $pool: template.$pool })
+          )
+
+          if (olderTemplates.length > 0) {
+            await deleteTemplates(olderTemplates)
+          }
         } catch (_error) {
           error(_('hubImportNotificationTitle'), _error.message)
         }
         markHubResourceAsInstalled(id)
-
-        const installedTemplates = filter(templates, [
-          'other.xo:resource:namespace',
-          namespace,
-        ])
-        const olderTemplates = filter(installedTemplates, template =>
-          find(resourceParams.pools, { $pool: template.$pool })
-        )
-
-        if (olderTemplates.length > 0) {
-          await deleteTemplates(olderTemplates)
-        }
       },
       async create() {
         const { isPoolCreated, installedTemplates } = this.state
