@@ -91,28 +91,26 @@ export default decorate([
           size: 'medium',
         })
 
-        const install = async () => {
-          markHubResourceAsInstalling(id)
-          try {
-            await Promise.all(
-              resourceParams.pools.map(pool =>
-                downloadAndInstallResource({
-                  namespace,
-                  id,
-                  version,
-                  sr: defined(
-                    resourceParams.mapPoolsSrs[pool.id],
-                    pool.default_SR
-                  ),
-                })
-              )
+        markHubResourceAsInstalling(id)
+        try {
+          await Promise.all(
+            resourceParams.pools.map(pool =>
+              downloadAndInstallResource({
+                namespace,
+                id,
+                version,
+                sr: defined(
+                  resourceParams.mapPoolsSrs[pool.id],
+                  pool.default_SR
+                ),
+              })
             )
-            success(_('hubImportNotificationTitle'), _('successfulInstall'))
-          } catch (_error) {
-            error(_('hubImportNotificationTitle'), _error.message)
-          }
-          markHubResourceAsInstalled(id)
+          )
+          success(_('hubImportNotificationTitle'), _('successfulInstall'))
+        } catch (_error) {
+          error(_('hubImportNotificationTitle'), _error.message)
         }
+        markHubResourceAsInstalled(id)
 
         const installedTemplates = filter(templates, [
           'other.xo:resource:namespace',
@@ -125,7 +123,6 @@ export default decorate([
         if (olderTemplates.length > 0) {
           await deleteTemplates(olderTemplates)
         }
-        await install()
       },
       async create() {
         const { isPoolCreated, installedTemplates } = this.state
