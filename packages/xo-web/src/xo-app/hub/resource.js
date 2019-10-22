@@ -7,7 +7,7 @@ import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
-import { alert, confirm, form } from 'modal'
+import { alert, form } from 'modal'
 import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
@@ -115,11 +115,6 @@ export default decorate([
           markHubResourceAsInstalled(id)
         }
 
-        /**
-         * Installed templates for the current resource namespace
-         * Resource namespace can have multiple versions which implies multiple IDs
-         * Filtering templates by namespace means that we want all versions installed for this resource
-         */
         const installedTemplates = filter(templates, [
           'other.xo:resource:namespace',
           namespace,
@@ -129,13 +124,8 @@ export default decorate([
         )
 
         if (olderTemplates.length > 0) {
-          confirm({
-            title: _('hubUpdateTemplateModalTitle'),
-            body: _('hubUpdateTemplateModalBody'),
-          }).then(async () => {
-            await deleteTemplates(olderTemplates)
-            await install()
-          })
+          await deleteTemplates(olderTemplates)
+          await install()
         } else {
           await install()
         }
