@@ -39,6 +39,7 @@ const subscribeAlert = () =>
     </div>
   )
 
+// For documentation about hub resources, please see www-xo documentation
 export default decorate([
   withRouter,
   connectStore(() => {
@@ -114,6 +115,11 @@ export default decorate([
           markHubResourceAsInstalled(id)
         }
 
+        /**
+         * Installed templates for the current resource namespace
+         * Resource namespace can have multiple versions which implies multiple IDs
+         * Filtering templates by namespace means that we want all versions installed for this resource
+         */
         const installedTemplates = filter(templates, [
           'other.xo:resource:namespace',
           namespace,
