@@ -29,6 +29,6 @@
 - xo-server v5.51.0
 - xo-web v5.51.0
 
-### Dropped packagess
+### Dropped packages
 
 - xo-server-cloud : this package was useless for OpenSource installations because it required a complete XOA environment
