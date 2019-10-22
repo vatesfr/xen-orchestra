@@ -39,7 +39,6 @@ const subscribeAlert = () =>
     </div>
   )
 
-// For documentation about hub resources, please see www-xo documentation
 export default decorate([
   withRouter,
   connectStore(() => {
@@ -125,10 +124,8 @@ export default decorate([
 
         if (olderTemplates.length > 0) {
           await deleteTemplates(olderTemplates)
-          await install()
-        } else {
-          await install()
         }
+        await install()
       },
       async create() {
         const { isPoolCreated, installedTemplates } = this.state
