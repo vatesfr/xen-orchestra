@@ -26,5 +26,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- remove xo-server-cloud package
 - xo-server v5.51.0
 - xo-web v5.51.0
