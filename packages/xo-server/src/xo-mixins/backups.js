@@ -26,6 +26,7 @@ import {
 
 import createSizeStream from '../size-stream'
 import xapiObjectToXo from '../xapi-object-to-xo'
+import { debounceWithKey } from '../_pDebounceWithKey'
 import { lvs, pvs } from '../lvm'
 import {
   forEach,
@@ -43,6 +44,7 @@ import {
 
 // ===================================================================
 
+const DEBOUNCE_DELAY = 10e3
 const DELTA_BACKUP_EXT = '.json'
 const DELTA_BACKUP_EXT_LENGTH = DELTA_BACKUP_EXT.length
 const TAG_SOURCE_VM = 'xo:source_vm'
@@ -299,6 +301,9 @@ export default class {
     this._xo = xo
   }
 
+  @debounceWithKey(DEBOUNCE_DELAY, function keyFn(remoteId) {
+    return [this, remoteId]
+  })
   async listRemoteBackups(remoteId) {
     const handler = await this._xo.getRemoteHandler(remoteId)
 
@@ -325,6 +330,9 @@ export default class {
     return backups
   }
 
+  @debounceWithKey(DEBOUNCE_DELAY, function keyFn(remoteId) {
+    return [this, remoteId]
+  })
   async listVmBackups(remoteId) {
     const handler = await this._xo.getRemoteHandler(remoteId)
 
