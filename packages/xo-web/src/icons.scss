@@ -49,7 +49,12 @@
     @extend .fa-check;
     @extend .text-success;
   }
-  &-close {
+  &-true {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-false {
     @extend .fa;
     @extend .fa-times;
   }

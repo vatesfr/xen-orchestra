@@ -24,6 +24,7 @@ const Ul = props => <ul {...props} className='list-group' />
 
 const BANNED_FIELDS = ['any', 'description'] // These fields will not be displayed on description modal
 const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
+const MARKDOWN_FIELDS = ['longDescription', 'description']
 const STATIC_FIELDS = [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS] // These fields will not be displayed with dynamic fields
 
 const subscribeAlert = () =>
@@ -195,15 +196,22 @@ export default decorate([
                 <Ul>
                   {EXCLUSIVE_FIELDS.map(fieldKey => {
                     const field = _public[fieldKey]
-                    return field !== undefined ? (
-                      <Li key={fieldKey}>
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: marked(field),
-                          }}
-                        />
-                      </Li>
-                    ) : null
+                    if (field !== undefined) {
+                      return (
+                        <Li key={fieldKey}>
+                          {MARKDOWN_FIELDS.includes(fieldKey) ? (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: marked(field),
+                              }}
+                            />
+                          ) : (
+                            field
+                          )}
+                        </Li>
+                      )
+                    }
+                    return null
                   })}
                 </Ul>
                 <br />
@@ -215,7 +223,7 @@ export default decorate([
                         {typeof value === 'boolean' ? (
                           <Icon
                             color={value ? 'green' : 'red'}
-                            icon={value ? 'success' : 'close'}
+                            icon={value ? 'true' : 'false'}
                           />
                         ) : key.toLowerCase().endsWith('size') ? (
                           <strong>{formatSize(value)}</strong>
@@ -243,9 +251,14 @@ export default decorate([
           },
           description: _description,
         }
-      ) => ({
-        __html: marked(defined(description, _description)),
-      }),
+      ) =>
+        description !== undefined || _description !== undefined
+          ? {
+              __html: marked(defined(description, _description)),
+            }
+          : {
+              __html: _('hubTemplateDescriptionNotAvailable'),
+            },
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
