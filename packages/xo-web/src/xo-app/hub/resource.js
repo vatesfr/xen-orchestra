@@ -107,12 +107,13 @@ export default decorate([
             )
           )
           success(_('hubImportNotificationTitle'), _('successfulInstall'))
-          const installedTemplates = filter(templates, [
-            'other.xo:resource:namespace',
-            namespace,
-          ])
-          const olderTemplates = filter(installedTemplates, template =>
-            find(resourceParams.pools, { $pool: template.$pool })
+          const olderTemplates = filter(templates, template =>
+            some(
+              resourceParams.pools,
+              pool =>
+                pool.$pool === template.$pool &&
+                pool.other['xo:resource:namespace'] === namespace
+            )
           )
 
           if (olderTemplates.length > 0) {
