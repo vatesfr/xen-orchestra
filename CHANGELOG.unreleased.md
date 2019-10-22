@@ -29,3 +29,7 @@
 - xo-server-sdn-controller v0.3.1
 - xo-server v5.51.0
 - xo-web v5.51.0
+
+### Dropped packages
+
+- xo-server-cloud : this package was useless for OpenSource installations because it required a complete XOA environment
