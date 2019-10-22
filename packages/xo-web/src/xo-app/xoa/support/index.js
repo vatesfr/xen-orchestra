@@ -97,7 +97,7 @@ const Support = decorate([
                 </Col>
               </Row>
               <hr />
-              {open || (!open && stdout !== '') ? (
+              {open || stdout !== '' ? (
                 <pre dangerouslySetInnerHTML={stdoutSupportTunnel} />
               ) : (
                 <span>{_('supportTunnelClosed')}</span>
