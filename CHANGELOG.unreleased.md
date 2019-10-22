@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Hub] Ability to select SR in hub VM installation (PR [#4571](https://github.com/vatesfr/xen-orchestra/pull/4571))
-- [Hub] Display more info about downloadable templates (PR [#4568](https://github.com/vatesfr/xen-orchestra/pull/4568))
+- [Hub] Display more info about downloadable templates (PR [#4593](https://github.com/vatesfr/xen-orchestra/pull/4593))
 
 ### Bug fixes
 

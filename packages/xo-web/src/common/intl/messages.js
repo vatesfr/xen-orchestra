@@ -2167,7 +2167,7 @@ const messages = {
   hideInstalledPool: 'Already installed templates are hidden',
   hubImportNotificationTitle: 'XVA import',
   hubTemplateDescriptionNotAvailable:
-    'No available description for this template',
+    'No description available for this template',
 
   // Licenses
   xosanUnregisteredDisclaimer:

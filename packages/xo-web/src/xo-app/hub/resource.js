@@ -22,9 +22,9 @@ import ResourceForm from './resource-form'
 const Li = props => <li {...props} className='list-group-item' />
 const Ul = props => <ul {...props} className='list-group' />
 
-const BANNED_FIELDS = ['any', 'description']
+const BANNED_FIELDS = ['any', 'description'] // These fields will not be displayed on description modal
 const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
-const STATIC_FIELDS = [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS]
+const STATIC_FIELDS = [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS] // These fields will not be displayed with dynamic fields
 
 const subscribeAlert = () =>
   alert(
@@ -196,7 +196,13 @@ export default decorate([
                   {EXCLUSIVE_FIELDS.map(fieldKey => {
                     const field = _public[fieldKey]
                     return field !== undefined ? (
-                      <Li key={fieldKey}>{field}</Li>
+                      <Li key={fieldKey}>
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: marked(field),
+                          }}
+                        />
+                      </Li>
                     ) : null
                   })}
                 </Ul>
@@ -204,7 +210,7 @@ export default decorate([
                 <Ul>
                   {map(omit(_public, STATIC_FIELDS), (value, key) => (
                     <Li key={key}>
-                      {startCase(key).toLowerCase()}
+                      {startCase(key)}
                       <span className='pull-right'>
                         {typeof value === 'boolean' ? (
                           <Icon
