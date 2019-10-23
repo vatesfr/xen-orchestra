@@ -49,6 +49,15 @@
     @extend .fa-check;
     @extend .text-success;
   }
+  &-true {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-false {
+    @extend .fa;
+    @extend .fa-times;
+  }
   &-undo {
     @extend .fa;
     @extend .fa-undo;

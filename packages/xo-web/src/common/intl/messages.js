@@ -17,6 +17,7 @@ const messages = {
   notifications: 'Notifications',
   noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
+  moreDetails: 'More details',
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
@@ -2154,6 +2155,7 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
+  noDefaultSr: 'The selected pool has no default SR',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
   create: 'Create',
@@ -2164,6 +2166,8 @@ const messages = {
   totalDiskSize: 'Total disk size',
   hideInstalledPool: 'Already installed templates are hidden',
   hubImportNotificationTitle: 'XVA import',
+  hubTemplateDescriptionNotAvailable:
+    'No description available for this template',
 
   // Licenses
   xosanUnregisteredDisclaimer:

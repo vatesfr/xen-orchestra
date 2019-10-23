@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
+import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
@@ -11,11 +12,20 @@ import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { downloadAndInstallResource, deleteTemplates } from 'xo'
 import { error, success } from 'notification'
-import { find, filter } from 'lodash'
+import { find, filter, isEmpty, map, omit, startCase } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
 
 import ResourceForm from './resource-form'
+
+const Li = props => <li {...props} className='list-group-item' />
+const Ul = props => <ul {...props} className='list-group' />
+
+// 'any' is a default hub metadata, please don't remove it from BANNED_FIELDS
+const BANNED_FIELDS = ['any', 'description'] // These fields will not be displayed on description modal
+const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
+const MARKDOWN_FIELDS = ['longDescription', 'description']
+const STATIC_FIELDS = [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS] // These fields will not be displayed with dynamic fields
 
 const subscribeAlert = () =>
   alert(
@@ -171,10 +181,85 @@ export default decorate([
       redirectToTaskPage() {
         this.props.router.push('/tasks')
       },
+      showDescription() {
+        const {
+          data: { public: _public },
+          name,
+        } = this.props
+        alert(
+          name,
+          <div>
+            {isEmpty(omit(_public, BANNED_FIELDS)) ? (
+              <p>{_('hubTemplateDescriptionNotAvailable')}</p>
+            ) : (
+              <div>
+                <Ul>
+                  {EXCLUSIVE_FIELDS.map(fieldKey => {
+                    const field = _public[fieldKey]
+                    if (field !== undefined) {
+                      return (
+                        <Li key={fieldKey}>
+                          {MARKDOWN_FIELDS.includes(fieldKey) ? (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: marked(field),
+                              }}
+                            />
+                          ) : (
+                            field
+                          )}
+                        </Li>
+                      )
+                    }
+                    return null
+                  })}
+                </Ul>
+                <br />
+                <Ul>
+                  {map(omit(_public, STATIC_FIELDS), (value, key) => (
+                    <Li key={key}>
+                      {startCase(key)}
+                      <span className='pull-right'>
+                        {typeof value === 'boolean' ? (
+                          <Icon
+                            color={value ? 'green' : 'red'}
+                            icon={value ? 'true' : 'false'}
+                          />
+                        ) : key.toLowerCase().endsWith('size') ? (
+                          <strong>{formatSize(value)}</strong>
+                        ) : (
+                          <strong>{value}</strong>
+                        )}
+                      </span>
+                    </Li>
+                  ))}
+                </Ul>
+              </div>
+            )}
+          </div>
+        )
+      },
     },
     computed: {
       installedTemplates: (_, { namespace, templates }) =>
         filter(templates, ['other.xo:resource:namespace', namespace]),
+      description: (
+        _,
+        {
+          data: {
+            public: { description },
+          },
+          description: _description,
+        }
+      ) =>
+        (description !== undefined || _description !== undefined) && (
+          <div
+            className='text-muted'
+            dangerouslySetInnerHTML={{
+              __html: marked(defined(description, _description)),
+            }}
+          />
+        ),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
@@ -196,11 +281,9 @@ export default decorate([
     hubInstallingResources,
     id,
     name,
-    os,
     size,
     state,
     totalDiskSize,
-    version,
   }) => (
     <Card shadow>
       <CardHeader>
@@ -218,15 +301,17 @@ export default decorate([
         />
         <br />
       </CardHeader>
-      <CardBlock className='text-center'>
-        <div>
-          <span className='text-muted'>{_('os')}</span> <strong>{os}</strong>
-        </div>
-        <div>
-          <span className='text-muted'>{_('version')}</span>
-          {'  '}
-          <strong>{version}</strong>
-        </div>
+      <CardBlock>
+        {state.description}
+        <ActionButton
+          className='pull-right'
+          color='light'
+          handler={effects.showDescription}
+          icon='info'
+          size='small'
+        >
+          {_('moreDetails')}
+        </ActionButton>
         <div>
           <span className='text-muted'>{_('size')}</span>
           {'  '}
