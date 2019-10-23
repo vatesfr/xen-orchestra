@@ -1,6 +1,5 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
-import Button from 'button'
 import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -253,13 +252,14 @@ export default decorate([
           description: _description,
         }
       ) =>
-        description !== undefined || _description !== undefined
-          ? {
+        (description !== undefined || _description !== undefined) && (
+          <div
+            className='text-muted'
+            dangerouslySetInnerHTML={{
               __html: marked(defined(description, _description)),
-            }
-          : {
-              __html: _('hubTemplateDescriptionNotAvailable'),
-            },
+            }}
+          />
+        ),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
@@ -302,17 +302,16 @@ export default decorate([
         <br />
       </CardHeader>
       <CardBlock>
-        <div
-          className='text-muted'
-          dangerouslySetInnerHTML={state.description}
-        />
-        <Button
+        {state.description}
+        <ActionButton
           className='pull-right'
-          onClick={effects.showDescription}
+          color='light'
+          handler={effects.showDescription}
+          icon='info'
           size='small'
         >
-          <Icon icon='info' /> {_('moreDetails')}
-        </Button>
+          {_('moreDetails')}
+        </ActionButton>
         <div>
           <span className='text-muted'>{_('size')}</span>
           {'  '}
