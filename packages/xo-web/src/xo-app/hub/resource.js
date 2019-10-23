@@ -10,7 +10,11 @@ import { Col, Row } from 'grid'
 import { alert, form } from 'modal'
 import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { downloadAndInstallResource, deleteTemplates } from 'xo'
+import {
+  deleteHubTemplate,
+  deleteTemplates,
+  downloadAndInstallResource,
+} from 'xo'
 import { error, success } from 'notification'
 import { find, filter, isEmpty, map, omit, startCase } from 'lodash'
 import { injectState, provideState } from 'reaclette'
@@ -94,8 +98,8 @@ export default decorate([
         markHubResourceAsInstalling(id)
         try {
           await Promise.all(
-            resourceParams.pools.map(pool =>
-              downloadAndInstallResource({
+            resourceParams.pools.map(async pool => {
+              await downloadAndInstallResource({
                 namespace,
                 id,
                 version,
@@ -104,21 +108,18 @@ export default decorate([
                   pool.default_SR
                 ),
               })
-            )
+              const oldTemplate = find(
+                templates,
+                template =>
+                  pool.$pool === template.$pool &&
+                  template.other['xo:resource:namespace'] === namespace
+              )
+              if (oldTemplate !== undefined) {
+                await deleteHubTemplate(oldTemplate)
+              }
+            })
           )
           success(_('hubImportNotificationTitle'), _('successfulInstall'))
-          const olderTemplates = filter(templates, template =>
-            some(
-              resourceParams.pools,
-              pool =>
-                pool.$pool === template.$pool &&
-                pool.other['xo:resource:namespace'] === namespace
-            )
-          )
-
-          if (olderTemplates.length > 0) {
-            await deleteTemplates(olderTemplates, false)
-          }
         } catch (_error) {
           error(_('hubImportNotificationTitle'), _error.message)
         }
