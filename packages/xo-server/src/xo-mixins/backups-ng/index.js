@@ -188,7 +188,7 @@ const getJobCompression = ({ compression: c }) =>
 const listReplicatedVms = (
   xapi: Xapi,
   scheduleOrJobId: string,
-  srId?: string,
+  srUuid?: string,
   vmUuid?: string
 ): Vm[] => {
   const { all } = xapi.objects
@@ -203,7 +203,7 @@ const listReplicatedVms = (
       'start' in object.blocked_operations &&
       (oc['xo:backup:job'] === scheduleOrJobId ||
         oc['xo:backup:schedule'] === scheduleOrJobId) &&
-      oc['xo:backup:sr'] === srId &&
+      oc['xo:backup:sr'] === srUuid &&
       (oc['xo:backup:vm'] === vmUuid ||
         // 2018-03-28, JFT: to catch VMs replicated before this fix
         oc['xo:backup:vm'] === undefined)
@@ -1287,7 +1287,7 @@ export default class BackupNg {
               async (taskId, sr) => {
                 const fork = forkExport()
 
-                const { $id: srId, xapi } = sr
+                const { uuid: srUuid, xapi } = sr
 
                 // delete previous interrupted copies
                 ignoreErrors.call(
@@ -1299,7 +1299,7 @@ export default class BackupNg {
 
                 const oldVms = getOldEntries(
                   copyRetention - 1,
-                  listReplicatedVms(xapi, scheduleId, srId, vmUuid)
+                  listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
                 )
 
                 const deleteOldBackups = () =>
@@ -1311,7 +1311,9 @@ export default class BackupNg {
                     },
                     this._deleteVms(xapi, oldVms)
                   )
-                const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
+                const deleteFirst = getSetting(settings, 'deleteFirst', [
+                  srUuid,
+                ])
                 if (deleteFirst) {
                   await deleteOldBackups()
                 }
@@ -1341,7 +1343,7 @@ export default class BackupNg {
                     'start',
                     'Start operation for this vm is blocked, clone it if you want to use it.'
                   ),
-                  vm.update_other_config('xo:backup:sr', srId),
+                  vm.update_other_config('xo:backup:sr', srUuid),
                 ])
 
                 if (!deleteFirst) {
@@ -1398,11 +1400,11 @@ export default class BackupNg {
           }
         })
 
-        for (const { $id: srId, xapi } of srs) {
+        for (const { uuid: srUuid, xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
             jobId,
-            srId,
+            srUuid,
             vmUuid
           ).find(vm => vm.other_config[TAG_COPY_SRC] === baseSnapshot.uuid)
           if (replicatedVm === undefined) {
@@ -1656,7 +1658,7 @@ export default class BackupNg {
               async (taskId, sr) => {
                 const fork = forkExport()
 
-                const { $id: srId, xapi } = sr
+                const { uuid: srUuid, xapi } = sr
 
                 // delete previous interrupted copies
                 ignoreErrors.call(
@@ -1668,7 +1670,7 @@ export default class BackupNg {
 
                 const oldVms = getOldEntries(
                   copyRetention - 1,
-                  listReplicatedVms(xapi, scheduleId, srId, vmUuid)
+                  listReplicatedVms(xapi, scheduleId, srUuid, vmUuid)
                 )
 
                 const deleteOldBackups = () =>
@@ -1681,7 +1683,9 @@ export default class BackupNg {
                     this._deleteVms(xapi, oldVms)
                   )
 
-                const deleteFirst = getSetting(settings, 'deleteFirst', [srId])
+                const deleteFirst = getSetting(settings, 'deleteFirst', [
+                  srUuid,
+                ])
                 if (deleteFirst) {
                   await deleteOldBackups()
                 }
@@ -1698,7 +1702,7 @@ export default class BackupNg {
                     name_label: `${metadata.vm.name_label} - ${
                       job.name
                     } - (${safeDateFormat(metadata.timestamp)})`,
-                    srId,
+                    srId: sr.$id,
                   })
                 )
 
@@ -1709,7 +1713,7 @@ export default class BackupNg {
                     'start',
                     'Start operation for this vm is blocked, clone it if you want to use it.'
                   ),
-                  vm.update_other_config('xo:backup:sr', srId),
+                  vm.update_other_config('xo:backup:sr', srUuid),
                 ])
 
                 if (!deleteFirst) {
