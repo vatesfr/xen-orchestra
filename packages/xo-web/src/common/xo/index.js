@@ -1157,11 +1157,8 @@ export const changeVirtualizationMode = vm =>
     })
   )
 
-export const deleteTemplates = templates =>
-  confirm({
-    title: _('templateDeleteModalTitle', { templates: templates.length }),
-    body: _('templateDeleteModalBody', { templates: templates.length }),
-  }).then(async () => {
+export const deleteTemplates = (templates, _confirm = true) => {
+  const _deleteTempaltes = async () => {
     const defaultTemplates = []
     let nErrors = 0
     await Promise.all(
@@ -1212,7 +1209,15 @@ export const deleteTemplates = templates =>
               showError()
             }
           }, noop)
-  }, noop)
+  }
+
+  return _confirm
+    ? confirm({
+        title: _('templateDeleteModalTitle', { templates: templates.length }),
+        body: _('templateDeleteModalBody', { templates: templates.length }),
+      }).then(_deleteTempaltes(), noop)
+    : _deleteTempaltes()
+}
 
 export const snapshotVm = (vm, name, saveMemory, description) =>
   _call('vm.snapshot', { id: resolveId(vm), name, description, saveMemory })

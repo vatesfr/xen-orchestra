@@ -117,7 +117,7 @@ export default decorate([
           )
 
           if (olderTemplates.length > 0) {
-            await deleteTemplates(olderTemplates)
+            await deleteTemplates(olderTemplates, false)
           }
         } catch (_error) {
           error(_('hubImportNotificationTitle'), _error.message)
