@@ -6,13 +6,13 @@ export {
   readCapacityAndGrainTable,
 } from './vmdk-read-table'
 
-async function convertFromVMDK(vmdkReadStream, table) {
-  const parser = new VMDKDirectParser(vmdkReadStream)
+async function convertFromVMDK(vmdkReadStream, blocksTable, grainTable) {
+  const parser = new VMDKDirectParser(vmdkReadStream, blocksTable, grainTable)
   const header = await parser.readHeader()
   return createReadableSparseStream(
     header.capacitySectors * 512,
     header.grainSizeSectors * 512,
-    table,
+    blocksTable,
     parser.blockIterator()
   )
 }

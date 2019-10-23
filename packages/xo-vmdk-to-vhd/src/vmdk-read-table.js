@@ -67,9 +67,9 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     getLongLong(headerBuffer, DISK_CAPACITY_OFFSET, 'capacity') * SECTOR_SIZE
 
   async function readTable() {
-    const grainSize =
+    const grainSizeByte =
       getLongLong(headerBuffer, GRAIN_SIZE_OFFSET, 'grain size') * SECTOR_SIZE
-    const grainCount = Math.ceil(capacity / grainSize)
+    const grainCount = Math.ceil(capacity / grainSizeByte)
     const numGTEsPerGT = new DataView(headerBuffer).getUint32(
       NUM_GTE_PER_GT_OFFSET,
       true
@@ -107,10 +107,16 @@ export async function readCapacityAndGrainTable(fileAccessor) {
       }
     }
     extractedGrainTable.sort(
-      ([i1, grainAddress1], [i2, grainAddress2]) =>
+      ([i1, grainAddress1], [_i2, grainAddress2]) =>
         grainAddress1 - grainAddress2
     )
-    return extractedGrainTable.map(([index, grainAddress]) => index * grainSize)
+    const fragmentAddressList = extractedGrainTable.map(
+      ([index, _grainAddress]) => index * grainSizeByte
+    )
+    const grainsAddressList = extractedGrainTable.map(
+      ([_index, grainAddress]) => grainAddress * SECTOR_SIZE
+    )
+    return { blockAddressList: fragmentAddressList, grainsAddressList }
   }
 
   return { tablePromise: readTable(), capacityBytes: capacity }

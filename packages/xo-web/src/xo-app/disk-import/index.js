@@ -52,8 +52,10 @@ const DiskImport = decorate([
                     return (await fromEvent(reader, 'loadend')).target.result
                   }
                 )
+                const table = await parsed.tablePromise
                 vmdkData = {
-                  blocksTable: await parsed.tablePromise,
+                  blocksTable: table.blockAddressList,
+                  grainTable: table.grainsAddressList,
                   capacity: parsed.capacityBytes,
                 }
               }

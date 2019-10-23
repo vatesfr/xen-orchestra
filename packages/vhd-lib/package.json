@@ -21,6 +21,7 @@
     "node": ">=8.10"
   },
   "dependencies": {
+    "async-iterator-to-stream": "^1.0.3",
     "@xen-orchestra/log": "^0.2.0",
     "async-iterator-to-stream": "^1.0.2",
     "core-js": "^3.0.0",
@@ -28,6 +29,7 @@
     "fs-extra": "^8.0.1",
     "limit-concurrency-decorator": "^0.4.0",
     "promise-toolbox": "^0.14.0",
+    "lodash": "^4.17.4",
     "struct-fu": "^1.2.0",
     "uuid": "^3.0.1"
   },
