@@ -10,15 +10,15 @@ import { Col, Row } from 'grid'
 import { alert, form } from 'modal'
 import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
+import { error, success } from 'notification'
+import { find, filter, isEmpty, map, omit, startCase } from 'lodash'
+import { injectState, provideState } from 'reaclette'
+import { withRouter } from 'react-router'
 import {
   deleteHubTemplate,
   deleteTemplates,
   downloadAndInstallResource,
 } from 'xo'
-import { error, success } from 'notification'
-import { find, filter, isEmpty, map, omit, startCase } from 'lodash'
-import { injectState, provideState } from 'reaclette'
-import { withRouter } from 'react-router'
 
 import ResourceForm from './resource-form'
 
