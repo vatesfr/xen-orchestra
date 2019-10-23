@@ -2926,7 +2926,8 @@ export const closeTunnel = () =>
 export const openTunnel = () =>
   _call('xoa.openSupportTunnel')::tap(() => {
     subscribeTunnelState.forceRefresh()
-    // timeout: to bring the tunnel state as fast as possible.
+    // After 1s, we most likely got the tunnel ID
+    // and we don't want to wait another 5s to show it to the user.
     setTimeout(subscribeTunnelState.forceRefresh, 1000)
   })
 
