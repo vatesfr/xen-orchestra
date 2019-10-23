@@ -2,7 +2,6 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import AnsiUp from 'ansi_up'
 import decorate from 'apply-decorators'
-import marked from 'marked'
 import React from 'react'
 import { addSubscriptions, adminOnly, getXoaPlan } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -30,7 +29,7 @@ const Support = decorate([
       stdoutSupportTunnel: (_, { tunnelState }) =>
         tunnelState === undefined
           ? undefined
-          : { __html: marked(tunnelState.stdout) },
+          : { __html: ansiUp.ansi_to_html(tunnelState.stdout) },
     },
   }),
   injectState,
@@ -98,7 +97,10 @@ const Support = decorate([
               </Row>
               <hr />
               {open || stdout !== '' ? (
-                <pre dangerouslySetInnerHTML={stdoutSupportTunnel} />
+                <pre
+                  className={!open && stdout !== '' && 'text-danger'}
+                  dangerouslySetInnerHTML={stdoutSupportTunnel}
+                />
               ) : (
                 <span>{_('supportTunnelClosed')}</span>
               )}
