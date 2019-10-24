@@ -71,10 +71,7 @@ Object {
 
 exports[`backupNg create and execute backup with enabled offline backup 2`] = `
 Object {
-  "data": Object {
-    "id": Any<String>,
-    "type": "SR",
-  },
+  "data": Any<Object>,
   "end": Any<Number>,
   "id": Any<String>,
   "message": Any<String>,
@@ -98,10 +95,7 @@ Object {
 
 exports[`backupNg create and execute backup with enabled offline backup 4`] = `
 Object {
-  "data": Object {
-    "id": Any<String>,
-    "type": "remote",
-  },
+  "data": Any<Object>,
   "end": Any<Number>,
   "id": Any<String>,
   "message": Any<String>,
