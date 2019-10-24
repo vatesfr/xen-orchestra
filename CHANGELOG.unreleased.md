@@ -32,6 +32,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/cron v1.0.5
 - xo-server-transport-icinga2 v0.1.0
 - xo-server-sdn-controller v0.3.1
 - xo-server v5.51.0
