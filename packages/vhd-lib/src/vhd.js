@@ -1,4 +1,5 @@
 import assert from 'assert'
+import { createLogger } from '@xen-orchestra/log'
 
 import checkFooter from './_checkFooter'
 import checkHeader from './_checkHeader'
@@ -15,10 +16,7 @@ import {
   SECTOR_SIZE,
 } from './_constants'
 
-const VHD_UTIL_DEBUG = 0
-const debug = VHD_UTIL_DEBUG
-  ? str => console.log(`[vhd-merge]${str}`)
-  : () => null
+const { debug } = createLogger('vhd-lib:Vhd')
 
 // ===================================================================
 //

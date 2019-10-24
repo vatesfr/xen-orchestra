@@ -1,4 +1,5 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import { createLogger } from '@xen-orchestra/log'
 
 import resolveRelativeFromFile from './_resolveRelativeFromFile'
 
@@ -13,12 +14,17 @@ import {
 import { fuFooter, fuHeader, checksumStruct } from './_structs'
 import { test as mapTestBit } from './_bitmap'
 
+const { warn } = createLogger('vhd-lib:createSyntheticStream')
+
 export default async function createSyntheticStream(handler, paths) {
   const fds = []
   const cleanup = () => {
     for (let i = 0, n = fds.length; i < n; ++i) {
       handler.closeFile(fds[i]).catch(error => {
-        console.warn('createReadStream, closeFd', i, error)
+        warn('error while closing file', {
+          error,
+          fd: fds[i],
+        })
       })
     }
   }
