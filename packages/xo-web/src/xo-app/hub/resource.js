@@ -5,12 +5,12 @@ import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import marked from 'marked'
 import React from 'react'
+import { alert, form } from 'modal'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
-import { alert, form } from 'modal'
 import { connectStore, formatSize, getXoaPlan } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { downloadAndInstallResource, deleteTemplates } from 'xo'
+import { deleteTemplates, downloadAndInstallResource, pureDeleteVm } from 'xo'
 import { error, success } from 'notification'
 import { find, filter, isEmpty, map, omit, startCase } from 'lodash'
 import { injectState, provideState } from 'reaclette'
@@ -21,7 +21,10 @@ import ResourceForm from './resource-form'
 const Li = props => <li {...props} className='list-group-item' />
 const Ul = props => <ul {...props} className='list-group' />
 
-// 'any' is a default hub metadata, please don't remove it from BANNED_FIELDS
+// Template <id> : specific to a template version
+// Template <namespace> : general template identifier (can have multiple versions)
+// Template <any> : a default hub metadata, please don't remove it from BANNED_FIELDS
+
 const BANNED_FIELDS = ['any', 'description'] // These fields will not be displayed on description modal
 const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
 const MARKDOWN_FIELDS = ['longDescription', 'description']
@@ -62,6 +65,7 @@ export default decorate([
           namespace,
           markHubResourceAsInstalled,
           markHubResourceAsInstalling,
+          templates,
           version,
         } = this.props
         const { isTemplateInstalled } = this.state
@@ -93,8 +97,8 @@ export default decorate([
         markHubResourceAsInstalling(id)
         try {
           await Promise.all(
-            resourceParams.pools.map(pool =>
-              downloadAndInstallResource({
+            resourceParams.pools.map(async pool => {
+              await downloadAndInstallResource({
                 namespace,
                 id,
                 version,
@@ -103,7 +107,16 @@ export default decorate([
                   pool.default_SR
                 ),
               })
-            )
+              const oldTemplates = filter(
+                templates,
+                template =>
+                  pool.$pool === template.$pool &&
+                  template.other['xo:resource:namespace'] === namespace
+              )
+              await Promise.all(
+                oldTemplates.map(template => pureDeleteVm(template))
+              )
+            })
           )
           success(_('hubImportNotificationTitle'), _('successfulInstall'))
         } catch (_error) {
@@ -241,8 +254,6 @@ export default decorate([
       },
     },
     computed: {
-      installedTemplates: (_, { namespace, templates }) =>
-        filter(templates, ['other.xo:resource:namespace', namespace]),
       description: (
         _,
         {
@@ -260,6 +271,8 @@ export default decorate([
             }}
           />
         ),
+      installedTemplates: (_, { id, templates }) =>
+        filter(templates, ['other.xo:resource:xva:id', id]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(
