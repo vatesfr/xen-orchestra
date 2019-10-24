@@ -113,7 +113,9 @@ export default decorate([
                   pool.$pool === template.$pool &&
                   template.other['xo:resource:namespace'] === namespace
               )
-              await Promise.all(oldTemplates.map(pureDeleteVm))
+              await Promise.all(
+                oldTemplates.map(template => pureDeleteVm(template))
+              )
             })
           )
           success(_('hubImportNotificationTitle'), _('successfulInstall'))
