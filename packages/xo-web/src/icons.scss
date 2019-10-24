@@ -1111,6 +1111,10 @@
     @extend .fa;
     @extend .fa-share;
   }
+  &-open-tunnel {
+    @extend .fa;
+    @extend .fa-arrows-h;
+  }
 
   // XOSAN related
 

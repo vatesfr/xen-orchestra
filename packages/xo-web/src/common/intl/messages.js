@@ -158,7 +158,12 @@ const messages = {
   freeUpgrade: 'Free upgrade!',
   checkXoa: 'Check XOA',
   xoaCheck: 'XOA check',
-  checkXoaCommunity: 'XOA check is available in XOA.',
+  closeTunnel: 'Close tunnel',
+  openTunnel: 'Open tunnel',
+  supportCommunity:
+    'The XOA check and the support tunnel are available in XOA.',
+  supportTunnel: 'Support tunnel',
+  supportTunnelClosed: 'The support tunnel is closed.',
 
   // ----- Sign out -----
   signOut: 'Sign out',
