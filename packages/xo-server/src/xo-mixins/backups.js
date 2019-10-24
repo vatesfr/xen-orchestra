@@ -301,7 +301,7 @@ export default class {
     this._xo = xo
   }
 
-  @debounceWithKey(DEBOUNCE_DELAY, function keyFn(remoteId) {
+  @debounceWithKey.decorate(DEBOUNCE_DELAY, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async listRemoteBackups(remoteId) {
@@ -330,7 +330,7 @@ export default class {
     return backups
   }
 
-  @debounceWithKey(DEBOUNCE_DELAY, function keyFn(remoteId) {
+  @debounceWithKey.decorate(DEBOUNCE_DELAY, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async listVmBackups(remoteId) {
