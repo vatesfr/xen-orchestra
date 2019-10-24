@@ -68,9 +68,9 @@ function alignSectors(number) {
 }
 
 export default class VMDKDirectParser {
-  constructor(readStream, blocksTable, grainTable) {
-    this.blocksTable = blocksTable
-    this.grainTable = grainTable
+  constructor(readStream, grainLogicalAddressList, grainFileOffsetList) {
+    this.grainLogicalAddressList = grainLogicalAddressList
+    this.grainFileOffsetList = grainFileOffsetList
     this.virtualBuffer = new VirtualBuffer(readStream)
     this.header = null
   }
@@ -209,14 +209,14 @@ export default class VMDKDirectParser {
   async *blockIterator() {
     for (
       let tableIndex = 0;
-      tableIndex < this.grainTable.length;
+      tableIndex < this.grainFileOffsetList.length;
       tableIndex++
     ) {
       const position = this.virtualBuffer.position
-      const grainPosition = this.grainTable[tableIndex]
+      const grainPosition = this.grainFileOffsetList[tableIndex]
       const grainSizeBytes = this.header.grainSizeSectors * 512
-      const lba = this.blocksTable[tableIndex]
-      // console.log('VMDK before blank', position, grainPosition,'lba', lba, 'tableIndex', tableIndex, 'grainTable.length', this.grainTable.length)
+      const lba = this.grainLogicalAddressList[tableIndex]
+      // console.log('VMDK before blank', position, grainPosition,'lba', lba, 'tableIndex', tableIndex, 'grainFileOffsetList.length', this.grainFileOffsetList.length)
       await this.virtualBuffer.readChunk(
         grainPosition - position,
         'blank before ' + position

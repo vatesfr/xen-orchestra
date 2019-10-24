@@ -54,8 +54,8 @@ const DiskImport = decorate([
                 )
                 const table = await parsed.tablePromise
                 vmdkData = {
-                  blocksTable: table.blockAddressList,
-                  grainTable: table.grainsAddressList,
+                  grainLogicalAddressList: table.grainLogicalAddressList,
+                  grainFileOffsetList: table.grainFileOffsetList,
                   capacity: parsed.capacityBytes,
                 }
               }

@@ -181,8 +181,8 @@ async function handleImport(
     if (type === 'vmdk') {
       vhdStream = await convertVmdkToVhdStream(
         req,
-        vmdkData.blocksTable,
-        vmdkData.grainTable
+        vmdkData.grainLogicalAddressList,
+        vmdkData.grainFileOffsetList
       )
       size = vmdkData.capacity
     } else if (type === 'vhd') {
@@ -234,7 +234,7 @@ importDisk.params = {
     optional: true,
     properties: {
       capacity: { type: 'integer' },
-      blocksTable: {
+      grainLogicalAddressList: {
         description:
           'virtual address of the blocks on the disk (LBA), in order encountered in the VMDK',
         type: 'array',
@@ -242,7 +242,7 @@ importDisk.params = {
           type: 'integer',
         },
       },
-      grainTable: {
+      grainFileOffsetList: {
         description:
           'offset of the grains in the VMDK file, in order encountered in the VMDK',
         optional: true,

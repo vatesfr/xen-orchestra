@@ -30,8 +30,9 @@ const getLongLong = (buffer, offset, name) => {
 }
 
 /**
- * the grain table is the array of LBAs (in byte, not in sector) ordered by
- * their position in the VDMK file
+ * the grain table is an object { grainLogicalAddressList: [number], grainFileOffsetList: [number] }
+ * grainLogicalAddressList contains the logical addresses of the grains in the file, in the order they are stored in the VMDK
+ * grainFileOffsetList contains the offsets of the grains in the VMDK file, in the order they are stored in the VMDK (so this array should be ascending)
  *
  * THIS CODE RUNS ON THE BROWSER
  */
@@ -42,7 +43,7 @@ export default async function readVmdkGrainTable(fileAccessor) {
 /***
  *
  * @param fileAccessor: (start, end) => ArrayBuffer
- * @returns {Promise<{capacityBytes: number, tablePromise: Promise<[number]>}>}
+ * @returns {Promise<{capacityBytes: number, tablePromise: Promise<{ grainLogicalAddressList: [number], grainFileOffsetList: [number] }>}>}
  */
 export async function readCapacityAndGrainTable(fileAccessor) {
   let headerBuffer = await fileAccessor(0, HEADER_SIZE)
@@ -113,10 +114,10 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     const fragmentAddressList = extractedGrainTable.map(
       ([index, _grainAddress]) => index * grainSizeByte
     )
-    const grainsAddressList = extractedGrainTable.map(
+    const grainFileOffsetList = extractedGrainTable.map(
       ([_index, grainAddress]) => grainAddress * SECTOR_SIZE
     )
-    return { blockAddressList: fragmentAddressList, grainsAddressList }
+    return { grainLogicalAddressList: fragmentAddressList, grainFileOffsetList }
   }
 
   return { tablePromise: readTable(), capacityBytes: capacity }

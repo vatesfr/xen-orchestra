@@ -60,8 +60,8 @@ test('VMDKDirectParser reads OK', async () => {
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
   const parser = new VMDKDirectParser(
     createReadStream(fileName),
-    data.blockAddressList,
-    data.grainsAddressList
+    data.grainLogicalAddressList,
+    data.grainFileOffsetList
   )
   const header = await parser.readHeader()
   const harvested = []
