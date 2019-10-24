@@ -437,7 +437,7 @@ export default decorate([
                     handler={submitHandler}
                     icon='save'
                     redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup-ng'
+                      state.isJobInvalid ? undefined : '/backup'
                     }
                     size='large'
                   >

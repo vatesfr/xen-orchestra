@@ -272,7 +272,9 @@ export default class Restore extends Component {
     return (
       <Upgrade place='restoreBackup' available={2}>
         <div>
-          <div className='mb-1'>
+          <RestoreLegacy />
+          <div className='mt-1 mb-1'>
+            <h3>{_('restore')}</h3>
             <ActionButton
               btnStyle='primary'
               handler={this._refreshBackupList}
@@ -280,7 +282,7 @@ export default class Restore extends Component {
             >
               {_('restoreResfreshList')}
             </ActionButton>{' '}
-            <ButtonLink to='backup-ng/restore/metadata'>
+            <ButtonLink to='backup/restore/metadata'>
               <Icon icon='database' /> {_('metadata')}
             </ButtonLink>
           </div>
@@ -291,7 +293,6 @@ export default class Restore extends Component {
           />
           <br />
           <Logs />
-          <RestoreLegacy />
         </div>
       </Upgrade>
     )

@@ -1,273 +1,369 @@
 import _ from 'intl'
-import ActionRowButton from 'action-row-button'
-import ButtonGroup from 'button-group'
-import Component from 'base-component'
+import ActionButton from 'action-button'
+import addSubscriptions from 'add-subscriptions'
+import Button from 'button'
 import constructQueryString from 'construct-query-string'
+import Copiable from 'copiable'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
-import Link from 'link'
-import LogList from '../../logs'
-import NoObjects from 'no-objects'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import { confirm } from 'modal'
-import { addSubscriptions } from 'utils'
-import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
-import { filter, find, forEach, get, keyBy, map, orderBy } from 'lodash'
+import { confirm } from 'modal'
+import { createSelector } from 'selectors'
+import { get } from '@xen-orchestra/defined'
+import { injectState, provideState } from 'reaclette'
+import { isEmpty, map, groupBy, some } from 'lodash'
 import {
-  deleteBackupSchedule,
+  cancelJob,
+  deleteBackupJobs,
   disableSchedule,
   enableSchedule,
-  migrateBackupSchedule,
-  runJob,
+  runBackupNgJob,
+  runMetadataBackupJob,
+  subscribeBackupNgJobs,
+  subscribeBackupNgLogs,
   subscribeJobs,
+  subscribeMetadataBackupJobs,
   subscribeSchedules,
-  subscribeUsers,
 } from 'xo'
 
-// ===================================================================
+import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
+import { destructPattern } from '../utils'
+import LogsTable, { LogStatus } from '../../logs/backup-ng'
+import LegacyOverview from '../overview-legacy'
 
-const jobKeyToLabel = {
-  continuousReplication: _('continuousReplication'),
-  deltaBackup: _('deltaBackup'),
-  disasterRecovery: _('disasterRecovery'),
-  rollingBackup: _('backup'),
-  rollingSnapshot: _('rollingSnapshot'),
-}
+const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
+const Li = props => (
+  <li
+    {...props}
+    style={{
+      whiteSpace: 'nowrap',
+    }}
+  />
+)
 
-const _runJob = ({ jobLabel, jobId, scheduleTag }) =>
-  confirm({
-    title: _('runJob'),
-    body: _('runJobConfirm', {
-      backupType: <strong>{jobLabel}</strong>,
-      id: <strong>{jobId.slice(4, 8)}</strong>,
-      tag: scheduleTag,
-    }),
-  }).then(() => runJob(jobId))
-
-const JOB_COLUMNS = [
+const MODES = [
   {
-    name: _('jobId'),
-    itemRenderer: ({ jobId }) => jobId.slice(4, 8),
-    sortCriteria: 'jobId',
+    label: 'rollingSnapshot',
+    test: job =>
+      some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
   },
   {
-    name: _('jobType'),
-    itemRenderer: ({ jobLabel }) => jobLabel,
-    sortCriteria: 'jobLabel',
+    label: 'backup',
+    test: job =>
+      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
-    name: _('jobTag'),
-    itemRenderer: ({ scheduleTag }) => scheduleTag,
-    default: true,
-    sortCriteria: ({ scheduleTag }) => scheduleTag,
+    label: 'deltaBackup',
+    test: job =>
+      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
-    name: _('jobScheduling'),
-    itemRenderer: ({ schedule }) => schedule.cron,
-    sortCriteria: ({ schedule }) => schedule.cron,
+    label: 'continuousReplication',
+    test: job =>
+      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
-    name: _('jobTimezone'),
-    itemRenderer: ({ schedule }) => schedule.timezone || _('jobServerTimezone'),
-    sortCriteria: ({ schedule }) => schedule.timezone,
+    label: 'disasterRecovery',
+    test: job =>
+      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
-    name: _('state'),
-    itemRenderer: ({ schedule }) => (
-      <StateButton
-        disabledLabel={_('stateDisabled')}
-        disabledHandler={enableSchedule}
-        disabledTooltip={_('logIndicationToEnable')}
-        enabledLabel={_('stateEnabled')}
-        enabledHandler={disableSchedule}
-        enabledTooltip={_('logIndicationToDisable')}
-        handlerParam={schedule.id}
-        state={schedule.enabled}
-      />
-    ),
-    sortCriteria: 'schedule.enabled',
+    label: 'poolMetadata',
+    test: job => !isEmpty(destructPattern(job.pools)),
   },
   {
-    name: _('jobAction'),
-    itemRenderer: (item, isScheduleUserMissing) => {
-      const { redirect, schedule } = item
-      const { id } = schedule
-
-      return (
-        <fieldset>
-          {isScheduleUserMissing[id] && (
-            <Tooltip content={_('backupUserNotFound')}>
-              <Icon className='mr-1' icon='error' />
-            </Tooltip>
-          )}
-          <Link
-            className='btn btn-sm btn-primary mr-1'
-            to={`/backup/${id}/edit`}
-          >
-            <Icon icon='edit' />
-          </Link>
-          <ButtonGroup>
-            {redirect && (
-              <ActionRowButton
-                btnStyle='primary'
-                handler={redirect}
-                icon='preview'
-                tooltip={_('redirectToMatchingVms')}
-              />
-            )}
-            <ActionRowButton
-              btnStyle='warning'
-              disabled={isScheduleUserMissing[id]}
-              handler={_runJob}
-              handlerParam={item}
-              icon='run-schedule'
-            />
-            <ActionRowButton
-              btnStyle='danger'
-              handler={migrateBackupSchedule}
-              handlerParam={schedule.jobId}
-              icon='migrate-job'
-              tooltip={_('migrateToBackupNg')}
-            />
-            <ActionRowButton
-              btnStyle='danger'
-              handler={deleteBackupSchedule}
-              handlerParam={schedule}
-              icon='delete'
-            />
-          </ButtonGroup>
-        </fieldset>
-      )
-    },
-    textAlign: 'right',
+    label: 'xoConfig',
+    test: job => job.xoMetadata,
   },
 ]
 
-// ===================================================================
+const _deleteBackupJobs = items => {
+  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(
+    items,
+    'type'
+  )
+  return deleteBackupJobs({ backupIds, metadataBackupIds })
+}
+
+const _runBackupJob = ({ id, name, schedule, type }) =>
+  confirm({
+    title: _('runJob'),
+    body: _('runBackupNgJobConfirm', {
+      id: id.slice(0, 5),
+      name: <strong>{name}</strong>,
+    }),
+  }).then(() =>
+    type === 'backup'
+      ? runBackupNgJob({ id, schedule })
+      : runMetadataBackupJob({ id, schedule })
+  )
+
+const SchedulePreviewBody = decorate([
+  addSubscriptions(({ schedule }) => ({
+    lastRunLog: cb =>
+      subscribeBackupNgLogs(logs => {
+        let lastRunLog
+        for (const runId in logs) {
+          const log = logs[runId]
+          if (
+            log.scheduleId === schedule.id &&
+            (lastRunLog === undefined || lastRunLog.start < log.start)
+          ) {
+            lastRunLog = log
+          }
+        }
+        cb(lastRunLog)
+      }),
+  })),
+  ({ job, schedule, lastRunLog }) => (
+    <Ul>
+      <Li>
+        {schedule.name
+          ? _.keyValue(_('scheduleName'), schedule.name)
+          : _.keyValue(_('scheduleCron'), schedule.cron)}{' '}
+        <Tooltip content={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}>
+          <CopyToClipboard text={schedule.id}>
+            <Button size='small'>
+              <Icon icon='clipboard' />
+            </Button>
+          </CopyToClipboard>
+        </Tooltip>
+      </Li>
+      <Li>
+        <StateButton
+          disabledLabel={_('stateDisabled')}
+          disabledHandler={enableSchedule}
+          disabledTooltip={_('logIndicationToEnable')}
+          enabledLabel={_('stateEnabled')}
+          enabledHandler={disableSchedule}
+          enabledTooltip={_('logIndicationToDisable')}
+          handlerParam={schedule.id}
+          state={schedule.enabled}
+          style={{ marginRight: '0.5em' }}
+        />
+        {job.runId !== undefined ? (
+          <ActionButton
+            btnStyle='danger'
+            handler={cancelJob}
+            handlerParam={job}
+            icon='cancel'
+            key='cancel'
+            size='small'
+            tooltip={_('formCancel')}
+          />
+        ) : (
+          <ActionButton
+            btnStyle='primary'
+            data-id={job.id}
+            data-name={job.name}
+            data-schedule={schedule.id}
+            data-type={job.type}
+            handler={_runBackupJob}
+            icon='run-schedule'
+            key='run'
+            size='small'
+          />
+        )}{' '}
+        {lastRunLog !== undefined && (
+          <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />
+        )}
+      </Li>
+    </Ul>
+  ),
+])
 
 @addSubscriptions({
-  jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
-  schedules: cb => subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
-  users: subscribeUsers,
+  jobs: subscribeBackupNgJobs,
+  metadataJobs: subscribeMetadataBackupJobs,
+  schedulesByJob: cb =>
+    subscribeSchedules(schedules => {
+      cb(groupBy(schedules, 'jobId'))
+    }),
 })
-export default class Overview extends Component {
+class JobsTable extends React.Component {
   static contextTypes = {
     router: PropTypes.object,
   }
 
-  _getSchedules = createSelector(
-    () => this.props.jobs,
-    () => this.props.schedules,
-    (jobs, schedules) =>
-      jobs === undefined || schedules === undefined
-        ? []
-        : orderBy(
-            filter(schedules, schedule => {
-              const job = jobs[schedule.jobId]
-              return job && jobKeyToLabel[job.key]
-            }),
-            'id'
-          )
-  )
+  static tableProps = {
+    actions: [
+      {
+        handler: _deleteBackupJobs,
+        label: _('deleteBackupSchedule'),
+        icon: 'delete',
+        level: 'danger',
+      },
+    ],
+    columns: [
+      {
+        itemRenderer: ({ id }) => (
+          <Copiable data={id} tagName='p'>
+            {id.slice(4, 8)}
+          </Copiable>
+        ),
+        name: _('jobId'),
+      },
+      {
+        valuePath: 'name',
+        name: _('jobName'),
+        default: true,
+      },
+      {
+        itemRenderer: job => (
+          <Ul>
+            {MODES.filter(({ test }) => test(job)).map(({ label }) => (
+              <Li key={label}>{_(label)}</Li>
+            ))}
+          </Ul>
+        ),
+        sortCriteria: 'mode',
+        name: _('jobModes'),
+      },
+      {
+        itemRenderer: (job, { schedulesByJob }) =>
+          map(get(() => schedulesByJob[job.id]), schedule => (
+            <SchedulePreviewBody
+              job={job}
+              key={schedule.id}
+              schedule={schedule}
+            />
+          )),
+        name: _('jobSchedules'),
+      },
+      {
+        itemRenderer: job => {
+          const {
+            compression,
+            concurrency,
+            fullInterval,
+            offlineSnapshot,
+            reportWhen,
+            timeout,
+          } = getSettingsWithNonDefaultValue(job.mode, {
+            compression: job.compression,
+            ...job.settings[''],
+          })
 
-  _redirectToMatchingVms = pattern => {
-    this.context.router.push({
-      pathname: '/home',
-      query: { t: 'VM', s: constructQueryString(pattern) },
-    })
+          return (
+            <Ul>
+              {reportWhen !== undefined && (
+                <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
+              )}
+              {concurrency !== undefined && (
+                <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
+              )}
+              {timeout !== undefined && (
+                <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
+              )}
+              {fullInterval !== undefined && (
+                <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>
+              )}
+              {offlineSnapshot !== undefined && (
+                <Li>
+                  {_.keyValue(
+                    _('offlineSnapshot'),
+                    _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled')
+                  )}
+                </Li>
+              )}
+              {compression !== undefined && (
+                <Li>
+                  {_.keyValue(
+                    _('compression'),
+                    compression === 'native' ? 'GZIP' : compression
+                  )}
+                </Li>
+              )}
+            </Ul>
+          )
+        },
+        name: _('formNotes'),
+      },
+    ],
+    individualActions: [
+      {
+        handler: (job, { goTo }) =>
+          goTo({
+            pathname: '/home',
+            query: { t: 'VM', s: constructQueryString(job.vms) },
+          }),
+        disabled: job => job.type !== 'backup',
+        label: _('redirectToMatchingVms'),
+        icon: 'preview',
+      },
+      {
+        handler: (job, { goTo }) => goTo(`/backup/${job.id}/edit`),
+        label: _('formEdit'),
+        icon: 'edit',
+        level: 'primary',
+      },
+    ],
   }
 
-  _getScheduleCollection = createSelector(
-    this._getSchedules,
+  _goTo = path => {
+    this.context.router.push(path)
+  }
+
+  _getCollection = createSelector(
     () => this.props.jobs,
-    (schedules, jobs) => {
-      if (!schedules || !jobs) {
-        return []
-      }
-
-      return map(schedules, schedule => {
-        const job = jobs[schedule.jobId]
-        const { items } = job.paramsVector
-        const pattern = get(items, '[1].collection.pattern')
-
-        return {
-          jobId: job.id,
-          jobLabel: jobKeyToLabel[job.key] || _('unknownSchedule'),
-          redirect:
-            pattern !== undefined &&
-            (() => this._redirectToMatchingVms(pattern)),
-          // Old versions of XenOrchestra use items[0]
-          scheduleTag:
-            get(items, '[0].values[0].tag') ||
-            get(items, '[1].values[0].tag') ||
-            schedule.id,
-          schedule,
-        }
-      })
-    }
-  )
-
-  _getIsScheduleUserMissing = createSelector(
-    this._getSchedules,
-    () => this.props.jobs,
-    () => this.props.users,
-    (schedules, jobs, users) => {
-      const isScheduleUserMissing = {}
-      forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !(
-          jobs && find(users, user => user.id === jobs[schedule.jobId].userId)
-        )
-      })
-
-      return isScheduleUserMissing
-    }
+    () => this.props.metadataJobs,
+    (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
   )
 
   render() {
-    const schedules = this._getSchedules()
-    const isScheduleUserMissing = this._getIsScheduleUserMissing()
-
     return (
-      <div>
-        <Card>
-          <CardHeader>
-            <Icon icon='schedule' /> {_('backupSchedules')}
-          </CardHeader>
-          <CardBlock>
-            <NoObjects
-              collection={schedules}
-              emptyMessage={
-                <span>
-                  {_('noScheduledJobs')}{' '}
-                  <Link to='/backup-ng/health'>{_('legacySnapshotsLink')}</Link>
-                </span>
-              }
-            >
-              {() => (
-                <div>
-                  <div className='alert alert-warning'>
-                    {_('backupDeprecatedMessage')}
-                    <br />
-                    <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
-                      {_('backupMigrationLink')}
-                    </a>
-                  </div>
-                  <SortedTable
-                    columns={JOB_COLUMNS}
-                    collection={this._getScheduleCollection()}
-                    userData={isScheduleUserMissing}
-                  />
-                </div>
-              )}
-            </NoObjects>
-          </CardBlock>
-        </Card>
-        <LogList jobKeys={Object.keys(jobKeyToLabel)} />
-      </div>
+      <SortedTable
+        {...JobsTable.tableProps}
+        collection={this._getCollection()}
+        data-goTo={this._goTo}
+        data-schedulesByJob={this.props.schedulesByJob}
+      />
     )
   }
 }
+
+const legacyJobKey = [
+  'continuousReplication',
+  'deltaBackup',
+  'disasterRecovery',
+  'backup',
+  'rollingSnapshot',
+]
+
+const Overview = decorate([
+  addSubscriptions({
+    legacyJobs: subscribeJobs,
+  }),
+  provideState({
+    computed: {
+      haveLegacyBackups: (_, { legacyJobs }) =>
+        some(legacyJobs, job => legacyJobKey.includes(job.key)),
+    },
+  }),
+  injectState,
+  ({ state: { haveLegacyBackups } }) => (
+    <div>
+      {haveLegacyBackups && <LegacyOverview />}
+      <div className='mt-2 mb-1'>
+        {haveLegacyBackups && <h3>{_('backup')}</h3>}
+        <Card>
+          <CardHeader>
+            <Icon icon='backup' /> {_('backupJobs')}
+          </CardHeader>
+          <CardBlock>
+            <JobsTable />
+          </CardBlock>
+        </Card>
+        <LogsTable />
+      </div>
+    </div>
+  ),
+])
+
+export default Overview
