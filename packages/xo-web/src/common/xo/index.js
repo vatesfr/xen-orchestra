@@ -1322,7 +1322,8 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
 export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
-export const pureDeleteVm = vm => _call('vm.delete', { id: resolveId(vm) })
+export const pureDeleteVm = (vm, props) =>
+  _call('vm.delete', { id: resolveId(vm), ...props })
 
 export const deleteVm = (vm, retryWithForce = true) =>
   confirm({
@@ -1335,10 +1336,7 @@ export const deleteVm = (vm, retryWithForce = true) =>
         return confirm({
           title: _('deleteVmBlockedModalTitle'),
           body: _('deleteVmBlockedModalMessage'),
-        }).then(
-          () => _call('vm.delete', { id: resolveId(vm), force: true }),
-          noop
-        )
+        }).then(() => pureDeleteVm(vm, { force: true }), noop)
       }
 
       throw error
