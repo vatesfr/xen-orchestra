@@ -14,11 +14,7 @@ import { error, success } from 'notification'
 import { find, filter, isEmpty, map, omit, startCase } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
-import {
-  deleteHubTemplate,
-  deleteTemplates,
-  downloadAndInstallResource,
-} from 'xo'
+import { deleteTemplates, downloadAndInstallResource, pureDeleteVm } from 'xo'
 
 import ResourceForm from './resource-form'
 
@@ -115,7 +111,7 @@ export default decorate([
                   template.other['xo:resource:namespace'] === namespace
               )
               if (oldTemplate !== undefined) {
-                await deleteHubTemplate(oldTemplate)
+                await pureDeleteVm(oldTemplate)
               }
             })
           )

@@ -1157,9 +1157,6 @@ export const changeVirtualizationMode = vm =>
     })
   )
 
-export const deleteHubTemplate = template =>
-  _call('vm.delete', { id: resolveId(template) })
-
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
@@ -1325,12 +1322,14 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
 export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
+export const pureDeleteVm = vm => _call('vm.delete', { id: resolveId(vm) })
+
 export const deleteVm = (vm, retryWithForce = true) =>
   confirm({
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage'),
   })
-    .then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
+    .then(() => pureDeleteVm(vm), noop)
     .catch(error => {
       if (retryWithForce && forbiddenOperation.is(error)) {
         return confirm({
