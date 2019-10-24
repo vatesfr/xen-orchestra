@@ -669,9 +669,7 @@ describe('backupNg', () => {
             subTask,
             subTask.data.type === 'remote' ? remoteId : srId,
             {
-              data: {
-                id: expect.any(String),
-              },
+              data: expect.any(Object),
               status: 'success',
             }
           )
