@@ -21,7 +21,10 @@ import ResourceForm from './resource-form'
 const Li = props => <li {...props} className='list-group-item' />
 const Ul = props => <ul {...props} className='list-group' />
 
-// 'any' is a default hub metadata, please don't remove it from BANNED_FIELDS
+// Template <id> : specific to a template version
+// Template <namespace> : general template identifier (can have multiple versions)
+// Template <any> : a default hub metadata, please don't remove it from BANNED_FIELDS
+
 const BANNED_FIELDS = ['any', 'description'] // These fields will not be displayed on description modal
 const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
 const MARKDOWN_FIELDS = ['longDescription', 'description']
