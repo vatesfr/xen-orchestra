@@ -93,7 +93,7 @@ const normalizeTagValues = values => resolveIds(values).map(value => [value])
 const normalizeSettings = ({
   copyMode,
   exportMode,
-  offlineBackupEnabled,
+  offlineBackupActive,
   settings,
   snapshotMode,
 }) =>
@@ -107,7 +107,7 @@ const normalizeSettings = ({
           copyRetention: copyMode ? setting.copyRetention : undefined,
           exportRetention: exportMode ? setting.exportRetention : undefined,
           snapshotRetention:
-            snapshotMode && !offlineBackupEnabled
+            snapshotMode && !offlineBackupActive
               ? setting.snapshotRetention
               : undefined,
         }
@@ -207,7 +207,7 @@ export default decorate([
             ({ id, ...schedule }) => schedule
           )
           settings = normalizeSettings({
-            offlineBackupEnabled: state.offlineBackupEnabled,
+            offlineBackupActive: state.offlineBackupActive,
             settings: state.settings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
@@ -224,7 +224,7 @@ export default decorate([
               copyRetention: state.copyMode ? DEFAULT_RETENTION : undefined,
               exportRetention: state.exportMode ? DEFAULT_RETENTION : undefined,
               snapshotRetention:
-                state.snapshotMode && !state.offlineBackupEnabled
+                state.snapshotMode && !state.offlineBackupActive
                   ? DEFAULT_RETENTION
                   : undefined,
             },
@@ -310,7 +310,7 @@ export default decorate([
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression,
           settings: normalizeSettings({
-            offlineBackupEnabled: state.offlineBackupEnabled,
+            offlineBackupActive: state.offlineBackupActive,
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
             copyMode: state.copyMode,
@@ -573,7 +573,9 @@ export default decorate([
       inputFullIntervalId: generateId,
       inputTimeoutId: generateId,
 
-      offlineBackupEnabled: ({
+      // In order to keep the user preference, the offline backup is kept in the DB
+      // and it's considered active only when the full mode is enabled
+      offlineBackupActive: ({
         isFull,
         propSettings,
         settings = propSettings,
@@ -717,7 +719,7 @@ export default decorate([
                     <ActionButton
                       active={state.snapshotMode}
                       data-mode='snapshotMode'
-                      disabled={state.offlineBackupEnabled}
+                      disabled={state.offlineBackupActive}
                       handler={effects.toggleMode}
                       icon='rolling-snapshot'
                     >
@@ -996,7 +998,7 @@ export default decorate([
                           </FormGroup>
                         </div>
                       )}
-                      {!state.offlineBackupEnabled && (
+                      {!state.offlineBackupActive && (
                         <FormGroup>
                           <label>
                             <strong>{_('offlineSnapshot')}</strong>{' '}
