@@ -17,7 +17,7 @@
   },
   "version": "0.1.0",
   "engines": {
-    "node": ">=8.94"
+    "node": ">=8.9.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
