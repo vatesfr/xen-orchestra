@@ -107,15 +107,13 @@ export default decorate([
                   pool.default_SR
                 ),
               })
-              const oldTemplate = find(
+              const oldTemplates = filter(
                 templates,
                 template =>
                   pool.$pool === template.$pool &&
                   template.other['xo:resource:namespace'] === namespace
               )
-              if (oldTemplate !== undefined) {
-                await pureDeleteVm(oldTemplate)
-              }
+              await Promise.all(oldTemplates.map(pureDeleteVm))
             })
           )
           success(_('hubImportNotificationTitle'), _('successfulInstall'))
