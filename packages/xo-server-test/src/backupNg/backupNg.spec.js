@@ -638,7 +638,7 @@ describe('backupNg', () => {
       }
     })
 
-    const backupLogs = await xo.call('backupNg.getLogs', {
+    const backupLogs = await xo.getBackupLogs({
       jobId: backup.id,
       scheduleId: schedule.id,
     })
