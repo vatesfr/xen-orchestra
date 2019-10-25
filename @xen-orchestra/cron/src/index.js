@@ -13,10 +13,10 @@ class Job {
       if (scheduledDate > now) {
         // we're early, delay
         //
+        // no need to check _isEnabled, we're just delaying the existing timeout
+        //
         // see https://github.com/vatesfr/xen-orchestra/issues/4625
-        if (this._isEnabled) {
-          this._timeout = setTimeout(wrapper, scheduledDate - now)
-        }
+        this._timeout = setTimeout(wrapper, scheduledDate - now)
         return
       }
 
