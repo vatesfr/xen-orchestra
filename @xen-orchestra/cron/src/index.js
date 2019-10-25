@@ -15,7 +15,7 @@ class Job {
         //
         // see https://github.com/vatesfr/xen-orchestra/issues/4625
         if (this._isEnabled) {
-          setTimeout(wrapper, scheduledDate - now)
+          this._timeout = setTimeout(wrapper, scheduledDate - now)
         }
         return
       }
