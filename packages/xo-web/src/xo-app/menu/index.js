@@ -219,35 +219,8 @@ export default class Menu extends Component {
             icon: 'menu-backup-file-restore',
             label: 'backupFileRestorePage',
           },
-        ],
-      },
-      isAdmin && {
-        to: '/backup-ng/overview',
-        icon: 'menu-backup',
-        label: <span>Backup NG</span>,
-        subMenu: [
           {
-            to: '/backup-ng/overview',
-            icon: 'menu-backup-overview',
-            label: 'backupOverviewPage',
-          },
-          {
-            to: '/backup-ng/new',
-            icon: 'menu-backup-new',
-            label: 'backupNewPage',
-          },
-          {
-            to: '/backup-ng/restore',
-            icon: 'menu-backup-restore',
-            label: 'backupRestorePage',
-          },
-          {
-            to: '/backup-ng/file-restore',
-            icon: 'menu-backup-file-restore',
-            label: 'backupFileRestorePage',
-          },
-          {
-            to: '/backup-ng/health',
+            to: '/backup/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
           },

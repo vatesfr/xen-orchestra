@@ -1322,21 +1322,21 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
 export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
+export const pureDeleteVm = (vm, props) =>
+  _call('vm.delete', { id: resolveId(vm), ...props })
+
 export const deleteVm = (vm, retryWithForce = true) =>
   confirm({
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage'),
   })
-    .then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
+    .then(() => pureDeleteVm(vm), noop)
     .catch(error => {
       if (retryWithForce && forbiddenOperation.is(error)) {
         return confirm({
           title: _('deleteVmBlockedModalTitle'),
           body: _('deleteVmBlockedModalMessage'),
-        }).then(
-          () => _call('vm.delete', { id: resolveId(vm), force: true }),
-          noop
-        )
+        }).then(() => pureDeleteVm(vm, { force: true }), noop)
       }
 
       throw error

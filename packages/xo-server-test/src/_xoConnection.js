@@ -154,6 +154,19 @@ class XoConnection extends Xo {
     })
   }
 
+  async startTempVm(id, params, withXenTools = false) {
+    await this.call('vm.start', { id, ...params })
+    this._tempResourceDisposers.push('vm.stop', { id, force: true })
+    return this.waitObjectState(id, vm => {
+      if (
+        vm.power_state !== 'Running' ||
+        (withXenTools && vm.xenTools === false)
+      ) {
+        throw new Error('retry')
+      }
+    })
+  }
+
   async createTempRemote(params) {
     const remote = await this.call('remote.create', params)
     this._tempResourceDisposers.push('remote.delete', { id: remote.id })
