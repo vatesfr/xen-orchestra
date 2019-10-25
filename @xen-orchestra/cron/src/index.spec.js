@@ -2,12 +2,24 @@
 
 import { createSchedule } from './'
 
+const wrap = value => () => value
+
 describe('issues', () => {
+  let originalDateNow
+  beforeAll(() => {
+    originalDateNow = Date.now
+  })
+  afterAll(() => {
+    Date.now = originalDateNow
+    originalDateNow = undefined
+  })
+
   test('stop during async execution', async () => {
     let nCalls = 0
     let resolve, promise
 
-    const job = createSchedule('* * * * *').createJob(() => {
+    const schedule = createSchedule('* * * * *')
+    const job = schedule.createJob(() => {
       ++nCalls
 
       // eslint-disable-next-line promise/param-names
@@ -18,6 +30,7 @@ describe('issues', () => {
     })
 
     job.start()
+    Date.now = wrap(+schedule.next(1)[0])
     jest.runAllTimers()
 
     expect(nCalls).toBe(1)
@@ -35,7 +48,8 @@ describe('issues', () => {
     let nCalls = 0
     let resolve, promise
 
-    const job = createSchedule('* * * * *').createJob(() => {
+    const schedule = createSchedule('* * * * *')
+    const job = schedule.createJob(() => {
       ++nCalls
 
       // eslint-disable-next-line promise/param-names
@@ -46,6 +60,7 @@ describe('issues', () => {
     })
 
     job.start()
+    Date.now = wrap(+schedule.next(1)[0])
     jest.runAllTimers()
 
     expect(nCalls).toBe(1)
@@ -56,6 +71,7 @@ describe('issues', () => {
     resolve()
     await promise
 
+    Date.now = wrap(+schedule.next(1)[0])
     jest.runAllTimers()
     expect(nCalls).toBe(2)
   })
