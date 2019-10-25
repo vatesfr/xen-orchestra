@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/cron",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "license": "ISC",
   "description": "Focused, well maintained, cron parser/scheduler",
   "keywords": [
