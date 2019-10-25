@@ -141,13 +141,13 @@ export default async function createReadableStream(
   }
 
   async function* generateFileContent(fragmentIterator, bitmapSize) {
-    let currentBlock = -1
+    let currentFragmentIndex = -1
     // store blocks waiting for some of their fragments.
     const batIndexToBlockMap = new Map()
     for await (const fragment of fragmentIterator) {
-      currentBlock++
+      currentFragmentIndex++
       assert.strictEqual(
-        fragmentLogicalAddressList[currentBlock],
+        fragmentLogicalAddressList[currentFragmentIndex],
         fragment.logicalAddressBytes
       )
       const batIndex = Math.floor(
@@ -167,7 +167,7 @@ export default async function createReadableStream(
         yield* yieldAndTrack(
           currentBlockWithBitmap,
           batPosition,
-          `VHD block start index: ${currentBlock}`
+          `VHD block start index: ${currentFragmentIndex}`
         )
       }
     }
