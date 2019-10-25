@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@nraynaud/novnc": "0.6.1",
-    "@xen-orchestra/cron": "^1.0.4",
+    "@xen-orchestra/cron": "^1.0.5",
     "@xen-orchestra/defined": "^0.0.0",
     "@xen-orchestra/template": "^0.1.0",
     "ansi_up": "^4.0.3",
