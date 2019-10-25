@@ -24,6 +24,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [SR] Fix `[object HTMLInputElement]` name after re-attaching a SR [#4546](https://github.com/vatesfr/xen-orchestra/issues/4546) (PR [#4550](https://github.com/vatesfr/xen-orchestra/pull/4550))
+- [Schedules] Prevent double runs [#4625](https://github.com/vatesfr/xen-orchestra/issues/4625) (PR [#4626](https://github.com/vatesfr/xen-orchestra/pull/4626))
 
 ### Released packages
 
@@ -32,6 +33,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/cron v1.0.5
 - xo-server-transport-icinga2 v0.1.0
 - xo-server-sdn-controller v0.3.1
 - xo-server v5.51.0
