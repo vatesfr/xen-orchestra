@@ -77,7 +77,10 @@ export default class Scheduling {
         'schedules',
         () => db.get(),
         schedules =>
-          asyncMap(schedules, schedule => db.update(normalize(schedule))),
+          asyncMap(schedules, async schedule => {
+            await db.update(normalize(schedule))
+            this._start(schedule.id)
+          }),
         ['jobs']
       )
 
