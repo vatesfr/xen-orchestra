@@ -584,4 +584,110 @@ describe('backupNg', () => {
       })
     })
   })
+
+  test('create and execute backup with enabled offline backup', async () => {
+    const vm = xo.objects.all[config.vms.withOsAndXenTools]
+    if (vm.power_state !== 'Running') {
+      await xo.startTempVm(vm.id, { force: true }, true)
+    }
+
+    const scheduleTempId = randomId()
+    const srId = config.srs.default
+    const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
+    const backupInput = {
+      mode: 'full',
+      remotes: {
+        id: remoteId,
+      },
+      schedules: {
+        [scheduleTempId]: getDefaultSchedule(),
+      },
+      settings: {
+        '': {
+          offlineBackup: true,
+        },
+        [scheduleTempId]: {
+          copyRetention: 1,
+          exportRetention: 1,
+        },
+      },
+      srs: {
+        id: srId,
+      },
+      vms: {
+        id: vm.id,
+      },
+    }
+    const backup = await xo.createTempBackupNgJob(backupInput)
+    expect(backup.settings[''].offlineBackup).toBe(true)
+
+    const schedule = await xo.getSchedule({ jobId: backup.id })
+
+    await Promise.all([
+      xo.runBackupJob(backup.id, schedule.id, { remotes: [remoteId] }),
+      xo.waitObjectState(vm.id, vm => {
+        if (vm.power_state !== 'Halted') {
+          throw new Error('retry')
+        }
+      }),
+    ])
+
+    await xo.waitObjectState(vm.id, vm => {
+      if (vm.power_state !== 'Running') {
+        throw new Error('retry')
+      }
+    })
+
+    const backupLogs = await xo.getBackupLogs({
+      jobId: backup.id,
+      scheduleId: schedule.id,
+    })
+    expect(backupLogs.length).toBe(1)
+
+    const { tasks, ...log } = backupLogs[0]
+    validateRootTask(log, {
+      data: {
+        mode: backupInput.mode,
+        reportWhen: backupInput.settings[''].reportWhen,
+      },
+      jobId: backup.id,
+      jobName: backupInput.name,
+      scheduleId: schedule.id,
+      status: 'success',
+    })
+
+    expect(Array.isArray(tasks)).toBe(true)
+    tasks.forEach(({ tasks, ...vmTask }) => {
+      validateVmTask(vmTask, vm.id, { status: 'success' })
+
+      expect(Array.isArray(tasks)).toBe(true)
+      tasks.forEach(({ tasks, ...subTask }) => {
+        expect(subTask.message).not.toBe('snapshot')
+
+        if (subTask.message === 'export') {
+          validateExportTask(
+            subTask,
+            subTask.data.type === 'remote' ? remoteId : srId,
+            {
+              data: expect.any(Object),
+              status: 'success',
+            }
+          )
+
+          expect(Array.isArray(tasks)).toBe(true)
+          tasks.forEach(operationTask => {
+            if (
+              operationTask.message === 'transfer' ||
+              operationTask.message === 'merge'
+            ) {
+              validateOperationTask(operationTask, {
+                result: { size: expect.any(Number) },
+                status: 'success',
+              })
+            }
+          })
+        }
+      })
+    })
+  }, 200e3)
 })
