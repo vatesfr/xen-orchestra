@@ -39,8 +39,8 @@ class Job {
       this._isRunning = false
 
       if (this._isEnabled) {
-        const now = Date.now()
-        scheduledDate = +schedule._createDate()
+        const now = schedule._createDate()
+        scheduledDate = +next(schedule._schedule, now)
         const delay = scheduledDate - now
         this._timeout =
           delay < MAX_DELAY

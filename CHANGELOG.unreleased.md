@@ -20,5 +20,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/cron v1.0.6
 - xo-server v5.52.0
 - xo-web v5.52.0
