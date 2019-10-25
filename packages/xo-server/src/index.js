@@ -680,7 +680,7 @@ export default async function main(args) {
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
-  express.use(xo._handleHttpRequestbind(xo))
+  express.use(xo._handleHttpRequest.bind(xo))
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
