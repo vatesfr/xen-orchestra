@@ -21,9 +21,8 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "async-iterator-to-stream": "^1.0.3",
     "@xen-orchestra/log": "^0.2.0",
-    "async-iterator-to-stream": "^1.0.2",
+    "async-iterator-to-stream": "^1.0.3",
     "core-js": "^3.0.0",
     "from2": "^2.3.0",
     "fs-extra": "^8.0.1",
