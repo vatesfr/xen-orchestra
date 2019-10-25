@@ -200,8 +200,13 @@ async function handleImport(
       size,
       sr: srId,
     })
-    await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
-    res.end(format.response(0, vdi.$id))
+    try {
+      await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+      res.end(format.response(0, vdi.$id))
+    } catch (e) {
+      await xapi.deleteVdi(vdi)
+      throw e
+    }
   } catch (e) {
     res.writeHead(500)
     res.end(format.error(0, new JsonRpcError(e.message)))
