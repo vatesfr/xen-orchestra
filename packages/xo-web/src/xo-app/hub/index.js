@@ -1,63 +1,50 @@
 import _ from 'intl'
-import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import { addSubscriptions, adminOnly } from 'utils'
+import { connectStore, routes } from 'utils'
 import { Container, Col, Row } from 'grid'
-import { injectState, provideState } from 'reaclette'
-import { isEmpty, map, omit, orderBy } from 'lodash'
-import { subscribeHubResourceCatalog } from 'xo'
+import { isAdmin } from 'selectors'
+import { NavLink, NavTabs } from 'nav'
 
 import Page from '../page'
-import Resource from './resource'
+import Recipes from './recipes'
+import Templates from './templates'
 
 // ==================================================================
 
-const HEADER = (
-  <h2>
-    <Icon icon='menu-hub' /> {_('hubPage')}
-  </h2>
+const Header = (
+  <Container>
+    <Row>
+      <Col mediumSize={3}>
+        <h2>
+          <Icon icon='menu-hub' /> {_('hubPage')}
+        </h2>
+      </Col>
+      <Col mediumSize={9}>
+        <NavTabs className='pull-right'>
+          <NavLink to='/hub/templates'>
+            <Icon icon='menu-update' /> Templates
+          </NavLink>
+          <NavLink to='/hub/recipes'>
+            <Icon icon='menu-license' /> Recipes
+          </NavLink>
+        </NavTabs>
+      </Col>
+    </Row>
+  </Container>
 )
 
-export default decorate([
-  adminOnly,
-  addSubscriptions({
-    catalog: subscribeHubResourceCatalog,
-  }),
-  provideState({
-    computed: {
-      resources: (_, { catalog }) =>
-        orderBy(
-          map(omit(catalog, '_namespaces'), (entry, namespace) => ({
-            namespace,
-            ...entry.xva,
-          })),
-          'name',
-          'asc'
-        ),
-    },
-  }),
-  injectState,
-  ({ state: { resources } }) => (
-    <Page header={HEADER} title='hubPage' formatTitle>
-      <Container>
-        <Row>
-          {isEmpty(resources) ? (
-            <Col>
-              <h2 className='text-muted'>
-                &nbsp; {_('vmNoAvailable')}
-                <Icon icon='alarm' color='yellow' />
-              </h2>
-            </Col>
-          ) : (
-            resources.map(data => (
-              <Col key={data.namespace} mediumSize={6} largeSize={4}>
-                <Resource {...data} />
-              </Col>
-            ))
-          )}
-        </Row>
-      </Container>
+const Hub = routes('hub', {
+  templates: Templates,
+  recipes: Recipes,
+})(
+  connectStore({
+    isAdmin,
+  })(({ children, isAdmin }) => (
+    <Page header={Header} title='hubPage' formatTitle>
+      {children}
     </Page>
-  ),
-])
+  ))
+)
+
+export default Hub
