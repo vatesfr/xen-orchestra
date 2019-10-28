@@ -3,7 +3,9 @@ import currentPlan, { XOA_PLAN_FREE, XOA_PLAN_SOURCES } from 'plans'
 import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React from 'react'
+import stripAnsi from 'strip-ansi'
 import xoaUpdater from 'xoa-updater'
+import { checkXoa } from 'xo'
 import { createBinaryFile } from 'utils'
 import { identity, omit } from 'lodash'
 import { injectState, provideState } from 'reaclette'
@@ -55,6 +57,12 @@ const reportOnSupportPanel = async ({
       JSON.stringify(await xoaUpdater.getLocalManifest(), null, 2)
     ),
     'manifest.json'
+  )
+
+  formData.append(
+    'attachments',
+    createBinaryFile(stripAnsi(await checkXoa())),
+    'xoaCheck.txt'
   )
 
   const res = await post(SUPPORT_PANEL_URL, formData)
