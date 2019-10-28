@@ -73,7 +73,7 @@ When scouring the internet for test files, we stumbled on [a strange OVA file](h
 The VMDK contained in the OVA (which is a tar of various files), had a 
 few oddities:
 
- - it declared having markers in it's header, but there were no marker
+ - it declared having markers in its header, but there were no marker
  for its primary and secondary directory, nor for its footer
  - its directories are at the top, and declared in the header.
  - it declared being streamOptimized
@@ -98,3 +98,12 @@ one application an other.
 The VHD stream doesn't declare its length, because that breaks the 
 downstream computation in xo-server, but with a fixed VHD file format, 
 we can pre-compute the exact file length and advertise it.
+
+
+# The conversion from VMDK to VHD
+In the browser we extract the grain table, that is a list of the file offset of all the grains and a list of the 
+logical address of all the grains (both lists are in the increasing offset order with matching indexes, we use to lists 
+for bandwidth reason). Those lists are sent to the server, where the VHD Block Allocation Table will be generated. 
+With the default parameters, there are 32 VMDK grains into a VHD block, so a late scheduling is used to create the BAT.
+
+Once the BAT is generated, the VHD file is created on the fly block by block and sent on the socket towards the XAPI url.
