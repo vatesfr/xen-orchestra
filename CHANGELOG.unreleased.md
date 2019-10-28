@@ -20,5 +20,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- vhd-lib v0.7.1
 - xo-server v5.52.0
 - xo-web v5.52.0
