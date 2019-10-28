@@ -16,15 +16,22 @@ chunks.
 
 [The VHD specification](http://download.microsoft.com/download/f/f/e/ffef50a5-07dd-4cf8-aaa3-442c0673a029/Virtual%20Hard%20Disk%20Format%20Spec_10_18_06.doc)
 
+## A primer on VMDK
+ A VMDK file might contain more than one logical disk inside (sparse extent), a ascii header describes those disks.
 
-## StreamOptimized VMDK
+ Each sparse extent contains "grains", whose address is designated into a "grain table". Said table is itself indexed by a "directory". 
+ The grain table is not sparse, so the directory is useless (historical artifact).
+
+### StreamOptimized VMDK
 The streamOptimized VMDK file format was designed so that from a file on
 disk an application can generate a VMDK file going forwards without ever 
-needing to seek() backwards. The idea is to:
+needing to seek() backwards. The difference is that header, tables, directory, grains etc. are delimited by "markers" 
+and the table and directory are pushed at the end of the file and the grains are compressed.
 
+The generation algorithm is:
  - generate a header without a
 directory address in it (-1), 
- - dump all the compressed chunks in the stream while generating the 
+ - dump all the compressed grains in the stream while generating the 
  directory in memory
  - dump the directory marker
  - dump the directory and record its position
