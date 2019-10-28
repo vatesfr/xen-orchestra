@@ -8,15 +8,19 @@ export default class Http {
     _,
     { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) }
   ) {
-    this._proxy = httpProxy && new ProxyAgent(httpProxy)
+    this.setHttpProxy(httpProxy)
   }
 
   httpRequest(...args) {
     return hrp(
       {
-        agent: this._proxy,
+        agent: this._agent,
       },
       ...args
     )
+  }
+
+  setHttpProxy(proxy) {
+    this._agent = proxy == null ? undefined : new ProxyAgent(proxy)
   }
 }
