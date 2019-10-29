@@ -4,6 +4,10 @@ import ProxyAgent from 'proxy-agent'
 import { firstDefined } from '../utils'
 
 export default class Http {
+  get httpProxy() {
+    return this._proxy
+  }
+
   constructor(
     _,
     { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) }
@@ -21,6 +25,11 @@ export default class Http {
   }
 
   setHttpProxy(proxy) {
-    this._agent = proxy == null ? undefined : new ProxyAgent(proxy)
+    if (proxy == null) {
+      this._agent = this._proxy = undefined
+    } else {
+      this._agent = new ProxyAgent(proxy)
+      this._proxy = proxy
+    }
   }
 }
