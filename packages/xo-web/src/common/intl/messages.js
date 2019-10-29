@@ -2110,8 +2110,8 @@ const messages = {
   xosanState_creatingSr: 'Creating SR…',
   xosanState_scanningSr: 'Scanning SR…',
   // Pack download modal
-  xosanInstallCloudPlugin: 'Install cloud plugin first',
-  xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanInstallCloudPlugin: 'Install XOA plugin first',
+  xosanLoadCloudPlugin: 'Load XOA plugin first',
   xosanNoPackFound:
     'No compatible XOSAN pack found for your XenServer versions.',
   // SR tab XOSAN

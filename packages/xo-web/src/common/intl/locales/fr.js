@@ -3896,10 +3896,10 @@ export default {
   xosanCommunity: 'XOSAN non disponible pour la Community Edition',
 
   // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin: 'Installer le plugin cloud avant',
+  xosanInstallCloudPlugin: 'Installer le plugin XOA avant',
 
   // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin: 'Charger le plugin cloud avant',
+  xosanLoadCloudPlugin: 'Charger le plugin XOA avant',
 
   // Original text: "Loading…"
   xosanLoading: 'Chargement…',

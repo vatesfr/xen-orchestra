@@ -12,6 +12,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [XOSAN] Fix "Install Cloud plugin" warning (PR [#4631](https://github.com/vatesfr/xen-orchestra/pull/4631))
 
 ### Released packages
 
