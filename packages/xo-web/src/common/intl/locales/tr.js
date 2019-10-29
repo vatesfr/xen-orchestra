@@ -4864,10 +4864,10 @@ export default {
   xosanState_scanningSr: 'SR taranıyor...',
 
   // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin: 'Önce bulut eklentisini kurun',
+  xosanInstallCloudPlugin: 'Önce XOA eklentisini kurun',
 
   // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin: 'Önce bulut eklentisini yükleyin',
+  xosanLoadCloudPlugin: 'Önce XOA eklentisini yükleyin',
 
   // Original text: "Register your appliance first"
   xosanRegister: "Önce XOSAN'ın kaydını yapın",

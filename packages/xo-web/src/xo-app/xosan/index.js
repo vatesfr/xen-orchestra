@@ -376,12 +376,12 @@ export default class Xosan extends Component {
   _getError = createSelector(
     () => this.props.plugins,
     plugins => {
-      const cloudPlugin = find(plugins, { id: 'cloud' })
-      if (!cloudPlugin) {
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (!xoaPlugin) {
         return _('xosanInstallCloudPlugin')
       }
 
-      if (!cloudPlugin.loaded) {
+      if (!xoaPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
     }
