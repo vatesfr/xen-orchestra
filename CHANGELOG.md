@@ -8,9 +8,19 @@
 
 ### Released packages
 
-## **5.40.0** (2019-10-29)
+## **5.40.1** (2019-10-29)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Bug fixes
+
+- [XOSAN] Fix "Install Cloud plugin" warning (PR [#4631](https://github.com/vatesfr/xen-orchestra/pull/4631))
+
+### Released packages
+
+- xo-web v5.51.1
+
+## **5.40.0** (2019-10-29)
 
 ### Breaking changes
 
