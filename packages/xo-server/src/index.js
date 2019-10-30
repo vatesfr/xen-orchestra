@@ -1,7 +1,6 @@
 import appConf from 'app-conf'
 import assert from 'assert'
 import authenticator from 'otplib/authenticator'
-import bind from 'lodash/bind'
 import blocked from 'blocked'
 import compression from 'compression'
 import createExpress from 'express'
@@ -502,7 +501,7 @@ const setUpApi = (webServer, xo, config) => {
         return xo.callApiMethod(connection, message.method, message.params)
       }
     })
-    connection.notify = bind(jsonRpc.notify, jsonRpc)
+    connection.notify = jsonRpc.notify.bind(jsonRpc)
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
@@ -681,7 +680,7 @@ export default async function main(args) {
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
-  express.use(bind(xo._handleHttpRequest, xo))
+  express.use(xo._handleHttpRequest.bind(xo))
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.

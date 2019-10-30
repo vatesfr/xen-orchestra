@@ -1,7 +1,7 @@
 /* eslint no-throw-literal: 0 */
 
 import eventToPromise from 'event-to-promise'
-import { bind, noop } from 'lodash'
+import noop from 'lodash/noop'
 import { createClient } from 'ldapjs'
 import { escape } from 'ldapjs/lib/filters/escape'
 import { promisify } from 'promise-toolbox'
@@ -116,7 +116,7 @@ class AuthLdap {
   constructor(xo) {
     this._xo = xo
 
-    this._authenticate = bind(this._authenticate, this)
+    this._authenticate = this._authenticate.bind(this)
   }
 
   async configure(conf) {
