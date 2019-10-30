@@ -146,12 +146,14 @@ const NewNetwork = decorate([
       pifPredicateSdnController: (_, { pool }) => pif =>
         pif.physical &&
         pif.ip_configuration_mode !== 'None' &&
+        pif.bond_slave_of === 'OpaqueRef:NULL' &&
         pif.$host === (pool && pool.master),
       networkPifPredicate: ({ networks }) => (pif, key) => {
         const pool = networks[key].pool
         return (
           pif.physical &&
           pif.ip_configuration_mode !== 'None' &&
+          pif.bond_slave_of === 'OpaqueRef:NULL' &&
           pif.$host === (pool !== undefined && pool.master)
         )
       },
