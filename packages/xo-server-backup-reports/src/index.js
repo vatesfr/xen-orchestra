@@ -317,6 +317,7 @@ class BackupReportsXoPlugin {
         const taskMarkdown = await getMarkdown(task, {
           formatDate,
           jobName: log.jobName,
+          xo,
         })
         if (taskMarkdown === undefined) {
           continue
