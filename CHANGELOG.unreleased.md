@@ -11,7 +11,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-- [SDN controller] fix private network creation: do not propose bond slave PIFs (Fixes https://github.com/xcp-ng/xcp/issues/300) (PR [4633](https://github.com/vatesfr/xen-orchestra/pull/4633))
+- [SDN controller] Prevent private network creation on bond slave PIF (Fixes https://github.com/xcp-ng/xcp/issues/300) (PR [4633](https://github.com/vatesfr/xen-orchestra/pull/4633))
 
 
 ### Released packages
@@ -21,7 +21,6 @@
 >
 > Rule of thumb: add packages on top.
 
-- xo-server-sdn-controller v0.3.1
 - vhd-lib v0.7.1
 - xo-server v5.52.0
 - xo-web v5.52.0
