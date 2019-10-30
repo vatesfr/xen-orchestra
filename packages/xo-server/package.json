@@ -30,7 +30,7 @@
     "bin": "bin"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=8.10"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.1",
@@ -60,7 +60,7 @@
     "deptree": "^1.0.0",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
-    "execa": "^2.0.5",
+    "execa": "^3.2.0",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
     "fatfs": "^0.10.4",
@@ -72,7 +72,7 @@
     "helmet": "^3.9.0",
     "highland": "^2.11.1",
     "http-proxy": "^1.16.2",
-    "http-request-plus": "^0.8.0",
+    "http-request-plus": "^0.9.0",
     "http-server-plus": "^0.10.0",
     "human-format": "^0.10.0",
     "is-redirect": "^1.0.0",
