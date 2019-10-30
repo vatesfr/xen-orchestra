@@ -1,6 +1,7 @@
 // see https://github.com/babel/babel/issues/8450
 import 'core-js/features/symbol/async-iterator'
 
+import assert from 'assert'
 import zlib from 'zlib'
 
 import { compressionDeflate, parseHeader, parseU64b } from './definitions'
@@ -36,13 +37,11 @@ function parseDescriptor(descriptorSlice) {
   return { descriptor: descriptorDict, extents: extentList }
 }
 
-async function readGrain(offsetSectors, buffer, compressed) {
+function readGrain(offsetSectors, buffer, compressed) {
   const offset = offsetSectors * SECTOR_SIZE
   const size = buffer.readUInt32LE(offset + 8)
   const grainBuffer = buffer.slice(offset + 12, offset + 12 + size)
-  const grainContent = compressed
-    ? await zlib.inflateSync(grainBuffer)
-    : grainBuffer
+  const grainContent = compressed ? zlib.inflateSync(grainBuffer) : grainBuffer
   const lba = parseU64b(buffer, offset, 'l2Lba')
   return {
     offsetSectors: offsetSectors,
@@ -56,7 +55,7 @@ async function readGrain(offsetSectors, buffer, compressed) {
   }
 }
 
-function tryToParseMarker(buffer) {
+function parseMarker(buffer) {
   const value = buffer.readUInt32LE(0)
   const size = buffer.readUInt32LE(8)
   const type = buffer.readUInt32LE(12)
@@ -179,13 +178,13 @@ export default class VMDKDirectParser {
     return this.header
   }
 
-  async parseMarkedGrain() {
+  async parseMarkedGrain(expectedLogicalAddress) {
     const position = this.virtualBuffer.position
     const sector = await this.virtualBuffer.readChunk(
       SECTOR_SIZE,
       'marker start ' + position
     )
-    const marker = tryToParseMarker(sector)
+    const marker = parseMarker(sector)
     if (marker.size === 0) {
       throw new Error(`expected grain marker, received ${marker}`)
     } else if (marker.size > 10) {
@@ -197,12 +196,14 @@ export default class VMDKDirectParser {
         'grain remainder ' + this.virtualBuffer.position
       )
       const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
-      return (await readGrain(
+      const grainObject = readGrain(
         0,
         grainBuffer,
         this.header.compressionMethod === compressionDeflate &&
           this.header.flags.compressedGrains
-      )).grain
+      )
+      assert.strictEqual(grainObject.lba * SECTOR_SIZE, expectedLogicalAddress)
+      return grainObject.grain
     }
   }
 
@@ -223,7 +224,7 @@ export default class VMDKDirectParser {
       )
       let grain
       if (this.header.flags.hasMarkers) {
-        grain = await this.parseMarkedGrain()
+        grain = await this.parseMarkedGrain(lba)
       } else {
         grain = await this.virtualBuffer.readChunk(
           grainSizeBytes,
