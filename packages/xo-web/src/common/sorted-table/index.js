@@ -332,20 +332,9 @@ export default class SortedTable extends Component {
             return isEmpty(userData) ? undefined : userData
           })
 
-    let selectedColumn = props.defaultColumn
-    if (selectedColumn == null) {
-      selectedColumn = findIndex(props.columns, 'default')
-
-      if (selectedColumn === -1) {
-        selectedColumn = 0
-      }
-    }
-
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      selectedColumn,
-      sortOrder:
-        props.columns[selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc',
+      sortOrder: props.columns[0].sortOrder === 'desc' ? 'desc' : 'asc',
     })
 
     const urlState = get(
@@ -357,18 +346,11 @@ export default class SortedTable extends Component {
       urlState !== undefined &&
       (matches = URL_STATE_RE.exec(urlState)) !== null
     ) {
-      let selectedColumn = matches[2]
-      if (
-        selectedColumn !== undefined &&
-        (selectedColumn = +selectedColumn) < props.columns.length
-      ) {
-        state.selectedColumn = selectedColumn
-        state.sortOrder = matches[3] !== undefined ? 'desc' : 'asc'
-      }
+      state.sortOrder = matches[3] !== undefined ? 'desc' : 'asc'
     }
 
     this._getSelectedColumn = () =>
-      this.props.columns[this.state.selectedColumn]
+      this.props.columns[this.getSelectedColumnId()]
 
     let getAllItems = () => this.props.collection
     if ('rowTransform' in props) {
@@ -701,7 +683,7 @@ export default class SortedTable extends Component {
     () => this.context.router.location.query[this.props.stateUrlParam],
     urlState => {
       let matches
-      const [page, selectedColumnIndex, sortOrder, filter] =
+      const [page, selectedColumnId, sortOrder, filter] =
         urlState !== undefined &&
         (matches = URL_STATE_RE.exec(urlState)) !== null
           ? matches
@@ -709,7 +691,7 @@ export default class SortedTable extends Component {
       return {
         filter,
         page,
-        selectedColumnIndex,
+        selectedColumnId,
         sortOrder,
       }
     }
@@ -726,6 +708,19 @@ export default class SortedTable extends Component {
   getPage = createSelector(
     () => this._getParsedQueryString().page,
     page => (page !== undefined ? +page : 1)
+  )
+
+  getSelectedColumnId = createSelector(
+    () => this._getParsedQueryString().selectedColumnId,
+    () => this.props.columns,
+    () => this.props.defaultColumn,
+    (index, columns, defaultColumnIndex) =>
+      index !== undefined && +index < columns.length
+        ? index
+        : defined(
+            defaultColumnIndex,
+            (index = findIndex(columns, 'default')) !== -1 ? index : 0
+          )
   )
 
   _getGroupedActions = createSelector(
