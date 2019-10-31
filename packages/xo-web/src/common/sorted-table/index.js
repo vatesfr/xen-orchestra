@@ -532,10 +532,12 @@ export default class SortedTable extends Component {
   }
 
   _setFilter = filter => {
+    this.setState({
+      highlighted: undefined,
+    })
     this._updateQueryString({
       filter,
       page: 1,
-      highlighted: undefined,
     })
   }
 
