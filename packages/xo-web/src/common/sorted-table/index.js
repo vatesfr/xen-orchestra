@@ -542,7 +542,7 @@ export default class SortedTable extends Component {
   }
 
   _checkUpdatePage() {
-    const { page } = this.state
+    const page = this.getPage()
     if (page === 1) {
       return
     }
