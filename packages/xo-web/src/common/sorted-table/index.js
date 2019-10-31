@@ -343,7 +343,6 @@ export default class SortedTable extends Component {
 
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      page: 1,
       selectedColumn,
       sortOrder:
         props.columns[selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc',
@@ -358,10 +357,6 @@ export default class SortedTable extends Component {
       urlState !== undefined &&
       (matches = URL_STATE_RE.exec(urlState)) !== null
     ) {
-      const page = matches[1]
-      if (page !== undefined) {
-        state.page = +page
-      }
       let selectedColumn = matches[2]
       if (
         selectedColumn !== undefined &&
@@ -413,7 +408,7 @@ export default class SortedTable extends Component {
 
     this._getVisibleItems = createPager(
       this._getItems,
-      () => this.state.page,
+      this.getPage,
       () => this.props.itemsPerPage
     )
 
@@ -726,6 +721,11 @@ export default class SortedTable extends Component {
     () => this.props.defaultFilter,
     (filter, filters, defaultFilter) =>
       defined(filter, () => filters[defaultFilter], '')
+  )
+
+  getPage = createSelector(
+    () => this._getParsedQueryString().page,
+    page => (page !== undefined ? +page : 1)
   )
 
   _getGroupedActions = createSelector(
