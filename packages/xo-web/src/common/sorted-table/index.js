@@ -1,7 +1,7 @@
 import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
-import defined, { get } from '@xen-orchestra/defined'
+import defined from '@xen-orchestra/defined'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import PropTypes from 'prop-types'
@@ -334,20 +334,7 @@ export default class SortedTable extends Component {
 
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      sortOrder: props.columns[0].sortOrder === 'desc' ? 'desc' : 'asc',
     })
-
-    const urlState = get(
-      () => context.router.location.query[props.stateUrlParam]
-    )
-
-    let matches
-    if (
-      urlState !== undefined &&
-      (matches = URL_STATE_RE.exec(urlState)) !== null
-    ) {
-      state.sortOrder = matches[3] !== undefined ? 'desc' : 'asc'
-    }
 
     this._getSelectedColumn = () =>
       this.props.columns[this.getSelectedColumnId()]
@@ -385,7 +372,7 @@ export default class SortedTable extends Component {
             ? object => sortCriteria(object, userData)
             : sortCriteria
       ),
-      () => this.state.sortOrder
+      this.getSortOrder
     )
 
     this._getVisibleItems = createPager(
@@ -721,6 +708,14 @@ export default class SortedTable extends Component {
             defaultColumnIndex,
             (index = findIndex(columns, 'default')) !== -1 ? index : 0
           )
+  )
+
+  getSortOrder = createSelector(
+    () => this._getParsedQueryString().sortOrder,
+    this.getSelectedColumnId,
+    () => this.props.columns,
+    (sortOrder, selectedColumnIndex, columns) =>
+      defined(sortOrder, columns[selectedColumnIndex].sortOrder, 'asc')
   )
 
   _getGroupedActions = createSelector(
