@@ -514,7 +514,8 @@ const setUpApi = (webServer, xo, config) => {
     socket.on('message', message => {
       const expiration = connection.get('expiration', undefined)
       if (expiration !== undefined && expiration < Date.now()) {
-        return void connection.close()
+        connection.close()
+        return
       }
 
       jsonRpc.write(message)
