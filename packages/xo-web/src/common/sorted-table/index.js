@@ -343,7 +343,6 @@ export default class SortedTable extends Component {
 
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      filter: defined(() => props.filters[props.defaultFilter], ''),
       page: 1,
       selectedColumn,
       sortOrder:
@@ -359,7 +358,6 @@ export default class SortedTable extends Component {
       urlState !== undefined &&
       (matches = URL_STATE_RE.exec(urlState)) !== null
     ) {
-      state.filter = matches[4]
       const page = matches[1]
       if (page !== undefined) {
         state.page = +page
@@ -393,7 +391,7 @@ export default class SortedTable extends Component {
       createFilter(
         getAllItems,
         createSelector(
-          () => this.state.filter,
+          this.getFilter,
           filter => {
             try {
               return CM.parse(filter).createPredicate()
@@ -703,6 +701,32 @@ export default class SortedTable extends Component {
     const { target } = event
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
+
+  _getParsedQueryString = createSelector(
+    () => this.context.router.location.query[this.props.stateUrlParam],
+    urlState => {
+      let matches
+      const [page, selectedColumnIndex, sortOrder, filter] =
+        urlState !== undefined &&
+        (matches = URL_STATE_RE.exec(urlState)) !== null
+          ? matches
+          : []
+      return {
+        filter,
+        page,
+        selectedColumnIndex,
+        sortOrder,
+      }
+    }
+  )
+
+  getFilter = createSelector(
+    () => this._getParsedQueryString().filter,
+    () => this.props.filters,
+    () => this.props.defaultFilter,
+    (filter, filters, defaultFilter) =>
+      defined(filter, () => filters[defaultFilter], '')
+  )
 
   _getGroupedActions = createSelector(
     () => this.props.groupedActions,
