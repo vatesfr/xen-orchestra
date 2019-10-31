@@ -479,17 +479,15 @@ export default class SortedTable extends Component {
   }
 
   _sort = columnId => {
-    const { state } = this
     let sortOrder
-
-    if (state.selectedColumn === columnId) {
-      sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc'
+    if (this.getSelectedColumnId() === columnId) {
+      sortOrder = this.getSortOrder() === 'desc' ? 'asc' : 'desc'
     } else {
       sortOrder =
         this.props.columns[columnId].sortOrder === 'desc' ? 'desc' : 'asc'
     }
 
-    this._setVisibleState({
+    this._updateQueryString({
       selectedColumn: columnId,
       sortOrder,
     })
@@ -514,8 +512,12 @@ export default class SortedTable extends Component {
     this._checkUpdatePage()
   }
 
-  _saveUrlState = () => {
-    const { filter, page, selectedColumn, sortOrder } = this.state
+  _updateQueryString({
+    filter = this.getFilter(),
+    page = this.getPage(),
+    selectedColumn = this.getSelectedColumnId(),
+    sortOrder = this.getSortOrder(),
+  }) {
     const { router } = this.context
     const { location } = router
     router.replace({
@@ -529,13 +531,8 @@ export default class SortedTable extends Component {
     })
   }
 
-  // update state in the state and update the URL param
-  _setVisibleState(state) {
-    this.setState(state, this.props.stateUrlParam && this._saveUrlState)
-  }
-
   _setFilter = filter => {
-    this._setVisibleState({
+    this._updateQueryString({
       filter,
       page: 1,
       highlighted: undefined,
@@ -561,7 +558,7 @@ export default class SortedTable extends Component {
   }
 
   _setPage(page) {
-    this._setVisibleState({ page })
+    this._updateQueryString({ page })
   }
   _setPage = this._setPage.bind(this)
 
