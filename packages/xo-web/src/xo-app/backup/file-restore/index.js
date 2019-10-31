@@ -241,6 +241,7 @@ export default class Restore extends Component {
             collection={this.state.backupDataByVm}
             columns={BACKUPS_COLUMNS}
             individualActions={this._individualActions}
+            stateUrlParam='s'
           />
         </div>
       </Upgrade>

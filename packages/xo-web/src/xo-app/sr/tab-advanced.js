@@ -48,7 +48,12 @@ const UnhealthyVdiChains = flowRight(
   isEmpty(vdis) ? null : (
     <div>
       <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
-      <SortedTable collection={vdis} columns={COLUMNS} userData={chains} />
+      <SortedTable
+        collection={vdis}
+        columns={COLUMNS}
+        stateUrlParam='s'
+        userData={chains}
+      />
     </div>
   )
 )

@@ -257,6 +257,7 @@ export default class Tasks extends Component {
                 <SortedTable
                   collection={this._getFinishedTasks()}
                   columns={FINISHED_TASKS_COLUMNS}
+                  stateUrlParam='p'
                 />
               </Collapse>
             </Col>

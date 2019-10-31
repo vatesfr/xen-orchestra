@@ -135,8 +135,9 @@ export default class FileRestore extends Component {
         <SortedTable
           collection={backupInfoByVm}
           columns={VM_COLUMNS}
-          rowAction={openImportModal}
           defaultColumn={2}
+          rowAction={openImportModal}
+          stateUrlParam='l'
         />
       </div>
     ) : null

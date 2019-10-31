@@ -335,6 +335,7 @@ class JobsTable extends React.Component {
         collection={this._getCollection()}
         data-goTo={this._goTo}
         data-schedulesByJob={this.props.schedulesByJob}
+        stateUrlParam='s'
       />
     )
   }

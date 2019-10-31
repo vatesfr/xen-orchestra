@@ -169,6 +169,7 @@ export default class TabSnapshot extends Component {
                 columns={COLUMNS}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
+                stateUrlParam='s'
               />
             </Col>
           </Row>

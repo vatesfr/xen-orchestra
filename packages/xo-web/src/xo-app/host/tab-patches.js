@@ -196,6 +196,7 @@ class XcpPatches extends Component {
                 columns={MISSING_PATCH_COLUMNS_XCP}
                 collection={missingPatches}
                 individualActions={INDIVIDUAL_ACTIONS_XCP}
+                stateUrlParam='s'
               />
             </Col>
           </Row>
@@ -241,6 +242,7 @@ class XenServerPatches extends Component {
               <SortedTable
                 collection={missingPatches}
                 columns={MISSING_PATCH_COLUMNS}
+                stateUrlParam='m'
               />
             </Col>
           </Row>
@@ -251,6 +253,7 @@ class XenServerPatches extends Component {
             <SortedTable
               collection={hostPatches}
               columns={INSTALLED_PATCH_COLUMNS}
+              stateUrlParam='a'
             />
           </Col>
         </Row>

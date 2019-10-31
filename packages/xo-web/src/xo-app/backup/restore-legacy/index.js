@@ -338,6 +338,7 @@ export default class Restore extends Component {
           columns={VM_COLUMNS}
           defaultColumn={2}
           rowAction={openImportModal}
+          stateUrlParam='l'
         />
       </div>
     ) : null

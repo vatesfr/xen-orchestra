@@ -178,6 +178,7 @@ export default connectStore(() => {
             actions={SR_ACTIONS}
             columns={SR_COLUMNS}
             collection={storages}
+            stateUrlParam='s'
           />
         )}
       </Col>

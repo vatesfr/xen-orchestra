@@ -515,6 +515,7 @@ export default class Health extends Component {
                           columns={SR_COLUMNS}
                           rowLink={this._getSrUrl}
                           shortcutsTarget='body'
+                          stateUrlParam='s'
                         />
                       </Col>
                     </Row>
@@ -540,6 +541,7 @@ export default class Health extends Component {
                       actions={ORPHANED_VDI_ACTIONS}
                       collection={vdiOrphaned}
                       columns={ORPHANED_VDI_COLUMNS}
+                      stateUrlParam='o'
                     />
                   )}
                 </NoObjects>
@@ -598,6 +600,7 @@ export default class Health extends Component {
                       actions={ALARM_ACTIONS}
                       collection={this._getMessages()}
                       columns={ALARM_COLUMNS}
+                      stateUrlParam='alarm'
                     />
                   )}
                 </NoObjects>

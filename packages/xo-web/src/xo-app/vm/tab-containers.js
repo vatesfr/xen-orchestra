@@ -119,8 +119,9 @@ export default class TabContainers extends Component {
           <Col>
             <SortedTable
               collection={vm.docker.containers}
-              userData={vm}
               columns={CONTAINER_COLUMNS}
+              stateUrlParam='s'
+              userData={vm}
             />
           </Col>
         </Row>

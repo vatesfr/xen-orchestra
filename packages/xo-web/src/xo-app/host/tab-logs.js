@@ -87,6 +87,7 @@ export default class TabLogs extends Component {
         actions={LOG_ACTIONS}
         collection={logs}
         columns={LOG_COLUMNS}
+        stateUrlParam='l'
       />
     )
   }

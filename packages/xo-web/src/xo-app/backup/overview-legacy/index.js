@@ -239,6 +239,7 @@ export default class LegacyOverview extends Component {
                 columns={JOB_COLUMNS}
                 collection={schedules}
                 data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
+                stateUrlParam='l'
               />
             </CardBlock>
           </Card>

@@ -408,6 +408,7 @@ export default class NewXosan extends Component {
                     columns={XOSAN_SR_COLUMNS}
                     data-hosts={this._getHosts()}
                     onSelect={this._selectSrs}
+                    stateUrlParam='sr'
                   />
                 </Col>
               </Row>,

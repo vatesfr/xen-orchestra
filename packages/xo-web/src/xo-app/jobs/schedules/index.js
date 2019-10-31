@@ -289,6 +289,7 @@ export default class Schedules extends Component {
               groupedActions={GROUPED_ACTIONS}
               individualActions={this.individualActions}
               userData={userData}
+              stateUrlParam='s'
             />
           </div>
         )}

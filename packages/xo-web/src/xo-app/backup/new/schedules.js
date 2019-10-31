@@ -138,6 +138,7 @@ export default decorate([
               columns={state.schedulesColumns}
               individualActions={state.individualActions}
               rowTransform={state.rowTransform}
+              stateUrlParam='s'
             />
           )}
         </CardBlock>
