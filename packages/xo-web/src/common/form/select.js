@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import isEmpty from 'lodash/isEmpty'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactSelect from 'react-select'
@@ -165,7 +164,7 @@ export default class Select extends React.PureComponent {
         backspaceToRemoveMessage=''
         clearable={multi || !props.required}
         closeOnSelect={!multi}
-        isLoading={!props.disabled && isEmpty(props.options)}
+        isLoading={!props.disabled && props.options == null}
         style={SELECT_STYLE}
         valueRenderer={props.optionRenderer}
         {...props}
