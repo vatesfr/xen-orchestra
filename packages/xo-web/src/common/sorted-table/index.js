@@ -9,10 +9,10 @@ import React from 'react'
 import Shortcuts from 'shortcuts'
 import { Input as DebouncedInput } from 'debounce-input-decorator'
 import { Portal } from 'react-overlays'
-import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
 import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
 import { injectState, provideState } from 'reaclette'
+import { withRouter } from 'react-router'
 import {
   ceil,
   filter,
@@ -242,9 +242,9 @@ const Action = decorate([
 
 const LEVELS = [undefined, 'primary', 'warning', 'danger']
 // page number and sort info are optional for backward compatibility
-const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
+const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc|_asc)?)?-)?(.*)$/
 
-export default class SortedTable extends Component {
+class SortedTable extends Component {
   static propTypes = {
     defaultColumn: PropTypes.number,
     defaultFilter: PropTypes.string,
@@ -301,7 +301,7 @@ export default class SortedTable extends Component {
     // DOM node selector like body or .my-class
     // The shortcuts will be enabled when the node is focused
     shortcutsTarget: PropTypes.string,
-    stateUrlParam: PropTypes.string,
+    stateUrlParam: PropTypes.string.isRequired,
 
     // @deprecated, use `data-${key}` instead
     userData: PropTypes.any,
@@ -309,10 +309,6 @@ export default class SortedTable extends Component {
 
   static defaultProps = {
     itemsPerPage: 10,
-  }
-
-  static contextTypes = {
-    router: routerShape,
   }
 
   constructor(props, context) {
@@ -453,7 +449,7 @@ export default class SortedTable extends Component {
           case 'ROW_ACTION':
             if (item !== undefined) {
               if (rowLink !== undefined) {
-                this.context.router.push(
+                this.props.router.push(
                   typeof rowLink === 'function'
                     ? rowLink(item, userData)
                     : rowLink
@@ -469,8 +465,6 @@ export default class SortedTable extends Component {
   }
 
   componentDidMount() {
-    this._checkUpdatePage()
-
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
     if (this.props.paginationContainer) {
@@ -508,8 +502,6 @@ export default class SortedTable extends Component {
         this.setState({ selectedItemsIds: newSelectedItems })
       }
     }
-
-    this._checkUpdatePage()
   }
 
   _updateQueryString({
@@ -518,14 +510,13 @@ export default class SortedTable extends Component {
     selectedColumn = this.getSelectedColumnId(),
     sortOrder = this.getSortOrder(),
   }) {
-    const { router } = this.context
-    const { location } = router
+    const { location, router } = this.props
     router.replace({
       ...location,
       query: {
         ...location.query,
         [this.props.stateUrlParam]: `${page}_${selectedColumn}${
-          sortOrder === 'desc' ? '_desc' : ''
+          sortOrder === 'desc' ? '_desc' : '_asc'
         }-${filter}`,
       },
     })
@@ -539,24 +530,6 @@ export default class SortedTable extends Component {
       filter,
       page: 1,
     })
-  }
-
-  _checkUpdatePage() {
-    const page = this.getPage()
-    if (page === 1) {
-      return
-    }
-
-    const n = this._getItems().length
-    const { itemsPerPage } = this.props
-    if (n < itemsPerPage) {
-      return this._setPage(1)
-    }
-
-    const last = ceil(n / itemsPerPage)
-    if (page > last) {
-      return this._setPage(last)
-    }
   }
 
   _setPage(page) {
@@ -666,10 +639,10 @@ export default class SortedTable extends Component {
   }
 
   _getParsedQueryString = createSelector(
-    () => this.context.router.location.query[this.props.stateUrlParam],
+    () => this.props.router.location.query[this.props.stateUrlParam],
     urlState => {
       let matches
-      const [page, selectedColumnId, sortOrder, filter] =
+      const [, page, selectedColumnId, sortOrder, filter] =
         urlState !== undefined &&
         (matches = URL_STATE_RE.exec(urlState)) !== null
           ? matches
@@ -693,7 +666,20 @@ export default class SortedTable extends Component {
 
   getPage = createSelector(
     () => this._getParsedQueryString().page,
-    page => (page !== undefined ? +page : 1)
+    () => this._getItems().length,
+    () => this.props.itemsPerPage,
+    (page, nItems, itemsPerPage) => {
+      if (page === undefined || nItems < itemsPerPage) {
+        return 1
+      }
+
+      const last = ceil(nItems / itemsPerPage)
+      if ((page = +page) > last) {
+        return last
+      }
+
+      return page
+    }
   )
 
   getSelectedColumnId = createSelector(
@@ -701,7 +687,7 @@ export default class SortedTable extends Component {
     () => this.props.columns,
     () => this.props.defaultColumn,
     (index, columns, defaultColumnIndex) =>
-      index !== undefined && +index < columns.length
+      index !== undefined && (index = +index) < columns.length
         ? index
         : defined(
             defaultColumnIndex,
@@ -714,7 +700,9 @@ export default class SortedTable extends Component {
     this.getSelectedColumnId,
     () => this.props.columns,
     (sortOrder, selectedColumnIndex, columns) =>
-      defined(sortOrder, columns[selectedColumnIndex].sortOrder, 'asc')
+      sortOrder !== undefined
+        ? sortOrder.slice(1)
+        : defined(columns[selectedColumnIndex].sortOrder, 'asc')
   )
 
   _getGroupedActions = createSelector(
@@ -862,7 +850,7 @@ export default class SortedTable extends Component {
       <Pagination
         pages={ceil(nItems / itemsPerPage)}
         onChange={this._setPage}
-        value={state.page}
+        value={this.getPage()}
       />
     )
 
@@ -871,7 +859,7 @@ export default class SortedTable extends Component {
         filters={props.filters}
         onChange={this._setFilter}
         ref='filterInput'
-        value={state.filter}
+        value={this.getFilter()}
       />
     )
 
@@ -972,7 +960,9 @@ export default class SortedTable extends Component {
                     this._sort
                   }
                   sortIcon={
-                    state.selectedColumn === key ? state.sortOrder : 'sort'
+                    this.getSelectedColumnId() === key
+                      ? this.getSortOrder()
+                      : 'sort'
                   }
                 />
               ))}
@@ -1019,3 +1009,5 @@ export default class SortedTable extends Component {
     )
   }
 }
+
+export default withRouter(SortedTable)
