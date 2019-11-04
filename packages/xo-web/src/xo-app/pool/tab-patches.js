@@ -24,7 +24,7 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchDescription'),
     itemRenderer: ({ description, documentationUrl }) => (
-      <a href={documentationUrl} target='_blank'>
+      <a href={documentationUrl} rel='noopener noreferrer' target='_blank'>
         {description}
       </a>
     ),

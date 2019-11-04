@@ -358,6 +358,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/docs/'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -368,6 +369,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/#!/member/support'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -935,6 +937,7 @@ export default class Home extends Component {
                 <a
                   className='input-group-addon'
                   href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+                  rel='noopener noreferrer'
                   target='_blank'
                 >
                   <Icon icon='info' />

@@ -35,6 +35,7 @@ const showNetworkConfigInfo = () =>
           noCloudDatasourceLink: (
             <a
               href='https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html#datasource-nocloud'
+              rel='noopener noreferrer'
               target='_blank'
             >
               {_('newVmNoCloudDatasource')}
@@ -47,6 +48,7 @@ const showNetworkConfigInfo = () =>
           networkConfigDocLink: (
             <a
               href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html'
+              rel='noopener noreferrer'
               target='_blank'
             >
               {_('newVmNetworkConfigDoc')}
