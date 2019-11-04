@@ -222,7 +222,7 @@ export default class Licenses extends Component {
             <SortedTable
               collection={this._getProducts()}
               columns={PRODUCTS_COLUMNS}
-              stateUrlParam='s'
+              stateUrlParam='s_products'
               userData={{
                 registeredEmail: this.props.xoaRegistration.email,
               }}

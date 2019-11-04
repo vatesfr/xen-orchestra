@@ -242,7 +242,7 @@ class XenServerPatches extends Component {
               <SortedTable
                 collection={missingPatches}
                 columns={MISSING_PATCH_COLUMNS}
-                stateUrlParam='m'
+                stateUrlParam='s_missing'
               />
             </Col>
           </Row>
@@ -253,7 +253,7 @@ class XenServerPatches extends Component {
             <SortedTable
               collection={hostPatches}
               columns={INSTALLED_PATCH_COLUMNS}
-              stateUrlParam='a'
+              stateUrlParam='s_installed'
             />
           </Col>
         </Row>

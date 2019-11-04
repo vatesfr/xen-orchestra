@@ -482,7 +482,7 @@ export default class Xosan extends Component {
                         collection={xosanSrs}
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
-                        stateUrlParam='s'
+                        stateUrlParam='s_xosan'
                         userData={{
                           isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),

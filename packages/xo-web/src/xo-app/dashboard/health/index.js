@@ -217,7 +217,7 @@ const AttachedVdisTable = decorate([
       data-vdiSnapshots={vdiSnapshots}
       emptyMessage={_('noControlDomainVdis')}
       rowTransform={rowTransform}
-      stateUrlParam='controldomain'
+      stateUrlParam='s_controldomain'
     />
   ),
   {
@@ -516,7 +516,7 @@ export default class Health extends Component {
                           columns={SR_COLUMNS}
                           rowLink={this._getSrUrl}
                           shortcutsTarget='body'
-                          stateUrlParam='srs'
+                          stateUrlParam='s_srs'
                         />
                       </Col>
                     </Row>
@@ -542,7 +542,7 @@ export default class Health extends Component {
                       actions={ORPHANED_VDI_ACTIONS}
                       collection={vdiOrphaned}
                       columns={ORPHANED_VDI_COLUMNS}
-                      stateUrlParam='orphanedvdis'
+                      stateUrlParam='s_vdis'
                     />
                   )}
                 </NoObjects>
@@ -578,7 +578,7 @@ export default class Health extends Component {
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
                   shortcutsTarget='.orphaned-vms'
-                  stateUrlParam='orphanedvms'
+                  stateUrlParam='s_vms'
                 />
               </CardBlock>
             </Card>
@@ -602,7 +602,7 @@ export default class Health extends Component {
                       actions={ALARM_ACTIONS}
                       collection={this._getMessages()}
                       columns={ALARM_COLUMNS}
-                      stateUrlParam='alarm'
+                      stateUrlParam='s_alarm'
                     />
                   )}
                 </NoObjects>

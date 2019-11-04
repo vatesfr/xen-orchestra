@@ -524,7 +524,7 @@ const Logs = decorate([
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           individualActions={LOG_ACTIONS_INDIVIDUAL}
-          stateUrlParam='log'
+          stateUrlParam='s_logs'
         />
       </CardBlock>
     </Card>

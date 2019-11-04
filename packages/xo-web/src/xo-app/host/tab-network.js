@@ -403,7 +403,7 @@ export default ({ host, networks, pifs, privateNetworks }) => (
             collection={privateNetworks}
             columns={PVT_NETWORK_COLUMNS}
             individualActions={PVT_NETWORK_ACTIONS}
-            stateUrlParam='p'
+            stateUrlParam='s_private'
           />
         </Col>
       </Row>

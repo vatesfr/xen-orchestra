@@ -220,7 +220,7 @@ export default class TabPatches extends Component {
                     collection={missingPatches}
                     columns={MISSING_PATCH_COLUMNS}
                     data-pool={pool}
-                    stateUrlParam='m'
+                    stateUrlParam='s_missing'
                   />
                 </Col>
               </Row>
@@ -230,7 +230,7 @@ export default class TabPatches extends Component {
                   <SortedTable
                     collection={hostPatches}
                     columns={INSTALLED_PATCH_COLUMNS}
-                    stateUrlParam='a'
+                    stateUrlParam='s_installed'
                   />
                 </Col>
               </Row>

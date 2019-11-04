@@ -137,7 +137,7 @@ export default class FileRestore extends Component {
           columns={VM_COLUMNS}
           defaultColumn={2}
           rowAction={openImportModal}
-          stateUrlParam='l'
+          stateUrlParam='s_legacy'
         />
       </div>
     ) : null
