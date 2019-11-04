@@ -92,7 +92,7 @@ const isValidXva = async path => {
       }
 
       return (await isGzipFile(fd))
-        ? false // gzip files cannot be validated at this time
+        ? true // gzip files cannot be validated at this time
         : await isValidTar(size, fd)
     } finally {
       fs.close(fd).catch(noop)
