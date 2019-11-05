@@ -44,7 +44,7 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import parseDuration from '../../_parseDuration'
-import { debounceWithKey } from '../../_pDebounceWithKey'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
 import {
   type DeltaVmExport,
   type DeltaVmImport,
@@ -717,6 +717,10 @@ export default class BackupNg {
           })
         }
         await asyncMap(vms, handleVm)
+
+        remotes.forEach(({ id }) =>
+          this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id)
+        )
       }
       app.registerJobExecutor('backup', executor)
     })
@@ -778,6 +782,8 @@ export default class BackupNg {
     } else {
       throw new Error(`no deleter for backup mode ${metadata.mode}`)
     }
+
+    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
   }
 
   // Task logs emitted in a restore execution:
@@ -881,11 +887,15 @@ export default class BackupNg {
     return backupsByVm
   }
 
-  async listVmBackupsNg(remotes: string[]) {
+  async listVmBackupsNg(remotes: string[], _forceRefresh = false) {
     const backupsByVmByRemote: $Dict<$Dict<Metadata[]>> = {}
 
     await Promise.all(
       remotes.map(async remoteId => {
+        if (_forceRefresh) {
+          this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+        }
+
         backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(
           remoteId
         )
