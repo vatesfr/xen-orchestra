@@ -5,7 +5,7 @@ import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
 
-import Button from './button'
+import ActionButton from './action-button'
 import Component from './base-component'
 import Icon from './icon'
 import Tooltip from './tooltip'
@@ -43,7 +43,7 @@ class SelectExistingTag extends Component {
   state = { tags: [] }
 
   get value() {
-    return this.state.tags.map(tag => tag.value)
+    return this.state.tags.map(_ => _.value)
   }
 
   render() {
@@ -59,7 +59,6 @@ class SelectExistingTag extends Component {
 
 export default class Tags extends Component {
   static propTypes = {
-    hasSelectExistingTag: PropTypes.bool,
     labels: PropTypes.arrayOf(PropTypes.string).isRequired,
     onAdd: PropTypes.func,
     onChange: PropTypes.func,
@@ -110,11 +109,11 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
-  _addExistingTags = () =>
+  _selectExistingTags = () =>
     confirm({
       body: <SelectExistingTag />,
       icon: 'add',
-      title: _('addExistingTags'),
+      title: _('selectExistingTags'),
     }).then(tags => tags.map(this._addTag), noop)
 
   _focus = () => {
@@ -129,14 +128,7 @@ export default class Tags extends Component {
   }
 
   render() {
-    const {
-      hasSelectExistingTag,
-      labels,
-      onAdd,
-      onChange,
-      onClick,
-      onDelete,
-    } = this.props
+    const { labels, onAdd, onChange, onClick, onDelete } = this.props
 
     const deleteTag = (onDelete || onChange) && this._deleteTag
 
@@ -157,7 +149,7 @@ export default class Tags extends Component {
           <span onClick={this._startEdit} style={ADD_TAG_STYLE}>
             <Icon icon='add-tag' />
           </span>
-        ) : hasSelectExistingTag ? (
+        ) : (
           <span
             className='form-inline'
             onBlur={this._stopEditIfUnfocused}
@@ -172,33 +164,16 @@ export default class Tags extends Component {
                 type='text'
               />
               <span className='input-group-btn'>
-                <Tooltip content={_('addExistingTags')}>
-                  <Button onClick={this._addExistingTags}>
-                    <Icon icon='add-tag' />
-                  </Button>
+                <Tooltip content={_('selectExistingTags')}>
+                  <ActionButton handler={this._selectExistingTags} icon='add' />
                 </Tooltip>
               </span>
             </span>
-          </span>
-        ) : (
-          <span>
-            <input
-              autoFocus
-              className='form-control'
-              onBlur={this._stopEdit}
-              onKeyDown={this._onKeyDown}
-              style={INPUT_STYLE}
-              type='text'
-            />
           </span>
         )}
       </span>
     )
   }
-}
-
-Tags.defaultProps = {
-  hasSelectExistingTag: true,
 }
 
 export const Tag = ({ type, label, onDelete, onClick }) => (
