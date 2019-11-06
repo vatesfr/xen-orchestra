@@ -203,7 +203,13 @@ export default class {
       throw invalidParameters('plugin not configured')
     }
 
+    if (plugin.loading) {
+      throw invalidParameters('plugin is loading')
+    }
+    plugin.loading = true
+
     await plugin.instance.load()
+    plugin.loading = false
     plugin.loaded = true
   }
 
