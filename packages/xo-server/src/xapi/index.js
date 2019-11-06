@@ -16,6 +16,7 @@ import {
   fromEvent,
   ignoreErrors,
   pCatch,
+  pRetry,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -38,7 +39,6 @@ import { satisfies as versionSatisfies } from 'semver'
 import createSizeStream from '../size-stream'
 import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
   forEach,
