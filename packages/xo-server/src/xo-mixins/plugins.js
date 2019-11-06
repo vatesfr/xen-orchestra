@@ -206,11 +206,14 @@ export default class {
     if (plugin.loading) {
       throw invalidParameters('plugin is loading')
     }
-    plugin.loading = true
 
-    await plugin.instance.load()
-    plugin.loading = false
-    plugin.loaded = true
+    plugin.loading = true
+    try {
+      await plugin.instance.load()
+      plugin.loaded = true
+    } finally {
+      plugin.loading = false
+    }
   }
 
   async unloadPlugin(id) {
