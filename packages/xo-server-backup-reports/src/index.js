@@ -2,6 +2,7 @@ import createLogger from '@xen-orchestra/log'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { forEach, groupBy, startCase } from 'lodash'
+import { get } from '@xen-orchestra/defined'
 import pkg from '../package'
 
 const logger = createLogger('xo:xo-server-backup-reports')
@@ -365,9 +366,10 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _ngVmHandler(log, { name: jobName }, schedule, force) {
+  async _ngVmHandler(log, { name: jobName, settings }, schedule, force) {
     const xo = this._xo
 
+    const mailReceivers = get(() => settings[''].reportRecipients)
     const { reportWhen, mode } = log.data || {}
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -390,6 +392,7 @@ class BackupReportsXoPlugin {
         subject: `[Xen Orchestra] ${
           log.status
         } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
+        mailReceivers,
         markdown: toMarkdown(markdown),
         success: false,
         nagiosMarkdown: `[Xen Orchestra] [${log.status}] Backup report for ${jobName} - Error : ${log.result.message}`,
@@ -643,6 +646,7 @@ class BackupReportsXoPlugin {
 
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
     return this._sendReport({
+      mailReceivers,
       markdown: toMarkdown(markdown),
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
         STATUS_ICON[log.status]
@@ -657,12 +661,18 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport({ markdown, subject, success, nagiosMarkdown }) {
+  _sendReport({
+    mailReceivers = this._mailsReceivers,
+    markdown,
+    nagiosMarkdown,
+    subject,
+    success,
+  }) {
     const xo = this._xo
     return Promise.all([
       xo.sendEmail !== undefined &&
         xo.sendEmail({
-          to: this._mailsReceivers,
+          to: mailReceivers,
           subject,
           markdown,
         }),

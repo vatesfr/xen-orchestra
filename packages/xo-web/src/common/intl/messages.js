@@ -443,6 +443,7 @@ const messages = {
   reportWhenAlways: 'Always',
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
+  reportRecipients: 'Report recipients',
   reportWhen: 'Report when',
   concurrency: 'Concurrency',
   newBackupSelection: 'Select your backup type:',
