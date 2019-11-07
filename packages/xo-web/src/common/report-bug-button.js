@@ -64,7 +64,7 @@ const reportOnSupportPanel = async ({
             createBinaryFile(JSON.stringify(manifest, null, 2)),
             'manifest.json'
           ),
-        error => logger.error('cannot get the local manifest', { error })
+        error => logger.warn('cannot get the local manifest', { error })
       ),
     checkXoa().then(
       xoaCheck =>
@@ -73,7 +73,7 @@ const reportOnSupportPanel = async ({
           createBinaryFile(stripAnsi(xoaCheck)),
           'xoaCheck.txt'
         ),
-      error => logger.error('cannot get the xoa check', { error })
+      error => logger.warn('cannot get the xoa check', { error })
     ),
   ])
 
