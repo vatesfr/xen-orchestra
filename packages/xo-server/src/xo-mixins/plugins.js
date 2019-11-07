@@ -60,7 +60,7 @@ export default class {
     const plugin = (this._plugins[id] = {
       configurationPresets,
       configurationSchema,
-      configured: !configurationSchema,
+      configured: configurationSchema === undefined,
       description,
       id,
       instance,
@@ -84,16 +84,17 @@ export default class {
       })
     }
 
-    if (configurationSchema !== undefined) {
-      if (
-        configuration === undefined &&
-        (typeof configurationSchema !== 'object' ||
-          configurationSchema.required !== undefined)
-      ) {
-        return
+    if (!plugin.configured) {
+      const tryEmptyConfig = configuration === undefined
+      try {
+        await this._configurePlugin(plugin, tryEmptyConfig ? {} : configuration)
+      } catch (error) {
+        // dont throw any error in case the empty config did not work
+        if (tryEmptyConfig) {
+          return
+        }
+        throw error
       }
-
-      await this._configurePlugin(plugin, configuration)
     }
 
     if (autoload) {
@@ -139,7 +140,7 @@ export default class {
   }
 
   // Validate the configuration and configure the plugin instance.
-  async _configurePlugin(plugin, configuration = {}) {
+  async _configurePlugin(plugin, configuration) {
     const { configurationSchema } = plugin
 
     if (!configurationSchema) {
