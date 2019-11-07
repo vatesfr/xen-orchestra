@@ -53,13 +53,15 @@ class XoServerHooks {
   async test({ url }) {
     await makeRequest(url, 'pre', {
       callId: '0',
-      userId: '42',
+      userId: 'b4tm4n',
+      userName: 'bruce.wayne@waynecorp.com',
       method: 'vm.start',
-      params: { id: 'foobar' },
+      params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
     })
     await makeRequest(url, 'post', {
       callId: '0',
-      userId: '42',
+      userId: 'b4tm4n',
+      userName: 'bruce.wayne@waynecorp.com',
       method: 'vm.start',
       result: '',
     })
@@ -98,8 +100,7 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
 
 export const testSchema = {
   type: 'object',
-  description:
-    'The test will simulate a hook to vm.start with {"id":"foobar"} as a parameter',
+  description: 'The test will simulate a hook on vm.start',
   properties: {
     url: {
       title: 'URL',

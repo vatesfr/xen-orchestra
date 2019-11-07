@@ -27,22 +27,20 @@ POST / HTTP/1.1
 Content-Type: application/json
 ```
 
-Body (JSON):
+The request's body is a JSON string representing an object with the following properties:
 
-```
-{
-  "type": "pre"|"post",
-  "callId": <unique ID for this call to help match a pre-call and a post-call>,
-  "method": <method name>,
-  "params": <call parameters (JSON)>,
-  "result": <call result on success (JSON)>,
-  "error": <call result on error (JSON)>,
-}
-```
+- `type`: `"pre"` or `"post"`
+- `callId`: unique ID for this call to help match a pre-call and a post-call
+- `userId`: unique internal ID of the user who performed the call
+- `userName`: login/e-mail address of the user who performed the call
+- `method`: method name (e.g. `"vm.start"`)
+- `params`: call parameters (object)
+- `result`: call result on success (object)
+- `error`: call result on error (object)
 
-## Request handle
+## Request handling
 
-*Quick NodeJS example of how you may want to handle the requests*
+*Quick Node.js example of how you may want to handle the requests*
 
 ```js
 const http = require('http')
@@ -63,7 +61,7 @@ const handleHook = data => {
   const { method, params, type, result, error } = JSON.parse(data)
 
   // Log it
-  console.log(`${Date.now()} [${method}|${type}] ${params} → ${result || error}`)
+  console.log(`${new Date().toISOString()} [${method}|${type}] ${params} → ${result || error}`)
 
   // Run scripts
   exec(`./hook-scripts/${method}-${type}.sh`)

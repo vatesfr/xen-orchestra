@@ -254,6 +254,7 @@ export default class Api {
         .toString(36)
         .slice(2),
       userId,
+      userName,
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
     }
