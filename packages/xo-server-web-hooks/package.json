@@ -1,6 +1,6 @@
 {
-  "name": "xo-server-hooks",
-  "version": "0.1.0",
+  "name": "xo-server-web-hooks",
+  "version": "0.0.0",
   "license": "ISC",
   "description": "",
   "keywords": [
@@ -11,10 +11,10 @@
     "xen-orchestra",
     "xo-server"
   ],
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-hooks",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-web-hooks",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "packages/xo-server-hooks",
+    "directory": "packages/xo-server-web-hooks",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -29,41 +29,25 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=8.10"
   },
-  "dependencies": {
-    "http-request-plus": "^0.5.0",
-    "lodash": "^4.17.10"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "cross-env": "^5.1.3",
-    "rimraf": "^2.5.4"
+    "@babel/preset-flow": "^7.0.0",
+    "babel-plugin-lodash": "^3.3.2",
+    "cross-env": "^6.0.3",
+    "rimraf": "^3.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "postversion": "npm publish",
+    "postversion": "npm publish --access public",
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
-  },
-  "babel": {
-    "plugins": [
-      "transform-runtime"
-    ],
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "node": 4
-          }
-        }
-      ],
-      "stage-3"
-    ]
   }
 }
