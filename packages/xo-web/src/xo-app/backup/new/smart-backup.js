@@ -1,17 +1,19 @@
 import _ from 'intl'
+import Button from 'button'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+import Tooltip from 'tooltip'
 import SmartBackupPreview, {
   constructSmartPattern,
   destructSmartPattern,
 } from 'smart-backup'
-import Tooltip from 'tooltip'
 import { connectStore, resolveIds } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from 'reaclette'
+import { toggleState } from 'reaclette-utils'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
 
@@ -29,7 +31,31 @@ const SmartBackup = decorate([
     vms: createGetObjectsOfType('VM'),
   }),
   provideState({
+    initialState: () => ({
+      editingTag: false,
+    }),
     effects: {
+      addTag: (effects, newTag) => ({ tags }) => {
+        effects.setTagValues(
+          tags.values === undefined ? [newTag] : [...tags.values, newTag]
+        )
+      },
+      onKeyDown: (effects, event) => {
+        const { keyCode, target } = event
+
+        if (keyCode === 13) {
+          if (target.value !== '') {
+            effects.addTag(target.value)
+            target.value = ''
+          }
+        } else if (keyCode === 27) {
+          effects.stopEditTag()
+        } else {
+          return
+        }
+
+        event.preventDefault()
+      },
       setPattern: (_, value) => (_, { pattern, onChange }) => {
         onChange({
           ...pattern,
@@ -60,6 +86,8 @@ const SmartBackup = decorate([
       setPoolNotValues({ setPoolPattern }, notValues) {
         setPoolPattern({ notValues })
       },
+      stopEditTag: () => ({ editingTag: false }),
+      toggleState,
     },
     computed: {
       poolPredicate: (_, { deltaMode, hosts }) => pool =>
@@ -111,7 +139,24 @@ const SmartBackup = decorate([
       <FormGroup>
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
-        </label>
+        </label>{' '}
+        {state.editingTag ? (
+          <input
+            autoFocus
+            onBlur={effects.stopEditTag}
+            onKeyDown={effects.onKeyDown}
+            type='text'
+          />
+        ) : (
+          <Button
+            name='editingTag'
+            onClick={effects.toggleState}
+            size='small'
+            tooltip={_('addTag')}
+          >
+            <Icon icon='edit' />
+          </Button>
+        )}
         <SelectTag
           multi
           onChange={effects.setTagValues}
