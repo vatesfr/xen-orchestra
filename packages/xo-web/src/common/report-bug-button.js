@@ -1,4 +1,5 @@
 import _ from 'intl'
+import createLogger from '@xen-orchestra/log'
 import currentPlan, { XOA_PLAN_FREE, XOA_PLAN_SOURCES } from 'plans'
 import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
@@ -13,6 +14,8 @@ import { post } from 'fetch'
 
 import ActionButton from './action-button'
 import ActionRowButton from './action-row-button'
+
+const logger = createLogger('report-bug-button')
 
 export const CAN_REPORT_BUG = currentPlan > XOA_PLAN_FREE
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
@@ -51,19 +54,28 @@ const reportOnSupportPanel = async ({
     formData.append('attachments', content, name)
   })
 
-  formData.append(
-    'attachments',
-    createBinaryFile(
-      JSON.stringify(await xoaUpdater.getLocalManifest(), null, 2)
+  await Promise.all([
+    xoaUpdater
+      .getLocalManifest()
+      .then(
+        manifest =>
+          formData.append(
+            'attachments',
+            createBinaryFile(JSON.stringify(manifest, null, 2)),
+            'manifest.json'
+          ),
+        error => logger.error('cannot get the local manifest', { error })
+      ),
+    checkXoa().then(
+      xoaCheck =>
+        formData.append(
+          'attachments',
+          createBinaryFile(stripAnsi(xoaCheck)),
+          'xoaCheck.txt'
+        ),
+      error => logger.error('cannot get the xoa check', { error })
     ),
-    'manifest.json'
-  )
-
-  formData.append(
-    'attachments',
-    createBinaryFile(stripAnsi(await checkXoa())),
-    'xoaCheck.txt'
-  )
+  ])
 
   const res = await post(SUPPORT_PANEL_URL, formData)
   if (res.status !== 200) {
