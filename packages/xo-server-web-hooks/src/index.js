@@ -6,6 +6,10 @@ const makeRequest = (url, type, data) =>
     body: JSON.stringify({ ...data, type }),
     headers: { 'content-type': 'application/json' },
     method: 'POST',
+    onRequest: req => {
+      req.setTimeout(1e4)
+      req.on('timeout', req.abort)
+    },
   })
 
 class XoServerHooks {

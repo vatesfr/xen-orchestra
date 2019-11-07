@@ -50,7 +50,7 @@ const { exec } = require('child_process')
 
 http
   .createServer((req, res) => {
-    let body
+    let body = ''
     req.on('data', chunk => {
       body += chunk
     })
