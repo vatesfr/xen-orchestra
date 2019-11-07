@@ -31,23 +31,23 @@
   "engines": {
     "node": ">=8.10"
   },
-  "dependencies": {},
+  "dependencies": {
+    "http-request-plus": "^0.9.0",
+    "lodash": "^4.17.15"
+  },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/preset-flow": "^7.0.0",
-    "babel-plugin-lodash": "^3.3.2",
+    "@babel/cli": "^7.7.0",
+    "@babel/core": "^7.7.2",
+    "@babel/preset-env": "^7.7.1",
     "cross-env": "^6.0.3",
     "rimraf": "^3.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "postversion": "npm publish --access public",
-    "prebuild": "yarn run clean",
+    "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
-  }
+  },
+  "private": true
 }
