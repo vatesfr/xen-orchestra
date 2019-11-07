@@ -60,7 +60,9 @@ export default class {
     const plugin = (this._plugins[id] = {
       configurationPresets,
       configurationSchema,
-      configured: !configurationSchema,
+      configured:
+        configurationSchema === undefined ||
+        configurationSchema.required === undefined,
       description,
       id,
       instance,
