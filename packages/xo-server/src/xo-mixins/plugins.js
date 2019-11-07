@@ -60,9 +60,7 @@ export default class {
     const plugin = (this._plugins[id] = {
       configurationPresets,
       configurationSchema,
-      configured:
-        configurationSchema === undefined ||
-        configurationSchema.required === undefined,
+      configured: !configurationSchema,
       description,
       id,
       instance,
@@ -87,7 +85,11 @@ export default class {
     }
 
     if (configurationSchema !== undefined) {
-      if (configuration === undefined) {
+      if (
+        configuration === undefined &&
+        (typeof configurationSchema !== 'object' ||
+          configurationSchema.required !== undefined)
+      ) {
         return
       }
 
@@ -137,7 +139,7 @@ export default class {
   }
 
   // Validate the configuration and configure the plugin instance.
-  async _configurePlugin(plugin, configuration) {
+  async _configurePlugin(plugin, configuration = {}) {
     const { configurationSchema } = plugin
 
     if (!configurationSchema) {
