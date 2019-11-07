@@ -8,5 +8,8 @@
     "directory": "packages/xo-server-test-plugin",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": "*"
   }
 }

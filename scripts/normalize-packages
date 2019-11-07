@@ -31,6 +31,10 @@ require('exec-promise')(() =>
     if (!('version' in pkg)) {
       pkg.version = '0.0.0'
     }
+    pkg.engines = {
+      node: '>=8.10',
+      ...pkg.engines,
+    }
 
     delete pkg.husky
     delete pkg.standard
