@@ -148,14 +148,15 @@ const SmartBackup = decorate([
             type='text'
           />
         ) : (
-          <Button
-            name='editingTag'
-            onClick={effects.toggleState}
-            size='small'
-            tooltip={_('addTag')}
-          >
-            <Icon icon='edit' />
-          </Button>
+          <Tooltip content={_('addTag')}>
+            <Button
+              name='editingTag'
+              onClick={effects.toggleState}
+              size='small'
+            >
+              <Icon icon='edit' />
+            </Button>
+          </Tooltip>
         )}
         <SelectTag
           multi
