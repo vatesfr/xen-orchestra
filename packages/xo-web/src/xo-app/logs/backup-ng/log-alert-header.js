@@ -4,16 +4,16 @@ import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
 import ButtonGroup from 'button-group'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import currentPlan, { XOA_PLAN_SOURCES } from 'plans'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
 import Tooltip from 'tooltip'
-import { createBinaryFile, downloadLog, formatDate } from 'utils'
+import { createBlobFromString, downloadLog, safeDateFormat } from 'utils'
 import { get, ifDef } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { keyBy } from 'lodash'
+import { XOA_PLAN_CURRENT, XOA_PLAN_SOURCES } from 'plans'
 import {
   runBackupNgJob,
   subscribeBackupNgJobs,
@@ -72,20 +72,20 @@ export default decorate([
           size: 'small',
           title: 'Backup job failed',
         }
-        if (currentPlan === XOA_PLAN_SOURCES) {
+        if (XOA_PLAN_CURRENT === XOA_PLAN_SOURCES) {
           props.message = `\`\`\`json\n${formattedLog}\n\`\`\``
         } else {
-          const formattedDate = ifDef(log.start, formatDate)
+          const formattedDate = ifDef(log.start, safeDateFormat)
           props.files = [
             {
-              content: createBinaryFile(formattedLog),
+              content: createBlobFromString(formattedLog),
               name: `${formattedDate} - log.json`,
             },
           ]
           const job = jobs[log.jobId]
           if (job !== undefined) {
             props.files.push({
-              content: createBinaryFile(JSON.stringify(job, null, 2)),
+              content: createBlobFromString(JSON.stringify(job, null, 2)),
               name: 'job.json',
             })
           }

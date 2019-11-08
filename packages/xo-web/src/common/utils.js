@@ -550,21 +550,24 @@ export const getIscsiPaths = pbd => {
 
 // ===================================================================
 
-export const createBinaryFile = str =>
+export const createBlobFromString = str =>
   new window.Blob([str], {
     type: 'text/plain',
   })
 
 // ===================================================================
 
-export const formatDate = ms => new Date(ms).toISOString().replace(/:/g, '_')
+// Format a date in ISO 8601 in a safe way to be used in filenames
+// (even on Windows).
+export const safeDateFormat = ms =>
+  new Date(ms).toISOString().replace(/:/g, '_')
 
 // ===================================================================
 
 export const downloadLog = ({ log, date, type }) => {
   const anchor = document.createElement('a')
-  anchor.href = window.URL.createObjectURL(createBinaryFile(log))
-  anchor.download = `${formatDate(date)} - ${type}.log`
+  anchor.href = window.URL.createObjectURL(createBlobFromString(log))
+  anchor.download = `${safeDateFormat(date)} - ${type}.log`
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()
