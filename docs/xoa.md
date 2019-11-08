@@ -64,6 +64,18 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 
 **The first thing** you need to do with your XOA is register. [Read the documentation on the page dedicated to the updater/register inferface](updater.md).
 
+## Access the support
+
+In your appliance, you can access the support section in the XOA menu. In this section you can:
+
+* launch a xoa check command
+
+![](https://xen-orchestra.com/blog/content/images/2019/10/xoacheck.png)
+
+* Open a support tunnel for our team
+
+![](https://user-images.githubusercontent.com/10992860/67384755-10f47f80-f592-11e9-974d-bbdefd0bf353.gif)
+
 ### First console connection
 
 If you connect via SSH or console, the default credentials are:
