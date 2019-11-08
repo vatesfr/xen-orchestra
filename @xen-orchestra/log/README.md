@@ -42,6 +42,7 @@ log.error('could not join server', {
 Then, at application level, configure the logs are handled:
 
 ```js
+import { createLogger } from '@xen-orchestra/log'
 import { configure, catchGlobalErrors } from '@xen-orchestra/log/configure'
 import transportConsole from '@xen-orchestra/log/transports/console'
 import transportEmail from '@xen-orchestra/log/transports/email'
@@ -77,8 +78,8 @@ configure([
 ])
 
 // send all global errors (uncaught exceptions, warnings, unhandled rejections)
-// to this transport
-catchGlobalErrors(transport)
+// to this logger
+catchGlobalErrors(createLogger('app'))
 ```
 
 ### Transports
