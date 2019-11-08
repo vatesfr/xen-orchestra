@@ -15,7 +15,7 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/log):
 Everywhere something should be logged:
 
 ```js
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('my-module')
 
