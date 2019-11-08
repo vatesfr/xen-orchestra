@@ -23,7 +23,6 @@ export default class Select extends React.PureComponent {
     maxHeight: 200,
 
     multi: ReactSelect.defaultProps.multi,
-    options: [],
     required: ReactSelect.defaultProps.required,
     simpleValue: ReactSelect.defaultProps.simpleValue,
     valueKey: ReactSelect.defaultProps.valueKey,
@@ -32,7 +31,7 @@ export default class Select extends React.PureComponent {
   static propTypes = {
     autoSelectSingleOption: PropTypes.bool, // default to props.required
     maxHeight: PropTypes.number,
-    options: PropTypes.array.isRequired, // cannot be an object
+    options: PropTypes.array, // cannot be an object
   }
 
   _cellMeasurerCache = new CellMeasurerCache({
