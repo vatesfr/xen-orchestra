@@ -1,5 +1,5 @@
 import _ from 'intl'
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 import currentPlan, { XOA_PLAN_FREE, XOA_PLAN_SOURCES } from 'plans'
 import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
