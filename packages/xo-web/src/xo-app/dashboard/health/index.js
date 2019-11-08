@@ -578,7 +578,7 @@ export default class Health extends Component {
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
                   shortcutsTarget='.orphaned-vms'
-                  stateUrlParam='s_vms'
+                  stateUrlParam='s_orphan_vms'
                 />
               </CardBlock>
             </Card>

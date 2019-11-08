@@ -196,7 +196,7 @@ class XcpPatches extends Component {
                 columns={MISSING_PATCH_COLUMNS_XCP}
                 collection={missingPatches}
                 individualActions={INDIVIDUAL_ACTIONS_XCP}
-                stateUrlParam='s'
+                stateUrlParam='s_missing'
               />
             </Col>
           </Row>
