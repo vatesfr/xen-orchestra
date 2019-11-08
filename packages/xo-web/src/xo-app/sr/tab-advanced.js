@@ -51,7 +51,7 @@ const UnhealthyVdiChains = flowRight(
       <SortedTable
         collection={vdis}
         columns={COLUMNS}
-        stateUrlParam='s_unhealthy'
+        stateUrlParam='s_unhealthy_vdis'
         userData={chains}
       />
     </div>
