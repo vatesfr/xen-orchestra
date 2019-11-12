@@ -1,13 +1,13 @@
 import _ from 'intl'
-import { createLogger } from '@xen-orchestra/log'
-import currentPlan, { XOA_PLAN_FREE, XOA_PLAN_SOURCES } from 'plans'
 import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
+import xoaPlans from 'xoa-plans'
 import xoaUpdater from 'xoa-updater'
 import { checkXoa } from 'xo'
 import { createBinaryFile } from 'utils'
+import { createLogger } from '@xen-orchestra/log'
 import { identity, omit } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { post } from 'fetch'
@@ -17,7 +17,7 @@ import ActionRowButton from './action-row-button'
 
 const logger = createLogger('report-bug-button')
 
-export const CAN_REPORT_BUG = currentPlan > XOA_PLAN_FREE
+export const CAN_REPORT_BUG = xoaPlans.CURRENT > xoaPlans.FREE
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
 const reportOnGithub = ({ formatMessage, message, title }) => {
@@ -85,7 +85,7 @@ const reportOnSupportPanel = async ({
 }
 
 export const reportBug =
-  currentPlan === XOA_PLAN_SOURCES ? reportOnGithub : reportOnSupportPanel
+  xoaPlans.CURRENT === xoaPlans.SOURCES ? reportOnGithub : reportOnSupportPanel
 
 const REPORT_BUG_BUTTON_PROP_TYPES = {
   files: PropTypes.arrayOf(
