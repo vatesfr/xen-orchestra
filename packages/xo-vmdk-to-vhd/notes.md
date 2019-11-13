@@ -1,5 +1,4 @@
 # Some notes about the conversion
----
 ## File formats
 VMDK and VHD file format share the same high level principles: 
 
@@ -107,3 +106,33 @@ for bandwidth reason). Those lists are sent to the server, where the VHD Block A
 With the default parameters, there are 32 VMDK grains into a VHD block, so a late scheduling is used to create the BAT.
 
 Once the BAT is generated, the VHD file is created on the fly block by block and sent on the socket towards the XAPI url.
+
+## How VHD Block order and position is decided from the VMDK table
+Let use letters to represent VHD Blocks, and number to represent their smaller VMDK constituents, and a ratio of 3 VMDK 
+fragment per VHD block.
+
+`A` is the first VHD block, `A2` is the second VMDK fragment of the first VHD block.
+
+In the VMDK file, fragments could be in any order and VHD blocks might not even be complete: `A3 E3 C1 C2 C3 A1 A2`.
+We are trying to generate a VHD file while using the minimum intermediate memory possible.
+
+When generating the VHD file Block Allocation Table we are setting in stone the order in which the block will be sent in
+ the VHD stream. Since we can't seek backwards in the VHD stream, we can't write a VHD block until all its VMDK fragments 
+ have been read, so the last fragment encountered will dictate the order of the VHD Block in the file.
+
+Let's review our previous example: `A3 E3 C1 C2 C3 A1 A2`, the block `B` doesn't appear, the block `A` has its fragment 
+interleaved with other blocks. So to decide the order of the blocks in the VHD file, we just go backwards and the last 
+time we see a block we can write it, the result of this backward collection is `A C E`:
+ - `A2` seen, collect `A`
+ - `A1` seen, skip because we already have A
+ - `C3` seen, collect `C`
+ - `C2` seen, skip
+ - `C1` seen, skip
+ - `E3` seen, collect `E`
+ - `A3` seen, skip (but we can infer how long we'll need to keep this fragment in memory).
+
+We can now reverse our collection to `E C A`, and attribute addresses to the blocks, we could not do it before, because 
+we didn't know that `B` didn't exist or that `E` would be the first one.
+
+When reading the VMDK file, we know that when we encounter `A3` we will have to keep it in memory until we meet `A2`. 
+But when we meet `E3`, we know that we can dump `E` on the VHD stream and release the memory for `E`.
