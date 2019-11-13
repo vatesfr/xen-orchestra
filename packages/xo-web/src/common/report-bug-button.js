@@ -6,7 +6,7 @@ import React from 'react'
 import stripAnsi from 'strip-ansi'
 import xoaUpdater from 'xoa-updater'
 import { checkXoa } from 'xo'
-import { createBinaryFile } from 'utils'
+import { createBlobFromString } from 'utils'
 import { createLogger } from '@xen-orchestra/log'
 import { identity, omit } from 'lodash'
 import { injectState, provideState } from 'reaclette'
@@ -61,7 +61,7 @@ const reportOnSupportPanel = async ({
         manifest =>
           formData.append(
             'attachments',
-            createBinaryFile(JSON.stringify(manifest, null, 2)),
+            createBlobFromString(JSON.stringify(manifest, null, 2)),
             'manifest.json'
           ),
         error => logger.warn('cannot get the local manifest', { error })
@@ -72,7 +72,7 @@ const reportOnSupportPanel = async ({
         xoaCheck =>
           formData.append(
             'attachments',
-            createBinaryFile(stripAnsi(xoaCheck)),
+            createBlobFromString(stripAnsi(xoaCheck)),
             'xoaCheck.txt'
           ),
         error => logger.warn('cannot get the xoa check', { error })
