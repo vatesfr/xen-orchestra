@@ -75,11 +75,28 @@ const reportOnSupportPanel = async ({
     ),
   ])
 
-  const res = await post(SUPPORT_PANEL_URL, formData)
-  if (res.status !== 200) {
-    throw new Error('cannot get the new ticket URL')
+  try {
+    const res = await timeout(post(SUPPORT_PANEL_URL, formData), 1e4)
+    if (res.status !== 200) {
+      throw new Error('cannot get the new ticket URL')
+    }
+    open(await res.text())
+  } catch (error) {
+    logger.warn({ error })
+
+    const encodedTitle = encodeURIComponent(title == null ? '' : title)
+    const encodedMessage = encodeURIComponent(
+      message == null
+        ? ''
+        : formatMessage === undefined
+        ? message
+        : formatMessage(message)
+    )
+
+    open(
+      `https://xen-orchestra.com/#!/member/support?title=${encodedTitle}&message=${encodedMessage}`
+    )
   }
-  open(await res.text())
 }
 
 export const reportBug =
