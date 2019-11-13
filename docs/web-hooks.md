@@ -15,10 +15,10 @@ You can trigger an HTTP POST request to a URL when a Xen Orchestra API method is
   * Type:
     * pre: the request will be sent when the method is called
     * post: the request will be sent after the method action is completed
-  * URL: the full URL the requests will be sent to
+  * URL: the full URL which the requests will be sent to
 * Save the plugin configuration
 
-From now on, every time the methods you configured will be called by an XO client, a request will be sent to the corresponding URLs.
+From now on, a request will be sent to the corresponding URLs when a configured method is called by an XO client.
 
 ## Request content
 
