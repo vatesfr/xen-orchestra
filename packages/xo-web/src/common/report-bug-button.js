@@ -11,6 +11,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { identity, omit } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { post } from 'fetch'
+import { timeout } from 'promise-toolbox'
 
 import ActionButton from './action-button'
 import ActionRowButton from './action-row-button'
@@ -55,8 +56,8 @@ const reportOnSupportPanel = async ({
   })
 
   await Promise.all([
-    xoaUpdater
-      .getLocalManifest()
+    timeout
+      .call(xoaUpdater.getLocalManifest(), 6e4)
       .then(
         manifest =>
           formData.append(
@@ -66,15 +67,17 @@ const reportOnSupportPanel = async ({
           ),
         error => logger.warn('cannot get the local manifest', { error })
       ),
-    checkXoa().then(
-      xoaCheck =>
-        formData.append(
-          'attachments',
-          createBinaryFile(stripAnsi(xoaCheck)),
-          'xoaCheck.txt'
-        ),
-      error => logger.warn('cannot get the xoa check', { error })
-    ),
+    timeout
+      .call(checkXoa(), 6e4)
+      .then(
+        xoaCheck =>
+          formData.append(
+            'attachments',
+            createBinaryFile(stripAnsi(xoaCheck)),
+            'xoaCheck.txt'
+          ),
+        error => logger.warn('cannot get the xoa check', { error })
+      ),
   ])
 
   const res = await post(SUPPORT_PANEL_URL, formData)
