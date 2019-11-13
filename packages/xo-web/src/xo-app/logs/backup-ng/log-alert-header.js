@@ -1,4 +1,5 @@
 import _ from 'intl'
+import * as xoaPlans from 'xoa-plans'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import Button from 'button'
@@ -7,9 +8,8 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import ReportBugButton, { CAN_REPORT_BUG } from 'report-bug-button'
+import ReportBugButton from 'report-bug-button'
 import Tooltip from 'tooltip'
-import xoaPlans from 'xoa-plans'
 import { createBlobFromString, downloadLog, safeDateFormat } from 'utils'
 import { get, ifDef } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
@@ -115,7 +115,7 @@ export default decorate([
             <Icon icon='download' />
           </Button>
         </Tooltip>
-        {CAN_REPORT_BUG && <ReportBugButton {...state.reportBugProps} />}
+        <ReportBugButton {...state.reportBugProps} />
         {state.jobFailed && log.scheduleId !== undefined && (
           <ButtonGroup>
             <ActionButton

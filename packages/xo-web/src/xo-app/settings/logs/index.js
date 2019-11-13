@@ -11,8 +11,8 @@ import styles from './index.css'
 import { addSubscriptions, downloadLog } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'selectors'
-import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
 import { get } from '@xen-orchestra/defined'
+import { reportBug } from 'report-bug-button'
 import {
   deleteApiLog,
   deleteApiLogs,
@@ -118,7 +118,6 @@ const INDIVIDUAL_ACTIONS = [
     label: _('logDownload'),
   },
   {
-    disabled: !CAN_REPORT_BUG,
     handler: log =>
       reportBug({
         formatMessage,

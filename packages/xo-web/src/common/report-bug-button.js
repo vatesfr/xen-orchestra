@@ -1,9 +1,9 @@
 import _ from 'intl'
+import * as xoaPlans from 'xoa-plans'
 import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
-import xoaPlans from 'xoa-plans'
 import xoaUpdater from 'xoa-updater'
 import { checkXoa } from 'xo'
 import { createBinaryFile } from 'utils'
@@ -18,7 +18,6 @@ import ActionRowButton from './action-row-button'
 
 const logger = createLogger('report-bug-button')
 
-export const CAN_REPORT_BUG = xoaPlans.CURRENT > xoaPlans.FREE
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
 const reportOnGithub = ({ formatMessage, message, title }) => {
