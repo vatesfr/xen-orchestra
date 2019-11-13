@@ -56,7 +56,7 @@ const reportOnSupportPanel = async ({
 
   await Promise.all([
     timeout
-      .call(xoaUpdater.getLocalManifest(), 6e4)
+      .call(xoaUpdater.getLocalManifest(), 5e3)
       .then(
         manifest =>
           formData.append(
@@ -67,7 +67,7 @@ const reportOnSupportPanel = async ({
         error => logger.warn('cannot get the local manifest', { error })
       ),
     timeout
-      .call(checkXoa(), 6e4)
+      .call(checkXoa(), 5e3)
       .then(
         xoaCheck =>
           formData.append(
