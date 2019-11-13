@@ -9,7 +9,7 @@
 
 - [Logs] Ability to report a bug with attached log (PR [#4201](https://github.com/vatesfr/xen-orchestra/pull/4201))
 - [Backup] Reduce _VDI chain protection error_ occurrence by being more tolerant (configurable via `xo-server`'s `xapiOptions.maxUncoalescedVdis` setting) [#4124](https://github.com/vatesfr/xen-orchestra/issues/4124) (PR [#4651](https://github.com/vatesfr/xen-orchestra/pull/4651))
-- [Plugin] New web hooks plugin [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
+- [Plugin] [Web hooks](https://xen-orchestra.com/docs/web-hooks.html) [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
 
 ### Bug fixes
 

@@ -1,16 +1,30 @@
-import request from 'http-request-plus'
+import createLogger from '@xen-orchestra/log'
 import { groupBy, mapValues } from 'lodash'
 
-const makeRequest = (url, type, data) =>
-  request(url, {
+const log = createLogger('xo:web-hooks')
+
+function makeRequest(url, type, data) {
+  return this._xo.httpRequest(url, {
     body: JSON.stringify({ ...data, type }),
-    headers: { 'content-type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     method: 'POST',
     onRequest: req => {
       req.setTimeout(1e4)
       req.on('timeout', req.abort)
     },
   })
+}
+
+function handleHook(type, data) {
+  let hooks
+  if ((hooks = this._conf[data.method]?.[type]) !== undefined) {
+    return Promise.all(
+      hooks.map(({ url }) =>
+        this._makeRequest(url, type, data).catch(log.error)
+      )
+    )
+  }
+}
 
 class XoServerHooks {
   constructor({ xo }) {
@@ -18,47 +32,53 @@ class XoServerHooks {
 
     // Defined in configure().
     this._conf = null
-    this._key = null
-    this.handlePreHook = (...args) => this.handleHook('pre', ...args)
-    this.handlePostHook = (...args) => this.handleHook('post', ...args)
+
+    this._handlePreHook = handleHook.bind(this, 'pre')
+    this._handlePostHook = handleHook.bind(this, 'post')
+    this._makeRequest = makeRequest.bind(this)
   }
 
   configure(configuration) {
+    // this._conf = {
+    //   'vm.start': {
+    //     pre: [
+    //       {
+    //         method: 'vm.start',
+    //         type: 'pre',
+    //         url: 'https://my-domain.net/xo-hooks?action=vm.start'
+    //       },
+    //       ...
+    //     ],
+    //     post: [
+    //       ...
+    //     ]
+    //   },
+    //   ...
+    // }
     this._conf = mapValues(groupBy(configuration, 'method'), _ =>
       groupBy(_, 'type')
     )
   }
 
-  handleHook(type, data) {
-    let hooks
-    if (
-      (hooks = this._conf[data.method]) === undefined ||
-      (hooks = hooks[type]) === undefined
-    ) {
-      return
-    }
-    return Promise.all(hooks.map(({ url }) => makeRequest(url, type, data)))
-  }
-
   load() {
-    this._xo.on('xo:preCall', this.handlePreHook)
-    this._xo.on('xo:postCall', this.handlePostHook)
+    this._xo.on('xo:preCall', this._handlePreHook)
+    this._xo.on('xo:postCall', this._handlePostHook)
   }
 
   unload() {
-    this._xo.removeListener('xo:preCall', this.handlePreHook)
-    this._xo.removeListener('xo:postCall', this.handlePostHook)
+    this._xo.removeListener('xo:preCall', this._handlePreHook)
+    this._xo.removeListener('xo:postCall', this._handlePostHook)
   }
 
   async test({ url }) {
-    await makeRequest(url, 'pre', {
+    await this._makeRequest(url, 'pre', {
       callId: '0',
       userId: 'b4tm4n',
       userName: 'bruce.wayne@waynecorp.com',
       method: 'vm.start',
       params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
     })
-    await makeRequest(url, 'post', {
+    await this._makeRequest(url, 'post', {
       callId: '0',
       userId: 'b4tm4n',
       userName: 'bruce.wayne@waynecorp.com',
@@ -100,7 +120,8 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
 
 export const testSchema = {
   type: 'object',
-  description: 'The test will simulate a hook on vm.start',
+  description:
+    'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
   properties: {
     url: {
       title: 'URL',
