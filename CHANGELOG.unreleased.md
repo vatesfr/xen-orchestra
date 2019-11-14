@@ -16,6 +16,7 @@
 - [SDN controller] Prevent private network creation on bond slave PIF (Fixes https://github.com/xcp-ng/xcp/issues/300) (PR [4633](https://github.com/vatesfr/xen-orchestra/pull/4633))
 
 - [Metadata backup] Fix failed backup reported as successful [#4596](https://github.com/vatesfr/xen-orchestra/issues/4596) (PR [#4598](https://github.com/vatesfr/xen-orchestra/pull/4598))
+- Fix `promise rejected with non-error` warnings in logs (PR [#4659](https://github.com/vatesfr/xen-orchestra/pull/4659))
 
 ### Released packages
 
@@ -24,6 +25,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- xen-api v0.27.3
 - xo-server-backup-reports v0.16.3
 - vhd-lib v0.7.1
 - xo-server v5.52.0
