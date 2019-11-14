@@ -425,6 +425,8 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.web(req, res, {
+          agent:
+            new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
           target: target + url.slice(prefix.length),
         })
 
