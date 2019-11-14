@@ -412,7 +412,19 @@ const setUpProxies = (express, opts, xo) => {
   const proxy = createProxyServer({
     changeOrigin: true,
     ignorePath: true,
-  }).on('error', error => console.error(error))
+  }).on('error', (error, req, res) => {
+    if (!res.headersSent) {
+      res.writeHead(500, { 'content-type': 'text/plain' })
+      res.write('There was a problem proxying this request.')
+    }
+    res.end()
+
+    const { method, url } = req
+    log.error('failed to proxy request', {
+      error,
+      req: { method, url },
+    })
+  })
 
   // TODO: sort proxies by descending prefix length.
 
