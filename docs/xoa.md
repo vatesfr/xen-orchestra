@@ -76,6 +76,23 @@ In your appliance, you can access the support section in the XOA menu. In this s
 
 ![](https://user-images.githubusercontent.com/10992860/67384755-10f47f80-f592-11e9-974d-bbdefd0bf353.gif)
 
+
+
+If your web UI is not working, you can also open the secure support tunnel from the CLI. To open a private tunnel (we are the only one with the private key), you can use the command `xoa support tunnel` like below:
+
+```
+$ xoa support tunnel
+The support tunnel has been created.
+
+Do not stop this command before the intervention is over!
+Give this id to the support: 40713
+```
+
+Give us this number, and we'll be able to access your XOA in a secure manner. Then, close the tunnel with `Ctrl+C` after your issue has been solved by support.
+
+> The tunnel utilizes the user `xoa-support`. If you want to deactivate this bundled user, you can run `chage -E 0 xoa-support`. To re-activate this account, you must run `chage -E 1 xoa-support`.
+
+
 ### First console connection
 
 If you connect via SSH or console, the default credentials are:
@@ -168,21 +185,6 @@ You can access the VM console through XenCenter or using VNC through a SSH tunne
 
 If you want to go back in DHCP, just run `xoa network dhcp`
 
-### SSH Pro Support
-
-By default, if you need support, there is a dedicated user named `xoa-support`. We are the only one with the private key. If you want our assistance on your XOA, you can open a private tunnel with the command `xoa support tunnel` like below:
-
-```
-$ xoa support tunnel
-The support tunnel has been created.
-
-Do not stop this command before the intervention is over!
-Give this id to the support: 40713
-```
-
-Give us this number, we'll be able to access your XOA in a secure manner. Then, close the tunnel with `Ctrl+C` after your issue has been solved by support.
-
-> If you want to deactivate this bundled user, you can type `chage -E 0 xoa-support`. To re-activate this account, you must use the `chage -E 1 xoa-support`.
 
 ### Firewall
 
