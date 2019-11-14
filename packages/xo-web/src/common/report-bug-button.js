@@ -85,17 +85,7 @@ const reportOnSupportPanel = async ({
     logger.warn({ error })
 
     const encodedTitle = encodeURIComponent(title == null ? '' : title)
-    const encodedMessage = encodeURIComponent(
-      message == null
-        ? ''
-        : formatMessage === undefined
-        ? message
-        : formatMessage(message)
-    )
-
-    open(
-      `https://xen-orchestra.com/#!/member/support?title=${encodedTitle}&message=${encodedMessage}`
-    )
+    open(`https://xen-orchestra.com/#!/member/support?title=${encodedTitle}`)
   }
 }
 
