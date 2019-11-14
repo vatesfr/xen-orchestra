@@ -43,10 +43,10 @@ key = './key.pem'
 
 If you want to redirect everything to HTTPS, you can modify the configuration like this:
 
-```
+```toml
 # If set to true, all HTTP traffic will be redirected to the first HTTPs configuration.
 
-  redirectToHttps: true
+redirectToHttps = true
 ```
 
 This should be written just before the `mount` option, inside the `http:` block.
