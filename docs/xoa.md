@@ -22,9 +22,9 @@ For use on huge infrastructure (more than 500+ VMs), feel free to increase the R
 
 ### The quickest way
 
-The **fastest and most secure way** to install Xen Orchestra is to use our web deploy page. Go on https://xen-orchestra.com/#!/xoa and follow instructions.
+The **fastest and most secure way** to install Xen Orchestra is to use our web deploy page. Go to https://xen-orchestra.com/#!/xoa and follow the instructions.
 
-> **Note:** no data will be sent to our servers, it's running only between your browser and your host!
+> **Note:** no data will be sent to our servers, the deployment only runs between your browser and your host!
 
 ![](./assets/deploy_form.png)
 
@@ -41,12 +41,12 @@ bash -c "$(curl -s http://xoa.io/deploy)"
 Follow the instructions:
 
 * Your IP configuration will be requested: it's set to **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
-* If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS should be provided.
+* If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS server should be provided.
 * XOA will be deployed on your default storage repository. You can move it elsewhere anytime after.
 
-### Via download the XVA
+### Via a manual XVA download
 
-Download XOA from xen-orchestra.com. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
+You can also download XOA from xen-orchestra.com in an XVA file. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
 
 After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` or with XenCenter.
 
