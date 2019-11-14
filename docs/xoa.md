@@ -76,7 +76,7 @@ In your appliance, you can access the support section in the XOA menu. In this s
 
 ![](https://user-images.githubusercontent.com/10992860/67384755-10f47f80-f592-11e9-974d-bbdefd0bf353.gif)
 
-
+<a id="ssh-pro-support"></a>
 
 If your web UI is not working, you can also open the secure support tunnel from the CLI. To open a private tunnel (we are the only one with the private key), you can use the command `xoa support tunnel` like below:
 
