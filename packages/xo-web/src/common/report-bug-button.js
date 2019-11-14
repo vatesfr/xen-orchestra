@@ -76,7 +76,7 @@ const reportOnSupportPanel = async ({
   ])
 
   try {
-    const res = await timeout(post(SUPPORT_PANEL_URL, formData), 1e4)
+    const res = await timeout.call(post(SUPPORT_PANEL_URL, formData), 1e4)
     if (res.status !== 200) {
       throw new Error('cannot get the new ticket URL')
     }
