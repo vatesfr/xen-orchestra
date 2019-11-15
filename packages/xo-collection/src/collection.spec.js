@@ -260,7 +260,10 @@ describe('Collection', function() {
     forEach(
       {
         'add & update → add': [
-          [['add', 'foo', 0], ['update', 'foo', 1]],
+          [
+            ['add', 'foo', 0],
+            ['update', 'foo', 1],
+          ],
           {
             add: {
               foo: 1,
@@ -268,10 +271,19 @@ describe('Collection', function() {
           },
         ],
 
-        'add & remove → ∅': [[['add', 'foo', 0], ['remove', 'foo']], {}],
+        'add & remove → ∅': [
+          [
+            ['add', 'foo', 0],
+            ['remove', 'foo'],
+          ],
+          {},
+        ],
 
         'update & update → update': [
-          [['update', 'bar', 1], ['update', 'bar', 2]],
+          [
+            ['update', 'bar', 1],
+            ['update', 'bar', 2],
+          ],
           {
             update: {
               bar: 2,
@@ -280,7 +292,10 @@ describe('Collection', function() {
         ],
 
         'update & remove → remove': [
-          [['update', 'bar', 1], ['remove', 'bar']],
+          [
+            ['update', 'bar', 1],
+            ['remove', 'bar'],
+          ],
           {
             remove: {
               bar: undefined,
@@ -289,7 +304,10 @@ describe('Collection', function() {
         ],
 
         'remove & add → update': [
-          [['remove', 'bar'], ['add', 'bar', 0]],
+          [
+            ['remove', 'bar'],
+            ['add', 'bar', 0],
+          ],
           {
             update: {
               bar: 0,

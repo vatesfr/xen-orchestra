@@ -184,12 +184,7 @@ class ToggleDefaultLockingMode extends Component {
 
 @connectStore(() => {
   const pif = createGetObject()
-  const host = createGetObject(
-    createSelector(
-      pif,
-      pif => pif.$host
-    )
-  )
+  const host = createGetObject(createSelector(pif, pif => pif.$host))
   const disableUnplug = createSelector(
     pif,
     pif =>

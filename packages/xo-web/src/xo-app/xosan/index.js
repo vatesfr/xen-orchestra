@@ -273,9 +273,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     }
   )
 
-  const getPoolPredicate = createSelector(
-    getXosanSrs,
-    srs => pool => every(srs, sr => sr.$pool !== pool.id)
+  const getPoolPredicate = createSelector(getXosanSrs, srs => pool =>
+    every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {

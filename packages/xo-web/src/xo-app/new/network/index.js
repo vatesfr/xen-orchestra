@@ -100,12 +100,7 @@ const NewNetwork = decorate([
       onChangeEncapsulation(_, encapsulation) {
         return { encapsulation: encapsulation.value }
       },
-      onDeletePool(
-        _,
-        {
-          currentTarget: { dataset },
-        }
-      ) {
+      onDeletePool(_, { currentTarget: { dataset } }) {
         const networks = [...this.state.networks]
         networks.splice(dataset.position, 1)
         this.state.networks = networks

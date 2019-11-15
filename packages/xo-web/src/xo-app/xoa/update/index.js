@@ -76,7 +76,11 @@ const CHANNEL_ENTRIES = ['channel']
 const initialChannelState = () => zipObject(CHANNEL_ENTRIES)
 
 const helper = (obj1, obj2, prop) =>
-  defined(() => obj1[prop], () => obj2[prop], '')
+  defined(
+    () => obj1[prop],
+    () => obj2[prop],
+    ''
+  )
 
 const Updates = decorate([
   adminOnly,

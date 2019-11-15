@@ -86,10 +86,7 @@ export default class Menu extends Component {
     isEmpty
   )
 
-  _getNoResourceSets = createSelector(
-    () => this.props.resourceSets,
-    isEmpty
-  )
+  _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
 
   _getNoNotifications = createSelector(
     () => this.props.notifications,

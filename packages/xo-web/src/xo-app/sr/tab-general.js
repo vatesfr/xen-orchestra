@@ -41,12 +41,7 @@ const UsageTooltip = decorate([
     )
 
     const getVms = createGetObjectsOfType('VM').pick(
-      createCollectionWrapper(
-        createSelector(
-          getVbds,
-          vbds => map(vbds, 'VM')
-        )
-      )
+      createCollectionWrapper(createSelector(getVbds, vbds => map(vbds, 'VM')))
     )
 
     return {

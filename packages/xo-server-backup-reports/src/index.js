@@ -186,7 +186,7 @@ const MARKDOWN_BY_TYPE = {
 }
 
 const getMarkdown = (task, props) =>
-  MARKDOWN_BY_TYPE[(task.data?.type)]?.(task, props)
+  MARKDOWN_BY_TYPE[task.data?.type]?.(task, props)
 
 const toMarkdown = parts => {
   const lines = []

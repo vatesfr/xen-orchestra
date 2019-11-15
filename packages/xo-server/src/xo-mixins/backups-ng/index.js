@@ -844,12 +844,14 @@ export default class BackupNg {
     try {
       const handler = await app.getRemoteHandler(remoteId)
 
-      const entries = (await handler.list(BACKUP_DIR).catch(error => {
-        if (error == null || error.code !== 'ENOENT') {
-          throw error
-        }
-        return []
-      })).filter(name => name !== 'index.json')
+      const entries = (
+        await handler.list(BACKUP_DIR).catch(error => {
+          if (error == null || error.code !== 'ENOENT') {
+            throw error
+          }
+          return []
+        })
+      ).filter(name => name !== 'index.json')
 
       await Promise.all(
         entries.map(async vmUuid => {
@@ -1645,11 +1647,13 @@ export default class BackupNg {
                       let parentPath
                       if (isDelta) {
                         const vdiDir = dirname(path)
-                        parentPath = (await handler.list(vdiDir, {
-                          filter: filename =>
-                            !isHiddenFile(filename) && isVhd(filename),
-                          prependDir: true,
-                        }))
+                        parentPath = (
+                          await handler.list(vdiDir, {
+                            filter: filename =>
+                              !isHiddenFile(filename) && isVhd(filename),
+                            prependDir: true,
+                          })
+                        )
                           .sort()
                           .pop()
                           .slice(1) // remove leading slash

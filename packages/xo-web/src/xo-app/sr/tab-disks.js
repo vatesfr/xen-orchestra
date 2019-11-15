@@ -79,10 +79,7 @@ const COLUMNS = [
       const getVbds = createGetObjectsOfType('VBD')
         .pick((_, props) => props.item.$VBDs)
         .sort()
-      const getVmIds = createSelector(
-        getVbds,
-        vbds => map(vbds, 'VM')
-      )
+      const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
       const getVmControllers = createGetObjectsOfType('VM-controller').pick(
         getVmIds

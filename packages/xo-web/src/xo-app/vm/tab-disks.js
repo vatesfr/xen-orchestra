@@ -269,9 +269,8 @@ class NewDisk extends Component {
     resolveResourceSet
   )
 
-  _getResourceSetDiskLimit = createSelector(
-    this._getResourceSet,
-    resourceSet => get(resourceSet, 'limits.disk.available')
+  _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
+    get(resourceSet, 'limits.disk.available')
   )
 
   _checkSr = createSelector(
@@ -798,13 +797,11 @@ export default class TabDisks extends Component {
     }
   )
 
-  _getCheckSr = createSelector(
-    this._getRequiredHost,
-    requiredHost => sr =>
-      sr === undefined ||
-      isSrShared(sr) ||
-      requiredHost === undefined ||
-      sr.$container === requiredHost
+  _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
+    sr === undefined ||
+    isSrShared(sr) ||
+    requiredHost === undefined ||
+    sr.$container === requiredHost
   )
 
   _getVbds = createSelector(

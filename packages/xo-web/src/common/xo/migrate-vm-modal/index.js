@@ -34,24 +34,17 @@ import styles from './index.css'
       .sort()
 
     const getVdis = createGetObjectsOfType('VDI').pick(
-      createSelector(
-        getVbds,
-        vbds =>
-          mapPlus(vbds, (vbd, push) => {
-            if (!vbd.is_cd_drive && vbd.VDI) {
-              push(vbd.VDI)
-            }
-          })
+      createSelector(getVbds, vbds =>
+        mapPlus(vbds, (vbd, push) => {
+          if (!vbd.is_cd_drive && vbd.VDI) {
+            push(vbd.VDI)
+          }
+        })
       )
     )
 
     const getVifs = createGetObjectsOfType('VIF')
-      .pick(
-        createSelector(
-          getVm,
-          vm => vm.VIFs
-        )
-      )
+      .pick(createSelector(getVm, vm => vm.VIFs))
       .sort()
 
     const getPifs = createGetObjectsOfType('PIF')
@@ -96,7 +89,10 @@ export default class MigrateVmModalBody extends BaseComponent {
     )
 
     this._getTargetNetworkPredicate = createSelector(
-      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
       pifs => {
         if (!pifs) {
           return false
@@ -112,7 +108,10 @@ export default class MigrateVmModalBody extends BaseComponent {
     )
 
     this._getMigrationNetworkPredicate = createSelector(
-      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
       pifs => {
         if (!pifs) {
           return false
@@ -263,64 +262,61 @@ export default class MigrateVmModalBody extends BaseComponent {
             </SingleLineRow>
           </div>
         )}
-        {intraPool !== undefined &&
-          (!intraPool && (
-            <div>
-              <div className={styles.groupBlock}>
-                <SingleLineRow>
-                  <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
-                  <Col size={6}>
-                    <SelectNetwork
-                      onChange={this._selectMigrationNetwork}
-                      predicate={this._getMigrationNetworkPredicate()}
-                      value={migrationNetworkId}
-                    />
-                  </Col>
-                </SingleLineRow>
-              </div>
-              <div className={styles.groupBlock}>
-                <SingleLineRow>
-                  <Col>{_('migrateVmSelectNetworks')}</Col>
-                </SingleLineRow>
-                <br />
-                <SingleLineRow>
-                  <Col size={6}>
-                    <span className={styles.listTitle}>
-                      {_('migrateVmVif')}
-                    </span>
-                  </Col>
-                  <Col size={6}>
-                    <span className={styles.listTitle}>
-                      {_('migrateVmNetwork')}
-                    </span>
-                  </Col>
-                </SingleLineRow>
-                {map(vifs, vif => (
-                  <div className={styles.listItem} key={vif.id}>
-                    <SingleLineRow>
-                      <Col size={6}>
-                        {vif.MAC} ({networks[vif.$network].name_label})
-                      </Col>
-                      <Col size={6}>
-                        <SelectNetwork
-                          onChange={network =>
-                            this.setState({
-                              mapVifsNetworks: {
-                                ...mapVifsNetworks,
-                                [vif.id]: network.id,
-                              },
-                            })
-                          }
-                          predicate={this._getTargetNetworkPredicate()}
-                          value={mapVifsNetworks[vif.id]}
-                        />
-                      </Col>
-                    </SingleLineRow>
-                  </div>
-                ))}
-              </div>
+        {intraPool !== undefined && !intraPool && (
+          <div>
+            <div className={styles.groupBlock}>
+              <SingleLineRow>
+                <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
+                <Col size={6}>
+                  <SelectNetwork
+                    onChange={this._selectMigrationNetwork}
+                    predicate={this._getMigrationNetworkPredicate()}
+                    value={migrationNetworkId}
+                  />
+                </Col>
+              </SingleLineRow>
             </div>
-          ))}
+            <div className={styles.groupBlock}>
+              <SingleLineRow>
+                <Col>{_('migrateVmSelectNetworks')}</Col>
+              </SingleLineRow>
+              <br />
+              <SingleLineRow>
+                <Col size={6}>
+                  <span className={styles.listTitle}>{_('migrateVmVif')}</span>
+                </Col>
+                <Col size={6}>
+                  <span className={styles.listTitle}>
+                    {_('migrateVmNetwork')}
+                  </span>
+                </Col>
+              </SingleLineRow>
+              {map(vifs, vif => (
+                <div className={styles.listItem} key={vif.id}>
+                  <SingleLineRow>
+                    <Col size={6}>
+                      {vif.MAC} ({networks[vif.$network].name_label})
+                    </Col>
+                    <Col size={6}>
+                      <SelectNetwork
+                        onChange={network =>
+                          this.setState({
+                            mapVifsNetworks: {
+                              ...mapVifsNetworks,
+                              [vif.id]: network.id,
+                            },
+                          })
+                        }
+                        predicate={this._getTargetNetworkPredicate()}
+                        value={mapVifsNetworks[vif.id]}
+                      />
+                    </Col>
+                  </SingleLineRow>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
