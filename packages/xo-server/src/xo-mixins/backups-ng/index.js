@@ -6,6 +6,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
+import safeTimeout from 'strict-timeout/safe'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
@@ -639,7 +640,7 @@ export default class BackupNg {
         if (timeout !== 0) {
           const source = CancelToken.source([cancelToken])
           cancelToken = source.token
-          setTimeout(source.cancel, timeout)
+          safeTimeout(source.cancel, timeout)
         }
 
         let handleVm = async vm => {

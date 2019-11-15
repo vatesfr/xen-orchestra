@@ -115,6 +115,7 @@
     "split-lines": "^2.0.0",
     "stack-chain": "^2.0.0",
     "stoppable": "^1.0.5",
+    "strict-timeout": "^1.0.0",
     "struct-fu": "^1.2.0",
     "tar-stream": "^2.0.1",
     "through2": "^3.0.0",
