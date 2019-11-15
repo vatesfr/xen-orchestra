@@ -257,6 +257,7 @@ export default class Api {
       userName,
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
+      timestamp: Date.now(),
     }
 
     xo.emit('xo:preCall', data)
@@ -302,18 +303,24 @@ export default class Api {
         )}] ==> ${kindOf(result)}`
       )
 
+      const now = Date.now()
       xo.emit('xo:postCall', {
         ...data,
+        duration: now - data.timestamp,
         result,
+        timestamp: now,
       })
 
       return result
     } catch (error) {
       const serializedError = serializeError(error)
 
+      const now = Date.now()
       xo.emit('xo:postCall', {
         ...data,
+        duration: now - data.timestamp,
         error: serializedError,
+        timestamp: now,
       })
 
       const message = `${userName} | ${name}(${JSON.stringify(

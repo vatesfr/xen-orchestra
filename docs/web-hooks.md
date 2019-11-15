@@ -15,6 +15,7 @@ You can trigger an HTTP POST request to a URL when a Xen Orchestra API method is
   * Type:
     * pre: the request will be sent when the method is called
     * post: the request will be sent after the method action is completed
+    * pre/post: both
   * URL: the full URL which the requests will be sent to
 * Save the plugin configuration
 
@@ -35,6 +36,8 @@ The request's body is a JSON string representing an object with the following pr
 - `userName`: login/e-mail address of the user who performed the call
 - `method`: name of the method that was called (e.g. `"vm.start"`)
 - `params`: call parameters (object)
+- `timestamp`: epoch timestamp of the beginning ("pre") or end ("post") of the call in ms
+- `duration`: duration of the call in ms ("post" hooks only)
 - `result`: call result on success ("post" hooks only)
 - `error`: call result on error ("post" hooks only)
 
@@ -58,10 +61,10 @@ http
   .listen(3000)
 
 const handleHook = data => {
-  const { method, params, type, result, error } = JSON.parse(data)
+  const { method, params, type, result, error, timestamp } = JSON.parse(data)
 
   // Log it
-  console.log(`${new Date().toISOString()} [${method}|${type}] ${params} → ${result || error}`)
+  console.log(`${new Date(timestamp).toISOString()} [${method}|${type}] ${params} → ${result || error}`)
 
   // Run scripts
   exec(`./hook-scripts/${method}-${type}.sh`)

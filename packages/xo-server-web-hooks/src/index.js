@@ -2,18 +2,6 @@ import createLogger from '@xen-orchestra/log'
 
 const log = createLogger('xo:web-hooks')
 
-function makeRequest(url, type, data) {
-  return this._xo.httpRequest(url, {
-    body: JSON.stringify({ ...data, type }),
-    headers: { 'Content-Type': 'application/json' },
-    method: 'POST',
-    onRequest: req => {
-      req.setTimeout(1e4)
-      req.on('timeout', req.abort)
-    },
-  })
-}
-
 function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
@@ -39,7 +27,18 @@ class XoServerHooks {
 
     this._handlePreHook = handleHook.bind(this, 'pre')
     this._handlePostHook = handleHook.bind(this, 'post')
-    this._makeRequest = makeRequest.bind(this)
+  }
+
+  _makeRequest(url, type, data) {
+    return this._xo.httpRequest(url, {
+      body: JSON.stringify({ ...data, type }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      onRequest: req => {
+        req.setTimeout(1e4)
+        req.on('timeout', req.abort)
+      },
+    })
   }
 
   configure(configuration) {
@@ -64,10 +63,12 @@ class XoServerHooks {
       if (hooks[hook.method] === undefined) {
         hooks[hook.method] = {}
       }
-      if (hooks[hook.method][hook.type] === undefined) {
-        hooks[hook.method][hook.type] = []
-      }
-      hooks[hook.method][hook.type].push(hook)
+      hook.type.split('/').forEach(type => {
+        if (hooks[hook.method][type] === undefined) {
+          hooks[hook.method][type] = []
+        }
+        hooks[hook.method][type].push(hook)
+      })
     }
     this._hooks = hooks
   }
@@ -89,6 +90,7 @@ class XoServerHooks {
       userName: 'bruce.wayne@waynecorp.com',
       method: 'vm.start',
       params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+      timestamp: 0,
     })
     await this._makeRequest(url, 'post', {
       callId: '0',
@@ -96,6 +98,8 @@ class XoServerHooks {
       userName: 'bruce.wayne@waynecorp.com',
       method: 'vm.start',
       result: '',
+      timestamp: 500,
+      duration: 500,
     })
   }
 }
@@ -120,12 +124,15 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
           type: {
             description:
               'Right before the API call *or* right after the action has been completed',
-            enum: ['pre', 'post'],
+            enum: ['pre', 'post', 'pre/post'],
             title: 'Type',
             type: 'string',
           },
           url: {
             description: 'The full URL you wish the request to be sent to',
+            // It would be more convenient to configure 1 URL for multiple
+            // triggers but the UI implementation is not ideal for such a deep
+            // configuration schema: https://i.imgur.com/CpvAwPM.png
             title: 'URL',
             type: 'string',
           },
