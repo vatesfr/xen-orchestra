@@ -25,7 +25,6 @@ import isReadOnlyCall from './_isReadOnlyCall'
 import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
 import replaceSensitiveValues from './_replaceSensitiveValues'
-import XapiError from './_XapiError'
 
 // ===================================================================
 
@@ -626,9 +625,7 @@ export class Xapi extends EventEmitter {
         kindOf(result)
       )
       return result
-    } catch (e) {
-      const error = e instanceof Error ? e : XapiError.wrap(e)
-
+    } catch (error) {
       // do not log the session ID
       //
       // TODO: should log at the session level to avoid logging sensitive

@@ -1,6 +1,8 @@
 import { createClient, createSecureClient } from 'xmlrpc'
 import { promisify } from 'promise-toolbox'
 
+import XapiError from '../_XapiError'
+
 import prepareXmlRpcParams from './_prepareXmlRpcParams'
 import UnsupportedTransport from './_UnsupportedTransport'
 
@@ -33,7 +35,7 @@ const parseResult = result => {
   }
 
   if (status !== 'Success') {
-    throw result.ErrorDescription
+    throw XapiError.wrap(result.ErrorDescription)
   }
 
   const value = result.Value
