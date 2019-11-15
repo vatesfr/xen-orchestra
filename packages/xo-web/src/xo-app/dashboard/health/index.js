@@ -392,10 +392,7 @@ const ALARM_ACTIONS = [
     .sort()
   const getUserSrs = createGetObjectsOfType('SR').filter([isSrWritable])
   const getVdiSrs = createGetObjectsOfType('SR').pick(
-    createSelector(
-      getOrphanVdiSnapshots,
-      snapshots => map(snapshots, '$SR')
-    )
+    createSelector(getOrphanVdiSnapshots, snapshots => map(snapshots, '$SR'))
   )
   const getAlertMessages = createGetObjectsOfType('message').filter([
     message => message.name === 'ALARM',
@@ -460,10 +457,7 @@ export default class Health extends Component {
   _getSrUrl = sr => `srs/${sr.id}`
 
   _getPoolPredicate = createSelector(
-    createSelector(
-      () => this.state.pools,
-      resolveIds
-    ),
+    createSelector(() => this.state.pools, resolveIds),
     poolIds =>
       isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )

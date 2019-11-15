@@ -36,10 +36,7 @@ import styles from './index.css'
     (_, props) => props.item,
     (pool, sr) => pool && pool.default_SR === sr.id
   ),
-  isShared: createSelector(
-    (_, props) => props.item,
-    isSrShared
-  ),
+  isShared: createSelector((_, props) => props.item, isSrShared),
   status: createSelector(
     (_, props) => Boolean(props.item.sm_config.multipathable),
     createGetObjectsOfType('PBD').filter((_, props) => pbd =>

@@ -366,7 +366,10 @@ class XoaUpdater extends EventEmitter {
     while (this._log.length > 10) {
       this._log.shift()
     }
-    this.emit('log', map(this._log, item => Object.assign({}, item)))
+    this.emit(
+      'log',
+      map(this._log, item => Object.assign({}, item))
+    )
   }
 
   async getConfiguration() {

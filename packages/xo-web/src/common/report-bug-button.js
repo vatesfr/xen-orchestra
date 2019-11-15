@@ -55,28 +55,24 @@ const reportOnSupportPanel = async ({
   })
 
   await Promise.all([
-    timeout
-      .call(xoaUpdater.getLocalManifest(), 5e3)
-      .then(
-        manifest =>
-          formData.append(
-            'attachments',
-            createBlobFromString(JSON.stringify(manifest, null, 2)),
-            'manifest.json'
-          ),
-        error => logger.warn('cannot get the local manifest', { error })
-      ),
-    timeout
-      .call(checkXoa(), 5e3)
-      .then(
-        xoaCheck =>
-          formData.append(
-            'attachments',
-            createBlobFromString(stripAnsi(xoaCheck)),
-            'xoaCheck.txt'
-          ),
-        error => logger.warn('cannot get the xoa check', { error })
-      ),
+    timeout.call(xoaUpdater.getLocalManifest(), 5e3).then(
+      manifest =>
+        formData.append(
+          'attachments',
+          createBlobFromString(JSON.stringify(manifest, null, 2)),
+          'manifest.json'
+        ),
+      error => logger.warn('cannot get the local manifest', { error })
+    ),
+    timeout.call(checkXoa(), 5e3).then(
+      xoaCheck =>
+        formData.append(
+          'attachments',
+          createBlobFromString(stripAnsi(xoaCheck)),
+          'xoaCheck.txt'
+        ),
+      error => logger.warn('cannot get the xoa check', { error })
+    ),
   ])
 
   const res = await post(SUPPORT_PANEL_URL, formData)

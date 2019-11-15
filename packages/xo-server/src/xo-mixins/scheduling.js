@@ -104,14 +104,16 @@ export default class Scheduling {
     timezone,
     userId,
   }: $Diff<Schedule, {| id: string |}>) {
-    const schedule = (await this._db.add({
-      cron,
-      enabled,
-      jobId,
-      name,
-      timezone,
-      userId,
-    })).properties
+    const schedule = (
+      await this._db.add({
+        cron,
+        enabled,
+        jobId,
+        name,
+        timezone,
+        userId,
+      })
+    ).properties
     this._start(schedule)
     return schedule
   }

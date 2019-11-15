@@ -15,6 +15,7 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
+import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
@@ -447,6 +448,8 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.web(req, res, {
+          agent:
+            new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
           target: target + url.slice(prefix.length),
         })
 
@@ -471,6 +474,8 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.ws(req, socket, head, {
+          agent:
+            new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
           target: target + url.slice(prefix.length),
         })
 

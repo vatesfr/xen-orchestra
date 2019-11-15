@@ -88,10 +88,7 @@ const parseDuration = milliseconds => {
 
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
-  _parseDuration = createSelector(
-    () => this.props.duration,
-    parseDuration
-  )
+  _parseDuration = createSelector(() => this.props.duration, parseDuration)
 
   _humanizeDuration = createSelector(
     () => this.props.duration,

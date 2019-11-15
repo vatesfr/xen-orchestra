@@ -261,12 +261,7 @@ export default decorate([
   }),
   provideState({
     effects: {
-      onSearchChange(
-        _,
-        {
-          target: { value },
-        }
-      ) {
+      onSearchChange(_, { target: { value } }) {
         const { location, router } = this.props
         router.replace({
           ...location,

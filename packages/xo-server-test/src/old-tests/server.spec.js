@@ -60,14 +60,16 @@ describe('server', () => {
         autoConnect: false,
       })
       expect(
-        (await rejectionOf(
-          addServer({
-            host: 'xen1.example.org',
-            username: 'root',
-            password: 'password',
-            autoConnect: false,
-          })
-        )).message
+        (
+          await rejectionOf(
+            addServer({
+              host: 'xen1.example.org',
+              username: 'root',
+              password: 'password',
+              autoConnect: false,
+            })
+          )
+        ).message
       ).toBe('unknown error from the peer')
     })
 

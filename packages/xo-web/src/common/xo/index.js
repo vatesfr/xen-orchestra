@@ -2225,9 +2225,11 @@ export const editRemote = (remote, { name, url, options }) =>
   })
 
 export const listRemote = remote =>
-  _call('remote.list', resolveIds({ id: remote }))::tap(
-    subscribeRemotes.forceRefresh,
-    err => error(_('listRemote'), err.message || String(err))
+  _call(
+    'remote.list',
+    resolveIds({ id: remote })
+  )::tap(subscribeRemotes.forceRefresh, err =>
+    error(_('listRemote'), err.message || String(err))
   )
 
 export const listRemoteBackups = remote =>
@@ -2442,15 +2444,19 @@ export const deleteApiLogs = logs =>
 // Acls, users, groups ----------------------------------------------------------
 
 export const addAcl = ({ subject, object, action }) =>
-  _call('acl.add', resolveIds({ subject, object, action }))::tap(
-    subscribeAcls.forceRefresh,
-    err => error('Add ACL', err.message || String(err))
+  _call(
+    'acl.add',
+    resolveIds({ subject, object, action })
+  )::tap(subscribeAcls.forceRefresh, err =>
+    error('Add ACL', err.message || String(err))
   )
 
 export const removeAcl = ({ subject, object, action }) =>
-  _call('acl.remove', resolveIds({ subject, object, action }))::tap(
-    subscribeAcls.forceRefresh,
-    err => error('Remove ACL', err.message || String(err))
+  _call(
+    'acl.remove',
+    resolveIds({ subject, object, action })
+  )::tap(subscribeAcls.forceRefresh, err =>
+    error('Remove ACL', err.message || String(err))
   )
 
 export const removeAcls = acls =>
@@ -2508,29 +2514,38 @@ export const deleteGroup = group =>
     body: <p>{_('deleteGroupConfirm')}</p>,
   }).then(
     () =>
-      _call('group.delete', resolveIds({ id: group }))::tap(
-        subscribeGroups.forceRefresh,
-        err => error(_('deleteGroup'), err.message || String(err))
+      _call(
+        'group.delete',
+        resolveIds({ id: group })
+      )::tap(subscribeGroups.forceRefresh, err =>
+        error(_('deleteGroup'), err.message || String(err))
       ),
     noop
   )
 
 export const removeUserFromGroup = (user, group) =>
-  _call('group.removeUser', resolveIds({ id: group, userId: user }))::tap(
-    subscribeGroups.forceRefresh,
-    err => error(_('removeUserFromGroup'), err.message || String(err))
+  _call(
+    'group.removeUser',
+    resolveIds({ id: group, userId: user })
+  )::tap(subscribeGroups.forceRefresh, err =>
+    error(_('removeUserFromGroup'), err.message || String(err))
   )
 
 export const addUserToGroup = (user, group) =>
-  _call('group.addUser', resolveIds({ id: group, userId: user }))::tap(
-    subscribeGroups.forceRefresh,
-    err => error('Add User', err.message || String(err))
+  _call(
+    'group.addUser',
+    resolveIds({ id: group, userId: user })
+  )::tap(subscribeGroups.forceRefresh, err =>
+    error('Add User', err.message || String(err))
   )
 
 export const createUser = (email, password, permission) =>
-  _call('user.create', { email, password, permission })::tap(
-    subscribeUsers.forceRefresh,
-    err => error('Create user', err.message || String(err))
+  _call('user.create', {
+    email,
+    password,
+    permission,
+  })::tap(subscribeUsers.forceRefresh, err =>
+    error('Create user', err.message || String(err))
   )
 
 export const deleteUser = user =>
@@ -2538,9 +2553,10 @@ export const deleteUser = user =>
     title: _('deleteUser'),
     body: <p>{_('deleteUserConfirm')}</p>,
   }).then(() =>
-    _call('user.delete', { id: resolveId(user) })::tap(
-      subscribeUsers.forceRefresh,
-      err => error(_('deleteUser'), err.message || String(err))
+    _call('user.delete', {
+      id: resolveId(user),
+    })::tap(subscribeUsers.forceRefresh, err =>
+      error(_('deleteUser'), err.message || String(err))
     )
   )
 
