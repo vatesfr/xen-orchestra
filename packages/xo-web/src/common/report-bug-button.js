@@ -78,11 +78,11 @@ const reportOnSupportPanel = async ({
   try {
     const res = await timeout.call(post(SUPPORT_PANEL_URL, formData), 1e4)
     if (res.status !== 200) {
-      throw new Error('cannot get the new ticket URL')
+      throw new Error(`not a valid response status (${res.status})`)
     }
     open(await res.text())
   } catch (error) {
-    logger.warn({ error })
+    logger.warn('cannot get the new ticket URL', { error })
 
     const encodedTitle = encodeURIComponent(title == null ? '' : title)
     open(`https://xen-orchestra.com/#!/member/support?title=${encodedTitle}`)
