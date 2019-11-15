@@ -250,19 +250,17 @@ export default class Api {
     const userName = context.user ? context.user.email : '(unknown user)'
 
     const data = {
+      callId: Math.random()
+        .toString(36)
+        .slice(2),
       userId,
+      userName,
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
+      timestamp: Date.now(),
     }
 
-    const callId = Math.random()
-      .toString(36)
-      .slice(2)
-
-    xo.emit('xo:preCall', {
-      ...data,
-      callId,
-    })
+    xo.emit('xo:preCall', data)
 
     try {
       await checkPermission.call(context, method)
@@ -305,20 +303,24 @@ export default class Api {
         )}] ==> ${kindOf(result)}`
       )
 
+      const now = Date.now()
       xo.emit('xo:postCall', {
-        callId,
-        method: name,
+        ...data,
+        duration: now - data.timestamp,
         result,
+        timestamp: now,
       })
 
       return result
     } catch (error) {
       const serializedError = serializeError(error)
 
+      const now = Date.now()
       xo.emit('xo:postCall', {
-        callId,
+        ...data,
+        duration: now - data.timestamp,
         error: serializedError,
-        method: name,
+        timestamp: now,
       })
 
       const message = `${userName} | ${name}(${JSON.stringify(

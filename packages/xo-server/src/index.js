@@ -266,16 +266,15 @@ async function registerPlugin(pluginPath, pluginName) {
   })()
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
-  const {
+  let {
     default: factory = plugin,
     configurationSchema,
     configurationPresets,
     testSchema,
   } = plugin
+  let instance
 
-  // The default export can be either a factory or directly a plugin
-  // instance.
-  const instance =
+  const handleFactory = factory =>
     typeof factory === 'function'
       ? factory({
           xo: this,
@@ -285,6 +284,17 @@ async function registerPlugin(pluginPath, pluginName) {
           },
         })
       : factory
+  ;[
+    instance,
+    configurationSchema,
+    configurationPresets,
+    testSchema,
+  ] = await Promise.all([
+    handleFactory(factory),
+    handleFactory(configurationSchema),
+    handleFactory(configurationPresets),
+    handleFactory(testSchema),
+  ])
 
   await this.registerPlugin(
     pluginName,
