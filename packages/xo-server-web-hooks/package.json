@@ -1,12 +1,13 @@
 {
   "name": "xo-server-web-hooks",
   "version": "0.0.0",
-  "license": "ISC",
+  "license": "AGPL-3.0",
   "description": "",
   "keywords": [
     "hooks",
     "orchestra",
     "plugin",
+    "web",
     "xen",
     "xen-orchestra",
     "xo-server"
