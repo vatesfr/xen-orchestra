@@ -33,10 +33,10 @@ The request's body is a JSON string representing an object with the following pr
 - `callId`: unique ID for this call to help match a pre-call and a post-call
 - `userId`: unique internal ID of the user who performed the call
 - `userName`: login/e-mail address of the user who performed the call
-- `method`: method name (e.g. `"vm.start"`)
+- `method`: name of the method that was called (e.g. `"vm.start"`)
 - `params`: call parameters (object)
-- `result`: call result on success (object)
-- `error`: call result on error (object)
+- `result`: call result on success ("post" hooks only)
+- `error`: call result on error ("post" hooks only)
 
 ## Request handling
 
