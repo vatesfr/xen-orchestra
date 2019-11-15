@@ -42,20 +42,17 @@ export default class ZstdChecker extends Component {
     })
   )
 
-  _getVmsWithoutZstdLink = createSelector(
-    this._getVmsWithoutZstd,
-    vms => ({
-      pathname: '/home',
-      query: {
-        t: 'VM',
-        s: constructQueryString({
-          id: {
-            __or: vms,
-          },
-        }),
-      },
-    })
-  )
+  _getVmsWithoutZstdLink = createSelector(this._getVmsWithoutZstd, vms => ({
+    pathname: '/home',
+    query: {
+      t: 'VM',
+      s: constructQueryString({
+        id: {
+          __or: vms,
+        },
+      }),
+    },
+  }))
 
   render() {
     const nVmsWithoutZstd = this._getVmsWithoutZstd().length

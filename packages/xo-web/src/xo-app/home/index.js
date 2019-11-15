@@ -794,10 +794,7 @@ export default class Home extends Component {
       size(visibleItems) > 0 &&
       size(filter(selectedItems)) === size(visibleItems)
   )
-  _getIsSomeSelected = createSelector(
-    () => this.state.selectedItems,
-    some
-  )
+  _getIsSomeSelected = createSelector(() => this.state.selectedItems, some)
   _toggleMaster = () => {
     const selectedItems = {}
     if (!this._getIsAllSelected()) {

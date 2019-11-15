@@ -61,10 +61,7 @@ import VmActionBar from './action-bar'
     .sort()
   const getVdis = createGetVmDisks(getVm)
   const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(
-      getVdis,
-      vdis => map(vdis, '$SR')
-    )
+    createSelector(getVdis, vdis => map(vdis, '$SR'))
   )
 
   const getVmTotalDiskSpace = createSumBy(createGetVmDisks(getVm), 'size')

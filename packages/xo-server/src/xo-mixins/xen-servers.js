@@ -481,7 +481,7 @@ export default class {
     const xapi = this._xapis[id]
     return xapi === undefined
       ? 'disconnected'
-      : this._serverIdsByPool[(xapi.pool?.$id)] === id
+      : this._serverIdsByPool[xapi.pool?.$id] === id
       ? 'connected'
       : 'connecting'
   }

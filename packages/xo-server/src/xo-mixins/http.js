@@ -9,6 +9,10 @@ export default class Http {
     return this._hasOwnHttpProxy
   }
 
+  get httpAgent() {
+    return this._agent
+  }
+
   constructor(
     _,
     { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) }

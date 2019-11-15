@@ -740,9 +740,9 @@ export class Xapi extends EventEmitter {
     // the event loop in that case
     if (this._pool.$ref !== oldPoolRef) {
       // Uses introspection to list available types.
-      const types = (this._types = (await this._interruptOnDisconnect(
-        this._call('system.listMethods')
-      ))
+      const types = (this._types = (
+        await this._interruptOnDisconnect(this._call('system.listMethods'))
+      )
         .filter(isGetAllRecordsMethod)
         .map(method => method.slice(0, method.indexOf('.'))))
       this._lcToTypes = { __proto__: null }

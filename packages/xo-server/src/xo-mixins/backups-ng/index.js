@@ -6,6 +6,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
+import safeTimeout from 'strict-timeout/safe'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
@@ -639,7 +640,7 @@ export default class BackupNg {
         if (timeout !== 0) {
           const source = CancelToken.source([cancelToken])
           cancelToken = source.token
-          setTimeout(source.cancel, timeout)
+          safeTimeout(source.cancel, timeout)
         }
 
         let handleVm = async vm => {
@@ -844,12 +845,14 @@ export default class BackupNg {
     try {
       const handler = await app.getRemoteHandler(remoteId)
 
-      const entries = (await handler.list(BACKUP_DIR).catch(error => {
-        if (error == null || error.code !== 'ENOENT') {
-          throw error
-        }
-        return []
-      })).filter(name => name !== 'index.json')
+      const entries = (
+        await handler.list(BACKUP_DIR).catch(error => {
+          if (error == null || error.code !== 'ENOENT') {
+            throw error
+          }
+          return []
+        })
+      ).filter(name => name !== 'index.json')
 
       await Promise.all(
         entries.map(async vmUuid => {
@@ -1645,11 +1648,13 @@ export default class BackupNg {
                       let parentPath
                       if (isDelta) {
                         const vdiDir = dirname(path)
-                        parentPath = (await handler.list(vdiDir, {
-                          filter: filename =>
-                            !isHiddenFile(filename) && isVhd(filename),
-                          prependDir: true,
-                        }))
+                        parentPath = (
+                          await handler.list(vdiDir, {
+                            filter: filename =>
+                              !isHiddenFile(filename) && isVhd(filename),
+                            prependDir: true,
+                          })
+                        )
                           .sort()
                           .pop()
                           .slice(1) // remove leading slash

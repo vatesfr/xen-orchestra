@@ -408,7 +408,11 @@ export default class TabXosan extends Component {
   // }
 
   async _addBricks({ srs, brickSize }) {
-    await addXosanBricks(this.props.sr.id, srs.map(sr => sr.id), brickSize)
+    await addXosanBricks(
+      this.props.sr.id,
+      srs.map(sr => sr.id),
+      brickSize
+    )
   }
 
   _getStrippedVolumeInfo = createSelector(

@@ -88,10 +88,7 @@ MultipathableSrs.propTypes = {
     .sort()
 
   const getPcis = createGetObjectsOfType('PCI').pick(
-    createSelector(
-      getPgpus,
-      pgpus => map(pgpus, 'pci')
-    )
+    createSelector(getPgpus, pgpus => map(pgpus, 'pci'))
   )
 
   return {

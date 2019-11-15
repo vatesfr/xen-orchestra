@@ -133,10 +133,7 @@ export const Vm = decorate([
     return {
       vm: getVm,
       container: createGetObject(
-        createSelector(
-          getVm,
-          vm => get(() => vm.$container)
-        )
+        createSelector(getVm, vm => get(() => vm.$container))
       ),
     }
   }),
@@ -171,10 +168,7 @@ export const VmTemplate = decorate([
   connectStore(() => {
     const getObject = createGetObject()
     const getPool = createGetObject(
-      createSelector(
-        getObject,
-        vm => get(() => vm.$pool)
-      )
+      createSelector(getObject, vm => get(() => vm.$pool))
     )
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user

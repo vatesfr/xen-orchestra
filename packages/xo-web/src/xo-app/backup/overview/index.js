@@ -227,13 +227,16 @@ class JobsTable extends React.Component {
       },
       {
         itemRenderer: (job, { schedulesByJob }) =>
-          map(get(() => schedulesByJob[job.id]), schedule => (
-            <SchedulePreviewBody
-              job={job}
-              key={schedule.id}
-              schedule={schedule}
-            />
-          )),
+          map(
+            get(() => schedulesByJob[job.id]),
+            schedule => (
+              <SchedulePreviewBody
+                job={job}
+                key={schedule.id}
+                schedule={schedule}
+              />
+            )
+          ),
         name: _('jobSchedules'),
       },
       {

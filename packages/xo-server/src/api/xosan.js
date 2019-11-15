@@ -906,10 +906,9 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
 async function mountNewDisk(localEndpoint, hostname, newDeviceFiledeviceFile) {
   const brickRootCmd =
     'bash -c \'mkdir -p /bricks; for TESTVAR in {1..9}; do TESTDIR="/bricks/xosan$TESTVAR" ;if mkdir $TESTDIR; then echo $TESTDIR; exit 0; fi ; done ; exit 1\''
-  const newBrickRoot = (await remoteSsh(
-    localEndpoint,
-    brickRootCmd
-  )).stdout.trim()
+  const newBrickRoot = (
+    await remoteSsh(localEndpoint, brickRootCmd)
+  ).stdout.trim()
   const brickName = `${hostname}:${newBrickRoot}/xosandir`
   const mountBrickCmd = `mkfs.xfs -i size=512 ${newDeviceFiledeviceFile}; mkdir -p ${newBrickRoot}; echo "${newDeviceFiledeviceFile} ${newBrickRoot} xfs defaults 0 0" >> /etc/fstab; mount -a`
   await remoteSsh(localEndpoint, mountBrickCmd)
@@ -961,10 +960,12 @@ async function replaceBrickOnSameVM(
       .split('/')
       .slice(0, 3)
       .join('/')
-    const previousBrickDevice = (await remoteSsh(
-      localEndpoint,
-      `grep " ${previousBrickRoot} " /proc/mounts | cut -d ' ' -f 1 | sed 's_/dev/__'`
-    )).stdout.trim()
+    const previousBrickDevice = (
+      await remoteSsh(
+        localEndpoint,
+        `grep " ${previousBrickRoot} " /proc/mounts | cut -d ' ' -f 1 | sed 's_/dev/__'`
+      )
+    ).stdout.trim()
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 1 }
     const brickName = await mountNewDisk(
       localEndpoint,
@@ -1180,7 +1181,10 @@ async function _importGlusterVM(xapi, template, lvmsrId) {
 }
 
 function _findAFreeIPAddress(nodes, networkPrefix) {
-  return _findIPAddressOutsideList(map(nodes, n => n.vm.ip), networkPrefix)
+  return _findIPAddressOutsideList(
+    map(nodes, n => n.vm.ip),
+    networkPrefix
+  )
 }
 
 function _findIPAddressOutsideList(

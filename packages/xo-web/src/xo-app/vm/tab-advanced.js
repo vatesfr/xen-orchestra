@@ -99,20 +99,13 @@ const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
 
   const getVbds = createGetObjectsOfType('VBD').pick((_, { vm }) => vm.$VBDs)
   const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(
-      getVbds,
-      vbds => map(vbds, 'VDI')
-    )
+    createSelector(getVbds, vbds => map(vbds, 'VDI'))
   )
   const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(
-      getVdis,
-      vdis => uniq(map(vdis, '$SR'))
-    )
+    createSelector(getVdis, vdis => uniq(map(vdis, '$SR')))
   )
-  const getSrsContainers = createSelector(
-    getSrs,
-    srs => uniq(map(srs, '$container'))
+  const getSrsContainers = createSelector(getSrs, srs =>
+    uniq(map(srs, '$container'))
   )
 
   const getAffinityHostPredicate = createSelector(
@@ -419,10 +412,7 @@ const NIC_TYPE_OPTIONS = [
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
-    createSelector(
-      getVgpus,
-      vgpus => map(vgpus, 'gpuGroup')
-    )
+    createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup'))
   )
 
   return {

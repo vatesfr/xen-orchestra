@@ -60,6 +60,7 @@
     "posttest": "scripts/run-script test",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
+    "prettify": "prettier --ignore-path .gitignore --write '**/*.{js,jsx,md,mjs,ts,tsx}'",
     "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "travis-tests": "scripts/travis-tests"
