@@ -1,5 +1,4 @@
 import createLogger from '@xen-orchestra/log'
-import { groupBy, mapValues } from 'lodash'
 
 const log = createLogger('xo:web-hooks')
 
@@ -16,11 +15,16 @@ function makeRequest(url, type, data) {
 }
 
 function handleHook(type, data) {
-  let hooks
-  if ((hooks = this._conf[data.method]?.[type]) !== undefined) {
+  const hooks = this._hooks[data.method]?.[type]
+  if (hooks !== undefined) {
     return Promise.all(
       hooks.map(({ url }) =>
-        this._makeRequest(url, type, data).catch(log.error)
+        this._makeRequest(url, type, data).catch(error => {
+          log.error('web hook failed', {
+            error,
+            webHook: { ...data, url, type },
+          })
+        })
       )
     )
   }
@@ -31,7 +35,7 @@ class XoServerHooks {
     this._xo = xo
 
     // Defined in configure().
-    this._conf = null
+    this._hooks = null
 
     this._handlePreHook = handleHook.bind(this, 'pre')
     this._handlePostHook = handleHook.bind(this, 'post')
@@ -39,7 +43,7 @@ class XoServerHooks {
   }
 
   configure(configuration) {
-    // this._conf = {
+    // this._hooks = {
     //   'vm.start': {
     //     pre: [
     //       {
@@ -55,9 +59,17 @@ class XoServerHooks {
     //   },
     //   ...
     // }
-    this._conf = mapValues(groupBy(configuration, 'method'), _ =>
-      groupBy(_, 'type')
-    )
+    const hooks = {}
+    for (const hook of configuration.hooks) {
+      if (hooks[hook.method] === undefined) {
+        hooks[hook.method] = {}
+      }
+      if (hooks[hook.method][hook.type] === undefined) {
+        hooks[hook.method][hook.type] = []
+      }
+      hooks[hook.method][hook.type].push(hook)
+    }
+    this._hooks = hooks
   }
 
   load() {
@@ -90,32 +102,39 @@ class XoServerHooks {
 
 export const configurationSchema = ({ xo: { apiMethods } }) => ({
   description: 'Bind XO API calls to HTTP requests.',
-  type: 'array',
-  items: {
-    type: 'object',
-    title: 'Hook',
-    properties: {
-      method: {
-        description: 'The method to be bound to',
-        enum: Object.keys(apiMethods).sort(),
-        title: 'Method',
-        type: 'string',
-      },
-      type: {
-        description:
-          'Right before the API call *or* right after the action has been completed',
-        enum: ['pre', 'post'],
-        title: 'Type',
-        type: 'string',
-      },
-      url: {
-        description: 'The full URL you wish the request to be sent to',
-        title: 'URL',
-        type: 'string',
+  type: 'object',
+  properties: {
+    hooks: {
+      type: 'array',
+      title: 'Hooks',
+      items: {
+        type: 'object',
+        title: 'Hook',
+        properties: {
+          method: {
+            description: 'The method to be bound to',
+            enum: Object.keys(apiMethods).sort(),
+            title: 'Method',
+            type: 'string',
+          },
+          type: {
+            description:
+              'Right before the API call *or* right after the action has been completed',
+            enum: ['pre', 'post'],
+            title: 'Type',
+            type: 'string',
+          },
+          url: {
+            description: 'The full URL you wish the request to be sent to',
+            title: 'URL',
+            type: 'string',
+          },
+        },
+        required: ['method', 'type', 'url'],
       },
     },
-    required: ['method', 'type', 'url'],
   },
+  required: ['hooks'],
 })
 
 export const testSchema = {
