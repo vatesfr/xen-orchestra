@@ -1,6 +1,7 @@
 import _ from 'intl'
 import * as xoaPlans from 'xoa-plans'
 import decorate from 'apply-decorators'
+import defined from '@xen-orchestra/defined'
 import PropTypes from 'prop-types'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
@@ -81,7 +82,11 @@ const reportOnSupportPanel = async ({
     open(await res.text())
   } catch (error) {
     logger.warn('cannot get the new ticket URL', { error })
-    reportOnNewWindow(GITLAB_URL, { title, message, formatMessage })
+    reportOnNewWindow(GITLAB_URL, {
+      title: defined(title, 'Bug report'),
+      message,
+      formatMessage,
+    })
   }
 }
 
