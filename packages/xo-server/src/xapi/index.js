@@ -1139,7 +1139,7 @@ export default class Xapi extends XapiBase {
       sr,
       mapVdisSrs,
       mapVifsNetworks,
-      force,
+      force = false,
     }
   ) {
     // VDIs/SRs mapping
@@ -1441,7 +1441,7 @@ export default class Xapi extends XapiBase {
     vmId,
     hostXapi,
     hostId,
-    { force, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
+    { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
