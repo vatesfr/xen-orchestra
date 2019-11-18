@@ -18,21 +18,19 @@ import ActionRowButton from './action-row-button'
 
 const logger = createLogger('report-bug-button')
 
+const GITHUB_URL = 'https://github.com/vatesfr/xen-orchestra/issues/new'
+const GITLAB_URL = 'https://xen-orchestra.com/#!/member/support'
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
-const reportOnGithub = ({ formatMessage, message, title }) => {
+const reportOnNewWindow = (
+  url,
+  { title, message, formatMessage = identity }
+) => {
   const encodedTitle = encodeURIComponent(title == null ? '' : title)
   const encodedMessage = encodeURIComponent(
-    message == null
-      ? ''
-      : formatMessage === undefined
-      ? message
-      : formatMessage(message)
+    message == null ? '' : formatMessage(message)
   )
-
-  window.open(
-    `https://github.com/vatesfr/xen-orchestra/issues/new?title=${encodedTitle}&body=${encodedMessage}`
-  )
+  window.open(`${url}?title=${encodedTitle}&body=${encodedMessage}}`)
 }
 
 const reportOnSupportPanel = async ({
@@ -83,14 +81,14 @@ const reportOnSupportPanel = async ({
     open(await res.text())
   } catch (error) {
     logger.warn('cannot get the new ticket URL', { error })
-
-    const encodedTitle = encodeURIComponent(title == null ? '' : title)
-    open(`https://xen-orchestra.com/#!/member/support?title=${encodedTitle}`)
+    reportOnNewWindow(GITLAB_URL, { title, message, formatMessage })
   }
 }
 
 export const reportBug =
-  xoaPlans.CURRENT === xoaPlans.SOURCES ? reportOnGithub : reportOnSupportPanel
+  xoaPlans.CURRENT === xoaPlans.SOURCES
+    ? params => reportOnNewWindow(GITHUB_URL, params)
+    : reportOnSupportPanel
 
 const REPORT_BUG_BUTTON_PROP_TYPES = {
   files: PropTypes.arrayOf(
