@@ -199,7 +199,7 @@ const Schedules = decorate([
           data-toggleScheduleState={effects.toggleScheduleState}
           individualActions={INDIVIDUAL_ACTIONS}
           rowTransform={state.rowTransform}
-          stateUrlParam='s'
+          stateUrlParam='s_schedules'
         />
       </CardBlock>
     </FormFeedback>
