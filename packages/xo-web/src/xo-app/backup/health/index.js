@@ -101,7 +101,7 @@ export default class Health extends Component {
                   data-vms={this.props.vms}
                   emptyMessage={_('noSnapshots')}
                   shortcutsTarget='.lone-snapshots'
-                  stateUrlParam='s_vms'
+                  stateUrlParam='s_vm_snapshots'
                 />
               </CardBlock>
             </Card>
@@ -122,7 +122,7 @@ export default class Health extends Component {
                   data-vms={this.props.vms}
                   emptyMessage={_('noSnapshots')}
                   shortcutsTarget='.legacy-snapshots'
-                  stateUrlParam='s_legacy'
+                  stateUrlParam='s_legacy_vm_snapshots'
                 />
               </CardBlock>
             </Card>
