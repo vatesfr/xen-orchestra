@@ -5,8 +5,8 @@ import { assignWith, concat } from 'lodash'
 import {
   forbiddenOperation,
   invalidParameters,
-  vmIncompatibleWithHost,
   noSuchObject,
+  operationFailed,
   unauthorized,
 } from 'xo-common/api-errors'
 
@@ -492,8 +492,8 @@ export async function migrate({
       force,
     })
     .catch(error => {
-      if (error.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
-        throw vmIncompatibleWithHost({ vmId: vm.id, hostId: host.id })
+      if (error?.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+        throw operationFailed({ vmId: vm.id, code: error.code })
       }
       throw error
     })
