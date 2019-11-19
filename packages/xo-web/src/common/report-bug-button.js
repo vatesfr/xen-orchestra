@@ -1,6 +1,7 @@
 import _ from 'intl'
 import * as xoaPlans from 'xoa-plans'
 import decorate from 'apply-decorators'
+import defined from '@xen-orchestra/defined'
 import PropTypes from 'prop-types'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
@@ -18,21 +19,19 @@ import ActionRowButton from './action-row-button'
 
 const logger = createLogger('report-bug-button')
 
+const GITHUB_URL = 'https://github.com/vatesfr/xen-orchestra/issues/new'
+const XO_SUPPORT_URL = 'https://xen-orchestra.com/#!/member/support'
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
-const reportOnGithub = ({ formatMessage, message, title }) => {
+const reportInNewWindow = (
+  url,
+  { title, message, formatMessage = identity }
+) => {
   const encodedTitle = encodeURIComponent(title == null ? '' : title)
   const encodedMessage = encodeURIComponent(
-    message == null
-      ? ''
-      : formatMessage === undefined
-      ? message
-      : formatMessage(message)
+    message == null ? '' : formatMessage(message)
   )
-
-  window.open(
-    `https://github.com/vatesfr/xen-orchestra/issues/new?title=${encodedTitle}&body=${encodedMessage}`
-  )
+  window.open(`${url}?title=${encodedTitle}&body=${encodedMessage}}`)
 }
 
 const reportOnSupportPanel = async ({
@@ -75,15 +74,26 @@ const reportOnSupportPanel = async ({
     ),
   ])
 
-  const res = await post(SUPPORT_PANEL_URL, formData)
-  if (res.status !== 200) {
-    throw new Error('cannot get the new ticket URL')
+  try {
+    const res = await timeout.call(post(SUPPORT_PANEL_URL, formData), 1e4)
+    if (res.status !== 200) {
+      throw new Error(`not a valid response status (${res.status})`)
+    }
+    open(await res.text())
+  } catch (error) {
+    logger.warn('cannot get the new ticket URL', { error })
+    reportInNewWindow(XO_SUPPORT_URL, {
+      title: defined(title, 'Bug report'),
+      message,
+      formatMessage,
+    })
   }
-  open(await res.text())
 }
 
 export const reportBug =
-  xoaPlans.CURRENT === xoaPlans.SOURCES ? reportOnGithub : reportOnSupportPanel
+  xoaPlans.CURRENT === xoaPlans.SOURCES
+    ? params => reportInNewWindow(GITHUB_URL, params)
+    : reportOnSupportPanel
 
 const REPORT_BUG_BUTTON_PROP_TYPES = {
   files: PropTypes.arrayOf(
