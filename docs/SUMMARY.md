@@ -51,7 +51,7 @@
    * [Health](health.md)
    * [Job manager](scheduler.md)
    * [Alerts](alerts.md)
-   * [Hooks](hooks.md)
+   * [Web hooks](web-hooks.md)
    * [Load balancing](load_balancing.md)
    * [Emergency Shutdown](emergency_shutdown.md)
    * [Auto scalability](auto_scalability.md)
