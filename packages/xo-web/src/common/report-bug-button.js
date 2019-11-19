@@ -20,7 +20,7 @@ import ActionRowButton from './action-row-button'
 const logger = createLogger('report-bug-button')
 
 const GITHUB_URL = 'https://github.com/vatesfr/xen-orchestra/issues/new'
-const GITLAB_URL = 'https://xen-orchestra.com/#!/member/support'
+const XO_SUPPORT_URL = 'https://xen-orchestra.com/#!/member/support'
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
 const reportInNewWindow = (
@@ -82,7 +82,7 @@ const reportOnSupportPanel = async ({
     open(await res.text())
   } catch (error) {
     logger.warn('cannot get the new ticket URL', { error })
-    reportInNewWindow(GITLAB_URL, {
+    reportInNewWindow(XO_SUPPORT_URL, {
       title: defined(title, 'Bug report'),
       message,
       formatMessage,
