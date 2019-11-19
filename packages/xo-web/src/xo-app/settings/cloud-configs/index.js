@@ -185,6 +185,7 @@ export default decorate([
           columns={COLUMNS}
           data-populateForm={effects.populateForm}
           individualActions={INDIVIDUAL_ACTIONS}
+          stateUrlParam='s'
         />
       </Col>
     </Container>

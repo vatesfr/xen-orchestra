@@ -271,6 +271,7 @@ export default decorate([
           columns={COLUMNS}
           component={SortedTable}
           emptyMessage={_('noBackups')}
+          stateUrlParam='s_metadata'
         />
         <br />
         <Logs />

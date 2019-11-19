@@ -184,7 +184,11 @@ export default class Groups extends Component {
             <em>{_('noGroupFound')}</em>
           </p>
         ) : (
-          <SortedTable collection={groups} columns={GROUP_COLUMNS} />
+          <SortedTable
+            collection={groups}
+            columns={GROUP_COLUMNS}
+            stateUrlParam='s'
+          />
         )}
       </div>
     )

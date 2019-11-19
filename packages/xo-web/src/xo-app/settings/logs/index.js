@@ -157,6 +157,7 @@ export default class Logs extends BaseComponent {
             columns={COLUMNS}
             data-users={this.props.users}
             individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='s'
           />
         )}
       </NoObjects>

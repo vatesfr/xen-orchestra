@@ -290,6 +290,7 @@ export default class Restore extends Component {
             actions={this._actions}
             collection={this.state.backupDataByVm}
             columns={BACKUPS_COLUMNS}
+            stateUrlParam='s'
           />
           <br />
           <Logs />
