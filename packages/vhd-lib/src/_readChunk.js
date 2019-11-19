@@ -17,10 +17,7 @@ export default async function readChunk(stream, n) {
       resolve(Buffer.concat(chunks, i))
     }
 
-    function onEnd() {
-      resolve2()
-      clean()
-    }
+    const onEnd = resolve2
 
     function onError(error) {
       reject(error)
