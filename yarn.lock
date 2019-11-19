@@ -55,7 +55,7 @@
     lodash "^4.17.13"
     source-map "^0.5.0"
 
-"@babel/generator@^7.7.2":
+"@babel/generator@^7.6.3", "@babel/generator@^7.7.2":
   version "7.7.2"
   resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.7.2.tgz#2f4852d04131a5e17ea4f6645488b5da66ebf3af"
   integrity sha512-WthSArvAjYLz4TcbKOi88me+KmDJdKSlfwwN8CnUYn9jBkzhq0ZEPuBfkAWIvjJ3AdEV1Cf/+eSQTnp3IDJKlQ==
@@ -133,7 +133,7 @@
     "@babel/traverse" "^7.7.0"
     "@babel/types" "^7.7.0"
 
-"@babel/helper-function-name@^7.7.0":
+"@babel/helper-function-name@^7.1.0", "@babel/helper-function-name@^7.7.0":
   version "7.7.0"
   resolved "https://registry.yarnpkg.com/@babel/helper-function-name/-/helper-function-name-7.7.0.tgz#44a5ad151cfff8ed2599c91682dda2ec2c8430a3"
   integrity sha512-tDsJgMUAP00Ugv8O2aGEua5I2apkaQO7lBGUq1ocwN3G23JE5Dcq0uh3GvFTChPa4b40AWiAsLvCZOA2rdnQ7Q==
@@ -330,7 +330,7 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@babel/parser@^7.0.0", "@babel/parser@^7.1.0", "@babel/parser@^7.4.3":
+"@babel/parser@^7.0.0", "@babel/parser@^7.1.0", "@babel/parser@^7.4.3", "@babel/parser@^7.6.3":
   version "7.7.3"
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.7.3.tgz#5fad457c2529de476a248f75b0f090b3060af043"
   integrity sha512-bqv+iCo9i+uLVbI0ILzKkvMorqxouI+GbV13ivcARXn9NNEabi2IEz912IgNpT/60BNXac5dgcfjb94NjsF33A==
@@ -965,7 +965,7 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@babel/types@^7.7.0", "@babel/types@^7.7.1", "@babel/types@^7.7.2":
+"@babel/types@^7.6.3", "@babel/types@^7.7.0", "@babel/types@^7.7.1", "@babel/types@^7.7.2":
   version "7.7.2"
   resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.7.2.tgz#550b82e5571dcd174af576e23f0adba7ffc683f7"
   integrity sha512-YTf6PXoh3+eZgRCBzzP25Bugd2ngmpQVrk7kXX0i5N9BO7TFBtIgZYs7WtxtOGs8e6A4ZI7ECkbBCEHeXocvOA==
@@ -7301,14 +7301,14 @@ http-proxy@^1.16.2:
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
 
-http-request-plus@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.9.0.tgz#24cf376593bca31747e91cea918f309194d140f4"
-  integrity sha512-eo4zxcz/BoZYWpwhcusardod/TJ6RaAwSYMcwfcfL06dCDJuTbiWbwIYdgp7pScTBczzEmalbZocGIhPxEv1Fw==
+http-request-plus@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.8.0.tgz#9d883be7122c96124eb5e5c96bee9dfba8abc338"
+  integrity sha512-nSx7ebXOnHFgwi67YgkdEoHpjx/OH4wOkiHgqUnLsqTRlCu1DDeE+QLRiOI1XnSkqk2Y0Srmg5b1P9ckAPuETw==
   dependencies:
     is-redirect "^1.0.0"
-    promise-toolbox "^0.14.0"
-    pump "^3.0.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.12.1"
 
 http-server-plus@^0.10.0:
   version "0.10.0"
