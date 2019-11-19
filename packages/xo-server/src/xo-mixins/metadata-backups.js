@@ -2,6 +2,7 @@
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { identity } from 'lodash'
 
 import { debounceWithKey } from '../_pDebounceWithKey'
 import parseDuration from '../_parseDuration'
@@ -21,6 +22,7 @@ const log = createLogger('xo:xo-mixins:metadata-backups')
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
+const POOL_METADATA_TIMEOUT = 1e4
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
@@ -347,28 +349,27 @@ export default class metadataBackup {
 
         let outputStream
         try {
-          await Promise.all([
-            (async () => {
-              outputStream = await handler.createOutputStream(fileName)
+          await asyncMap(
+            [
+              (async () => {
+                outputStream = await handler.createOutputStream(fileName)
 
-              // 'readable-stream/pipeline' not call the callback when an error throws
-              // from the readable stream
-              stream.pipe(outputStream)
-              return timeout.call(
-                fromEvent(stream, 'end').catch(error => {
-                  if (error.message !== 'aborted') {
-                    throw error
-                  }
-                }),
-                6e4
-              )
-            })(),
-            handler.outputFile(metaDataFileName, metadata),
-          ]).catch(error => {
-            handler.rmtree(dir)::ignoreErrors()
-            throw error
-          })
-
+                // 'readable-stream/pipeline' not call the callback when an error throws
+                // from the readable stream
+                stream.pipe(outputStream)
+                return timeout.call(
+                  fromEvent(stream, 'end').catch(error => {
+                    if (error.message !== 'aborted') {
+                      throw error
+                    }
+                  }),
+                  POOL_METADATA_TIMEOUT
+                )
+              })(),
+              handler.outputFile(metaDataFileName, metadata),
+            ],
+            identity
+          )
           await deleteOldBackups(
             handler,
             poolDir,
