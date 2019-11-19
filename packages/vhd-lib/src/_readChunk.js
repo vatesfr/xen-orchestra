@@ -31,8 +31,11 @@ export default async function readChunk(stream, n) {
       }
       i += chunk.length
       chunks.push(chunk)
-      if (i >= n) {
+
+      if (i === n) {
         resolve2()
+      } else if (i > n) {
+        throw new RangeError(`read (${i}) more than expected (${n})`)
       }
     }
 
