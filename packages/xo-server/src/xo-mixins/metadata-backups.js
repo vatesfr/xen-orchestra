@@ -364,7 +364,10 @@ export default class metadataBackup {
               )
             })(),
             handler.outputFile(metaDataFileName, metadata),
-          ])
+          ]).catch(error => {
+            handler.rmtree(dir)::ignoreErrors()
+            throw error
+          })
 
           await deleteOldBackups(
             handler,
