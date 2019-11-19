@@ -23,7 +23,7 @@ const GITHUB_URL = 'https://github.com/vatesfr/xen-orchestra/issues/new'
 const GITLAB_URL = 'https://xen-orchestra.com/#!/member/support'
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
-const reportOnNewWindow = (
+const reportInNewWindow = (
   url,
   { title, message, formatMessage = identity }
 ) => {
@@ -82,7 +82,7 @@ const reportOnSupportPanel = async ({
     open(await res.text())
   } catch (error) {
     logger.warn('cannot get the new ticket URL', { error })
-    reportOnNewWindow(GITLAB_URL, {
+    reportInNewWindow(GITLAB_URL, {
       title: defined(title, 'Bug report'),
       message,
       formatMessage,
@@ -92,7 +92,7 @@ const reportOnSupportPanel = async ({
 
 export const reportBug =
   xoaPlans.CURRENT === xoaPlans.SOURCES
-    ? params => reportOnNewWindow(GITHUB_URL, params)
+    ? params => reportInNewWindow(GITHUB_URL, params)
     : reportOnSupportPanel
 
 const REPORT_BUG_BUTTON_PROP_TYPES = {
