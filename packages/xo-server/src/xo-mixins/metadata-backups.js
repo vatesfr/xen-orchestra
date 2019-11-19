@@ -1,7 +1,7 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors } from 'promise-toolbox'
+import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 
 import { debounceWithKey } from '../_pDebounceWithKey'
 import parseDuration from '../_parseDuration'
@@ -354,11 +354,14 @@ export default class metadataBackup {
               // 'readable-stream/pipeline' not call the callback when an error throws
               // from the readable stream
               stream.pipe(outputStream)
-              return fromEvent(stream, 'end').catch(error => {
-                if (error.message !== 'aborted') {
-                  throw error
-                }
-              })
+              return timeout.call(
+                fromEvent(stream, 'end').catch(error => {
+                  if (error.message !== 'aborted') {
+                    throw error
+                  }
+                }),
+                6e4
+              )
             })(),
             handler.outputFile(metaDataFileName, metadata),
           ])
