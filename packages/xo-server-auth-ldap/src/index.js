@@ -76,6 +76,11 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
       description: `
 Filter used to find the user.
 
+For LDAP if you want to filter for a special group you can try
+something like:
+
+- \`(&(uid={{name}})(memberOf=<group DN>))\`
+
 For Microsoft Active Directory, you can try one of the following filters:
 
 - \`(cn={{name}})\`
@@ -83,10 +88,9 @@ For Microsoft Active Directory, you can try one of the following filters:
 - \`(sAMAccountName={{name}}@<domain>)\` (replace \`<domain>\` by your own domain)
 - \`(userPrincipalName={{name}})\`
 
-For LDAP if you want to filter for a special group you can try
-something like:
+Or something like this if you also want to filter by group:
 
-- \`(&(uid={{name}})(memberOf=<group DN>))\`
+- \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
       default: '(uid={{name}})',
