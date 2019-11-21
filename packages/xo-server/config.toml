@@ -59,6 +59,8 @@ listingDebounce = '1 min'
 # It should be short to avoid blocking the display of the available backups.
 vmBackupSizeTimeout = '2 seconds'
 
+poolMetadataTimeout = '2 seconds'
+
 # Helmet handles HTTP security via headers
 #
 # https://helmetjs.github.io/docs/

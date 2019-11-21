@@ -1,8 +1,7 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
-import { identity } from 'lodash'
+import { all, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 
 import { debounceWithKey } from '../_pDebounceWithKey'
 import parseDuration from '../_parseDuration'
@@ -22,7 +21,6 @@ const log = createLogger('xo:xo-mixins:metadata-backups')
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
-const POOL_METADATA_TIMEOUT = 1e4
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
@@ -149,6 +147,7 @@ export default class metadataBackup {
     this._app = app
     this._logger = undefined
     this._runningMetadataRestores = new Set()
+    this._poolMetadataTimeout = parseDuration(backup.poolMetadataTimeout)
 
     const debounceDelay = parseDuration(backup.listingDebounce)
     this._listXoMetadataBackups = debounceWithKey(
@@ -349,27 +348,24 @@ export default class metadataBackup {
 
         let outputStream
         try {
-          await asyncMap(
-            [
-              (async () => {
-                outputStream = await handler.createOutputStream(fileName)
+          await all.call([
+            (async () => {
+              outputStream = await handler.createOutputStream(fileName)
 
-                // 'readable-stream/pipeline' not call the callback when an error throws
-                // from the readable stream
-                stream.pipe(outputStream)
-                return timeout.call(
-                  fromEvent(stream, 'end').catch(error => {
-                    if (error.message !== 'aborted') {
-                      throw error
-                    }
-                  }),
-                  POOL_METADATA_TIMEOUT
-                )
-              })(),
-              handler.outputFile(metaDataFileName, metadata),
-            ],
-            identity
-          )
+              // 'readable-stream/pipeline' not call the callback when an error throws
+              // from the readable stream
+              stream.pipe(outputStream)
+              return timeout.call(
+                fromEvent(stream, 'end').catch(error => {
+                  if (error.message !== 'aborted') {
+                    throw error
+                  }
+                }),
+                this._poolMetadataTimeout
+              )
+            })(),
+            handler.outputFile(metaDataFileName, metadata),
+          ])
           await deleteOldBackups(
             handler,
             poolDir,
