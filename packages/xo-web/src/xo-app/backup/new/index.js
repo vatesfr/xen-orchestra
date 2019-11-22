@@ -70,7 +70,6 @@ const DEFAULT_SCHEDULE = {
   timezone: moment.tz.guess(),
 }
 
-const ENTER_EVENT_CODE = 13
 const ReportRecipients = decorate([
   provideState({
     initialState: () => ({
@@ -83,7 +82,7 @@ const ReportRecipients = decorate([
         this.resetState()
       },
       onKeyDown({ add }, event) {
-        if (event.keyCode === ENTER_EVENT_CODE) {
+        if (event.key === 'Enter') {
           event.preventDefault()
           add()
         }
