@@ -3,7 +3,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 
-import { allSettled, ALL_SETTLED_REJECTED } from '../_allSettled'
+import { all } from '../_promiseAll'
 import { debounceWithKey } from '../_pDebounceWithKey'
 import parseDuration from '../_parseDuration'
 import { type Xapi } from '../xapi'
@@ -349,7 +349,7 @@ export default class metadataBackup {
 
         let outputStream
         try {
-          const backupResolution = await allSettled([
+          await all([
             (async () => {
               outputStream = await handler.createOutputStream(fileName)
 
@@ -367,13 +367,6 @@ export default class metadataBackup {
             })(),
             handler.outputFile(metaDataFileName, metadata),
           ])
-
-          const firstRejectedPromise = backupResolution.find(
-            _ => _.status === ALL_SETTLED_REJECTED
-          )
-          if (firstRejectedPromise !== undefined) {
-            throw firstRejectedPromise.reason
-          }
 
           await deleteOldBackups(
             handler,
