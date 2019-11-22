@@ -18,5 +18,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/fs v0.10.2
 - xo-server v5.53.0
 - xo-web v5.53.0
