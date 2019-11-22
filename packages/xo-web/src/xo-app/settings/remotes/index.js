@@ -86,8 +86,8 @@ const COLUMN_STATE = {
 const COLUMN_DISK = {
   itemRenderer: remote =>
     remote.info !== undefined &&
-    remote.info.used !== undefined &&
-    remote.info.size !== undefined && (
+    remote.info.used != null &&
+    remote.info.size != null && (
       <span>
         {`${formatSize(remote.info.used)} / ${formatSize(remote.info.size)}`}
       </span>
