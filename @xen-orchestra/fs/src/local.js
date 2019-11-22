@@ -48,6 +48,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   _getInfo() {
+    // Resolves with an object with the following properties:
+    // filesystem, type, size, used, available, capacity and mountpoint.
+    // size, used, available and capacity may be `NaN`
     return df.file(this._getFilePath('/'))
   }
 
