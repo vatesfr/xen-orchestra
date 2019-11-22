@@ -424,7 +424,9 @@ const setUpProxies = (express, opts, xo) => {
     changeOrigin: true,
     ignorePath: true,
   }).on('error', (error, req, res) => {
-    if (!res.headersSent) {
+    // `res` can be either a `ServerResponse` or a `Socket` (which does not have
+    // `writeHead`)
+    if (!res.headersSent && typeof res.writeHead === 'function') {
       res.writeHead(500, { 'content-type': 'text/plain' })
       res.write('There was a problem proxying this request.')
     }
