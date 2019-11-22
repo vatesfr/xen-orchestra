@@ -22,7 +22,7 @@
 - xen-api v0.27.3
 - xo-server-backup-reports v0.16.3
 - vhd-lib v0.7.1
-- xo-server v5.52.0
+- xo-server v5.52.1
 - xo-web v5.52.0
 
 ## **5.40.1** (2019-10-29)
