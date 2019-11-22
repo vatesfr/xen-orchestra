@@ -4,6 +4,16 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+## **5.40.2** (2019-11-22)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
 - [Logs] Ability to report a bug with attached log (PR [#4201](https://github.com/vatesfr/xen-orchestra/pull/4201))
 - [Backup] Reduce _VDI chain protection error_ occurrence by being more tolerant (configurable via `xo-server`'s `xapiOptions.maxUncoalescedVdis` setting) [#4124](https://github.com/vatesfr/xen-orchestra/issues/4124) (PR [#4651](https://github.com/vatesfr/xen-orchestra/pull/4651))
 - [Plugin] [Web hooks](https://xen-orchestra.com/docs/web-hooks.html) [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
@@ -26,8 +36,6 @@
 - xo-web v5.52.0
 
 ## **5.40.1** (2019-10-29)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Bug fixes
 
