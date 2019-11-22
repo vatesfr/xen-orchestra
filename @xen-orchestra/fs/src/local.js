@@ -48,6 +48,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _getInfo() {
+    // df.file() resolves with an object with the following properties:
+    // filesystem, type, size, used, available, capacity and mountpoint.
+    // size, used, available and capacity may be `NaN` so we remove any `NaN`
+    // value from the object.
     const info = await df.file(this._getFilePath('/'))
     Object.keys(info).forEach(key => {
       if (Number.isNaN(info[key])) {
