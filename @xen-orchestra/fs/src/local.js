@@ -47,11 +47,15 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     })
   }
 
-  _getInfo() {
-    // Resolves with an object with the following properties:
-    // filesystem, type, size, used, available, capacity and mountpoint.
-    // size, used, available and capacity may be `NaN`
-    return df.file(this._getFilePath('/'))
+  async _getInfo() {
+    const info = await df.file(this._getFilePath('/'))
+    Object.keys(info).forEach(key => {
+      if (Number.isNaN(info[key])) {
+        delete info[key]
+      }
+    })
+
+    return info
   }
 
   async _getSize(file) {
