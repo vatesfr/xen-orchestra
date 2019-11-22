@@ -154,7 +154,7 @@ export default class metadataBackup {
       debounceDelay,
       remoteId => remoteId
     )
-    this.__listPoolMetadataBackups = debounceWithKey(
+    this._listPoolMetadataBackups = debounceWithKey(
       this._listPoolMetadataBackups,
       debounceDelay,
       remoteId => remoteId
