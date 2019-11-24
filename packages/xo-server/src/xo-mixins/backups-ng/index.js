@@ -1594,6 +1594,17 @@ export default class BackupNg {
                   _ => _.mode === 'delta' && _.scheduleId === scheduleId
                 )
               ): any)
+
+              // FIXME: implement optimized multiple VHDs merging with synthetic
+              // delta
+              //
+              // For the time being, limit the number of deleted backups to 2
+              // because it can take a very long time and can lead to
+              // interrupted backup with broken VHD chain.
+              if (oldBackups.length > 2) {
+                oldBackups.length = 2
+              }
+
               const deleteOldBackups = () =>
                 wrapTask(
                   {
