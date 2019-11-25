@@ -2,6 +2,10 @@ import { Strategy } from 'passport-saml'
 
 // ===================================================================
 
+const DEFAULTS = {
+  disableRequestedAuthnContext: false,
+}
+
 export const configurationSchema = {
   description:
     'Important: When registering your instance to your identity provider, you must configure its callback URL to `https://<xo.company.net>/signin/saml/callback`!',
@@ -30,6 +34,11 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
       `,
       type: 'string',
     },
+    disableRequestedAuthnContext: {
+      title: "Don't request an authentication context",
+      description: 'This is known to help when using Active Directory',
+      default: DEFAULTS.disableRequestedAuthnContext,
+    },
   },
   required: ['cert', 'entryPoint', 'issuer', 'usernameField'],
 }
@@ -46,6 +55,7 @@ class AuthSamlXoPlugin {
   configure({ usernameField, ...conf }) {
     this._usernameField = usernameField
     this._conf = {
+      ...DEFAULTS,
       ...conf,
 
       // must match the callback URL
