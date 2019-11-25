@@ -9,6 +9,11 @@ import { readFile } from 'fs'
 
 // ===================================================================
 
+const DEFAULTS = {
+  checkCertificate: true,
+  filter: '(uid={{name}})',
+}
+
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) =>
   filter.replace(VAR_RE, (_, name) => {
@@ -43,7 +48,7 @@ If not specified, it will use a default set of well-known CAs.
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
-      default: true,
+      defaults: DEFAULTS.checkCertificate,
     },
     bind: {
       description: 'Credentials to use before looking for the user record.',
@@ -93,7 +98,7 @@ Or something like this if you also want to filter by group:
 - \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: '(uid={{name}})',
+      default: DEFAULTS.filter,
     },
   },
   required: ['uri', 'base'],
@@ -131,7 +136,11 @@ class AuthLdap {
     })
 
     {
-      const { bind, checkCertificate = true, certificateAuthorities } = conf
+      const {
+        bind,
+        checkCertificate = DEFAULTS.checkCertificate,
+        certificateAuthorities,
+      } = conf
 
       if (bind) {
         clientOpts.bindDN = bind.dn
@@ -151,7 +160,7 @@ class AuthLdap {
     const {
       bind: credentials,
       base: searchBase,
-      filter: searchFilter = '(uid={{name}})',
+      filter: searchFilter = DEFAULTS.filter,
     } = conf
 
     this._credentials = credentials
