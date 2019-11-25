@@ -1302,7 +1302,12 @@ export const migrateVm = async (vm, host) => {
   try {
     await _call('vm.migrate', { vm: vm.id, ...params })
   } catch (error) {
-    if (error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+    // https://developer-docs.citrix.com/projects/citrix-hypervisor-management-api/en/latest/api-ref-autogen-errors/#vmincompatiblewiththishost
+    if (
+      error != null &&
+      error.data &&
+      error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST'
+    ) {
       // Retry with force.
       try {
         await confirm({

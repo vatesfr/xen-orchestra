@@ -492,7 +492,7 @@ export async function migrate({
       force,
     })
     .catch(error => {
-      if (error?.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
+      if (error?.code !== undefined) {
         throw operationFailed({ objectId: vm.id, code: error.code })
       }
       throw error

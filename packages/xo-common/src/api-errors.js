@@ -178,5 +178,5 @@ export const operationFailed = create(21, ({ objectId, code }) => ({
     objectId,
     code,
   },
-  message: `operation failed`,
+  message: 'operation failed',
 }))
