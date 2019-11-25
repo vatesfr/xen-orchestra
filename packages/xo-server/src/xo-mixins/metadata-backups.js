@@ -1,9 +1,10 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors } from 'promise-toolbox'
+import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 
 import { debounceWithKey } from '../_pDebounceWithKey'
+import { waitAll } from '../_waitAll'
 import parseDuration from '../_parseDuration'
 import { type Xapi } from '../xapi'
 import {
@@ -147,6 +148,7 @@ export default class metadataBackup {
     this._app = app
     this._logger = undefined
     this._runningMetadataRestores = new Set()
+    this._poolMetadataTimeout = parseDuration(backup.poolMetadataTimeout)
 
     const debounceDelay = parseDuration(backup.listingDebounce)
     this._listXoMetadataBackups = debounceWithKey(
@@ -347,18 +349,21 @@ export default class metadataBackup {
 
         let outputStream
         try {
-          await Promise.all([
+          await waitAll([
             (async () => {
               outputStream = await handler.createOutputStream(fileName)
 
               // 'readable-stream/pipeline' not call the callback when an error throws
               // from the readable stream
               stream.pipe(outputStream)
-              return fromEvent(stream, 'end').catch(error => {
-                if (error.message !== 'aborted') {
-                  throw error
-                }
-              })
+              return timeout.call(
+                fromEvent(stream, 'end').catch(error => {
+                  if (error.message !== 'aborted') {
+                    throw error
+                  }
+                }),
+                this._poolMetadataTimeout
+              )
             })(),
             handler.outputFile(metaDataFileName, metadata),
           ])
