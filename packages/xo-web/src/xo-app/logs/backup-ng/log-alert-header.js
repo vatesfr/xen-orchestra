@@ -18,6 +18,7 @@ import {
   runBackupNgJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
+  subscribeSchedules,
 } from 'xo'
 
 export default decorate([
@@ -27,6 +28,8 @@ export default decorate([
         cb(logs[id])
       }),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
+    schedules: cb =>
+      subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
   })),
   provideState({
     effects: {
@@ -67,7 +70,10 @@ export default decorate([
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
       jobFailed: (_, { log = {} }) =>
         log.status !== 'success' && log.status !== 'pending',
-      reportBugProps: ({ formattedLog }, { log = {}, jobs = {} }) => {
+      reportBugProps: (
+        { formattedLog },
+        { log = {}, schedules = {}, jobs = {} }
+      ) => {
         const props = {
           size: 'small',
           title: 'Backup job failed',
@@ -87,6 +93,13 @@ export default decorate([
             props.files.push({
               content: createBlobFromString(JSON.stringify(job, null, 2)),
               name: 'job.json',
+            })
+          }
+          const schedule = schedules[log.scheduleId]
+          if (schedule !== undefined) {
+            props.files.push({
+              content: createBlobFromString(JSON.stringify(schedule, null, 2)),
+              name: 'schedule.json',
             })
           }
         }
