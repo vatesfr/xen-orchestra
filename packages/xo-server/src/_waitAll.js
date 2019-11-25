@@ -1,4 +1,6 @@
-// wait for all promises to be resolved/rejected
+// waits for all promises to be settled
+//
+// rejects with the first rejection if any
 export const waitAll = async iterable => {
   let reason
   const onReject = r => {
