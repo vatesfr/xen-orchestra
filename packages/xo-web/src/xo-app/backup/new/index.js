@@ -17,7 +17,7 @@ import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { form } from 'modal'
-import { generateId } from 'reaclette-utils'
+import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
@@ -69,6 +69,73 @@ const DEFAULT_SCHEDULE = {
   cron: '0 0 * * *',
   timezone: moment.tz.guess(),
 }
+
+const ReportRecipients = decorate([
+  provideState({
+    initialState: () => ({
+      recipient: '',
+    }),
+    effects: {
+      linkState,
+      add() {
+        this.props.add(this.state.recipient)
+        this.resetState()
+      },
+      onKeyDown({ add }, event) {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          add()
+        }
+      },
+    },
+    computed: {
+      inputId: generateId,
+      disabledAddButton: ({ recipient }) => recipient === '',
+    },
+  }),
+  injectState,
+  ({ effects, recipients, remove, state }) => (
+    <div>
+      <FormGroup>
+        <label htmlFor={state.inputId}>
+          <strong>{_('reportRecipients')}</strong>
+        </label>
+        <div className='input-group'>
+          <Input
+            id={state.inputId}
+            name='recipient'
+            onChange={effects.linkState}
+            onKeyDown={effects.onKeyDown}
+            value={state.recipient}
+          />
+          <span className='input-group-btn'>
+            <ActionButton
+              btnStyle='primary'
+              disabled={state.disabledAddButton}
+              handler={effects.add}
+              icon='add'
+            />
+          </span>
+        </div>
+      </FormGroup>
+      <Ul className='mb-1'>
+        {map(recipients, (recipient, key) => (
+          <Li key={recipient}>
+            {recipient}{' '}
+            <ActionButton
+              btnStyle='danger'
+              className='pull-right'
+              handler={remove}
+              handlerParam={key}
+              icon='delete'
+              size='small'
+            />
+          </Li>
+        ))}
+      </Ul>
+    </div>
+  ),
+])
 
 const SR_BACKEND_FAILURE_LINK =
   'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
@@ -523,6 +590,27 @@ export default decorate([
           [name]: value,
         })),
       }),
+      addReportRecipient({ setGlobalSettings }, value) {
+        const { propSettings, settings = propSettings } = this.state
+        const reportRecipients = defined(
+          settings.getIn(['', 'reportRecipients']),
+          []
+        )
+        if (!reportRecipients.includes(value)) {
+          setGlobalSettings({
+            name: 'reportRecipients',
+            value: (reportRecipients.push(value), reportRecipients),
+          })
+        }
+      },
+      deleteReportRecipient({ setGlobalSettings }, key) {
+        const { propSettings, settings = propSettings } = this.state
+        const reportRecipients = settings.getIn(['', 'reportRecipients'])
+        setGlobalSettings({
+          name: 'reportRecipients',
+          value: (reportRecipients.splice(key, 1), reportRecipients),
+        })
+      },
       setReportWhen: ({ setGlobalSettings }, { value }) => () => {
         setGlobalSettings({
           name: 'reportWhen',
@@ -668,7 +756,9 @@ export default decorate([
           !isEmpty(
             getSettingsWithNonDefaultValue(state.isFull ? 'full' : 'delta', {
               compression: get(() => props.job.compression),
-              ...get(() => omit(props.job.settings[''], 'reportWhen')),
+              ...get(() =>
+                omit(props.job.settings[''], ['reportRecipients', 'reportWhen'])
+              ),
             })
           )
         ),
@@ -684,6 +774,7 @@ export default decorate([
       fullInterval,
       offlineBackup,
       offlineSnapshot,
+      reportRecipients,
       reportWhen = 'failure',
       timeout,
     } = settings.get('') || {}
@@ -932,6 +1023,11 @@ export default decorate([
                     //  Handle improper value introduced by:
                     //  https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
                     value={reportWhen === 'Never' ? 'never' : reportWhen}
+                  />
+                  <ReportRecipients
+                    add={effects.addReportRecipient}
+                    recipients={reportRecipients}
+                    remove={effects.deleteReportRecipient}
                   />
                   {state.displayAdvancedSettings && (
                     <div>
