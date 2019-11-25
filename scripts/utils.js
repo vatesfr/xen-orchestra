@@ -7,7 +7,7 @@ const _getPackages = scope => {
   const inScope = scope !== undefined
   const relativeDir = inScope ? scope : 'packages'
   const dir = `${ROOT_DIR}/${relativeDir}`
-  return fromCallback(cb => fs.readdir(dir, cb)).then(names =>
+  return fromCallback(fs.readdir, dir).then(names =>
     names.map(name => ({
       dir: `${dir}/${name}`,
       name: inScope ? `${scope}/${name}` : name,
@@ -40,14 +40,13 @@ exports.getPackages = (readPackageJson = false) => {
 const noop = (exports.noop = () => {})
 
 const readFile = (exports.readFile = file =>
-  fromCallback(cb => fs.readFile(file, 'utf8', cb)))
+  fromCallback(fs.readFile, file, 'utf8'))
 
 exports.unlink = path =>
-  fromCallback(cb => fs.unlink(path, cb)).catch(error => {
+  fromCallback(fs.unlink, path).catch(error => {
     if (error.code !== 'ENOENT') {
       throw error
     }
   })
 
-exports.writeFile = (file, data) =>
-  fromCallback(cb => fs.writeFile(file, data, cb))
+exports.writeFile = (file, data) => fromCallback(fs.writeFile, file, data)

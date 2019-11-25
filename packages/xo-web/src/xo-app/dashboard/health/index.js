@@ -432,7 +432,7 @@ export default class Health extends Component {
         }
 
         const [, value, xml] = matches
-        return fromCallback(cb => xml2js.parseString(xml, cb)).then(result => {
+        return fromCallback(xml2js.parseString, xml).then(result => {
           const object = mapValues(result && result.variable, value =>
             get(value, '[0].$.value')
           )

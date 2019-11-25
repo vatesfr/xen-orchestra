@@ -7,6 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup NG] Make report recipients configurable in the backup settings [#4581](https://github.com/vatesfr/xen-orchestra/issues/4581) (PR [#4646](https://github.com/vatesfr/xen-orchestra/pull/4646))
 - [SAML] Setting to disable requested authentication context (helps with _Active Directory_) (PR [#4675](https://github.com/vatesfr/xen-orchestra/pull/4675))
 
 ### Bug fixes
@@ -21,6 +22,7 @@
 > Rule of thumb: add packages on top.
 
 - xo-server-auth-saml v0.7.0
+- xo-server-backup-reports v0.16.4
 - @xen-orchestra/fs v0.10.2
 - xo-server v5.53.0
 - xo-web v5.53.0
