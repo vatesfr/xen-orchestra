@@ -38,7 +38,7 @@ exportConfig.permission = 'admin'
 function handleGetAllObjects(req, res, { filter, limit }) {
   const objects = this.getObjects({ filter, limit })
   res.set('Content-Type', 'application/json')
-  return fromCallback(cb => pipeline(createNdJsonStream(objects), res, cb))
+  return fromCallback(pipeline, createNdJsonStream(objects), res)
 }
 
 export function getAllObjects({ filter, limit, ndjson = false }) {

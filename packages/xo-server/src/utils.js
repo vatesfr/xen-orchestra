@@ -364,7 +364,7 @@ export const throwFn = error => () => {
 
 // -------------------------------------------------------------------
 
-export const tmpDir = () => fromCallback(cb => tmp.dir(cb))
+export const tmpDir = () => fromCallback(tmp.dir)
 
 // -------------------------------------------------------------------
 

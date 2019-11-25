@@ -9,7 +9,7 @@ describe('streamToExistingBuffer()', () => {
   it('read the content of a stream in a buffer', async () => {
     const stream = createReadStream(__filename)
 
-    const expected = await fromCallback(cb => readFile(__filename, 'utf-8', cb))
+    const expected = await fromCallback(readFile, __filename, 'utf-8')
 
     const buf = Buffer.allocUnsafe(expected.length + 1)
     buf[0] = 'A'.charCodeAt()

@@ -16,7 +16,7 @@ const CACHE_FILE = './ldap.cache.conf'
 execPromise(async args => {
   const config = await promptSchema(
     configurationSchema,
-    await fromCallback(cb => readFile(CACHE_FILE, 'utf-8', cb)).then(
+    await fromCallback(readFile, CACHE_FILE, 'utf-8').then(
       JSON.parse,
       () => ({})
     )

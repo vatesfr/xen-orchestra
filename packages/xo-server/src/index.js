@@ -467,7 +467,7 @@ const setUpProxies = (express, opts, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.on('stop', () => fromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', fromCallback.call(webSocketServer, 'close'))
 
   express.on('upgrade', (req, socket, head) => {
     const { url } = req
@@ -508,7 +508,7 @@ const setUpApi = (webServer, xo, config) => {
 
     noServer: true,
   })
-  xo.on('stop', () => fromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', fromCallback.call(webSocketServer, 'close'))
 
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
@@ -577,7 +577,7 @@ const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.on('stop', () => fromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', fromCallback.call(webSocketServer, 'close'))
 
   webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
@@ -670,7 +670,7 @@ export default async function main(args) {
   const xo = new Xo(config)
 
   // Register web server close on XO stop.
-  xo.on('stop', () => fromCallback(cb => webServer.stop(cb)))
+  xo.on('stop', fromCallback.call(webServer, 'stop'))
 
   // Connects to all registered servers.
   await xo.start()
