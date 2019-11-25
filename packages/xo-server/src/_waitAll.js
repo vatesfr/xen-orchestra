@@ -1,6 +1,6 @@
 // this function is like `Promise.all`, the only difference is that it not
 // short-circuits when a promise rejects
-export const all = async iterable => {
+export const waitAll = async (iterable, shouldReject = true) => {
   let firstRejectedPromiseReason
 
   const resolutions = await Promise.all(
@@ -13,7 +13,7 @@ export const all = async iterable => {
     )
   )
 
-  if (firstRejectedPromiseReason !== undefined) {
+  if (shouldReject && firstRejectedPromiseReason !== undefined) {
     throw firstRejectedPromiseReason
   }
   return resolutions

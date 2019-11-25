@@ -21,7 +21,6 @@ import {
   last,
   mapValues,
   merge,
-  noop,
   some,
   sum,
   values,
@@ -46,6 +45,7 @@ import { type Schedule } from '../scheduling'
 import createSizeStream from '../../size-stream'
 import parseDuration from '../../_parseDuration'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
+import { waitAll } from '../../_waitAll'
 import {
   type DeltaVmExport,
   type DeltaVmImport,
@@ -315,21 +315,6 @@ const parseVmBackupId = (id: string) => {
   return {
     metadataFilename: id.slice(i + 1),
     remoteId: id.slice(0, i),
-  }
-}
-
-// similar to Promise.all() but do not gather results
-async function waitAll<T>(
-  promises: Promise<T>[],
-  onRejection: Function
-): Promise<void> {
-  promises = promises.map(promise => {
-    promise = promise.catch(onRejection)
-    promise.catch(noop) // prevent unhandled rejection warning
-    return promise
-  })
-  for (const promise of promises) {
-    await promise
   }
 }
 
@@ -1410,7 +1395,7 @@ export default class BackupNg {
             )
           ),
         ],
-        noop // errors are handled in logs
+        false // errors are handled in logs
       )
     } else if (mode === 'delta') {
       let deltaChainLength = 0
@@ -1775,7 +1760,7 @@ export default class BackupNg {
             )
           ),
         ],
-        noop // errors are handled in logs
+        false // errors are handled in logs
       )
 
       if (!isFull) {

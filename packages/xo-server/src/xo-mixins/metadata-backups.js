@@ -3,8 +3,8 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 
-import { all } from '../_promiseAll'
 import { debounceWithKey } from '../_pDebounceWithKey'
+import { waitAll } from '../_waitAll'
 import parseDuration from '../_parseDuration'
 import { type Xapi } from '../xapi'
 import {
@@ -349,7 +349,7 @@ export default class metadataBackup {
 
         let outputStream
         try {
-          await all([
+          await waitAll([
             (async () => {
               outputStream = await handler.createOutputStream(fileName)
 
