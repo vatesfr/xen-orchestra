@@ -1753,7 +1753,7 @@ const messages = {
 
   // ----- Enable Advanced Live Telemetry -----
   enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
-  featureAvailableOnlyFor: 'This feature is only { product } compatible',
+  featureAvailableOnlyForXCPng: 'This feature is only XCP-ng compatible',
 
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',

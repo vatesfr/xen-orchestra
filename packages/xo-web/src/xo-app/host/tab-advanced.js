@@ -8,6 +8,7 @@ import React from 'react'
 import SelectFiles from 'select-files'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { compareVersions, connectStore, getIscsiPaths } from 'utils'
 import { confirm } from 'modal'
@@ -143,21 +144,31 @@ export default class extends Component {
   render() {
     const { host, pcis, pgpus } = this.props
     const { isHtEnabled } = this.state
+
+    const TelemetryButton = () => (
+      <TabButton
+        btnStyle='success'
+        disabled={!this._isXCPngHost()}
+        handler={enableAdvancedLiveTelemetry}
+        handlerParam={host}
+        icon='telemetry'
+        labelId='enableAdvancedLiveTelemetry'
+      />
+    )
+
     return (
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButton
-              disabled={!this._isXCPngHost()}
-              btnStyle='success'
-              handler={enableAdvancedLiveTelemetry}
-              handlerParam={host}
-              icon='telemetry'
-              labelId='enableAdvancedLiveTelemetry'
-              tooltip={_('featureAvailableOnlyFor', {
-                product: host.productBrand,
-              })}
-            />
+            {this._isXCPngHost() ? (
+              <TelemetryButton />
+            ) : (
+              <Tooltip content={_('featureAvailableOnlyForXCPng')}>
+                <span>
+                  <TelemetryButton />
+                </span>
+              </Tooltip>
+            )}
             {host.power_state === 'Running' && (
               <TabButton
                 btnStyle='warning'

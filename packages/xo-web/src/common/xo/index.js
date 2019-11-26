@@ -617,7 +617,7 @@ export const addHostsToPool = pool =>
 
 export const enableAdvancedLiveTelemetry = async host => {
   const res = await _call('netdata.isNetDataInstalledOnHost', { host: host.id })
-  console.log(res)
+  // Enable advanced live telemetry here
 }
 
 export const detachHost = host =>
