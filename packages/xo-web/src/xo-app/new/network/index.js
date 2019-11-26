@@ -61,6 +61,10 @@ const Item = ({ label, children, className }) => (
   </span>
 )
 
+const canSupportPrivateNetwork = (pool, pif) =>
+  (pif.isBondMaster || pif.physical) &&
+  pif.mode !== 'None' && !pif.isBondSlave && pif.$host === (pool && pool.master)
+
 const NewNetwork = decorate([
   addSubscriptions({
     plugins: subscribePlugins,
@@ -139,19 +143,9 @@ const NewNetwork = decorate([
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
       pifPredicateSdnController: (_, { pool }) => pif =>
-        pif.physical &&
-        pif.ip_configuration_mode !== 'None' &&
-        pif.bond_slave_of === 'OpaqueRef:NULL' &&
-        pif.$host === (pool && pool.master),
-      networkPifPredicate: ({ networks }) => (pif, key) => {
-        const pool = networks[key].pool
-        return (
-          pif.physical &&
-          pif.ip_configuration_mode !== 'None' &&
-          pif.bond_slave_of === 'OpaqueRef:NULL' &&
-          pif.$host === (pool !== undefined && pool.master)
-        )
-      },
+        canSupportPrivateNetwork(pool, pif),
+      networkPifPredicate: ({ networks }) => (pif, key) =>
+        canSupportPrivateNetwork(networks[key].pool, pif),
       networkPoolPredicate: ({ networks }, { pool: rootPool }) => (
         pool,
         index
