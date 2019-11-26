@@ -610,10 +610,15 @@ export const addHostsToPool = pool =>
 
       error(
         _('addHostsErrorTitle', { nHosts: hosts.length }),
-        _('addHostNotHomogeneousErrorMessage')
+        _('addHostNotHomogeneousEr*rorMessage')
       )
     })
   })
+
+export const enableAdvancedLiveTelemetry = async host => {
+  const res = await _call('netdata.isNetDataInstalledOnHost', { host: host.id })
+  console.log(res)
+}
 
 export const detachHost = host =>
   confirm({

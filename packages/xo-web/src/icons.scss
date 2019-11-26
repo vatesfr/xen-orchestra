@@ -290,6 +290,10 @@
     @extend .fa;
     @extend .fa-rocket;
   }
+  &-telemetry {
+    @extend .fa;
+    @extend .fa-area-chart;
+  }
 
   // Backups
   &-backup {

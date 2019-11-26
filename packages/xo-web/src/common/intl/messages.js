@@ -1751,6 +1751,10 @@ const messages = {
     'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
+  // ----- Enable Advanced Live Telemetry -----
+  enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
+  featureAvailableOnlyFor: 'This feature is only { product } compatible',
+
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
   forgetHostModalMessage:

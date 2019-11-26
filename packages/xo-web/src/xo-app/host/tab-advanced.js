@@ -21,6 +21,7 @@ import { Toggle } from 'form'
 import {
   detachHost,
   disableHost,
+  enableAdvancedLiveTelemetry,
   editHost,
   enableHost,
   forgetHost,
@@ -137,6 +138,8 @@ export default class extends Component {
 
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
+  _isXCPngHost = () => this.props.host.productBrand === 'XCP-ng'
+
   render() {
     const { host, pcis, pgpus } = this.props
     const { isHtEnabled } = this.state
@@ -144,6 +147,17 @@ export default class extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
+            <TabButton
+              disabled={!this._isXCPngHost()}
+              btnStyle='success'
+              handler={enableAdvancedLiveTelemetry}
+              handlerParam={host}
+              icon='telemetry'
+              labelId='enableAdvancedLiveTelemetry'
+              tooltip={_('featureAvailableOnlyFor', {
+                product: host.productBrand,
+              })}
+            />
             {host.power_state === 'Running' && (
               <TabButton
                 btnStyle='warning'
