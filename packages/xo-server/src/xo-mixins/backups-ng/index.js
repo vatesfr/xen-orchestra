@@ -1598,9 +1598,12 @@ export default class BackupNg {
               // FIXME: implement optimized multiple VHDs merging with synthetic
               // delta
               //
-              // For the time being, limit the number of deleted backups to 2
-              // because it can take a very long time and can lead to
+              // For the time being, limit the number of deleted backups to 2 by
+              // run because it can take a very long time and can lead to
               // interrupted backup with broken VHD chain.
+              //
+              // The old backups will be eventually merged in future runs of the
+              // job.
               if (oldBackups.length > 2) {
                 oldBackups.length = 2
               }
