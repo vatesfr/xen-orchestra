@@ -1,27 +1,23 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
-import Button from 'button'
+import CustomTextInput from 'costum-text-input'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
-import Tooltip from 'tooltip'
 import SmartBackupPreview, {
   constructSmartPattern,
   destructSmartPattern,
 } from 'smart-backup'
+import Tooltip from 'tooltip'
 import { connectStore, resolveIds } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from 'reaclette'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
-import { toggleState } from 'reaclette-utils'
 
 import { canDeltaBackup, FormGroup } from './../utils'
 
-const ENTER_KEY_CODE = 13
-const ESCAPE_KEY_CODE = 27
 const VMS_STATUSES_OPTIONS = [
   { value: 'All', label: _('vmStateAll') },
   { value: 'Running', label: _('vmStateRunning') },
@@ -34,30 +30,11 @@ const SmartBackup = decorate([
     vms: createGetObjectsOfType('VM'),
   }),
   provideState({
-    initialState: () => ({
-      editingTag: false,
-    }),
     effects: {
       addTag: (effects, newTag) => ({ tags }) => {
         effects.setTagValues(
           tags.values === undefined ? [newTag] : [...tags.values, newTag]
         )
-      },
-      onKeyDown: (effects, event) => {
-        const { keyCode, target } = event
-
-        if (keyCode === ENTER_KEY_CODE) {
-          if (target.value !== '') {
-            effects.addTag(target.value)
-            target.value = ''
-          }
-        } else if (keyCode === ESCAPE_KEY_CODE) {
-          effects.closeEdition()
-        } else {
-          return
-        }
-
-        event.preventDefault()
       },
       setPattern: (_, value) => (_, { pattern, onChange }) => {
         onChange({
@@ -89,8 +66,6 @@ const SmartBackup = decorate([
       setPoolNotValues({ setPoolPattern }, notValues) {
         setPoolPattern({ notValues })
       },
-      closeEdition: () => ({ editingTag: false }),
-      toggleState,
     },
     computed: {
       poolPredicate: (_, { deltaMode, hosts }) => pool =>
@@ -143,23 +118,7 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
-        {state.editingTag ? (
-          <input
-            autoFocus
-            onBlur={effects.closeEdition}
-            onKeyDown={effects.onKeyDown}
-            type='text'
-          />
-        ) : (
-          <Tooltip content={_('addTag')}>
-            <ActionButton
-              icon='edit'
-              name='editingTag'
-              handler={effects.toggleState}
-              size='small'
-            />
-          </Tooltip>
-        )}
+        <CustomTextInput handler={effects.addTag} tooltip={_('customTag')} />
         <SelectTag
           multi
           onChange={effects.setTagValues}
