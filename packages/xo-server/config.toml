@@ -52,7 +52,7 @@ maxTokenValidity = '0.5 year'
 
 # This is the page where unauthenticated users will be redirected to.
 #
-# For instance, it can be changed to `/signin-saml` if that's the provider that
+# For instance, it can be changed to `/signin/saml` if that's the provider that
 # should be used by default.
 defaultSignInPage = '/signin'
 
