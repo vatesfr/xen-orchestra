@@ -3,7 +3,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 
-import { debounceWithKey } from '../_pDebounceWithKey'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { waitAll } from '../_waitAll'
 import parseDuration from '../_parseDuration'
 import { type Xapi } from '../xapi'
@@ -251,6 +251,8 @@ export default class metadataBackup {
               taskId: subTaskId,
             }
           )
+
+          this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
         } catch (error) {
           await handler.rmtree(dir).catch(error => {
             logger.warning(`unable to delete the folder ${dir}`, {
@@ -396,6 +398,8 @@ export default class metadataBackup {
               taskId: subTaskId,
             }
           )
+
+          this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
         } catch (error) {
           if (outputStream !== undefined) {
             outputStream.destroy()
@@ -812,6 +816,12 @@ export default class metadataBackup {
     const [remoteId, ...path] = id.split('/')
 
     const handler = await app.getRemoteHandler(remoteId)
-    return handler.rmtree(path.join('/'))
+    await handler.rmtree(path.join('/'))
+
+    if (path[0] === 'xo-config-backups') {
+      this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
+    } else {
+      this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
+    }
   }
 }
