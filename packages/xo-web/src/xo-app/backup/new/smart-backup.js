@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Button from 'button'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
@@ -13,12 +14,14 @@ import SmartBackupPreview, {
 import { connectStore, resolveIds } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from 'reaclette'
-import { toggleState } from 'reaclette-utils'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
+import { toggleState } from 'reaclette-utils'
 
 import { canDeltaBackup, FormGroup } from './../utils'
 
+const ENTER_KEY_CODE = 13
+const ESCAPE_KEY_CODE = 27
 const VMS_STATUSES_OPTIONS = [
   { value: 'All', label: _('vmStateAll') },
   { value: 'Running', label: _('vmStateRunning') },
@@ -43,13 +46,13 @@ const SmartBackup = decorate([
       onKeyDown: (effects, event) => {
         const { keyCode, target } = event
 
-        if (keyCode === 13) {
+        if (keyCode === ENTER_KEY_CODE) {
           if (target.value !== '') {
             effects.addTag(target.value)
             target.value = ''
           }
-        } else if (keyCode === 27) {
-          effects.stopEditTag()
+        } else if (keyCode === ESCAPE_KEY_CODE) {
+          effects.closeEdition()
         } else {
           return
         }
@@ -86,7 +89,7 @@ const SmartBackup = decorate([
       setPoolNotValues({ setPoolPattern }, notValues) {
         setPoolPattern({ notValues })
       },
-      stopEditTag: () => ({ editingTag: false }),
+      closeEdition: () => ({ editingTag: false }),
       toggleState,
     },
     computed: {
@@ -143,19 +146,18 @@ const SmartBackup = decorate([
         {state.editingTag ? (
           <input
             autoFocus
-            onBlur={effects.stopEditTag}
+            onBlur={effects.closeEdition}
             onKeyDown={effects.onKeyDown}
             type='text'
           />
         ) : (
           <Tooltip content={_('addTag')}>
-            <Button
+            <ActionButton
+              icon='edit'
               name='editingTag'
-              onClick={effects.toggleState}
+              handler={effects.toggleState}
               size='small'
-            >
-              <Icon icon='edit' />
-            </Button>
+            />
           </Tooltip>
         )}
         <SelectTag
