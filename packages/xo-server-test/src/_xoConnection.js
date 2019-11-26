@@ -132,6 +132,22 @@ class XoConnection extends Xo {
     return this.call('backupNg.getJob', { id })
   }
 
+  async createTempMetadataBackup(params) {
+    // mutate and inject default values
+    defaultsDeep(params, {
+      name: getDefaultName(),
+      settings: {
+        '': {
+          // it must be 'never' to avoid race conditions with the plugin `backup-reports`
+          reportWhen: 'never',
+        },
+      },
+    })
+    const id = await this.call('metadataBackup.createJob', params)
+    this._tempResourceDisposers.push('metadataBackup.deleteJob', { id })
+    return this.call('metadataBackup.getJob', { id })
+  }
+
   async createTempNetwork(params) {
     const id = await this.call('network.create', {
       name: 'XO Test',
@@ -235,6 +251,47 @@ class XoConnection extends Xo {
           id,
         })
       }
+    })
+    return backups
+  }
+
+  async runMetadataBackupJob(jobId, scheduleId, { remotes, nExecutions = 1 }) {
+    for (let i = 0; i < nExecutions; i++) {
+      await xo.call('metadataBackup.runJob', {
+        id: jobId,
+        schedule: scheduleId,
+      })
+    }
+
+    const backupEntryHandler = entry => {
+      const isLinkedToRanJob =
+        entry.jobId === jobId && entry.scheduleId === scheduleId
+      if (isLinkedToRanJob) {
+        this._tempResourceDisposers.push('metadataBackup.delete', {
+          id: entry.id,
+        })
+      }
+      return isLinkedToRanJob
+    }
+
+    const { xo: xoBackups, pool: poolBackups } = await xo.call(
+      'metadataBackup.list',
+      {
+        remotes,
+      }
+    )
+    const backups = {
+      xo: {},
+      pool: {},
+    }
+    forOwn(xoBackups, (entries, remoteId) => {
+      backups.xo[remoteId] = entries.filter(backupEntryHandler)
+    })
+    forOwn(poolBackups, (backupsByPool, remoteId) => {
+      const poolEntries = (backups.pool[remoteId] = {})
+      forOwn(backupsByPool, (entries, poolId) => {
+        poolEntries[poolId] = entries.filter(backupEntryHandler)
+      })
     })
     return backups
   }

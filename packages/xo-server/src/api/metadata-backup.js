@@ -1,6 +1,6 @@
 export function createJob({ schedules, ...job }) {
   job.userId = this.user.id
-  return this.createMetadataBackupJob(job, schedules)
+  return this.createMetadataBackupJob(job, schedules).then(({ id }) => id)
 }
 
 createJob.permission = 'admin'
