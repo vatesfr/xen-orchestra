@@ -65,8 +65,11 @@ Now you have to create a config file for `xo-server`:
 
 ```
 $ cd packages/xo-server
-$ cp sample.config.toml .xo-server.toml
+$ mkdir -p ~/.config/xo-server
+$ cp sample.config.toml ~/.config/xo-server/config.toml
 ```
+
+> Note: If you're installing `xo-server` as a global service, you may want to copy the file to `/etc/xo-server/config.toml` instead.
 
 Edit and uncomment it to have the right path to serve `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xen-orchestra` and `xo-web` are in the same directory):
 
@@ -186,7 +189,7 @@ service redis start
 
 ## SUDO
 
-If you are running `xo-server` as a non-root user, you need to use `sudo` to be able to mount NFS remotes. You can do this by editing `xo-server/.xo-server.toml` and setting `useSudo = true`. It's near the end of the file:
+If you are running `xo-server` as a non-root user, you need to use `sudo` to be able to mount NFS remotes. You can do this by editing `xo-server` configuration file and setting `useSudo = true`. It's near the end of the file:
 
 ```
 useSudo = true
