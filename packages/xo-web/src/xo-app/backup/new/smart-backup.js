@@ -1,5 +1,5 @@
 import _ from 'intl'
-import CustomTextInput from 'costum-text-input'
+import CustomTextInput from 'custom-text-input'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
