@@ -59,6 +59,7 @@ const CustomTextInput = decorate([
 
 CustomTextInput.propTypes = {
   handler: PropTypes.func.isRequired,
+  size: PropTypes.string,
   tooltip: PropTypes.node,
 }
 
