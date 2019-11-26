@@ -67,6 +67,11 @@ poolMetadataTimeout = '10 minutes'
 #[http.helmet.hsts]
 #includeSubDomains = false
 
+# This is a work-around.
+#
+# See https://github.com/vatesfr/xen-orchestra/pull/4674
+maxMergedDeltasPerRun = 2
+
 [[http.listen]]
 port = 80
 
