@@ -1754,6 +1754,7 @@ const messages = {
   // ----- Enable Advanced Live Telemetry -----
   enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
   featureAvailableOnlyForXCPng: 'This feature is only XCP-ng compatible',
+  accessAdvancedLiveTelemetry: 'Access Advanced Live Telemetry',
 
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',

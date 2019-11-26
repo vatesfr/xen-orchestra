@@ -27,6 +27,7 @@ import {
   enableHost,
   forgetHost,
   isHyperThreadingEnabledHost,
+  isNetDataInstalledOnHost,
   installSupplementalPack,
   restartHost,
   setHostsMultipathing,
@@ -102,6 +103,7 @@ export default class extends Component {
   async componentDidMount() {
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
+      isNetDataInstalledOnHost: await isNetDataInstalledOnHost(this.props.host),
     })
   }
 
@@ -143,9 +145,9 @@ export default class extends Component {
 
   render() {
     const { host, pcis, pgpus } = this.props
-    const { isHtEnabled } = this.state
+    const { isHtEnabled, isNetDataInstalledOnHost } = this.state
 
-    const TelemetryButton = () => (
+    const EnableTelemetryButton = () => (
       <TabButton
         btnStyle='success'
         disabled={!this._isXCPngHost()}
@@ -156,16 +158,28 @@ export default class extends Component {
       />
     )
 
+    const AccessTelemetryButton = () => (
+      <TabButton
+        btnStyle='success'
+        handler={enableAdvancedLiveTelemetry}
+        handlerParam={host}
+        icon='telemetry'
+        labelId='accessAdvancedLiveTelemetry'
+      />
+    )
+
     return (
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            {this._isXCPngHost() ? (
-              <TelemetryButton />
+            {isNetDataInstalledOnHost ? (
+              <AccessTelemetryButton />
+            ) : this._isXCPngHost() ? (
+              <EnableTelemetryButton />
             ) : (
               <Tooltip content={_('featureAvailableOnlyForXCPng')}>
                 <span>
-                  <TelemetryButton />
+                  <EnableTelemetryButton />
                 </span>
               </Tooltip>
             )}
