@@ -321,6 +321,10 @@ class SDNController extends EventEmitter {
     this._objectsAdded = this._objectsAdded.bind(this)
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
+    this._xapis = {}
+    this._xapiConnected = this._xapiConnected.bind(this)
+    this._xapiDisconnected = this._xapiDisconnected.bind(this)
+
     this._overrideCerts = false
 
     this._prevVni = 0
@@ -418,126 +422,14 @@ class SDNController extends EventEmitter {
       },
     })
 
-    // FIXME: we should monitor when xapis are added/removed
-    this._xapis = this._xo.getAllXapis()
-    await Promise.all(
-      map(this._xapis, async xapi => {
-        await xapi.objectsFetched
+    forOwn(this._xo.getAllXapis(), xapi => {
+      if (xapi.status === 'connected') {
+        this._xapiConnected(xapi)
+      }
+    })
 
-        if (setControllerNeeded(xapi)) {
-          return
-        }
-
-        this._cleaners.push(await this._manageXapi(xapi))
-        const hosts = filter(xapi.objects.all, { $type: 'host' })
-        for (const host of hosts) {
-          this._createOvsdbClient(host)
-        }
-
-        // Add already existing private networks
-        const networks = filter(xapi.objects.all, { $type: 'network' })
-        const noVniNetworks = []
-        await Promise.all(
-          map(networks, async network => {
-            // 2019-09-03
-            // Compatibility code, to be removed in 1 year.
-            await updateNetworkOtherConfig(network)
-            network = await network.$xapi.barrier(network.$ref)
-            let otherConfig = network.other_config
-
-            // 2019-10-01
-            // To be removed in a year
-            if (otherConfig['xo:sdn-controller:private-pool-wide'] === 'true') {
-              await updateOldPrivateNetwork(network)
-            }
-            network = await network.$xapi.barrier(network.$ref)
-            otherConfig = network.other_config
-
-            const uuid = otherConfig['xo:sdn-controller:private-network-uuid']
-            if (uuid === undefined) {
-              return
-            }
-
-            let privateNetwork = this._privateNetworks[uuid]
-            if (privateNetwork === undefined) {
-              privateNetwork = new PrivateNetwork(this, uuid)
-              this._privateNetworks[uuid] = privateNetwork
-            }
-
-            const vni = otherConfig['xo:sdn-controller:vni']
-            if (vni === undefined) {
-              noVniNetworks.push(network)
-            } else {
-              this._prevVni = Math.max(this._prevVni, +vni)
-            }
-
-            await privateNetwork.addNetwork(network)
-
-            // Previously created network didn't store `pif-device`
-            //
-            // 2019-08-22
-            // This is used to add the `pif-device` to networks created before this version. (v0.1.2)
-            // This will be removed in 1 year.
-            if (otherConfig['xo:sdn-controller:pif-device'] === undefined) {
-              const tunnel = getHostTunnelForNetwork(
-                privateNetwork.center,
-                network.$ref
-              )
-              const pif = xapi.getObjectByRef(tunnel.transport_PIF)
-              await network.update_other_config(
-                'xo:sdn-controller:pif-device',
-                pif.device
-              )
-            }
-
-            // Previously created network didn't store `vlan`
-            //
-            // 2020-01-27
-            // This is used to add the `vlan` to networks created before this version. (v0.4.0)
-            // This will be removed in 1 year.
-            if (otherConfig['xo:sdn-controller:vlan'] === undefined) {
-              const tunnel = getHostTunnelForNetwork(
-                privateNetwork.center,
-                network.$ref
-              )
-              const pif = xapi.getObjectByRef(tunnel.transport_PIF)
-              await network.update_other_config(
-                'xo:sdn-controller:vlan',
-                String(pif.VLAN)
-              )
-            }
-
-            this._networks.set(network.$id, network.$ref)
-            if (privateNetwork.center !== undefined) {
-              this._starCenters.set(
-                privateNetwork.center.$id,
-                privateNetwork.center.$ref
-              )
-            }
-          })
-        )
-
-        // Add VNI to other config of networks without VNI
-        //
-        // 2019-08-22
-        // This is used to add the VNI to networks created before this version. (v0.1.3)
-        // This will be removed in 1 year.
-        await Promise.all(
-          map(noVniNetworks, async network => {
-            await network.update_other_config(
-              'xo:sdn-controller:vni',
-              String(++this._prevVni)
-            )
-
-            // Re-elect a center to apply the VNI
-            const privateNetwork = this._privateNetworks[
-              network.other_config['private-network-uuid']
-            ]
-            await this._electNewCenter(privateNetwork)
-          })
-        )
-      })
-    )
+    this._xo.on('xapi:connected', this._xapiConnected)
+    this._xo.on('xapi:disconnected', this._xapiDisconnected)
   }
 
   async unload() {
@@ -553,6 +445,156 @@ class SDNController extends EventEmitter {
     this.ovsdbClients = {}
 
     this._unsetApiMethods()
+
+    this._xapis = {}
+    this._xo.removeListener('xapi:connected', this._xapiConnected)
+    this._xo.removeListener('xapi:disconnected', this._xapiDisconnected)
+  }
+
+  // ===========================================================================
+
+  async _xapiConnected(xapi) {
+    log.debug('xapi connected', { id: xapi.pool.uuid })
+    await xapi.objectsFetched
+
+    if (this._xapis[xapi.pool.uuid] !== undefined) {
+      return
+    }
+
+    if (setControllerNeeded(xapi)) {
+      return
+    }
+
+    this._cleaners.push(await this._manageXapi(xapi))
+    const hosts = filter(xapi.objects.all, { $type: 'host' })
+    for (const host of hosts) {
+      this._createOvsdbClient(host)
+    }
+
+    // Add already existing private networks
+    const networks = filter(xapi.objects.all, { $type: 'network' })
+    const noVniNetworks = []
+    await Promise.all(
+      map(networks, async network => {
+        // 2019-09-03
+        // Compatibility code, to be removed in 1 year.
+        await updateNetworkOtherConfig(network)
+        network = await network.$xapi.barrier(network.$ref)
+        let otherConfig = network.other_config
+
+        // 2019-10-01
+        // To be removed in a year
+        if (otherConfig['xo:sdn-controller:private-pool-wide'] === 'true') {
+          await updateOldPrivateNetwork(network)
+        }
+        network = await network.$xapi.barrier(network.$ref)
+        otherConfig = network.other_config
+
+        const uuid = otherConfig['xo:sdn-controller:private-network-uuid']
+        if (uuid === undefined) {
+          return
+        }
+
+        let privateNetwork = this._privateNetworks[uuid]
+        if (privateNetwork === undefined) {
+          privateNetwork = new PrivateNetwork(this, uuid)
+          this._privateNetworks[uuid] = privateNetwork
+        }
+
+        const vni = otherConfig['xo:sdn-controller:vni']
+        if (vni === undefined) {
+          noVniNetworks.push(network)
+        } else {
+          this._prevVni = Math.max(this._prevVni, +vni)
+        }
+
+        await privateNetwork.addNetwork(network)
+
+        // Previously created network didn't store `pif-device`
+        //
+        // 2019-08-22
+        // This is used to add the pif-device to networks created before this version. (v0.1.2)
+        // This will be removed in 1 year.
+        if (otherConfig['xo:sdn-controller:pif-device'] === undefined) {
+          const tunnel = getHostTunnelForNetwork(
+            privateNetwork.center,
+            network.$ref
+          )
+          const pif = xapi.getObjectByRef(tunnel.transport_PIF)
+          await network.update_other_config(
+            'xo:sdn-controller:pif-device',
+            pif.device
+          )
+        }
+
+        // Previously created network didn't store `vlan`
+        //
+        // 2020-01-27
+        // This is used to add the `vlan` to networks created before this version. (v0.4.0)
+        // This will be removed in 1 year.
+        if (otherConfig['xo:sdn-controller:vlan'] === undefined) {
+          const tunnel = getHostTunnelForNetwork(
+            privateNetwork.center,
+            network.$ref
+          )
+          const pif = xapi.getObjectByRef(tunnel.transport_PIF)
+          await network.update_other_config(
+            'xo:sdn-controller:vlan',
+            String(pif.VLAN)
+          )
+        }
+
+        this._networks.set(network.$id, network.$ref)
+        if (privateNetwork.center !== undefined) {
+          this._starCenters.set(
+            privateNetwork.center.$id,
+            privateNetwork.center.$ref
+          )
+        }
+      })
+    )
+
+    // Add VNI to other config of networks without VNI
+    //
+    // 2019-08-22
+    // This is used to add the VNI to networks created before this version. (v0.1.3)
+    // This will be removed in 1 year.
+    await Promise.all(
+      map(noVniNetworks, async network => {
+        await network.update_other_config(
+          'xo:sdn-controller:vni',
+          String(++this._prevVni)
+        )
+
+        // Re-elect a center to apply the VNI
+        const privateNetwork = this._privateNetworks[
+          network.other_config['private-network-uuid']
+        ]
+        await this._electNewCenter(privateNetwork)
+      })
+    )
+  }
+
+  _xapiDisconnected(xapi) {
+    log.debug('xapi disconnected', { id: xapi.pool.uuid })
+
+    forOwn(this._privateNetworks, privateNetwork => {
+      privateNetwork.networks = omitBy(
+        privateNetwork.networks,
+        network => network.$pool.uuid === xapi.pool.uuid
+      )
+
+      if (privateNetwork.center.$pool.uuid === xapi.pool.uuid) {
+        this._electNewCenter(privateNetwork)
+      }
+    })
+
+    this._privateNetworks = filter(
+      this._privateNetworks,
+      privateNetwork => privateNetwork.networks.length !== 0
+    )
+
+    delete this._xapis[xapi.pool.uuid]
   }
 
   // ===========================================================================
@@ -631,6 +673,8 @@ class SDNController extends EventEmitter {
 
   async _manageXapi(xapi) {
     const { objects } = xapi
+
+    this._xapis[xapi.pool.uuid] = xapi
 
     const objectsRemovedXapi = this._objectsRemoved.bind(this, xapi)
     objects.on('add', this._objectsAdded)
@@ -716,6 +760,11 @@ class SDNController extends EventEmitter {
               network => network.$ref === networkRef
             )
           })
+
+          this._privateNetworks = filter(
+            this._privateNetworks,
+            privateNetwork => privateNetwork.networks.length !== 0
+          )
         }
       } catch (error) {
         log.error('Error in _objectsRemoved', {
