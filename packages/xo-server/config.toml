@@ -50,6 +50,12 @@ maxTokenValidity = '0.5 year'
 # https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Set-Cookie#Session_cookie
 #sessionCookieValidity = '10 hours'
 
+# This is the page where unauthenticated users will be redirected to.
+#
+# For instance, it can be changed to `/signin-saml` if that's the provider that
+# should be used by default.
+defaultSignInPage = '/signin'
+
 [backup]
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'

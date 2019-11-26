@@ -237,7 +237,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       next()
     } else {
       req.flash('return-url', url)
-      return res.redirect('/signin')
+      return res.redirect(authCfg.defaultSignInPage)
     }
   })
 

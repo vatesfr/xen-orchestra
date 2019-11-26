@@ -9,6 +9,7 @@
 
 - [Backup NG] Make report recipients configurable in the backup settings [#4581](https://github.com/vatesfr/xen-orchestra/issues/4581) (PR [#4646](https://github.com/vatesfr/xen-orchestra/pull/4646))
 - [SAML] Setting to disable requested authentication context (helps with _Active Directory_) (PR [#4675](https://github.com/vatesfr/xen-orchestra/pull/4675))
+- The default sign-in page can be configured via `authentication.defaultSignInPage` (PR [#4676](https://github.com/vatesfr/xen-orchestra/pull/4676))
 
 ### Bug fixes
 
