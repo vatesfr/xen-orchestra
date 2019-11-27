@@ -160,7 +160,7 @@ export default class extends Component {
       />
     )
 
-    const AccessTelemetryButton = (
+    const AccessTelemetryButton = () => (
       <TabButton
         btnStyle='success'
         handler={this._accessAdvancedLiveTelemetry}
