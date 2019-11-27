@@ -150,7 +150,15 @@ export default class extends Component {
 
     const _isXCPngHost = host.productBrand === 'XCP-ng'
 
-    const EnableTelemetryButton = () => (
+    const telemetryButton = isNetDataInstalledOnHost ? (
+      <TabButton
+        btnStyle='success'
+        handler={this._accessAdvancedLiveTelemetry}
+        handlerParam={host}
+        icon='telemetry'
+        labelId='accessAdvancedLiveTelemetry'
+      />
+    ) : (
       <TabButton
         btnStyle='success'
         disabled={!_isXCPngHost}
@@ -161,29 +169,15 @@ export default class extends Component {
       />
     )
 
-    const AccessTelemetryButton = () => (
-      <TabButton
-        btnStyle='success'
-        handler={this._accessAdvancedLiveTelemetry}
-        handlerParam={host}
-        icon='telemetry'
-        labelId='accessAdvancedLiveTelemetry'
-      />
-    )
-
     return (
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            {isNetDataInstalledOnHost ? (
-              <AccessTelemetryButton />
-            ) : _isXCPngHost ? (
-              <EnableTelemetryButton />
+            {_isXCPngHost ? (
+              telemetryButton
             ) : (
               <Tooltip content={_('xcpOnlyFeature')}>
-                <span>
-                  <EnableTelemetryButton />
-                </span>
+                <span>{telemetryButton}</span>
               </Tooltip>
             )}
             {host.power_state === 'Running' && (
