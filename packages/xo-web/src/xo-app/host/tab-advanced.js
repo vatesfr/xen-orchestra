@@ -144,9 +144,7 @@ export default class extends Component {
   _isXCPngHost = () => this.props.host.productBrand === 'XCP-ng'
 
   _accessAdvancedLiveTelemetry = () =>
-    window.open(
-      `/netdata/${this.props.host.hostname}`
-    )
+    window.open(`/netdata/${this.props.host.hostname}`)
 
   render() {
     const { host, pcis, pgpus } = this.props
@@ -162,7 +160,7 @@ export default class extends Component {
       />
     )
 
-    const AccessTelemetryButton = () => (
+    const AccessTelemetryButton = (
       <TabButton
         btnStyle='success'
         handler={this._accessAdvancedLiveTelemetry}
@@ -181,7 +179,7 @@ export default class extends Component {
             ) : this._isXCPngHost() ? (
               <EnableTelemetryButton />
             ) : (
-              <Tooltip content={_('featureAvailableOnlyForXCPng')}>
+              <Tooltip content={_('xcpOnlyFeature')}>
                 <span>
                   <EnableTelemetryButton />
                 </span>

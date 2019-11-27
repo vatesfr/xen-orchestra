@@ -621,7 +621,7 @@ export const enableAdvancedLiveTelemetry = async host => {
     { host: host.id }
   )
   if (!isConfiguredToReceiveStreaming) {
-    await _call('netdata.configureXoaToReceiveData', {})
+    await _call('netdata.configureXoaToReceiveData')
   }
   await _call('netdata.configureHostToStreamHere', {
     host: host.id,
@@ -638,7 +638,7 @@ export const isNetDataInstalledOnHost = async host => {
     _call('netdata.getHostApiKey', {
       host: host.id,
     }),
-    _call('netdata.getLocalApiKey', {}),
+    _call('netdata.getLocalApiKey'),
   ])
   return isNetDataInstalledOnHost && hostApiKey === localApiKey
 }
