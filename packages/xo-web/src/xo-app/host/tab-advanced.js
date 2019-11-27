@@ -145,7 +145,7 @@ export default class extends Component {
 
   _accessAdvancedLiveTelemetry = () =>
     window.open(
-      `${window.location.protocol}//${window.location.host}/netdata/${this.props.host.hostname}`
+      `/netdata/${this.props.host.hostname}`
     )
 
   render() {
