@@ -247,7 +247,7 @@ export default class BackupNgLogs {
     forEach(restoreLogs, handleLog)
     forEach(restoreMetadataLogs, handleLog)
 
-    // store consolidated logs and clear their log entries
+    // no need to wait for the storing of the consolidated logs
     app
       .getStore('logs')
       .then(logsStore =>
