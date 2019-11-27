@@ -1,5 +1,6 @@
 import _ from 'intl'
-import CustomTextInput from 'custom-text-input'
+import Button from 'button'
+import CustomInput from 'custom-input'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -15,6 +16,7 @@ import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from 'reaclette'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
+import { toggleState } from 'reaclette-utils'
 
 import { canDeltaBackup, FormGroup } from './../utils'
 
@@ -30,12 +32,16 @@ const SmartBackup = decorate([
     vms: createGetObjectsOfType('VM'),
   }),
   provideState({
+    initialState: () => ({
+      editing: false,
+    }),
     effects: {
       addTag: (effects, newTag) => ({ tags }) => {
         effects.setTagValues(
           tags.values === undefined ? [newTag] : [...tags.values, newTag]
         )
       },
+      closeEdition: () => ({ editing: false }),
       setPattern: (_, value) => (_, { pattern, onChange }) => {
         onChange({
           ...pattern,
@@ -66,6 +72,7 @@ const SmartBackup = decorate([
       setPoolNotValues({ setPoolPattern }, notValues) {
         setPoolPattern({ notValues })
       },
+      toggleState,
     },
     computed: {
       poolPredicate: (_, { deltaMode, hosts }) => pool =>
@@ -118,7 +125,15 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
-        <CustomTextInput handler={effects.addTag} tooltip={_('customTag')} />
+        {state.editing ? (
+          <CustomInput handler={effects.addTag} onBlur={effects.closeEdition} />
+        ) : (
+          <Tooltip content={_('customTag')}>
+            <Button name='editing' onClick={effects.toggleState} size='small'>
+              <Icon icon='edit' />
+            </Button>
+          </Tooltip>
+        )}
         <SelectTag
           multi
           onChange={effects.setTagValues}
