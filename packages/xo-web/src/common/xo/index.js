@@ -634,14 +634,13 @@ export const isNetDataInstalledOnHost = async host => {
     'netdata.isNetDataInstalledOnHost',
     { host: host.id }
   )
-  const hostApiKey = await _call('netdata.getHostApiKey', {
-    host: host.id,
-  })
-  const localApiKey = await _call('netdata.getLocalApiKey', {})
-  if (isNetDataInstalledOnHost && hostApiKey === localApiKey) {
-    return true
-  }
-  return false
+  const [hostApiKey, localApiKey] = await Promise.all([
+    _call('netdata.getHostApiKey', {
+      host: host.id,
+    }),
+    _call('netdata.getLocalApiKey', {}),
+  ])
+  return isNetDataInstalledOnHost && hostApiKey === localApiKey
 }
 
 export const detachHost = host =>
