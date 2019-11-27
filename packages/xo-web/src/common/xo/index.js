@@ -638,7 +638,10 @@ export const isNetDataInstalledOnHost = async host => {
     host: host.id,
   })
   const localApiKey = await _call('netdata.getLocalApiKey', {})
-  if (Boolean(isNetDataInstalledOnHost) && hostApiKey === localApiKey) {
+  if (
+    Boolean(isNetDataInstalledOnHost) &&
+    hostApiKey.trim() === localApiKey.trim()
+  ) {
     return true
   }
   return false
