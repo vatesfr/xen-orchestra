@@ -1,9 +1,9 @@
 import assert from 'assert'
 import levelup from 'level-party'
 import sublevel from 'level-sublevel'
-import { defer, fromEvent, iteratee } from 'promise-toolbox'
+import { defer, fromEvent } from 'promise-toolbox'
 import { ensureDir } from 'fs-extra'
-import { stubTrue } from 'lodash'
+import { iteratee, stubTrue } from 'lodash'
 
 import { forEach, promisify } from '../utils'
 
