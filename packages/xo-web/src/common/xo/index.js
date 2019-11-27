@@ -615,9 +615,6 @@ export const addHostsToPool = pool =>
     })
   })
 
-export const isNetDataInstalledOnHost = host =>
-  _call('netdata.isNetDataInstalledOnHost', { host: host.id })
-
 export const enableAdvancedLiveTelemetry = async host => {
   const isConfiguredToReceiveStreaming = await _call(
     'netdata.isConfiguredToReceiveStreaming',
@@ -626,7 +623,13 @@ export const enableAdvancedLiveTelemetry = async host => {
   if (!isConfiguredToReceiveStreaming) {
     await _call('netdata.configureXoaToReceiveData', {})
   }
+  await _call('netdata.configureHostToStreamHere', {
+    host: host.id,
+  })
+  success(_('advancedLiveTelemetry'), _('enableAdvancedLiveTelemetrySuccess'))
+}
 
+export const isNetDataInstalledOnHost = async host => {
   const isNetDataInstalledOnHost = await _call(
     'netdata.isNetDataInstalledOnHost',
     { host: host.id }
@@ -635,15 +638,10 @@ export const enableAdvancedLiveTelemetry = async host => {
     host: host.id,
   })
   const localApiKey = await _call('netdata.getLocalApiKey', {})
-  // Enable advanced live telemetry here
-  if (isNetDataInstalledOnHost && hostApiKey === localApiKey) {
-    console.log('host is streaming here')
-  } else {
-    console.log('host was not streaming here')
-    await _call('netdata.configureHostToStreamHere', {
-      host: host.id,
-    })
+  if (Boolean(isNetDataInstalledOnHost) && hostApiKey === localApiKey) {
+    return true
   }
+  return false
 }
 
 export const detachHost = host =>

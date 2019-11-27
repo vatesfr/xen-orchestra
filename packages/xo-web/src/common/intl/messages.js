@@ -1752,9 +1752,12 @@ const messages = {
   detachHost: 'Detach',
 
   // ----- Enable Advanced Live Telemetry -----
-  enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
+  advancedLiveTelemetry: 'Advanced live telemetry',
+  enableAdvancedLiveTelemetry: 'Enable advanced live telemetry',
+  enableAdvancedLiveTelemetrySuccess:
+    'Advanced live telemetry enabled successfully',
   featureAvailableOnlyForXCPng: 'This feature is only XCP-ng compatible',
-  accessAdvancedLiveTelemetry: 'Access Advanced Live Telemetry',
+  accessAdvancedLiveTelemetry: 'Access advanced live telemetry',
 
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',

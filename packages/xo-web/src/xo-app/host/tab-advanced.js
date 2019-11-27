@@ -143,10 +143,14 @@ export default class extends Component {
 
   _isXCPngHost = () => this.props.host.productBrand === 'XCP-ng'
 
+  _accessAdvancedLiveTelemetry = () =>
+    window.open(
+      `${window.location.protocol}//${window.location.host}/netdata/${this.props.host.hostname}`
+    )
+
   render() {
     const { host, pcis, pgpus } = this.props
     const { isHtEnabled, isNetDataInstalledOnHost } = this.state
-
     const EnableTelemetryButton = () => (
       <TabButton
         btnStyle='success'
@@ -161,7 +165,7 @@ export default class extends Component {
     const AccessTelemetryButton = () => (
       <TabButton
         btnStyle='success'
-        handler={enableAdvancedLiveTelemetry}
+        handler={this._accessAdvancedLiveTelemetry}
         handlerParam={host}
         icon='telemetry'
         labelId='accessAdvancedLiveTelemetry'
