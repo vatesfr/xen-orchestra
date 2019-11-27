@@ -141,18 +141,19 @@ export default class extends Component {
 
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
-  _isXCPngHost = () => this.props.host.productBrand === 'XCP-ng'
-
   _accessAdvancedLiveTelemetry = () =>
     window.open(`/netdata/${this.props.host.hostname}`)
 
   render() {
     const { host, pcis, pgpus } = this.props
     const { isHtEnabled, isNetDataInstalledOnHost } = this.state
+
+    const _isXCPngHost = host.productBrand === 'XCP-ng'
+
     const EnableTelemetryButton = () => (
       <TabButton
         btnStyle='success'
-        disabled={!this._isXCPngHost()}
+        disabled={!_isXCPngHost}
         handler={enableAdvancedLiveTelemetry}
         handlerParam={host}
         icon='telemetry'
@@ -176,7 +177,7 @@ export default class extends Component {
           <Col className='text-xs-right'>
             {isNetDataInstalledOnHost ? (
               <AccessTelemetryButton />
-            ) : this._isXCPngHost() ? (
+            ) : _isXCPngHost ? (
               <EnableTelemetryButton />
             ) : (
               <Tooltip content={_('xcpOnlyFeature')}>
