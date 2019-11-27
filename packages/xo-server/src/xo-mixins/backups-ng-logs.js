@@ -247,18 +247,20 @@ export default class BackupNgLogs {
     forEach(restoreLogs, handleLog)
     forEach(restoreMetadataLogs, handleLog)
 
-    app.getStore('logs').then(
-      logsStore =>
+    // store consolidated logs and clear their log entries
+    app
+      .getStore('logs')
+      .then(logsStore =>
         asyncMap(finishedTasks, async id => {
           await backupTaskStore.put(id, consolidated[id])
           return asyncMap(tasksByTopParent[id], id => logsStore.del(id))
-        }),
-      error => {
+        })
+      )
+      .catch(error => {
         logger.warn('Error on storing task logs', {
           error,
         })
-      }
-    )
+      })
 
     return runId === undefined ? consolidated : consolidated[runId]
   }
