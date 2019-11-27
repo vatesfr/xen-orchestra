@@ -3,6 +3,7 @@ import levelup from 'level-party'
 import sublevel from 'level-sublevel'
 import { defer, fromEvent, iteratee } from 'promise-toolbox'
 import { ensureDir } from 'fs-extra'
+import { stubTrue } from 'lodash'
 
 import { forEach, promisify } from '../utils'
 
@@ -60,7 +61,7 @@ async function _levelGc(keep) {
 
 function _levelGetAll(filter) {
   return new Promise((resolve, reject) => {
-    filter = iteratee(filter)
+    filter = filter === undefined ? stubTrue : iteratee(filter)
 
     const entries = {}
     this.createReadStream()

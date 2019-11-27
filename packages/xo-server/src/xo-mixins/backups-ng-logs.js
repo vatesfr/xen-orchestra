@@ -105,15 +105,8 @@ export default class BackupNgLogs {
     const tasksByTopParent = {}
     // an optimization to get the hight level parent
     const topParentByTask = {}
-
+    // used to store the consolidated logs when they finish
     const finishedTasks = []
-    const storeBackupTasks = async () => {
-      const logsStore = await app.getStore('logs')
-      return asyncMap(finishedTasks, async id => {
-        await backupTaskStore.put(id, consolidated[id])
-        return asyncMap(tasksByTopParent[id], id => logsStore.del(id))
-      })
-    }
 
     const handleLog = ({ data, time, message }, id) => {
       const { event } = data
@@ -254,11 +247,18 @@ export default class BackupNgLogs {
     forEach(restoreLogs, handleLog)
     forEach(restoreMetadataLogs, handleLog)
 
-    storeBackupTasks().catch(error => {
-      logger.warn('Error on storing task logs', {
-        error,
-      })
-    })
+    app.getStore('logs').then(
+      logsStore =>
+        asyncMap(finishedTasks, async id => {
+          await backupTaskStore.put(id, consolidated[id])
+          return asyncMap(tasksByTopParent[id], id => logsStore.del(id))
+        }),
+      error => {
+        logger.warn('Error on storing task logs', {
+          error,
+        })
+      }
+    )
 
     return runId === undefined ? consolidated : consolidated[runId]
   }
