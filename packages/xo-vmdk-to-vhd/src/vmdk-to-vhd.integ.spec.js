@@ -65,11 +65,13 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
       { shell: true }
     )
     const result = await readVmdkGrainTable(createFileAccessor(vmdkFileName))
-    const pipe = (await convertFromVMDK(
-      createReadStream(vmdkFileName),
-      result.grainLogicalAddressList,
-      result.grainFileOffsetList
-    )).pipe(createWriteStream(vhdFileName))
+    const pipe = (
+      await convertFromVMDK(
+        createReadStream(vmdkFileName),
+        result.grainLogicalAddressList,
+        result.grainFileOffsetList
+      )
+    ).pipe(createWriteStream(vhdFileName))
     await eventToPromise(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
     await execa('qemu-img', [
