@@ -62,8 +62,10 @@ const Item = ({ label, children, className }) => (
 )
 
 const canSupportPrivateNetwork = (pool, pif) =>
-  (pif.isBondMaster || pif.physical) &&
-  pif.mode !== 'None' && !pif.isBondSlave && pif.$host === (pool && pool.master)
+  (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
+  pif.mode !== 'None' &&
+  !pif.isBondSlave &&
+  pif.$host === (pool && pool.master)
 
 const NewNetwork = decorate([
   addSubscriptions({

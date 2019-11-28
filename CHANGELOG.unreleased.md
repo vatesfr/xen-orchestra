@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [SDN Controller] Allow private network creation on bond (PR [#4682](https://github.com/vatesfr/xen-orchestra/pull/4682))
+- [SDN Controller] Allow private network creation on bond and VLAN (PR [#4682](https://github.com/vatesfr/xen-orchestra/pull/4682))
 
 ### Bug fixes
 
