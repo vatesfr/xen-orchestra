@@ -103,14 +103,11 @@ MultipathableSrs.propTypes = {
 export default class extends Component {
   async componentDidMount() {
     const plugin = await getPlugin('netdata')
-    const netDataPluginInstalled = Boolean(plugin)
-    const netDataPluginLoaded = netDataPluginInstalled && plugin.loaded
-    const isNetDataPluginCorrectlySet =
-      netDataPluginInstalled && netDataPluginLoaded
+    const isNetDataPluginCorrectlySet = plugin !== undefined && plugin.loaded
     this.setState({ isNetDataPluginCorrectlySet })
     if (isNetDataPluginCorrectlySet) {
       this.setState({
-        _isNetDataInstalledOnHost: await isNetDataInstalledOnHost(
+        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
           this.props.host
         ),
       })
@@ -162,13 +159,13 @@ export default class extends Component {
     const { host, pcis, pgpus } = this.props
     const {
       isHtEnabled,
-      _isNetDataInstalledOnHost,
+      isNetDataPluginInstalledOnHost,
       isNetDataPluginCorrectlySet,
     } = this.state
 
     const _isXcpNgHost = host.productBrand === 'XCP-ng'
 
-    const telemetryButton = _isNetDataInstalledOnHost ? (
+    const telemetryButton = isNetDataPluginInstalledOnHost ? (
       <TabButton
         btnStyle='success'
         handler={this._accessAdvancedLiveTelemetry}
