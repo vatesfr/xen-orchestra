@@ -643,7 +643,7 @@ export const isNetDataInstalledOnHost = async host => {
     }),
     _call('netdata.getLocalApiKey'),
   ])
-  return isNetDataInstalledOnHost && hostApiKey === localApiKey
+  return hostApiKey === localApiKey
 }
 
 export const detachHost = host =>
@@ -2185,6 +2185,11 @@ export const configurePlugin = (id, configuration) =>
         JSON.stringify(err.data) || _('unknownPluginError')
       )
   )
+
+export const getPlugin = async id => {
+  const plugins = await _call('plugin.get')
+  return plugins.find(plugin => plugin.id === id)
+}
 
 export const purgePluginConfiguration = async id => {
   await confirm({

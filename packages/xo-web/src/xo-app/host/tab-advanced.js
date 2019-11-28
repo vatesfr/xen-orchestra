@@ -10,16 +10,11 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import {
-  addSubscriptions,
-  compareVersions,
-  connectStore,
-  getIscsiPaths,
-} from 'utils'
+import { compareVersions, connectStore, getIscsiPaths } from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { find, forEach, isEmpty, map, noop } from 'lodash'
+import { forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
@@ -34,10 +29,10 @@ import {
   installSupplementalPack,
   isHyperThreadingEnabledHost,
   isNetDataInstalledOnHost,
+  getPlugin,
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
-  subscribePlugins,
 } from 'xo'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
@@ -105,14 +100,24 @@ MultipathableSrs.propTypes = {
     pgpus: getPgpus,
   }
 })
-@addSubscriptions(() => ({
-  plugins: subscribePlugins,
-}))
 export default class extends Component {
   async componentDidMount() {
+    const plugin = await getPlugin('netdata')
+    const netDataPluginInstalled = Boolean(plugin)
+    const netDataPluginLoaded = netDataPluginInstalled && plugin.loaded
+    const isNetDataPluginCorrectlySet =
+      netDataPluginInstalled && netDataPluginLoaded
+    this.setState({ isNetDataPluginCorrectlySet })
+    if (isNetDataPluginCorrectlySet) {
+      this.setState({
+        _isNetDataInstalledOnHost: await isNetDataInstalledOnHost(
+          this.props.host
+        ),
+      })
+    }
+
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
-      isNetDataInstalledOnHost: await isNetDataInstalledOnHost(this.props.host),
     })
   }
 
@@ -154,15 +159,16 @@ export default class extends Component {
     window.open(`/netdata/${this.props.host.hostname}`)
 
   render() {
-    const { host, pcis, pgpus, plugins } = this.props
-    const { isHtEnabled, isNetDataInstalledOnHost } = this.state
+    const { host, pcis, pgpus } = this.props
+    const {
+      isHtEnabled,
+      _isNetDataInstalledOnHost,
+      isNetDataPluginCorrectlySet,
+    } = this.state
 
     const _isXcpNgHost = host.productBrand === 'XCP-ng'
-    const netdataPlugin = find(plugins, { id: 'netdata' })
-    const _isNetdataPluginActive =
-      netdataPlugin !== undefined && netdataPlugin.loaded
 
-    const telemetryButton = isNetDataInstalledOnHost ? (
+    const telemetryButton = _isNetDataInstalledOnHost ? (
       <TabButton
         btnStyle='success'
         handler={this._accessAdvancedLiveTelemetry}
@@ -173,7 +179,7 @@ export default class extends Component {
     ) : (
       <TabButton
         btnStyle='success'
-        disabled={!_isXcpNgHost || !_isNetdataPluginActive}
+        disabled={!_isXcpNgHost || !isNetDataPluginCorrectlySet}
         handler={enableAdvancedLiveTelemetry}
         handlerParam={host}
         icon='telemetry'
@@ -185,8 +191,8 @@ export default class extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            {!_isNetdataPluginActive ? (
-              <Tooltip content={_('pluginNetdataIsNecessary')}>
+            {!isNetDataPluginCorrectlySet ? (
+              <Tooltip content={_('pluginNetDataIsNecessary')}>
                 <span>{telemetryButton}</span>
               </Tooltip>
             ) : !_isXcpNgHost ? (
