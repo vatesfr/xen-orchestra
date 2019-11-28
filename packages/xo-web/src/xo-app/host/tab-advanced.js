@@ -10,11 +10,16 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { compareVersions, connectStore, getIscsiPaths } from 'utils'
+import {
+  addSubscriptions,
+  compareVersions,
+  connectStore,
+  getIscsiPaths,
+} from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { forEach, map, noop, isEmpty } from 'lodash'
+import { find, forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
@@ -22,16 +27,17 @@ import { Toggle } from 'form'
 import {
   detachHost,
   disableHost,
-  enableAdvancedLiveTelemetry,
   editHost,
+  enableAdvancedLiveTelemetry,
   enableHost,
   forgetHost,
+  installSupplementalPack,
   isHyperThreadingEnabledHost,
   isNetDataInstalledOnHost,
-  installSupplementalPack,
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
+  subscribePlugins,
 } from 'xo'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
@@ -99,6 +105,9 @@ MultipathableSrs.propTypes = {
     pgpus: getPgpus,
   }
 })
+@addSubscriptions(() => ({
+  plugins: subscribePlugins,
+}))
 export default class extends Component {
   async componentDidMount() {
     this.setState({
@@ -145,10 +154,13 @@ export default class extends Component {
     window.open(`/netdata/${this.props.host.hostname}`)
 
   render() {
-    const { host, pcis, pgpus } = this.props
+    const { host, pcis, pgpus, plugins } = this.props
     const { isHtEnabled, isNetDataInstalledOnHost } = this.state
 
-    const _isXCPngHost = host.productBrand === 'XCP-ng'
+    const _isXcpNgHost = host.productBrand === 'XCP-ng'
+    const netdataPlugin = find(plugins, { id: 'netdata' })
+    const _isNetdataPluginActive =
+      netdataPlugin !== undefined && netdataPlugin.loaded
 
     const telemetryButton = isNetDataInstalledOnHost ? (
       <TabButton
@@ -156,12 +168,12 @@ export default class extends Component {
         handler={this._accessAdvancedLiveTelemetry}
         handlerParam={host}
         icon='telemetry'
-        labelId='accessAdvancedLiveTelemetry'
+        labelId='advancedLiveTelemetry'
       />
     ) : (
       <TabButton
         btnStyle='success'
-        disabled={!_isXCPngHost}
+        disabled={!_isXcpNgHost || !_isNetdataPluginActive}
         handler={enableAdvancedLiveTelemetry}
         handlerParam={host}
         icon='telemetry'
@@ -173,12 +185,16 @@ export default class extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            {_isXCPngHost ? (
-              telemetryButton
-            ) : (
+            {!_isNetdataPluginActive ? (
+              <Tooltip content={_('pluginNetdataIsNecessary')}>
+                <span>{telemetryButton}</span>
+              </Tooltip>
+            ) : !_isXcpNgHost ? (
               <Tooltip content={_('xcpOnlyFeature')}>
                 <span>{telemetryButton}</span>
               </Tooltip>
+            ) : (
+              telemetryButton
             )}
             {host.power_state === 'Running' && (
               <TabButton

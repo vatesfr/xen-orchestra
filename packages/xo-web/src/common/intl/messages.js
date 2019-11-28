@@ -1753,11 +1753,11 @@ const messages = {
 
   // ----- Advanced Live Telemetry -----
   advancedLiveTelemetry: 'Advanced Live Telemetry',
+  pluginNetdataIsNecessary: 'Netdata plugin is necessary',
   enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
   enableAdvancedLiveTelemetrySuccess:
-    'Advanced Live Telemetry enabled successfully',
+    'Advanced Live Telemetry successfully enabled',
   xcpOnlyFeature: 'This feature is only XCP-ng compatible',
-  accessAdvancedLiveTelemetry: 'Advanced Live Telemetry',
 
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
