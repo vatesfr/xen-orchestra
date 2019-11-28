@@ -39,10 +39,10 @@ import Sr from './sr'
 import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
-import VmImport from './vm-import'
 import Xoa from './xoa'
 import XoaUpdates from './xoa/update'
 import Xosan from './xosan'
+import Import from './import'
 
 import keymap, { help } from '../keymap'
 
@@ -98,11 +98,11 @@ const BODY_STYLE = {
   'srs/:id': Sr,
   tasks: Tasks,
   user: User,
-  'vms/import': VmImport,
   'vms/new': NewVm,
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  import: Import,
   hub: Hub,
 })
 @connectStore(state => {

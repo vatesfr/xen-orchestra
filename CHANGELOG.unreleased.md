@@ -10,6 +10,7 @@
 - [Backup NG] Make report recipients configurable in the backup settings [#4581](https://github.com/vatesfr/xen-orchestra/issues/4581) (PR [#4646](https://github.com/vatesfr/xen-orchestra/pull/4646))
 - [SAML] Setting to disable requested authentication context (helps with _Active Directory_) (PR [#4675](https://github.com/vatesfr/xen-orchestra/pull/4675))
 - The default sign-in page can be configured via `authentication.defaultSignInPage` (PR [#4678](https://github.com/vatesfr/xen-orchestra/pull/4678))
+- [SR] Allow import of VHD and VMDK disks [#4137](https://github.com/vatesfr/xen-orchestra/issues/4137) (PR [#4138](https://github.com/vatesfr/xen-orchestra/pull/4138) )
 
 ### Bug fixes
 
@@ -26,6 +27,8 @@
 >
 > Rule of thumb: add packages on top.
 
+- vhd-lib v0.7.2
+- xo-vmdk-to-vhd v0.1.8
 - xo-server-auth-saml v0.7.0
 - xo-server-backup-reports v0.16.4
 - @xen-orchestra/fs v0.10.2
