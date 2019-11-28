@@ -1751,6 +1751,14 @@ const messages = {
     'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
+  // ----- Advanced Live Telemetry -----
+  advancedLiveTelemetry: 'Advanced Live Telemetry',
+  pluginNetDataIsNecessary: 'Netdata plugin is necessary',
+  enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
+  enableAdvancedLiveTelemetrySuccess:
+    'Advanced Live Telemetry successfully enabled',
+  xcpOnlyFeature: 'This feature is only XCP-ng compatible',
+
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
   forgetHostModalMessage:

@@ -615,6 +615,37 @@ export const addHostsToPool = pool =>
     })
   })
 
+export const enableAdvancedLiveTelemetry = async host => {
+  const isConfiguredToReceiveStreaming = await _call(
+    'netdata.isConfiguredToReceiveStreaming',
+    { host: host.id }
+  )
+  if (!isConfiguredToReceiveStreaming) {
+    await _call('netdata.configureXoaToReceiveData')
+  }
+  await _call('netdata.configureHostToStreamHere', {
+    host: host.id,
+  })
+  success(_('advancedLiveTelemetry'), _('enableAdvancedLiveTelemetrySuccess'))
+}
+
+export const isNetDataInstalledOnHost = async host => {
+  const isNetDataInstalledOnHost = await _call(
+    'netdata.isNetDataInstalledOnHost',
+    { host: host.id }
+  )
+  if (!isNetDataInstalledOnHost) {
+    return false
+  }
+  const [hostApiKey, localApiKey] = await Promise.all([
+    _call('netdata.getHostApiKey', {
+      host: host.id,
+    }),
+    _call('netdata.getLocalApiKey'),
+  ])
+  return hostApiKey === localApiKey
+}
+
 export const detachHost = host =>
   confirm({
     icon: 'host-eject',
@@ -2154,6 +2185,11 @@ export const configurePlugin = (id, configuration) =>
         JSON.stringify(err.data) || _('unknownPluginError')
       )
   )
+
+export const getPlugin = async id => {
+  const plugins = await _call('plugin.get')
+  return plugins.find(plugin => plugin.id === id)
+}
 
 export const purgePluginConfiguration = async id => {
   await confirm({
