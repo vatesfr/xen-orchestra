@@ -27,6 +27,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- vhd-lib v0.7.2
 - xo-vmdk-to-vhd v0.1.8
 - xo-server-auth-saml v0.7.0
 - xo-server-backup-reports v0.16.4
