@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Usage Report] Fix wrong report date [#4779](https://github.com/vatesfr/xen-orchestra/issues/4779) (PR [#4799](https://github.com/vatesfr/xen-orchestra/pull/4799))
+- [SDN Controller] Fix plugin stuck by handling new pool connections [#4649](https://github.com/vatesfr/xen-orchestra/issues/4649) (PR [#4677](https://github.com/vatesfr/xen-orchestra/pull/4677))
 
 ### Released packages
 
