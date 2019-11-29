@@ -6,17 +6,30 @@ import Component from 'base-component'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import Link from 'link'
+import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
 import PropTypes from 'prop-types'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import { concat, groupBy, isEmpty, map, mapValues, pick, some } from 'lodash'
+import {
+  concat,
+  compact,
+  forEach,
+  groupBy,
+  isEmpty,
+  keyBy,
+  map,
+  mapValues,
+  pick,
+  some,
+} from 'lodash'
 import {
   createCollectionWrapper,
   createGetObjectsOfType,
@@ -24,6 +37,7 @@ import {
   getCheckPermissions,
 } from 'selectors'
 import {
+  areSrsOnSameHost,
   connectVbd,
   createDisk,
   deleteVbd,
@@ -34,7 +48,10 @@ import {
   exportVdi,
   importVdi,
   isVmRunning,
+  isSrShared,
+  migrateVdi,
 } from 'xo'
+import { error } from 'notification'
 
 // ===================================================================
 
@@ -291,10 +308,83 @@ class NewDisk extends Component {
   }
 }
 
-@connectStore(() => ({
-  checkPermissions: getCheckPermissions,
-  vbds: createGetObjectsOfType('VBD'),
-}))
+@connectStore(() => {
+  const getAllVdis = createGetObjectsOfType('VDI')
+  const getSrs = createGetObjectsOfType('SR')
+  const getVbds = createGetObjectsOfType('VBD')
+
+  const getVdisById = createSelector(
+    (_, props) => props.vdis,
+    vdis => keyBy(vdis, 'id')
+  )
+
+  const getVbdsByVdi = createSelector(
+    createSelector(getVbds, vbds => keyBy(vbds, 'id')),
+    createSelector(getVdisById, vdis => mapValues(vdis, '$VBDs')),
+    (vbds, vbdIdsByVdi) =>
+      mapValues(vbdIdsByVdi, vbdIds => map(vbdIds, vbdId => vbds[vbdId]))
+  )
+
+  const getVmIdsByVdi = createSelector(getVbdsByVdi, vbdsByVdi =>
+    mapValues(vbdsByVdi, vbds => map(vbds, 'VM'))
+  )
+
+  const getVmsByVdi = createSelector(
+    createGetObjectsOfType('VM'),
+    getVmIdsByVdi,
+    (vms, vmIdsByVdi) => mapValues(vmIdsByVdi, vmIds => pick(vms, vmIds))
+  )
+
+  const getVmControllersByVdi = createSelector(
+    createGetObjectsOfType('VM-controller'),
+    getVmIdsByVdi,
+    (vmControllers, vmIdsByVdi) =>
+      mapValues(vmIdsByVdi, vmIds => pick(vmControllers, vmIds))
+  )
+
+  const getVmSnapshotsByVdi = createSelector(
+    createGetObjectsOfType('VM-snapshot'),
+    getVmIdsByVdi,
+    (vmSnapshots, vmIdsByVdi) =>
+      mapValues(vmIdsByVdi, vmIds => pick(vmSnapshots, vmIds))
+  )
+
+  const getVmTemplatesByVdi = createSelector(
+    createGetObjectsOfType('VM-template'),
+    getVmIdsByVdi,
+    (vmTemplates, vmIdsByVdi) =>
+      mapValues(vmIdsByVdi, vmIds => pick(vmTemplates, vmIds))
+  )
+
+  const getAllVmsByVdi = createSelector(
+    getVdisById,
+    getVmsByVdi,
+    getVmControllersByVdi,
+    getVmSnapshotsByVdi,
+    getVmTemplatesByVdi,
+    (
+      vdisById,
+      vmsByVdi,
+      vmControllersByVdi,
+      vmSnapshotsByVdi,
+      vmTemplatesByVdi
+    ) =>
+      mapValues(vdisById, ({ id }) => ({
+        ...vmsByVdi[id],
+        ...vmControllersByVdi[id],
+        ...vmSnapshotsByVdi[id],
+        ...vmTemplatesByVdi[id],
+      }))
+  )
+
+  return {
+    allVdis: getAllVdis,
+    allVmsByVdi: getAllVmsByVdi,
+    checkPermissions: getCheckPermissions,
+    vbds: getVbds,
+    srs: getSrs,
+  }
+})
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
 
@@ -319,6 +409,89 @@ export default class SrDisks extends Component {
     ),
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
+
+  _getVmSrs = createSelector(
+    _ => _,
+    () => this.props.vbds,
+    () => this.props.allVmsByVdi,
+    () => this.props.allVdis,
+    () => this.props.srs,
+    (selectedVdis, allVbds, vmsByVdi, vdis, srs) => {
+      let vbds = []
+      forEach(selectedVdis, ({ id }) => {
+        forEach(vmsByVdi[id], vm => {
+          vbds = [...vbds, ...vm.$VBDs]
+        })
+      })
+
+      return compact(
+        vbds.map(vbdId => {
+          const vbd = allVbds[vbdId]
+          let vdi
+          return (
+            !vbd.is_cd_drive &&
+            ((vdi = vdis[vbd.VDI]), vdi !== undefined && srs[vdi.$SR])
+          )
+        })
+      )
+    }
+  )
+
+  _getRequiredHost = createSelector(this._getVmSrs, srs => {
+    if (!areSrsOnSameHost(srs)) {
+      return
+    }
+
+    let container
+    forEach(srs, sr => {
+      if (sr !== undefined && !isSrShared(sr)) {
+        container = sr.$container
+        return false
+      }
+    })
+    return container
+  })
+
+  _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
+    sr === undefined ||
+    isSrShared(sr) ||
+    requiredHost === undefined ||
+    sr.$container === requiredHost
+  )
+
+  _migrateVdis = vdis => {
+    return confirm({
+      title: _('vdiMigrate'),
+      body: (
+        <MigrateVdiModalBody
+          checkSr={this._getCheckSr(vdis)}
+          pool={this.props.sr.$pool}
+        />
+      ),
+    }).then(({ sr, migrateAll }) => {
+      if (!sr) {
+        return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
+      }
+
+      return Promise.all(
+        map(migrateAll ? this.props.vdis : vdis, vdi => migrateVdi(vdi, sr))
+      )
+    })
+  }
+
+  _actions = [
+    {
+      disabled: vdis =>
+        some(
+          vdis,
+          ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'
+        ),
+      handler: this._migrateVdis,
+      icon: 'vdi-migrate',
+      individualLabel: _('vdiMigrate'),
+      label: _('migrateSelectedVdis'),
+    },
+  ]
 
   render() {
     const vdis = this._getAllVdis()
@@ -350,6 +523,7 @@ export default class SrDisks extends Component {
           <Col>
             {!isEmpty(vdis) ? (
               <SortedTable
+                actions={this._actions}
                 collection={vdis}
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
