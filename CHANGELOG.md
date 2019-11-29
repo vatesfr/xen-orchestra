@@ -25,7 +25,7 @@
 - xo-server-backup-reports v0.16.4
 - @xen-orchestra/fs v0.10.2
 - xo-server v5.53.0
-- xo-web v5.53.2
+- xo-web v5.53.3
 
 ## **5.40.2** (2019-11-22)
 
