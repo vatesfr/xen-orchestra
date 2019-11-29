@@ -321,9 +321,6 @@ class SDNController extends EventEmitter {
     this._objectsAdded = this._objectsAdded.bind(this)
     this._objectsUpdated = this._objectsUpdated.bind(this)
 
-    this._handleConnectedServer = this._handleConnectedServer.bind(this)
-    this._handleDisconnectedServer = this._handleDisconnectedServer.bind(this)
-
     this._overrideCerts = false
 
     this._prevVni = 0
@@ -427,8 +424,16 @@ class SDNController extends EventEmitter {
       }
     })
 
-    this._xo.on('server:connected', this._handleConnectedServer)
-    this._xo.on('server:disconnected', this._handleDisconnectedServer)
+    const handleConnectedServer = ({ server, xapi }) =>
+      this._handleConnectedXapi(xapi)
+    const handleDisconnectedServer = ({ server, xapi }) =>
+      this._handleDisconnectedXapi(xapi)
+    this._xo.on('server:connected', handleConnectedServer)
+    this._xo.on('server:disconnected', handleDisconnectedServer)
+    this._cleaners.push(() => {
+      this._xo.removeListener('server:connected', handleConnectedServer)
+      this._xo.removeListener('server:disconnected', handleDisconnectedServer)
+    })
   }
 
   async unload() {
@@ -444,25 +449,9 @@ class SDNController extends EventEmitter {
     this.ovsdbClients = {}
 
     this._unsetApiMethods()
-
-    this._xo.removeListener('server:connected', this._handleConnectedServer)
-    this._xo.removeListener(
-      'server:disconnected',
-      this._handleDisconnectedServer
-    )
   }
 
   // ===========================================================================
-
-  _handleConnectedServer(server, xapi) {
-    return this._handleConnectedXapi(xapi)
-  }
-
-  _handleDisconnectedServer(server, xapi) {
-    return this._handleDisconnectedXapi(xapi)
-  }
-
-  // ---------------------------------------------------------------------------
 
   async _handleConnectedXapi(xapi) {
     log.debug('xapi connected', { id: xapi.pool.uuid })
@@ -591,7 +580,7 @@ class SDNController extends EventEmitter {
         network => network.$pool.uuid === xapi.pool.uuid
       )
 
-      if (privateNetwork.center.$pool.uuid === xapi.pool.uuid) {
+      if (privateNetwork.center?.$pool.uuid === xapi.pool.uuid) {
         this._electNewCenter(privateNetwork)
       }
     })
