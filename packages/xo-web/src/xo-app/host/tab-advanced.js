@@ -153,7 +153,9 @@ export default class extends Component {
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
   _accessAdvancedLiveTelemetry = () =>
-    window.open(`/netdata/host/${this.props.host.hostname}/`)
+    window.open(
+      `/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`
+    )
 
   _enableAdvancedLiveTelemetry = async host => {
     await enableAdvancedLiveTelemetry(host)
