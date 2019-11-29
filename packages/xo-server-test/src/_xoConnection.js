@@ -255,6 +255,32 @@ class XoConnection extends Xo {
     return backups
   }
 
+  // backups {
+  //   xo: {
+  //     [<remote ID>]: [{
+  //       id,
+  //       jobId,
+  //       jobName,
+  //       scheduleId,
+  //       scheduleName,
+  //       timestamp
+  //     }]
+  //   },
+  //   pool: {
+  //     [<remote ID>]: {
+  //       [<pool ID>]: {
+  //         id,
+  //         jobId,
+  //         jobName,
+  //         scheduleId,
+  //         scheduleName,
+  //         timestamp,
+  //         pool,
+  //         poolMaster,
+  //       }
+  //     }
+  //   }
+  // }
   async runMetadataBackupJob(jobId, scheduleId, { remotes, nExecutions = 1 }) {
     for (let i = 0; i < nExecutions; i++) {
       await xo.call('metadataBackup.runJob', {

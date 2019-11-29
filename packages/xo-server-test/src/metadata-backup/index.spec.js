@@ -54,7 +54,7 @@ describe('metadataBackup', () => {
       },
       type: 'metadataBackup',
       userId: xo._user.id,
-      xoMetadata: true,
+      xoMetadata: backupInput.xoMetadata,
     })
 
     // backup execution
@@ -112,8 +112,10 @@ describe('metadataBackup', () => {
     })
 
     expect(tasks.length).toBe(2)
+    let containsXoTask, containsPoolTask
     tasks.forEach(({ tasks, ...xoOrPoolTask }) => {
       if (xoOrPoolTask.data.type === 'xo') {
+        containsXoTask = true
         expect(xoOrPoolTask).toEqual({
           data: {
             type: 'xo',
@@ -125,6 +127,7 @@ describe('metadataBackup', () => {
           status: 'success',
         })
       } else {
+        containsPoolTask = true
         expect(xoOrPoolTask).toEqual({
           data: {
             id: poolId,
@@ -152,5 +155,8 @@ describe('metadataBackup', () => {
         status: 'success',
       })
     })
+
+    expect(containsXoTask).toBe(true)
+    expect(containsPoolTask).toBe(true)
   }, 12e4)
 })
