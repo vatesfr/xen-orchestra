@@ -118,6 +118,16 @@ export default class extends Component {
     })
   }
 
+  async componentWillReceiveProps(props) {
+    if (this.state.isNetDataPluginCorrectlySet) {
+      this.setState({
+        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
+          props.host
+        ),
+      })
+    }
+  }
+
   _getPacks = createSelector(
     () => this.props.host.supplementalPacks,
     packs => {
