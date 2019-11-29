@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host] Fix Enable Live Telemetry button state (PR [#4686](https://github.com/vatesfr/xen-orchestra/pull/4686))
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
