@@ -118,16 +118,6 @@ export default class extends Component {
     })
   }
 
-  async componentWillReceiveProps(props) {
-    if (this.state.isNetDataPluginCorrectlySet) {
-      this.setState({
-        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
-          props.host
-        ),
-      })
-    }
-  }
-
   _getPacks = createSelector(
     () => this.props.host.supplementalPacks,
     packs => {
@@ -165,6 +155,13 @@ export default class extends Component {
   _accessAdvancedLiveTelemetry = () =>
     window.open(`/netdata/${this.props.host.hostname}`)
 
+  _enableAdvancedLiveTelemetry = async host => {
+    await enableAdvancedLiveTelemetry(host)
+    this.setState({
+      isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(host),
+    })
+  }
+
   render() {
     const { host, pcis, pgpus } = this.props
     const {
@@ -187,7 +184,7 @@ export default class extends Component {
       <TabButton
         btnStyle='success'
         disabled={!_isXcpNgHost || !isNetDataPluginCorrectlySet}
-        handler={enableAdvancedLiveTelemetry}
+        handler={this._enableAdvancedLiveTelemetry}
         handlerParam={host}
         icon='telemetry'
         labelId='enableAdvancedLiveTelemetry'
