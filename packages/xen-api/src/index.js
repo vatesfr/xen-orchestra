@@ -4,7 +4,7 @@ import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { EventEmitter } from 'events'
-import { isArray, map, noop, omit } from 'lodash'
+import { map, noop, omit } from 'lodash'
 import {
   cancelable,
   defer,
@@ -25,7 +25,6 @@ import isReadOnlyCall from './_isReadOnlyCall'
 import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
 import replaceSensitiveValues from './_replaceSensitiveValues'
-import XapiError from './_XapiError'
 
 // ===================================================================
 
@@ -113,7 +112,7 @@ export class Xapi extends EventEmitter {
     this._watchedTypes = undefined
     const { watchEvents } = opts
     if (watchEvents !== false) {
-      if (isArray(watchEvents)) {
+      if (Array.isArray(watchEvents)) {
         this._watchedTypes = watchEvents
       }
       this.watchEvents()
@@ -626,9 +625,7 @@ export class Xapi extends EventEmitter {
         kindOf(result)
       )
       return result
-    } catch (e) {
-      const error = e instanceof Error ? e : XapiError.wrap(e)
-
+    } catch (error) {
       // do not log the session ID
       //
       // TODO: should log at the session level to avoid logging sensitive
@@ -743,9 +740,9 @@ export class Xapi extends EventEmitter {
     // the event loop in that case
     if (this._pool.$ref !== oldPoolRef) {
       // Uses introspection to list available types.
-      const types = (this._types = (await this._interruptOnDisconnect(
-        this._call('system.listMethods')
-      ))
+      const types = (this._types = (
+        await this._interruptOnDisconnect(this._call('system.listMethods'))
+      )
         .filter(isGetAllRecordsMethod)
         .map(method => method.slice(0, method.indexOf('.'))))
       this._lcToTypes = { __proto__: null }
@@ -1075,7 +1072,7 @@ export class Xapi extends EventEmitter {
         const $field = (field in RESERVED_FIELDS ? '$$' : '$') + field
 
         const value = data[field]
-        if (isArray(value)) {
+        if (Array.isArray(value)) {
           if (value.length === 0 || isOpaqueRef(value[0])) {
             getters[$field] = function() {
               const value = this[field]

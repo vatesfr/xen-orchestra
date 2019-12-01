@@ -1,4 +1,5 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import { createLogger } from '@xen-orchestra/log'
 
 import resolveRelativeFromFile from './_resolveRelativeFromFile'
 
@@ -13,18 +14,23 @@ import {
 import { fuFooter, fuHeader, checksumStruct } from './_structs'
 import { test as mapTestBit } from './_bitmap'
 
-export default async function createSyntheticStream(handler, path) {
+const { warn } = createLogger('vhd-lib:createSyntheticStream')
+
+export default async function createSyntheticStream(handler, paths) {
   const fds = []
   const cleanup = () => {
     for (let i = 0, n = fds.length; i < n; ++i) {
       handler.closeFile(fds[i]).catch(error => {
-        console.warn('createReadStream, closeFd', i, error)
+        warn('error while closing file', {
+          error,
+          fd: fds[i],
+        })
       })
     }
   }
   try {
     const vhds = []
-    while (true) {
+    const open = async path => {
       const fd = await handler.openFile(path, 'r')
       fds.push(fd)
       const vhd = new Vhd(handler, fd)
@@ -32,11 +38,18 @@ export default async function createSyntheticStream(handler, path) {
       await vhd.readHeaderAndFooter()
       await vhd.readBlockAllocationTable()
 
-      if (vhd.footer.diskType === DISK_TYPE_DYNAMIC) {
-        break
+      return vhd
+    }
+    if (typeof paths === 'string') {
+      let path = paths
+      let vhd
+      while ((vhd = await open(path)).footer.diskType !== DISK_TYPE_DYNAMIC) {
+        path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
       }
-
-      path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
+    } else {
+      for (const path of paths) {
+        await open(path)
+      }
     }
     const nVhds = vhds.length
 

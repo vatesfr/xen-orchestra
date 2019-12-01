@@ -1,4 +1,5 @@
 import assert from 'assert'
+import { createLogger } from '@xen-orchestra/log'
 
 import checkFooter from './_checkFooter'
 import checkHeader from './_checkHeader'
@@ -15,10 +16,7 @@ import {
   SECTOR_SIZE,
 } from './_constants'
 
-const VHD_UTIL_DEBUG = 0
-const debug = VHD_UTIL_DEBUG
-  ? str => console.log(`[vhd-merge]${str}`)
-  : () => null
+const { debug } = createLogger('vhd-lib:Vhd')
 
 // ===================================================================
 //
@@ -40,9 +38,11 @@ const sectorsToBytes = sectors => sectors * SECTOR_SIZE
 const assertChecksum = (name, buf, struct) => {
   const actual = unpackField(struct.fields.checksum, buf)
   const expected = checksumStruct(buf, struct)
-  if (actual !== expected) {
-    throw new Error(`invalid ${name} checksum ${actual}, expected ${expected}`)
-  }
+  assert.strictEqual(
+    actual,
+    expected,
+    `invalid ${name} checksum ${actual}, expected ${expected}`
+  )
 }
 
 // unused block as buffer containing a uint32BE
@@ -102,7 +102,7 @@ export default class Vhd {
   }
 
   // Returns the first address after metadata. (In bytes)
-  getEndOfHeaders() {
+  _getEndOfHeaders() {
     const { header } = this
 
     let end = FOOTER_SIZE + HEADER_SIZE
@@ -127,8 +127,8 @@ export default class Vhd {
   }
 
   // Returns the first sector after data.
-  getEndOfData() {
-    let end = Math.ceil(this.getEndOfHeaders() / SECTOR_SIZE)
+  _getEndOfData() {
+    let end = Math.ceil(this._getEndOfHeaders() / SECTOR_SIZE)
 
     const fullBlockSize = this.sectorsOfBitmap + this.sectorsPerBlock
     const { maxTableEntries } = this.header
@@ -309,8 +309,8 @@ export default class Vhd {
 
   // Make a new empty block at vhd end.
   // Update block allocation table in context and in file.
-  async createBlock(blockId) {
-    const blockAddr = Math.ceil(this.getEndOfData() / SECTOR_SIZE)
+  async _createBlock(blockId) {
+    const blockAddr = Math.ceil(this._getEndOfData() / SECTOR_SIZE)
 
     debug(`create block ${blockId} at ${blockAddr}`)
 
@@ -325,7 +325,7 @@ export default class Vhd {
   }
 
   // Write a bitmap at a block address.
-  async writeBlockBitmap(blockAddr, bitmap) {
+  async _writeBlockBitmap(blockAddr, bitmap) {
     const { bitmapSize } = this
 
     if (bitmap.length !== bitmapSize) {
@@ -342,20 +342,20 @@ export default class Vhd {
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
-  async writeEntireBlock(block) {
+  async _writeEntireBlock(block) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
-      blockAddr = await this.createBlock(block.id)
+      blockAddr = await this._createBlock(block.id)
     }
     await this._write(block.buffer, sectorsToBytes(blockAddr))
   }
 
-  async writeBlockSectors(block, beginSectorId, endSectorId, parentBitmap) {
+  async _writeBlockSectors(block, beginSectorId, endSectorId, parentBitmap) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
-      blockAddr = await this.createBlock(block.id)
+      blockAddr = await this._createBlock(block.id)
       parentBitmap = Buffer.alloc(this.bitmapSize, 0)
     } else if (parentBitmap === undefined) {
       parentBitmap = (await this._readBlock(block.id, true)).bitmap
@@ -364,14 +364,14 @@ export default class Vhd {
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
 
     debug(
-      `writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`
+      `_writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`
     )
 
     for (let i = beginSectorId; i < endSectorId; ++i) {
       mapSetBit(parentBitmap, i)
     }
 
-    await this.writeBlockBitmap(blockAddr, parentBitmap)
+    await this._writeBlockBitmap(blockAddr, parentBitmap)
     await this._write(
       block.data.slice(
         sectorsToBytes(beginSectorId),
@@ -407,12 +407,12 @@ export default class Vhd {
 
       const isFullBlock = i === 0 && endSector === sectorsPerBlock
       if (isFullBlock) {
-        await this.writeEntireBlock(block)
+        await this._writeEntireBlock(block)
       } else {
         if (parentBitmap === null) {
           parentBitmap = (await this._readBlock(blockId, true)).bitmap
         }
-        await this.writeBlockSectors(block, i, endSector, parentBitmap)
+        await this._writeBlockSectors(block, i, endSector, parentBitmap)
       }
 
       i = endSector
@@ -429,7 +429,7 @@ export default class Vhd {
     const rawFooter = fuFooter.pack(footer)
     const eof = await this._handler.getSize(this._path)
     // sometimes the file is longer than anticipated, we still need to put the footer at the end
-    const offset = Math.max(this.getEndOfData(), eof - rawFooter.length)
+    const offset = Math.max(this._getEndOfData(), eof - rawFooter.length)
 
     footer.checksum = checksumStruct(rawFooter, fuFooter)
     debug(
@@ -500,7 +500,7 @@ export default class Vhd {
           endInBuffer
         )
       }
-      await this.writeBlockSectors(
+      await this._writeBlockSectors(
         { id: currentBlock, data: inputBuffer },
         offsetInBlockSectors,
         endInBlockSectors
@@ -509,7 +509,7 @@ export default class Vhd {
     await this.writeFooter()
   }
 
-  async ensureSpaceForParentLocators(neededSectors) {
+  async _ensureSpaceForParentLocators(neededSectors) {
     const firstLocatorOffset = FOOTER_SIZE + HEADER_SIZE
     const currentSpace =
       Math.floor(this.header.tableOffset / SECTOR_SIZE) -
@@ -528,7 +528,7 @@ export default class Vhd {
     header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
     const encodedFilename = Buffer.from(fileNameString, 'utf16le')
     const dataSpaceSectors = Math.ceil(encodedFilename.length / SECTOR_SIZE)
-    const position = await this.ensureSpaceForParentLocators(dataSpaceSectors)
+    const position = await this._ensureSpaceForParentLocators(dataSpaceSectors)
     await this._write(encodedFilename, position)
     header.parentLocatorEntry[0].platformDataSpace =
       dataSpaceSectors * SECTOR_SIZE

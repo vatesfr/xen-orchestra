@@ -21,7 +21,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { assign, isEmpty, map, pick, sortBy } from 'lodash'
+import { isEmpty, map, pick, sortBy } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -52,17 +52,11 @@ const isRunning = host => host && host.power_state === 'Running'
   const getPool = createGetObject((state, props) => getHost(state, props).$pool)
 
   const getVmController = createGetObjectsOfType('VM-controller').find(
-    createSelector(
-      getHost,
-      ({ id }) => obj => obj.$container === id
-    )
+    createSelector(getHost, ({ id }) => obj => obj.$container === id)
   )
 
   const getHostVms = createGetObjectsOfType('VM').filter(
-    createSelector(
-      getHost,
-      ({ id }) => obj => obj.$container === id
-    )
+    createSelector(getHost, ({ id }) => obj => obj.$container === id)
   )
 
   const getNumberOfVms = getHostVms.count()
@@ -79,34 +73,22 @@ const isRunning = host => host && host.power_state === 'Running'
     .sort()
 
   const getPifs = createGetObjectsOfType('PIF')
-    .pick(
-      createSelector(
-        getHost,
-        host => host.$PIFs
-      )
-    )
+    .pick(createSelector(getHost, host => host.$PIFs))
     .sort()
 
   const getNetworks = createGetObjectsOfType('network').pick(
-    createSelector(
-      getPifs,
-      pifs => map(pifs, pif => pif.$network)
-    )
+    createSelector(getPifs, pifs => map(pifs, pif => pif.$network))
   )
 
   const getPrivateNetworks = createFilter(
     createGetObjectsOfType('network'),
-    createSelector(
-      getPool,
-      pool => network => network.$pool === pool.id && isEmpty(network.PIFs)
+    createSelector(getPool, pool => network =>
+      network.$pool === pool.id && isEmpty(network.PIFs)
     )
   )
 
   const getHostPatches = createGetObjectsOfType('patch').pick(
-    createSelector(
-      getHost,
-      host => host.patches
-    )
+    createSelector(getHost, host => host.patches)
   )
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
@@ -338,7 +320,7 @@ export default class Host extends Component {
     if (!host) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'host',
         'hostPatches',

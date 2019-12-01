@@ -511,9 +511,8 @@ class NewVif extends BaseComponent {
   const getVifs = createGetObjectsOfType('VIF').pick(
     (_, props) => props.vm.VIFs
   )
-  const getNetworksId = createSelector(
-    getVifs,
-    vifs => map(vifs, vif => vif.$network)
+  const getNetworksId = createSelector(getVifs, vifs =>
+    map(vifs, vif => vif.$network)
   )
   const getNetworks = createGetObjectsOfType('network').pick(getNetworksId)
 

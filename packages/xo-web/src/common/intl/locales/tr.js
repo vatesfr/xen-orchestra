@@ -2660,7 +2660,7 @@ export default {
   vmChooseCoresPerSocket: 'Varsayılan davranış',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} soket ve her sokette  {nCores, number} çekirdek',
 
   // Original text: "None"
@@ -4864,10 +4864,10 @@ export default {
   xosanState_scanningSr: 'SR taranıyor...',
 
   // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin: 'Önce bulut eklentisini kurun',
+  xosanInstallCloudPlugin: 'Önce XOA eklentisini kurun',
 
   // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin: 'Önce bulut eklentisini yükleyin',
+  xosanLoadCloudPlugin: 'Önce XOA eklentisini yükleyin',
 
   // Original text: "Register your appliance first"
   xosanRegister: "Önce XOSAN'ın kaydını yapın",

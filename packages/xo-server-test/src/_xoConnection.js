@@ -2,15 +2,11 @@
 import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import { find, forOwn } from 'lodash'
+import { defaultsDeep, find, forOwn, pick } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
 
 import config from './_config'
-
-const getDefaultCredentials = () => {
-  const { email, password } = config.xoConnection
-  return { email, password }
-}
+import { getDefaultName } from './_defaultValues'
 
 class XoConnection extends Xo {
   constructor(opts) {
@@ -72,7 +68,10 @@ class XoConnection extends Xo {
   }
 
   @defer
-  async connect($defer, credentials = getDefaultCredentials()) {
+  async connect(
+    $defer,
+    credentials = pick(config.xoConnection, 'email', 'password')
+  ) {
     await this.open()
     $defer.onFailure(() => this.close())
 
@@ -87,7 +86,7 @@ class XoConnection extends Xo {
     while (true) {
       try {
         await predicate(obj)
-        return
+        return obj
       } catch (_) {}
       // If failed, wait for next object state/update and retry.
       obj = await this.waitObject(id)
@@ -111,18 +110,61 @@ class XoConnection extends Xo {
   }
 
   async createTempBackupNgJob(params) {
-    const job = await this.call('backupNg.createJob', params)
-    this._tempResourceDisposers.push('backupNg.deleteJob', { id: job.id })
-    return job
+    // mutate and inject default values
+    defaultsDeep(params, {
+      mode: 'full',
+      name: getDefaultName(),
+      settings: {
+        '': {
+          // it must be enabled because the XAPI might be not able to coalesce VDIs
+          // as fast as the tests run
+          //
+          // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
+          bypassVdiChainsCheck: true,
+
+          // it must be 'never' to avoid race conditions with the plugin `backup-reports`
+          reportWhen: 'never',
+        },
+      },
+    })
+    const id = await this.call('backupNg.createJob', params)
+    this._tempResourceDisposers.push('backupNg.deleteJob', { id })
+    return this.call('backupNg.getJob', { id })
+  }
+
+  async createTempNetwork(params) {
+    const id = await this.call('network.create', {
+      name: 'XO Test',
+      pool: config.pools.default,
+      ...params,
+    })
+    this._tempResourceDisposers.push('network.delete', { id })
+    return this.getOrWaitObject(id)
   }
 
   async createTempVm(params) {
-    const id = await this.call('vm.create', params)
+    const id = await this.call('vm.create', {
+      name_label: getDefaultName(),
+      template: config.templates.templateWithoutDisks,
+      ...params,
+    })
     this._tempResourceDisposers.push('vm.delete', { id })
-    await this.waitObjectState(id, vm => {
+    return this.waitObjectState(id, vm => {
       if (vm.type !== 'VM') throw new Error('retry')
     })
-    return id
+  }
+
+  async startTempVm(id, params, withXenTools = false) {
+    await this.call('vm.start', { id, ...params })
+    this._tempResourceDisposers.push('vm.stop', { id, force: true })
+    return this.waitObjectState(id, vm => {
+      if (
+        vm.power_state !== 'Running' ||
+        (withXenTools && vm.xenTools === false)
+      ) {
+        throw new Error('retry')
+      }
+    })
   }
 
   async createTempRemote(params) {
@@ -155,6 +197,50 @@ class XoConnection extends Xo {
 
   async getSchedule(predicate) {
     return find(await this.call('schedule.getAll'), predicate)
+  }
+
+  async runBackupJob(jobId, scheduleId, { remotes, nExecutions = 1 }) {
+    for (let i = 0; i < nExecutions; i++) {
+      await xo.call('backupNg.runJob', { id: jobId, schedule: scheduleId })
+    }
+    const backups = {}
+    if (remotes !== undefined) {
+      const backupsByRemote = await xo.call('backupNg.listVmBackups', {
+        remotes,
+      })
+      forOwn(backupsByRemote, (backupsByVm, remoteId) => {
+        backups[remoteId] = []
+        forOwn(backupsByVm, vmBackups => {
+          vmBackups.forEach(
+            ({ jobId: backupJobId, scheduleId: backupScheduleId, id }) => {
+              if (jobId === backupJobId && scheduleId === backupScheduleId) {
+                this._tempResourceDisposers.push('backupNg.deleteVmBackup', {
+                  id,
+                })
+                backups[remoteId].push(id)
+              }
+            }
+          )
+        })
+      })
+    }
+
+    forOwn(this.objects.all, (obj, id) => {
+      if (
+        obj.other !== undefined &&
+        obj.other['xo:backup:job'] === jobId &&
+        obj.other['xo:backup:schedule'] === scheduleId
+      ) {
+        this._tempResourceDisposers.push('vm.delete', {
+          id,
+        })
+      }
+    })
+    return backups
+  }
+
+  getBackupLogs(filter) {
+    return this.call('backupNg.getLogs', { _forceRefresh: true, ...filter })
   }
 
   async _cleanDisposers(disposers) {

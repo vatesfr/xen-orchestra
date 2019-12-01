@@ -1,13 +1,18 @@
 /* eslint no-throw-literal: 0 */
 
 import eventToPromise from 'event-to-promise'
-import { bind, noop } from 'lodash'
+import noop from 'lodash/noop'
 import { createClient } from 'ldapjs'
 import { escape } from 'ldapjs/lib/filters/escape'
 import { promisify } from 'promise-toolbox'
 import { readFile } from 'fs'
 
 // ===================================================================
+
+const DEFAULTS = {
+  checkCertificate: true,
+  filter: '(uid={{name}})',
+}
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) =>
@@ -43,7 +48,7 @@ If not specified, it will use a default set of well-known CAs.
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
-      default: true,
+      defaults: DEFAULTS.checkCertificate,
     },
     bind: {
       description: 'Credentials to use before looking for the user record.',
@@ -76,6 +81,11 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
       description: `
 Filter used to find the user.
 
+For LDAP if you want to filter for a special group you can try
+something like:
+
+- \`(&(uid={{name}})(memberOf=<group DN>))\`
+
 For Microsoft Active Directory, you can try one of the following filters:
 
 - \`(cn={{name}})\`
@@ -83,13 +93,12 @@ For Microsoft Active Directory, you can try one of the following filters:
 - \`(sAMAccountName={{name}}@<domain>)\` (replace \`<domain>\` by your own domain)
 - \`(userPrincipalName={{name}})\`
 
-For LDAP if you want to filter for a special group you can try
-something like:
+Or something like this if you also want to filter by group:
 
-- \`(&(uid={{name}})(memberOf=<group DN>))\`
+- \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: '(uid={{name}})',
+      default: DEFAULTS.filter,
     },
   },
   required: ['uri', 'base'],
@@ -116,7 +125,7 @@ class AuthLdap {
   constructor(xo) {
     this._xo = xo
 
-    this._authenticate = bind(this._authenticate, this)
+    this._authenticate = this._authenticate.bind(this)
   }
 
   async configure(conf) {
@@ -127,7 +136,11 @@ class AuthLdap {
     })
 
     {
-      const { bind, checkCertificate = true, certificateAuthorities } = conf
+      const {
+        bind,
+        checkCertificate = DEFAULTS.checkCertificate,
+        certificateAuthorities,
+      } = conf
 
       if (bind) {
         clientOpts.bindDN = bind.dn
@@ -147,7 +160,7 @@ class AuthLdap {
     const {
       bind: credentials,
       base: searchBase,
-      filter: searchFilter = '(uid={{name}})',
+      filter: searchFilter = DEFAULTS.filter,
     } = conf
 
     this._credentials = credentials

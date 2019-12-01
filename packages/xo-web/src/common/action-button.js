@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import { isFunction } from 'lodash'
 
 import Button from './button'
 import Component from './base-component'
@@ -93,9 +92,10 @@ export default class ActionButton extends Component {
 
       const { redirectOnSuccess } = props
       if (redirectOnSuccess !== undefined) {
-        const to = isFunction(redirectOnSuccess)
-          ? redirectOnSuccess(result, handlerParam)
-          : redirectOnSuccess
+        const to =
+          typeof redirectOnSuccess === 'function'
+            ? redirectOnSuccess(result, handlerParam)
+            : redirectOnSuccess
         if (to !== undefined) {
           return this.context.router.push(to)
         }

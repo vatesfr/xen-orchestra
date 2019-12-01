@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component, cloneElement } from 'react'
 import { createSelector } from 'selectors'
-import { identity, isArray, isString, map } from 'lodash'
+import { identity, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
@@ -35,7 +35,7 @@ const modal = (content, onClose, props) => {
 }
 
 const _addRef = (component, ref) => {
-  if (isString(component) || isArray(component)) {
+  if (typeof component === 'string' || Array.isArray(component)) {
     return component
   }
 

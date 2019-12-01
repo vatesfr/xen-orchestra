@@ -11,7 +11,7 @@ import { Container, Row, Col } from 'grid'
 import { editSr } from 'xo'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
-import { assign, map, pick } from 'lodash'
+import { map, pick } from 'lodash'
 import { connectStore, routes } from 'utils'
 import {
   createGetObject,
@@ -47,17 +47,11 @@ import TabXosan from './tab-xosan'
   )
 
   const getPbds = createGetObjectsOfType('PBD').pick(
-    createSelector(
-      getSr,
-      sr => sr.$PBDs
-    )
+    createSelector(getSr, sr => sr.$PBDs)
   )
 
   const getSrHosts = createGetObjectsOfType('host').pick(
-    createSelector(
-      getPbds,
-      pbds => map(pbds, pbd => pbd.host)
-    )
+    createSelector(getPbds, pbds => map(pbds, pbd => pbd.host))
   )
 
   // -----------------------------------------------------------------
@@ -75,12 +69,7 @@ import TabXosan from './tab-xosan'
     .pick(getVdiIds)
     .sort()
   const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged')
-    .pick(
-      createSelector(
-        getSr,
-        sr => sr.VDIs
-      )
-    )
+    .pick(createSelector(getSr, sr => sr.VDIs))
     .sort()
 
   // -----------------------------------------------------------------
@@ -184,7 +173,7 @@ export default class Sr extends Component {
     if (!sr) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'hosts',
         'logs',

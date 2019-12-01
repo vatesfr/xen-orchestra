@@ -1,6 +1,6 @@
 import { PureComponent } from 'react'
 import { cowSet } from 'utils'
-import { includes, isArray, forEach, map } from 'lodash'
+import { includes, forEach, map } from 'lodash'
 
 import getEventValue from './get-event-value'
 
@@ -15,7 +15,7 @@ const get = (object, path, depth) => {
   }
 
   const prop = path[depth++]
-  return isArray(object) && prop === '*'
+  return Array.isArray(object) && prop === '*'
     ? map(object, value => get(value, path, depth))
     : get(object[prop], path, depth)
 }

@@ -9,8 +9,6 @@ import {
   forEach,
   includes,
   isEmpty,
-  isFunction,
-  isString,
   iteratee,
   map as mapToArray,
   stubTrue,
@@ -73,7 +71,8 @@ export default class Xo extends EventEmitter {
 
     if (
       type != null &&
-      ((isString(type) && type !== obj.type) || !includes(type, obj.type)) // Array
+      ((typeof type === 'string' && type !== obj.type) ||
+        !includes(type, obj.type)) // Array
     ) {
       throw noSuchObject(key, type)
     }
@@ -166,20 +165,16 @@ export default class Xo extends EventEmitter {
 
   async registerHttpRequest(fn, data, { suffix = '' } = {}) {
     const { _httpRequestWatchers: watchers } = this
+    let url
 
-    const url = await (function generateUniqueUrl() {
-      return generateToken().then(token => {
-        const url = `/api/${token}${suffix}`
-
-        return url in watchers ? generateUniqueUrl() : url
-      })
-    })()
+    do {
+      url = `/api/${await generateToken()}${suffix}`
+    } while (url in watchers)
 
     watchers[url] = {
       data,
       fn,
     }
-
     return url
   }
 
@@ -214,7 +209,7 @@ export default class Xo extends EventEmitter {
     }
 
     // For security, prevent from accessing `this`.
-    if (isFunction(value)) {
+    if (typeof value === 'function') {
       value = (value =>
         function() {
           return value.apply(thisArg, arguments)

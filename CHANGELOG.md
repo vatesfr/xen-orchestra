@@ -4,25 +4,213 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+## **5.41.0** (2019-11-29)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Highlights
+
+- [Backup NG] Make report recipients configurable in the backup settings [#4581](https://github.com/vatesfr/xen-orchestra/issues/4581) (PR [#4646](https://github.com/vatesfr/xen-orchestra/pull/4646))
+- [Host] Advanced Live Telemetry (PR [#4680](https://github.com/vatesfr/xen-orchestra/pull/4680))
+- [Plugin] [Web hooks](https://xen-orchestra.com/docs/web-hooks.html) [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
+
+### Enhancements
+
+- [SAML] Setting to disable requested authentication context (helps with _Active Directory_) (PR [#4675](https://github.com/vatesfr/xen-orchestra/pull/4675))
+- The default sign-in page can be configured via `authentication.defaultSignInPage` (PR [#4678](https://github.com/vatesfr/xen-orchestra/pull/4678))
+- [SR] Allow import of VHD and VMDK disks [#4137](https://github.com/vatesfr/xen-orchestra/issues/4137) (PR [#4138](https://github.com/vatesfr/xen-orchestra/pull/4138) )
+
+### Bug fixes
+
+- [Metadata backup] Add 10 minutes timeout to avoid stuck jobs [#4657](https://github.com/vatesfr/xen-orchestra/issues/4657) (PR [#4666](https://github.com/vatesfr/xen-orchestra/pull/4666))
+- [Metadata backups] Fix out-of-date listing for 1 minute due to cache (PR [#4672](https://github.com/vatesfr/xen-orchestra/pull/4672))
+- [Delta backup] Limit the number of merged deltas per run to avoid interrupted jobs (PR [#4674](https://github.com/vatesfr/xen-orchestra/pull/4674))
+
+### Released packages
+
+- vhd-lib v0.7.2
+- xo-vmdk-to-vhd v0.1.8
+- xo-server-auth-ldap v0.6.6
+- xo-server-auth-saml v0.7.0
+- xo-server-backup-reports v0.16.4
+- xo-server-web-hooks v0.1.0
+- @xen-orchestra/fs v0.10.2
+- xo-server v5.53.0
+- xo-web v5.53.3
+
+## **5.40.2** (2019-11-22)
+
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
+
+### Enhancements
+
+- [Logs] Ability to report a bug with attached log (PR [#4201](https://github.com/vatesfr/xen-orchestra/pull/4201))
+- [Backup] Reduce _VDI chain protection error_ occurrence by being more tolerant (configurable via `xo-server`'s `xapiOptions.maxUncoalescedVdis` setting) [#4124](https://github.com/vatesfr/xen-orchestra/issues/4124) (PR [#4651](https://github.com/vatesfr/xen-orchestra/pull/4651))
+- [Tables] Always put the tables' search in the URL [#4542](https://github.com/vatesfr/xen-orchestra/issues/4542) (PR [#4637](https://github.com/vatesfr/xen-orchestra/pull/4637))
+
+### Bug fixes
+
+- [SDN controller] Prevent private network creation on bond slave PIF (Fixes https://github.com/xcp-ng/xcp/issues/300) (PR [4633](https://github.com/vatesfr/xen-orchestra/pull/4633))
+- [Metadata backup] Fix failed backup reported as successful [#4596](https://github.com/vatesfr/xen-orchestra/issues/4596) (PR [#4598](https://github.com/vatesfr/xen-orchestra/pull/4598))
+- [Backup NG] Fix "task cancelled" error when the backup job timeout exceeds 596 hours [#4662](https://github.com/vatesfr/xen-orchestra/issues/4662) (PR [#4663](https://github.com/vatesfr/xen-orchestra/pull/4663))
+- Fix `promise rejected with non-error` warnings in logs (PR [#4659](https://github.com/vatesfr/xen-orchestra/pull/4659))
+
+### Released packages
+
+- xen-api v0.27.3
+- xo-server-backup-reports v0.16.3
+- vhd-lib v0.7.1
+- xo-server v5.52.1
+- xo-web v5.52.0
+
+## **5.40.1** (2019-10-29)
+
+### Bug fixes
+
+- [XOSAN] Fix "Install Cloud plugin" warning (PR [#4631](https://github.com/vatesfr/xen-orchestra/pull/4631))
+
+### Released packages
+
+- xo-web v5.51.1
+
+## **5.40.0** (2019-10-29)
+
+### Breaking changes
+
+- `xo-server` requires Node 8.
+
+### Highlights
+
+- [Backup NG] Offline backup feature [#3449](https://github.com/vatesfr/xen-orchestra/issues/3449) (PR [#4470](https://github.com/vatesfr/xen-orchestra/pull/4470))
+- [Menu] Remove legacy backup entry [#4467](https://github.com/vatesfr/xen-orchestra/issues/4467) (PR [#4476](https://github.com/vatesfr/xen-orchestra/pull/4476))
+- [Hub] Ability to update existing template (PR [#4613](https://github.com/vatesfr/xen-orchestra/pull/4613))
+- [Support] Ability to open and close support tunnel from the user interface [#4513](https://github.com/vatesfr/xen-orchestra/issues/4513) (PR [#4616](https://github.com/vatesfr/xen-orchestra/pull/4616))
+
+### Enhancements
+
+- [Hub] Ability to select SR in hub VM installation (PR [#4571](https://github.com/vatesfr/xen-orchestra/pull/4571))
+- [Hub] Display more info about downloadable templates (PR [#4593](https://github.com/vatesfr/xen-orchestra/pull/4593))
+- [xo-server-transport-icinga2] Add support of [icinga2](https://icinga.com/docs/icinga2/latest/doc/12-icinga2-api/) for reporting services status [#4563](https://github.com/vatesfr/xen-orchestra/issues/4563) (PR [#4573](https://github.com/vatesfr/xen-orchestra/pull/4573))
+
+### Bug fixes
+
+- [SR] Fix `[object HTMLInputElement]` name after re-attaching a SR [#4546](https://github.com/vatesfr/xen-orchestra/issues/4546) (PR [#4550](https://github.com/vatesfr/xen-orchestra/pull/4550))
+- [Schedules] Prevent double runs [#4625](https://github.com/vatesfr/xen-orchestra/issues/4625) (PR [#4626](https://github.com/vatesfr/xen-orchestra/pull/4626))
+- [Schedules] Properly enable/disable on config import (PR [#4624](https://github.com/vatesfr/xen-orchestra/pull/4624))
+
+### Released packages
+
+- @xen-orchestra/cron v1.0.6
+- xo-server-transport-icinga2 v0.1.0
+- xo-server-sdn-controller v0.3.1
+- xo-server v5.51.1
+- xo-web v5.51.0
+
+### Dropped packages
+
+- xo-server-cloud : this package was useless for OpenSource installations because it required a complete XOA environment
+
+
+## **5.39.1** (2019-10-11)
+
+### Enhancements
+
+- [Support] Ability to check the XOA on the user interface [#4513](https://github.com/vatesfr/xen-orchestra/issues/4513) (PR [#4574](https://github.com/vatesfr/xen-orchestra/pull/4574))
+
+### Bug fixes
+
+- [VM/new-vm] Fix template selection on creating new VM for resource sets [#4565](https://github.com/vatesfr/xen-orchestra/issues/4565) (PR [#4568](https://github.com/vatesfr/xen-orchestra/pull/4568))
+- [VM] Clearer invalid cores per socket error [#4120](https://github.com/vatesfr/xen-orchestra/issues/4120) (PR [#4187](https://github.com/vatesfr/xen-orchestra/pull/4187))
+
+### Released packages
+
+- xo-web v5.50.3
+
+
+## **5.39.0** (2019-09-30)
+
+### Highlights
+
+- [VM/console] Add a button to connect to the VM via the local SSH client (PR [#4415](https://github.com/vatesfr/xen-orchestra/pull/4415))
+- [SDN Controller] Add possibility to encrypt private networks (PR [#4441](https://github.com/vatesfr/xen-orchestra/pull/4441))
+- [Backups] Improve performance by caching VM backups listing (PR [#4509](https://github.com/vatesfr/xen-orchestra/pull/4509))
+- [HUB] VM template store [#1918](https://github.com/vatesfr/xen-orchestra/issues/1918) (PR [#4442](https://github.com/vatesfr/xen-orchestra/pull/4442))
+
+### Enhancements
+
+- [SR/new] Clarify address formats [#4450](https://github.com/vatesfr/xen-orchestra/issues/4450) (PR [#4460](https://github.com/vatesfr/xen-orchestra/pull/4460))
+- [Backup NG/New] Show warning if zstd compression is not supported on a VM [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PRs [#4411](https://github.com/vatesfr/xen-orchestra/pull/4411))
+- [VM/disks] Don't hide disks that are attached to the same VM twice [#4400](https://github.com/vatesfr/xen-orchestra/issues/4400) (PR [#4414](https://github.com/vatesfr/xen-orchestra/pull/4414))
+- [SDN Controller] Ability to configure MTU for private networks (PR [#4491](https://github.com/vatesfr/xen-orchestra/pull/4491))
+- [VM Export] Filenames are now prefixed with datetime [#4503](https://github.com/vatesfr/xen-orchestra/issues/4503)
+- [Settings/Logs] Differenciate XS/XCP-ng errors from XO errors [#4101](https://github.com/vatesfr/xen-orchestra/issues/4101) (PR [#4385](https://github.com/vatesfr/xen-orchestra/pull/4385))
+- [Backups] Improve performance by caching logs consolidation (PR [#4541](https://github.com/vatesfr/xen-orchestra/pull/4541))
+- [New VM] Cloud Init available for all plans (PR [#4543](https://github.com/vatesfr/xen-orchestra/pull/4543))
+- [Servers] IPv6 addresses can be used [#4520](https://github.com/vatesfr/xen-orchestra/issues/4520) (PR [#4521](https://github.com/vatesfr/xen-orchestra/pull/4521)) \
+  Note: They must enclosed in brackets to differentiate with the port, e.g.: `[2001:db8::7334]` or `[ 2001:db8::7334]:4343`
+
+### Bug fixes
+
+- [PBD] Obfuscate cifs password from device config [#4384](https://github.com/vatesfr/xen-orchestra/issues/4384) (PR [#4401](https://github.com/vatesfr/xen-orchestra/pull/4401))
+- [XOSAN] Fix "invalid parameters" error on creating a SR (PR [#4478](https://github.com/vatesfr/xen-orchestra/pull/4478))
+- [Patching] Avoid overloading XCP-ng by reducing the frequency of yum update checks [#4358](https://github.com/vatesfr/xen-orchestra/issues/4358) (PR [#4477](https://github.com/vatesfr/xen-orchestra/pull/4477))
+- [Network] Fix inability to create a bonded network (PR [#4489](https://github.com/vatesfr/xen-orchestra/pull/4489))
+- [Backup restore & Replication] Don't copy `sm_config` to new VDIs which might leads to useless coalesces [#4482](https://github.com/vatesfr/xen-orchestra/issues/4482) (PR [#4484](https://github.com/vatesfr/xen-orchestra/pull/4484))
+- [Home] Fix intermediary "no results" display showed on filtering items [#4420](https://github.com/vatesfr/xen-orchestra/issues/4420) (PR [#4456](https://github.com/vatesfr/xen-orchestra/pull/4456)
+- [Backup NG/New schedule] Properly show user errors in the form [#3831](https://github.com/vatesfr/xen-orchestra/issues/3831) (PR [#4131](https://github.com/vatesfr/xen-orchestra/pull/4131))
+- [VM/Advanced] Fix `"vm.set_domain_type" is not a function` error on switching virtualization mode (PV/HVM) [#4348](https://github.com/vatesfr/xen-orchestra/issues/4348) (PR [#4504](https://github.com/vatesfr/xen-orchestra/pull/4504))
+- [Backup NG/logs] Show warning when zstd compression is selected but not supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4375](https://github.com/vatesfr/xen-orchestra/pull/4375)
+- [Patches] Fix patches installation for CH 8.0 (PR [#4511](https://github.com/vatesfr/xen-orchestra/pull/4511))
+- [Network] Fix inability to set a network name [#4514](https://github.com/vatesfr/xen-orchestra/issues/4514) (PR [4510](https://github.com/vatesfr/xen-orchestra/pull/4510))
+- [Backup NG] Fix race conditions that could lead to disabled jobs still running (PR [4510](https://github.com/vatesfr/xen-orchestra/pull/4510))
+- [XOA] Remove "Updates" and "Licenses" tabs for non admin users (PR [#4526](https://github.com/vatesfr/xen-orchestra/pull/4526))
+- [New VM] Ability to escape [cloud config template](https://xen-orchestra.com/blog/xen-orchestra-5-21/#cloudconfigtemplates) variables [#4486](https://github.com/vatesfr/xen-orchestra/issues/4486) (PR [#4501](https://github.com/vatesfr/xen-orchestra/pull/4501))
+- [Backup NG] Properly log and report if job is already running [#4497](https://github.com/vatesfr/xen-orchestra/issues/4497) (PR [4534](https://github.com/vatesfr/xen-orchestra/pull/4534))
+- [Host] Fix an issue where host was wrongly reporting time inconsistency (PR [#4540](https://github.com/vatesfr/xen-orchestra/pull/4540))
+
+
+### Released packages
+
+- xen-api v0.27.2
+- xo-server-cloud v0.3.0
+- @xen-orchestra/cron v1.0.4
+- xo-server-sdn-controller v0.3.0
+- @xen-orchestra/template v0.1.0
+- xo-server v5.50.1
+- xo-web v5.50.2
+
+
+## **5.38.0** (2019-08-29)
+
+### Enhancements
+
 - [VM/Attach disk] Display confirmation modal when VDI is already attached [#3381](https://github.com/vatesfr/xen-orchestra/issues/3381) (PR [#4366](https://github.com/vatesfr/xen-orchestra/pull/4366))
 - [Zstd]
   - [VM/copy, VM/export] Only show zstd option when it's supported [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PRs [#4326](https://github.com/vatesfr/xen-orchestra/pull/4326) [#4368](https://github.com/vatesfr/xen-orchestra/pull/4368))
   - [VM/Bulk copy] Show warning if zstd compression is not supported on a VM [#3892](https://github.com/vatesfr/xen-orchestra/issues/3892) (PR [#4346](https://github.com/vatesfr/xen-orchestra/pull/4346))
+- [VM import & Continuous Replication] Enable `guessVhdSizeOnImport` by default, this fix some `VDI_IO_ERROR` with XenServer 7.1 and XCP-ng 8.0 (PR [#4436](https://github.com/vatesfr/xen-orchestra/pull/4436))
+- [SDN Controller] Add possibility to create multiple GRE networks and VxLAN networks within a same pool (PR [#4435](https://github.com/vatesfr/xen-orchestra/pull/4435))
+- [SDN Controller] Add possibility to create cross-pool private networks (PR [#4405](https://github.com/vatesfr/xen-orchestra/pull/4405))
 
 ### Bug fixes
 
 - [SR/General] Display VDI VM name in SR usage graph (PR [#4370](https://github.com/vatesfr/xen-orchestra/pull/4370))
 - [VM/Attach disk] Fix checking VDI mode (PR [#4373](https://github.com/vatesfr/xen-orchestra/pull/4373))
+- [VM revert] Snapshot before: add admin ACLs on created snapshot [#4331](https://github.com/vatesfr/xen-orchestra/issues/4331) (PR [#4391](https://github.com/vatesfr/xen-orchestra/pull/4391))
+- [Network] Fixed "invalid parameters" error when creating bonded network [#4425](https://github.com/vatesfr/xen-orchestra/issues/4425) (PR [#4429](https://github.com/vatesfr/xen-orchestra/pull/4429))
 
 ### Released packages
 
+- xo-server-sdn-controller v0.2.0
 - xo-server-usage-report v0.7.3
-- xo-server v5.47.0
-- xo-web v5.47.0
+- xo-server v5.48.0
+- xo-web v5.48.1
 
 ## **5.37.1** (2019-08-06)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
@@ -78,8 +266,6 @@
 - xo-web v5.46.0
 
 ## **5.36.0** (2019-06-27)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Highlights
 

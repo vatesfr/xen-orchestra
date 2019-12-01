@@ -11,12 +11,7 @@ const VM_BOOT_FIRMWARES = ['bios', 'uefi']
 
 const withState = provideState({
   effects: {
-    handleBootFirmwareChange(
-      __,
-      {
-        target: { value },
-      }
-    ) {
+    handleBootFirmwareChange(__, { target: { value } }) {
       if (value !== '') {
         // TODO: Confirm should be removed once the feature is stabilized
         confirm({

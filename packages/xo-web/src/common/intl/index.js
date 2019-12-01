@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
-import { every, isFunction, isString } from 'lodash'
+import { every } from 'lodash'
 
 import locales from './locales'
 import messages from './messages'
@@ -20,7 +20,7 @@ import { createSelector } from '.././selectors'
 // - render (optional): a function receiving the React nodes of the
 //     translated message and returning the React node to render
 const getMessage = (props, messageId, values, render) => {
-  if (isString(props)) {
+  if (typeof props === 'string') {
     render = values
     values = messageId
     messageId = props
@@ -32,7 +32,7 @@ const getMessage = (props, messageId, values, render) => {
     throw new Error(`no message defined for ${messageId}`)
   }
 
-  if (isFunction(values)) {
+  if (typeof values === 'function') {
     render = values
     values = undefined
   }
@@ -88,10 +88,7 @@ const parseDuration = milliseconds => {
 
 @connect(({ lang }) => ({ lang }))
 export class FormattedDuration extends Component {
-  _parseDuration = createSelector(
-    () => this.props.duration,
-    parseDuration
-  )
+  _parseDuration = createSelector(() => this.props.duration, parseDuration)
 
   _humanizeDuration = createSelector(
     () => this.props.duration,

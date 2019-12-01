@@ -37,7 +37,10 @@ describe('resolveParamsVector', function() {
       ],
       'cross product with `set` and `map`': [
         // Expected result.
-        [{ remote: 'local', id: 'vm:2' }, { remote: 'smb', id: 'vm:2' }],
+        [
+          { remote: 'local', id: 'vm:2' },
+          { remote: 'smb', id: 'vm:2' },
+        ],
 
         // Entry.
         {

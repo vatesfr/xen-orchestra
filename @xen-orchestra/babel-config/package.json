@@ -8,5 +8,8 @@
     "directory": "@xen-orchestra/babel-config",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": ">=6"
   }
 }

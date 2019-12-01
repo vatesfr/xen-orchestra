@@ -154,7 +154,7 @@ class IpsCell extends BaseComponent {
                   value={newIps || ''}
                 />{' '}
                 <ActionButton
-                  form={`newIpForm`}
+                  form='newIpForm'
                   icon='save'
                   btnStyle='primary'
                   handler={this._addIps}
@@ -419,7 +419,11 @@ export default class Ips extends BaseComponent {
             <em>{_('ipsNoIpPool')}</em>
           </p>
         ) : (
-          <SortedTable collection={ipPools} columns={this._ipColumns} />
+          <SortedTable
+            collection={ipPools}
+            columns={this._ipColumns}
+            stateUrlParam='s'
+          />
         )}
       </div>
     )

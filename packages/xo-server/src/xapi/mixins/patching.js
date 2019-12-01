@@ -1,4 +1,3 @@
-import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'julien-f-unzip'
@@ -6,6 +5,7 @@ import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
 import { debounce } from '../../decorators'
+import { debounceWithKey } from '../../_pDebounceWithKey'
 import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
 import { extractOpaqueRef, useUpdateSystem } from '../utils'
@@ -34,6 +34,28 @@ import { extractOpaqueRef, useUpdateSystem } from '../utils'
 const log = createLogger('xo:xapi')
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
+
+const XCP_NG_DEBOUNCE_TIME_MS = 60000
+
+// list all yum updates available for a XCP-ng host
+// (hostObject) → { uuid: patchObject }
+async function _listXcpUpdates(host) {
+  return JSON.parse(
+    await this.call(
+      'host.call_plugin',
+      host.$ref,
+      'updater.py',
+      'check_update',
+      {}
+    )
+  )
+}
+
+const _listXcpUpdateDebounced = debounceWithKey(
+  _listXcpUpdates,
+  XCP_NG_DEBOUNCE_TIME_MS,
+  host => host.$ref
+)
 
 // =============================================================================
 
@@ -141,19 +163,8 @@ export default {
 
   // LIST ----------------------------------------------------------------------
 
-  // list all yum updates available for a XCP-ng host
-  // (hostObject) → { uuid: patchObject }
-  async _listXcpUpdates(host) {
-    return JSON.parse(
-      await this.call(
-        'host.call_plugin',
-        host.$ref,
-        'updater.py',
-        'check_update',
-        {}
-      )
-    )
-  },
+  _listXcpUpdates,
+  _listXcpUpdateDebounced,
 
   // list all patches provided by Citrix for this host version regardless
   // of if they're installed or not
@@ -306,7 +317,7 @@ export default {
   listMissingPatches(hostId) {
     const host = this.getObject(hostId)
     return _isXcp(host)
-      ? this._listXcpUpdates(host)
+      ? this._listXcpUpdateDebounced(host)
       : // TODO: list paid patches of free hosts as well so the UI can show them
         this._listInstallablePatches(host)
   },
@@ -325,7 +336,7 @@ export default {
 
   // INSTALL -------------------------------------------------------------------
 
-  _xcpUpdate(hosts) {
+  async _xcpUpdate(hosts) {
     if (hosts === undefined) {
       hosts = filter(this.objects.all, { $type: 'host' })
     } else {
@@ -335,7 +346,10 @@ export default {
       )
     }
 
-    return asyncMap(hosts, async host => {
+    // XCP-ng hosts need to be updated one at a time starting with the pool master
+    // https://github.com/vatesfr/xen-orchestra/issues/4468
+    hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
+    for (const host of hosts) {
       const update = await this.call(
         'host.call_plugin',
         host.$ref,
@@ -352,7 +366,7 @@ export default {
           String(Date.now() / 1000)
         )
       }
-    })
+    }
   },
 
   // Legacy XS patches: upload a patch on a pool before installing it

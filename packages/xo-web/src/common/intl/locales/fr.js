@@ -2185,7 +2185,7 @@ export default {
   vmChooseCoresPerSocket: 'Comportement par défaut',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} avec {nCores, number} cœur{nCores, plural, one {} other {s}} par socket',
 
   // Original text: "Incorrect cores per socket value"
@@ -3896,10 +3896,10 @@ export default {
   xosanCommunity: 'XOSAN non disponible pour la Community Edition',
 
   // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin: 'Installer le plugin cloud avant',
+  xosanInstallCloudPlugin: 'Installer le plugin XOA avant',
 
   // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin: 'Charger le plugin cloud avant',
+  xosanLoadCloudPlugin: 'Charger le plugin XOA avant',
 
   // Original text: "Loading…"
   xosanLoading: 'Chargement…',

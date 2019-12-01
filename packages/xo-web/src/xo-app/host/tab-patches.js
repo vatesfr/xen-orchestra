@@ -21,7 +21,11 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchDescription'),
     itemRenderer: patch => (
-      <a href={patch.documentationUrl} target='_blank'>
+      <a
+        href={patch.documentationUrl}
+        rel='noopener noreferrer'
+        target='_blank'
+      >
         {patch.description}
       </a>
     ),
@@ -192,6 +196,7 @@ class XcpPatches extends Component {
                 columns={MISSING_PATCH_COLUMNS_XCP}
                 collection={missingPatches}
                 individualActions={INDIVIDUAL_ACTIONS_XCP}
+                stateUrlParam='s_missing'
               />
             </Col>
           </Row>
@@ -237,6 +242,7 @@ class XenServerPatches extends Component {
               <SortedTable
                 collection={missingPatches}
                 columns={MISSING_PATCH_COLUMNS}
+                stateUrlParam='s_missing'
               />
             </Col>
           </Row>
@@ -247,6 +253,7 @@ class XenServerPatches extends Component {
             <SortedTable
               collection={hostPatches}
               columns={INSTALLED_PATCH_COLUMNS}
+              stateUrlParam='s_installed'
             />
           </Col>
         </Row>

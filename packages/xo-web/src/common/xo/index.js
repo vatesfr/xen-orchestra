@@ -11,7 +11,6 @@ import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { SelectHost } from 'select-objects'
 import {
-  assign,
   filter,
   forEach,
   get,
@@ -43,6 +42,7 @@ import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
   disconnected,
+  markObjectsFetched,
   signedIn,
   signedOut,
   updateObjects,
@@ -150,6 +150,7 @@ export const connectStore = store => {
           objects[object.id] = object
         })
         store.dispatch(updateObjects(objects))
+        store.dispatch(markObjectsFetched())
       })
   })
   xo.on('notification', notification => {
@@ -157,7 +158,7 @@ export const connectStore = store => {
       return
     }
 
-    assign(updates, notification.params.items)
+    Object.assign(updates, notification.params.items)
     sendUpdates()
   })
   subscribePermissions(permissions =>
@@ -345,6 +346,10 @@ export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
 export const subscribeResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog')
+)
+
+export const subscribeHubResourceCatalog = createSubscription(() =>
+  _call('cloud.getResourceCatalog', { filters: { hub: true } })
 )
 
 const getNotificationCookie = () => {
@@ -610,6 +615,37 @@ export const addHostsToPool = pool =>
     })
   })
 
+export const enableAdvancedLiveTelemetry = async host => {
+  const isConfiguredToReceiveStreaming = await _call(
+    'netdata.isConfiguredToReceiveStreaming',
+    { host: host.id }
+  )
+  if (!isConfiguredToReceiveStreaming) {
+    await _call('netdata.configureXoaToReceiveData')
+  }
+  await _call('netdata.configureHostToStreamHere', {
+    host: host.id,
+  })
+  success(_('advancedLiveTelemetry'), _('enableAdvancedLiveTelemetrySuccess'))
+}
+
+export const isNetDataInstalledOnHost = async host => {
+  const isNetDataInstalledOnHost = await _call(
+    'netdata.isNetDataInstalledOnHost',
+    { host: host.id }
+  )
+  if (!isNetDataInstalledOnHost) {
+    return false
+  }
+  const [hostApiKey, localApiKey] = await Promise.all([
+    _call('netdata.getHostApiKey', {
+      host: host.id,
+    }),
+    _call('netdata.getLocalApiKey'),
+  ])
+  return hostApiKey === localApiKey
+}
+
 export const detachHost = host =>
   confirm({
     icon: 'host-eject',
@@ -741,7 +777,10 @@ export const stopHosts = hosts => {
     title: _('stopHostsModalTitle', { nHosts }),
     body: _('stopHostsModalMessage', { nHosts }),
   }).then(
-    () => map(hosts, host => _call('host.stop', { id: resolveId(host) })),
+    () =>
+      Promise.all(
+        map(hosts, host => _call('host.stop', { id: resolveId(host) }))
+      ),
     noop
   )
 }
@@ -780,7 +819,10 @@ export const emergencyShutdownHosts = hosts => {
   return confirm({
     title: _('emergencyShutdownHostsModalTitle', { nHosts }),
     body: _('emergencyShutdownHostsModalMessage', { nHosts }),
-  }).then(() => map(hosts, host => emergencyShutdownHost(host)), noop)
+  }).then(
+    () => Promise.all(map(hosts, host => emergencyShutdownHost(host))),
+    noop
+  )
 }
 
 export const isHostTimeConsistentWithXoaTime = host =>
@@ -1028,7 +1070,10 @@ export const stopVms = (vms, force = false) =>
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length }),
   }).then(
-    () => map(vms, vm => _call('vm.stop', { id: resolveId(vm), force })),
+    () =>
+      Promise.all(
+        map(vms, vm => _call('vm.stop', { id: resolveId(vm), force }))
+      ),
     noop
   )
 
@@ -1308,21 +1353,21 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
 export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
+export const pureDeleteVm = (vm, props) =>
+  _call('vm.delete', { id: resolveId(vm), ...props })
+
 export const deleteVm = (vm, retryWithForce = true) =>
   confirm({
     title: _('deleteVmModalTitle'),
     body: _('deleteVmModalMessage'),
   })
-    .then(() => _call('vm.delete', { id: resolveId(vm) }), noop)
+    .then(() => pureDeleteVm(vm), noop)
     .catch(error => {
       if (retryWithForce && forbiddenOperation.is(error)) {
         return confirm({
           title: _('deleteVmBlockedModalTitle'),
           body: _('deleteVmBlockedModalMessage'),
-        }).then(
-          () => _call('vm.delete', { id: resolveId(vm), force: true }),
-          noop
-        )
+        }).then(() => pureDeleteVm(vm, { force: true }), noop)
       }
 
       throw error
@@ -1453,6 +1498,33 @@ export const importVms = (vms, sr) =>
       })
     )
   ).then(ids => ids.filter(_ => _ !== undefined))
+
+const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+  const res = await _call('disk.import', {
+    description,
+    name,
+    sr: resolveId(sr),
+    type,
+    vmdkData,
+  })
+  const result = await post(res.$sendTo, file)
+  if (result.status !== 200) {
+    throw result.status
+  }
+  success(_('diskImportSuccess'), name)
+  const body = await result.json()
+  await body.result
+}
+
+export const importDisks = (disks, sr) =>
+  Promise.all(
+    map(disks, disk =>
+      importDisk(disk, sr).catch(err => {
+        error(_('diskImportFailed'), err)
+        throw err
+      })
+    )
+  )
 
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = vm =>
@@ -1628,7 +1700,10 @@ export const deleteVifs = vifs =>
     title: _('deleteVifsModalTitle', { nVifs: vifs.length }),
     body: _('deleteVifsModalMessage', { nVifs: vifs.length }),
   }).then(
-    () => map(vifs, vif => _call('vif.delete', { id: resolveId(vif) })),
+    () =>
+      Promise.all(
+        map(vifs, vif => _call('vif.delete', { id: resolveId(vif) }))
+      ),
     noop
   )
 
@@ -1655,7 +1730,7 @@ export const createNetwork = params => _call('network.create', params)
 export const createBondedNetwork = params =>
   _call('network.createBonded', params)
 export const createPrivateNetwork = params =>
-  _call('plugin.SDNController.createPrivateNetwork', params)
+  _call('sdnController.createPrivateNetwork', params)
 
 export const deleteNetwork = network =>
   confirm({
@@ -1919,9 +1994,11 @@ export const deleteSchedules = schedules =>
     title: _('deleteSchedulesModalTitle', { nSchedules: schedules.length }),
     body: _('deleteSchedulesModalMessage', { nSchedules: schedules.length }),
   }).then(() =>
-    map(schedules, schedule =>
-      _call('schedule.delete', { id: resolveId(schedule) })::tap(
-        subscribeSchedules.forceRefresh
+    Promise.all(
+      map(schedules, schedule =>
+        _call('schedule.delete', { id: resolveId(schedule) })::tap(
+          subscribeSchedules.forceRefresh
+        )
       )
     )
   )
@@ -2109,6 +2186,11 @@ export const configurePlugin = (id, configuration) =>
       )
   )
 
+export const getPlugin = async id => {
+  const plugins = await _call('plugin.get')
+  return plugins.find(plugin => plugin.id === id)
+}
+
 export const purgePluginConfiguration = async id => {
   await confirm({
     title: _('purgePluginConfiguration'),
@@ -2206,9 +2288,11 @@ export const editRemote = (remote, { name, url, options }) =>
   })
 
 export const listRemote = remote =>
-  _call('remote.list', resolveIds({ id: remote }))::tap(
-    subscribeRemotes.forceRefresh,
-    err => error(_('listRemote'), err.message || String(err))
+  _call(
+    'remote.list',
+    resolveIds({ id: remote })
+  )::tap(subscribeRemotes.forceRefresh, err =>
+    error(_('listRemote'), err.message || String(err))
   )
 
 export const listRemoteBackups = remote =>
@@ -2423,15 +2507,19 @@ export const deleteApiLogs = logs =>
 // Acls, users, groups ----------------------------------------------------------
 
 export const addAcl = ({ subject, object, action }) =>
-  _call('acl.add', resolveIds({ subject, object, action }))::tap(
-    subscribeAcls.forceRefresh,
-    err => error('Add ACL', err.message || String(err))
+  _call(
+    'acl.add',
+    resolveIds({ subject, object, action })
+  )::tap(subscribeAcls.forceRefresh, err =>
+    error('Add ACL', err.message || String(err))
   )
 
 export const removeAcl = ({ subject, object, action }) =>
-  _call('acl.remove', resolveIds({ subject, object, action }))::tap(
-    subscribeAcls.forceRefresh,
-    err => error('Remove ACL', err.message || String(err))
+  _call(
+    'acl.remove',
+    resolveIds({ subject, object, action })
+  )::tap(subscribeAcls.forceRefresh, err =>
+    error('Remove ACL', err.message || String(err))
   )
 
 export const removeAcls = acls =>
@@ -2489,29 +2577,38 @@ export const deleteGroup = group =>
     body: <p>{_('deleteGroupConfirm')}</p>,
   }).then(
     () =>
-      _call('group.delete', resolveIds({ id: group }))::tap(
-        subscribeGroups.forceRefresh,
-        err => error(_('deleteGroup'), err.message || String(err))
+      _call(
+        'group.delete',
+        resolveIds({ id: group })
+      )::tap(subscribeGroups.forceRefresh, err =>
+        error(_('deleteGroup'), err.message || String(err))
       ),
     noop
   )
 
 export const removeUserFromGroup = (user, group) =>
-  _call('group.removeUser', resolveIds({ id: group, userId: user }))::tap(
-    subscribeGroups.forceRefresh,
-    err => error(_('removeUserFromGroup'), err.message || String(err))
+  _call(
+    'group.removeUser',
+    resolveIds({ id: group, userId: user })
+  )::tap(subscribeGroups.forceRefresh, err =>
+    error(_('removeUserFromGroup'), err.message || String(err))
   )
 
 export const addUserToGroup = (user, group) =>
-  _call('group.addUser', resolveIds({ id: group, userId: user }))::tap(
-    subscribeGroups.forceRefresh,
-    err => error('Add User', err.message || String(err))
+  _call(
+    'group.addUser',
+    resolveIds({ id: group, userId: user })
+  )::tap(subscribeGroups.forceRefresh, err =>
+    error('Add User', err.message || String(err))
   )
 
 export const createUser = (email, password, permission) =>
-  _call('user.create', { email, password, permission })::tap(
-    subscribeUsers.forceRefresh,
-    err => error('Create user', err.message || String(err))
+  _call('user.create', {
+    email,
+    password,
+    permission,
+  })::tap(subscribeUsers.forceRefresh, err =>
+    error('Create user', err.message || String(err))
   )
 
 export const deleteUser = user =>
@@ -2519,9 +2616,10 @@ export const deleteUser = user =>
     title: _('deleteUser'),
     body: <p>{_('deleteUserConfirm')}</p>,
   }).then(() =>
-    _call('user.delete', { id: resolveId(user) })::tap(
-      subscribeUsers.forceRefresh,
-      err => error(_('deleteUser'), err.message || String(err))
+    _call('user.delete', {
+      id: resolveId(user),
+    })::tap(subscribeUsers.forceRefresh, err =>
+      error(_('deleteUser'), err.message || String(err))
     )
   )
 
@@ -2853,13 +2951,24 @@ export const fixHostNotInXosanNetwork = (xosanSr, host) =>
 
 // XOSAN packs -----------------------------------------------------------------
 
-export const getResourceCatalog = () => _call('cloud.getResourceCatalog')
+export const getResourceCatalog = ({ filters } = {}) =>
+  _call('cloud.getResourceCatalog', { filters })
+
+export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
 const downloadAndInstallXosanPack = (pack, pool, { version }) =>
   _call('xosan.downloadAndInstallXosanPack', {
     id: resolveId(pack),
     version,
     pool: resolveId(pool),
+  })
+
+export const downloadAndInstallResource = ({ namespace, id, version, sr }) =>
+  _call('cloud.downloadAndInstallResource', {
+    namespace,
+    id,
+    version,
+    sr: resolveId(sr),
   })
 
 import UpdateXosanPacksModal from './update-xosan-packs-modal' // eslint-disable-line import/first
@@ -2885,3 +2994,22 @@ export const getLicense = (productId, boundObjectId) =>
 
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, sr: srId })
+
+// Support --------------------------------------------------------------------
+
+export const checkXoa = () => _call('xoa.check')
+
+export const closeTunnel = () =>
+  _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)
+
+export const openTunnel = () =>
+  _call('xoa.supportTunnel.open')::tap(() => {
+    subscribeTunnelState.forceRefresh()
+    // After 1s, we most likely got the tunnel ID
+    // and we don't want to wait another 5s to show it to the user.
+    setTimeout(subscribeTunnelState.forceRefresh, 1000)
+  })
+
+export const subscribeTunnelState = createSubscription(() =>
+  _call('xoa.supportTunnel.getState')
+)

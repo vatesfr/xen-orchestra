@@ -1,3 +1,4 @@
+import xapiObjectToXo from '../xapi-object-to-xo'
 import { mapToArray } from '../utils'
 
 export function getBondModes() {
@@ -12,13 +13,15 @@ export async function create({
   mtu = 1500,
   vlan = 0,
 }) {
-  return this.getXapi(pool).createNetwork({
-    name,
-    description,
-    pifId: pif && this.getObject(pif, 'PIF')._xapiId,
-    mtu: +mtu,
-    vlan: +vlan,
-  })
+  return xapiObjectToXo(
+    await this.getXapi(pool).createNetwork({
+      name,
+      description,
+      pifId: pif && this.getObject(pif, 'PIF')._xapiId,
+      mtu: +mtu,
+      vlan: +vlan,
+    })
+  ).id
 }
 
 create.params = {
@@ -115,6 +118,9 @@ set.params = {
   defaultIsLocked: {
     type: 'boolean',
     optional: true,
+  },
+  id: {
+    type: 'string',
   },
   name_description: {
     type: 'string',

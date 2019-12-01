@@ -62,10 +62,10 @@ the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+ISC © [Vates SAS](https://vates.fr)

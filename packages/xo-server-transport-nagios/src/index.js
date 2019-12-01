@@ -35,11 +35,6 @@ export const configurationSchema = {
 
 // ===================================================================
 
-const bind = (fn, thisArg) =>
-  function __bound__() {
-    return fn.apply(thisArg, arguments)
-  }
-
 function nscaPacketBuilder({ host, iv, message, service, status, timestamp }) {
   // Building NSCA packet
   const SIZE = 720
@@ -82,8 +77,8 @@ const ENCODING = 'binary'
 
 class XoServerNagios {
   constructor({ xo }) {
-    this._sendPassiveCheck = bind(this._sendPassiveCheck, this)
-    this._set = bind(xo.defineProperty, xo)
+    this._sendPassiveCheck = this._sendPassiveCheck.bind(this)
+    this._set = xo.defineProperty.bind(xo)
     this._unset = null
 
     // Defined in configure().

@@ -30,6 +30,7 @@ export const selectLang = createAction('SELECT_LANG', lang => lang)
 export const connected = createAction('CONNECTED')
 export const disconnected = createAction('DISCONNECTED')
 
+export const markObjectsFetched = createAction('OBJECTS_FETCHED')
 export const updateObjects = createAction('UPDATE_OBJECTS', updates => updates)
 export const updatePermissions = createAction(
   'UPDATE_PERMISSIONS',
@@ -56,4 +57,12 @@ export const setXoaConfiguration = createAction(
 export const setHomeVmIdsSelection = createAction(
   'SET_HOME_VM_IDS_SELECTION',
   homeVmIdsSelection => homeVmIdsSelection
+)
+export const markHubResourceAsInstalling = createAction(
+  'MARK_HUB_RESOURCE_AS_INSTALLING',
+  id => id
+)
+export const markHubResourceAsInstalled = createAction(
+  'MARK_HUB_RESOURCE_AS_INSTALLED',
+  id => id
 )

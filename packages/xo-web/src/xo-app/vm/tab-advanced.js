@@ -9,6 +9,7 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SelectBootFirmware from 'select-boot-firmware'
+import SelectCoresPerSocket from 'select-cores-per-socket'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { error } from 'notification'
@@ -33,17 +34,14 @@ import {
   addSubscriptions,
   connectStore,
   formatSize,
-  getCoresPerSocketPossibilities,
   getVirtualizationModeLabel,
   noop,
   osFamily,
 } from 'utils'
 import {
-  assign,
   every,
   filter,
   find,
-  includes,
   isEmpty,
   keyBy,
   map,
@@ -101,20 +99,13 @@ const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
 
   const getVbds = createGetObjectsOfType('VBD').pick((_, { vm }) => vm.$VBDs)
   const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(
-      getVbds,
-      vbds => map(vbds, 'VDI')
-    )
+    createSelector(getVbds, vbds => map(vbds, 'VDI'))
   )
   const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(
-      getVdis,
-      vdis => uniq(map(vdis, '$SR'))
-    )
+    createSelector(getVdis, vdis => uniq(map(vdis, '$SR')))
   )
-  const getSrsContainers = createSelector(
-    getSrs,
-    srs => uniq(map(srs, '$container'))
+  const getSrsContainers = createSelector(getSrs, srs =>
+    uniq(map(srs, '$container'))
   )
 
   const getAffinityHostPredicate = createSelector(
@@ -166,7 +157,7 @@ class ResourceSetItem extends Component {
     () => this.props.resourceSets,
     () => this.props.id,
     (resourceSets, id) =>
-      assign(find(resourceSets, { id }), { type: 'resourceSet' })
+      Object.assign(find(resourceSets, { id }), { type: 'resourceSet' })
   )
 
   render() {
@@ -249,80 +240,30 @@ class Vgpus extends Component {
 }
 
 class CoresPerSocket extends Component {
-  _getCoresPerSocketPossibilities = createSelector(
-    () => {
-      const { container } = this.props
-      if (container != null) {
-        return container.cpus.cores
-      }
-    },
-    () => this.props.vm.CPUs.number,
-    getCoresPerSocketPossibilities
-  )
-
-  _selectedValueIsNotInOptions = createSelector(
-    () => this.props.vm.coresPerSocket,
-    this._getCoresPerSocketPossibilities,
-    (selectedCoresPerSocket, options) =>
-      selectedCoresPerSocket !== undefined &&
-      !includes(options, selectedCoresPerSocket)
-  )
-
-  _onChange = event =>
-    editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
+  _onChange = coresPerSocket => editVm(this.props.vm, { coresPerSocket })
 
   render() {
     const { container, vm } = this.props
-    const selectedCoresPerSocket = vm.coresPerSocket
-    const options = this._getCoresPerSocketPossibilities()
+    const { coresPerSocket, CPUs: cpus } = vm
 
     return (
-      <form className='form-inline'>
+      <div>
         {container != null ? (
-          <span>
-            <select
-              className='form-control'
-              onChange={this._onChange}
-              value={selectedCoresPerSocket || ''}
-            >
-              {_({ key: 'none' }, 'vmChooseCoresPerSocket', message => (
-                <option value=''>{message}</option>
-              ))}
-              {this._selectedValueIsNotInOptions() &&
-                _(
-                  { key: 'incorrect' },
-                  'vmCoresPerSocketIncorrectValue',
-                  message => (
-                    <option value={selectedCoresPerSocket}> {message}</option>
-                  )
-                )}
-              {map(options, coresPerSocket =>
-                _(
-                  { key: coresPerSocket },
-                  'vmCoresPerSocket',
-                  {
-                    nSockets: vm.CPUs.number / coresPerSocket,
-                    nCores: coresPerSocket,
-                  },
-                  message => <option value={coresPerSocket}>{message}</option>
-                )
-              )}
-            </select>{' '}
-            {this._selectedValueIsNotInOptions() && (
-              <Tooltip content={_('vmCoresPerSocketIncorrectValueSolution')}>
-                <Icon icon='error' size='lg' />
-              </Tooltip>
-            )}
-          </span>
-        ) : selectedCoresPerSocket != null ? (
-          _('vmCoresPerSocket', {
-            nSockets: vm.CPUs.number / selectedCoresPerSocket,
-            nCores: selectedCoresPerSocket,
+          <SelectCoresPerSocket
+            maxCores={container.cpus.cores}
+            maxVcpus={cpus.max}
+            onChange={this._onChange}
+            value={coresPerSocket}
+          />
+        ) : coresPerSocket !== undefined ? (
+          _('vmSocketsWithCoresPerSocket', {
+            nSockets: cpus.max / coresPerSocket,
+            nCores: coresPerSocket,
           })
         ) : (
           _('vmCoresPerSocketNone')
         )}
-      </form>
+      </div>
     )
   }
 }
@@ -400,14 +341,12 @@ const Acls = decorate([
     computed: {
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
       resolvedAcls: ({ rawAcls }, { users, groups }) => {
-        if (users === undefined && groups === undefined) {
+        if (users === undefined || groups === undefined) {
           return []
         }
         return rawAcls.map(({ subject, ...acl }) => ({
           ...acl,
-          subject:
-            (users !== undefined && users[subject]) ||
-            (groups !== undefined && groups[subject]),
+          subject: defined(users[subject], groups[subject]),
         }))
       },
     },
@@ -473,10 +412,7 @@ const NIC_TYPE_OPTIONS = [
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
   const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
-    createSelector(
-      getVgpus,
-      vgpus => map(vgpus, 'gpuGroup')
-    )
+    createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup'))
   )
 
   return {

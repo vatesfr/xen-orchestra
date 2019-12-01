@@ -27,7 +27,6 @@ import {
   identity,
   includes,
   isEmpty,
-  isString,
   keys,
   map,
   mapValues,
@@ -181,7 +180,7 @@ const OPTIONS = {
       {
         handler: (vmIds, _, { setHomeVmIdsSelection }, { router }) => {
           setHomeVmIdsSelection(vmIds)
-          router.push('backup-ng/new/vms')
+          router.push('backup/new/vms')
         },
         icon: 'backup',
         labelId: 'backupLabel',
@@ -314,7 +313,6 @@ const DEFAULT_TYPE = 'VM'
   )
 
   return {
-    areObjectsFetched,
     noServersConnected,
   }
 })
@@ -327,23 +325,12 @@ class NoObjectsWithoutServers extends Component {
 
   render() {
     const {
-      areObjectsFetched,
       isAdmin,
       isPoolAdmin,
       noRegisteredServers,
       noResourceSets,
       noServersConnected,
     } = this.props
-
-    if (!areObjectsFetched) {
-      return (
-        <CenterPanel>
-          <h2>
-            <img src='assets/loading.svg' />
-          </h2>
-        </CenterPanel>
-      )
-    }
 
     if (noServersConnected && isAdmin) {
       return (
@@ -371,6 +358,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/docs/'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -381,6 +369,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/#!/member/support'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -461,6 +450,7 @@ const NoObjects = props =>
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
 
   return {
+    areObjectsFetched,
     isAdmin,
     isPoolAdmin: getIsPoolAdmin,
     items: createSelector(
@@ -660,7 +650,7 @@ export default class Home extends Component {
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
   _setFilter(filter, props = this.props, replace) {
-    if (!isString(filter)) {
+    if (typeof filter !== 'string') {
       filter = filter.toString()
     }
 
@@ -804,10 +794,7 @@ export default class Home extends Component {
       size(visibleItems) > 0 &&
       size(filter(selectedItems)) === size(visibleItems)
   )
-  _getIsSomeSelected = createSelector(
-    () => this.state.selectedItems,
-    some
-  )
+  _getIsSomeSelected = createSelector(() => this.state.selectedItems, some)
   _toggleMaster = () => {
     const selectedItems = {}
     if (!this._getIsAllSelected()) {
@@ -947,6 +934,7 @@ export default class Home extends Component {
                 <a
                   className='input-group-addon'
                   href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+                  rel='noopener noreferrer'
                   target='_blank'
                 >
                   <Icon icon='info' />
@@ -1160,7 +1148,22 @@ export default class Home extends Component {
   // ---------------------------------------------------------------------------
 
   render() {
-    const { isAdmin, isPoolAdmin, noResourceSets } = this.props
+    const {
+      areObjectsFetched,
+      isAdmin,
+      isPoolAdmin,
+      noResourceSets,
+    } = this.props
+
+    if (!areObjectsFetched) {
+      return (
+        <CenterPanel>
+          <h2>
+            <img src='assets/loading.svg' />
+          </h2>
+        </CenterPanel>
+      )
+    }
 
     const nItems = this._getNumberOfItems()
 

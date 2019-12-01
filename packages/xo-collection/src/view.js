@@ -1,4 +1,5 @@
-import { bind, forEach, iteratee as createCallback } from 'lodash'
+import createCallback from 'lodash/iteratee'
+import forEach from 'lodash/forEach'
 
 import Collection, {
   ACTION_ADD,
@@ -19,9 +20,9 @@ export default class View extends Collection {
     this._onAdd(this._collection.all)
 
     // Bound versions of listeners.
-    this._onAdd = bind(this._onAdd, this)
-    this._onUpdate = bind(this._onUpdate, this)
-    this._onRemove = bind(this._onRemove, this)
+    this._onAdd = this._onAdd.bind(this)
+    this._onUpdate = this._onUpdate.bind(this)
+    this._onRemove = this._onRemove.bind(this)
 
     // Register listeners.
     this._collection.on(ACTION_ADD, this._onAdd)

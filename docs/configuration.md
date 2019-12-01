@@ -22,7 +22,7 @@ group = 'nogroup'
 By default, XO-server listens on all addresses (0.0.0.0) and runs on port 80. If you need to, you can change this in the `# Basic HTTP` section:
 
 ```toml
-host = '0.0.0.0'
+hostname = '0.0.0.0'
 port = 80
 ```
 
@@ -31,7 +31,7 @@ port = 80
 XO-server can also run in HTTPS (you can run HTTP and HTTPS at the same time) - just modify what's needed in the `# Basic HTTPS` section, this time with the certificates/keys you need and their path:
 
 ```toml
-host = '0.0.0.0'
+hostname = '0.0.0.0'
 port = 443
 certificate = './certificate.pem'
 key = './key.pem'
@@ -43,10 +43,10 @@ key = './key.pem'
 
 If you want to redirect everything to HTTPS, you can modify the configuration like this:
 
-```
+```toml
 # If set to true, all HTTP traffic will be redirected to the first HTTPs configuration.
 
-  redirectToHttps: true
+redirectToHttps = true
 ```
 
 This should be written just before the `mount` option, inside the `http:` block.

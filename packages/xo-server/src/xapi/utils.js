@@ -9,11 +9,7 @@ import { satisfies as versionSatisfies } from 'semver'
 import {
   camelToSnakeCase,
   forEach,
-  isArray,
-  isBoolean,
-  isFunction,
   isInteger,
-  isString,
   map,
   mapFilter,
   mapToArray,
@@ -45,10 +41,10 @@ export const prepareXapiParam = param => {
   if (isInteger(param)) {
     return asInteger(param)
   }
-  if (isBoolean(param)) {
+  if (typeof param === 'boolean') {
     return asBoolean(param)
   }
-  if (isArray(param)) {
+  if (Array.isArray(param)) {
     return map(param, prepareXapiParam)
   }
   if (isPlainObject(param)) {
@@ -135,14 +131,14 @@ export const makeEditObject = specs => {
       return object => object[prop]
     }
 
-    if (isString(get)) {
+    if (typeof get === 'string') {
       return object => object[get]
     }
 
     return get
   }
   const normalizeSet = (set, name) => {
-    if (isFunction(set)) {
+    if (typeof set === 'function') {
       return set
     }
 
@@ -153,7 +149,7 @@ export const makeEditObject = specs => {
       }
     }
 
-    if (isString(set)) {
+    if (typeof set === 'string') {
       const index = set.indexOf('.')
       if (index === -1) {
         const prop = camelToSnakeCase(set)
@@ -176,7 +172,7 @@ export const makeEditObject = specs => {
       }
     }
 
-    if (!isArray(set)) {
+    if (!Array.isArray(set)) {
       throw new Error('must be an array, a function or a string')
     }
 
@@ -212,7 +208,7 @@ export const makeEditObject = specs => {
     }
 
     forEach(spec.constraints, (constraint, constraintName) => {
-      if (!isFunction(constraint)) {
+      if (typeof constraint !== 'function') {
         throw new Error('constraint must be a function')
       }
 
@@ -234,15 +230,15 @@ export const makeEditObject = specs => {
     return spec
   }
   forEach(specs, (spec, name) => {
-    isString(spec) || (specs[name] = normalizeSpec(spec, name))
+    typeof spec === 'string' || (specs[name] = normalizeSpec(spec, name))
   })
 
   // Resolves aliases and add camelCase and snake_case aliases.
   forEach(specs, (spec, name) => {
-    if (isString(spec)) {
+    if (typeof spec === 'string') {
       do {
         spec = specs[spec]
-      } while (isString(spec))
+      } while (typeof spec === 'string')
       specs[name] = spec
     }
 
@@ -332,7 +328,7 @@ export const makeEditObject = specs => {
 
 export const useUpdateSystem = host => {
   // Match Xen Center's condition: https://github.com/xenserver/xenadmin/blob/f3a64fc54bbff239ca6f285406d9034f57537d64/XenModel/Utils/Helpers.cs#L420
-  return versionSatisfies(host.software_version.platform_version, '^2.1.1')
+  return versionSatisfies(host.software_version.platform_version, '>=2.1.1')
 }
 
 export const canSrHaveNewVdiOfSize = (sr, minSize) =>

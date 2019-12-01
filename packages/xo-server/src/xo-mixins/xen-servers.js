@@ -10,13 +10,7 @@ import parseDuration from '../_parseDuration'
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
-import {
-  camelToSnakeCase,
-  forEach,
-  isEmpty,
-  isString,
-  popProperty,
-} from '../utils'
+import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils'
 import { Servers } from '../models/server'
 
 // ===================================================================
@@ -461,7 +455,7 @@ export default class {
 
   // Returns the XAPI connection associated to an object.
   getXapi(object, type) {
-    if (isString(object)) {
+    if (typeof object === 'string') {
       object = this._xo.getObject(object, type)
     }
 
@@ -487,7 +481,7 @@ export default class {
     const xapi = this._xapis[id]
     return xapi === undefined
       ? 'disconnected'
-      : this._serverIdsByPool[(xapi.pool?.$id)] === id
+      : this._serverIdsByPool[xapi.pool?.$id] === id
       ? 'connected'
       : 'connecting'
   }

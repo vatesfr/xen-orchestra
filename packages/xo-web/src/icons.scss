@@ -49,6 +49,15 @@
     @extend .fa-check;
     @extend .text-success;
   }
+  &-true {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-false {
+    @extend .fa;
+    @extend .fa-times;
+  }
   &-undo {
     @extend .fa;
     @extend .fa-undo;
@@ -276,6 +285,14 @@
   &-trial {
     @extend .fa;
     @extend .fa-thumbs-up;
+  }
+  &-deploy {
+    @extend .fa;
+    @extend .fa-rocket;
+  }
+  &-telemetry {
+    @extend .fa;
+    @extend .fa-area-chart;
   }
 
   // Backups
@@ -826,6 +843,10 @@
     @extend .fa;
     @extend .fa-bell;
   }
+  &-menu-support {
+    @extend .fa;
+    @extend .fa-support;
+  }
   &-menu-settings {
     @extend .fa;
     @extend .fa-cog;
@@ -885,6 +906,10 @@
   &-menu-xosan {
     @extend .fa;
     @extend .fa-database;
+  }
+  &-menu-hub {
+    @extend .fa;
+    @extend .fa-cubes;
   }
   // New VM
   &-new-vm {
@@ -1089,6 +1114,10 @@
   &-reply {
     @extend .fa;
     @extend .fa-share;
+  }
+  &-open-tunnel {
+    @extend .fa;
+    @extend .fa-arrows-h;
   }
 
   // XOSAN related

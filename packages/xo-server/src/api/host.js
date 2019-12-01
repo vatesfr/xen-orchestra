@@ -221,12 +221,7 @@ emergencyShutdownHost.resolve = {
 // -------------------------------------------------------------------
 
 export async function isHostServerTimeConsistent({ host }) {
-  try {
-    await this.getXapi(host).assertConsistentHostServerTime(host._xapiRef)
-    return true
-  } catch (e) {
-    return false
-  }
+  return this.getXapi(host).isHostServerTimeConsistent(host._xapiRef)
 }
 
 isHostServerTimeConsistent.params = {

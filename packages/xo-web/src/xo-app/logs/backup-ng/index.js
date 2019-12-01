@@ -190,6 +190,7 @@ export default decorate([
           data-jobs={state.jobs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
+          stateUrlParam='s_logs'
         />
       </CardBlock>
     </Card>

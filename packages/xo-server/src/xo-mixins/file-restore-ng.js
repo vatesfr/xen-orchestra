@@ -87,7 +87,7 @@ async function mountLvmPhysicalVolume(devicePath, partition) {
     args.push('-o', partition.start * 512)
   }
   args.push('--show', '-f', devicePath)
-  const path = (await execa.stdout('losetup', args)).trim()
+  const path = (await execa('losetup', args)).stdout.trim()
   await execa('pvscan', ['--cache', path])
 
   return {
@@ -251,7 +251,7 @@ export default class BackupNgFileRestore {
   }
 
   async _listPartitions(devicePath, inspectLvmPv = true) {
-    const stdout = await execa.stdout('partx', [
+    const { stdout } = await execa('partx', [
       '--bytes',
       '--output=NR,START,SIZE,NAME,UUID,TYPE',
       '--pairs',

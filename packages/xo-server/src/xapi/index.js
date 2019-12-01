@@ -16,6 +16,7 @@ import {
   fromEvent,
   ignoreErrors,
   pCatch,
+  pRetry,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -38,11 +39,9 @@ import { satisfies as versionSatisfies } from 'semver'
 import createSizeStream from '../size-stream'
 import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
   forEach,
-  isFunction,
   map,
   mapToArray,
   pAll,
@@ -82,7 +81,7 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
 //  export * from './utils'
-require('lodash/assign')(module.exports, require('./utils'))
+Object.assign(module.exports, require('./utils'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'
@@ -95,10 +94,11 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor({ guessVhdSizeOnImport, ...opts }) {
+  constructor({ guessVhdSizeOnImport, maxUncoalescedVdis, ...opts }) {
     super(opts)
 
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
+    this._maxUncoalescedVdis = maxUncoalescedVdis
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -174,7 +174,7 @@ export default class Xapi extends XapiBase {
   //
   // TODO: implements a timeout.
   _waitObject(predicate) {
-    if (isFunction(predicate)) {
+    if (typeof predicate === 'function') {
       const { promise, resolve } = defer()
 
       const unregister = this._registerGenericWatcher(obj => {
@@ -725,7 +725,7 @@ export default class Xapi extends XapiBase {
     return promise
   }
 
-  _assertHealthyVdiChain(vdi, cache) {
+  _assertHealthyVdiChain(vdi, cache, tolerance) {
     if (vdi == null) {
       return
     }
@@ -734,9 +734,19 @@ export default class Xapi extends XapiBase {
       const { SR } = vdi
       let childrenMap = cache[SR]
       if (childrenMap === undefined) {
+        const xapi = vdi.$xapi
         childrenMap = cache[SR] = groupBy(
-          vdi.$SR.$VDIs,
-          _ => _.sm_config['vhd-parent']
+          vdi.$SR.VDIs,
+
+          // if for any reasons, the VDI is undefined, simply ignores it instead
+          // of failing
+          ref => {
+            try {
+              return xapi.getObjectByRef(ref).sm_config['vhd-parent']
+            } catch (error) {
+              log.warn('missing VDI in _assertHealthyVdiChain', { error })
+            }
+          }
         )
       }
 
@@ -745,7 +755,8 @@ export default class Xapi extends XapiBase {
       const children = childrenMap[vdi.uuid]
       if (
         children.length === 1 &&
-        !children[0].managed // some SRs do not coalesce the leaf
+        !children[0].managed && // some SRs do not coalesce the leaf
+        tolerance-- <= 0
       ) {
         throw new Error('unhealthy VDI chain')
       }
@@ -753,15 +764,16 @@ export default class Xapi extends XapiBase {
 
     this._assertHealthyVdiChain(
       this.getObjectByUuid(vdi.sm_config['vhd-parent'], null),
-      cache
+      cache,
+      tolerance
     )
   }
 
-  _assertHealthyVdiChains(vm) {
+  _assertHealthyVdiChains(vm, tolerance = this._maxUncoalescedVdis) {
     const cache = { __proto__: null }
     forEach(vm.$VBDs, ({ $VDI }) => {
       try {
-        this._assertHealthyVdiChain($VDI, cache)
+        this._assertHealthyVdiChain($VDI, cache, tolerance)
       } catch (error) {
         error.VDI = $VDI
         error.VM = vm
@@ -1369,7 +1381,11 @@ export default class Xapi extends XapiBase {
         }
 
         const table = tables[entry.name]
-        const vhdStream = await vmdkToVhd(stream, table)
+        const vhdStream = await vmdkToVhd(
+          stream,
+          table.grainLogicalAddressList,
+          table.grainFileOffsetList
+        )
         await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
 
         // See: https://github.com/mafintosh/tar-stream#extracting
@@ -1566,7 +1582,7 @@ export default class Xapi extends XapiBase {
       }
     } else {
       // Find the original template by name (*sigh*).
-      const templateNameLabel = vm.other_config['base_template_name']
+      const templateNameLabel = vm.other_config.base_template_name
       const template =
         templateNameLabel &&
         find(
@@ -1682,12 +1698,15 @@ export default class Xapi extends XapiBase {
   }
 
   async createVdi({
+    // blindly copying `sm_config` from another VDI can create problems,
+    // therefore it is ignored by this method
+    //
+    // see https://github.com/vatesfr/xen-orchestra/issues/4482
     name_description,
     name_label,
     other_config = {},
     read_only = false,
     sharable = false,
-    sm_config,
     SR,
     tags,
     type = 'user',
@@ -1707,7 +1726,6 @@ export default class Xapi extends XapiBase {
         other_config,
         read_only: Boolean(read_only),
         sharable: Boolean(sharable),
-        sm_config,
         SR: sr.$ref,
         tags,
         type,
@@ -2029,6 +2047,7 @@ export default class Xapi extends XapiBase {
       )
     )
   }
+
   @deferrable
   async createNetwork(
     $defer,
@@ -2346,14 +2365,22 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async assertConsistentHostServerTime(hostRef) {
-    const delta =
+  async _getHostServerTimeShift(hostRef) {
+    return Math.abs(
       parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
-      Date.now()
-    if (Math.abs(delta) > 30e3) {
+        Date.now()
+    )
+  }
+
+  async isHostServerTimeConsistent(hostRef) {
+    return (await this._getHostServerTimeShift(hostRef)) < 30e3
+  }
+
+  async assertConsistentHostServerTime(hostRef) {
+    if (!(await this.isHostServerTimeConsistent(hostRef))) {
       throw new Error(
         `host server time and XOA date are not consistent with each other (${ms(
-          delta
+          await this._getHostServerTimeShift(hostRef)
         )})`
       )
     }

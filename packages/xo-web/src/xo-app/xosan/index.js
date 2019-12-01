@@ -19,6 +19,7 @@ import {
   cowSet,
   formatSize,
   ShortDate,
+  TryXoa,
 } from 'utils'
 import {
   deleteSr,
@@ -272,9 +273,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     }
   )
 
-  const getPoolPredicate = createSelector(
-    getXosanSrs,
-    srs => pool => every(srs, sr => sr.$pool !== pool.id)
+  const getPoolPredicate = createSelector(getXosanSrs, srs => pool =>
+    every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {
@@ -375,12 +375,12 @@ export default class Xosan extends Component {
   _getError = createSelector(
     () => this.props.plugins,
     plugins => {
-      const cloudPlugin = find(plugins, { id: 'cloud' })
-      if (!cloudPlugin) {
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (!xoaPlugin) {
         return _('xosanInstallCloudPlugin')
       }
 
-      if (!cloudPlugin.loaded) {
+      if (!xoaPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
     }
@@ -482,6 +482,7 @@ export default class Xosan extends Component {
                         collection={xosanSrs}
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
+                        stateUrlParam='s'
                         userData={{
                           isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),
@@ -498,15 +499,9 @@ export default class Xosan extends Component {
           </Container>
         ) : (
           <Container>
-            <h2 className='text-danger'>{_('xosanCommunity')}</h2>
+            <h2 className='text-info'>{_('xosanCommunity')}</h2>
             <p>
-              {_('considerSubscribe', {
-                link: (
-                  <a href='https://xen-orchestra.com'>
-                    https://xen-orchestra.com
-                  </a>
-                ),
-              })}
+              <TryXoa page='xosan' />
             </p>
           </Container>
         )}

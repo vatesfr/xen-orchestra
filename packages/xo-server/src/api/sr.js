@@ -777,7 +777,7 @@ export async function probeIscsiExists({
   )
 
   const srs = []
-  forEach(ensureArray(xml['SRlist'].SR), sr => {
+  forEach(ensureArray(xml.SRlist.SR), sr => {
     // get the UUID of SR connected to this LUN
     srs.push({ uuid: sr.UUID.trim() })
   })
@@ -845,7 +845,7 @@ export async function probeNfsExists({ host, server, serverPath }) {
 
   const srs = []
 
-  forEach(ensureArray(xml['SRlist'].SR), sr => {
+  forEach(ensureArray(xml.SRlist.SR), sr => {
     // get the UUID of SR connected to this LUN
     srs.push({ uuid: sr.UUID.trim() })
   })

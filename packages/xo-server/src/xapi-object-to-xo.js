@@ -1,8 +1,8 @@
+import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import {
   extractProperty,
   forEach,
-  isArray,
   isEmpty,
   mapFilter,
   mapToArray,
@@ -26,7 +26,7 @@ function link(obj, prop, idField = '$id') {
     return dynamicValue // Properly handles null and undefined.
   }
 
-  if (isArray(dynamicValue)) {
+  if (Array.isArray(dynamicValue)) {
     return mapToArray(dynamicValue, idField)
   }
 
@@ -485,7 +485,10 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: obj.device_config,
+      device_config: sensitiveValues.replace(
+        obj.device_config,
+        '* obfuscated *'
+      ),
       otherConfig: obj.other_config,
     }
   },

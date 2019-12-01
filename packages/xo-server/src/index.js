@@ -1,7 +1,6 @@
 import appConf from 'app-conf'
 import assert from 'assert'
 import authenticator from 'otplib/authenticator'
-import bind from 'lodash/bind'
 import blocked from 'blocked'
 import compression from 'compression'
 import createExpress from 'express'
@@ -16,10 +15,12 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
+import { forOwn, map } from 'lodash'
+import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
-import { fromEvent } from 'promise-toolbox'
+import { fromCallback, fromEvent } from 'promise-toolbox'
 import { ifDef } from '@xen-orchestra/defined'
 import { join as joinPath } from 'path'
 
@@ -27,15 +28,9 @@ import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
 import { ensureDir, readdir, readFile } from 'fs-extra'
 
+import ensureArray from './_ensureArray'
 import parseDuration from './_parseDuration'
 import Xo from './xo'
-import {
-  forEach,
-  isArray,
-  isFunction,
-  mapToArray,
-  pFromCallback,
-} from './utils'
 
 import bodyParser from 'body-parser'
 import connectFlash from 'connect-flash'
@@ -78,7 +73,7 @@ async function loadConfiguration() {
   log.info('Configuration loaded.')
 
   // Print a message if deprecated entries are specified.
-  forEach(DEPRECATED_ENTRIES, entry => {
+  DEPRECATED_ENTRIES.forEach(entry => {
     if (has(config, entry)) {
       log.warn(`${entry} configuration is deprecated.`)
     }
@@ -242,7 +237,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       next()
     } else {
       req.flash('return-url', url)
-      return res.redirect('/signin')
+      return res.redirect(authCfg.defaultSignInPage)
     }
   })
 
@@ -272,24 +267,35 @@ async function registerPlugin(pluginPath, pluginName) {
   })()
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
-  const {
+  let {
     default: factory = plugin,
     configurationSchema,
     configurationPresets,
     testSchema,
   } = plugin
+  let instance
 
-  // The default export can be either a factory or directly a plugin
-  // instance.
-  const instance = isFunction(factory)
-    ? factory({
-        xo: this,
-        getDataDir: () => {
-          const dir = `${this._config.datadir}/${pluginName}`
-          return ensureDir(dir).then(() => dir)
-        },
-      })
-    : factory
+  const handleFactory = factory =>
+    typeof factory === 'function'
+      ? factory({
+          xo: this,
+          getDataDir: () => {
+            const dir = `${this._config.datadir}/${pluginName}`
+            return ensureDir(dir).then(() => dir)
+          },
+        })
+      : factory
+  ;[
+    instance,
+    configurationSchema,
+    configurationPresets,
+    testSchema,
+  ] = await Promise.all([
+    handleFactory(factory),
+    handleFactory(configurationSchema),
+    handleFactory(configurationPresets),
+    handleFactory(testSchema),
+  ])
 
   await this.registerPlugin(
     pluginName,
@@ -330,7 +336,7 @@ async function registerPluginsInPath(path) {
   })
 
   await Promise.all(
-    mapToArray(files, name => {
+    files.map(name => {
       if (name.startsWith(PLUGIN_PREFIX)) {
         return registerPluginWrapper.call(
           this,
@@ -344,9 +350,9 @@ async function registerPluginsInPath(path) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    mapToArray(
-      [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'],
-      xo::registerPluginsInPath
+    [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'].map(
+      registerPluginsInPath,
+      xo
     )
   )
 }
@@ -400,7 +406,7 @@ async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
 
   await Promise.all(
-    mapToArray(listen, opts =>
+    map(listen, opts =>
       makeWebServerListen(webServer, { ...listenOptions, ...opts })
     )
   )
@@ -418,7 +424,21 @@ const setUpProxies = (express, opts, xo) => {
   const proxy = createProxyServer({
     changeOrigin: true,
     ignorePath: true,
-  }).on('error', error => console.error(error))
+  }).on('error', (error, req, res) => {
+    // `res` can be either a `ServerResponse` or a `Socket` (which does not have
+    // `writeHead`)
+    if (!res.headersSent && typeof res.writeHead === 'function') {
+      res.writeHead(500, { 'content-type': 'text/plain' })
+      res.write('There was a problem proxying this request.')
+    }
+    res.end()
+
+    const { method, url } = req
+    log.error('failed to proxy request', {
+      error,
+      req: { method, url },
+    })
+  })
 
   // TODO: sort proxies by descending prefix length.
 
@@ -431,6 +451,8 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.web(req, res, {
+          agent:
+            new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
           target: target + url.slice(prefix.length),
         })
 
@@ -445,7 +467,7 @@ const setUpProxies = (express, opts, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   express.on('upgrade', (req, socket, head) => {
     const { url } = req
@@ -455,6 +477,8 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.ws(req, socket, head, {
+          agent:
+            new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
           target: target + url.slice(prefix.length),
         })
 
@@ -467,12 +491,8 @@ const setUpProxies = (express, opts, xo) => {
 // ===================================================================
 
 const setUpStaticFiles = (express, opts) => {
-  forEach(opts, (paths, url) => {
-    if (!isArray(paths)) {
-      paths = [paths]
-    }
-
-    forEach(paths, path => {
+  forOwn(opts, (paths, url) => {
+    ensureArray(paths).forEach(path => {
       log.info(`Setting up ${url} → ${path}`)
 
       express.use(url, serveStatic(path))
@@ -488,7 +508,7 @@ const setUpApi = (webServer, xo, config) => {
 
     noServer: true,
   })
-  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
@@ -507,7 +527,7 @@ const setUpApi = (webServer, xo, config) => {
         return xo.callApiMethod(connection, message.method, message.params)
       }
     })
-    connection.notify = bind(jsonRpc.notify, jsonRpc)
+    connection.notify = jsonRpc.notify.bind(jsonRpc)
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
@@ -520,7 +540,8 @@ const setUpApi = (webServer, xo, config) => {
     socket.on('message', message => {
       const expiration = connection.get('expiration', undefined)
       if (expiration !== undefined && expiration < Date.now()) {
-        return void connection.close()
+        connection.close()
+        return
       }
 
       jsonRpc.write(message)
@@ -556,7 +577,7 @@ const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
@@ -649,7 +670,7 @@ export default async function main(args) {
   const xo = new Xo(config)
 
   // Register web server close on XO stop.
-  xo.on('stop', () => pFromCallback(cb => webServer.stop(cb)))
+  xo.on('stop', () => fromCallback.call(webServer, 'stop'))
 
   // Connects to all registered servers.
   await xo.start()
@@ -662,7 +683,7 @@ export default async function main(args) {
 
   if (config.http.redirectToHttps) {
     let port
-    forEach(config.http.listen, listen => {
+    forOwn(config.http.listen, listen => {
       if (listen.port && (listen.cert || listen.certificate)) {
         port = listen.port
         return false
@@ -686,7 +707,7 @@ export default async function main(args) {
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
-  express.use(bind(xo._handleHttpRequest, xo))
+  express.use(xo._handleHttpRequest.bind(xo))
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
@@ -714,7 +735,7 @@ export default async function main(args) {
   //
   // TODO: implements a timeout? (or maybe it is the services launcher
   // responsibility?)
-  forEach(['SIGINT', 'SIGTERM'], signal => {
+  ;['SIGINT', 'SIGTERM'].forEach(signal => {
     let alreadyCalled = false
 
     process.on(signal, () => {

@@ -2,7 +2,6 @@
 // `create-locale`.
 
 const forEach = require('lodash/forEach')
-const isString = require('lodash/isString')
 
 const messages = {
   keyValue: '{key}: {value}',
@@ -18,9 +17,12 @@ const messages = {
   notifications: 'Notifications',
   noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
+  moreDetails: 'More details',
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
+  sr: 'SR',
+  tryXoa: 'Try XOA for free and deploy it here.',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -49,6 +51,7 @@ const messages = {
   backupJobs: 'Backup jobs',
   iscsiSessions:
     '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
+  requiresAdminPermissions: 'Requires admin permissions',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -98,6 +101,7 @@ const messages = {
   updatePage: 'Updates',
   licensesPage: 'Licenses',
   notificationsPage: 'Notifications',
+  supportPage: 'Support',
   settingsPage: 'Settings',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
@@ -119,11 +123,7 @@ const messages = {
   newServerPage: 'Server',
   newImport: 'Import',
   xosan: 'XOSAN',
-  backupDeprecatedMessage:
-    'Warning: Backup is deprecated, use Backup NG instead.',
-  moveRestoreLegacyMessage: 'Warning: Your legacy backups can be found here',
-  backupMigrationLink: 'How to migrate to Backup NG',
-  backupNgNewPage: 'Create a new backup with Backup NG',
+  backupMigrationLink: 'How to migrate to the new backup system',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
@@ -131,7 +131,6 @@ const messages = {
   backupFileRestorePage: 'File restore',
   schedule: 'Schedule',
   newVmBackup: 'New VM backup',
-  editVmBackup: 'Edit VM backup',
   backup: 'Backup',
   rollingSnapshot: 'Rolling Snapshot',
   deltaBackup: 'Delta Backup',
@@ -152,6 +151,14 @@ const messages = {
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
+  checkXoa: 'Check XOA',
+  xoaCheck: 'XOA check',
+  closeTunnel: 'Close tunnel',
+  openTunnel: 'Open tunnel',
+  supportCommunity:
+    'The XOA check and the support tunnel are available in XOA.',
+  supportTunnel: 'Support tunnel',
+  supportTunnelClosed: 'The support tunnel is closed.',
 
   // ----- Sign out -----
   signOut: 'Sign out',
@@ -244,6 +251,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelDisk: 'Disk',
   labelMerge: 'Merge',
   labelSize: 'Size',
   labelSpeed: 'Speed',
@@ -254,6 +262,7 @@ const messages = {
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
+  formDescription: 'Description',
   formEdit: 'Edit',
   formId: 'ID',
   formName: 'Name',
@@ -419,13 +428,12 @@ const messages = {
   jobUserNotFound: "This job's creator no longer exists",
   backupUserNotFound: "This backup's creator no longer exists",
   redirectToMatchingVms: 'Click here to see the matching VMs',
-  migrateToBackupNg: 'Migrate to Backup NG',
   noMatchingVms: 'There are no matching VMs!',
   allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
-  migrateBackupSchedule: 'Migrate to Backup NG',
+  migrateBackupSchedule: 'Migrate to the new backup system',
   migrateBackupScheduleMessage:
-    'This will convert the old backup job to a Backup NG job. This operation is not reversible. Do you want to continue?',
+    'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
@@ -437,6 +445,7 @@ const messages = {
   reportWhenAlways: 'Always',
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
+  reportRecipients: 'Report recipients',
   reportWhen: 'Report when',
   concurrency: 'Concurrency',
   newBackupSelection: 'Select your backup type:',
@@ -447,6 +456,9 @@ const messages = {
   backupName: 'Name',
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
+  offlineBackup: 'Offline backup',
+  offlineBackupInfo:
+    'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
@@ -569,7 +581,9 @@ const messages = {
   newSrCreate: 'Create',
   newSrNamePlaceHolder: 'Storage name',
   newSrDescPlaceHolder: 'Storage description',
-  newSrAddressPlaceHolder: 'Address',
+  newSrIscsiAddressPlaceHolder: 'e.g 93.184.216.34 or iscsi.example.net',
+  newSrNfsAddressPlaceHolder: 'e.g 93.184.216.34 or nfs.example.net',
+  newSrSmbAddressPlaceHolder: 'e.g \\\\server\\sharename',
   newSrPortPlaceHolder: '[port]',
   newSrUsernamePlaceHolder: 'Username',
   newSrPasswordPlaceHolder: 'Password',
@@ -981,11 +995,18 @@ const messages = {
   // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  ctrlAltDelConfirmation: 'Send Ctrl+Alt+Del to VM?',
   multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
   sendToClipboard: 'Send to clipboard',
+  sshRootTooltip: 'Connect using external SSH tool as root',
+  sshRootLabel: 'SSH',
+  sshUserTooltip: 'Connect using external SSH tool as user…',
+  sshUserLabel: 'SSH as…',
+  sshUsernameLabel: 'SSH user name',
+  sshNeedClientTools: 'No IP address reported by client tools',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1144,12 +1165,16 @@ const messages = {
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNone: 'None',
-  vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
-  vmCoresPerSocketIncorrectValueSolution:
-    'Please change the selected value to fix it.',
+  vmCoresPerSocket:
+    '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocketNotDivisor: "Not a divisor of the VM's max CPUs",
+  vmCoresPerSocketExceedsCoresLimit:
+    'The selected value exceeds the cores limit ({maxCores, number})',
+  vmCoresPerSocketExceedsSocketsLimit:
+    'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmVgpu: 'vGPU',
@@ -1308,12 +1333,12 @@ const messages = {
   newVmSshKey: 'SSH key',
   noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
-  premiumOnly: 'Only available in Premium',
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError:
     'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -1408,6 +1433,12 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+
+  // ---- Disk import ---
+  diskImportFailed: 'Disk import failed',
+  diskImportSuccess: 'Disk import success',
+  dropDisksFiles: 'Drop VMDK or VHD files here to import disks.',
+  importToSr: 'To SR',
 
   // ---- Tasks ---
   cancelTask: 'Cancel',
@@ -1720,6 +1751,14 @@ const messages = {
     'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
+  // ----- Advanced Live Telemetry -----
+  advancedLiveTelemetry: 'Advanced Live Telemetry',
+  pluginNetDataIsNecessary: 'Netdata plugin is necessary',
+  enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
+  enableAdvancedLiveTelemetrySuccess:
+    'Advanced Live Telemetry successfully enabled',
+  xcpOnlyFeature: 'This feature is only XCP-ng compatible',
+
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
   forgetHostModalMessage:
@@ -1745,12 +1784,18 @@ const messages = {
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
   newNetworkEncapsulation: 'Encapsulation',
+  newNetworkEncrypted: 'Encrypted',
+  encryptionWarning:
+    'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
+  newNetworkSdnControllerTip:
+    'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
   pillBonded: 'Bonded',
   bondedNetwork: 'Bonded network',
   privateNetwork: 'Private network',
+  addPool: 'Add pool',
 
   // ----- Add host -----
   hosts: 'Hosts',
@@ -1761,8 +1806,8 @@ const messages = {
   xenOrchestraServer: 'Xen Orchestra server',
   xenOrchestraWeb: 'Xen Orchestra web client',
   noProSupport: 'Professional support missing!',
-  noProductionUse: 'Use in production at your own risk',
-  downloadXoaFromWebsite: 'You can download the turnkey appliance at {website}',
+  productionUse: 'Want to use in production?',
+  getSupport: 'Get pro support with the Xen Orchestra Appliance at {website}',
   bugTracker: 'Bug Tracker',
   bugTrackerText: 'Issues? Report it!',
   community: 'Community',
@@ -1802,11 +1847,8 @@ const messages = {
   refresh: 'Refresh',
   upgrade: 'Upgrade',
   downgrade: 'Downgrade',
-  noUpdaterCommunity: 'No updater available for Community Edition',
   considerSubscribe:
     'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
-  noUpdaterWarning:
-    'Manual update could break your current installation due to dependencies issues, do it with caution',
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
@@ -1836,6 +1878,8 @@ const messages = {
   unlistedChannelName: 'Unlisted channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
+  updaterCommunity:
+    'The Web updater, the release channels and the proxy settings are available in XOA.',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
@@ -1916,6 +1960,7 @@ const messages = {
   logUser: 'User',
   logMessage: 'Message',
   logSuggestXcpNg: 'Use XCP-ng to get rid of restrictions',
+  logXapiError: 'This is a XenServer/XCP-ng error',
   logError: 'Error',
   logTitle: 'Logs',
   logDisplayDetails: 'Display details',
@@ -2006,7 +2051,6 @@ const messages = {
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
   downloadConfig: 'Download current config',
-  noConfigImportCommunity: 'No config import available for Community Edition',
 
   // ----- SR -----
   srReconnectAllModalTitle: 'Reconnect all hosts',
@@ -2052,7 +2096,7 @@ const messages = {
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create',
-  xosanCommunity: 'No XOSAN available for Community Edition',
+  xosanCommunity: 'XOSAN is available in XOA',
   xosanNew: 'New',
   xosanAdvanced: 'Advanced',
   xosanRemoveSubvolumes: 'Remove subvolumes',
@@ -2083,8 +2127,8 @@ const messages = {
   xosanState_creatingSr: 'Creating SR…',
   xosanState_scanningSr: 'Scanning SR…',
   // Pack download modal
-  xosanInstallCloudPlugin: 'Install cloud plugin first',
-  xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanInstallCloudPlugin: 'Install XOA plugin first',
+  xosanLoadCloudPlugin: 'Load XOA plugin first',
   xosanNoPackFound:
     'No compatible XOSAN pack found for your XenServer versions.',
   // SR tab XOSAN
@@ -2127,6 +2171,22 @@ const messages = {
   xosanCustomIpNetwork: 'Custom IP network (/24)',
   xosanIssueHostNotInNetwork:
     'Will configure the host xosan network device with a static IP address and plug it in.',
+
+  // Hub
+  hubPage: 'Hub',
+  noDefaultSr: 'The selected pool has no default SR',
+  successfulInstall: 'VM installed successfully',
+  vmNoAvailable: 'No VMs available ',
+  create: 'Create',
+  hubResourceAlert: 'Resource alert',
+  os: 'OS',
+  version: 'Version',
+  size: 'Size',
+  totalDiskSize: 'Total disk size',
+  hideInstalledPool: 'Already installed templates are hidden',
+  hubImportNotificationTitle: 'XVA import',
+  hubTemplateDescriptionNotAvailable:
+    'No description available for this template',
 
   // Licenses
   xosanUnregisteredDisclaimer:
@@ -2175,7 +2235,7 @@ const messages = {
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
 forEach(messages, function(message, id) {
-  if (isString(message)) {
+  if (typeof message === 'string') {
     messages[id] = {
       id,
       defaultMessage: message,
