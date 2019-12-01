@@ -10,7 +10,7 @@ Full backups can be represented like this:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/nodelta.png)
 
-It means huge files for each backups. Delta backups will only export the difference between the previous backup:
+It means huge files for each backup. Delta backups will only export the difference between the previous backup:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/delta_final.png)
 
@@ -40,6 +40,9 @@ This way we can go "forward" and remove this oldest VHD after the merge:
 ## Create Delta backup
 
 Just go into your "Backup" view, and select Delta Backup. Then, it's the same as a normal backup.
+
+## Snapshots
+Unlike other types of backup jobs which delete the associated snapshot when the job is done and it has been exported, delta backups always keep a snapshot of every VM in the backup job, and uses it for the delta. Do not delete these snapshots!
 
 ## Exclude disks
 
