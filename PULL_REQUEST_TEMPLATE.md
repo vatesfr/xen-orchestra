@@ -1,8 +1,6 @@
 ### Check list
 
-> Check if done.
->
-> Strikethrough if not relevant: ~~example~~ ([doc](https://help.github.com/en/articles/basic-writing-and-formatting-syntax)).
+> Check if done, if not relevant leave unchecked.
 
 - [ ] PR reference the relevant issue (e.g. `Fixes #007` or `See xoa-support#42`)
 - [ ] if UI changes, a screenshot has been added to the PR
