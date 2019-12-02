@@ -3003,6 +3003,8 @@ export const unlockXosan = (licenseId, srId) =>
 
 export const checkXoa = () => _call('xoa.check')
 
+export const getXoaInfo = () => _call('xoa.getApplianceInfo')
+
 export const closeTunnel = () =>
   _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)
 

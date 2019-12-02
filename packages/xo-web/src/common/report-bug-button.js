@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
 import xoaUpdater from 'xoa-updater'
-import { checkXoa } from 'xo'
+import { checkXoa, getXoaInfo } from 'xo'
 import { createBlobFromString } from 'utils'
 import { createLogger } from '@xen-orchestra/log'
 import { identity, omit } from 'lodash'
@@ -71,6 +71,15 @@ const reportOnSupportPanel = async ({
           'xoaCheck.txt'
         ),
       error => logger.warn('cannot get the xoa check', { error })
+    ),
+    timeout.call(getXoaInfo(), 5e3).then(
+      xoaInfo =>
+        formData.append(
+          'attachments',
+          createBlobFromString(JSON.stringify(xoaInfo, null, 2)),
+          'xoaInfo.json'
+        ),
+      error => logger.warn('cannot get xoa info', { error })
     ),
   ])
 
