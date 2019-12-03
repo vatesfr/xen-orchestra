@@ -33,7 +33,7 @@ The **fastest and most secure way** to install Xen Orchestra is to use our web d
 Alternatively, you can deploy it by connecting to your XenServer host and executing the following:
 
 ```
-bash -c "$(curl -sS https://xoa.io/deploy)"
+curl -sS https://xoa.io/deploy | bash
 ```
 
 > **Note:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
