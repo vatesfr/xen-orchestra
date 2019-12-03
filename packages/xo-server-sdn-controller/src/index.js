@@ -275,7 +275,7 @@ function getHostTunnelForNetwork(host, networkRef) {
 
 // -----------------------------------------------------------------------------
 
-function setControllerNeeded(xapi) {
+function isControllerNeeded(xapi) {
   const controller = find(xapi.objects.all, { $type: 'SDN_controller' })
   return !(
     controller?.protocol === PROTOCOL &&
@@ -456,7 +456,7 @@ class SDNController extends EventEmitter {
     log.debug('xapi connected', { id: xapi.pool.uuid })
     await xapi.objectsFetched
 
-    if (setControllerNeeded(xapi)) {
+    if (isControllerNeeded(xapi)) {
       return
     }
 
@@ -871,7 +871,7 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _setPoolControllerIfNeeded(pool) {
-    if (!setControllerNeeded(pool.$xapi)) {
+    if (!isControllerNeeded(pool.$xapi)) {
       // Nothing to do
       return
     }
