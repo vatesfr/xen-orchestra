@@ -36,7 +36,18 @@ Alternatively, you can deploy it by connecting to your XenServer host and execut
 curl -sS https://xoa.io/deploy | bash
 ```
 
-> **Note:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
+> **Note 1:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
+
+> **Note 2:** If you are using an old XenServer version, you may get a `curl` error:
+>
+> ```
+curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protocol version
+```
+>
+> It means that the secure HTTPS protocol is not supported, you can bypass this using the unsecure command instead:
+> ```
+> curl -sS http://xoa.io/deploy | bash
+```
 
 Follow the instructions:
 
