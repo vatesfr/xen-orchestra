@@ -17,11 +17,32 @@ import { timeout } from 'promise-toolbox'
 import ActionButton from './action-button'
 import ActionRowButton from './action-row-button'
 
+const DEFAULT_TIMEOUT = 5e3
+
+const jsonStringify = json => JSON.stringify(json, null, 2)
 const logger = createLogger('report-bug-button')
 
 const GITHUB_URL = 'https://github.com/vatesfr/xen-orchestra/issues/new'
 const XO_SUPPORT_URL = 'https://xen-orchestra.com/#!/member/support'
 const SUPPORT_PANEL_URL = './api/support/create/ticket'
+
+const ADDITIONAL_FILES = [
+  {
+    fetch: xoaUpdater.getLocalManifest.bind(xoaUpdater),
+    format: jsonStringify,
+    name: 'manifest.json',
+  },
+  {
+    fetch: checkXoa,
+    format: stripAnsi,
+    name: 'xoaCheck.txt',
+  },
+  {
+    fetch: getXoaInfo,
+    format: jsonStringify,
+    name: 'xoaInfo.json',
+  },
+]
 
 const reportInNewWindow = (
   url,
@@ -53,35 +74,25 @@ const reportOnSupportPanel = async ({
     formData.append('attachments', content, name)
   })
 
-  await Promise.all([
-    timeout.call(xoaUpdater.getLocalManifest(), 5e3).then(
-      manifest =>
-        formData.append(
-          'attachments',
-          createBlobFromString(JSON.stringify(manifest, null, 2)),
-          'manifest.json'
-        ),
-      error => logger.warn('cannot get the local manifest', { error })
-    ),
-    timeout.call(checkXoa(), 5e3).then(
-      xoaCheck =>
-        formData.append(
-          'attachments',
-          createBlobFromString(stripAnsi(xoaCheck)),
-          'xoaCheck.txt'
-        ),
-      error => logger.warn('cannot get the xoa check', { error })
-    ),
-    timeout.call(getXoaInfo(), 5e3).then(
-      xoaInfo =>
-        formData.append(
-          'attachments',
-          createBlobFromString(JSON.stringify(xoaInfo, null, 2)),
-          'xoaInfo.json'
-        ),
-      error => logger.warn('cannot get xoa info', { error })
-    ),
-  ])
+  await Promise.all(
+    ADDITIONAL_FILES.map(
+      ({
+        fetch,
+        format = identity,
+        name,
+        timeout: timeout_ = DEFAULT_TIMEOUT,
+      }) =>
+        timeout.call(fetch(), timeout_).then(
+          file =>
+            formData.append(
+              'attachments',
+              createBlobFromString(format(file)),
+              name
+            ),
+          error => logger.warn(`cannot get ${name}`, error)
+        )
+    )
+  )
 
   try {
     const res = await timeout.call(post(SUPPORT_PANEL_URL, formData), 1e4)
