@@ -470,7 +470,7 @@ class SDNController extends EventEmitter {
     const networks = filter(xapi.objects.all, { $type: 'network' })
     const noVniNetworks = []
     await Promise.all(
-      map(networks, async network => {
+      networks.map(async network => {
         // 2019-09-03
         // Compatibility code, to be removed in 1 year.
         await updateNetworkOtherConfig(network)
@@ -555,7 +555,7 @@ class SDNController extends EventEmitter {
     // This is used to add the VNI to networks created before this version. (v0.1.3)
     // This will be removed in 1 year.
     await Promise.all(
-      map(noVniNetworks, async network => {
+      noVniNetworks.map(async network => {
         await network.update_other_config(
           'xo:sdn-controller:vni',
           String(++this._prevVni)
