@@ -1880,6 +1880,7 @@ const messages = {
   changeChannel: 'Change channel',
   updaterCommunity:
     'The Web updater, the release channels and the proxy settings are available in XOA.',
+  xoaBuild: 'XOA build',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',

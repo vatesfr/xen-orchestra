@@ -15,12 +15,12 @@ import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateId, linkState, toggleState } from 'reaclette-utils'
+import { getApplianceInfo, subscribeBackupNgJobs, subscribeJobs } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { Password, Select } from 'form'
-import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
 import { getXoaPlan, TryXoa } from '../../../common/utils'
 
@@ -102,6 +102,7 @@ const Updates = decorate([
       ...initialRegistrationState(),
       askRegisterAgain: false,
       showPackagesList: false,
+      xoaBuild: undefined,
     }),
     effects: {
       async configure() {
@@ -122,9 +123,11 @@ const Updates = decorate([
           effects.update(),
         ])
       },
-      initialize() {
+      initialize: async effects => {
         if (!COMMUNITY) {
-          return this.effects.update()
+          effects.update()
+          const xoaBuild = (await getApplianceInfo()).build
+          return { xoaBuild: xoaBuild === undefined ? 'unknown' : xoaBuild }
         }
       },
       linkState,
@@ -307,7 +310,12 @@ const Updates = decorate([
                 </p>
                 {state.showPackagesList && (
                   <p>
-                    <Copiable tagName='pre'>{state.packagesList}</Copiable>
+                    <Copiable tagName='pre'>
+                      <p>
+                        - {_('xoaBuild')}: {state.xoaBuild}
+                      </p>
+                      <span>{state.packagesList}</span>
+                    </Copiable>
                   </p>
                 )}
                 {state.isDisconnected && (
