@@ -61,6 +61,17 @@ const Item = ({ label, children, className }) => (
   </span>
 )
 
+/*
+From XAPI doc, a tunnel can only be created on:
+- Physical PIF
+- Bond master PIF
+- VLAN PIF
+If and only if the PIF:
+- Has an IP configuration
+- is NOT a bond slave
+
+For more info see: https://xapi-project.github.io/xapi/design/tunnelling.html
+*/
 const canSupportPrivateNetwork = (pool, pif) =>
   (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
   pif.mode !== 'None' &&
