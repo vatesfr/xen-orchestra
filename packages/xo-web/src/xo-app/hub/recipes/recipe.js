@@ -15,6 +15,7 @@ import { withRouter } from 'react-router'
 import RecipeForm from './recipe-form'
 
 const RECIPE_INFOS = {
+  id: '05abc8a8-ebf4-41a6-b1ed-efcb2dbf893d',
   name: 'Kubernetes cluster',
   description:
     'Creates a Kubernetes cluster composed of 1 master and a configurable number of nodes working for the master.',
@@ -26,6 +27,7 @@ export default decorate([
     const getPools = createGetObjectsOfType('pool')
     return {
       pools: getPools,
+      recipeCreatingResources: state => state.recipeCreatingResources,
     }
   }),
   provideState({
@@ -34,6 +36,7 @@ export default decorate([
     }),
     effects: {
       async create() {
+        const { markRecipeAsCreating, markRecipeAsCreated } = this.props
         const recipeParams = await form({
           defaultValue: {
             pool: {},
@@ -47,6 +50,7 @@ export default decorate([
           size: 'medium',
         })
 
+        markRecipeAsCreating(RECIPE_INFOS.id)
         const {
           pool,
           network,
@@ -55,23 +59,20 @@ export default decorate([
           sshKey,
           networkCidr,
         } = recipeParams
-        try {
-          await createKubernetesCluster({
-            poolId: pool.id,
-            networkId: network.id,
-            masterName,
-            nbNodes,
-            sshKey,
-            networkCidr,
-          })
-        } catch (error) {
-          // TODO
-        }
+        await createKubernetesCluster({
+          poolId: pool.id,
+          networkId: network.id,
+          masterName,
+          nbNodes: +nbNodes,
+          sshKey,
+          networkCidr,
+        })
+        markRecipeAsCreated(RECIPE_INFOS.id)
       },
     },
   }),
   injectState,
-  ({ effects }) => (
+  ({ effects, recipeCreatingResources }) => (
     <Card shadow>
       <CardHeader>{RECIPE_INFOS.name}</CardHeader>
       <CardBlock>
@@ -82,7 +83,12 @@ export default decorate([
           }}
         />
         <hr />
-        <ActionButton block handler={effects.create} icon='deploy'>
+        <ActionButton
+          block
+          handler={effects.create}
+          icon='deploy'
+          pending={recipeCreatingResources[RECIPE_INFOS.id]}
+        >
           {_('create')}
         </ActionButton>
       </CardBlock>
