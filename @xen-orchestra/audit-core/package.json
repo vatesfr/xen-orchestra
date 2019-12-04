@@ -1,0 +1,30 @@
+{
+  "name": "@xen-orchestra/audit-core",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/audit-core",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/audit-core",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --extensions .ts --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --extensions .ts --watch --source-maps --out-dir=dist/ src/",
+    "postversion": "npm publish --access public",
+    "prebuild": "rimraf dist/",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "@babel/preset-typescript": "^7.7.4",
+    "cross": "^1.0.0",
+    "rimraf": "^3.0.0"
+  }
+}
