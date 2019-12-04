@@ -1,4 +1,3 @@
-
 # Xen Orchestra
 
 ## Introduction
@@ -21,11 +20,11 @@ Log in to your account and use the deploy form available on [this page](https://
 
 ### XOA credentials
 
-* Web UI: `admin@admin.net` / `admin`
-* Console/SSH: `xoa` / `xoa` (first login)
+- Web UI: `admin@admin.net` / `admin`
+- Console/SSH: `xoa` / `xoa` (first login)
 
 ## Must read
 
-* [XOA installation](xoa.md)
-* [Main features](features.md)
-* [Pro Support](support.md)
+- [XOA installation](xoa.md)
+- [Main features](features.md)
+- [Pro Support](support.md)

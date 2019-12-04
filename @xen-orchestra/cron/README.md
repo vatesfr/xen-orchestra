@@ -16,7 +16,6 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/cron)
 <minute> <hour> <day of month> <month> <day of week>
 ```
 
-
 Each entry can be:
 
 - a single value
@@ -29,12 +28,12 @@ A wildcard (`*`) can be used as a shortcut for the whole range
 Step values can be used in conjunctions with ranges. For instance,
 `1-7/2` is the same as `1,3,5,7`.
 
-| Field            | Allowed values |
-|------------------|----------------|
-| minute           | 0-59           |
-| hour             | 0-23           |
-| day of the month | 1-31 or 3-letter names (`jan`, `feb`, …) |
-| month            | 0-11           |
+| Field            | Allowed values                                                     |
+| ---------------- | ------------------------------------------------------------------ |
+| minute           | 0-59                                                               |
+| hour             | 0-23                                                               |
+| day of the month | 1-31 or 3-letter names (`jan`, `feb`, …)                           |
+| month            | 0-11                                                               |
 | day of week      | 0-7 (0 and 7 both mean Sunday) or 3-letter names (`mon`, `tue`, …) |
 
 > Note: the month range is 0-11 to be compatible with
@@ -131,7 +130,7 @@ job.stop()
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

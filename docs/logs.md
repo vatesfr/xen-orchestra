@@ -1,4 +1,3 @@
-
 # Logs
 
 This section will explain how to check the XOA logs, and use them to detect issues.

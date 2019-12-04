@@ -6,13 +6,13 @@ This section is dedicated to all existing methods of rolling back or backing up 
 
 There are several ways to protect your VMs:
 
-* [Full Backups](full_backups.md) [*Starter Edition*]
-* [Rolling Snapshots](rolling_snapshots.md) [*Starter Edition*]
-* [Delta Backups](delta_backups.md) (best of both previous ones) [*Enterprise Edition*]
-* [Disaster Recovery](disaster_recovery.md) [*Enterprise Edition*]
-* [Metadata Backups](metadata_backup.md) [*Enterprise Edition*]
-* [Continuous Replication](continuous_replication.md) [*Premium Edition*]
-* [File Level Restore](file_level_restore.md) [*Premium Edition*]
+- [Full Backups](full_backups.md) [*Starter Edition*]
+- [Rolling Snapshots](rolling_snapshots.md) [*Starter Edition*]
+- [Delta Backups](delta_backups.md) (best of both previous ones) [*Enterprise Edition*]
+- [Disaster Recovery](disaster_recovery.md) [*Enterprise Edition*]
+- [Metadata Backups](metadata_backup.md) [*Enterprise Edition*]
+- [Continuous Replication](continuous_replication.md) [*Premium Edition*]
+- [File Level Restore](file_level_restore.md) [*Premium Edition*]
 
 > Don't forget to take a look at the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look at the [backup reports](backup_reports.md) section for configuring notifications.
 
@@ -54,16 +54,15 @@ The tooltip confirms this:
 
 ## Remotes
 
-> Remotes are places where your *backup* and *delta backup* files will be stored.
+> Remotes are places where your _backup_ and _delta backup_ files will be stored.
 
-To add a *remote*, go to the **Settings/Remotes** menu.
+To add a _remote_, go to the **Settings/Remotes** menu.
 
 Supported remote types:
 
-* Local (any folder in XOA filesystem)
-* NFS
-* SMB (CIFS)
-
+- Local (any folder in XOA filesystem)
+- NFS
+- SMB (CIFS)
 
 > **WARNING**: the initial "/" or "\\" is automatically added.
 
@@ -73,15 +72,15 @@ On your NFS server, authorize XOA's IP address and permissions for subfolders. T
 
 ### SMB
 
-We support SMB storage on *Windows Server 2012 R2*.
+We support SMB storage on _Windows Server 2012 R2_.
 
 > WARNING: For continuous delta backup, SMB is **NOT** recommended (or only for small VMs, eg < 50GB)
 
 Also, read the UI twice when you add an SMB store. If you have:
 
-* `192.168.1.99` as SMB host
-* `Backups` as folder
-* no subfolder
+- `192.168.1.99` as SMB host
+- `Backups` as folder
+- no subfolder
 
 You'll have to fill it like this:
 
@@ -112,13 +111,13 @@ All your scheduled backups are acccessible in the "Restore" view in the backup s
 
 ## About backup compression
 
-By default, *Backups* are compressed (using GZIP, done on XenServer side). There is no absolute rule but in general uncompressed backups are faster (but sometimes much larger).
+By default, _Backups_ are compressed (using GZIP, done on XenServer side). There is no absolute rule but in general uncompressed backups are faster (but sometimes much larger).
 
 XenServer uses Gzip compression, which is:
 
-* slow (single threaded)
-* space efficient
-* consumes less bandwidth (helpful if your NFS share is far away)
+- slow (single threaded)
+- space efficient
+- consumes less bandwidth (helpful if your NFS share is far away)
 
 If you have compression on your NFS share (or destination filesystem like ZFS), you can disable compression in Xen Orchestra.
 
@@ -152,4 +151,4 @@ Replicated VMs HA are taken into account by XS/XCP-ng. To avoid the resultant tr
 ![](./assets/disabled-dr-ha-tag.png)
 ![](./assets/disabled-cr-ha-tag.png)
 
- > The tag won't be automatically removed by XO on the replicated VMs, even if HA is re-enabled.
+> The tag won't be automatically removed by XO on the replicated VMs, even if HA is re-enabled.

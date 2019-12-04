@@ -12,7 +12,7 @@ Please see the plugin's [official documentation](https://xen-orchestra.com/docs/
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

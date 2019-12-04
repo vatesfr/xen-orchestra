@@ -7,7 +7,7 @@ There are two ways to select which VMs will be backed up:
 
 Picking VMs manually can be a limitation if your environment moves fast (i.e. having new VMs you need to backup often). In that situation you would previously need to constantly go back and edit the backup job to add new VM's.
 
-But thanks to *smart backup*, you now have more flexibility: you won't select specific VMs, but VMs status/tag/placement **at the time backup job will be executed**. Let's see some examples!
+But thanks to _smart backup_, you now have more flexibility: you won't select specific VMs, but VMs status/tag/placement **at the time backup job will be executed**. Let's see some examples!
 
 ## Backup all VMs on a pool
 
@@ -25,8 +25,8 @@ Want to narrow the job a bit? See below.
 
 You can also:
 
-* backup only running (or halted) VMs when the job is executed
-* backup only VMs with a specific tag
+- backup only running (or halted) VMs when the job is executed
+- backup only VMs with a specific tag
 
 Remember the Prod VMs? I added a tag "prod" to each of them:
 

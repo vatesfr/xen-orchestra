@@ -35,20 +35,20 @@ The possibilities are infinite! You can schedule a **lot** of things (any action
 
 ### Save on your electric bill
 
-* plan a live migration of your VMs at 11:00PM to a less powerful host, then shutdown the big one
-* start the big server at 6:00AM and migrate the VMs back 15 minutes later
+- plan a live migration of your VMs at 11:00PM to a less powerful host, then shutdown the big one
+- start the big server at 6:00AM and migrate the VMs back 15 minutes later
 
 ### Scale when needed
 
-* schedule the boot of extra VMs during your usual activity spikes (horizontal scaling)
-* also add more vCPUs or RAM to these VMs at the same time
-* go back to the previous state when your planned load is low (e.g: during the night)
+- schedule the boot of extra VMs during your usual activity spikes (horizontal scaling)
+- also add more vCPUs or RAM to these VMs at the same time
+- go back to the previous state when your planned load is low (e.g: during the night)
 
 ### Planned reboot
 
-* For example: your client app is not very stable, or you need to reboot every month after kernel updates: schedule this during the weekend!
+- For example: your client app is not very stable, or you need to reboot every month after kernel updates: schedule this during the weekend!
 
 ### Add or Remove ACLs
 
-* revoke your user ACLs Friday at 11:00PM (e.g: no access on the weekend)
-* restore them Monday at 6:00AM
+- revoke your user ACLs Friday at 11:00PM (e.g: no access on the weekend)
+- restore them Monday at 6:00AM

@@ -6,9 +6,8 @@ This is the easiest purchase option: you can buy XOA with your registered email 
 
 You can choose the edition you want in two places:
 
-* [the pricing page](https://xen-orchestra.com/#!/pricing)
-* [your account/purchases page](https://xen-orchestra.com/#!/purchases)
-
+- [the pricing page](https://xen-orchestra.com/#!/pricing)
+- [your account/purchases page](https://xen-orchestra.com/#!/purchases)
 
 > You need to be logged in to make a purchase. If you don't have an account, please [register here](https://xen-orchestra.com/#!/signup).
 
@@ -18,7 +17,7 @@ From your account page, click on the purchase menu, then select the edition you 
 
 ## Purchase options
 
-The second step is to select your purchase option: 
+The second step is to select your purchase option:
 
 - Subscription: only available with a credit card payment. Choose this option for a monthly payment or a yearly payment **renewed automatically** each year.
 
@@ -32,16 +31,17 @@ Then you need to fill in your information and select **"Buy for my own use"** (d
 ![](./assets/member_purchase_2.png)
 
 ## Billing information
-You need to complete all the required information on this page in order to move forward. 
 
-> Note: If you are part of the Eurozone, you will need to provide a valid EU VAT number in order to proceed to payment. Transactions between companies inside the Eurozone are VAT free. 
-Transactions outside the Eurozone are VAT free. 
+You need to complete all the required information on this page in order to move forward.
+
+> Note: If you are part of the Eurozone, you will need to provide a valid EU VAT number in order to proceed to payment. Transactions between companies inside the Eurozone are VAT free.
+> Transactions outside the Eurozone are VAT free.
 
 ![](./assets/billing_info.png)
 
 ## Select your payment mode
 
-Credit Card, Wire transfer or Bank check are the three payment methods available on our store. Some methods can be unavailable regarding the purchase option you have selected during step one. 
+Credit Card, Wire transfer or Bank check are the three payment methods available on our store. Some methods can be unavailable regarding the purchase option you have selected during step one.
 
 > Wire transfer is not available for monthly and yearly subscription - Credit Card is not available for paid period.
 

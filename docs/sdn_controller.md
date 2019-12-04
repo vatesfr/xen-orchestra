@@ -15,6 +15,7 @@ Please read the [dedicated devblog on the SDN Controller](https://xen-orchestra.
 ### Network creation
 
 In the network creation view:
+
 - Select a `pool`
 - Select `Private network`
 - Select an interface on which to create the network's tunnels
@@ -25,9 +26,10 @@ In the network creation view:
 - Create the network
 - Have fun! ☺
 
-***NB:***
+**_NB:_**
+
 - All hosts in a private network must be able to reach the other hosts' management interface.
-> The term ‘management interface’ is used to indicate the IP-enabled NIC that carries the management traffic.
+  > The term ‘management interface’ is used to indicate the IP-enabled NIC that carries the management traffic.
 - Only 1 encrypted GRE network and 1 encrypted VxLAN network per pool can exist at a time due to Open vSwitch limitation.
 
 ### Configuration
@@ -36,8 +38,9 @@ Like all other xo-server plugins, it can be configured directly via
 the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
 The plugin's configuration contains:
+
 - `cert-dir`: The path where the plugin will look for the certificates to create SSL connections with the hosts.
-If none is provided, the plugin will create its own self-signed certificates.
+  If none is provided, the plugin will create its own self-signed certificates.
 - `override-certs`: Enable to uninstall the existing SDN controller CA certificate in order to replace it with the plugin's one.
 
 ## Requirements

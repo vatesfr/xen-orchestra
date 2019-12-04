@@ -12,14 +12,14 @@ Another good way to check if there is activity is the XOA VM stats view (on the 
 
 ### VDI chain protection
 
-Backup jobs regularly delete snapshots. When a snapshot is deleted, either manually or via a backup job, it triggers the need for Xenserver to coalesce the VDI chain - to merge the remaining VDIs and base copies in the chain. This means generally we cannot take too many new snapshots on said VM until Xenserver has finished running a coalesce job on the VDI chain.  
+Backup jobs regularly delete snapshots. When a snapshot is deleted, either manually or via a backup job, it triggers the need for Xenserver to coalesce the VDI chain - to merge the remaining VDIs and base copies in the chain. This means generally we cannot take too many new snapshots on said VM until Xenserver has finished running a coalesce job on the VDI chain.
 
 This mechanism and scheduling is handled by XenServer itself, not Xen Orchestra. But we can check your existing VDI chain and avoid creating more snapshots than your storage can merge. If we don't, this will lead to catastrophic consequences. Xen Orchestra is the **only** XenServer/XCP backup product that takes this into account and offers protection.
 
 Without this detection, you could have 2 potential issues:
 
-* `The Snapshot Chain is too Long`
-* `SR_BACKEND_FAILURE_44 (insufficient space)`
+- `The Snapshot Chain is too Long`
+- `SR_BACKEND_FAILURE_44 (insufficient space)`
 
 The first issue is a chain that contains more than 30 elements (fixed XenServer limit), and the other one means it's full because the "coalesce" process couldn't keep up the pace and the storage filled up.
 
@@ -31,15 +31,15 @@ Just remember this: **a coalesce should happen every time a snapshot is removed*
 
 ### Troubleshooting a constant VDI Chain Protection message (XenServer failure to coalesce)
 
- As previously mentioned, this message can be normal and it just means XenServer needs to perform a coalesce to merge old snapshots. However if you repeatedly get this message and it seems XenServer is not coalescing, You can take a few steps to determine why.  
+As previously mentioned, this message can be normal and it just means XenServer needs to perform a coalesce to merge old snapshots. However if you repeatedly get this message and it seems XenServer is not coalescing, You can take a few steps to determine why.
 
-First check SMlog on the XenServer host for messages relating to VDI corruption or coalesce job failure. For example, by running `cat /var/log/SMlog | grep -i exception` or `cat /var/log/SMlog | grep -i error` on the XenServer host with the affected storage.  
+First check SMlog on the XenServer host for messages relating to VDI corruption or coalesce job failure. For example, by running `cat /var/log/SMlog | grep -i exception` or `cat /var/log/SMlog | grep -i error` on the XenServer host with the affected storage.
 
 Coalesce jobs can also fail to run if the SR does not have enough free space. Check the problematic SR and make sure it has enough free space, generally 30% or more free is recommended depending on VM size. You can check if this is the issue by searching `SMlog` with `grep -i coales /var/log/SMlog` (you may have to look at previous logs such as `SMlog.1`).
 
-You can check if a coalesce job is currently active by running `ps axf | grep vhd` on the XenServer host and looking for a VHD process in the results (one of the resulting processes will be the grep command you just ran, ignore that one).  
+You can check if a coalesce job is currently active by running `ps axf | grep vhd` on the XenServer host and looking for a VHD process in the results (one of the resulting processes will be the grep command you just ran, ignore that one).
 
-If you don't see any running coalesce jobs, and can't find any other reason that XenServer has not started one, you can attempt to make it start a coalesce job by rescanning the SR. This is harmless to try, but will not always result in a coalesce. Visit the problematic SR in the XOA UI, then click the "Rescan All Disks" button towards the top right: it looks like a refresh circle icon. This should begin the coalesce process - if you click the Advanced tab in the SR view, the "disks needing to be coalesced" list should become smaller and smaller.  
+If you don't see any running coalesce jobs, and can't find any other reason that XenServer has not started one, you can attempt to make it start a coalesce job by rescanning the SR. This is harmless to try, but will not always result in a coalesce. Visit the problematic SR in the XOA UI, then click the "Rescan All Disks" button towards the top right: it looks like a refresh circle icon. This should begin the coalesce process - if you click the Advanced tab in the SR view, the "disks needing to be coalesced" list should become smaller and smaller.
 
 As a last resort, migrating the VM (more specifically, its disks) to a new storage repository will also force a coalesce and solve this issue. That means migrating a VM to another host (with its own storage) and back will force the VDI chain for that VM to be coalesced, and get rid of the `VDI Chain Protection` message.
 
@@ -55,10 +55,10 @@ The Storage Repository (where your VM disks are currently stored) is full. Note 
 
 Workarounds:
 
-* use a thin provisioned SR (local ext, NFS, XOSAN)
-* wait for Citrix to release thin provisioning on LVM
-* wait for Citrix to allow another mechanism besides snapshot to be able to export disks
-* use less than 50% of SR space or don't backup all VMs
+- use a thin provisioned SR (local ext, NFS, XOSAN)
+- wait for Citrix to release thin provisioning on LVM
+- wait for Citrix to allow another mechanism besides snapshot to be able to export disks
+- use less than 50% of SR space or don't backup all VMs
 
 ### Could not find the base VM
 
@@ -72,12 +72,12 @@ To solve it, you have to change a parameter in your VM. `xe vm-param-set has-ven
 
 ### ENOSPC: no space left on device
 
-This message appears when you do not have enough free space on the target remote when running a backup to it.  
+This message appears when you do not have enough free space on the target remote when running a backup to it.
 
 To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen remote storage.
 
 ### Error: no VMs match this pattern
 
-This is happening when you have a *smart backup job* that doesn't match any VMs. For example: you created a job to backup all running VMs. If no VMs are running on backup schedule, you'll have this message. This could also happen if you lost connection with your pool master (the VMs aren't visible anymore from Xen Orchestra).
+This is happening when you have a _smart backup job_ that doesn't match any VMs. For example: you created a job to backup all running VMs. If no VMs are running on backup schedule, you'll have this message. This could also happen if you lost connection with your pool master (the VMs aren't visible anymore from Xen Orchestra).
 
 Edit your job and try to see matching VMs or check if your pool is connected to XOA.

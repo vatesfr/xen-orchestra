@@ -4,11 +4,11 @@ This chapter covers how to delegate resources (VM, hosts, etc) to users.
 
 The idea is to allow external users (not admins) to:
 
-* interact only with their objects
-* delegate VMs to your dev teams...
-* ... or to your clients
+- interact only with their objects
+- delegate VMs to your dev teams...
+- ... or to your clients
 
-> Remember: admins can do everything, thus permissions don't apply on them. It's only for *users*.
+> Remember: admins can do everything, thus permissions don't apply on them. It's only for _users_.
 
 ## Groups
 
