@@ -1,3 +1,4 @@
+import * as ComplexMatcher from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
@@ -5,6 +6,7 @@ import Icon from 'icon'
 import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
+import { escapeRegExp } from 'lodash'
 import { form } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
@@ -51,6 +53,7 @@ export default decorate([
         })
 
         markRecipeAsCreating(RECIPE_INFOS.id)
+
         const {
           pool,
           network,
@@ -59,7 +62,8 @@ export default decorate([
           sshKey,
           networkCidr,
         } = recipeParams
-        await createKubernetesCluster({
+
+        const tag = await createKubernetesCluster({
           poolId: pool.id,
           networkId: network.id,
           masterName,
@@ -67,6 +71,17 @@ export default decorate([
           sshKey,
           networkCidr,
         })
+
+        const filter = new ComplexMatcher.Property(
+          'tags',
+          new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`, 'i')
+        )
+
+        this.props.router.push({
+          pathname: '/home',
+          query: { s: filter, p: 1 },
+        })
+
         markRecipeAsCreated(RECIPE_INFOS.id)
       },
     },
