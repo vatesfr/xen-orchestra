@@ -2188,6 +2188,8 @@ const messages = {
   hubImportNotificationTitle: 'XVA import',
   hubTemplateDescriptionNotAvailable:
     'No description available for this template',
+  recipeCreatedSuccessfully: 'Recipe created successfully',
+  recipeViewCreatedVMs: 'View created VMs',
 
   // Licenses
   xosanUnregisteredDisclaimer:

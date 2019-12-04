@@ -1,6 +1,7 @@
 import * as ComplexMatcher from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
+import ButtonLink from 'button-link'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import marked from 'marked'
@@ -12,6 +13,7 @@ import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { createKubernetesCluster } from 'xo'
 import { injectState, provideState } from 'reaclette'
+import { success } from 'notification'
 import { withRouter } from 'react-router'
 
 import RecipeForm from './recipe-form'
@@ -77,10 +79,16 @@ export default decorate([
           new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`, 'i')
         )
 
-        this.props.router.push({
-          pathname: '/home',
-          query: { s: filter, p: 1 },
-        })
+        success(
+          _('recipeCreatedSuccessfully'),
+          <ButtonLink
+            btnStyle='primary'
+            size='small'
+            to={`/home?p=1&s=${filter}`}
+          >
+            {_('recipeViewCreatedVMs')}
+          </ButtonLink>
+        )
 
         markRecipeAsCreated(RECIPE_INFOS.id)
       },
