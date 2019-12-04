@@ -19,6 +19,7 @@ import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, groupBy, some } from 'lodash'
 import {
+  cancelJob,
   deleteBackupJobs,
   disableSchedule,
   enableSchedule,
@@ -146,17 +147,34 @@ const SchedulePreviewBody = decorate([
           state={schedule.enabled}
           style={{ marginRight: '0.5em' }}
         />
-        <ActionButton
-          btnStyle='primary'
-          data-id={job.id}
-          data-name={job.name}
-          data-schedule={schedule.id}
-          data-type={job.type}
-          handler={_runBackupJob}
-          icon='run-schedule'
-          pending={job.runId !== undefined}
-          size='small'
-        />{' '}
+        {job.runId !== undefined ? (
+          <Tooltip content={_('temporaryDisabled')}>
+            <span>
+              <ActionButton
+                btnStyle='danger'
+                handler={cancelJob}
+                handlerParam={job}
+                icon='cancel'
+                key='cancel'
+                size='small'
+                disabled
+                tooltip={_('formCancel')}
+              />
+            </span>
+          </Tooltip>
+        ) : (
+          <ActionButton
+            btnStyle='primary'
+            data-id={job.id}
+            data-name={job.name}
+            data-schedule={schedule.id}
+            data-type={job.type}
+            handler={_runBackupJob}
+            icon='run-schedule'
+            key='run'
+            size='small'
+          />
+        )}{' '}
         {lastRunLog !== undefined && (
           <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />
         )}

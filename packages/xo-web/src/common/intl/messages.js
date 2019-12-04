@@ -47,6 +47,7 @@ const messages = {
   vms: 'VMs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
+  temporaryDisabled: 'Temporary disabled',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
   iscsiSessions:
@@ -351,6 +352,7 @@ const messages = {
   jobTimezone: 'Timezone',
   jobServerTimezone: 'Server',
   runJob: 'Run job',
+  cancelJob: 'Cancel job',
   runJobConfirm: 'Are you sure you want to run {backupType} {id} ({tag})?',
   runJobVerbose: 'Onetime job started. See overview for logs.',
   jobEdit: 'Edit job',
