@@ -152,12 +152,12 @@ const SchedulePreviewBody = decorate([
             <span>
               <ActionButton
                 btnStyle='danger'
+                disabled
                 handler={cancelJob}
                 handlerParam={job}
                 icon='cancel'
                 key='cancel'
                 size='small'
-                disabled
                 tooltip={_('formCancel')}
               />
             </span>
