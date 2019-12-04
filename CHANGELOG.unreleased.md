@@ -5,7 +5,7 @@
 
 ### Dropped features
 
-- [Backup / Overview] Cancel button temporary disabled [#4657](https://github.com/vatesfr/xen-orchestra/issues/4657) (PR [#4688](https://github.com/vatesfr/xen-orchestra/pull/4688))
+- [Backup / Overview] Job cancellation temporary disabled [#4657](https://github.com/vatesfr/xen-orchestra/issues/4657) (PR [#4688](https://github.com/vatesfr/xen-orchestra/pull/4688))
 
 ### Enhancements
 
