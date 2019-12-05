@@ -9,7 +9,7 @@
 
 - [SDN Controller] Allow private network creation on bond and VLAN (PR [#4682](https://github.com/vatesfr/xen-orchestra/pull/4682))
 - [XOA] Display XOA build number [#4693](https://github.com/vatesfr/xen-orchestra/issues/4693) (PR [#4694](https://github.com/vatesfr/xen-orchestra/pull/4694))
-- [Hub] Ability to create receipes (PR [#4695](https://github.com/vatesfr/xen-orchestra/pull/4695))
+- [Hub] Ability to create recipes (PR [#4695](https://github.com/vatesfr/xen-orchestra/pull/4695))
 
 ### Bug fixes
 
