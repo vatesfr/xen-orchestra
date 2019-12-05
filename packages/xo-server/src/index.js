@@ -1,6 +1,7 @@
 import appConf from 'app-conf'
 import assert from 'assert'
 import authenticator from 'otplib/authenticator'
+import basicAuth from 'basic-auth'
 import blocked from 'blocked'
 import compression from 'compression'
 import createExpress from 'express'
@@ -175,7 +176,9 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     }
 
     if (authenticator.check(req.body.otp, user.preferences.otp)) {
-      setToken(req, res, next)
+      setToken(req, res, next).then(() =>
+        res.redirect(303, req.flash('return-url')[0] || '/')
+      )
     } else {
       req.flash('error', 'Invalid code')
       res.redirect(303, '/signin-otp')
@@ -187,7 +190,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     parseDuration
   )
   const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
-  const setToken = async (req, res, next) => {
+  const setToken = async (req, res) => {
     const { user, isPersistent } = req.session
     const token = await xo.createAuthenticationToken({
       expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
@@ -204,7 +207,6 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
 
     delete req.session.isPersistent
     delete req.session.user
-    res.redirect(303, req.flash('return-url')[0] || '/')
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
@@ -236,16 +238,35 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
           return res.redirect(303, '/signin-otp')
         }
 
-        setToken(req, res, next)
+        await setToken(req, res)
+        res.redirect(303, req.flash('return-url')[0] || '/')
       })(req, res, next)
     }
 
     if (req.cookies.token) {
-      next()
-    } else {
-      req.flash('return-url', url)
-      res.redirect(authCfg.defaultSignInPage)
+      return next()
     }
+
+    const user = basicAuth(req)
+    if (user !== undefined) {
+      const credentials = { username: user.name, password: user.pass }
+      try {
+        const { user } = await xo.authenticateUser(credentials)
+        req.session.user = { id: user.id, preferences: user.preferences }
+        req.session.isPersistent = false
+        await setToken(req, res)
+        return next()
+      } catch (error) {
+        // simply continue
+        log.warn('basic authentication failed', {
+          credentials,
+          error,
+        })
+      }
+    }
+
+    req.flash('return-url', url)
+    return res.redirect(authCfg.defaultSignInPage)
   })
 
   // Install the local strategy.
