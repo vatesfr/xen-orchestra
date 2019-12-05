@@ -18,7 +18,7 @@ import { withRouter } from 'react-router'
 
 import RecipeForm from './recipe-form'
 
-const RECIPE_INFOS = {
+const RECIPE_INFO = {
   id: '05abc8a8-ebf4-41a6-b1ed-efcb2dbf893d',
   name: 'Kubernetes cluster',
   description:
@@ -27,13 +27,10 @@ const RECIPE_INFOS = {
 
 export default decorate([
   withRouter,
-  connectStore(() => {
-    const getPools = createGetObjectsOfType('pool')
-    return {
-      pools: getPools,
-      recipeCreatingResources: state => state.recipeCreatingResources,
-    }
-  }),
+  connectStore(() => ({
+    pools: createGetObjectsOfType('pool'),
+    recipeCreatingResources: state => state.recipeCreatingResources,
+  })),
   provideState({
     initialState: () => ({
       selectedInstallPools: [],
@@ -48,13 +45,11 @@ export default decorate([
           render: props => <RecipeForm {...props} />,
           header: (
             <span>
-              <Icon icon='add-vm' /> {RECIPE_INFOS.name}
+              <Icon icon='add-vm' /> {RECIPE_INFO.name}
             </span>
           ),
           size: 'medium',
         })
-
-        markRecipeAsCreating(RECIPE_INFOS.id)
 
         const {
           pool,
@@ -65,6 +60,7 @@ export default decorate([
           networkCidr,
         } = recipeParams
 
+        markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
           poolId: pool.id,
           networkId: network.id,
@@ -73,6 +69,7 @@ export default decorate([
           sshKey,
           networkCidr,
         })
+        markRecipeAsCreated(RECIPE_INFO.id)
 
         const filter = new ComplexMatcher.Property(
           'tags',
@@ -81,28 +78,22 @@ export default decorate([
 
         success(
           _('recipeCreatedSuccessfully'),
-          <ButtonLink
-            btnStyle='primary'
-            size='small'
-            to={`/home?p=1&s=${filter}`}
-          >
-            {_('recipeViewCreatedVMs')}
+          <ButtonLink btnStyle='success' size='small' to={`/home?s=${filter}`}>
+            {_('recipeViewCreatedVms')}
           </ButtonLink>
         )
-
-        markRecipeAsCreated(RECIPE_INFOS.id)
       },
     },
   }),
   injectState,
   ({ effects, recipeCreatingResources }) => (
     <Card shadow>
-      <CardHeader>{RECIPE_INFOS.name}</CardHeader>
+      <CardHeader>{RECIPE_INFO.name}</CardHeader>
       <CardBlock>
         <div
           className='text-muted'
           dangerouslySetInnerHTML={{
-            __html: marked(RECIPE_INFOS.description),
+            __html: marked(RECIPE_INFO.description),
           }}
         />
         <hr />
@@ -110,7 +101,7 @@ export default decorate([
           block
           handler={effects.create}
           icon='deploy'
-          pending={recipeCreatingResources[RECIPE_INFOS.id]}
+          pending={recipeCreatingResources[RECIPE_INFO.id]}
         >
           {_('create')}
         </ActionButton>

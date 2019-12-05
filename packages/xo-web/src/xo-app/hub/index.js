@@ -36,10 +36,10 @@ const Header = (
       <Col mediumSize={9}>
         <NavTabs className='pull-right'>
           <NavLink to='/hub/templates'>
-            <Icon icon='hub-template' /> Templates
+            <Icon icon='hub-template' /> {_('templatesLabel')}
           </NavLink>
           <NavLink to='/hub/recipes'>
-            <Icon icon='hub-recipe' /> Recipes
+            <Icon icon='hub-recipe' /> {_('recipesLabel')}
           </NavLink>
         </NavTabs>
       </Col>
