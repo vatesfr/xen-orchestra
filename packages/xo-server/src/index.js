@@ -172,7 +172,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       setToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')
-      return res.redirect(303, '/signin-otp')
+      res.redirect(303, '/signin-otp')
     }
   })
 
@@ -237,7 +237,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       next()
     } else {
       req.flash('return-url', url)
-      return res.redirect(authCfg.defaultSignInPage)
+      res.redirect(authCfg.defaultSignInPage)
     }
   })
 
