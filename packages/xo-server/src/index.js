@@ -202,10 +202,15 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
+  const UNCHECKED_URL_RE = /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
   express.use(async (req, res, next) => {
     const { url } = req
-    const matches = url.match(SIGNIN_STRATEGY_RE)
 
+    if (UNCHECKED_URL_RE.test(url)) {
+      return next()
+    }
+
+    const matches = url.match(SIGNIN_STRATEGY_RE)
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
         if (err) {
@@ -230,10 +235,6 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     }
 
     if (req.cookies.token) {
-      next()
-    } else if (
-      /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/.test(url)
-    ) {
       next()
     } else {
       req.flash('return-url', url)
