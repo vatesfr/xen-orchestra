@@ -152,6 +152,7 @@ const SchedulePreviewBody = decorate([
             <span>
               <ActionButton
                 btnStyle='danger'
+                // TODO: enable the button once the issue with the job cancellation was fixed
                 disabled
                 handler={cancelJob}
                 handlerParam={job}
