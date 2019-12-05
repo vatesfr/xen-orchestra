@@ -2985,10 +2985,6 @@ export const updateXosanPacks = pool =>
     return downloadAndInstallXosanPack(pack, pool, { version: pack.version })
   })
 
-// XOA -------------------------------------------------------------------------
-
-export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
-
 // Licenses --------------------------------------------------------------------
 
 export const getLicenses = productId => _call('xoa.getLicenses', { productId })
@@ -3017,3 +3013,5 @@ export const openTunnel = () =>
 export const subscribeTunnelState = createSubscription(() =>
   _call('xoa.supportTunnel.getState')
 )
+
+export const getApplianceInfo = () => _call('xoa.getApplianceInfo')

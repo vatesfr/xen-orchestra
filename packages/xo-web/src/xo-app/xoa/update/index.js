@@ -102,7 +102,6 @@ const Updates = decorate([
       ...initialRegistrationState(),
       askRegisterAgain: false,
       showPackagesList: false,
-      xoaBuild: undefined,
     }),
     effects: {
       async configure() {
@@ -123,11 +122,9 @@ const Updates = decorate([
           effects.update(),
         ])
       },
-      initialize: async effects => {
+      initialize() {
         if (!COMMUNITY) {
-          effects.update()
-          const xoaBuild = (await getApplianceInfo()).build
-          return { xoaBuild: xoaBuild === undefined ? 'unknown' : xoaBuild }
+          return this.effects.update()
         }
       },
       linkState,
@@ -261,6 +258,10 @@ const Updates = decorate([
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
       proxyFormId: generateId,
+      xoaBuild: async () => {
+        const { build = 'unknown' } = await getApplianceInfo()
+        return build
+      },
     },
   }),
   injectState,
@@ -293,6 +294,8 @@ const Updates = decorate([
             <CardBlock>
               <fieldset disabled={COMMUNITY}>
                 <p>
+                  {_('xoaBuild')} {state.xoaBuild}
+                  {' - '}
                   {_('currentVersion')}{' '}
                   {defined(
                     () => state.installedPackages['xen-orchestra'],
@@ -310,12 +313,7 @@ const Updates = decorate([
                 </p>
                 {state.showPackagesList && (
                   <p>
-                    <Copiable tagName='pre'>
-                      <p>
-                        - {_('xoaBuild')}: {state.xoaBuild}
-                      </p>
-                      <span>{state.packagesList}</span>
-                    </Copiable>
+                    <Copiable tagName='pre'>{state.packagesList}</Copiable>
                   </p>
                 )}
                 {state.isDisconnected && (
