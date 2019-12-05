@@ -8,7 +8,7 @@ import React from 'react'
 import { alert, form } from 'modal'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Col, Row } from 'grid'
-import { connectStore, formatSize, getXoaPlan } from 'utils'
+import { connectStore, formatSize } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { deleteTemplates, downloadAndInstallResource, pureDeleteVm } from 'xo'
 import { error, success } from 'notification'
@@ -29,18 +29,6 @@ const BANNED_FIELDS = ['any', 'description'] // These fields will not be display
 const EXCLUSIVE_FIELDS = ['longDescription'] // These fields will not have a label
 const MARKDOWN_FIELDS = ['longDescription', 'description']
 const STATIC_FIELDS = [...EXCLUSIVE_FIELDS, ...BANNED_FIELDS] // These fields will not be displayed with dynamic fields
-
-const subscribeAlert = () =>
-  alert(
-    _('hubResourceAlert'),
-    <div>
-      <p>
-        {_('considerSubscribe', {
-          link: 'https://xen-orchestra.com',
-        })}
-      </p>
-    </div>
-  )
 
 export default decorate([
   withRouter,
@@ -69,10 +57,6 @@ export default decorate([
           version,
         } = this.props
         const { isTemplateInstalled } = this.state
-        if (getXoaPlan() === 'Community') {
-          subscribeAlert()
-          return
-        }
         const resourceParams = await form({
           defaultValue: {
             mapPoolsSrs: {},
@@ -127,10 +111,6 @@ export default decorate([
       async create() {
         const { isPoolCreated, installedTemplates } = this.state
         const { name } = this.props
-        if (getXoaPlan() === 'Community') {
-          subscribeAlert()
-          return
-        }
         const resourceParams = await form({
           defaultValue: {
             pool: undefined,

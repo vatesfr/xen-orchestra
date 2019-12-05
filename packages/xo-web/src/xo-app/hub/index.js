@@ -1,8 +1,10 @@
 import _ from 'intl'
 import Icon from 'icon'
 import React from 'react'
-import { routes } from 'utils'
+import { alert } from 'modal'
+
 import { Container, Col, Row } from 'grid'
+import { getXoaPlan, routes } from 'utils'
 import { NavLink, NavTabs } from 'nav'
 
 import Page from '../page'
@@ -10,6 +12,18 @@ import Recipes from './recipes'
 import Templates from './templates'
 
 // ==================================================================
+
+const subscribeAlert = () =>
+  alert(
+    _('hubResourceAlert'),
+    <div>
+      <p>
+        {_('considerSubscribe', {
+          link: 'https://xen-orchestra.com',
+        })}
+      </p>
+    </div>
+  )
 
 const Header = (
   <Container>
@@ -36,10 +50,14 @@ const Header = (
 const Hub = routes('hub', {
   templates: Templates,
   recipes: Recipes,
-})(({ children }) => (
-  <Page header={Header} title='hubPage' formatTitle>
-    {children}
-  </Page>
-))
+})(({ children }) =>
+  getXoaPlan() === 'Community' ? (
+    subscribeAlert()
+  ) : (
+    <Page header={Header} title='hubPage' formatTitle>
+      {children}
+    </Page>
+  )
+)
 
 export default Hub
