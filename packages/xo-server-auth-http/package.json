@@ -1,0 +1,48 @@
+{
+  "name": "xo-server-auth-http",
+  "version": "0.0.0",
+  "license": "AGPL-3.0",
+  "description": "Basic HTTP authentication plugin for XO-Server",
+  "keywords": [
+    "authorization",
+    "basic",
+    "http",
+    "orchestra",
+    "plugin",
+    "xen-orchestra",
+    "xen",
+    "xo-server"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-auth-http",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "packages/xo-server-auth-http",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "main": "dist/",
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=8.10"
+  },
+  "dependencies": {
+    "passport-http": "^0.3.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "cross-env": "^6.0.3",
+    "rimraf": "^3.0.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "rimraf dist/",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
+  },
+  "private": true
+}

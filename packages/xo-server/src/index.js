@@ -15,7 +15,7 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
-import { forOwn, map } from 'lodash'
+import { forOwn, map, once } from 'lodash'
 import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
@@ -124,11 +124,19 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     strategy,
     { label = strategy.label, name = strategy.name } = {}
   ) => {
-    passport.use(name, strategy)
+    if (name in strategies) {
+      throw new TypeError('duplicate passport strategy ' + name)
+    }
 
+    passport.use(name, strategy)
     if (name !== 'local') {
       strategies[name] = label ?? name
     }
+
+    return once(() => {
+      passport.unuse(name)
+      delete strategies[name]
+    })
   }
 
   // Registers the sign in form.
@@ -171,7 +179,9 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     }
 
     if (authenticator.check(req.body.otp, user.preferences.otp)) {
-      setToken(req, res, next)
+      setToken(req, res, next).then(() =>
+        res.redirect(303, req.flash('return-url')[0] || '/')
+      )
     } else {
       req.flash('error', 'Invalid code')
       res.redirect(303, '/signin-otp')
@@ -183,7 +193,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     parseDuration
   )
   const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
-  const setToken = async (req, res, next) => {
+  const setToken = async (req, res) => {
     const { user, isPersistent } = req.session
     const token = await xo.createAuthenticationToken({
       expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
@@ -200,7 +210,6 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
 
     delete req.session.isPersistent
     delete req.session.user
-    res.redirect(303, req.flash('return-url')[0] || '/')
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
@@ -220,6 +229,12 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
         }
 
         if (!user) {
+          if (typeof info === 'string') {
+            res.statusCode = 401
+            res.setHeader('WWW-Authenticate', info)
+            return res.end('unauthorized')
+          }
+
           req.flash('error', info ? info.message : 'Invalid credentials')
           return res.redirect(303, '/signin')
         }
@@ -232,16 +247,17 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
           return res.redirect(303, '/signin-otp')
         }
 
-        setToken(req, res, next)
+        await setToken(req, res)
+        res.redirect(303, req.flash('return-url')[0] || '/')
       })(req, res, next)
     }
 
     if (req.cookies.token) {
-      next()
-    } else {
-      req.flash('return-url', url)
-      res.redirect(authCfg.defaultSignInPage)
+      return next()
     }
+
+    req.flash('return-url', url)
+    return res.redirect(authCfg.defaultSignInPage)
   })
 
   // Install the local strategy.

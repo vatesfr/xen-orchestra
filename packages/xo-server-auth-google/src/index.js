@@ -31,6 +31,7 @@ export const configurationSchema = {
 class AuthGoogleXoPlugin {
   constructor({ xo }) {
     this._conf = null
+    this._unregisterPassportStrategy = undefined
     this._xo = xo
   }
 
@@ -42,7 +43,7 @@ class AuthGoogleXoPlugin {
     const conf = this._conf
     const xo = this._xo
 
-    xo.registerPassportStrategy(
+    this._unregisterPassportStrategy = xo.registerPassportStrategy(
       new Strategy(conf, async (accessToken, refreshToken, profile, done) => {
         try {
           done(
@@ -59,6 +60,10 @@ class AuthGoogleXoPlugin {
         }
       })
     )
+  }
+
+  unload() {
+    this._unregisterPassportStrategy()
   }
 }
 
