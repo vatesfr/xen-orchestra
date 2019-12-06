@@ -120,12 +120,14 @@ function createExpressApp(config) {
 
 async function setUpPassport(express, xo, { authentication: authCfg }) {
   const strategies = { __proto__: null }
-  xo.registerPassportStrategy = strategy => {
-    passport.use(strategy)
+  xo.registerPassportStrategy = (
+    strategy,
+    { label = strategy.label, name = strategy.name } = {}
+  ) => {
+    passport.use(name, strategy)
 
-    const { name } = strategy
     if (name !== 'local') {
-      strategies[name] = strategy.label || name
+      strategies[name] = label ?? name
     }
   }
 
