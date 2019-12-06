@@ -17,7 +17,7 @@ import { timeout } from 'promise-toolbox'
 import ActionButton from './action-button'
 import ActionRowButton from './action-row-button'
 
-const DEFAULT_TIMEOUT = 5e3
+const ADDITIONAL_FILES_FETCH_TIMEOUT = 5e3
 
 const jsonStringify = json => JSON.stringify(json, null, 2)
 const logger = createLogger('report-bug-button')
@@ -28,18 +28,15 @@ const SUPPORT_PANEL_URL = './api/support/create/ticket'
 
 const ADDITIONAL_FILES = [
   {
-    fetch: xoaUpdater.getLocalManifest.bind(xoaUpdater),
-    format: jsonStringify,
+    fetch: () => xoaUpdater.getLocalManifest().then(jsonStringify),
     name: 'manifest.json',
   },
   {
-    fetch: checkXoa,
-    format: stripAnsi,
+    fetch: () => checkXoa().then(xoaCheck => stripAnsi(xoaCheck)),
     name: 'xoaCheck.txt',
   },
   {
-    fetch: getXoaInfo,
-    format: jsonStringify,
+    fetch: () => getXoaInfo().then(jsonStringify),
     name: 'xoaInfo.json',
   },
 ]
@@ -75,22 +72,12 @@ const reportOnSupportPanel = async ({
   })
 
   await Promise.all(
-    ADDITIONAL_FILES.map(
-      ({
-        fetch,
-        format = identity,
-        name,
-        timeout: timeout_ = DEFAULT_TIMEOUT,
-      }) =>
-        timeout.call(fetch(), timeout_).then(
-          file =>
-            formData.append(
-              'attachments',
-              createBlobFromString(format(file)),
-              name
-            ),
-          error => logger.warn(`cannot get ${name}`, error)
-        )
+    ADDITIONAL_FILES.map(({ fetch, name }) =>
+      timeout.call(fetch(), ADDITIONAL_FILES_FETCH_TIMEOUT).then(
+        file =>
+          formData.append('attachments', createBlobFromString(file), name),
+        error => logger.warn(`cannot get ${name}`, error)
+      )
     )
   )
 
