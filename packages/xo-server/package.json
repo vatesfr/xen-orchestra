@@ -46,7 +46,6 @@
     "archiver": "^3.0.0",
     "async-iterator-to-stream": "^1.0.1",
     "base64url": "^3.0.0",
-    "basic-auth": "^2.0.1",
     "bind-property-descriptor": "^1.0.0",
     "blocked": "^1.2.1",
     "bluebird": "^3.5.1",

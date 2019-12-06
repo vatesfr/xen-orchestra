@@ -1,7 +1,6 @@
 import appConf from 'app-conf'
 import assert from 'assert'
 import authenticator from 'otplib/authenticator'
-import basicAuth from 'basic-auth'
 import blocked from 'blocked'
 import compression from 'compression'
 import createExpress from 'express'
@@ -125,6 +124,10 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     strategy,
     { label = strategy.label, name = strategy.name } = {}
   ) => {
+    if (name in strategies) {
+      throw new TypeError('duplicate passport strategy ' + name)
+    }
+
     passport.use(name, strategy)
     if (name !== 'local') {
       strategies[name] = label ?? name
@@ -226,6 +229,12 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
         }
 
         if (!user) {
+          if (typeof info === 'string') {
+            res.statusCode = 401
+            res.setHeader('WWW-Authenticate', info)
+            return res.end('unauthorized')
+          }
+
           req.flash('error', info ? info.message : 'Invalid credentials')
           return res.redirect(303, '/signin')
         }
@@ -245,24 +254,6 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
 
     if (req.cookies.token) {
       return next()
-    }
-
-    const user = basicAuth(req)
-    if (user !== undefined) {
-      const credentials = { username: user.name, password: user.pass }
-      try {
-        const { user } = await xo.authenticateUser(credentials)
-        req.session.user = { id: user.id, preferences: user.preferences }
-        req.session.isPersistent = false
-        await setToken(req, res)
-        return next()
-      } catch (error) {
-        // simply continue
-        log.warn('basic authentication failed', {
-          credentials,
-          error,
-        })
-      }
     }
 
     req.flash('return-url', url)
