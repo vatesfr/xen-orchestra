@@ -333,6 +333,18 @@ export default class Menu extends Component {
         to: '/hub/templates',
         icon: 'menu-hub',
         label: 'hubPage',
+        subMenu: [
+          {
+            to: '/hub/templates',
+            icon: 'hub-template',
+            label: 'templatesLabel',
+          },
+          {
+            to: '/hub/recipes',
+            icon: 'hub-recipe',
+            label: 'recipesLabel',
+          },
+        ],
       },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       !noOperatablePools && {

@@ -2175,6 +2175,7 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
+  hubCommunity: 'Hub is available in XOA',
   noDefaultSr: 'The selected pool has no default SR',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
