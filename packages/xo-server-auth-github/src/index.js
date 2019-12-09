@@ -19,6 +19,7 @@ export const configurationSchema = {
 
 class AuthGitHubXoPlugin {
   constructor(xo) {
+    this._unregisterPassportStrategy = undefined
     this._xo = xo
   }
 
@@ -29,7 +30,7 @@ class AuthGitHubXoPlugin {
   load() {
     const { _xo: xo } = this
 
-    xo.registerPassportStrategy(
+    this._unregisterPassportStrategy = xo.registerPassportStrategy(
       new Strategy(
         this._conf,
         async (accessToken, refreshToken, profile, done) => {
@@ -41,6 +42,10 @@ class AuthGitHubXoPlugin {
         }
       )
     )
+  }
+
+  unload() {
+    this._unregisterPassportStrategy()
   }
 }
 

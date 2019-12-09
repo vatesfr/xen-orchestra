@@ -15,7 +15,7 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
-import { forOwn, map } from 'lodash'
+import { forOwn, map, once } from 'lodash'
 import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
@@ -125,10 +125,14 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     { label = strategy.label, name = strategy.name } = {}
   ) => {
     passport.use(name, strategy)
-
     if (name !== 'local') {
       strategies[name] = label ?? name
     }
+
+    return once(() => {
+      passport.unuse(name)
+      delete strategies[name]
+    })
   }
 
   // Registers the sign in form.
