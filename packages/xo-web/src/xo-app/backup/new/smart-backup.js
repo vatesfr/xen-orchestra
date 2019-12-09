@@ -1,8 +1,8 @@
 import _ from 'intl'
 import Button from 'button'
-import EphemeralInput from 'ephemeral-input'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
+import EphemeralInput from 'ephemeral-input'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -33,22 +33,22 @@ const SmartBackup = decorate([
   }),
   provideState({
     initialState: () => ({
-      editingTag: false,
       editingExcludedTag: false,
+      editingTag: false,
     }),
     effects: {
-      addTag: (effects, newTag) => ({ tags }) => {
-        effects.setTagValues(
-          tags.values === undefined ? [newTag] : [...tags.values, newTag]
-        )
-      },
       addExcludedTag: (effects, newTag) => ({ tags }) => {
         effects.setTagNotValues(
           tags.notValues === undefined ? [newTag] : [...tags.notValues, newTag]
         )
       },
-      closeTagEdition: () => ({ editingTag: false }),
+      addTag: (effects, newTag) => ({ tags }) => {
+        effects.setTagValues(
+          tags.values === undefined ? [newTag] : [...tags.values, newTag]
+        )
+      },
       closeExludedTagEdition: () => ({ editingExcludedTag: false }),
+      closeTagEdition: () => ({ editingTag: false }),
       setPattern: (_, value) => (_, { pattern, onChange }) => {
         onChange({
           ...pattern,
