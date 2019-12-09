@@ -132,12 +132,12 @@ export default decorate([
         <label>{_('recipeNetworkCidr')}</label>
         <input
           className='form-control'
-          name='networkCidr'
+          name='cidr'
           onChange={effects.onChangeValue}
           placeholder='Network CIDR'
           required
           type='text'
-          value={value.networkCidr}
+          value={value.cidr}
         />
       </FormGrid.Row>
     </Container>
