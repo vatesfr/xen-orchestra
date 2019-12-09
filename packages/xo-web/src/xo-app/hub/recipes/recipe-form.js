@@ -5,9 +5,11 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container } from 'grid'
+import { get } from '@xen-orchestra/defined'
 import { sortBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
-import { SelectPool, SelectNetwork } from 'select-objects'
+import { isSrWritable } from 'xo'
+import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
 
 export default decorate([
   provideState({
@@ -17,6 +19,13 @@ export default decorate([
         onChange({
           ...value,
           pool,
+        })
+      },
+      onChangeSr(__, sr) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          sr,
         })
       },
       onChangeNetwork(__, network) {
@@ -39,10 +48,12 @@ export default decorate([
       sortedPools: (_, { value }) => sortBy(value.pools, 'name_label'),
       networkPredicate: (_, { value: { pool } }) => network =>
         pool.id === network.$pool,
+      srPredicate: (_, { value }) => sr =>
+        sr.$pool === get(() => value.pool.id) && isSrWritable(sr),
     },
   }),
   injectState,
-  ({ effects, install, poolPredicate, state, value }) => (
+  ({ effects, install, state, value }) => (
     <Container>
       <FormGrid.Row>
         <label>
@@ -57,9 +68,17 @@ export default decorate([
         <SelectPool
           className='mb-1'
           onChange={effects.onChangePools}
-          predicate={poolPredicate}
           required
           value={value.pool}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('vmImportToSr')}</label>
+        <SelectSr
+          onChange={effects.onChangeSr}
+          predicate={state.srPredicate}
+          required
+          value={value.sr}
         />
       </FormGrid.Row>
       <FormGrid.Row>

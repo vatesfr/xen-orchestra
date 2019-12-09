@@ -53,6 +53,7 @@ export default decorate([
 
         const {
           pool,
+          sr,
           network,
           masterName,
           nbNodes,
@@ -63,6 +64,7 @@ export default decorate([
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
           poolId: pool.id,
+          sr: sr.id,
           networkId: network.id,
           masterName,
           nbNodes: +nbNodes,
