@@ -6,7 +6,7 @@ import { injectState, provideState } from 'reaclette'
 const ENTER_KEY_CODE = 13
 const ESCAPE_KEY_CODE = 27
 
-const CustomInput = decorate([
+const EphemeralInput = decorate([
   provideState({
     effects: {
       onKeyDown: (effects, event) => (_, props) => {
@@ -14,11 +14,15 @@ const CustomInput = decorate([
 
         if (keyCode === ENTER_KEY_CODE) {
           if (target.value !== '') {
-            props.handler(target.value)
+            props.onChange(target.value)
+            if (props.oneTime) {
+              props.closeEdition()
+              return
+            }
             target.value = ''
           }
         } else if (keyCode === ESCAPE_KEY_CODE) {
-          effects.closeEdition()
+          props.closeEdition()
         } else {
           return
         }
@@ -27,13 +31,24 @@ const CustomInput = decorate([
     },
   }),
   injectState,
-  ({ effects, ...props }) => (
-    <input {...props} autoFocus onKeyDown={effects.onKeyDown} type='text' />
+  ({ effects, closeEdition, ...props }) => (
+    <input
+      {...props}
+      autoFocus
+      onBlur={closeEdition}
+      onKeyDown={effects.onKeyDown}
+    />
   ),
 ])
 
-CustomInput.propTypes = {
-  handler: PropTypes.func.isRequired,
+EphemeralInput.propTypes = {
+  closeEdition: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  oneTime: PropTypes.bool,
 }
 
-export default CustomInput
+EphemeralInput.defaultProps = {
+  oneTime: false,
+}
+
+export default EphemeralInput

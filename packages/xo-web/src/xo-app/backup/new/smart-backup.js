@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Button from 'button'
-import CustomInput from 'custom-input'
+import EphemeralInput from 'ephemeral-input'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -33,7 +33,8 @@ const SmartBackup = decorate([
   }),
   provideState({
     initialState: () => ({
-      editing: false,
+      editingTag: false,
+      editingExcludedTag: false,
     }),
     effects: {
       addTag: (effects, newTag) => ({ tags }) => {
@@ -41,7 +42,13 @@ const SmartBackup = decorate([
           tags.values === undefined ? [newTag] : [...tags.values, newTag]
         )
       },
-      closeEdition: () => ({ editing: false }),
+      addExcludedTag: (effects, newTag) => ({ tags }) => {
+        effects.setTagNotValues(
+          tags.notValues === undefined ? [newTag] : [...tags.notValues, newTag]
+        )
+      },
+      closeTagEdition: () => ({ editingTag: false }),
+      closeExludedTagEdition: () => ({ editingExcludedTag: false }),
       setPattern: (_, value) => (_, { pattern, onChange }) => {
         onChange({
           ...pattern,
@@ -125,11 +132,19 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
-        {state.editing ? (
-          <CustomInput handler={effects.addTag} onBlur={effects.closeEdition} />
+        {state.editingTag ? (
+          <EphemeralInput
+            closeEdition={effects.closeTagEdition}
+            onChange={effects.addTag}
+            type='text'
+          />
         ) : (
           <Tooltip content={_('customTag')}>
-            <Button name='editing' onClick={effects.toggleState} size='small'>
+            <Button
+              name='editingTag'
+              onClick={effects.toggleState}
+              size='small'
+            >
               <Icon icon='edit' />
             </Button>
           </Tooltip>
@@ -146,7 +161,24 @@ const SmartBackup = decorate([
         </label>{' '}
         <Tooltip content={_('backupReplicatedVmsInfo')}>
           <Icon icon='info' />
-        </Tooltip>
+        </Tooltip>{' '}
+        {state.editingExcludedTag ? (
+          <EphemeralInput
+            closeEdition={effects.closeExludedTagEdition}
+            onChange={effects.addExcludedTag}
+            type='text'
+          />
+        ) : (
+          <Tooltip content={_('customTag')}>
+            <Button
+              name='editingExcludedTag'
+              onClick={effects.toggleState}
+              size='small'
+            >
+              <Icon icon='edit' />
+            </Button>
+          </Tooltip>
+        )}
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
