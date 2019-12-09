@@ -10,9 +10,8 @@ import Component from './base-component'
 import Icon from './icon'
 import Tooltip from './tooltip'
 import { confirm } from './modal'
-import { SelectTag } from './select-objects'
-
 import { noop } from './utils'
+import { SelectTag } from './select-objects'
 
 const INPUT_STYLE = {
   maxWidth: '8em',
@@ -109,12 +108,14 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
-  _selectExistingTags = () =>
-    confirm({
+  _selectExistingTags = async () => {
+    this._stopEdit()
+    return confirm({
       body: <SelectExistingTag />,
       icon: 'add',
       title: _('selectExistingTags'),
-    }).then(tags => tags.map(this._addTag), noop)
+    }).then(tags => Promise.all(tags.map(this._addTag)), noop)
+  }
 
   _focus = () => {
     this._focused = true
@@ -123,7 +124,7 @@ export default class Tags extends Component {
   _stopEditIfUnfocused = () => {
     this._focused = false
     setTimeout(() => {
-      !this._focused && this.setState({ editing: false })
+      !this._focused && this._stopEdit()
     }, 10)
   }
 
