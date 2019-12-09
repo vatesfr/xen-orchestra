@@ -26,29 +26,55 @@ const VMS_STATUSES_OPTIONS = [
   { value: 'Halted', label: _('vmStateHalted') },
 ]
 
+const CustomTag = decorate([
+  provideState({
+    initialState: () => ({
+      editing: false,
+    }),
+    effects: {
+      addTag: (effects, newTag) => ({ tags }, props) => {
+        props.excluded
+          ? effects.setTagNotValues(
+              tags.notValues === undefined
+                ? [newTag]
+                : [...tags.notValues, newTag]
+            )
+          : effects.setTagValues(
+              tags.values === undefined ? [newTag] : [...tags.values, newTag]
+            )
+      },
+      closeEdition: () => ({ editing: false }),
+      toggleState,
+    },
+  }),
+  injectState,
+  ({ state, effects }) =>
+    state.editing ? (
+      <EphemeralInput
+        closeEdition={effects.closeEdition}
+        onChange={effects.addTag}
+        type='text'
+      />
+    ) : (
+      <Tooltip content={_('customTag')}>
+        <Button name='editing' onClick={effects.toggleState} size='small'>
+          <Icon icon='edit' />
+        </Button>
+      </Tooltip>
+    ),
+])
+
+CustomTag.defaultProps = {
+  excluded: false,
+}
+
 const SmartBackup = decorate([
   connectStore({
     hosts: createGetObjectsOfType('host'),
     vms: createGetObjectsOfType('VM'),
   }),
   provideState({
-    initialState: () => ({
-      editingExcludedTag: false,
-      editingTag: false,
-    }),
     effects: {
-      addExcludedTag: (effects, newTag) => ({ tags }) => {
-        effects.setTagNotValues(
-          tags.notValues === undefined ? [newTag] : [...tags.notValues, newTag]
-        )
-      },
-      addTag: (effects, newTag) => ({ tags }) => {
-        effects.setTagValues(
-          tags.values === undefined ? [newTag] : [...tags.values, newTag]
-        )
-      },
-      closeExludedTagEdition: () => ({ editingExcludedTag: false }),
-      closeTagEdition: () => ({ editingTag: false }),
       setPattern: (_, value) => (_, { pattern, onChange }) => {
         onChange({
           ...pattern,
@@ -132,23 +158,7 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
-        {state.editingTag ? (
-          <EphemeralInput
-            closeEdition={effects.closeTagEdition}
-            onChange={effects.addTag}
-            type='text'
-          />
-        ) : (
-          <Tooltip content={_('customTag')}>
-            <Button
-              name='editingTag'
-              onClick={effects.toggleState}
-              size='small'
-            >
-              <Icon icon='edit' />
-            </Button>
-          </Tooltip>
-        )}
+        <CustomTag />
         <SelectTag
           multi
           onChange={effects.setTagValues}
@@ -162,23 +172,7 @@ const SmartBackup = decorate([
         <Tooltip content={_('backupReplicatedVmsInfo')}>
           <Icon icon='info' />
         </Tooltip>{' '}
-        {state.editingExcludedTag ? (
-          <EphemeralInput
-            closeEdition={effects.closeExludedTagEdition}
-            onChange={effects.addExcludedTag}
-            type='text'
-          />
-        ) : (
-          <Tooltip content={_('customTag')}>
-            <Button
-              name='editingExcludedTag'
-              onClick={effects.toggleState}
-              size='small'
-            >
-              <Icon icon='edit' />
-            </Button>
-          </Tooltip>
-        )}
+        <CustomTag excluded />
         <SelectTag
           multi
           onChange={effects.setTagNotValues}
