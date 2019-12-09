@@ -6,26 +6,20 @@ let force
 // -----------------------------------------------------------------------------
 
 const assert = require('assert')
+const flatten = require('lodash/flatten')
 const getopts = require('getopts')
 const lockfile = require('proper-lockfile')
+const pipe = require('promise-toolbox/pipe')
 const { default: Vhd } = require('vhd-lib')
-const { curryRight, flatten } = require('lodash')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
-const { pipe, promisifyAll } = require('promise-toolbox')
 
-const fs = promisifyAll(require('fs'))
+const asyncMap = require('../_asyncMap')
+const fs = require('../_fs')
+
 const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
 
 // -----------------------------------------------------------------------------
-
-const asyncMap = curryRight((iterable, fn) =>
-  Promise.all(
-    Array.isArray(iterable) ? iterable.map(fn) : Array.from(iterable, fn)
-  )
-)
-
-const filter = (...args) => thisArg => thisArg.filter(...args)
 
 const isGzipFile = async fd => {
   // https://tools.ietf.org/html/rfc1952.html#page-5
@@ -89,24 +83,6 @@ const isValidXva = async path => {
 
 const noop = Function.prototype
 
-const readDir = path =>
-  fs.readdir(path).then(
-    entries => {
-      entries.forEach((entry, i) => {
-        entries[i] = `${path}/${entry}`
-      })
-
-      return entries
-    },
-    error => {
-      // a missing dir is by definition empty
-      if (error != null && error.code === 'ENOENT') {
-        return []
-      }
-      throw error
-    }
-  )
-
 // -----------------------------------------------------------------------------
 
 // chain is an array of VHDs from child to parent
@@ -157,12 +133,12 @@ async function mergeVhdChain(chain) {
 
 const listVhds = pipe([
   vmDir => vmDir + '/vdis',
-  readDir,
-  asyncMap(readDir),
+  fs.readdir2,
+  asyncMap(fs.readdir2),
   flatten,
-  asyncMap(readDir),
+  asyncMap(fs.readdir2),
   flatten,
-  filter(_ => _.endsWith('.vhd')),
+  _ => _.filter(_ => _.endsWith('.vhd')),
 ])
 
 async function handleVm(vmDir) {
@@ -239,10 +215,12 @@ async function handleVm(vmDir) {
     await Promise.all(deletions)
   }
 
-  const [jsons, xvas] = await readDir(vmDir).then(entries => [
-    entries.filter(_ => _.endsWith('.json')),
-    new Set(entries.filter(_ => _.endsWith('.xva'))),
-  ])
+  const [jsons, xvas] = await fs
+    .readdir2(vmDir)
+    .then(entries => [
+      entries.filter(_ => _.endsWith('.json')),
+      new Set(entries.filter(_ => _.endsWith('.xva'))),
+    ])
 
   await asyncMap(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report
