@@ -64,6 +64,10 @@ const CustomTag = decorate([
     ),
 ])
 
+CustomTag.propTypes = {
+  excluded: PropTypes.bool,
+}
+
 CustomTag.defaultProps = {
   excluded: false,
 }
