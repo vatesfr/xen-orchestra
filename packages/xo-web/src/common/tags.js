@@ -108,7 +108,7 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
-  _selectExistingTags = async () => {
+  _selectExistingTags = () => {
     this._stopEdit()
     return confirm({
       body: <SelectExistingTag />,
