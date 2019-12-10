@@ -32,17 +32,8 @@ const CustomTag = decorate([
       editing: false,
     }),
     effects: {
-      addTag: (effects, newTag) => ({ tags }, props) => {
-        props.excluded
-          ? effects.setTagNotValues(
-              tags.notValues === undefined
-                ? [newTag]
-                : [...tags.notValues, newTag]
-            )
-          : effects.setTagValues(
-              tags.values === undefined ? [newTag] : [...tags.values, newTag]
-            )
-      },
+      addTag: (effects, newTag) => (_, props) =>
+        props.handler(props.data == null ? [newTag] : [...props.data, newTag]),
       closeEdition: () => ({ editing: false }),
       toggleState,
     },
@@ -65,11 +56,8 @@ const CustomTag = decorate([
 ])
 
 CustomTag.propTypes = {
-  excluded: PropTypes.bool,
-}
-
-CustomTag.defaultProps = {
-  excluded: false,
+  data: PropTypes.array,
+  handler: PropTypes.func.isRequired,
 }
 
 const SmartBackup = decorate([
@@ -162,7 +150,7 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
-        <CustomTag />
+        <CustomTag data={state.tags.values} handler={effects.setTagValues} />
         <SelectTag
           multi
           onChange={effects.setTagValues}
@@ -176,7 +164,10 @@ const SmartBackup = decorate([
         <Tooltip content={_('backupReplicatedVmsInfo')}>
           <Icon icon='info' />
         </Tooltip>{' '}
-        <CustomTag excluded />
+        <CustomTag
+          data={state.tags.notValues}
+          handler={effects.setTagNotValues}
+        />
         <SelectTag
           multi
           onChange={effects.setTagNotValues}

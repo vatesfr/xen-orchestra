@@ -2,41 +2,49 @@ import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
+import { linkState } from 'reaclette-utils'
 
 const ENTER_KEY_CODE = 13
 const ESCAPE_KEY_CODE = 27
 
 const EphemeralInput = decorate([
   provideState({
+    initialState: () => ({
+      value: '',
+    }),
     effects: {
-      onKeyDown: (effects, event) => (_, props) => {
-        const { keyCode, target } = event
+      linkState,
+      onKeyDown(_, event) {
+        const { keyCode } = event
 
-        if (keyCode === ENTER_KEY_CODE) {
-          if (target.value !== '') {
-            props.onChange(target.value)
-            if (props.oneTime) {
-              props.closeEdition()
-              return
-            }
-            target.value = ''
-          }
-        } else if (keyCode === ESCAPE_KEY_CODE) {
-          props.closeEdition()
-        } else {
+        if (keyCode !== ENTER_KEY_CODE && keyCode !== ESCAPE_KEY_CODE) {
           return
         }
+
+        if (keyCode === ENTER_KEY_CODE) {
+          const { value } = this.state
+          if (value !== '') {
+            this.props.onChange(value)
+            this.resetState()
+          }
+        } else {
+          this.props.closeEdition()
+        }
+
         event.preventDefault()
       },
     },
   }),
   injectState,
-  ({ effects, closeEdition, ...props }) => (
+  ({ effects, closeEdition, state, type }) => (
     <input
-      {...props}
       autoFocus
+      name='value'
       onBlur={closeEdition}
+      onChange={effects.linkState}
       onKeyDown={effects.onKeyDown}
+      type={type}
+      value={state.value}
     />
   ),
 ])
@@ -44,11 +52,6 @@ const EphemeralInput = decorate([
 EphemeralInput.propTypes = {
   closeEdition: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
-  oneTime: PropTypes.bool,
-}
-
-EphemeralInput.defaultProps = {
-  oneTime: false,
 }
 
 export default EphemeralInput
