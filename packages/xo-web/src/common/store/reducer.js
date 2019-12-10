@@ -114,7 +114,7 @@ export default {
         ...prevRecipeCreatingResources,
         [id]: true,
       }),
-      [actions.markRecipeAsCreated]: (prevRecipeCreatedResources, id) =>
+      [actions.markRecipeAsDone]: (prevRecipeCreatedResources, id) =>
         omit(prevRecipeCreatedResources, id),
     }
   ),

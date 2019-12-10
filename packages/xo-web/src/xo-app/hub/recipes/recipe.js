@@ -37,7 +37,7 @@ export default decorate([
     }),
     effects: {
       async create() {
-        const { markRecipeAsCreating, markRecipeAsCreated } = this.props
+        const { markRecipeAsCreating, markRecipeAsDone } = this.props
         const recipeParams = await form({
           defaultValue: {
             pool: {},
@@ -45,7 +45,7 @@ export default decorate([
           render: props => <RecipeForm {...props} />,
           header: (
             <span>
-              <Icon icon='add-vm' /> {RECIPE_INFO.name}
+              <Icon icon='hub-recipe' /> {RECIPE_INFO.name}
             </span>
           ),
           size: 'medium',
@@ -71,7 +71,7 @@ export default decorate([
           sr: sr.id,
           sshKey,
         })
-        markRecipeAsCreated(RECIPE_INFO.id)
+        markRecipeAsDone(RECIPE_INFO.id)
 
         const filter = new ComplexMatcher.Property(
           'tags',

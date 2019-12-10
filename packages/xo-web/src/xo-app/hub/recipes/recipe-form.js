@@ -82,7 +82,7 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeNetworkLabel')}</label>
+        <label>{_('network')}</label>
         <SelectNetwork
           className='mb-1'
           onChange={effects.onChangeNetwork}
@@ -97,7 +97,7 @@ export default decorate([
           className='form-control'
           name='masterName'
           onChange={effects.onChangeValue}
-          placeholder='Master name'
+          placeholder={_('recipeMasterNameLabel')}
           required
           type='text'
           value={value.masterName}
@@ -110,7 +110,7 @@ export default decorate([
           name='nbNodes'
           min='1'
           onChange={effects.onChangeValue}
-          placeholder='Number of nodes'
+          placeholder={_('recipeNumberOfNodesLabel')}
           required
           type='number'
           value={value.nbNodes}
@@ -122,7 +122,7 @@ export default decorate([
           className='form-control'
           name='sshKey'
           onChange={effects.onChangeValue}
-          placeholder='SSH key'
+          placeholder={_('recipeSshKeyLabel')}
           required
           type='text'
           value={value.sshKey}
@@ -134,7 +134,7 @@ export default decorate([
           className='form-control'
           name='cidr'
           onChange={effects.onChangeValue}
-          placeholder='Network CIDR'
+          placeholder={_('recipeNetworkCidr')}
           required
           type='text'
           value={value.cidr}

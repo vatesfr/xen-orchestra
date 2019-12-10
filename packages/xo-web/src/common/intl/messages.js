@@ -2193,7 +2193,7 @@ const messages = {
   recipeViewCreatedVms: 'View created VMs',
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
-  recipeNetworkLabel: 'Network',
+  network: 'Network',
   recipeMasterNameLabel: 'Master name',
   recipeNumberOfNodesLabel: 'Number of nodes',
   recipeSshKeyLabel: 'SSH key',
