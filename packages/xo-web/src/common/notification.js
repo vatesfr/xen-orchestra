@@ -40,7 +40,7 @@ export class Notification extends Component {
             return
           }
 
-          error = (title, body) =>
+          error = (title, body, autoClose = 6e3) =>
             notification.error(
               title,
               this.props.isAdmin ? (
@@ -58,10 +58,12 @@ export class Notification extends Component {
               ) : (
                 body
               ),
-              6e3
+              autoClose
             )
-          info = (title, body) => notification.info(title, body, 3e3)
-          success = (title, body) => notification.success(title, body, 3e3)
+          info = (title, body, autoClose = 3e3) =>
+            notification.info(title, body, autoClose)
+          success = (title, body, autoClose = 3e3) =>
+            notification.success(title, body, autoClose)
         }}
       />
     )

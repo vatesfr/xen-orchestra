@@ -82,7 +82,8 @@ export default decorate([
           _('recipeCreatedSuccessfully'),
           <ButtonLink btnStyle='success' size='small' to={`/home?s=${filter}`}>
             {_('recipeViewCreatedVms')}
-          </ButtonLink>
+          </ButtonLink>,
+          8e3
         )
       },
     },
