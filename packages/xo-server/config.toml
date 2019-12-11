@@ -74,7 +74,7 @@ poolMetadataTimeout = '10 minutes'
 
 # https://github.com/naugtur/blocked-at#params-and-return-value
 [blockedAtOptions]
-threshold = 500
+threshold = 1000
 
 # Helmet handles HTTP security via headers
 #
