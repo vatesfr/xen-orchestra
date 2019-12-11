@@ -1,17 +1,19 @@
 import * as FormGrid from 'form-grid'
-import _ from 'intl'
+import _, { messages } from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container } from 'grid'
 import { get } from '@xen-orchestra/defined'
-import { sortBy } from 'lodash'
+import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
+import { sortBy } from 'lodash'
 
 export default decorate([
+  injectIntl,
   provideState({
     effects: {
       onChangePools(__, pool) {
@@ -53,7 +55,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, install, state, value }) => (
+  ({ effects, install, intl: { formatMessage }, state, value }) => (
     <Container>
       <FormGrid.Row>
         <label>
@@ -97,7 +99,7 @@ export default decorate([
           className='form-control'
           name='masterName'
           onChange={effects.onChangeValue}
-          placeholder={_('recipeMasterNameLabel')}
+          placeholder={formatMessage(messages.recipeMasterNameLabel)}
           required
           type='text'
           value={value.masterName}
@@ -110,7 +112,7 @@ export default decorate([
           name='nbNodes'
           min='1'
           onChange={effects.onChangeValue}
-          placeholder={_('recipeNumberOfNodesLabel')}
+          placeholder={formatMessage(messages.recipeNumberOfNodesLabel)}
           required
           type='number'
           value={value.nbNodes}
@@ -122,7 +124,7 @@ export default decorate([
           className='form-control'
           name='sshKey'
           onChange={effects.onChangeValue}
-          placeholder={_('recipeSshKeyLabel')}
+          placeholder={formatMessage(messages.recipeSshKeyLabel)}
           required
           type='text'
           value={value.sshKey}
@@ -134,7 +136,7 @@ export default decorate([
           className='form-control'
           name='cidr'
           onChange={effects.onChangeValue}
-          placeholder={_('recipeNetworkCidr')}
+          placeholder={formatMessage(messages.recipeNetworkCidr)}
           required
           type='text'
           value={value.cidr}
