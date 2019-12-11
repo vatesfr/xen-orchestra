@@ -70,7 +70,4 @@ export const markRecipeAsCreating = createAction(
   'MARK_RECIPE_AS_CREATING',
   id => id
 )
-export const markRecipeAsCreated = createAction(
-  'MARK_RECIPE_AS_CREATED',
-  id => id
-)
+export const markRecipeAsDone = createAction('MARK_RECIPE_AS_DONE', id => id)
