@@ -72,6 +72,10 @@ vmBackupSizeTimeout = '2 seconds'
 
 poolMetadataTimeout = '10 minutes'
 
+# https://github.com/naugtur/blocked-at#params-and-return-value
+[blockedAtOptions]
+threshold = 500
+
 # Helmet handles HTTP security via headers
 #
 # https://helmetjs.github.io/docs/
