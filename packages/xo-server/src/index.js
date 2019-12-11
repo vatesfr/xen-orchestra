@@ -1,7 +1,7 @@
 import appConf from 'app-conf'
 import assert from 'assert'
 import authenticator from 'otplib/authenticator'
-import blocked from 'blocked'
+import blocked from 'blocked-at'
 import compression from 'compression'
 import createExpress from 'express'
 import createLogger from '@xen-orchestra/log'
@@ -646,8 +646,11 @@ export default async function main(args) {
   {
     const logPerf = createLogger('xo:perf')
     blocked(
-      time => {
-        logPerf.info(`blocked for ${ms(time)}`)
+      (time, stack) => {
+        logPerf.info(`blocked for ${ms(time)}`, {
+          time,
+          stack,
+        })
       },
       {
         threshold: 500,

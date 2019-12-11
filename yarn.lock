@@ -3027,6 +3027,11 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
+blocked-at@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/blocked-at/-/blocked-at-1.2.0.tgz#8082b5c88ae04987b439b4b5b46c4843d1a4112f"
+  integrity sha512-Ba9yhK4KcFrgqEPgsU0qVGiMimf+VrD9QJo9pgwjg4yl0GXwgOJS8IRx2rPepQjalrmUdGTqX47bSuJLUMLX7w==
+
 blocked@^1.2.1:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/blocked/-/blocked-1.3.0.tgz#f91bbbcced7aa26835942ef0722d51c625ae1a01"
