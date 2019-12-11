@@ -9,6 +9,7 @@ import crypto from 'crypto'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
+import ms from 'ms'
 import proxyConsole from './proxy-console'
 import pw from 'pw'
 import serveStatic from 'serve-static'
@@ -645,8 +646,8 @@ export default async function main(args) {
   {
     const logPerf = createLogger('xo:perf')
     blocked(
-      ms => {
-        logPerf.info(`blocked for ${ms | 0}ms`)
+      time => {
+        logPerf.info(`blocked for ${ms(time)}`)
       },
       {
         threshold: 500,
