@@ -97,7 +97,6 @@ const SmartBackup = decorate([
       setPoolNotValues({ setPoolPattern }, notValues) {
         setPoolPattern({ notValues })
       },
-      toggleState,
     },
     computed: {
       poolPredicate: (_, { deltaMode, hosts }) => pool =>
