@@ -16,6 +16,7 @@ import {
   fromEvent,
   ignoreErrors,
   pCatch,
+  pRetry,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -38,7 +39,6 @@ import { satisfies as versionSatisfies } from 'semver'
 import createSizeStream from '../size-stream'
 import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import pRetry from '../_pRetry'
 import {
   camelToSnakeCase,
   forEach,
@@ -94,10 +94,11 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor({ guessVhdSizeOnImport, ...opts }) {
+  constructor({ guessVhdSizeOnImport, maxUncoalescedVdis, ...opts }) {
     super(opts)
 
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
+    this._maxUncoalescedVdis = maxUncoalescedVdis
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -724,7 +725,7 @@ export default class Xapi extends XapiBase {
     return promise
   }
 
-  _assertHealthyVdiChain(vdi, cache) {
+  _assertHealthyVdiChain(vdi, cache, tolerance) {
     if (vdi == null) {
       return
     }
@@ -754,7 +755,8 @@ export default class Xapi extends XapiBase {
       const children = childrenMap[vdi.uuid]
       if (
         children.length === 1 &&
-        !children[0].managed // some SRs do not coalesce the leaf
+        !children[0].managed && // some SRs do not coalesce the leaf
+        tolerance-- <= 0
       ) {
         throw new Error('unhealthy VDI chain')
       }
@@ -762,15 +764,16 @@ export default class Xapi extends XapiBase {
 
     this._assertHealthyVdiChain(
       this.getObjectByUuid(vdi.sm_config['vhd-parent'], null),
-      cache
+      cache,
+      tolerance
     )
   }
 
-  _assertHealthyVdiChains(vm) {
+  _assertHealthyVdiChains(vm, tolerance = this._maxUncoalescedVdis) {
     const cache = { __proto__: null }
     forEach(vm.$VBDs, ({ $VDI }) => {
       try {
-        this._assertHealthyVdiChain($VDI, cache)
+        this._assertHealthyVdiChain($VDI, cache, tolerance)
       } catch (error) {
         error.VDI = $VDI
         error.VM = vm
@@ -1378,7 +1381,11 @@ export default class Xapi extends XapiBase {
         }
 
         const table = tables[entry.name]
-        const vhdStream = await vmdkToVhd(stream, table)
+        const vhdStream = await vmdkToVhd(
+          stream,
+          table.grainLogicalAddressList,
+          table.grainFileOffsetList
+        )
         await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
 
         // See: https://github.com/mafintosh/tar-stream#extracting

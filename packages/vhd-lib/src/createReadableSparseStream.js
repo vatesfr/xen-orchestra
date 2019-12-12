@@ -1,5 +1,6 @@
 import assert from 'assert'
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import { forEachRight } from 'lodash'
 
 import computeGeometryForSize from './_computeGeometryForSize'
 import { createFooter, createHeader } from './_createFooterHeader'
@@ -17,38 +18,65 @@ import { set as setBitmap } from './_bitmap'
 const VHD_BLOCK_SIZE_SECTORS = VHD_BLOCK_SIZE_BYTES / SECTOR_SIZE
 
 /**
+ * Looks once backwards to collect the last fragment of each VHD block (they could be interleaved),
+ * then allocates the blocks in a forwards pass.
  * @returns currentVhdPositionSector the first free sector after the data
  */
 function createBAT(
   firstBlockPosition,
-  blockAddressList,
+  fragmentLogicAddressList,
   ratio,
   bat,
   bitmapSize
 ) {
   let currentVhdPositionSector = firstBlockPosition / SECTOR_SIZE
-  blockAddressList.forEach(blockPosition => {
-    assert.strictEqual(blockPosition % SECTOR_SIZE, 0)
-    const vhdTableIndex = Math.floor(blockPosition / VHD_BLOCK_SIZE_BYTES)
-    if (bat.readUInt32BE(vhdTableIndex * 4) === BLOCK_UNUSED) {
-      bat.writeUInt32BE(currentVhdPositionSector, vhdTableIndex * 4)
-      currentVhdPositionSector +=
-        (bitmapSize + VHD_BLOCK_SIZE_BYTES) / SECTOR_SIZE
+  const lastFragmentPerBlock = new Map()
+  forEachRight(fragmentLogicAddressList, fragmentLogicAddress => {
+    assert.strictEqual(fragmentLogicAddress % SECTOR_SIZE, 0)
+    const vhdTableIndex = Math.floor(
+      fragmentLogicAddress / VHD_BLOCK_SIZE_BYTES
+    )
+    if (!lastFragmentPerBlock.has(vhdTableIndex)) {
+      lastFragmentPerBlock.set(vhdTableIndex, fragmentLogicAddress)
     }
   })
-  return currentVhdPositionSector
+  const lastFragmentPerBlockArray = [...lastFragmentPerBlock]
+  // lastFragmentPerBlock is from last to first, so we go the other way around
+  forEachRight(
+    lastFragmentPerBlockArray,
+    ([vhdTableIndex, _fragmentVirtualAddress]) => {
+      if (bat.readUInt32BE(vhdTableIndex * 4) === BLOCK_UNUSED) {
+        bat.writeUInt32BE(currentVhdPositionSector, vhdTableIndex * 4)
+        currentVhdPositionSector +=
+          (bitmapSize + VHD_BLOCK_SIZE_BYTES) / SECTOR_SIZE
+      }
+    }
+  )
+  return [currentVhdPositionSector, lastFragmentPerBlock]
 }
+
+/**
+ *  Receives an iterator of constant sized fragments, and a list of their address in virtual space, and returns
+ *  a stream representing the VHD file of this disk.
+ *  The fragment size should be an integer divider of the VHD block size.
+ *  "fragment" designate a chunk of incoming data (ie probably a VMDK grain), and "block" is a VHD block.
+ * @param diskSize
+ * @param fragmentSize
+ * @param fragmentLogicalAddressList
+ * @param fragmentIterator
+ * @returns {Promise<Function>}
+ */
 
 export default async function createReadableStream(
   diskSize,
-  incomingBlockSize,
-  blockAddressList,
-  blockIterator
+  fragmentSize,
+  fragmentLogicalAddressList,
+  fragmentIterator
 ) {
-  const ratio = VHD_BLOCK_SIZE_BYTES / incomingBlockSize
+  const ratio = VHD_BLOCK_SIZE_BYTES / fragmentSize
   if (ratio % 1 !== 0) {
     throw new Error(
-      `Can't import file, grain size (${incomingBlockSize}) is not a divider of VHD block size ${VHD_BLOCK_SIZE_BYTES}`
+      `Can't import file, grain size (${fragmentSize}) is not a divider of VHD block size ${VHD_BLOCK_SIZE_BYTES}`
     )
   }
   if (ratio > 53) {
@@ -80,60 +108,72 @@ export default async function createReadableStream(
   const bitmapSize =
     Math.ceil(VHD_BLOCK_SIZE_SECTORS / 8 / SECTOR_SIZE) * SECTOR_SIZE
   const bat = Buffer.alloc(tablePhysicalSizeBytes, 0xff)
-  const endOfData = createBAT(
+  const [endOfData, lastFragmentPerBlock] = createBAT(
     firstBlockPosition,
-    blockAddressList,
+    fragmentLogicalAddressList,
     ratio,
     bat,
     bitmapSize
   )
   const fileSize = endOfData * SECTOR_SIZE + FOOTER_SIZE
   let position = 0
-  function* yieldAndTrack(buffer, expectedPosition) {
+
+  function* yieldAndTrack(buffer, expectedPosition, reason) {
     if (expectedPosition !== undefined) {
-      assert.strictEqual(position, expectedPosition)
+      assert.strictEqual(position, expectedPosition, reason)
     }
     if (buffer.length > 0) {
       yield buffer
       position += buffer.length
     }
   }
-  async function* generateFileContent(blockIterator, bitmapSize, ratio) {
-    let currentBlock = -1
-    let currentVhdBlockIndex = -1
-    let currentBlockWithBitmap = Buffer.alloc(0)
-    for await (const next of blockIterator) {
-      currentBlock++
-      assert.strictEqual(blockAddressList[currentBlock], next.offsetBytes)
-      const batIndex = Math.floor(next.offsetBytes / VHD_BLOCK_SIZE_BYTES)
-      if (batIndex !== currentVhdBlockIndex) {
-        if (currentVhdBlockIndex >= 0) {
-          yield* yieldAndTrack(
-            currentBlockWithBitmap,
-            bat.readUInt32BE(currentVhdBlockIndex * 4) * SECTOR_SIZE
-          )
-        }
-        currentBlockWithBitmap = Buffer.alloc(bitmapSize + VHD_BLOCK_SIZE_BYTES)
-        currentVhdBlockIndex = batIndex
-      }
-      const blockOffset =
-        (next.offsetBytes / SECTOR_SIZE) % VHD_BLOCK_SIZE_SECTORS
-      for (let bitPos = 0; bitPos < VHD_BLOCK_SIZE_SECTORS / ratio; bitPos++) {
-        setBitmap(currentBlockWithBitmap, blockOffset + bitPos)
-      }
-      next.data.copy(
-        currentBlockWithBitmap,
-        bitmapSize + (next.offsetBytes % VHD_BLOCK_SIZE_BYTES)
-      )
+
+  function insertFragmentInBlock(fragment, blockWithBitmap) {
+    const fragmentOffsetInBlock =
+      (fragment.logicalAddressBytes / SECTOR_SIZE) % VHD_BLOCK_SIZE_SECTORS
+    for (let bitPos = 0; bitPos < VHD_BLOCK_SIZE_SECTORS / ratio; bitPos++) {
+      setBitmap(blockWithBitmap, fragmentOffsetInBlock + bitPos)
     }
-    yield* yieldAndTrack(currentBlockWithBitmap)
+    fragment.data.copy(
+      blockWithBitmap,
+      bitmapSize + (fragment.logicalAddressBytes % VHD_BLOCK_SIZE_BYTES)
+    )
+  }
+
+  async function* generateBlocks(fragmentIterator, bitmapSize) {
+    let currentFragmentIndex = -1
+    // store blocks waiting for some of their fragments.
+    const batIndexToBlockMap = new Map()
+    for await (const fragment of fragmentIterator) {
+      currentFragmentIndex++
+      const batIndex = Math.floor(
+        fragment.logicalAddressBytes / VHD_BLOCK_SIZE_BYTES
+      )
+      let currentBlockWithBitmap = batIndexToBlockMap.get(batIndex)
+      if (currentBlockWithBitmap === undefined) {
+        currentBlockWithBitmap = Buffer.alloc(bitmapSize + VHD_BLOCK_SIZE_BYTES)
+        batIndexToBlockMap.set(batIndex, currentBlockWithBitmap)
+      }
+      insertFragmentInBlock(fragment, currentBlockWithBitmap)
+      const batEntry = bat.readUInt32BE(batIndex * 4)
+      assert.notStrictEqual(batEntry, BLOCK_UNUSED)
+      const batPosition = batEntry * SECTOR_SIZE
+      if (lastFragmentPerBlock.get(batIndex) === fragment.logicalAddressBytes) {
+        batIndexToBlockMap.delete(batIndex)
+        yield* yieldAndTrack(
+          currentBlockWithBitmap,
+          batPosition,
+          `VHD block start index: ${currentFragmentIndex}`
+        )
+      }
+    }
   }
 
   async function* iterator() {
     yield* yieldAndTrack(footer, 0)
     yield* yieldAndTrack(header, FOOTER_SIZE)
     yield* yieldAndTrack(bat, FOOTER_SIZE + HEADER_SIZE)
-    yield* generateFileContent(blockIterator, bitmapSize, ratio)
+    yield* generateBlocks(fragmentIterator, bitmapSize)
     yield* yieldAndTrack(footer)
   }
 

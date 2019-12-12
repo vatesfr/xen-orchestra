@@ -107,6 +107,7 @@ class TableFilter extends Component {
           <a
             className='input-group-addon'
             href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+            rel='noopener noreferrer'
             target='_blank'
           >
             <Icon icon='info' />

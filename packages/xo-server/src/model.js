@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 
-import { forEach, isEmpty, isString } from './utils'
+import { forEach, isEmpty } from './utils'
 
 // ===================================================================
 
@@ -30,7 +30,7 @@ export default class Model extends EventEmitter {
   set(properties, value) {
     // This method can also be used with two arguments to set a single
     // property.
-    if (isString(properties)) {
+    if (typeof properties === 'string') {
       properties = { [properties]: value }
     }
 

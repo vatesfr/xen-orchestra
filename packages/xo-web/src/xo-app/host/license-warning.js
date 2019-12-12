@@ -10,6 +10,7 @@ const showInfo = () =>
     <span>
       <a
         href='https://xcp-ng.com/pricing.html#xcpngvsxenserver'
+        rel='noopener noreferrer'
         target='_blank'
       >
         {_('actionsRestricted')}
@@ -19,6 +20,7 @@ const showInfo = () =>
         <li>
           <a
             href='https://github.com/xcp-ng/xcp/wiki/Upgrade-from-XenServer'
+            rel='noopener noreferrer'
             target='_blank'
           >
             {_('counterRestrictionsOptionsXcp')}

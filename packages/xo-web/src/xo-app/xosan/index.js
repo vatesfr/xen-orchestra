@@ -273,9 +273,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     }
   )
 
-  const getPoolPredicate = createSelector(
-    getXosanSrs,
-    srs => pool => every(srs, sr => sr.$pool !== pool.id)
+  const getPoolPredicate = createSelector(getXosanSrs, srs => pool =>
+    every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {
@@ -376,12 +375,12 @@ export default class Xosan extends Component {
   _getError = createSelector(
     () => this.props.plugins,
     plugins => {
-      const cloudPlugin = find(plugins, { id: 'cloud' })
-      if (!cloudPlugin) {
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (!xoaPlugin) {
         return _('xosanInstallCloudPlugin')
       }
 
-      if (!cloudPlugin.loaded) {
+      if (!xoaPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
     }
@@ -483,6 +482,7 @@ export default class Xosan extends Component {
                         collection={xosanSrs}
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
+                        stateUrlParam='s'
                         userData={{
                           isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),

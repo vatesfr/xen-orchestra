@@ -3,19 +3,15 @@
 > Keep in mind the changelog is addressed to **users** and should be
 > understandable by them.
 
-### Breaking changes
-
-- `xo-server` requires Node 8.
-
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [SDN Controller] Allow private network creation on bond and VLAN (PR [#4682](https://github.com/vatesfr/xen-orchestra/pull/4682))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
 
 ### Released packages
 
@@ -24,5 +20,5 @@
 >
 > Rule of thumb: add packages on top.
 
-- xo-server v5.51.0
-- xo-web v5.51.0
+- xo-server v5.54.0
+- xo-web v5.54.0

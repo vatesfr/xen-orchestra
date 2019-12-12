@@ -4,7 +4,6 @@ This plugin allows Google users to authenticate to Xen-Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the same identifier, without any permissions.
 
-
 ## Creating the Google project
 
 [Create a new project](https://console.developers.google.com/project):
@@ -24,9 +23,9 @@ Add OAuth 2.0 credentials:
 
 In Settings, then Plugins, expand the Google plugin detail and provide:
 
-* a `clientID` e.g `326211154583-nt2s112d3t7f4f1hh49oo9164nivvbnu.apps.googleusercontent.com`
-* a `clientSecret`, e.g `HTDb8I4jXiLRMaRL15qCffQ`
-* the `callbackURL`, e.g `http://xo.company.net/signin/google/callback`
+- a `clientID` e.g `326211154583-nt2s112d3t7f4f1hh49oo9164nivvbnu.apps.googleusercontent.com`
+- a `clientSecret`, e.g `HTDb8I4jXiLRMaRL15qCffQ`
+- the `callbackURL`, e.g `http://xo.company.net/signin/google/callback`
 
 ![](./assets/googleconfig.png)
 

@@ -32,7 +32,7 @@ await xo.open()
 // be buffered until signed in).
 await xo.signIn({
   email: 'admin@admin.net',
-  password: 'admin'
+  password: 'admin',
 })
 
 console('signed as', xo.user)
@@ -46,7 +46,7 @@ const xo = Xo({
   credentials: {
     email: 'admin@admin.net',
     password: 'admin',
-  }
+  },
 })
 
 xo.open()
@@ -86,7 +86,7 @@ console.log('Token created', token)
 ### Status
 
 The connection status is available through the status property which
-is *open*, *connecting* or *closed*.
+is _open_, _connecting_ or _closed_.
 
 ```javascript
 console.log('%s to xo-server', xo.status)
@@ -118,7 +118,7 @@ xo.on('closed', () => {
 ```
 
 ```javascript
-xo.on('notification', function (notif) {
+xo.on('notification', function(notif) {
   console.log('notification:', notif.method, notif.params)
 })
 ```
@@ -154,7 +154,7 @@ xo.on('authenticationFailure', () => {
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

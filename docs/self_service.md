@@ -12,15 +12,15 @@ To create a new set of resources to delegate, go to the "Self Service" section i
 
 > Only an admin can create a set of resources
 
-To allow people to create VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you first need to decide which resources will be used.
+To allow people to create VMs as they want, we need to give them a _part_ of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you first need to decide which resources will be used.
 
 In this example below, we'll create a set called **"sandbox"** with:
 
-* "devs" is the group that can use this set (all users in the group)
-* "Lab Pool" is the pool where they can play
-* "Debian 8 Cloud Ready" is the only template they can use
-* "SSD NFS" is the only SR where they can create VMs
-* "Pool-wide network with eth0" is the only available network for them
+- "devs" is the group that can use this set (all users in the group)
+- "Lab Pool" is the pool where they can play
+- "Debian 8 Cloud Ready" is the only template they can use
+- "SSD NFS" is the only SR where they can create VMs
+- "Pool-wide network with eth0" is the only available network for them
 
 ![](./assets/selfserviceset.png)
 
@@ -32,11 +32,11 @@ As you can see, only compatible hosts are shown and can be used for this resourc
 
 Then, you can define quotas on this set:
 
-* max vCPUs
-* max RAM
-* max disk usage
+- max vCPUs
+- max RAM
+- max disk usage
 
-> Note: Snapshotting a VM within a self-service will use the quota from the resource set. The same rule applies for backups and replication.  
+> Note: Snapshotting a VM within a self-service will use the quota from the resource set. The same rule applies for backups and replication.
 
 When you click on create, you can see the resource set and remove or edit it:
 
@@ -44,7 +44,7 @@ When you click on create, you can see the resource set and remove or edit it:
 
 ## Usage (user side)
 
-As soon as a user is granted a resource set, it displays a new button in their main view: "new". 
+As soon as a user is granted a resource set, it displays a new button in their main view: "new".
 
 ![](./assets/selfservice_new_vm.png)
 
@@ -60,14 +60,13 @@ If the "Create" button is disabled, it means the user requested more resources t
 
 Finally, if a user has been granted access to multiple resource sets, they can be switched in the top right of the screen.
 
-
 ## Toward the Cloud
 
 Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](cloudinit.md) for a full experience:
 
-* create a Cloud ready template
-* create a set and put Cloud templates inside
-* delegate this set to a group of users
+- create a Cloud ready template
+- create a set and put Cloud templates inside
+- delegate this set to a group of users
 
 Now, your authorized users can create VMs with their SSH keys, grow template disks if needed, etc. Everything is inside a "sandbox" (the resource set) you defined earlier!
 

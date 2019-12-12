@@ -209,6 +209,7 @@ export default class Servers extends Component {
           columns={COLUMNS}
           individualActions={INDIVIDUAL_ACTIONS}
           userData={formatMessage}
+          stateUrlParam='s'
         />
         <form className='form-inline' id='form-add-server'>
           <div className='form-group'>

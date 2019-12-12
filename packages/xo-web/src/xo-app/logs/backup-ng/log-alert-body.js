@@ -86,8 +86,10 @@ const TaskError = ({ task }) => {
   let message
   if (
     !hasTaskFailed(task) ||
-    (message = defined(() => task.result.message, () => task.result.code)) ===
-      undefined
+    (message = defined(
+      () => task.result.message,
+      () => task.result.code
+    )) === undefined
   ) {
     return null
   }

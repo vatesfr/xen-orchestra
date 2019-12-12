@@ -52,4 +52,8 @@ files.forEach(file => {
 git add --patch
 
 git commit -m "feat($pkg): $newVersion"
-git tag $pkg-v$newVersion
+
+# Don't create tags: we have no use for them ATM and they are not really
+# compatible with GitHub PRs (which are used for the release process)
+#
+# git tag $pkg-v$newVersion

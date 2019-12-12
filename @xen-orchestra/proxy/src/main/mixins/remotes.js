@@ -1,12 +1,7 @@
 import { getHandler } from '@xen-orchestra/fs'
 
 export default class Remotes {
-  constructor(
-    app,
-    {
-      config: { remoteOptions },
-    }
-  ) {
+  constructor(app, { config: { remoteOptions } }) {
     this._remoteOptions = remoteOptions
 
     app.api.addMethods({

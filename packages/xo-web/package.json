@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.50.3",
+  "version": "5.53.3",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -32,8 +32,9 @@
   },
   "devDependencies": {
     "@nraynaud/novnc": "0.6.1",
-    "@xen-orchestra/cron": "^1.0.4",
+    "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.0",
+    "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/template": "^0.1.0",
     "ansi_up": "^4.0.3",
     "asap": "^2.0.6",
@@ -130,6 +131,7 @@
     "reselect": "^2.5.4",
     "rimraf": "^3.0.0",
     "semver": "^6.0.0",
+    "strip-ansi": "^5.2.0",
     "styled-components": "^3.1.5",
     "uglify-es": "^3.3.4",
     "uncontrollable-input": "^0.1.1",
@@ -143,7 +145,7 @@
     "xo-common": "^0.2.0",
     "xo-lib": "^0.8.0",
     "xo-remote-parser": "^0.5.0",
-    "xo-vmdk-to-vhd": "^0.1.7"
+    "xo-vmdk-to-vhd": "^0.1.8"
   },
   "scripts": {
     "build": "NODE_ENV=production gulp build",

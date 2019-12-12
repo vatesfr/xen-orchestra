@@ -199,17 +199,14 @@ export default class NewXosan extends Component {
     createSelector(
       createFilter(
         () => this.props.srs,
-        createSelector(
-          this._getHosts,
-          hosts => sr => {
-            let host
-            return (
-              sr.SR_type === 'lvm' &&
-              (host = hosts[sr.$container]) !== undefined &&
-              host.power_state === 'Running'
-            )
-          }
-        )
+        createSelector(this._getHosts, hosts => sr => {
+          let host
+          return (
+            sr.SR_type === 'lvm' &&
+            (host = hosts[sr.$container]) !== undefined &&
+            host.power_state === 'Running'
+          )
+        })
       ),
       this._getPbdsBySr,
       (srs, pbdsBySr) =>
@@ -411,6 +408,7 @@ export default class NewXosan extends Component {
                     columns={XOSAN_SR_COLUMNS}
                     data-hosts={this._getHosts()}
                     onSelect={this._selectSrs}
+                    stateUrlParam='s_srs'
                   />
                 </Col>
               </Row>,

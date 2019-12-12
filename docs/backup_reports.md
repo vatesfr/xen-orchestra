@@ -6,15 +6,15 @@ At the end of a backup job, you can configure Xen Orchestra to send backup repor
 
 ### Step-by-step
 
-1. On the "settings/plugins" view you have to activate and configure the "Backup-reports" plugin. 
-![](./assets/backup-reports-plugin.png)
+1. On the "settings/plugins" view you have to activate and configure the "Backup-reports" plugin.
+   ![](./assets/backup-reports-plugin.png)
 
 2. Still in the plugins view, you also have to configure the "transport-email" plugin.
-![](./assets/transport-email-plugin.png)
+   ![](./assets/transport-email-plugin.png)
 
-3. Once it's done, you can now create your backup job. In the "report" selection you can choose the situation in wish you want to receive an email (always, never or failure). 
-![](./assets/backup-report-config.png)
-> Note: You can also modify existing backup jobs and change the behaviour of the report system.
+3. Once it's done, you can now create your backup job. In the "report" selection you can choose the situation in wish you want to receive an email (always, never or failure).
+   ![](./assets/backup-report-config.png)
+   > Note: You can also modify existing backup jobs and change the behaviour of the report system.
 
 ## XMPP nofications
 
@@ -67,9 +67,9 @@ Like all other xo-server plugins, it can be configured directly via the web inte
 
 You need to be an admin:
 
-* Go into the MatterMost menu, then Integration
-* Click on "Add Incoming webhook"
-* "Add Incoming Webhook"
+- Go into the MatterMost menu, then Integration
+- Click on "Add Incoming webhook"
+- "Add Incoming Webhook"
 
 ### Testing the plugin
 

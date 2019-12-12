@@ -11,8 +11,9 @@ You can [open bug reports here](https://github.com/vatesfr/xen-orchestra/issues)
 Using the GitHub fork/pull-request feature, you may send us fixes or enhancements.
 
 Please, do explain:
-* what you are fixing (issue number if available);
-* how you did it.
+
+- what you are fixing (issue number if available);
+- how you did it.
 
 ### Pull requests
 
@@ -21,7 +22,6 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 
 > Your pull request should always be against the `master`
 > branch and not against `stable` which is the stable branch!
-
 
 1. Create a branch for your work
 2. Add a summary of your changes to `CHANGELOG.md` under the `next` section, if your changes do not relate to an existing changelog item

@@ -5,14 +5,21 @@ import parse from './parse'
 
 const MAX_DELAY = 2 ** 31 - 1
 
-function nextDelay(schedule) {
-  const now = schedule._createDate()
-  return next(schedule._schedule, now) - now
-}
-
 class Job {
   constructor(schedule, fn) {
+    let scheduledDate
     const wrapper = () => {
+      const now = Date.now()
+      if (scheduledDate > now) {
+        // we're early, delay
+        //
+        // no need to check _isEnabled, we're just delaying the existing timeout
+        //
+        // see https://github.com/vatesfr/xen-orchestra/issues/4625
+        this._timeout = setTimeout(wrapper, scheduledDate - now)
+        return
+      }
+
       this._isRunning = true
 
       let result
@@ -32,7 +39,9 @@ class Job {
       this._isRunning = false
 
       if (this._isEnabled) {
-        const delay = nextDelay(schedule)
+        const now = schedule._createDate()
+        scheduledDate = +next(schedule._schedule, now)
+        const delay = scheduledDate - now
         this._timeout =
           delay < MAX_DELAY
             ? setTimeout(wrapper, delay)

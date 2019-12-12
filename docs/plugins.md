@@ -1,4 +1,3 @@
-
 # Plugins
 
 Xen Orchestra plugins allow you to extend features without rewriting the core of the application.
@@ -13,6 +12,6 @@ All plugin configuration should be done in the web interface:
 
 A plugin can be:
 
-* activated/deactivated
-* loaded on start of the application
-* configured (extend the plugin settings by clicking on the "+" icon
+- activated/deactivated
+- loaded on start of the application
+- configured (extend the plugin settings by clicking on the "+" icon

@@ -16,9 +16,9 @@ To convert a VMDK stream to a Fixed VHD stream without buffering the entire inpu
 
 ```js
 import convertFromVMDK from 'xo-vmdk-to-vhd'
-import {createReadStream, createWriteStream} from 'fs'
+import { createReadStream, createWriteStream } from 'fs'
 
-(async () => {
+;(async () => {
   const stream = await convertFromVMDK(fs.createReadStream(vmdkFileName))
 
   stream.pipe(fs.createWriteStream(vhdFileName))
@@ -32,7 +32,7 @@ var convertFromVMDK = require('xo-vmdk-to-vhd').default
 var createReadStream = require('fs').createReadStream
 var createWriteStream = require('fs').createWriteStream
 
-convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function (stream) {
+convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function(stream) {
   stream.pipe(fs.createWriteStream(vhdFileName))
 })
 ```
@@ -58,7 +58,7 @@ convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function (stream) {
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

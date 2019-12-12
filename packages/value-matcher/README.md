@@ -15,16 +15,15 @@ Installation of the [npm package](https://npmjs.org/package/value-matcher):
 ```js
 import { createPredicate } from 'value-matcher'
 
-[
+;[
   { user: 'sam', age: 65, active: false },
   { user: 'barney', age: 36, active: true },
   { user: 'fred', age: 40, active: false },
-].filter(createPredicate({
-  __or: [
-    { user: 'sam' },
-    { active: true },
-  ],
-}))
+].filter(
+  createPredicate({
+    __or: [{ user: 'sam' }, { active: true }],
+  })
+)
 // [
 //   { user: 'sam', age: 65, active: false },
 //   { user: 'barney', age: 36, active: true },
@@ -52,7 +51,7 @@ import { createPredicate } from 'value-matcher'
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

@@ -17,10 +17,11 @@
     "eslint-plugin-react": "^7.6.1",
     "eslint-plugin-standard": "^4.0.0",
     "exec-promise": "^0.7.0",
-    "flow-bin": "^0.109.0",
+    "flow-bin": "^0.113.0",
     "globby": "^10.0.0",
     "husky": "^3.0.0",
     "jest": "^24.1.0",
+    "lint-staged": "^9.5.0",
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
     "promise-toolbox": "^0.14.0",
@@ -31,7 +32,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "scripts/lint-staged"
+      "pre-commit": "lint-staged && scripts/lint-staged"
     }
   },
   "jest": {
@@ -51,6 +52,12 @@
       "\\.jsx?$": "babel-jest"
     }
   },
+  "lint-staged": {
+    "*.{md,ts,ts}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
   "private": true,
   "scripts": {
     "build": "scripts/run-script --parallel build",
@@ -60,6 +67,7 @@
     "posttest": "scripts/run-script test",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
+    "prettify": "prettier --ignore-path .gitignore --write '**/*.{js,jsx,md,mjs,ts,tsx}'",
     "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "travis-tests": "scripts/travis-tests"

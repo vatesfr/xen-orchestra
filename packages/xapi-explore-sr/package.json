@@ -36,12 +36,12 @@
   },
   "dependencies": {
     "archy": "^1.0.0",
-    "chalk": "^2.3.2",
+    "chalk": "^3.0.0",
     "exec-promise": "^0.7.0",
     "human-format": "^0.10.0",
     "lodash": "^4.17.4",
     "pw": "^0.0.4",
-    "xen-api": "^0.27.2"
+    "xen-api": "^0.27.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",

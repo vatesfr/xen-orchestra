@@ -2,7 +2,6 @@
 // `create-locale`.
 
 const forEach = require('lodash/forEach')
-const isString = require('lodash/isString')
 
 const messages = {
   keyValue: '{key}: {value}',
@@ -18,9 +17,11 @@ const messages = {
   notifications: 'Notifications',
   noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
+  moreDetails: 'More details',
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
+  sr: 'SR',
   tryXoa: 'Try XOA for free and deploy it here.',
 
   editableLongClickPlaceholder: 'Long click to edit',
@@ -123,11 +124,7 @@ const messages = {
   newServerPage: 'Server',
   newImport: 'Import',
   xosan: 'XOSAN',
-  backupDeprecatedMessage:
-    'Warning: Backup is deprecated, use Backup NG instead.',
-  moveRestoreLegacyMessage: 'Warning: Your legacy backups can be found here',
-  backupMigrationLink: 'How to migrate to Backup NG',
-  backupNgNewPage: 'Create a new backup with Backup NG',
+  backupMigrationLink: 'How to migrate to the new backup system',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
@@ -135,7 +132,6 @@ const messages = {
   backupFileRestorePage: 'File restore',
   schedule: 'Schedule',
   newVmBackup: 'New VM backup',
-  editVmBackup: 'Edit VM backup',
   backup: 'Backup',
   rollingSnapshot: 'Rolling Snapshot',
   deltaBackup: 'Delta Backup',
@@ -158,7 +154,12 @@ const messages = {
   freeUpgrade: 'Free upgrade!',
   checkXoa: 'Check XOA',
   xoaCheck: 'XOA check',
-  checkXoaCommunity: 'XOA check is available in XOA.',
+  closeTunnel: 'Close tunnel',
+  openTunnel: 'Open tunnel',
+  supportCommunity:
+    'The XOA check and the support tunnel are available in XOA.',
+  supportTunnel: 'Support tunnel',
+  supportTunnelClosed: 'The support tunnel is closed.',
 
   // ----- Sign out -----
   signOut: 'Sign out',
@@ -251,6 +252,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelDisk: 'Disk',
   labelMerge: 'Merge',
   labelSize: 'Size',
   labelSpeed: 'Speed',
@@ -261,6 +263,7 @@ const messages = {
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
+  formDescription: 'Description',
   formEdit: 'Edit',
   formId: 'ID',
   formName: 'Name',
@@ -427,13 +430,12 @@ const messages = {
   jobUserNotFound: "This job's creator no longer exists",
   backupUserNotFound: "This backup's creator no longer exists",
   redirectToMatchingVms: 'Click here to see the matching VMs',
-  migrateToBackupNg: 'Migrate to Backup NG',
   noMatchingVms: 'There are no matching VMs!',
   allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
-  migrateBackupSchedule: 'Migrate to Backup NG',
+  migrateBackupSchedule: 'Migrate to the new backup system',
   migrateBackupScheduleMessage:
-    'This will convert the old backup job to a Backup NG job. This operation is not reversible. Do you want to continue?',
+    'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
@@ -445,6 +447,7 @@ const messages = {
   reportWhenAlways: 'Always',
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
+  reportRecipients: 'Report recipients',
   reportWhen: 'Report when',
   concurrency: 'Concurrency',
   newBackupSelection: 'Select your backup type:',
@@ -455,6 +458,9 @@ const messages = {
   backupName: 'Name',
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
+  offlineBackup: 'Offline backup',
+  offlineBackupInfo:
+    'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
@@ -1430,6 +1436,12 @@ const messages = {
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
 
+  // ---- Disk import ---
+  diskImportFailed: 'Disk import failed',
+  diskImportSuccess: 'Disk import success',
+  dropDisksFiles: 'Drop VMDK or VHD files here to import disks.',
+  importToSr: 'To SR',
+
   // ---- Tasks ---
   cancelTask: 'Cancel',
   destroyTask: 'Destroy',
@@ -1742,6 +1754,14 @@ const messages = {
   detachHostModalMessage:
     'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
+
+  // ----- Advanced Live Telemetry -----
+  advancedLiveTelemetry: 'Advanced Live Telemetry',
+  pluginNetDataIsNecessary: 'Netdata plugin is necessary',
+  enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
+  enableAdvancedLiveTelemetrySuccess:
+    'Advanced Live Telemetry successfully enabled',
+  xcpOnlyFeature: 'This feature is only XCP-ng compatible',
 
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
@@ -2111,8 +2131,8 @@ const messages = {
   xosanState_creatingSr: 'Creating SR…',
   xosanState_scanningSr: 'Scanning SR…',
   // Pack download modal
-  xosanInstallCloudPlugin: 'Install cloud plugin first',
-  xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanInstallCloudPlugin: 'Install XOA plugin first',
+  xosanLoadCloudPlugin: 'Load XOA plugin first',
   xosanNoPackFound:
     'No compatible XOSAN pack found for your XenServer versions.',
   // SR tab XOSAN
@@ -2168,8 +2188,9 @@ const messages = {
   size: 'Size',
   totalDiskSize: 'Total disk size',
   hideInstalledPool: 'Already installed templates are hidden',
-  hubSrErrorTitle: 'Missing property',
   hubImportNotificationTitle: 'XVA import',
+  hubTemplateDescriptionNotAvailable:
+    'No description available for this template',
 
   // Licenses
   xosanUnregisteredDisclaimer:
@@ -2218,7 +2239,7 @@ const messages = {
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
 forEach(messages, function(message, id) {
-  if (isString(message)) {
+  if (typeof message === 'string') {
     messages[id] = {
       id,
       defaultMessage: message,

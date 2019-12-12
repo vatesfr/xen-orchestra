@@ -11,7 +11,6 @@ import {
   isEmpty,
   isFunction,
   isPlainObject,
-  isString,
   map,
   mapValues,
   pick,
@@ -264,7 +263,7 @@ export const routes = (indexRoute, childRoutes) => target => {
     indexRoute = {
       component: indexRoute,
     }
-  } else if (isString(indexRoute)) {
+  } else if (typeof indexRoute === 'string') {
     indexRoute = {
       onEnter: invoke(indexRoute, pathname => (state, replace) => {
         const current = state.location.pathname
@@ -306,7 +305,7 @@ export const routes = (indexRoute, childRoutes) => target => {
 // function foo (param = throwFn('param is required')) {}
 // ```
 export const throwFn = error => () => {
-  throw isString(error) ? new Error(error) : error
+  throw typeof error === 'string' ? new Error(error) : error
 }
 
 // ===================================================================
@@ -551,15 +550,24 @@ export const getIscsiPaths = pbd => {
 
 // ===================================================================
 
-export const downloadLog = ({ log, date, type }) => {
-  const file = new window.Blob([log], {
+export const createBlobFromString = str =>
+  new window.Blob([str], {
     type: 'text/plain',
   })
+
+// ===================================================================
+
+// Format a date in ISO 8601 in a safe way to be used in filenames
+// (even on Windows).
+export const safeDateFormat = ms =>
+  new Date(ms).toISOString().replace(/:/g, '_')
+
+// ===================================================================
+
+export const downloadLog = ({ log, date, type }) => {
   const anchor = document.createElement('a')
-  anchor.href = window.URL.createObjectURL(file)
-  anchor.download = `${new Date(date)
-    .toISOString()
-    .replace(/:/g, '_')} - ${type}.log`
+  anchor.href = window.URL.createObjectURL(createBlobFromString(log))
+  anchor.download = `${safeDateFormat(date)} - ${type}.log`
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()

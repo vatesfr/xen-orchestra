@@ -10,7 +10,6 @@ import Wizard, { Section } from 'wizard'
 import { addSubscriptions, connectStore } from 'utils'
 import {
   createBondedNetwork,
-  createCrossPoolPrivateNetwork,
   createNetwork,
   createPrivateNetwork,
   getBondModes,
@@ -62,6 +61,23 @@ const Item = ({ label, children, className }) => (
   </span>
 )
 
+/*
+From XAPI doc, a tunnel can only be created on:
+- Physical PIF
+- Bond master PIF
+- VLAN PIF
+If and only if the PIF:
+- Has an IP configuration
+- is NOT a bond slave
+
+For more info see: https://xapi-project.github.io/xapi/design/tunnelling.html
+*/
+const canSupportPrivateNetwork = (pool, pif) =>
+  (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
+  pif.mode !== 'None' &&
+  !pif.isBondSlave &&
+  pif.$host === pool.master
+
 const NewNetwork = decorate([
   addSubscriptions({
     plugins: subscribePlugins,
@@ -101,12 +117,7 @@ const NewNetwork = decorate([
       onChangeEncapsulation(_, encapsulation) {
         return { encapsulation: encapsulation.value }
       },
-      onDeletePool(
-        _,
-        {
-          currentTarget: { dataset },
-        }
-      ) {
+      onDeletePool(_, { currentTarget: { dataset } }) {
         const networks = [...this.state.networks]
         networks.splice(dataset.position, 1)
         this.state.networks = networks
@@ -145,17 +156,9 @@ const NewNetwork = decorate([
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
       pifPredicateSdnController: (_, { pool }) => pif =>
-        pif.physical &&
-        pif.ip_configuration_mode !== 'None' &&
-        pif.$host === (pool && pool.master),
-      networkPifPredicate: ({ networks }) => (pif, key) => {
-        const pool = networks[key].pool
-        return (
-          pif.physical &&
-          pif.ip_configuration_mode !== 'None' &&
-          pif.$host === (pool !== undefined && pool.master)
-        )
-      },
+        canSupportPrivateNetwork(pool, pif),
+      networkPifPredicate: ({ networks }) => (pif, key) =>
+        canSupportPrivateNetwork(networks[key].pool, pif),
       networkPoolPredicate: ({ networks }, { pool: rootPool }) => (
         pool,
         index
@@ -203,33 +206,23 @@ const NewNetwork = decorate([
             pool: pool.id,
           })
         : isPrivate
-        ? networks.length > 0
-          ? (() => {
-              const poolIds = [pool.id]
-              const pifIds = [pif.id]
-              for (const network of networks) {
-                poolIds.push(network.pool.id)
-                pifIds.push(network.pif.id)
-              }
-              return createCrossPoolPrivateNetwork({
-                xoPoolIds: poolIds,
-                networkName: name,
-                networkDescription: description,
-                encapsulation: encapsulation,
-                xoPifIds: pifIds,
-                encrypted,
-                mtu: mtu !== '' ? +mtu : undefined,
-              })
-            })()
-          : createPrivateNetwork({
-              poolId: pool.id,
-              networkName: name,
-              networkDescription: description,
-              encapsulation: encapsulation,
-              pifId: pif.id,
+        ? (() => {
+            const poolIds = [pool.id]
+            const pifIds = [pif.id]
+            for (const network of networks) {
+              poolIds.push(network.pool.id)
+              pifIds.push(network.pif.id)
+            }
+            return createPrivateNetwork({
+              poolIds,
+              pifIds,
+              name,
+              description,
+              encapsulation,
               encrypted,
               mtu: mtu !== '' ? +mtu : undefined,
             })
+          })()
         : createNetwork({
             description,
             mtu,

@@ -22,7 +22,6 @@ import { Container, Row, Col } from 'grid'
 
 import About from './about'
 import Backup from './backup'
-import BackupNg from './backup-ng'
 import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
@@ -31,6 +30,7 @@ import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert, FormModal } from 'modal'
 import New from './new'
+import NewLegacyBackup from './backup/new-legacy-backup'
 import NewVm from './new-vm'
 import Pool from './pool'
 import Self from './self'
@@ -39,10 +39,10 @@ import Sr from './sr'
 import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
-import VmImport from './vm-import'
 import Xoa from './xoa'
 import XoaUpdates from './xoa/update'
 import Xosan from './xosan'
+import Import from './import'
 
 import keymap, { help } from '../keymap'
 
@@ -76,11 +76,21 @@ const BODY_STYLE = {
 @routes('home', {
   about: About,
   backup: Backup,
-  'backup-ng': BackupNg,
+  'backup-ng/*': {
+    onEnter: ({ location }, replace) =>
+      replace(location.pathname.replace('/backup-ng', '/backup')),
+  },
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': Host,
   jobs: Jobs,
+  // 2019-10-03
+  // For test/development purposes. It can be removed after a while.
+  // To remove it, it's necessary to remove
+  //   - all messages only used in 'xo-app/backup/new-legacy-backup/index.js'
+  //      from 'common/intl/messages'.
+  //   - folder 'xo-app/backup/new-legacy-backup'.
+  'legacy-backup/new': NewLegacyBackup,
   new: New,
   'pools/:id': Pool,
   self: Self,
@@ -88,11 +98,11 @@ const BODY_STYLE = {
   'srs/:id': Sr,
   tasks: Tasks,
   user: User,
-  'vms/import': VmImport,
   'vms/new': NewVm,
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  import: Import,
   hub: Hub,
 })
 @connectStore(state => {

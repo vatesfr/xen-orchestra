@@ -36,16 +36,18 @@ Usage: xo-proxy-cli <XO proxy URL> <authentication token> <method> [<param>=<val
     params[param.slice(0, j)] = parseValue(param.slice(j + 1))
   }
 
-  const lines = (await hrp
-    .post(url, {
-      body: format.request(0, method, params),
-      headers: {
-        'content-type': 'application/json',
-        cookie: `authenticationToken=${authenticationToken}`,
-      },
-      pathname: '/api/v1',
-    })
-    .readAll('utf8'))
+  const lines = (
+    await hrp
+      .post(url, {
+        body: format.request(0, method, params),
+        headers: {
+          'content-type': 'application/json',
+          cookie: `authenticationToken=${authenticationToken}`,
+        },
+        pathname: '/api/v1',
+      })
+      .readAll('utf8')
+  )
     .split(/\r?\n/)
     .filter(_ => _.length !== 0)
   try {

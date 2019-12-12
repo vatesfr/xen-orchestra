@@ -8,10 +8,10 @@ This category is dedicated to creating a VM with Docker support.
 
 ## Prerequisites
 
-* XenServer 6.5 or higher
-* Plugin installation (see below)
-* CoreOS ISO ([download it here](http://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso)) for CoreOS installations
-* Xen Orchestra 4.10 or newer
+- XenServer 6.5 or higher
+- Plugin installation (see below)
+- CoreOS ISO ([download it here](http://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso)) for CoreOS installations
+- Xen Orchestra 4.10 or newer
 
 ## Docker plugin installation
 
@@ -49,8 +49,8 @@ That's it! You can now enjoy Docker support!
 
 There are two ways to use the newly exposed Docker features:
 
-* Install a CoreOS VM
-* Transform an existing VM into a supported Docker VM
+- Install a CoreOS VM
+- Transform an existing VM into a supported Docker VM
 
 ### CoreOS
 
@@ -79,7 +79,6 @@ You'll have to uncomment the line:
 And replace it with your actual SSH public key:
 
 `- ssh-rsa AAAA....kuGgQ me@mypc`
-
 
 The rest of the configuration is identical to any other VM. Just click on "Create VM" and you are done. After a few seconds, your VM will be ready. Nothing else to do!
 
@@ -165,10 +164,10 @@ During the VM creation, the XSContainer plugin will create an extra disk: "Autom
 
 Basically, it reads configuration during the boot, allowing:
 
-* SSH key management for newly created VM/instances
-* Root disk filesystem growing
-* User/group management
-* Arbitrary command execution (system update, custom scripts etc.)
+- SSH key management for newly created VM/instances
+- Root disk filesystem growing
+- User/group management
+- Arbitrary command execution (system update, custom scripts etc.)
 
 In our case, it's used by the XSContainer plugin to allow host communication to the Docker daemon running in the VM, thus exposing Docker commands outside of the VM.
 
@@ -178,9 +177,9 @@ You can also use the XSContainer plugin to "transform" an existing VM into a "Do
 
 You need to have the following installed inside the VM:
 
-* Docker
-* openssh-server
-* ncat
+- Docker
+- openssh-server
+- ncat
 
 For Debian/Ubuntu like distro: `apt-get install docker.io openssh-server nmap`. For RHEL and derived (CentOS...): `yum install docker openssh-server nmap-ncat`.
 

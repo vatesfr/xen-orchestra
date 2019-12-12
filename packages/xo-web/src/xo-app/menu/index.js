@@ -86,10 +86,7 @@ export default class Menu extends Component {
     isEmpty
   )
 
-  _getNoResourceSets = createSelector(
-    () => this.props.resourceSets,
-    isEmpty
-  )
+  _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
 
   _getNoNotifications = createSelector(
     () => this.props.notifications,
@@ -219,35 +216,8 @@ export default class Menu extends Component {
             icon: 'menu-backup-file-restore',
             label: 'backupFileRestorePage',
           },
-        ],
-      },
-      isAdmin && {
-        to: '/backup-ng/overview',
-        icon: 'menu-backup',
-        label: <span>Backup NG</span>,
-        subMenu: [
           {
-            to: '/backup-ng/overview',
-            icon: 'menu-backup-overview',
-            label: 'backupOverviewPage',
-          },
-          {
-            to: '/backup-ng/new',
-            icon: 'menu-backup-new',
-            label: 'backupNewPage',
-          },
-          {
-            to: '/backup-ng/restore',
-            icon: 'menu-backup-restore',
-            label: 'backupRestorePage',
-          },
-          {
-            to: '/backup-ng/file-restore',
-            icon: 'menu-backup-file-restore',
-            label: 'backupFileRestorePage',
-          },
-          {
-            to: '/backup-ng/health',
+            to: '/backup/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
           },
@@ -372,6 +342,23 @@ export default class Menu extends Component {
         pill: nTasks,
       },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
+      !noOperatablePools && {
+        to: '/import/vm',
+        icon: 'menu-new-import',
+        label: 'newImport',
+        subMenu: [
+          {
+            to: '/import/vm',
+            icon: 'vm',
+            label: 'labelVm',
+          },
+          {
+            to: '/import/disk',
+            icon: 'disk',
+            label: 'labelDisk',
+          },
+        ],
+      },
       !(noOperatablePools && noResourceSets) && {
         to: '/vms/new',
         icon: 'menu-new',
@@ -394,11 +381,6 @@ export default class Menu extends Component {
             to: '/settings/servers',
             icon: 'menu-settings-servers',
             label: 'newServerPage',
-          },
-          !noOperatablePools && {
-            to: '/vms/import',
-            icon: 'menu-new-import',
-            label: 'newImport',
           },
         ],
       },

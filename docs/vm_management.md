@@ -12,8 +12,8 @@ In the advanced tab, you have extra options:
 
 ### XenServer limitations
 
-* Each VM has a maximum vCPU number. This value can't be changed while the VM is running. You can reduce the number of vCPUs, but you can't assign more than the set max. In XO, while your VM is halted, set the max vCPUs you would need, then boot it. Now you can reduce it and then expand it later to this maximum.
-* The same limitation applies to static RAM.
+- Each VM has a maximum vCPU number. This value can't be changed while the VM is running. You can reduce the number of vCPUs, but you can't assign more than the set max. In XO, while your VM is halted, set the max vCPUs you would need, then boot it. Now you can reduce it and then expand it later to this maximum.
+- The same limitation applies to static RAM.
 
 You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/de-de/xencenter/6-5/xs-xc-vms-configuring/xs-xc-vms-memory/xs-xc-dmc-about.html).
 
@@ -53,11 +53,11 @@ If you pool supports HA (must have shared storage), you can activate "HA". Read 
 
 You can change the CPU Weight in the VM advanced view. The values are:
 
-* Default
-* Quarter (64)
-* Half (128)
-* Normal (256)
-* Double (512)
+- Default
+- Quarter (64)
+- Half (128)
+- Normal (256)
+- Double (512)
 
 By default, each VM has a weight of 256.
 
@@ -71,8 +71,8 @@ VM copy allows you to make an export and an import via streaming. You can target
 
 You can create a snapshot with one click. It will be named automatically. After the snapshot is created, you can either:
 
-* export it on your computer
-* revert your VM to this snapshot (it will restart the VM)
-* delete this snapshot
+- export it on your computer
+- revert your VM to this snapshot (it will restart the VM)
+- delete this snapshot
 
 > By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fallback to the default snapshot system.

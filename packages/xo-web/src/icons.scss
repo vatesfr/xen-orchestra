@@ -53,6 +53,15 @@
     @extend .fa-check;
     @extend .text-success;
   }
+  &-true {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-false {
+    @extend .fa;
+    @extend .fa-times;
+  }
   &-undo {
     @extend .fa;
     @extend .fa-undo;
@@ -284,6 +293,10 @@
   &-deploy {
     @extend .fa;
     @extend .fa-rocket;
+  }
+  &-telemetry {
+    @extend .fa;
+    @extend .fa-area-chart;
   }
 
   // Backups
@@ -1105,6 +1118,10 @@
   &-reply {
     @extend .fa;
     @extend .fa-share;
+  }
+  &-open-tunnel {
+    @extend .fa;
+    @extend .fa-arrows-h;
   }
 
   // XOSAN related

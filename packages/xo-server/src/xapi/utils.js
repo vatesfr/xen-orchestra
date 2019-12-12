@@ -9,9 +9,7 @@ import { satisfies as versionSatisfies } from 'semver'
 import {
   camelToSnakeCase,
   forEach,
-  isBoolean,
   isInteger,
-  isString,
   map,
   mapFilter,
   mapToArray,
@@ -43,7 +41,7 @@ export const prepareXapiParam = param => {
   if (isInteger(param)) {
     return asInteger(param)
   }
-  if (isBoolean(param)) {
+  if (typeof param === 'boolean') {
     return asBoolean(param)
   }
   if (Array.isArray(param)) {
@@ -133,7 +131,7 @@ export const makeEditObject = specs => {
       return object => object[prop]
     }
 
-    if (isString(get)) {
+    if (typeof get === 'string') {
       return object => object[get]
     }
 
@@ -151,7 +149,7 @@ export const makeEditObject = specs => {
       }
     }
 
-    if (isString(set)) {
+    if (typeof set === 'string') {
       const index = set.indexOf('.')
       if (index === -1) {
         const prop = camelToSnakeCase(set)
@@ -232,15 +230,15 @@ export const makeEditObject = specs => {
     return spec
   }
   forEach(specs, (spec, name) => {
-    isString(spec) || (specs[name] = normalizeSpec(spec, name))
+    typeof spec === 'string' || (specs[name] = normalizeSpec(spec, name))
   })
 
   // Resolves aliases and add camelCase and snake_case aliases.
   forEach(specs, (spec, name) => {
-    if (isString(spec)) {
+    if (typeof spec === 'string') {
       do {
         spec = specs[spec]
-      } while (isString(spec))
+      } while (typeof spec === 'string')
       specs[name] = spec
     }
 

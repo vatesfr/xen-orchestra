@@ -176,7 +176,7 @@ runJob.params = {
 async function handleGetAllLogs(req, res) {
   const logs = await this.getBackupNgLogs()
   res.set('Content-Type', 'application/json')
-  return fromCallback(cb => pipeline(createNdJsonStream(logs), res, cb))
+  return fromCallback(pipeline, createNdJsonStream(logs), res)
 }
 
 export function getAllLogs({ ndjson = false }) {
@@ -233,13 +233,14 @@ deleteVmBackup.params = {
   },
 }
 
-export function listVmBackups({ remotes }) {
-  return this.listVmBackupsNg(remotes)
+export function listVmBackups({ remotes, _forceRefresh }) {
+  return this.listVmBackupsNg(remotes, _forceRefresh)
 }
 
 listVmBackups.permission = 'admin'
 
 listVmBackups.params = {
+  _forceRefresh: { type: 'boolean', optional: true },
   remotes: {
     type: 'array',
     items: {

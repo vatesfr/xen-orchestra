@@ -52,7 +52,7 @@ new CM.String('foo').createPredicate()
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

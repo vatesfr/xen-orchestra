@@ -2,11 +2,11 @@
 
 Cloud-init is a program "that handles the early initialization of a cloud instance"[^n]. In other words, you can, on a "cloud-init"-ready template VM, pass a lot of data at first boot:
 
-* setting the hostname
-* add ssh keys
-* automatically grow the file system
-* create users
-* and a lot more!
+- setting the hostname
+- add ssh keys
+- automatically grow the file system
+- create users
+- and a lot more!
 
 This tool is pretty standard and used everywhere. A lot of existing cloud templates are using it.
 
@@ -40,19 +40,19 @@ Finally, create the VM:
 
 Now start the VM and SSH to its IP:
 
-* **the system has the right VM hostname** (from VM name) 
-* you don't need to use a password to access it (thanks to your SSH key):
+- **the system has the right VM hostname** (from VM name)
+- you don't need to use a password to access it (thanks to your SSH key):
 
 ```
 $ ssh centos@192.168.100.226
-[centos@tmp-app1 ~]$ 
+[centos@tmp-app1 ~]$
 ```
 
 The default `cloud-init` configuration can allow you to be to be a sudoer directly:
 
 ```
 [centos@tmp-app1 ~]$ sudo -s
-[root@tmp-app1 centos]# 
+[root@tmp-app1 centos]#
 ```
 
 Check the root file system size: indeed, **it was automatically increased** to what you need:

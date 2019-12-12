@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
+const get = require('lodash/get')
 const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
-const { getPackages, writeFile, unlink } = require('./utils')
+const { getPackages, readFile, writeFile, unlink } = require('./utils')
 
 const deleteProperties = (object, property, properties) => {
   const nestedObject = object[property]
@@ -30,6 +31,10 @@ require('exec-promise')(() =>
 
     if (!('version' in pkg)) {
       pkg.version = '0.0.0'
+    }
+    pkg.engines = {
+      node: '>=8.10',
+      ...pkg.engines,
     }
 
     delete pkg.husky
@@ -82,6 +87,28 @@ require('exec-promise')(() =>
     }
 
     return Promise.all([
+      readFile(`${dir}/README.md`, 'utf8')
+        .then(content => {
+          const data = {
+            pkg: {
+              ...pkg,
+              author: {
+                name: 'Vates SAS',
+                url: 'https://vates.fr',
+              },
+            },
+          }
+          return writeFile(
+            `${dir}/README.md`,
+            content.replace(
+              /\$\{([^}]+)\}/g,
+              (_, path) => get(data, path, _) || _
+            )
+          )
+        })
+        .catch(error => {
+          console.error('Error while handling README', error)
+        }),
       writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
       unlink(`${dir}/.editorconfig`),
       unlink(`${dir}/.eslintrc.js`),

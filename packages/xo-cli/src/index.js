@@ -386,7 +386,7 @@ async function call(args) {
         printProgress
       )
 
-      return fromCallback(cb => pump(response, progress, output, cb))
+      return fromCallback(pump, response, progress, output)
     }
 
     if (key === '$sendTo') {

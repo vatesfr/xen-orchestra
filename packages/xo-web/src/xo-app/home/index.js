@@ -27,7 +27,6 @@ import {
   identity,
   includes,
   isEmpty,
-  isString,
   keys,
   map,
   mapValues,
@@ -181,7 +180,7 @@ const OPTIONS = {
       {
         handler: (vmIds, _, { setHomeVmIdsSelection }, { router }) => {
           setHomeVmIdsSelection(vmIds)
-          router.push('backup-ng/new/vms')
+          router.push('backup/new/vms')
         },
         icon: 'backup',
         labelId: 'backupLabel',
@@ -359,6 +358,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/docs/'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -369,6 +369,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/#!/member/support'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -649,7 +650,7 @@ export default class Home extends Component {
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
   _setFilter(filter, props = this.props, replace) {
-    if (!isString(filter)) {
+    if (typeof filter !== 'string') {
       filter = filter.toString()
     }
 
@@ -793,10 +794,7 @@ export default class Home extends Component {
       size(visibleItems) > 0 &&
       size(filter(selectedItems)) === size(visibleItems)
   )
-  _getIsSomeSelected = createSelector(
-    () => this.state.selectedItems,
-    some
-  )
+  _getIsSomeSelected = createSelector(() => this.state.selectedItems, some)
   _toggleMaster = () => {
     const selectedItems = {}
     if (!this._getIsAllSelected()) {
@@ -936,6 +934,7 @@ export default class Home extends Component {
                 <a
                   className='input-group-addon'
                   href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+                  rel='noopener noreferrer'
                   target='_blank'
                 >
                   <Icon icon='info' />

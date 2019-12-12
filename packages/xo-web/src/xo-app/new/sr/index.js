@@ -12,7 +12,6 @@ import Page from '../../page'
 import PropTypes from 'prop-types'
 import React from 'react'
 import store from 'store'
-import trim from 'lodash/trim'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
 import { adminOnly, connectStore, formatSize } from 'utils'
@@ -569,10 +568,11 @@ export default class New extends Component {
 
     let { name, description } = this.refs
 
-    name = trim(name)
-    description = trim(description)
+    name = name.value.trim()
+    description = description.value.trim()
     if (isEmpty(name) || isEmpty(description)) {
       error('Missing General Parameters', 'Please complete General Information')
+      return
     }
 
     const method = type === 'nfsiso' ? reattachSrIso : reattachSr

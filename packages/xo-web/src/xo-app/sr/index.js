@@ -47,17 +47,11 @@ import TabXosan from './tab-xosan'
   )
 
   const getPbds = createGetObjectsOfType('PBD').pick(
-    createSelector(
-      getSr,
-      sr => sr.$PBDs
-    )
+    createSelector(getSr, sr => sr.$PBDs)
   )
 
   const getSrHosts = createGetObjectsOfType('host').pick(
-    createSelector(
-      getPbds,
-      pbds => map(pbds, pbd => pbd.host)
-    )
+    createSelector(getPbds, pbds => map(pbds, pbd => pbd.host))
   )
 
   // -----------------------------------------------------------------
@@ -75,12 +69,7 @@ import TabXosan from './tab-xosan'
     .pick(getVdiIds)
     .sort()
   const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged')
-    .pick(
-      createSelector(
-        getSr,
-        sr => sr.VDIs
-      )
-    )
+    .pick(createSelector(getSr, sr => sr.VDIs))
     .sort()
 
   // -----------------------------------------------------------------

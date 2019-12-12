@@ -128,7 +128,7 @@ var bar = col.get('bar', 6.28)
 var _ = require('lodash')
 
 // Prints all the items.
-_.forEach(col.all, function (value, key) {
+_.forEach(col.all, function(value, key) {
   console.log('- %s: %j', key, value)
 })
 
@@ -153,7 +153,7 @@ var size = col.size
 **New items**
 
 ```javascript
-col.on('add', (added) => {
+col.on('add', added => {
   forEach(added, (value, key) => {
     console.log('+ %s: %j', key, value)
   })
@@ -163,7 +163,7 @@ col.on('add', (added) => {
 **Updated items**
 
 ```javascript
-col.on('update', (updated) => {
+col.on('update', updated => {
   forEach(updated, (value, key) => {
     console.log('± %s: %j', key, value)
   })
@@ -173,7 +173,7 @@ col.on('update', (updated) => {
 **Removed items**
 
 ```javascript
-col.on('remove', (removed) => {
+col.on('remove', removed => {
   // For consistency, `removed` is also a map but contrary to `added`
   // and `updated`, the values associated to the keys are not
   // significant since the items have already be removed.
@@ -224,7 +224,7 @@ const View = require('xo-collection/view')
 > can be briefly invalid.
 
 ```javascript
-const myView = new View(parentCollection, function predicate (value, key) {
+const myView = new View(parentCollection, function predicate(value, key) {
   // This function should return a boolean indicating whether the
   // current item should be in this view.
 })
@@ -251,7 +251,7 @@ const myView = new View(parentCollection, function predicate (value, key) {
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

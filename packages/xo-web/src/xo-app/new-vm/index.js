@@ -307,12 +307,10 @@ export default class NewVm extends BaseComponent {
 
   _getResolvedResourceSet = createFinder(
     () => this.props.resolvedResourceSets,
-    createSelector(
-      this._getResourceSet,
-      resourceSet =>
-        resourceSet !== undefined
-          ? resolvedResourceSet => resolvedResourceSet.id === resourceSet.id
-          : false
+    createSelector(this._getResourceSet, resourceSet =>
+      resourceSet !== undefined
+        ? resolvedResourceSet => resolvedResourceSet.id === resourceSet.id
+        : false
     )
   )
 

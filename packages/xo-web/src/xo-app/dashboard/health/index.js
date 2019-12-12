@@ -217,6 +217,7 @@ const AttachedVdisTable = decorate([
       data-vdiSnapshots={vdiSnapshots}
       emptyMessage={_('noControlDomainVdis')}
       rowTransform={rowTransform}
+      stateUrlParam='s_controldomain'
     />
   ),
   {
@@ -392,10 +393,7 @@ const ALARM_ACTIONS = [
     .sort()
   const getUserSrs = createGetObjectsOfType('SR').filter([isSrWritable])
   const getVdiSrs = createGetObjectsOfType('SR').pick(
-    createSelector(
-      getOrphanVdiSnapshots,
-      snapshots => map(snapshots, '$SR')
-    )
+    createSelector(getOrphanVdiSnapshots, snapshots => map(snapshots, '$SR'))
   )
   const getAlertMessages = createGetObjectsOfType('message').filter([
     message => message.name === 'ALARM',
@@ -434,7 +432,7 @@ export default class Health extends Component {
         }
 
         const [, value, xml] = matches
-        return fromCallback(cb => xml2js.parseString(xml, cb)).then(result => {
+        return fromCallback(xml2js.parseString, xml).then(result => {
           const object = mapValues(result && result.variable, value =>
             get(value, '[0].$.value')
           )
@@ -460,10 +458,7 @@ export default class Health extends Component {
   _getSrUrl = sr => `srs/${sr.id}`
 
   _getPoolPredicate = createSelector(
-    createSelector(
-      () => this.state.pools,
-      resolveIds
-    ),
+    createSelector(() => this.state.pools, resolveIds),
     poolIds =>
       isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
@@ -521,6 +516,7 @@ export default class Health extends Component {
                           columns={SR_COLUMNS}
                           rowLink={this._getSrUrl}
                           shortcutsTarget='body'
+                          stateUrlParam='s_srs'
                         />
                       </Col>
                     </Row>
@@ -546,6 +542,7 @@ export default class Health extends Component {
                       actions={ORPHANED_VDI_ACTIONS}
                       collection={vdiOrphaned}
                       columns={ORPHANED_VDI_COLUMNS}
+                      stateUrlParam='s_vdis'
                     />
                   )}
                 </NoObjects>
@@ -581,6 +578,7 @@ export default class Health extends Component {
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
                   shortcutsTarget='.orphaned-vms'
+                  stateUrlParam='s_orphan_vms'
                 />
               </CardBlock>
             </Card>
@@ -604,6 +602,7 @@ export default class Health extends Component {
                       actions={ALARM_ACTIONS}
                       collection={this._getMessages()}
                       columns={ALARM_COLUMNS}
+                      stateUrlParam='s_alarm'
                     />
                   )}
                 </NoObjects>

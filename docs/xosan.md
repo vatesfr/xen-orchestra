@@ -16,10 +16,10 @@ XOSAN will "gather" all your local disks into a shared SR, that XenServer will j
 
 The objectives are to:
 
-* protect your data thanks to replication of data on multiple hosts
-* provide XenServer high availability without buying a NAS nor a SAN
-* give you flexibility to grow your storage by adding new nodes
-* work on all kind of hardware, from HDDs to SSDs, with hardware RAID or not
+- protect your data thanks to replication of data on multiple hosts
+- provide XenServer high availability without buying a NAS nor a SAN
+- give you flexibility to grow your storage by adding new nodes
+- work on all kind of hardware, from HDDs to SSDs, with hardware RAID or not
 
 ## Beta access - Phase II
 
@@ -34,8 +34,8 @@ To activate you XOSAN beta, just go in the **"XOSAN"** menu in your (up-to-date)
 
 To deploy XOSAN, please follow the rest of the documentation:
 
-* [XOSAN Requirements](xosan_requirements.md)
-* [Types of XOSAN](xosan_types.md)
-* [How to create a new XOSAN Storage](xosan_create.md)
-* [XOSAN management](xosan_management.md)
-* [Get a free XOSAN trial](xosan_trial.md)
+- [XOSAN Requirements](xosan_requirements.md)
+- [Types of XOSAN](xosan_types.md)
+- [How to create a new XOSAN Storage](xosan_create.md)
+- [XOSAN management](xosan_management.md)
+- [Get a free XOSAN trial](xosan_trial.md)
