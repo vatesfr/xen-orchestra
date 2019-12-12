@@ -294,9 +294,7 @@ const Updates = decorate([
             <CardBlock>
               <fieldset disabled={COMMUNITY}>
                 <p>
-                  {_('xoaBuild')} {state.xoaBuild}
-                  {' - '}
-                  {_('currentVersion')}{' '}
+                  {_('xoaBuild')} {state.xoaBuild} - {_('currentVersion')}{' '}
                   {defined(
                     () => state.installedPackages['xen-orchestra'],
                     'unknown'
