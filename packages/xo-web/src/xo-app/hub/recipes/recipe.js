@@ -80,7 +80,11 @@ export default decorate([
 
         success(
           _('recipeCreatedSuccessfully'),
-          <ButtonLink btnStyle='success' size='small' to={`/home?s=${filter}`}>
+          <ButtonLink
+            btnStyle='success'
+            size='small'
+            to={`/home?s=${encodeURIComponent(filter)}`}
+          >
             {_('recipeViewCreatedVms')}
           </ButtonLink>,
           8e3

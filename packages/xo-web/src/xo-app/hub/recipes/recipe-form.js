@@ -1,22 +1,19 @@
 import * as FormGrid from 'form-grid'
 import _, { messages } from 'intl'
 import decorate from 'apply-decorators'
-import Icon from 'icon'
 import React from 'react'
-import Tooltip from 'tooltip'
 import { Container } from 'grid'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
-import { sortBy } from 'lodash'
 
 export default decorate([
   injectIntl,
   provideState({
     effects: {
-      onChangePools(__, pool) {
+      onChangePool(__, pool) {
         const { onChange, value } = this.props
         onChange({
           ...value,
@@ -47,7 +44,6 @@ export default decorate([
       },
     },
     computed: {
-      sortedPools: (_, { value }) => sortBy(value.pools, 'name_label'),
       networkPredicate: (_, { value: { pool } }) => network =>
         pool.id === network.$pool,
       srPredicate: (_, { value }) => sr =>
@@ -58,18 +54,10 @@ export default decorate([
   ({ effects, install, intl: { formatMessage }, state, value }) => (
     <Container>
       <FormGrid.Row>
-        <label>
-          {_('vmImportToPool')}
-          &nbsp;
-          {install && (
-            <Tooltip content={_('hideInstalledPool')}>
-              <Icon icon='info' />
-            </Tooltip>
-          )}
-        </label>
+        <label>{_('vmImportToPool')}</label>
         <SelectPool
           className='mb-1'
-          onChange={effects.onChangePools}
+          onChange={effects.onChangePool}
           required
           value={value.pool}
         />
