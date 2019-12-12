@@ -3013,3 +3013,5 @@ export const openTunnel = () =>
 export const subscribeTunnelState = createSubscription(() =>
   _call('xoa.supportTunnel.getState')
 )
+
+export const getApplianceInfo = () => _call('xoa.getApplianceInfo')

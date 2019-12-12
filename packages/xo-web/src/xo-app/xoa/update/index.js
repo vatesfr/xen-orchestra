@@ -15,12 +15,12 @@ import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateId, linkState, toggleState } from 'reaclette-utils'
+import { getApplianceInfo, subscribeBackupNgJobs, subscribeJobs } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { Password, Select } from 'form'
-import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
 import { getXoaPlan, TryXoa } from '../../../common/utils'
 
@@ -258,6 +258,10 @@ const Updates = decorate([
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
       proxyFormId: generateId,
+      xoaBuild: async () => {
+        const { build = 'unknown' } = await getApplianceInfo()
+        return build
+      },
     },
   }),
   injectState,
@@ -290,7 +294,7 @@ const Updates = decorate([
             <CardBlock>
               <fieldset disabled={COMMUNITY}>
                 <p>
-                  {_('currentVersion')}{' '}
+                  {_('xoaBuild')} {state.xoaBuild} - {_('currentVersion')}{' '}
                   {defined(
                     () => state.installedPackages['xen-orchestra'],
                     'unknown'
