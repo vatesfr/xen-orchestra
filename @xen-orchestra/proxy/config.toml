@@ -2,17 +2,17 @@
 #
 # See sample.config.toml to override.
 
-authenticationToken = "J0BgKritQgPxoyZrBJ5ViafQfLk06YoyFwC3fmfO5wU"
+authenticationToken = 'J0BgKritQgPxoyZrBJ5ViafQfLk06YoyFwC3fmfO5wU'
 
-datadir = "/var/lib/xo-proxy/data"
+datadir = '/var/lib/xo-proxy/data'
 
 [http.listen.0]
 
 # Generate self-signed certificate if missing
 autoCert = true
 
-cert = /var/lib/xo-proxy/certificate.pem
-key = /var/lib/xo-proxy/key.pem
+cert = '/var/lib/xo-proxy/certificate.pem'
+key = '/var/lib/xo-proxy/key.pem'
 port = 443
 
 [remoteOptions]
