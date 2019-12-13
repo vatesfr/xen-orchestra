@@ -6,9 +6,14 @@ authenticationToken = "J0BgKritQgPxoyZrBJ5ViafQfLk06YoyFwC3fmfO5wU"
 
 datadir = "/var/lib/xo-proxy/data"
 
-[[http.listen]]
+[http.listen.0]
 
-port = 80
+# Generate self-signed certificate if missing
+autoCert = true
+
+cert = /var/lib/xo-proxy/certificate.pem
+key = /var/lib/xo-proxy/key.pem
+port = 443
 
 [remoteOptions]
 mountsDir = '/run/xo-proxy/mounts'
