@@ -60,6 +60,7 @@
     "promise-toolbox": "^0.13.0",
     "proxy-agent": "^3.0.3",
     "readable-stream": "^3.0.6",
+    "selfsigned": "^1.10.7",
     "stoppable": "^1.0.6",
     "uuid": "^3.3.2",
     "vhd-lib": "^0.7.0",

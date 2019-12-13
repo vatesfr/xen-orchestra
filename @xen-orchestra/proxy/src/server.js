@@ -56,15 +56,33 @@ ${name} v${version}
         : undefined,
   })
 
-  const readFile = require('promise-toolbox/promisify')(require('fs').readFile)
+  const fromCallback = require('promise-toolbox/fromCallback')
+  const { readFile, writeFile } = require('fs')
+
   await require('@xen-orchestra/async-map').default(
     config.http.listen,
-    async ({ cert, key, ...opts }) => {
+    async ({ autoCert, cert, key, ...opts }) => {
       if (cert !== undefined && key !== undefined) {
-        ;[opts.cert, opts.key] = await Promise.all([
-          readFile(cert),
-          readFile(key),
-        ])
+        try {
+          ;[opts.cert, opts.key] = await Promise.all([
+            fromCallback(readFile, cert),
+            fromCallback(readFile, key),
+          ])
+        } catch (error) {
+          if (!(autoCert && error.code === 'ENOENT')) {
+            throw error
+          }
+
+          // TODO: create containing dirs if necessary
+          const pems = require('selfsigned').generate()
+          await Promise.all([
+            fromCallback(writeFile, cert, pems.cert, { mode: 0o400 }),
+            fromCallback(writeFile, key, pems.private, { mode: 0o400 }),
+          ])
+          info('new certificate generated', { cert, key })
+          opts.cert = pems.cert
+          opts.key = pems.private
+        }
       }
 
       try {
