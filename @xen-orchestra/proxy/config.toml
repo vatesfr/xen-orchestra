@@ -2,7 +2,10 @@
 #
 # See sample.config.toml to override.
 
-authenticationToken = 'J0BgKritQgPxoyZrBJ5ViafQfLk06YoyFwC3fmfO5wU'
+# This secret string is used to authenticate clients to the API.
+#
+# It must be defined to a non-empty string for the proxy to run.
+authenticationToken = ''
 
 datadir = '/var/lib/xo-proxy/data'
 

@@ -1,10 +1,13 @@
-import assert from 'assert'
-
 import { Profile } from '../_Profile'
 
 export default class Authentication {
   constructor(_, { config: { authenticationToken } }) {
-    assert(authenticationToken !== undefined)
+    if (
+      typeof authenticationToken !== 'string' ||
+      authenticationToken.length === 0
+    ) {
+      throw new Error('missing authenticationToken in configuration')
+    }
 
     this._authenticationToken = authenticationToken
   }
