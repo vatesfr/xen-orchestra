@@ -13,6 +13,7 @@ import { SelectSr } from 'select-objects'
 import { Text, XoSelect } from 'editable'
 import { Vm } from 'render-xo-item'
 import {
+  checkProxyHealth,
   deployProxyAppliance,
   destroyProxyAppliances,
   forgetProxyAppliances,
@@ -55,6 +56,15 @@ const Actions = [
     icon: 'destroy',
     label: _('destroyProxies'),
     level: 'danger',
+  },
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: checkProxyHealth,
+    icon: 'diagnosis',
+    label: _('checkProxyHealth'),
+    level: 'primary',
   },
 ]
 
@@ -138,9 +148,10 @@ export default decorate([
             <span className='text-muted'>
               <Icon icon='alarm' />
               &nbsp;
-              {_('vmNoAvailable')}
+              {_('noProxiesAvailable')}
             </span>
           }
+          individualActions={INDIVIDUAL_ACTIONS}
           stateUrlParam='s'
         />
       </div>

@@ -1,6 +1,7 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
+import Icon from 'icon'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
@@ -3065,8 +3066,12 @@ export const destroyProxyAppliances = proxies =>
     )
   )
 
-export const checkHealth = proxy =>
-  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(
-    () => true,
-    () => false
+export const checkProxyHealth = proxy =>
+  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>
+    success(
+      <span>
+        <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
+      </span>,
+      _('proxyTestSuccessMessage')
+    )
   )
