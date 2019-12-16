@@ -1,7 +1,7 @@
-import createLogger from '@xen-orchestra/log'
 import emitAsync from '@xen-orchestra/emit-async'
 import EventEmitter from 'events'
 import expect from 'expect'
+import { createLogger } from '@xen-orchestra/log'
 
 const { debug, warn } = createLogger('xo:proxy:hooks')
 

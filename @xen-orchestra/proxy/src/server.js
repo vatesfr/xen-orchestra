@@ -12,10 +12,10 @@ const APP_NAME = 'xo-proxy'
 
   configure(require('@xen-orchestra/log/transports/console').default())
 
-  catchGlobalErrors(require('@xen-orchestra/log').default('xo:proxy'))
+  catchGlobalErrors(require('@xen-orchestra/log').createLogger('xo:proxy'))
 }
 
-const { fatal, info, warn } = require('@xen-orchestra/log').default(
+const { fatal, info, warn } = require('@xen-orchestra/log').createLogger(
   'xo:proxy:bootstrap'
 )
 
