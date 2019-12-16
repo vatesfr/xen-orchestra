@@ -21,7 +21,7 @@ export default class Proxy {
     this._xoProxyConf = conf['xo-proxy']
     const db = (this._db = new Collection({
       connection: app._redis,
-      indexes: ['address'],
+      indexes: ['address', 'vmUuid'],
       prefix: 'xo:proxy',
     }))
 
@@ -35,29 +35,41 @@ export default class Proxy {
     )
   }
 
-  async _throwIfRegistered(address) {
-    if (await this._db.exists({ address })) {
+  async _throwIfRegistered(address, vmUuid) {
+    if (address != null && (await this._db.exists({ address }))) {
       throw new Error(
         `A proxy with the address (${address}) is already registered`
       )
     }
+    if (vmUuid != null && (await this._db.exists({ vmUuid }))) {
+      throw new Error(`A proxy with the vm (${vmUuid}) is already registered`)
+    }
   }
 
   @synchronizedWrite
-  async registerProxy({ address, authenticationToken, name }) {
-    await this._throwIfRegistered(address)
+  async registerProxy({ address, authenticationToken, name, vmUuid }) {
+    await this._throwIfRegistered(address, vmUuid)
 
     return this._db
       .add({
         address,
         authenticationToken,
         name,
+        vmUuid,
       })
       .then(extractProperties)
   }
 
   unregisterProxy(id) {
     return this._db.remove(id)
+  }
+
+  async destroyProxy(id) {
+    const { vmUuid } = await this.getProxy(id)
+    if (vmUuid !== undefined) {
+      await this._app.getXapi(vmUuid)._deleteVm(vmUuid)
+    }
+    return this.unregisterProxy(id)
   }
 
   async getProxy(id) {
@@ -73,13 +85,11 @@ export default class Proxy {
   }
 
   @synchronizedWrite
-  async updateProxy(id, { address, authenticationToken, name }) {
-    const proxy = await this.getProxy(id)
-    if (address !== undefined && proxy.address !== address) {
-      await this._throwIfRegistered(address)
-    }
+  async updateProxy(id, { address, authenticationToken, name, vmUuid }) {
+    await this._throwIfRegistered(address, vmUuid)
 
-    patch(proxy, { address, authenticationToken, name })
+    const proxy = await this.getProxy(id)
+    patch(proxy, { address, authenticationToken, name, vmUuid })
     return this._db.update(proxy).then(extractProperties)
   }
 

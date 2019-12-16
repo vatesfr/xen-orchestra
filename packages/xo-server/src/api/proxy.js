@@ -1,11 +1,16 @@
-export function register(appliance) {
-  return this.registerProxy(appliance)
+export function register({ vm, ...props }) {
+  return this.registerProxy({ vmUuid: vm.uuid, ...props })
 }
 
 register.permission = 'admin'
 register.params = {
   address: {
     type: 'string',
+    optional: true,
+  },
+  vm: {
+    type: 'string',
+    optional: true,
   },
   name: {
     type: 'string',
@@ -15,6 +20,9 @@ register.params = {
     type: 'string',
   },
 }
+register.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
+}
 
 export async function unregister({ id }) {
   await this.unregisterProxy(id)
@@ -22,6 +30,17 @@ export async function unregister({ id }) {
 
 unregister.permission = 'admin'
 unregister.params = {
+  id: {
+    type: 'string',
+  },
+}
+
+export function destroy({ id }) {
+  return this.destroyProxy(id)
+}
+
+destroy.permission = 'admin'
+destroy.params = {
   id: {
     type: 'string',
   },
@@ -44,8 +63,11 @@ export function getAll() {
 
 getAll.permission = 'admin'
 
-export function update({ id, ...props }) {
-  return this.updateProxy(id, props)
+export function update({ id, vm, ...props }) {
+  return this.updateProxy(id, {
+    vmUuid: vm != null ? vm.uuid : vm,
+    ...props,
+  })
 }
 
 update.permission = 'admin'
@@ -57,6 +79,10 @@ update.params = {
     type: 'string',
     optional: true,
   },
+  vm: {
+    type: ['string', 'null'],
+    optional: true,
+  },
   name: {
     type: 'string',
     optional: true,
@@ -65,4 +91,7 @@ update.params = {
     type: 'string',
     optional: true,
   },
+}
+update.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
 }
