@@ -1,18 +1,21 @@
+import Client, { createBackoff } from 'jsonrpc-websocket-client'
 import cookie from 'cookie'
+import defer from 'golike-defer'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'json-rpc-peer'
+import { ignoreErrors, timeout } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
-import { timeout } from 'promise-toolbox'
-
+import { NULL_REF } from 'xen-api'
 import { omit } from 'lodash'
 
 import Collection from '../collection/redis'
 import parseDuration from '../_parseDuration'
 import patch from '../patch'
 import readChunk from '../_readStreamChunk'
+import { generateToken } from '../utils'
 
 const extractProperties = _ => _.properties
 const synchronizedWrite = synchronized()
@@ -97,6 +100,86 @@ export default class Proxy {
     const proxy = await this.getProxy(id)
     patch(proxy, { address, authenticationToken, name, vmUuid })
     return this._db.update(proxy).then(extractProperties)
+  }
+
+  @defer
+  async deployProxy($defer, srId, { proxyName, xoaName }) {
+    const app = this._app
+    const xoProxyConf = this._xoProxyConf
+
+    const namespace = xoProxyConf.namespace
+    const {
+      [namespace]: { xva },
+    } = await app.getCatalog()
+    const xapi = app.getXapi(srId)
+    let vm = await xapi.importVm(
+      await app.requestResource({
+        id: xva.id,
+        namespace,
+        version: xva.version,
+      }),
+      { srId }
+    )
+    $defer.onFailure.call(xapi, '_deleteVm', vm)
+
+    const [password, token] = await Promise.all([
+      generateToken(10),
+      generateToken(),
+    ])
+    const date = new Date().toISOString()
+    await Promise.all([
+      vm.add_tags('XOA Proxy'),
+      vm.set_name_label(xoaName ?? `XOA Proxy ${date}`),
+      vm.update_xenstore_data({
+        'vm-data/system-account-xoa-password': password,
+        'vm-data/xo-proxy-authToken': token,
+      }),
+    ])
+
+    await xapi.startVm(vm.$id)
+
+    const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
+    vm = await timeout.call(
+      xapi._waitObjectState(vm.$id, _ => _.guest_metrics !== NULL_REF),
+      vmNetworksTimeout
+    )
+    const {
+      networks: { '0/ip': ip },
+    } = await timeout.call(
+      xapi._waitObjectState(
+        vm.guest_metrics,
+        guest_metrics => guest_metrics.networks['0/ip'] !== undefined
+      ),
+      vmNetworksTimeout
+    )
+
+    const updater = new Client(
+      `${ip.includes(':') ? `[${ip}]` : ip}:${xoProxyConf.updaterWsPort}`
+    )
+
+    const call = (method, params) =>
+      timeout.call(
+        updater.call(method, params),
+        parseDuration(xoProxyConf.updaterCallTimeout)
+      )
+
+    await updater.open(createBackoff())
+
+    try {
+      await call('register', {
+        registrationToken: await call('_getRegistrationToken'),
+      })
+      await call('configure', { channel: xoProxyConf.channel })
+      await call('update', { upgrade: true })
+    } finally {
+      ignoreErrors.call(updater.close())
+    }
+
+    await this.registerProxy({
+      authenticationToken: token,
+      name: proxyName ?? `Proxy ${date}`,
+      vmUuid: vm.uuid,
+    })
   }
 
   async callProxyMethod(id, method, params, expectStream = false) {

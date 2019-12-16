@@ -96,6 +96,26 @@ update.resolve = {
   vm: ['vm', 'VM', 'administrate'],
 }
 
+export function deploy({ sr, ...props }) {
+  return this.deployProxy(sr._xapiId, props)
+}
+deploy.params = {
+  proxyName: {
+    type: 'string',
+    optional: true,
+  },
+  sr: {
+    type: 'string',
+  },
+  xoaName: {
+    type: 'string',
+    optional: true,
+  },
+}
+deploy.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
+}
+
 export function checkHealth({ id }) {
   return this.callProxyMethod(id, 'noop')
 }
