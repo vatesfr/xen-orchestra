@@ -7,6 +7,8 @@ import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { timeout } from 'promise-toolbox'
 
+import { omit } from 'lodash'
+
 import Collection from '../collection/redis'
 import parseDuration from '../_parseDuration'
 import patch from '../patch'
@@ -77,11 +79,15 @@ export default class Proxy {
     if (proxy === undefined) {
       throw noSuchObject(id, 'proxy')
     }
-    return extractProperties(proxy)
+    return omit(extractProperties(proxy), 'authenticationToken')
   }
 
   getAllProxies() {
-    return this._db.get()
+    return this._db
+      .get()
+      .then(proxies =>
+        proxies.map(({ authenticationToken, ...proxy }) => proxy)
+      )
   }
 
   @synchronizedWrite
