@@ -312,7 +312,10 @@ const INDIVIDUAL_ACTIONS = [
     level: 'primary',
   },
   {
-    handler: (remote, { editRemote }) => editRemote(remote),
+    handler: (remote, { reset, editRemote }) => {
+      reset()
+      editRemote(remote)
+    },
     icon: 'edit',
     label: _('formEdit'),
     level: 'primary',
@@ -372,6 +375,7 @@ export default decorate([
             columns={COLUMNS_LOCAL_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
+            data-reset={effects.reset}
             filters={FILTERS}
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
@@ -388,6 +392,7 @@ export default decorate([
             columns={COLUMNS_NFS_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
+            data-reset={effects.reset}
             filters={FILTERS}
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
@@ -404,6 +409,7 @@ export default decorate([
             columns={COLUMNS_SMB_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
+            data-reset={effects.reset}
             filters={FILTERS}
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
