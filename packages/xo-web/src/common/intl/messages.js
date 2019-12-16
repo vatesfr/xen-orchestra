@@ -2175,6 +2175,7 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
+  hubCommunity: 'Hub is available in XOA',
   noDefaultSr: 'The selected pool has no default SR',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
@@ -2188,6 +2189,15 @@ const messages = {
   hubImportNotificationTitle: 'XVA import',
   hubTemplateDescriptionNotAvailable:
     'No description available for this template',
+  recipeCreatedSuccessfully: 'Recipe created successfully',
+  recipeViewCreatedVms: 'View created VMs',
+  templatesLabel: 'Templates',
+  recipesLabel: 'Recipes',
+  network: 'Network',
+  recipeMasterNameLabel: 'Master name',
+  recipeNumberOfNodesLabel: 'Number of nodes',
+  recipeSshKeyLabel: 'SSH key',
+  recipeNetworkCidr: 'Network CIDR',
 
   // Licenses
   xosanUnregisteredDisclaimer:
