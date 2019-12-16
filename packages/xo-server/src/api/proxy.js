@@ -95,3 +95,13 @@ update.params = {
 update.resolve = {
   vm: ['vm', 'VM', 'administrate'],
 }
+
+export function checkHealth({ id }) {
+  return this.callProxyMethod(id, 'noop')
+}
+checkHealth.permission = 'admin'
+checkHealth.params = {
+  id: {
+    type: 'string',
+  },
+}
