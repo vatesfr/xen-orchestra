@@ -242,7 +242,7 @@ export default decorate([
                   className='form-control'
                   name='host'
                   onChange={effects.linkState}
-                  pattern='^([^\\/]+)\\([^\\/]+)$'
+                  pattern='^[^\\/]+\\[^\\/]+$'
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderAddressShare
                   )}
@@ -255,7 +255,7 @@ export default decorate([
                   className='form-control'
                   name='path'
                   onChange={effects.linkState}
-                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
+                  pattern='^([^\\/]+(\\[^\\/]+)*)?$'
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderRemotePath
                   )}
