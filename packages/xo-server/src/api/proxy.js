@@ -1,5 +1,8 @@
 export function register({ vm, ...props }) {
-  return this.registerProxy({ vmUuid: vm.uuid, ...props })
+  return this.registerProxy({
+    vmUuid: vm != null ? this.getObject(vm).uuid : vm,
+    ...props,
+  })
 }
 
 register.permission = 'admin'
@@ -19,9 +22,6 @@ register.params = {
   authenticationToken: {
     type: 'string',
   },
-}
-register.resolve = {
-  vm: ['vm', 'VM', 'administrate'],
 }
 
 export async function unregister({ id }) {
