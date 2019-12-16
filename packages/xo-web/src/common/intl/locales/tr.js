@@ -1255,13 +1255,13 @@ export default {
   remoteNamePlaceHolder: 'hedef adı *',
 
   // Original text: "Name *"
-  remoteMyNamePlaceHolder: 'Ad *',
+  remoteMyNamePlaceHolder: 'Ad',
 
   // Original text: "/path/to/backup"
   remoteLocalPlaceHolderPath: '/yedek/için/yol',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'sunucu *',
+  remoteNfsPlaceHolderHost: 'sunucu',
 
   // Original text: 'Port'
   remoteNfsPlaceHolderPort: undefined,
@@ -1282,7 +1282,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domain',
 
   // Original text: "<address>\\\\<share> *"
-  remoteSmbPlaceHolderAddressShare: '<paylaşım>\\\\<adresi> *',
+  remoteSmbPlaceHolderAddressShare: '<paylaşım>\\\\<adresi>',
 
   // Original text: "password(fill to edit)"
   remotePlaceHolderPassword: 'parola(düzenlemek için doldurun)',
