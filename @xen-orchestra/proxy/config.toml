@@ -9,7 +9,11 @@ authenticationToken = ''
 
 datadir = '/var/lib/xo-proxy/data'
 
-[http.listen.0]
+# Each `http.listen.<name>` entry defines a specific listening configuration for
+# the HTTP server.
+#
+# `<name>` can be freely choosen.
+[http.listen.http]
 
 # Generate self-signed certificate if missing
 autoCert = true
