@@ -171,7 +171,7 @@ export default class Proxy {
 
     try {
       await call('register', {
-        registrationToken: await call('_getRegistrationToken'),
+        registrationToken: await this.getRegistrationToken(),
       })
       await call('configure', { channel: xoProxyConf.channel })
       await call('update', { upgrade: true })
