@@ -91,11 +91,7 @@ export default class Proxy {
   }
 
   getAllProxies() {
-    return this._db
-      .get()
-      .then(proxies =>
-        proxies.map(({ authenticationToken, ...proxy }) => proxy)
-      )
+    return this._db.get().then(proxies => proxies.map(omitToken))
   }
 
   @synchronizedWrite
