@@ -3026,3 +3026,47 @@ export const openTunnel = () =>
 export const subscribeTunnelState = createSubscription(() =>
   _call('xoa.supportTunnel.getState')
 )
+
+// Proxy --------------------------------------------------------------------
+
+export const deployProxyAppliance = (sr, props) =>
+  _call('proxy.deploy', { sr: resolveId(sr), ...props })::tap(
+    subscribeProxies.forceRefresh
+  )
+
+export const setProxyAppliance = (proxy, { vm, ...props }) =>
+  _call('proxy.update', {
+    id: resolveId(proxy),
+    vm: resolveId(vm),
+    ...props,
+  })::tap(subscribeProxies.forceRefresh)
+
+const _forgetProxyAppliance = proxy =>
+  _call('proxy.unregister', { id: resolveId(proxy) })
+export const forgetProxyAppliances = proxies =>
+  confirm({
+    title: _('forgetProxyApplianceTitle', { n: proxies.length }),
+    body: _('forgetProxyApplianceMessage', { n: proxies.length }),
+  }).then(() =>
+    Promise.all(map(proxies, _forgetProxyAppliance))::tap(
+      subscribeProxies.forceRefresh
+    )
+  )
+
+const _destroyProxyAppliance = proxy =>
+  _call('proxy.destroy', { id: resolveId(proxy) })
+export const destroyProxyAppliances = proxies =>
+  confirm({
+    title: _('destroyProxyApplianceTitle', { n: proxies.length }),
+    body: _('destroyProxyApplianceMessage', { n: proxies.length }),
+  }).then(() =>
+    Promise.all(map(proxies, _destroyProxyAppliance))::tap(
+      subscribeProxies.forceRefresh
+    )
+  )
+
+export const checkHealth = proxy =>
+  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(
+    () => true,
+    () => false
+  )

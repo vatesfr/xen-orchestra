@@ -53,6 +53,10 @@ const messages = {
     '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
   requiresAdminPermissions: 'Requires admin permissions',
   proxy: 'Proxy',
+  proxies: 'Proxies',
+  name: 'Name',
+  address: 'Address',
+  vm: 'VM',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2232,6 +2236,17 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+
+  // ----- proxies -----
+  forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
+  forgetProxyApplianceMessage:
+    'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
+  forgetProxies: 'Forget proxy(ies)',
+  destroyProxyApplianceTitle: 'Destroy prox{n, plural, one {y} other {ies}}',
+  destroyProxyApplianceMessage:
+    'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
+  destroyProxies: 'Destroy proxy(ies)',
+  deployProxy: 'Deploy proxy',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

@@ -33,6 +33,7 @@ import New from './new'
 import NewLegacyBackup from './backup/new-legacy-backup'
 import NewVm from './new-vm'
 import Pool from './pool'
+import Proxies from './proxies'
 import Self from './self'
 import Settings from './settings'
 import Sr from './sr'
@@ -104,6 +105,7 @@ const BODY_STYLE = {
   xosan: Xosan,
   import: Import,
   hub: Hub,
+  proxies: Proxies,
 })
 @connectStore(state => {
   return {
