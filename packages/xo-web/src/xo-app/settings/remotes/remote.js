@@ -43,7 +43,7 @@ export default decorate([
       editRemote: ({ reset }) => state => {
         const {
           remote,
-          domain = remote.domain,
+          domain = remote.domain || '',
           host = remote.host,
           name,
           options = remote.options || '',
