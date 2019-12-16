@@ -18,6 +18,7 @@ import readChunk from '../_readStreamChunk'
 import { generateToken } from '../utils'
 
 const extractProperties = _ => _.properties
+const omitToken = proxy => omit(proxy, 'authenticationToken')
 const synchronizedWrite = synchronized()
 
 export default class Proxy {
@@ -70,19 +71,23 @@ export default class Proxy {
   }
 
   async destroyProxy(id) {
-    const { vmUuid } = await this.getProxy(id)
+    const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       await this._app.getXapi(vmUuid).deleteVm(vmUuid)
     }
     return this.unregisterProxy(id)
   }
 
-  async getProxy(id) {
+  async _getProxy(id) {
     const proxy = await this._db.first(id)
     if (proxy === undefined) {
       throw noSuchObject(id, 'proxy')
     }
-    return omit(extractProperties(proxy), 'authenticationToken')
+    return extractProperties(proxy)
+  }
+
+  getProxy(id) {
+    return this._getProxy(id).then(omitToken)
   }
 
   getAllProxies() {
@@ -97,9 +102,12 @@ export default class Proxy {
   async updateProxy(id, { address, authenticationToken, name, vmUuid }) {
     await this._throwIfRegistered(address, vmUuid)
 
-    const proxy = await this.getProxy(id)
+    const proxy = await this._getProxy(id)
     patch(proxy, { address, authenticationToken, name, vmUuid })
-    return this._db.update(proxy).then(extractProperties)
+    return this._db
+      .update(proxy)
+      .then(extractProperties)
+      .then(omitToken)
   }
 
   @defer
@@ -183,7 +191,7 @@ export default class Proxy {
   }
 
   async callProxyMethod(id, method, params, expectStream = false) {
-    const proxy = await this.getProxy(id)
+    const proxy = await this._getProxy(id)
     if (proxy.address === undefined) {
       if (proxy.vmUuid === undefined) {
         throw new Error(
@@ -192,7 +200,7 @@ export default class Proxy {
       }
 
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
-      if ((proxy.address = vm.$guest_metrics.networks['0/ip']) === undefined) {
+      if ((proxy.address = vm.$guest_metrics?.networks['0/ip']) === undefined) {
         throw new Error(`cannot get the proxy VM IP (${proxy.vmUuid})`)
       }
     }
