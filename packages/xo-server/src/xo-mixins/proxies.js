@@ -132,7 +132,7 @@ export default class Proxy {
     ] = await Promise.all([
       generateToken(10),
       generateToken(),
-      app.getRegistrationToken(),
+      app.getCustomerRegistrationToken(),
     ])
     const date = new Date().toISOString()
     await Promise.all([
