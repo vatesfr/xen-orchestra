@@ -126,9 +126,14 @@ export default class Proxy {
     )
     $defer.onFailure.call(xapi, '_deleteVm', vm)
 
-    const [password, token] = await Promise.all([
+    const [
+      password,
+      token,
+      { registrationToken, registrationEmail: email },
+    ] = await Promise.all([
       generateToken(10),
       generateToken(),
+      app.getRegistrationToken(),
     ])
     const date = new Date().toISOString()
     await Promise.all([
@@ -136,7 +141,11 @@ export default class Proxy {
       vm.set_name_label(xoaName ?? `XOA Proxy ${date}`),
       vm.update_xenstore_data({
         'vm-data/system-account-xoa-password': password,
-        'vm-data/xo-proxy-authToken': token,
+        'vm-data/xo-proxy-authenticationToken': JSON.stringify(token),
+        'vm-data/xoa-updater-credentials': JSON.stringify({
+          email,
+          registrationToken,
+        }),
       }),
     ])
 

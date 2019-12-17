@@ -12,6 +12,7 @@ import { form } from 'modal'
 import { SelectSr } from 'select-objects'
 import { Text, XoSelect } from 'editable'
 import { Vm } from 'render-xo-item'
+import { withRouter } from 'react-router'
 import {
   checkProxyHealth,
   deployProxyAppliance,
@@ -65,6 +66,30 @@ const INDIVIDUAL_ACTIONS = [
     icon: 'diagnosis',
     label: _('checkProxyHealth'),
     level: 'primary',
+  },
+  {
+    handler: ({ id }, { router }) =>
+      router.push({
+        pathname: '/settings/remotes',
+        query: {
+          l: `proxy:${id}`,
+          nfs: `proxy:${id}`,
+          smb: `proxy:${id}`,
+        },
+      }),
+    icon: 'remote',
+    label: _('proxyLinkedRemotes'),
+  },
+  {
+    handler: ({ id }, { router }) =>
+      router.push({
+        pathname: '/backup/overview',
+        query: {
+          s: `proxy:${id}`,
+        },
+      }),
+    icon: 'backup',
+    label: _('proxyLinkedBackups'),
   },
 ]
 
@@ -123,10 +148,11 @@ const COLUMNS = [
 
 export default decorate([
   adminOnly,
+  withRouter,
   addSubscriptions({
     proxies: subscribeProxies,
   }),
-  ({ proxies }) => (
+  ({ proxies, router }) => (
     <Page header={HEADER} title='proxies' formatTitle>
       <div>
         <div className='mt-1 mb-1'>
@@ -144,6 +170,7 @@ export default decorate([
           collection={proxies}
           columns={COLUMNS}
           component={SortedTable}
+          data-router={router}
           emptyMessage={
             <span className='text-muted'>
               <Icon icon='alarm' />

@@ -2251,6 +2251,8 @@ const messages = {
   checkProxyHealth: 'Test your proxy',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyLinkedRemotes: 'Click to see linked remotes',
+  proxyLinkedBackups: 'Click to see linked backups',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
