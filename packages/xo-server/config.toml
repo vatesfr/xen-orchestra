@@ -126,13 +126,4 @@ callTimeout = '1 min'
 
 channel = 'proxy'
 
-namespace = 'proxyAppliance'
-
-# The duration for which we can wait for the VM networks to be defined
-vmNetworksTimeout = '1 min'
-
-# The port which the updater listen to the web socket requests
-updaterWsPort = 9001
-
-# The duration which we can wait for the response of an updater API call
-updaterCallTimeout = '1 min'
+namespace = 'xoProxyAppliance'
