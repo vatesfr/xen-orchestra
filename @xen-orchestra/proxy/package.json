@@ -85,7 +85,7 @@
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "yarn run clean && index-modules --cjs-lazy src/main/mixins",
+    "prebuild": "yarn run clean && index-modules --cjs-lazy src/app/mixins",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
     "start": "./dist/server.js"

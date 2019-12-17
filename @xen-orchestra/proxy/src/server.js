@@ -118,7 +118,7 @@ ${name} v${version}
 
   httpServer = require('stoppable')(httpServer)
 
-  const App = require('./main').default
+  const App = require('./app').default
   const app = new App({
     appName: APP_NAME,
     config,
