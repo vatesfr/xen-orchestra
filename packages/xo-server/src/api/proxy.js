@@ -93,20 +93,12 @@ update.params = {
   },
 }
 
-export function deploy({ sr, ...props }) {
-  return this.deployProxy(sr._xapiId, props)
+export function deploy({ sr }) {
+  return this.deployProxy(sr._xapiId)
 }
 deploy.params = {
-  proxyName: {
-    type: 'string',
-    optional: true,
-  },
   sr: {
     type: 'string',
-  },
-  xoaName: {
-    type: 'string',
-    optional: true,
   },
 }
 deploy.resolve = {

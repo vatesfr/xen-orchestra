@@ -3030,8 +3030,8 @@ export const subscribeTunnelState = createSubscription(() =>
 
 // Proxy --------------------------------------------------------------------
 
-export const deployProxyAppliance = (sr, props) =>
-  _call('proxy.deploy', { sr: resolveId(sr), ...props })::tap(
+export const deployProxyAppliance = sr =>
+  _call('proxy.deploy', { sr: resolveId(sr) })::tap(
     subscribeProxies.forceRefresh
   )
 

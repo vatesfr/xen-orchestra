@@ -124,7 +124,7 @@ maxUncoalescedVdis = 1
 ["xo-proxy"]
 callTimeout = '1 min'
 
-channel = 'proxy'
+channel = 'xo-proxy-appliance'
 
 namespace = 'xoProxyAppliance'
 
