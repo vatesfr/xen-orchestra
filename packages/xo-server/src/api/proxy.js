@@ -1,6 +1,6 @@
 export function register({ vm, ...props }) {
   return this.registerProxy({
-    vmUuid: vm != null ? this.getObject(vm).uuid : vm,
+    vmUuid: vm !== undefined ? this.getObject(vm).uuid : vm,
     ...props,
   })
 }
@@ -114,7 +114,7 @@ deploy.resolve = {
 }
 
 export function checkHealth({ id }) {
-  return this.callProxyMethod(id, 'noop')
+  return this.callProxyMethod(id, 'system.getServerVersion')
 }
 checkHealth.permission = 'admin'
 checkHealth.params = {
