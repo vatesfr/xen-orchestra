@@ -6,6 +6,7 @@ import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
+import { NULL_REF } from 'xen-api'
 import { omit } from 'lodash'
 import { timeout } from 'promise-toolbox'
 
@@ -114,7 +115,7 @@ export default class Proxy {
       [namespace]: { xva },
     } = await app.getCatalog()
     const xapi = app.getXapi(srId)
-    const vm = await xapi.importVm(
+    let vm = await xapi.importVm(
       await app.requestResource({
         id: xva.id,
         namespace,
@@ -149,6 +150,19 @@ export default class Proxy {
     ])
 
     await xapi.startVm(vm.$id)
+
+    const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
+    vm = await timeout.call(
+      xapi._waitObjectState(vm.$id, _ => _.guest_metrics !== NULL_REF),
+      vmNetworksTimeout
+    )
+    await timeout.call(
+      xapi._waitObjectState(
+        vm.guest_metrics,
+        guest_metrics => guest_metrics.networks['0/ip'] !== undefined
+      ),
+      vmNetworksTimeout
+    )
 
     await this.registerProxy({
       authenticationToken: token,

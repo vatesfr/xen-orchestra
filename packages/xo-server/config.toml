@@ -127,3 +127,6 @@ callTimeout = '1 min'
 channel = 'proxy'
 
 namespace = 'xoProxyAppliance'
+
+# The duration for which we can wait for the VM networks to be defined
+vmNetworksTimeout = '1 min'
