@@ -236,7 +236,7 @@ export default class Api {
     return once => forOwn(removes, remove => remove())
   }
 
-  _call(method, params) {
+  _call(method, params = {}) {
     debug(`call: ${method}(${JSON.stringify(params)})`)
     const fn = this._methods[method]
     if (fn === undefined) {
