@@ -113,7 +113,7 @@ export default class Proxy {
     const namespace = xoProxyConf.namespace
     const {
       [namespace]: { xva },
-    } = await app.getCatalog()
+    } = await app.getResourceCatalog()
     const xapi = app.getXapi(srId)
     let vm = await xapi.importVm(
       await app.requestResource({
