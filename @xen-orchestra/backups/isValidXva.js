@@ -5,7 +5,7 @@ const isGzipFile = async fd => {
   // https://tools.ietf.org/html/rfc1952.html#page-5
   const magicNumber = Buffer.allocUnsafe(2)
   assert.strictEqual(
-    await fs.read(fd, magicNumber, 0, magicNumber.length, 0),
+    (await fs.read(fd, magicNumber, 0, magicNumber.length, 0)).bytesRead,
     magicNumber.length
   )
   return magicNumber[0] === 31 && magicNumber[1] === 139
@@ -31,7 +31,7 @@ const isValidTar = async (size, fd) => {
 
   const buf = Buffer.allocUnsafe(1024)
   assert.strictEqual(
-    await fs.read(fd, buf, 0, buf.length, size - buf.length),
+    (await fs.read(fd, buf, 0, buf.length, size - buf.length)).bytesRead,
     buf.length
   )
   return buf.every(_ => _ === 0)

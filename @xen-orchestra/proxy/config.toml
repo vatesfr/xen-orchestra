@@ -9,6 +9,22 @@ authenticationToken = ''
 
 datadir = '/var/lib/xo-proxy/data'
 
+[backups]
+snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
+
+[backups.defaultSettings]
+bypassVdiChainsCheck = false
+concurrency = 2
+deleteFirst = false
+exportRetention = 0
+fullInterval = 0
+offlineBackup = false
+offlineSnapshot = false
+reportWhen = 'failure'
+snapshotRetention = 0
+timeout = 0
+vmTimeout = 0
+
 # Each `http.listen.<name>` entry defines a specific listening configuration for
 # the HTTP server.
 #
@@ -30,3 +46,7 @@ timeout = 600e3
 
 # see https:#github.com/vatesfr/xen-orchestra/issues/3419
 # useSudo = false
+
+[xapiOptions]
+maxUncoalescedVdis = 1
+watchEvents = ['task', 'VM']

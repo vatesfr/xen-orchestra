@@ -43,6 +43,7 @@
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/mixin": "^0.0.0",
     "@xen-orchestra/template": "^0.1.0",
+    "@xen-orchestra/xapi": "^0.0.0",
     "ajv": "^6.1.1",
     "app-conf": "^0.7.0",
     "archiver": "^3.0.0",
