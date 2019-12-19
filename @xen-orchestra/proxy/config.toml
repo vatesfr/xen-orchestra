@@ -13,7 +13,7 @@ datadir = '/var/lib/xo-proxy/data'
 # the HTTP server.
 #
 # `<name>` can be freely choosen.
-[http.listen.http]
+[http.listen.https]
 
 # Generate self-signed certificate if missing
 autoCert = true
