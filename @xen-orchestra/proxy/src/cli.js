@@ -15,13 +15,13 @@ async function main(args) {
     return console.log(
       '%s',
       `
-Usage: xo-proxy-cli <XO proxy URL> <authentication token> <method> [<param>=<value>]...
+Usage: xo-proxy-cli <XO proxy host> <authentication token> <method> [<param>=<value>]...
 `
     )
   }
 
   const [
-    url = required('url'),
+    host = required('host'),
     authenticationToken = required('authentication token'),
     method = required('method'),
   ] = args
@@ -38,13 +38,15 @@ Usage: xo-proxy-cli <XO proxy URL> <authentication token> <method> [<param>=<val
 
   const lines = (
     await hrp
-      .post(url, {
+      .post({
         body: format.request(0, method, params),
         headers: {
           'content-type': 'application/json',
           cookie: `authenticationToken=${authenticationToken}`,
         },
+        host,
         pathname: '/api/v1',
+        protocol: 'https:',
         rejectUnauthorized: false,
       })
       .readAll('utf8')
