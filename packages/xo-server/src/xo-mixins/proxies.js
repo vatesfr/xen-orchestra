@@ -151,6 +151,12 @@ export default class Proxy {
 
     await xapi.startVm(vm.$id)
 
+    await vm.update_xenstore_data({
+      'vm-data/system-account-xoa-password': null,
+      'vm-data/xo-proxy-authenticationToken': null,
+      'vm-data/xoa-updater-credentials': null,
+    })
+
     // ensure appliance has an IP address
     const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
     vm = await timeout.call(
@@ -165,12 +171,16 @@ export default class Proxy {
       vmNetworksTimeout
     )
 
-    await vm.update_xenstore_data({
-      'vm-data/system-account-xoa-password': null,
-      'vm-data/xo-proxy-authenticationToken': null,
-      'vm-data/xoa-updater-credentials': null,
-      'vm-data/xoa-updater-channel': null,
-    })
+    // wait for the appliance to be upgraded
+    const xoaUpgradeTimeout = parseDuration(xoProxyConf.xoaUpgradeTimeout)
+    await timeout.call(
+      xapi._waitObjectState(
+        vm.$id,
+        ({ xenstore_data }) =>
+          xenstore_data['vm-data/xoa-updater-channel'] === undefined
+      ),
+      xoaUpgradeTimeout
+    )
 
     await this.registerProxy({
       authenticationToken: token,
@@ -194,21 +204,22 @@ export default class Proxy {
       }
     }
 
-    const response = await timeout.call(
-      this._app.httpRequest(proxy.address, {
-        body: format.request(0, method, params),
-        headers: {
-          'Content-Type': 'application/json',
-          Cookie: cookie.serialize(
-            'authenticationToken',
-            proxy.authenticationToken
-          ),
-        },
-        method: 'POST',
-        pathname: '/api/v1',
-      }),
-      parseDuration(this._xoProxyConf.callTimeout)
-    )
+    const response = await this._app.httpRequest({
+      body: format.request(0, method, params),
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookie.serialize(
+          'authenticationToken',
+          proxy.authenticationToken
+        ),
+      },
+      host: proxy.address,
+      method: 'POST',
+      pathname: '/api/v1',
+      protocol: 'https:',
+      rejectUnauthorized: false,
+      timeout: parseDuration(this._xoProxyConf.callTimeout),
+    })
 
     const authenticationToken = parseSetCookie(response, {
       map: true,

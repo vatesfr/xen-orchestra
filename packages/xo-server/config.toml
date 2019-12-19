@@ -130,3 +130,6 @@ namespace = 'xoProxyAppliance'
 
 # The duration for which we can wait for the VM networks to be defined
 vmNetworksTimeout = '1 min'
+
+# The duration for which we can wait for the XOA to be upgraded
+xoaUpgradeTimeout = '5 min'
