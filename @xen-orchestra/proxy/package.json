@@ -24,7 +24,8 @@
   },
   "files": [
     "config.toml",
-    "dist/"
+    "dist/",
+    "scripts/"
   ],
   "engines": {
     "node": ">=8.10"
@@ -88,9 +89,11 @@
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "postinstall": "./scripts/systemd-service-installer",
     "prebuild": "yarn run clean && index-modules --cjs-lazy src/app/mixins",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
+    "preuninstall": "./scripts/systemd-service-installer",
     "start": "./dist/server.js"
   }
 }
