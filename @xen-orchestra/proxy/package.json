@@ -27,7 +27,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=8"
+    "node": ">=8.10"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
