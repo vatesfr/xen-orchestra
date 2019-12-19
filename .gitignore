@@ -10,6 +10,7 @@
 /packages/*/node_modules/
 
 /@xen-orchestra/proxy/src/app/mixins/index.js
+/@xen-orchestra/proxy/xo-proxy.service
 
 /packages/vhd-cli/src/commands/index.js
 
