@@ -23,6 +23,7 @@
     "xo-proxy-cli": "dist/cli.js"
   },
   "files": [
+    "config.toml",
     "dist/"
   ],
   "engines": {
