@@ -45,6 +45,7 @@ Usage: xo-proxy-cli <XO proxy URL> <authentication token> <method> [<param>=<val
           cookie: `authenticationToken=${authenticationToken}`,
         },
         pathname: '/api/v1',
+        rejectUnauthorized: false,
       })
       .readAll('utf8')
   )
