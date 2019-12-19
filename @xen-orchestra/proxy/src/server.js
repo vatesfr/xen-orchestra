@@ -56,7 +56,7 @@ ${name} v${version}
         : undefined,
   })
 
-  const { readFileSync, writeFileSync } = require('fs')
+  const { readFileSync, outputFileSync } = require('fs-extra')
 
   require('lodash/forOwn')(
     config.http.listen,
@@ -70,10 +70,9 @@ ${name} v${version}
             throw error
           }
 
-          // TODO: create containing dirs if necessary
           const pems = require('selfsigned').generate()
-          writeFileSync(cert, pems.cert, { mode: 0o400 })
-          writeFileSync(key, pems.private, { mode: 0o400 })
+          outputFileSync(cert, pems.cert, { mode: 0o400 })
+          outputFileSync(key, pems.private, { mode: 0o400 })
           info('new certificate generated', { cert, key })
           opts.cert = pems.cert
           opts.key = pems.private
