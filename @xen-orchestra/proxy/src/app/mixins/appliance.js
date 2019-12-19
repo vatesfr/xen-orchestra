@@ -1,5 +1,7 @@
+import parsePairs from 'parse-pairs'
 import { createLogger } from '@xen-orchestra/log'
 import { execFile } from 'child_process'
+import { readFile } from 'fs-extra'
 
 const { warn } = createLogger('xo:proxy:api')
 
@@ -7,6 +9,15 @@ function closeSupportTunnel() {
   const process = this._tunnelProcess
   if (process !== undefined) {
     process.kill()
+  }
+}
+
+async function getApplianceInfo() {
+  const pairs = parsePairs(await readFile('/etc/os-release', 'utf8'))
+  return {
+    build: pairs.XOA_BUILD,
+    os: pairs.ID,
+    osVersion: pairs.VERSION_ID,
   }
 }
 
@@ -53,6 +64,13 @@ export default class Appliance {
 
     app.api.addMethods({
       appliance: {
+        getInfo: [
+          getApplianceInfo,
+          {
+            description:
+              'returns various information about the appliance itself',
+          },
+        ],
         supportTunnel: {
           close: [
             closeSupportTunnel.bind(this),

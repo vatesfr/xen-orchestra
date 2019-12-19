@@ -60,6 +60,7 @@
     "lodash": "^4.17.10",
     "messagepack": "^1.1.7",
     "node-zone": "^0.4.0",
+    "parse-pairs": "^1.0.0",
     "promise-toolbox": "^0.13.0",
     "proxy-agent": "^3.0.3",
     "readable-stream": "^3.0.6",
