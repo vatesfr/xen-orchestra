@@ -2249,6 +2249,7 @@ const messages = {
   deployProxy: 'Deploy proxy',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
+  upgradeProxyAppliance: 'upgrade the appliance',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyLinkedRemotes: 'Click to see linked remotes',

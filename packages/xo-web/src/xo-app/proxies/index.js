@@ -20,6 +20,7 @@ import {
   forgetProxyAppliances,
   setProxyAppliance,
   subscribeProxies,
+  upgradeProxyAppliance,
 } from 'xo'
 
 import Page from '../page'
@@ -65,6 +66,13 @@ const INDIVIDUAL_ACTIONS = [
     handler: checkProxyHealth,
     icon: 'diagnosis',
     label: _('checkProxyHealth'),
+    level: 'primary',
+  },
+  {
+    disabled: ({ vmUuid }) => vmUuid === undefined,
+    handler: upgradeProxyAppliance,
+    icon: 'vm',
+    label: _('upgradeProxyAppliance'),
     level: 'primary',
   },
   {

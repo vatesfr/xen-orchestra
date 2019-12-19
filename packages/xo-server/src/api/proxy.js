@@ -105,6 +105,15 @@ deploy.resolve = {
   sr: ['sr', 'SR', 'administrate'],
 }
 
+export function upgradeAppliance({ id }) {
+  return this.upgradeProxyAppliance(id)
+}
+upgradeAppliance.params = {
+  id: {
+    type: 'string',
+  },
+}
+
 export function checkHealth({ id }) {
   return this.callProxyMethod(id, 'system.getServerVersion')
 }

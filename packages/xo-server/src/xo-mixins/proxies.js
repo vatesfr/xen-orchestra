@@ -105,6 +105,16 @@ export default class Proxy {
       .then(omitToken)
   }
 
+  async upgradeProxyAppliance(id) {
+    const { vmUuid } = await this._getProxy(id)
+    const xapi = this._app.getXapi(vmUuid)
+    await xapi.getObject(vmUuid).update_xenstore_data({
+      'vm-data/xoa-updater-channel': JSON.stringify(this._xoProxyConf.channel),
+    })
+
+    return xapi.rebootVm(vmUuid, { hard: true })
+  }
+
   @defer
   async deployProxy($defer, srId) {
     const app = this._app
