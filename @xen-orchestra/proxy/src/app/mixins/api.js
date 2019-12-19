@@ -55,6 +55,8 @@ export default class Api {
       try {
         result = await zone.run(() => this._call(body.method, body.params))
       } catch (error) {
+        const { method, params } = body
+        warn('call error', { method, params, error })
         ctx.body = format.error(body.id, error)
         return
       }
