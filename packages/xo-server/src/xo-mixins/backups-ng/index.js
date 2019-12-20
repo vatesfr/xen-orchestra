@@ -672,7 +672,6 @@ export default class BackupNg {
             xapi,
           }
         })
-
         const remotes = await Promise.all(
           remoteIds.map(async id => ({
             id,
