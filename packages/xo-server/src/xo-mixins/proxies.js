@@ -40,7 +40,6 @@ export default class Proxy {
     )
   }
 
-  // TODO: check if these properties are modifies in case of an edition
   async _throwIfRegistered(address, vmUuid) {
     if (address != null && (await this._db.exists({ address }))) {
       throw new Error(
@@ -96,6 +95,7 @@ export default class Proxy {
 
   @synchronizedWrite
   async updateProxy(id, { address, authenticationToken, name, vmUuid }) {
+    // TODO: don't throw if these properties aren't modified
     await this._throwIfRegistered(address, vmUuid)
 
     const proxy = await this._getProxy(id)
