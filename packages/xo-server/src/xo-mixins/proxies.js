@@ -61,11 +61,11 @@ export default class Proxy {
   }
 
   async getProxy(id) {
-    const proxy = await this._db.first(id).then(extractProperties)
+    const proxy = await this._db.first(id)
     if (proxy === undefined) {
       throw noSuchObject(id, 'proxy')
     }
-    return proxy
+    return extractProperties(proxy)
   }
 
   getAllProxies() {
