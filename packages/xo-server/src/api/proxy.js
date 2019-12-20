@@ -1,6 +1,6 @@
 export function register({ vm, ...props }) {
   return this.registerProxy({
-    vmUuid: vm !== undefined ? this.getObject(vm).uuid : vm,
+    vmUuid: vm?.uuid,
     ...props,
   })
 }
@@ -22,6 +22,9 @@ register.params = {
   authenticationToken: {
     type: 'string',
   },
+}
+register.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
 }
 
 export async function unregister({ id }) {
@@ -65,7 +68,7 @@ getAll.permission = 'admin'
 
 export function update({ id, vm, ...props }) {
   return this.updateProxy(id, {
-    vmUuid: vm != null ? this.getObject(vm).uuid : vm,
+    vmUuid: vm?.uuid,
     ...props,
   })
 }
@@ -91,6 +94,9 @@ update.params = {
     type: 'string',
     optional: true,
   },
+}
+update.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
 }
 
 export function deploy({ sr }) {
