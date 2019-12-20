@@ -146,6 +146,10 @@ export default class {
     return remote.properties
   }
 
+  getRemoteWithCredentials(id) {
+    return this._getRemote(id)
+  }
+
   getRemote(id) {
     return this._getRemote(id).then(obfuscateRemote)
   }

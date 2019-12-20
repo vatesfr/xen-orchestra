@@ -618,17 +618,19 @@ export default class BackupNg {
 
           const recordToXapi = {}
           const servers = new Set()
-          ;[...vmIds, ...srIds].forEach(id => {
-            const serverId = app.getXenServerIdByObject(id)
-            recordToXapi[app.getObject(id).uuid] = serverId
+          const handleRecord = uuid => {
+            const serverId = app.getXenServerIdByObject(uuid)
+            recordToXapi[uuid] = serverId
             servers.add(serverId)
-          })
+          }
+          vmIds.forEach(handleRecord)
+          srIds.forEach(handleRecord)
 
           const remotes = {}
           const xapis = {}
           await waitAll([
             asyncMap(remoteIds, async id => {
-              remotes[id] = await app._getRemote(id)
+              remotes[id] = await app.getRemoteWithCredentials(id)
             }),
             asyncMap([...servers], async id => {
               const {
@@ -648,24 +650,20 @@ export default class BackupNg {
             }),
           ])
 
-          return this.callProxyMethod(job.proxy, 'job.run', {
+          return this.callProxyMethod(job.proxy, 'backup.run', {
             job: {
               ...job,
+
+              // Make sure we are passing only the VM to run which can be
+              // different than the VMs in the job itself.
               vms: { __or: vmIds },
             },
+            recordToXapi,
             remotes,
             schedule,
             xapis,
-            recordToXapi,
           })
         }
-
-        const remotes = await Promise.all(
-          remoteIds.map(async id => ({
-            id,
-            handler: await app.getRemoteHandler(id),
-          }))
-        )
 
         const srs = srIds.map(id => {
           const xapi = app.getXapi(id)
@@ -674,6 +672,13 @@ export default class BackupNg {
             xapi,
           }
         })
+
+        const remotes = await Promise.all(
+          remoteIds.map(async id => ({
+            id,
+            handler: await app.getRemoteHandler(id),
+          }))
+        )
 
         const settings = merge(job.settings, data?.settings)
 
