@@ -153,6 +153,14 @@
     @extend .fa;
     @extend .fa-play;
   }
+  &-forget {
+    @extend .fa;
+    @extend .fa-ban;
+  }
+  &-destroy {
+    @extend .fa;
+    @extend .fa-trash;
+  }
   &-force-restart {
     @extend .fa;
     @extend .fa-forward;

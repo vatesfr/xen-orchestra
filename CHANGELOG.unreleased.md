@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [SDN Controller] Allow private network creation on bond and VLAN (PR [#4682](https://github.com/vatesfr/xen-orchestra/pull/4682))
+- [Proxy] Ability to backup VMs via registered proxy [#4254](https://github.com/vatesfr/xen-orchestra/issues/4254) (PR [#4495](https://github.com/vatesfr/xen-orchestra/pull/4495))
 
 ### Bug fixes
 

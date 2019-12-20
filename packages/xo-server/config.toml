@@ -123,3 +123,13 @@ maxUncoalescedVdis = 1
 
 ["xo-proxy"]
 callTimeout = '1 min'
+
+channel = 'xo-proxy-appliance'
+
+namespace = 'xoProxyAppliance'
+
+# The duration for which we can wait for the VM networks to be defined
+vmNetworksTimeout = '1 min'
+
+# The duration for which we can wait for the XOA to be upgraded
+xoaUpgradeTimeout = '5 min'
