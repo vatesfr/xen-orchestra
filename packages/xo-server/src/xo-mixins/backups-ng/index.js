@@ -650,7 +650,7 @@ export default class BackupNg {
             }),
           ])
 
-          return this.callProxyMethod(job.proxy, 'backup.run', {
+          return app.callProxyMethod(job.proxy, 'backup.run', {
             job: {
               ...job,
 
