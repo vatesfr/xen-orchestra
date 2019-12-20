@@ -40,6 +40,7 @@ export default class Proxy {
     )
   }
 
+  // TODO: check if these properties are modifies in case of an edition
   async _throwIfRegistered(address, vmUuid) {
     if (address != null && (await this._db.exists({ address }))) {
       throw new Error(
@@ -112,7 +113,7 @@ export default class Proxy {
       'vm-data/xoa-updater-channel': JSON.stringify(this._xoProxyConf.channel),
     })
 
-    return xapi.rebootVm(vmUuid, { hard: true })
+    return xapi.rebootVm(vmUuid)
   }
 
   @defer
