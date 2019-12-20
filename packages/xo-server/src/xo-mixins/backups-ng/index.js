@@ -609,19 +609,71 @@ export default class BackupNg {
           }
         }
         const jobId = job.id
-        const srs = unboxIdsFromPattern(job.srs).map(id => {
+
+        const remoteIds = unboxIdsFromPattern(job.remotes)
+        const srIds = unboxIdsFromPattern(job.srs)
+
+        if (job.proxy !== undefined) {
+          const vmIds = Object.keys(vms)
+
+          const recordToXapi = {}
+          const servers = new Set()
+          ;[...vmIds, ...srIds].forEach(id => {
+            const serverId = app.getXenServerIdByObject(id)
+            recordToXapi[app.getObject(id).uuid] = serverId
+            servers.add(serverId)
+          })
+
+          const remotes = {}
+          const xapis = {}
+          await waitAll([
+            asyncMap(remoteIds, async id => {
+              remotes[id] = await app._getRemote(id)
+            }),
+            asyncMap([...servers], async id => {
+              const {
+                allowUnauthorized,
+                host,
+                password,
+                username,
+              } = await app.getXenServer(id)
+              xapis[id] = {
+                allowUnauthorized,
+                credentials: {
+                  username,
+                  password,
+                },
+                url: host,
+              }
+            }),
+          ])
+
+          return this.callProxyMethod(job.proxy, 'job.run', {
+            job: {
+              ...job,
+              vms: { __or: vmIds },
+            },
+            remotes,
+            schedule,
+            xapis,
+            recordToXapi,
+          })
+        }
+
+        const remotes = await Promise.all(
+          remoteIds.map(async id => ({
+            id,
+            handler: await app.getRemoteHandler(id),
+          }))
+        )
+
+        const srs = srIds.map(id => {
           const xapi = app.getXapi(id)
           return {
             __proto__: xapi.getObject(id),
             xapi,
           }
         })
-        const remotes = await Promise.all(
-          unboxIdsFromPattern(job.remotes).map(async id => ({
-            id,
-            handler: await app.getRemoteHandler(id),
-          }))
-        )
 
         const settings = merge(job.settings, data?.settings)
 
