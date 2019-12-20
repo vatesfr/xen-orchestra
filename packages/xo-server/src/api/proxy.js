@@ -102,6 +102,8 @@ update.resolve = {
 export function deploy({ sr }) {
   return this.deployProxy(sr._xapiId)
 }
+
+deploy.permission = 'admin'
 deploy.params = {
   sr: {
     type: 'string',
@@ -114,6 +116,8 @@ deploy.resolve = {
 export function upgradeAppliance({ id }) {
   return this.upgradeProxyAppliance(id)
 }
+
+upgradeAppliance.permission = 'admin'
 upgradeAppliance.params = {
   id: {
     type: 'string',
