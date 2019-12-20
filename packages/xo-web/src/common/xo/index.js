@@ -3035,7 +3035,7 @@ export const deployProxyAppliance = sr =>
     subscribeProxies.forceRefresh
   )
 
-export const setProxyAppliance = (proxy, { vm, ...props }) =>
+export const editProxyAppliance = (proxy, { vm, ...props }) =>
   _call('proxy.update', {
     id: resolveId(proxy),
     vm: resolveId(vm),

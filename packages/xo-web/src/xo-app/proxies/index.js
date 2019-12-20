@@ -18,7 +18,7 @@ import {
   deployProxyAppliance,
   destroyProxyAppliances,
   forgetProxyAppliances,
-  setProxyAppliance,
+  editProxyAppliance,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -38,7 +38,7 @@ const _deployProxy = () =>
   }).then(deployProxyAppliance)
 
 const _editProxy = (value, { name, proxy }) =>
-  setProxyAppliance(proxy, { [name]: value })
+  editProxyAppliance(proxy, { [name]: value })
 
 const HEADER = (
   <h2>
@@ -46,7 +46,7 @@ const HEADER = (
   </h2>
 )
 
-const Actions = [
+const ACTIONS = [
   {
     handler: forgetProxyAppliances,
     icon: 'forget',
@@ -174,7 +174,7 @@ export default decorate([
           </ActionButton>
         </div>
         <NoObjects
-          actions={Actions}
+          actions={ACTIONS}
           collection={proxies}
           columns={COLUMNS}
           component={SortedTable}

@@ -137,7 +137,7 @@ export default class Proxy {
 
     const [
       password,
-      token,
+      proxyAuthenticationToken,
       { registrationToken, registrationEmail: email },
     ] = await Promise.all([
       generateToken(10),
@@ -150,7 +150,9 @@ export default class Proxy {
       vm.set_name_label(`XOA Proxy ${date}`),
       vm.update_xenstore_data({
         'vm-data/system-account-xoa-password': password,
-        'vm-data/xo-proxy-authenticationToken': JSON.stringify(token),
+        'vm-data/xo-proxy-authenticationToken': JSON.stringify(
+          proxyAuthenticationToken
+        ),
         'vm-data/xoa-updater-credentials': JSON.stringify({
           email,
           registrationToken,
@@ -192,11 +194,17 @@ export default class Proxy {
       xoaUpgradeTimeout
     )
 
-    await this.registerProxy({
-      authenticationToken: token,
+    const { id } = await this.registerProxy({
+      authenticationToken: proxyAuthenticationToken,
       name: `Proxy ${date}`,
       vmUuid: vm.uuid,
     })
+
+    await this.checkProxyHealth(id)
+  }
+
+  checkProxyHealth(id) {
+    return this.callProxyMethod(id, 'system.getServerVersion')
   }
 
   async callProxyMethod(id, method, params, expectStream = false) {

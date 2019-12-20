@@ -115,7 +115,7 @@ upgradeAppliance.params = {
 }
 
 export function checkHealth({ id }) {
-  return this.callProxyMethod(id, 'system.getServerVersion')
+  return this.checkProxyHealth(id)
 }
 checkHealth.permission = 'admin'
 checkHealth.params = {
