@@ -48,7 +48,7 @@ export default decorate([
       editRemote: ({ reset }) => state => {
         const {
           remote,
-          domain = remote.domain,
+          domain = remote.domain || '',
           host = remote.host,
           name,
           options = remote.options || '',
@@ -259,7 +259,7 @@ export default decorate([
                   className='form-control'
                   name='host'
                   onChange={effects.linkState}
-                  pattern='^([^\\/]+)\\([^\\/]+)$'
+                  pattern='^[^\\/]+\\[^\\/]+$'
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderAddressShare
                   )}
@@ -272,7 +272,7 @@ export default decorate([
                   className='form-control'
                   name='path'
                   onChange={effects.linkState}
-                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
+                  pattern='^([^\\/]+(\\[^\\/]+)*)?$'
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderRemotePath
                   )}

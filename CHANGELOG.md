@@ -8,9 +8,28 @@
 
 ### Released packages
 
-## **5.41.0** (2019-11-29)
+
+## **5.42.0** (2019-12-20)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Highlights
+
+- [SDN Controller] Allow private network creation on bond and VLAN (PR [#4682](https://github.com/vatesfr/xen-orchestra/pull/4682))
+- [Hub/recipes] [Ability to create a kubernetes cluster](https://xen-orchestra.com/blog/devblog-5-kubernetes-clutser-on-xo/) (PR [#4695](https://github.com/vatesfr/xen-orchestra/pull/4695))
+
+### Enhancements
+
+- [XOA] Display XOA build number [#4693](https://github.com/vatesfr/xen-orchestra/issues/4693) (PR [#4694](https://github.com/vatesfr/xen-orchestra/pull/4694))
+
+### Released packages
+
+- xo-server v5.54.0
+- xo-web v5.54.0
+
+## **5.41.0** (2019-11-29)
+
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Highlights
 
@@ -43,8 +62,6 @@
 - xo-web v5.53.3
 
 ## **5.40.2** (2019-11-22)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 

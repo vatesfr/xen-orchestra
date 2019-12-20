@@ -548,9 +548,9 @@ const messages = {
   remoteAuth: 'Auth',
   remoteDeleteTip: 'Delete',
   remoteDeleteSelected: 'Delete selected remotes',
-  remoteMyNamePlaceHolder: 'Name *',
+  remoteMyNamePlaceHolder: 'Name',
   remoteLocalPlaceHolderPath: '/path/to/backup',
-  remoteNfsPlaceHolderHost: 'Host *',
+  remoteNfsPlaceHolderHost: 'Host',
   remoteNfsPlaceHolderPort: 'Port',
   remoteNfsPlaceHolderPath: 'path/to/backup',
   remoteNfsPlaceHolderOptions: 'Custom mount options. Default: vers=3',
@@ -558,7 +558,7 @@ const messages = {
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
   remoteSmbPlaceHolderDomain: 'Domain',
-  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share> *',
+  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
@@ -1888,6 +1888,7 @@ const messages = {
   changeChannel: 'Change channel',
   updaterCommunity:
     'The Web updater, the release channels and the proxy settings are available in XOA.',
+  xoaBuild: 'XOA build:',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
@@ -2182,6 +2183,7 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
+  hubCommunity: 'Hub is available in XOA',
   noDefaultSr: 'The selected pool has no default SR',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
@@ -2195,6 +2197,15 @@ const messages = {
   hubImportNotificationTitle: 'XVA import',
   hubTemplateDescriptionNotAvailable:
     'No description available for this template',
+  recipeCreatedSuccessfully: 'Recipe created successfully',
+  recipeViewCreatedVms: 'View created VMs',
+  templatesLabel: 'Templates',
+  recipesLabel: 'Recipes',
+  network: 'Network',
+  recipeMasterNameLabel: 'Master name',
+  recipeNumberOfNodesLabel: 'Number of nodes',
+  recipeSshKeyLabel: 'SSH key',
+  recipeNetworkCidr: 'Network CIDR',
 
   // Licenses
   xosanUnregisteredDisclaimer:

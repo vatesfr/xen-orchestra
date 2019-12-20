@@ -66,3 +66,8 @@ export const markHubResourceAsInstalled = createAction(
   'MARK_HUB_RESOURCE_AS_INSTALLED',
   id => id
 )
+export const markRecipeAsCreating = createAction(
+  'MARK_RECIPE_AS_CREATING',
+  id => id
+)
+export const markRecipeAsDone = createAction('MARK_RECIPE_AS_DONE', id => id)

@@ -1,63 +1,55 @@
 import _ from 'intl'
-import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import { addSubscriptions, adminOnly } from 'utils'
+
 import { Container, Col, Row } from 'grid'
-import { injectState, provideState } from 'reaclette'
-import { isEmpty, map, omit, orderBy } from 'lodash'
-import { subscribeHubResourceCatalog } from 'xo'
+import { getXoaPlan, routes, TryXoa } from 'utils'
+import { NavLink, NavTabs } from 'nav'
 
 import Page from '../page'
-import Resource from './resource'
+import Recipes from './recipes'
+import Templates from './templates'
 
 // ==================================================================
 
-const HEADER = (
-  <h2>
-    <Icon icon='menu-hub' /> {_('hubPage')}
-  </h2>
+const Header = (
+  <Container>
+    <Row>
+      <Col mediumSize={3}>
+        <h2>
+          <Icon icon='menu-hub' /> {_('hubPage')}
+        </h2>
+      </Col>
+      <Col mediumSize={9}>
+        <NavTabs className='pull-right'>
+          <NavLink to='/hub/templates'>
+            <Icon icon='hub-template' /> {_('templatesLabel')}
+          </NavLink>
+          <NavLink to='/hub/recipes'>
+            <Icon icon='hub-recipe' /> {_('recipesLabel')}
+          </NavLink>
+        </NavTabs>
+      </Col>
+    </Row>
+  </Container>
 )
 
-export default decorate([
-  adminOnly,
-  addSubscriptions({
-    catalog: subscribeHubResourceCatalog,
-  }),
-  provideState({
-    computed: {
-      resources: (_, { catalog }) =>
-        orderBy(
-          map(omit(catalog, '_namespaces'), (entry, namespace) => ({
-            namespace,
-            ...entry.xva,
-          })),
-          'name',
-          'asc'
-        ),
-    },
-  }),
-  injectState,
-  ({ state: { resources } }) => (
-    <Page header={HEADER} title='hubPage' formatTitle>
+const Hub = routes('hub', {
+  templates: Templates,
+  recipes: Recipes,
+})(({ children }) => (
+  <Page header={Header} title='hubPage' formatTitle>
+    {getXoaPlan() === 'Community' ? (
       <Container>
-        <Row>
-          {isEmpty(resources) ? (
-            <Col>
-              <h2 className='text-muted'>
-                &nbsp; {_('vmNoAvailable')}
-                <Icon icon='alarm' color='yellow' />
-              </h2>
-            </Col>
-          ) : (
-            resources.map(data => (
-              <Col key={data.namespace} mediumSize={6} largeSize={4}>
-                <Resource {...data} />
-              </Col>
-            ))
-          )}
-        </Row>
+        <h2 className='text-info'>{_('hubCommunity')}</h2>
+        <p>
+          <TryXoa page='hub' />
+        </p>
       </Container>
-    </Page>
-  ),
-])
+    ) : (
+      children
+    )}
+  </Page>
+))
+
+export default Hub
