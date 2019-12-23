@@ -39,7 +39,7 @@
     "inquirer": "^7.0.0",
     "ldapjs": "^1.0.1",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.14.0"
+    "promise-toolbox": "^0.15.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

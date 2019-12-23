@@ -30,8 +30,8 @@
   "dependencies": {
     "@xen-orchestra/log": "^0.2.0",
     "lodash": "^4.17.11",
-    "node-openssl-cert": "^0.0.103",
-    "promise-toolbox": "^0.14.0",
+    "node-openssl-cert": "^0.0.117",
+    "promise-toolbox": "^0.15.0",
     "uuid": "^3.3.2"
   },
   "private": true

@@ -42,7 +42,7 @@
     "cross-env": "^6.0.3",
     "execa": "^3.2.0",
     "index-modules": "^0.3.0",
-    "promise-toolbox": "^0.14.0",
+    "promise-toolbox": "^0.15.0",
     "rimraf": "^3.0.0",
     "tmp": "^0.1.0"
   },
