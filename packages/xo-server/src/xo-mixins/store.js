@@ -1,8 +1,6 @@
 import levelup from 'level-party'
-import sublevel from 'level-sublevel'
+import sublevel from 'subleveldown'
 import { ensureDir } from 'fs-extra'
-
-import { forEach, promisify } from '../utils'
 
 // ===================================================================
 
@@ -29,38 +27,19 @@ const levelHas = db => {
   return db
 }
 
-const levelPromise = db => {
-  const dbP = {}
-  forEach(db, (value, name) => {
-    if (typeof value !== 'function') {
-      return
-    }
-
-    if (name.endsWith('Stream') || name.startsWith('is')) {
-      dbP[name] = db::value
-    } else {
-      dbP[name] = promisify(value, db)
-    }
-  })
-
-  return dbP
-}
-
 // ===================================================================
 
 export default class {
   constructor(xo, config) {
     const dir = `${config.datadir}/leveldb`
-    this._db = ensureDir(dir).then(() => {
-      return sublevel(
-        levelup(dir, {
-          valueEncoding: 'json',
-        })
-      )
-    })
+    this._db = ensureDir(dir).then(() => levelup(dir))
   }
 
-  getStore(namespace) {
-    return this._db.then(db => levelPromise(levelHas(db.sublevel(namespace))))
+  async getStore(namespace) {
+    return levelHas(
+      sublevel(this._db, namespace, {
+        valueEncoding: 'json',
+      })
+    )
   }
 }
