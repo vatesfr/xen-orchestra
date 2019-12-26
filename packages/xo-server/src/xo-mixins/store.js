@@ -37,7 +37,7 @@ export default class {
 
   async getStore(namespace) {
     return levelHas(
-      sublevel(this._db, namespace, {
+      sublevel(await this._db, namespace, {
         valueEncoding: 'json',
       })
     )
