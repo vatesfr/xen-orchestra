@@ -1,6 +1,6 @@
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
-import unzip from 'julien-f-unzip'
+import unzip from 'unzipper'
 import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
