@@ -8616,14 +8616,6 @@ jsx-ast-utils@^2.2.3:
     array-includes "^3.0.3"
     object.assign "^4.1.0"
 
-julien-f-source-map-support@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/julien-f-source-map-support/-/julien-f-source-map-support-0.1.0.tgz#174152c8509538cf666d813eff77cb261711f0af"
-  integrity sha512-yLkXwMRQ8J2Hn9pkmRoexVPpRaeWBCJ6euf96KcYRqOR9Rek4tbebk6QwYJ42zyeFDHniweWV1Pgfrs8dDvv4A==
-  dependencies:
-    source-map "^0.6.1"
-    stack-chain "^2.0.0"
-
 julien-f-unzip@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/julien-f-unzip/-/julien-f-unzip-0.2.1.tgz#62e6a85fa7fa4b875156442079adb4a8617c066a"
