@@ -10,6 +10,7 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
+import { Sr } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
@@ -38,13 +39,14 @@ import {
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject(),
-}))(({ container }) => (
-  <Link to={`${container.type}s/${container.id}`}>{container.name_label}</Link>
-))
-
-const VdiColSr = connectStore(() => ({
-  sr: createGetObject(),
-}))(({ sr }) => <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>)
+}))(
+  ({ container }) =>
+    container !== undefined && (
+      <Link to={`${container.type}s/${container.id}`}>
+        {container.name_label}
+      </Link>
+    )
+)
 
 const VmColContainer = connectStore(() => ({
   container: createGetObject(),
@@ -160,7 +162,7 @@ const ORPHANED_VDI_COLUMNS = [
   },
   {
     name: _('vdiSr'),
-    itemRenderer: vdi => <VdiColSr id={vdi.$SR} />,
+    itemRenderer: vdi => <Sr id={vdi.$SR} link spaceLeft={false} />,
   },
 ]
 
@@ -215,6 +217,7 @@ const AttachedVdisTable = decorate([
       data-vdiSnapshots={vdiSnapshots}
       emptyMessage={_('noControlDomainVdis')}
       rowTransform={rowTransform}
+      stateUrlParam='s_controldomain'
     />
   ),
   {
@@ -253,9 +256,7 @@ const AttachedVdisTable = decorate([
       {
         name: _('vdiSr'),
         itemRenderer: ({ sr }) =>
-          sr === undefined ? null : (
-            <Link to={`srs/${sr.id}`}>{sr.name_label}</Link>
-          ),
+          sr === undefined ? null : <Sr id={sr.id} link spaceLeft={false} />,
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
       },
     ],
@@ -412,13 +413,13 @@ export default class Health extends Component {
     pools: [],
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (props.alertMessages !== this.props.alertMessages) {
       this._updateAlarms(props)
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._updateAlarms(this.props)
   }
 
@@ -431,7 +432,7 @@ export default class Health extends Component {
         }
 
         const [, value, xml] = matches
-        return fromCallback(cb => xml2js.parseString(xml, cb)).then(result => {
+        return fromCallback(xml2js.parseString, xml).then(result => {
           const object = mapValues(result && result.variable, value =>
             get(value, '[0].$.value')
           )
@@ -481,7 +482,7 @@ export default class Health extends Component {
 
   _getMessages = createFilter(() => this.state.messages, this._getPoolPredicate)
 
-  render () {
+  render() {
     const { props, state } = this
 
     const userSrs = this._getUserSrs()
@@ -515,6 +516,7 @@ export default class Health extends Component {
                           columns={SR_COLUMNS}
                           rowLink={this._getSrUrl}
                           shortcutsTarget='body'
+                          stateUrlParam='s_srs'
                         />
                       </Col>
                     </Row>
@@ -540,6 +542,7 @@ export default class Health extends Component {
                       actions={ORPHANED_VDI_ACTIONS}
                       collection={vdiOrphaned}
                       columns={ORPHANED_VDI_COLUMNS}
+                      stateUrlParam='s_vdis'
                     />
                   )}
                 </NoObjects>
@@ -575,6 +578,7 @@ export default class Health extends Component {
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
                   shortcutsTarget='.orphaned-vms'
+                  stateUrlParam='s_orphan_vms'
                 />
               </CardBlock>
             </Card>
@@ -598,6 +602,7 @@ export default class Health extends Component {
                       actions={ALARM_ACTIONS}
                       collection={this._getMessages()}
                       columns={ALARM_COLUMNS}
+                      stateUrlParam='s_alarm'
                     />
                   )}
                 </NoObjects>

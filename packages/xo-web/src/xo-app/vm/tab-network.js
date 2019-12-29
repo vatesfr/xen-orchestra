@@ -13,7 +13,7 @@ import Tooltip from 'tooltip'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
-import { XoSelect, Text } from 'editable'
+import { Number, Text, XoSelect } from 'editable'
 import {
   addSubscriptions,
   connectStore,
@@ -37,6 +37,8 @@ import {
   map,
   remove,
   some,
+  uniq,
+  values,
 } from 'lodash'
 
 import {
@@ -65,7 +67,7 @@ class VifNetwork extends BaseComponent {
     vifPoolId => network => network.$pool === vifPoolId
   )
 
-  render () {
+  render() {
     const { network } = this.props
 
     return (
@@ -168,7 +170,7 @@ class VifAllowedIps extends BaseComponent {
   _toggleNewIp = () =>
     this.setState({ showNewIpForm: !this.state.showNewIpForm })
 
-  render () {
+  render() {
     const { showNewIpForm } = this.state
     const { resourceSet, item: vif } = this.props
 
@@ -281,7 +283,7 @@ class VifStatus extends BaseComponent {
     )
   }
 
-  render () {
+  render() {
     const { vif } = this.props
 
     return (
@@ -328,6 +330,17 @@ const COLUMNS = [
     ),
     name: _('vifNetworkLabel'),
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
+  },
+  {
+    itemRenderer: ({ id, rateLimit }) => (
+      <Number
+        nullable
+        onChange={rateLimit => setVif(id, { rateLimit })}
+        value={rateLimit === undefined ? '' : rateLimit}
+      />
+    ),
+    name: _('vifRateLimitLabel'),
+    sortCriteria: 'rateLimit',
   },
   {
     component: VifAllowedIps,
@@ -397,11 +410,11 @@ class NewVif extends BaseComponent {
     vm: PropTypes.object.isRequired,
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._autoFill(this.props)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     this._autoFill(props)
   }
 
@@ -447,7 +460,7 @@ class NewVif extends BaseComponent {
     resolveResourceSet
   )
 
-  render () {
+  render() {
     const formatMessage = this.props.intl.formatMessage
     const { isAdmin } = this.props
     const { mac, network } = this.state
@@ -514,7 +527,15 @@ export default class TabNetwork extends BaseComponent {
       newVif: !this.state.newVif,
     })
 
-  render () {
+  _getIpAddresses = createSelector(
+    () => this.props.vm.addresses,
+    // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
+    // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
+    // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
+    addresses => uniq(values(addresses))
+  )
+
+  render() {
     const { newVif } = this.state
     const { pool, vm, vifs, networks } = this.props
     return (
@@ -550,8 +571,8 @@ export default class TabNetwork extends BaseComponent {
             {!isEmpty(vm.addresses) ? (
               <span>
                 <h4>{_('vifIpAddresses')}</h4>
-                {map(vm.addresses, (address, key) => (
-                  <span key={key} className='tag tag-info tag-ip'>
+                {map(this._getIpAddresses(), address => (
+                  <span key={address} className='tag tag-info tag-ip'>
                     {address}
                   </span>
                 ))}

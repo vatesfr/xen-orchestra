@@ -66,7 +66,7 @@ class IpsCell extends BaseComponent {
     setIpPool(this.props.ipPool.id, { addresses: toBeRemoved })
   }
 
-  render () {
+  render() {
     const { ipPool, networks, vifs } = this.props
     const { newIps, showNewIpForm } = this.state
 
@@ -154,7 +154,7 @@ class IpsCell extends BaseComponent {
                   value={newIps || ''}
                 />{' '}
                 <ActionButton
-                  form={`newIpForm`}
+                  form='newIpForm'
                   icon='save'
                   btnStyle='primary'
                   handler={this._addIps}
@@ -206,7 +206,7 @@ class NetworksCell extends BaseComponent {
     networks => network => !includes(networks, network.id)
   )
 
-  render () {
+  render() {
     const { ipPool } = this.props
     const { newNetworks, showNewNetworkForm } = this.state
 
@@ -341,7 +341,7 @@ export default class Ips extends BaseComponent {
     },
   ]
 
-  render () {
+  render() {
     if (process.env.XOA_PLAN < 4) {
       return (
         <Container>
@@ -419,7 +419,11 @@ export default class Ips extends BaseComponent {
             <em>{_('ipsNoIpPool')}</em>
           </p>
         ) : (
-          <SortedTable collection={ipPools} columns={this._ipColumns} />
+          <SortedTable
+            collection={ipPools}
+            columns={this._ipColumns}
+            stateUrlParam='s'
+          />
         )}
       </div>
     )

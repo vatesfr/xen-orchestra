@@ -1,4 +1,4 @@
-export function create ({ name, subjects, objects, limits }) {
+export function create({ name, subjects, objects, limits }) {
   return this.createResourceSet(name, subjects, objects, limits)
 }
 
@@ -30,7 +30,7 @@ create.params = {
 
 // -------------------------------------------------------------------
 
-function delete_ ({ id }) {
+function delete_({ id }) {
   return this.deleteResourceSet(id)
 }
 export { delete_ as delete }
@@ -45,7 +45,7 @@ delete_.params = {
 
 // -------------------------------------------------------------------
 
-export function set ({ id, name, subjects, objects, ipPools, limits }) {
+export function set({ id, name, subjects, objects, ipPools, limits }) {
   return this.updateResourceSet(id, {
     limits,
     name,
@@ -94,7 +94,7 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export function get ({ id }) {
+export function get({ id }) {
   return this.getResourceSet(id)
 }
 
@@ -107,7 +107,7 @@ get.params = {
 
 // -------------------------------------------------------------------
 
-export async function getAll () {
+export async function getAll() {
   return this.getAllResourceSets(this.user.id)
 }
 
@@ -116,7 +116,7 @@ getAll.description = 'Get the list of all existing resource set'
 
 // -------------------------------------------------------------------
 
-export function addObject ({ id, object }) {
+export function addObject({ id, object }) {
   return this.addObjectToResourceSet(object, id)
 }
 
@@ -133,7 +133,7 @@ addObject.params = {
 
 // -------------------------------------------------------------------
 
-export function removeObject ({ id, object }) {
+export function removeObject({ id, object }) {
   return this.removeObjectFromResourceSet(object, id)
 }
 
@@ -150,7 +150,7 @@ removeObject.params = {
 
 // -------------------------------------------------------------------
 
-export function addSubject ({ id, subject }) {
+export function addSubject({ id, subject }) {
   return this.addSubjectToResourceSet(subject, id)
 }
 
@@ -167,7 +167,7 @@ addSubject.params = {
 
 // -------------------------------------------------------------------
 
-export function removeSubject ({ id, subject }) {
+export function removeSubject({ id, subject }) {
   return this.removeSubjectFromResourceSet(subject, id)
 }
 
@@ -184,7 +184,7 @@ removeSubject.params = {
 
 // -------------------------------------------------------------------
 
-export function addLimit ({ id, limitId, quantity }) {
+export function addLimit({ id, limitId, quantity }) {
   return this.addLimitToResourceSet(limitId, quantity, id)
 }
 
@@ -204,7 +204,7 @@ addLimit.params = {
 
 // -------------------------------------------------------------------
 
-export function removeLimit ({ id, limitId }) {
+export function removeLimit({ id, limitId }) {
   return this.removeLimitFromResourceSet(limitId, id)
 }
 
@@ -221,7 +221,7 @@ removeLimit.params = {
 
 // -------------------------------------------------------------------
 
-export function recomputeAllLimits () {
+export function recomputeAllLimits() {
   return this.recomputeResourceSetsLimits()
 }
 

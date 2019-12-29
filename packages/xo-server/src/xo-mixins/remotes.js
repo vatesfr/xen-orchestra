@@ -1,7 +1,8 @@
+import asyncMap from '@xen-orchestra/async-map'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'
-import { ignoreErrors } from 'promise-toolbox'
+import { ignoreErrors, timeout } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
@@ -17,14 +18,15 @@ const obfuscateRemote = ({ url, ...remote }) => {
 }
 
 export default class {
-  constructor (xo, { remoteOptions }) {
+  constructor(xo, { remoteOptions }) {
+    this._handlers = { __proto__: null }
     this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
       connection: xo._redis,
       prefix: 'xo:remote',
       indexes: ['enabled'],
     })
-    this._handlers = { __proto__: null }
+    this._remotesInfo = {}
 
     xo.on('clean', () => this._remotes.rebuildIndexes())
     xo.on('start', async () => {
@@ -52,7 +54,7 @@ export default class {
     })
   }
 
-  async getRemoteHandler (remote) {
+  async getRemoteHandler(remote) {
     if (typeof remote === 'string') {
       remote = await this._getRemote(remote)
     }
@@ -65,30 +67,67 @@ export default class {
     const handlers = this._handlers
     let handler = handlers[id]
     if (handler === undefined) {
-      handler = handlers[id] = getHandler(remote, this._remoteOptions)
-    }
+      handler = getHandler(remote, this._remoteOptions)
 
-    try {
-      await handler.sync()
-      ignoreErrors.call(this._updateRemote(id, { error: '' }))
-    } catch (error) {
-      ignoreErrors.call(this._updateRemote(id, { error: error.message }))
-      throw error
+      try {
+        await handler.sync()
+        ignoreErrors.call(this._updateRemote(id, { error: '' }))
+      } catch (error) {
+        ignoreErrors.call(this._updateRemote(id, { error: error.message }))
+        throw error
+      }
+
+      handlers[id] = handler
     }
 
     return handler
   }
 
-  async testRemote (remote) {
-    const handler = await this.getRemoteHandler(remote)
-    return handler.test()
+  async testRemote(remoteId) {
+    const handler = await this.getRemoteHandler(remoteId)
+    const { readRate, writeRate, ...answer } = await handler.test()
+
+    if (answer.success) {
+      const benchmark = {
+        readRate,
+        timestamp: Date.now(),
+        writeRate,
+      }
+      const remote = await this._getRemote(remoteId)
+
+      await this._updateRemote(remoteId, {
+        benchmarks:
+          remote.benchmarks !== undefined
+            ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks
+            : [benchmark],
+      })
+    }
+
+    return answer
   }
 
-  async getAllRemotes () {
+  async getAllRemotesInfo() {
+    const remotes = await this._remotes.get()
+
+    await asyncMap(remotes, async remote => {
+      try {
+        const handler = await this.getRemoteHandler(remote.id)
+        await timeout.call(
+          handler.getInfo().then(info => {
+            this._remotesInfo[remote.id] = info
+          }),
+          5e3
+        )
+      } catch (_) {}
+    })
+    return this._remotesInfo
+  }
+
+  async getAllRemotes() {
     return (await this._remotes.get()).map(_ => obfuscateRemote(_))
   }
 
-  async _getRemote (id) {
+  async _getRemote(id) {
     const remote = await this._remotes.first(id)
     if (remote === undefined) {
       throw noSuchObject(id, 'remote')
@@ -96,11 +135,11 @@ export default class {
     return remote.properties
   }
 
-  getRemote (id) {
+  getRemote(id) {
     return this._getRemote(id).then(obfuscateRemote)
   }
 
-  async createRemote ({ name, url, options }) {
+  async createRemote({ name, url, options }) {
     const params = {
       name,
       url,
@@ -114,7 +153,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote (id, { name, url, options, enabled }) {
+  updateRemote(id, { name, url, options, enabled }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -131,7 +170,7 @@ export default class {
   }
 
   @synchronized()
-  async _updateRemote (id, { url, ...props }) {
+  async _updateRemote(id, { url, ...props }) {
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values
@@ -144,7 +183,7 @@ export default class {
     return (await this._remotes.update(remote)).properties
   }
 
-  async removeRemote (id) {
+  async removeRemote(id) {
     const handler = this._handlers[id]
     if (handler !== undefined) {
       ignoreErrors.call(handler.forget())

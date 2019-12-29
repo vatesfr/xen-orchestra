@@ -8,10 +8,11 @@ import Copiable from 'copiable'
 import NoObjects from 'no-objects'
 import SortedTable from 'sorted-table'
 import styles from './index.css'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, downloadLog } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'selectors'
-import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
+import { get } from '@xen-orchestra/defined'
+import { reportBug } from 'report-bug-button'
 import {
   deleteApiLog,
   deleteApiLogs,
@@ -25,6 +26,29 @@ const formatMessage = data =>
     null,
     2
   )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
+
+const formatLog = log =>
+  `${log.data.method}\n${JSON.stringify(
+    log.data.params,
+    null,
+    2
+  )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
+
+const LogMessage = ({ item: log }) => {
+  const { error } = log.data
+  return (
+    <span>
+      <pre className={styles.widthLimit}>{get(() => error.message)}</pre>
+      {get(() => error.code) === 'LICENCE_RESTRICTION' ? (
+        <a href='https://xcp-ng.org/' rel='noopener noreferrer' target='_blank'>
+          {_('logSuggestXcpNg')}
+        </a>
+      ) : get(() => error.name) === 'XapiError' ? (
+        _('logXapiError')
+      ) : null}
+    </span>
+  )
+}
 
 const COLUMNS = [
   {
@@ -43,11 +67,7 @@ const COLUMNS = [
   },
   {
     name: _('logMessage'),
-    itemRenderer: log => (
-      <pre className={styles.widthLimit}>
-        {log.data.error && log.data.error.message}
-      </pre>
-    ),
+    component: LogMessage,
     sortCriteria: log => log.data.error && log.data.error.message,
   },
   {
@@ -87,21 +107,17 @@ const ACTIONS = [
 const INDIVIDUAL_ACTIONS = [
   {
     handler: log =>
-      alert(
-        _('logError'),
-        <Copiable tagName='pre'>
-          {`${log.data.method}\n${JSON.stringify(
-            log.data.params,
-            null,
-            2
-          )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`}
-        </Copiable>
-      ),
+      alert(_('logError'), <Copiable tagName='pre'>{formatLog(log)}</Copiable>),
     icon: 'preview',
     label: _('logDisplayDetails'),
   },
   {
-    disabled: !CAN_REPORT_BUG,
+    handler: log =>
+      downloadLog({ log: formatLog(log), date: log.time, type: 'XO' }),
+    icon: 'download',
+    label: _('logDownload'),
+  },
+  {
     handler: log =>
       reportBug({
         formatMessage,
@@ -125,7 +141,7 @@ export default class Logs extends BaseComponent {
 
   _getPredicate = logs => logs != null
 
-  render () {
+  render() {
     const logs = this._getLogs()
 
     return (
@@ -141,6 +157,7 @@ export default class Logs extends BaseComponent {
             columns={COLUMNS}
             data-users={this.props.users}
             individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='s'
           />
         )}
       </NoObjects>

@@ -11,13 +11,14 @@ import { alert, confirm } from 'modal'
 import { Container } from 'grid'
 import { Password as EditablePassword, Text } from 'editable'
 import { Password, Toggle } from 'form'
+import { Pool } from 'render-xo-item'
 import { injectIntl } from 'react-intl'
 import { noop } from 'lodash'
 import {
   addServer,
+  disableServer,
   editServer,
-  connectServer,
-  disconnectServer,
+  enableServer,
   removeServer,
   subscribeServers,
 } from 'xo'
@@ -37,7 +38,7 @@ const showServerError = server => {
     }).then(
       () =>
         editServer(server, { allowUnauthorized: true }).then(() =>
-          connectServer(server)
+          enableServer(server)
         ),
       noop
     )
@@ -99,17 +100,16 @@ const COLUMNS = [
     itemRenderer: server => (
       <div>
         <StateButton
-          disabledLabel={_('serverDisconnected')}
-          disabledHandler={connectServer}
-          disabledTooltip={_('serverConnect')}
-          enabledLabel={_('serverConnected')}
-          enabledHandler={disconnectServer}
-          enabledTooltip={_('serverDisconnect')}
+          disabledLabel={_('serverDisabled')}
+          disabledHandler={enableServer}
+          disabledTooltip={_('serverEnable')}
+          enabledLabel={_('serverEnabled')}
+          enabledHandler={disableServer}
+          enabledTooltip={_('serverDisable')}
           handlerParam={server}
-          pending={server.status === 'connecting'}
-          state={server.status === 'connected'}
+          state={server.enabled}
         />{' '}
-        {server.error && (
+        {server.error != null && (
           <Tooltip content={_('serverConnectionFailed')}>
             <a
               className='text-danger btn btn-link btn-sm'
@@ -128,11 +128,11 @@ const COLUMNS = [
     itemRenderer: server => (
       <Toggle
         onChange={readOnly => editServer(server, { readOnly })}
-        value={!!server.readOnly}
+        value={server.readOnly}
       />
     ),
     name: _('serverReadOnly'),
-    sortCriteria: _ => !!_.readOnly,
+    sortCriteria: _ => _.readOnly,
   },
   {
     itemRenderer: server => (
@@ -153,7 +153,12 @@ const COLUMNS = [
         </Tooltip>
       </span>
     ),
-    sortCriteria: _ => !!_.allowUnauthorized,
+    sortCriteria: _ => _.allowUnauthorized,
+  },
+  {
+    itemRenderer: ({ poolId }) =>
+      poolId !== undefined && <Pool id={poolId} link />,
+    name: _('pool'),
   },
 ]
 const INDIVIDUAL_ACTIONS = [
@@ -188,7 +193,7 @@ export default class Servers extends Component {
     })
   }
 
-  render () {
+  render() {
     const {
       props: {
         intl: { formatMessage },
@@ -204,6 +209,7 @@ export default class Servers extends Component {
           columns={COLUMNS}
           individualActions={INDIVIDUAL_ACTIONS}
           userData={formatMessage}
+          stateUrlParam='s'
         />
         <form className='form-inline' id='form-add-server'>
           <div className='form-group'>

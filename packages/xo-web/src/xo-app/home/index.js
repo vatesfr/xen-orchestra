@@ -20,13 +20,13 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
   debounce,
+  escapeRegExp,
   filter,
   find,
   forEach,
   identity,
   includes,
   isEmpty,
-  isString,
   keys,
   map,
   mapValues,
@@ -45,6 +45,7 @@ import {
   forgetSrs,
   isSrShared,
   migrateVms,
+  pauseVms,
   reconnectAllHostsSrs,
   rescanSrs,
   restartHosts,
@@ -150,6 +151,11 @@ const OPTIONS = {
     ],
     otherActions: [
       {
+        handler: pauseVms,
+        icon: 'vm-pause',
+        labelId: 'pauseVmLabel',
+      },
+      {
         handler: suspendVms,
         icon: 'vm-suspend',
         labelId: 'suspendVmLabel',
@@ -170,6 +176,14 @@ const OPTIONS = {
         handler: snapshotVms,
         icon: 'vm-snapshot',
         labelId: 'snapshotVmLabel',
+      },
+      {
+        handler: (vmIds, _, { setHomeVmIdsSelection }, { router }) => {
+          setHomeVmIdsSelection(vmIds)
+          router.push('backup/new/vms')
+        },
+        icon: 'backup',
+        labelId: 'backupLabel',
       },
       {
         handler: deleteVms,
@@ -199,6 +213,11 @@ const OPTIONS = {
         labelId: 'homeSortByContainer',
         sortBy: 'container.name_label',
         sortOrder: 'asc',
+      },
+      {
+        labelId: 'homeSortByStartTime',
+        sortBy: 'startTime',
+        sortOrder: 'desc',
       },
     ],
   },
@@ -294,7 +313,6 @@ const DEFAULT_TYPE = 'VM'
   )
 
   return {
-    areObjectsFetched,
     noServersConnected,
   }
 })
@@ -305,25 +323,14 @@ class NoObjectsWithoutServers extends Component {
     noResourceSets: PropTypes.bool.isRequired,
   }
 
-  render () {
+  render() {
     const {
-      areObjectsFetched,
       isAdmin,
       isPoolAdmin,
       noRegisteredServers,
       noResourceSets,
       noServersConnected,
     } = this.props
-
-    if (!areObjectsFetched) {
-      return (
-        <CenterPanel>
-          <h2>
-            <img src='assets/loading.svg' />
-          </h2>
-        </CenterPanel>
-      )
-    }
 
     if (noServersConnected && isAdmin) {
       return (
@@ -351,6 +358,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/docs/'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -361,6 +369,7 @@ class NoObjectsWithoutServers extends Component {
                 <Col mediumSize={6}>
                   <a
                     href='https://xen-orchestra.com/#!/member/support'
+                    rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'
                   >
@@ -441,6 +450,7 @@ const NoObjects = props =>
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
 
   return {
+    areObjectsFetched,
     isAdmin,
     isPoolAdmin: getIsPoolAdmin,
     items: createSelector(
@@ -469,27 +479,22 @@ export default class Home extends Component {
     selectedItems: {},
   }
 
-  get page () {
-    return this.state.page
-  }
-  set page (activePage) {
-    this.setState({ activePage })
-  }
-
-  componentWillMount () {
+  componentWillMount() {
     this._initFilterAndSortBy(this.props)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
+    const { type } = props
+
     if (this._getFilter() !== this._getFilter(props)) {
       this._initFilterAndSortBy(props)
     }
-    if (props.type !== this.props.type) {
-      this.setState({ activePage: undefined, highlighted: undefined })
+    if (type !== this.props.type) {
+      this.setState({ highlighted: undefined })
     }
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const { selectedItems } = this.state
 
     // Unselect items that are no longer visible
@@ -512,21 +517,29 @@ export default class Home extends Component {
     identity,
   ])
 
-  _getType () {
+  _getPage() {
+    const {
+      location: { query },
+    } = this.props
+    const queryPage = +query.p
+    return Number.isNaN(queryPage) ? 1 : queryPage
+  }
+
+  _getType() {
     return this.props.type
   }
 
-  _setType (type) {
+  _setType(type) {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
-      query: { ...query, t: type, s: undefined },
+      query: { ...query, t: type, s: undefined, p: 1 },
     })
   }
 
   // Filter and sort -----------------------------------------------------------
 
-  _getDefaultFilter (props = this.props) {
+  _getDefaultFilter(props = this.props) {
     const { type } = props
     const preferences = get(() => props.user.preferences)
     const defaultFilterName = get(() => preferences.defaultHomeFilters[type])
@@ -540,7 +553,7 @@ export default class Home extends Component {
     )
   }
 
-  _getDefaultSort (props = this.props) {
+  _getDefaultSort(props = this.props) {
     const { sortOptions } = OPTIONS[props.type]
     const defaultSort = find(sortOptions, 'default')
     const urlSort = find(sortOptions, { sortBy: props.location.query.sortBy })
@@ -559,7 +572,7 @@ export default class Home extends Component {
     }
   }
 
-  _setSort (event) {
+  _setSort(event) {
     const { sortBy, sortOrder } = event.currentTarget.dataset
     const { pathname, query } = this.props.location
 
@@ -571,7 +584,7 @@ export default class Home extends Component {
   }
   _setSort = this._setSort.bind(this)
 
-  _initFilterAndSortBy (props) {
+  _initFilterAndSortBy(props) {
     const filter = this._getFilter(props)
 
     // If filter is null, set a default filter.
@@ -616,7 +629,7 @@ export default class Home extends Component {
 
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
-  _getFilter (props = this.props) {
+  _getFilter(props = this.props) {
     return props.location.query.s
   }
 
@@ -636,18 +649,16 @@ export default class Home extends Component {
 
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
-  _setFilter (filter, props = this.props, replace) {
-    if (!isString(filter)) {
+  _setFilter(filter, props = this.props, replace) {
+    if (typeof filter !== 'string') {
       filter = filter.toString()
     }
 
     const { pathname, query } = props.location
     this.context.router[replace ? 'replace' : 'push']({
       pathname,
-      query: { ...query, s: filter },
+      query: { ...query, s: filter, p: 1 },
     })
-
-    this.page = 1
   }
 
   _clearFilter = () => this._setFilter('')
@@ -662,20 +673,27 @@ export default class Home extends Component {
 
   _getFilteredItems = createSort(
     createFilter(() => this.props.items, this._getFilterFunction),
-    () => this.state.sortBy,
+    createSelector(
+      () => this.state.sortBy,
+      sortBy => [sortBy, 'name_label']
+    ),
     () => this.state.sortOrder
   )
 
   _getVisibleItems = createPager(
     this._getFilteredItems,
-    () => this.state.activePage || 1,
+    () => this._getPage(),
     ITEMS_PER_PAGE
   )
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
 
   _onPageSelection = page => {
-    this.page = page
+    const { pathname, query } = this.props.location
+    this.context.router.replace({
+      pathname,
+      query: { ...query, p: page },
+    })
   }
 
   _tick = isCriteria => (
@@ -728,7 +746,11 @@ export default class Home extends Component {
             filter,
             'tags',
             new ComplexMatcher.Or(
-              map(tags, tag => new ComplexMatcher.String(tag.id))
+              map(
+                tags,
+                tag =>
+                  new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`, 'i')
+              )
             )
           )
         : ComplexMatcher.setPropertyClause(filter, 'tags', undefined)
@@ -752,7 +774,7 @@ export default class Home extends Component {
   _addCustomFilter = () => {
     return addCustomFilter(this._getType(), this._getFilter())
   }
-  _getCustomFilters () {
+  _getCustomFilters() {
     const { preferences } = this.props.user || {}
 
     if (!preferences) {
@@ -804,7 +826,10 @@ export default class Home extends Component {
           break
         case 'NAV_UP':
           this.setState({
-            highlighted: (this.state.highlighted - 1) % items.length || 0,
+            highlighted:
+              this.state.highlighted > 0
+                ? this.state.highlighted - 1
+                : items.length - 1,
           })
           break
         case 'SELECT':
@@ -829,7 +854,7 @@ export default class Home extends Component {
 
   // Header --------------------------------------------------------------------
 
-  _renderHeader () {
+  _renderHeader() {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
     const nItems = this._getNumberOfItems()
@@ -909,6 +934,7 @@ export default class Home extends Component {
                 <a
                   className='input-group-addon'
                   href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+                  rel='noopener noreferrer'
                   target='_blank'
                 >
                   <Icon icon='info' />
@@ -980,7 +1006,9 @@ export default class Home extends Component {
                         onClick={() => {
                           action.handler(
                             this._getSelectedItemsIds(),
-                            action.params
+                            action.params,
+                            this.props,
+                            this.context
                           )
                         }}
                       >
@@ -1119,8 +1147,23 @@ export default class Home extends Component {
 
   // ---------------------------------------------------------------------------
 
-  render () {
-    const { isAdmin, isPoolAdmin, noResourceSets } = this.props
+  render() {
+    const {
+      areObjectsFetched,
+      isAdmin,
+      isPoolAdmin,
+      noResourceSets,
+    } = this.props
+
+    if (!areObjectsFetched) {
+      return (
+        <CenterPanel>
+          <h2>
+            <img src='assets/loading.svg' />
+          </h2>
+        </CenterPanel>
+      )
+    }
 
     const nItems = this._getNumberOfItems()
 
@@ -1137,7 +1180,7 @@ export default class Home extends Component {
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { Item } = OPTIONS[this.props.type]
-    const { activePage, expandAll, highlighted, selectedItems } = this.state
+    const { expandAll, highlighted, selectedItems } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
@@ -1187,7 +1230,7 @@ export default class Home extends Component {
                   <Pagination
                     onChange={this._onPageSelection}
                     pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
-                    value={activePage || 1}
+                    value={this._getPage()}
                   />
                 </div>
               </div>

@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import { isFunction, startsWith } from 'lodash'
 
 import Button from './button'
 import Component from './base-component'
@@ -57,7 +56,7 @@ export default class ActionButton extends Component {
     tooltip: PropTypes.node,
   }
 
-  async _execute () {
+  async _execute() {
     const { props } = this
 
     if (props.pending || this.state.working) {
@@ -67,13 +66,13 @@ export default class ActionButton extends Component {
     const { children, handler, tooltip } = props
 
     let handlerParam
-    if ('handlerParam' in props) {
+    if (props.handlerParam !== undefined) {
       handlerParam = props.handlerParam
     } else {
       let empty = true
       handlerParam = {}
       Object.keys(props).forEach(key => {
-        if (startsWith(key, 'data-')) {
+        if (key.startsWith('data-')) {
           empty = false
           handlerParam[key.slice(5)] = props[key]
         }
@@ -93,9 +92,10 @@ export default class ActionButton extends Component {
 
       const { redirectOnSuccess } = props
       if (redirectOnSuccess !== undefined) {
-        const to = isFunction(redirectOnSuccess)
-          ? redirectOnSuccess(result, handlerParam)
-          : redirectOnSuccess
+        const to =
+          typeof redirectOnSuccess === 'function'
+            ? redirectOnSuccess(result, handlerParam)
+            : redirectOnSuccess
         if (to !== undefined) {
           return this.context.router.push(to)
         }
@@ -131,7 +131,7 @@ export default class ActionButton extends Component {
     this._execute()
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { form } = this.props
 
     if (form) {
@@ -141,7 +141,7 @@ export default class ActionButton extends Component {
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     const { form } = this.props
 
     if (form) {
@@ -151,7 +151,7 @@ export default class ActionButton extends Component {
     }
   }
 
-  render () {
+  render() {
     const {
       props: { children, icon, iconColor, pending, tooltip, ...props },
       state: { error, working },

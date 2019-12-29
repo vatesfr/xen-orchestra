@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
+import humanFormat from 'human-format'
 import React from 'react'
 import Icon from 'icon'
 import SingleLineRow from 'single-line-row'
@@ -11,7 +12,7 @@ import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { error } from 'notification'
 import { get } from '@xen-orchestra/defined'
 import { Select, Number } from 'editable'
@@ -34,7 +35,7 @@ const _toggleDefaultLockingMode = (component, tooltip) =>
   tooltip ? <Tooltip content={tooltip}>{component}</Tooltip> : component
 
 class ConfigureIpModal extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     const { pif } = props
@@ -43,11 +44,11 @@ class ConfigureIpModal extends Component {
     }
   }
 
-  get value () {
+  get value() {
     return this.state
   }
 
-  render () {
+  render() {
     const { ip, netmask, dns, gateway } = this.state
 
     return (
@@ -102,7 +103,7 @@ class ConfigureIpModal extends Component {
 
 class PifItemVlan extends Component {
   _editPif = vlan => editPif(this.props.item, { vlan })
-  render () {
+  render() {
     const pif = this.props.item
     return (
       <div>
@@ -138,7 +139,7 @@ const reconfigureIp = (pif, mode) => {
 class PifItemIp extends Component {
   _onEditIp = () => reconfigureIp(this.props.pif, 'Static')
 
-  render () {
+  render() {
     const { pif } = this.props
     const pifIp = pif.ip
     return (
@@ -161,18 +162,30 @@ class PifItemIp extends Component {
 class PifItemMode extends Component {
   state = { configModes: [] }
 
-  componentDidMount () {
+  componentDidMount() {
     getIpv4ConfigModes().then(configModes => this.setState({ configModes }))
   }
 
-  _configIp = mode => reconfigureIp(this.props.pif, mode)
+  _configIp = mode => mode != null && reconfigureIp(this.props.pif, mode.value)
 
-  render () {
-    const { pif } = this.props
-    const { configModes } = this.state
+  _getOptions = createSelector(
+    () => this.state.configModes,
+    configModes => configModes.map(mode => ({ label: mode, value: mode }))
+  )
+
+  _getValue = createSelector(
+    () => this.props.pif.mode,
+    mode => ({ label: mode, value: mode })
+  )
+
+  render() {
     return (
-      <Select onChange={this._configIp} options={configModes} value={pif.mode}>
-        {pif.mode}
+      <Select
+        onChange={this._configIp}
+        options={this._getOptions()}
+        value={this._getValue()}
+      >
+        {this.props.pif.mode}
       </Select>
     )
   }
@@ -189,7 +202,7 @@ class PifItemLock extends Component {
     })
   }
 
-  render () {
+  render() {
     const { networks, pif, vifsByNetwork } = this.props
 
     const network = networks[pif.$network]
@@ -251,6 +264,12 @@ const PIF_COLUMNS = [
     itemRenderer: pif => pif.mtu,
     name: _('pifMtuLabel'),
     sortCriteria: 'mtu',
+  },
+  {
+    itemRenderer: ({ speed }) =>
+      speed !== undefined && humanFormat(speed * 1e6, { unit: 'b/s' }), // 1e6: convert Mb to b
+    name: _('pifSpeedLabel'),
+    sortCriteria: 'speed',
   },
   {
     itemRenderer: (pif, userData) => (
@@ -384,6 +403,7 @@ export default ({ host, networks, pifs, privateNetworks }) => (
             collection={privateNetworks}
             columns={PVT_NETWORK_COLUMNS}
             individualActions={PVT_NETWORK_ACTIONS}
+            stateUrlParam='s_private'
           />
         </Col>
       </Row>

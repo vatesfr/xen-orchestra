@@ -86,7 +86,7 @@ export default class IsoDevice extends Component {
 
   _showWarning = () => alert(_('cdDriveNotInstalled'), _('cdDriveInstallation'))
 
-  render () {
+  render() {
     const { cdDrive, isAdmin, mountedIso } = this.props
     const resourceSet = this._getResolvedResourceSet()
     const useResourceSet = !(isAdmin || resourceSet === undefined)

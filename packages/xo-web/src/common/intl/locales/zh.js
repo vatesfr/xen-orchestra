@@ -288,7 +288,7 @@ export default {
   homeMigrateTo: '迁移至…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: '缺少补丁',
+  homeMissingPatches: '缺少补丁',
 
   // Original text: "High Availability"
   highAvailability: '高可用',
@@ -1176,7 +1176,7 @@ export default {
   vdiAction: '操作',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: '附加磁盘',
+  vdiAttachDevice: '附加磁盘',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: '新建磁盘',
@@ -2236,7 +2236,7 @@ export default {
   disclaimerText2: '如果你是一个公司，建议使用我们的设备结合专业的支持',
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3: '这个版本没有绑定任何支持或更新，在紧急任务下，请谨慎使用',
+  disclaimerText3: '这个版本没有绑定任何支持或更新，请谨慎使用',
 
   // Original text: "Connect PIF"
   connectPif: '连接物理网卡',

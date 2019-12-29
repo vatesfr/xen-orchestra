@@ -1,6 +1,6 @@
 import Collection from '../collection/redis'
 import Model from '../model'
-import { forEach } from '../utils'
+import { forEach, serializeError } from '../utils'
 
 import { parseProp } from './utils'
 
@@ -11,11 +11,11 @@ export default class Server extends Model {}
 // -------------------------------------------------------------------
 
 export class Servers extends Collection {
-  get Model () {
+  get Model() {
     return Server
   }
 
-  async create (params) {
+  async create(params) {
     const { host } = params
 
     if (await this.exists({ host })) {
@@ -25,18 +25,33 @@ export class Servers extends Collection {
     return /* await */ this.add(params)
   }
 
-  async get (properties) {
+  async get(properties) {
     const servers = await super.get(properties)
 
     // Deserializes
     forEach(servers, server => {
+      server.allowUnauthorized = server.allowUnauthorized === 'true'
+      server.enabled = server.enabled === 'true'
       if (server.error) {
         server.error = parseProp('server', server, 'error', '')
       } else {
         delete server.error
       }
+      server.readOnly = server.readOnly === 'true'
     })
 
     return servers
+  }
+
+  _update(servers) {
+    servers.map(server => {
+      server.allowUnauthorized = server.allowUnauthorized ? 'true' : undefined
+      server.enabled = server.enabled ? 'true' : undefined
+      const { error } = server
+      server.error =
+        error != null ? JSON.stringify(serializeError(error)) : undefined
+      server.readOnly = server.readOnly ? 'true' : undefined
+    })
+    return super._update(servers)
   }
 }

@@ -1,7 +1,7 @@
 import kindOf from 'kindof'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
-import { forEach } from 'lodash'
+import { forOwn } from 'lodash'
 
 import isEmpty from './is-empty'
 import isObject from './is-object'
@@ -10,6 +10,7 @@ import isObject from './is-object'
 
 const {
   create: createObject,
+  keys,
   prototype: { hasOwnProperty },
 } = Object
 
@@ -20,58 +21,68 @@ export const ACTION_REMOVE = 'remove'
 // ===================================================================
 
 export class BufferAlreadyFlushed extends BaseError {
-  constructor () {
+  constructor() {
     super('buffer flush already requested')
   }
 }
 
 export class DuplicateIndex extends BaseError {
-  constructor (name) {
+  constructor(name) {
     super('there is already an index with the name ' + name)
   }
 }
 
 export class DuplicateItem extends BaseError {
-  constructor (key) {
+  constructor(key) {
     super('there is already a item with the key ' + key)
   }
 }
 
 export class IllegalTouch extends BaseError {
-  constructor (value) {
+  constructor(value) {
     super('only an object value can be touched (found a ' + kindOf(value) + ')')
   }
 }
 
 export class InvalidKey extends BaseError {
-  constructor (key) {
+  constructor(key) {
     super('invalid key of type ' + kindOf(key))
   }
 }
 
 export class NoSuchIndex extends BaseError {
-  constructor (name) {
+  constructor(name) {
     super('there is no index with the name ' + name)
   }
 }
 
 export class NoSuchItem extends BaseError {
-  constructor (key) {
+  constructor(key) {
     super('there is no item with the key ' + key)
   }
 }
 
 // -------------------------------------------------------------------
 
+const assertValidKey = key => {
+  if (!isValidKey(key)) {
+    throw new InvalidKey(key)
+  }
+}
+
+const isValidKey = key => typeof key === 'number' || typeof key === 'string'
+
+// -------------------------------------------------------------------
+
 export default class Collection extends EventEmitter {
-  constructor () {
+  constructor() {
     super()
 
     this._buffer = createObject(null)
     this._buffering = 0
     this._indexes = createObject(null)
     this._indexedItems = createObject(null)
-    this._items = {} // createObject(null)
+    this._items = createObject(null)
     this._size = 0
   }
 
@@ -79,7 +90,7 @@ export default class Collection extends EventEmitter {
   // unspecified.
   //
   // Default implementation returns the `id` property.
-  getKey (value) {
+  getKey(value) {
     return value && value.id
   }
 
@@ -87,15 +98,15 @@ export default class Collection extends EventEmitter {
   // Properties
   // -----------------------------------------------------------------
 
-  get all () {
+  get all() {
     return this._items
   }
 
-  get indexes () {
+  get indexes() {
     return this._indexedItems
   }
 
-  get size () {
+  get size() {
     return this._size
   }
 
@@ -103,7 +114,7 @@ export default class Collection extends EventEmitter {
   // Manipulation
   // -----------------------------------------------------------------
 
-  add (keyOrObjectWithId, valueIfKey = undefined) {
+  add(keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
     this._assertHasNot(key)
 
@@ -112,18 +123,18 @@ export default class Collection extends EventEmitter {
     this._touch(ACTION_ADD, key)
   }
 
-  clear () {
-    forEach(this._items, (_, key) => this._remove(key))
+  clear() {
+    keys(this._items).forEach(this._remove, this)
   }
 
-  remove (keyOrObjectWithId) {
+  remove(keyOrObjectWithId) {
     const [key] = this._resolveItem(keyOrObjectWithId)
     this._assertHas(key)
 
     this._remove(key)
   }
 
-  set (keyOrObjectWithId, valueIfKey = undefined) {
+  set(keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
 
     const action = this.has(key) ? ACTION_UPDATE : ACTION_ADD
@@ -134,7 +145,7 @@ export default class Collection extends EventEmitter {
     this._touch(action, key)
   }
 
-  touch (keyOrObjectWithId) {
+  touch(keyOrObjectWithId) {
     const [key] = this._resolveItem(keyOrObjectWithId)
     this._assertHas(key)
     const value = this.get(key)
@@ -147,7 +158,7 @@ export default class Collection extends EventEmitter {
     return this.get(key)
   }
 
-  unset (keyOrObjectWithId) {
+  unset(keyOrObjectWithId) {
     const [key] = this._resolveItem(keyOrObjectWithId)
 
     if (this.has(key)) {
@@ -155,7 +166,7 @@ export default class Collection extends EventEmitter {
     }
   }
 
-  update (keyOrObjectWithId, valueIfKey = undefined) {
+  update(keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
     this._assertHas(key)
 
@@ -167,7 +178,7 @@ export default class Collection extends EventEmitter {
   // Query
   // -----------------------------------------------------------------
 
-  get (key, defaultValue) {
+  get(key, defaultValue) {
     if (this.has(key)) {
       return this._items[key]
     }
@@ -176,11 +187,10 @@ export default class Collection extends EventEmitter {
       return defaultValue
     }
 
-    // Throws a NoSuchItem.
-    this._assertHas(key)
+    throw new NoSuchItem(key)
   }
 
-  has (key) {
+  has(key) {
     return hasOwnProperty.call(this._items, key)
   }
 
@@ -188,8 +198,8 @@ export default class Collection extends EventEmitter {
   // Indexes
   // -----------------------------------------------------------------
 
-  createIndex (name, index) {
-    const { _indexes: indexes } = this
+  createIndex(name, index) {
+    const indexes = this._indexes
     if (hasOwnProperty.call(indexes, name)) {
       throw new DuplicateIndex(name)
     }
@@ -200,8 +210,8 @@ export default class Collection extends EventEmitter {
     index._attachCollection(this)
   }
 
-  deleteIndex (name) {
-    const { _indexes: indexes } = this
+  deleteIndex(name) {
+    const indexes = this._indexes
     if (!hasOwnProperty.call(indexes, name)) {
       throw new NoSuchIndex(name)
     }
@@ -217,24 +227,24 @@ export default class Collection extends EventEmitter {
   // Iteration
   // -----------------------------------------------------------------
 
-  * [Symbol.iterator] () {
-    const { _items: items } = this
+  *[Symbol.iterator]() {
+    const items = this._items
 
     for (const key in items) {
       yield [key, items[key]]
     }
   }
 
-  * keys () {
-    const { _items: items } = this
+  *keys() {
+    const items = this._items
 
     for (const key in items) {
       yield key
     }
   }
 
-  * values () {
-    const { _items: items } = this
+  *values() {
+    const items = this._items
 
     for (const key in items) {
       yield items[key]
@@ -245,7 +255,7 @@ export default class Collection extends EventEmitter {
   // Events buffering
   // -----------------------------------------------------------------
 
-  bufferEvents () {
+  bufferEvents() {
     ++this._buffering
 
     let called = false
@@ -255,11 +265,11 @@ export default class Collection extends EventEmitter {
       }
       called = true
 
-      if (--this._buffering) {
+      if (--this._buffering !== 0) {
         return
       }
 
-      const { _buffer: buffer } = this
+      const buffer = this._buffer
 
       // Due to deduplication there could be nothing in the buffer.
       if (isEmpty(buffer)) {
@@ -276,7 +286,7 @@ export default class Collection extends EventEmitter {
         data[buffer[key]][key] = this._items[key]
       }
 
-      forEach(data, (items, action) => {
+      forOwn(data, (items, action) => {
         if (!isEmpty(items)) {
           this.emit(action, items)
         }
@@ -294,52 +304,42 @@ export default class Collection extends EventEmitter {
 
   // =================================================================
 
-  _assertHas (key) {
+  _assertHas(key) {
     if (!this.has(key)) {
       throw new NoSuchItem(key)
     }
   }
 
-  _assertHasNot (key) {
+  _assertHasNot(key) {
     if (this.has(key)) {
       throw new DuplicateItem(key)
     }
   }
 
-  _assertValidKey (key) {
-    if (!this._isValidKey(key)) {
-      throw new InvalidKey(key)
-    }
-  }
-
-  _isValidKey (key) {
-    return typeof key === 'number' || typeof key === 'string'
-  }
-
-  _remove (key) {
+  _remove(key) {
     delete this._items[key]
     this._size--
     this._touch(ACTION_REMOVE, key)
   }
 
-  _resolveItem (keyOrObjectWithId, valueIfKey = undefined) {
+  _resolveItem(keyOrObjectWithId, valueIfKey = undefined) {
     if (valueIfKey !== undefined) {
-      this._assertValidKey(keyOrObjectWithId)
+      assertValidKey(keyOrObjectWithId)
 
       return [keyOrObjectWithId, valueIfKey]
     }
 
-    if (this._isValidKey(keyOrObjectWithId)) {
+    if (isValidKey(keyOrObjectWithId)) {
       return [keyOrObjectWithId]
     }
 
     const key = this.getKey(keyOrObjectWithId)
-    this._assertValidKey(key)
+    assertValidKey(key)
 
     return [key, keyOrObjectWithId]
   }
 
-  _touch (action, key) {
+  _touch(action, key) {
     if (this._buffering === 0) {
       const flush = this.bufferEvents()
 
@@ -347,7 +347,7 @@ export default class Collection extends EventEmitter {
     }
 
     if (action === ACTION_ADD) {
-      this._buffer[key] = this._buffer[key] ? ACTION_UPDATE : ACTION_ADD
+      this._buffer[key] = key in this._buffer ? ACTION_UPDATE : ACTION_ADD
     } else if (action === ACTION_REMOVE) {
       if (this._buffer[key] === ACTION_ADD) {
         delete this._buffer[key]
@@ -356,7 +356,7 @@ export default class Collection extends EventEmitter {
       }
     } else {
       // update
-      if (!this._buffer[key]) {
+      if (!(key in this._buffer)) {
         this._buffer[key] = ACTION_UPDATE
       }
     }

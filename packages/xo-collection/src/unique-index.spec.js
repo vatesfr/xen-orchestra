@@ -12,7 +12,7 @@ const waitTicks = (n = 2) => {
   const { nextTick } = process
 
   return new Promise(resolve => {
-    ;(function waitNextTick () {
+    ;(function waitNextTick() {
       // The first tick is handled by Promise#then()
       if (--n) {
         nextTick(waitNextTick)
@@ -25,7 +25,7 @@ const waitTicks = (n = 2) => {
 
 // ===================================================================
 
-describe('UniqueIndex', function () {
+describe('UniqueIndex', function() {
   let col, byKey
   const item1 = {
     id: '2ccb8a72-dc65-48e4-88fe-45ef541f2cba',
@@ -39,7 +39,7 @@ describe('UniqueIndex', function () {
     id: '668c1274-4442-44a6-b99a-512188e0bb09',
   }
 
-  beforeEach(function () {
+  beforeEach(function() {
     col = new Collection()
     forEach([item1, item2, item3], item => {
       col.add(item)
@@ -52,7 +52,7 @@ describe('UniqueIndex', function () {
     return waitTicks()
   })
 
-  it('works with existing items', function () {
+  it('works with existing items', function() {
     expect(col.indexes).toEqual({
       byKey: {
         [item1.key]: item1,
@@ -61,7 +61,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('works with added items', function () {
+  it('works with added items', function() {
     const item4 = {
       id: '823b56c4-4b96-4f3a-9533-5d08177167ac',
       key: '1437af14-429a-40db-8a51-8a2f5ed03201',
@@ -80,7 +80,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('works with updated items', function () {
+  it('works with updated items', function() {
     const item1bis = {
       id: item1.id,
       key: 'e03d4a3a-0331-4aca-97a2-016bbd43a29b',
@@ -98,7 +98,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('works with removed items', function () {
+  it('works with removed items', function() {
     col.remove(item2)
 
     return waitTicks().then(() => {
@@ -110,7 +110,7 @@ describe('UniqueIndex', function () {
     })
   })
 
-  it('correctly updates the value even the same object has the same hash', function () {
+  it('correctly updates the value even the same object has the same hash', function() {
     const item1bis = {
       id: item1.id,
       key: item1.key,

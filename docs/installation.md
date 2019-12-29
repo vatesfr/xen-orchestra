@@ -1,14 +1,9 @@
-
 # Installation
 
-SSH to your XenServer and execute the following:
+Log in to your account and use the deploy form available on [this page](https://xen-orchestra.com/#!/xoa)
 
-```
-bash -c "$(curl -s http://xoa.io/deploy)"
-```
+![](./assets/deploy_form.png)
 
-This will automatically download/import/start the XOA appliance. Nothing is changed on your XenServer host itself, it's 100% safe.
-
-## [More on XOA](xoa.md)
+## [More on XOA and alternate deploy](xoa.md)
 
 ![](https://xen-orchestra.com/assets/xoa1.png)

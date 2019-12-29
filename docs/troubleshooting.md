@@ -12,10 +12,9 @@ It means you don't have a default SR set on the pool you are importing XOA on. T
 
 XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
 
-
 ## Recover XOA Web-UI login password
 
-If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:  
+If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:
 
 `xo-server-recover-account youremail@here.com`
 
@@ -69,7 +68,7 @@ If you have something completely different than that, or error messages, lost pa
 
 You can see your current network configuration by running `ifconfig eth0`. If you have an external firewall, please check that you allow the XOA's IP.
 
-You can modify the IP configuration with `xoa network static` (for a static IP address) or ` xoa network dhcp` to use DHCP.
+You can modify the IP configuration with `xoa network static` (for a static IP address) or `xoa network dhcp` to use DHCP.
 
 ### Memory
 
@@ -110,16 +109,18 @@ $ systemctl restart xo-server
 
 ### Behind a transparent proxy
 
-If your are behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
+If you're behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
 
-First, run the following commands:
+Run the following commands to allow the updater to work:
 
 ```
+$ sudo -s
 $ echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
 $ npm config -g set strict-ssl=false
+$ systemctl restart xoa-updater
 ```
 
-Then, restart the updater with `systemctl restart xoa-updater`.
+Now try running an update again.
 
 ### Updating SSL self-signed certificate
 

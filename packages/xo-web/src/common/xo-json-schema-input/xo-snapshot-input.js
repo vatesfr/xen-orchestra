@@ -7,7 +7,7 @@ import { SelectVmSnapshot } from '../select-objects'
 // ===================================================================
 
 export default class snapshotInput extends XoAbstractInput {
-  render () {
+  render() {
     const { props } = this
 
     return (

@@ -15,11 +15,7 @@ import {
   createFilter,
   createSelector,
 } from './selectors'
-import {
-  installAllHostPatches,
-  installAllPatchesOnPool,
-  subscribeHostMissingPatches,
-} from './xo'
+import { installAllPatchesOnPool, subscribeHostMissingPatches } from './xo'
 
 // ===================================================================
 
@@ -42,17 +38,6 @@ const MISSING_PATCHES_COLUMNS = [
       <Link to={`/hosts/${host.id}/patches`}>{missingPatches[host.id]}</Link>
     ),
     sortCriteria: (host, { missingPatches }) => missingPatches[host.id],
-  },
-  {
-    name: _('patchUpdateButton'),
-    itemRenderer: (host, { installAllHostPatches }) => (
-      <ActionButton
-        btnStyle='primary'
-        handler={installAllHostPatches}
-        handlerParam={host}
-        icon='host-patch-update'
-      />
-    ),
   },
 ]
 
@@ -77,7 +62,7 @@ const ActionButton_ = ({ children, labelId, ...props }) => (
 // ===================================================================
 
 class HostsPatchesTable extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state.missingPatches = {}
   }
@@ -115,27 +100,29 @@ class HostsPatchesTable extends Component {
       pools[host.$pool] = true
     })
 
-    return Promise.all(map(keys(pools), installAllPatchesOnPool))
+    return Promise.all(
+      map(keys(pools), pool => installAllPatchesOnPool({ pool }))
+    )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
     this.forceUpdate()
     this._subscribeMissingPatches()
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (nextProps.hosts !== this.props.hosts) {
       this._subscribeMissingPatches(nextProps.hosts)
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.unsubscribeMissingPatches()
   }
 
-  render () {
+  render() {
     const {
       buttonsGroupContainer,
       container,
@@ -162,7 +149,6 @@ class HostsPatchesTable extends Component {
                 : MISSING_PATCHES_COLUMNS
             }
             userData={{
-              installAllHostPatches,
               missingPatches: this.state.missingPatches,
               pools,
             }}
@@ -196,7 +182,7 @@ class HostsPatchesTable extends Component {
   }
 })
 class HostsPatchesTableByPool extends Component {
-  render () {
+  render() {
     const { props } = this
     return <HostsPatchesTable {...props} pools={props.pools} />
   }

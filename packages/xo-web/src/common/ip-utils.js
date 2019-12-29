@@ -1,6 +1,5 @@
 import forEachRight from 'lodash/forEachRight'
 import forEach from 'lodash/forEach'
-import isArray from 'lodash/isArray'
 import isIp from 'is-ip'
 import some from 'lodash/some'
 
@@ -12,7 +11,7 @@ export const isIpV6 = isIp.v6
 
 const ipv4 = /^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?:\.(?!$)|$)){4}$/
 
-function ip2hex (ip) {
+function ip2hex(ip) {
   const parts = ip.split('.').map(str => parseInt(str, 10))
   let n = 0
 
@@ -24,13 +23,13 @@ function ip2hex (ip) {
   return n
 }
 
-function assertIpv4 (str, msg) {
+function assertIpv4(str, msg) {
   if (!ipv4.test(str)) {
     throw new Error(msg)
   }
 }
 
-function * range (ip1, ip2) {
+function* range(ip1, ip2) {
   assertIpv4(ip1, 'argument "ip1" must be a valid IPv4 address')
   assertIpv4(ip2, 'argument "ip2" must be a valid IPv4 address')
 
@@ -76,7 +75,7 @@ export const getNextIpV4 = ip => {
 }
 
 export const formatIps = ips => {
-  if (!isArray(ips)) {
+  if (!Array.isArray(ips)) {
     throw new Error('ips must be an array')
   }
   if (ips.length === 0) {

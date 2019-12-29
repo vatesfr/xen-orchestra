@@ -35,7 +35,7 @@ import Collection, { ModelAlreadyExists } from '../collection'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
-  constructor ({ connection, indexes = [], prefix, uri }) {
+  constructor({ connection, indexes = [], prefix, uri }) {
     super()
 
     this.indexes = indexes
@@ -64,7 +64,7 @@ export default class Redis extends Collection {
       ::ignoreErrors()
   }
 
-  rebuildIndexes () {
+  rebuildIndexes() {
     const { indexes, prefix, redis } = this
 
     if (indexes.length === 0) {
@@ -95,7 +95,7 @@ export default class Redis extends Collection {
     )
   }
 
-  _extract (ids) {
+  _extract(ids) {
     const prefix = this.prefix + ':'
     const { redis } = this
 
@@ -117,7 +117,7 @@ export default class Redis extends Collection {
     ).then(() => models)
   }
 
-  _add (models, { replace = false } = {}) {
+  _add(models, { replace = false } = {}) {
     // TODO: remove “replace” which is a temporary measure, implement
     // “set()” instead.
 
@@ -186,7 +186,7 @@ export default class Redis extends Collection {
     )
   }
 
-  _get (properties) {
+  _get(properties) {
     const { prefix, redis } = this
 
     if (isEmpty(properties)) {
@@ -217,7 +217,7 @@ export default class Redis extends Collection {
     return redis.sinter(...keys).then(ids => this._extract(ids))
   }
 
-  _remove (ids) {
+  _remove(ids) {
     if (isEmpty(ids)) {
       return
     }
@@ -255,7 +255,7 @@ export default class Redis extends Collection {
     )
   }
 
-  _update (models) {
+  _update(models) {
     return this._add(models, { replace: true })
   }
 }

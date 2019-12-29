@@ -1,0 +1,123 @@
+# Vendor config: DO NOT TOUCH!
+#
+# See sample.config.toml to override.
+
+datadir = '/var/lib/xo-server/data'
+
+# Should users be created on first sign in?
+#
+# Necessary for external authentication providers.
+createUserOnFirstSignin = true
+
+# XAPI does not support chunked encoding in HTTP requests which is necessary
+# when the content length is not know which is the case for many backup related
+# operations in XO.
+#
+# It's possible to work-around this for VHDs  because it's possible to guess
+# their size just by looking at the beginning of the stream.
+#
+# But it is a guess, not a certainty, it depends on how the VHDs are formatted
+# by XenServer.
+#
+# This has been tested for 5 months, therefore it's enabled by default but can
+# be disabled specifically for a user if necessary.
+guessVhdSizeOnImport = true
+
+# Whether API logs should contains the full request/response on
+# errors.
+#
+# This is disabled by default for performance (lots of data) and
+# security concerns (avoiding sensitive data in the logs) but can
+# be turned for investigation by the administrator.
+verboseApiLogsOnErrors = false
+
+# if no events could be fetched during this delay, the server will be marked as disconnected
+xapiMarkDisconnectedDelay = '5 minutes'
+
+# https:#github.com/websockets/ws#websocket-compression
+[apiWebSocketOptions]
+perMessageDeflate = { threshold = 524288 } # 512kiB
+
+[authentication]
+defaultTokenValidity = '30 days'
+maxTokenValidity = '0.5 year'
+
+# Default to `maxTokenValidity`
+#permanentCookieValidity = '30 days'
+
+# Default to `undefined`, ie as long as the browser is not restarted
+#
+# https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Set-Cookie#Session_cookie
+#sessionCookieValidity = '10 hours'
+
+# This is the page where unauthenticated users will be redirected to.
+#
+# For instance, it can be changed to `/signin/saml` if that's the provider that
+# should be used by default.
+defaultSignInPage = '/signin'
+
+[backup]
+# Delay for which backups listing on a remote is cached
+listingDebounce = '1 min'
+
+# This is a work-around.
+#
+# See https://github.com/vatesfr/xen-orchestra/pull/4674
+maxMergedDeltasPerRun = 2
+
+# Duration for which we can wait for the backup size before returning
+#
+# It should be short to avoid blocking the display of the available backups.
+vmBackupSizeTimeout = '2 seconds'
+
+poolMetadataTimeout = '10 minutes'
+
+# https://github.com/naugtur/blocked-at#params-and-return-value
+[blockedAtOptions]
+enabled = false
+threshold = 1000
+
+# Helmet handles HTTP security via headers
+#
+# https://helmetjs.github.io/docs/
+#[http.helmet.hsts]
+#includeSubDomains = false
+
+[[http.listen]]
+port = 80
+
+# These options are applied to all listen entries.
+[http.listenOptions]
+# Ciphers to use.
+#
+# These are the default ciphers in Node 4.2.6, we are setting
+# them explicitly for older Node versions.
+ciphers = 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
+
+# Tell Node to respect the cipher order.
+honorCipherOrder = true
+
+# Specify to use at least TLSv1.1.
+# See: https:#github.com/certsimple/minimum-tls-version
+secureOptions = 117440512
+
+[http.mounts]
+'/' = '../xo-web/dist'
+
+[remoteOptions]
+mountsDir = '/run/xo-server/mounts'
+
+# timeout in milliseconds (set to 0 to disable)
+timeout = 600e3
+
+# see https:#github.com/vatesfr/xen-orchestra/issues/3419
+# useSudo = false
+
+
+# https://github.com/facebook/jest/blob/master/packages/jest-worker/README.md#options-object-optional
+#
+#[workerOptions]
+#numWorkers = 2
+
+[xapiOptions]
+maxUncoalescedVdis = 1

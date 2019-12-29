@@ -4,15 +4,15 @@ Data are **chunked and dispersed** on multiple nodes. There is a kind of "parity
 
 Pros:
 
-* good capacity (perfect for **HDD storage**)
-* simple to setup
-* simple to maintain
-* various level of protection
+- good capacity (perfect for **HDD storage**)
+- simple to setup
+- simple to maintain
+- various level of protection
 
 Cons:
 
-* not all configrations possible (3, 5, 6 nodes and more)
-* limited performances on SSDs (replication is better in this case)
+- not all configrations possible (3, 5, 6 nodes and more)
+- limited performances on SSDs (replication is better in this case)
 
 ![pictore disperse principle]()
 
@@ -44,7 +44,7 @@ It's very similar to **RAID6**. You can lose up to 2 nodes, it will continue to 
 
 You can grow a replicated XOSAN by adding extra disperse volumes, in other words a new disperse will be like in RAID 0 with the old one. It's a **distributed-disperse** type. Some examples:
 
-* To grow a disperse 3, you need 3 new nodes. You'll add the total capacity of each disperse to make a distributed-disperse on 2x3 dispersed nodes.
-* To grow a disperse 6, you need 6 new nodes.
+- To grow a disperse 3, you need 3 new nodes. You'll add the total capacity of each disperse to make a distributed-disperse on 2x3 dispersed nodes.
+- To grow a disperse 6, you need 6 new nodes.
 
 ![growing disperse](./assets/disperse3_grow.png)

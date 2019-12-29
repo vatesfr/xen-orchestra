@@ -2,7 +2,8 @@ import createLogger from '@xen-orchestra/log'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
-import { forEach, isFunction } from 'lodash'
+import { forEach } from 'lodash'
+import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api'
@@ -52,7 +53,7 @@ const XAPI_ERROR_TO_XO_ERROR = {
 const hasPermission = (user, permission) =>
   PERMISSIONS[user.permission] >= PERMISSIONS[permission]
 
-function checkParams (method, params) {
+function checkParams(method, params) {
   const schema = method.params
   if (!schema) {
     return
@@ -60,8 +61,9 @@ function checkParams (method, params) {
 
   const result = schemaInspector.validate(
     {
-      type: 'object',
       properties: schema,
+      strict: true,
+      type: 'object',
     },
     params
   )
@@ -71,7 +73,7 @@ function checkParams (method, params) {
   }
 }
 
-function checkPermission (method) {
+function checkPermission(method) {
   /* jshint validthis: true */
 
   const { permission } = method
@@ -96,7 +98,7 @@ function checkPermission (method) {
   }
 }
 
-async function resolveParams (method, params) {
+async function resolveParams(method, params) {
   const resolve = method.resolve
   if (!resolve) {
     return params
@@ -143,7 +145,7 @@ async function resolveParams (method, params) {
 // -------------------------------------------------------------------
 
 export default class Api {
-  constructor (xo) {
+  constructor(xo) {
     this._logger = null
     this._methods = { __proto__: null }
     this._xo = xo
@@ -154,11 +156,11 @@ export default class Api {
     })
   }
 
-  get apiMethods () {
+  get apiMethods() {
     return this._methods
   }
 
-  addApiMethod (name, method) {
+  addApiMethod(name, method) {
     const methods = this._methods
 
     if (name in methods) {
@@ -174,14 +176,14 @@ export default class Api {
     return () => remove()
   }
 
-  addApiMethods (methods) {
+  addApiMethods(methods) {
     let base = ''
     const removes = []
 
     const addMethod = (method, name) => {
       name = base + name
 
-      if (isFunction(method)) {
+      if (typeof method === 'function') {
         removes.push(this.addApiMethod(name, method))
         return
       }
@@ -209,7 +211,8 @@ export default class Api {
     return remove
   }
 
-  async callApiMethod (session, name, params = {}) {
+  async callApiMethod(session, name, params = {}) {
+    const xo = this._xo
     const startTime = Date.now()
 
     const method = this._methods[name]
@@ -217,22 +220,47 @@ export default class Api {
       throw new MethodNotFound(name)
     }
 
-    // FIXME: it can cause issues if there any property assignments in
-    // XO methods called from the API.
-    const context = Object.create(this._xo, {
-      api: {
-        // Used by system.*().
-        value: this,
-      },
-      session: {
-        value: session,
-      },
-    })
+    // create the context which is an augmented XO
+    const context = (() => {
+      const descriptors = {
+        api: {
+          // Used by system.*().
+          value: this,
+        },
+        session: {
+          value: session,
+        },
+      }
+
+      let obj = xo
+      do {
+        Object.getOwnPropertyNames(obj).forEach(name => {
+          if (!(name in descriptors)) {
+            descriptors[name] = getBoundPropertyDescriptor(obj, name, xo)
+          }
+        })
+      } while ((obj = Reflect.getPrototypeOf(obj)) !== null)
+
+      return Object.create(null, descriptors)
+    })()
 
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    context.user = userId && (await this._xo.getUser(userId))
+    context.user = userId && (await xo.getUser(userId))
     const userName = context.user ? context.user.email : '(unknown user)'
+
+    const data = {
+      callId: Math.random()
+        .toString(36)
+        .slice(2),
+      userId,
+      userName,
+      method: name,
+      params: sensitiveValues.replace(params, '* obfuscated *'),
+      timestamp: Date.now(),
+    }
+
+    xo.emit('xo:preCall', data)
 
     try {
       await checkPermission.call(context, method)
@@ -245,11 +273,15 @@ export default class Api {
       //
       // The goal here is to standardize the calls by always providing
       // an id parameter when possible to simplify calls to the API.
-      if (params != null && params.id === undefined) {
+      if (params?.id === undefined) {
         const namespace = name.slice(0, name.indexOf('.'))
-        const id = params[namespace]
-        if (typeof id === 'string') {
-          params.id = id
+        const spec = method.params
+        if (spec !== undefined && 'id' in spec && !(namespace in spec)) {
+          const id = params[namespace]
+          if (typeof id === 'string') {
+            delete params[namespace]
+            params.id = id
+          }
         }
       }
 
@@ -271,22 +303,37 @@ export default class Api {
         )}] ==> ${kindOf(result)}`
       )
 
+      const now = Date.now()
+      xo.emit('xo:postCall', {
+        ...data,
+        duration: now - data.timestamp,
+        result,
+        timestamp: now,
+      })
+
       return result
     } catch (error) {
-      const data = {
-        userId,
-        method: name,
-        params: sensitiveValues.replace(params, '* obfuscated *'),
+      const serializedError = serializeError(error)
+
+      const now = Date.now()
+      xo.emit('xo:postCall', {
+        ...data,
+        duration: now - data.timestamp,
+        error: serializedError,
+        timestamp: now,
+      })
+
+      const message = `${userName} | ${name}(${JSON.stringify(
+        data.params
+      )}) [${ms(Date.now() - startTime)}] =!> ${error}`
+
+      this._logger.error(message, {
+        ...data,
         duration: Date.now() - startTime,
-        error: serializeError(error),
-      }
-      const message = `${userName} | ${name}(${JSON.stringify(params)}) [${ms(
-        Date.now() - startTime
-      )}] =!> ${error}`
+        error: serializedError,
+      })
 
-      this._logger.error(message, data)
-
-      if (this._xo._config.verboseLogsOnErrors) {
+      if (xo._config.verboseLogsOnErrors) {
         log.warn(message, { error })
       } else {
         log.warn(
@@ -300,7 +347,7 @@ export default class Api {
       if (xoError) {
         throw xoError(error.params, ref => {
           try {
-            return this._xo.getObject(ref).id
+            return xo.getObject(ref).id
           } catch (e) {
             return ref
           }

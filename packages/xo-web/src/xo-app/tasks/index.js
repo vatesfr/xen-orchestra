@@ -18,7 +18,7 @@ import {
   some,
   toArray,
 } from 'lodash'
-import { PoolItem } from 'render-xo-item'
+import { Pool } from 'render-xo-item'
 import {
   createFilter,
   createGetObject,
@@ -49,7 +49,7 @@ const TASK_ITEM_STYLE = {
   host: createGetObject((_, props) => props.item.$host),
 }))
 export class TaskItem extends Component {
-  render () {
+  render() {
     const { host, item: task } = this.props
 
     return (
@@ -73,7 +73,7 @@ export class TaskItem extends Component {
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: ({ $poolId }) => <PoolItem id={$poolId} link />,
+    itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
     sortCriteria: (task, userData) => {
       const pool = userData.pools[task.$poolId]
@@ -101,7 +101,7 @@ const COLUMNS = [
 
 const FINISHED_TASKS_COLUMNS = [
   {
-    itemRenderer: ({ $poolId }) => <PoolItem id={$poolId} link />,
+    itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
   },
   {
@@ -186,7 +186,7 @@ export default class Tasks extends Component {
     finishedTasks: [],
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const finishedTasks = differenceBy(
       flatten(toArray(this.props.pendingTasksByPool)),
       flatten(toArray(props.pendingTasksByPool)),
@@ -219,7 +219,7 @@ export default class Tasks extends Component {
     )
   )
 
-  render () {
+  render() {
     const { props } = this
     const { intl, nTasks, pools } = props
     const { formatMessage } = intl
@@ -257,6 +257,7 @@ export default class Tasks extends Component {
                 <SortedTable
                   collection={this._getFinishedTasks()}
                   columns={FINISHED_TASKS_COLUMNS}
+                  stateUrlParam='s_previous'
                 />
               </Collapse>
             </Col>

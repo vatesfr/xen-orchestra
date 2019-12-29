@@ -60,7 +60,7 @@ const LINE_STYLE = { paddingBottom: '1em' }
   { withRef: true }
 )
 export default class MigrateVmsModalBody extends BaseComponent {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this._getHostPredicate = createSelector(
@@ -79,7 +79,10 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
 
     this._getTargetNetworkPredicate = createSelector(
-      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
       pifs => {
         if (!pifs) {
           return false
@@ -95,7 +98,10 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
 
     this._getMigrationNetworkPredicate = createSelector(
-      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
       pifs => {
         if (!pifs) {
           return false
@@ -111,11 +117,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._selectHost(this.props.host)
   }
 
-  get value () {
+  get value() {
     const { host } = this.state
     const vms = filter(this.props.vms, vm => vm.$container !== host.id)
     if (!host || isEmpty(vms)) {
@@ -123,7 +129,6 @@ export default class MigrateVmsModalBody extends BaseComponent {
     }
     const { networks, pifs, vbdsByVm, vifsByVm } = this.props
     const {
-      intraPool,
       doNotMigrateVdi,
       doNotMigrateVmVdis,
       migrationNetworkId,
@@ -142,8 +147,9 @@ export default class MigrateVmsModalBody extends BaseComponent {
       forEach(vbds, vbd => {
         const vdi = vbd.VDI
         if (!vbd.is_cd_drive && vdi) {
-          mapVdisSrs[vdi] =
-            intraPool && doNotMigrateVdi[vdi] ? this._getObject(vdi).SR : srId
+          mapVdisSrs[vdi] = doNotMigrateVdi[vdi]
+            ? this._getObject(vdi).SR
+            : srId
         }
       })
       mapVmsMapVdisSrs[vm] = mapVdisSrs
@@ -189,7 +195,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     }
   }
 
-  _getObject (id) {
+  _getObject(id) {
     return getObject(store.getState(), id)
   }
 
@@ -208,29 +214,34 @@ export default class MigrateVmsModalBody extends BaseComponent {
       host.$PBDs,
       pbd => this._getObject(pbd).SR === defaultSrId
     )
+
+    const intraPool = every(this.props.vms, vm => vm.$pool === host.$pool)
     const doNotMigrateVmVdis = {}
     const doNotMigrateVdi = {}
-    forEach(this.props.vbdsByVm, (vbds, vm) => {
-      if (this._getObject(vm).$container === host.id) {
-        doNotMigrateVmVdis[vm] = true
-        return
-      }
-      const _doNotMigrateVdi = {}
-      forEach(vbds, vbd => {
-        if (vbd.VDI != null) {
-          doNotMigrateVdi[vbd.VDI] = _doNotMigrateVdi[vbd.VDI] = isSrShared(
-            this._getObject(this._getObject(vbd.VDI).$SR)
-          )
+    let noVdisMigration = false
+    if (intraPool) {
+      forEach(this.props.vbdsByVm, (vbds, vm) => {
+        if (this._getObject(vm).$container === host.id) {
+          doNotMigrateVmVdis[vm] = true
+          return
         }
+        const _doNotMigrateVdi = {}
+        forEach(vbds, vbd => {
+          if (vbd.VDI != null) {
+            doNotMigrateVdi[vbd.VDI] = _doNotMigrateVdi[vbd.VDI] = isSrShared(
+              this._getObject(this._getObject(vbd.VDI).$SR)
+            )
+          }
+        })
+        doNotMigrateVmVdis[vm] = every(_doNotMigrateVdi)
       })
-      doNotMigrateVmVdis[vm] = every(_doNotMigrateVdi)
-    })
-    const noVdisMigration = every(doNotMigrateVmVdis)
+      noVdisMigration = every(doNotMigrateVmVdis)
+    }
     this.setState({
       defaultSrConnectedToHost,
       defaultSrId,
       host,
-      intraPool: every(this.props.vms, vm => vm.$pool === host.$pool),
+      intraPool,
       doNotMigrateVdi,
       doNotMigrateVmVdis,
       migrationNetworkId: defaultMigrationNetworkId,
@@ -247,7 +258,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
   _toggleSmartVifMapping = () =>
     this.setState({ smartVifMapping: !this.state.smartVifMapping })
 
-  render () {
+  render() {
     const {
       defaultSrConnectedToHost,
       defaultSrId,

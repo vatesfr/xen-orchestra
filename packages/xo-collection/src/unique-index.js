@@ -1,4 +1,4 @@
-import { bind, iteratee } from 'lodash'
+import iteratee from 'lodash/iteratee'
 
 import clearObject from './clear-object'
 import NotImplemented from './not-implemented'
@@ -7,7 +7,7 @@ import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 // ===================================================================
 
 export default class UniqueIndex {
-  constructor (computeHash) {
+  constructor(computeHash) {
     if (computeHash) {
       this.computeHash = iteratee(computeHash)
     }
@@ -16,26 +16,26 @@ export default class UniqueIndex {
     this._keysToHash = Object.create(null)
 
     // Bound versions of listeners.
-    this._onAdd = bind(this._onAdd, this)
-    this._onUpdate = bind(this._onUpdate, this)
-    this._onRemove = bind(this._onRemove, this)
+    this._onAdd = this._onAdd.bind(this)
+    this._onUpdate = this._onUpdate.bind(this)
+    this._onRemove = this._onRemove.bind(this)
   }
 
   // This method is used to compute the hash under which an item must
   // be saved.
-  computeHash (value, key) {
+  computeHash(value, key) {
     throw new NotImplemented('this method must be overridden')
   }
 
   // -----------------------------------------------------------------
 
-  get items () {
+  get items() {
     return this._itemByHash
   }
 
   // -----------------------------------------------------------------
 
-  _attachCollection (collection) {
+  _attachCollection(collection) {
     // Add existing entries.
     //
     // FIXME: I think there may be a race condition if the `add` event
@@ -47,7 +47,7 @@ export default class UniqueIndex {
     collection.on(ACTION_REMOVE, this._onRemove)
   }
 
-  _detachCollection (collection) {
+  _detachCollection(collection) {
     collection.removeListener(ACTION_ADD, this._onAdd)
     collection.removeListener(ACTION_UPDATE, this._onUpdate)
     collection.removeListener(ACTION_REMOVE, this._onRemove)
@@ -58,7 +58,7 @@ export default class UniqueIndex {
 
   // -----------------------------------------------------------------
 
-  _onAdd (items) {
+  _onAdd(items) {
     const {
       computeHash,
       _itemByHash: itemByHash,
@@ -77,7 +77,7 @@ export default class UniqueIndex {
     }
   }
 
-  _onUpdate (items) {
+  _onUpdate(items) {
     const {
       computeHash,
       _itemByHash: itemByHash,
@@ -103,7 +103,7 @@ export default class UniqueIndex {
     }
   }
 
-  _onRemove (items) {
+  _onRemove(items) {
     const { _itemByHash: itemByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {

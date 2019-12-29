@@ -6,51 +6,51 @@ import { mapToArray } from '../../utils'
 const log = createLogger('xo:storage')
 
 export default {
-  _connectAllSrPbds (sr) {
+  _connectAllSrPbds(sr) {
     return Promise.all(mapToArray(sr.$PBDs, pbd => this._plugPbd(pbd)))
   },
 
-  async connectAllSrPbds (id) {
+  async connectAllSrPbds(id) {
     await this._connectAllSrPbds(this.getObject(id))
   },
 
-  _disconnectAllSrPbds (sr) {
+  _disconnectAllSrPbds(sr) {
     return Promise.all(mapToArray(sr.$PBDs, pbd => this._unplugPbd(pbd)))
   },
 
-  async disconnectAllSrPbds (id) {
+  async disconnectAllSrPbds(id) {
     await this._disconnectAllSrPbds(this.getObject(id))
   },
 
-  async destroySr (id) {
+  async destroySr(id) {
     const sr = this.getObject(id)
     await this._disconnectAllSrPbds(sr)
     await this.call('SR.destroy', sr.$ref)
   },
 
-  async forgetSr (id) {
+  async forgetSr(id) {
     const sr = this.getObject(id)
     await this._disconnectAllSrPbds(sr)
     await this.call('SR.forget', sr.$ref)
   },
 
-  _plugPbd (pbd) {
-    return this.call('PBD.plug', pbd.$ref)
+  _plugPbd(pbd) {
+    return this.callAsync('PBD.plug', pbd.$ref)
   },
 
-  async plugPbd (id) {
+  async plugPbd(id) {
     await this._plugPbd(this.getObject(id))
   },
 
-  _unplugPbd (pbd) {
-    return this.call('PBD.unplug', pbd.$ref)
+  _unplugPbd(pbd) {
+    return this.callAsync('PBD.unplug', pbd.$ref)
   },
 
-  async unplugPbd (id) {
+  async unplugPbd(id) {
     await this._unplugPbd(this.getObject(id))
   },
 
-  _getUnhealthyVdiChainLength (uuid, childrenMap, cache) {
+  _getUnhealthyVdiChainLength(uuid, childrenMap, cache) {
     let length = cache[uuid]
     if (length === undefined) {
       const children = childrenMap[uuid]
@@ -68,7 +68,7 @@ export default {
     return length
   },
 
-  getUnhealthyVdiChainsLength (sr) {
+  getUnhealthyVdiChainsLength(sr) {
     const vdis = this.getObject(sr).$VDIs
     const unhealthyVdis = { __proto__: null }
     const children = groupBy(vdis, 'sm_config.vhd-parent')
@@ -83,5 +83,33 @@ export default {
       }
     })
     return unhealthyVdis
+  },
+
+  async createSr({
+    hostRef,
+
+    content_type = 'user', // recommended by Citrix
+    device_config = {},
+    name_description = '',
+    name_label,
+    shared = false,
+    physical_size = 0,
+    sm_config = {},
+    type,
+  }) {
+    const srRef = await this.call(
+      'SR.create',
+      hostRef,
+      device_config,
+      physical_size,
+      name_label,
+      name_description,
+      type,
+      content_type,
+      shared,
+      sm_config
+    )
+
+    return (await this.barrier(srRef)).uuid
   },
 }

@@ -100,7 +100,7 @@ export default class Graph extends Component {
     nSrs: PropTypes.number,
   }
 
-  render () {
+  render() {
     const { layout, redundancy, nSrs, width, height } = this.props
 
     return (

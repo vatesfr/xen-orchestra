@@ -9,11 +9,7 @@ same identifier.
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-auth-github):
-
-```
-> npm install --global xo-server-auth-github
-```
+For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
 ## Usage
 
@@ -50,7 +46,7 @@ The sources files are watched and automatically recompiled on changes.
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

@@ -1,0 +1,38 @@
+{
+  "name": "xo-server-sdn-controller",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-sdn-controller",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "packages/xo-server-sdn-controller",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "main": "./dist",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "rimraf dist/",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
+  },
+  "version": "0.3.1",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.4.4",
+    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
+    "@babel/preset-env": "^7.4.4",
+    "cross-env": "^6.0.3"
+  },
+  "dependencies": {
+    "@xen-orchestra/log": "^0.2.0",
+    "lodash": "^4.17.11",
+    "node-openssl-cert": "^0.0.117",
+    "promise-toolbox": "^0.15.0",
+    "uuid": "^3.3.2"
+  },
+  "private": true
+}

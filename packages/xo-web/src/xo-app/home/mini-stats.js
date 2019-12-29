@@ -30,15 +30,15 @@ export default class MiniStats extends Component {
     })
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._fetch()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this._timeout)
   }
 
-  render () {
+  render() {
     const { stats } = this.state
 
     if (stats === undefined) {

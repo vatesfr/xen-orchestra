@@ -6,8 +6,22 @@ import parse from './parse'
 const MAX_DELAY = 2 ** 31 - 1
 
 class Job {
-  constructor (schedule, fn) {
+  constructor(schedule, fn) {
+    let scheduledDate
     const wrapper = () => {
+      const now = Date.now()
+      if (scheduledDate > now) {
+        // we're early, delay
+        //
+        // no need to check _isEnabled, we're just delaying the existing timeout
+        //
+        // see https://github.com/vatesfr/xen-orchestra/issues/4625
+        this._timeout = setTimeout(wrapper, scheduledDate - now)
+        return
+      }
+
+      this._isRunning = true
+
       let result
       try {
         result = fn()
@@ -22,29 +36,42 @@ class Job {
       }
     }
     const scheduleNext = () => {
-      const delay = schedule._nextDelay()
-      this._timeout =
-        delay < MAX_DELAY
-          ? setTimeout(wrapper, delay)
-          : setTimeout(scheduleNext, MAX_DELAY)
+      this._isRunning = false
+
+      if (this._isEnabled) {
+        const now = schedule._createDate()
+        scheduledDate = +next(schedule._schedule, now)
+        const delay = scheduledDate - now
+        this._timeout =
+          delay < MAX_DELAY
+            ? setTimeout(wrapper, delay)
+            : setTimeout(scheduleNext, MAX_DELAY)
+      }
     }
 
+    this._isEnabled = false
+    this._isRunning = false
     this._scheduleNext = scheduleNext
     this._timeout = undefined
   }
 
-  start () {
+  start() {
     this.stop()
-    this._scheduleNext()
+
+    this._isEnabled = true
+    if (!this._isRunning) {
+      this._scheduleNext()
+    }
   }
 
-  stop () {
+  stop() {
+    this._isEnabled = false
     clearTimeout(this._timeout)
   }
 }
 
 class Schedule {
-  constructor (pattern, zone = 'utc') {
+  constructor(pattern, zone = 'utc') {
     this._schedule = parse(pattern)
     this._createDate =
       zone.toLowerCase() === 'utc'
@@ -54,11 +81,11 @@ class Schedule {
         : () => moment.tz(zone)
   }
 
-  createJob (fn) {
+  createJob(fn) {
     return new Job(this, fn)
   }
 
-  next (n) {
+  next(n) {
     const dates = new Array(n)
     const schedule = this._schedule
     let date = this._createDate()
@@ -68,12 +95,7 @@ class Schedule {
     return dates
   }
 
-  _nextDelay () {
-    const now = this._createDate()
-    return next(this._schedule, now) - now
-  }
-
-  startJob (fn) {
+  startJob(fn) {
     const job = this.createJob(fn)
     job.start()
     return job.stop.bind(job)

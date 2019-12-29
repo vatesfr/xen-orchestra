@@ -23,10 +23,14 @@ import ResourceSetQuotas from 'resource-set-quotas'
 import some from 'lodash/some'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SizeInput } from 'form'
-
+import { addSubscriptions, adminOnly, connectStore, resolveIds } from 'utils'
+import {
+  createGetObjectsOfType,
+  createSelector,
+  getResolvedResourceSets,
+} from 'selectors'
 import {
   createResourceSet,
   deleteResourceSet,
@@ -35,14 +39,6 @@ import {
   subscribeIpPools,
   subscribeResourceSets,
 } from 'xo'
-
-import {
-  addSubscriptions,
-  connectStore,
-  resolveIds,
-  resolveResourceSets,
-} from 'utils'
-
 import {
   SelectIpPool,
   SelectNetwork,
@@ -138,7 +134,7 @@ export class Edit extends Component {
     resourceSet: PropTypes.object,
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -157,7 +153,7 @@ export class Edit extends Component {
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { resourceSet } = this.props
 
     if (resourceSet) {
@@ -355,7 +351,7 @@ export class Edit extends Component {
 
   // -----------------------------------------------------------------------------
 
-  render () {
+  render() {
     const { state } = this
     const { resourceSet } = this.props
 
@@ -664,17 +660,20 @@ class ResourceSet extends Component {
   }
 
   _autoExpand = ref => {
-    if (ref && ref.scrollIntoView) {
+    if (ref && ref.scrollIntoView && this.props.autoExpand) {
       ref.scrollIntoView()
     }
   }
 
-  render () {
+  render() {
     const { resourceSet, autoExpand } = this.props
 
     return (
       <div className='mb-1' ref={this._autoExpand}>
-        <Collapse buttonText={resourceSet.name} defaultOpen={autoExpand}>
+        <Collapse
+          buttonText={`${resourceSet.name} (${resourceSet.id})`}
+          defaultOpen={autoExpand}
+        >
           <ul className='list-group'>
             {this.state.editionMode ? (
               <Edit
@@ -701,23 +700,22 @@ class ResourceSet extends Component {
 
 const compareName = (a, b) => (a.name < b.name ? -1 : 1)
 
+@adminOnly
+@addSubscriptions({ resourceSets: subscribeResourceSets })
+@connectStore({ resolvedResourceSets: getResolvedResourceSets })
 export default class Self extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {}
   }
 
-  componentWillMount () {
-    this.componentWillUnmount = subscribeResourceSets(resourceSets => {
-      this.setState({
-        resourceSets: resolveResourceSets(resourceSets).sort(compareName),
-      })
-    })
-  }
+  _getSortedResourceSets = createSelector(
+    () => this.props.resolvedResourceSets,
+    resolvedResourceSets => resolvedResourceSets.sort(compareName)
+  )
 
-  render () {
-    const { resourceSets, showNewResourceSetForm } = this.state
-    const { location } = this.props
+  render() {
+    const resourceSets = this._getSortedResourceSets()
 
     return (
       <Page formatTitle header={HEADER} title='selfServicePage'>
@@ -739,24 +737,24 @@ export default class Self extends Component {
                 {_('recomputeResourceSets')}
               </ActionButton>
             </div>
-            {showNewResourceSetForm && [
+            {this.state.showNewResourceSetForm && [
               <Edit
                 key={0}
                 onSave={this.toggleState('showNewResourceSetForm')}
               />,
               <hr key={1} />,
             ]}
-            {resourceSets
-              ? isEmpty(resourceSets)
-                ? _('noResourceSets')
-                : map(resourceSets, resourceSet => (
-                    <ResourceSet
-                      autoExpand={location.query.resourceSet === resourceSet.id}
-                      key={resourceSet.id}
-                      resourceSet={resourceSet}
-                    />
-                  ))
-              : _('loadingResourceSets')}
+            {isEmpty(resourceSets)
+              ? _('noResourceSets')
+              : map(resourceSets, resourceSet => (
+                  <ResourceSet
+                    autoExpand={
+                      this.props.location.query.resourceSet === resourceSet.id
+                    }
+                    key={resourceSet.id}
+                    resourceSet={resourceSet}
+                  />
+                ))}
           </div>
         ) : (
           <Container>

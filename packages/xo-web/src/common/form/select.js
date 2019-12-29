@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import isEmpty from 'lodash/isEmpty'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactSelect from 'react-select'
@@ -24,7 +23,6 @@ export default class Select extends React.PureComponent {
     maxHeight: 200,
 
     multi: ReactSelect.defaultProps.multi,
-    options: [],
     required: ReactSelect.defaultProps.required,
     simpleValue: ReactSelect.defaultProps.simpleValue,
     valueKey: ReactSelect.defaultProps.valueKey,
@@ -33,7 +31,7 @@ export default class Select extends React.PureComponent {
   static propTypes = {
     autoSelectSingleOption: PropTypes.bool, // default to props.required
     maxHeight: PropTypes.number,
-    options: PropTypes.array.isRequired, // cannot be an object
+    options: PropTypes.array, // cannot be an object
   }
 
   _cellMeasurerCache = new CellMeasurerCache({
@@ -41,7 +39,7 @@ export default class Select extends React.PureComponent {
   })
 
   // https://github.com/JedWatson/react-select/blob/dd32c27d7ea338a93159da5e40bc06697d0d86f9/src/utils/defaultMenuRenderer.js#L4
-  _renderMenu (opts) {
+  _renderMenu(opts) {
     const { focusOption, options, selectValue } = opts
 
     const focusFromEvent = event =>
@@ -87,7 +85,7 @@ export default class Select extends React.PureComponent {
   }
   _renderMenu = this._renderMenu.bind(this)
 
-  _renderRow (
+  _renderRow(
     {
       focusedOption,
       focusOption,
@@ -129,11 +127,11 @@ export default class Select extends React.PureComponent {
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.componentDidUpdate()
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     const { props } = this
     const {
       autoSelectSingleOption = props.required,
@@ -157,7 +155,7 @@ export default class Select extends React.PureComponent {
     }
   }
 
-  render () {
+  render() {
     const { props } = this
     const { multi } = props
     return (
@@ -165,7 +163,7 @@ export default class Select extends React.PureComponent {
         backspaceToRemoveMessage=''
         clearable={multi || !props.required}
         closeOnSelect={!multi}
-        isLoading={!props.disabled && isEmpty(props.options)}
+        isLoading={!props.disabled && props.options == null}
         style={SELECT_STYLE}
         valueRenderer={props.optionRenderer}
         {...props}

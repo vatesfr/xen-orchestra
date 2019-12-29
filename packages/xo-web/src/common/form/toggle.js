@@ -32,7 +32,7 @@ export default class Toggle extends Component {
     }
   }
 
-  render () {
+  render() {
     const { props } = this
 
     return (

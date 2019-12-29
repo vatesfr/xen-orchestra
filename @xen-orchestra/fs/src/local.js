@@ -1,50 +1,87 @@
+import df from '@sindresorhus/df'
 import fs from 'fs-extra'
-import { dirname, resolve } from 'path'
-import { noop, startsWith } from 'lodash'
+import { fromEvent } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
-  get type () {
+  get type() {
     return 'file'
   }
 
-  _getRealPath () {
+  _getRealPath() {
     return this._remote.path
   }
 
-  _getFilePath (file) {
-    const realPath = this._getRealPath()
-    const parts = [realPath]
-    if (file) {
-      parts.push(file)
+  _getFilePath(file) {
+    return this._getRealPath() + file
+  }
+
+  async _closeFile(fd) {
+    return fs.close(fd)
+  }
+
+  async _createReadStream(file, options) {
+    if (typeof file === 'string') {
+      const stream = fs.createReadStream(this._getFilePath(file), options)
+      await fromEvent(stream, 'open')
+      return stream
     }
-    const path = resolve.apply(null, parts)
-    if (!startsWith(path, realPath)) {
-      throw new Error('Remote path is unavailable')
+    return fs.createReadStream('', {
+      autoClose: false,
+      ...options,
+      fd: file.fd,
+    })
+  }
+
+  async _createWriteStream(file, options) {
+    if (typeof file === 'string') {
+      const stream = fs.createWriteStream(this._getFilePath(file), options)
+      await fromEvent(stream, 'open')
+      return stream
     }
-    return path
+    return fs.createWriteStream('', {
+      autoClose: false,
+      ...options,
+      fd: file.fd,
+    })
   }
 
-  async _sync () {
-    const path = this._getRealPath()
-    await fs.ensureDir(path)
-    await fs.access(path, fs.R_OK | fs.W_OK)
+  async _getInfo() {
+    // df.file() resolves with an object with the following properties:
+    // filesystem, type, size, used, available, capacity and mountpoint.
+    // size, used, available and capacity may be `NaN` so we remove any `NaN`
+    // value from the object.
+    const info = await df.file(this._getFilePath('/'))
+    Object.keys(info).forEach(key => {
+      if (Number.isNaN(info[key])) {
+        delete info[key]
+      }
+    })
 
-    return this._remote
+    return info
   }
 
-  async _forget () {
-    return noop()
+  async _getSize(file) {
+    const stats = await fs.stat(
+      this._getFilePath(typeof file === 'string' ? file : file.path)
+    )
+    return stats.size
   }
 
-  async _outputFile (file, data, options) {
-    const path = this._getFilePath(file)
-    await fs.ensureDir(dirname(path))
-    await fs.writeFile(path, data, options)
+  async _list(dir) {
+    return fs.readdir(this._getFilePath(dir))
   }
 
-  async _read (file, buffer, position) {
+  _mkdir(dir) {
+    return fs.mkdir(this._getFilePath(dir))
+  }
+
+  async _openFile(path, flags) {
+    return fs.open(this._getFilePath(path), flags)
+  }
+
+  async _read(file, buffer, position) {
     const needsClose = typeof file === 'string'
     file = needsClose ? await fs.open(this._getFilePath(file), 'r') : file.fd
     try {
@@ -62,62 +99,37 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async _readFile (file, options) {
+  async _readFile(file, options) {
     return fs.readFile(this._getFilePath(file), options)
   }
 
-  async _rename (oldPath, newPath) {
+  async _rename(oldPath, newPath) {
     return fs.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
   }
 
-  async _list (dir = '.') {
-    return fs.readdir(this._getFilePath(dir))
+  async _rmdir(dir) {
+    return fs.rmdir(this._getFilePath(dir))
   }
 
-  async _createReadStream (file, options) {
-    return typeof file === 'string'
-      ? fs.createReadStream(this._getFilePath(file), options)
-      : fs.createReadStream('', {
-          autoClose: false,
-          ...options,
-          fd: file.fd,
-        })
+  async _sync() {
+    const path = this._getRealPath('/')
+    await fs.ensureDir(path)
+    await fs.access(path, fs.R_OK | fs.W_OK)
   }
 
-  async _createOutputStream (file, options) {
-    if (typeof file === 'string') {
-      const path = this._getFilePath(file)
-      await fs.ensureDir(dirname(path))
-      return fs.createWriteStream(path, options)
-    }
-    return fs.createWriteStream('', {
-      autoClose: false,
-      ...options,
-      fd: file.fd,
-    })
+  _truncate(file, len) {
+    return fs.truncate(this._getFilePath(file), len)
   }
 
-  async _unlink (file) {
-    return fs.unlink(this._getFilePath(file)).catch(error => {
-      // do not throw if the file did not exist
-      if (error == null || error.code !== 'ENOENT') {
-        throw error
-      }
-    })
+  async _unlink(file) {
+    return fs.unlink(this._getFilePath(file))
   }
 
-  async _getSize (file) {
-    const stats = await fs.stat(
-      this._getFilePath(typeof file === 'string' ? file : file.path)
-    )
-    return stats.size
+  _writeFd(file, buffer, position) {
+    return fs.write(file.fd, buffer, 0, buffer.length, position)
   }
 
-  async _openFile (path, flags) {
-    return fs.open(this._getFilePath(path), flags)
-  }
-
-  async _closeFile (fd) {
-    return fs.close(fd)
+  _writeFile(file, data, { flags }) {
+    return fs.writeFile(this._getFilePath(file), data, { flag: flags })
   }
 }

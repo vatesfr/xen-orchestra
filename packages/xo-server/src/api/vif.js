@@ -5,7 +5,7 @@ import { diffItems } from '../utils'
 // ===================================================================
 
 // TODO: move into vm and rename to removeInterface
-async function delete_ ({ vif }) {
+async function delete_({ vif }) {
   this.allocIpAddresses(
     vif.id,
     null,
@@ -27,7 +27,7 @@ delete_.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: move into vm and rename to disconnectInterface
-export async function disconnect ({ vif }) {
+export async function disconnect({ vif }) {
   // TODO: check if VIF is attached before
   await this.getXapi(vif).disconnectVif(vif._xapiId)
 }
@@ -42,7 +42,7 @@ disconnect.resolve = {
 
 // -------------------------------------------------------------------
 // TODO: move into vm and rename to connectInterface
-export async function connect ({ vif }) {
+export async function connect({ vif }) {
   // TODO: check if VIF is attached before
   await this.getXapi(vif).connectVif(vif._xapiId)
 }
@@ -57,13 +57,14 @@ connect.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function set ({
+export async function set({
   vif,
   network,
   mac,
   allowedIpv4Addresses,
   allowedIpv6Addresses,
   attached,
+  rateLimit,
 }) {
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(
     vif.allowedIpv6Addresses
@@ -91,6 +92,9 @@ export async function set ({
       mac,
       currently_attached: attached,
       ipv4_allowed: newIpAddresses,
+      qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
+      qos_algorithm_params:
+        rateLimit != null ? { kbps: String(rateLimit) } : undefined,
     })
 
     await this.allocIpAddresses(newVif.$id, newIpAddresses)
@@ -107,6 +111,7 @@ export async function set ({
   return this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
     ipv6Allowed: allowedIpv6Addresses,
+    rateLimit,
   })
 }
 
@@ -129,6 +134,11 @@ set.params = {
     optional: true,
   },
   attached: { type: 'boolean', optional: true },
+  rateLimit: {
+    description: 'in kilobytes per seconds',
+    optional: true,
+    type: ['number', 'null'],
+  },
 }
 
 set.resolve = {

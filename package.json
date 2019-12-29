@@ -4,25 +4,27 @@
     "@babel/register": "^7.0.0",
     "babel-core": "^7.0.0-0",
     "babel-eslint": "^10.0.1",
-    "babel-jest": "^23.0.1",
+    "babel-jest": "^24.1.0",
     "benchmark": "^2.1.4",
-    "eslint": "^5.1.0",
-    "eslint-config-prettier": "^3.3.0",
-    "eslint-config-standard": "12.0.0",
-    "eslint-config-standard-jsx": "^6.0.2",
+    "eslint": "^6.0.1",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-config-standard": "14.1.0",
+    "eslint-config-standard-jsx": "^8.1.0",
+    "eslint-plugin-eslint-comments": "^3.1.1",
     "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-node": "^8.0.0",
+    "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.0.0",
     "eslint-plugin-react": "^7.6.1",
     "eslint-plugin-standard": "^4.0.0",
     "exec-promise": "^0.7.0",
-    "flow-bin": "^0.86.0",
-    "globby": "^8.0.0",
-    "husky": "^1.0.0-rc.15",
-    "jest": "^23.0.1",
+    "flow-bin": "^0.114.0",
+    "globby": "^10.0.0",
+    "husky": "^3.0.0",
+    "jest": "^24.1.0",
+    "lint-staged": "^9.5.0",
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
-    "promise-toolbox": "^0.11.0",
+    "promise-toolbox": "^0.15.0",
     "sorted-object": "^2.0.1"
   },
   "engines": {
@@ -30,11 +32,10 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "scripts/lint-staged"
+      "pre-commit": "lint-staged && scripts/lint-staged"
     }
   },
   "jest": {
-    "timers": "fake",
     "collectCoverage": true,
     "projects": [
       "<rootDir>"
@@ -42,12 +43,20 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/dist/",
+      "/xo-server-test/",
       "/xo-web/"
     ],
     "testRegex": "\\.spec\\.js$",
+    "timers": "fake",
     "transform": {
       "\\.jsx?$": "babel-jest"
     }
+  },
+  "lint-staged": {
+    "*.{md,ts,ts}": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "private": true,
   "scripts": {
@@ -58,6 +67,7 @@
     "posttest": "scripts/run-script test",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
+    "prettify": "prettier --ignore-path .gitignore --write '**/*.{js,jsx,md,mjs,ts,tsx}'",
     "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "travis-tests": "scripts/travis-tests"

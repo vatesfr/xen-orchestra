@@ -4,14 +4,14 @@ import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
 import { PluginsMetadata } from '../models/plugin-metadata'
-import { isFunction, mapToArray } from '../utils'
+import { mapToArray } from '../utils'
 
 // ===================================================================
 
 const log = createLogger('xo:xo-mixins:plugins')
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     this._ajv = new Ajv({
       useDefaults: true,
     })
@@ -34,7 +34,7 @@ export default class {
     })
   }
 
-  _getRawPlugin (id) {
+  _getRawPlugin(id) {
     const plugin = this._plugins[id]
     if (!plugin) {
       throw noSuchObject(id, 'plugin')
@@ -42,12 +42,12 @@ export default class {
     return plugin
   }
 
-  async _getPluginMetadata (id) {
+  async _getPluginMetadata(id) {
     const metadata = await this._pluginsMetadata.first(id)
     return metadata?.properties
   }
 
-  async registerPlugin (
+  async registerPlugin(
     name,
     instance,
     configurationSchema,
@@ -60,14 +60,14 @@ export default class {
     const plugin = (this._plugins[id] = {
       configurationPresets,
       configurationSchema,
-      configured: !configurationSchema,
+      configured: configurationSchema === undefined,
       description,
       id,
       instance,
       name,
-      testable: isFunction(instance.test),
+      testable: typeof instance.test === 'function',
       testSchema,
-      unloadable: isFunction(instance.unload),
+      unloadable: typeof instance.unload === 'function',
       version,
     })
 
@@ -84,12 +84,17 @@ export default class {
       })
     }
 
-    if (configurationSchema !== undefined) {
-      if (configuration === undefined) {
-        return
+    if (!plugin.configured) {
+      const tryEmptyConfig = configuration === undefined
+      try {
+        await this._configurePlugin(plugin, tryEmptyConfig ? {} : configuration)
+      } catch (error) {
+        // dont throw any error in case the empty config did not work
+        if (tryEmptyConfig) {
+          return
+        }
+        throw error
       }
-
-      await this._configurePlugin(plugin, configuration)
     }
 
     if (autoload) {
@@ -97,7 +102,7 @@ export default class {
     }
   }
 
-  async _getPlugin (id) {
+  async _getPlugin(id) {
     const {
       configurationPresets,
       configurationSchema,
@@ -128,14 +133,14 @@ export default class {
     }
   }
 
-  async getPlugins () {
+  async getPlugins() {
     return /* await */ Promise.all(
       mapToArray(this._plugins, ({ id }) => this._getPlugin(id))
     )
   }
 
   // Validate the configuration and configure the plugin instance.
-  async _configurePlugin (plugin, configuration) {
+  async _configurePlugin(plugin, configuration) {
     const { configurationSchema } = plugin
 
     if (!configurationSchema) {
@@ -164,9 +169,9 @@ export default class {
 
   // Validate the configuration, configure the plugin instance and
   // save the new configuration.
-  async configurePlugin (id, configuration) {
+  async configurePlugin(id, configuration) {
     const plugin = this._getRawPlugin(id)
-    const metadata = await this._getPluginMetadata()
+    const metadata = await this._getPluginMetadata(id)
 
     if (metadata !== undefined) {
       configuration = sensitiveValues.merge(
@@ -181,19 +186,19 @@ export default class {
     await this._pluginsMetadata.merge(id, { configuration })
   }
 
-  async disablePluginAutoload (id) {
+  async disablePluginAutoload(id) {
     // TODO: handle case where autoload is already disabled.
 
     await this._pluginsMetadata.merge(id, { autoload: false })
   }
 
-  async enablePluginAutoload (id) {
+  async enablePluginAutoload(id) {
     // TODO: handle case where autoload is already enabled.
 
     await this._pluginsMetadata.merge(id, { autoload: true })
   }
 
-  async loadPlugin (id) {
+  async loadPlugin(id) {
     const plugin = this._getRawPlugin(id)
     if (plugin.loaded) {
       throw invalidParameters('plugin already loaded')
@@ -203,11 +208,20 @@ export default class {
       throw invalidParameters('plugin not configured')
     }
 
-    await plugin.instance.load()
-    plugin.loaded = true
+    if (plugin.loading) {
+      throw invalidParameters('plugin is loading')
+    }
+
+    plugin.loading = true
+    try {
+      await plugin.instance.load()
+      plugin.loaded = true
+    } finally {
+      plugin.loading = false
+    }
   }
 
-  async unloadPlugin (id) {
+  async unloadPlugin(id) {
     const plugin = this._getRawPlugin(id)
     if (!plugin.loaded) {
       throw invalidParameters('plugin already unloaded')
@@ -221,11 +235,11 @@ export default class {
     plugin.loaded = false
   }
 
-  async purgePluginConfiguration (id) {
+  async purgePluginConfiguration(id) {
     await this._pluginsMetadata.merge(id, { configuration: undefined })
   }
 
-  async testPlugin (id, data) {
+  async testPlugin(id, data) {
     const plugin = this._getRawPlugin(id)
     if (!plugin.testable) {
       throw invalidParameters('plugin not testable')

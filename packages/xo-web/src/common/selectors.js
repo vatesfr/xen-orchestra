@@ -2,17 +2,18 @@ import add from 'lodash/add'
 import { check as checkPermissions } from 'xo-acl-resolver'
 import { createSelector as create } from 'reselect'
 import {
+  difference,
   filter,
   find,
   forEach,
   groupBy,
   identity,
-  isArray,
   isArrayLike,
-  isFunction,
+  isEmpty,
   keys,
   map,
   orderBy,
+  pick,
   pickBy,
   size,
   slice,
@@ -68,7 +69,7 @@ const _SELECTOR_PLACEHOLDER = Symbol('selector placeholder')
 const _create2 = (...inputs) => {
   const resultFn = inputs.pop()
 
-  if (inputs.length === 1 && isArray(inputs[0])) {
+  if (inputs.length === 1 && Array.isArray(inputs[0])) {
     inputs = inputs[0]
   }
 
@@ -78,10 +79,10 @@ const _create2 = (...inputs) => {
   for (let i = 0; i < n; ++i) {
     const input = inputs[i]
 
-    if (isFunction(input)) {
+    if (typeof input === 'function') {
       inputSelectors.push(input)
       inputs[i] = _SELECTOR_PLACEHOLDER
-    } else if (isArray(input) && input.length === 1) {
+    } else if (Array.isArray(input) && input.length === 1) {
       inputs[i] = input[0]
     }
   }
@@ -90,7 +91,7 @@ const _create2 = (...inputs) => {
     throw new Error('no input selectors')
   }
 
-  return create(inputSelectors, function () {
+  return create(inputSelectors, function() {
     const args = new Array(n)
     for (let i = 0, j = 0; i < n; ++i) {
       const input = inputs[i]
@@ -210,6 +211,8 @@ export const getStatus = state => state.status
 
 export const getUser = state => state.user
 
+export const getXoaState = state => state.xoaUpdaterState
+
 export const getCheckPermissions = invoke(() => {
   const getPredicate = create(
     state => state.permissions,
@@ -270,13 +273,13 @@ const _getPermissionsPredicate = invoke(() => {
     }
   )
 
-  return state => {
+  return (state, props, useResourceSet) => {
     const user = getUser(state)
     if (!user) {
       return false
     }
 
-    if (user.permission === 'admin') {
+    if (user.permission === 'admin' || useResourceSet) {
       return // No predicate means no filtering.
     }
 
@@ -329,8 +332,8 @@ export const createSortForType = invoke(() => {
   const iterateesByType = {
     message: message => message.time,
     PIF: pif => pif.device,
+    patch: patch => patch.name,
     pool: pool => pool.name_label,
-    pool_patch: patch => patch.name,
     tag: tag => tag,
     VBD: vbd => vbd.position,
     'VDI-snapshot': snapshot => snapshot.snapshot_time,
@@ -347,7 +350,9 @@ export const createSortForType = invoke(() => {
   const getOrders = type => ordersByType[type]
 
   const autoSelector = (type, fn) =>
-    isFunction(type) ? (state, props) => fn(type(state, props)) : [fn(type)]
+    typeof type === 'function'
+      ? (state, props) => fn(type(state, props))
+      : [fn(type)]
 
   return (type, collection) =>
     createSort(
@@ -418,9 +423,11 @@ const _extendCollectionSelector = (selector, objectsType) => {
 // - sort: returns a selector which returns the objects appropriately
 //         sorted (groupBy can be chained)
 export const createGetObjectsOfType = type => {
-  const getObjects = isFunction(type)
-    ? (state, props) => state.objects.byType[type(state, props)] || EMPTY_OBJECT
-    : state => state.objects.byType[type] || EMPTY_OBJECT
+  const getObjects =
+    typeof type === 'function'
+      ? (state, props) =>
+          state.objects.byType[type(state, props)] || EMPTY_OBJECT
+      : state => state.objects.byType[type] || EMPTY_OBJECT
 
   return _extendCollectionSelector(
     createFilter(getObjects, _getPermissionsPredicate),
@@ -491,37 +498,18 @@ export const createGetObjectMessages = objectSelector =>
 export const getObject = createGetObject((_, id) => id)
 
 export const createDoesHostNeedRestart = hostSelector => {
-  // XS < 7.1
-  const patchRequiresReboot = createGetObjectsOfType('pool_patch')
-    .pick(
-      // Returns the first patch of the host which requires it to be
-      // restarted.
-      create(
-        createGetObjectsOfType('host_patch')
-          .pick((state, props) => {
-            const host = hostSelector(state, props)
-            return host && host.patches
-          })
-          .filter(
-            create(
-              (state, props) => {
-                const host = hostSelector(state, props)
-                return host && host.startTime
-              },
-              startTime => patch => patch.time > startTime
-            )
-          ),
-        hostPatches => map(hostPatches, hostPatch => hostPatch.pool_patch)
+  const patchRequiresReboot = createGetObjectsOfType('patch')
+    .pick(create(hostSelector, host => host.patches))
+    .find(
+      create(hostSelector, host => ({ guidance, time, upgrade }) =>
+        time > host.startTime &&
+        (upgrade ||
+          some(
+            guidance,
+            action => action === 'restartHost' || action === 'restartXapi'
+          ))
       )
     )
-    .find([
-      ({ guidance, upgrade }) =>
-        upgrade ||
-        find(
-          guidance,
-          action => action === 'restartHost' || action === 'restartXapi'
-        ),
-    ])
 
   return create(
     hostSelector,
@@ -562,8 +550,55 @@ export const createGetVmDisks = vmSelector =>
     )
   )
 
+export const createGetLoneSnapshots = createGetObjectsOfType(
+  'VM-snapshot'
+).filter(
+  create(
+    _createCollectionWrapper(
+      (_, props) => props.schedules !== undefined && map(props.schedules, 'id')
+    ),
+    scheduleIds =>
+      scheduleIds
+        ? _ => {
+            const scheduleId = _.other['xo:backup:schedule']
+            return scheduleId !== undefined && !scheduleIds.includes(scheduleId)
+          }
+        : false
+  )
+)
+
 export const getIsPoolAdmin = create(
   create(createGetObjectsOfType('pool'), _createCollectionWrapper(Object.keys)),
   getCheckPermissions,
   (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
+)
+
+export const getResolvedResourceSets = create(
+  (_, props) => props.resourceSets,
+  createGetObjectsOfType('network'),
+  createGetObjectsOfType('SR'),
+  createGetObjectsOfType('VM-template'),
+  (resourceSets, networks, srs, vms) =>
+    map(resourceSets, resourceSet => {
+      const { objects, ...attrs } = resourceSet
+      const objectsByType = {}
+      const objectsFound = []
+
+      const resolve = (type, _objects) => {
+        const resolvedObjects = pick(_objects, objects)
+        if (!isEmpty(resolvedObjects)) {
+          objectsFound.push(...Object.keys(resolvedObjects))
+          objectsByType[type] = Object.values(resolvedObjects)
+        }
+      }
+      resolve('VM-template', vms)
+      resolve('SR', srs)
+      resolve('network', networks)
+
+      return {
+        ...attrs,
+        missingObjects: difference(objectsFound, objects),
+        objectsByType,
+      }
+    })
 )

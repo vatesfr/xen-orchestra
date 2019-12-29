@@ -31,7 +31,7 @@ export default class TemplateItem extends Component {
   _setCpus = nCpus => editVm(this.props.item, { CPUs: nCpus })
   _setMemory = memory => editVm(this.props.item, { memory })
 
-  render () {
+  render() {
     const { item: vm, container, expandAll, selected } = this.props
     return (
       <div className={styles.item}>

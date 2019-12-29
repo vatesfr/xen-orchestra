@@ -1,10 +1,10 @@
-export function getAll () {
+export function getAll() {
   return this.getAllCloudConfigs()
 }
 
 getAll.description = 'Gets all existing cloud configs templates'
 
-export function create (props) {
+export function create(props) {
   return this.createCloudConfig(props)
 }
 
@@ -15,7 +15,7 @@ create.params = {
   template: { type: 'string' },
 }
 
-export function update (props) {
+export function update(props) {
   return this.updateCloudConfig(props)
 }
 
@@ -27,7 +27,7 @@ update.params = {
   template: { type: 'string', optional: true },
 }
 
-function delete_ ({ id }) {
+function delete_({ id }) {
   return this.deleteCloudConfig(id)
 }
 

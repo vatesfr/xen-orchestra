@@ -23,6 +23,10 @@
     @extend .fa;
     @extend .fa-thumb-tack;
   }
+  &-plugin {
+    @extend .fa;
+    @extend .fa-puzzle-piece;
+  }
   &-message {
     @extend .fa;
     @extend .fa-envelope-o;
@@ -44,6 +48,15 @@
     @extend .fa;
     @extend .fa-check;
     @extend .text-success;
+  }
+  &-true {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-false {
+    @extend .fa;
+    @extend .fa-times;
   }
   &-undo {
     @extend .fa;
@@ -78,6 +91,14 @@
     @extend .fa;
     @extend .fa-chevron-down;
   }
+  &-hub-recipe {
+    @extend .fa;
+    @extend .fa-wpforms;
+  }
+  &-hub-template {
+    @extend .fa;
+    @extend .fa-cube;
+  }
 
   &-grab {
     @extend .fa;
@@ -108,6 +129,10 @@
     @extend .fa;
     @extend .fa-clipboard;
   }
+  &-download {
+    @extend .fa;
+    @extend .fa-download;
+  }
   &-shortcuts {
     @extend .fa;
     @extend .fa-keyboard-o;
@@ -131,6 +156,10 @@
   &-run {
     @extend .fa;
     @extend .fa-play;
+  }
+  &-force-restart {
+    @extend .fa;
+    @extend .fa-forward;
   }
   &-ssh-key {
     @extend .fa;
@@ -265,6 +294,14 @@
     @extend .fa;
     @extend .fa-thumbs-up;
   }
+  &-deploy {
+    @extend .fa;
+    @extend .fa-rocket;
+  }
+  &-telemetry {
+    @extend .fa;
+    @extend .fa-area-chart;
+  }
 
   // Backups
   &-backup {
@@ -316,22 +353,27 @@
     &-running {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-success;
+      @extend .xo-status-running;
     }
     &-suspended {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-primary;
+      @extend .xo-status-suspended;
+    }
+    &-paused {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .xo-status-paused;
     }
     &-halted {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-danger;
+      @extend .xo-status-halted;
     }
     &-busy {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-warning;
+      @extend .xo-status-busy;
     }
 
     // Actions
@@ -365,6 +407,10 @@
     }
     &-suspend {
       @extend .fa;
+      @extend .fa-power-off;
+    }
+    &-pause {
+      @extend .fa;
       @extend .fa-pause;
     }
     &-force-reboot {
@@ -377,7 +423,7 @@
     }
     &-force-shutdown {
       @extend .fa;
-      @extend .fa-power-off;
+      @extend .fa-plug;
     }
     &-docker {
       @extend .fa;
@@ -418,7 +464,7 @@
   &-paused {
     @extend .fa;
     @extend .fa-circle;
-    @extend .xo-status-suspended;
+    @extend .xo-status-paused;
   }
 
   &-unknown {
@@ -436,7 +482,7 @@
   &-disabled {
     @extend .fa;
     @extend .fa-circle;
-    @extend .xo-status-busy;
+    @extend .xo-status-disabled;
   }
 
   &-all-connected {
@@ -480,7 +526,8 @@
   }
 
   // SR
-  &-sr, &-vdi {
+  &-sr,
+  &-vdi {
     &-reconnect-all {
       @extend .fa;
       @extend .fa-retweet;
@@ -508,26 +555,26 @@
     &-running {
       @extend .fa;
       @extend .fa-server;
-      @extend .text-success;
+      @extend .xo-status-running;
     }
     &-halted {
       @extend .fa;
       @extend .fa-server;
-      @extend .text-danger;
+      @extend .xo-status-halted;
     }
     &-disabled {
       @extend .fa;
       @extend .fa-server;
-      @extend .text-warning;
+      @extend .xo-status-disabled;
+    }
+    &-busy {
+      @extend .fa;
+      @extend .fa-server;
+      @extend .xo-status-busy;
     }
     &-forget {
       @extend .fa;
       @extend .fa-ban;
-    }
-    &-working {
-      @extend .fa;
-      @extend .fa-circle;
-      @extend .text-warning;
     }
 
     // Actions
@@ -554,7 +601,8 @@
   }
 
   // Host and VM actions
-  &-host, &-vm {
+  &-host,
+  &-vm {
     &-start {
       @extend .fa;
       @extend .fa-play;
@@ -602,12 +650,12 @@
 
   &-filters {
     @extend .fa;
-    @extend .fa-filter
+    @extend .fa-filter;
   }
 
   &-tags {
     @extend .fa;
-    @extend .fa-tags
+    @extend .fa-tags;
   }
 
   &-remove-tag {
@@ -647,11 +695,11 @@
   }
   &-minus {
     @extend .fa;
-    @extend .fa-minus
+    @extend .fa-minus;
   }
   &-plus {
     @extend .fa;
-    @extend .fa-plus
+    @extend .fa-plus;
   }
   &-clear-search {
     @extend .fa;
@@ -707,6 +755,11 @@
   &-sign-out {
     @extend .fa;
     @extend .fa-sign-out;
+  }
+
+  &-multiline-clipboard {
+    @extend .fa;
+    @extend .fa-file-text-o;
   }
 
   // Menu
@@ -794,6 +847,14 @@
     @extend .fa;
     @extend .fa-file-text-o;
   }
+  &-menu-notification {
+    @extend .fa;
+    @extend .fa-bell;
+  }
+  &-menu-support {
+    @extend .fa;
+    @extend .fa-support;
+  }
   &-menu-settings {
     @extend .fa;
     @extend .fa-cog;
@@ -841,6 +902,10 @@
       @extend .fa;
       @extend .fa-database;
     }
+    &-network {
+      @extend .fa;
+      @extend .fa-sitemap;
+    }
     &-import {
       @extend .fa;
       @extend .fa-file-archive-o;
@@ -850,11 +915,15 @@
     @extend .fa;
     @extend .fa-database;
   }
+  &-menu-hub {
+    @extend .fa;
+    @extend .fa-cubes;
+  }
   // New VM
   &-new-vm {
     &-infos {
       @extend .fa;
-      @extend .fa-info-circle
+      @extend .fa-info-circle;
     }
     &-perf {
       @extend .fa;
@@ -891,6 +960,13 @@
     &-remove {
       @extend .fa;
       @extend .fa-times;
+    }
+  }
+  // New network
+  &-new-network {
+    &-create {
+      @extend .fa;
+      @extend .fa-play;
     }
   }
   //  OS Icons
@@ -966,7 +1042,7 @@
     color: #ccc;
   }
 
- // About
+  // About
   &-bug {
     @extend .fa;
     @extend .fa-bug;
@@ -1038,6 +1114,18 @@
   &-support {
     @extend .fa;
     @extend .fa-support;
+  }
+  &-notification {
+    @extend .fa;
+    @extend .fa-bell;
+  }
+  &-reply {
+    @extend .fa;
+    @extend .fa-share;
+  }
+  &-open-tunnel {
+    @extend .fa;
+    @extend .fa-arrows-h;
   }
 
   // XOSAN related

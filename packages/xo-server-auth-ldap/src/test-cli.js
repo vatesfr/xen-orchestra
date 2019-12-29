@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import execPromise from 'exec-promise'
-import { bind } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
@@ -17,7 +16,7 @@ const CACHE_FILE = './ldap.cache.conf'
 execPromise(async args => {
   const config = await promptSchema(
     configurationSchema,
-    await fromCallback(cb => readFile(CACHE_FILE, 'utf-8', cb)).then(
+    await fromCallback(readFile, CACHE_FILE, 'utf-8').then(
       JSON.parse,
       () => ({})
     )
@@ -44,6 +43,6 @@ execPromise(async args => {
       }),
       password: await password('Password'),
     },
-    bind(console.log, console)
+    console.log.bind(console)
   )
 })

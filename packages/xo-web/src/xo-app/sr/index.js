@@ -11,7 +11,7 @@ import { Container, Row, Col } from 'grid'
 import { editSr } from 'xo'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
-import { assign, map, pick } from 'lodash'
+import { map, pick } from 'lodash'
 import { connectStore, routes } from 'utils'
 import {
   createGetObject,
@@ -97,13 +97,13 @@ export default class Sr extends Component {
     router: PropTypes.object,
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     if (this.props.sr && !props.sr) {
       this.context.router.push('/')
     }
   }
 
-  header () {
+  header() {
     const { sr, container } = this.props
     if (!sr) {
       return <Icon icon='loading' />
@@ -168,12 +168,12 @@ export default class Sr extends Component {
     )
   }
 
-  render () {
+  render() {
     const { container, sr } = this.props
     if (!sr) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'hosts',
         'logs',

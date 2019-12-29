@@ -17,11 +17,11 @@ User.prototype.default = {
 // -------------------------------------------------------------------
 
 export class Users extends Collection {
-  get Model () {
+  get Model() {
     return User
   }
 
-  async create (properties) {
+  async create(properties) {
     const { email } = properties
 
     // Avoid duplicates.
@@ -36,7 +36,7 @@ export class Users extends Collection {
     return /* await */ this.add(user)
   }
 
-  async save (user) {
+  async save(user) {
     // Serializes.
     let tmp
     user.groups = isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp)
@@ -47,7 +47,7 @@ export class Users extends Collection {
     return /* await */ this.update(user)
   }
 
-  async get (properties) {
+  async get(properties) {
     const users = await super.get(properties)
 
     // Deserializes

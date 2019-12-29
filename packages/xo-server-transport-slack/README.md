@@ -4,11 +4,7 @@
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-transport-slack):
-
-```
-> npm install --global xo-server-transport-slack
-```
+For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
 ## Usage
 
@@ -23,15 +19,19 @@ the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/
 2. Click on the **Main menu** at the top and choose **Apps & Integrations**
 
    ![Apps & Integrations](image/DocImg1.png)
+
 3. Search **Incoming WebHooks**
 
    ![Incoming WebHooks](image/DocImg2.png)
+
 4. Click on **Add Configuration**
 
    ![Add Configuration](image/DocImg3.png)
+
 5. Choose the default channel and click on **Add Incoming WebHooks integration**
 
    ![Add Incoming WebHooks integration](image/DocImg4.png)
+
 6. Modify the default settings and click on **Save Settings**
 
    ![Save Settings](image/DocImg5.png)
@@ -69,13 +69,13 @@ the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/
 > npm run build
 ```
 
-### `Xo#sendSlackMessage({ message }) `
+### `Xo#sendSlackMessage({ message })`
 
 This xo method is called to send the message passed in parameter to Slack or Mattermost.
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

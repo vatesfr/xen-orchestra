@@ -1,4 +1,4 @@
-export async function get () {
+export async function get() {
   return /* await */ this.getAllAcls()
 }
 
@@ -8,7 +8,7 @@ get.description = 'get existing ACLs'
 
 // -------------------------------------------------------------------
 
-export async function getCurrentPermissions () {
+export async function getCurrentPermissions() {
   return /* await */ this.getPermissionsForUser(this.session.get('user_id'))
 }
 
@@ -19,7 +19,7 @@ getCurrentPermissions.description =
 
 // -------------------------------------------------------------------
 
-export async function add ({ subject, object, action }) {
+export async function add({ subject, object, action }) {
   await this.addAcl(subject, object, action)
 }
 
@@ -35,7 +35,7 @@ add.description = 'add a new ACL entry'
 
 // -------------------------------------------------------------------
 
-export async function remove ({ subject, object, action }) {
+export async function remove({ subject, object, action }) {
   await this.removeAcl(subject, object, action)
 }
 

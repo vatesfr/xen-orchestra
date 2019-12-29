@@ -14,10 +14,12 @@ import { every, filter, find, flatten, forEach, isEmpty, map } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import {
   addSubscriptions,
+  adminOnly,
   connectStore,
   cowSet,
   formatSize,
   ShortDate,
+  TryXoa,
 } from 'utils'
 import {
   deleteSr,
@@ -211,6 +213,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   },
 ]
 
+@adminOnly
 @connectStore(() => {
   const getHosts = createGetObjectsOfType('host')
   const getHostsByPool = getHosts.groupBy('$pool')
@@ -289,20 +292,20 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
   plugins: subscribePlugins,
 })
 export default class Xosan extends Component {
-  componentDidMount () {
+  componentDidMount() {
     this._updateLicenses().then(() =>
       this._subscribeVolumeInfo(this.props.xosanSrs)
     )
   }
 
-  componentWillReceiveProps ({ pools, xosanSrs }) {
+  componentWillReceiveProps({ pools, xosanSrs }) {
     if (xosanSrs !== this.props.xosanSrs) {
       this.unsubscribeVolumeInfo && this.unsubscribeVolumeInfo()
       this._subscribeVolumeInfo(xosanSrs)
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     if (this.unsubscribeVolumeInfo != null) this.unsubscribeVolumeInfo()
   }
 
@@ -372,12 +375,12 @@ export default class Xosan extends Component {
   _getError = createSelector(
     () => this.props.plugins,
     plugins => {
-      const cloudPlugin = find(plugins, { id: 'cloud' })
-      if (!cloudPlugin) {
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (!xoaPlugin) {
         return _('xosanInstallCloudPlugin')
       }
 
-      if (!cloudPlugin.loaded) {
+      if (!xoaPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
     }
@@ -401,7 +404,7 @@ export default class Xosan extends Component {
     this.setState({ showNewXosanForm: true })
   }
 
-  render () {
+  render() {
     const {
       hostsNeedRestartByPool,
       isAdmin,
@@ -479,6 +482,7 @@ export default class Xosan extends Component {
                         collection={xosanSrs}
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
+                        stateUrlParam='s'
                         userData={{
                           isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),
@@ -495,15 +499,9 @@ export default class Xosan extends Component {
           </Container>
         ) : (
           <Container>
-            <h2 className='text-danger'>{_('xosanCommunity')}</h2>
+            <h2 className='text-info'>{_('xosanCommunity')}</h2>
             <p>
-              {_('considerSubscribe', {
-                link: (
-                  <a href='https://xen-orchestra.com'>
-                    https://xen-orchestra.com
-                  </a>
-                ),
-              })}
+              <TryXoa page='xosan' />
             </p>
           </Container>
         )}

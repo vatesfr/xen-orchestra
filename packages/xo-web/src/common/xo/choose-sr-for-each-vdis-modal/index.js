@@ -3,6 +3,7 @@ import Component from 'base-component'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { map } from 'lodash'
+import { Vdi } from 'render-xo-item'
 
 import _ from '../../intl'
 import SingleLineRow from '../../single-line-row'
@@ -49,7 +50,7 @@ export default class ChooseSrForEachVdisModal extends Component {
 
   _onChangeMainSr = mainSr => this._onChange({ mainSr })
 
-  render () {
+  render() {
     const { props } = this
     const {
       mainSrPredicate = isSrWritable,
@@ -67,42 +68,44 @@ export default class ChooseSrForEachVdisModal extends Component {
           value={mainSr}
         />
         <br />
-        {props.vdis != null &&
-          mainSr != null && (
-            <Collapsible
-              buttonText={_('chooseSrForEachVdisModalSelectSr')}
-              collapsible={props.vdis.length >= 3}
-            >
-              <br />
-              <Container>
-                <SingleLineRow>
+        {props.vdis != null && mainSr != null && (
+          <Collapsible
+            buttonText={_('chooseSrForEachVdisModalSelectSr')}
+            collapsible
+            size='small'
+          >
+            <br />
+            <Container>
+              <SingleLineRow>
+                <Col size={6}>
+                  <strong>{_('chooseSrForEachVdisModalVdiLabel')}</strong>
+                </Col>
+                <Col size={6}>
+                  <strong>{_('chooseSrForEachVdisModalSrLabel')}</strong>
+                </Col>
+              </SingleLineRow>
+              {map(props.vdis, vdi => (
+                <SingleLineRow key={vdi.uuid}>
                   <Col size={6}>
-                    <strong>{_('chooseSrForEachVdisModalVdiLabel')}</strong>
+                    <Vdi id={vdi.id} showSize />
                   </Col>
                   <Col size={6}>
-                    <strong>{_('chooseSrForEachVdisModalSrLabel')}</strong>
+                    <SelectSr
+                      onChange={sr =>
+                        this._onChange({
+                          mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr },
+                        })
+                      }
+                      predicate={srPredicate}
+                      value={mapVdisSrs !== undefined && mapVdisSrs[vdi.uuid]}
+                    />
                   </Col>
                 </SingleLineRow>
-                {map(props.vdis, vdi => (
-                  <SingleLineRow key={vdi.uuid}>
-                    <Col size={6}>{vdi.name_label || vdi.name}</Col>
-                    <Col size={6}>
-                      <SelectSr
-                        onChange={sr =>
-                          this._onChange({
-                            mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: sr },
-                          })
-                        }
-                        predicate={srPredicate}
-                        value={mapVdisSrs !== undefined && mapVdisSrs[vdi.uuid]}
-                      />
-                    </Col>
-                  </SingleLineRow>
-                ))}
-                <i>{_('chooseSrForEachVdisModalOptionalEntry')}</i>
-              </Container>
-            </Collapsible>
-          )}
+              ))}
+              <i>{_('chooseSrForEachVdisModalOptionalEntry')}</i>
+            </Container>
+          </Collapsible>
+        )}
       </div>
     )
   }

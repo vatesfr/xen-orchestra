@@ -4,6 +4,7 @@ import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
+const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0]+)(?:\0(.*))?$/
 
 const sanitizePath = (...paths) =>
   filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join(
@@ -32,14 +33,7 @@ export const parse = string => {
     object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format
   } else if (type === 'smb') {
     object.type = 'smb'
-    const lastAtSign = rest.lastIndexOf('@')
-    const smb = rest.slice(lastAtSign + 1)
-    const auth = rest.slice(0, lastAtSign)
-    const firstColon = auth.indexOf(':')
-    const username = auth.slice(0, firstColon)
-    const password = auth.slice(firstColon + 1)
-    const [domain, sh] = smb.split('\\\\')
-    const [host, path] = sh.split('\0')
+    const [, username, password, domain, host, path = ''] = SMB_RE.exec(rest)
     object.host = host
     object.path = path
     object.domain = domain

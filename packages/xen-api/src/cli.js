@@ -8,14 +8,15 @@ import execPromise from 'exec-promise'
 import minimist from 'minimist'
 import pw from 'pw'
 import { asCallback, fromCallback } from 'promise-toolbox'
-import { filter, find, isArray } from 'lodash'
+import { filter, find } from 'lodash'
+import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
 
 import { createClient } from './'
 
 // ===================================================================
 
-function askPassword (prompt = 'Password: ') {
+function askPassword(prompt = 'Password: ') {
   if (prompt) {
     process.stdout.write(prompt)
   }
@@ -23,6 +24,20 @@ function askPassword (prompt = 'Password: ') {
   return new Promise(resolve => {
     pw(resolve)
   })
+}
+
+const { getPrototypeOf, ownKeys } = Reflect
+function getAllBoundDescriptors(object) {
+  const descriptors = { __proto__: null }
+  let current = object
+  do {
+    ownKeys(current).forEach(key => {
+      if (!(key in descriptors)) {
+        descriptors[key] = getBoundPropertyDescriptor(current, key, object)
+      }
+    })
+  } while ((current = getPrototypeOf(current)) !== null)
+  return descriptors
 }
 
 // ===================================================================
@@ -78,18 +93,24 @@ const main = async args => {
   const repl = createRepl({
     prompt: `${xapi._humanId}> `,
   })
-  repl.context.xapi = xapi
 
-  repl.context.diff = (a, b) => console.log('%s', diff(a, b))
-  repl.context.find = predicate => find(xapi.objects.all, predicate)
-  repl.context.findAll = predicate => filter(xapi.objects.all, predicate)
+  {
+    const ctx = repl.context
+    ctx.xapi = xapi
+
+    ctx.diff = (a, b) => console.log('%s', diff(a, b))
+    ctx.find = predicate => find(xapi.objects.all, predicate)
+    ctx.findAll = predicate => filter(xapi.objects.all, predicate)
+
+    Object.defineProperties(ctx, getAllBoundDescriptors(xapi))
+  }
 
   // Make the REPL waits for promise completion.
   repl.eval = (evaluate => (cmd, context, filename, cb) => {
     asCallback.call(
       fromCallback(cb => {
         evaluate.call(repl, cmd, context, filename, cb)
-      }).then(value => (isArray(value) ? Promise.all(value) : value)),
+      }).then(value => (Array.isArray(value) ? Promise.all(value) : value)),
       cb
     )
   })(repl.eval)

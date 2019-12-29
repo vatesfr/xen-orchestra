@@ -16,23 +16,23 @@ export let success
   isAdmin,
 })
 export class Notification extends Component {
-  componentDidMount () {
+  componentDidMount() {
     if (instance) {
       throw new Error('Notification is a singleton!')
     }
     instance = this
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     instance = undefined
   }
 
   // This special component never have to rerender!
-  shouldComponentUpdate () {
+  shouldComponentUpdate() {
     return false
   }
 
-  render () {
+  render() {
     return (
       <ReactNotify
         ref={notification => {
@@ -40,7 +40,7 @@ export class Notification extends Component {
             return
           }
 
-          error = (title, body) =>
+          error = (title, body, autoCloseTimeout = 6e3) =>
             notification.error(
               title,
               this.props.isAdmin ? (
@@ -58,10 +58,12 @@ export class Notification extends Component {
               ) : (
                 body
               ),
-              6e3
+              autoCloseTimeout
             )
-          info = (title, body) => notification.info(title, body, 3e3)
-          success = (title, body) => notification.success(title, body, 3e3)
+          info = (title, body, autoCloseTimeout = 3e3) =>
+            notification.info(title, body, autoCloseTimeout)
+          success = (title, body, autoCloseTimeout = 3e3) =>
+            notification.success(title, body, autoCloseTimeout)
         }}
       />
     )

@@ -1,6 +1,6 @@
 'use strict'
 
-process.on('unhandledRejection', function (error) {
+process.on('unhandledRejection', function(error) {
   console.log(error)
 })
 
@@ -11,51 +11,51 @@ const xo = new Xo({
 })
 
 xo.open()
-  .then(function () {
+  .then(function() {
     return xo
       .call('acl.get', {})
-      .then(function (result) {
+      .then(function(result) {
         console.log('success:', result)
       })
-      .catch(function (error) {
+      .catch(function(error) {
         console.log('failure:', error)
       })
   })
-  .then(function () {
+  .then(function() {
     return xo
       .signIn({
         email: 'admin@admin.net',
         password: 'admin',
       })
-      .then(function () {
+      .then(function() {
         console.log('connected as ', xo.user)
       })
-      .catch(function (error) {
+      .catch(function(error) {
         console.log('failure:', error)
       })
   })
-  .then(function () {
+  .then(function() {
     return xo
       .signIn({
         email: 'tom',
         password: 'tom',
       })
-      .then(function () {
+      .then(function() {
         console.log('connected as', xo.user)
 
         return xo
           .call('acl.get', {})
-          .then(function (result) {
+          .then(function(result) {
             console.log('success:', result)
           })
-          .catch(function (error) {
+          .catch(function(error) {
             console.log('failure:', error)
           })
       })
-      .catch(function (error) {
+      .catch(function(error) {
         console.log('failure', error)
       })
   })
-  .then(function () {
+  .then(function() {
     return xo.close()
   })

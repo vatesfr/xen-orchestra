@@ -4,13 +4,13 @@ Data are replicated from a node to another.
 
 Pros:
 
-* fast (**must be used for SSDs**)
-* relatively flexible
+- fast (**must be used for SSDs**)
+- relatively flexible
 
 Cons:
 
-* lower capacity (so higher cost, better for SSDs)
-* a bit more complex to maintain in distributed-replicated (see "RAID 10 like")
+- lower capacity (so higher cost, better for SSDs)
+- a bit more complex to maintain in distributed-replicated (see "RAID 10 like")
 
 ### 2-way replication
 
@@ -48,8 +48,8 @@ This is a kind of special mode. On a 2 nodes setup, one node must know what's ha
 
 Thanks to this arbiter, you'll have 3 nodes running on 2 XenServer hosts:
 
-* if the host with 1 node is down, the other host will continue to provide a working XOSAN
-* if the host with 2 nodes (1 normal and 1 arbiter) id down, the other node will go into read only mode, to avoid split brain scenario.
+- if the host with 1 node is down, the other host will continue to provide a working XOSAN
+- if the host with 2 nodes (1 normal and 1 arbiter) id down, the other node will go into read only mode, to avoid split brain scenario.
 
 This way, in all cases, you are protected.
 
@@ -84,5 +84,5 @@ There is more fault tolerance on mode 2, but less space usable. It's up to you!
 
 You can grow a replicated XOSAN by adding pairs, in other words "RAID 1"-like mirrors to the existing setup, like you would adds mirrored disks in "RAID 10" setup. Examples:
 
-* on a 2 hosts setup, going for 4 hosts by adding 2 mirrored nodes
-* on a 3 hosts setup using 3-way replication, by adding 3 mirrored nodes
+- on a 2 hosts setup, going for 4 hosts by adding 2 mirrored nodes
+- on a 3 hosts setup using 3-way replication, by adding 3 mirrored nodes

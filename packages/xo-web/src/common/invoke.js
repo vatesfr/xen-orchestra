@@ -17,7 +17,7 @@
 //   return emit.apply(this, arguments)
 // })
 // ```
-export default function invoke (fn) {
+export default function invoke(fn) {
   const n = arguments.length - 1
   if (!n) {
     return fn()

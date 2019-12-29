@@ -2,14 +2,13 @@ import _ from 'intl'
 import BaseComponent from 'base-component'
 import Copiable from 'copiable'
 import Icon from 'icon'
-import Link from 'link'
+import Tooltip from 'tooltip'
 import { NavLink, NavTabs } from 'nav'
-import Page from '../page'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
-import VmActionBar from './action-bar'
-import { Select, Text } from 'editable'
-import { assign, isEmpty, map, pick } from 'lodash'
+import { Host, Pool } from 'render-xo-item'
+import { Text, XoSelect } from 'editable'
+import { isEmpty, map, pick } from 'lodash'
 import { editVm, fetchVmStats, isVmRunning, migrateVm } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, routes } from 'utils'
@@ -23,6 +22,7 @@ import {
   isAdmin,
 } from 'selectors'
 
+import Page from '../page'
 import TabGeneral from './tab-general'
 import TabStats from './tab-stats'
 import TabConsole from './tab-console'
@@ -32,6 +32,7 @@ import TabNetwork from './tab-network'
 import TabSnapshots from './tab-snapshots'
 import TabLogs from './tab-logs'
 import TabAdvanced from './tab-advanced'
+import VmActionBar from './action-bar'
 
 // ===================================================================
 
@@ -65,8 +66,6 @@ import TabAdvanced from './tab-advanced'
 
   const getVmTotalDiskSpace = createSumBy(createGetVmDisks(getVm), 'size')
 
-  const getHosts = createGetObjectsOfType('host')
-
   return (state, props) => {
     const vm = getVm(state, props)
     if (!vm) {
@@ -76,7 +75,6 @@ import TabAdvanced from './tab-advanced'
     return {
       checkPermissions: getCheckPermissions(state, props),
       container: getContainer(state, props),
-      hosts: getHosts(state, props),
       isAdmin: isAdmin(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
@@ -92,7 +90,7 @@ export default class Vm extends BaseComponent {
     router: PropTypes.object,
   }
 
-  loop (vm = this.props.vm) {
+  loop(vm = this.props.vm) {
     if (this.cancel) {
       this.cancel()
     }
@@ -125,15 +123,15 @@ export default class Vm extends BaseComponent {
   }
   loop = ::this.loop
 
-  componentWillMount () {
+  componentWillMount() {
     this.loop()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const vmCur = this.props.vm
     const vmNext = props.vm
 
@@ -150,6 +148,11 @@ export default class Vm extends BaseComponent {
     }
   }
 
+  compareContainers = (pool1, pool2) => {
+    const { $pool: poolId } = this.props.vm
+    return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
+  }
+
   _getCanSnapshot = createSelector(
     () => this.props.checkPermissions,
     () => this.props.vm,
@@ -162,55 +165,75 @@ export default class Vm extends BaseComponent {
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
   _migrateVm = host => migrateVm(this.props.vm, host)
 
-  _selectOptionRenderer = option => option.name_label
+  _getVmState = createSelector(
+    () => this.props.vm.power_state,
+    () => this.props.vm.current_operations,
+    (powerState, operations) => (!isEmpty(operations) ? 'Busy' : powerState)
+  )
 
-  header () {
-    const { vm, container, pool, hosts } = this.props
+  header() {
+    const { vm, container, pool } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
+    const state = this._getVmState()
+
     return (
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
+            <span>
+              <span className='text-muted'>
+                {pool !== undefined && <Pool id={pool.id} link />}
+                {vm.power_state === 'Running' && (
+                  <span>
+                    {container !== undefined && pool !== undefined && (
+                      <span>
+                        {' '}
+                        <Icon icon='next' />{' '}
+                      </span>
+                    )}
+                    {container !== undefined && (
+                      <XoSelect
+                        compareContainers={this.compareContainers}
+                        onChange={this._migrateVm}
+                        useLongClick
+                        value={container}
+                        xoType='host'
+                      >
+                        <Host id={container.id} pool={false} link />
+                      </XoSelect>
+                    )}
+                  </span>
+                )}
+              </span>
+            </span>
             <h2>
-              {isEmpty(vm.current_operations) ? (
-                <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
-              ) : (
-                <Icon icon='vm-busy' />
-              )}{' '}
+              <Tooltip
+                content={
+                  <span>
+                    {_(`powerState${state}`)}
+                    {state === 'Busy' && (
+                      <span>
+                        {' ('}
+                        {map(vm.current_operations)[0]}
+                        {')'}
+                      </span>
+                    )}
+                  </span>
+                }
+              >
+                <Icon icon={`vm-${state.toLowerCase()}`} />
+              </Tooltip>{' '}
               <Text value={vm.name_label} onChange={this._setNameLabel} />
             </h2>{' '}
             <Copiable tagName='pre' className='text-muted mb-0'>
               {vm.uuid}
             </Copiable>
-            <span>
-              <Text
-                value={vm.name_description}
-                onChange={this._setNameDescription}
-              />
-              <span className='text-muted'>
-                {vm.power_state === 'Running' && container && (
-                  <span>
-                    <span> - </span>
-                    <Select
-                      onChange={this._migrateVm}
-                      options={hosts}
-                      renderer={this._selectOptionRenderer}
-                      useLongClick
-                      value={container}
-                    >
-                      <Link to={`/${container.type}s/${container.id}`}>
-                        {container.name_label}
-                      </Link>
-                    </Select>
-                  </span>
-                )}{' '}
-                {pool && (
-                  <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-                )}
-              </span>
-            </span>
+            <Text
+              value={vm.name_description}
+              onChange={this._setNameDescription}
+            />
           </Col>
           <Col mediumSize={6} className='text-xs-center'>
             <div>
@@ -263,13 +286,13 @@ export default class Vm extends BaseComponent {
   _toggleHeader = () =>
     this.setState({ collapsedHeader: !this.state.collapsedHeader })
 
-  render () {
+  render() {
     const { container, vm } = this.props
     if (!vm) {
       return <h1>{_('statusLoading')}</h1>
     }
 
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'container',
         'pool',

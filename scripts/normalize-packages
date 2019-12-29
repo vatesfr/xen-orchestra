@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
+const get = require('lodash/get')
 const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
-const { getPackages, writeFile, unlink } = require('./utils')
+const { getPackages, readFile, writeFile, unlink } = require('./utils')
 
 const deleteProperties = (object, property, properties) => {
   const nestedObject = object[property]
@@ -23,11 +24,22 @@ require('exec-promise')(() =>
     pkg.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/${relativeDir}`
     pkg.bugs = `https://github.com/vatesfr/xen-orchestra/issues`
     pkg.repository = {
+      directory: relativeDir,
       type: 'git',
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
+    if (!('version' in pkg)) {
+      pkg.version = '0.0.0'
+    }
+    pkg.engines = {
+      node: '>=8.10',
+      ...pkg.engines,
+    }
+
+    delete pkg.husky
     delete pkg.standard
+    delete pkg['lint-staged']
 
     deleteProperties(pkg, 'config', ['commitizen'])
     deleteProperties(pkg, 'devDependencies', [
@@ -38,6 +50,7 @@ require('exec-promise')(() =>
       'cz-conventional-changelog',
       'dependency-check',
       'eslint',
+      'eslint-config-prettier',
       'eslint-config-standard',
       'eslint-plugin-import',
       'eslint-plugin-node',
@@ -53,17 +66,49 @@ require('exec-promise')(() =>
     ])
     deleteProperties(pkg, 'scripts', ['commitmsg', 'cz'])
 
-    const { scripts } = pkg
-    if (scripts !== undefined) {
-      const prepublish = scripts.prepublish
-      if (prepublish !== undefined && !('prepublishOnly' in scripts)) {
-        delete scripts.prepublish
-        scripts.prepublishOnly = prepublish
-        pkg.scripts = sortedObject(scripts)
+    let { scripts = {} } = pkg
+    const originalScripts = scripts
+
+    if (!pkg.private && !('postversion' in scripts)) {
+      scripts = { ...scripts, postversion: 'npm publish --access public' }
+    }
+
+    const prepublish = scripts.prepublish
+    if (prepublish !== undefined && !('prepublishOnly' in scripts)) {
+      scripts = {
+        ...scripts,
+        prepublishOnly: prepublish,
+        prepublish: undefined,
       }
     }
 
+    if (scripts !== originalScripts) {
+      pkg.scripts = sortedObject(scripts)
+    }
+
     return Promise.all([
+      readFile(`${dir}/README.md`, 'utf8')
+        .then(content => {
+          const data = {
+            pkg: {
+              ...pkg,
+              author: {
+                name: 'Vates SAS',
+                url: 'https://vates.fr',
+              },
+            },
+          }
+          return writeFile(
+            `${dir}/README.md`,
+            content.replace(
+              /\$\{([^}]+)\}/g,
+              (_, path) => get(data, path, _) || _
+            )
+          )
+        })
+        .catch(error => {
+          console.error('Error while handling README', error)
+        }),
       writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
       unlink(`${dir}/.editorconfig`),
       unlink(`${dir}/.eslintrc.js`),

@@ -7,6 +7,7 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -24,10 +25,12 @@ import {
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
+  signOutFromEverywhereElse,
   subscribeCurrentUser,
 } from 'xo'
 
 import Page from '../page'
+import Otp from './otp'
 
 // ===================================================================
 
@@ -74,7 +77,7 @@ class DefaultFilterPicker extends Component {
     type: PropTypes.string.isRequired,
   }
 
-  _computeOptions (props) {
+  _computeOptions(props) {
     const { customFilters, filters } = props
 
     // Custom filters.
@@ -113,15 +116,15 @@ class DefaultFilterPicker extends Component {
   _handleDefaultFilter = value =>
     setDefaultHomeFilter(this.props.type, value && value.value).catch(noop)
 
-  componentWillMount () {
+  componentWillMount() {
     this._computeOptions(this.props)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     this._computeOptions(props)
   }
 
-  render () {
+  render() {
     return (
       <Row>
         <Col>
@@ -152,7 +155,7 @@ class UserFilters extends Component {
 
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
 
-  render () {
+  render() {
     const {
       defaultHomeFilters,
       filters: customFiltersByType,
@@ -332,7 +335,7 @@ export default class User extends Component {
   _handleConfirmPasswordChange = event =>
     this.setState({ confirmPassword: event.target.value })
 
-  render () {
+  render() {
     const { lang, user } = this.props
 
     if (!user) {
@@ -400,6 +403,20 @@ export default class User extends Component {
           </Row>
           <br />
           <Row>
+            <Col smallSize={10} offset={2}>
+              <Tooltip content={_('forgetTokensExplained')}>
+                <ActionButton
+                  btnStyle='danger'
+                  handler={signOutFromEverywhereElse}
+                  icon='disconnect'
+                >
+                  {_('forgetTokens')}
+                </ActionButton>
+              </Tooltip>
+            </Col>
+          </Row>
+          <br />
+          <Row>
             <Col smallSize={2}>
               <strong>{_('language')}</strong>
             </Col>
@@ -424,6 +441,10 @@ export default class User extends Component {
           </Row>
         </Container>
         <hr />
+        {(process.env.XOA_PLAN > 2 || user.preferences.otp !== undefined) && [
+          <Otp user={user} key='otp' />,
+          <hr key='hr' />,
+        ]}
         <SshKeys />
         <hr />
         <UserFilters user={user} />

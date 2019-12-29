@@ -11,10 +11,14 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
 
 export default class TabLogs extends Component {
-  constructor () {
+  constructor() {
     super()
 
-    this.getLogs = createPager(() => this.props.logs, () => this.state.page, 10)
+    this.getLogs = createPager(
+      () => this.props.logs,
+      () => this.state.page,
+      10
+    )
 
     this.state = {
       page: 1,
@@ -25,7 +29,7 @@ export default class TabLogs extends Component {
   _nextPage = () => this.setState({ page: this.state.page + 1 })
   _previousPage = () => this.setState({ page: this.state.page - 1 })
 
-  render () {
+  render() {
     const logs = this.getLogs()
 
     return (

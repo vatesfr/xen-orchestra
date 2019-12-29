@@ -51,10 +51,14 @@ const LOG_ACTIONS = [
 ]
 
 export default class TabLogs extends Component {
-  constructor () {
+  constructor() {
     super()
 
-    this.getLogs = createPager(() => this.props.logs, () => this.state.page, 10)
+    this.getLogs = createPager(
+      () => this.props.logs,
+      () => this.state.page,
+      10
+    )
 
     this.state = {
       page: 1,
@@ -64,7 +68,7 @@ export default class TabLogs extends Component {
   _nextPage = () => this.setState({ page: this.state.page + 1 })
   _previousPage = () => this.setState({ page: this.state.page - 1 })
 
-  render () {
+  render() {
     const logs = this.getLogs()
 
     if (isEmpty(logs)) {
@@ -83,6 +87,7 @@ export default class TabLogs extends Component {
         actions={LOG_ACTIONS}
         collection={logs}
         columns={LOG_COLUMNS}
+        stateUrlParam='s_logs'
       />
     )
   }

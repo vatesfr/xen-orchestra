@@ -23,7 +23,7 @@ const TOTAL_ESTIMATED_DURATION = sum(ESTIMATED_DURATIONS)
   currentState: cb => subscribeCheckSrCurrentState(props.pool, cb),
 }))
 export default class CreationProgress extends Component {
-  constructor () {
+  constructor() {
     super()
 
     this.state = { intermediateProgress: 0 }
@@ -49,7 +49,7 @@ export default class CreationProgress extends Component {
     this._loopTimeout = setTimeout(this._loopProgress, 50)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const { currentState } = this.props
 
     if (currentState && currentState.operation === 'createSr') {
@@ -57,11 +57,11 @@ export default class CreationProgress extends Component {
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this._loopTimeout)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const oldState = this.props.currentState
     const newState = props.currentState
 
@@ -98,7 +98,7 @@ export default class CreationProgress extends Component {
     }
   )
 
-  render () {
+  render() {
     const { currentState, pool } = this.props
 
     if (currentState == null || currentState.operation !== 'createSr') {

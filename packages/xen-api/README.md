@@ -35,9 +35,9 @@ const xapi = createClient({
   allowUnauthorized: false,
   auth: {
     user: 'root',
-    password: 'important secret password'
+    password: 'important secret password',
   },
-  readOnly: false
+  readOnly: false,
 })
 ```
 
@@ -64,6 +64,7 @@ xapi.objects.on('add', objects => {
 > Note: all objects are frozen and cannot be altered!
 
 Custom fields on objects (hidden − ie. non enumerable):
+
 - `$type`: the type of the object (`VM`, `task`, …);
 - `$ref`: the (opaque) reference of the object;
 - `$id`: the identifier of this object (its UUID if any, otherwise its reference);
@@ -82,7 +83,7 @@ console.log(xapi.pool.$master.$resident_VMs[0].name_label)
 A CLI is provided to help exploration and discovery of the XAPI.
 
 ```
-> xen-api https://xen1.company.net root
+> xen-api xen1.company.net root
 Password: ******
 root@xen1.company.net> xapi.status
 'connected'
@@ -92,10 +93,18 @@ root@xen1.company.net> xapi.pool.$master.name_label
 'xen1'
 ```
 
+You can optionally prefix the address by a protocol: `https://` (default) or `http://`.
+
+In case of error due to invalid or self-signed certificates you can use the `--allow-unauthorized` flag (or `--au`):
+
+```
+> xen-api --au xen1.company.net root
+```
+
 To ease searches, `find()` and `findAll()` functions are available:
 
 ```
-root@xen1.company.net> findAll({ $type: 'vm' }).length
+root@xen1.company.net> findAll({ $type: 'VM' }).length
 183
 ```
 
@@ -120,7 +129,7 @@ root@xen1.company.net> findAll({ $type: 'vm' }).length
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

@@ -68,18 +68,12 @@ declare export class Xapi {
     sr?: XapiObject,
     onVmCreation?: (XapiObject) => any
   ): Promise<string>;
-  _updateObjectMapProperty(
-    object: XapiObject,
-    property: string,
-    entries: $Dict<null | string>
-  ): Promise<void>;
   _setObjectProperties(
     object: XapiObject,
     properties: $Dict<mixed>
   ): Promise<void>;
   _snapshotVm(cancelToken: mixed, vm: Vm, nameLabel?: string): Promise<Vm>;
 
-  addTag(object: Id, tag: string): Promise<void>;
   barrier(): Promise<void>;
   barrier(ref: string): Promise<XapiObject>;
   deleteVm(vm: Id): Promise<void>;
@@ -93,7 +87,7 @@ declare export class Xapi {
   exportVm(
     cancelToken: mixed,
     vm: Vm,
-    options ?: Object
+    options?: { compress?: true | false | 'gzip' | 'zstd' }
   ): Promise<AugmentedReadable>;
   getObject(object: Id): XapiObject;
   importDeltaVm(data: DeltaVmImport, options: Object): Promise<{ vm: Vm }>;

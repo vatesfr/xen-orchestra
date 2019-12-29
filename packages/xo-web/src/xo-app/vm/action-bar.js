@@ -10,7 +10,6 @@ import {
   exportVm,
   migrateVm,
   restartVm,
-  resumeVm,
   snapshotVm,
   startVm,
   stopVm,
@@ -125,7 +124,7 @@ const vmActionBarByState = {
   Suspended: ({ vm, isSelfUser, canAdministrate }) => (
     <ActionBar display='icon' handlerParam={vm}>
       <Action
-        handler={resumeVm}
+        handler={startVm}
         icon='vm-start'
         label={_('resumeVmLabel')}
         pending={includes(vm.current_operations, 'start')}
@@ -152,6 +151,24 @@ const vmActionBarByState = {
           icon='vm-copy'
           label={_('copyVmLabel')}
           pending={includes(vm.current_operations, 'copy')}
+        />
+      )}
+    </ActionBar>
+  ),
+  Paused: ({ vm, isSelfUser }) => (
+    <ActionBar display='icon' handlerParam={vm}>
+      <Action
+        handler={startVm}
+        icon='vm-start'
+        label={_('resumeVmLabel')}
+        pending={includes(vm.current_operations, 'unpause')}
+      />
+      {!isSelfUser && (
+        <Action
+          handler={snapshotVm}
+          icon='vm-snapshot'
+          label={_('snapshotVmLabel')}
+          pending={includes(vm.current_operations, 'snapshot')}
         />
       )}
     </ActionBar>

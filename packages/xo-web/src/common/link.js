@@ -50,12 +50,13 @@ export class BlockLink extends Component {
     // FIXME: when https://github.com/facebook/react/issues/8529 is fixed,
     // remove and use onAuxClickCapture.
     // In Chrome ^55, middle-clicking triggers auxclick event instead of click
-    if (ref !== null) {
+    // Other browsers may trigger both events.
+    if (!!window.chrome && ref !== null) {
       ref.addEventListener('auxclick', this._onClickCapture)
     }
   }
 
-  render () {
+  render() {
     const { children, tagName = 'div', className } = this.props
     const Component = tagName
     return (

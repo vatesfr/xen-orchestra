@@ -2,9 +2,11 @@
 
 import execPromise from 'exec-promise'
 
+import pkg from '../package.json'
+
 import commands from './commands'
 
-function runCommand (commands, [command, ...args]) {
+function runCommand(commands, [command, ...args]) {
   if (command === undefined || command === '-h' || command === '--help') {
     command = 'help'
   }
@@ -16,9 +18,11 @@ function runCommand (commands, [command, ...args]) {
       return `Usage:
 
 ${Object.keys(commands)
-        .filter(command => command !== 'help')
-        .map(command => `    ${this.command} ${command}`)
-        .join('\n\n')}`
+  .filter(command => command !== 'help')
+  .map(command => `    ${this.command} ${command}`)
+  .join('\n\n')}
+
+vhd-cli ${pkg.version}`
     }
 
     throw `invalid command ${command}` // eslint-disable-line no-throw-literal

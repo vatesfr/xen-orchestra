@@ -6,7 +6,13 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore, getXoaPlan, ShortDate } from 'utils'
+import {
+  addSubscriptions,
+  adminOnly,
+  connectStore,
+  getXoaPlan,
+  ShortDate,
+} from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { find, forEach } from 'lodash'
@@ -77,6 +83,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   return () => <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>
 }
 
+@adminOnly
 @connectStore({
   xosanSrs: createGetObjectsOfType('SR').filter([
     ({ SR_type }) => SR_type === 'xosan', // eslint-disable-line camelcase
@@ -87,7 +94,7 @@ const getBoundXosanRenderer = (boundObjectId, xosanSrs) => {
   plugins: subscribePlugins,
 }))
 export default class Licenses extends Component {
-  constructor () {
+  constructor() {
     super()
 
     this.componentDidMount = this._updateLicenses
@@ -156,7 +163,7 @@ export default class Licenses extends Component {
     }
   )
 
-  render () {
+  render() {
     if (get(() => this.props.xoaRegistration.state) !== 'registered') {
       return (
         <span>
@@ -215,6 +222,7 @@ export default class Licenses extends Component {
             <SortedTable
               collection={this._getProducts()}
               columns={PRODUCTS_COLUMNS}
+              stateUrlParam='s'
               userData={{
                 registeredEmail: this.props.xoaRegistration.email,
               }}

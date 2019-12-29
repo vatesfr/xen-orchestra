@@ -1,28 +1,56 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
+import SelectBootFirmware from 'select-boot-firmware'
+import SelectCoresPerSocket from 'select-cores-per-socket'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { assign, every, find, includes, isEmpty, map, uniq } from 'lodash'
+import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
-import { Number, Size, Text, XoSelect } from 'editable'
+import { injectState, provideState } from 'reaclette'
+import {
+  Number,
+  Select as EditableSelect,
+  Size,
+  Text,
+  XoSelect,
+} from 'editable'
 import { Select, Toggle } from 'form'
-import { SelectResourceSet, SelectVgpuType } from 'select-objects'
+import {
+  SelectResourceSet,
+  SelectRole,
+  SelectSubject,
+  SelectVgpuType,
+} from 'select-objects'
 import {
   addSubscriptions,
   connectStore,
   formatSize,
-  getCoresPerSocketPossibilities,
   getVirtualizationModeLabel,
+  noop,
   osFamily,
 } from 'utils'
 import {
+  every,
+  filter,
+  find,
+  isEmpty,
+  keyBy,
+  map,
+  times,
+  some,
+  uniq,
+} from 'lodash'
+import {
+  addAcl,
   changeVirtualizationMode,
   cloneVm,
   convertVmToTemplate,
@@ -32,13 +60,17 @@ import {
   editVm,
   getVmsHaValues,
   isVmRunning,
+  pauseVm,
   recoveryStartVm,
+  removeAcl,
   restartVm,
-  resumeVm,
   shareVm,
   startVm,
   stopVm,
+  subscribeAcls,
+  subscribeGroups,
   subscribeResourceSets,
+  subscribeUsers,
   suspendVm,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
@@ -49,6 +81,11 @@ import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
 const SHARE_BUTTON_STYLE = { height: '38px' }
+const LEVELS = {
+  admin: 'danger',
+  operator: 'primary',
+  viewer: 'success',
+}
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -89,7 +126,7 @@ class AffinityHost extends Component {
   _editAffinityHost = host =>
     editVm(this.props.vm, { affinityHost: host.id || null })
 
-  render () {
+  render() {
     const { affinityHost, affinityHostPredicate } = this.props
 
     return (
@@ -120,10 +157,10 @@ class ResourceSetItem extends Component {
     () => this.props.resourceSets,
     () => this.props.id,
     (resourceSets, id) =>
-      assign(find(resourceSets, { id }), { type: 'resourceSet' })
+      Object.assign(find(resourceSets, { id }), { type: 'resourceSet' })
   )
 
-  render () {
+  render() {
     return this.props.resourceSets === undefined
       ? null
       : renderXoItem(this._getResourceSet())
@@ -131,7 +168,7 @@ class ResourceSetItem extends Component {
 }
 
 class NewVgpu extends Component {
-  get value () {
+  get value() {
     return this.state
   }
 
@@ -140,7 +177,7 @@ class NewVgpu extends Component {
     poolId => vgpuType => poolId === vgpuType.$pool
   )
 
-  render () {
+  render() {
     return (
       <Container>
         <Row>
@@ -167,7 +204,7 @@ class Vgpus extends Component {
       createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
     )
 
-  render () {
+  render() {
     const { vgpus, vm } = this.props
 
     return (
@@ -203,83 +240,163 @@ class Vgpus extends Component {
 }
 
 class CoresPerSocket extends Component {
-  _getCoresPerSocketPossibilities = createSelector(
-    () => {
-      const { container } = this.props
-      if (container != null) {
-        return container.cpus.cores
-      }
-    },
-    () => this.props.vm.CPUs.number,
-    getCoresPerSocketPossibilities
-  )
+  _onChange = coresPerSocket => editVm(this.props.vm, { coresPerSocket })
 
-  _selectedValueIsNotInOptions = createSelector(
-    () => this.props.vm.coresPerSocket,
-    this._getCoresPerSocketPossibilities,
-    (selectedCoresPerSocket, options) =>
-      selectedCoresPerSocket !== undefined &&
-      !includes(options, selectedCoresPerSocket)
-  )
-
-  _onChange = event =>
-    editVm(this.props.vm, { coresPerSocket: getEventValue(event) || null })
-
-  render () {
+  render() {
     const { container, vm } = this.props
-    const selectedCoresPerSocket = vm.coresPerSocket
-    const options = this._getCoresPerSocketPossibilities()
+    const { coresPerSocket, CPUs: cpus } = vm
 
     return (
-      <form className='form-inline'>
+      <div>
         {container != null ? (
-          <span>
-            <select
-              className='form-control'
-              onChange={this._onChange}
-              value={selectedCoresPerSocket || ''}
-            >
-              {_({ key: 'none' }, 'vmChooseCoresPerSocket', message => (
-                <option value=''>{message}</option>
-              ))}
-              {this._selectedValueIsNotInOptions() &&
-                _(
-                  { key: 'incorrect' },
-                  'vmCoresPerSocketIncorrectValue',
-                  message => (
-                    <option value={selectedCoresPerSocket}> {message}</option>
-                  )
-                )}
-              {map(options, coresPerSocket =>
-                _(
-                  { key: coresPerSocket },
-                  'vmCoresPerSocket',
-                  {
-                    nSockets: vm.CPUs.number / coresPerSocket,
-                    nCores: coresPerSocket,
-                  },
-                  message => <option value={coresPerSocket}>{message}</option>
-                )
-              )}
-            </select>{' '}
-            {this._selectedValueIsNotInOptions() && (
-              <Tooltip content={_('vmCoresPerSocketIncorrectValueSolution')}>
-                <Icon icon='error' size='lg' />
-              </Tooltip>
-            )}
-          </span>
-        ) : selectedCoresPerSocket != null ? (
-          _('vmCoresPerSocket', {
-            nSockets: vm.CPUs.number / selectedCoresPerSocket,
-            nCores: selectedCoresPerSocket,
+          <SelectCoresPerSocket
+            maxCores={container.cpus.cores}
+            maxVcpus={cpus.max}
+            onChange={this._onChange}
+            value={coresPerSocket}
+          />
+        ) : coresPerSocket !== undefined ? (
+          _('vmSocketsWithCoresPerSocket', {
+            nSockets: cpus.max / coresPerSocket,
+            nCores: coresPerSocket,
           })
         ) : (
           _('vmCoresPerSocketNone')
         )}
+      </div>
+    )
+  }
+}
+
+class AddAclsModal extends Component {
+  get value() {
+    return this.state
+  }
+
+  _getPredicate = createSelector(
+    () => this.props.acls,
+    () => this.props.vm,
+    (acls, object) => ({ id: subject, permission }) =>
+      permission !== 'admin' && !some(acls, { object, subject })
+  )
+
+  render() {
+    const { action, subjects } = this.state
+    return (
+      <form>
+        <div className='form-group'>
+          <SelectSubject
+            multi
+            onChange={this.linkState('subjects')}
+            predicate={this._getPredicate()}
+            value={subjects}
+          />
+        </div>
+        <div className='form-group'>
+          <SelectRole onChange={this.linkState('action')} value={action} />
+        </div>
       </form>
     )
   }
 }
+
+const Acls = decorate([
+  addSubscriptions({
+    acls: subscribeAcls,
+    groups: cb => subscribeGroups(groups => cb(keyBy(groups, 'id'))),
+    users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
+  }),
+  provideState({
+    effects: {
+      addAcls: () => (state, { acls, vm }) =>
+        confirm({
+          title: _('vmAddAcls'),
+          body: <AddAclsModal acls={acls} vm={vm} />,
+        })
+          .then(({ action, subjects }) => {
+            if (action == null || isEmpty(subjects)) {
+              return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
+            }
+
+            return (
+              Promise.all(
+                map(subjects, subject =>
+                  addAcl({ subject, object: vm, action })
+                )
+              ),
+              noop
+            )
+          })
+          .catch(
+            err =>
+              err && error(_('addAclsErrorTitle'), err.message || String(err))
+          ),
+      removeAcl: (_, { currentTarget: { dataset } }) => (_, { vm: object }) =>
+        removeAcl({
+          action: dataset.action,
+          object,
+          subject: dataset.subject,
+        }),
+    },
+    computed: {
+      rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
+      resolvedAcls: ({ rawAcls }, { users, groups }) => {
+        if (users === undefined || groups === undefined) {
+          return []
+        }
+        return rawAcls.map(({ subject, ...acl }) => ({
+          ...acl,
+          subject: defined(users[subject], groups[subject]),
+        }))
+      },
+    },
+  }),
+  injectState,
+  ({ state: { resolvedAcls }, effects, vm }) => (
+    <Container>
+      {resolvedAcls.slice(0, 5).map(({ subject, action }) => (
+        <Row key={`${subject.id}.${action}`}>
+          <Col>
+            <span>{renderXoItem(subject)}</span>{' '}
+            <span className={`tag tag-pill tag-${LEVELS[action]}`}>
+              {action}
+            </span>{' '}
+            <Tooltip content={_('removeAcl')}>
+              <a
+                data-action={action}
+                data-subject={subject.id}
+                onClick={effects.removeAcl}
+                role='button'
+              >
+                <Icon icon='remove' />
+              </a>
+            </Tooltip>
+          </Col>
+        </Row>
+      ))}
+      {resolvedAcls.length > 5 && (
+        <Row>
+          <Col>
+            <Link to={`settings/acls?s=object:${vm}`}>
+              {_('moreAcls', { nAcls: resolvedAcls.length - 5 })}
+            </Link>
+          </Col>
+        </Row>
+      )}
+      <Row>
+        <Col>
+          <ActionButton
+            btnStyle='primary'
+            handler={effects.addAcls}
+            icon='add'
+            size='small'
+            tooltip={_('vmAddAcls')}
+          />
+        </Col>
+      </Row>
+    </Container>
+  ),
+])
 
 const NIC_TYPE_OPTIONS = [
   {
@@ -305,14 +422,40 @@ const NIC_TYPE_OPTIONS = [
   }
 })
 export default class TabAdvanced extends Component {
-  componentDidMount () {
+  componentDidMount() {
     getVmsHaValues().then(vmsHaValues => this.setState({ vmsHaValues }))
   }
+
+  _getCpuMaskOptions = createSelector(
+    () => this.props.vm,
+    vm =>
+      times(vm.CPUs.max, number => ({
+        value: number,
+        label: `Core ${number}`,
+      }))
+  )
+
+  _getCpuMask = createSelector(
+    this._getCpuMaskOptions,
+    () => this.props.vm.cpuMask,
+    (options, cpuMask) =>
+      cpuMask !== undefined
+        ? options.filter(({ value }) => cpuMask.includes(value))
+        : undefined
+  )
+
+  _onChangeCpuMask = cpuMask =>
+    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
+
+  _handleBootFirmware = value =>
+    editVm(this.props.vm, {
+      hvmBootFirmware: value !== '' ? value : null,
+    })
 
   _onNicTypeChange = value =>
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
-  render () {
+  render() {
     const { container, isAdmin, vgpus, vm } = this.props
     return (
       <Container>
@@ -320,6 +463,13 @@ export default class TabAdvanced extends Component {
           <Col className='text-xs-right'>
             {vm.power_state === 'Running' && (
               <span>
+                <TabButton
+                  btnStyle='primary'
+                  handler={pauseVm}
+                  handlerParam={vm}
+                  icon='vm-pause'
+                  labelId='pauseVmLabel'
+                />
                 <TabButton
                   btnStyle='primary'
                   handler={suspendVm}
@@ -371,10 +521,35 @@ export default class TabAdvanced extends Component {
               <span>
                 <TabButton
                   btnStyle='primary'
-                  handler={resumeVm}
+                  handler={startVm}
                   handlerParam={vm}
                   icon='vm-start'
                   labelId='resumeVmLabel'
+                />
+                <TabButton
+                  btnStyle='warning'
+                  handler={forceShutdown}
+                  handlerParam={vm}
+                  icon='vm-force-shutdown'
+                  labelId='forceShutdownVmLabel'
+                />
+              </span>
+            )}
+            {vm.power_state === 'Paused' && (
+              <span>
+                <TabButton
+                  btnStyle='primary'
+                  handler={startVm}
+                  handlerParam={vm}
+                  icon='vm-start'
+                  labelId='resumeVmLabel'
+                />
+                <TabButton
+                  btnStyle='warning'
+                  handler={forceReboot}
+                  handlerParam={vm}
+                  icon='vm-force-reboot'
+                  labelId='forceRebootVmLabel'
                 />
                 <TabButton
                   btnStyle='warning'
@@ -441,6 +616,27 @@ export default class TabAdvanced extends Component {
                   </tr>
                 )}
                 <tr>
+                  <th>{_('startDelayLabel')}</th>
+                  <td>
+                    <Number
+                      value={vm.startDelay}
+                      onChange={value => editVm(vm, { startDelay: value })}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('cpuMaskLabel')}</th>
+                  <td>
+                    <EditableSelect
+                      multi
+                      onChange={this._onChangeCpuMask}
+                      options={this._getCpuMaskOptions()}
+                      placeholder={_('selectCpuMask')}
+                      value={this._getCpuMask()}
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('cpuWeightLabel')}</th>
                   <td>
                     <Number
@@ -488,16 +684,18 @@ export default class TabAdvanced extends Component {
                     />
                   </td>
                 </tr>
-                <tr>
-                  <th>{_('nestedVirt')}</th>
-                  <td>
-                    <Toggle
-                      disabled={vm.power_state !== 'Halted'}
-                      value={vm.expNestedHvm}
-                      onChange={value => editVm(vm, { expNestedHvm: value })}
-                    />
-                  </td>
-                </tr>
+                {vm.virtualizationMode === 'hvm' && (
+                  <tr>
+                    <th>{_('nestedVirt')}</th>
+                    <td>
+                      <Toggle
+                        disabled={vm.power_state !== 'Halted'}
+                        value={vm.expNestedHvm}
+                        onChange={value => editVm(vm, { expNestedHvm: value })}
+                      />
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('ha')}</th>
                   <td>
@@ -577,6 +775,17 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
+                {vm.virtualizationMode === 'hvm' && (
+                  <tr>
+                    <th>{_('vmBootFirmware')}</th>
+                    <td>
+                      <SelectBootFirmware
+                        onChange={this._handleBootFirmware}
+                        value={defined(() => vm.boot.firmware, '')}
+                      />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
             <br />
@@ -588,7 +797,7 @@ export default class TabAdvanced extends Component {
                   <td>
                     <Number
                       value={vm.CPUs.number}
-                      onChange={cpus => editVm(vm, { cpus })}
+                      onChange={CPUs => editVm(vm, { CPUs })}
                     />
                     /
                     {vm.power_state === 'Running' ? (
@@ -596,9 +805,7 @@ export default class TabAdvanced extends Component {
                     ) : (
                       <Number
                         value={vm.CPUs.max}
-                        onChange={cpusStaticMax =>
-                          editVm(vm, { cpusStaticMax })
-                        }
+                        onChange={cpusMax => editVm(vm, { cpusMax })}
                       />
                     )}
                   </td>
@@ -733,6 +940,14 @@ export default class TabAdvanced extends Component {
                     )}
                   </td>
                 </tr>
+                {isAdmin && (
+                  <tr>
+                    <th>{_('vmAcls')}</th>
+                    <td>
+                      <Acls vm={vm.id} />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </Col>

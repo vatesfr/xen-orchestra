@@ -388,7 +388,7 @@ export default {
   homeMigrateTo: 'Migrar a…',
 
   // Original text: 'Missing patches'
-  homeMissingPaths: undefined,
+  homeMissingPatches: undefined,
 
   // Original text: 'Master:'
   homePoolMaster: undefined,
@@ -1827,7 +1827,7 @@ export default {
   vdiAction: 'Acción',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Adjuntar disco',
+  vdiAttachDevice: 'Adjuntar disco',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Nuevo disco',
@@ -2142,7 +2142,7 @@ export default {
   vmChooseCoresPerSocket: undefined,
 
   // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: undefined,
+  vmSocketsWithCoresPerSocket: undefined,
 
   // Original text: 'Incorrect cores per socket value'
   vmCoresPerSocketIncorrectValue: undefined,
@@ -3058,9 +3058,6 @@ export default {
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
   serverUnauthorizedCertificatesInfo: undefined,
 
-  // Original text: 'Disconnect server'
-  serverDisconnect: undefined,
-
   // Original text: 'username'
   serverPlaceHolderUser: undefined,
 
@@ -3090,12 +3087,6 @@ export default {
 
   // Original text: 'Connecting…'
   serverConnecting: undefined,
-
-  // Original text: 'Connected'
-  serverConnected: undefined,
-
-  // Original text: 'Disconnected'
-  serverDisconnected: undefined,
 
   // Original text: 'Authentication error'
   serverAuthFailed: undefined,
@@ -3411,7 +3402,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    'Esta versión no está creada para recibir soporte ni actualizaciones. Úsala con precaución para tareas críticas.',
+    'Esta versión no está creada para recibir soporte ni actualizaciones. Úsala con precaución.',
 
   // Original text: "Connect PIF"
   connectPif: 'Conectar PIF',

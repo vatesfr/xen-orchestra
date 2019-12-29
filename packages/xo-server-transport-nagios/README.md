@@ -4,11 +4,7 @@
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-transport-nagios):
-
-```
-> npm install --global xo-server-transport-nagios
-```
+For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
 ## Usage
 
@@ -17,10 +13,11 @@ the web interface, see [the plugin documentation](https://xen-orchestra.com/docs
 
 ## Development
 
-### `Xo#sendPassiveCheck( { status, message }) `
+### `Xo#sendPassiveCheck( { status, message })`
 
 This xo method is called to send a passive check to nagios and change the status of a service.
 It has two parameters:
+
 - status: it's the service status in Nagios (0: OK | 1: WARNING | 2: CRITICAL).
 - message: it's the status information in Nagios.
 
@@ -43,7 +40,7 @@ It has two parameters:
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

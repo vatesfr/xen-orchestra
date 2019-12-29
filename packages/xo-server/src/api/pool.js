@@ -1,20 +1,19 @@
-import { format } from 'json-rpc-peer'
-import { differenceBy } from 'lodash'
-import { mapToArray } from '../utils'
+import { format, JsonRPcError } from 'json-rpc-peer'
 
 // ===================================================================
 
-export async function set ({
+export async function set({
   pool,
 
-  // TODO: use camel case.
   name_description: nameDescription,
   name_label: nameLabel,
 }) {
-  await this.getXapi(pool).setPoolProperties({
-    nameDescription,
-    nameLabel,
-  })
+  pool = this.getXapiObject(pool)
+
+  await Promise.all([
+    nameDescription !== undefined && pool.set_name_description(nameDescription),
+    nameLabel !== undefined && pool.set_name_label(nameLabel),
+  ])
 }
 
 set.params = {
@@ -37,7 +36,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function setDefaultSr ({ sr }) {
+export async function setDefaultSr({ sr }) {
   await this.hasPermissions(this.user.id, [[sr.$pool, 'administrate']])
 
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
@@ -57,7 +56,7 @@ setDefaultSr.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function setPoolMaster ({ host }) {
+export async function setPoolMaster({ host }) {
   await this.hasPermissions(this.user.id, [[host.$pool, 'administrate']])
 
   await this.getXapi(host).setPoolMaster(host._xapiId)
@@ -75,44 +74,47 @@ setPoolMaster.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function installPatch ({ pool, patch: patchUuid }) {
-  await this.getXapi(pool).installPoolPatchOnAllHosts(patchUuid)
+// Returns an array of missing new patches in the host
+// Returns an empty array if up-to-date
+export function listMissingPatches({ host }) {
+  return this.getXapi(host).listMissingPatches(host._xapiId)
 }
 
-installPatch.params = {
-  pool: {
-    type: 'string',
-  },
-  patch: {
-    type: 'string',
-  },
+listMissingPatches.description =
+  'return an array of missing new patches in the host'
+
+listMissingPatches.params = {
+  host: { type: 'string' },
 }
 
-installPatch.resolve = {
-  pool: ['pool', 'pool', 'administrate'],
+listMissingPatches.resolve = {
+  host: ['host', 'host', 'view'],
 }
-// -------------------------------------------------------------------
-
-export async function installAllPatches ({ pool }) {
-  await this.getXapi(pool).installAllPoolPatchesOnAllHosts()
-}
-
-installAllPatches.params = {
-  pool: {
-    type: 'string',
-  },
-}
-
-installAllPatches.resolve = {
-  pool: ['pool', 'pool', 'administrate'],
-}
-
-installAllPatches.description =
-  'Install automatically all patches for every hosts of a pool'
 
 // -------------------------------------------------------------------
 
-async function handlePatchUpload (req, res, { pool }) {
+export async function installPatches({ pool, patches, hosts }) {
+  await this.getXapi(hosts === undefined ? pool : hosts[0]).installPatches({
+    patches,
+    hosts,
+  })
+}
+
+installPatches.params = {
+  pool: { type: 'string', optional: true },
+  patches: { type: 'array', optional: true },
+  hosts: { type: 'array', optional: true },
+}
+
+installPatches.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+installPatches.description = 'Install patches on hosts'
+
+// -------------------------------------------------------------------
+
+async function handlePatchUpload(req, res, { pool }) {
   const contentLength = req.headers['content-length']
   if (!contentLength) {
     res.writeHead(411)
@@ -123,7 +125,7 @@ async function handlePatchUpload (req, res, { pool }) {
   await this.getXapi(pool).uploadPoolPatch(req, contentLength)
 }
 
-export async function uploadPatch ({ pool }) {
+export async function uploadPatch({ pool }) {
   return {
     $sendTo: await this.registerHttpRequest(handlePatchUpload, { pool }),
   }
@@ -144,51 +146,52 @@ export { uploadPatch as patch }
 
 // -------------------------------------------------------------------
 
-export async function mergeInto ({ source, target, force }) {
-  const sourceHost = this.getObject(source.master)
-  const targetHost = this.getObject(target.master)
-
-  if (sourceHost.productBrand !== targetHost.productBrand) {
-    throw new Error(
-      `a ${sourceHost.productBrand} pool cannot be merged into a ${
-        targetHost.productBrand
-      } pool`
-    )
-  }
-
-  const sourcePatches = sourceHost.patches
-  const targetPatches = targetHost.patches
-  const counterDiff = differenceBy(sourcePatches, targetPatches, 'name')
-
-  if (counterDiff.length > 0) {
-    throw new Error('host has patches that are not applied on target pool')
-  }
-
-  const diff = differenceBy(targetPatches, sourcePatches, 'name')
-
-  // TODO: compare UUIDs
-  await this.getXapi(source).installSpecificPatchesOnHost(
-    mapToArray(diff, 'name'),
-    sourceHost._xapiId
-  )
-
-  await this.mergeXenPools(source._xapiId, target._xapiId, force)
+export async function getPatchesDifference({ source, target }) {
+  return this.getPatchesDifference(target.id, source.id)
 }
 
-mergeInto.params = {
-  force: { type: 'boolean', optional: true },
+getPatchesDifference.params = {
   source: { type: 'string' },
   target: { type: 'string' },
 }
 
+getPatchesDifference.resolve = {
+  source: ['source', 'host', 'view'],
+  target: ['target', 'host', 'view'],
+}
+
+// -------------------------------------------------------------------
+
+export async function mergeInto({ source, sources = [source], target, force }) {
+  await this.checkPermissions(
+    this.user.id,
+    sources.map(source => [source, 'administrate'])
+  )
+  return this.mergeInto({
+    force,
+    sources,
+    target,
+  })
+}
+
+mergeInto.params = {
+  force: { type: 'boolean', optional: true },
+  source: { type: 'string', optional: true },
+  sources: {
+    type: 'array',
+    items: { type: 'string' },
+    optional: true,
+  },
+  target: { type: 'string' },
+}
+
 mergeInto.resolve = {
-  source: ['source', 'pool', 'administrate'],
   target: ['target', 'pool', 'administrate'],
 }
 
 // -------------------------------------------------------------------
 
-export async function getLicenseState ({ pool }) {
+export async function getLicenseState({ pool }) {
   return this.getXapi(pool).call('pool.get_license_state', pool._xapiId.$ref)
 }
 
@@ -204,7 +207,7 @@ getLicenseState.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleInstallSupplementalPack (req, res, { poolId }) {
+async function handleInstallSupplementalPack(req, res, { poolId }) {
   const xapi = this.getXapi(poolId)
 
   // Timeout seems to be broken in Node 4.
@@ -217,11 +220,11 @@ async function handleInstallSupplementalPack (req, res, { poolId }) {
     res.end(format.response(0))
   } catch (e) {
     res.writeHead(500)
-    res.end(format.error(0, new Error(e.message)))
+    res.end(format.error(0, new JsonRPcError(e.message)))
   }
 }
 
-export async function installSupplementalPack ({ pool }) {
+export async function installSupplementalPack({ pool }) {
   return {
     $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, {
       poolId: pool.id,

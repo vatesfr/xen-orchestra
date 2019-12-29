@@ -1,14 +1,17 @@
 import _ from 'intl'
+import decorate from 'apply-decorators'
 import Link from 'link'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
-import { Text } from 'editable'
-import { noop } from 'utils'
 import { confirm } from 'modal'
-import { isEmpty, some } from 'lodash'
 import { Container, Row, Col } from 'grid'
 import { editHost, connectPbd, disconnectPbd, deletePbd, deletePbds } from 'xo'
+import { get } from '@xen-orchestra/defined'
+import { getIscsiPaths, noop } from 'utils'
+import { isEmpty, some } from 'lodash'
+import { provideState, injectState } from 'reaclette'
+import { Text } from 'editable'
 
 const forgetHost = pbd =>
   confirm({
@@ -53,6 +56,19 @@ const HOST_COLUMNS = [
     sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description,
   },
   {
+    name: _('pbdDetails'),
+    itemRenderer: ({ device_config: deviceConfig }) => {
+      const keys = Object.keys(deviceConfig)
+      return (
+        <ul className='list-unstyled'>
+          {keys.map(key => (
+            <li key={key}>{_.keyValue(key, deviceConfig[key])}</li>
+          ))}
+        </ul>
+      )
+    },
+  },
+  {
     name: _('pbdStatus'),
     itemRenderer: pbd => (
       <StateButton
@@ -81,21 +97,62 @@ const HOST_ACTIONS = [
   },
 ]
 
-export default ({ hosts, pbds }) => (
-  <Container>
-    <Row>
-      <Col>
-        {!isEmpty(hosts) ? (
-          <SortedTable
-            actions={HOST_ACTIONS}
-            collection={pbds}
-            userData={hosts}
-            columns={HOST_COLUMNS}
-          />
-        ) : (
-          <h4 className='text-xs-center'>{_('noHost')}</h4>
-        )}
-      </Col>
-    </Row>
-  </Container>
-)
+const HOST_WITH_PATHS_COLUMNS = [
+  ...HOST_COLUMNS,
+  {
+    name: _('paths'),
+    itemRenderer: (pbd, hosts) => {
+      if (!pbd.attached) {
+        return _('pbdDisconnected')
+      }
+
+      if (!get(() => hosts[pbd.host].multipathing)) {
+        return _('multipathingDisabled')
+      }
+
+      const [nActives, nPaths] = getIscsiPaths(pbd)
+      const nSessions = pbd.otherConfig.iscsi_sessions
+      return (
+        <span>
+          {nActives !== undefined &&
+            nPaths !== undefined &&
+            _('hostMultipathingPaths', {
+              nActives,
+              nPaths,
+            })}{' '}
+          {nSessions !== undefined && _('iscsiSessions', { nSessions })}
+        </span>
+      )
+    },
+    sortCriteria: (pbd, hosts) => get(() => hosts[pbd.host].multipathing),
+  },
+]
+
+export default decorate([
+  provideState({
+    computed: {
+      columns: (_, { sr }) =>
+        sr.sm_config.multipathable ? HOST_WITH_PATHS_COLUMNS : HOST_COLUMNS,
+    },
+  }),
+  injectState,
+  ({ state, hosts, pbds }) => (
+    <Container>
+      <Row>
+        <Col>
+          {!isEmpty(hosts) ? (
+            <SortedTable
+              actions={HOST_ACTIONS}
+              collection={pbds}
+              columns={state.columns}
+              stateUrlParam='s'
+              userData={hosts}
+            />
+          ) : (
+            <h4 className='text-xs-center'>{_('noHost')}</h4>
+          )}
+        </Col>
+      </Row>
+    </Container>
+  ),
+])

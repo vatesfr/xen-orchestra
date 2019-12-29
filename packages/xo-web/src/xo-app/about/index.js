@@ -29,12 +29,12 @@ const HEADER = (
   user: getUser,
 }))
 export default class About extends Component {
-  componentWillMount () {
+  componentWillMount() {
     serverVersion.then(serverVersion => {
       this.setState({ serverVersion })
     })
   }
-  render () {
+  render() {
     const { user } = this.props
     const isAdmin = user && user.permission === 'admin'
 
@@ -66,17 +66,16 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  <h2 className='text-danger'>{_('noProSupport')}</h2>
-                  <h4 className='text-danger'>{_('noProductionUse')}</h4>
-                  <p className='text-muted'>
-                    {_('downloadXoaFromWebsite', {
+                  <h2 className='text-info'>{_('productionUse')}</h2>
+                  <h4 className='text-info'>
+                    {_('getSupport', {
                       website: (
-                        <a href='https://xen-orchestra.com/#!/?pk_campaign=xoa_source_upgrade&pk_kwd=about'>
-                          http://xen-orchestra.com
+                        <a href='https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_source_upgrade&pk_kwd=about'>
+                          https://xen-orchestra.com
                         </a>
                       ),
                     })}
-                  </p>
+                  </h4>
                 </Col>
               </Row>
               <Row>
@@ -88,7 +87,7 @@ export default class About extends Component {
                   <p className='text-muted'>{_('bugTrackerText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/forum/'>
+                  <a href='https://xcp-ng.org/forum/category/12/xen-orchestra'>
                     <Icon icon='group' size={4} />
                     <h4>{_('community')}</h4>
                   </a>

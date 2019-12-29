@@ -12,7 +12,7 @@ const waitTicks = (n = 2) => {
   const { nextTick } = process
 
   return new Promise(resolve => {
-    ;(function waitNextTick () {
+    ;(function waitNextTick() {
       // The first tick is handled by Promise#then()
       if (--n) {
         nextTick(waitNextTick)
@@ -25,7 +25,7 @@ const waitTicks = (n = 2) => {
 
 // ===================================================================
 
-describe('Index', function () {
+describe('Index', function() {
   let col, byGroup
   const item1 = {
     id: '2ccb8a72-dc65-48e4-88fe-45ef541f2cba',
@@ -43,7 +43,7 @@ describe('Index', function () {
     id: 'd90b7335-e540-4a44-ad22-c4baae9cd0a9',
   }
 
-  beforeEach(function () {
+  beforeEach(function() {
     col = new Collection()
     forEach([item1, item2, item3, item4], item => {
       col.add(item)
@@ -56,7 +56,7 @@ describe('Index', function () {
     return waitTicks()
   })
 
-  it('works with existing items', function () {
+  it('works with existing items', function() {
     expect(col.indexes).toEqual({
       byGroup: {
         foo: {
@@ -70,7 +70,7 @@ describe('Index', function () {
     })
   })
 
-  it('works with added items', function () {
+  it('works with added items', function() {
     const item5 = {
       id: '823b56c4-4b96-4f3a-9533-5d08177167ac',
       group: 'baz',
@@ -96,7 +96,7 @@ describe('Index', function () {
     })
   })
 
-  it('works with updated items', function () {
+  it('works with updated items', function() {
     const item1bis = {
       id: item1.id,
       group: 'bar',
@@ -119,7 +119,7 @@ describe('Index', function () {
     })
   })
 
-  it('works with removed items', function () {
+  it('works with removed items', function() {
     col.remove(item2)
 
     return waitTicks().then(() => {
@@ -135,7 +135,7 @@ describe('Index', function () {
     })
   })
 
-  it('correctly updates the value even the same object has the same hash', function () {
+  it('correctly updates the value even the same object has the same hash', function() {
     const item1bis = {
       id: item1.id,
       group: item1.group,
@@ -159,8 +159,8 @@ describe('Index', function () {
     })
   })
 
-  describe('#sweep()', function () {
-    it('removes empty items lists', function () {
+  describe('#sweep()', function() {
+    it('removes empty items lists', function() {
       col.remove(item2)
 
       return waitTicks().then(() => {

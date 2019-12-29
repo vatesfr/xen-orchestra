@@ -3,7 +3,7 @@ import { getUserPublicProperties, mapToArray } from '../utils'
 
 // ===================================================================
 
-export async function create ({ email, password, permission }) {
+export async function create({ email, password, permission }) {
   return (await this.createUser({ email, password, permission })).id
 }
 
@@ -20,7 +20,7 @@ create.params = {
 // -------------------------------------------------------------------
 
 // Deletes an existing user.
-async function delete_ ({ id }) {
+async function delete_({ id }) {
   if (id === this.session.get('user_id')) {
     throw invalidParameters('a user cannot delete itself')
   }
@@ -43,7 +43,7 @@ delete_.params = {
 
 // TODO: remove this function when users are integrated to the main
 // collection.
-export async function getAll () {
+export async function getAll() {
   // Retrieves the users.
   const users = await this.getAllUsers()
 
@@ -57,7 +57,7 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function set ({ id, email, password, permission, preferences }) {
+export async function set({ id, email, password, permission, preferences }) {
   const isAdmin = this.user && this.user.permission === 'admin'
   if (isAdmin) {
     if (permission && id === this.session.get('user_id')) {
@@ -86,7 +86,7 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export async function changePassword ({ oldPassword, newPassword }) {
+export async function changePassword({ oldPassword, newPassword }) {
   const id = this.session.get('user_id')
   await this.changeUserPassword(id, oldPassword, newPassword)
 }

@@ -333,7 +333,7 @@ export default {
   homeMigrateTo: 'Migrar para…',
 
   // Original text: 'Missing patches'
-  homeMissingPaths: undefined,
+  homeMissingPatches: undefined,
 
   // Original text: 'Master:'
   homePoolMaster: undefined,
@@ -1564,7 +1564,7 @@ export default {
   vdiAction: 'Ação',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Anexar disco',
+  vdiAttachDevice: 'Anexar disco',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Novo disco',
@@ -2636,9 +2636,6 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Modo Leitura',
 
-  // Original text: 'Disconnect server'
-  serverDisconnect: undefined,
-
   // Original text: 'username'
   serverPlaceHolderUser: undefined,
 
@@ -2944,7 +2941,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    'Esta versão não está vinculada a qualquer tipo de suporte nem atualizações. Use-a com cuidado em se tratando de tarefas críticas.',
+    'Esta versão não está vinculada a qualquer tipo de suporte nem atualizações. Use-a com cuidado.',
 
   // Original text: "Connect PIF"
   connectPif: 'Conectar PIF',

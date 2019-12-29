@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
-import renderXoItem, { PoolItem } from 'render-xo-item'
+import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
@@ -16,7 +16,7 @@ import { unlockXosan } from 'xo'
 class SelectLicense extends Component {
   state = { license: 'none' }
 
-  render () {
+  render() {
     return (
       <form className='form-inline'>
         <select className='form-control' onChange={this.linkState('license')}>
@@ -69,7 +69,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanPool'),
-    itemRenderer: sr => <PoolItem id={sr.$pool} link />,
+    itemRenderer: sr => <Pool id={sr.$pool} link />,
   },
   {
     name: _('xosanLicense'),
@@ -153,12 +153,13 @@ export default class Xosan extends Component {
       filter(xosanSrs, ({ id }) => includes(knownXosanIds, id))
   )
 
-  render () {
+  render() {
     return (
       <SortedTable
         collection={this._getKnownXosans()}
         columns={XOSAN_COLUMNS}
         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
+        stateUrlParam='s_xosan'
         userData={{
           availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),

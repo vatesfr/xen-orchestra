@@ -13,7 +13,7 @@
 //   process.env.http_proxy
 // ])
 // ```
-export default function defined () {
+export default function defined() {
   let args = arguments
   let n = args.length
   if (n === 1) {

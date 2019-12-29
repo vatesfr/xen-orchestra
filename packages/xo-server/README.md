@@ -15,7 +15,7 @@ It contains all the logic of XO and handles:
 [![Dependency Status](https://david-dm.org/vatesfr/xen-orchestra.svg?theme=shields.io)](https://david-dm.org/vatesfr/xen-orchestra)
 [![devDependency Status](https://david-dm.org/vatesfr/xen-orchestra/dev-status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xen-orchestra#info=devDependencies)
 
-___
+---
 
 ## Installation
 

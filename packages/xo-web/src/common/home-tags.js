@@ -27,7 +27,7 @@ export default class HomeTags extends Component {
     this.context.router.push(`/home?t=${t}&s=${s}`)
   }
 
-  render () {
+  render() {
     return (
       <Tags
         labels={this.props.labels}

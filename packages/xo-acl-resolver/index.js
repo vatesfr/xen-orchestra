@@ -56,6 +56,8 @@ const checkAuthorizationByTypes = {
 
   network: or(checkSelf, checkMember('$pool')),
 
+  PBD: or(checkMember('host'), checkMember('SR')),
+
   PIF: checkMember('$host'),
 
   SR: or(checkSelf, checkMember('$container')),
@@ -66,7 +68,7 @@ const checkAuthorizationByTypes = {
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
-  VDI (vdi, permission) {
+  VDI(vdi, permission) {
     // Check authorization for the containing SR.
     if (checkAuthorization(vdi.$SR, permission)) {
       return true
@@ -96,7 +98,7 @@ const checkAuthorizationByTypes = {
 }
 
 // Hoisting is important for this function.
-function checkAuthorization (objectId, permission) {
+function checkAuthorization(objectId, permission) {
   const object = getObject(objectId)
   if (!object) {
     return false
@@ -109,7 +111,7 @@ function checkAuthorization (objectId, permission) {
 
 // -------------------------------------------------------------------
 
-function assertPermissions (
+function assertPermissions(
   permissionsByObject_,
   getObject_,
   permissions,
@@ -141,7 +143,7 @@ function assertPermissions (
 }
 exports.assert = assertPermissions
 
-exports.check = function checkPermissions () {
+exports.check = function checkPermissions() {
   try {
     assertPermissions.apply(undefined, arguments)
     return true

@@ -5,7 +5,11 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-test-plugin",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "packages/xo-server-test-plugin",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": "*"
   }
 }

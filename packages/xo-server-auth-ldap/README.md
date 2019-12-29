@@ -9,11 +9,7 @@ same identifier.
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-auth-ldap):
-
-```
-> npm install --global xo-server-auth-ldap
-```
+For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
 
 ## Usage
 
@@ -68,7 +64,7 @@ could not authenticate john.smith
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

@@ -29,9 +29,9 @@ import styles from './index.css'
   )
 
   const getMissingPatches = createSelector(getPoolHosts, hosts => {
-    return Promise.all(map(hosts, host => getHostMissingPatches(host))).then(
-      patches => uniq(map(flatten(patches), 'name'))
-    )
+    return Promise.all(
+      map(hosts, host => getHostMissingPatches(host))
+    ).then(patches => uniq(map(flatten(patches), 'name')))
   })
 
   const getHostMetrics = createGetHostMetrics(getPoolHosts)
@@ -52,7 +52,7 @@ import styles from './index.css'
 
   return {
     hostMetrics: getHostMetrics,
-    missingPaths: getMissingPatches,
+    missingPatches: getMissingPatches,
     poolHosts: getPoolHosts,
     nSrs: getNumberOfSrs,
     nVms: getNumberOfVms,
@@ -68,13 +68,13 @@ export default class PoolItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  componentWillMount () {
-    this.props.missingPaths.then(patches =>
+  componentWillMount() {
+    this.props.missingPatches.then(patches =>
       this.setState({ missingPatchCount: size(patches) })
     )
   }
 
-  render () {
+  render() {
     const {
       item: pool,
       expandAll,
@@ -109,7 +109,7 @@ export default class PoolItem extends Component {
                 {missingPatchCount > 0 && (
                   <span>
                     &nbsp;&nbsp;
-                    <Tooltip content={_('homeMissingPaths')}>
+                    <Tooltip content={_('homeMissingPatches')}>
                       <span className='tag tag-pill tag-danger'>
                         {missingPatchCount}
                       </span>

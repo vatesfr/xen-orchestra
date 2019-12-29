@@ -1,3 +1,4 @@
+/* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
 import asyncMap from '@xen-orchestra/async-map'
 import concurrency from 'limit-concurrency-decorator'
@@ -15,32 +16,32 @@ import {
   fromEvent,
   ignoreErrors,
   pCatch,
+  pRetry,
 } from 'promise-toolbox'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import { Xapi as XapiBase, NULL_REF } from 'xen-api'
 import {
   every,
-  find,
   filter,
+  find,
   flatMap,
   flatten,
   groupBy,
   includes,
   isEmpty,
+  noop,
   omit,
-  startsWith,
   uniq,
 } from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
+import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import {
   camelToSnakeCase,
-  ensureArray,
   forEach,
-  isFunction,
   map,
   mapToArray,
   pAll,
@@ -59,7 +60,6 @@ import {
   asInteger,
   extractOpaqueRef,
   filterUndefineds,
-  getNamespaceForType,
   getVmDisks,
   canSrHaveNewVdiOfSize,
   isVmHvm,
@@ -68,6 +68,7 @@ import {
   parseDateTime,
   prepareXapiParam,
 } from './utils'
+import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
@@ -80,7 +81,7 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
 //  export * from './utils'
-require('lodash/assign')(module.exports, require('./utils'))
+Object.assign(module.exports, require('./utils'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'
@@ -93,8 +94,11 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor (...args) {
-    super(...args)
+  constructor({ guessVhdSizeOnImport, maxUncoalescedVdis, ...opts }) {
+    super(opts)
+
+    this._guessVhdSizeOnImport = guessVhdSizeOnImport
+    this._maxUncoalescedVdis = maxUncoalescedVdis
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -132,7 +136,7 @@ export default class Xapi extends XapiBase {
     this.objects.on('update', onAddOrUpdate)
   }
 
-  call (...args) {
+  call(...args) {
     const fn = super.call
 
     const loop = () =>
@@ -146,13 +150,13 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
-  createTask (name = 'untitled task', description) {
+  createTask(name = 'untitled task', description) {
     return super.createTask(`[XO] ${name}`, description)
   }
 
   // =================================================================
 
-  _registerGenericWatcher (fn) {
+  _registerGenericWatcher(fn) {
     const watchers = this._genericWatchers
     const id = String(Math.random())
 
@@ -169,8 +173,8 @@ export default class Xapi extends XapiBase {
   // function.
   //
   // TODO: implements a timeout.
-  _waitObject (predicate) {
-    if (isFunction(predicate)) {
+  _waitObject(predicate) {
+    if (typeof predicate === 'function') {
       const { promise, resolve } = defer()
 
       const unregister = this._registerGenericWatcher(obj => {
@@ -201,7 +205,7 @@ export default class Xapi extends XapiBase {
   // Wait for an object to be in a given state.
   //
   // Faster than _waitObject() with a function.
-  _waitObjectState (idOrUuidOrRef, predicate) {
+  _waitObjectState(idOrUuidOrRef, predicate) {
     const object = this.getObject(idOrUuidOrRef, null)
     if (object && predicate(object)) {
       return object
@@ -216,7 +220,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns the objects if already presents or waits for it.
-  async _getOrWaitObject (idOrUuidOrRef) {
+  async _getOrWaitObject(idOrUuidOrRef) {
     return (
       this.getObject(idOrUuidOrRef, null) || this._waitObject(idOrUuidOrRef)
     )
@@ -224,18 +228,8 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  _setObjectProperty (object, name, value) {
-    return this.call(
-      `${getNamespaceForType(object.$type)}.set_${camelToSnakeCase(name)}`,
-      object.$ref,
-      prepareXapiParam(value)
-    )
-  }
-
-  _setObjectProperties (object, props) {
+  _setObjectProperties(object, props) {
     const { $ref: ref, $type: type } = object
-
-    const namespace = getNamespaceForType(type)
 
     // TODO: the thrown error should contain the name of the
     // properties that failed to be set.
@@ -243,7 +237,7 @@ export default class Xapi extends XapiBase {
       mapToArray(props, (value, name) => {
         if (value != null) {
           return this.call(
-            `${namespace}.set_${camelToSnakeCase(name)}`,
+            `${type}.set_${camelToSnakeCase(name)}`,
             ref,
             prepareXapiParam(value)
           )
@@ -252,108 +246,21 @@ export default class Xapi extends XapiBase {
     )::ignoreErrors()
   }
 
-  async _updateObjectMapProperty (object, prop, values) {
-    const { $ref: ref, $type: type } = object
+  // =================================================================
 
-    prop = camelToSnakeCase(prop)
-
-    const namespace = getNamespaceForType(type)
-    const add = `${namespace}.add_to_${prop}`
-    const remove = `${namespace}.remove_from_${prop}`
-
-    await Promise.all(
-      mapToArray(values, (value, name) => {
-        if (value !== undefined) {
-          name = camelToSnakeCase(name)
-          const removal = this.call(remove, ref, name)
-
-          return value === null
-            ? removal
-            : removal
-                ::ignoreErrors()
-                .then(() => this.call(add, ref, name, prepareXapiParam(value)))
-        }
-      })
-    )
-  }
-
-  async setHostProperties (id, { nameLabel, nameDescription }) {
-    await this._setObjectProperties(this.getObject(id), {
-      nameLabel,
-      nameDescription,
-    })
-  }
-
-  async setPoolProperties ({ autoPoweron, nameLabel, nameDescription }) {
-    const { pool } = this
-
-    await Promise.all([
-      this._setObjectProperties(pool, {
-        nameLabel,
-        nameDescription,
-      }),
-      autoPoweron != null &&
-        this._updateObjectMapProperty(pool, 'other_config', {
-          autoPoweron: autoPoweron ? 'true' : null,
-        }),
-    ])
-  }
-
-  async setSrProperties (id, { nameLabel, nameDescription }) {
-    await this._setObjectProperties(this.getObject(id), {
-      nameLabel,
-      nameDescription,
-    })
-  }
-
-  async setNetworkProperties (
-    id,
-    { nameLabel, nameDescription, defaultIsLocked }
-  ) {
-    let defaultLockingMode
-    if (defaultIsLocked != null) {
-      defaultLockingMode = defaultIsLocked ? 'disabled' : 'unlocked'
-    }
-    await this._setObjectProperties(this.getObject(id), {
-      nameLabel,
-      nameDescription,
-      defaultLockingMode,
-    })
+  setDefaultSr(srId) {
+    return this.pool.set_default_SR(this.getObject(srId).$ref)
   }
 
   // =================================================================
 
-  async addTag (id, tag) {
-    const { $ref: ref, $type: type } = this.getObject(id)
-
-    const namespace = getNamespaceForType(type)
-    await this.call(`${namespace}.add_tags`, ref, tag)
-  }
-
-  async removeTag (id, tag) {
-    const { $ref: ref, $type: type } = this.getObject(id)
-
-    const namespace = getNamespaceForType(type)
-    await this.call(`${namespace}.remove_tags`, ref, tag)
-  }
-
-  // =================================================================
-
-  async setDefaultSr (srId) {
-    this._setObjectProperties(this.pool, {
-      default_SR: this.getObject(srId).$ref,
-    })
-  }
-
-  // =================================================================
-
-  async setPoolMaster (hostId) {
+  async setPoolMaster(hostId) {
     await this.call('pool.designate_new_master', this.getObject(hostId).$ref)
   }
 
   // =================================================================
 
-  async joinPool (masterAddress, masterUsername, masterPassword, force = false) {
+  async joinPool(masterAddress, masterUsername, masterPassword, force = false) {
     await this.call(
       force ? 'pool.join_force' : 'pool.join',
       masterAddress,
@@ -364,19 +271,19 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async emergencyShutdownHost (hostId) {
+  async emergencyShutdownHost(hostId) {
     const host = this.getObject(hostId)
     const vms = host.$resident_VMs
     log.debug(`Emergency shutdown: ${host.name_label}`)
     await pSettle(
       mapToArray(vms, vm => {
         if (!vm.is_control_domain) {
-          return this.call('VM.suspend', vm.$ref)
+          return this.callAsync('VM.suspend', vm.$ref)
         }
       })
     )
     await this.call('host.disable', host.$ref)
-    await this.call('host.shutdown', host.$ref)
+    await this.callAsync('host.shutdown', host.$ref)
   }
 
   // =================================================================
@@ -385,11 +292,11 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async _clearHost ({ $ref: ref }, force) {
+  async _clearHost({ $ref: ref }, force) {
     await this.call('host.disable', ref)
 
     try {
-      await this.call('host.evacuate', ref)
+      await this.callAsync('host.evacuate', ref)
     } catch (error) {
       if (!force) {
         await this.call('host.enable', ref)
@@ -399,71 +306,107 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async disableHost (hostId) {
+  async disableHost(hostId) {
     await this.call('host.disable', this.getObject(hostId).$ref)
   }
 
-  async forgetHost (hostId) {
-    await this.call('host.destroy', this.getObject(hostId).$ref)
+  async forgetHost(hostId) {
+    await this.callAsync('host.destroy', this.getObject(hostId).$ref)
   }
 
-  async ejectHostFromPool (hostId) {
+  async ejectHostFromPool(hostId) {
     await this.call('pool.eject', this.getObject(hostId).$ref)
   }
 
-  async enableHost (hostId) {
+  async enableHost(hostId) {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
-  async powerOnHost (hostId) {
-    await this.call('host.power_on', this.getObject(hostId).$ref)
+  // Resources:
+  // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
+  // - https://github.com/xcp-ng/xenadmin/blob/60dd70fc36faa0ec91654ec97e24b7af36acff9f/XenModel/Actions/Host/EditMultipathAction.cs
+  // - https://github.com/serencorbett1/xenadmin/blob/1c3fb0c1112e4e316423afc6a028066001d3dea1/XenModel/XenAPI-Extensions/SR.cs
+  @deferrable.onError(log.warn)
+  async setHostMultipathing($defer, hostId, multipathing) {
+    const host = this.getObject(hostId)
+
+    if (host.enabled) {
+      await this.disableHost(hostId)
+      $defer(() => this.enableHost(hostId))
+    }
+
+    // Xen center evacuate running VMs before unplugging the PBDs.
+    // The evacuate method uses the live migration to migrate running VMs
+    // from host to another. It only works when a shared SR is present
+    // in the host. For this reason we chose to show a warning instead.
+    const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
+    await asyncMap(pluggedPbds, async pbd => {
+      const ref = pbd.$ref
+      await this.unplugPbd(ref)
+      $defer(() => this.plugPbd(ref))
+    })
+
+    return host.update_other_config(
+      multipathing
+        ? {
+            multipathing: 'true',
+            multipathhandle: 'dmp',
+          }
+        : {
+            multipathing: 'false',
+          }
+    )
   }
 
-  async rebootHost (hostId, force = false) {
+  async powerOnHost(hostId) {
+    await this.callAsync('host.power_on', this.getObject(hostId).$ref)
+  }
+
+  async rebootHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
     await this._clearHost(host, force)
-    await this.call('host.reboot', host.$ref)
+    await this.callAsync('host.reboot', host.$ref)
   }
 
-  async restartHostAgent (hostId) {
-    await this.call('host.restart_agent', this.getObject(hostId).$ref)
+  async restartHostAgent(hostId) {
+    await this.callAsync('host.restart_agent', this.getObject(hostId).$ref)
   }
 
-  async setRemoteSyslogHost (hostId, syslogDestination) {
+  async setRemoteSyslogHost(hostId, syslogDestination) {
     const host = this.getObject(hostId)
-    await this.call('host.set_logging', host.$ref, {
+    await host.set_logging({
       syslog_destination: syslogDestination,
     })
     await this.call('host.syslog_reconfigure', host.$ref)
   }
 
-  async shutdownHost (hostId, force = false) {
+  async shutdownHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
     await this._clearHost(host, force)
-    await this.call('host.shutdown', host.$ref)
+    await this.callAsync('host.shutdown', host.$ref)
   }
 
   // =================================================================
 
   // Clone a VM: make a fast copy by fast copying each of its VDIs
   // (using snapshots where possible) on the same SRs.
-  _cloneVm (vm, nameLabel = vm.name_label) {
+  _cloneVm(vm, nameLabel = vm.name_label) {
     log.debug(
       `Cloning VM ${vm.name_label}${
         nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
       }`
     )
 
-    return this.call('VM.clone', vm.$ref, nameLabel)
+    return this.callAsync('VM.clone', vm.$ref, nameLabel).then(extractOpaqueRef)
   }
 
   // Copy a VM: make a normal copy of a VM and all its VDIs.
   //
   // If a SR is specified, it will contains the copies of the VDIs,
   // otherwise they will use the SRs they are on.
-  async _copyVm (vm, nameLabel = vm.name_label, sr = undefined) {
+  async _copyVm(vm, nameLabel = vm.name_label, sr = undefined) {
     let snapshot
     if (isVmRunning(vm)) {
       snapshot = await this._snapshotVm(vm)
@@ -489,7 +432,7 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async cloneVm (vmId, { nameLabel = undefined, fast = true } = {}) {
+  async cloneVm(vmId, { nameLabel = undefined, fast = true } = {}) {
     const vm = this.getObject(vmId)
 
     const cloneRef = await (fast
@@ -499,17 +442,17 @@ export default class Xapi extends XapiBase {
     return /* await */ this._getOrWaitObject(cloneRef)
   }
 
-  async copyVm (vmId, srId, { nameLabel = undefined } = {}) {
+  async copyVm(vmId, srId, { nameLabel = undefined } = {}) {
     return /* await */ this._getOrWaitObject(
       await this._copyVm(this.getObject(vmId), nameLabel, this.getObject(srId))
     )
   }
 
-  async remoteCopyVm (
+  async remoteCopyVm(
     vmId,
     targetXapi,
     targetSrId,
-    { compress = true, nameLabel = undefined } = {}
+    { compress, nameLabel = undefined } = {}
   ) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
@@ -527,12 +470,7 @@ export default class Xapi extends XapiBase {
     stream = stream.pipe(sizeStream)
 
     const onVmCreation =
-      nameLabel !== undefined
-        ? vm =>
-            targetXapi._setObjectProperties(vm, {
-              nameLabel,
-            })
-        : null
+      nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 
     const vm = await targetXapi._getOrWaitObject(
       await targetXapi._importVm(stream, sr, onVmCreation)
@@ -545,7 +483,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Low level create VM.
-  _createVmRecord ({
+  _createVmRecord({
     actions_after_crash,
     actions_after_reboot,
     actions_after_shutdown,
@@ -645,18 +583,18 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _deleteVm (
-    vm,
+  async _deleteVm(
+    vmOrRef,
     deleteDisks = true,
     force = false,
     forceDeleteDefaultTemplate = false
   ) {
-    log.debug(`Deleting VM ${vm.name_label}`)
-
-    const { $ref } = vm
+    const $ref = typeof vmOrRef === 'string' ? vmOrRef : vmOrRef.$ref
 
     // ensure the vm record is up-to-date
-    vm = await this.barrier($ref)
+    const vm = await this.barrier($ref)
+
+    log.debug(`Deleting VM ${vm.name_label}`)
 
     if (!force && 'destroy' in vm.blocked_operations) {
       throw forbiddenOperation('destroy', vm.blocked_operations.destroy.reason)
@@ -672,17 +610,13 @@ export default class Xapi extends XapiBase {
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
-      await this.call('VM.hard_shutdown', $ref)
+      await this.callAsync('VM.hard_shutdown', $ref)
     }
 
     await Promise.all([
-      this.call('VM.set_is_a_template', vm.$ref, false),
-      this._updateObjectMapProperty(vm, 'blocked_operations', {
-        destroy: null,
-      }),
-      this._updateObjectMapProperty(vm, 'other_config', {
-        default_template: null,
-      }),
+      vm.set_is_a_template(false),
+      vm.update_blocked_operations('destroy', null),
+      vm.update_other_config('default_template', null),
     ])
 
     // must be done before destroying the VM
@@ -690,12 +624,16 @@ export default class Xapi extends XapiBase {
 
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
-    await this.call('VM.destroy', $ref)
+    await this.callAsync('VM.destroy', $ref)
 
     return Promise.all([
       asyncMap(vm.$snapshots, snapshot =>
         this._deleteVm(snapshot)
       )::ignoreErrors(),
+
+      vm.power_state === 'Suspended' &&
+        vm.suspend_VDI !== NULL_REF &&
+        this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
 
       deleteDisks &&
         asyncMap(disks, ({ $ref: vdiRef }) => {
@@ -721,7 +659,7 @@ export default class Xapi extends XapiBase {
             return (
               // Only remove VBDs not attached to other VMs.
               vdi.VBDs.length < 2 || every(vdi.$VBDs, vbd => vbd.VM === $ref)
-                ? this._deleteVdi(vdi)
+                ? this._deleteVdi(vdiRef)
                 : onFailure(vdi)
             )
           }
@@ -730,7 +668,7 @@ export default class Xapi extends XapiBase {
     ])
   }
 
-  async deleteVm (vmId, deleteDisks, force, forceDeleteDefaultTemplate) {
+  async deleteVm(vmId, deleteDisks, force, forceDeleteDefaultTemplate) {
     return /* await */ this._deleteVm(
       this.getObject(vmId),
       deleteDisks,
@@ -739,7 +677,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  getVmConsole (vmId) {
+  getVmConsole(vmId) {
     const vm = this.getObject(vmId)
 
     const console = find(vm.$consoles, { protocol: 'rfb' })
@@ -753,7 +691,7 @@ export default class Xapi extends XapiBase {
   // Returns a stream to the exported VM.
   @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
-  async exportVm ($cancelToken, vmId, { compress = true } = {}) {
+  async exportVm($cancelToken, vmId, { compress = false } = {}) {
     const vm = this.getObject(vmId)
     const useSnapshot = isVmRunning(vm)
     const exportedVm = useSnapshot
@@ -763,7 +701,12 @@ export default class Xapi extends XapiBase {
     const promise = this.getResource($cancelToken, '/export/', {
       query: {
         ref: exportedVm.$ref,
-        use_compression: compress ? 'true' : 'false',
+        use_compression:
+          compress === 'zstd'
+            ? 'zstd'
+            : compress === true || compress === 'gzip'
+            ? 'true'
+            : 'false',
       },
       task: this.createTask('VM export', vm.name_label),
     }).catch(error => {
@@ -782,7 +725,7 @@ export default class Xapi extends XapiBase {
     return promise
   }
 
-  _assertHealthyVdiChain (vdi, cache) {
+  _assertHealthyVdiChain(vdi, cache, tolerance) {
     if (vdi == null) {
       return
     }
@@ -791,9 +734,19 @@ export default class Xapi extends XapiBase {
       const { SR } = vdi
       let childrenMap = cache[SR]
       if (childrenMap === undefined) {
+        const xapi = vdi.$xapi
         childrenMap = cache[SR] = groupBy(
-          vdi.$SR.$VDIs,
-          _ => _.sm_config['vhd-parent']
+          vdi.$SR.VDIs,
+
+          // if for any reasons, the VDI is undefined, simply ignores it instead
+          // of failing
+          ref => {
+            try {
+              return xapi.getObjectByRef(ref).sm_config['vhd-parent']
+            } catch (error) {
+              log.warn('missing VDI in _assertHealthyVdiChain', { error })
+            }
+          }
         )
       }
 
@@ -802,7 +755,8 @@ export default class Xapi extends XapiBase {
       const children = childrenMap[vdi.uuid]
       if (
         children.length === 1 &&
-        !children[0].managed // some SRs do not coalesce the leaf
+        !children[0].managed && // some SRs do not coalesce the leaf
+        tolerance-- <= 0
       ) {
         throw new Error('unhealthy VDI chain')
       }
@@ -810,14 +764,21 @@ export default class Xapi extends XapiBase {
 
     this._assertHealthyVdiChain(
       this.getObjectByUuid(vdi.sm_config['vhd-parent'], null),
-      cache
+      cache,
+      tolerance
     )
   }
 
-  _assertHealthyVdiChains (vm) {
+  _assertHealthyVdiChains(vm, tolerance = this._maxUncoalescedVdis) {
     const cache = { __proto__: null }
     forEach(vm.$VBDs, ({ $VDI }) => {
-      this._assertHealthyVdiChain($VDI, cache)
+      try {
+        this._assertHealthyVdiChain($VDI, cache, tolerance)
+      } catch (error) {
+        error.VDI = $VDI
+        error.VM = vm
+        throw error
+      }
     })
   }
 
@@ -825,7 +786,7 @@ export default class Xapi extends XapiBase {
   // object.
   @cancelable
   @deferrable
-  async exportDeltaVm (
+  async exportDeltaVm(
     $defer,
     $cancelToken,
     vmId: string,
@@ -880,13 +841,13 @@ export default class Xapi extends XapiBase {
       }
 
       // If the VDI name start with `[NOBAK]`, do not export it.
-      if (startsWith(vdi.name_label, '[NOBAK]')) {
+      if (vdi.name_label.startsWith('[NOBAK]')) {
         // FIXME: find a way to not create the VDI snapshot in the
         // first time.
         //
         // The snapshot must not exist otherwise it could break the
         // next export.
-        this._deleteVdi(vdi)::ignoreErrors()
+        this._deleteVdi(vdi.$ref)::ignoreErrors()
         return
       }
 
@@ -956,7 +917,7 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable
-  async importDeltaVm (
+  async importDeltaVm(
     $defer,
     delta: DeltaVmExport,
     {
@@ -1006,22 +967,20 @@ export default class Xapi extends XapiBase {
       await this._createVmRecord({
         ...delta.vm,
         affinity: null,
+        blocked_operations: {
+          ...delta.vm.blocked_operations,
+          start: 'Importing…',
+        },
+        ha_always_run: false,
         is_a_template: false,
+        name_label: `[Importing…] ${name_label}`,
+        other_config: {
+          ...delta.vm.other_config,
+          [TAG_COPY_SRC]: delta.vm.uuid,
+        },
       })
     )
     $defer.onFailure(() => this._deleteVm(vm))
-
-    await Promise.all([
-      this._setObjectProperties(vm, {
-        name_label: `[Importing…] ${name_label}`,
-      }),
-      this._updateObjectMapProperty(vm, 'blocked_operations', {
-        start: 'Importing…',
-      }),
-      this._updateObjectMapProperty(vm, 'other_config', {
-        [TAG_COPY_SRC]: delta.vm.uuid,
-      }),
-    ])
 
     // 2. Delete all VBDs which may have been created by the import.
     await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
@@ -1042,11 +1001,9 @@ export default class Xapi extends XapiBase {
         }
 
         newVdi = await this._getOrWaitObject(await this._cloneVdi(baseVdi))
-        $defer.onFailure(() => this._deleteVdi(newVdi))
+        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
 
-        await this._updateObjectMapProperty(newVdi, 'other_config', {
-          [TAG_COPY_SRC]: vdi.uuid,
-        })
+        await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
       } else {
         newVdi = await this.createVdi({
           ...vdi,
@@ -1057,7 +1014,7 @@ export default class Xapi extends XapiBase {
           },
           sr: mapVdisSrs[vdi.uuid] || srId,
         })
-        $defer.onFailure(() => this._deleteVdi(newVdi))
+        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
 
       await asyncMap(vbds[vdiId], vbd =>
@@ -1141,21 +1098,21 @@ export default class Xapi extends XapiBase {
     }
 
     await Promise.all([
-      this._setObjectProperties(vm, {
-        name_label,
-      }),
+      delta.vm.ha_always_run && vm.set_ha_always_run(true),
+      vm.set_name_label(name_label),
       // FIXME: move
-      this._updateObjectMapProperty(vm, 'blocked_operations', {
-        start: disableStartAfterImport
+      vm.update_blocked_operations(
+        'start',
+        disableStartAfterImport
           ? 'Do not start this VM, clone it if you want to use it.'
-          : null,
-      }),
+          : null
+      ),
     ])
 
     return { transferSize, vm }
   }
 
-  async _migrateVmWithStorageMotion (
+  async _migrateVmWithStorageMotion(
     vm,
     hostXapi,
     host,
@@ -1203,7 +1160,7 @@ export default class Xapi extends XapiBase {
     )
 
     const loop = () =>
-      this.call(
+      this.callAsync(
         'VM.migrate_send',
         vm.$ref,
         token,
@@ -1213,15 +1170,18 @@ export default class Xapi extends XapiBase {
         {
           force: 'true',
         }
+        // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
+        // might need to be changed one day.
+        // {},
       )::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
         pDelay(1e4).then(loop)
       )
 
-    return loop()
+    return loop().then(noop)
   }
 
-  @synchronized
-  _callInstallationPlugin (hostRef, vdi) {
+  @synchronized()
+  _callInstallationPlugin(hostRef, vdi) {
     return this.call(
       'host.call_plugin',
       hostRef,
@@ -1237,7 +1197,7 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable
-  async installSupplementalPack ($defer, stream, { hostId }) {
+  async installSupplementalPack($defer, stream, { hostId }) {
     if (!stream.length) {
       throw new Error('stream must have a length')
     }
@@ -1248,13 +1208,13 @@ export default class Xapi extends XapiBase {
       '[XO] Supplemental pack ISO',
       'small temporary VDI to store a supplemental pack ISO'
     )
-    $defer(() => this._deleteVdi(vdi))
+    $defer(() => this._deleteVdi(vdi.$ref))
 
     await this._callInstallationPlugin(this.getObject(hostId).$ref, vdi.uuid)
   }
 
   @deferrable
-  async installSupplementalPackOnAllHosts ($defer, stream) {
+  async installSupplementalPackOnAllHosts($defer, stream) {
     if (!stream.length) {
       throw new Error('stream must have a length')
     }
@@ -1276,7 +1236,7 @@ export default class Xapi extends XapiBase {
         '[XO] Supplemental pack ISO',
         'small temporary VDI to store a supplemental pack ISO'
       )
-      $defer(() => this._deleteVdi(vdi))
+      $defer(() => this._deleteVdi(vdi.$ref))
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
       for (const host of hosts) {
@@ -1307,7 +1267,7 @@ export default class Xapi extends XapiBase {
             '[XO] Supplemental pack ISO',
             'small temporary VDI to store a supplemental pack ISO'
           )
-          $defer(() => this._deleteVdi(vdi))
+          $defer(() => this._deleteVdi(vdi.$ref))
 
           await this._callInstallationPlugin(host.$ref, vdi.uuid)
         })
@@ -1316,7 +1276,7 @@ export default class Xapi extends XapiBase {
   }
 
   @cancelable
-  async _importVm ($cancelToken, stream, sr, onVmCreation = undefined) {
+  async _importVm($cancelToken, stream, sr, onVmCreation = undefined) {
     const taskRef = await this.createTask('VM import')
     const query = {}
 
@@ -1350,7 +1310,7 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable
-  async _importOvaVm (
+  async _importOvaVm(
     $defer,
     stream,
     { descriptionLabel, disks, memory, nameLabel, networks, nCpus, tables },
@@ -1372,14 +1332,8 @@ export default class Xapi extends XapiBase {
     $defer.onFailure(() => this._deleteVm(vm))
     // Disable start and change the VM name label during import.
     await Promise.all([
-      this.addForbiddenOperationToVm(
-        vm.$id,
-        'start',
-        'OVA import in progress...'
-      ),
-      this._setObjectProperties(vm, {
-        name_label: `[Importing...] ${nameLabel}`,
-      }),
+      vm.update_blocked_operations('start', 'OVA import in progress...'),
+      vm.set_name_label(`[Importing...] ${nameLabel}`),
     ])
 
     // 2. Create VDIs & Vifs.
@@ -1393,10 +1347,10 @@ export default class Xapi extends XapiBase {
           size: disk.capacity,
           sr: sr.$ref,
         }))
-        $defer.onFailure(() => this._deleteVdi(vdi))
+        $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
         return this.createVbd({
-          userdevice: disk.position,
+          userdevice: String(disk.position),
           vdi,
           vm,
         })
@@ -1427,7 +1381,11 @@ export default class Xapi extends XapiBase {
         }
 
         const table = tables[entry.name]
-        const vhdStream = await vmdkToVhd(stream, table)
+        const vhdStream = await vmdkToVhd(
+          stream,
+          table.grainLogicalAddressList,
+          table.grainFileOffsetList
+        )
         await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
 
         // See: https://github.com/mafintosh/tar-stream#extracting
@@ -1439,14 +1397,14 @@ export default class Xapi extends XapiBase {
 
     // Enable start and restore the VM name label after import.
     await Promise.all([
-      this.removeForbiddenOperationFromVm(vm.$id, 'start'),
-      this._setObjectProperties(vm, { name_label: nameLabel }),
+      vm.update_blocked_operations('start', null),
+      vm.set_name_label(nameLabel),
     ])
     return vm
   }
 
   // TODO: an XVA can contain multiple VMs
-  async importVm (stream, { data, srId, type = 'xva' } = {}) {
+  async importVm(stream, { data, srId, type = 'xva' } = {}) {
     const sr = srId && this.getObject(srId)
 
     if (type === 'xva') {
@@ -1460,7 +1418,7 @@ export default class Xapi extends XapiBase {
     throw new Error(`unsupported type: '${type}'`)
   }
 
-  async migrateVm (
+  async migrateVm(
     vmId,
     hostXapi,
     hostId,
@@ -1487,7 +1445,7 @@ export default class Xapi extends XapiBase {
       })
     } else {
       try {
-        await this.call('VM.pool_migrate', vm.$ref, host.$ref, {
+        await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
           force: 'true',
         })
       } catch (error) {
@@ -1503,11 +1461,29 @@ export default class Xapi extends XapiBase {
 
   @concurrency(2)
   @cancelable
-  async _snapshotVm ($cancelToken, vm, nameLabel = vm.name_label) {
+  async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
+    const vm = await this.getRecord('VM', vmRef)
+    if (nameLabel === undefined) {
+      nameLabel = vm.name_label
+    }
+
     log.debug(
       `Snapshotting VM ${vm.name_label}${
         nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''
       }`
+    )
+
+    // see https://github.com/vatesfr/xen-orchestra/issues/4074
+    const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
+    ignoreErrors.call(
+      Promise.all(
+        vm.snapshots.map(async ref => {
+          const nameLabel = await this.getField('VM', ref, 'name_label')
+          if (nameLabel.startsWith(snapshotNameLabelPrefix)) {
+            return this._deleteVm(ref)
+          }
+        })
+      )
     )
 
     let ref
@@ -1517,10 +1493,10 @@ export default class Xapi extends XapiBase {
           ref = await this.callAsync(
             $cancelToken,
             'VM.snapshot_with_quiesce',
-            vm.$ref,
+            vmRef,
             nameLabel
           ).then(extractOpaqueRef)
-          this.addTag(ref, 'quiesce')::ignoreErrors()
+          ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
 
           break
         } catch (error) {
@@ -1540,38 +1516,25 @@ export default class Xapi extends XapiBase {
       ref = await this.callAsync(
         $cancelToken,
         'VM.snapshot',
-        vm.$ref,
+        vmRef,
         nameLabel
       ).then(extractOpaqueRef)
     } while (false)
 
-    // Convert the template to a VM and wait to have receive the up-
-    // to-date object.
-    const [, snapshot] = await Promise.all([
-      this.call('VM.set_is_a_template', ref, false),
-      this.barrier(ref),
-    ])
+    await this.setField('VM', ref, 'is_a_template', false)
 
-    return snapshot
+    return this.getRecord('VM', ref)
   }
 
-  async snapshotVm (vmId, nameLabel = undefined) {
+  async snapshotVm(vmId, nameLabel = undefined) {
     return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
-  async setVcpuWeight (vmId, weight) {
-    weight = weight || null // Take all falsy values as a removal (0 included)
-    const vm = this.getObject(vmId)
-    await this._updateObjectMapProperty(vm, 'VCPUs_params', { weight })
-  }
-
-  async _startVm (vm, host, force) {
+  async _startVm(vm, host, force) {
     log.debug(`Starting VM ${vm.name_label}`)
 
     if (force) {
-      await this._updateObjectMapProperty(vm, 'blocked_operations', {
-        start: null,
-      })
+      await vm.update_blocked_operations('start', null)
     }
 
     return host === undefined
@@ -1581,10 +1544,10 @@ export default class Xapi extends XapiBase {
           false, // Start paused?
           false // Skip pre-boot checks?
         )
-      : this.call('VM.start_on', vm.$ref, host.$ref, false, false)
+      : this.callAsync('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
-  async startVm (vmId, hostId, force) {
+  async startVm(vmId, hostId, force) {
     try {
       await this._startVm(
         this.getObject(vmId),
@@ -1596,38 +1559,36 @@ export default class Xapi extends XapiBase {
         throw forbiddenOperation('Start', e.params[1])
       }
       if (e.code === 'VM_BAD_POWER_STATE') {
-        return this.resumeVm(vmId)
+        return e.params[2] === 'paused'
+          ? this.unpauseVm(vmId)
+          : this.resumeVm(vmId)
       }
       throw e
     }
   }
 
-  async startVmOnCd (vmId) {
+  async startVmOnCd(vmId) {
     const vm = this.getObject(vmId)
 
     if (isVmHvm(vm)) {
       const { order } = vm.HVM_boot_params
 
-      await this._updateObjectMapProperty(vm, 'HVM_boot_params', {
-        order: 'd',
-      })
+      await vm.update_HVM_boot_params('order', 'd')
 
       try {
         await this._startVm(vm)
       } finally {
-        await this._updateObjectMapProperty(vm, 'HVM_boot_params', {
-          order,
-        })
+        await vm.update_HVM_boot_params('order', order)
       }
     } else {
       // Find the original template by name (*sigh*).
-      const templateNameLabel = vm.other_config['base_template_name']
+      const templateNameLabel = vm.other_config.base_template_name
       const template =
         templateNameLabel &&
         find(
           this.objects.all,
           obj =>
-            obj.$type === 'vm' &&
+            obj.$type === 'VM' &&
             obj.is_a_template &&
             obj.name_label === templateNameLabel
         )
@@ -1639,20 +1600,14 @@ export default class Xapi extends XapiBase {
 
         const cdDrive = this._getVmCdDrive(vm)
         forEach(vm.$VBDs, vbd => {
-          promises.push(
-            this._setObjectProperties(vbd, {
-              bootable: vbd === cdDrive,
-            })
-          )
+          promises.push(vbd.set_bootable(vbd === cdDrive))
 
           bootables.push([vbd, Boolean(vbd.bootable)])
         })
 
         promises.push(
-          this._setObjectProperties(vm, {
-            PV_bootloader: 'eliloader',
-          }),
-          this._updateObjectMapProperty(vm, 'other_config', {
+          vm.set_PV_bootloader('eliloader'),
+          vm.update_other_config({
             'install-distro':
               template && template.other_config['install-distro'],
             'install-repository': 'cdrom',
@@ -1663,38 +1618,18 @@ export default class Xapi extends XapiBase {
 
         await this._startVm(vm)
       } finally {
-        this._setObjectProperties(vm, {
-          PV_bootloader: bootloader,
-        })::ignoreErrors()
+        vm.set_PV_bootloader(bootloader)::ignoreErrors()
 
         forEach(bootables, ([vbd, bootable]) => {
-          this._setObjectProperties(vbd, { bootable })::ignoreErrors()
+          vbd.set_bootable(bootable)::ignoreErrors()
         })
       }
     }
   }
 
-  // vm_operations: http://xapi-project.github.io/xen-api/classes/vm.html
-  async addForbiddenOperationToVm (vmId, operation, reason) {
-    await this.call(
-      'VM.add_to_blocked_operations',
-      this.getObject(vmId).$ref,
-      operation,
-      `[XO] ${reason}`
-    )
-  }
-
-  async removeForbiddenOperationFromVm (vmId, operation) {
-    await this.call(
-      'VM.remove_from_blocked_operations',
-      this.getObject(vmId).$ref,
-      operation
-    )
-  }
-
   // =================================================================
 
-  async createVbd ({
+  async createVbd({
     bootable = false,
     other_config = {},
     qos_algorithm_params = {},
@@ -1752,23 +1687,26 @@ export default class Xapi extends XapiBase {
     })
 
     if (isVmRunning(vm)) {
-      await this.call('VBD.plug', vbdRef)
+      await this.callAsync('VBD.plug', vbdRef)
     }
   }
 
-  _cloneVdi (vdi) {
+  _cloneVdi(vdi) {
     log.debug(`Cloning VDI ${vdi.name_label}`)
 
-    return this.call('VDI.clone', vdi.$ref)
+    return this.callAsync('VDI.clone', vdi.$ref).then(extractOpaqueRef)
   }
 
-  async createVdi ({
+  async createVdi({
+    // blindly copying `sm_config` from another VDI can create problems,
+    // therefore it is ignored by this method
+    //
+    // see https://github.com/vatesfr/xen-orchestra/issues/4482
     name_description,
     name_label,
     other_config = {},
     read_only = false,
     sharable = false,
-    sm_config,
     SR,
     tags,
     type = 'user',
@@ -1782,23 +1720,22 @@ export default class Xapi extends XapiBase {
     log.debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
     return this._getOrWaitObject(
-      await this.call('VDI.create', {
+      await this.callAsync('VDI.create', {
         name_description,
         name_label,
         other_config,
         read_only: Boolean(read_only),
         sharable: Boolean(sharable),
-        sm_config,
         SR: sr.$ref,
         tags,
         type,
         virtual_size: size !== undefined ? parseSize(size) : virtual_size,
         xenstore_data,
-      })
+      }).then(extractOpaqueRef)
     )
   }
 
-  async moveVdi (vdiId, srId) {
+  async moveVdi(vdiId, srId) {
     const vdi = this.getObject(vdiId)
     const sr = this.getObject(srId)
 
@@ -1807,52 +1744,62 @@ export default class Xapi extends XapiBase {
     }
 
     log.debug(
-      `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${
-        sr.name_label
-      }`
+      `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`
     )
     try {
-      await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
+      await pRetry(
+        () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
+        {
+          when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+        }
+      )
     } catch (error) {
       const { code } = error
       if (
+        code !== 'NO_HOSTS_AVAILABLE' &&
         code !== 'LICENCE_RESTRICTION' &&
         code !== 'VDI_NEEDS_VM_FOR_MIGRATE'
       ) {
         throw error
       }
       const newVdi = await this.barrier(
-        await this.call('VDI.copy', vdi.$ref, sr.$ref)
+        await this.callAsync('VDI.copy', vdi.$ref, sr.$ref).then(
+          extractOpaqueRef
+        )
       )
-      await asyncMap(vdi.$VBDs, vbd =>
-        Promise.all([
-          this.call('VBD.destroy', vbd.$ref),
-          this.createVbd({
-            ...vbd,
-            vdi: newVdi,
-          }),
-        ])
-      )
-      await this._deleteVdi(vdi)
+      await asyncMap(vdi.$VBDs, async vbd => {
+        await this.call('VBD.destroy', vbd.$ref)
+        await this.createVbd({
+          ...vbd,
+          vdi: newVdi,
+        })
+      })
+      await this._deleteVdi(vdi.$ref)
     }
   }
 
   // TODO: check whether the VDI is attached.
-  async _deleteVdi (vdi) {
-    log.debug(`Deleting VDI ${vdi.name_label}`)
+  async _deleteVdi(vdiRef) {
+    log.debug(`Deleting VDI ${vdiRef}`)
 
-    await this.call('VDI.destroy', vdi.$ref)
+    try {
+      await this.callAsync('VDI.destroy', vdiRef)
+    } catch (error) {
+      if (error?.code !== 'HANDLE_INVALID') {
+        throw error
+      }
+    }
   }
 
-  _resizeVdi (vdi, size) {
+  _resizeVdi(vdi, size) {
     log.debug(
       `Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`
     )
 
-    return this.call('VDI.resize', vdi.$ref, size)
+    return this.callAsync('VDI.resize', vdi.$ref, size)
   }
 
-  _getVmCdDrive (vm) {
+  _getVmCdDrive(vm) {
     for (const vbd of vm.$VBDs) {
       if (vbd.type === 'CD') {
         return vbd
@@ -1860,31 +1807,31 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async _ejectCdFromVm (vm) {
+  async _ejectCdFromVm(vm) {
     const cdDrive = this._getVmCdDrive(vm)
     if (cdDrive) {
-      await this.call('VBD.eject', cdDrive.$ref)
+      await this.callAsync('VBD.eject', cdDrive.$ref)
     }
   }
 
-  async _insertCdIntoVm (cd, vm, { bootable = false, force = false } = {}) {
+  async _insertCdIntoVm(cd, vm, { bootable = false, force = false } = {}) {
     const cdDrive = await this._getVmCdDrive(vm)
     if (cdDrive) {
       try {
-        await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
+        await this.callAsync('VBD.insert', cdDrive.$ref, cd.$ref)
       } catch (error) {
         if (!force || error.code !== 'VBD_NOT_EMPTY') {
           throw error
         }
 
-        await this.call('VBD.eject', cdDrive.$ref)::ignoreErrors()
+        await this.callAsync('VBD.eject', cdDrive.$ref)::ignoreErrors()
 
         // Retry.
-        await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
+        await this.callAsync('VBD.insert', cdDrive.$ref, cd.$ref)
       }
 
       if (bootable !== Boolean(cdDrive.bootable)) {
-        await this._setObjectProperties(cdDrive, { bootable })
+        await cdDrive.set_bootable(bootable)
       }
     } else {
       await this.createVbd({
@@ -1896,37 +1843,37 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async connectVbd (vbdId) {
-    await this.call('VBD.plug', vbdId)
+  async connectVbd(vbdId) {
+    await this.callAsync('VBD.plug', vbdId)
   }
 
-  async _disconnectVbd (vbd) {
+  async _disconnectVbd(vbd) {
     // TODO: check if VBD is attached before
     try {
       await this.call('VBD.unplug_force', vbd.$ref)
     } catch (error) {
       if (error.code === 'VBD_NOT_UNPLUGGABLE') {
-        await this.call('VBD.set_unpluggable', vbd.$ref, true)
+        await vbd.set_unpluggable(true)
         return this.call('VBD.unplug_force', vbd.$ref)
       }
     }
   }
 
-  async disconnectVbd (vbdId) {
+  async disconnectVbd(vbdId) {
     await this._disconnectVbd(this.getObject(vbdId))
   }
 
-  async _deleteVbd (vbd) {
+  async _deleteVbd(vbd) {
     await this._disconnectVbd(vbd)::ignoreErrors()
     await this.call('VBD.destroy', vbd.$ref)
   }
 
-  deleteVbd (vbdId) {
+  deleteVbd(vbdId) {
     return this._deleteVbd(this.getObject(vbdId))
   }
 
   // TODO: remove when no longer used.
-  async destroyVbdsFromVm (vmId) {
+  async destroyVbdsFromVm(vmId) {
     await Promise.all(
       mapToArray(this.getObject(vmId).$VBDs, async vbd => {
         await this.disconnectVbd(vbd.$ref)::ignoreErrors()
@@ -1935,33 +1882,33 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async deleteVdi (vdiId) {
-    await this._deleteVdi(this.getObject(vdiId))
+  async deleteVdi(vdiId) {
+    await this._deleteVdi(this.getObject(vdiId).$ref)
   }
 
-  async resizeVdi (vdiId, size) {
+  async resizeVdi(vdiId, size) {
     await this._resizeVdi(this.getObject(vdiId), size)
   }
 
-  async ejectCdFromVm (vmId) {
+  async ejectCdFromVm(vmId) {
     await this._ejectCdFromVm(this.getObject(vmId))
   }
 
-  async insertCdIntoVm (cdId, vmId, opts = undefined) {
+  async insertCdIntoVm(cdId, vmId, opts = undefined) {
     await this._insertCdIntoVm(this.getObject(cdId), this.getObject(vmId), opts)
   }
 
   // -----------------------------------------------------------------
 
-  async snapshotVdi (vdiId, nameLabel) {
+  async snapshotVdi(vdiId, nameLabel) {
     const vdi = this.getObject(vdiId)
 
     const snap = await this._getOrWaitObject(
-      await this.call('VDI.snapshot', vdi.$ref)
+      await this.callAsync('VDI.snapshot', vdi.$ref).then(extractOpaqueRef)
     )
 
     if (nameLabel) {
-      await this.call('VDI.set_name_label', snap.$ref, nameLabel)
+      await snap.set_name_label(nameLabel)
     }
 
     return snap
@@ -1969,7 +1916,7 @@ export default class Xapi extends XapiBase {
 
   @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
-  _exportVdi ($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
+  _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const query = {
       format,
       vdi: vdi.$ref,
@@ -1998,18 +1945,23 @@ export default class Xapi extends XapiBase {
   }
 
   @cancelable
-  exportVdiContent ($cancelToken, vdi, { format } = {}) {
+  exportVdiContent($cancelToken, vdi, { format } = {}) {
     return this._exportVdi($cancelToken, this.getObject(vdi), undefined, format)
   }
 
   // -----------------------------------------------------------------
 
-  async _importVdiContent (vdi, body, format = VDI_FORMAT_VHD) {
-    if (__DEV__ && body.length == null) {
-      throw new Error(
-        'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
-      )
+  async _importVdiContent(vdi, body, format = VDI_FORMAT_VHD) {
+    if (typeof body.pipe === 'function' && body.length === undefined) {
+      if (this._guessVhdSizeOnImport && format === VDI_FORMAT_VHD) {
+        body = await createVhdStreamWithLength(body)
+      } else if (__DEV__) {
+        throw new Error(
+          'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
+        )
+      }
     }
+
     await Promise.all([
       body.task,
       body.checksumVerified,
@@ -2030,13 +1982,13 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  importVdiContent (vdiId, body, { format } = {}) {
+  importVdiContent(vdiId, body, { format } = {}) {
     return this._importVdiContent(this.getObject(vdiId), body, format)
   }
 
   // =================================================================
 
-  async _createVif (
+  async _createVif(
     vm,
     network,
     {
@@ -2080,13 +2032,13 @@ export default class Xapi extends XapiBase {
     )
 
     if (currently_attached && isVmRunning(vm)) {
-      await this.call('VIF.plug', vifRef)
+      await this.callAsync('VIF.plug', vifRef)
     }
 
     return vifRef
   }
 
-  async createVif (vmId, networkId, opts = undefined) {
+  async createVif(vmId, networkId, opts = undefined) {
     return /* await */ this._getOrWaitObject(
       await this._createVif(
         this.getObject(vmId),
@@ -2095,8 +2047,9 @@ export default class Xapi extends XapiBase {
       )
     )
   }
+
   @deferrable
-  async createNetwork (
+  async createNetwork(
     $defer,
     { name, description = 'Created with Xen Orchestra', pifId, mtu, vlan }
   ) {
@@ -2108,7 +2061,7 @@ export default class Xapi extends XapiBase {
       // https://citrix.github.io/xenserver-sdk/#network
       other_config: { automatic: 'false' },
     })
-    $defer.onFailure(() => this.call('network.destroy', networkRef))
+    $defer.onFailure(() => this.callAsync('network.destroy', networkRef))
     if (pifId) {
       await this.call(
         'pool.create_VLAN_from_PIF',
@@ -2121,12 +2074,12 @@ export default class Xapi extends XapiBase {
     return this._getOrWaitObject(networkRef)
   }
 
-  async editPif (pifId, { vlan }) {
+  async editPif(pifId, { vlan }) {
     const pif = this.getObject(pifId)
     const physPif = find(
       this.objects.all,
       obj =>
-        obj.$type === 'pif' &&
+        obj.$type === 'PIF' &&
         (obj.physical || !isEmpty(obj.bond_master_of)) &&
         obj.$pool === pif.$pool &&
         obj.device === pif.device
@@ -2147,7 +2100,7 @@ export default class Xapi extends XapiBase {
     await Promise.all(
       mapToArray(
         vlans,
-        vlan => vlan !== NULL_REF && this.call('VLAN.destroy', vlan)
+        vlan => vlan !== NULL_REF && this.callAsync('VLAN.destroy', vlan)
       )
     )
 
@@ -2162,13 +2115,13 @@ export default class Xapi extends XapiBase {
         newPifs,
         pifRef =>
           !wasAttached[this.getObject(pifRef).host] &&
-          this.call('PIF.unplug', pifRef)::ignoreErrors()
+          this.callAsync('PIF.unplug', pifRef)::ignoreErrors()
       )
     )
   }
 
   @deferrable
-  async createBondedNetwork ($defer, { bondMode, mac = '', pifIds, ...params }) {
+  async createBondedNetwork($defer, { bondMode, mac = '', pifIds, ...params }) {
     const network = await this.createNetwork(params)
     $defer.onFailure(() => this.deleteNetwork(network))
     // TODO: test and confirm:
@@ -2185,7 +2138,7 @@ export default class Xapi extends XapiBase {
     return network
   }
 
-  async deleteNetwork (networkId) {
+  async deleteNetwork(networkId) {
     const network = this.getObject(networkId)
     const pifs = network.$PIFs
 
@@ -2193,7 +2146,7 @@ export default class Xapi extends XapiBase {
     await Promise.all(
       mapToArray(
         vlans,
-        vlan => vlan !== NULL_REF && this.call('VLAN.destroy', vlan)
+        vlan => vlan !== NULL_REF && this.callAsync('VLAN.destroy', vlan)
       )
     )
 
@@ -2202,12 +2155,22 @@ export default class Xapi extends XapiBase {
       mapToArray(bonds, bond => this.call('Bond.destroy', bond))
     )
 
-    await this.call('network.destroy', network.$ref)
+    const tunnels = filter(this.objects.all, { $type: 'tunnel' })
+    await Promise.all(
+      map(pifs, async pif => {
+        const tunnel = find(tunnels, { access_PIF: pif.$ref })
+        if (tunnel != null) {
+          await this.callAsync('tunnel.destroy', tunnel.$ref)
+        }
+      })
+    )
+
+    await this.callAsync('network.destroy', network.$ref)
   }
 
   // =================================================================
 
-  async _doDockerAction (vmId, action, containerId) {
+  async _doDockerAction(vmId, action, containerId) {
     const vm = this.getObject(vmId)
     const host = vm.$resident_on || this.pool.$master
 
@@ -2223,35 +2186,35 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async registerDockerContainer (vmId) {
+  async registerDockerContainer(vmId) {
     await this._doDockerAction(vmId, 'register')
   }
 
-  async deregisterDockerContainer (vmId) {
+  async deregisterDockerContainer(vmId) {
     await this._doDockerAction(vmId, 'deregister')
   }
 
-  async startDockerContainer (vmId, containerId) {
+  async startDockerContainer(vmId, containerId) {
     await this._doDockerAction(vmId, 'start', containerId)
   }
 
-  async stopDockerContainer (vmId, containerId) {
+  async stopDockerContainer(vmId, containerId) {
     await this._doDockerAction(vmId, 'stop', containerId)
   }
 
-  async restartDockerContainer (vmId, containerId) {
+  async restartDockerContainer(vmId, containerId) {
     await this._doDockerAction(vmId, 'restart', containerId)
   }
 
-  async pauseDockerContainer (vmId, containerId) {
+  async pauseDockerContainer(vmId, containerId) {
     await this._doDockerAction(vmId, 'pause', containerId)
   }
 
-  async unpauseDockerContainer (vmId, containerId) {
+  async unpauseDockerContainer(vmId, containerId) {
     await this._doDockerAction(vmId, 'unpause', containerId)
   }
 
-  async getCloudInitConfig (templateId) {
+  async getCloudInitConfig(templateId) {
     const template = this.getObject(templateId)
     const host = this.pool.$master
 
@@ -2268,7 +2231,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Specific CoreOS Config Drive
-  async createCoreOsCloudInitConfigDrive (vmId, srId, config) {
+  async createCoreOsCloudInitConfigDrive(vmId, srId, config) {
     const vm = this.getObject(vmId)
     const host = this.pool.$master
     const sr = this.getObject(srId)
@@ -2289,30 +2252,52 @@ export default class Xapi extends XapiBase {
 
   // Generic Config Drive
   @deferrable
-  async createCloudInitConfigDrive ($defer, vmId, srId, config) {
+  async createCloudInitConfigDrive(
+    $defer,
+    vmId,
+    srId,
+    userConfig,
+    networkConfig
+  ) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
-    const buffer = fatfsBufferInit()
+    const buffer = fatfsBufferInit({ label: 'cidata     ' })
     const vdi = await this.createVdi({
       name_label: 'XO CloudConfigDrive',
       size: buffer.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi))
+    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
     // Then, generate a FAT fs
-    const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
+    const { mkdir, writeFile } = promisifyAll(
+      fatfs.createFileSystem(fatfsBuffer(buffer))
+    )
 
-    await fs.mkdir('openstack')
-    await fs.mkdir('openstack/latest')
     await Promise.all([
-      fs.writeFile(
-        'openstack/latest/meta_data.json',
-        '{\n    "uuid": "' + vm.uuid + '"\n}\n'
+      // preferred datasource: NoCloud
+      //
+      // https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html
+      writeFile('meta-data', 'instance-id: ' + vm.uuid + '\n'),
+      writeFile('user-data', userConfig),
+      networkConfig !== undefined && writeFile('network-config', networkConfig),
+
+      // fallback datasource: Config Drive 2
+      //
+      // https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html#version-2
+      mkdir('openstack').then(() =>
+        mkdir('openstack/latest').then(() =>
+          Promise.all([
+            writeFile(
+              'openstack/latest/meta_data.json',
+              JSON.stringify({ uuid: vm.uuid })
+            ),
+            writeFile('openstack/latest/user_data', userConfig),
+          ])
+        )
       ),
-      fs.writeFile('openstack/latest/user_data', config),
     ])
 
     // ignore errors, I (JFT) don't understand why they are emitted
@@ -2325,7 +2310,7 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable
-  async createTemporaryVdiOnSr (
+  async createTemporaryVdiOnSr(
     $defer,
     stream,
     sr,
@@ -2338,7 +2323,7 @@ export default class Xapi extends XapiBase {
       size: stream.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi))
+    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
 
     await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
 
@@ -2346,7 +2331,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Create VDI on an adequate local SR
-  async createTemporaryVdiOnHost (stream, hostId, name_label, name_description) {
+  async createTemporaryVdiOnHost(stream, hostId, name_label, name_description) {
     const pbd = find(this.getObject(hostId).$PBDs, pbd =>
       canSrHaveNewVdiOfSize(pbd.$SR, stream.length)
     )
@@ -2363,24 +2348,64 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  findAvailableSharedSr (minSize) {
+  findAvailableSharedSr(minSize) {
     return find(
       this.objects.all,
       obj =>
-        obj.$type === 'sr' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
+        obj.$type === 'SR' && obj.shared && canSrHaveNewVdiOfSize(obj, minSize)
     )
   }
 
-  async _assertConsistentHostServerTime (hostRef) {
-    const delta =
+  // Main purpose: upload update on VDI
+  // Is a local SR on a non master host OK?
+  findAvailableSr(minSize) {
+    return find(
+      this.objects.all,
+      obj => obj.$type === 'SR' && canSrHaveNewVdiOfSize(obj, minSize)
+    )
+  }
+
+  async _getHostServerTimeShift(hostRef) {
+    return Math.abs(
       parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
-      Date.now()
-    if (Math.abs(delta) > 30e3) {
+        Date.now()
+    )
+  }
+
+  async isHostServerTimeConsistent(hostRef) {
+    return (await this._getHostServerTimeShift(hostRef)) < 30e3
+  }
+
+  async assertConsistentHostServerTime(hostRef) {
+    if (!(await this.isHostServerTimeConsistent(hostRef))) {
       throw new Error(
         `host server time and XOA date are not consistent with each other (${ms(
-          delta
+          await this._getHostServerTimeShift(hostRef)
         )})`
       )
+    }
+  }
+
+  async isHyperThreadingEnabled(hostId) {
+    try {
+      return (
+        (await this.call(
+          'host.call_plugin',
+          this.getObject(hostId).$ref,
+          'hyperthreading.py',
+          'get_hyperthreading',
+          {}
+        )) !== 'false'
+      )
+    } catch (error) {
+      if (
+        error.code === 'XENAPI_MISSING_PLUGIN' ||
+        error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
+      ) {
+        return null
+      } else {
+        throw error
+      }
     }
   }
 }

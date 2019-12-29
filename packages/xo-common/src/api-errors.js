@@ -1,14 +1,14 @@
 import { BaseError } from 'make-error'
-import { isArray, iteratee } from 'lodash'
+import { iteratee } from 'lodash'
 
 class XoError extends BaseError {
-  constructor ({ code, message, data }) {
+  constructor({ code, message, data }) {
     super(message)
     this.code = code
     this.data = data
   }
 
-  toJsonRpcError () {
+  toJsonRpcError() {
     return {
       message: this.message,
       code: this.code,
@@ -77,7 +77,7 @@ export const serverUnreachable = create(9, objectId => ({
 }))
 
 export const invalidParameters = create(10, (message, errors) => {
-  if (isArray(message)) {
+  if (Array.isArray(message)) {
     errors = message
     message = undefined
   }

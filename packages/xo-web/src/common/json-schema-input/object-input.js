@@ -6,6 +6,7 @@ import { keyBy, map } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
+import getEventValue from '../get-event-value'
 import { EMPTY_OBJECT } from '../utils'
 
 import GenericInput from './generic-input'
@@ -33,12 +34,20 @@ export default class ObjectInput extends Component {
     })
   }
 
+  _onUseChange = event => {
+    const use = getEventValue(event)
+    if (!use) {
+      this.props.onChange()
+    }
+    this.setState({ use })
+  }
+
   _getRequiredProps = createSelector(
     () => this.props.schema.required,
     required => (required ? keyBy(required) : EMPTY_OBJECT)
   )
 
-  render () {
+  render() {
     const {
       props: {
         depth = 0,
@@ -67,7 +76,7 @@ export default class ObjectInput extends Component {
               <input
                 checked={use}
                 disabled={disabled}
-                onChange={this.linkState('use')}
+                onChange={this._onUseChange}
                 type='checkbox'
               />{' '}
               {_('fillOptionalInformations')}

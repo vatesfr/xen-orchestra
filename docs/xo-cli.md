@@ -35,7 +35,6 @@ Usage:
 
 ```
 
-
 #### Register your XO instance
 
 ```
@@ -74,8 +73,7 @@ Commands can be filtered using patterns:
 
 #### Execute a command
 
-The same syntax is used for all commands: `xo-cli <command> <param
-name>=<value>...`
+The same syntax is used for all commands: `xo-cli <command> <param name>=<value>...`
 
 E.g., adding a new server:
 
@@ -102,7 +100,8 @@ encoding by prefixing with `json:`:
 
 ##### VM import
 
- ```
+```
 > xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
+
 > Note: `xo-cli` only supports the import of XVA files. It will not import OVA files. To import OVA images, you must use the XOA web UI.

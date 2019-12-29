@@ -1,13 +1,13 @@
 // FIXME so far, no acls for schedules
 
-export async function getAll () {
+export async function getAll() {
   return /* await */ this.getAllSchedules()
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing schedules'
 
-export async function get (id) {
+export async function get(id) {
   return /* await */ this.getSchedule(id)
 }
 
@@ -17,7 +17,7 @@ get.params = {
   id: { type: 'string' },
 }
 
-export function create ({ cron, enabled, jobId, name, timezone }) {
+export function create({ cron, enabled, jobId, name, timezone }) {
   return this.createSchedule({
     cron,
     enabled,
@@ -38,7 +38,7 @@ create.params = {
   timezone: { type: 'string', optional: true },
 }
 
-export async function set ({ cron, enabled, id, jobId, name, timezone }) {
+export async function set({ cron, enabled, id, jobId, name, timezone }) {
   await this.updateSchedule({ cron, enabled, id, jobId, name, timezone })
 }
 
@@ -53,7 +53,7 @@ set.params = {
   timezone: { type: 'string', optional: true },
 }
 
-async function delete_ ({ id }) {
+async function delete_({ id }) {
   await this.deleteSchedule(id)
 }
 

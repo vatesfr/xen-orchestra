@@ -15,7 +15,7 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/log):
 Everywhere something should be logged:
 
 ```js
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('my-module')
 
@@ -24,11 +24,25 @@ log.info('this information is relevant to the user')
 log.warn('something went wrong but did not prevent current action')
 log.error('something went wrong')
 log.fatal('service/app is going down')
+
+// you can add contextual info
+log.debug('new API request', {
+  method: 'foo',
+  params: [ 'bar', 'baz' ]
+  user: 'qux'
+})
+
+// by convention, errors go into the `error` field
+log.error('could not join server', {
+  error,
+  server: 'example.org',
+})
 ```
 
 Then, at application level, configure the logs are handled:
 
 ```js
+import { createLogger } from '@xen-orchestra/log'
 import { configure, catchGlobalErrors } from '@xen-orchestra/log/configure'
 import transportConsole from '@xen-orchestra/log/transports/console'
 import transportEmail from '@xen-orchestra/log/transports/email'
@@ -37,13 +51,10 @@ const transport = transportEmail({
   service: 'gmail',
   auth: {
     user: 'jane.smith@gmail.com',
-    pass: 'H&NbECcpXF|pyXe#%ZEb'
+    pass: 'H&NbECcpXF|pyXe#%ZEb',
   },
   from: 'jane.smith@gmail.com',
-  to: [
-    'jane.smith@gmail.com',
-    'sam.doe@yahoo.com'
-  ]
+  to: ['jane.smith@gmail.com', 'sam.doe@yahoo.com'],
 })
 
 configure([
@@ -53,19 +64,19 @@ configure([
     // matched against the namespace of the logs
     filter: process.env.DEBUG,
 
-    transport: transportConsole()
+    transport: transportConsole(),
   },
   {
     // only levels >= warn
     level: 'warn',
 
-    transport
-  }
+    transport,
+  },
 ])
 
 // send all global errors (uncaught exceptions, warnings, unhandled rejections)
-// to this transport
-catchGlobalErrors(transport)
+// to this logger
+catchGlobalErrors(createLogger('app'))
 ```
 
 ### Transports
@@ -75,7 +86,7 @@ catchGlobalErrors(transport)
 ```js
 import transportConsole from '@xen-orchestra/log/transports/console'
 
-configure(transports.console())
+configure(transportConsole())
 ```
 
 #### Email
@@ -91,18 +102,17 @@ Configuration:
 ```js
 import transportEmail from '@xen-orchestra/log/transports/email'
 
-configure(transportEmail({
-  service: 'gmail',
-  auth: {
-    user: 'jane.smith@gmail.com',
-    pass: 'H&NbECcpXF|pyXe#%ZEb'
-  },
-  from: 'jane.smith@gmail.com',
-  to: [
-    'jane.smith@gmail.com',
-    'sam.doe@yahoo.com'
-  ]
-}))
+configure(
+  transportEmail({
+    service: 'gmail',
+    auth: {
+      user: 'jane.smith@gmail.com',
+      pass: 'H&NbECcpXF|pyXe#%ZEb',
+    },
+    from: 'jane.smith@gmail.com',
+    to: ['jane.smith@gmail.com', 'sam.doe@yahoo.com'],
+  })
+)
 ```
 
 #### Syslog
@@ -146,7 +156,7 @@ configure(transportSyslog('tcp://syslog.company.lan'))
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

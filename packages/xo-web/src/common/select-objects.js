@@ -2,16 +2,13 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
-  assign,
   filter,
   flatten,
   forEach,
   groupBy,
   includes,
-  isArray,
   isEmpty,
   isInteger,
-  isString,
   keyBy,
   keys,
   map,
@@ -60,9 +57,9 @@ import {
 const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 
 const getIds = value =>
-  value == null || isString(value) || isInteger(value)
+  value == null || typeof value === 'string' || isInteger(value)
     ? value
-    : isArray(value)
+    : Array.isArray(value)
     ? map(value, getIds)
     : value.id
 
@@ -87,7 +84,7 @@ const options = props => ({
 })
 
 const getObjectsById = objects =>
-  keyBy(isArray(objects) ? objects : flatten(toArray(objects)), 'id')
+  keyBy(Array.isArray(objects) ? objects : flatten(toArray(objects)), 'id')
 
 // ===================================================================
 
@@ -120,6 +117,8 @@ const getObjectsById = objects =>
 class GenericSelect extends React.Component {
   static propTypes = {
     allowMissingObjects: PropTypes.bool,
+    compareContainers: PropTypes.func,
+    compareOptions: PropTypes.func,
     hasSelectAll: PropTypes.bool,
     multi: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
@@ -153,7 +152,7 @@ class GenericSelect extends React.Component {
           })
         }
       }
-      if (isArray(ids)) {
+      if (Array.isArray(ids)) {
         ids.forEach(addIfMissing)
       } else {
         addIfMissing(ids)
@@ -175,34 +174,47 @@ class GenericSelect extends React.Component {
   _getOptions = createSelector(
     () => this.props.xoContainers,
     this._getObjects,
-    (containers, objects) => {
+    () => this.props.compareContainers,
+    () => this.props.compareOptions,
+    (containers, objects, compareContainers, compareOptions) => {
       // createCollectionWrapper with a depth?
       const { name } = this.constructor
 
       let options
       if (containers === undefined) {
-        if (__DEV__ && !isArray(objects)) {
+        if (__DEV__ && !Array.isArray(objects)) {
           throw new Error(
             `${name}: without xoContainers, xoObjects must be an array`
           )
         }
 
-        options = map(objects, getOption)
+        options = (compareOptions !== undefined
+          ? objects.sort(compareOptions)
+          : objects
+        ).map(getOption)
       } else {
-        if (__DEV__ && isArray(objects)) {
+        if (__DEV__ && Array.isArray(objects)) {
           throw new Error(
             `${name}: with xoContainers, xoObjects must be an object`
           )
         }
 
         options = []
-        forEach(containers, container => {
+        const _containers =
+          compareContainers !== undefined
+            ? containers.sort(compareContainers)
+            : containers
+        forEach(_containers, container => {
           options.push({
             disabled: true,
             xoItem: container,
           })
 
-          forEach(objects[container.id], object => {
+          const _objects =
+            compareOptions !== undefined
+              ? objects[container.id].sort(compareOptions)
+              : objects[container.id]
+          forEach(_objects, object => {
             options.push(getOption(object, container))
           })
         })
@@ -231,7 +243,7 @@ class GenericSelect extends React.Component {
       this._getObjectsById,
       value => value,
       (objectsById, value) =>
-        isArray(value)
+        Array.isArray(value)
           ? map(value, value => objectsById[value.value])
           : objectsById[value.value]
     )
@@ -247,11 +259,6 @@ class GenericSelect extends React.Component {
   }
 
   // GroupBy: Display option with margin if not disabled and containers exists.
-  /* TODO: When all item components are implemented, change type to this:
-      type: this.props.resourceSet !== undefined && option.xoItem.type !== undefined
-        ? `${option.xoItem.type}-resourceSet`
-        : undefined
-  */
   _renderOption = option => (
     <span
       className={
@@ -262,14 +269,16 @@ class GenericSelect extends React.Component {
     >
       {renderXoItem(option.xoItem, {
         type:
-          this.props.resourceSet && option.xoItem.type === 'SR'
-            ? 'SR-resourceSet'
+          this.props.resourceSet !== undefined &&
+          option.xoItem.type !== undefined
+            ? `${option.xoItem.type}-resourceSet`
             : undefined,
+        memoryFree: option.xoItem.type === 'host' || undefined,
       })}
     </span>
   )
 
-  render () {
+  render() {
     const { hasSelectAll, xoContainers, xoObjects, ...props } = this.props
 
     const select = (
@@ -343,11 +352,11 @@ const makeSubscriptionSelect = (subscribe, props) =>
         }
       )
 
-      componentWillMount () {
+      componentWillMount() {
         this.componentWillUnmount = subscribe(::this.setState)
       }
 
-      render () {
+      render() {
         return (
           <GenericSelect
             {...props}
@@ -375,9 +384,17 @@ export const SelectHost = makeStoreSelect(
     const getHostsByPool = createGetObjectsOfType('host')
       .filter(getPredicate)
       .sort()
+      .groupBy('$pool')
+
+    const getPools = createGetObjectsOfType('pool')
+      .pick(
+        createSelector(getHostsByPool, hostsByPool => Object.keys(hostsByPool))
+      )
+      .sort()
 
     return {
       xoObjects: getHostsByPool,
+      xoContainers: getPools,
     }
   },
   { placeholder: _('selectHosts') }
@@ -600,7 +617,7 @@ export const SelectHighLevelObject = makeStoreSelect(
       getSrs,
       getVms,
       (hosts, networks, pools, srs, vms) =>
-        sortBy(assign({}, hosts, networks, pools, srs, vms), [
+        sortBy(Object.assign({}, hosts, networks, pools, srs, vms), [
           'type',
           'name_label',
         ])
@@ -781,11 +798,11 @@ export const SelectResourceSet = makeSubscriptionSelect(
 // ===================================================================
 
 export class SelectResourceSetsVmTemplate extends React.PureComponent {
-  get value () {
+  get value() {
     return this.refs.select.value
   }
 
-  set value (value) {
+  set value(value) {
     this.refs.select.value = value
   }
 
@@ -801,7 +818,7 @@ export class SelectResourceSetsVmTemplate extends React.PureComponent {
     }
   )
 
-  render () {
+  render() {
     return (
       <GenericSelect
         ref='select'
@@ -816,11 +833,11 @@ export class SelectResourceSetsVmTemplate extends React.PureComponent {
 // ===================================================================
 
 export class SelectResourceSetsSr extends React.PureComponent {
-  get value () {
+  get value() {
     return this.refs.select.value
   }
 
-  set value (value) {
+  set value(value) {
     this.refs.select.value = value
   }
 
@@ -835,7 +852,7 @@ export class SelectResourceSetsSr extends React.PureComponent {
     'name_label'
   )
 
-  render () {
+  render() {
     return (
       <GenericSelect
         ref='select'
@@ -850,15 +867,15 @@ export class SelectResourceSetsSr extends React.PureComponent {
 // ===================================================================
 
 export class SelectResourceSetsVdi extends React.PureComponent {
-  get value () {
+  get value() {
     return this.refs.select.value
   }
 
-  set value (value) {
+  set value(value) {
     this.refs.select.value = value
   }
 
-  _getObject (id) {
+  _getObject(id) {
     return getObject(store.getState(), id, true)
   }
 
@@ -866,7 +883,7 @@ export class SelectResourceSetsVdi extends React.PureComponent {
     () => this.props.resourceSet,
     ({ objectsByType }) => {
       const { srPredicate } = this.props
-      const srs = objectsByType['SR']
+      const srs = objectsByType.SR
       return srPredicate ? filter(srs, srPredicate) : srs
     }
   )
@@ -875,7 +892,7 @@ export class SelectResourceSetsVdi extends React.PureComponent {
     sortBy(map(flatten(map(srs, sr => sr.VDIs)), this._getObject), 'name_label')
   )
 
-  render () {
+  render() {
     return (
       <GenericSelect
         ref='select'
@@ -890,11 +907,11 @@ export class SelectResourceSetsVdi extends React.PureComponent {
 // ===================================================================
 
 export class SelectResourceSetsNetwork extends React.PureComponent {
-  get value () {
+  get value() {
     return this.refs.select.value
   }
 
-  set value (value) {
+  set value(value) {
     this.refs.select.value = value
   }
 
@@ -909,7 +926,7 @@ export class SelectResourceSetsNetwork extends React.PureComponent {
     'name_label'
   )
 
-  render () {
+  render() {
     return (
       <GenericSelect
         ref='select'
@@ -936,11 +953,11 @@ export class SelectResourceSetIp extends React.Component {
     resourceSetId: PropTypes.string.isRequired,
   }
 
-  get value () {
+  get value() {
     return this.refs.select.value
   }
 
-  set value (value) {
+  set value(value) {
     this.refs.select.value = value
   }
 
@@ -980,7 +997,7 @@ export class SelectResourceSetIp extends React.Component {
     }
   )
 
-  render () {
+  render() {
     return (
       <GenericSelect
         ref='select'
@@ -997,15 +1014,15 @@ export class SelectResourceSetIp extends React.Component {
 export class SelectSshKey extends React.PureComponent {
   state = {}
 
-  get value () {
+  get value() {
     return this.refs.select.value
   }
 
-  set value (value) {
+  set value(value) {
     this.refs.select.value = value
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.componentWillUnmount = subscribeCurrentUser(user => {
       this.setState({
         sshKeys:
@@ -1020,7 +1037,7 @@ export class SelectSshKey extends React.PureComponent {
     })
   }
 
-  render () {
+  render() {
     return (
       <GenericSelect
         ref='select'

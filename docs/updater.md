@@ -1,4 +1,3 @@
-
 # Updater
 
 The updater is the central piece that keeps your XO Appliance running the latest Xen Orchestra code.
@@ -40,6 +39,22 @@ The updater will check for new versions periodically. A green tick in the menu m
 However, if you want to start a manual check, you can do it by clicking on the "Update" button:
 
 ![](./assets/xo5updatebutton.png)
+
+#### Release channel
+
+In Xen Orchestra, you can make a choice between two different release channels.
+
+##### Stable
+
+The stable channel is intended to be a version of Xen Orchestra that is already **one month old** (and therefore will benefit from one month of community feedback and various fixes). This way, users more concerned with the stability of their appliance will have the option to stay on a slightly older (and tested) version of XO (still supported by our pro support).
+
+##### Latest
+
+The latest channel will include all the latest improvements available in Xen Orchestra. The version available in latest has already been QA'd by our team, but issues may still occur once deployed in vastly varying environments, such as our user base has.
+
+> To select the release channel of your choice, go to the XOA > Updates view.
+
+![](./assets/release-channels.png)
 
 #### Upgrade
 
@@ -105,7 +120,7 @@ If your updater is down, you can restart it with `systemctl restart xoa-updater`
 
 If you can't fetch updates, perform a few checks from your XOA:
 
-* you should be able to successfully `ping xen-orchestra.com`
-* if not, check your `/etc/resolv.conf` file and modify it if necessary (give a correct DNS server)
-* use `ifconfig` to check your network configuration
-* check your firewall(s) and allow XOA to reach xen-orchestra.com (port 443)
+- you should be able to successfully `ping xen-orchestra.com`
+- if not, check your `/etc/resolv.conf` file and modify it if necessary (give a correct DNS server)
+- use `ifconfig` to check your network configuration
+- check your firewall(s) and allow XOA to reach xen-orchestra.com (port 443)

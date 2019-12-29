@@ -14,7 +14,7 @@ const configs = {
   '@babel/plugin-proposal-pipeline-operator': {
     proposal: 'minimal',
   },
-  '@babel/preset-env' (pkg) {
+  '@babel/preset-env'(pkg) {
     return {
       debug: !__TEST__,
 
@@ -46,7 +46,13 @@ const getConfig = (key, ...args) => {
     : config
 }
 
-module.exports = function (pkg, plugins, presets) {
+// some plugins must be used in a specific order
+const pluginsOrder = [
+  '@babel/plugin-proposal-decorators',
+  '@babel/plugin-proposal-class-properties',
+]
+
+module.exports = function(pkg, plugins, presets) {
   plugins === undefined && (plugins = {})
   presets === undefined && (presets = {})
 
@@ -61,7 +67,13 @@ module.exports = function (pkg, plugins, presets) {
   return {
     comments: !__PROD__,
     ignore: __TEST__ ? undefined : [/\.spec\.js$/],
-    plugins: Object.keys(plugins).map(plugin => [plugin, plugins[plugin]]),
+    plugins: Object.keys(plugins)
+      .map(plugin => [plugin, plugins[plugin]])
+      .sort(([a], [b]) => {
+        const oA = pluginsOrder.indexOf(a)
+        const oB = pluginsOrder.indexOf(b)
+        return oA !== -1 && oB !== -1 ? oA - oB : a < b ? -1 : 1
+      }),
     presets: Object.keys(presets).map(preset => [preset, presets[preset]]),
   }
 }

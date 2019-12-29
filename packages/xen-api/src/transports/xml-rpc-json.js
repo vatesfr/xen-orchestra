@@ -1,7 +1,10 @@
 import { createClient, createSecureClient } from 'xmlrpc'
 import { promisify } from 'promise-toolbox'
 
-import { UnsupportedTransport } from './_utils'
+import XapiError from '../_XapiError'
+
+import prepareXmlRpcParams from './_prepareXmlRpcParams'
+import UnsupportedTransport from './_UnsupportedTransport'
 
 const logError = error => {
   if (error.res) {
@@ -32,7 +35,7 @@ const parseResult = result => {
   }
 
   if (status !== 'Success') {
-    throw result.ErrorDescription
+    throw XapiError.wrap(result.ErrorDescription)
   }
 
   const value = result.Value
@@ -71,10 +74,7 @@ const parseResult = result => {
   throw new UnsupportedTransport()
 }
 
-export default ({
-  allowUnauthorized,
-  url: { hostname, path, port, protocol },
-}) => {
+export default ({ allowUnauthorized, url: { hostname, port, protocol } }) => {
   const client = (protocol === 'https:' ? createSecureClient : createClient)({
     host: hostname,
     path: '/json',
@@ -83,5 +83,6 @@ export default ({
   })
   const call = promisify(client.methodCall, client)
 
-  return (method, args) => call(method, args).then(parseResult, logError)
+  return (method, args) =>
+    call(method, prepareXmlRpcParams(args)).then(parseResult, logError)
 }

@@ -7,14 +7,15 @@ import Component from 'base-component'
 import renderXoItem from 'render-xo-item'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
-import { map } from 'lodash'
 import { connectStore } from 'utils'
-import { injectIntl } from 'react-intl'
-import { createGetObjectsOfType } from 'selectors'
-import { Text, XoSelect } from 'editable'
 import { Container, Row, Col } from 'grid'
+import { createGetObjectsOfType, createGroupBy } from 'selectors'
+import { injectIntl } from 'react-intl'
+import { map } from 'lodash'
+import { Text, XoSelect } from 'editable'
 import {
   installSupplementalPackOnAllHosts,
+  setHostsMultipathing,
   setPoolMaster,
   setRemoteSyslogHost,
   setRemoteSyslogHosts,
@@ -30,7 +31,7 @@ class PoolMaster extends Component {
 
   _onChange = host => setPoolMaster(host)
 
-  render () {
+  render() {
     const { pool, master } = this.props
 
     return (
@@ -47,24 +48,37 @@ class PoolMaster extends Component {
 }
 
 @injectIntl
-@connectStore({
-  hosts: createGetObjectsOfType('host')
+@connectStore(() => {
+  const getHosts = createGetObjectsOfType('host')
     .filter((_, { pool }) => ({ $pool: pool.id }))
-    .sort(),
-  gpuGroups: createGetObjectsOfType('gpuGroup')
-    .filter((_, { pool }) => ({ $pool: pool.id }))
-    .sort(),
+    .sort()
+  return {
+    hosts: getHosts,
+    hostsByMultipathing: createGroupBy(getHosts, () => ({ multipathing }) =>
+      multipathing ? 'enabled' : 'disabled'
+    ),
+    gpuGroups: createGetObjectsOfType('gpuGroup')
+      .filter((_, { pool }) => ({ $pool: pool.id }))
+      .sort(),
+  }
 })
 export default class TabAdvanced extends Component {
   _setRemoteSyslogHosts = () =>
-    setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(
-      () => this.setState({ editRemoteSyslog: false, syslogDestination: '' })
+    setRemoteSyslogHosts(
+      this.props.hosts,
+      this.state.syslogDestination
+    ).then(() =>
+      this.setState({ editRemoteSyslog: false, syslogDestination: '' })
     )
 
-  render () {
-    const { hosts, gpuGroups, pool } = this.props
+  render() {
+    const { hosts, gpuGroups, pool, hostsByMultipathing } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
+    const {
+      enabled: hostsEnabledMultipathing,
+      disabled: hostsDisabledMultipathing,
+    } = hostsByMultipathing
     return (
       <div>
         <Container>
@@ -159,6 +173,29 @@ export default class TabAdvanced extends Component {
             </Col>
           </Row>
         </Container>
+        <h3 className='mt-1 mb-1'>{_('multipathing')}</h3>
+        <div>
+          <ActionButton
+            btnStyle='success'
+            data-hosts={hostsDisabledMultipathing}
+            data-multipathing
+            disabled={hostsDisabledMultipathing === undefined}
+            handler={setHostsMultipathing}
+            icon='host'
+          >
+            {_('enableAllHostsMultipathing')}
+          </ActionButton>{' '}
+          <ActionButton
+            btnStyle='danger'
+            data-hosts={hostsEnabledMultipathing}
+            data-multipathing={false}
+            disabled={hostsEnabledMultipathing === undefined}
+            handler={setHostsMultipathing}
+            icon='host'
+          >
+            {_('disableAllHostsMultipathing')}
+          </ActionButton>
+        </div>
         <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
         <Upgrade place='poolSupplementalPacks' required={2}>
           <SelectFiles

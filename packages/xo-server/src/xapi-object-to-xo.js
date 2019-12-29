@@ -1,10 +1,8 @@
-import { startsWith } from 'lodash'
-
+import * as sensitiveValues from './sensitive-values'
+import ensureArray from './_ensureArray'
 import {
-  ensureArray,
   extractProperty,
   forEach,
-  isArray,
   isEmpty,
   mapFilter,
   mapToArray,
@@ -22,13 +20,13 @@ import { useUpdateSystem } from './xapi/utils'
 
 const { defineProperties, freeze } = Object
 
-function link (obj, prop, idField = '$id') {
+function link(obj, prop, idField = '$id') {
   const dynamicValue = obj[`$${prop}`]
   if (dynamicValue == null) {
     return dynamicValue // Properly handles null and undefined.
   }
 
-  if (isArray(dynamicValue)) {
+  if (Array.isArray(dynamicValue)) {
     return mapToArray(dynamicValue, idField)
   }
 
@@ -41,7 +39,7 @@ function link (obj, prop, idField = '$id') {
 // to already be a timestamp and returned.
 //
 // If there are no data or if the timestamp is 0, returns null.
-function toTimestamp (date) {
+function toTimestamp(date) {
   if (!date) {
     return null
   }
@@ -54,18 +52,15 @@ function toTimestamp (date) {
     return timestamp
   }
 
-  const ms = parseDateTime(date)
-  if (!ms) {
-    return null
-  }
+  const ms = parseDateTime(date)?.getTime()
 
-  return Math.round(ms.getTime() / 1000)
+  return ms === undefined || ms === 0 ? null : Math.round(ms / 1000)
 }
 
 // ===================================================================
 
 const TRANSFORMS = {
-  pool (obj) {
+  pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
       default_SR: link(obj, 'default_SR'),
@@ -81,6 +76,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
+      zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -97,7 +93,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host (obj) {
+  host(obj) {
     const {
       $metrics: metrics,
       other_config: otherConfig,
@@ -105,11 +101,10 @@ const TRANSFORMS = {
     } = obj
 
     const isRunning = isHostRunning(obj)
-    let supplementalPacks, patches
+    let supplementalPacks
 
     if (useUpdateSystem(obj)) {
       supplementalPacks = []
-      patches = []
 
       forEach(obj.$updates, update => {
         const formattedUpdate = {
@@ -123,8 +118,8 @@ const TRANSFORMS = {
           size: update.installation_size,
         }
 
-        if (startsWith(update.name_label, 'XS')) {
-          patches.push(formattedUpdate)
+        if (update.name_label.startsWith('XS')) {
+          // It's a patch update but for homogeneity, we're still using pool_patches
         } else {
           supplementalPacks.push(formattedUpdate)
         }
@@ -147,14 +142,15 @@ const TRANSFORMS = {
       },
       current_operations: obj.current_operations,
       hostname: obj.hostname,
-      iSCSI_name: otherConfig.iscsi_iqn || null,
+      iscsiIqn: obj.iscsi_iqn ?? otherConfig.iscsi_iqn ?? '',
+      zstdSupported: obj.license_params.restrict_zstd_export === 'false',
       license_params: obj.license_params,
       license_server: obj.license_server,
       license_expiry: toTimestamp(obj.license_params.expiry),
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      memory: (function () {
+      memory: (function() {
         if (metrics) {
           const free = +metrics.memory_free
           const total = +metrics.memory_total
@@ -173,7 +169,8 @@ const TRANSFORMS = {
           total: 0,
         }
       })(),
-      patches: patches || link(obj, 'patches'),
+      multipathing: otherConfig.multipathing === 'true',
+      patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
       startTime: toTimestamp(otherConfig.boot_time),
@@ -223,7 +220,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vm (obj, dependents) {
+  vm(obj, dependents) {
     dependents[obj.guest_metrics] = obj.$id
     dependents[obj.metrics] = obj.$id
 
@@ -268,6 +265,17 @@ const TRANSFORMS = {
       }
     }
 
+    // Build a { taskId → operation } map instead of forwarding the
+    // { taskRef → operation } map directly
+    const currentOperations = {}
+    const { $xapi } = obj
+    forEach(obj.current_operations, (operation, ref) => {
+      const task = $xapi.getObjectByRef(ref, undefined)
+      if (task !== undefined) {
+        currentOperations[task.$id] = operation
+      }
+    })
+
     const vm = {
       // type is redefined after for controllers/, templates &
       // snapshots.
@@ -284,8 +292,8 @@ const TRANSFORMS = {
             ? +metrics.VCPUs_number
             : +obj.VCPUs_at_startup,
       },
-      current_operations: obj.current_operations,
-      docker: (function () {
+      current_operations: currentOperations,
+      docker: (function() {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
           return
@@ -314,7 +322,7 @@ const TRANSFORMS = {
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
       high_availability: obj.ha_restart_priority,
 
-      memory: (function () {
+      memory: (function() {
         const dynamicMin = +obj.memory_dynamic_min
         const dynamicMax = +obj.memory_dynamic_max
         const staticMin = +obj.memory_static_min
@@ -349,6 +357,7 @@ const TRANSFORMS = {
       hasVendorDevice: obj.has_vendor_device,
       resourceSet,
       snapshots: link(obj, 'snapshots'),
+      startDelay: +obj.start_delay,
       startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
@@ -398,7 +407,7 @@ const TRANSFORMS = {
       vm.CPUs.number = +obj.VCPUs_at_startup
       vm.template_info = {
         arch: otherConfig['install-arch'],
-        disks: (function () {
+        disks: (function() {
           const { disks: xml } = otherConfig
           let data
           if (!xml || !(data = parseXml(xml)).provision) {
@@ -406,7 +415,7 @@ const TRANSFORMS = {
           }
 
           const disks = ensureArray(data.provision.disk)
-          forEach(disks, function normalize (disk) {
+          forEach(disks, function normalize(disk) {
             disk.bootable = disk.bootable === 'true'
             disk.size = +disk.size
             disk.SR = extractProperty(disk, 'sr')
@@ -414,7 +423,7 @@ const TRANSFORMS = {
 
           return disks
         })(),
-        install_methods: (function () {
+        install_methods: (function() {
           const methods = otherConfig['install-methods']
 
           return methods ? methods.split(',') : []
@@ -426,6 +435,7 @@ const TRANSFORMS = {
     let tmp
     if ((tmp = obj.VCPUs_params)) {
       tmp.cap && (vm.cpuCap = +tmp.cap)
+      tmp.mask && (vm.cpuMask = tmp.mask.split(',').map(_ => +_))
       tmp.weight && (vm.cpuWeight = +tmp.weight)
     }
 
@@ -438,7 +448,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  sr (obj) {
+  sr(obj) {
     return {
       type: 'SR',
 
@@ -468,20 +478,24 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pbd (obj) {
+  pbd(obj) {
     return {
       type: 'PBD',
 
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: obj.device_config,
+      device_config: sensitiveValues.replace(
+        obj.device_config,
+        '* obfuscated *'
+      ),
+      otherConfig: obj.other_config,
     }
   },
 
   // -----------------------------------------------------------------
 
-  pif (obj) {
+  pif(obj) {
     const metrics = obj.$metrics
 
     return {
@@ -489,6 +503,7 @@ const TRANSFORMS = {
 
       attached: Boolean(obj.currently_attached),
       isBondMaster: !isEmpty(obj.bond_master_of),
+      isBondSlave: obj.bond_slave_of !== 'OpaqueRef:NULL',
       device: obj.device,
       deviceName: metrics && metrics.device_name,
       dns: obj.DNS,
@@ -505,6 +520,7 @@ const TRANSFORMS = {
       // A physical PIF cannot be unplugged
       physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
+      speed: metrics && +metrics.speed,
       $host: link(obj, 'host'),
       $network: link(obj, 'network'),
     }
@@ -512,12 +528,13 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vdi (obj) {
+  vdi(obj) {
     const vdi = {
       type: 'VDI',
 
       name_description: obj.name_description,
       name_label: obj.name_label,
+      parent: obj.sm_config['vhd-parent'],
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
@@ -540,7 +557,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vbd (obj) {
+  vbd(obj) {
     return {
       type: 'VBD',
 
@@ -557,7 +574,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vif (obj) {
+  vif(obj) {
     return {
       type: 'VIF',
 
@@ -568,6 +585,16 @@ const TRANSFORMS = {
       MAC: obj.MAC,
       MTU: +obj.MTU,
 
+      // in kB/s
+      rateLimit: (() => {
+        if (obj.qos_algorithm_type === 'ratelimit') {
+          const { kbps } = obj.qos_algorithm_params
+          if (kbps !== undefined) {
+            return +kbps
+          }
+        }
+      })(),
+
       $network: link(obj, 'network'),
       $VM: link(obj, 'VM'),
     }
@@ -575,8 +602,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  network (obj) {
+  network(obj) {
     return {
+      automatic: obj.other_config?.automatic === 'true',
       bridge: obj.bridge,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
@@ -591,7 +619,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  message (obj) {
+  message(obj) {
     return {
       body: obj.body,
       name: obj.name,
@@ -603,7 +631,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  task (obj) {
+  task(obj) {
     return {
       allowedOperations: obj.allowed_operations,
       created: toTimestamp(obj.created),
@@ -621,11 +649,19 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host_patch (obj) {
+  host_patch(obj) {
+    const poolPatch = obj.$pool_patch
     return {
+      type: 'patch',
+
       applied: Boolean(obj.applied),
+      enforceHomogeneity: poolPatch.pool_applied,
+      description: poolPatch.name_description,
+      name: poolPatch.name_label,
+      pool_patch: poolPatch.$ref,
+      size: +poolPatch.size,
+      guidance: poolPatch.after_apply_guidance,
       time: toTimestamp(obj.timestamp_applied),
-      pool_patch: link(obj, 'pool_patch', '$ref'),
 
       $host: link(obj, 'host'),
     }
@@ -633,16 +669,19 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pool_patch (obj) {
+  pool_patch(obj) {
     return {
       id: obj.$ref,
 
-      applied: Boolean(obj.pool_applied),
+      dataUuid: obj.uuid, // UUID of the patch file as stated in Citrix's XML file
       description: obj.name_description,
       guidance: obj.after_apply_guidance,
       name: obj.name_label,
       size: +obj.size,
-      uuid: obj.uuid,
+      uuid: obj.$ref,
+
+      // TODO: means that the patch must be applied on every host
+      // applied: Boolean(obj.pool_applied),
 
       // TODO: what does it mean, should we handle it?
       // version: obj.version,
@@ -654,7 +693,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pci (obj) {
+  pci(obj) {
     return {
       type: 'PCI',
 
@@ -668,7 +707,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  pgpu (obj) {
+  pgpu(obj) {
     return {
       type: 'PGPU',
 
@@ -690,7 +729,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vgpu (obj) {
+  vgpu(obj) {
     return {
       type: 'vgpu',
 
@@ -706,7 +745,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  gpu_group (obj) {
+  gpu_group(obj) {
     return {
       type: 'gpuGroup',
 
@@ -724,7 +763,7 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  vgpu_type (obj) {
+  vgpu_type(obj) {
     return {
       type: 'vgpuType',
 
@@ -744,7 +783,7 @@ const TRANSFORMS = {
 
 // ===================================================================
 
-export default function xapiObjectToXo (xapiObj, dependents) {
+export default function xapiObjectToXo(xapiObj, dependents = {}) {
   const transform = TRANSFORMS[xapiObj.$type.toLowerCase()]
   if (!transform) {
     return

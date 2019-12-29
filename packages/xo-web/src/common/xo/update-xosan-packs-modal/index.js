@@ -15,13 +15,13 @@ import { isLatestXosanPackInstalled, connectStore, findLatestPack } from 'utils'
   { withRef: true }
 )
 export default class UpdateXosanPacksModal extends Component {
-  componentDidMount () {
+  componentDidMount() {
     this.componentWillUnmount = subscribeResourceCatalog(catalog =>
       this.setState({ catalog })
     )
   }
 
-  get value () {
+  get value() {
     return this._getStatus().pack
   }
 
@@ -55,7 +55,7 @@ export default class UpdateXosanPacksModal extends Component {
     }
   )
 
-  render () {
+  render() {
     const { status, pack } = this._getStatus()
     switch (status) {
       case 'checking':

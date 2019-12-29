@@ -1,7 +1,7 @@
 import jsonRpc from './json-rpc'
+import UnsupportedTransport from './_UnsupportedTransport'
 import xmlRpc from './xml-rpc'
 import xmlRpcJson from './xml-rpc-json'
-import { UnsupportedTransport } from './_utils'
 
 const factories = [jsonRpc, xmlRpcJson, xmlRpc]
 const { length } = factories
@@ -10,7 +10,7 @@ export default opts => {
   let i = 0
 
   let call
-  function create () {
+  function create() {
     const current = factories[i++](opts)
     if (i < length) {
       const currentI = i

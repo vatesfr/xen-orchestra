@@ -7,7 +7,7 @@ import { Col } from '../../grid'
 import getEventValue from '../../get-event-value'
 
 export default class NewSshKeyModalBody extends BaseComponent {
-  get value () {
+  get value() {
     return this.state
   }
 
@@ -20,7 +20,7 @@ export default class NewSshKeyModalBody extends BaseComponent {
     this.setState({ key })
   }
 
-  render () {
+  render() {
     const { key, title } = this.state
 
     return (

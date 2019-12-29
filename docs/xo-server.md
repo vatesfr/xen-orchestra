@@ -1,7 +1,6 @@
-
 # xo-server
 
-XO-Server is the core of Xen Orchestra. Its central role opens a lot of possibilities versus other solutions -  let's see why.
+XO-Server is the core of Xen Orchestra. Its central role opens a lot of possibilities versus other solutions - let's see why.
 
 ### Daemon mode
 
@@ -57,7 +56,6 @@ Thanks to our architecture, it's now far easier:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/10/newsolution.png)
 
-
 #### Patching on the fly
 
 To install a patch manually, it requires a lot of steps: find, download, extract and apply the patch, sequentially.
@@ -67,7 +65,6 @@ To install a patch manually, it requires a lot of steps: find, download, extract
 1. automatically download the patch from Citrix servers
 2. unzip it and upload it on the fly to your host
 3. apply it as soon it's done
-
 
 ### Pluggable
 

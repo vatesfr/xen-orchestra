@@ -1,22 +1,24 @@
 import asyncMap from '@xen-orchestra/async-map'
 import { some } from 'lodash'
 
+import ensureArray from '../_ensureArray'
 import { asInteger } from '../xapi/utils'
-import { ensureArray, forEach, parseXml } from '../utils'
+import { forEach, parseXml } from '../utils'
 
 // ===================================================================
 
-export async function set ({
+export async function set({
   sr,
 
-  // TODO: use camel case.
   name_description: nameDescription,
   name_label: nameLabel,
 }) {
-  await this.getXapi(sr).setSrProperties(sr._xapiId, {
-    nameDescription,
-    nameLabel,
-  })
+  sr = this.getXapiObject(sr)
+
+  await Promise.all([
+    nameDescription !== undefined && sr.set_name_description(nameDescription),
+    nameLabel !== undefined && sr.set_name_label(nameLabel),
+  ])
 }
 
 set.params = {
@@ -33,8 +35,8 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function scan ({ SR }) {
-  await this.getXapi(SR).call('SR.scan', SR._xapiRef)
+export async function scan({ SR }) {
+  await this.getXapi(SR).callAsync('SR.scan', SR._xapiRef)
 }
 
 scan.params = {
@@ -50,7 +52,7 @@ const srIsBackingHa = sr =>
   sr.$pool.ha_enabled && some(sr.$pool.$ha_statefiles, f => f.$SR === sr)
 
 // TODO: find a way to call this "delete" and not destroy
-export async function destroy ({ sr }) {
+export async function destroy({ sr }) {
   const xapi = this.getXapi(sr)
   if (sr.SR_type !== 'xosan') {
     await xapi.destroySr(sr._xapiId)
@@ -82,7 +84,7 @@ destroy.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function forget ({ SR }) {
+export async function forget({ SR }) {
   await this.getXapi(SR).forgetSr(SR._xapiId)
 }
 
@@ -96,7 +98,7 @@ forget.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function connectAllPbds ({ SR }) {
+export async function connectAllPbds({ SR }) {
   await this.getXapi(SR).connectAllSrPbds(SR._xapiId)
 }
 
@@ -110,7 +112,7 @@ connectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function disconnectAllPbds ({ SR }) {
+export async function disconnectAllPbds({ SR }) {
   await this.getXapi(SR).disconnectAllSrPbds(SR._xapiId)
 }
 
@@ -124,7 +126,7 @@ disconnectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createIso ({
+export async function createIso({
   host,
   nameLabel,
   nameDescription,
@@ -179,11 +181,40 @@ createIso.resolve = {
 }
 
 // -------------------------------------------------------------------
+
+export async function createFile({
+  host,
+  nameLabel,
+  nameDescription,
+  location,
+}) {
+  const xapi = this.getXapi(host)
+  return xapi.createSr({
+    hostRef: host._xapiRef,
+    name_label: nameLabel,
+    name_description: nameDescription,
+    type: 'file',
+    device_config: { location },
+  })
+}
+
+createFile.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  location: { type: 'string' },
+}
+
+createFile.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
 // NFS SR
 
 // This functions creates a NFS SR
 
-export async function createNfs ({
+export async function createNfs({
   host,
   nameLabel,
   nameDescription,
@@ -245,7 +276,7 @@ createNfs.resolve = {
 
 // This functions creates an HBA SR
 
-export async function createHba ({ host, nameLabel, nameDescription, scsiId }) {
+export async function createHba({ host, nameLabel, nameDescription, scsiId }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -285,7 +316,7 @@ createHba.resolve = {
 
 // This functions creates a local LVM SR
 
-export async function createLvm ({ host, nameLabel, nameDescription, device }) {
+export async function createLvm({ host, nameLabel, nameDescription, device }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -325,7 +356,7 @@ createLvm.resolve = {
 
 // This functions creates a local ext SR
 
-export async function createExt ({ host, nameLabel, nameDescription, device }) {
+export async function createExt({ host, nameLabel, nameDescription, device }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -361,10 +392,62 @@ createExt.resolve = {
 }
 
 // -------------------------------------------------------------------
+// This function helps to detect all ZFS pools
+// Return a dict of pools with their parameters { <poolname>: {<paramdict>}}
+// example output (the parameter mountpoint is of interest):
+// {"tank":
+// {
+//    "setuid": "on", "relatime": "off", "referenced": "24K", "written": "24K", "zoned": "off", "primarycache": "all",
+//    "logbias": "latency", "creation": "Mon May 27 17:24 2019", "sync": "standard", "snapdev": "hidden",
+//    "dedup": "off", "sharenfs": "off", "usedbyrefreservation": "0B", "sharesmb": "off", "createtxg": "1",
+//    "canmount": "on", "mountpoint": "/tank", "casesensitivity": "sensitive", "utf8only": "off", "xattr": "on",
+//    "dnodesize": "legacy", "mlslabel": "none", "objsetid": "54", "defcontext": "none", "rootcontext": "none",
+//    "mounted": "yes", "compression": "off", "overlay": "off", "logicalused": "47K", "usedbysnapshots": "0B",
+//    "filesystem_count": "none", "copies": "1", "snapshot_limit": "none", "aclinherit": "restricted",
+//    "compressratio": "1.00x", "readonly": "off", "version": "5", "normalization": "none", "filesystem_limit": "none",
+//    "type": "filesystem", "secondarycache": "all", "refreservation": "none", "available": "17.4G", "used": "129K",
+//    "exec": "on", "refquota": "none", "refcompressratio": "1.00x", "quota": "none", "keylocation": "none",
+//    "snapshot_count": "none", "fscontext": "none", "vscan": "off", "reservation": "none", "atime": "on",
+//    "recordsize": "128K", "usedbychildren": "105K", "usedbydataset": "24K", "guid": "656061077639704004",
+//    "pbkdf2iters": "0", "checksum": "on", "special_small_blocks": "0", "redundant_metadata": "all",
+//    "volmode": "default", "devices": "on", "keyformat": "none", "logicalreferenced": "12K", "acltype": "off",
+//    "nbmand": "off", "context": "none", "encryption": "off", "snapdir": "hidden"}}
+export async function probeZfs({ host }) {
+  const xapi = this.getXapi(host)
+  try {
+    const result = await xapi.call(
+      'host.call_plugin',
+      host._xapiRef,
+      'zfs.py',
+      'list_zfs_pools',
+      {}
+    )
+    return JSON.parse(result)
+  } catch (error) {
+    if (
+      error.code === 'XENAPI_MISSING_PLUGIN' ||
+      error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
+    ) {
+      return {}
+    } else {
+      throw error
+    }
+  }
+}
+
+probeZfs.params = {
+  host: { type: 'string' },
+}
+
+probeZfs.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 
-export async function probeNfs ({ host, server }) {
+export async function probeNfs({ host, server }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -408,7 +491,7 @@ probeNfs.resolve = {
 // -------------------------------------------------------------------
 // This function helps to detect all HBA devices on the host
 
-export async function probeHba ({ host }) {
+export async function probeHba({ host }) {
   const xapi = this.getXapi(host)
 
   let xml
@@ -431,7 +514,7 @@ export async function probeHba ({ host }) {
       hba: hbaDevice.hba.trim(),
       path: hbaDevice.path.trim(),
       scsiId: hbaDevice.SCSIid.trim(),
-      size: hbaDevice.size.trim(),
+      size: +hbaDevice.size.trim(),
       vendor: hbaDevice.vendor.trim(),
     })
   })
@@ -452,7 +535,7 @@ probeHba.resolve = {
 
 // This functions creates a iSCSI SR
 
-export async function createIscsi ({
+export async function createIscsi({
   host,
   nameLabel,
   nameDescription,
@@ -520,7 +603,7 @@ createIscsi.resolve = {
 // This function helps to detect all iSCSI IQN on a Target (iSCSI "server")
 // Return a table of IQN or empty table if no iSCSI connection to the target
 
-export async function probeIscsiIqns ({
+export async function probeIscsiIqns({
   host,
   target: targetIp,
   port,
@@ -590,7 +673,7 @@ probeIscsiIqns.resolve = {
 // This function helps to detect all iSCSI ID and LUNs on a Target
 //  It will return a LUN table
 
-export async function probeIscsiLuns ({
+export async function probeIscsiLuns({
   host,
   target: targetIp,
   port,
@@ -661,7 +744,7 @@ probeIscsiLuns.resolve = {
 // This function helps to detect if this target already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeIscsiExists ({
+export async function probeIscsiExists({
   host,
   target: targetIp,
   port,
@@ -694,7 +777,7 @@ export async function probeIscsiExists ({
   )
 
   const srs = []
-  forEach(ensureArray(xml['SRlist'].SR), sr => {
+  forEach(ensureArray(xml.SRlist.SR), sr => {
     // get the UUID of SR connected to this LUN
     srs.push({ uuid: sr.UUID.trim() })
   })
@@ -720,7 +803,7 @@ probeIscsiExists.resolve = {
 // This function helps to detect if this HBA already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeHbaExists ({ host, scsiId }) {
+export async function probeHbaExists({ host, scsiId }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -748,7 +831,7 @@ probeHbaExists.resolve = {
 // This function helps to detect if this NFS SR already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeNfsExists ({ host, server, serverPath }) {
+export async function probeNfsExists({ host, server, serverPath }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -762,7 +845,7 @@ export async function probeNfsExists ({ host, server, serverPath }) {
 
   const srs = []
 
-  forEach(ensureArray(xml['SRlist'].SR), sr => {
+  forEach(ensureArray(xml.SRlist.SR), sr => {
     // get the UUID of SR connected to this LUN
     srs.push({ uuid: sr.UUID.trim() })
   })
@@ -783,7 +866,7 @@ probeNfsExists.resolve = {
 // -------------------------------------------------------------------
 // This function helps to reattach a forgotten NFS/iSCSI SR
 
-export async function reattach ({
+export async function reattach({
   host,
   uuid,
   nameLabel,
@@ -826,7 +909,7 @@ reattach.resolve = {
 // -------------------------------------------------------------------
 // This function helps to reattach a forgotten ISO SR
 
-export async function reattachIso ({
+export async function reattachIso({
   host,
   uuid,
   nameLabel,
@@ -868,7 +951,7 @@ reattachIso.resolve = {
 
 // -------------------------------------------------------------------
 
-export function getUnhealthyVdiChainsLength ({ sr }) {
+export function getUnhealthyVdiChainsLength({ sr }) {
   return this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
 }
 
@@ -882,7 +965,7 @@ getUnhealthyVdiChainsLength.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stats ({ sr, granularity }) {
+export function stats({ sr, granularity }) {
   return this.getXapiSrStats(sr._xapiId, granularity)
 }
 

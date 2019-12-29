@@ -101,7 +101,7 @@ const CONTAINER_COLUMNS = [
 ]
 
 export default class TabContainers extends Component {
-  render () {
+  render() {
     const { vm } = this.props
     if (isEmpty(vm.docker.containers)) {
       return (
@@ -119,8 +119,9 @@ export default class TabContainers extends Component {
           <Col>
             <SortedTable
               collection={vm.docker.containers}
-              userData={vm}
               columns={CONTAINER_COLUMNS}
+              stateUrlParam='s'
+              userData={vm}
             />
           </Col>
         </Row>

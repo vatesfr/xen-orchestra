@@ -2,6 +2,7 @@
 
 import asyncMap from '@xen-orchestra/async-map'
 import { createSchedule } from '@xen-orchestra/cron'
+import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -31,7 +32,7 @@ const normalize = schedule => {
 }
 
 class Schedules extends Collection {
-  async get (properties) {
+  async get(properties) {
     const schedules = await super.get(properties)
     schedules.forEach(normalize)
     return schedules
@@ -49,7 +50,7 @@ export default class Scheduling {
   |}
   _runs: { __proto__: null, [string]: () => void }
 
-  constructor (app: any) {
+  constructor(app: any) {
     this._app = app
 
     const db = (this._db = new Schedules({
@@ -76,7 +77,10 @@ export default class Scheduling {
         'schedules',
         () => db.get(),
         schedules =>
-          asyncMap(schedules, schedule => db.update(normalize(schedule))),
+          asyncMap(schedules, async schedule => {
+            await db.update(normalize(schedule))
+            this._start(schedule.id)
+          }),
         ['jobs']
       )
 
@@ -92,7 +96,7 @@ export default class Scheduling {
     })
   }
 
-  async createSchedule ({
+  async createSchedule({
     cron,
     enabled,
     jobId,
@@ -100,19 +104,21 @@ export default class Scheduling {
     timezone,
     userId,
   }: $Diff<Schedule, {| id: string |}>) {
-    const schedule = (await this._db.add({
-      cron,
-      enabled,
-      jobId,
-      name,
-      timezone,
-      userId,
-    })).properties
+    const schedule = (
+      await this._db.add({
+        cron,
+        enabled,
+        jobId,
+        name,
+        timezone,
+        userId,
+      })
+    ).properties
     this._start(schedule)
     return schedule
   }
 
-  async getSchedule (id: string): Promise<Schedule> {
+  async getSchedule(id: string): Promise<Schedule> {
     const schedule = await this._db.first(id)
     if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
@@ -120,16 +126,16 @@ export default class Scheduling {
     return schedule.properties
   }
 
-  async getAllSchedules (): Promise<Array<Schedule>> {
+  async getAllSchedules(): Promise<Array<Schedule>> {
     return this._db.get()
   }
 
-  async deleteSchedule (id: string) {
+  async deleteSchedule(id: string) {
     this._stop(id)
     await this._db.remove(id)
   }
 
-  async updateSchedule ({
+  async updateSchedule({
     cron,
     enabled,
     id,
@@ -146,7 +152,7 @@ export default class Scheduling {
     await this._db.update(schedule)
   }
 
-  _start (schedule: Schedule) {
+  _start(schedule: Schedule) {
     const { id } = schedule
 
     this._stop(id)
@@ -155,11 +161,13 @@ export default class Scheduling {
       this._runs[id] = createSchedule(
         schedule.cron,
         schedule.timezone
-      ).startJob(() => this._app.runJobSequence([schedule.jobId], schedule))
+      ).startJob(() => {
+        ignoreErrors.call(this._app.runJobSequence([schedule.jobId], schedule))
+      })
     }
   }
 
-  _stop (id: string) {
+  _stop(id: string) {
     const runs = this._runs
     if (id in runs) {
       runs[id]()

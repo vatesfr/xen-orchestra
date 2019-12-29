@@ -112,14 +112,14 @@ export default class Overview extends Component {
     router: PropTypes.object,
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       schedules: [],
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     const unsubscribeJobs = subscribeJobs(jobs => {
       const obj = {}
       forEach(jobs, job => {
@@ -151,7 +151,7 @@ export default class Overview extends Component {
     }
   }
 
-  _getScheduleJob (schedule) {
+  _getScheduleJob(schedule) {
     const { jobs } = this.state || {}
     return jobs[schedule.jobId]
   }
@@ -193,7 +193,7 @@ export default class Overview extends Component {
     },
   ]
 
-  render () {
+  render() {
     const { schedules } = this.state
 
     return process.env.XOA_PLAN > 3 ? (

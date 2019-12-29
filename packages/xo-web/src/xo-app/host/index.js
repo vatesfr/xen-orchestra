@@ -1,4 +1,5 @@
 import _ from 'intl'
+import InconsistentHostTimeWarning from 'inconsistent-host-time-warning'
 import Copiable from 'copiable'
 import HostActionBar from './action-bar'
 import Icon from 'icon'
@@ -10,6 +11,7 @@ import React, { cloneElement, Component } from 'react'
 import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
+import { Pool } from 'render-xo-item'
 import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
@@ -19,7 +21,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { assign, isEmpty, isString, map, pick, sortBy, sum } from 'lodash'
+import { isEmpty, map, pick, sortBy } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -85,25 +87,11 @@ const isRunning = host => host && host.power_state === 'Running'
     )
   )
 
-  const getHostPatches = createSelector(
-    createGetObjectsOfType('pool_patch'),
-    createGetObjectsOfType('host_patch').pick(
-      createSelector(getHost, host =>
-        isString(host.patches[0]) ? host.patches : []
-      )
-    ),
-    (poolsPatches, hostsPatches) =>
-      map(hostsPatches, hostPatch => ({
-        ...hostPatch,
-        poolPatch: poolsPatches[hostPatch.pool_patch],
-      }))
+  const getHostPatches = createGetObjectsOfType('patch').pick(
+    createSelector(getHost, host => host.patches)
   )
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
-
-  const getMemoryUsed = createSelector(getHostVms, vms =>
-    sum(map(vms, vm => vm.memory.size))
-  )
 
   return (state, props) => {
     const host = getHost(state, props)
@@ -116,7 +104,6 @@ const isRunning = host => host && host.power_state === 'Running'
       hostPatches:
         host.productBrand !== 'XCP-ng' && getHostPatches(state, props),
       logs: getLogs(state, props),
-      memoryUsed: getMemoryUsed(state, props),
       needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
@@ -133,7 +120,7 @@ export default class Host extends Component {
     router: PropTypes.object,
   }
 
-  loop (host = this.props.host) {
+  loop(host = this.props.host) {
     if (host == null) {
       return
     }
@@ -170,17 +157,17 @@ export default class Host extends Component {
   }
   loop = ::this.loop
 
-  componentDidMount () {
+  componentDidMount() {
     this.loop()
     this._subscribePatches(this.props.host)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
     this.unsubscribeHostMissingPatches()
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const hostNext = props.host
     const hostCur = this.props.host
 
@@ -203,7 +190,7 @@ export default class Host extends Component {
     }
   }
 
-  _subscribePatches (host) {
+  _subscribePatches(host) {
     if (host === undefined) {
       return
     }
@@ -223,9 +210,22 @@ export default class Host extends Component {
   _setNameLabel = nameLabel =>
     editHost(this.props.host, { name_label: nameLabel })
 
-  header () {
+  _getHostState = createSelector(
+    () => this.props.host.power_state,
+    () => this.props.host.enabled,
+    () => this.props.host.current_operations,
+    (powerState, enabled, operations) =>
+      !isEmpty(operations)
+        ? 'Busy'
+        : powerState === 'Running' && !enabled
+        ? 'Disabled'
+        : powerState
+  )
+
+  header() {
     const { host, pool } = this.props
     const { missingPatches } = this.state || {}
+    const state = this._getHostState()
     if (!host) {
       return <Icon icon='loading' />
     }
@@ -233,14 +233,24 @@ export default class Host extends Component {
       <Container>
         <Row>
           <Col mediumSize={6} className='header-title'>
+            {pool !== undefined && <Pool id={pool.id} link />}
             <h2>
-              <Icon
-                icon={
-                  host.power_state === 'Running' && !host.enabled
-                    ? 'host-disabled'
-                    : `host-${host.power_state.toLowerCase()}`
+              <Tooltip
+                content={
+                  <span>
+                    {_(`powerState${state}`)}
+                    {state === 'Busy' && (
+                      <span>
+                        {' ('}
+                        {map(host.current_operations)[0]}
+                        {')'}
+                      </span>
+                    )}
+                  </span>
                 }
-              />{' '}
+              >
+                <Icon icon={`host-${state.toLowerCase()}`} />
+              </Tooltip>{' '}
               <Text value={host.name_label} onChange={this._setNameLabel} />
               {this.props.needsRestart && (
                 <Tooltip content={_('rebootUpdateHostLabel')}>
@@ -249,22 +259,16 @@ export default class Host extends Component {
                   </Link>
                 </Tooltip>
               )}
+              &nbsp;
+              <InconsistentHostTimeWarning hostId={host.id} />
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}
             </Copiable>
-            <span>
-              <Text
-                value={host.name_description}
-                onChange={this._setNameDescription}
-              />
-              {pool && (
-                <span className='text-muted'>
-                  {' '}
-                  - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>
-                </span>
-              )}
-            </span>
+            <Text
+              value={host.name_description}
+              onChange={this._setNameDescription}
+            />
           </Col>
           <Col mediumSize={6}>
             <div className='text-xs-center'>
@@ -311,12 +315,12 @@ export default class Host extends Component {
     )
   }
 
-  render () {
+  render() {
     const { host, pool } = this.props
     if (!host) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'host',
         'hostPatches',

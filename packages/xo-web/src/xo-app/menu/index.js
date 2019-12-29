@@ -2,16 +2,16 @@ import _ from 'intl'
 import classNames from 'classnames'
 import Component from 'base-component'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import Link from 'link'
-import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { UpdateTag } from '../xoa/update'
+import { NotificationTag } from '../xoa/notifications'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
   signOut,
+  subscribeNotifications,
   subscribePermissions,
   subscribeResourceSets,
 } from 'xo'
@@ -22,8 +22,10 @@ import {
   getIsPoolAdmin,
   getStatus,
   getUser,
+  getXoaState,
   isAdmin,
 } from 'selectors'
+import { every, identity, isEmpty, map } from 'lodash'
 
 import styles from './index.css'
 
@@ -33,25 +35,27 @@ const returnTrue = () => true
   () => ({
     isAdmin,
     isPoolAdmin: getIsPoolAdmin,
+    nHosts: createGetObjectsOfType('host').count(),
     nTasks: createGetObjectsOfType('task').count([
       task => task.status === 'pending',
     ]),
     pools: createGetObjectsOfType('pool'),
-    nHosts: createGetObjectsOfType('host').count(),
     srs: createGetObjectsOfType('SR'),
     status: getStatus,
     user: getUser,
+    xoaState: getXoaState,
   }),
   {
     withRef: true,
   }
 )
 @addSubscriptions({
+  notifications: subscribeNotifications,
   permissions: subscribePermissions,
   resourceSets: subscribeResourceSets,
 })
 export default class Menu extends Component {
-  componentWillMount () {
+  componentWillMount() {
     const updateCollapsed = () => {
       this.setState({ collapsed: window.innerWidth < 1200 })
     }
@@ -64,7 +68,7 @@ export default class Menu extends Component {
     }
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._removeListener()
   }
 
@@ -84,7 +88,12 @@ export default class Menu extends Component {
 
   _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
 
-  get height () {
+  _getNoNotifications = createSelector(
+    () => this.props.notifications,
+    notifications => every(notifications, { read: true })
+  )
+
+  get height() {
     return this.refs.content.offsetHeight
   }
 
@@ -104,7 +113,7 @@ export default class Menu extends Component {
     return signOut()
   }
 
-  render () {
+  render() {
     const {
       isAdmin,
       isPoolAdmin,
@@ -114,9 +123,11 @@ export default class Menu extends Component {
       pools,
       nHosts,
       srs,
+      xoaState,
     } = this.props
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
+    const noNotifications = this._getNoNotifications()
 
     /* eslint-disable object-property-newline */
     const items = [
@@ -205,48 +216,46 @@ export default class Menu extends Component {
             icon: 'menu-backup-file-restore',
             label: 'backupFileRestorePage',
           },
-        ],
-      },
-      isAdmin && {
-        to: '/backup-ng/overview',
-        icon: 'menu-backup',
-        label: <span>Backup NG</span>,
-        subMenu: [
           {
-            to: '/backup-ng/overview',
-            icon: 'menu-backup-overview',
-            label: 'backupOverviewPage',
-          },
-          {
-            to: '/backup-ng/new',
-            icon: 'menu-backup-new',
-            label: 'backupNewPage',
-          },
-          {
-            to: '/backup-ng/restore',
-            icon: 'menu-backup-restore',
-            label: 'backupRestorePage',
-          },
-          {
-            to: '/backup-ng/file-restore',
-            icon: 'menu-backup-file-restore',
-            label: 'backupFileRestorePage',
-          },
-          {
-            to: '/backup-ng/health',
+            to: '/backup/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
           },
         ],
       },
-      isAdmin && {
-        to: 'xoa/update',
+      {
+        to: isAdmin ? 'xoa/update' : 'xoa/notifications',
         icon: 'menu-xoa',
         label: 'xoa',
-        extra: <UpdateTag />,
+        extra: [
+          !isAdmin || xoaState === 'upToDate' ? null : (
+            <UpdateTag key='update' />
+          ),
+          noNotifications ? null : <NotificationTag key='notification' />,
+        ],
         subMenu: [
-          { to: 'xoa/update', icon: 'menu-update', label: 'updatePage' },
-          { to: 'xoa/licenses', icon: 'menu-license', label: 'licensesPage' },
+          isAdmin && {
+            to: 'xoa/update',
+            icon: 'menu-update',
+            label: 'updatePage',
+            extra: <UpdateTag />,
+          },
+          isAdmin && {
+            to: 'xoa/licenses',
+            icon: 'menu-license',
+            label: 'licensesPage',
+          },
+          {
+            to: 'xoa/notifications',
+            icon: 'menu-notification',
+            label: 'notificationsPage',
+            extra: <NotificationTag />,
+          },
+          isAdmin && {
+            to: 'xoa/support',
+            icon: 'menu-support',
+            label: 'supportPage',
+          },
         ],
       },
       isAdmin && {
@@ -320,6 +329,23 @@ export default class Menu extends Component {
           },
         ],
       },
+      isAdmin && {
+        to: '/hub/templates',
+        icon: 'menu-hub',
+        label: 'hubPage',
+        subMenu: [
+          {
+            to: '/hub/templates',
+            icon: 'hub-template',
+            label: 'templatesLabel',
+          },
+          {
+            to: '/hub/recipes',
+            icon: 'hub-recipe',
+            label: 'recipesLabel',
+          },
+        ],
+      },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       !noOperatablePools && {
         to: '/tasks',
@@ -328,6 +354,23 @@ export default class Menu extends Component {
         pill: nTasks,
       },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
+      !noOperatablePools && {
+        to: '/import/vm',
+        icon: 'menu-new-import',
+        label: 'newImport',
+        subMenu: [
+          {
+            to: '/import/vm',
+            icon: 'vm',
+            label: 'labelVm',
+          },
+          {
+            to: '/import/disk',
+            icon: 'disk',
+            label: 'labelDisk',
+          },
+        ],
+      },
       !(noOperatablePools && noResourceSets) && {
         to: '/vms/new',
         icon: 'menu-new',
@@ -341,15 +384,15 @@ export default class Menu extends Component {
             label: 'newVmPage',
           },
           isAdmin && { to: '/new/sr', icon: 'menu-new-sr', label: 'newSrPage' },
+          isPoolAdmin && {
+            to: '/new/network',
+            icon: 'menu-new-network',
+            label: 'newNetworkPage',
+          },
           isAdmin && {
             to: '/settings/servers',
             icon: 'menu-settings-servers',
             label: 'newServerPage',
-          },
-          !noOperatablePools && {
-            to: '/vms/import',
-            icon: 'menu-new-import',
-            label: 'newImport',
           },
         ],
       },
@@ -495,6 +538,7 @@ export default class Menu extends Component {
 const MenuLinkItem = props => {
   const { item } = props
   const { to, icon, label, subMenu, pill, extra } = item
+  const _extra = extra !== undefined ? extra.find(e => e !== null) : undefined
 
   return (
     <li className='nav-item xo-menu-item'>
@@ -504,7 +548,7 @@ const MenuLinkItem = props => {
         to={to}
       >
         <Icon
-          className={classNames((pill || extra) && styles.hiddenCollapsed)}
+          className={classNames((pill || _extra) && styles.hiddenCollapsed)}
           icon={`${icon}`}
           size='lg'
           fixedWidth
@@ -515,7 +559,10 @@ const MenuLinkItem = props => {
           &nbsp;
         </span>
         {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
-        {extra}
+        <span className={styles.hiddenUncollapsed}>{_extra}</span>
+        <span className={styles.hiddenCollapsed}>
+          {extra !== undefined && extra.map(identity)}
+        </span>
       </Link>
       {subMenu && <SubMenu items={subMenu} />}
     </li>
@@ -532,7 +579,7 @@ const SubMenu = props => {
             <li key={index} className='nav-item xo-menu-item'>
               <Link activeClassName='active' className='nav-link' to={item.to}>
                 <Icon icon={`${item.icon}`} size='lg' fixedWidth />{' '}
-                {_(item.label)}
+                {_(item.label)} {item.extra}
               </Link>
             </li>
           )

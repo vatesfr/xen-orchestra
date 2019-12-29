@@ -1,4 +1,5 @@
 # XO-CLI
+
 [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](http://travis-ci.org/vatesfr/xen-orchestra)
 [![Dependency Status](https://david-dm.org/vatesfr/xo-cli/status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli)
 [![devDependency Status](https://david-dm.org/vatesfr/xo-cli/dev-status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli#info=devDependencies)
@@ -85,8 +86,7 @@ Commands can be filtered using patterns:
 
 #### Execute a command
 
-The same syntax is used for all commands: `xo-cli <command> <param
-name>=<value>...`
+The same syntax is used for all commands: `xo-cli <command> <param name>=<value>...`
 
 E.g., adding a new server:
 
@@ -119,7 +119,7 @@ encoding by prefixing with `json:`:
 
 ##### VM import
 
- ```
+```
 > xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
 
@@ -144,7 +144,7 @@ encoding by prefixing with `json:`:
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

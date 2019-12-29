@@ -49,9 +49,14 @@ import styles from './index.css'
   ),
 }))
 export default class VmItem extends Component {
-  get _isRunning () {
+  get _isRunning() {
     const vm = this.props.item
     return vm && vm.power_state === 'Running'
+  }
+
+  compareContainers = (pool1, pool2) => {
+    const { $pool: poolId } = this.props.item
+    return pool1.id === poolId ? -1 : pool2.id === poolId ? 1 : 0
   }
 
   _getResourceSet = createFinder(
@@ -75,9 +80,16 @@ export default class VmItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  render () {
+  _getVmState = createSelector(
+    () => this.props.item.power_state,
+    () => this.props.item.current_operations,
+    (powerState, operations) => (!isEmpty(operations) ? 'Busy' : powerState)
+  )
+
+  render() {
     const { item: vm, container, expandAll, selected } = this.props
     const resourceSet = this._getResourceSet()
+    const state = this._getVmState()
 
     return (
       <div className={styles.item}>
@@ -94,23 +106,19 @@ export default class VmItem extends Component {
                 &nbsp;&nbsp;
                 <Tooltip
                   content={
-                    isEmpty(vm.current_operations) ? (
-                      _(`powerState${vm.power_state}`)
-                    ) : (
-                      <div>
-                        {_(`powerState${vm.power_state}`)}
-                        {' ('}
-                        {map(vm.current_operations)[0]}
-                        {')'}
-                      </div>
-                    )
+                    <span>
+                      {_(`powerState${state}`)}
+                      {state === 'Busy' && (
+                        <span>
+                          {' ('}
+                          {map(vm.current_operations)[0]}
+                          {')'}
+                        </span>
+                      )}
+                    </span>
                   }
                 >
-                  {isEmpty(vm.current_operations) ? (
-                    <Icon icon={`${vm.power_state.toLowerCase()}`} />
-                  ) : (
-                    <Icon icon='busy' />
-                  )}
+                  <Icon icon={state.toLowerCase()} />
                 </Tooltip>
                 &nbsp;&nbsp;
                 <Ellipsis>
@@ -174,6 +182,7 @@ export default class VmItem extends Component {
             <Col mediumSize={2} className='hidden-sm-down'>
               {this._isRunning && container ? (
                 <XoSelect
+                  compareContainers={this.compareContainers}
                   labelProp='name_label'
                   onChange={this._migrateVm}
                   placeholder={_('homeMigrateTo')}

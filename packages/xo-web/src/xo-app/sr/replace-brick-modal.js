@@ -7,7 +7,7 @@ import { Container, Row, Col } from 'grid'
 import { createSelector } from 'selectors'
 
 export default class ReplaceBrickModalBody extends Component {
-  get value () {
+  get value() {
     return this.state
   }
 
@@ -38,7 +38,7 @@ export default class ReplaceBrickModalBody extends Component {
     })
   }
 
-  render () {
+  render() {
     return (
       <Container>
         {this.props.vm !== undefined && (

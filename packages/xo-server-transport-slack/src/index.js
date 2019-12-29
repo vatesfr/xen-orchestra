@@ -41,7 +41,7 @@ export const configurationSchema = {
 // ===================================================================
 
 class XoServerTransportSlack {
-  constructor ({ xo }) {
+  constructor({ xo }) {
     this._sendSlack = this._sendSlack.bind(this)
     this._set = xo.defineProperty.bind(xo)
     this._unset = null
@@ -51,22 +51,22 @@ class XoServerTransportSlack {
     this._send = null
   }
 
-  configure ({ webhookUri, ...conf }) {
+  configure({ webhookUri, ...conf }) {
     const slack = new Slack()
     slack.setWebhook(webhookUri)
     this._conf = conf
     this._send = promisify(slack.webhook)
   }
 
-  load () {
+  load() {
     this._unset = this._set('sendSlackMessage', this._sendSlack)
   }
 
-  unload () {
+  unload() {
     this._unset()
   }
 
-  test () {
+  test() {
     return this._sendSlack({
       message: `Hi there,
 
@@ -74,7 +74,7 @@ The transport-slack plugin for Xen Orchestra server seems to be working fine, ni
     })
   }
 
-  _sendSlack ({ message }) {
+  _sendSlack({ message }) {
     // TODO: handle errors
     return this._send({ ...this._conf, text: message }).catch(logAndRethrow)
   }

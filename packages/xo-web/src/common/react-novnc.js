@@ -25,7 +25,7 @@ export default class NoVnc extends Component {
     url: PropTypes.string.isRequired,
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this._rfb = null
     this._retryGen = createBackoff(Infinity)
@@ -51,21 +51,21 @@ export default class NoVnc extends Component {
     }
   }
 
-  sendCtrlAltDel () {
+  sendCtrlAltDel() {
     const rfb = this._rfb
     if (rfb) {
       rfb.sendCtrlAltDel()
     }
   }
 
-  setClipboard (text) {
+  setClipboard(text) {
     const rfb = this._rfb
     if (rfb) {
       rfb.clipboardPasteFrom(text)
     }
   }
 
-  _clean () {
+  _clean() {
     const rfb = this._rfb
     if (rfb) {
       this._rfb = null
@@ -109,24 +109,19 @@ export default class NoVnc extends Component {
     // if not available from the URL, use the default ones
     const port = url.port || (isSecure ? 443 : 80)
 
-    rfb.connect(
-      url.hostname,
-      port,
-      null,
-      clippedPath
-    )
+    rfb.connect(url.hostname, port, null, clippedPath)
     disableShortcuts()
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._connect()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._clean()
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const rfb = this._rfb
     if (rfb && this.props.scale !== props.scale) {
       rfb.get_display().set_scale(props.scale || 1)
@@ -159,7 +154,7 @@ export default class NoVnc extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <canvas
         className='center-block'

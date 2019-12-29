@@ -2,7 +2,7 @@ import _ from 'intl'
 import Icon from 'icon'
 import Page from '../page'
 import React from 'react'
-import { routes } from 'utils'
+import { adminOnly, routes } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
 
@@ -74,10 +74,12 @@ const Settings = routes('servers', {
   remotes: Remotes,
   servers: Servers,
   users: Users,
-})(({ children }) => (
-  <Page header={HEADER} title='settingsPage' formatTitle>
-    {children}
-  </Page>
-))
+})(
+  adminOnly(({ children }) => (
+    <Page header={HEADER} title='settingsPage' formatTitle>
+      {children}
+    </Page>
+  ))
+)
 
 export default Settings

@@ -7,7 +7,7 @@ import { Acls } from '../models/acl'
 // ===================================================================
 
 export default class {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
 
     const aclsDb = (this._acls = new Acls({
@@ -38,7 +38,7 @@ export default class {
     })
   }
 
-  async _getAclsForUser (userId) {
+  async _getAclsForUser(userId) {
     const user = await this._xo.getUser(userId)
     const { groups } = user
 
@@ -56,7 +56,7 @@ export default class {
     return acls
   }
 
-  async addAcl (subjectId, objectId, action) {
+  async addAcl(subjectId, objectId, action) {
     try {
       await this._acls.create(subjectId, objectId, action)
     } catch (error) {
@@ -66,20 +66,20 @@ export default class {
     }
   }
 
-  async removeAcl (subjectId, objectId, action) {
+  async removeAcl(subjectId, objectId, action) {
     await this._acls.delete(subjectId, objectId, action)
   }
 
   // TODO: remove when new collection.
-  async getAllAcls () {
+  async getAllAcls() {
     return this._acls.get()
   }
 
-  async getAclsForSubject (subjectId) {
+  async getAclsForSubject(subjectId) {
     return this._acls.get({ subject: subjectId })
   }
 
-  async getPermissionsForUser (userId) {
+  async getPermissionsForUser(userId) {
     const [acls, permissionsByRole] = await Promise.all([
       this._getAclsForUser(userId),
       this._getPermissionsByRole(),
@@ -102,7 +102,7 @@ export default class {
     return permissions
   }
 
-  async checkPermissions (userId, permissions) {
+  async checkPermissions(userId, permissions) {
     const user = await this._xo.getUser(userId)
 
     // Special case for super XO administrators.
@@ -117,7 +117,7 @@ export default class {
     )
   }
 
-  async hasPermissions (userId, permissions) {
+  async hasPermissions(userId, permissions) {
     const user = await this._xo.getUser(userId)
 
     // Special case for super XO administrators.
@@ -132,14 +132,14 @@ export default class {
     )
   }
 
-  async removeAclsForObject (objectId) {
+  async removeAclsForObject(objectId) {
     const acls = this._acls
     await acls.remove(map(await acls.get({ object: objectId }), 'id'))
   }
 
   // -----------------------------------------------------------------
 
-  async _getPermissionsByRole () {
+  async _getPermissionsByRole() {
     const roles = await this.getRoles()
 
     const permissions = { __proto__: null }
@@ -150,7 +150,7 @@ export default class {
   }
 
   // TODO: delete when merged with the new collection.
-  async getRoles () {
+  async getRoles() {
     return [
       {
         id: 'viewer',
@@ -171,7 +171,7 @@ export default class {
   }
 
   // Returns an array of roles which have a given permission.
-  async getRolesForPermission (permission) {
+  async getRolesForPermission(permission) {
     const roles = []
 
     forEach(await this.getRoles(), role => {

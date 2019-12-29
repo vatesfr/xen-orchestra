@@ -1,4 +1,4 @@
-export default function emitAsync (event) {
+export default function emitAsync(event) {
   let opts
   let i = 1
 

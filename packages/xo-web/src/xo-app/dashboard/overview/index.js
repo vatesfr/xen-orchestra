@@ -50,7 +50,7 @@ class PatchesCard extends Component {
 
   _getContainer = () => this.refs.container
 
-  render () {
+  render() {
     return (
       <Card>
         <CardHeader>
@@ -203,7 +203,7 @@ class DefaultCard extends Component {
     }
   )
 
-  render () {
+  render() {
     const { props, state } = this
     const users = props.users
     const nUsers = size(users)
@@ -483,35 +483,37 @@ class DefaultCard extends Component {
             </Card>
           </Col>
         </Row>
-        <Row>
-          <Col>
-            <Card>
-              <CardHeader>
-                <Icon icon='menu-dashboard-stats' /> {_('dashboardReport')}
-              </CardHeader>
-              <CardBlock className='text-xs-center'>
-                <ActionButton
-                  btnStyle='primary'
-                  disabled={!canSendTheReport}
-                  handler={sendUsageReport}
-                  icon=''
-                >
-                  {_('dashboardSendReport')}
-                </ActionButton>
-                <br />
-                {!canSendTheReport && (
-                  <span>
-                    <Link to='/settings/plugins' className='text-info'>
-                      <Icon icon='info' /> {_('dashboardSendReportInfo')}
-                    </Link>
-                    <br />
-                  </span>
-                )}
-                {_('dashboardSendReportMessage')}
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
+        {props.isAdmin && (
+          <Row>
+            <Col>
+              <Card>
+                <CardHeader>
+                  <Icon icon='menu-dashboard-stats' /> {_('dashboardReport')}
+                </CardHeader>
+                <CardBlock className='text-xs-center'>
+                  <ActionButton
+                    btnStyle='primary'
+                    disabled={!canSendTheReport}
+                    handler={sendUsageReport}
+                    icon=''
+                  >
+                    {_('dashboardSendReport')}
+                  </ActionButton>
+                  <br />
+                  {!canSendTheReport && (
+                    <span>
+                      <Link to='/settings/plugins' className='text-info'>
+                        <Icon icon='info' /> {_('dashboardSendReportInfo')}
+                      </Link>
+                      <br />
+                    </span>
+                  )}
+                  {_('dashboardSendReportMessage')}
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <PatchesCard hosts={this._getHosts()} />
@@ -532,7 +534,7 @@ class DefaultCard extends Component {
   isAdmin,
 })
 export default class Overview extends Component {
-  render () {
+  render() {
     const { props } = this
     const showResourceSets = !isEmpty(props.resourceSets) && !props.isAdmin
     const authorized = !isEmpty(props.permissions) || props.isAdmin

@@ -100,15 +100,15 @@ const serialize = (job: {| [string]: any |}) => {
 }
 
 class JobsDb extends Collection {
-  async create (job): Promise<Job> {
+  async create(job): Promise<Job> {
     return normalize((await this.add(serialize((job: any)))).properties)
   }
 
-  async save (job): Promise<void> {
+  async save(job): Promise<void> {
     await this.update(serialize((job: any)))
   }
 
-  async get (properties): Promise<Array<Job>> {
+  async get(properties): Promise<Array<Job>> {
     const jobs = await super.get(properties)
     jobs.forEach(normalize)
     return jobs
@@ -125,11 +125,11 @@ export default class Jobs {
   _runningJobs: { __proto__: null, [string]: string }
   _runs: { __proto__: null, [string]: () => void }
 
-  get runningJobs () {
+  get runningJobs() {
     return this._runningJobs
   }
 
-  constructor (xo: any) {
+  constructor(xo: any) {
     this._app = xo
     const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
@@ -164,25 +164,25 @@ export default class Jobs {
 
         xo.emit(
           'job:terminated',
-          undefined,
-          job,
-          undefined,
           // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
-          String(job.runId)
+          String(job.runId),
+          {
+            type: job.type,
+          }
         )
         return this.updateJob({ id: job.id, runId: null })
       })
     )
   }
 
-  cancelJobRun (id: string) {
+  cancelJobRun(id: string) {
     const run = this._runs[id]
     if (run !== undefined) {
       return run.cancel()
     }
   }
 
-  async getAllJobs (type?: string): Promise<Array<Job>> {
+  async getAllJobs(type?: string): Promise<Array<Job>> {
     // $FlowFixMe don't know what is the problem (JFT)
     const jobs = await this._jobs.get()
     const runningJobs = this._runningJobs
@@ -196,7 +196,7 @@ export default class Jobs {
     return result
   }
 
-  async getJob (id: string, type?: string): Promise<Job> {
+  async getJob(id: string, type?: string): Promise<Job> {
     let job = await this._jobs.first(id)
     if (
       job === undefined ||
@@ -211,11 +211,11 @@ export default class Jobs {
     return job
   }
 
-  createJob (job: $Diff<Job, {| id: string |}>): Promise<Job> {
+  createJob(job: $Diff<Job, {| id: string |}>): Promise<Job> {
     return this._jobs.create(job)
   }
 
-  async updateJob (job: $Shape<Job>, merge: boolean = true) {
+  async updateJob(job: $Shape<Job>, merge: boolean = true) {
     if (merge) {
       const { id, ...props } = job
       job = await this.getJob(id)
@@ -224,7 +224,7 @@ export default class Jobs {
     return /* await */ this._jobs.save(job)
   }
 
-  registerJobExecutor (type: string, executor: Executor): void {
+  registerJobExecutor(type: string, executor: Executor): void {
     const executors = this._executors
     if (type in executors) {
       throw new Error(`there is already a job executor for type ${type}`)
@@ -232,7 +232,7 @@ export default class Jobs {
     executors[type] = executor
   }
 
-  async removeJob (id: string) {
+  async removeJob(id: string) {
     const promises = [this._jobs.remove(id)]
     ;(await this._app.getAllSchedules()).forEach(schedule => {
       if (schedule.jobId === id) {
@@ -242,34 +242,18 @@ export default class Jobs {
     return Promise.all(promises)
   }
 
-  async _runJob (job: Job, schedule?: Schedule, data_?: any) {
-    const { id } = job
-
-    const runningJobs = this._runningJobs
-    if (id in runningJobs) {
-      throw new Error(`job ${id} is already running`)
-    }
-
-    const { type } = job
-    const executor = this._executors[type]
-    if (executor === undefined) {
-      throw new Error(`cannot run job ${id}: no executor for type ${type}`)
-    }
-
-    let data
-    if (type === 'backup') {
-      // $FlowFixMe only defined for BackupJob
-      const settings = job.settings['']
-      data = {
-        // $FlowFixMe only defined for BackupJob
-        mode: job.mode,
-        reportWhen: (settings && settings.reportWhen) || 'failure',
-      }
-    }
-
+  async _runJob(job: Job, schedule?: Schedule, data_?: any) {
     const logger = this._logger
+    const { id, type } = job
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
-      data,
+      data:
+        type === 'backup' || type === 'metadataBackup'
+          ? {
+              // $FlowFixMe only defined for BackupJob
+              mode: job.mode,
+              reportWhen: job.settings['']?.reportWhen ?? 'failure',
+            }
+          : undefined,
       event: 'job.start',
       userId: job.userId,
       jobId: id,
@@ -280,41 +264,64 @@ export default class Jobs {
       type,
     })
 
-    // runId is a temporary property used to check if the report is sent after the server interruption
-    this.updateJob({ id, runId: runJobId })::ignoreErrors()
-    runningJobs[id] = runJobId
-
-    const runs = this._runs
-
-    const { cancel, token } = CancelToken.source()
-    runs[runJobId] = { cancel }
-
-    let session
     const app = this._app
     try {
-      session = app.createUserConnection()
-      session.set('user_id', job.userId)
+      const runningJobs = this._runningJobs
 
-      const status = await executor({
-        app,
-        cancelToken: token,
-        data: data_,
-        job,
-        logger,
-        runJobId,
-        schedule,
-        session,
-      })
-      await logger.notice(
-        `Execution terminated for ${job.id}.`,
-        {
-          event: 'job.end',
+      if (id in runningJobs) {
+        throw new Error(`the job (${id}) is already running`)
+      }
+
+      const executor = this._executors[type]
+      if (executor === undefined) {
+        throw new Error(`cannot run job (${id}): no executor for type ${type}`)
+      }
+
+      // runId is a temporary property used to check if the report is sent after the server interruption
+      this.updateJob({ id, runId: runJobId })::ignoreErrors()
+      runningJobs[id] = runJobId
+
+      const runs = this._runs
+      let session
+      try {
+        const { cancel, token } = CancelToken.source()
+        runs[runJobId] = { cancel }
+
+        session = app.createUserConnection()
+        session.set('user_id', job.userId)
+
+        const status = await executor({
+          app,
+          cancelToken: token,
+          data: data_,
+          job,
+          logger,
           runJobId,
-        },
-        true
-      )
+          schedule,
+          session,
+        })
 
-      app.emit('job:terminated', status, job, schedule, runJobId)
+        await logger.notice(
+          `Execution terminated for ${job.id}.`,
+          {
+            event: 'job.end',
+            runJobId,
+          },
+          true
+        )
+
+        app.emit('job:terminated', runJobId, {
+          type: job.type,
+          status,
+        })
+      } finally {
+        this.updateJob({ id, runId: null })::ignoreErrors()
+        delete runningJobs[id]
+        delete runs[runJobId]
+        if (session !== undefined) {
+          session.close()
+        }
+      }
     } catch (error) {
       await logger.error(
         `The execution of ${id} has failed.`,
@@ -325,19 +332,14 @@ export default class Jobs {
         },
         true
       )
-      app.emit('job:terminated', undefined, job, schedule, runJobId)
+      app.emit('job:terminated', runJobId, {
+        type: job.type,
+      })
       throw error
-    } finally {
-      this.updateJob({ id, runId: null })::ignoreErrors()
-      delete runningJobs[id]
-      delete runs[runJobId]
-      if (session !== undefined) {
-        session.close()
-      }
     }
   }
 
-  async runJobSequence (
+  async runJobSequence(
     idSequence: Array<string>,
     schedule?: Schedule,
     data?: any

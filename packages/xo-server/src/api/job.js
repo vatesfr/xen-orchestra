@@ -1,20 +1,20 @@
 // FIXME so far, no acls for jobs
 
-export function cancel ({ runId }) {
+export function cancel({ runId }) {
   return this.cancelJobRun(runId)
 }
 
 cancel.permission = 'admin'
 cancel.description = 'Cancel a current run'
 
-export async function getAll () {
+export async function getAll() {
   return /* await */ this.getAllJobs('call')
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all available jobs'
 
-export async function get (id) {
+export async function get(id) {
   return /* await */ this.getJob(id, 'call')
 }
 
@@ -24,7 +24,7 @@ get.params = {
   id: { type: 'string' },
 }
 
-export async function create ({ job }) {
+export async function create({ job }) {
   if (!job.userId) {
     job.userId = this.session.get('user_id')
   }
@@ -61,7 +61,7 @@ create.params = {
   },
 }
 
-export async function set ({ job }) {
+export async function set({ job }) {
   await this.updateJob(job)
 }
 
@@ -94,7 +94,7 @@ set.params = {
   },
 }
 
-async function delete_ ({ id }) {
+async function delete_({ id }) {
   await this.removeJob(id)
 }
 
@@ -106,7 +106,7 @@ delete_.params = {
 
 export { delete_ as delete }
 
-export async function runSequence ({ idSequence }) {
+export async function runSequence({ idSequence }) {
   await this.runJobSequence(idSequence)
 }
 

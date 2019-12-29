@@ -1,12 +1,14 @@
 import _ from 'intl'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
-import { startsWith } from 'lodash'
+import { find } from 'lodash'
 
 import decorate from './apply-decorators'
 import Icon from './icon'
 import Link from './link'
+import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
@@ -14,43 +16,118 @@ import { isSrWritable, subscribeRemotes } from './xo'
 
 // ===================================================================
 
-const OBJECT_TYPE_TO_ICON = {
-  'VM-template': 'vm',
-  host: 'host',
-  network: 'network',
-}
+const unknowItem = (uuid, type) => (
+  <Tooltip content={_('copyUuid', { uuid })}>
+    <CopyToClipboard text={uuid}>
+      <span className='text-muted' style={{ cursor: 'pointer' }}>
+        {_('errorUnknownItem', { type })}
+      </span>
+    </CopyToClipboard>
+  </Tooltip>
+)
 
-const COMMON_PROP_TYPES = {
-  link: PropTypes.bool,
-}
-
-const XoItem = ({ children, item, link, to, newTab }) =>
-  item !== undefined ? (
-    link ? (
-      <Link to={to} target={newTab && '_blank'}>
-        {children()}
-      </Link>
-    ) : (
-      children()
-    )
+const LinkWrapper = ({ children, link, to, newTab }) =>
+  link ? (
+    <Link to={to} target={newTab && '_blank'}>
+      {children}
+    </Link>
   ) : (
-    <span className='text-muted'>{_('errorUnknownItem')}</span>
+    <span>{children}</span>
   )
 
-XoItem.propTypes = {
-  ...COMMON_PROP_TYPES,
-  item: PropTypes.object,
+LinkWrapper.propTypes = {
+  link: PropTypes.bool,
   newTab: PropTypes.bool,
   to: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 }
+
 // ===================================================================
 
-const XO_ITEM_PROP_TYPES = {
-  ...COMMON_PROP_TYPES,
+export const Pool = decorate([
+  connectStore(() => ({
+    pool: createGetObject(),
+  })),
+  ({ id, pool, link, newTab }) => {
+    if (pool === undefined) {
+      return unknowItem(id, 'pool')
+    }
+
+    return (
+      <LinkWrapper link={link} newTab={newTab} to={`/pools/${pool.id}`}>
+        <Icon icon='pool' /> {pool.name_label}
+      </LinkWrapper>
+    )
+  },
+])
+
+Pool.propTypes = {
   id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
 }
 
-export const VmItem = decorate([
+Pool.defaultProps = {
+  link: false,
+  newTab: false,
+}
+
+// ===================================================================
+
+export const Host = decorate([
+  connectStore(() => {
+    const getHost = createGetObject()
+    return {
+      host: getHost,
+      pool: createGetObject(
+        createSelector(
+          getHost,
+          (_, props) => props.pool,
+          (host, showPool) => showPool && get(() => host.$pool)
+        )
+      ),
+    }
+  }),
+  ({ id, host, pool, link, newTab, memoryFree }) => {
+    if (host === undefined) {
+      return unknowItem(id, 'host')
+    }
+
+    return (
+      <LinkWrapper link={link} newTab={newTab} to={`/hosts/${host.id}`}>
+        <Icon icon='host' /> {host.name_label}
+        {memoryFree && (
+          <span>
+            {' ('}
+            {_('memoryFree', {
+              memoryFree: formatSize(host.memory.size - host.memory.usage),
+            })}
+            {')'}
+          </span>
+        )}
+        {pool !== undefined && <span>{` - ${pool.name_label}`}</span>}
+      </LinkWrapper>
+    )
+  },
+])
+
+Host.propTypes = {
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  memoryFree: PropTypes.bool,
+  newTab: PropTypes.bool,
+  pool: PropTypes.bool,
+}
+
+Host.defaultProps = {
+  link: false,
+  memoryFree: false,
+  newTab: false,
+  pool: true,
+}
+
+// ===================================================================
+
+export const Vm = decorate([
   connectStore(() => {
     const getVm = createGetObject()
     return {
@@ -60,146 +137,252 @@ export const VmItem = decorate([
       ),
     }
   }),
-  ({ vm, container, ...props }) => (
-    <XoItem item={vm} to={`/vms/${get(() => vm.id)}`} {...props}>
-      {() => (
-        <span>
-          <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />{' '}
-          {vm.name_label || vm.id}
-          {container !== undefined &&
-            ` (${container.name_label || container.id})`}
-        </span>
-      )}
-    </XoItem>
-  ),
-])
-
-VmItem.propTypes = XO_ITEM_PROP_TYPES
-
-export const SrItem = decorate([
-  connectStore(() => {
-    const getSr = createGetObject()
-    return {
-      sr: getSr,
-      container: createGetObject(
-        createSelector(getSr, sr => get(() => sr.$container))
-      ),
+  ({ id, vm, container, link, newTab }) => {
+    if (vm === undefined) {
+      return unknowItem(id, 'VM')
     }
-  }),
-  ({ sr, container, ...props }) => (
-    <XoItem item={sr} to={`/srs/${get(() => sr.id)}`} {...props}>
-      {() => (
-        <span>
-          <Icon icon='sr' /> {sr.name_label || sr.id}
-          {container !== undefined && (
-            <span className='text-muted'> - {container.name_label}</span>
-          )}
-          {isSrWritable(sr) && (
-            <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
-          )}
-        </span>
-      )}
-    </XoItem>
-  ),
+
+    return (
+      <LinkWrapper link={link} newTab={newTab} to={`/vms/${vm.id}`}>
+        <Icon icon={`vm-${vm.power_state.toLowerCase()}`} /> {vm.name_label}
+        {container !== undefined && ` (${container.name_label})`}
+      </LinkWrapper>
+    )
+  },
 ])
 
-SrItem.propTypes = XO_ITEM_PROP_TYPES
-
-export const RemoteItem = decorate([
-  addSubscriptions(({ id }) => ({
-    remote: cb =>
-      subscribeRemotes(remotes => {
-        cb(get(() => remotes.find(remote => remote.id === id)))
-      }),
-  })),
-  ({ remote, ...props }) => (
-    <XoItem item={remote} to='/settings/remotes' {...props}>
-      {() => (
-        <span>
-          <Icon icon='remote' /> {remote.name}
-        </span>
-      )}
-    </XoItem>
-  ),
-])
-
-RemoteItem.propTypes = XO_ITEM_PROP_TYPES
-
-export const PoolItem = decorate([
-  connectStore(() => ({
-    pool: createGetObject(),
-  })),
-  ({ pool, ...props }) => (
-    <XoItem item={pool} to={`/pools/${get(() => pool.id)}`} {...props}>
-      {() => (
-        <span>
-          <Icon icon='pool' /> {pool.name_label || pool.id}
-        </span>
-      )}
-    </XoItem>
-  ),
-])
-
-PoolItem.propTypes = XO_ITEM_PROP_TYPES
-
-// ===================================================================
-
-export const SrResourceSetItem = decorate([
-  connectStore(() => {
-    const getSr = createGetObject()
-    return (state, props) => ({
-      // true to bypass permissions as a self user
-      sr: getSr(state, props, true),
-    })
-  }),
-  ({ sr, ...props }) => (
-    <XoItem item={sr} to={sr !== undefined && `/srs/${sr.id}`} {...props}>
-      {() => (
-        <span>
-          <Icon icon='sr' /> {sr.name_label || sr.id}
-          {isSrWritable(sr) && (
-            <span>{` (${formatSize(sr.size - sr.physical_usage)} free)`}</span>
-          )}
-        </span>
-      )}
-    </XoItem>
-  ),
-])
-
-SrResourceSetItem.propTypes = XO_ITEM_PROP_TYPES
-
-// ===================================================================
-
-// Host, Network, VM-template.
-const PoolObjectItem = connectStore(() => {
-  const getPool = createGetObject((_, props) => props.object.$pool)
-
-  return (state, props) => ({
-    pool: getPool(state, props),
-  })
-})(({ object, pool }) => {
-  const icon = OBJECT_TYPE_TO_ICON[object.type]
-  const { id } = object
-
-  return (
-    <span>
-      <Icon icon={icon} /> {`${object.name_label || id} `}
-      {pool && `(${pool.name_label || pool.id})`}
-    </span>
-  )
-})
-
-PoolObjectItem.propTypes = {
-  object: PropTypes.object.isRequired,
+Vm.propTypes = {
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
 }
 
-const VgpuItem = connectStore(() => ({
+Vm.defaultProps = {
+  link: false,
+  newTab: false,
+}
+
+// ===================================================================
+
+export const VmTemplate = decorate([
+  connectStore(() => {
+    const getObject = createGetObject()
+    const getPool = createGetObject(
+      createSelector(getObject, vm => get(() => vm.$pool))
+    )
+    return (state, props) => ({
+      // FIXME: props.self ugly workaround to get object as a self user
+      template: getObject(state, props, props.self),
+      pool: getPool(state, props),
+    })
+  }),
+  ({ id, template, pool }) => {
+    if (template === undefined) {
+      return unknowItem(id, 'template')
+    }
+
+    return (
+      <span>
+        <Icon icon='vm' /> {template.name_label}
+        {pool !== undefined && (
+          <span className='text-muted'>{` - ${pool.name_label}`}</span>
+        )}
+      </span>
+    )
+  },
+])
+
+VmTemplate.propTypes = {
+  id: PropTypes.string.isRequired,
+  self: PropTypes.bool,
+}
+
+VmTemplate.defaultProps = {
+  link: false,
+  newTab: false,
+  self: false,
+}
+
+// ===================================================================
+
+export const Sr = decorate([
+  connectStore(() => {
+    const getSr = createGetObject()
+    const getContainer = createGetObject(
+      createSelector(
+        getSr,
+        (_, props) => props.container,
+        (sr, showContainer) => showContainer && get(() => sr.$container)
+      )
+    )
+    return (state, props) => ({
+      // FIXME: props.self ugly workaround to get object as a self user
+      sr: getSr(state, props, props.self),
+      container: getContainer(state, props),
+    })
+  }),
+  ({ id, sr, container, link, newTab, spaceLeft, self }) => {
+    if (sr === undefined) {
+      return unknowItem(id, 'SR')
+    }
+
+    return (
+      <LinkWrapper link={link} newTab={newTab} to={`/srs/${sr.id}`}>
+        <Icon icon='sr' /> {sr.name_label}
+        {!self && spaceLeft && isSrWritable(sr) && (
+          <span className={!link && 'text-muted'}>{` (${formatSize(
+            sr.size - sr.physical_usage
+          )} free)`}</span>
+        )}
+        {!self && container !== undefined && (
+          <span className={!link && 'text-muted'}>
+            {' '}
+            - {container.name_label}
+          </span>
+        )}
+      </LinkWrapper>
+    )
+  },
+])
+
+Sr.propTypes = {
+  container: PropTypes.bool,
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+  self: PropTypes.bool,
+  spaceLeft: PropTypes.bool,
+}
+
+Sr.defaultProps = {
+  container: true,
+  link: false,
+  newTab: false,
+  self: false,
+  spaceLeft: true,
+}
+
+// ===================================================================
+
+export const Vdi = decorate([
+  connectStore(() => {
+    const getObject = createGetObject()
+    const getSr = createGetObject((state, props) => {
+      const vdi = getObject(state, props, props.self)
+      return vdi && vdi.$SR
+    })
+    // FIXME: props.self ugly workaround to get object as a self user
+    return (state, props) => ({
+      vdi: getObject(state, props, props.self),
+      sr: getSr(state, props),
+    })
+  }),
+  ({ id, showSize, showSr, sr, vdi }) => {
+    if (vdi === undefined) {
+      return unknowItem(id, 'VDI')
+    }
+
+    return (
+      <span>
+        <Icon icon='disk' /> {vdi.name_label}
+        {sr !== undefined && showSr && (
+          <span className='text-muted'> - {sr.name_label}</span>
+        )}
+        {showSize && (
+          <span className='text-muted'> ({formatSize(vdi.size)})</span>
+        )}
+      </span>
+    )
+  },
+])
+
+Vdi.propTypes = {
+  id: PropTypes.string.isRequired,
+  self: PropTypes.bool,
+  showSize: PropTypes.bool,
+}
+
+Vdi.defaultProps = {
+  self: false,
+  showSize: false,
+  showSr: false,
+}
+
+// ===================================================================
+
+export const Network = decorate([
+  connectStore(() => {
+    const getObject = createGetObject()
+    // FIXME: props.self ugly workaround to get object as a self user
+    return (state, props) => ({
+      network: getObject(state, props, props.self),
+    })
+  }),
+  ({ id, network }) => {
+    if (network === undefined) {
+      return unknowItem(id, 'network')
+    }
+
+    return (
+      <span>
+        <Icon icon='network' /> {network.name_label}
+      </span>
+    )
+  },
+])
+
+Network.propTypes = {
+  id: PropTypes.string.isRequired,
+  self: PropTypes.bool,
+}
+
+Network.defaultProps = {
+  self: false,
+}
+
+// ===================================================================
+
+export const Remote = decorate([
+  addSubscriptions(({ id }) => ({
+    remote: cb => subscribeRemotes(remotes => cb(find(remotes, { id }))),
+  })),
+  ({ id, remote, link, newTab }) => {
+    if (remote === undefined) {
+      return unknowItem(id, 'remote') // TODO: handle remotes not fetched yet
+    }
+
+    return (
+      <LinkWrapper link={link} newTab={newTab} to='/settings/remotes'>
+        <Icon icon='remote' /> {remote.name}
+      </LinkWrapper>
+    )
+  },
+])
+
+Remote.propTypes = {
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+Remote.defaultProps = {
+  link: false,
+  newTab: false,
+}
+
+// ===================================================================
+
+export const Vgpu = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
 }))(({ vgpu, vgpuType }) => (
   <span>
     <Icon icon='vgpu' /> {vgpuType.modelName}
   </span>
 ))
+
+Vgpu.propTypes = {
+  vgpu: PropTypes.object.isRequired,
+}
 
 // ===================================================================
 
@@ -215,7 +398,7 @@ const xoItemToRender = {
       <Icon icon='group' /> {group.name}
     </span>
   ),
-  remote: ({ value: { id } }) => <RemoteItem id={id} />,
+  remote: ({ value: { id } }) => <Remote id={id} />,
   role: role => <span>{role.name}</span>,
   user: user => (
     <span>
@@ -226,8 +409,7 @@ const xoItemToRender = {
     <span>
       <strong>
         <Icon icon='resource-set' /> {resourceSet.name}
-      </strong>{' '}
-      ({resourceSet.id})
+      </strong>
     </span>
   ),
   sshKey: key => (
@@ -248,30 +430,28 @@ const xoItemToRender = {
   },
 
   // XO objects.
-  pool: ({ id }) => <PoolItem id={id} />,
+  pool: ({ id }) => <Pool id={id} />,
 
-  VDI: vdi => (
-    <span>
-      <Icon icon='disk' /> {vdi.name_label}{' '}
-      {vdi.name_description && <span> ({vdi.name_description})</span>}
-    </span>
-  ),
+  VDI: ({ id }) => <Vdi id={id} showSr />,
+  'VDI-resourceSet': ({ id }) => <Vdi id={id} self showSr />,
 
   // Pool objects.
-  'VM-template': vmTemplate => <PoolObjectItem object={vmTemplate} />,
-  host: host => <PoolObjectItem object={host} />,
-  network: network => <PoolObjectItem object={network} />,
+  'VM-template': ({ id }) => <VmTemplate id={id} />,
+  'VM-template-resourceSet': ({ id }) => <VmTemplate id={id} self />,
+  host: ({ id, memoryFree }) => <Host id={id} memoryFree={memoryFree} />,
+  network: ({ id }) => <Network id={id} />,
+  'network-resourceSet': ({ id }) => <Network id={id} self />,
 
   // SR.
-  SR: ({ id }) => <SrItem id={id} />,
-  'SR-resourceSet': ({ id }) => <SrResourceSetItem id={id} />,
+  SR: ({ id }) => <Sr id={id} />,
+  'SR-resourceSet': ({ id }) => <Sr id={id} self />,
 
   // VM.
-  VM: ({ id }) => <VmItem id={id} />,
-  'VM-snapshot': ({ id }) => <VmItem id={id} />,
+  VM: ({ id }) => <Vm id={id} />,
+  'VM-snapshot': ({ id }) => <Vm id={id} />,
   'VM-controller': ({ id }) => (
     <span>
-      <Icon icon='host' /> <VmItem id={id} />
+      <Icon icon='host' /> <Vm id={id} />
     </span>
   ),
 
@@ -295,7 +475,7 @@ const xoItemToRender = {
 
   // GPUs
 
-  vgpu: vgpu => <VgpuItem vgpu={vgpu} />,
+  vgpu: vgpu => <Vgpu vgpu={vgpu} />,
 
   vgpuType: type => (
     <span>
@@ -306,7 +486,7 @@ const xoItemToRender = {
 
   gpuGroup: group => (
     <span>
-      {startsWith(group.name_label, 'Group of ')
+      {group.name_label.startsWith('Group of ')
         ? group.name_label.slice(9)
         : group.name_label}
     </span>
@@ -318,9 +498,9 @@ const xoItemToRender = {
         {backup.mode}
       </span>{' '}
       <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
-      <span className='tag tag-success'>
-        {backup.jobName !== undefined ? backup.jobName : _('unknownJob')}
-      </span>{' '}
+      {backup.size !== undefined && (
+        <span className='tag tag-info'>{formatSize(backup.size)}</span>
+      )}{' '}
       <FormattedDate
         value={new Date(backup.timestamp)}
         month='long'
@@ -334,7 +514,7 @@ const xoItemToRender = {
   ),
 }
 
-const renderXoItem = (item, { className, type: xoType } = {}) => {
+const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
   const { id, label } = item
   const type = xoType || item.type
 
@@ -367,7 +547,7 @@ const renderXoItem = (item, { className, type: xoType } = {}) => {
   if (Component) {
     return (
       <span key={id} className={className}>
-        <Component {...item} />
+        <Component {...item} {...props} />
       </span>
     )
   }

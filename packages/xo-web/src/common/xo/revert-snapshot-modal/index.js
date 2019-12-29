@@ -5,11 +5,11 @@ import React from 'react'
 export default class RevertSnapshotModalBody extends BaseComponent {
   state = { snapshotBefore: true }
 
-  get value () {
+  get value() {
     return this.state.snapshotBefore
   }
 
-  render () {
+  render() {
     return (
       <div>
         <div>{_('revertVmModalMessage')}</div>

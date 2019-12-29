@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/cron",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "license": "ISC",
   "description": "Focused, well maintained, cron parser/scheduler",
   "keywords": [
@@ -17,6 +17,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/cron",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "@xen-orchestra/cron",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -45,8 +46,8 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-flow": "^7.0.0",
-    "cross-env": "^5.1.3",
-    "rimraf": "^2.6.2"
+    "cross-env": "^6.0.3",
+    "rimraf": "^3.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
@@ -54,6 +55,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish"
   }
 }

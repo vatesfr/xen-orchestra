@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -eu
+
+if [ $# -eq 0 ] || [ "$1" = "-h" ]
+then
+  echo "Usage: $0 <package> <version>"
+  exit
+fi
+
+# move to the root repo dir
+cd "$(dirname "$(which "$0")")/.."
+
+pkg=$1
+
+case "$pkg" in
+  @*/*)
+    cd "$pkg"
+    ;;
+  *)
+    cd "packages/$pkg"
+esac
+
+npm version "$2"
+
+git add --patch
+
+newVersion=$(node --eval 'console.log(require("./package.json").version)')
+
+cd -
+
+git grep -Flz "\"$pkg\":" '**/package.json' | xargs -0 node -e '
+const {readFileSync, writeFileSync} = require("fs")
+
+const [, pkg, version, ...files] = process.argv
+
+const updateDep = deps => {
+  if (deps !== undefined && pkg in deps) {
+    deps[pkg] = "^" + version
+  }
+}
+
+files.forEach(file => {
+  const data = JSON.parse(readFileSync(file, "utf8"))
+  updateDep(data.dependencies)
+  updateDep(data.devDependencies)
+  updateDep(data.peerDependencies)
+  writeFileSync(file, JSON.stringify(data, null, 2) + "\n")
+})
+' "$pkg" "$newVersion"
+
+git add --patch
+
+git commit -m "feat($pkg): $newVersion"
+
+# Don't create tags: we have no use for them ATM and they are not really
+# compatible with GitHub PRs (which are used for the release process)
+#
+# git tag $pkg-v$newVersion

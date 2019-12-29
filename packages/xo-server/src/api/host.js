@@ -1,30 +1,47 @@
-import { format } from 'json-rpc-peer'
+import { format, JsonRpcError } from 'json-rpc-peer'
 
 // ===================================================================
 
-export function set ({
+export async function set({
   host,
 
-  // TODO: use camel case.
+  iscsiIqn,
+  multipathing,
   name_label: nameLabel,
   name_description: nameDescription,
 }) {
-  return this.getXapi(host).setHostProperties(host._xapiId, {
-    nameLabel,
-    nameDescription,
-  })
+  host = this.getXapiObject(host)
+
+  await Promise.all([
+    iscsiIqn !== undefined &&
+      (host.iscsi_iqn !== undefined
+        ? host.set_iscsi_iqn(iscsiIqn)
+        : host.update_other_config(
+            'iscsi_iqn',
+            iscsiIqn === '' ? null : iscsiIqn
+          )),
+    nameDescription !== undefined && host.set_name_description(nameDescription),
+    nameLabel !== undefined && host.set_name_label(nameLabel),
+    multipathing !== undefined &&
+      host.$xapi.setHostMultipathing(host.$id, multipathing),
+  ])
 }
 
 set.description = 'changes the properties of an host'
 
 set.params = {
   id: { type: 'string' },
+  iscsiIqn: { type: 'string', optional: true },
   name_label: {
     type: 'string',
     optional: true,
   },
   name_description: {
     type: 'string',
+    optional: true,
+  },
+  multipathing: {
+    type: 'boolean',
     optional: true,
   },
 }
@@ -37,7 +54,7 @@ set.resolve = {
 
 // FIXME: set force to false per default when correctly implemented in
 // UI.
-export function restart ({ host, force = true }) {
+export function restart({ host, force = true }) {
   return this.getXapi(host).rebootHost(host._xapiId, force)
 }
 
@@ -57,7 +74,7 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export function restartAgent ({ host }) {
+export function restartAgent({ host }) {
   return this.getXapi(host).restartHostAgent(host._xapiId)
 }
 
@@ -76,7 +93,7 @@ export { restartAgent as restart_agent } // eslint-disable-line camelcase
 
 // -------------------------------------------------------------------
 
-export function setRemoteSyslogHost ({ host, syslogDestination }) {
+export function setRemoteSyslogHost({ host, syslogDestination }) {
   return this.getXapi(host).setRemoteSyslogHost(host._xapiId, syslogDestination)
 }
 
@@ -91,7 +108,7 @@ setRemoteSyslogHost.resolve = {
 
 // -------------------------------------------------------------------
 
-export function start ({ host }) {
+export function start({ host }) {
   return this.getXapi(host).powerOnHost(host._xapiId)
 }
 
@@ -107,7 +124,7 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stop ({ host }) {
+export function stop({ host }) {
   return this.getXapi(host).shutdownHost(host._xapiId)
 }
 
@@ -123,8 +140,8 @@ stop.resolve = {
 
 // -------------------------------------------------------------------
 
-export function detach ({ host }) {
-  return this.getXapi(host).ejectHostFromPool(host._xapiId)
+export function detach({ host }) {
+  return this.detachHostFromPool(host._xapiId)
 }
 
 detach.description = 'eject the host of a pool'
@@ -139,7 +156,7 @@ detach.resolve = {
 
 // -------------------------------------------------------------------
 
-export function enable ({ host }) {
+export function enable({ host }) {
   return this.getXapi(host).enableHost(host._xapiId)
 }
 
@@ -155,7 +172,7 @@ enable.resolve = {
 
 // -------------------------------------------------------------------
 
-export function disable ({ host }) {
+export function disable({ host }) {
   return this.getXapi(host).disableHost(host._xapiId)
 }
 
@@ -171,7 +188,7 @@ disable.resolve = {
 
 // -------------------------------------------------------------------
 
-export function forget ({ host }) {
+export function forget({ host }) {
   return this.getXapi(host).forgetHost(host._xapiId)
 }
 
@@ -187,60 +204,7 @@ forget.resolve = {
 
 // -------------------------------------------------------------------
 
-// Returns an array of missing new patches in the host
-// Returns an empty array if up-to-date
-// Throws an error if the host is not running the latest XS version
-export function listMissingPatches ({ host }) {
-  return this.getXapi(host).listMissingPoolPatchesOnHost(host._xapiId)
-}
-
-listMissingPatches.description =
-  'return an array of missing new patches in the host'
-
-listMissingPatches.params = {
-  host: { type: 'string' },
-}
-
-listMissingPatches.resolve = {
-  host: ['host', 'host', 'view'],
-}
-
-// -------------------------------------------------------------------
-
-export function installPatch ({ host, patch: patchUuid }) {
-  return this.getXapi(host).installPoolPatchOnHost(patchUuid, host._xapiId)
-}
-
-installPatch.description = 'install a patch on an host'
-
-installPatch.params = {
-  host: { type: 'string' },
-  patch: { type: 'string' },
-}
-
-installPatch.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-
-export function installAllPatches ({ host }) {
-  return this.getXapi(host).installAllPoolPatchesOnHost(host._xapiId)
-}
-
-installAllPatches.description = 'install all the missing patches on a host'
-
-installAllPatches.params = {
-  host: { type: 'string' },
-}
-
-installAllPatches.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-
-export function emergencyShutdownHost ({ host }) {
+export function emergencyShutdownHost({ host }) {
   return this.getXapi(host).emergencyShutdownHost(host._xapiId)
 }
 
@@ -256,7 +220,21 @@ emergencyShutdownHost.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stats ({ host, granularity }) {
+export async function isHostServerTimeConsistent({ host }) {
+  return this.getXapi(host).isHostServerTimeConsistent(host._xapiRef)
+}
+
+isHostServerTimeConsistent.params = {
+  host: { type: 'string' },
+}
+
+isHostServerTimeConsistent.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export function stats({ host, granularity }) {
   return this.getXapiHostStats(host._xapiId, granularity)
 }
 
@@ -276,7 +254,7 @@ stats.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleInstallSupplementalPack (req, res, { hostId }) {
+async function handleInstallSupplementalPack(req, res, { hostId }) {
   const xapi = this.getXapi(hostId)
 
   // Timeout seems to be broken in Node 4.
@@ -289,11 +267,11 @@ async function handleInstallSupplementalPack (req, res, { hostId }) {
     res.end(format.response(0))
   } catch (e) {
     res.writeHead(500)
-    res.end(format.error(0, new Error(e.message)))
+    res.end(format.error(0, new JsonRpcError(e.message)))
   }
 }
 
-export async function installSupplementalPack ({ host }) {
+export async function installSupplementalPack({ host }) {
   return {
     $sendTo: await this.registerHttpRequest(handleInstallSupplementalPack, {
       hostId: host.id,
@@ -309,4 +287,20 @@ installSupplementalPack.params = {
 
 installSupplementalPack.resolve = {
   host: ['host', 'host', 'admin'],
+}
+
+// -------------------------------------------------------------------
+
+export function isHyperThreadingEnabled({ host }) {
+  return this.getXapi(host).isHyperThreadingEnabled(host._xapiId)
+}
+
+isHyperThreadingEnabled.description = 'get hyper-threading information'
+
+isHyperThreadingEnabled.params = {
+  id: { type: 'string' },
+}
+
+isHyperThreadingEnabled.resolve = {
+  host: ['id', 'host', 'administrate'],
 }

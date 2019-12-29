@@ -1,6 +1,5 @@
 import JsonRpcWebSocketClient, { OPEN, CLOSED } from 'jsonrpc-websocket-client'
 import { BaseError } from 'make-error'
-import { startsWith } from 'lodash'
 
 // ===================================================================
 
@@ -13,7 +12,7 @@ export class XoError extends BaseError {}
 // -------------------------------------------------------------------
 
 export default class Xo extends JsonRpcWebSocketClient {
-  constructor (opts) {
+  constructor(opts) {
     const url = opts != null ? opts.url : '.'
     super(`${url === '/' ? '' : url}/api/`)
 
@@ -30,12 +29,12 @@ export default class Xo extends JsonRpcWebSocketClient {
     })
   }
 
-  get user () {
+  get user() {
     return this._user
   }
 
-  call (method, args, i) {
-    if (startsWith(method, 'session.')) {
+  call(method, args, i) {
+    if (method.startsWith('session.')) {
       return Promise.reject(
         new XoError('session.*() methods are disabled from this interface')
       )
@@ -53,20 +52,20 @@ export default class Xo extends JsonRpcWebSocketClient {
     return promise
   }
 
-  refreshUser () {
+  refreshUser() {
     return super.call('session.getUser').then(user => {
       return (this._user = user)
     })
   }
 
-  signIn (credentials) {
+  signIn(credentials) {
     // Register this credentials for future use.
     this._credentials = credentials
 
     return this._signIn(credentials)
   }
 
-  _signIn (credentials) {
+  _signIn(credentials) {
     return super.call('session.signIn', credentials).then(
       user => {
         this._user = user

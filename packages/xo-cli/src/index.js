@@ -17,14 +17,12 @@ const getKeys = require('lodash/keys')
 const hrp = require('http-request-plus').default
 const humanFormat = require('human-format')
 const identity = require('lodash/identity')
-const isArray = require('lodash/isArray')
 const isObject = require('lodash/isObject')
 const micromatch = require('micromatch')
 const nicePipe = require('nice-pipe')
 const pairs = require('lodash/toPairs')
 const pick = require('lodash/pick')
 const pump = require('pump')
-const startsWith = require('lodash/startsWith')
 const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
 const pw = require('pw')
@@ -36,7 +34,7 @@ const config = require('./config')
 
 // ===================================================================
 
-async function connect () {
+async function connect() {
   const { server, token } = await config.load()
   if (server === undefined) {
     throw new Error('no server to connect to!')
@@ -53,7 +51,7 @@ async function connect () {
 }
 
 const FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
-function extractFlags (args) {
+function extractFlags(args) {
   const flags = {}
 
   let i = 0
@@ -71,9 +69,9 @@ function extractFlags (args) {
 }
 
 const PARAM_RE = /^([^=]+)=([^]*)$/
-function parseParameters (args) {
+function parseParameters(args) {
   const params = {}
-  forEach(args, function (arg) {
+  forEach(args, function(arg) {
     let matches
     if (!(matches = arg.match(PARAM_RE))) {
       throw new Error('invalid arg: ' + arg)
@@ -81,7 +79,7 @@ function parseParameters (args) {
     const name = matches[1]
     let value = matches[2]
 
-    if (startsWith(value, 'json:')) {
+    if (value.startsWith('json:')) {
       value = JSON.parse(value.slice(5))
     }
 
@@ -107,7 +105,7 @@ const humanFormatOpts = {
   scale: 'binary',
 }
 
-function printProgress (progress) {
+function printProgress(progress) {
   if (progress.length) {
     console.warn(
       '%s% of %s @ %s/s - ETA %s',
@@ -125,8 +123,8 @@ function printProgress (progress) {
   }
 }
 
-function wrap (val) {
-  return function wrappedValue () {
+function wrap(val) {
+  return function wrappedValue() {
     return val
   }
 }
@@ -134,7 +132,7 @@ function wrap (val) {
 // ===================================================================
 
 const help = wrap(
-  (function (pkg) {
+  (function(pkg) {
     return require('strip-indent')(
       `
     Usage:
@@ -168,7 +166,7 @@ const help = wrap(
 
     $name v$version
   `
-    ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+    ).replace(/<([^>]+)>|\$(\w+)/g, function(_, arg, key) {
       if (arg) {
         return '<' + chalk.yellow(arg) + '>'
       }
@@ -184,12 +182,12 @@ const help = wrap(
 
 // -------------------------------------------------------------------
 
-function main (args) {
+function main(args) {
   if (!args || !args.length || args[0] === '-h') {
     return help()
   }
 
-  const fnName = args[0].replace(/^--|-\w/g, function (match) {
+  const fnName = args[0].replace(/^--|-\w/g, function(match) {
     if (match === '--') {
       return ''
     }
@@ -200,7 +198,18 @@ function main (args) {
     return exports[fnName](args.slice(1))
   }
 
-  return exports.call(args)
+  return exports.call(args).catch(error => {
+    if (!(error != null && error.code === 10 && 'errors' in error.data)) {
+      throw error
+    }
+
+    const lines = [error.message]
+    const { errors } = error.data
+    errors.forEach(error => {
+      lines.push(`  property ${error.property}: ${error.message}`)
+    })
+    throw lines.join('\n')
+  })
 }
 exports = module.exports = main
 
@@ -208,7 +217,7 @@ exports = module.exports = main
 
 exports.help = help
 
-async function register (args) {
+async function register(args) {
   let expiresIn
   if (args[0] === '--expiresIn') {
     expiresIn = args[1]
@@ -218,7 +227,7 @@ async function register (args) {
   const [
     url,
     email,
-    password = await new Promise(function (resolve) {
+    password = await new Promise(function(resolve) {
       process.stdout.write('Password: ')
       pw(resolve)
     }),
@@ -236,18 +245,18 @@ async function register (args) {
 }
 exports.register = register
 
-function unregister () {
+function unregister() {
   return config.unset(['server', 'token'])
 }
 exports.unregister = unregister
 
-async function listCommands (args) {
+async function listCommands(args) {
   const xo = await connect()
   let methods = await xo.call('system.getMethodsInfo')
 
   let json = false
   const patterns = []
-  forEach(args, function (arg) {
+  forEach(args, function(arg) {
     if (arg === '--json') {
       json = true
     } else {
@@ -264,7 +273,7 @@ async function listCommands (args) {
   }
 
   methods = pairs(methods)
-  methods.sort(function (a, b) {
+  methods.sort(function(a, b) {
     a = a[0]
     b = b[0]
     if (a < b) {
@@ -274,11 +283,11 @@ async function listCommands (args) {
   })
 
   const str = []
-  forEach(methods, function (method) {
+  forEach(methods, function(method) {
     const name = method[0]
     const info = method[1]
     str.push(chalk.bold.blue(name))
-    forEach(info.params || [], function (info, name) {
+    forEach(info.params || [], function(info, name) {
       str.push(' ')
       if (info.optional) {
         str.push('[')
@@ -288,7 +297,11 @@ async function listCommands (args) {
       str.push(
         name,
         '=<',
-        type == null ? 'unknown type' : isArray(type) ? type.join('|') : type,
+        type == null
+          ? 'unknown type'
+          : Array.isArray(type)
+          ? type.join('|')
+          : type,
         '>'
       )
 
@@ -305,10 +318,10 @@ async function listCommands (args) {
 }
 exports.listCommands = listCommands
 
-async function listObjects (args) {
+async function listObjects(args) {
   const properties = getKeys(extractFlags(args))
   const filterProperties = properties.length
-    ? function (object) {
+    ? function(object) {
         return pick(object, properties)
       }
     : identity
@@ -321,7 +334,7 @@ async function listObjects (args) {
   const stdout = process.stdout
   stdout.write('[\n')
   const keys = Object.keys(objects)
-  for (let i = 0, n = keys.length; i < n;) {
+  for (let i = 0, n = keys.length; i < n; ) {
     stdout.write(JSON.stringify(filterProperties(objects[keys[i]]), null, 2))
     stdout.write(++i < n ? ',\n' : '\n')
   }
@@ -329,7 +342,7 @@ async function listObjects (args) {
 }
 exports.listObjects = listObjects
 
-function ensurePathParam (method, value) {
+function ensurePathParam(method, value) {
   if (typeof value !== 'string') {
     const error =
       method +
@@ -338,7 +351,7 @@ function ensurePathParam (method, value) {
   }
 }
 
-async function call (args) {
+async function call(args) {
   if (!args.length) {
     throw new Error('missing command name')
   }
@@ -373,7 +386,7 @@ async function call (args) {
         printProgress
       )
 
-      return fromCallback(cb => pump(response, progress, output, cb))
+      return fromCallback(pump, response, progress, output)
     }
 
     if (key === '$sendTo') {

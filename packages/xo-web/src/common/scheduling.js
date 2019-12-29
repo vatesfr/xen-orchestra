@@ -1,10 +1,11 @@
 import classNames from 'classnames'
+import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { createSchedule } from '@xen-orchestra/cron'
 import { FormattedDate, FormattedTime } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { flatten, forEach, identity, isArray, map, sortedIndex } from 'lodash'
+import { flatten, forEach, identity, map, sortedIndex } from 'lodash'
 
 import _ from './intl'
 import Button from './button'
@@ -29,7 +30,12 @@ const UNITS = ['minute', 'hour', 'monthDay', 'month', 'weekDay']
 const MIN_PREVIEWS = 5
 const MAX_PREVIEWS = 20
 
-const MONTHS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]
+const MONTHS = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [9, 10, 11],
+]
 
 const DAYS = (() => {
   const days = []
@@ -119,7 +125,7 @@ export class SchedulePreview extends Component {
     timezone: PropTypes.string,
   }
 
-  componentDidMount () {
+  componentDidMount() {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
         defaultTimezone: serverTimezone,
@@ -127,7 +133,7 @@ export class SchedulePreview extends Component {
     })
   }
 
-  render () {
+  render() {
     const { defaultTimezone, value } = this.state
     const { cronPattern, timezone = defaultTimezone } = this.props
     const dates = createSchedule(cronPattern, timezone).next(value)
@@ -174,7 +180,7 @@ class ToggleTd extends Component {
     props.onChange(props.tdId, !props.value)
   }
 
-  render () {
+  render() {
     const { props } = this
     return (
       <td
@@ -261,7 +267,7 @@ const TimePicker = decorate([
   provideState({
     effects: {
       onChange: (_, value) => ({ optionsValues }, { onChange }) => {
-        if (isArray(value)) {
+        if (Array.isArray(value)) {
           value = value.length === optionsValues.length ? '*' : value.join(',')
         } else {
           value = `*/${value}`
@@ -348,7 +354,7 @@ class DayPicker extends Component {
     weekDayMode: isWeekDayMode(this.props),
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const weekDayMode = isWeekDayMode(props)
 
     if (weekDayMode !== undefined) {
@@ -365,7 +371,7 @@ class DayPicker extends Component {
     this.props.onChange(this.state.weekDayMode ? ['*', cron] : [cron, '*'])
   }
 
-  render () {
+  render() {
     const { monthDayPattern, weekDayPattern } = this.props
     const { weekDayMode } = this.state
 
@@ -412,7 +418,7 @@ export default class Scheduler extends Component {
     }),
   }
 
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this._onCronChange = newCrons => {
@@ -451,12 +457,15 @@ export default class Scheduler extends Component {
     return timezone
   }
 
-  render () {
+  render() {
     const cronPatternArr = this._getCronPattern().split(' ')
     const timezone = this._getTimezone()
 
     return (
       <div className='card-block'>
+        <em>
+          <Icon icon='info' /> {_('scheduleDstWarning')}
+        </em>
         <Row>
           <Col largeSize={6}>
             <TimePicker
@@ -464,14 +473,14 @@ export default class Scheduler extends Component {
               optionRenderer={getMonthName}
               options={MONTHS}
               onChange={this._monthChange}
-              value={cronPatternArr[PICKTIME_TO_ID['month']]}
+              value={cronPatternArr[PICKTIME_TO_ID.month]}
             />
           </Col>
           <Col largeSize={6}>
             <DayPicker
               onChange={this._dayChange}
-              monthDayPattern={cronPatternArr[PICKTIME_TO_ID['monthDay']]}
-              weekDayPattern={cronPatternArr[PICKTIME_TO_ID['weekDay']]}
+              monthDayPattern={cronPatternArr[PICKTIME_TO_ID.monthDay]}
+              weekDayPattern={cronPatternArr[PICKTIME_TO_ID.weekDay]}
             />
           </Col>
         </Row>
@@ -481,7 +490,7 @@ export default class Scheduler extends Component {
               labelId='Hour'
               options={HOURS}
               onChange={this._hourChange}
-              value={cronPatternArr[PICKTIME_TO_ID['hour']]}
+              value={cronPatternArr[PICKTIME_TO_ID.hour]}
             />
           </Col>
           <Col largeSize={6}>
@@ -489,7 +498,7 @@ export default class Scheduler extends Component {
               labelId='Minute'
               options={MINS}
               onChange={this._minuteChange}
-              value={cronPatternArr[PICKTIME_TO_ID['minute']]}
+              value={cronPatternArr[PICKTIME_TO_ID.minute]}
             />
           </Col>
         </Row>

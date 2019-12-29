@@ -337,7 +337,7 @@ export default {
   homeMigrateTo: 'Migruj do…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: 'Brakujące łatki',
+  homeMissingPatches: 'Brakujące łatki',
 
   // Original text: "Master:"
   homePoolMaster: 'Master:',
@@ -722,13 +722,13 @@ export default {
   remoteNamePlaceHolder: 'Nazwa zdalna*',
 
   // Original text: "Name *"
-  remoteMyNamePlaceHolder: 'Nazwa *',
+  remoteMyNamePlaceHolder: 'Nazwa',
 
   // Original text: "/path/to/backup"
   remoteLocalPlaceHolderPath: '/ścieżka/do/kopii/zapasowej',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'Host *',
+  remoteNfsPlaceHolderHost: 'Host',
 
   // Original text: "/path/to/backup"
   remoteNfsPlaceHolderPath: '/ścieżka/do/kopii/zapasowej',
@@ -746,7 +746,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domena',
 
   // Original text: "<address>\\<share> *"
-  remoteSmbPlaceHolderAddressShare: '<adres>\\<udział> *',
+  remoteSmbPlaceHolderAddressShare: '<adres>\\<udział>',
 
   // Original text: "password(fill to edit)"
   remotePlaceHolderPassword: 'Hasło (wypełnij)',
@@ -1567,7 +1567,7 @@ export default {
   vdiAction: 'Akcja',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Dołącz dysk',
+  vdiAttachDevice: 'Dołącz dysk',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Nowy dysk',
@@ -2648,9 +2648,6 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Tylko do odczytu',
 
-  // Original text: "Disconnect server"
-  serverDisconnect: 'Rozłącz serwer',
-
   // Original text: "username"
   serverPlaceHolderUser: 'Użytkownik',
 
@@ -2958,7 +2955,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    'This version is not bundled with any support nor updates. Use it with caution for critical tasks.',
+    'This version is not bundled with any support nor updates. Use it with caution.',
 
   // Original text: "Connect PIF"
   connectPif: 'Connect PIF',

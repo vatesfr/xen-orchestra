@@ -1,17 +1,20 @@
 import { basename } from 'path'
-import { isEmpty, pickBy } from 'lodash'
+import { fromCallback } from 'promise-toolbox'
+import { pipeline } from 'readable-stream'
 
+import createNdJsonStream from '../_createNdJsonStream'
+import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { safeDateFormat } from '../utils'
 
-export function createJob ({ schedules, ...job }) {
+export function createJob({ schedules, ...job }) {
   job.userId = this.user.id
-  return this.createBackupNgJob(job, schedules)
+  return this.createBackupNgJob(job, schedules).then(({ id }) => id)
 }
 
 createJob.permission = 'admin'
 createJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   mode: {
@@ -41,7 +44,7 @@ createJob.params = {
   },
 }
 
-export function migrateLegacyJob ({ id }) {
+export function migrateLegacyJob({ id }) {
   return this.migrateLegacyBackupJob(id)
 }
 migrateLegacyJob.permission = 'admin'
@@ -51,7 +54,7 @@ migrateLegacyJob.params = {
   },
 }
 
-export function deleteJob ({ id }) {
+export function deleteJob({ id }) {
   return this.deleteBackupNgJob(id)
 }
 deleteJob.permission = 'admin'
@@ -61,14 +64,14 @@ deleteJob.params = {
   },
 }
 
-export function editJob (props) {
+export function editJob(props) {
   return this.updateJob(props)
 }
 
 editJob.permission = 'admin'
 editJob.params = {
   compression: {
-    enum: ['', 'native'],
+    enum: ['', 'native', 'zstd'],
     optional: true,
   },
   id: {
@@ -100,13 +103,13 @@ editJob.params = {
   },
 }
 
-export function getAllJobs () {
+export function getAllJobs() {
   return this.getAllJobs('backup')
 }
 
 getAllJobs.permission = 'admin'
 
-export function getJob ({ id }) {
+export function getJob({ id }) {
   return this.getJob(id, 'backup')
 }
 
@@ -118,13 +121,17 @@ getJob.params = {
   },
 }
 
-export async function runJob ({
+export async function runJob({
   id,
   schedule,
+  settings,
   vm,
   vms = vm !== undefined ? [vm] : undefined,
 }) {
-  return this.runJobSequence([id], await this.getSchedule(schedule), vms)
+  return this.runJobSequence([id], await this.getSchedule(schedule), {
+    settings,
+    vms,
+  })
 }
 
 runJob.permission = 'admin'
@@ -135,6 +142,13 @@ runJob.params = {
   },
   schedule: {
     type: 'string',
+  },
+  settings: {
+    type: 'object',
+    properties: {
+      '*': { type: 'object' },
+    },
+    optional: true,
   },
   vm: {
     type: 'string',
@@ -151,16 +165,55 @@ runJob.params = {
 
 // -----------------------------------------------------------------------------
 
-export async function getAllLogs (filter) {
+async function handleGetAllLogs(req, res) {
   const logs = await this.getBackupNgLogs()
-  return isEmpty(filter) ? logs : pickBy(logs, filter)
+  res.set('Content-Type', 'application/json')
+  return fromCallback(pipeline, createNdJsonStream(logs), res)
+}
+
+export function getAllLogs({ ndjson = false }) {
+  return ndjson
+    ? this.registerHttpRequest(handleGetAllLogs).then($getFrom => ({
+        $getFrom,
+      }))
+    : this.getBackupNgLogs()
 }
 
 getAllLogs.permission = 'admin'
 
+getAllLogs.params = {
+  ndjson: { type: 'boolean', optional: true },
+}
+
+export function getLogs({
+  after,
+  before,
+  limit,
+
+  // TODO: it's a temporary work-around which should be removed
+  // when the consolidated logs will be stored in the DB
+  _forceRefresh = false,
+
+  ...filter
+}) {
+  if (_forceRefresh) {
+    this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+  }
+  return this.getBackupNgLogsSorted({ after, before, limit, filter })
+}
+
+getLogs.permission = 'admin'
+
+getLogs.params = {
+  after: { type: ['number', 'string'], optional: true },
+  before: { type: ['number', 'string'], optional: true },
+  limit: { type: 'number', optional: true },
+  '*': { type: 'any' },
+}
+
 // -----------------------------------------------------------------------------
 
-export function deleteVmBackup ({ id }) {
+export function deleteVmBackup({ id }) {
   return this.deleteVmBackupNg(id)
 }
 
@@ -172,13 +225,14 @@ deleteVmBackup.params = {
   },
 }
 
-export function listVmBackups ({ remotes }) {
-  return this.listVmBackupsNg(remotes)
+export function listVmBackups({ remotes, _forceRefresh }) {
+  return this.listVmBackupsNg(remotes, _forceRefresh)
 }
 
 listVmBackups.permission = 'admin'
 
 listVmBackups.params = {
+  _forceRefresh: { type: 'boolean', optional: true },
   remotes: {
     type: 'array',
     items: {
@@ -187,7 +241,7 @@ listVmBackups.params = {
   },
 }
 
-export function importVmBackup ({ id, sr }) {
+export function importVmBackup({ id, sr }) {
   return this.importVmBackupNg(id, sr)
 }
 
@@ -204,7 +258,7 @@ importVmBackup.params = {
 
 // -----------------------------------------------------------------------------
 
-export function listPartitions ({ remote, disk }) {
+export function listPartitions({ remote, disk }) {
   return this.listBackupNgDiskPartitions(remote, disk)
 }
 
@@ -219,7 +273,7 @@ listPartitions.params = {
   },
 }
 
-export function listFiles ({ remote, disk, partition, path }) {
+export function listFiles({ remote, disk, partition, path }) {
   return this.listBackupNgPartitionFiles(remote, disk, partition, path)
 }
 
@@ -241,7 +295,7 @@ listFiles.params = {
   },
 }
 
-async function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
+async function handleFetchFiles(req, res, { remote, disk, partition, paths }) {
   const zipStream = await this.fetchBackupNgPartitionFiles(
     remote,
     disk,
@@ -254,7 +308,7 @@ async function handleFetchFiles (req, res, { remote, disk, partition, paths }) {
   return zipStream
 }
 
-export async function fetchFiles (params) {
+export async function fetchFiles(params) {
   const { paths } = params
   let filename = `restore_${safeDateFormat(new Date())}`
   if (paths.length === 1) {
@@ -263,7 +317,7 @@ export async function fetchFiles (params) {
   filename += '.zip'
 
   return this.registerHttpRequest(handleFetchFiles, params, {
-    suffix: encodeURI(`/${filename}`),
+    suffix: '/' + encodeURIComponent(filename),
   }).then(url => ({ $getFrom: url }))
 }
 

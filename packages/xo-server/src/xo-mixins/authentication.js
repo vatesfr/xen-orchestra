@@ -1,27 +1,27 @@
 import createLogger from '@xen-orchestra/log'
-import ms from 'ms'
-import { noSuchObject } from 'xo-common/api-errors'
+import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
+import parseDuration from '../_parseDuration'
 import Token, { Tokens } from '../models/token'
 import { forEach, generateToken } from '../utils'
 
 // ===================================================================
+
 const log = createLogger('xo:authentification')
 
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
-const ONE_MONTH = 1e3 * 60 * 60 * 24 * 30
-
 export default class {
-  constructor (xo) {
+  constructor(xo, config) {
+    this._config = config.authentication
+    this._providers = new Set()
     this._xo = xo
 
     // Store last failures by user to throttle tries (slow bruteforce
     // attacks).
     this._failures = { __proto__: null }
-
-    this._providers = new Set()
 
     // Creates persistent collections.
     const tokensDb = (this._tokens = new Tokens({
@@ -38,7 +38,7 @@ export default class {
 
       const user = await xo.getUserByName(username, true)
       if (user && (await xo.checkUserPassword(user.id, password))) {
-        return user.id
+        return { userId: user.id }
       }
     })
 
@@ -49,7 +49,8 @@ export default class {
       }
 
       try {
-        return (await xo.getAuthenticationToken(tokenId)).user_id
+        const token = await xo.getAuthenticationToken(tokenId)
+        return { expiration: token.expiration, userId: token.user_id }
       } catch (error) {}
     })
 
@@ -75,44 +76,59 @@ export default class {
     })
   }
 
-  registerAuthenticationProvider (provider) {
+  registerAuthenticationProvider(provider) {
     return this._providers.add(provider)
   }
 
-  unregisterAuthenticationProvider (provider) {
+  unregisterAuthenticationProvider(provider) {
     return this._providers.delete(provider)
   }
 
-  async _authenticateUser (credentials) {
+  async _authenticateUser(credentials) {
     for (const provider of this._providers) {
       try {
         // A provider can return:
-        // - `null` if the user could not be authenticated
+        // - `undefined`/`null` if the user could not be authenticated
         // - the identifier of the authenticated user
+        // - an object containing:
+        //   - `userId`
+        //   - optionally `expiration` to indicate when the session is no longer
+        //     valid
         // - an object with a property `username` containing the name
         //   of the authenticated user
         const result = await provider(credentials)
 
         // No match.
-        if (!result) {
+        if (result == null) {
           continue
         }
 
-        return result.username
-          ? await this._xo.registerUser(undefined, result.username)
-          : await this._xo.getUser(result)
+        if (typeof result === 'string') {
+          return {
+            user: await this._getUser(result),
+          }
+        }
+
+        const { userId, username, expiration } = result
+
+        return {
+          user: await (userId !== undefined
+            ? this._xo.getUser(userId)
+            : this._xo.registerUser(undefined, username)),
+          expiration,
+        }
       } catch (error) {
         // DEPRECATED: Authentication providers may just throw `null`
         // to indicate they could not authenticate the user without
         // any special errors.
-        if (error) log.error(error)
+        if (error !== null) log.error(error)
       }
     }
-
-    return false
   }
 
-  async authenticateUser (credentials) {
+  async authenticateUser(
+    credentials
+  ): Promise<{| user: Object, expiration?: number |}> {
     // don't even attempt to authenticate with empty password
     const { password } = credentials
     if (password === '') {
@@ -139,25 +155,31 @@ export default class {
       throw new Error('too fast authentication tries')
     }
 
-    const user = await this._authenticateUser(credentials)
-    if (user) {
-      delete failures[username]
-    } else {
+    const result = await this._authenticateUser(credentials)
+    if (result === undefined) {
       failures[username] = now
+      throw invalidCredentials()
     }
 
-    return user
+    delete failures[username]
+    return result
   }
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken ({ expiresIn = ONE_MONTH, userId }) {
+  async createAuthenticationToken({
+    expiresIn = this._config.defaultTokenValidity,
+    userId,
+  }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
       expiration:
         Date.now() +
-        (typeof expiresIn === 'string' ? ms(expiresIn) : expiresIn),
+        Math.min(
+          parseDuration(expiresIn),
+          parseDuration(this._config.maxTokenValidity)
+        ),
     })
 
     await this._tokens.add(token)
@@ -166,13 +188,21 @@ export default class {
     return token.properties
   }
 
-  async deleteAuthenticationToken (id) {
+  async deleteAuthenticationToken(id) {
     if (!(await this._tokens.remove(id))) {
       throw noSuchAuthenticationToken(id)
     }
   }
 
-  async getAuthenticationToken (id) {
+  async deleteAuthenticationTokens({ filter }) {
+    return Promise.all(
+      (await this._tokens.get())
+        .filter(createPredicate(filter))
+        .map(({ id }) => this.deleteAuthenticationToken(id))
+    )
+  }
+
+  async getAuthenticationToken(id) {
     let token = await this._tokens.first(id)
     if (token === undefined) {
       throw noSuchAuthenticationToken(id)
@@ -189,7 +219,7 @@ export default class {
     return token
   }
 
-  async getAuthenticationTokensForUser (userId) {
+  async getAuthenticationTokensForUser(userId) {
     return this._tokens.get({ user_id: userId })
   }
 }

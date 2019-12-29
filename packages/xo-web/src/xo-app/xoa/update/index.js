@@ -2,23 +2,29 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import AnsiUp from 'ansi_up'
 import Button from 'button'
+import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions, adminOnly, connectStore } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
+import { generateId, linkState, toggleState } from 'reaclette-utils'
+import { getApplianceInfo, subscribeBackupNgJobs, subscribeJobs } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import { Input as DebounceInput } from 'debounce-input-decorator'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
-import { linkState, toggleState } from 'reaclette-utils'
-import { Password } from 'form'
-import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
+import { Password, Select } from 'form'
+
+import { getXoaPlan, TryXoa } from '../../../common/utils'
+
+const COMMUNITY = getXoaPlan() === 'Community'
 
 const ansiUp = new AnsiUp()
 
@@ -43,7 +49,7 @@ if (+process.env.XOA_PLAN < 5) {
 // FIXME: can't translate
 const LABELS_BY_STATE = {
   disconnected: 'Disconnected',
-  error: 'An error occured',
+  error: 'An error occurred',
   registerNeeded: 'Registration required',
   updating: 'Updating',
   upgradeNeeded: 'Upgrade required',
@@ -58,16 +64,26 @@ const LEVELS_TO_CLASSES = {
   error: 'text-danger',
 }
 
+const UNLISTED_CHANNEL_VALUE = ''
+
 const PROXY_ENTRIES = ['proxyHost', 'proxyPassword', 'proxyPort', 'proxyUser']
 const initialProxyState = () => zipObject(PROXY_ENTRIES)
 
 const REGISTRATION_ENTRIES = ['email', 'password']
 const initialRegistrationState = () => zipObject(REGISTRATION_ENTRIES)
 
+const CHANNEL_ENTRIES = ['channel']
+const initialChannelState = () => zipObject(CHANNEL_ENTRIES)
+
 const helper = (obj1, obj2, prop) =>
-  defined(() => obj1[prop], () => obj2[prop], '')
+  defined(
+    () => obj1[prop],
+    () => obj2[prop],
+    ''
+  )
 
 const Updates = decorate([
+  adminOnly,
   addSubscriptions({
     backupNgJobs: subscribeBackupNgJobs,
     jobs: subscribeJobs,
@@ -81,29 +97,43 @@ const Updates = decorate([
   ]),
   provideState({
     initialState: () => ({
+      ...initialChannelState(),
       ...initialProxyState(),
       ...initialRegistrationState(),
       askRegisterAgain: false,
       showPackagesList: false,
     }),
     effects: {
-      async configure () {
-        await xoaUpdater.configure(
-          pick(this.state, [
+      async configure() {
+        await xoaUpdater.configure({
+          ...pick(this.state, [
+            'channel',
             'proxyHost',
             'proxyPassword',
             'proxyPort',
             'proxyUser',
-          ])
-        )
-        return this.effects.resetProxyConfig()
+          ]),
+        })
+
+        const { effects } = this
+        await Promise.all([
+          effects.resetChannel(),
+          effects.resetProxyConfig(),
+          effects.update(),
+        ])
       },
-      initialize () {
-        return this.effects.update()
+      initialize() {
+        if (!COMMUNITY) {
+          return this.effects.update()
+        }
       },
       linkState,
-      async register () {
-        const { state } = this
+      onChannelChange: (_, channel) => ({ channel }),
+      async register() {
+        const {
+          props: { xoaRegisterState },
+          state,
+        } = this
 
         const { isRegistered } = state
         if (isRegistered) {
@@ -113,7 +143,7 @@ const Updates = decorate([
               body: (
                 <p>
                   {_('alreadyRegisteredModalText', {
-                    email: this.props.xoaRegisterState.email,
+                    email: xoaRegisterState.email,
                   })}
                 </p>
               ),
@@ -127,13 +157,16 @@ const Updates = decorate([
         }
 
         state.askRegisterAgain = false
-        const { email, password } = state
+        const { email = xoaRegisterState.email, password } = state
         await xoaUpdater.register(email, password, isRegistered)
 
-        return initialRegistrationState()
+        if (state.isRegistered) {
+          return initialRegistrationState()
+        }
       },
+      resetChannel: initialChannelState,
       resetProxyConfig: initialProxyState,
-      async startTrial () {
+      async startTrial() {
         try {
           await confirm({
             title: _('trialReadyModal'),
@@ -151,17 +184,54 @@ const Updates = decorate([
       },
       toggleState,
       update: () => xoaUpdater.update(),
-      upgrade: () => xoaUpdater.upgrade(),
+      upgrade() {
+        return this.state.areJobsRunning
+          ? confirm({
+              title: _('upgradeWarningTitle'),
+              body: <p>{_('upgradeWarningMessage')}</p>,
+            }).then(() => xoaUpdater.upgrade())
+          : xoaUpdater.upgrade()
+      },
     },
     computed: {
       areJobsRunning: (_, { jobs, backupNgJobs }) =>
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
-      async installedPackages () {
-        const { installer, updater, npm } = await xoaUpdater.getLocalManifest()
-        return { ...installer, ...updater, ...npm }
-      },
+      channelsFormId: generateId,
+      channels: COMMUNITY ? () => [] : () => xoaUpdater.getReleaseChannels(),
+      channelsOptions: ({ channels }) =>
+        channels === undefined
+          ? undefined
+          : [
+              ...Object.keys(channels)
+                .sort()
+                .map(channel => ({
+                  label: channel,
+                  value: channel,
+                })),
+              {
+                label: (
+                  <span className='font-italic'>{_('unlistedChannel')}</span>
+                ),
+                value: UNLISTED_CHANNEL_VALUE,
+              },
+            ],
+      consolidatedChannel: COMMUNITY
+        ? () => 'sources'
+        : ({ channel }, { xoaConfiguration }) =>
+            defined(channel, xoaConfiguration.channel),
+      installedPackages: COMMUNITY
+        ? () => ({ 'xen-orchestra': 'sources' })
+        : async function() {
+            const {
+              engine,
+              installer,
+              updater,
+              npm,
+            } = await xoaUpdater.getLocalManifest()
+            return { ...engine, ...installer, ...updater, ...npm }
+          },
       isDisconnected: (_, { xoaUpdaterState }) =>
         xoaUpdater === 'disconnected' || xoaUpdaterState === 'error',
       isProxyConfigEdited: state =>
@@ -177,6 +247,8 @@ const Updates = decorate([
         xoaTrialState.state === 'default' &&
         !isTrialRunning(xoaTrialState.trial) &&
         !exposeTrial(xoaTrialState.trial),
+      isUnlistedChannel: ({ consolidatedChannel, channels }) =>
+        consolidatedChannel !== undefined && !(consolidatedChannel in channels),
       isUpdaterDown: (_, { xoaTrialState }) =>
         isEmpty(xoaTrialState) || xoaTrialState.state === 'ERROR',
       packagesList: ({ installedPackages }) =>
@@ -185,6 +257,11 @@ const Updates = decorate([
           .sort()
           .map(name => `- ${name}: ${installedPackages[name]}`)
           .join('\n'),
+      proxyFormId: generateId,
+      xoaBuild: async () => {
+        const { build = 'unknown' } = await getApplianceInfo()
+        return build
+      },
     },
   }),
   injectState,
@@ -200,75 +277,140 @@ const Updates = decorate([
     xoaUpdaterState,
   }) => (
     <Container>
+      {COMMUNITY && (
+        <Row className='mb-1'>
+          <Col>
+            <p className='text-info'>{_('updaterCommunity')}</p>
+            <TryXoa page='updater' />
+          </Col>
+        </Row>
+      )}
       <Row>
-        <Col mediumSize={12}>
+        <Col mediumSize={6}>
           <Card>
             <CardHeader>
               <UpdateTag /> {LABELS_BY_STATE[xoaUpdaterState]}
             </CardHeader>
             <CardBlock>
-              <p>
-                {_('currentVersion')}{' '}
-                {defined(
-                  () => state.installedPackages['xen-orchestra'],
-                  'unknown'
-                )}{' '}
-                {state.installedPackages !== undefined && (
-                  <Button
-                    name='showPackagesList'
-                    onClick={effects.toggleState}
-                    size='small'
-                  >
-                    <Icon icon={state.showPackagesList ? 'minus' : 'plus'} />
-                  </Button>
+              <fieldset disabled={COMMUNITY}>
+                <p>
+                  {_('xoaBuild')} {state.xoaBuild} - {_('currentVersion')}{' '}
+                  {defined(
+                    () => state.installedPackages['xen-orchestra'],
+                    'unknown'
+                  )}{' '}
+                  {state.installedPackages !== undefined && (
+                    <Button
+                      name='showPackagesList'
+                      onClick={effects.toggleState}
+                      size='small'
+                    >
+                      <Icon icon={state.showPackagesList ? 'minus' : 'plus'} />
+                    </Button>
+                  )}
+                </p>
+                {state.showPackagesList && (
+                  <p>
+                    <Copiable tagName='pre'>{state.packagesList}</Copiable>
+                  </p>
                 )}
-              </p>
-              {state.showPackagesList && (
-                <p>
-                  <pre>{state.packagesList}</pre>
-                </p>
-              )}
-              {state.isDisconnected && (
-                <p>
-                  <a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>
-                    {_('updaterTroubleshootingLink')}
-                  </a>
-                </p>
-              )}
-              <ActionButton
-                btnStyle='info'
-                handler={effects.update}
-                icon='refresh'
-              >
-                {_('refresh')}
-              </ActionButton>{' '}
-              <ActionButton
-                btnStyle='success'
-                data-runningJobsExist={state.areJobsRunning}
-                disabled={xoaUpdaterState !== 'upgradeNeeded'}
-                handler={effects.upgrade}
-                icon='upgrade'
-              >
-                {xoaTrialState.state !== 'untrustedTrial'
-                  ? _('upgrade')
-                  : _('downgrade')}
-              </ActionButton>
-              <hr />
-              <pre>
-                {map(xoaUpdaterLog, (log, key) => (
-                  <div key={key}>
-                    <span className={LEVELS_TO_CLASSES[log.level]}>
-                      {log.date}
-                    </span>
-                    :{' '}
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: ansiUp.ansi_to_html(log.message),
-                      }}
+                {state.isDisconnected && (
+                  <p>
+                    <a href='https://xen-orchestra.com/docs/updater.html#troubleshooting'>
+                      {_('updaterTroubleshootingLink')}
+                    </a>
+                  </p>
+                )}
+                <ActionButton
+                  btnStyle='info'
+                  handler={effects.update}
+                  icon='refresh'
+                >
+                  {_('refresh')}
+                </ActionButton>{' '}
+                <ActionButton
+                  btnStyle='success'
+                  disabled={
+                    xoaUpdaterState !== 'upgradeNeeded' &&
+                    xoaTrialState.state !== 'untrustedTrial'
+                  } // enables button for updating packages OR ending trial
+                  handler={effects.upgrade}
+                  icon='upgrade'
+                >
+                  {xoaTrialState.state !== 'untrustedTrial'
+                    ? _('upgrade')
+                    : _('downgrade')}
+                </ActionButton>
+                <hr />
+                <pre>
+                  {map(xoaUpdaterLog, (log, key) => (
+                    <div key={key}>
+                      <span className={LEVELS_TO_CLASSES[log.level]}>
+                        {log.date}
+                      </span>
+                      :{' '}
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: ansiUp.ansi_to_html(log.message),
+                        }}
+                      />
+                    </div>
+                  ))}
+                </pre>
+              </fieldset>
+            </CardBlock>
+          </Card>
+        </Col>
+        <Col mediumSize={6}>
+          <Card>
+            <CardHeader>{_('releaseChannels')}</CardHeader>
+            <CardBlock>
+              <form id={state.channelsFormId} className='form'>
+                <fieldset disabled={COMMUNITY}>
+                  <div className='form-group'>
+                    <Select
+                      disabled={COMMUNITY}
+                      isLoading={state.channelsOptions === undefined}
+                      onChange={effects.onChannelChange}
+                      options={state.channelsOptions}
+                      placeholder={formatMessage(messages.selectChannel)}
+                      required
+                      simpleValue
+                      value={
+                        state.isUnlistedChannel
+                          ? UNLISTED_CHANNEL_VALUE
+                          : state.consolidatedChannel
+                      }
                     />
-                  </div>
-                ))}
-              </pre>
+                    <br />
+                    {state.isUnlistedChannel && (
+                      <div className='form-group'>
+                        <DebounceInput
+                          autoFocus
+                          className='form-control'
+                          debounceTimeout={500}
+                          name='channel'
+                          onChange={effects.linkState}
+                          placeholder={formatMessage(
+                            messages.unlistedChannelName
+                          )}
+                          required
+                          type='text'
+                          value={state.consolidatedChannel}
+                        />
+                      </div>
+                    )}
+                  </div>{' '}
+                  <ActionButton
+                    btnStyle='primary'
+                    form={state.channelsFormId}
+                    handler={effects.configure}
+                    icon='success'
+                  >
+                    {_('changeChannel')}
+                  </ActionButton>
+                </fieldset>
+              </form>
             </CardBlock>
           </Card>
         </Col>
@@ -280,8 +422,8 @@ const Updates = decorate([
               {_('proxySettings')} {state.isProxyConfigEdited ? '*' : ''}
             </CardHeader>
             <CardBlock>
-              <form>
-                <fieldset>
+              <form id={state.proxyFormId} className='form'>
+                <fieldset disabled={COMMUNITY}>
                   <div className='form-group'>
                     <input
                       className='form-control'
@@ -327,10 +469,11 @@ const Updates = decorate([
                   </div>
                 </fieldset>
                 <br />
-                <fieldset>
+                <fieldset disabled={COMMUNITY}>
                   <ActionButton
                     icon='save'
                     btnStyle='primary'
+                    form={state.proxyFormId}
                     handler={effects.configure}
                   >
                     {_('formSave')}
@@ -357,38 +500,42 @@ const Updates = decorate([
               <span className='text-danger'> {xoaRegisterState.error}</span>
               {!state.isRegistered || state.askRegisterAgain ? (
                 <form id='registrationForm'>
-                  <div className='form-group'>
-                    <input
-                      className='form-control'
-                      name='email'
-                      onChange={effects.linkState}
-                      placeholder={formatMessage(
-                        messages.updateRegistrationEmailPlaceHolder
-                      )}
-                      required
-                      value={helper(state, xoaRegisterState, 'email')}
-                    />
-                  </div>{' '}
-                  <div className='form-group'>
-                    <Password
-                      disabled={state.email === undefined}
-                      name='password'
-                      onChange={effects.linkState}
-                      placeholder={formatMessage(
-                        messages.updateRegistrationPasswordPlaceHolder
-                      )}
-                      required
-                      value={defined(state.password, '')}
-                    />
-                  </div>{' '}
-                  <ActionButton
-                    form='registrationForm'
-                    icon='success'
-                    btnStyle='primary'
-                    handler={effects.register}
-                  >
-                    {_('register')}
-                  </ActionButton>
+                  <fieldset disabled={COMMUNITY}>
+                    <div className='form-group'>
+                      <input
+                        className='form-control'
+                        name='email'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(
+                          messages.updateRegistrationEmailPlaceHolder
+                        )}
+                        required
+                        value={helper(state, xoaRegisterState, 'email')}
+                      />
+                    </div>{' '}
+                    <div className='form-group'>
+                      <Password
+                        disabled={
+                          helper(state, xoaRegisterState, 'email') === ''
+                        }
+                        name='password'
+                        onChange={effects.linkState}
+                        placeholder={formatMessage(
+                          messages.updateRegistrationPasswordPlaceHolder
+                        )}
+                        required
+                        value={defined(state.password, '')}
+                      />
+                    </div>{' '}
+                    <ActionButton
+                      form='registrationForm'
+                      icon='success'
+                      btnStyle='primary'
+                      handler={effects.register}
+                    >
+                      {_('register')}
+                    </ActionButton>
+                  </fieldset>
                 </form>
               ) : (
                 <Button
@@ -401,7 +548,6 @@ const Updates = decorate([
               )}
               {+process.env.XOA_PLAN === 1 && (
                 <div>
-                  <h2>{_('trial')}</h2>
                   {state.isTrialAllowed && (
                     <div>
                       {state.isRegistered ? (
@@ -409,6 +555,7 @@ const Updates = decorate([
                           btnStyle='success'
                           handler={effects.startTrial}
                           icon='trial'
+                          size='large'
                         >
                           {_('trialStartButton')}
                         </ActionButton>
@@ -476,10 +623,10 @@ const COMPONENTS_BY_STATE = {
   upgradeNeeded: (
     <span className='fa-stack'>
       <i className='fa fa-circle fa-stack-2x text-success' />
-      <i className='fa fa-bell fa-stack-1x' />
+      <i className='fa fa-refresh fa-stack-1x' />
     </span>
   ),
-  upToDate: <Icon icon='success' />,
+  upToDate: null,
 }
 const TOOLTIPS_BY_STATE = {
   connected: _('waitingUpdateInfo'),

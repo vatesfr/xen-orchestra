@@ -1,25 +1,38 @@
 import _ from 'intl'
 import Component from 'base-component'
 import Copiable from 'copiable'
+import decorate from 'apply-decorators'
+import Icon from 'icon'
+import PropTypes from 'prop-types'
 import React from 'react'
-import TabButton from 'tab-button'
 import SelectFiles from 'select-files'
+import StateButton from 'state-button'
+import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
+import { compareVersions, connectStore, getIscsiPaths } from 'utils'
+import { confirm } from 'modal'
+import { Container, Row, Col } from 'grid'
+import { createGetObjectsOfType, createSelector } from 'selectors'
+import { forEach, isEmpty, map, noop } from 'lodash'
+import { FormattedRelative, FormattedTime } from 'react-intl'
+import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
 import { Toggle } from 'form'
-import { compareVersions, connectStore } from 'utils'
-import { FormattedRelative, FormattedTime } from 'react-intl'
-import { Container, Row, Col } from 'grid'
-import { forEach, map, noop } from 'lodash'
-import { createGetObjectsOfType, createSelector } from 'selectors'
 import {
-  enableHost,
   detachHost,
   disableHost,
+  editHost,
+  enableAdvancedLiveTelemetry,
+  enableHost,
   forgetHost,
-  setRemoteSyslogHost,
-  restartHost,
   installSupplementalPack,
+  isHyperThreadingEnabledHost,
+  isNetDataInstalledOnHost,
+  getPlugin,
+  restartHost,
+  setHostsMultipathing,
+  setRemoteSyslogHost,
 } from 'xo'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
@@ -36,6 +49,43 @@ const formatPack = ({ name, author, description, version }, key) => (
 
 const getPackId = ({ author, name }) => `${author}\0${name}`
 
+const MultipathableSrs = decorate([
+  connectStore({
+    pbds: createGetObjectsOfType('PBD').filter((_, { hostId }) => pbd =>
+      pbd.host === hostId && Boolean(pbd.otherConfig.multipathed)
+    ),
+  }),
+  ({ pbds }) =>
+    isEmpty(pbds) ? (
+      <div>{_('hostNoIscsiSr')}</div>
+    ) : (
+      <Container>
+        {map(pbds, pbd => {
+          const [nActives, nPaths] = getIscsiPaths(pbd)
+          const nSessions = pbd.otherConfig.iscsi_sessions
+          return (
+            <Row key={pbd.id}>
+              <Col>
+                <Sr id={pbd.SR} link newTab container={false} />{' '}
+                {nActives !== undefined &&
+                  nPaths !== undefined &&
+                  _('hostMultipathingPaths', {
+                    nActives,
+                    nPaths,
+                  })}{' '}
+                {nSessions !== undefined && _('iscsiSessions', { nSessions })}
+              </Col>
+            </Row>
+          )
+        })}
+      </Container>
+    ),
+])
+
+MultipathableSrs.propTypes = {
+  hostId: PropTypes.string.isRequired,
+}
+
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
     .pick((_, { host }) => host.$PGPUs)
@@ -51,6 +101,23 @@ const getPackId = ({ author, name }) => `${author}\0${name}`
   }
 })
 export default class extends Component {
+  async componentDidMount() {
+    const plugin = await getPlugin('netdata')
+    const isNetDataPluginCorrectlySet = plugin !== undefined && plugin.loaded
+    this.setState({ isNetDataPluginCorrectlySet })
+    if (isNetDataPluginCorrectlySet) {
+      this.setState({
+        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
+          this.props.host
+        ),
+      })
+    }
+
+    this.setState({
+      isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
+    })
+  }
+
   _getPacks = createSelector(
     () => this.props.host.supplementalPacks,
     packs => {
@@ -68,14 +135,79 @@ export default class extends Component {
       return uniqPacks
     }
   )
+
+  _setHostIscsiIqn = iscsiIqn =>
+    confirm({
+      icon: 'alarm',
+      title: _('editHostIscsiIqnTitle'),
+      body: (
+        <div>
+          <p>{_('editHostIscsiIqnMessage')}</p>
+          <p className='text-muted'>
+            <Icon icon='info' /> {_('uniqueHostIscsiIqnInfo')}
+          </p>
+        </div>
+      ),
+    }).then(() => editHost(this.props.host, { iscsiIqn }), noop)
+
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
-  render () {
+  _accessAdvancedLiveTelemetry = () =>
+    window.open(
+      `/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`
+    )
+
+  _enableAdvancedLiveTelemetry = async host => {
+    await enableAdvancedLiveTelemetry(host)
+    this.setState({
+      isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(host),
+    })
+  }
+
+  render() {
     const { host, pcis, pgpus } = this.props
+    const {
+      isHtEnabled,
+      isNetDataPluginInstalledOnHost,
+      isNetDataPluginCorrectlySet,
+    } = this.state
+
+    const _isXcpNgHost = host.productBrand === 'XCP-ng'
+
+    const telemetryButton = isNetDataPluginInstalledOnHost ? (
+      <TabButton
+        btnStyle='success'
+        handler={this._accessAdvancedLiveTelemetry}
+        handlerParam={host}
+        icon='telemetry'
+        labelId='advancedLiveTelemetry'
+      />
+    ) : (
+      <TabButton
+        btnStyle='success'
+        disabled={!_isXcpNgHost || !isNetDataPluginCorrectlySet}
+        handler={this._enableAdvancedLiveTelemetry}
+        handlerParam={host}
+        icon='telemetry'
+        labelId='enableAdvancedLiveTelemetry'
+      />
+    )
+
     return (
       <Container>
         <Row>
           <Col className='text-xs-right'>
+            {!isNetDataPluginCorrectlySet ? (
+              <Tooltip content={_('pluginNetDataIsNecessary')}>
+                <span>{telemetryButton}</span>
+              </Tooltip>
+            ) : !_isXcpNgHost ? (
+              <Tooltip content={_('xcpOnlyFeature')}>
+                <span>{telemetryButton}</span>
+              </Tooltip>
+            ) : (
+              telemetryButton
+            )}
             {host.power_state === 'Running' && (
               <TabButton
                 btnStyle='warning'
@@ -177,8 +309,30 @@ export default class extends Component {
                   <Copiable tagName='td'>{host.build}</Copiable>
                 </tr>
                 <tr>
-                  <th>{_('hostIscsiName')}</th>
-                  <Copiable tagName='td'>{host.iSCSI_name}</Copiable>
+                  <th>{_('hostIscsiIqn')}</th>
+                  <td>
+                    <Text
+                      onChange={this._setHostIscsiIqn}
+                      value={host.iscsiIqn}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('multipathing')}</th>
+                  <td>
+                    <StateButton
+                      className='mb-1'
+                      data-host={host}
+                      data-multipathing={!host.multipathing}
+                      disabledLabel={_('stateDisabled')}
+                      disabledTooltip={_('enableMultipathing')}
+                      enabledLabel={_('stateEnabled')}
+                      enabledTooltip={_('disableMultipathing')}
+                      handler={setHostsMultipathing}
+                      state={host.multipathing}
+                    />
+                    {host.multipathing && <MultipathableSrs hostId={host.id} />}
+                  </td>
                 </tr>
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
@@ -209,6 +363,16 @@ export default class extends Component {
                   <th>{_('hostCpusNumber')}</th>
                   <td>
                     {host.cpus.cores} ({host.cpus.sockets})
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('hyperThreading')}</th>
+                  <td>
+                    {isHtEnabled === null
+                      ? _('hyperThreadingNotAvailable')
+                      : isHtEnabled
+                      ? _('stateEnabled')
+                      : _('stateDisabled')}
                   </td>
                 </tr>
                 <tr>

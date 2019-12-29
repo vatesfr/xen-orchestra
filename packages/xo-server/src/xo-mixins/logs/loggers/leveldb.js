@@ -8,7 +8,7 @@ import { forEach, noop } from '../../../utils'
 let lastDate = 0
 let increment = 0
 
-function generateUniqueKey (date) {
+function generateUniqueKey(date) {
   if (date === lastDate) {
     return `${date}:${increment++}`
   }
@@ -18,14 +18,14 @@ function generateUniqueKey (date) {
 }
 
 export default class LevelDbLogger extends AbstractLogger {
-  constructor (db, namespace) {
+  constructor(db, namespace) {
     super()
 
     this._db = db
     this._namespace = namespace
   }
 
-  _add (level, message, data, returnPromise = false) {
+  _add(level, message, data, returnPromise = false) {
     const time = Date.now()
 
     const log = {
@@ -48,13 +48,13 @@ export default class LevelDbLogger extends AbstractLogger {
     return key
   }
 
-  createReadStream () {
+  createReadStream() {
     return highland(this._db.createReadStream()).filter(
       ({ value }) => value.namespace === this._namespace
     )
   }
 
-  del (id) {
+  del(id) {
     forEach(Array.isArray(id) ? id : [id], id => {
       this._db.get(id).then(value => {
         if (value.namespace === this._namespace) {

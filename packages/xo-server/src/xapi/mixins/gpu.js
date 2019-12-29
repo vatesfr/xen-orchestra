@@ -1,5 +1,5 @@
 export default {
-  createVgpu (vm, gpuGroup, vgpuType) {
+  createVgpu(vm, gpuGroup, vgpuType) {
     // TODO: properly handle device. Can a VM have 2 vGPUS?
     return this.call(
       'VGPU.create',
@@ -10,7 +10,7 @@ export default {
       this.getObject(vgpuType).$ref
     )
   },
-  deleteVgpu (vgpu) {
+  deleteVgpu(vgpu) {
     return this.call('VGPU.destroy', this.getObject(vgpu).$ref)
   },
 }

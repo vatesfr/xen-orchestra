@@ -1,4 +1,4 @@
-export async function get () {
+export async function get() {
   return /* await */ this.getPlugins()
 }
 
@@ -8,7 +8,7 @@ get.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function configure ({ id, configuration }) {
+export async function configure({ id, configuration }) {
   await this.configurePlugin(id, configuration)
 }
 
@@ -25,7 +25,7 @@ configure.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function disableAutoload ({ id }) {
+export async function disableAutoload({ id }) {
   await this.disablePluginAutoload(id)
 }
 
@@ -41,7 +41,7 @@ disableAutoload.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function enableAutoload ({ id }) {
+export async function enableAutoload({ id }) {
   await this.enablePluginAutoload(id)
 }
 
@@ -57,7 +57,7 @@ enableAutoload.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function load ({ id }) {
+export async function load({ id }) {
   await this.loadPlugin(id)
 }
 
@@ -73,7 +73,7 @@ load.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function unload ({ id }) {
+export async function unload({ id }) {
   await this.unloadPlugin(id)
 }
 
@@ -89,7 +89,7 @@ unload.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function purgeConfiguration ({ id }) {
+export async function purgeConfiguration({ id }) {
   await this.purgePluginConfiguration(id)
 }
 
@@ -105,7 +105,7 @@ purgeConfiguration.permission = 'admin'
 
 // ---------------------------------------------------------------------
 
-export async function test ({ id, data }) {
+export async function test({ id, data }) {
   await this.testPlugin(id, data)
 }
 

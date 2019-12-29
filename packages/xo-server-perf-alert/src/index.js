@@ -1,6 +1,6 @@
 import JSON5 from 'json5'
 import { createSchedule } from '@xen-orchestra/cron'
-import { assign, forOwn, map, mean } from 'lodash'
+import { forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
 const COMPARATOR_FN = {
@@ -183,9 +183,7 @@ export const configurationSchema = {
             description: Object.keys(HOST_FUNCTIONS)
               .map(
                 k =>
-                  `  * ${k} (${HOST_FUNCTIONS[k].unit}): ${
-                    HOST_FUNCTIONS[k].description
-                  }`
+                  `  * ${k} (${HOST_FUNCTIONS[k].unit}): ${HOST_FUNCTIONS[k].description}`
               )
               .join('\n'),
             type: 'string',
@@ -233,9 +231,7 @@ export const configurationSchema = {
             description: Object.keys(VM_FUNCTIONS)
               .map(
                 k =>
-                  `  * ${k} (${VM_FUNCTIONS[k].unit}): ${
-                    VM_FUNCTIONS[k].description
-                  }`
+                  `  * ${k} (${VM_FUNCTIONS[k].unit}): ${VM_FUNCTIONS[k].description}`
               )
               .join('\n'),
             type: 'string',
@@ -284,9 +280,7 @@ export const configurationSchema = {
             description: Object.keys(SR_FUNCTIONS)
               .map(
                 k =>
-                  `  * ${k} (${SR_FUNCTIONS[k].unit}): ${
-                    SR_FUNCTIONS[k].description
-                  }`
+                  `  * ${k} (${SR_FUNCTIONS[k].unit}): ${SR_FUNCTIONS[k].description}`
               )
               .join('\n'),
             type: 'string',
@@ -343,7 +337,7 @@ const raiseOrLowerAlarm = (
   }
 }
 
-async function getServerTimestamp (xapi, host) {
+async function getServerTimestamp(xapi, host) {
   const serverLocalTime = await xapi.call('host.get_servertime', host.$ref)
   return Math.floor(
     utcParse('%Y%m%dT%H:%M:%SZ')(serverLocalTime).getTime() / 1000
@@ -351,7 +345,7 @@ async function getServerTimestamp (xapi, host) {
 }
 
 class PerfAlertXoPlugin {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
     this._job = createSchedule('* * * * *').createJob(async () => {
       try {
@@ -365,20 +359,20 @@ class PerfAlertXoPlugin {
     })
   }
 
-  async configure (configuration) {
+  async configure(configuration) {
     this._configuration = configuration
     clearCurrentAlarms()
   }
 
-  load () {
+  load() {
     this._job.start()
   }
 
-  unload () {
+  unload() {
     this._job.stop()
   }
 
-  _generateUrl (type, object) {
+  _generateUrl(type, object) {
     const { baseUrl } = this._configuration
     const { uuid } = object
     switch (type) {
@@ -393,7 +387,7 @@ class PerfAlertXoPlugin {
     }
   }
 
-  async test () {
+  async test() {
     const monitorBodies = await Promise.all(
       map(
         this._getMonitors(),
@@ -413,10 +407,8 @@ ${monitorBodies.join('\n')}`
     )
   }
 
-  _parseDefinition (definition) {
-    const alarmId = `${definition.objectType}|${definition.variableName}|${
-      definition.alarmTriggerLevel
-    }`
+  _parseDefinition(definition) {
+    const alarmId = `${definition.objectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
     const typeFunction =
       TYPE_FUNCTION_MAP[definition.objectType][definition.variableName]
     const parseData = (result, uuid) => {
@@ -468,9 +460,7 @@ ${monitorBodies.join('\n')}`
       ...definition,
       alarmId,
       vmFunction: typeFunction,
-      title: `${typeFunction.name} ${definition.comparator} ${
-        definition.alarmTriggerLevel
-      }${typeFunction.unit}`,
+      title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
       snapshot: async () => {
         return Promise.all(
           map(definition.uuids, async uuid => {
@@ -493,7 +483,7 @@ ${monitorBodies.join('\n')}`
                 result.rrd = await this.getRrd(result.object, observationPeriod)
                 if (result.rrd !== null) {
                   const data = parseData(result.rrd, result.object.uuid)
-                  assign(result, {
+                  Object.assign(result, {
                     data,
                     value: data.getDisplayableValue(),
                     shouldAlarm: data.shouldAlarm(),
@@ -506,7 +496,7 @@ ${monitorBodies.join('\n')}`
                   definition.alarmTriggerLevel
                 )
                 const data = getter(result.object)
-                assign(result, {
+                Object.assign(result, {
                   value: data.getDisplayableValue(),
                   shouldAlarm: data.shouldAlarm(),
                 })
@@ -533,7 +523,7 @@ ${monitorBodies.join('\n')}`
     }
   }
 
-  _getMonitors () {
+  _getMonitors() {
     return map(this._configuration.hostMonitors, def =>
       this._parseDefinition({ ...def, objectType: 'host' })
     )
@@ -583,7 +573,7 @@ ${monitorBodies.join('\n')}`
   //    shouldAlarm: true,
   //    listItem: '  * [lab1](localhost:3000#/hosts/485ea1f-b475-f6f2-58a7-895ab626ce5d/stats): 70%\n'
   //  }
-  async _checkMonitors () {
+  async _checkMonitors() {
     const monitors = this._getMonitors()
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
@@ -654,7 +644,7 @@ ${entry.listItem}
     }
   }
 
-  _sendAlertEmail (subjectSuffix, markdownBody) {
+  _sendAlertEmail(subjectSuffix, markdownBody) {
     if (
       this._configuration.toEmails !== undefined &&
       this._xo.sendEmail !== undefined
@@ -664,17 +654,16 @@ ${entry.listItem}
         subject: `[Xen Orchestra] − Performance Alert ${subjectSuffix}`,
         markdown:
           markdownBody +
-          `\n\n\nSent from Xen Orchestra [perf-alert plugin](${
-            this._configuration.baseUrl
-          }#/settings/plugins)\n`,
+          `\n\n\nSent from Xen Orchestra [perf-alert plugin](${this._configuration.baseUrl}#/settings/plugins)\n`,
       })
     } else {
       throw new Error('The email alert system has a configuration issue.')
     }
   }
 
-  async getRrd (xoObject, secondsAgo) {
-    const host = xoObject.$type === 'host' ? xoObject : xoObject.$resident_on
+  async getRrd(xapiObject, secondsAgo) {
+    const host =
+      xapiObject.$type === 'host' ? xapiObject : xapiObject.$resident_on
     if (host == null) {
       return null
     }
@@ -685,13 +674,13 @@ ${entry.listItem}
       host,
       query: {
         cf: 'AVERAGE',
-        host: (xoObject.$type === 'host').toString(),
+        host: (xapiObject.$type === 'host').toString(),
         json: 'true',
         start: serverTimestamp - secondsAgo,
       },
     }
-    if (xoObject.$type === 'vm') {
-      payload['vm_uuid'] = xoObject.uuid
+    if (xapiObject.$type === 'VM') {
+      payload.vm_uuid = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
     return JSON5.parse(
@@ -700,7 +689,7 @@ ${entry.listItem}
   }
 }
 
-exports.default = function ({ xo }) {
+exports.default = function({ xo }) {
   return new PerfAlertXoPlugin(xo)
 }
 

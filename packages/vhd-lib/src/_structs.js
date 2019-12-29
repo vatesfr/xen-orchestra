@@ -95,7 +95,7 @@ export const unpackField = (field, buf) => {
 
 // Returns the checksum of a raw struct.
 // The raw struct (footer or header) is altered with the new sum.
-export function checksumStruct (buf, struct) {
+export function checksumStruct(buf, struct) {
   const checksumField = struct.fields.checksum
   let sum = 0
 

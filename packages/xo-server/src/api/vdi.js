@@ -1,13 +1,13 @@
 // FIXME: rename to disk.*
 
 import { invalidParameters } from 'xo-common/api-errors'
-import { isArray, reduce } from 'lodash'
+import { reduce } from 'lodash'
 
 import { parseSize } from '../utils'
 
 // ====================================================================
 
-export async function delete_ ({ vdi }) {
+export async function delete_({ vdi }) {
   const resourceSet = reduce(
     vdi.$VBDs,
     (resourceSet, vbd) =>
@@ -35,7 +35,7 @@ export { delete_ as delete }
 // -------------------------------------------------------------------
 
 // FIXME: human readable strings should be handled.
-export async function set (params) {
+export async function set(params) {
   const { vdi } = params
   const xapi = this.getXapi(vdi)
   const ref = vdi._xapiRef
@@ -85,7 +85,7 @@ export async function set (params) {
       continue
     }
 
-    for (const field of isArray(fields) ? fields : [fields]) {
+    for (const field of Array.isArray(fields) ? fields : [fields]) {
       await xapi.call(`VDI.set_${field}`, ref, `${params[param]}`)
     }
   }
@@ -109,7 +109,7 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function migrate ({ vdi, sr }) {
+export async function migrate({ vdi, sr }) {
   const xapi = this.getXapi(vdi)
 
   await xapi.moveVdi(vdi._xapiRef, sr._xapiRef)

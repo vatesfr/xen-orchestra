@@ -4,7 +4,7 @@ import Page from '../page'
 import React from 'react'
 import { Container, Row, Col } from 'grid'
 import { NavLink, NavTabs } from 'nav'
-import { routes } from 'utils'
+import { adminOnly, routes } from 'utils'
 
 import Edit from './edit'
 import New from './new'
@@ -43,10 +43,12 @@ const Jobs = routes('overview', {
   overview: Overview,
   schedules: Schedules,
   'schedules/:id/edit': EditSchedule,
-})(({ children }) => (
-  <Page header={HEADER} title='jobsPage' formatTitle>
-    {children}
-  </Page>
-))
+})(
+  adminOnly(({ children }) => (
+    <Page header={HEADER} title='jobsPage' formatTitle>
+      {children}
+    </Page>
+  ))
+)
 
 export default Jobs

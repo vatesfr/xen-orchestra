@@ -1,5 +1,7 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import { dirname, resolve } from 'path'
+import { createLogger } from '@xen-orchestra/log'
+
+import resolveRelativeFromFile from './_resolveRelativeFromFile'
 
 import Vhd from './vhd'
 import {
@@ -12,21 +14,23 @@ import {
 import { fuFooter, fuHeader, checksumStruct } from './_structs'
 import { test as mapTestBit } from './_bitmap'
 
-const resolveRelativeFromFile = (file, path) =>
-  resolve('/', dirname(file), path).slice(1)
+const { warn } = createLogger('vhd-lib:createSyntheticStream')
 
-export default async function createSyntheticStream (handler, path) {
+export default async function createSyntheticStream(handler, paths) {
   const fds = []
   const cleanup = () => {
     for (let i = 0, n = fds.length; i < n; ++i) {
       handler.closeFile(fds[i]).catch(error => {
-        console.warn('createReadStream, closeFd', i, error)
+        warn('error while closing file', {
+          error,
+          fd: fds[i],
+        })
       })
     }
   }
   try {
     const vhds = []
-    while (true) {
+    const open = async path => {
       const fd = await handler.openFile(path, 'r')
       fds.push(fd)
       const vhd = new Vhd(handler, fd)
@@ -34,11 +38,18 @@ export default async function createSyntheticStream (handler, path) {
       await vhd.readHeaderAndFooter()
       await vhd.readBlockAllocationTable()
 
-      if (vhd.footer.diskType === DISK_TYPE_DYNAMIC) {
-        break
+      return vhd
+    }
+    if (typeof paths === 'string') {
+      let path = paths
+      let vhd
+      while ((vhd = await open(path)).footer.diskType !== DISK_TYPE_DYNAMIC) {
+        path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
       }
-
-      path = resolveRelativeFromFile(path, vhd.header.parentUnicodeName)
+    } else {
+      for (const path of paths) {
+        await open(path)
+      }
     }
     const nVhds = vhds.length
 
@@ -85,7 +96,7 @@ export default async function createSyntheticStream (handler, path) {
     }
     const fileSize = blockOffset * SECTOR_SIZE + FOOTER_SIZE
 
-    const iterator = function * () {
+    const iterator = function*() {
       try {
         footer = fuFooter.pack(footer)
         checksumStruct(footer, fuFooter)
@@ -108,14 +119,14 @@ export default async function createSyntheticStream (handler, path) {
           yield bitmap
 
           const blocksByVhd = new Map()
-          const emitBlockSectors = function * (iVhd, i, n) {
+          const emitBlockSectors = function*(iVhd, i, n) {
             const vhd = vhds[iVhd]
             const isRootVhd = vhd === rootVhd
             if (!vhd.containsBlock(iBlock)) {
               if (isRootVhd) {
                 yield Buffer.alloc((n - i) * SECTOR_SIZE)
               } else {
-                yield * emitBlockSectors(iVhd + 1, i, n)
+                yield* emitBlockSectors(iVhd + 1, i, n)
               }
               return
             }
@@ -138,11 +149,11 @@ export default async function createSyntheticStream (handler, path) {
               if (hasData) {
                 yield data.slice(start * SECTOR_SIZE, i * SECTOR_SIZE)
               } else {
-                yield * emitBlockSectors(iVhd + 1, start, i)
+                yield* emitBlockSectors(iVhd + 1, start, i)
               }
             }
           }
-          yield * emitBlockSectors(owner, 0, sectorsPerBlockData)
+          yield* emitBlockSectors(owner, 0, sectorsPerBlockData)
         }
         yield footer
       } finally {

@@ -1,12 +1,12 @@
 import Model from './model'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
-import { isArray, isObject, map } from './utils'
+import { isObject, map } from './utils'
 
 // ===================================================================
 
 export class ModelAlreadyExists extends BaseError {
-  constructor (id) {
+  constructor(id) {
     super('this model already exists: ' + id)
   }
 }
@@ -15,12 +15,12 @@ export class ModelAlreadyExists extends BaseError {
 
 export default class Collection extends EventEmitter {
   // Default value for Model.
-  get Model () {
+  get Model() {
     return Model
   }
 
   // Make this property writable.
-  set Model (Model) {
+  set Model(Model) {
     Object.defineProperty(this, 'Model', {
       configurable: true,
       enumerale: true,
@@ -29,8 +29,8 @@ export default class Collection extends EventEmitter {
     })
   }
 
-  async add (models, opts) {
-    const array = isArray(models)
+  async add(models, opts) {
+    const array = Array.isArray(models)
     if (!array) {
       models = [models]
     }
@@ -48,7 +48,7 @@ export default class Collection extends EventEmitter {
     return array ? models : new this.Model(models[0])
   }
 
-  async first (properties) {
+  async first(properties) {
     if (!isObject(properties)) {
       properties = properties !== undefined ? { id: properties } : {}
     }
@@ -57,7 +57,7 @@ export default class Collection extends EventEmitter {
     return model && new this.Model(model)
   }
 
-  async get (properties) {
+  async get(properties) {
     if (!isObject(properties)) {
       properties = properties !== undefined ? { id: properties } : {}
     }
@@ -65,8 +65,8 @@ export default class Collection extends EventEmitter {
     return /* await */ this._get(properties)
   }
 
-  async remove (ids) {
-    if (!isArray(ids)) {
+  async remove(ids) {
+    if (!Array.isArray(ids)) {
       ids = [ids]
     }
 
@@ -76,9 +76,9 @@ export default class Collection extends EventEmitter {
     return true
   }
 
-  async update (models) {
-    const array = isArray(models)
-    if (!isArray(models)) {
+  async update(models) {
+    const array = Array.isArray(models)
+    if (!array) {
       models = [models]
     }
 
@@ -113,34 +113,34 @@ export default class Collection extends EventEmitter {
 
   // Methods to override in implementations.
 
-  _add () {
+  _add() {
     throw new Error('not implemented')
   }
 
-  _get () {
+  _get() {
     throw new Error('not implemented')
   }
 
-  _remove () {
+  _remove() {
     throw new Error('not implemented')
   }
 
-  _update () {
+  _update() {
     throw new Error('not implemented')
   }
 
   // Methods which may be overridden in implementations.
 
-  count (properties) {
+  count(properties) {
     return this.get(properties).get('count')
   }
 
-  exists (properties) {
+  exists(properties) {
     /* jshint eqnull: true */
     return this.first(properties).then(model => model !== undefined)
   }
 
-  async _first (properties) {
+  async _first(properties) {
     const models = await this.get(properties)
 
     return models.length ? models[0] : undefined

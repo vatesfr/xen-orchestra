@@ -1,5 +1,5 @@
 import createTransport from './transports/console'
-import LEVELS from './levels'
+import LEVELS, { resolve } from './levels'
 
 const symbol =
   typeof Symbol !== 'undefined'
@@ -9,12 +9,13 @@ if (!(symbol in global)) {
   // the default behavior, without requiring `configure` is to avoid
   // logging anything unless it's a real error
   const transport = createTransport()
-  global[symbol] = log => log.level > LEVELS.WARN && transport(log)
+  const level = resolve(process.env.LOG_LEVEL, LEVELS.WARN)
+  global[symbol] = log => log.level >= level && transport(log)
 }
 
 // -------------------------------------------------------------------
 
-function Log (data, level, namespace, message, time) {
+function Log(data, level, namespace, message, time) {
   this.data = data
   this.level = level
   this.namespace = namespace
@@ -22,7 +23,7 @@ function Log (data, level, namespace, message, time) {
   this.time = time
 }
 
-function Logger (namespace) {
+function Logger(namespace) {
   this._namespace = namespace
 
   // bind all logging methods
@@ -37,11 +38,11 @@ const { prototype } = Logger
 for (const name in LEVELS) {
   const level = LEVELS[name]
 
-  prototype[name.toLowerCase()] = function (message, data) {
+  prototype[name.toLowerCase()] = function(message, data) {
     if (typeof message !== 'string') {
       if (message instanceof Error) {
         data = { error: message }
-        ;({ message = 'an error has occured' } = message)
+        ;({ message = 'an error has occurred' } = message)
       } else {
         return this.warn('incorrect value passed to logger', {
           level,
@@ -53,13 +54,13 @@ for (const name in LEVELS) {
   }
 }
 
-prototype.wrap = function (message, fn) {
+prototype.wrap = function(message, fn) {
   const logger = this
   const warnAndRethrow = error => {
     logger.warn(message, { error })
     throw error
   }
-  return function () {
+  return function() {
     try {
       const result = fn.apply(this, arguments)
       const then = result != null && result.then
@@ -72,5 +73,5 @@ prototype.wrap = function (message, fn) {
   }
 }
 
-const createLogger = namespace => new Logger(namespace)
+export const createLogger = namespace => new Logger(namespace)
 export { createLogger as default }

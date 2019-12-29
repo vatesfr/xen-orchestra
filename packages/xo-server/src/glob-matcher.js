@@ -2,11 +2,11 @@
 
 const matcher = require('micromatch').matcher
 
-module.exports = function globMatcher (patterns, opts) {
+module.exports = function globMatcher(patterns, opts) {
   if (!Array.isArray(patterns)) {
     if (patterns[0] === '!') {
       const m = matcher(patterns.slice(1), opts)
-      return function (string) {
+      return function(string) {
         return !m(string)
       }
     } else {
@@ -30,7 +30,7 @@ module.exports = function globMatcher (patterns, opts) {
   const nNone = noneMustMatch.length
   const nAny = anyMustMatch.length
 
-  return function (string) {
+  return function(string) {
     let i
 
     for (i = 0; i < nNone; ++i) {

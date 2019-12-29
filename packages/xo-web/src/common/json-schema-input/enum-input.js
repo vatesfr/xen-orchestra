@@ -27,7 +27,7 @@ export default class EnumInput extends Component {
     this.props.onChange(this.props.schema.enum[event.target.value])
   }
 
-  render () {
+  render() {
     const {
       disabled,
       schema: { enum: enumValues, enumNames = enumValues },

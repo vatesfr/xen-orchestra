@@ -5,7 +5,7 @@ import { parse } from 'url'
 
 const log = createLogger('xo:proxy-console')
 
-export default function proxyConsole (ws, vmConsole, sessionId) {
+export default function proxyConsole(ws, vmConsole, sessionId) {
   const url = parse(vmConsole.location)
   let { hostname } = url
   if (hostname === null || hostname === '') {
@@ -13,9 +13,7 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
     hostname = address
 
     log.warn(
-      `host is missing in console (${vmConsole.uuid}) URI (${
-        vmConsole.location
-      }) using host address (${address}) as fallback`
+      `host is missing in console (${vmConsole.uuid}) URI (${vmConsole.location}) using host address (${address}) as fallback`
     )
   }
 

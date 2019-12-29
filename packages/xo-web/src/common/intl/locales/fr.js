@@ -228,7 +228,7 @@ export default {
   userPage: 'Utilisateur',
 
   // Original text: "No support"
-  noSupport: 'Pas de support',
+  noSupport: 'Pas de support professionnel',
 
   // Original text: "Free upgrade!"
   freeUpgrade: 'Mise à jour gratuite !',
@@ -393,7 +393,7 @@ export default {
   homeMigrateTo: 'Migrer vers…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: 'Patches manquant',
+  homeMissingPatches: 'Patches manquant',
 
   // Original text: "Master:"
   homePoolMaster: 'Maître :',
@@ -897,13 +897,13 @@ export default {
   remoteNamePlaceHolder: 'nom distant*',
 
   // Original text: "Name *"
-  remoteMyNamePlaceHolder: 'Nom *',
+  remoteMyNamePlaceHolder: 'Nom',
 
   // Original text: "/path/to/backup"
   remoteLocalPlaceHolderPath: '/chemin/de/la/sauvegarde',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'hôte *',
+  remoteNfsPlaceHolderHost: 'hôte',
 
   // Original text: "path/to/backup"
   remoteNfsPlaceHolderPath: 'chemin/de/la/sauvegarde',
@@ -922,7 +922,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domaine',
 
   // Original text: "<address>\\<share> *"
-  remoteSmbPlaceHolderAddressShare: '<adresse>\\<partage> *',
+  remoteSmbPlaceHolderAddressShare: '<adresse>\\<partage>',
 
   // Original text: "password(fill to edit)"
   remotePlaceHolderPassword: 'mot de passe (saisir ici pour éditer)',
@@ -1865,7 +1865,7 @@ export default {
   vdiAction: 'Action',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Attacher un disque',
+  vdiAttachDevice: 'Attacher un disque',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Nouveau disque',
@@ -2185,7 +2185,7 @@ export default {
   vmChooseCoresPerSocket: 'Comportement par défaut',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} avec {nCores, number} cœur{nCores, plural, one {} other {s}} par socket',
 
   // Original text: "Incorrect cores per socket value"
@@ -2643,9 +2643,9 @@ export default {
   // Original text: "New"
   resourceSetNew: 'Nouvelle',
 
-  // Original text: "Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files."
+  // Original text: "Drop OVA or XVA files here to import Virtual Machines."
   importVmsList:
-    'Essayez de déposer des fichiers de VMs ici, ou bien cliquez pour sélectionner des VMs à téléverser. Seuls les fichiers .xva/.ova sont acceptés.',
+    'Déposez ici vos fichiers OVA ou XVA pour importer des machines virtuelles.',
 
   // Original text: "No selected VMs."
   noSelectedVms: 'Pas de VM sélectionnée.',
@@ -3016,7 +3016,8 @@ export default {
     "Le SR par défaut n'est pas connecté à l'hôte",
 
   // Original text: "For each VDI, select an SR:"
-  chooseSrForEachVdisModalSelectSr: 'Pour chaque VDI, sélectionner un SR :',
+  chooseSrForEachVdisModalSelectSr:
+    'Pour chaque VDI, sélectionner un SR (optionnel)',
 
   // Original text: "Select main SR…"
   chooseSrForEachVdisModalMainSr: 'Sélectionner le SR principal…',
@@ -3134,9 +3135,6 @@ export default {
   serverUnauthorizedCertificatesInfo:
     "Activez ceci si votre certificat est rejeté, mais ce n'est pas recommandé car votre connexion ne sera pas sécurisée.",
 
-  // Original text: "Disconnect server"
-  serverDisconnect: 'Déconnecter le serveur',
-
   // Original text: "username"
   serverPlaceHolderUser: "nom d'utilisateur",
 
@@ -3167,12 +3165,6 @@ export default {
 
   // Original text: "Connecting…"
   serverConnecting: 'Connexion…',
-
-  // Original text: "Connected"
-  serverConnected: 'Connecté',
-
-  // Original text: "Disconnected"
-  serverDisconnected: 'Déconnecté',
 
   // Original text: "Authentication error"
   serverAuthFailed: "Erreur d'authentification",
@@ -3496,7 +3488,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    "Cette version n'est fournie avec aucun support ni aucune mise à jour. Soyez prudent en cas d'utilisation pour des tâches importantes.",
+    "Cette version n'est fournie avec aucun support ni aucune mise à jour. Utilisez-la avec précaution.",
 
   // Original text: "Connect PIF"
   connectPif: 'Connecter la PIF',
@@ -3904,10 +3896,10 @@ export default {
   xosanCommunity: 'XOSAN non disponible pour la Community Edition',
 
   // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin: 'Installer le plugin cloud avant',
+  xosanInstallCloudPlugin: 'Installer le plugin XOA avant',
 
   // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin: 'Charger le plugin cloud avant',
+  xosanLoadCloudPlugin: 'Charger le plugin XOA avant',
 
   // Original text: "Loading…"
   xosanLoading: 'Chargement…',

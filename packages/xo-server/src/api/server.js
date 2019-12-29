@@ -1,6 +1,6 @@
 import { ignoreErrors } from 'promise-toolbox'
 
-export async function add ({ autoConnect = true, ...props }) {
+export async function add({ autoConnect = true, ...props }) {
   const server = await this.registerXenServer(props)
 
   if (autoConnect) {
@@ -40,7 +40,7 @@ add.params = {
 
 // -------------------------------------------------------------------
 
-export async function remove ({ id }) {
+export async function remove({ id }) {
   await this.unregisterXenServer(id)
 }
 
@@ -58,7 +58,7 @@ remove.params = {
 
 // TODO: remove this function when users are integrated to the main
 // collection.
-export function getAll () {
+export function getAll() {
   return this.getAllXenServers()
 }
 
@@ -68,7 +68,7 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function set ({ id, ...props }) {
+export async function set({ id, ...props }) {
   await this.updateXenServer(id, props)
 }
 
@@ -100,20 +100,24 @@ set.params = {
     optional: true,
     type: 'boolean',
   },
+  readOnly: {
+    optional: true,
+    type: 'boolean',
+  },
 }
 
 // -------------------------------------------------------------------
 
-export async function connect ({ id }) {
+export async function enable({ id }) {
   this.updateXenServer(id, { enabled: true })::ignoreErrors()
   await this.connectXenServer(id)
 }
 
-connect.description = 'connect a Xen server'
+enable.description = 'enable a Xen server'
 
-connect.permission = 'admin'
+enable.permission = 'admin'
 
-connect.params = {
+enable.params = {
   id: {
     type: 'string',
   },
@@ -121,16 +125,16 @@ connect.params = {
 
 // -------------------------------------------------------------------
 
-export async function disconnect ({ id }) {
+export async function disable({ id }) {
   this.updateXenServer(id, { enabled: false })::ignoreErrors()
   await this.disconnectXenServer(id)
 }
 
-disconnect.description = 'disconnect a Xen server'
+disable.description = 'disable a Xen server'
 
-disconnect.permission = 'admin'
+disable.permission = 'admin'
 
-disconnect.params = {
+disable.params = {
   id: {
     type: 'string',
   },

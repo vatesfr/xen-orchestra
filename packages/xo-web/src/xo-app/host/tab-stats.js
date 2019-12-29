@@ -3,10 +3,9 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
-import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
+import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { Toggle } from 'form'
-import { fetchHostStats } from 'xo'
 import {
   CpuLineChart,
   MemoryLineChart,
@@ -15,12 +14,12 @@ import {
 } from 'xo-line-chart'
 
 export default class HostStats extends Component {
-  constructor (props) {
-    super(props)
-    this.state.useCombinedValues = false
+  state = {
+    granularity: DEFAULT_GRANULARITY,
+    useCombinedValues: false,
   }
 
-  loop (host = this.props.host) {
+  loop(host = this.props.host) {
     if (this.cancel) {
       this.cancel()
     }
@@ -34,7 +33,7 @@ export default class HostStats extends Component {
       cancelled = true
     }
 
-    fetchHostStats(host, this.state.granularity).then(stats => {
+    fetchStats(host, 'host', this.state.granularity).then(stats => {
       if (cancelled) {
         return
       }
@@ -54,15 +53,15 @@ export default class HostStats extends Component {
   }
   loop = ::this.loop
 
-  componentWillMount () {
+  componentWillMount() {
     this.loop()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearTimeout(this.timeout)
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
     const hostCur = this.props.host
     const hostNext = props.host
 
@@ -81,8 +80,7 @@ export default class HostStats extends Component {
     }
   }
 
-  handleSelectStats (event) {
-    const granularity = event.target.value
+  handleSelectStats(granularity) {
     clearTimeout(this.timeout)
 
     this.setState(
@@ -95,7 +93,7 @@ export default class HostStats extends Component {
   }
   handleSelectStats = ::this.handleSelectStats
 
-  render () {
+  render() {
     const {
       granularity,
       selectStatsLoading,
@@ -105,7 +103,7 @@ export default class HostStats extends Component {
 
     return !stats ? (
       <p>No stats.</p>
-    ) : process.env.XOA_PLAN > 2 ? (
+    ) : (
       <Container>
         <Row>
           <Col mediumSize={5}>
@@ -126,26 +124,11 @@ export default class HostStats extends Component {
             )}
           </Col>
           <Col mediumSize={6}>
-            <div className='btn-tab'>
-              <select
-                className='form-control'
-                onChange={this.handleSelectStats}
-                defaultValue={granularity}
-              >
-                {_('statLastTenMinutes', message => (
-                  <option value='seconds'>{message}</option>
-                ))}
-                {_('statLastTwoHours', message => (
-                  <option value='minutes'>{message}</option>
-                ))}
-                {_('statLastWeek', message => (
-                  <option value='hours'>{message}</option>
-                ))}
-                {_('statLastYear', message => (
-                  <option value='days'>{message}</option>
-                ))}
-              </select>
-            </div>
+            <SelectGranularity
+              onChange={this.handleSelectStats}
+              required
+              value={granularity}
+            />
           </Col>
         </Row>
         <Row>
@@ -178,10 +161,6 @@ export default class HostStats extends Component {
             <LoadLineChart data={stats} />
           </Col>
         </Row>
-      </Container>
-    ) : (
-      <Container>
-        <Upgrade place='hostStats' available={3} />
       </Container>
     )
   }

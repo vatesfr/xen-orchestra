@@ -10,10 +10,10 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
-import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Toggle } from 'form'
 import {
@@ -24,8 +24,6 @@ import {
 } from 'selectors'
 import {
   connectPif,
-  createBondedNetwork,
-  createNetwork,
   deleteNetwork,
   disconnectPif,
   editNetwork,
@@ -65,7 +63,7 @@ const _createGetDefaultPif = () =>
 class Name extends Component {
   _editName = value => editNetwork(this.props.network, { name_label: value })
 
-  render () {
+  render() {
     const { isBonded, network } = this.props
 
     return (
@@ -81,11 +79,26 @@ class Name extends Component {
 
 // -----------------------------------------------------------------------------
 
+class AutomaticNetwork extends Component {
+  _editAutomaticNetwork = automatic =>
+    editNetwork(this.props.network, { automatic })
+
+  render() {
+    const { network } = this.props
+
+    return (
+      <Toggle onChange={this._editAutomaticNetwork} value={network.automatic} />
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 class Description extends Component {
   _editDescription = value =>
     editNetwork(this.props.network, { name_description: value })
 
-  render () {
+  render() {
     const { network } = this.props
 
     return (
@@ -102,7 +115,7 @@ class Description extends Component {
 class DefaultPif extends BaseComponent {
   _editPif = vlan => editPif(this.props.defaultPif, { vlan })
 
-  render () {
+  render() {
     const { defaultPif } = this.props
 
     if (!defaultPif) {
@@ -119,7 +132,7 @@ class DefaultPif extends BaseComponent {
 class Vlan extends BaseComponent {
   _editPif = vlan => editPif(this.props.defaultPif, { vlan })
 
-  render () {
+  render() {
     const { defaultPif } = this.props
 
     if (!defaultPif) {
@@ -154,7 +167,7 @@ class ToggleDefaultLockingMode extends Component {
     editNetwork(network, { defaultIsLocked: !network.defaultIsLocked })
   }
 
-  render () {
+  render() {
     const { isInUse, network } = this.props
     return _conditionalTooltip(
       <Toggle
@@ -183,7 +196,7 @@ class ToggleDefaultLockingMode extends Component {
   return { host, pif, disableUnplug }
 })
 class PifItem extends Component {
-  render () {
+  render() {
     const { pif, host, disableUnplug } = this.props
 
     return (
@@ -220,7 +233,7 @@ class PifItem extends Component {
 }
 
 class PifsItem extends BaseComponent {
-  render () {
+  render() {
     const { network } = this.props
     const { showPifs } = this.state
 
@@ -278,7 +291,7 @@ class PifsItem extends BaseComponent {
   }
 })
 class NetworkActions extends Component {
-  render () {
+  render() {
     const { network, disableNetworkDelete } = this.props
 
     return (
@@ -341,6 +354,10 @@ const NETWORKS_COLUMNS = [
       !isEmpty(network.PIFs) && <PifsItem network={network} />,
   },
   {
+    name: _('poolNetworkAutomatic'),
+    itemRenderer: network => <AutomaticNetwork network={network} />,
+  },
+  {
     name: '',
     itemRenderer: network => <NetworkActions network={network} />,
     textAlign: 'right',
@@ -350,26 +367,17 @@ const NETWORKS_COLUMNS = [
 // =============================================================================
 
 export default class TabNetworks extends Component {
-  render () {
+  render() {
     const { networks } = this.props
 
     return (
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              handler={createBondedNetwork}
-              handlerParam={this.props.pool}
-              icon='add'
-              labelId='networkCreateBondedButton'
-            />
-            <TabButton
-              btnStyle='primary'
-              handler={createNetwork}
-              handlerParam={this.props.pool}
+            <TabButtonLink
               icon='add'
               labelId='networkCreateButton'
+              to={`new/network?pool=${this.props.pool.id}`}
             />
           </Col>
         </Row>

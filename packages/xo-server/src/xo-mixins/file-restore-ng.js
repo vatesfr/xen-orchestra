@@ -34,7 +34,7 @@ const PARTITION_TYPE_NAMES = {
 
 const RE_VHDI = /^vhdi(\d+)$/
 
-async function addDirectory (zip, realPath, metadataPath) {
+async function addDirectory(zip, realPath, metadataPath) {
   try {
     const files = await readdir(realPath)
     await Promise.all(
@@ -81,13 +81,13 @@ const listLvmLogicalVolumes = defer(
   }
 )
 
-async function mountLvmPhysicalVolume (devicePath, partition) {
+async function mountLvmPhysicalVolume(devicePath, partition) {
   const args = []
   if (partition !== undefined) {
     args.push('-o', partition.start * 512)
   }
   args.push('--show', '-f', devicePath)
-  const path = (await execa.stdout('losetup', args)).trim()
+  const path = (await execa('losetup', args)).stdout.trim()
   await execa('pvscan', ['--cache', path])
 
   return {
@@ -160,7 +160,7 @@ const mountPartition = defer(async ($defer, devicePath, partition) => {
 //       - [ ] getMountedPartitions
 //       - [ ] unmountPartition
 export default class BackupNgFileRestore {
-  constructor (app) {
+  constructor(app) {
     this._app = app
     this._mounts = { __proto__: null }
 
@@ -173,7 +173,7 @@ export default class BackupNgFileRestore {
   }
 
   @defer
-  async fetchBackupNgPartitionFiles (
+  async fetchBackupNgPartitionFiles(
     $defer,
     remoteId,
     diskId,
@@ -203,14 +203,14 @@ export default class BackupNgFileRestore {
   }
 
   @defer
-  async listBackupNgDiskPartitions ($defer, remoteId, diskId) {
+  async listBackupNgDiskPartitions($defer, remoteId, diskId) {
     const disk = await this._mountDisk(remoteId, diskId)
     $defer(disk.unmount)
     return this._listPartitions(disk.path)
   }
 
   @defer
-  async listBackupNgPartitionFiles (
+  async listBackupNgPartitionFiles(
     $defer,
     remoteId,
     diskId,
@@ -241,7 +241,7 @@ export default class BackupNgFileRestore {
     return entriesMap
   }
 
-  async _findPartition (devicePath, partitionId) {
+  async _findPartition(devicePath, partitionId) {
     const partitions = await this._listPartitions(devicePath, false)
     const partition = partitions.find(_ => _.id === partitionId)
     if (partition === undefined) {
@@ -250,8 +250,8 @@ export default class BackupNgFileRestore {
     return partition
   }
 
-  async _listPartitions (devicePath, inspectLvmPv = true) {
-    const stdout = await execa.stdout('partx', [
+  async _listPartitions(devicePath, inspectLvmPv = true) {
+    const { stdout } = await execa('partx', [
       '--bytes',
       '--output=NR,START,SIZE,NAME,UUID,TYPE',
       '--pairs',
@@ -281,13 +281,13 @@ export default class BackupNgFileRestore {
   }
 
   @defer
-  async _mountDisk ($defer, remoteId, diskId) {
+  async _mountDisk($defer, remoteId, diskId) {
     const handler = await this._app.getRemoteHandler(remoteId)
     if (handler._getFilePath === undefined) {
       throw new Error(`this remote is not supported`)
     }
 
-    const diskPath = handler._getFilePath(diskId)
+    const diskPath = handler._getFilePath('/' + diskId)
     const mountDir = await tmpDir()
     $defer.onFailure(rmdir, mountDir)
 
@@ -322,7 +322,7 @@ export default class BackupNgFileRestore {
   }
 
   @defer
-  async _mountPartition ($defer, devicePath, partitionId) {
+  async _mountPartition($defer, devicePath, partitionId) {
     if (partitionId === undefined) {
       return mountPartition(devicePath)
     }

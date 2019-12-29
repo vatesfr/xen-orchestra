@@ -1,5 +1,6 @@
 // @flow
 
+import defer from 'golike-defer'
 import { type Remote, getHandler } from '@xen-orchestra/fs'
 import { mergeVhd as mergeVhd_ } from 'vhd-lib'
 
@@ -12,16 +13,21 @@ global.Promise = require('bluebird')
 // $FlowFixMe
 const config: Object = JSON.parse(process.env.XO_CONFIG)
 
-export function mergeVhd (
+export const mergeVhd = defer(async function(
+  $defer: any,
   parentRemote: Remote,
   parentPath: string,
   childRemote: Remote,
   childPath: string
 ) {
-  return mergeVhd_(
-    getHandler(parentRemote, config.remoteOptions),
-    parentPath,
-    getHandler(childRemote, config.remoteOptions),
-    childPath
-  )
-}
+  const parentHandler = getHandler(parentRemote, config.remoteOptions)
+  const childHandler = getHandler(childRemote, config.remoteOptions)
+
+  await parentHandler.sync()
+  $defer.call(parentHandler, 'forget')
+
+  await childHandler.sync()
+  $defer.call(childHandler, 'forget')
+
+  return mergeVhd_(parentHandler, parentPath, childHandler, childPath)
+})

@@ -51,9 +51,13 @@ const DATA_RENDERERS = {
             createPicker(
               (vm, vbds, vdis) => vdis,
               createSelector(
-                createFilter(createPicker((vm, vbds) => vbds, vm => vm.$VBDs), [
-                  vbd => !vbd.is_cd_drive && vbd.attached,
-                ]),
+                createFilter(
+                  createPicker(
+                    (vm, vbds) => vbds,
+                    vm => vm.$VBDs
+                  ),
+                  [vbd => !vbd.is_cd_drive && vbd.attached]
+                ),
                 vbds => map(vbds, vbd => vbd.VDI)
               )
             )
@@ -107,7 +111,7 @@ export default class Visualizations extends Component {
       })
   )
 
-  render () {
+  render() {
     return process.env.XOA_PLAN > 3 ? (
       <Container>
         <Row>

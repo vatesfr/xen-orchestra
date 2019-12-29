@@ -130,7 +130,7 @@ class Node extends Component {
     })
   )
 
-  render () {
+  render() {
     const { srs } = this.props
     const { showAdvanced } = this.state
 
@@ -369,7 +369,7 @@ class Node extends Component {
   return subscriptions
 })
 export default class TabXosan extends Component {
-  componentDidMount () {
+  componentDidMount() {
     const { id } = this.props.sr
 
     getLicense('xosan', id)
@@ -407,8 +407,12 @@ export default class TabXosan extends Component {
   //   await removeXosanBricks(this.props.sr.id, bricks)
   // }
 
-  async _addBricks ({ srs, brickSize }) {
-    await addXosanBricks(this.props.sr.id, srs.map(sr => sr.id), brickSize)
+  async _addBricks({ srs, brickSize }) {
+    await addXosanBricks(
+      this.props.sr.id,
+      srs.map(sr => sr.id),
+      brickSize
+    )
   }
 
   _getStrippedVolumeInfo = createSelector(
@@ -614,7 +618,7 @@ export default class TabXosan extends Component {
     }
   )
 
-  render () {
+  render() {
     const { license, licenseError, showAdvanced } = this.state
     const {
       heal_,

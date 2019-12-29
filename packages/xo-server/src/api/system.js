@@ -7,7 +7,7 @@ import { version as xoServerVersion } from '../../package.json'
 
 // ===================================================================
 
-export function getMethodsInfo () {
+export function getMethodsInfo() {
   const methods = {}
 
   forEach(this.apiMethods, (method, name) => {
@@ -40,14 +40,14 @@ getVersion.description = 'API version (unstable)'
 
 // -------------------------------------------------------------------
 
-export function listMethods () {
+export function listMethods() {
   return getKeys(this.apiMethods)
 }
 listMethods.description = 'returns the name of all available API methods'
 
 // -------------------------------------------------------------------
 
-export function methodSignature ({ method: name }) {
+export function methodSignature({ method: name }) {
   const method = this.apiMethods[name]
 
   if (!method) {

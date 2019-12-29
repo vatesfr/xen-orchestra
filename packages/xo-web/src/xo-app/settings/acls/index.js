@@ -129,12 +129,13 @@ const AclTable = decorate([
       actions={ACL_ACTIONS}
       collection={state.acls}
       columns={ACL_COLUMNS}
+      stateUrlParam='s'
     />
   ),
 ])
 
 export default class Acls extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       action: undefined,
@@ -220,7 +221,7 @@ export default class Acls extends Component {
     }
   }
 
-  render () {
+  render() {
     const { typeFilters, objects, action, subjects } = this.state
 
     return process.env.XOA_PLAN > 2 ? (

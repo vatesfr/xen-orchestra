@@ -1,24 +1,15 @@
 import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
-import {
-  findKey,
-  isEmpty,
-  isFunction,
-  isString,
-  map,
-  pick,
-  startsWith,
-} from 'lodash'
+import { isEmpty, map, pick } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
-import getEventValue from '../get-event-value'
 import Icon from '../icon'
 import logError from '../log-error'
 import Tooltip from '../tooltip'
 import { formatSize } from '../utils'
-import { SizeInput } from '../form'
+import { Select as FormSelect, SizeInput } from '../form'
 import {
   SelectHost,
   SelectIp,
@@ -43,7 +34,7 @@ class Hover extends Component {
     alt: PropTypes.node.isRequired,
   }
 
-  constructor () {
+  constructor() {
     super()
 
     this.state = {
@@ -54,7 +45,7 @@ class Hover extends Component {
     this._onMouseLeave = () => this.setState({ hover: false })
   }
 
-  render () {
+  render() {
     if (this.state.hover) {
       return <span onMouseLeave={this._onMouseLeave}>{this.props.alt}</span>
     }
@@ -73,7 +64,7 @@ class Editable extends Component {
     value: PropTypes.any.isRequired,
   }
 
-  get value () {
+  get value() {
     throw new Error('not implemented')
   }
 
@@ -109,15 +100,13 @@ class Editable extends Component {
 
     return this.__save(
       () => this.state.previous,
-      isFunction(onUndo) ? onUndo : props.onChange
+      typeof onUndo === 'function' ? onUndo : props.onChange
     )
   }
 
-  _save () {
-    return this.__save(() => this.value, this.props.onChange)
-  }
+  _save = () => this.__save(() => this.value, this.props.onChange)
 
-  async __save (getValue, saveValue) {
+  async __save(getValue, saveValue) {
     const { props } = this
 
     try {
@@ -130,7 +119,7 @@ class Editable extends Component {
       this.setState({ saving: true })
 
       const params = Object.keys(props).reduce((res, val) => {
-        if (startsWith(val, 'data-')) {
+        if (val.startsWith('data-')) {
           res[val.slice(5)] = props[val]
         }
         return res
@@ -143,7 +132,9 @@ class Editable extends Component {
     } catch (error) {
       this.setState({
         // `error` may be undefined if the action has been cancelled
-        error: error !== undefined && (isString(error) ? error : error.message),
+        error:
+          error !== undefined &&
+          (typeof error === 'string' ? error : error.message),
         saving: false,
       })
       logError(error)
@@ -159,8 +150,19 @@ class Editable extends Component {
   }
   __stopTimer = () => clearTimeout(this._timeout)
 
-  render () {
+  render() {
     const { state, props } = this
+    const { error, saving } = state
+
+    const ErrorTooltip = props =>
+      props.error != null && (
+        <span>
+          {' '}
+          <Tooltip content={error}>
+            <Icon icon='error' />
+          </Tooltip>
+        </span>
+      )
 
     if (!state.editing) {
       const { onUndo, previous } = state
@@ -195,11 +197,10 @@ class Editable extends Component {
             ) : (
               success
             ))}
+          <ErrorTooltip error={error} />
         </span>
       )
     }
-
-    const { error, saving } = state
 
     return (
       <span>
@@ -210,14 +211,7 @@ class Editable extends Component {
             <Icon icon='loading' />
           </span>
         )}
-        {error != null && (
-          <span>
-            {' '}
-            <Tooltip content={error}>
-              <Icon icon='error' />
-            </Tooltip>
-          </span>
-        )}
+        <ErrorTooltip error={error} />
       </span>
     )
   }
@@ -232,7 +226,7 @@ export class Text extends Editable {
     value: PropTypes.string.isRequired,
   }
 
-  get value () {
+  get value() {
     const { input } = this.refs
 
     // FIXME: should be properly forwarded to the user.
@@ -248,7 +242,7 @@ export class Text extends Editable {
     target.style.width = `${target.value.length + 1}ex`
   }
 
-  _renderDisplay () {
+  _renderDisplay() {
     const { children, value } = this.props
 
     if (children || value) {
@@ -267,7 +261,7 @@ export class Text extends Editable {
     )
   }
 
-  _renderEdition () {
+  _renderEdition() {
     const { value } = this.props
     const { saving } = this.state
 
@@ -284,7 +278,7 @@ export class Text extends Editable {
         {...extraProps}
         autoFocus
         defaultValue={value}
-        onBlur={this._closeEdition}
+        onBlur={this._save}
         onInput={this._onInput}
         onKeyDown={this._onKeyDown}
         readOnly={saving}
@@ -311,7 +305,7 @@ export class Number extends Component {
     value: PropTypes.number,
   }
 
-  get value () {
+  get value() {
     return +this.refs.input.value
   }
 
@@ -329,7 +323,7 @@ export class Number extends Component {
     this.props.onChange(value, params)
   }
 
-  render () {
+  render() {
     const { value } = this.props
     return (
       <Text
@@ -341,73 +335,95 @@ export class Number extends Component {
   }
 }
 
-export class Select extends Editable {
+class SimpleSelect_ extends Editable {
   static propTypes = {
-    options: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
-      .isRequired,
-    renderer: PropTypes.func,
+    optionRenderer: PropTypes.func,
+    value: PropTypes.oneOfType([PropTypes.oneOf([null]), PropTypes.object]),
   }
 
-  componentWillReceiveProps (props) {
-    if (
-      props.value !== this.props.value ||
-      props.options !== this.props.options
-    ) {
-      this.setState({
-        valueKey: findKey(props.options, option => option === props.value),
-      })
-    }
+  get value() {
+    return this.state.value === undefined ? this.props.value : this.state.value
   }
 
-  get value () {
-    return this.props.options[this.state.valueKey]
+  _onChange = value => {
+    this.setState({ value }, this._save)
   }
 
-  _onChange = event => {
-    this.setState({ valueKey: getEventValue(event) }, this._save)
-  }
-
-  _optionToJsx = (option, key) => {
-    const { renderer } = this.props
-
+  _renderDisplay() {
+    const { children, optionRenderer, value } = this.props
     return (
-      <option key={key} value={key}>
-        {renderer ? renderer(option) : option}
-      </option>
+      children || (
+        <span>
+          {optionRenderer !== undefined
+            ? optionRenderer(value)
+            : value != null
+            ? value.label
+            : _('noValue')}
+        </span>
+      )
     )
   }
 
-  _onEditionMount = ref => {
-    // Seems to work in Google Chrome (not in Firefox)
-    ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
-  }
-
-  _renderDisplay () {
-    const { children, renderer, value } = this.props
-
-    return children || <span>{renderer ? renderer(value) : value}</span>
-  }
-
-  _renderEdition () {
-    const { saving, valueKey } = this.state
-    const { options } = this.props
-
-    return (
-      <select
-        autoFocus
-        className={classNames('form-control', styles.select)}
-        onBlur={this._closeEdition}
-        onChange={this._onChange}
-        onKeyDown={this._onKeyDown}
-        readOnly={saving}
-        ref={this._onEditionMount}
-        value={valueKey}
-      >
-        {map(options, this._optionToJsx)}
-      </select>
-    )
-  }
+  _renderEdition = () => (
+    <FormSelect
+      {...this.props}
+      autoFocus
+      onBlur={this._closeEdition}
+      onChange={this._onChange}
+      onKeyDown={this._onKeyDown}
+      openOnFocus
+    />
+  )
 }
+
+class MultiSelect_ extends Editable {
+  static propTypes = {
+    optionRenderer: PropTypes.func,
+    value: PropTypes.array,
+  }
+
+  get value() {
+    return this.state.nextValue === undefined
+      ? this.props.value
+      : this.state.nextValue
+  }
+
+  _renderDisplay() {
+    const { children, optionRenderer, value } = this.props
+
+    return (
+      children || (
+        <span>
+          {!isEmpty(value)
+            ? map(value, optionRenderer || 'label').join(', ')
+            : _('noValue')}
+        </span>
+      )
+    )
+  }
+
+  _onBlur = () => {
+    this._save().then(() => this.setState({ nextValue: undefined }))
+  }
+
+  _renderEdition = () => (
+    <FormSelect
+      {...this.props}
+      autoFocus
+      multi
+      onBlur={this._onBlur}
+      onChange={this.linkState('nextValue')}
+      openOnFocus
+      value={this.state.nextValue || this.props.value}
+    />
+  )
+}
+
+export const Select = ({ multi, ...props }) =>
+  multi ? <MultiSelect_ {...props} /> : <SimpleSelect_ {...props} />
+
+Select.defaultProps = { multi: false }
+Select.propTypes = { multi: PropTypes.bool }
 
 const MAP_TYPE_SELECT = {
   host: SelectHost,
@@ -429,11 +445,11 @@ export class XoSelect extends Editable {
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }
 
-  get value () {
+  get value() {
     return this.state.value
   }
 
-  _renderDisplay () {
+  _renderDisplay() {
     return (
       this.props.children || (
         <span>{this.props.value[this.props.labelProp]}</span>
@@ -441,9 +457,11 @@ export class XoSelect extends Editable {
     )
   }
 
-  _onChange = object => this.setState({ value: object }, object && this._save)
+  _onChange = object => {
+    this.setState({ value: object }, object && this._save)
+  }
 
-  _renderEdition () {
+  _renderEdition() {
     const { saving, xoType, ...props } = this.props
 
     const Select = MAP_TYPE_SELECT[xoType]
@@ -473,18 +491,18 @@ export class Size extends Editable {
     value: PropTypes.number.isRequired,
   }
 
-  get value () {
+  get value() {
     return this.refs.input.value
   }
 
-  _renderDisplay () {
+  _renderDisplay() {
     return this.props.children || formatSize(this.props.value)
   }
 
-  _closeEditionIfUnfocused = () => {
+  _saveIfUnfocused = () => {
     this._focused = false
     setTimeout(() => {
-      !this._focused && this._closeEdition()
+      !this._focused && this._save()
     }, 10)
   }
 
@@ -492,7 +510,7 @@ export class Size extends Editable {
     this._focused = true
   }
 
-  _renderEdition () {
+  _renderEdition() {
     const { saving } = this.state
     const { value } = this.props
 
@@ -501,7 +519,7 @@ export class Size extends Editable {
         // SizeInput uses `input-group` which makes it behave as a block element (display: table).
         // `form-inline` to use it as an inline element
         className='form-inline'
-        onBlur={this._closeEditionIfUnfocused}
+        onBlur={this._saveIfUnfocused}
         onFocus={this._focus}
         onKeyDown={this._onKeyDown}
       >

@@ -21,10 +21,10 @@ export const disable = () => {
 }
 
 export default class Shortcuts extends Component {
-  componentDidMount () {
+  componentDidMount() {
     instances.push(this)
   }
-  componentWillUnmount () {
+  componentWillUnmount() {
     remove(instances, this)
   }
 
@@ -39,7 +39,7 @@ export default class Shortcuts extends Component {
     this.props.handler(command, event)
   }
 
-  render () {
+  render() {
     return enabled ? (
       <ReactShortcuts {...this.props} handler={this._handler} />
     ) : null

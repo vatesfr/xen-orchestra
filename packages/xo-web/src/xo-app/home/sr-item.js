@@ -1,16 +1,14 @@
 import _ from 'intl'
 import Component from 'base-component'
-import sum from 'lodash/sum'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link, { BlockLink } from 'link'
-import map from 'lodash/map'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import size from 'lodash/size'
 import Tooltip from 'tooltip'
 import HomeTags from 'home-tags'
 import { Col } from 'grid'
+import { map, size, sum, some } from 'lodash'
 import { Text } from 'editable'
 import {
   createGetObject,
@@ -25,7 +23,7 @@ import {
   removeTag,
   setDefaultSr,
 } from 'xo'
-import { connectStore, formatSizeShort } from 'utils'
+import { connectStore, formatSizeShort, getIscsiPaths } from 'utils'
 
 import styles from './index.css'
 
@@ -40,10 +38,11 @@ import styles from './index.css'
   ),
   isShared: createSelector((_, props) => props.item, isSrShared),
   status: createSelector(
+    (_, props) => Boolean(props.item.sm_config.multipathable),
     createGetObjectsOfType('PBD').filter((_, props) => pbd =>
       pbd.SR === props.item.id
     ),
-    pbds => {
+    (multipathable, pbds) => {
       const nbAttached = sum(map(pbds, pbd => (pbd.attached ? 1 : 0)))
       const nbPbds = size(pbds)
       if (!nbPbds) {
@@ -52,8 +51,18 @@ import styles from './index.css'
       if (!nbAttached) {
         return 0
       }
+      if (nbAttached < nbPbds) {
+        return 1
+      }
 
-      return nbAttached < nbPbds ? 1 : 2
+      const hasInactivePath =
+        multipathable &&
+        some(pbds, pbd => {
+          const [nActives, nPaths] = getIscsiPaths(pbd)
+          return nActives !== nPaths
+        })
+
+      return hasInactivePath ? 3 : 2
     }
   ),
 })
@@ -96,10 +105,16 @@ export default class SrItem extends Component {
             <Icon icon='all-connected' />
           </Tooltip>
         )
+      case 3:
+        return (
+          <Tooltip content={_('hasInactivePath')}>
+            <Icon icon='some-connected' />
+          </Tooltip>
+        )
     }
   }
 
-  render () {
+  render() {
     const {
       container,
       expandAll,

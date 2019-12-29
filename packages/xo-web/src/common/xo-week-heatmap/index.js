@@ -87,15 +87,15 @@ export default class XoWeekHeatmap extends Component {
     cellRenderer: value => value,
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     this._updateDays(nextProps.data)
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this._updateDays(this.props.data)
   }
 
-  _updateDays (data) {
+  _updateDays(data) {
     const days = {}
 
     // 1. Compute average per day.
@@ -145,7 +145,7 @@ export default class XoWeekHeatmap extends Component {
     })
   }
 
-  render () {
+  render() {
     return (
       <table className={styles.table}>
         <tbody>

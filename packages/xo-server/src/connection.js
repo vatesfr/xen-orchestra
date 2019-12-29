@@ -5,14 +5,14 @@ import { noop } from './utils'
 // ===================================================================
 
 export default class Connection extends EventEmitter {
-  constructor () {
+  constructor() {
     super()
 
     this._data = { __proto__: null }
   }
 
   // Close the connection.
-  close () {
+  close() {
     // Prevent errors when the connection is closed more than once.
     this.close = noop
 
@@ -20,7 +20,7 @@ export default class Connection extends EventEmitter {
   }
 
   // Gets the value for this key.
-  get (key, defaultValue) {
+  get(key, defaultValue) {
     const { _data: data } = this
 
     if (key in data) {
@@ -35,16 +35,16 @@ export default class Connection extends EventEmitter {
   }
 
   // Checks whether there is a value for this key.
-  has (key) {
+  has(key) {
     return key in this._data
   }
 
   // Sets the value for this key.
-  set (key, value) {
+  set(key, value) {
     this._data[key] = value
   }
 
-  unset (key) {
+  unset(key) {
     delete this._data[key]
   }
 }

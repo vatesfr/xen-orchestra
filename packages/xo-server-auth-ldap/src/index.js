@@ -1,13 +1,18 @@
 /* eslint no-throw-literal: 0 */
 
 import eventToPromise from 'event-to-promise'
-import { bind, noop } from 'lodash'
+import noop from 'lodash/noop'
 import { createClient } from 'ldapjs'
 import { escape } from 'ldapjs/lib/filters/escape'
 import { promisify } from 'promise-toolbox'
 import { readFile } from 'fs'
 
 // ===================================================================
+
+const DEFAULTS = {
+  checkCertificate: true,
+  filter: '(uid={{name}})',
+}
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) =>
@@ -43,7 +48,7 @@ If not specified, it will use a default set of well-known CAs.
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
-      default: true,
+      defaults: DEFAULTS.checkCertificate,
     },
     bind: {
       description: 'Credentials to use before looking for the user record.',
@@ -76,6 +81,11 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
       description: `
 Filter used to find the user.
 
+For LDAP if you want to filter for a special group you can try
+something like:
+
+- \`(&(uid={{name}})(memberOf=<group DN>))\`
+
 For Microsoft Active Directory, you can try one of the following filters:
 
 - \`(cn={{name}})\`
@@ -83,13 +93,12 @@ For Microsoft Active Directory, you can try one of the following filters:
 - \`(sAMAccountName={{name}}@<domain>)\` (replace \`<domain>\` by your own domain)
 - \`(userPrincipalName={{name}})\`
 
-For LDAP if you want to filter for a special group you can try
-something like:
+Or something like this if you also want to filter by group:
 
-- \`(&(uid={{name}})(memberOf=<group DN>))\`
+- \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: '(uid={{name}})',
+      default: DEFAULTS.filter,
     },
   },
   required: ['uri', 'base'],
@@ -113,13 +122,13 @@ export const testSchema = {
 // ===================================================================
 
 class AuthLdap {
-  constructor (xo) {
+  constructor(xo) {
     this._xo = xo
 
-    this._authenticate = bind(this._authenticate, this)
+    this._authenticate = this._authenticate.bind(this)
   }
 
-  async configure (conf) {
+  async configure(conf) {
     const clientOpts = (this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
@@ -127,7 +136,11 @@ class AuthLdap {
     })
 
     {
-      const { bind, checkCertificate = true, certificateAuthorities } = conf
+      const {
+        bind,
+        checkCertificate = DEFAULTS.checkCertificate,
+        certificateAuthorities,
+      } = conf
 
       if (bind) {
         clientOpts.bindDN = bind.dn
@@ -147,7 +160,7 @@ class AuthLdap {
     const {
       bind: credentials,
       base: searchBase,
-      filter: searchFilter = '(uid={{name}})',
+      filter: searchFilter = DEFAULTS.filter,
     } = conf
 
     this._credentials = credentials
@@ -155,15 +168,15 @@ class AuthLdap {
     this._searchFilter = searchFilter
   }
 
-  load () {
+  load() {
     this._xo.registerAuthenticationProvider(this._authenticate)
   }
 
-  unload () {
+  unload() {
     this._xo.unregisterAuthenticationProvider(this._authenticate)
   }
 
-  test ({ username, password }) {
+  test({ username, password }) {
     return this._authenticate({
       username,
       password,
@@ -174,7 +187,7 @@ class AuthLdap {
     })
   }
 
-  async _authenticate ({ username, password }, logger = noop) {
+  async _authenticate({ username, password }, logger = noop) {
     if (username === undefined || password === undefined) {
       logger('require `username` and `password` to authenticate!')
 
@@ -230,10 +243,9 @@ class AuthLdap {
           logger(`attempting to bind as ${entry.objectName}`)
           await bind(entry.objectName, password)
           logger(
-            `successfully bound as ${
-              entry.objectName
-            } => ${username} authenticated`
+            `successfully bound as ${entry.objectName} => ${username} authenticated`
           )
+          logger(JSON.stringify(entry, null, 2))
           return { username }
         } catch (error) {
           logger(`failed to bind as ${entry.objectName}: ${error.message}`)

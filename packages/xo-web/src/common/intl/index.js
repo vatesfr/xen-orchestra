@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
-import { every, isFunction, isString } from 'lodash'
+import { every } from 'lodash'
 
 import locales from './locales'
 import messages from './messages'
@@ -20,7 +20,7 @@ import { createSelector } from '.././selectors'
 // - render (optional): a function receiving the React nodes of the
 //     translated message and returning the React node to render
 const getMessage = (props, messageId, values, render) => {
-  if (isString(props)) {
+  if (typeof props === 'string') {
     render = values
     values = messageId
     messageId = props
@@ -32,7 +32,7 @@ const getMessage = (props, messageId, values, render) => {
     throw new Error(`no message defined for ${messageId}`)
   }
 
-  if (isFunction(values)) {
+  if (typeof values === 'function') {
     render = values
     values = undefined
   }
@@ -60,7 +60,7 @@ export class IntlProvider extends Component {
     lang: PropTypes.string.isRequired,
   }
 
-  render () {
+  render() {
     const { lang, children } = this.props
     // Adding a key prop is a work-around suggested by react-intl documentation
     // to make sure changes to the locale trigger a re-render of the child components
@@ -100,7 +100,7 @@ export class FormattedDuration extends Component {
         .humanize()
   )
 
-  render () {
+  render() {
     const parsedDuration = this._parseDuration()
     return (
       <Tooltip

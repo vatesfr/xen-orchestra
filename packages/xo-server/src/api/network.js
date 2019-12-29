@@ -1,10 +1,11 @@
+import xapiObjectToXo from '../xapi-object-to-xo'
 import { mapToArray } from '../utils'
 
-export function getBondModes () {
+export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
 
-export async function create ({
+export async function create({
   pool,
   name,
   description,
@@ -12,13 +13,15 @@ export async function create ({
   mtu = 1500,
   vlan = 0,
 }) {
-  return this.getXapi(pool).createNetwork({
-    name,
-    description,
-    pifId: pif && this.getObject(pif, 'PIF')._xapiId,
-    mtu: +mtu,
-    vlan: +vlan,
-  })
+  return xapiObjectToXo(
+    await this.getXapi(pool).createNetwork({
+      name,
+      description,
+      pifId: pif && this.getObject(pif, 'PIF')._xapiId,
+      mtu: +mtu,
+      vlan: +vlan,
+    })
+  ).id
 }
 
 create.params = {
@@ -37,7 +40,7 @@ create.permission = 'admin'
 
 // =================================================================
 
-export async function createBonded ({
+export async function createBonded({
   pool,
   name,
   description,
@@ -84,35 +87,47 @@ createBonded.description =
 
 // ===================================================================
 
-export async function set ({
+export async function set({
   network,
 
+  automatic,
+  defaultIsLocked,
   name_description: nameDescription,
   name_label: nameLabel,
-  defaultIsLocked,
-  id,
 }) {
-  await this.getXapi(network).setNetworkProperties(network._xapiId, {
-    nameDescription,
-    nameLabel,
-    defaultIsLocked,
-  })
+  network = this.getXapiObject(network)
+
+  await Promise.all([
+    automatic !== undefined &&
+      network.update_other_config('automatic', automatic ? 'true' : null),
+    defaultIsLocked !== undefined &&
+      network.set_default_locking_mode(
+        defaultIsLocked ? 'disabled' : 'unlocked'
+      ),
+    nameDescription !== undefined &&
+      network.set_name_description(nameDescription),
+    nameLabel !== undefined && network.set_name_label(nameLabel),
+  ])
 }
 
 set.params = {
+  automatic: {
+    type: 'boolean',
+    optional: true,
+  },
+  defaultIsLocked: {
+    type: 'boolean',
+    optional: true,
+  },
   id: {
     type: 'string',
-  },
-  name_label: {
-    type: 'string',
-    optional: true,
   },
   name_description: {
     type: 'string',
     optional: true,
   },
-  defaultIsLocked: {
-    type: 'boolean',
+  name_label: {
+    type: 'string',
     optional: true,
   },
 }
@@ -123,7 +138,7 @@ set.resolve = {
 
 // =================================================================
 
-export async function delete_ ({ network }) {
+export async function delete_({ network }) {
   return this.getXapi(network).deleteNetwork(network._xapiId)
 }
 export { delete_ as delete }

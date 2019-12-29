@@ -1,4 +1,4 @@
-async function delete_ ({ message }) {
+async function delete_({ message }) {
   await this.getXapi(message).call('message.destroy', message._xapiRef)
 }
 export { delete_ as delete }

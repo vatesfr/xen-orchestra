@@ -1,4 +1,3 @@
-import assign from 'lodash/assign'
 import Client, {
   AbortedConnection,
   ConnectionError,
@@ -30,16 +29,16 @@ const states = [
 
 // ===================================================================
 
-export function isTrialRunning (trial) {
+export function isTrialRunning(trial) {
   return trial && trial.end && Date.now() < trial.end
 }
 
-export function exposeTrial (trial) {
+export function exposeTrial(trial) {
   // We won't suggest trial if any trial is running now, or if premium was enjoyed in any past trial
   return !(trial && (isTrialRunning(trial) || trial.plan === 'premium'))
 }
 
-export function blockXoaAccess (xoaState) {
+export function blockXoaAccess(xoaState) {
   let block = xoaState.state === 'untrustedTrial'
   if (process.env.XOA_PLAN <= 1 || process.env.XOA_PLAN >= 5) {
     block = block || xoaState.state === 'ERROR'
@@ -52,7 +51,7 @@ export function blockXoaAccess (xoaState) {
 export const NotRegistered = makeError('NotRegistered')
 
 class XoaUpdater extends EventEmitter {
-  constructor () {
+  constructor() {
     super()
     this._waiting = false
     this._log = []
@@ -63,12 +62,12 @@ class XoaUpdater extends EventEmitter {
     this._configuration = {}
   }
 
-  state (state) {
+  state(state) {
     this._state = state
     this.emit(state, this._lowState && this._lowState.source)
   }
 
-  async update () {
+  async update() {
     if (this._waiting) {
       return
     }
@@ -77,7 +76,7 @@ class XoaUpdater extends EventEmitter {
     this._update(false)
   }
 
-  async upgrade () {
+  async upgrade() {
     if (this._waiting) {
       return
     }
@@ -86,11 +85,11 @@ class XoaUpdater extends EventEmitter {
     await this._update(true)
   }
 
-  _upgradeSuccessful () {
+  _upgradeSuccessful() {
     this.emit('upgradeSuccessful', this._lowState && this._lowState.source)
   }
 
-  async _open () {
+  async _open() {
     const openFailure = error => {
       switch (true) {
         case error instanceof AbortedConnection:
@@ -213,7 +212,7 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
-  async isRegistered () {
+  async isRegistered() {
     try {
       const token = await this._call('isRegistered')
       if (token.registrationToken === undefined) {
@@ -242,11 +241,11 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
-  getLocalManifest () {
+  getLocalManifest() {
     return this._call('getLocalManifest')
   }
 
-  async register (email, password, renew = false) {
+  async register(email, password, renew = false) {
     try {
       const token = await this._call('register', { email, password, renew })
       this.registerState = 'registered'
@@ -275,7 +274,7 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
-  async requestTrial () {
+  async requestTrial() {
     const state = await this.xoaState()
     if (!state.state === 'ERROR') {
       throw new Error(state.message)
@@ -290,7 +289,7 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
-  async xoaState () {
+  async xoaState() {
     try {
       const state = await this._call('xoaState')
       this._xoaState = state
@@ -298,11 +297,11 @@ class XoaUpdater extends EventEmitter {
     } catch (error) {
       return this._xoaStateError(error)
     } finally {
-      this.emit('trialState', assign({}, this._xoaState))
+      this.emit('trialState', Object.assign({}, this._xoaState))
     }
   }
 
-  _xoaStateError (error) {
+  _xoaStateError(error) {
     const message = error.message || String(error)
     this._xoaState = {
       state: 'ERROR',
@@ -311,7 +310,7 @@ class XoaUpdater extends EventEmitter {
     return this._xoaState
   }
 
-  async _update (upgrade = false) {
+  async _update(upgrade = false) {
     try {
       const c = await this._open()
       this.log('info', 'Start ' + (upgrade ? 'upgrading' : 'updating' + '...'))
@@ -321,7 +320,7 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
-  async start () {
+  async start() {
     if (this.isStarted()) {
       return
     }
@@ -331,7 +330,7 @@ class XoaUpdater extends EventEmitter {
     this.run()
   }
 
-  stop () {
+  stop() {
     if (this._interval) {
       clearInterval(this._interval)
       delete this._interval
@@ -346,17 +345,17 @@ class XoaUpdater extends EventEmitter {
     this.state('disconnected')
   }
 
-  run () {
+  run() {
     if (Date.now() - this._lastRun >= 24 * 60 * 60 * 1000) {
       this.update()
     }
   }
 
-  isStarted () {
+  isStarted() {
     return this._interval
   }
 
-  log (level, message) {
+  log(level, message) {
     message = (message != null && message.message) || String(message)
     const date = new Date()
     this._log.push({
@@ -367,21 +366,31 @@ class XoaUpdater extends EventEmitter {
     while (this._log.length > 10) {
       this._log.shift()
     }
-    this.emit('log', map(this._log, item => assign({}, item)))
+    this.emit(
+      'log',
+      map(this._log, item => Object.assign({}, item))
+    )
   }
 
-  async getConfiguration () {
+  async getConfiguration() {
     try {
       this._configuration = await this._call('getConfiguration')
       return this._configuration
     } catch (error) {
       this._configuration = {}
     } finally {
-      this.emit('configuration', assign({}, this._configuration))
+      this.emit('configuration', Object.assign({}, this._configuration))
     }
   }
 
-  async _call (...args) {
+  getReleaseChannels() {
+    return this._call('getReleaseChannels').catch(error => {
+      console.error('getReleaseChannels', error)
+      return {}
+    })
+  }
+
+  async _call(...args) {
     const c = await this._open()
     try {
       return await c.call(...args)
@@ -391,7 +400,7 @@ class XoaUpdater extends EventEmitter {
     }
   }
 
-  async configure (config) {
+  async configure(config) {
     try {
       this._configuration = await this._call('configure', config)
       this.update()
@@ -399,7 +408,7 @@ class XoaUpdater extends EventEmitter {
     } catch (error) {
       this._configuration = {}
     } finally {
-      this.emit('configuration', assign({}, this._configuration))
+      this.emit('configuration', Object.assign({}, this._configuration))
     }
   }
 }

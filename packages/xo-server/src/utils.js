@@ -3,8 +3,6 @@ import forEach from 'lodash/forEach'
 import has from 'lodash/has'
 import highland from 'highland'
 import humanFormat from 'human-format'
-import isArray from 'lodash/isArray'
-import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
@@ -15,9 +13,11 @@ import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
+import { type SimpleIdPattern } from './utils'
+
 // ===================================================================
 
-export function camelToSnakeCase (string) {
+export function camelToSnakeCase(string) {
   return string.replace(
     /([a-z0-9])([A-Z])/g,
     (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`
@@ -47,19 +47,8 @@ export const diffItems = (coll1, coll2) => {
 
 // -------------------------------------------------------------------
 
-// Ensure the value is an array, wrap it if necessary.
-export function ensureArray (value) {
-  if (value === undefined) {
-    return []
-  }
-
-  return isArray(value) ? value : [value]
-}
-
-// -------------------------------------------------------------------
-
 // Returns the value of a property and removes it from the object.
-export function extractProperty (obj, prop) {
+export function extractProperty(obj, prop) {
   const value = obj[prop]
   delete obj[prop]
   return value
@@ -68,7 +57,7 @@ export function extractProperty (obj, prop) {
 // -------------------------------------------------------------------
 
 // Returns the first defined (non-undefined) value.
-export const firstDefined = function () {
+export const firstDefined = function() {
   const n = arguments.length
   for (let i = 0; i < n; ++i) {
     const arg = arguments[i]
@@ -118,7 +107,7 @@ export const generateToken = (randomBytes => {
 
 // -------------------------------------------------------------------
 
-export const formatXml = (function () {
+export const formatXml = (function() {
   const builder = new xml2js.Builder({
     headless: true,
   })
@@ -126,7 +115,7 @@ export const formatXml = (function () {
   return (...args) => builder.buildObject(...args)
 })()
 
-export const parseXml = (function () {
+export const parseXml = (function() {
   const opts = {
     mergeAttrs: true,
     explicitArray: false,
@@ -199,7 +188,7 @@ export const noop = () => {}
 // array or object) containing promise inspections.
 //
 // Usage: pSettle(promises) or promises::pSettle()
-export function pSettle (promises) {
+export function pSettle(promises) {
   return (this || promises)::pAll(p => Promise.resolve(p)::pReflect())
 }
 
@@ -217,8 +206,8 @@ export {
 
 // -------------------------------------------------------------------
 
-export function parseSize (size) {
-  if (!isString(size)) {
+export function parseSize(size) {
+  if (typeof size !== 'string') {
     return size
   }
 
@@ -266,13 +255,9 @@ export const safeDateParse = utcParse('%Y%m%dT%H%M%SZ')
 //
 // Exports them from here to avoid direct dependencies on lodash/
 export { default as forEach } from 'lodash/forEach'
-export { default as isArray } from 'lodash/isArray'
-export { default as isBoolean } from 'lodash/isBoolean'
 export { default as isEmpty } from 'lodash/isEmpty'
-export { default as isFunction } from 'lodash/isFunction'
 export { default as isInteger } from 'lodash/isInteger'
 export { default as isObject } from 'lodash/isObject'
-export { default as isString } from 'lodash/isString'
 export { default as mapToArray } from 'lodash/map'
 
 // -------------------------------------------------------------------
@@ -294,7 +279,7 @@ export const DONE = {}
 // `DONE` provided as the fourth argument.
 //
 // Usage: map(collection, item => item + 1)
-export function map (
+export function map(
   collection,
   iteratee,
   target = has(collection, 'length') ? [] : {}
@@ -347,9 +332,11 @@ export const streamToArray = (stream, { filter, mapper } = {}) =>
 
 // Create a serializable object from an error.
 export const serializeError = error => ({
-  message: error.message,
-  stack: error.stack,
   ...error, // Copy enumerable properties.
+  code: error.code,
+  message: error.message,
+  name: error.name,
+  stack: error.stack,
 })
 
 // -------------------------------------------------------------------
@@ -367,17 +354,17 @@ export const thunkToArray = thunk => {
 // Creates a new function which throws an error.
 //
 // ```js
-// promise.catch(throwFn('an error has occured'))
+// promise.catch(throwFn('an error has occurred'))
 //
 // function foo (param = throwFn('param is required')()) {}
 // ```
 export const throwFn = error => () => {
-  throw isString(error) ? new Error(error) : error
+  throw typeof error === 'string' ? new Error(error) : error
 }
 
 // -------------------------------------------------------------------
 
-export const tmpDir = () => fromCallback(cb => tmp.dir(cb))
+export const tmpDir = () => fromCallback(tmp.dir)
 
 // -------------------------------------------------------------------
 
@@ -414,4 +401,14 @@ export const getFirstPropertyName = object => {
       return key
     }
   }
+}
+
+// -------------------------------------------------------------------
+
+export const unboxIdsFromPattern = (pattern?: SimpleIdPattern): string[] => {
+  if (pattern === undefined) {
+    return []
+  }
+  const { id } = pattern
+  return typeof id === 'string' ? [id] : id.__or
 }

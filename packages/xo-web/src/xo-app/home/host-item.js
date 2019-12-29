@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import InconsistentHostTimeWarning from 'inconsistent-host-time-warning'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -19,7 +20,12 @@ import {
   startHost,
   stopHost,
 } from 'xo'
-import { connectStore, formatSizeShort, osFamily } from 'utils'
+import {
+  connectStore,
+  formatSizeShort,
+  hasLicenseRestrictions,
+  osFamily,
+} from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetObject,
@@ -28,6 +34,7 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
+import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
 @connectStore(() => ({
@@ -41,7 +48,7 @@ import styles from './index.css'
   ),
 }))
 export default class HostItem extends Component {
-  get _isRunning () {
+  get _isRunning() {
     const host = this.props.item
     return host && host.power_state === 'Running'
   }
@@ -58,12 +65,22 @@ export default class HostItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  render () {
+  _getHostState = createSelector(
+    () => this.props.item.power_state,
+    () => this.props.item.enabled,
+    () => this.props.item.current_operations,
+    (powerState, enabled, operations) =>
+      !isEmpty(operations)
+        ? 'Busy'
+        : powerState === 'Running' && !enabled
+        ? 'Disabled'
+        : powerState
+  )
+
+  render() {
     const { item: host, container, expandAll, selected, nVms } = this.props
-    const toolTipContent =
-      host.power_state === `Running` && !host.enabled
-        ? `disabled`
-        : _(`powerState${host.power_state}`)
+    const state = this._getHostState()
+
     return (
       <div className={styles.item}>
         <BlockLink to={`/hosts/${host.id}`}>
@@ -79,25 +96,19 @@ export default class HostItem extends Component {
                 &nbsp;&nbsp;
                 <Tooltip
                   content={
-                    isEmpty(host.current_operations) ? (
-                      toolTipContent
-                    ) : (
-                      <div>
-                        {toolTipContent}
-                        {' ('}
-                        {map(host.current_operations)[0]}
-                        {')'}
-                      </div>
-                    )
+                    <span>
+                      {_(`powerState${state}`)}
+                      {state === 'Busy' && (
+                        <span>
+                          {' ('}
+                          {map(host.current_operations)[0]}
+                          {')'}
+                        </span>
+                      )}
+                    </span>
                   }
                 >
-                  {!isEmpty(host.current_operations) ? (
-                    <Icon icon='busy' />
-                  ) : host.power_state === 'Running' && !host.enabled ? (
-                    <Icon icon='disabled' />
-                  ) : (
-                    <Icon icon={`${host.power_state.toLowerCase()}`} />
-                  )}
+                  <Icon icon={state.toLowerCase()} />
                 </Tooltip>
                 &nbsp;&nbsp;
                 <Ellipsis>
@@ -121,6 +132,10 @@ export default class HostItem extends Component {
                     </Link>
                   </Tooltip>
                 )}
+                &nbsp;
+                <InconsistentHostTimeWarning hostId={host.id} />
+                &nbsp;
+                {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>
@@ -228,7 +243,7 @@ export default class HostItem extends Component {
               <span>
                 {host.cpus.cores}x <Icon icon='cpu' /> &nbsp;{' '}
                 {formatSizeShort(host.memory.size)} <Icon icon='memory' />{' '}
-                &nbsp; v{host.version.substring(0, 3)}
+                &nbsp; v{host.version.slice(0, 3)}
               </span>
             </Col>
             <Col mediumSize={4}>

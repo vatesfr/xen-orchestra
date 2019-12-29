@@ -64,6 +64,17 @@ const parseData = deepFreeze({
       path: '/media/nfs',
     },
   },
+  'SMB with missing path': {
+    string: 'smb://Administrator:pas:sw@ord@toto\\\\192.168.100.225\\smb',
+    object: {
+      type: 'smb',
+      host: '192.168.100.225\\smb',
+      path: '',
+      domain: 'toto',
+      username: 'Administrator',
+      password: 'pas:sw@ord',
+    },
+  },
 })
 
 const formatData = deepFreeze({

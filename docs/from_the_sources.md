@@ -6,9 +6,9 @@
 
 > Please take time to read this guide carefully.
 
-This installation has been validated against a fresh Debian 8 (Jessie) x64 install. It should be nearly the same on other dpkg systems. For RPM based OS's, it should be close, as most of our dependencies come from NPM and not the OS itself.
+This installation has been validated against a fresh Debian 9 (Stretch) x64 install. It should be nearly the same on other dpkg systems. For RPM based OS's, it should be close, as most of our dependencies come from NPM and not the OS itself.
 
-As you may have seen,in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
+As you may have seen in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
 ## Packages and Pre-requisites
 
@@ -20,7 +20,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v8.12.0
+v8.16.2
 ```
 
 If not, see [this page](https://nodejs.org/en/download/package-manager/) for instructions on how to install Node.
@@ -38,24 +38,25 @@ XO needs the following packages to be installed. Redis is used as a database by 
 For example, on Debian:
 
 ```
-apt-get install build-essential redis-server libpng-dev git python-minimal libvhdi-utils lvm2
+apt-get install build-essential redis-server libpng-dev git python-minimal libvhdi-utils lvm2 cifs-utils
 ```
 
 ## Fetching the Code
 
-You need to use the `git` source code manager to fetch the code. Ideally you should run XO as a non-root user, however if you don't run as root you will not be able to mount NFS remotes. As your chosen non-root (or root) user, run the following:
+You need to use the `git` source code manager to fetch the code. Ideally, you should run XO as a non-root user, and if you choose to, you need to set up `sudo` to be able to mount NFS remotes. As your chosen non-root (or root) user, run the following:
 
 ```
 git clone -b master http://github.com/vatesfr/xen-orchestra
 ```
 
-> Note: xo-server and xo-web have been migrated to the [xen-orchestra](https://github.com/vatesfr/xen-orchestra) mono-repository.
+> Note: xo-server and xo-web have been migrated to the [xen-orchestra](https://github.com/vatesfr/xen-orchestra) mono-repository - so you only need the single clone command above
 
 ## Installing dependencies
 
-Once you have it, use `yarn`, as the non-root (or root) user owning the fetched code, to install the other dependencies. Enter the `xen-orchestra` directory and run the following commands:
+Now that you have the code, you can enter the `xen-orchestra` directory and use `yarn` to install other dependencies. Then finally build it using `yarn build`. Be sure to run `yarn` commands as the same user you will be using to run Xen Orchestra:
 
 ```
+$ cd xen-orchestra
 $ yarn
 $ yarn build
 ```
@@ -64,19 +65,13 @@ Now you have to create a config file for `xo-server`:
 
 ```
 $ cd packages/xo-server
-$ cp sample.config.yaml .xo-server.yaml
+$ mkdir -p ~/.config/xo-server
+$ cp sample.config.toml ~/.config/xo-server/config.toml
 ```
 
-Edit and uncomment it to have the right path to serve `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xen-orchestra` and `xo-web` are in the same directory). It's near the end of the file:
+> Note: If you're installing `xo-server` as a global service, you may want to copy the file to `/etc/xo-server/config.toml` instead.
 
-```yaml
-  mounts: '/': '../xo-web/dist/'
-```
-> Note this `dist` folder will be created in the next step.
-
-**WARNING: YAML is very strict with indentation: use spaces for it, not tabs**.
-
-In this config file, you can also change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
+In this config file, you can change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
 
 You can try to start xo-server to see if it works. You should have something like this:
 
@@ -88,11 +83,12 @@ WebServer listening on localhost:80
 
 ## Running XO
 
-The only part you need to launch is xo-server which is quite easy to do. From the `xen-orchestra/packages/xo-server` directory, run the following:
+The only part you need to launch is xo-server, which is quite easy to do. From the `xen-orchestra/packages/xo-server` directory, run the following:
 
 ```
 $ yarn start
 ```
+
 That's it! Use your browser to visit the xo-server IP address, and it works! :)
 
 ## Updating
@@ -100,10 +96,14 @@ That's it! Use your browser to visit the xo-server IP address, and it works! :)
 If you would like to update your current version, enter your `xen-orchestra` directory and run the following:
 
 ```
+# This will clear any changes you made in the repository!!
+$ git checkout .
+
 $ git pull --ff-only
 $ yarn
 $ yarn build
 ```
+
 Then restart Xen Orchestra if it was running.
 
 ## Always Running
@@ -116,7 +116,7 @@ yarn global add forever
 forever start bin/xo-server
 ```
 
-- Or you can use  [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
+- Or you can use [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
 
 ```
 yarn global add forever
@@ -139,9 +139,6 @@ If you need to delete the service:
 ```
 forever-service delete orchestra
 ```
-
-
-
 
 ## Troubleshooting
 
@@ -183,4 +180,18 @@ Don't forget to start redis if you don't reboot now:
 
 ```
 service redis start
+```
+
+## SUDO
+
+If you are running `xo-server` as a non-root user, you need to use `sudo` to be able to mount NFS remotes. You can do this by editing `xo-server` configuration file and setting `useSudo = true`. It's near the end of the file:
+
+```
+useSudo = true
+```
+
+You need to configure `sudo` to allow the user of your choice to run mount/umount commands without asking for a password. Depending on your operating system / sudo version, the location of this configuration may change. Regardless, you can use:
+
+```
+username ALL=(root)NOPASSWD: /bin/mount, /bin/umount
 ```

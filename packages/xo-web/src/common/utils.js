@@ -6,30 +6,23 @@ import { connect } from 'react-redux'
 import { FormattedDate } from 'react-intl'
 import {
   clone,
-  escapeRegExp,
   every,
   forEach,
-  isArray,
   isEmpty,
   isFunction,
   isPlainObject,
-  isString,
-  join,
-  keys,
   map,
   mapValues,
   pick,
-  replace,
   sample,
   some,
-  startsWith,
 } from 'lodash'
 
 import _ from './intl'
 import * as actions from './store/actions'
 import invoke from './invoke'
 import store from './store'
-import { getObject } from './selectors'
+import { getObject, isAdmin } from './selectors'
 import { satisfies as versionSatisfies } from 'semver'
 
 export const EMPTY_ARRAY = Object.freeze([])
@@ -86,12 +79,12 @@ const _normalizeMapStateToProps = mapper => {
     return state => pick(state, mapper)
   }
 
-  if (isFunction(mapper)) {
+  if (typeof mapper === 'function') {
     const factoryOrMapper = (state, props) => {
       const result = mapper(state, props)
 
       // Properly handles factory pattern.
-      if (isFunction(result)) {
+      if (typeof result === 'function') {
         mapper = result
         return factoryOrMapper
       }
@@ -135,10 +128,10 @@ export const connectStore = (mapStateToProps, opts = {}) => {
     if (opts.withRef && 'value' in Component.prototype) {
       Object.defineProperty(ConnectedComponent.prototype, 'value', {
         configurable: true,
-        get () {
+        get() {
           return this.getWrappedInstance().value
         },
-        set (value) {
+        set(value) {
           this.getWrappedInstance().value = value
         },
       })
@@ -257,20 +250,20 @@ export const parseSize = size => {
 
 // -------------------------------------------------------------------
 
-const _NotFound = () => <h1>{_('errorPageNotFound')}</h1>
+const NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 
 // Decorator to declare routes on a component.
 //
 // TODO: add support for function childRoutes (getChildRoutes).
 export const routes = (indexRoute, childRoutes) => target => {
-  if (isArray(indexRoute)) {
+  if (Array.isArray(indexRoute)) {
     childRoutes = indexRoute
     indexRoute = undefined
-  } else if (isFunction(indexRoute)) {
+  } else if (typeof indexRoute === 'function') {
     indexRoute = {
       component: indexRoute,
     }
-  } else if (isString(indexRoute)) {
+  } else if (typeof indexRoute === 'string') {
     indexRoute = {
       onEnter: invoke(indexRoute, pathname => (state, replace) => {
         const current = state.location.pathname
@@ -291,7 +284,7 @@ export const routes = (indexRoute, childRoutes) => target => {
   }
 
   if (childRoutes) {
-    childRoutes.push({ component: _NotFound, path: '*' })
+    childRoutes.push({ component: NotFound, path: '*' })
   }
 
   target.route = {
@@ -307,12 +300,12 @@ export const routes = (indexRoute, childRoutes) => target => {
 // Creates a new function which throws an error.
 //
 // ```js
-// promise.catch(throwFn('an error has occured'))
+// promise.catch(throwFn('an error has occurred'))
 //
 // function foo (param = throwFn('param is required')) {}
 // ```
 export const throwFn = error => () => {
-  throw isString(error) ? new Error(error) : error
+  throw typeof error === 'string' ? new Error(error) : error
 }
 
 // ===================================================================
@@ -356,33 +349,6 @@ export const resolveResourceSet = resourceSet => {
 export const resolveResourceSets = resourceSets =>
   map(resourceSets, resolveResourceSet)
 
-// -------------------------------------------------------------------
-
-// Creates a string replacer based on a pattern and a list of rules
-//
-// ```js
-// const myReplacer = buildTemplate('{name}_COPY_{name}_{id}_%', {
-//   '{name}': vm => vm.name_label,
-//   '{id}': vm => vm.id,
-//   '%': (_, i) => i
-// })
-//
-// const newString = myReplacer({
-//   name_label: 'foo',
-//   id: 42,
-// }, 32)
-//
-// newString === 'foo_COPY_foo_42_32'
-// ```
-export function buildTemplate (pattern, rules) {
-  const regExp = new RegExp(join(map(keys(rules), escapeRegExp), '|'), 'g')
-  return (...params) =>
-    replace(pattern, regExp, match => {
-      const rule = rules[match]
-      return isFunction(rule) ? rule(...params) : rule
-    })
-}
-
 // ===================================================================
 
 export const streamToString = getStream
@@ -404,7 +370,7 @@ export const htmlFileToStream = file => {
     stream.emit('error', error)
   }
 
-  stream._read = function (size) {
+  stream._read = function(size) {
     if (offset >= file.size) {
       stream.push(null)
     } else {
@@ -442,7 +408,7 @@ const OPs = {
 }
 
 const makeNiceCompare = compare =>
-  function () {
+  function() {
     const { length } = arguments
     if (length === 2) {
       return compare(arguments[0], arguments[1])
@@ -477,29 +443,9 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
   return 0
 })
 
-export const isXosanPack = ({ name }) => startsWith(name, 'XOSAN')
+export const isXosanPack = ({ name }) => name.startsWith('XOSAN')
 
 // ===================================================================
-
-export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
-  // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
-  const maxVCPUs = 16
-
-  const options = []
-  if (maxCoresPerSocket !== undefined && vCPUs !== '') {
-    const ratio = vCPUs / maxVCPUs
-
-    for (
-      let coresPerSocket = maxCoresPerSocket;
-      coresPerSocket >= ratio;
-      coresPerSocket--
-    ) {
-      if (vCPUs % coresPerSocket === 0) options.push(coresPerSocket)
-    }
-  }
-
-  return options
-}
 
 // Generates a random human-readable string of length `length`
 // Useful to generate random default names intended for the UI user
@@ -593,3 +539,92 @@ export const generateRandomId = () =>
   Math.random()
     .toString(36)
     .slice(2)
+
+// ===================================================================
+
+// it returns [nActivePaths, nPaths]
+export const getIscsiPaths = pbd => {
+  const pathsInfo = pbd.otherConfig[`mpath-${pbd.device_config.SCSIid}`]
+  return pathsInfo !== undefined ? JSON.parse(pathsInfo) : []
+}
+
+// ===================================================================
+
+export const createBlobFromString = str =>
+  new window.Blob([str], {
+    type: 'text/plain',
+  })
+
+// ===================================================================
+
+// Format a date in ISO 8601 in a safe way to be used in filenames
+// (even on Windows).
+export const safeDateFormat = ms =>
+  new Date(ms).toISOString().replace(/:/g, '_')
+
+// ===================================================================
+
+export const downloadLog = ({ log, date, type }) => {
+  const anchor = document.createElement('a')
+  anchor.href = window.URL.createObjectURL(createBlobFromString(log))
+  anchor.download = `${safeDateFormat(date)} - ${type}.log`
+  anchor.style.display = 'none'
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+}
+
+// ===================================================================
+
+// Creates compare function based on different criterias
+//
+// ```js
+// [{ name: 'bar', value: v2 }, { name: 'foo', value: v1 }].sort(
+//   createCompare([
+//     o => o.value === v1,
+//     'name'
+//   ])
+// )
+// ```
+export const createCompare = criterias => (...items) => {
+  let res = 0
+  // Array.find to stop when the result is != 0
+  criterias.find(fn => {
+    const [v1, v2] = items.map(item => {
+      const v = typeof fn === 'string' ? item[fn] : fn(item)
+      return v === true ? -1 : v === false ? 1 : v
+    })
+    return (res = v1 < v2 ? -1 : v1 > v2 ? 1 : 0)
+  })
+  return res
+}
+
+// ===================================================================
+
+export const hasLicenseRestrictions = host => {
+  const licenseType = host.license_params.sku_type
+  return (
+    host.productBrand !== 'XCP-ng' &&
+    versionSatisfies(host.version, '>=7.3.0') &&
+    (licenseType === 'free' || licenseType === 'express')
+  )
+}
+
+// ===================================================================
+
+export const adminOnly = Component =>
+  connectStore({
+    _isAdmin: isAdmin,
+  })(({ _isAdmin, ...props }) =>
+    _isAdmin ? <Component {...props} /> : <NotFound />
+  )
+
+// ===================================================================
+
+export const TryXoa = ({ page }) => (
+  <a
+    href={`https://xen-orchestra.com/#/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=${page}`}
+  >
+    {_('tryXoa')}
+  </a>
+)

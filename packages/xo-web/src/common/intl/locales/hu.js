@@ -374,7 +374,7 @@ export default {
   homeMigrateTo: 'Migálás ide…',
 
   // Original text: "Missing patches"
-  homeMissingPaths: 'Missing patches',
+  homeMissingPatches: 'Missing patches',
 
   // Original text: "Master:"
   homePoolMaster: 'Master:',
@@ -840,13 +840,13 @@ export default {
   remoteNamePlaceHolder: 'távoli név *',
 
   // Original text: "Name *"
-  remoteMyNamePlaceHolder: 'Név *',
+  remoteMyNamePlaceHolder: 'Név',
 
   // Original text: "/path/to/backup"
   remoteLocalPlaceHolderPath: '/path/to/backup',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'kiszolgáló *',
+  remoteNfsPlaceHolderHost: 'kiszolgáló',
 
   // Original text: "path/to/backup"
   remoteNfsPlaceHolderPath: 'path/to/backup',
@@ -864,7 +864,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domain',
 
   // Original text: "<address>\\<share> *"
-  remoteSmbPlaceHolderAddressShare: '<address>\\<share> *',
+  remoteSmbPlaceHolderAddressShare: '<address>\\<share>',
 
   // Original text: "password(fill to edit)"
   remotePlaceHolderPassword: 'jelszó(kattintson a módosításhoz)',
@@ -1773,7 +1773,7 @@ export default {
   vdiAction: 'Művelet',
 
   // Original text: "Attach disk"
-  vdiAttachDeviceButton: 'Diszk Hozzácsatolás',
+  vdiAttachDevice: 'Diszk Hozzácsatolás',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Új diszk',
@@ -2909,9 +2909,6 @@ export default {
   // Original text: "Read Only"
   serverReadOnly: 'Csak Olvasható',
 
-  // Original text: "Disconnect server"
-  serverDisconnect: 'Szerver Lecsatlakozás',
-
   // Original text: "username"
   serverPlaceHolderUser: 'felhasználónév',
 
@@ -2938,12 +2935,6 @@ export default {
 
   // Original text: "Connecting…"
   serverConnecting: 'Csatlakozás…',
-
-  // Original text: "Connected"
-  serverConnected: 'Kapcsolódva',
-
-  // Original text: "Disconnected"
-  serverDisconnected: 'Lekapcsolódva',
 
   // Original text: "Authentication error"
   serverAuthFailed: 'Bejelentkezési hiba',
@@ -3248,7 +3239,7 @@ export default {
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3:
-    'This Verzió is not bundled with any support nor upDates. Use it with caution for critical tasks.',
+    'This Verzió is not bundled with any support nor upDates. Use it with caution.',
 
   // Original text: "Connect PIF"
   connectPif: 'Csatlakozás PIF',
