@@ -109,10 +109,12 @@ export default class Proxy {
 
   @synchronizedWrite
   async updateProxy(id, { address, authenticationToken, name, vmUuid }) {
-    // TODO: don't throw if these properties aren't modified
-    await this._throwIfRegistered(address, vmUuid)
-
     const proxy = await this._getProxy(id)
+    await this._throwIfRegistered(
+      proxy.address !== address ? address : undefined,
+      proxy.vm !== vmUuid ? vmUuid : undefined
+    )
+
     patch(proxy, { address, authenticationToken, name, vmUuid })
     return this._db
       .update(proxy)
