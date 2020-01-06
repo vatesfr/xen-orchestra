@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
 import xoaUpdater from 'xoa-updater'
-import { checkXoa, getXoaInfo } from 'xo'
+import { checkXoa, getApplianceInfo } from 'xo'
 import { createBlobFromString } from 'utils'
 import { createLogger } from '@xen-orchestra/log'
 import { identity, omit } from 'lodash'
@@ -32,11 +32,11 @@ const ADDITIONAL_FILES = [
     name: 'manifest.json',
   },
   {
-    fetch: () => checkXoa().then(xoaCheck => stripAnsi(xoaCheck)),
+    fetch: () => checkXoa().then(stripAnsi),
     name: 'xoaCheck.txt',
   },
   {
-    fetch: () => getXoaInfo().then(jsonStringify),
+    fetch: () => getApplianceInfo().then(jsonStringify),
     name: 'xoaInfo.json',
   },
 ]
