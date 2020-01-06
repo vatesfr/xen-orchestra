@@ -79,7 +79,7 @@ update.params = {
     type: 'string',
   },
   address: {
-    type: 'string',
+    type: ['string', 'null'],
     optional: true,
   },
   vm: {
