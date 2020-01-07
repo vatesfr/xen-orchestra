@@ -52,7 +52,12 @@ export default class Proxy {
   }
 
   @synchronizedWrite
-  async registerProxy({ address, authenticationToken, name, vmUuid }) {
+  async registerProxy({
+    address,
+    authenticationToken,
+    name = `Proxy ${new Date().toISOString()}`,
+    vmUuid,
+  }) {
     await this._throwIfRegistered(address, vmUuid)
 
     return this._db
@@ -145,10 +150,9 @@ export default class Proxy {
       generateToken(),
       app.getApplianceRegistration(),
     ])
-    const date = new Date().toISOString()
     await Promise.all([
       vm.add_tags('XOA Proxy'),
-      vm.set_name_label(`XOA Proxy ${date}`),
+      vm.set_name_label(`XOA Proxy ${new Date().toISOString()}`),
       vm.update_xenstore_data({
         'vm-data/system-account-xoa-password': password,
         'vm-data/xo-proxy-authenticationToken': JSON.stringify(
@@ -197,7 +201,6 @@ export default class Proxy {
 
     const { id } = await this.registerProxy({
       authenticationToken: proxyAuthenticationToken,
-      name: `Proxy ${date}`,
       vmUuid: vm.uuid,
     })
 
