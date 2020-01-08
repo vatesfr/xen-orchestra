@@ -4,6 +4,7 @@ import BaseComponent from 'base-component'
 import Button from 'button'
 import classNames from 'classnames'
 import defined, { get } from '@xen-orchestra/defined'
+import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import isIp from 'is-ip'
 import Link from 'link'
@@ -348,6 +349,7 @@ export default class NewVm extends BaseComponent {
         coresPerSocket: undefined,
         CPUs: '',
         cpuCap: '',
+        cpusMax: '',
         cpuWeight: '',
         existingDisks: {},
         fastClone: true,
@@ -370,14 +372,14 @@ export default class NewVm extends BaseComponent {
   }
 
   _selfCreate = () => {
-    const { CPUs, VDIs, existingDisks, memoryDynamicMax } = this.state.state
+    const { cpusMax, VDIs, existingDisks, memoryDynamicMax } = this.state.state
     const { template } = this.props
     const disksSize = sumBy(VDIs, 'size') + sumBy(existingDisks, 'size')
     const templateDisksSize = sumBy(template.template_info.disks, 'size')
     const templateMemoryDynamicMax = template.memory.dynamic[1]
     const templateVcpusMax = template.CPUs.max
 
-    return CPUs > MULTIPLICAND * templateVcpusMax ||
+    return cpusMax > MULTIPLICAND * templateVcpusMax ||
       memoryDynamicMax > MULTIPLICAND * templateMemoryDynamicMax ||
       disksSize > MULTIPLICAND * templateDisksSize
       ? confirm({
@@ -502,6 +504,7 @@ export default class NewVm extends BaseComponent {
       coresPerSocket:
         state.coresPerSocket === null ? undefined : state.coresPerSocket,
       CPUs: state.CPUs,
+      cpusMax: state.cpusMax,
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
       name_description: state.name_description,
@@ -598,6 +601,7 @@ export default class NewVm extends BaseComponent {
       ),
       // performances
       CPUs: template.CPUs.number,
+      cpusMax: template.CPUs.max,
       cpuCap: '',
       cpuWeight: '',
       hvmBootFirmware: defined(() => template.boot.firmware, ''),
@@ -1065,8 +1069,17 @@ export default class NewVm extends BaseComponent {
     return name_label && template
   }
 
+  _onCpusChange = event => {
+    const value = getEventValue(event)
+    const cpusMax = Math.max(value, this.state.state.cpusMax)
+    this._setState({
+      CPUs: value,
+      cpusMax,
+    })
+  }
+
   _renderPerformances = () => {
-    const { coresPerSocket, CPUs, memoryDynamicMax } = this.state.state
+    const { coresPerSocket, CPUs, cpusMax, memoryDynamicMax } = this.state.state
     const { template } = this.props
     const { pool } = this.props
     const memoryThreshold = get(() => template.memory.static[0])
@@ -1074,7 +1087,7 @@ export default class NewVm extends BaseComponent {
       <SelectCoresPerSocket
         disabled={pool === undefined}
         maxCores={get(() => pool.cpus.cores)}
-        maxVcpus={get(() => template.CPUs.max)}
+        maxVcpus={cpusMax}
         onChange={this._linkState('coresPerSocket')}
         value={coresPerSocket}
       />
@@ -1091,7 +1104,7 @@ export default class NewVm extends BaseComponent {
             <DebounceInput
               className='form-control'
               min={0}
-              onChange={this._linkState('CPUs')}
+              onChange={this._onCpusChange}
               type='number'
               value={CPUs}
             />
@@ -1635,6 +1648,7 @@ export default class NewVm extends BaseComponent {
       autoPoweron,
       bootAfterCreate,
       cpuCap,
+      cpusMax,
       cpuWeight,
       hvmBootFirmware,
       memoryDynamicMin,
@@ -1726,6 +1740,15 @@ export default class NewVm extends BaseComponent {
                 })}
                 type='number'
                 value={cpuCap}
+              />
+            </Item>
+            <Item label={_('cpusMax')}>
+              <DebounceInput
+                className='form-control'
+                min={0}
+                onChange={this._linkState('cpusMax')}
+                type='number'
+                value={cpusMax}
               />
             </Item>
           </SectionContent>,
@@ -1864,11 +1887,14 @@ export default class NewVm extends BaseComponent {
       memoryDynamicMin,
       memoryDynamicMax,
       memoryStaticMax,
+      CPUs,
+      cpusMax,
     } = this.state.state
     return (
       memoryDynamicMax != null &&
       (memoryDynamicMin == null || memoryDynamicMin <= memoryDynamicMax) &&
-      (memoryStaticMax == null || memoryDynamicMax <= memoryStaticMax)
+      (memoryStaticMax == null || memoryDynamicMax <= memoryStaticMax) &&
+      cpusMax >= CPUs
     )
   }
 

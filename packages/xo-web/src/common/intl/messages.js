@@ -45,6 +45,7 @@ const messages = {
   restore: 'Restore',
   delete: 'Delete',
   vms: 'VMs',
+  cpusMax: 'Max vCPUs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
   clickToShowError: 'Click to show error',
