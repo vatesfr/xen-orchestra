@@ -1085,7 +1085,7 @@ export default class NewVm extends BaseComponent {
     const memoryThreshold = get(() => template.memory.static[0])
     const selectCoresPerSocket = (
       <SelectCoresPerSocket
-        disabled={pool === undefined}
+        disabled={pool === undefined || template === undefined}
         maxCores={get(() => pool.cpus.cores)}
         maxVcpus={cpusMax}
         onChange={this._linkState('coresPerSocket')}
