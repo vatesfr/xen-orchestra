@@ -47,7 +47,7 @@ const messages = {
   vms: 'VMs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
-  temporaryDisabled: 'Temporary disabled',
+  temporarilyDisabled: 'Temporarily disabled',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
   iscsiSessions:

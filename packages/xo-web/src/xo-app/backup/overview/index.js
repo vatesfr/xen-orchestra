@@ -148,7 +148,7 @@ const SchedulePreviewBody = decorate([
           style={{ marginRight: '0.5em' }}
         />
         {job.runId !== undefined ? (
-          <Tooltip content={_('temporaryDisabled')}>
+          <Tooltip content={_('temporarilyDisabled')}>
             <span>
               <ActionButton
                 btnStyle='danger'
