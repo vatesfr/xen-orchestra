@@ -20,6 +20,11 @@ const deleteProperties = (object, property, properties) => {
 
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {
+    // consider packages as private by default to avoid publishing them by mistake
+    if (!('private' in pkg)) {
+      pkg.private = true
+    }
+
     pkg.name = name
     pkg.homepage = `https://github.com/vatesfr/xen-orchestra/tree/master/${relativeDir}`
     pkg.bugs = `https://github.com/vatesfr/xen-orchestra/issues`
