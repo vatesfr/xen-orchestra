@@ -1,9 +1,8 @@
 /* eslint no-throw-literal: 0 */
 
-import eventToPromise from 'event-to-promise'
 import { createClient } from 'ldapjs'
 import { escape } from 'ldapjs/lib/filters/escape'
-import { promisify } from 'promise-toolbox'
+import { fromEvent, promisify } from 'promise-toolbox'
 import { readFile } from 'fs'
 
 // ===================================================================
@@ -202,7 +201,7 @@ class AuthLdap {
       const bind = promisify(client.bind, client)
       const search = promisify(client.search, client)
 
-      await eventToPromise(client, 'connect')
+      await fromEvent(client, 'connect')
 
       // Bind if necessary.
       {
@@ -230,7 +229,7 @@ class AuthLdap {
           entries.push(entry.json)
         })
 
-        const { status } = await eventToPromise(response, 'end')
+        const { status } = await fromEvent(response, 'end')
         if (status) {
           throw new Error('unexpected search response status: ' + status)
         }

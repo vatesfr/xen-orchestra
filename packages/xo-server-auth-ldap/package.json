@@ -34,7 +34,6 @@
     "node": ">=6"
   },
   "dependencies": {
-    "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
     "inquirer": "^7.0.0",
     "ldapjs": "^1.0.1",
