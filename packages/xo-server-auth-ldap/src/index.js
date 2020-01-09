@@ -1,7 +1,6 @@
 /* eslint no-throw-literal: 0 */
 
 import eventToPromise from 'event-to-promise'
-import noop from 'lodash/noop'
 import { createClient } from 'ldapjs'
 import { escape } from 'ldapjs/lib/filters/escape'
 import { promisify } from 'promise-toolbox'
@@ -25,6 +24,8 @@ const evalFilter = (filter, vars) =>
 
     return escape(value)
   })
+
+const noop = Function.prototype
 
 export const configurationSchema = {
   type: 'object',
