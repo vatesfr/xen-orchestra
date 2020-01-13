@@ -1502,7 +1502,7 @@ export default class Xapi extends XapiBase {
         } catch (error) {
           const { code } = error
           if (
-            // removed in CH  8.1
+            // removed in CH 8.1
             code !== 'METHOD_NOT_FOUND' &&
             code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
             // quiesce only work on a running VM
