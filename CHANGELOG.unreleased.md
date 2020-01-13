@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Snapshot] Fallback to normal snapshot is quiesce is not available [#4735](https://github.com/vatesfr/xen-orchestra/issues/4735) (PR [#4736](https://github.com/vatesfr/xen-orchestra/pull/4736)) \
+- [Snapshot] Fallback to normal snapshot if quiesce is not available [#4735](https://github.com/vatesfr/xen-orchestra/issues/4735) (PR [#4736](https://github.com/vatesfr/xen-orchestra/pull/4736)) \
   Fixes compatibility with **Citrix Hypervisor 8.1**.
 
 ### Bug fixes
