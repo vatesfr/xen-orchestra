@@ -1502,6 +1502,8 @@ export default class Xapi extends XapiBase {
         } catch (error) {
           const { code } = error
           if (
+            // removed in CH 8.1
+            code !== 'MESSAGE_REMOVED' &&
             code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
             // quiesce only work on a running VM
             code !== 'VM_BAD_POWER_STATE' &&
