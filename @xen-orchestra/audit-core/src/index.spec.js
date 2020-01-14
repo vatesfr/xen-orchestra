@@ -1,26 +1,38 @@
 /* eslint-env jest */
 
-import { AuditCore } from '.'
+import { AuditCore, FIRST_RECORD_ID } from '.'
 
-class Storage extends Map {
-  async add(id, record) {
-    this.set(id, record)
+class Storage {
+  constructor() {
+    this._db = new Map()
   }
 
-  async update(id, cb) {
-    this.set(id, cb(this.get(id)))
+  async put(id, record) {
+    const db = this._db
+    if (db.get(id) !== undefined) {
+      throw new Error('the entry already exists')
+    }
+    db.set(id, record)
   }
 
   async del(id) {
-    this.delete(id)
+    this._db.delete(id)
   }
 
-  async getAll() {
-    const collection = {}
-    this.forEach((value, key) => {
-      collection[key] = value
-    })
-    return collection
+  async get(id) {
+    return this._db.get(id)
+  }
+
+  async set(id, record) {
+    this._db.set(id, record)
+  }
+
+  async getLastId() {
+    return Array.from(this._db.keys()).pop()
+  }
+
+  async setLastRecord(record) {
+    this._db.set(await this.getLastId(), record)
   }
 }
 
@@ -62,48 +74,25 @@ const DATA = [
   ],
 ]
 
-const HASHES_ALGORITHM = 'sha256'
 describe('auditCore', () => {
-  it('stores audit records, generate secured interval, deletes a record, check the records integrity and re-write hashes', async () => {
+  it('stores audit records, check their integrity, deletes a record and re-check the records', async () => {
     const storage = new Storage()
-    const auditCore = new AuditCore(storage, {
-      algorithm: HASHES_ALGORITHM,
-      retention: 3,
-    })
+    const auditCore = new AuditCore(storage)
     for (const [subject, event, data] of DATA) {
       await auditCore.add(subject, event, data)
     }
 
-    const { startHash, endHash } = await auditCore.generateSecuredInterval()
+    const newestId = await storage.getLastId()
+    await auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
 
-    const { hashes } = await auditCore.getData()
-    await storage.del(hashes[1])
+    const iterator = auditCore.getRecords()
+    await iterator.next()
+    const {
+      value: { id },
+    } = await iterator.next()
+    await storage.del(id)
     await expect(
-      auditCore.checkIntegrity(startHash.hash, endHash.hash)
+      auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
     ).rejects.toThrow()
-
-    await auditCore.reWriteHashes()
-  })
-
-  test('.gc()', async () => {
-    const retention = DATA.length - 1
-    const auditCore = new AuditCore(new Storage(), {
-      algorithm: HASHES_ALGORITHM,
-      retention,
-    })
-    for (const [subject, event, data] of DATA) {
-      await auditCore.add(subject, event, data)
-    }
-
-    await auditCore.generateSecuredInterval()
-
-    const getDataSize = () =>
-      auditCore.getData().then(({ hashes }) => hashes.length)
-
-    expect(await getDataSize()).toBe(DATA.length)
-
-    await auditCore.gc()
-
-    expect(await getDataSize()).toBe(retention)
   })
 })
