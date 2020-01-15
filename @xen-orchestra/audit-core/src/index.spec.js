@@ -1,20 +1,31 @@
 /* eslint-env jest */
 
-import { AuditCore, FIRST_RECORD_ID } from '.'
+import { AuditCore, NULL_ID } from '.'
 
-import { asyncIteratorToArray } from './_asyncIteratorToArray'
+const asyncIteratorToArray = async asyncIterator => {
+  const array = []
+  for await (const entry of asyncIterator) {
+    array.push(entry)
+  }
+  return array
+}
 
 class Storage {
   constructor() {
     this._db = new Map()
+    this._lastId = undefined
   }
 
-  async put(id, record) {
-    const db = this._db
-    if (db.get(id) !== undefined) {
-      throw new Error('the entry already exists')
-    }
-    db.set(id, record)
+  async put(record) {
+    this._db.set(record.id, record)
+  }
+
+  async setLastId(id) {
+    this._lastId = id
+  }
+
+  async getLastId() {
+    return this._lastId
   }
 
   async del(id) {
@@ -23,18 +34,6 @@ class Storage {
 
   async get(id) {
     return this._db.get(id)
-  }
-
-  async set(id, record) {
-    this._db.set(id, record)
-  }
-
-  async getLastId() {
-    return Array.from(this._db.keys()).pop()
-  }
-
-  async setLastRecord(record) {
-    this._db.set(await this.getLastId(), record)
   }
 }
 
@@ -87,12 +86,10 @@ describe('auditCore', () => {
     expect(records.length).toBe(DATA.length)
 
     const newestId = await storage.getLastId()
-    await auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
+    await auditCore.checkIntegrity(NULL_ID, newestId)
 
     await storage.del(records[1].id)
-    await expect(
-      auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
-    ).rejects.toThrow()
+    await expect(auditCore.checkIntegrity(NULL_ID, newestId)).rejects.toThrow()
   })
 
   it('deletes records starting from an ID', async () => {
