@@ -106,6 +106,7 @@ describe('auditCore', () => {
       await asyncIteratorToArray(auditCore.getFrom())
     ).reverse()
     await auditCore.deleteFrom(secondRecord.id)
+
     expect(await storage.get(firstRecord.id)).toBe(undefined)
     expect(await storage.get(secondRecord.id)).toBe(undefined)
   })
