@@ -2,6 +2,8 @@
 
 import { AuditCore, FIRST_RECORD_ID } from '.'
 
+import { asyncIteratorToArray } from './_asyncIteratorToArray'
+
 class Storage {
   constructor() {
     this._db = new Map()
@@ -75,24 +77,36 @@ const DATA = [
 ]
 
 describe('auditCore', () => {
-  it('stores audit records, check their integrity, deletes a record and re-check the records', async () => {
+  it('stores audit records, check their integrity, deletes a record and re-check the records integrity', async () => {
+    const storage = new Storage()
+    const auditCore = new AuditCore(storage)
+    for (const [subject, event, data] of DATA) {
+      await auditCore.add(subject, event, data)
+    }
+    const records = await asyncIteratorToArray(auditCore.getFrom())
+    expect(records.length).toBe(DATA.length)
+
+    const newestId = await storage.getLastId()
+    await auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
+
+    await storage.del(records[1].id)
+    await expect(
+      auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
+    ).rejects.toThrow()
+  })
+
+  it('deletes records starting from an ID', async () => {
     const storage = new Storage()
     const auditCore = new AuditCore(storage)
     for (const [subject, event, data] of DATA) {
       await auditCore.add(subject, event, data)
     }
 
-    const newestId = await storage.getLastId()
-    await auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
-
-    const iterator = auditCore.getRecords()
-    await iterator.next()
-    const {
-      value: { id },
-    } = await iterator.next()
-    await storage.del(id)
-    await expect(
-      auditCore.checkIntegrity(FIRST_RECORD_ID, newestId)
-    ).rejects.toThrow()
+    const [firstRecord, secondRecord] = (
+      await asyncIteratorToArray(auditCore.getFrom())
+    ).reverse()
+    await auditCore.deleteFrom(secondRecord.id)
+    expect(await storage.get(firstRecord.id)).toBe(undefined)
+    expect(await storage.get(secondRecord.id)).toBe(undefined)
   })
 })

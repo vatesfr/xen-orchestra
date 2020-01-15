@@ -1,7 +1,12 @@
+// see https://github.com/babel/babel/issues/8450
+import 'core-js/features/symbol/async-iterator'
+
 import assert from 'assert'
 import hash from 'object-hash'
 import synchronized from 'decorator-synchronized'
 import { invert } from 'lodash'
+
+import { asyncIteratorToArray } from './_asyncIteratorToArray'
 
 // Format: $<algorithm>$<salt>$<encrypted>
 //
@@ -45,7 +50,7 @@ export class AuditCore {
     return record
   }
 
-  async checkCorrespondence(newest) {
+  async checkChain(newest) {
     while (newest !== FIRST_RECORD_ID) {
       const record = await this._storage.get(newest)
       if (
@@ -64,7 +69,7 @@ export class AuditCore {
   }
 
   async checkIntegrity(oldest, newest) {
-    const oldestVerifiedId = await this.checkCorrespondence(newest)
+    const oldestVerifiedId = await this.checkChain(newest)
     if (oldestVerifiedId !== oldest) {
       throw new Error(
         `The records between ${oldest} and ${oldestVerifiedId} are altered`
@@ -72,14 +77,19 @@ export class AuditCore {
     }
   }
 
-  async *getRecords() {
+  async *getFrom(newest) {
     const storage = this._storage
 
     let record
-    let id = await storage.getLastId()
+    let id = newest ?? (await storage.getLastId())
     while ((record = await storage.get(id)) !== undefined) {
       yield record
       id = record.previousId
     }
+  }
+
+  async deleteFrom(newest) {
+    const records = await asyncIteratorToArray(this.getFrom(newest))
+    return Promise.all(records.map(({ id }) => this._storage.del(id)))
   }
 }

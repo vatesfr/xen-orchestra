@@ -12,8 +12,8 @@
     "node": ">=8.10"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --extensions .ts --source-maps --out-dir=dist/ src/",
-    "dev": "cross-env NODE_ENV=development babel --extensions .ts --watch --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "postversion": "npm publish --access public",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
@@ -30,6 +30,7 @@
     "rimraf": "^3.0.0"
   },
   "dependencies": {
+    "core-js": "^3.6.4",
     "decorator-synchronized": "^0.5.0",
     "lodash": "^4.17.15",
     "object-hash": "^2.0.1"
