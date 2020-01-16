@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Audit log] Record side effects triggered by users [#4653](https://github.com/vatesfr/xen-orchestra/issues/4653) [#701](https://github.com/vatesfr/xen-orchestra/issues/701) (PR [#4740](https://github.com/vatesfr/xen-orchestra/pull/4740))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
