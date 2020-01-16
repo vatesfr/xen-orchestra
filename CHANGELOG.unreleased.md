@@ -13,6 +13,7 @@
 - [Menu] Display a warning icon in case of missing patches [#4475](https://github.com/vatesfr/xen-orchestra/issues/4475) (PR [#4683](https://github.com/vatesfr/xen-orchestra/pull/4683))
 - [SR/general] Clickable SR usage graph: shows the corresponding disks when you click on one of the sections [#4747](https://github.com/vatesfr/xen-orchestra/issues/4747) (PR [#4754](https://github.com/vatesfr/xen-orchestra/pull/4754))
 - [New VM] Ability to copy host BIOS strings [#4204](https://github.com/vatesfr/xen-orchestra/issues/4204) (PR [4755](https://github.com/vatesfr/xen-orchestra/pull/4755))
+- [Audit log] Record side effects triggered by users [#4653](https://github.com/vatesfr/xen-orchestra/issues/4653) [#701](https://github.com/vatesfr/xen-orchestra/issues/701) (PR [#4740](https://github.com/vatesfr/xen-orchestra/pull/4740))
 
 ### Bug fixes
 
