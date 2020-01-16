@@ -20,5 +20,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/audit-core v0.1.0
 - xo-server v5.55.0
 - xo-web v5.55.0
