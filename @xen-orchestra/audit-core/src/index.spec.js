@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { AuditCore, NULL_ID } from '.'
+import { AuditCore, NULL_ID, Storage } from '.'
 
 const asyncIteratorToArray = async asyncIterator => {
   const array = []
@@ -10,8 +10,10 @@ const asyncIteratorToArray = async asyncIterator => {
   return array
 }
 
-class Storage {
+class DB extends Storage {
   constructor() {
+    super()
+
     this._db = new Map()
     this._lastId = undefined
   }
@@ -76,25 +78,32 @@ const DATA = [
 ]
 
 describe('auditCore', () => {
+  it('test storage lock on storing records', async () => {
+    const auditCore = new AuditCore(new DB())
+    await Promise.all([auditCore.add(...DATA[0]), auditCore.add(...DATA[1])])
+    const records = await asyncIteratorToArray(auditCore.getFrom())
+    expect(records.length).toBe(2)
+  })
+
   it('stores audit records, check their integrity, deletes a record and re-check the records integrity', async () => {
-    const storage = new Storage()
-    const auditCore = new AuditCore(storage)
+    const db = new DB()
+    const auditCore = new AuditCore(db)
     for (const [subject, event, data] of DATA) {
       await auditCore.add(subject, event, data)
     }
     const records = await asyncIteratorToArray(auditCore.getFrom())
     expect(records.length).toBe(DATA.length)
 
-    const newestId = await storage.getLastId()
+    const newestId = await db.getLastId()
     await auditCore.checkIntegrity(NULL_ID, newestId)
 
-    await storage.del(records[1].id)
+    await db.del(records[1].id)
     await expect(auditCore.checkIntegrity(NULL_ID, newestId)).rejects.toThrow()
   })
 
-  it('deletes records starting from an ID', async () => {
-    const storage = new Storage()
-    const auditCore = new AuditCore(storage)
+  it('deletes records starting from an ID and check their integrity', async () => {
+    const db = new DB()
+    const auditCore = new AuditCore(db)
     for (const [subject, event, data] of DATA) {
       await auditCore.add(subject, event, data)
     }
@@ -104,7 +113,9 @@ describe('auditCore', () => {
     ).reverse()
     await auditCore.deleteFrom(secondRecord.id)
 
-    expect(await storage.get(firstRecord.id)).toBe(undefined)
-    expect(await storage.get(secondRecord.id)).toBe(undefined)
+    expect(await db.get(firstRecord.id)).toBe(undefined)
+    expect(await db.get(secondRecord.id)).toBe(undefined)
+
+    await auditCore.checkIntegrity(secondRecord.id, await db.getLastId())
   })
 })

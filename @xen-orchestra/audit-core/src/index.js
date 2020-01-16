@@ -3,8 +3,28 @@ import 'core-js/features/symbol/async-iterator'
 
 import assert from 'assert'
 import hash from 'object-hash'
-import synchronized from 'decorator-synchronized'
 import { invert } from 'lodash'
+
+export class Storage {
+  constructor() {
+    this.locked = undefined
+  }
+
+  async lock() {
+    if (this.locked !== undefined) {
+      await this.locked
+    }
+
+    let res
+    this.locked = new Promise(resolve => {
+      res = resolve
+    })
+    return () => {
+      this.locked = undefined
+      return res()
+    }
+  }
+}
 
 // Format: $<algorithm>$<salt>$<encrypted>
 //
@@ -26,14 +46,13 @@ const createHash = (data, algorithm = HASH_ALGORITHM) =>
 
 export class AuditCore {
   constructor(storage) {
-    assert(storage !== undefined)
+    assert(storage !== undefined && storage.lock !== undefined)
     this._storage = storage
-    this.add = storage.lock !== undefined ? this.add : synchronized()(this.add)
   }
 
   async add(subject, event, data) {
     const storage = this._storage
-    const unlock = storage.lock && (await storage.lock())
+    const unlock = await storage.lock()
     const record = {
       data,
       event,
@@ -44,13 +63,11 @@ export class AuditCore {
     record.id = createHash(record)
     await storage.put(record)
     await storage.setLastId(record.id)
-    if (unlock !== undefined) {
-      unlock()
-    }
+    unlock()
     return record
   }
 
-  async _getOldestValidatedId(newest, oldest = NULL_ID) {
+  async _getOldestValidatedId(oldest, newest) {
     while (newest !== oldest) {
       const record = await this._storage.get(newest)
       if (record === undefined) {
@@ -78,7 +95,7 @@ export class AuditCore {
 
   // TODO: check the integrity from the last id to the newest to avoid the new chain attack
   async checkIntegrity(oldest, newest) {
-    const { id, reason } = await this._getOldestValidatedId(newest)
+    const { id, reason } = await this._getOldestValidatedId(oldest, newest)
     if (id !== oldest) {
       throw new Error(`${reason} (${id})`)
     }

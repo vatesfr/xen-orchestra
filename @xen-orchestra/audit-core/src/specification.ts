@@ -22,7 +22,7 @@ export class AuditCore {
   public getFrom(newest?: string): AsyncIterator {}
   public deleteFrom(newest?: string): Promise<void> {}
   private getOldestValidatedId(
-    newest: string,
-    oldest?: string
+    oldest: string,
+    newest: string
   ): Promise<object> {}
 }
