@@ -2,26 +2,24 @@
 import 'core-js/features/symbol/async-iterator'
 
 import assert from 'assert'
+import defer from 'golike-defer'
 import hash from 'object-hash'
 import { invert } from 'lodash'
 
 export class Storage {
   constructor() {
-    this.locked = undefined
+    this._lock = Promise.resolve()
   }
 
-  async lock() {
-    if (this.locked !== undefined) {
-      await this.locked
-    }
-
-    let res
-    this.locked = new Promise(resolve => {
-      res = resolve
+  async acquire() {
+    const lock = this._lock
+    let releaseLock
+    this._lock = new Promise(resolve => {
+      releaseLock = resolve
     })
+    await lock
     return () => {
-      this.locked = undefined
-      return res()
+      releaseLock()
     }
   }
 }
@@ -46,13 +44,14 @@ const createHash = (data, algorithm = HASH_ALGORITHM) =>
 
 export class AuditCore {
   constructor(storage) {
-    assert(storage !== undefined && storage.lock !== undefined)
+    assert(storage !== undefined)
     this._storage = storage
   }
 
-  async add(subject, event, data) {
+  @defer
+  async add($defer, subject, event, data) {
     const storage = this._storage
-    const unlock = await storage.lock()
+    $defer(await storage.acquire())
     const record = {
       data,
       event,
@@ -63,7 +62,6 @@ export class AuditCore {
     record.id = createHash(record)
     await storage.put(record)
     await storage.setLastId(record.id)
-    unlock()
     return record
   }
 
@@ -73,7 +71,7 @@ export class AuditCore {
       if (record === undefined) {
         return {
           id: newest,
-          reason: 'missing record',
+          reason: 'inability to reach the oldest record',
         }
       }
       if (
@@ -93,11 +91,11 @@ export class AuditCore {
     return { id: oldest }
   }
 
-  // TODO: check the integrity from the last id to the newest to avoid the new chain attack
+  // TODO: https://github.com/vatesfr/xen-orchestra/pull/4733#discussion_r366897798
   async checkIntegrity(oldest, newest) {
     const { id, reason } = await this._getOldestValidatedId(oldest, newest)
     if (id !== oldest) {
-      throw new Error(`${reason} (${id})`)
+      throw new Error(`${reason} (stopped at ${id})`)
     }
   }
 
@@ -113,8 +111,7 @@ export class AuditCore {
   }
 
   async deleteFrom(newest) {
-    const asyncIterator = this.getFrom(newest)
-    for await (const { id } of asyncIterator) {
+    for await (const { id } of this.getFrom(newest)) {
       await this._storage.del(id)
     }
   }

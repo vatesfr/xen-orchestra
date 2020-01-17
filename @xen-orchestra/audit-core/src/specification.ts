@@ -1,4 +1,5 @@
-interface Storage {
+class Storage {
+  acquire: () => Promise<() => undefined>
   del: (id: string) => Promise<void>
   get: (id: string) => Promise<Record | void>
   getLastId: () => Promise<string | void>
@@ -21,8 +22,4 @@ export class AuditCore {
   public checkIntegrity(oldest: string, newest: string): Promise<void> {}
   public getFrom(newest?: string): AsyncIterator {}
   public deleteFrom(newest?: string): Promise<void> {}
-  private getOldestValidatedId(
-    oldest: string,
-    newest: string
-  ): Promise<object> {}
 }

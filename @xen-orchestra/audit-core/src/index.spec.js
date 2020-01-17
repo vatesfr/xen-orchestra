@@ -37,85 +37,81 @@ class DB extends Storage {
   async get(id) {
     return this._db.get(id)
   }
+
+  _clear() {
+    return this._db.clear()
+  }
 }
 
 const DATA = [
   [
     {
-      id: '87b98aae-32c6-11ea-978f-2e728ce88125',
-      ip: '192.168.100.212',
-      name: 'toto',
+      name: 'subject0',
     },
-    'add',
-    {
-      parameters: {
-        name: 'resource',
-        id: 'b40f49ea-32c6-11ea-aec2-2e728ce88125',
-      },
-      result: 'success',
-    },
+    'event0',
+    {},
   ],
   [
     {
-      id: '87b98d2e-32c6-11ea-978f-2e728ce88125',
-      ip: '192.168.100.5',
-      name: 'titi',
+      name: 'subject1',
     },
-    'del',
-    { result: 'success' },
+    'event1',
+    {},
   ],
   [
     {
-      id: '87b98e8c-32c6-11ea-978f-2e728ce88125',
-      ip: '192.168.100.111',
-      name: 'foo',
+      name: 'subject2',
     },
-    'del',
-    {
-      result: 'success',
-    },
+    'event2',
+    {},
   ],
 ]
 
+const db = new DB()
+const auditCore = new AuditCore(db)
+const storeAuditRecords = async () => {
+  await Promise.all(DATA.map(data => auditCore.add(...data)))
+  const records = await asyncIteratorToArray(auditCore.getFrom())
+  expect(records.length).toBe(DATA.length)
+  return records
+}
+
 describe('auditCore', () => {
-  it('test storage lock on storing records', async () => {
-    const auditCore = new AuditCore(new DB())
-    await Promise.all([auditCore.add(...DATA[0]), auditCore.add(...DATA[1])])
-    const records = await asyncIteratorToArray(auditCore.getFrom())
-    expect(records.length).toBe(2)
+  afterEach(() => db._clear())
+
+  it('stores audit records, checks their integrity, deletes a record and re-checks the records integrity', async () => {
+    const [newestRecord, deletedRecord] = await storeAuditRecords()
+
+    await auditCore.checkIntegrity(NULL_ID, newestRecord.id)
+
+    await db.del(deletedRecord.id)
+    await expect(
+      auditCore.checkIntegrity(NULL_ID, newestRecord.id)
+    ).rejects.toThrow(
+      `inability to reach the oldest record (stopped at ${deletedRecord.id})`
+    )
   })
 
-  it('stores audit records, check their integrity, deletes a record and re-check the records integrity', async () => {
-    const db = new DB()
-    const auditCore = new AuditCore(db)
-    for (const [subject, event, data] of DATA) {
-      await auditCore.add(subject, event, data)
-    }
-    const records = await asyncIteratorToArray(auditCore.getFrom())
-    expect(records.length).toBe(DATA.length)
+  it('stores audit records, alters a record and checks the records integrity', async () => {
+    const [newestRecord, alteredRecord] = await storeAuditRecords()
 
-    const newestId = await db.getLastId()
-    await auditCore.checkIntegrity(NULL_ID, newestId)
-
-    await db.del(records[1].id)
-    await expect(auditCore.checkIntegrity(NULL_ID, newestId)).rejects.toThrow()
+    await db.put({
+      ...alteredRecord,
+      event: '',
+    })
+    await expect(
+      auditCore.checkIntegrity(NULL_ID, newestRecord.id)
+    ).rejects.toThrow(`altered record (stopped at ${alteredRecord.id})`)
   })
 
-  it('deletes records starting from an ID and check their integrity', async () => {
-    const db = new DB()
-    const auditCore = new AuditCore(db)
-    for (const [subject, event, data] of DATA) {
-      await auditCore.add(subject, event, data)
-    }
+  it('stores audit records, deletes records starting from an ID and checks their integrity', async () => {
+    const [thirdRecord, secondRecord, firstRecord] = await storeAuditRecords()
 
-    const [firstRecord, secondRecord] = (
-      await asyncIteratorToArray(auditCore.getFrom())
-    ).reverse()
     await auditCore.deleteFrom(secondRecord.id)
 
     expect(await db.get(firstRecord.id)).toBe(undefined)
     expect(await db.get(secondRecord.id)).toBe(undefined)
 
-    await auditCore.checkIntegrity(secondRecord.id, await db.getLastId())
+    await auditCore.checkIntegrity(secondRecord.id, thirdRecord.id)
   })
 })
