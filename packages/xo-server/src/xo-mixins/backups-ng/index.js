@@ -11,7 +11,7 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
-import { isValidXva } from '@xen-orchestra/backups'
+import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import {
   countBy,
   findLast,
