@@ -94,11 +94,30 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor({ guessVhdSizeOnImport, maxUncoalescedVdis, ...opts }) {
+  constructor({
+    exportVdiConcurrency,
+    exportVmConcurrency,
+    snapshotVmConcurrency,
+    guessVhdSizeOnImport,
+    maxUncoalescedVdis,
+    ...opts
+  }) {
     super(opts)
 
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
     this._maxUncoalescedVdis = maxUncoalescedVdis
+
+    const waitStreamEnd = async stream => fromEvent(await stream, 'end')
+    this._exportVdi = concurrency(
+      exportVdiConcurrency,
+      waitStreamEnd
+    )(this._exportVdi)
+    this.exportVm = concurrency(
+      exportVmConcurrency,
+      waitStreamEnd
+    )(this.exportVm)
+
+    this._snapshotVm = concurrency(snapshotVmConcurrency)(this._snapshotVm)
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -689,7 +708,6 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns a stream to the exported VM.
-  @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   async exportVm($cancelToken, vmId, { compress = false } = {}) {
     const vm = this.getObject(vmId)
@@ -1459,7 +1477,6 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  @concurrency(2)
   @cancelable
   async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
     const vm = await this.getRecord('VM', vmRef)
@@ -1916,7 +1933,6 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const query = {

@@ -120,4 +120,7 @@ timeout = 600e3
 #numWorkers = 2
 
 [xapiOptions]
+exportVdiConcurrency = 12
+exportVmConcurrency = 2
+snapshotVmConcurrency = 2
 maxUncoalescedVdis = 1
