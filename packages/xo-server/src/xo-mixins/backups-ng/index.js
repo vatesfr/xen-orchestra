@@ -11,6 +11,7 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
+import { isValidXva } from '@xen-orchestra/backups'
 import {
   countBy,
   findLast,
@@ -1302,6 +1303,10 @@ export default class BackupNg {
                 },
                 writeStream(fork, handler, dataFilename)
               )
+
+              if (handler._getFilePath !== undefined) {
+                await isValidXva(handler._getFilePath(dataFilename))
+              }
 
               await handler.outputFile(metadataFilename, jsonMetadata)
 

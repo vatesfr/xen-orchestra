@@ -9,6 +9,7 @@
 
 - [Snapshot] Fallback to normal snapshot if quiesce is not available [#4735](https://github.com/vatesfr/xen-orchestra/issues/4735) (PR [#4736](https://github.com/vatesfr/xen-orchestra/pull/4736)) \
   Fixes compatibility with **Citrix Hypervisor 8.1**.
+- [Uncompressed full backup] Quick healthcheck of downloaded XVAs in case there was an undetected issue (PR [#4741](https://github.com/vatesfr/xen-orchestra/pull/4741))
 
 ### Bug fixes
 
