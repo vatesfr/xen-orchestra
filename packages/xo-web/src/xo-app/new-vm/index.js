@@ -4,7 +4,6 @@ import BaseComponent from 'base-component'
 import Button from 'button'
 import classNames from 'classnames'
 import defined, { get } from '@xen-orchestra/defined'
-import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import isIp from 'is-ip'
 import Link from 'link'
@@ -372,14 +371,14 @@ export default class NewVm extends BaseComponent {
   }
 
   _selfCreate = () => {
-    const { cpusMax, VDIs, existingDisks, memoryDynamicMax } = this.state.state
+    const { VDIs, existingDisks, memoryDynamicMax } = this.state.state
     const { template } = this.props
     const disksSize = sumBy(VDIs, 'size') + sumBy(existingDisks, 'size')
     const templateDisksSize = sumBy(template.template_info.disks, 'size')
     const templateMemoryDynamicMax = template.memory.dynamic[1]
     const templateVcpusMax = template.CPUs.max
 
-    return cpusMax > MULTIPLICAND * templateVcpusMax ||
+    return this._getCpusMax() > MULTIPLICAND * templateVcpusMax ||
       memoryDynamicMax > MULTIPLICAND * templateMemoryDynamicMax ||
       disksSize > MULTIPLICAND * templateDisksSize
       ? confirm({
@@ -504,7 +503,7 @@ export default class NewVm extends BaseComponent {
       coresPerSocket:
         state.coresPerSocket === null ? undefined : state.coresPerSocket,
       CPUs: state.CPUs,
-      cpusMax: state.cpusMax,
+      cpusMax: this._getCpusMax(),
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
       name_description: state.name_description,
@@ -1069,17 +1068,14 @@ export default class NewVm extends BaseComponent {
     return name_label && template
   }
 
-  _onCpusChange = event => {
-    const value = getEventValue(event)
-    const cpusMax = Math.max(value, this.state.state.cpusMax)
-    this._setState({
-      CPUs: value,
-      cpusMax,
-    })
-  }
+  _getCpusMax = createSelector(
+    () => this.state.state.CPUs,
+    () => this.state.state.cpusMax,
+    (cpus, cpusMax) => Math.max(cpus, cpusMax)
+  )
 
   _renderPerformances = () => {
-    const { coresPerSocket, CPUs, cpusMax, memoryDynamicMax } = this.state.state
+    const { coresPerSocket, CPUs, memoryDynamicMax } = this.state.state
     const { template } = this.props
     const { pool } = this.props
     const memoryThreshold = get(() => template.memory.static[0])
@@ -1087,7 +1083,7 @@ export default class NewVm extends BaseComponent {
       <SelectCoresPerSocket
         disabled={pool === undefined || template === undefined}
         maxCores={get(() => pool.cpus.cores)}
-        maxVcpus={cpusMax}
+        maxVcpus={this._getCpusMax()}
         onChange={this._linkState('coresPerSocket')}
         value={coresPerSocket}
       />
@@ -1104,7 +1100,7 @@ export default class NewVm extends BaseComponent {
             <DebounceInput
               className='form-control'
               min={0}
-              onChange={this._onCpusChange}
+              onChange={this._linkState('CPUs')}
               type='number'
               value={CPUs}
             />
@@ -1648,7 +1644,7 @@ export default class NewVm extends BaseComponent {
       autoPoweron,
       bootAfterCreate,
       cpuCap,
-      cpusMax,
+      CPUs,
       cpuWeight,
       hvmBootFirmware,
       memoryDynamicMin,
@@ -1745,10 +1741,11 @@ export default class NewVm extends BaseComponent {
             <Item label={_('cpusMax')}>
               <DebounceInput
                 className='form-control'
-                min={0}
+                debounceTimeout={3e3}
+                min={CPUs}
                 onChange={this._linkState('cpusMax')}
                 type='number'
-                value={cpusMax}
+                value={this._getCpusMax()}
               />
             </Item>
           </SectionContent>,
@@ -1887,14 +1884,11 @@ export default class NewVm extends BaseComponent {
       memoryDynamicMin,
       memoryDynamicMax,
       memoryStaticMax,
-      CPUs,
-      cpusMax,
     } = this.state.state
     return (
       memoryDynamicMax != null &&
       (memoryDynamicMin == null || memoryDynamicMin <= memoryDynamicMax) &&
-      (memoryStaticMax == null || memoryDynamicMax <= memoryStaticMax) &&
-      cpusMax >= CPUs
+      (memoryStaticMax == null || memoryDynamicMax <= memoryStaticMax)
     )
   }
 
