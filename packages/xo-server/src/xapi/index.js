@@ -95,11 +95,11 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
   constructor({
-    exportVdiConcurrency,
-    exportVmConcurrency,
-    snapshotVmConcurrency,
     guessVhdSizeOnImport,
     maxUncoalescedVdis,
+    vdiExportConcurrency,
+    vmExportConcurrency,
+    vmSnapshotConcurrency,
     ...opts
   }) {
     super(opts)
@@ -109,15 +109,15 @@ export default class Xapi extends XapiBase {
 
     const waitStreamEnd = async stream => fromEvent(await stream, 'end')
     this._exportVdi = concurrency(
-      exportVdiConcurrency,
+      vdiExportConcurrency,
       waitStreamEnd
     )(this._exportVdi)
     this.exportVm = concurrency(
-      exportVmConcurrency,
+      vmExportConcurrency,
       waitStreamEnd
     )(this.exportVm)
 
-    this._snapshotVm = concurrency(snapshotVmConcurrency)(this._snapshotVm)
+    this._snapshotVm = concurrency(vmSnapshotConcurrency)(this._snapshotVm)
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
