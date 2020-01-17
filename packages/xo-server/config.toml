@@ -121,3 +121,6 @@ timeout = 600e3
 
 [xapiOptions]
 maxUncoalescedVdis = 1
+vdiExportConcurrency = 12
+vmExportConcurrency = 2
+vmSnapshotConcurrency = 2
