@@ -4,6 +4,16 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+## **5.42.1** (2020-01-17)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
 - [Snapshot] Fallback to normal snapshot if quiesce is not available [#4735](https://github.com/vatesfr/xen-orchestra/issues/4735) (PR [#4736](https://github.com/vatesfr/xen-orchestra/pull/4736)) \
   Fixes compatibility with **Citrix Hypervisor 8.1**.
 - [Uncompressed full backup] Quick healthcheck of downloaded XVAs in case there was an undetected issue (PR [#4741](https://github.com/vatesfr/xen-orchestra/pull/4741))
@@ -13,16 +23,12 @@
   - `xapiOptions.vmExportConcurrency`
   - `xapiOptions.vmSnapshotConcurrency`
 
-### Bug fixes
-
 ### Released packages
 
 - xo-server v5.55.0
 - xo-web v5.55.0
 
 ## **5.42.0** (2019-12-20)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Highlights
 
