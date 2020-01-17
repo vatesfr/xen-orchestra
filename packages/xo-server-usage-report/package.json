@@ -42,7 +42,7 @@
     "html-minifier": "^4.0.0",
     "human-format": "^0.10.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.14.0"
+    "promise-toolbox": "^0.15.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

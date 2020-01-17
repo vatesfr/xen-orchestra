@@ -1,12 +1,11 @@
 # Roadmap
 
- > Our roadmap is very flexible - you can check the **milestones** repository for a complete overview of all the features we are currently working on.
+> Our roadmap is very flexible - you can check the **milestones** repository for a complete overview of all the features we are currently working on.
 
 ## Features
 
 - [Milestones](https://github.com/vatesfr/xen-orchestra/milestones)
 - [Alerts and reports](alerts.md)
-
 
 ## Fixes
 

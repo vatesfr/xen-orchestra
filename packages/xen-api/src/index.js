@@ -506,7 +506,13 @@ export class Xapi extends EventEmitter {
     const { promise, resolve } = defer()
     eventWatchers[key] = resolve
 
-    await this._sessionCall('pool.add_to_other_config', [poolRef, key, ''])
+    await this._sessionCall('pool.add_to_other_config', [
+      poolRef,
+      key,
+
+      // use ms timestamp as values to enable identification of stale entries
+      String(Date.now()),
+    ])
 
     await promise
 

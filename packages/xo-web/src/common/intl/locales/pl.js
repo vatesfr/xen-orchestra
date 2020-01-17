@@ -722,13 +722,13 @@ export default {
   remoteNamePlaceHolder: 'Nazwa zdalna*',
 
   // Original text: "Name *"
-  remoteMyNamePlaceHolder: 'Nazwa *',
+  remoteMyNamePlaceHolder: 'Nazwa',
 
   // Original text: "/path/to/backup"
   remoteLocalPlaceHolderPath: '/ścieżka/do/kopii/zapasowej',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'Host *',
+  remoteNfsPlaceHolderHost: 'Host',
 
   // Original text: "/path/to/backup"
   remoteNfsPlaceHolderPath: '/ścieżka/do/kopii/zapasowej',
@@ -746,7 +746,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domena',
 
   // Original text: "<address>\\<share> *"
-  remoteSmbPlaceHolderAddressShare: '<adres>\\<udział> *',
+  remoteSmbPlaceHolderAddressShare: '<adres>\\<udział>',
 
   // Original text: "password(fill to edit)"
   remotePlaceHolderPassword: 'Hasło (wypełnij)',

@@ -1,4 +1,5 @@
 {
+  "private": false,
   "name": "xo-lib",
   "version": "0.9.0",
   "license": "ISC",

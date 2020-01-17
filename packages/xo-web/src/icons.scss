@@ -91,6 +91,14 @@
     @extend .fa;
     @extend .fa-chevron-down;
   }
+  &-hub-recipe {
+    @extend .fa;
+    @extend .fa-wpforms;
+  }
+  &-hub-template {
+    @extend .fa;
+    @extend .fa-cube;
+  }
 
   &-grab {
     @extend .fa;

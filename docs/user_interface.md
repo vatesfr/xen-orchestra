@@ -26,9 +26,9 @@ By default, this view groups all **running VMs** on your connected server:
 
 Let's take a quick tour:
 
-* the global menu is on the left, you can collapse it by clicking on the icon ![](./assets/xo5collapsemenu.png)
-* the home view has a header with a type selector (VMs, hosts or pools), a filter zone and a button to create new VMs
-* the VM list also has a header (number of filtered VMs and total VMs) and assisted filters (by pool, host and tags) and a sort menu (by name, memory etc.). You can also expand all VMs details here with the icon ![](./assets/xo5expandhome.png)
+- the global menu is on the left, you can collapse it by clicking on the icon ![](./assets/xo5collapsemenu.png)
+- the home view has a header with a type selector (VMs, hosts or pools), a filter zone and a button to create new VMs
+- the VM list also has a header (number of filtered VMs and total VMs) and assisted filters (by pool, host and tags) and a sort menu (by name, memory etc.). You can also expand all VMs details here with the icon ![](./assets/xo5expandhome.png)
 
 > Pro Tip: you can edit a VM name, description and even current host by long clicking on the field
 

@@ -1188,6 +1188,9 @@ export const changeVirtualizationMode = vm =>
     })
   )
 
+export const createKubernetesCluster = params =>
+  _call('xoa.recipe.createKubernetesCluster', params)
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
@@ -2284,6 +2287,7 @@ export const disableRemote = remote =>
 
 export const editRemote = (remote, { name, url, options }) =>
   _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() => {
+    subscribeRemotes.forceRefresh()
     testRemote(remote).catch(noop)
   })
 
@@ -3013,3 +3017,5 @@ export const openTunnel = () =>
 export const subscribeTunnelState = createSubscription(() =>
   _call('xoa.supportTunnel.getState')
 )
+
+export const getApplianceInfo = () => _call('xoa.getApplianceInfo')

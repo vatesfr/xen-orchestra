@@ -17,13 +17,14 @@
     "eslint-plugin-react": "^7.6.1",
     "eslint-plugin-standard": "^4.0.0",
     "exec-promise": "^0.7.0",
-    "flow-bin": "^0.112.0",
+    "flow-bin": "^0.114.0",
     "globby": "^10.0.0",
     "husky": "^3.0.0",
     "jest": "^24.1.0",
+    "lint-staged": "^9.5.0",
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
-    "promise-toolbox": "^0.14.0",
+    "promise-toolbox": "^0.15.0",
     "sorted-object": "^2.0.1"
   },
   "engines": {
@@ -31,7 +32,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "scripts/lint-staged"
+      "pre-commit": "lint-staged && scripts/lint-staged"
     }
   },
   "jest": {
@@ -50,6 +51,12 @@
     "transform": {
       "\\.jsx?$": "babel-jest"
     }
+  },
+  "lint-staged": {
+    "*.{md,ts,ts}": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "private": true,
   "scripts": {

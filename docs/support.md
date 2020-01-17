@@ -4,10 +4,10 @@ Xen Orchestra will run in a controlled/tested environment thanks to XOA ([Xen Or
 
 XOA is available in multiple plans:
 
-* Free  
-* Starter
-* Enterprise
-* Premium
+- Free
+- Starter
+- Enterprise
+- Premium
 
 Higher tier support plans include faster ticket response times (and cover more features). Paid support plans and response times are based on the plan you have, plans can be [reviewed here](https://xen-orchestra.com/#!/xo-pricing).
 
@@ -19,8 +19,8 @@ With the free version of the Xen Orchestra Appliance (XOA free), you can open su
 
 If you are using Xen Orchestra via the source and not XOA, you can ask questions and try to recieve help through a number of different ways:
 
-* In our [forum](https://xcp-ng.org/forum/category/12/xen-orchestra)
-* In our IRC - `#xen-orchestra` on `Freenode`
+- In our [forum](https://xcp-ng.org/forum/category/12/xen-orchestra)
+- In our IRC - `#xen-orchestra` on `Freenode`
 
 We encourage you to give back to the community by assisting other users via these two avenues as well.
 

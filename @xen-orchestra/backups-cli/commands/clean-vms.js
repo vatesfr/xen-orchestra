@@ -6,106 +6,19 @@ let force
 // -----------------------------------------------------------------------------
 
 const assert = require('assert')
+const flatten = require('lodash/flatten')
 const getopts = require('getopts')
+const isValidXva = require('@xen-orchestra/backups/isValidXva')
 const lockfile = require('proper-lockfile')
+const pipe = require('promise-toolbox/pipe')
 const { default: Vhd } = require('vhd-lib')
-const { curryRight, flatten } = require('lodash')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
-const { pipe, promisifyAll } = require('promise-toolbox')
 
-const fs = promisifyAll(require('fs'))
+const asyncMap = require('../_asyncMap')
+const fs = require('../_fs')
+
 const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
-
-// -----------------------------------------------------------------------------
-
-const asyncMap = curryRight((iterable, fn) =>
-  Promise.all(
-    Array.isArray(iterable) ? iterable.map(fn) : Array.from(iterable, fn)
-  )
-)
-
-const filter = (...args) => thisArg => thisArg.filter(...args)
-
-const isGzipFile = async fd => {
-  // https://tools.ietf.org/html/rfc1952.html#page-5
-  const magicNumber = Buffer.allocUnsafe(2)
-  assert.strictEqual(
-    await fs.read(fd, magicNumber, 0, magicNumber.length, 0),
-    magicNumber.length
-  )
-  return magicNumber[0] === 31 && magicNumber[1] === 139
-}
-
-// TODO: better check?
-//
-// our heuristic is not good enough, there has been some false positives
-// (detected as invalid by us but valid by `tar` and imported with success),
-// either THOUGH THEY MAY HAVE BEEN COMPRESSED FILES:
-// - these files were normal but the check is incorrect
-// - these files were invalid but without data loss
-// - these files were invalid but with silent data loss
-//
-// maybe reading the end of the file looking for a file named
-// /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
-//
-// https://github.com/npm/node-tar/issues/234#issuecomment-538190295
-const isValidTar = async (size, fd) => {
-  if (size <= 1024 || size % 512 !== 0) {
-    return false
-  }
-
-  const buf = Buffer.allocUnsafe(1024)
-  assert.strictEqual(
-    await fs.read(fd, buf, 0, buf.length, size - buf.length),
-    buf.length
-  )
-  return buf.every(_ => _ === 0)
-}
-
-// TODO: find an heuristic for compressed files
-const isValidXva = async path => {
-  try {
-    const fd = await fs.open(path, 'r')
-    try {
-      const { size } = await fs.fstat(fd)
-      if (size < 20) {
-        // neither a valid gzip not tar
-        return false
-      }
-
-      return (await isGzipFile(fd))
-        ? true // gzip files cannot be validated at this time
-        : await isValidTar(size, fd)
-    } finally {
-      fs.close(fd).catch(noop)
-    }
-  } catch (error) {
-    // never throw, log and report as valid to avoid side effects
-    console.error('isValidXva', path, error)
-    return true
-  }
-}
-
-const noop = Function.prototype
-
-const readDir = path =>
-  fs.readdir(path).then(
-    entries => {
-      entries.forEach((entry, i) => {
-        entries[i] = `${path}/${entry}`
-      })
-
-      return entries
-    },
-    error => {
-      // a missing dir is by definition empty
-      if (error != null && error.code === 'ENOENT') {
-        return []
-      }
-      throw error
-    }
-  )
 
 // -----------------------------------------------------------------------------
 
@@ -157,12 +70,12 @@ async function mergeVhdChain(chain) {
 
 const listVhds = pipe([
   vmDir => vmDir + '/vdis',
-  readDir,
-  asyncMap(readDir),
+  fs.readdir2,
+  asyncMap(fs.readdir2),
   flatten,
-  asyncMap(readDir),
+  asyncMap(fs.readdir2),
   flatten,
-  filter(_ => _.endsWith('.vhd')),
+  _ => _.filter(_ => _.endsWith('.vhd')),
 ])
 
 async function handleVm(vmDir) {
@@ -239,10 +152,12 @@ async function handleVm(vmDir) {
     await Promise.all(deletions)
   }
 
-  const [jsons, xvas] = await readDir(vmDir).then(entries => [
-    entries.filter(_ => _.endsWith('.json')),
-    new Set(entries.filter(_ => _.endsWith('.xva'))),
-  ])
+  const [jsons, xvas] = await fs
+    .readdir2(vmDir)
+    .then(entries => [
+      entries.filter(_ => _.endsWith('.json')),
+      new Set(entries.filter(_ => _.endsWith('.xva'))),
+    ])
 
   await asyncMap(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report

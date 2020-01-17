@@ -35,9 +35,9 @@ const xapi = createClient({
   allowUnauthorized: false,
   auth: {
     user: 'root',
-    password: 'important secret password'
+    password: 'important secret password',
   },
-  readOnly: false
+  readOnly: false,
 })
 ```
 
@@ -64,6 +64,7 @@ xapi.objects.on('add', objects => {
 > Note: all objects are frozen and cannot be altered!
 
 Custom fields on objects (hidden − ie. non enumerable):
+
 - `$type`: the type of the object (`VM`, `task`, …);
 - `$ref`: the (opaque) reference of the object;
 - `$id`: the identifier of this object (its UUID if any, otherwise its reference);
@@ -128,7 +129,7 @@ root@xen1.company.net> findAll({ $type: 'VM' }).length
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

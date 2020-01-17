@@ -1,4 +1,5 @@
 {
+  "private": false,
   "name": "xen-api",
   "version": "0.27.3",
   "license": "ISC",
@@ -38,7 +39,7 @@
     "debug": "^4.0.1",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
-    "http-request-plus": "^0.8.0",
+    "http-request-plus": "^0.9.1",
     "jest-diff": "^24.0.0",
     "json-rpc-protocol": "^0.13.1",
     "kindof": "^2.0.0",
@@ -46,7 +47,7 @@
     "make-error": "^1.3.0",
     "minimist": "^1.2.0",
     "ms": "^2.1.1",
-    "promise-toolbox": "^0.14.0",
+    "promise-toolbox": "^0.15.0",
     "pw": "0.0.4",
     "xmlrpc": "^1.3.2",
     "xo-collection": "^0.4.1"

@@ -2,10 +2,10 @@
 
 The idea is not just to provide a good search engine, but also a complete solution for managing all your XenServer infrastructure. Ideally:
 
-* less clicks to see or do what you need
-* find a subset of interesting objects
-* perform bulk actions on all results found
-* sort your results for more pertinent insight
+- less clicks to see or do what you need
+- find a subset of interesting objects
+- perform bulk actions on all results found
+- sort your results for more pertinent insight
 
 > Pro Tip: the URL of Xen Orchestra contains the search string, eg `home?s=power_state%3Arunning+`. You can share these URLs to your colleagues to share your search!
 
@@ -112,10 +112,9 @@ Postfix the name of a property by a question mark `?`:
 
 You can use the search field/filter with number comparisons:
 
-* `snapshots:length:>2` (to display VMs with more than 2 snapshots)
-* `$VBDs:length:>=4` (VMs with more 4 or more disks attached)
-* `VIFs:length:>=2` (number of network interfaces)
-
+- `snapshots:length:>2` (to display VMs with more than 2 snapshots)
+- `$VBDs:length:>=4` (VMs with more 4 or more disks attached)
+- `VIFs:length:>=2` (number of network interfaces)
 
 ## Available properties
 

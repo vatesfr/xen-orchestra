@@ -19,7 +19,7 @@ import emitAsync from '@xen-orchestra/emit-async'
 const ee = new EE()
 ee.emitAsync = emitAsync
 
-ee.on('start', async function () {
+ee.on('start', async function() {
   // whatever
 })
 
@@ -29,11 +29,14 @@ await ee.emitAsync('start')
 
 // by default, it will rejects as soon as one listener reject, you can customise
 // error handling though:
-await ee.emitAsync({
-  onError (error) {
-    console.warn(error)
-  }
-}, 'start')
+await ee.emitAsync(
+  {
+    onError(error) {
+      console.warn(error)
+    },
+  },
+  'start'
+)
 ```
 
 ## Development
@@ -57,7 +60,7 @@ await ee.emitAsync({
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

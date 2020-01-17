@@ -8,8 +8,8 @@ XCP-ng and Citrix Hypervisor (Xenserver) hosts use a database to store metadata 
 
 In Xen Orchestra, Metadata backup is divided into two different options:
 
-* Pool metadata backup
-* XO configuration backup
+- Pool metadata backup
+- XO configuration backup
 
 ### Performing a backup
 
@@ -27,7 +27,6 @@ Define the name and retention for the job.
 Once created, the job is displayed with the other classic jobs.
 
 ![](./assets/metadata-4.png)
-
 
 ### Performing a restore
 

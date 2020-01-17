@@ -88,6 +88,7 @@ The only part you need to launch is xo-server, which is quite easy to do. From t
 ```
 $ yarn start
 ```
+
 That's it! Use your browser to visit the xo-server IP address, and it works! :)
 
 ## Updating
@@ -102,6 +103,7 @@ $ git pull --ff-only
 $ yarn
 $ yarn build
 ```
+
 Then restart Xen Orchestra if it was running.
 
 ## Always Running
@@ -114,7 +116,7 @@ yarn global add forever
 forever start bin/xo-server
 ```
 
-- Or you can use  [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
+- Or you can use [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
 
 ```
 yarn global add forever

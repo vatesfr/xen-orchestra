@@ -72,6 +72,11 @@ vmBackupSizeTimeout = '2 seconds'
 
 poolMetadataTimeout = '10 minutes'
 
+# https://github.com/naugtur/blocked-at#params-and-return-value
+[blockedAtOptions]
+enabled = false
+threshold = 1000
+
 # Helmet handles HTTP security via headers
 #
 # https://helmetjs.github.io/docs/
@@ -108,5 +113,14 @@ timeout = 600e3
 # see https:#github.com/vatesfr/xen-orchestra/issues/3419
 # useSudo = false
 
+
+# https://github.com/facebook/jest/blob/master/packages/jest-worker/README.md#options-object-optional
+#
+#[workerOptions]
+#numWorkers = 2
+
 [xapiOptions]
 maxUncoalescedVdis = 1
+vdiExportConcurrency = 12
+vmExportConcurrency = 2
+vmSnapshotConcurrency = 2
