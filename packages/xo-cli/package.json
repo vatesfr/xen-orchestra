@@ -1,4 +1,5 @@
 {
+  "private": false,
   "name": "xo-cli",
   "version": "0.10.1",
   "license": "AGPL-3.0",

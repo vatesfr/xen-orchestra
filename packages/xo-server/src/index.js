@@ -646,13 +646,16 @@ export default async function main(args) {
   const config = await loadConfiguration()
 
   {
-    const logPerf = createLogger('xo:perf')
-    blocked((time, stack) => {
-      logPerf.info(`blocked for ${ms(time)}`, {
-        time,
-        stack,
-      })
-    }, config.blockedAtOptions)
+    const { enabled, ...options } = config.blockedAtOptions
+    if (enabled) {
+      const logPerf = createLogger('xo:perf')
+      blocked((time, stack) => {
+        logPerf.info(`blocked for ${ms(time)}`, {
+          time,
+          stack,
+        })
+      }, options)
+    }
   }
 
   const webServer = await createWebServer(config.http)

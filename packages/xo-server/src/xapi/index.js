@@ -94,11 +94,30 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor({ guessVhdSizeOnImport, maxUncoalescedVdis, ...opts }) {
+  constructor({
+    guessVhdSizeOnImport,
+    maxUncoalescedVdis,
+    vdiExportConcurrency,
+    vmExportConcurrency,
+    vmSnapshotConcurrency,
+    ...opts
+  }) {
     super(opts)
 
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
     this._maxUncoalescedVdis = maxUncoalescedVdis
+
+    const waitStreamEnd = async stream => fromEvent(await stream, 'end')
+    this._exportVdi = concurrency(
+      vdiExportConcurrency,
+      waitStreamEnd
+    )(this._exportVdi)
+    this.exportVm = concurrency(
+      vmExportConcurrency,
+      waitStreamEnd
+    )(this.exportVm)
+
+    this._snapshotVm = concurrency(vmSnapshotConcurrency)(this._snapshotVm)
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -689,7 +708,6 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns a stream to the exported VM.
-  @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   async exportVm($cancelToken, vmId, { compress = false } = {}) {
     const vm = this.getObject(vmId)
@@ -1459,7 +1477,6 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  @concurrency(2)
   @cancelable
   async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
     const vm = await this.getRecord('VM', vmRef)
@@ -1502,6 +1519,8 @@ export default class Xapi extends XapiBase {
         } catch (error) {
           const { code } = error
           if (
+            // removed in CH 8.1
+            code !== 'MESSAGE_REMOVED' &&
             code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
             // quiesce only work on a running VM
             code !== 'VM_BAD_POWER_STATE' &&
@@ -1914,7 +1933,6 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const query = {

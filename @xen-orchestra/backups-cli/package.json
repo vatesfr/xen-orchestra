@@ -1,9 +1,11 @@
 {
+  "private": false,
   "bin": {
     "xo-backups": "index.js"
   },
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
+    "@xen-orchestra/backups": "^0.0.0",
     "@xen-orchestra/fs": "^0.10.2",
     "filenamify": "^4.1.0",
     "getopts": "^2.2.5",
@@ -15,6 +17,10 @@
   "engines": {
     "node": ">=7.10.1"
   },
+  "files": [
+    "commands",
+    "*.js"
+  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/backups-cli",
   "name": "@xen-orchestra/backups-cli",
   "repository": {

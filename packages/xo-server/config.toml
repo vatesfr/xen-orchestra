@@ -74,6 +74,7 @@ poolMetadataTimeout = '10 minutes'
 
 # https://github.com/naugtur/blocked-at#params-and-return-value
 [blockedAtOptions]
+enabled = false
 threshold = 1000
 
 # Helmet handles HTTP security via headers
@@ -120,6 +121,9 @@ timeout = 600e3
 
 [xapiOptions]
 maxUncoalescedVdis = 1
+vdiExportConcurrency = 12
+vmExportConcurrency = 2
+vmSnapshotConcurrency = 2
 
 ["xo-proxy"]
 callTimeout = '1 min'
