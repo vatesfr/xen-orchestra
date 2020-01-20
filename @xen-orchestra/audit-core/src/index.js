@@ -18,9 +18,7 @@ export class Storage {
       releaseLock = resolve
     })
     await lock
-    return () => {
-      releaseLock()
-    }
+    return releaseLock
   }
 }
 

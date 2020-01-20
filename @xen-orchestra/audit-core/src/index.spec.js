@@ -79,7 +79,7 @@ const storeAuditRecords = async () => {
 describe('auditCore', () => {
   afterEach(() => db._clear())
 
-  it('stores audit records, checks their integrity, deletes a record and re-checks the records integrity', async () => {
+  it('detects that a record is missing', async () => {
     const [newestRecord, deletedRecord] = await storeAuditRecords()
 
     await auditCore.checkIntegrity(NULL_ID, newestRecord.id)
@@ -92,7 +92,7 @@ describe('auditCore', () => {
     )
   })
 
-  it('stores audit records, alters a record and checks the records integrity', async () => {
+  it('detects that a record has been altered', async () => {
     const [newestRecord, alteredRecord] = await storeAuditRecords()
 
     await db.put({
@@ -104,7 +104,7 @@ describe('auditCore', () => {
     ).rejects.toThrow(`altered record (stopped at ${alteredRecord.id})`)
   })
 
-  it('stores audit records, deletes records starting from an ID and checks their integrity', async () => {
+  it('confirms interval integrity after deletion of records outside of the interval', async () => {
     const [thirdRecord, secondRecord, firstRecord] = await storeAuditRecords()
 
     await auditCore.deleteFrom(secondRecord.id)
