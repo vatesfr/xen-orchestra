@@ -14,7 +14,7 @@ Xen Orchestra will fetch the content of the snapshot made in step 1. This operat
 
 ### 3. Snapshot removal
 
-When it's done exporting, we'll remove the snapshot. Note: this operation will trigger a coalesce on your storage in the near future.
+When it's done exporting, we'll remove the snapshot. Note: this operation will trigger a coalesce on your storage in the near future (a coalesce is required every time a snapshot is removed).
 
 ## Concurrency
 
@@ -39,6 +39,7 @@ Each step has its own concurrency to fit its requirements:
 
 - **snapshot process** needs to be performed with the lowest concurrency possible. 2 is a good compromise: one snapshot is fast, but a stuck snapshot won't block the whole job. That's why a concurrency of 2 is not too bad on your storage. Basically, at 3 AM, we'll do all the VM snapshots needed, 2 at a time.
 - **disk export process** is bottlenecked by XCP-ng/XenServer - so to get the most of it, you can use up to 12 in parallel. As soon a snapshot is done, the export process will start, until reaching 12 at once. Then as soon as one in those 12 is finished, another one will appear until there is nothing more to export.
+- **VM export process:** the 12 disk export limit mentioned above applies to VDI exports, which happen during delta exports. For full VM exports (for example, for full backup job types), there is a built in limit of 2. This means if you have a full backup job of 6 VMs, only 2 will be exported at once.
 - **snapshot deletion** can't happen all at once because the previous step durations are random - no need to implement concurrency on this one.
 
 This is how it currently works in Xen Orchestra. But sometimes, you also want to have _sequential_ backups combined with the _parallel strategy_. That's why we introduced a sequential option in the advanced section of backup-ng:
