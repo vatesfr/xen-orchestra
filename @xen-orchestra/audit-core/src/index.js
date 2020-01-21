@@ -4,14 +4,13 @@ import 'core-js/features/symbol/async-iterator'
 import assert from 'assert'
 import defer from 'golike-defer'
 import hash from 'object-hash'
-import { invert } from 'lodash'
 
 export class Storage {
   constructor() {
     this._lock = Promise.resolve()
   }
 
-  async acquire() {
+  async acquireLock() {
     const lock = this._lock
     let releaseLock
     this._lock = new Promise(resolve => {
@@ -25,18 +24,16 @@ export class Storage {
 // Format: $<algorithm>$<salt>$<encrypted>
 //
 // http://man7.org/linux/man-pages/man3/crypt.3.html#NOTES
-const ALGORITHM_TO_ID = {
-  sha256: '5',
+const ID_TO_ALGORITHM = {
+  '5': 'sha256',
 }
-
-const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
 
 export const NULL_ID = 'nullId'
 
-const HASH_ALGORITHM = 'sha256'
-const createHash = (data, algorithm = HASH_ALGORITHM) =>
-  `$${ALGORITHM_TO_ID[algorithm]}$$${hash(data, {
-    algorithm,
+const HASH_ALGORITHM_ID = '5'
+const createHash = (data, algorithmId = HASH_ALGORITHM_ID) =>
+  `$${algorithmId}$$${hash(data, {
+    algorithm: ID_TO_ALGORITHM[algorithmId],
     excludeKeys: key => key === 'id',
   })}`
 
@@ -48,14 +45,15 @@ export class AuditCore {
 
   @defer
   async add($defer, subject, event, data) {
+    const time = Date.now()
     const storage = this._storage
-    $defer(await storage.acquire())
+    $defer(await storage.acquireLock())
     const record = {
       data,
       event,
       previousId: (await storage.getLastId()) ?? NULL_ID,
       subject,
-      time: Date.now(),
+      time,
     }
     record.id = createHash(record)
     await storage.put(record)
@@ -69,19 +67,15 @@ export class AuditCore {
       if (record === undefined) {
         return {
           id: newest,
-          reason: 'inability to reach the oldest record',
+          reason: `unable to reach the record ${oldest} (stopped at ${newest})`,
         }
       }
       if (
-        newest !==
-        createHash(
-          record,
-          ID_TO_ALGORITHM[newest.slice(1, newest.indexOf('$', 1))]
-        )
+        newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))
       ) {
         return {
           id: newest,
-          reason: 'altered record',
+          reason: `the record ${newest} is altered`,
         }
       }
       newest = record.previousId
@@ -93,7 +87,7 @@ export class AuditCore {
   async checkIntegrity(oldest, newest) {
     const { id, reason } = await this._getOldestValidatedId(oldest, newest)
     if (id !== oldest) {
-      throw new Error(`${reason} (stopped at ${id})`)
+      throw new Error(reason)
     }
   }
 

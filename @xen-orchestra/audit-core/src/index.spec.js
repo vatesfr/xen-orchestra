@@ -88,7 +88,7 @@ describe('auditCore', () => {
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
     ).rejects.toThrow(
-      `inability to reach the oldest record (stopped at ${deletedRecord.id})`
+      `unable to reach the record ${NULL_ID} (stopped at ${deletedRecord.id})`
     )
   })
 
@@ -101,7 +101,7 @@ describe('auditCore', () => {
     })
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toThrow(`altered record (stopped at ${alteredRecord.id})`)
+    ).rejects.toThrow(`the record ${alteredRecord.id} is altered`)
   })
 
   it('confirms interval integrity after deletion of records outside of the interval', async () => {
