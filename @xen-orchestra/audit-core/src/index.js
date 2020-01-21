@@ -94,6 +94,7 @@ export class AuditCore {
   }
 
   async deleteFrom(newest) {
+    assert(newest !== undefined)
     for await (const { id } of this.getFrom(newest)) {
       await this._storage.del(id)
     }
