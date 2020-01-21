@@ -61,33 +61,24 @@ export class AuditCore {
     return record
   }
 
-  async _getOldestValidatedId(oldest, newest) {
+  // TODO: https://github.com/vatesfr/xen-orchestra/pull/4733#discussion_r366897798
+  async checkIntegrity(oldest, newest) {
     while (newest !== oldest) {
       const record = await this._storage.get(newest)
       if (record === undefined) {
-        return {
-          id: newest,
-          reason: `unable to reach the record ${oldest} (stopped at ${newest})`,
-        }
+        const error = new Error('missing record')
+        error.id = newest
+        throw error
       }
       if (
         newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))
       ) {
-        return {
-          id: newest,
-          reason: `the record ${newest} is altered`,
-        }
+        const error = new Error('altered record')
+        error.id = newest
+        error.record = record
+        throw error
       }
       newest = record.previousId
-    }
-    return { id: oldest }
-  }
-
-  // TODO: https://github.com/vatesfr/xen-orchestra/pull/4733#discussion_r366897798
-  async checkIntegrity(oldest, newest) {
-    const { id, reason } = await this._getOldestValidatedId(oldest, newest)
-    if (id !== oldest) {
-      throw new Error(reason)
     }
   }
 

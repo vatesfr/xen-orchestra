@@ -87,9 +87,7 @@ describe('auditCore', () => {
     await db.del(deletedRecord.id)
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toThrow(
-      `unable to reach the record ${NULL_ID} (stopped at ${deletedRecord.id})`
-    )
+    ).rejects.toThrow('missing record')
   })
 
   it('detects that a record has been altered', async () => {
@@ -101,7 +99,7 @@ describe('auditCore', () => {
     })
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toThrow(`the record ${alteredRecord.id} is altered`)
+    ).rejects.toThrow('altered record')
   })
 
   it('confirms interval integrity after deletion of records outside of the interval', async () => {
