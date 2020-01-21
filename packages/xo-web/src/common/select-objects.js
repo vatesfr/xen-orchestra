@@ -1,5 +1,7 @@
+import decorate from 'apply-decorators'
 import React from 'react'
 import PropTypes from 'prop-types'
+import { injectState, provideState } from 'reaclette'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
   filter,
@@ -20,6 +22,7 @@ import {
 
 import _ from './intl'
 import Button from './button'
+import EphemeralInput from './ephemeral-input'
 import Icon from './icon'
 import renderXoItem from './render-xo-item'
 import Select from './form/select'
@@ -47,6 +50,7 @@ import {
   subscribeRoles,
   subscribeUsers,
 } from './xo'
+import { toggleState } from './reaclette-utils'
 
 // ===================================================================
 
@@ -588,7 +592,7 @@ export const SelectPif = makeStoreSelect(
 
 // ===================================================================
 
-export const SelectTag = makeStoreSelect(
+const SelectTag_ = makeStoreSelect(
   (_, props) => ({
     xoObjects: createSelector(
       createGetTags(
@@ -601,6 +605,57 @@ export const SelectTag = makeStoreSelect(
   }),
   { allowMissingObjects: true, placeholder: _('selectTags') }
 )
+
+export const SelectTag = decorate([
+  provideState({
+    initialState: () => ({
+      editing: false,
+    }),
+    effects: {
+      addTag: (effects, newTag) => (_, { multi, onChange, value }) => {
+        if (newTag === value || (multi && includes(value, newTag))) {
+          return
+        }
+        onChange(
+          multi ? (value == null ? [newTag] : [...value, newTag]) : newTag
+        )
+      },
+      closeEdition: () => ({ editing: false }),
+      toggleState,
+    },
+  }),
+  injectState,
+  ({ state, effects, resetState, customTag, ...props }) => (
+    <span>
+      {customTag ? (
+        state.editing ? (
+          <EphemeralInput
+            closeEdition={effects.closeEdition}
+            onChange={effects.addTag}
+            type='text'
+          />
+        ) : (
+          <Tooltip content={_('customTag')}>
+            <Button name='editing' onClick={effects.toggleState} size='small'>
+              <Icon icon='edit' />
+            </Button>
+          </Tooltip>
+        )
+      ) : null}
+      <SelectTag_ {...props} />
+    </span>
+  ),
+])
+
+SelectTag.propTypes = {
+  customTag: PropTypes.bool,
+}
+
+SelectTag.defaultProps = {
+  customTag: false,
+}
+
+// ===================================================================
 
 export const SelectHighLevelObject = makeStoreSelect(
   () => {

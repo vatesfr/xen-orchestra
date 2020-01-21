@@ -1,8 +1,6 @@
 import _ from 'intl'
-import Button from 'button'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
-import EphemeralInput from 'ephemeral-input'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -16,7 +14,6 @@ import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from 'reaclette'
 import { Select } from 'form'
 import { SelectPool, SelectTag } from 'select-objects'
-import { toggleState } from 'reaclette-utils'
 
 import { canDeltaBackup, FormGroup } from './../utils'
 
@@ -25,43 +22,6 @@ const VMS_STATUSES_OPTIONS = [
   { value: 'Running', label: _('vmStateRunning') },
   { value: 'Halted', label: _('vmStateHalted') },
 ]
-
-const CustomTag = decorate([
-  provideState({
-    initialState: () => ({
-      editing: false,
-    }),
-    effects: {
-      addTag: (effects, newTag) => (_, { handler, selectedTags }) =>
-        selectedTags == null
-          ? handler([newTag])
-          : !selectedTags.includes(newTag) &&
-            handler([...selectedTags, newTag]),
-      closeEdition: () => ({ editing: false }),
-      toggleState,
-    },
-  }),
-  injectState,
-  ({ state, effects }) =>
-    state.editing ? (
-      <EphemeralInput
-        closeEdition={effects.closeEdition}
-        onChange={effects.addTag}
-        type='text'
-      />
-    ) : (
-      <Tooltip content={_('customTag')}>
-        <Button name='editing' onClick={effects.toggleState} size='small'>
-          <Icon icon='edit' />
-        </Button>
-      </Tooltip>
-    ),
-])
-
-CustomTag.propTypes = {
-  selectedTags: PropTypes.array,
-  handler: PropTypes.func.isRequired,
-}
 
 const SmartBackup = decorate([
   connectStore({
@@ -152,11 +112,8 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
-        <CustomTag
-          selectedTags={state.tags.values}
-          handler={effects.setTagValues}
-        />
         <SelectTag
+          customTag
           multi
           onChange={effects.setTagValues}
           value={get(() => state.tags.values)}
@@ -169,11 +126,8 @@ const SmartBackup = decorate([
         <Tooltip content={_('backupReplicatedVmsInfo')}>
           <Icon icon='info' />
         </Tooltip>{' '}
-        <CustomTag
-          selectedTags={state.tags.notValues}
-          handler={effects.setTagNotValues}
-        />
         <SelectTag
+          customTag
           multi
           onChange={effects.setTagNotValues}
           value={get(() => state.tags.notValues)}
