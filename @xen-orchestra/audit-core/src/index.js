@@ -39,7 +39,7 @@ const createHash = (data, algorithmId = HASH_ALGORITHM_ID) =>
 
 export class AuditCore {
   constructor(storage) {
-    assert(storage !== undefined)
+    assert.notStrictEqual(storage, undefined)
     this._storage = storage
   }
 
@@ -94,6 +94,7 @@ export class AuditCore {
   }
 
   async deleteFrom(newest) {
+    assert.notStrictEqual(newest, undefined)
     assert(newest !== undefined)
     for await (const { id } of this.getFrom(newest)) {
       await this._storage.del(id)
