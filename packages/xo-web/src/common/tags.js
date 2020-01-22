@@ -121,7 +121,7 @@ export default class Tags extends Component {
     this._focused = true
   }
 
-  _stopEditIfUnfocused = () => {
+  _closeEditionIfUnfocused = () => {
     this._focused = false
     setTimeout(() => {
       !this._focused && this._stopEdit()
@@ -153,7 +153,7 @@ export default class Tags extends Component {
         ) : (
           <span
             className='form-inline'
-            onBlur={this._stopEditIfUnfocused}
+            onBlur={this._closeEditionIfUnfocused}
             onFocus={this._focus}
           >
             <span className='input-group'>
