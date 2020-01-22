@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import fs from 'fs'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
 import { format, parse } from 'json-rpc-protocol'
@@ -35,19 +36,32 @@ Usage:
 
   xo-proxy-cli <method> [<param>=<value>]...
     Call a method of the API and display its result.
+
+  xo-proxy-cli <file>
+    Read a JSON file containing an object with \`method\` and \`params\`
+    properties and call the API method.
 `
     )
   }
 
-  const method = args[0]
-  const params = {}
-  for (let i = 1, n = args.length; i < n; ++i) {
-    const param = args[i]
-    const j = param.indexOf('=')
-    if (j === -1) {
-      throw new Error(`invalid param format: ${param}`)
+  let method, params
+  try {
+    ;({ method, params = {} } = JSON.parse(fs.readFileSync(args[0], 'utf8')))
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error
     }
-    params[param.slice(0, j)] = parseValue(param.slice(j + 1))
+
+    method = args[0]
+    params = {}
+    for (let i = 1, n = args.length; i < n; ++i) {
+      const param = args[i]
+      const j = param.indexOf('=')
+      if (j === -1) {
+        throw new Error(`invalid param format: ${param}`)
+      }
+      params[param.slice(0, j)] = parseValue(param.slice(j + 1))
+    }
   }
 
   const lines = (
