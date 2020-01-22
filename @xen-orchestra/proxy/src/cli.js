@@ -1,33 +1,47 @@
 #!/usr/bin/env node
 
+import getopts from 'getopts'
 import hrp from 'http-request-plus'
 import { format, parse } from 'json-rpc-protocol'
+import { load as loadConfig } from 'app-conf'
 
 const parseValue = value =>
   value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
 
-const required = param => {
-  throw new Error(`missing ${param} parameter`)
-}
+async function main(argv) {
+  const config = await loadConfig('xo-proxy', {
+    appDir: `${__dirname}/..`,
+    ignoreUnknownFormats: true,
+  })
 
-async function main(args) {
-  if (args.length === 0 || args.includes('-h')) {
+  const { hostname = 'localhost', port } = config.http.listen.https
+
+  const { _: args, help, host, token } = getopts(argv, {
+    alias: { help: 'h' },
+    boolean: ['help'],
+    default: {
+      host: `${hostname}:${port}`,
+      token: config.authenticationToken,
+    },
+    stopEarly: true,
+    string: ['host', 'token'],
+  })
+
+  if (help || args.length === 0) {
     return console.log(
       '%s',
       `
-Usage: xo-proxy-cli <XO proxy host> <authentication token> <method> [<param>=<value>]...
+Usage:
+
+  xo-proxy-cli <method> [<param>=<value>]...
+    Call a method of the API and display its result.
 `
     )
   }
 
-  const [
-    host = required('host'),
-    authenticationToken = required('authentication token'),
-    method = required('method'),
-  ] = args
-
+  const method = args[0]
   const params = {}
-  for (let i = 3, n = args.length; i < n; ++i) {
+  for (let i = 1, n = args.length; i < n; ++i) {
     const param = args[i]
     const j = param.indexOf('=')
     if (j === -1) {
@@ -42,7 +56,7 @@ Usage: xo-proxy-cli <XO proxy host> <authentication token> <method> [<param>=<va
         body: format.request(0, method, params),
         headers: {
           'content-type': 'application/json',
-          cookie: `authenticationToken=${authenticationToken}`,
+          cookie: `authenticationToken=${token}`,
         },
         host,
         pathname: '/api/v1',
