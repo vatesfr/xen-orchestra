@@ -11,6 +11,7 @@
   "engines": {
     "node": ">=8.10"
   },
+  "main": "dist/",
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
