@@ -52,6 +52,7 @@ const EphemeralInput = decorate([
 EphemeralInput.propTypes = {
   closeEdition: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
+  type: PropTypes.string.isRequired,
 }
 
 export default EphemeralInput

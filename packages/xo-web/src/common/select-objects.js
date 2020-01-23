@@ -625,9 +625,9 @@ export const SelectTag = decorate([
     },
   }),
   injectState,
-  ({ state, effects, resetState, customTag, ...props }) => (
+  ({ state, effects, resetState, allowCustomTag, ...props }) => (
     <span>
-      {customTag ? (
+      {allowCustomTag ? (
         state.editing ? (
           <EphemeralInput
             closeEdition={effects.closeEdition}
@@ -648,11 +648,11 @@ export const SelectTag = decorate([
 ])
 
 SelectTag.propTypes = {
-  customTag: PropTypes.bool,
+  allowCustomTag: PropTypes.bool,
 }
 
 SelectTag.defaultProps = {
-  customTag: false,
+  allowCustomTag: true,
 }
 
 // ===================================================================

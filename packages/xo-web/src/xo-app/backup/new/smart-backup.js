@@ -113,7 +113,6 @@ const SmartBackup = decorate([
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
         <SelectTag
-          customTag
           multi
           onChange={effects.setTagValues}
           value={get(() => state.tags.values)}
@@ -127,7 +126,6 @@ const SmartBackup = decorate([
           <Icon icon='info' />
         </Tooltip>{' '}
         <SelectTag
-          customTag
           multi
           onChange={effects.setTagNotValues}
           value={get(() => state.tags.notValues)}
