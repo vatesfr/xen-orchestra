@@ -5,12 +5,7 @@ const APP_NAME = 'xo-proxy'
 // -------------------------------------------------------------------
 
 {
-  const {
-    catchGlobalErrors,
-    configure,
-  } = require('@xen-orchestra/log/configure')
-
-  configure(require('@xen-orchestra/log/transports/console').default())
+  const { catchGlobalErrors } = require('@xen-orchestra/log/configure')
 
   catchGlobalErrors(require('@xen-orchestra/log').createLogger('xo:proxy'))
 }
