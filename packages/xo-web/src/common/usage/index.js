@@ -2,20 +2,27 @@ import _ from 'intl'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
-import { compact, sum } from 'lodash'
+import { compact, sumBy } from 'lodash'
 
 import Tooltip from '../tooltip'
 
+export const getLimit = total => total / 400
+
 const Usage = ({ total, children }) => {
-  const limit = total / 400
-  const othersValues = compact(
+  const limit = getLimit(total)
+  const others = compact(
     React.Children.map(children, child => {
       const { value } = child.props
-      return value < limit && value
+      return value < limit && child.props
     })
   )
-  const othersTotal = sum(othersValues)
-  const nOthers = othersValues.length
+
+  const othersTotal = sumBy(others, 'value')
+  const nOthers = others.length
+
+  // last child url
+  const othersUrl = others[others.length - 1].href
+
   return (
     <span className='usage'>
       {nOthers > 1 ? (
@@ -26,6 +33,7 @@ const Usage = ({ total, children }) => {
               child.props.value > limit && cloneElement(child, { total })
           )}
           <Element
+            href={othersUrl}
             others
             tooltip={_('others', { nOthers })}
             total={total}

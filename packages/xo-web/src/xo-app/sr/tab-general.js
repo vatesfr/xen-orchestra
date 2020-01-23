@@ -4,7 +4,7 @@ import decorate from 'apply-decorators'
 import HomeTags from 'home-tags'
 import Icon from 'icon'
 import React from 'react'
-import Usage, { UsageElement } from 'usage'
+import Usage, { UsageElement, getLimit } from 'usage'
 import { addTag, removeTag, getLicense } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -23,7 +23,7 @@ import {
   sumBy,
   uniq,
 } from 'lodash'
-import { get } from '@xen-orchestra/defined'
+import defined, { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 
 const nestedUlStyle = { margin: '0.1em', marginLeft: '0.5em', padding: 0 }
@@ -238,6 +238,26 @@ export default class TabGeneral extends Component {
     }
   )
 
+  _getUrl = group => {
+    const { id, size } = this.props.sr
+    const { baseCopies, vdis, snapshots, usage } = group
+
+    const vdisAndSnapshotsIds = `${vdis.map(_ => _.id).join(' ')} ${map(
+      snapshots,
+      'id'
+    ).join(' ')}`
+
+    const ids =
+      usage > getLimit(size)
+        ? vdisAndSnapshotsIds
+        : (this._lastIds = `${defined(
+            this._lastIds,
+            ''
+          )} ${vdisAndSnapshotsIds} ${map(baseCopies, 'id').join(' ')}`)
+
+    return `#/srs/${id}/disks?s=${encodeURIComponent(`id:|(${ids})`)}`
+  }
+
   render() {
     const { sr } = this.props
     return (
@@ -277,6 +297,7 @@ export default class TabGeneral extends Component {
               {this._getDiskGroups().map(group => (
                 <UsageElement
                   highlight={group.type === 'orphanedSnapshot'}
+                  href={this._getUrl(group)}
                   key={group.id}
                   tooltip={<UsageTooltip group={group} />}
                   value={group.usage}
