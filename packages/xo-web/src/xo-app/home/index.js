@@ -1083,6 +1083,7 @@ export default class Home extends Component {
                   overlay={
                     <Popover className={styles.selectObject} id='tagPopover'>
                       <SelectTag
+                        allowCustomTag={false}
                         autoFocus
                         multi
                         objects={items}
