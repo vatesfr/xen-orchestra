@@ -40,6 +40,13 @@ const _deployProxy = () =>
 const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })
 
+const _editProxyAddress = (value, { proxy }) => {
+  value = value.trim()
+  return editProxyAppliance(proxy, {
+    address: value !== '' ? value : null,
+  })
+}
+
 const HEADER = (
   <h2>
     <Icon icon='proxy' /> {_('proxies')}
@@ -118,9 +125,8 @@ const COLUMNS = [
   {
     itemRenderer: proxy => (
       <Text
-        data-name='address'
         data-proxy={proxy}
-        onChange={_editProxy}
+        onChange={_editProxyAddress}
         value={defined(proxy.address, '')}
       />
     ),
