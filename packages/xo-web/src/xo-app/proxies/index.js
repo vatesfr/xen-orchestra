@@ -41,7 +41,9 @@ const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })
 
 const _editProxyAddress = (value, { proxy }) =>
-  editProxyAppliance(proxy, { address: value.trim() !== '' ? value : null })
+  editProxyAppliance(proxy, {
+    address: ((value = value.trim()), value !== '' ? value : null),
+  })
 
 const HEADER = (
   <h2>
