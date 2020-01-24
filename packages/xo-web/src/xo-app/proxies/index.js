@@ -40,10 +40,12 @@ const _deployProxy = () =>
 const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })
 
-const _editProxyAddress = (value, { proxy }) =>
-  editProxyAppliance(proxy, {
-    address: ((value = value.trim()), value !== '' ? value : null),
+const _editProxyAddress = (value, { proxy }) => {
+  value = value.trim()
+  return editProxyAppliance(proxy, {
+    address: value !== '' ? value : null,
   })
+}
 
 const HEADER = (
   <h2>
