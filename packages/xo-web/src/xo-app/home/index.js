@@ -760,7 +760,10 @@ export default class Home extends Component {
               map(
                 tags,
                 tag =>
-                  new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`, 'i')
+                  new ComplexMatcher.RegExp(
+                    `^${escapeRegExp(typeof tag === 'string' ? tag : tag.id)}$`,
+                    'i'
+                  )
               )
             )
           )
@@ -1083,7 +1086,6 @@ export default class Home extends Component {
                   overlay={
                     <Popover className={styles.selectObject} id='tagPopover'>
                       <SelectTag
-                        allowCustomTag={false}
                         autoFocus
                         multi
                         objects={items}
