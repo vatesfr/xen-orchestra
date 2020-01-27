@@ -593,7 +593,7 @@ class SDNController extends EventEmitter {
 
       this._privateNetworks = filter(
         this._privateNetworks,
-        privateNetwork => Object.keys(privateNetwork.network).length !== 0
+        privateNetwork => Object.keys(privateNetwork.networks).length !== 0
       )
     } catch (error) {
       log.error('Error while handling xapi disconnection', {
@@ -767,7 +767,7 @@ class SDNController extends EventEmitter {
 
           this._privateNetworks = filter(
             this._privateNetworks,
-            privateNetwork => privateNetwork.networks.length !== 0
+            privateNetwork => Object.keys(privateNetwork.networks).length !== 0
           )
         }
       } catch (error) {
