@@ -108,13 +108,13 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
-  _selectExistingTags = () => {
-    this._stopEdit()
-    return confirm({
+  _selectExistingTags = async () => {
+    await confirm({
       body: <SelectExistingTag />,
       icon: 'add',
       title: _('selectExistingTags'),
     }).then(tags => Promise.all(tags.map(this._addTag)), noop)
+    this._stopEdit()
   }
 
   _focus = () => {
