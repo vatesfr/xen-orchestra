@@ -214,11 +214,21 @@ async function generateCertificatesAndKey(dataDir) {
 
 // -----------------------------------------------------------------------------
 
-async function createTunnel(host, network, pifDevice) {
-  const hostPif = find(host.$PIFs, { device: pifDevice })
+async function createTunnel(host, network) {
+  const otherConfig = network.other_config
+  const pifDevice = otherConfig['xo:sdn-controller:pif-device']
+  const vlan = otherConfig['xo:sdn-controller:vlan']
+  const hostPif = find(
+    host.$PIFs,
+    pif =>
+      pif.device === pifDevice &&
+      pif.vlan === vlan &&
+      pif.ip_configuration_mode !== 'None'
+  )
   if (hostPif === undefined) {
     log.error("Can't create tunnel: no available PIF", {
       pif: pifDevice,
+      vlan,
       network: network.name_label,
       host: host.name_label,
       pool: host.$pool.name_label,
@@ -233,6 +243,7 @@ async function createTunnel(host, network, pifDevice) {
     log.error('Error while creating tunnel', {
       error,
       pif: pifDevice,
+      vlan,
       network: network.name_label,
       host: host.name_label,
       pool: host.$pool.name_label,
@@ -281,8 +292,9 @@ class SDNController extends EventEmitter {
   - `other_config`:
     - `xo:sdn-controller:encapsulation`       : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
     - `xo:sdn-controller:encrypted`           : `true` if the network is encrypted
-    - `xo:sdn-controller:pif-device`          : PIF device on which the tunnels are created, must be physical and have an IP configuration
+    - `xo:sdn-controller:pif-device`          : PIF device on which the tunnels are created, must be physical or VLAN or bond master and have an IP configuration
     - `xo:sdn-controller:private-network-uuid`: UUID of the private network, same across pools
+    - `xo:sdn-controller:vlan`                : VLAN of the PIFs on which the network is created
     - `xo:sdn-controller:vni`                 : VxLAN Network Identifier,
         it is used by OpenVSwitch to route traffic of different networks in a single tunnel
         See: https://tools.ietf.org/html/rfc7348
@@ -461,10 +473,10 @@ class SDNController extends EventEmitter {
 
             await privateNetwork.addNetwork(network)
 
-            // Previously created network didn't store `pif_device`
+            // Previously created network didn't store `pif-device`
             //
             // 2019-08-22
-            // This is used to add the pif_device to networks created before this version. (v0.1.2)
+            // This is used to add the `pif-device` to networks created before this version. (v0.1.2)
             // This will be removed in 1 year.
             if (otherConfig['xo:sdn-controller:pif-device'] === undefined) {
               const tunnel = getHostTunnelForNetwork(
@@ -475,6 +487,23 @@ class SDNController extends EventEmitter {
               await network.update_other_config(
                 'xo:sdn-controller:pif-device',
                 pif.device
+              )
+            }
+
+            // Previously created network didn't store `vlan`
+            //
+            // 2020-01-27
+            // This is used to add the `vlan` to networks created before this version. (v0.4.0)
+            // This will be removed in 1 year.
+            if (otherConfig['xo:sdn-controller:vlan'] === undefined) {
+              const tunnel = getHostTunnelForNetwork(
+                privateNetwork.center,
+                network.$ref
+              )
+              const pif = xapi.getObjectByRef(tunnel.transport_PIF)
+              await network.update_other_config(
+                'xo:sdn-controller:vlan',
+                pif.vlan
               )
             }
 
@@ -563,6 +592,7 @@ class SDNController extends EventEmitter {
           'xo:sdn-controller:encrypted': encrypted ? 'true' : undefined,
           'xo:sdn-controller:pif-device': pif.device,
           'xo:sdn-controller:private-network-uuid': privateNetwork.uuid,
+          'xo:sdn-controller:vlan': pif.vlan,
           'xo:sdn-controller:vni': String(vni),
         },
       })
@@ -581,7 +611,7 @@ class SDNController extends EventEmitter {
       const hosts = filter(pool.$xapi.objects.all, { $type: 'host' })
       await Promise.all(
         map(hosts, async host => {
-          await createTunnel(host, createdNetwork, pif.device)
+          await createTunnel(host, createdNetwork)
           this._createOvsdbClient(host)
         })
       )
@@ -779,9 +809,7 @@ class SDNController extends EventEmitter {
         continue
       }
 
-      const pifDevice =
-        network.other_config['xo:sdn-controller:pif-device'] ?? 'eth0'
-      await createTunnel(host, network, pifDevice)
+      await createTunnel(host, network)
     }
 
     await this._addHostToPrivateNetworks(host)
