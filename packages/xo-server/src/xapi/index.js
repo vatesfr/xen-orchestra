@@ -2139,18 +2139,25 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable
-  async createBondedNetwork($defer, { bondMode, mac = '', pifIds, ...params }) {
+  async createBondedNetwork(
+    $defer,
+    { bondMode, mac = '', pifIds: masterPifIds, ...params }
+  ) {
     const network = await this.createNetwork(params)
     $defer.onFailure(() => this.deleteNetwork(network))
-    // TODO: test and confirm:
-    // Bond.create is called here with PIFs from one host but XAPI should then replicate the
-    // bond on each host in the same pool with the corresponding PIFs (ie same interface names?).
-    await this.call(
-      'Bond.create',
-      network.$ref,
-      map(pifIds, pifId => this.getObject(pifId).$ref),
-      mac,
-      bondMode
+
+    const pifsByHost = {}
+    masterPifIds.forEach(pifId => {
+      this.getObject(pifId).$network.$PIFs.forEach(pif => {
+        if (pifsByHost[pif.host] === undefined) {
+          pifsByHost[pif.host] = []
+        }
+        pifsByHost[pif.host].push(pif.$ref)
+      })
+    })
+
+    await asyncMap(pifsByHost, pifs =>
+      this.call('Bond.create', network.$ref, pifs, mac, bondMode)
     )
 
     return network
