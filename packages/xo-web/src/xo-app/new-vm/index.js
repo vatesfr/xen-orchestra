@@ -345,6 +345,7 @@ export default class NewVm extends BaseComponent {
     this._replaceState(
       {
         bootAfterCreate: true,
+        copyHostBiosStrings: false,
         coresPerSocket: undefined,
         CPUs: '',
         cpuCap: '',
@@ -513,6 +514,7 @@ export default class NewVm extends BaseComponent {
       pv_args: state.pv_args,
       autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
+      copyHostBiosStrings: state.copyHostBiosStrings,
       share: state.share,
       cloudConfig,
       networkConfig: this._isCoreOs() ? undefined : networkConfig,
@@ -1643,6 +1645,7 @@ export default class NewVm extends BaseComponent {
       affinityHost,
       autoPoweron,
       bootAfterCreate,
+      copyHostBiosStrings,
       cpuCap,
       cpusMax,
       cpuWeight,
@@ -1870,6 +1873,21 @@ export default class NewVm extends BaseComponent {
                   onChange={this._handleBootFirmware}
                   value={hvmBootFirmware}
                 />
+              </Item>
+            </SectionContent>
+          ),
+          isAdmin && isHvm && (
+            <SectionContent>
+              <Item>
+                <input
+                  checked={copyHostBiosStrings}
+                  className='form-control'
+                  disabled={affinityHost == null}
+                  onChange={this._linkState('copyHostBiosStrings')}
+                  type='checkbox'
+                />
+                &nbsp;
+                {_('newVmCopyHostBiosStrings')}
               </Item>
             </SectionContent>
           ),

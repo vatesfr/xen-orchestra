@@ -57,6 +57,8 @@ export default {
       vgpuType = undefined,
       gpuGroup = undefined,
 
+      copyHostBiosStrings = false,
+
       ...props
     } = {},
     checkLimits
@@ -82,7 +84,18 @@ export default {
     )
     $defer.onFailure(() => this.deleteVm(vmRef))
 
-    // TODO: copy BIOS strings?
+    let vm = await this._getOrWaitObject(vmRef)
+
+    const isHvm = isVmHvm(vm)
+
+    // Copy BIOS strings
+    if (isHvm && copyHostBiosStrings && props.affinityHost !== undefined) {
+      await this.callAsync(
+        'VM.copy_bios_strings',
+        vmRef,
+        this.getObject(props.affinityHost).$ref
+      )
+    }
 
     // Removes disks from the provision XML, we will create them by
     // ourselves.
@@ -96,15 +109,11 @@ export default {
     // installation.
     await this.callAsync('VM.provision', vmRef)
 
-    let vm = await this._getOrWaitObject(vmRef)
-
     // Set VMs params.
     await this._editVm(vm, props, checkLimits)
 
     // Sets boot parameters.
     {
-      const isHvm = isVmHvm(vm)
-
       if (isHvm) {
         if (!isEmpty(vdis) || installMethod === 'network') {
           const { order } = vm.HVM_boot_params
