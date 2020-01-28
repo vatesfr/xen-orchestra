@@ -21,7 +21,7 @@
 >
 > Rule of thumb: add packages on top.
 
-- xo-server-sdn-controller v0.4.1
+- xo-server-sdn-controller v0.3.2
 - xo-server-auth-saml 0.7.1
 - xo-server v5.57.0
 - xo-web v5.57.0
