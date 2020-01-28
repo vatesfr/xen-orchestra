@@ -2,6 +2,7 @@ import _ from 'intl'
 import filter from 'lodash/filter'
 import includes from 'lodash/includes'
 import map from 'lodash/map'
+import pFinally from 'promise-toolbox/finally'
 import PropTypes from 'prop-types'
 import React from 'react'
 
@@ -10,7 +11,6 @@ import Component from './base-component'
 import Icon from './icon'
 import Tooltip from './tooltip'
 import { confirm } from './modal'
-import { noop } from './utils'
 import { SelectTag } from './select-objects'
 
 const INPUT_STYLE = {
@@ -108,14 +108,14 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
-  _selectExistingTags = async () => {
-    await confirm({
+  _selectExistingTags = () =>
+    confirm({
       body: <SelectExistingTag />,
       icon: 'add',
       title: _('selectExistingTags'),
-    }).then(tags => Promise.all(tags.map(this._addTag)), noop)
-    this._stopEdit()
-  }
+    })
+      .then(tags => Promise.all(tags.map(this._addTag)))
+      ::pFinally(this._stopEdit)
 
   _focus = () => {
     this._focused = true
