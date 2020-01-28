@@ -222,7 +222,7 @@ async function createTunnel(host, network) {
     host.$PIFs,
     pif =>
       pif.device === pifDevice &&
-      pif.vlan === vlan &&
+      pif.VLAN === +vlan &&
       pif.ip_configuration_mode !== 'None'
   )
   if (hostPif === undefined) {
@@ -504,7 +504,7 @@ class SDNController extends EventEmitter {
               const pif = xapi.getObjectByRef(tunnel.transport_PIF)
               await network.update_other_config(
                 'xo:sdn-controller:vlan',
-                pif.vlan
+                String(pif.VLAN)
               )
             }
 
@@ -593,7 +593,7 @@ class SDNController extends EventEmitter {
           'xo:sdn-controller:encrypted': encrypted ? 'true' : undefined,
           'xo:sdn-controller:pif-device': pif.device,
           'xo:sdn-controller:private-network-uuid': privateNetwork.uuid,
-          'xo:sdn-controller:vlan': pif.vlan,
+          'xo:sdn-controller:vlan': String(pif.VLAN),
           'xo:sdn-controller:vni': String(vni),
         },
       })
