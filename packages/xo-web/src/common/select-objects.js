@@ -616,8 +616,14 @@ export const SelectTag = decorate([
         if (newTag === value || (multi && includes(value, newTag))) {
           return
         }
+        const _newTag = { id: newTag, type: 'tag', value: newTag }
         onChange(
-          multi ? (value == null ? [newTag] : [...value, newTag]) : newTag
+          multi
+            ? [
+                ...map(value, tag => ({ id: tag, type: 'tag', value: tag })),
+                _newTag,
+              ]
+            : _newTag
         )
       },
       closeEdition: () => ({ editing: false }),
