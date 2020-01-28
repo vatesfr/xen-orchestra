@@ -253,6 +253,7 @@ async function createTunnel(host, network) {
 
   log.debug('New tunnel added', {
     pif: pifDevice,
+    vlan,
     network: network.name_label,
     host: host.name_label,
     pool: host.$pool.name_label,
