@@ -114,8 +114,8 @@ export default class Tags extends Component {
       icon: 'add',
       title: _('selectExistingTags'),
     })
-      .then(tags => Promise.all(tags.map(this._addTag)))
       ::pFinally(this._stopEdit)
+      .then(tags => Promise.all(tags.map(this._addTag)))
 
   _focus = () => {
     this._focused = true
