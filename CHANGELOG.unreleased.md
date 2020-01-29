@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Home] Allow to change the number of items per page [#4535](https://github.com/vatesfr/xen-orchestra/issues/4535) (PR [#4708](https://github.com/vatesfr/xen-orchestra/pull/4708))
+- [Tag] Adding a tag: ability to select from existing tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4530](https://github.com/vatesfr/xen-orchestra/pull/4530))
 
 ### Bug fixes
 
