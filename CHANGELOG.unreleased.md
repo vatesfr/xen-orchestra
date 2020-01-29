@@ -9,6 +9,7 @@
 
 - [Home] Allow to change the number of items per page [#4535](https://github.com/vatesfr/xen-orchestra/issues/4535) (PR [#4708](https://github.com/vatesfr/xen-orchestra/pull/4708))
 - [Tag] Adding a tag: ability to select from existing tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4530](https://github.com/vatesfr/xen-orchestra/pull/4530))
+- [Smart backup] Ability to manually add custom tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4648](https://github.com/vatesfr/xen-orchestra/pull/4648))
 
 ### Bug fixes
 
