@@ -229,6 +229,7 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
+  selectExistingTags: 'Select from existing tags',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
