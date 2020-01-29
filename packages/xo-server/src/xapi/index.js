@@ -2141,7 +2141,7 @@ export default class Xapi extends XapiBase {
   @deferrable
   async createBondedNetwork(
     $defer,
-    { bondMode, mac = '', pifIds: masterPifIds, ...params }
+    { bondMode, pifIds: masterPifIds, ...params }
   ) {
     const network = await this.createNetwork(params)
     $defer.onFailure(() => this.deleteNetwork(network))
@@ -2157,7 +2157,7 @@ export default class Xapi extends XapiBase {
     })
 
     await asyncMap(pifsByHost, pifs =>
-      this.call('Bond.create', network.$ref, pifs, mac, bondMode)
+      this.call('Bond.create', network.$ref, pifs, '', bondMode)
     )
 
     return network
