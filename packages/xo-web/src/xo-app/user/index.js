@@ -3,21 +3,15 @@ import * as homeFilters from 'home-filters'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import defined from '@xen-orchestra/defined'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { Text } from 'editable'
-import { alert } from 'modal'
-import { Container, Row, Col } from 'grid'
-import { getLang } from 'selectors'
-import { map } from 'lodash'
-import { injectIntl } from 'react-intl'
-import { Select } from 'form'
-import { Card, CardBlock, CardHeader } from 'card'
-import { addSubscriptions, connectStore, noop } from 'utils'
 import {
+  addHomeItemsPerPage,
   addSshKey,
   changePassword,
   deleteSshKey,
@@ -27,7 +21,20 @@ import {
   setDefaultHomeFilter,
   signOutFromEverywhereElse,
   subscribeCurrentUser,
+  HOME_DEFAULT_ITEMS_PER_PAGE,
+  HOME_ITEMS_PER_PAGE_OPTIONS,
 } from 'xo'
+import { addSubscriptions, connectStore, noop } from 'utils'
+import { alert } from 'modal'
+import { Card, CardBlock, CardHeader } from 'card'
+import { Container, Row, Col } from 'grid'
+import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
+import { getLang } from 'selectors'
+import { injectIntl } from 'react-intl'
+import { injectState, provideState } from 'reaclette'
+import { map } from 'lodash'
+import { Select } from 'form'
+import { Text } from 'editable'
 
 import Page from '../page'
 import Otp from './otp'
@@ -299,6 +306,47 @@ const SshKeys = addSubscriptions({
 
 // ===================================================================
 
+const HomeItemsPerPage = decorate([
+  addSubscriptions({
+    user: subscribeCurrentUser,
+  }),
+  provideState({
+    computed: {
+      homeItemsPerPage: (_, { user }) =>
+        +defined(
+          getUserPreferences(user).homeItemsPerPage,
+          HOME_DEFAULT_ITEMS_PER_PAGE
+        ),
+    },
+  }),
+  injectState,
+  ({ state: { homeItemsPerPage } }) => {
+    return (
+      <Container>
+        <Row>
+          <Col mediumSize={3}>
+            <strong>{_('homeItemsPerPage')}</strong>
+          </Col>
+          <Col mediumSize={3}>
+            <DropdownButton bsStyle='info' title={homeItemsPerPage}>
+              {HOME_ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+                <MenuItem
+                  key={nItems}
+                  onClick={() => addHomeItemsPerPage(nItems)}
+                >
+                  {nItems}
+                </MenuItem>
+              ))}
+            </DropdownButton>
+          </Col>
+        </Row>
+      </Container>
+    )
+  },
+])
+
+// ===================================================================
+
 @addSubscriptions({
   user: subscribeCurrentUser,
 })
@@ -445,6 +493,8 @@ export default class User extends Component {
           <Otp user={user} key='otp' />,
           <hr key='hr' />,
         ]}
+        <HomeItemsPerPage />
+        <hr key='hr' />
         <SshKeys />
         <hr />
         <UserFilters user={user} />

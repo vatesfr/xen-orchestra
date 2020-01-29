@@ -59,6 +59,8 @@ import {
   subscribeResourceSets,
   subscribeServers,
   suspendVms,
+  HOME_DEFAULT_ITEMS_PER_PAGE,
+  HOME_ITEMS_PER_PAGE_OPTIONS,
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -93,9 +95,6 @@ import PoolItem from './pool-item'
 import VmItem from './vm-item'
 import TemplateItem from './template-item'
 import SrItem from './sr-item'
-
-const DEFAULT_ITEMS_PER_PAGE = 20
-const ITEMS_PER_PAGE_OPTIONS = [20, 50, 100]
 
 const OPTIONS = {
   host: {
@@ -479,8 +478,9 @@ export default class Home extends Component {
 
   state = {
     homeItemsPerPage: +defined(
-      cookies.get('homeItemsPerPage'),
-      DEFAULT_ITEMS_PER_PAGE
+      () => this.props.user.preferences.homeItemsPerPage,
+      () => cookies.get('homeItemsPerPage'),
+      HOME_DEFAULT_ITEMS_PER_PAGE
     ),
     selectedItems: {},
   }
@@ -1152,7 +1152,7 @@ export default class Home extends Component {
               <Icon icon='nav' />
             </Button>{' '}
             <DropdownButton bsStyle='info' title={homeItemsPerPage}>
-              {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+              {HOME_ITEMS_PER_PAGE_OPTIONS.map(nItems => (
                 <MenuItem
                   key={nItems}
                   onClick={() => this._setNItemsPerPage(nItems)}

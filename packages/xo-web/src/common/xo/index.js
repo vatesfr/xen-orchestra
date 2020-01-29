@@ -62,6 +62,11 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 // ===================================================================
 
+export const HOME_DEFAULT_ITEMS_PER_PAGE = 20
+export const HOME_ITEMS_PER_PAGE_OPTIONS = [20, 50, 100]
+
+// ===================================================================
+
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
 export const isSrShared = sr => sr && sr.shared
 export const isVmRunning = vm => vm && vm.power_state === 'Running'
@@ -2735,6 +2740,9 @@ export const removeOtp = () =>
       }),
     noop
   )
+
+export const addHomeItemsPerPage = homeItemsPerPage =>
+  _setUserPreferences({ homeItemsPerPage })
 
 export const deleteSshKeys = keys =>
   confirm({

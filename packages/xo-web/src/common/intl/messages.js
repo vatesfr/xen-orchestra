@@ -1955,6 +1955,7 @@ const messages = {
   removeOtpConfirmMessage:
     'Are you sure you want to remove OTP authentication?',
   OtpAuthentication: 'OTP authentication',
+  homeItemsPerPage: 'Items per page in home',
 
   // ----- Usage -----
   others: '{nOthers, number} other{nOthers, plural, one {} other {s}}',
