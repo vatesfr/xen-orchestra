@@ -152,7 +152,8 @@ const SchedulePreviewBody = decorate([
             <span>
               <ActionButton
                 btnStyle='danger'
-                // TODO: enable the button once the issue with the job cancellation was fixed
+                // [29/01/2020] Job cancellation will be disabled until we found a way to make it works.
+                // See https://github.com/vatesfr/xen-orchestra/issues/4657
                 disabled
                 handler={cancelJob}
                 handlerParam={job}
