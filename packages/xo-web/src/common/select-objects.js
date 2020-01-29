@@ -592,7 +592,7 @@ export const SelectPif = makeStoreSelect(
 
 // ===================================================================
 
-const SelectTag_ = makeStoreSelect(
+const GenericSelectTag = makeStoreSelect(
   (_, props) => ({
     xoObjects: createSelector(
       createGetTags(
@@ -612,7 +612,7 @@ export const SelectTag = decorate([
       editing: false,
     }),
     effects: {
-      addTag: (effects, newTag) => (_, { multi, onChange, value }) => {
+      addTag: (effects, newTag) => ({ value }, { multi, onChange }) => {
         if (newTag === value || (multi && includes(value, newTag))) {
           return
         }
@@ -628,6 +628,9 @@ export const SelectTag = decorate([
       },
       closeEdition: () => ({ editing: false }),
       toggleState,
+    },
+    computed: {
+      value: createCollectionWrapper((_, { value }) => getIds(value)),
     },
   }),
   injectState,
@@ -648,7 +651,7 @@ export const SelectTag = decorate([
           </Tooltip>
         )
       ) : null}
-      <SelectTag_ {...props} />
+      <GenericSelectTag {...props} />
     </span>
   ),
 ])
