@@ -5,7 +5,7 @@
 
 ### Dropped features
 
-- [Backup / Overview] Job cancellation will be disabled until we found a way to make it works [#4657](https://github.com/vatesfr/xen-orchestra/issues/4657) (PR [#4688](https://github.com/vatesfr/xen-orchestra/pull/4688))
+- [Backup / Overview] Job cancellation will be disabled until we find a way to make it work [#4657](https://github.com/vatesfr/xen-orchestra/issues/4657) (PR [#4688](https://github.com/vatesfr/xen-orchestra/pull/4688))
 
 ### Enhancements
 
