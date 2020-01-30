@@ -116,7 +116,7 @@ const COLUMNS = [
         data-name='name'
         data-proxy={proxy}
         onChange={_editProxy}
-        value={defined(proxy.name, '')}
+        value={proxy.name}
       />
     ),
     name: _('name'),

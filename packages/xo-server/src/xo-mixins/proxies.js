@@ -52,7 +52,12 @@ export default class Proxy {
   }
 
   @synchronizedWrite
-  async registerProxy({ address, authenticationToken, name, vmUuid }) {
+  async registerProxy({
+    address,
+    authenticationToken,
+    name = `Proxy ${new Date().toISOString()}`,
+    vmUuid,
+  }) {
     await this._throwIfRegistered(address, vmUuid)
 
     return this._db
