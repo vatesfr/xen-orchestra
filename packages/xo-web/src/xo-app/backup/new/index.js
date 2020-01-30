@@ -15,7 +15,6 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 import { form } from 'modal'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
@@ -23,7 +22,7 @@ import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
 import { Number } from 'form'
 import { renderXoItemFromId, Remote } from 'render-xo-item'
-import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
+import { SelectProxy, SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   addSubscriptions,
   connectStore,
@@ -40,6 +39,16 @@ import {
   isSrWritable,
   subscribeRemotes,
 } from 'xo'
+import {
+  flatten,
+  includes,
+  isEmpty,
+  keyBy,
+  map,
+  mapValues,
+  omit,
+  some,
+} from 'lodash'
 
 import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
@@ -205,6 +214,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
   setHomeVmIdsSelection([]) // Clear preselected vmIds
   return {
     _displayAdvancedSettings: undefined,
+    _proxyId: undefined,
     _vmsPattern: undefined,
     backupMode: false,
     compression: undefined,
@@ -226,6 +236,33 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
     vms: preSelectedVmIds,
   }
 }
+
+const RemoteProxyWarning = decorate([
+  addSubscriptions({
+    remotes: cb =>
+      subscribeRemotes(remotes => {
+        cb(keyBy(remotes, 'id'))
+      }),
+  }),
+  provideState({
+    computed: {
+      showWarning: (_, { id, proxyId, remotes = {} }) => {
+        const remote = remotes[id]
+        if (proxyId === null) {
+          proxyId = undefined
+        }
+        return remote !== undefined && remote.proxy !== proxyId
+      },
+    },
+  }),
+  injectState,
+  ({ state }) =>
+    state.showWarning ? (
+      <Tooltip content={_('remoteNotCompatibleWithSelectedProxy')}>
+        <Icon icon='alarm' color='text-danger' />
+      </Tooltip>
+    ) : null,
+])
 
 const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   <ActionButton
@@ -302,6 +339,7 @@ export default decorate([
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression,
+          proxy: state.proxyId === null ? undefined : state.proxyId,
           schedules,
           settings,
           remotes:
@@ -376,6 +414,7 @@ export default decorate([
           name: state.name,
           mode: state.isDelta ? 'delta' : 'full',
           compression: state.compression,
+          proxy: state.proxyId,
           settings: normalizeSettings({
             offlineBackupActive: state.offlineBackupActive,
             settings: settings || state.propSettings,
@@ -578,6 +617,9 @@ export default decorate([
         return getInitialState()
       },
       setCompression: (_, compression) => ({ compression }),
+      setProxy(_, proxy) {
+        this.state._proxyId = resolveId(proxy)
+      },
       toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
         _displayAdvancedSettings: !displayAdvancedSettings,
       }),
@@ -659,6 +701,7 @@ export default decorate([
       formId: generateId,
       inputConcurrencyId: generateId,
       inputFullIntervalId: generateId,
+      inputProxyId: generateId,
       inputTimeoutId: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
@@ -726,7 +769,12 @@ export default decorate([
         ),
       selectedVmIds: state => resolveIds(state.vms),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
-      remotePredicate: ({ remotes }) => ({ id }) => !includes(remotes, id),
+      remotePredicate: ({ proxyId, remotes }) => remote => {
+        if (proxyId === null) {
+          proxyId = undefined
+        }
+        return !remotes.includes(remote.id) && remote.value.proxy === proxyId
+      },
       propSettings: (_, { job }) =>
         Map(get(() => job.settings)).map(setting =>
           defined(
@@ -750,6 +798,7 @@ export default decorate([
               }
             : setting
         ),
+      proxyId: (s, p) => defined(s._proxyId, () => p.job.proxy),
       displayAdvancedSettings: (state, props) =>
         defined(
           state._displayAdvancedSettings,
@@ -922,7 +971,11 @@ export default decorate([
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              <Remote id={id} />
+                              <Remote id={id} />{' '}
+                              <RemoteProxyWarning
+                                id={id}
+                                proxyId={state.proxyId}
+                              />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
@@ -1017,6 +1070,16 @@ export default decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
+                  <FormGroup>
+                    <label htmlFor={state.inputProxyId}>
+                      <strong>{_('proxy')}</strong>
+                    </label>
+                    <SelectProxy
+                      id={state.inputProxyId}
+                      onChange={effects.setProxy}
+                      value={state.proxyId}
+                    />
+                  </FormGroup>
                   <ReportWhen
                     onChange={effects.setReportWhen}
                     required
