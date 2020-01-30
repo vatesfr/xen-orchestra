@@ -1802,8 +1802,7 @@ const messages = {
   newNetworkEncrypted: 'Encrypted',
   encryptionWarning:
     'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
-  newNetworkSdnControllerTip:
-    'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
+  newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
