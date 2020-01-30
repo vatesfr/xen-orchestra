@@ -24,6 +24,10 @@ createJob.params = {
     type: 'string',
     optional: true,
   },
+  proxy: {
+    type: 'string',
+    optional: true,
+  },
   remotes: {
     type: 'object',
     optional: true,
@@ -83,6 +87,10 @@ editJob.params = {
   },
   name: {
     type: 'string',
+    optional: true,
+  },
+  proxy: {
+    type: ['string', 'null'],
     optional: true,
   },
   remotes: {
