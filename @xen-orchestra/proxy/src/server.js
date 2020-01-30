@@ -120,9 +120,8 @@ ${name} v${version}
   await app.hooks.start()
 
   // Gracefully shutdown on signals.
+  let alreadyCalled = false
   ;['SIGINT', 'SIGTERM'].forEach(signal => {
-    let alreadyCalled = false
-
     process.on(signal, () => {
       if (alreadyCalled) {
         warn('forced exit')
