@@ -13,6 +13,7 @@
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/proxy",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
+    "directory": "@xen-orchestra/proxy",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
