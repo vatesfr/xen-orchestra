@@ -32,6 +32,10 @@ export default class Api {
     this._methods = { __proto__: null }
 
     const router = new Router({ prefix: '/api/v1' }).post('/', async ctx => {
+      // Before Node 13.0 there was an inactivity timeout of 2 mins, which may
+      // not be enough for the API.
+      ctx.req.setTimeout(0)
+
       const profile = await app.authentication.findProfile({
         authenticationToken: ctx.cookies.get('authenticationToken'),
       })
