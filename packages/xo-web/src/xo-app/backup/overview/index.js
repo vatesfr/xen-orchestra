@@ -148,15 +148,22 @@ const SchedulePreviewBody = decorate([
           style={{ marginRight: '0.5em' }}
         />
         {job.runId !== undefined ? (
-          <ActionButton
-            btnStyle='danger'
-            handler={cancelJob}
-            handlerParam={job}
-            icon='cancel'
-            key='cancel'
-            size='small'
-            tooltip={_('formCancel')}
-          />
+          <Tooltip content={_('temporarilyDisabled')}>
+            <span>
+              <ActionButton
+                btnStyle='danger'
+                // 2020-01-29 Job cancellation will be disabled until we find a way to make it work.
+                // See https://github.com/vatesfr/xen-orchestra/issues/4657
+                disabled
+                handler={cancelJob}
+                handlerParam={job}
+                icon='cancel'
+                key='cancel'
+                size='small'
+                tooltip={_('formCancel')}
+              />
+            </span>
+          </Tooltip>
         ) : (
           <ActionButton
             btnStyle='primary'

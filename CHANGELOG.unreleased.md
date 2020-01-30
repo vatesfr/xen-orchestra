@@ -3,6 +3,10 @@
 > Keep in mind the changelog is addressed to **users** and should be
 > understandable by them.
 
+### Dropped features
+
+- [Backup / Overview] Job cancellation will be disabled until we find a way to make it work [#4657](https://github.com/vatesfr/xen-orchestra/issues/4657) (PR [#4688](https://github.com/vatesfr/xen-orchestra/pull/4688))
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
