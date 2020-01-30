@@ -427,7 +427,6 @@ Select.defaultProps = { multi: false }
 Select.propTypes = { multi: PropTypes.bool }
 
 const MAP_TYPE_SELECT = {
-  'VM-template': SelectVmTemplate,
   host: SelectHost,
   ip: SelectIp,
   network: SelectNetwork,
@@ -440,6 +439,7 @@ const MAP_TYPE_SELECT = {
   tag: SelectTag,
   vgpuType: SelectVgpuType,
   VM: SelectVm,
+  'VM-template': SelectVmTemplate,
 }
 
 export class XoSelect extends Editable {
