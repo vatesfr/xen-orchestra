@@ -4,6 +4,7 @@ import fs from 'fs'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
 import { format, parse } from 'json-rpc-protocol'
+import { inspect } from 'util'
 import { load as loadConfig } from 'app-conf'
 
 const parseValue = value =>
@@ -83,6 +84,7 @@ Usage:
     .filter(_ => _.length !== 0)
   try {
     const result = await parse.result(lines[0])
+    const { stdout } = process
     if (
       result !== null &&
       typeof result === 'object' &&
@@ -90,10 +92,12 @@ Usage:
       result.$responseType === 'ndjson'
     ) {
       for (let i = 1, n = lines.length; i < n; ++i) {
-        console.log(JSON.parse(lines[i]))
+        stdout.write(inspect(JSON.parse(lines[i]), { colors: true }))
+        stdout.write('\n')
       }
     } else {
-      console.log(result)
+      stdout.write(inspect(result, { colors: true }))
+      stdout.write('\n')
     }
   } catch (error) {
     if (!(error?.code === 10 && 'errors' in error.data)) {
