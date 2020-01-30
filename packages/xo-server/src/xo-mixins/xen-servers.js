@@ -458,10 +458,7 @@ export default class {
 
     const xapi = this._xapis[id]
     delete this._xapis[id]
-    if (status === 'connected') {
-      delete this._serverIdsByPool[xapi.pool.$id]
-      xapi.xo.uninstall()
-    }
+
     return xapi.disconnect()
   }
 
