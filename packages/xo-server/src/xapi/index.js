@@ -224,7 +224,7 @@ export default class Xapi extends XapiBase {
   // Wait for an object to be in a given state.
   //
   // Faster than _waitObject() with a function.
-  _waitObjectState(idOrUuidOrRef, predicate) {
+  async _waitObjectState(idOrUuidOrRef, predicate) {
     const object = this.getObject(idOrUuidOrRef, null)
     if (object && predicate(object)) {
       return object
