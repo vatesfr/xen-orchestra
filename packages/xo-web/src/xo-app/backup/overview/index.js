@@ -152,7 +152,7 @@ const SchedulePreviewBody = decorate([
             <span>
               <ActionButton
                 btnStyle='danger'
-                // [29/01/2020] Job cancellation will be disabled until we found a way to make it works.
+                // 2020-01-29 Job cancellation will be disabled until we find a way to make it work.
                 // See https://github.com/vatesfr/xen-orchestra/issues/4657
                 disabled
                 handler={cancelJob}
