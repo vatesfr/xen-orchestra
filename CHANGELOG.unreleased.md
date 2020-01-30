@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Network] Fix created bonded network not linked to the slave hosts [#4529](https://github.com/vatesfr/xen-orchestra/issues/4529) (PR [#4756](https://github.com/vatesfr/xen-orchestra/pull/4756))
+- [New network] Fix bonded network not linked to the slave hosts [#4529](https://github.com/vatesfr/xen-orchestra/issues/4529) (PR [#4756](https://github.com/vatesfr/xen-orchestra/pull/4756))
 
 ### Released packages
 
