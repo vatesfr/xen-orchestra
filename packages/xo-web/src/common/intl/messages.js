@@ -47,6 +47,7 @@ const messages = {
   vms: 'VMs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
+  temporarilyDisabled: 'Temporarily disabled',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
   iscsiSessions:
@@ -234,6 +235,7 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
+  selectExistingTags: 'Select from existing tags',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -508,6 +510,7 @@ const messages = {
   deleteOldBackupsFirst: 'Delete first',
   deleteOldBackupsFirstMessage:
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
+  customTag: 'Custom tag',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
