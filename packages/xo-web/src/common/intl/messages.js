@@ -53,6 +53,11 @@ const messages = {
   iscsiSessions:
     '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
   requiresAdminPermissions: 'Requires admin permissions',
+  proxy: 'Proxy',
+  proxies: 'Proxies',
+  name: 'Name',
+  address: 'Address',
+  vm: 'VM',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -287,6 +292,7 @@ const messages = {
   selectPifs: 'Select PIF(s)…',
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
+  selectProxies: 'Select proxy(ies)…',
   selectResourceSets: 'Select resource set(s)…',
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
@@ -1528,6 +1534,8 @@ const messages = {
     'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?',
   bulkDeleteMetadataBackupsConfirmText:
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
+  remoteNotCompatibleWithSelectedProxy:
+    "The backup will not be run on this remote because it's not compatible with the selected proxy",
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -2242,6 +2250,24 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+
+  // ----- proxies -----
+  forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
+  forgetProxyApplianceMessage:
+    'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
+  forgetProxies: 'Forget proxy(ies)',
+  destroyProxyApplianceTitle: 'Destroy prox{n, plural, one {y} other {ies}}',
+  destroyProxyApplianceMessage:
+    'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
+  destroyProxies: 'Destroy proxy(ies)',
+  deployProxy: 'Deploy a proxy',
+  noProxiesAvailable: 'No proxies available',
+  checkProxyHealth: 'Test your proxy',
+  upgradeProxyAppliance: 'upgrade the appliance',
+  proxyTestSuccess: 'Test passed for {name}',
+  proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyLinkedRemotes: 'Click to see linked remotes',
+  proxyLinkedBackups: 'Click to see linked backups',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

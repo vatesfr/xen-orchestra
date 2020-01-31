@@ -346,6 +346,11 @@ export default class Menu extends Component {
           },
         ],
       },
+      isAdmin && {
+        to: '/proxies',
+        icon: 'proxy',
+        label: 'proxies',
+      },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       !noOperatablePools && {
         to: '/tasks',

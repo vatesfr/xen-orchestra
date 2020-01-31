@@ -1,6 +1,7 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
+import Icon from 'icon'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
@@ -305,6 +306,8 @@ export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 export const subscribeRemotesInfo = createSubscription(() =>
   _call('remote.getAllInfo')
 )
+
+export const subscribeProxies = createSubscription(() => _call('proxy.getAll'))
 
 export const subscribeResourceSets = createSubscription(() =>
   _call('resourceSet.getAll')
@@ -2251,8 +2254,13 @@ export const getRemote = remote =>
     error(_('getRemote'), err.message || String(err))
   )
 
-export const createRemote = (name, url, options) =>
-  _call('remote.create', { name, url, options })::tap(remote => {
+export const createRemote = (name, url, options, proxy) =>
+  _call('remote.create', {
+    name,
+    options,
+    proxy: resolveId(proxy),
+    url,
+  })::tap(remote => {
     testRemote(remote).catch(noop)
   })
 
@@ -2285,8 +2293,14 @@ export const disableRemote = remote =>
     subscribeRemotes.forceRefresh
   )
 
-export const editRemote = (remote, { name, url, options }) =>
-  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() => {
+export const editRemote = (remote, { name, options, proxy, url }) =>
+  _call('remote.set', {
+    id: resolveId(remote),
+    name,
+    options,
+    proxy: resolveId(proxy),
+    url,
+  })::tap(() => {
     subscribeRemotes.forceRefresh()
     testRemote(remote).catch(noop)
   })
@@ -3019,3 +3033,54 @@ export const subscribeTunnelState = createSubscription(() =>
 )
 
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
+
+// Proxy --------------------------------------------------------------------
+
+export const deployProxyAppliance = sr =>
+  _call('proxy.deploy', { sr: resolveId(sr) })::tap(
+    subscribeProxies.forceRefresh
+  )
+
+export const editProxyAppliance = (proxy, { vm, ...props }) =>
+  _call('proxy.update', {
+    id: resolveId(proxy),
+    vm: resolveId(vm),
+    ...props,
+  })::tap(subscribeProxies.forceRefresh)
+
+const _forgetProxyAppliance = proxy =>
+  _call('proxy.unregister', { id: resolveId(proxy) })
+export const forgetProxyAppliances = proxies =>
+  confirm({
+    title: _('forgetProxyApplianceTitle', { n: proxies.length }),
+    body: _('forgetProxyApplianceMessage', { n: proxies.length }),
+  }).then(() =>
+    Promise.all(map(proxies, _forgetProxyAppliance))::tap(
+      subscribeProxies.forceRefresh
+    )
+  )
+
+const _destroyProxyAppliance = proxy =>
+  _call('proxy.destroy', { id: resolveId(proxy) })
+export const destroyProxyAppliances = proxies =>
+  confirm({
+    title: _('destroyProxyApplianceTitle', { n: proxies.length }),
+    body: _('destroyProxyApplianceMessage', { n: proxies.length }),
+  }).then(() =>
+    Promise.all(map(proxies, _destroyProxyAppliance))::tap(
+      subscribeProxies.forceRefresh
+    )
+  )
+
+export const upgradeProxyAppliance = proxy =>
+  _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
+
+export const checkProxyHealth = proxy =>
+  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>
+    success(
+      <span>
+        <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
+      </span>,
+      _('proxyTestSuccessMessage')
+    )
+  )
