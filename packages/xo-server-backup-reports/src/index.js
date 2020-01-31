@@ -395,7 +395,13 @@ class BackupReportsXoPlugin {
         mailReceivers,
         markdown: toMarkdown(markdown),
         success: false,
-        nagiosMarkdown: `[Xen Orchestra] [${log.status}] Backup report for ${jobName} - Error : ${log.result.message}`,
+        nagiosMarkdown: `[Xen Orchestra] [${
+          log.status
+        }] Backup report for ${jobName}${
+          log.result?.message !== undefined
+            ? ` - Error : ${log.result.message}`
+            : ''
+        }`,
       })
     }
 
