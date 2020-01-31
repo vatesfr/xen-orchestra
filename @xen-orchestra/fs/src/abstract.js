@@ -12,6 +12,7 @@ import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
 
+import coalesceCalls from './_coalesceCalls'
 import normalizePath from './_normalizePath'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
@@ -104,6 +105,9 @@ export default class RemoteHandlerAbstract {
     this.unlink = sharedLimit(this.unlink)
     this.write = sharedLimit(this.write)
     this.writeFile = sharedLimit(this.writeFile)
+
+    this._forget = coalesceCalls(this._forget)
+    this._sync = coalesceCalls(this._sync)
   }
 
   // Public members
