@@ -3,7 +3,12 @@ import LEVELS, { NAMES } from '../levels'
 const { DEBUG, ERROR, FATAL, INFO, WARN } = LEVELS
 
 let formatLevel, formatNamespace
-if (process.stdout.isTTY && process.stderr.isTTY) {
+if (
+  process.stdout !== undefined &&
+  process.stdout.isTTY &&
+  process.stderr !== undefined &&
+  process.stderr.isTTY
+) {
   const ansi = (style, str) => `\x1b[${style}m${str}\x1b[0m`
 
   const LEVEL_STYLES = {
