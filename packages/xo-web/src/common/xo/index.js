@@ -32,6 +32,7 @@ import {
 import _ from '../intl'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
+import Icon from '../icon'
 import logError from '../log-error'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
