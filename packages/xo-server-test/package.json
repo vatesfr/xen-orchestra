@@ -38,7 +38,7 @@
     "lodash": "^4.17.11",
     "promise-toolbox": "^0.15.0",
     "xo-collection": "^0.4.1",
-    "xo-common": "^0.2.0",
+    "xo-common": "^0.3.0",
     "xo-lib": "^0.9.0"
   },
   "scripts": {

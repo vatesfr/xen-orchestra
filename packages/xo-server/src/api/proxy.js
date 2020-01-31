@@ -68,7 +68,7 @@ getAll.permission = 'admin'
 
 export function update({ id, vm, ...props }) {
   return this.updateProxy(id, {
-    vmUuid: vm?.uuid,
+    vmUuid: vm != null ? this.getObject(vm).uuid : vm,
     ...props,
   })
 }
@@ -94,9 +94,6 @@ update.params = {
     type: 'string',
     optional: true,
   },
-}
-update.resolve = {
-  vm: ['vm', 'VM', 'administrate'],
 }
 
 export function deploy({ sr }) {

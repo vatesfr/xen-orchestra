@@ -172,3 +172,11 @@ export const patchPrecheckFailed = create(20, ({ errorType, patch }) => ({
   },
   message: `patch precheck failed: ${errorType}`,
 }))
+
+export const operationFailed = create(21, ({ objectId, code }) => ({
+  data: {
+    objectId,
+    code,
+  },
+  message: 'operation failed',
+}))

@@ -1139,6 +1139,7 @@ export default class Xapi extends XapiBase {
       sr,
       mapVdisSrs,
       mapVifsNetworks,
+      force = false,
     }
   ) {
     // VDIs/SRs mapping
@@ -1186,7 +1187,7 @@ export default class Xapi extends XapiBase {
         vdis,
         vifsMap,
         {
-          force: 'true',
+          force: force ? 'true' : 'false',
         }
         // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
         // might need to be changed one day.
@@ -1440,7 +1441,7 @@ export default class Xapi extends XapiBase {
     vmId,
     hostXapi,
     hostId,
-    { sr, migrationNetworkId, mapVifsNetworks, mapVdisSrs } = {}
+    { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
@@ -1460,11 +1461,12 @@ export default class Xapi extends XapiBase {
         sr,
         mapVdisSrs,
         mapVifsNetworks,
+        force,
       })
     } else {
       try {
         await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
-          force: 'true',
+          force: force ? 'true' : 'false',
         })
       } catch (error) {
         if (error.code !== 'VM_REQUIRES_SR') {
@@ -1472,7 +1474,7 @@ export default class Xapi extends XapiBase {
         }
 
         // Retry using motion storage.
-        await this._migrateVmWithStorageMotion(vm, hostXapi, host, {})
+        await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force })
       }
     }
   }
@@ -2139,18 +2141,25 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable
-  async createBondedNetwork($defer, { bondMode, mac = '', pifIds, ...params }) {
+  async createBondedNetwork(
+    $defer,
+    { bondMode, pifIds: masterPifIds, ...params }
+  ) {
     const network = await this.createNetwork(params)
     $defer.onFailure(() => this.deleteNetwork(network))
-    // TODO: test and confirm:
-    // Bond.create is called here with PIFs from one host but XAPI should then replicate the
-    // bond on each host in the same pool with the corresponding PIFs (ie same interface names?).
-    await this.call(
-      'Bond.create',
-      network.$ref,
-      map(pifIds, pifId => this.getObject(pifId).$ref),
-      mac,
-      bondMode
+
+    const pifsByHost = {}
+    masterPifIds.forEach(pifId => {
+      this.getObject(pifId).$network.$PIFs.forEach(pif => {
+        if (pifsByHost[pif.host] === undefined) {
+          pifsByHost[pif.host] = []
+        }
+        pifsByHost[pif.host].push(pif.$ref)
+      })
+    })
+
+    await asyncMap(pifsByHost, pifs =>
+      this.call('Bond.create', network.$ref, pifs, '', bondMode)
     )
 
     return network
