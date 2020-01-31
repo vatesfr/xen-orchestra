@@ -4,10 +4,23 @@
 
 ### Enhancements
 
+### Bug fixes
+
+### Released packages
+
+## **5.43.0** (2020-01-31)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Highlights
+
 - [Home] Allow to change the number of items per page [#4535](https://github.com/vatesfr/xen-orchestra/issues/4535) (PR [#4708](https://github.com/vatesfr/xen-orchestra/pull/4708))
 - [Tag] Adding a tag: ability to select from existing tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4530](https://github.com/vatesfr/xen-orchestra/pull/4530))
 - [Smart backup] Ability to manually add custom tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4648](https://github.com/vatesfr/xen-orchestra/pull/4648))
 - [Proxy] Ability to backup VMs via registered proxy [#4254](https://github.com/vatesfr/xen-orchestra/issues/4254) (PR [#4495](https://github.com/vatesfr/xen-orchestra/pull/4495))
+
+### Enhancements
+
 - [VM/Migrate] Ask user before forcing migration [#2136](https://github.com/vatesfr/xen-orchestra/issues/2136) (PR [#4364](https://github.com/vatesfr/xen-orchestra/pull/4364))
 
 ### Bug fixes
@@ -26,7 +39,7 @@
 
 ## **5.42.1** (2020-01-17)
 
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 
@@ -61,8 +74,6 @@
 - xo-web v5.54.0
 
 ## **5.41.0** (2019-11-29)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Highlights
 
