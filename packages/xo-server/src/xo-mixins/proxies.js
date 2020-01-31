@@ -26,7 +26,7 @@ export default class Proxy {
     this._app = app
     const xoProxyConf = (this._xoProxyConf = conf['xo-proxy'])
     const rules = {
-      '{date}': (date = new Date().toISOString()) => date,
+      '{date}': (date = new Date()) => date.toISOString(),
     }
     this._generateDefaultProxyName = compileTemplate(
       xoProxyConf.proxyName,
@@ -159,7 +159,7 @@ export default class Proxy {
       generateToken(),
       app.getApplianceRegistration(),
     ])
-    const date = new Date().toISOString()
+    const date = new Date()
     await Promise.all([
       vm.add_tags(xoProxyConf.vmTag),
       vm.set_name_label(this._generateDefaultVmName(date)),
