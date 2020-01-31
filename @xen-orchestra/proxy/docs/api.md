@@ -53,7 +53,6 @@ Content-Type: application/json
 
 ```ts
 interface Remote {
-  id: string
   url: string
   options?: string
 }
@@ -81,7 +80,7 @@ declare namespace event {
   }
 }
 
-declare namespace job {
+declare namespace backup {
   type SimpleIdPattern = { id: string | { __or: string[] } }
 
   interface BackupJob {
@@ -89,6 +88,7 @@ declare namespace job {
     type: 'backup'
     compression?: 'native' | 'zstd' | ''
     mode: Mode
+    name: string
     remotes?: SimpleIdPattern
     settings: $Dict<Settings>
     srs?: SimpleIdPattern
@@ -104,7 +104,11 @@ declare namespace job {
     xoMetadata?: boolean
   }
 
-  interface Xapis {
+  interface Schedule {
+    id: string
+  }
+
+  interface Xapi {
     allowUnauthorized: boolean
     credentials: object
     url: string
@@ -112,8 +116,10 @@ declare namespace job {
 
   function run(_: {
     job: BackupJob | MetadataBackupJob
-    remotes: Remote[]
-    xapis: Xapis[]
+    remotes: { [id: string]: Remote }
+    schedule: Schedule
+    xapis: { [id: string]: Xapi }
+    recordToXapi: { [recordUuid: string]: string }
   }): string
 }
 
