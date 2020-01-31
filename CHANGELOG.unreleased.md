@@ -15,6 +15,7 @@
 - [Tag] Adding a tag: ability to select from existing tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4530](https://github.com/vatesfr/xen-orchestra/pull/4530))
 - [Smart backup] Ability to manually add custom tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4648](https://github.com/vatesfr/xen-orchestra/pull/4648))
 - [Proxy] Ability to backup VMs via registered proxy [#4254](https://github.com/vatesfr/xen-orchestra/issues/4254) (PR [#4495](https://github.com/vatesfr/xen-orchestra/pull/4495))
+- [VM/Migrate] Ask user before forcing migration [#2136](https://github.com/vatesfr/xen-orchestra/issues/2136) (PR [#4364](https://github.com/vatesfr/xen-orchestra/pull/4364))
 
 ### Bug fixes
 
@@ -29,5 +30,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-common v0.3.0
 - xo-server v5.55.0
 - xo-web v5.55.0

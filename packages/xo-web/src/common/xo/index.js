@@ -1,7 +1,6 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
-import Icon from 'icon'
 import pFinally from 'promise-toolbox/finally'
 import React from 'react'
 import reflect from 'promise-toolbox/reflect'
@@ -1285,19 +1284,44 @@ export const deleteSnapshots = vms =>
   )
 
 import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
-export const migrateVm = (vm, host) =>
-  confirm({
-    title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vm={vm} host={host} />,
-  }).then(params => {
-    if (!params.targetHost) {
-      return error(
-        _('migrateVmNoTargetHost'),
-        _('migrateVmNoTargetHostMessage')
-      )
+export const migrateVm = async (vm, host) => {
+  let params
+  try {
+    params = await confirm({
+      title: _('migrateVmModalTitle'),
+      body: <MigrateVmModalBody vm={vm} host={host} />,
+    })
+  } catch (error) {
+    return
+  }
+
+  if (!params.targetHost) {
+    return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+  }
+
+  try {
+    await _call('vm.migrate', { vm: vm.id, ...params })
+  } catch (error) {
+    // https://developer-docs.citrix.com/projects/citrix-hypervisor-management-api/en/latest/api-ref-autogen-errors/#vmincompatiblewiththishost
+    if (
+      error != null &&
+      error.data !== undefined &&
+      error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST'
+    ) {
+      // Retry with force.
+      try {
+        await confirm({
+          body: _('forceVmMigrateModalMessage'),
+          title: _('forceVmMigrateModalTitle'),
+        })
+      } catch (error) {
+        return
+      }
+      return _call('vm.migrate', { vm: vm.id, force: true, ...params })
     }
-    return _call('vm.migrate', { vm: vm.id, ...params })
-  }, noop)
+    throw error
+  }
+}
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
 export const migrateVms = vms =>
