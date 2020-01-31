@@ -4,6 +4,7 @@ import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
+import { compileTemplate } from '@xen-orchestra/template'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
@@ -23,7 +24,15 @@ const synchronizedWrite = synchronized()
 export default class Proxy {
   constructor(app, conf) {
     this._app = app
-    this._xoProxyConf = conf['xo-proxy']
+    const xoProxyConf = (this._xoProxyConf = conf['xo-proxy'])
+    const rules = {
+      '{date}': (date = new Date()) => date.toISOString(),
+    }
+    this._generateDefaultProxyName = compileTemplate(
+      xoProxyConf.proxyName,
+      rules
+    )
+    this._generateDefaultVmName = compileTemplate(xoProxyConf.vmName, rules)
     const db = (this._db = new Collection({
       connection: app._redis,
       indexes: ['address', 'vmUuid'],
@@ -55,7 +64,7 @@ export default class Proxy {
   async registerProxy({
     address,
     authenticationToken,
-    name = `Proxy ${new Date().toISOString()}`,
+    name = this._generateDefaultProxyName(),
     vmUuid,
   }) {
     await this._throwIfRegistered(address, vmUuid)
@@ -150,10 +159,10 @@ export default class Proxy {
       generateToken(),
       app.getApplianceRegistration(),
     ])
-    const date = new Date().toISOString()
+    const date = new Date()
     await Promise.all([
-      vm.add_tags('XOA Proxy'),
-      vm.set_name_label(`XOA Proxy ${date}`),
+      vm.add_tags(xoProxyConf.vmTag),
+      vm.set_name_label(this._generateDefaultVmName(date)),
       vm.update_xenstore_data({
         'vm-data/system-account-xoa-password': password,
         'vm-data/xo-proxy-authenticationToken': JSON.stringify(
@@ -202,7 +211,7 @@ export default class Proxy {
 
     const { id } = await this.registerProxy({
       authenticationToken: proxyAuthenticationToken,
-      name: `Proxy ${date}`,
+      name: this._generateDefaultProxyName(date),
       vmUuid: vm.uuid,
     })
 
