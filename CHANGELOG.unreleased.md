@@ -30,5 +30,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-common v0.3.0
 - xo-server v5.55.0
 - xo-web v5.55.0
