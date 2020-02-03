@@ -86,8 +86,12 @@ export class AuditCore {
   async *getFrom(newest) {
     const storage = this._storage
 
-    let record
     let id = newest ?? (await storage.getLastId())
+    if (id === undefined) {
+      return
+    }
+
+    let record
     while ((record = await storage.get(id)) !== undefined) {
       yield record
       id = record.previousId
