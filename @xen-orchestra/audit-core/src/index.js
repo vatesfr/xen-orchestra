@@ -32,7 +32,8 @@ export const NULL_ID = 'nullId'
 
 const HASH_ALGORITHM_ID = '5'
 const createHash = (data, algorithmId = HASH_ALGORITHM_ID) =>
-  `$${algorithmId}$$${hash(data, {
+  // delete "undefined" properties and normalize data with JSON.stringify
+  `$${algorithmId}$$${hash(JSON.parse(JSON.stringify(data)), {
     algorithm: ID_TO_ALGORITHM[algorithmId],
     excludeKeys: key => key === 'id',
   })}`
