@@ -48,13 +48,17 @@ export class AuditCore {
     const time = Date.now()
     const storage = this._storage
     $defer(await storage.acquireLock())
-    const record = {
-      data,
-      event,
-      previousId: (await storage.getLastId()) ?? NULL_ID,
-      subject,
-      time,
-    }
+
+    // delete "undefined" properties and normalize data with JSON.stringify
+    const record = JSON.parse(
+      JSON.stringify({
+        data,
+        event,
+        previousId: (await storage.getLastId()) ?? NULL_ID,
+        subject,
+        time,
+      })
+    )
     record.id = createHash(record)
     await storage.put(record)
     await storage.setLastId(record.id)
@@ -85,8 +89,12 @@ export class AuditCore {
   async *getFrom(newest) {
     const storage = this._storage
 
-    let record
     let id = newest ?? (await storage.getLastId())
+    if (id === undefined) {
+      return
+    }
+
+    let record
     while ((record = await storage.get(id)) !== undefined) {
       yield record
       id = record.previousId
@@ -95,7 +103,6 @@ export class AuditCore {
 
   async deleteFrom(newest) {
     assert.notStrictEqual(newest, undefined)
-    assert(newest !== undefined)
     for await (const { id } of this.getFrom(newest)) {
       await this._storage.del(id)
     }
