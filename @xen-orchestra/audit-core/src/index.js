@@ -32,8 +32,7 @@ export const NULL_ID = 'nullId'
 
 const HASH_ALGORITHM_ID = '5'
 const createHash = (data, algorithmId = HASH_ALGORITHM_ID) =>
-  // delete "undefined" properties and normalize data with JSON.stringify
-  `$${algorithmId}$$${hash(JSON.parse(JSON.stringify(data)), {
+  `$${algorithmId}$$${hash(data, {
     algorithm: ID_TO_ALGORITHM[algorithmId],
     excludeKeys: key => key === 'id',
   })}`
@@ -49,13 +48,17 @@ export class AuditCore {
     const time = Date.now()
     const storage = this._storage
     $defer(await storage.acquireLock())
-    const record = {
-      data,
-      event,
-      previousId: (await storage.getLastId()) ?? NULL_ID,
-      subject,
-      time,
-    }
+
+    // delete "undefined" properties and normalize data with JSON.stringify
+    const record = JSON.parse(
+      JSON.stringify({
+        data,
+        event,
+        previousId: (await storage.getLastId()) ?? NULL_ID,
+        subject,
+        time,
+      })
+    )
     record.id = createHash(record)
     await storage.put(record)
     await storage.setLastId(record.id)
