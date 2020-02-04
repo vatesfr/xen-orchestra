@@ -4,7 +4,7 @@ import { ensureDir } from 'fs-extra'
 
 // ===================================================================
 
-const _levelHas = function has(key, cb) {
+const _levelHas = async function has(key, cb) {
   if (cb) {
     return this.get(key, (error, value) =>
       error ? (error.notFound ? cb(null, false) : cb(error)) : cb(null, true)
@@ -12,7 +12,7 @@ const _levelHas = function has(key, cb) {
   }
 
   try {
-    this.get(key)
+    await this.get(key)
     return true
   } catch (error) {
     if (!error.notFound) {
