@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Self,IP pools] Fixed the creation being stuck and freezing XO (PR [#4776](https://github.com/vatesfr/xen-orchestra/pull/4776))
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
