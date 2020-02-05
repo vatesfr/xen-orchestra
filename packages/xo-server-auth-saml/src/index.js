@@ -38,6 +38,7 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
       title: "Don't request an authentication context",
       description: 'This is known to help when using Active Directory',
       default: DEFAULTS.disableRequestedAuthnContext,
+      type: 'boolean',
     },
   },
   required: ['cert', 'entryPoint', 'issuer', 'usernameField'],

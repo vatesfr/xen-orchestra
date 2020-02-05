@@ -1,6 +1,6 @@
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
-import unzip from 'julien-f-unzip'
+import unzip from 'unzipper'
 import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
@@ -390,7 +390,7 @@ export default {
         .pipe(unzip.Parse())
         .on('entry', entry => {
           if (PATCH_RE.test(entry.path)) {
-            entry.length = entry.size
+            entry.length = entry.vars.uncompressedSize
             resolve(entry)
           } else {
             entry.autodrain()
@@ -421,7 +421,7 @@ export default {
       stream
         .pipe(unzip.Parse())
         .on('entry', entry => {
-          entry.length = entry.size
+          entry.length = entry.vars.uncompressedSize
           resolve(entry)
         })
         .on('error', reject)
