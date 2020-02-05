@@ -243,7 +243,7 @@ export default class Api {
   }
 
   _call(method, params = {}) {
-    debug(`call: ${method}(${JSON.stringify(params)})`)
+    debug(`call: ${method}()`, { method, params })
     const fn = this._methods[method]
     if (fn === undefined) {
       throw new MethodNotFound(method)
