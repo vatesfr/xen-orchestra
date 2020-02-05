@@ -523,7 +523,7 @@ export const importConfig = config =>
 
 export const exportConfig = () =>
   _call('xo.exportConfig').then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+    window.open(`.${url}`)
   })
 
 // Server ------------------------------------------------------------
@@ -1568,7 +1568,7 @@ export const exportVm = vm =>
     info(_('startVmExport'), id)
     return _call('vm.export', { vm: id, compress }).then(
       ({ $getFrom: url }) => {
-        window.location = `.${url}`
+        window.open(`.${url}`)
       }
     )
   })
@@ -1577,7 +1577,7 @@ export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
   return _call('disk.exportContent', { id: resolveId(vdi) }).then(
     ({ $getFrom: url }) => {
-      window.location = `.${url}`
+      window.open(`.${url}`)
     }
   )
 }
@@ -2361,7 +2361,7 @@ export const fetchFiles = (remote, disk, partition, paths, format) =>
     'backup.fetchFiles',
     resolveIds({ remote, disk, partition, paths, format })
   ).then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+    window.open(`.${url}`)
   })
 
 // File restore NG  ----------------------------------------------------
@@ -2377,7 +2377,7 @@ export const fetchFilesNg = (remote, disk, partition, paths) =>
     'backupNg.fetchFiles',
     resolveIds({ remote, disk, partition, paths })
   ).then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+    window.open(`.${url}`)
   })
 
 // -------------------------------------------------------------------
