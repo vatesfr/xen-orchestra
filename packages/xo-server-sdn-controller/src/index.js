@@ -217,18 +217,17 @@ async function generateCertificatesAndKey(dataDir) {
 async function createTunnel(host, network) {
   const otherConfig = network.other_config
   const pifDevice = otherConfig['xo:sdn-controller:pif-device']
-  const vlan = otherConfig['xo:sdn-controller:vlan']
-  const hostPif = find(
-    host.$PIFs,
+  const pifVlan = otherConfig['xo:sdn-controller:vlan']
+  const hostPif = host.$PIFs.find(
     pif =>
       pif.device === pifDevice &&
-      pif.VLAN === +vlan &&
+      pif.VLAN === +pifVlan &&
       pif.ip_configuration_mode !== 'None'
   )
   if (hostPif === undefined) {
     log.error("Can't create tunnel: no available PIF", {
-      pif: pifDevice,
-      vlan,
+      pifDevice,
+      pifVlan,
       network: network.name_label,
       host: host.name_label,
       pool: host.$pool.name_label,
@@ -242,8 +241,8 @@ async function createTunnel(host, network) {
   } catch (error) {
     log.error('Error while creating tunnel', {
       error,
-      pif: pifDevice,
-      vlan,
+      pifDevice,
+      pifVlan,
       network: network.name_label,
       host: host.name_label,
       pool: host.$pool.name_label,
@@ -252,8 +251,8 @@ async function createTunnel(host, network) {
   }
 
   log.debug('New tunnel added', {
-    pif: pifDevice,
-    vlan,
+    pifDevice,
+    pifVlan,
     network: network.name_label,
     host: host.name_label,
     pool: host.$pool.name_label,
