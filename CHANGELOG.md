@@ -2,6 +2,16 @@
 
 ## **next**
 
+### Enhancements
+
+### Bug fixes
+
+### Released packages
+
+## **5.43.1** (2020-02-06)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
 ### Bug fixes
 
 - [Self,IP pools] Fixed the creation being stuck and freezing XO (PR [#4776](https://github.com/vatesfr/xen-orchestra/pull/4776))
@@ -15,8 +25,6 @@
 - xo-web v5.56.2
 
 ## **5.43.0** (2020-01-31)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Highlights
 
