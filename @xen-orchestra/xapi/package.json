@@ -17,7 +17,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=6.15"
+    "node": ">=8.10"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
