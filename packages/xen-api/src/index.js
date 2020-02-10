@@ -1073,7 +1073,15 @@ export class Xapi extends EventEmitter {
       )
 
       const getters = { $pool: getPool }
-      const props = { $type: type }
+      const props = {
+        $call: function(method, ...args) {
+          return xapi.call(`${type}.${method}`, this.$ref, ...args)
+        },
+        $callAsync: function(method, ...args) {
+          return xapi.callAsync(`${type}.${method}`, this.$ref, ...args)
+        },
+        $type: type,
+      }
       fields.forEach(field => {
         props[`set_${field}`] = function(value) {
           return xapi.setField(this.$type, this.$ref, field, value)
