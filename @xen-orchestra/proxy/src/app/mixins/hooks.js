@@ -1,6 +1,6 @@
+import assert from 'assert'
 import emitAsync from '@xen-orchestra/emit-async'
 import EventEmitter from 'events'
-import expect from 'expect'
 import { createLogger } from '@xen-orchestra/log'
 
 const { debug, warn } = createLogger('xo:proxy:hooks')
@@ -31,7 +31,7 @@ export default class Hooks extends EventEmitter {
   //
   // They initialize the application.
   async start() {
-    expect(this._status).toBe('stopped')
+    assert.strictEqual(this._status, 'stopped')
     this._status = 'starting'
     await runHook(this, 'start')
     this.emit((this._status = 'started'))
@@ -41,7 +41,7 @@ export default class Hooks extends EventEmitter {
   //
   // They close connections, unmount file systems, save states, etc.
   async stop() {
-    expect(this._status).toBe('started')
+    assert.strictEqual(this._status, 'started')
     this._status = 'stopping'
     await runHook(this, 'stop')
     this.emit((this._status = 'stopped'))
