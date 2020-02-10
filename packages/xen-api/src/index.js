@@ -39,6 +39,8 @@ const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 
 export const NULL_REF = 'OpaqueRef:NULL'
 
+export { isOpaqueRef }
+
 // -------------------------------------------------------------------
 
 const RESERVED_FIELDS = {
