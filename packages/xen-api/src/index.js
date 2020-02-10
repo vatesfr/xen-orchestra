@@ -1082,6 +1082,23 @@ export class Xapi extends EventEmitter {
         },
         $type: type,
       }
+      ;(function addMethods(object) {
+        Object.getOwnPropertyNames(object).forEach(name => {
+          // dont trigger getters (eg sessionId)
+          const fn = Object.getOwnPropertyDescriptor(object, name).value
+          if (typeof fn === 'function' && name.startsWith(type + '_')) {
+            const key = '$' + name.slice(type.length + 1)
+            assert.strictEqual(props[key], undefined)
+            props[key] = function(...args) {
+              return xapi[name](this.$ref, ...args)
+            }
+          }
+        })
+        const proto = Object.getPrototypeOf(object)
+        if (proto !== null) {
+          addMethods(proto)
+        }
+      })(xapi)
       fields.forEach(field => {
         props[`set_${field}`] = function(value) {
           return xapi.setField(this.$type, this.$ref, field, value)
