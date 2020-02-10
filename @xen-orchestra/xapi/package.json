@@ -24,7 +24,7 @@
     "@babel/core": "^7.3.3",
     "@babel/plugin-proposal-decorators": "^7.3.0",
     "@babel/preset-env": "^7.3.1",
-    "cross": "^1.0.0",
+    "cross-env": "6.0.3",
     "rimraf": "^3.0.0"
   },
   "peerDependencies": {
