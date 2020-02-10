@@ -1,0 +1,4 @@
+blockList = [
+  'audit.getRecords',
+  'xo.getAllObjects',
+]
