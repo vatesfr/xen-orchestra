@@ -103,7 +103,7 @@ ${name} v${version}
     warn('failed to change group/user', { error })
   }
 
-  require('julien-f-source-map-support/register')
+  require('source-map-support/register')
 
   httpServer = require('stoppable')(httpServer)
 
