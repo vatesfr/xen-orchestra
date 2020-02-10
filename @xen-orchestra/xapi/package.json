@@ -28,7 +28,7 @@
     "rimraf": "^3.0.0"
   },
   "peerDependencies": {
-    "xen-api": "^0.27"
+    "xen-api": "^0.28.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
