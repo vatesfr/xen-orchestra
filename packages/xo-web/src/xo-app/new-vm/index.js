@@ -1071,7 +1071,7 @@ export default class NewVm extends BaseComponent {
   _getCpusMax = createSelector(
     () => this.state.state.CPUs,
     () => this.state.state.cpusMax,
-    (cpus, cpusMax) => Math.max(cpus, cpusMax)
+    Math.max
   )
 
   _renderPerformances = () => {
@@ -1645,6 +1645,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate,
       cpuCap,
       CPUs,
+      cpusMax,
       cpuWeight,
       hvmBootFirmware,
       memoryDynamicMin,
@@ -1741,11 +1742,10 @@ export default class NewVm extends BaseComponent {
             <Item label={_('cpusMax')}>
               <DebounceInput
                 className='form-control'
-                debounceTimeout={3e3}
                 min={CPUs}
                 onChange={this._linkState('cpusMax')}
                 type='number'
-                value={this._getCpusMax()}
+                value={cpusMax}
               />
             </Item>
           </SectionContent>,
