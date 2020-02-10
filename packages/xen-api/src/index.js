@@ -989,6 +989,8 @@ export class Xapi extends EventEmitter {
         this._processEvents(result.events)
 
         // detect and fix disappearing tasks (e.g. when toolstack restarts)
+        //
+        // FIXME: only if 'task' in 'types
         if (result.valid_ref_counts.task !== this._nTasks) {
           await this._refreshCachedRecords(['task'])
         }
