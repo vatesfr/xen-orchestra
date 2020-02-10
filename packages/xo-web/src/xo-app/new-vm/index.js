@@ -1644,7 +1644,6 @@ export default class NewVm extends BaseComponent {
       autoPoweron,
       bootAfterCreate,
       cpuCap,
-      CPUs,
       cpusMax,
       cpuWeight,
       hvmBootFirmware,
@@ -1742,7 +1741,6 @@ export default class NewVm extends BaseComponent {
             <Item label={_('cpusMax')}>
               <DebounceInput
                 className='form-control'
-                min={CPUs}
                 onChange={this._linkState('cpusMax')}
                 type='number'
                 value={cpusMax}
