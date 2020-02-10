@@ -3,4 +3,4 @@ const RUNNING_POWER_STATES = {
   Paused: true,
 }
 
-module.exports = vm => RUNNING_POWER_STATES[vm.power_state]
+module.exports = vm => vm.power_state in RUNNING_POWER_STATES
