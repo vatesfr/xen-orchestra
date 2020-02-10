@@ -8,9 +8,23 @@
 
 ### Released packages
 
-## **5.43.0** (2020-01-31)
+## **5.43.1** (2020-02-06)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Bug fixes
+
+- [Self,IP pools] Fixed the creation being stuck and freezing XO (PR [#4776](https://github.com/vatesfr/xen-orchestra/pull/4776))
+- [SDN Controller] Ensure the correct PIF is used to create private networks tunnels [#4737](https://github.com/vatesfr/xen-orchestra/issues/4737) (PR [#4757](https://github.com/vatesfr/xen-orchestra/pull/4757))
+
+### Released packages
+
+- xo-server-sdn-controller v0.3.2
+- xo-server-auth-saml 0.7.1
+- xo-server v5.56.1
+- xo-web v5.56.2
+
+## **5.43.0** (2020-01-31)
 
 ### Highlights
 

@@ -5,7 +5,7 @@
   },
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
-    "@xen-orchestra/backups": "^0.0.0",
+    "@xen-orchestra/backups": "^0.1.0",
     "@xen-orchestra/fs": "^0.10.2",
     "filenamify": "^4.1.0",
     "getopts": "^2.2.5",
