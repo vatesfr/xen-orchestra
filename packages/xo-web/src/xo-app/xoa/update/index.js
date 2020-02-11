@@ -294,11 +294,12 @@ const Updates = decorate([
             <CardBlock>
               <fieldset disabled={COMMUNITY}>
                 <p>
-                  {_('xoaBuild')} {state.xoaBuild} - {_('currentVersion')}{' '}
+                  {_('currentVersion')}{' '}
                   {defined(
                     () => state.installedPackages['xen-orchestra'],
                     'unknown'
                   )}{' '}
+                  - {_('xoaBuild')} {state.xoaBuild}{' '}
                   {state.installedPackages !== undefined && (
                     <Button
                       name='showPackagesList'
