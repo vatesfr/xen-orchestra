@@ -114,9 +114,11 @@ ${name} v${version}
     httpServer,
     safeMode: opts['--safe-mode'],
   })
-  app.hooks.on('stop', () =>
-    require('promise-toolbox/fromCallback')(cb => httpServer.stop(cb))
-  )
+
+  // dont delay require to stopping phase because deps may no longer be there (eg on uninstall)
+  const fromCallback = require('promise-toolbox/fromCallback')
+  app.hooks.on('stop', () => fromCallback(cb => httpServer.stop(cb)))
+
   await app.hooks.start()
 
   // Gracefully shutdown on signals.
