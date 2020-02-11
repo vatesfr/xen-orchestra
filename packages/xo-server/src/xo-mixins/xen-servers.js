@@ -182,8 +182,9 @@ export default class {
     await this._servers.update(server)
   }
 
-  getXenServer(id) {
-    return this._getXenServer(id).then(({ properties }) => properties)
+  async getXenServer(id) {
+    const { properties } = await this._getXenServer(id)
+    return properties
   }
 
   // TODO: this method will no longer be async when servers are
@@ -305,7 +306,7 @@ export default class {
   }
 
   async connectXenServer(id) {
-    const server = (await this._getXenServer(id)).properties
+    const server = await this.getXenServer(id)
 
     if (this._getXenServerStatus(id) !== 'disconnected') {
       throw new Error('the server is already connected')
@@ -556,8 +557,8 @@ export default class {
 
     await xapi.ejectHostFromPool(hostId)
 
-    this._getXenServer(this._serverIdsByPool[poolId])
-      .then(async ({ properties }) => {
+    this.getXenServer(this._serverIdsByPool[poolId])
+      .then(async properties => {
         const { id } = await this.registerXenServer({
           ...properties,
           host: address,
