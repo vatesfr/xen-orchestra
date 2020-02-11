@@ -183,8 +183,7 @@ export default class {
   }
 
   async getXenServer(id) {
-    const { properties } = await this._getXenServer(id)
-    return properties
+    return (await this._getXenServer(id)).properties
   }
 
   // TODO: this method will no longer be async when servers are
