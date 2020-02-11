@@ -623,7 +623,7 @@ export default class BackupNg {
 
               // Make sure we are passing only the VM to run which can be
               // different than the VMs in the job itself.
-              vms: { __or: vmIds },
+              vms: { id: { __or: vmIds } },
             },
             recordToXapi,
             remotes,
