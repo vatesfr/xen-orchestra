@@ -348,6 +348,7 @@ export default class NewVm extends BaseComponent {
         coresPerSocket: undefined,
         CPUs: '',
         cpuCap: '',
+        cpusMax: '',
         cpuWeight: '',
         existingDisks: {},
         fastClone: true,
@@ -370,14 +371,14 @@ export default class NewVm extends BaseComponent {
   }
 
   _selfCreate = () => {
-    const { CPUs, VDIs, existingDisks, memoryDynamicMax } = this.state.state
+    const { VDIs, existingDisks, memoryDynamicMax } = this.state.state
     const { template } = this.props
     const disksSize = sumBy(VDIs, 'size') + sumBy(existingDisks, 'size')
     const templateDisksSize = sumBy(template.template_info.disks, 'size')
     const templateMemoryDynamicMax = template.memory.dynamic[1]
     const templateVcpusMax = template.CPUs.max
 
-    return CPUs > MULTIPLICAND * templateVcpusMax ||
+    return this._getCpusMax() > MULTIPLICAND * templateVcpusMax ||
       memoryDynamicMax > MULTIPLICAND * templateMemoryDynamicMax ||
       disksSize > MULTIPLICAND * templateDisksSize
       ? confirm({
@@ -502,6 +503,7 @@ export default class NewVm extends BaseComponent {
       coresPerSocket:
         state.coresPerSocket === null ? undefined : state.coresPerSocket,
       CPUs: state.CPUs,
+      cpusMax: this._getCpusMax(),
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
       name_description: state.name_description,
@@ -598,6 +600,7 @@ export default class NewVm extends BaseComponent {
       ),
       // performances
       CPUs: template.CPUs.number,
+      cpusMax: template.CPUs.max,
       cpuCap: '',
       cpuWeight: '',
       hvmBootFirmware: defined(() => template.boot.firmware, ''),
@@ -1065,6 +1068,12 @@ export default class NewVm extends BaseComponent {
     return name_label && template
   }
 
+  _getCpusMax = createSelector(
+    () => this.state.state.CPUs,
+    () => this.state.state.cpusMax,
+    Math.max
+  )
+
   _renderPerformances = () => {
     const { coresPerSocket, CPUs, memoryDynamicMax } = this.state.state
     const { template } = this.props
@@ -1072,9 +1081,9 @@ export default class NewVm extends BaseComponent {
     const memoryThreshold = get(() => template.memory.static[0])
     const selectCoresPerSocket = (
       <SelectCoresPerSocket
-        disabled={pool === undefined}
+        disabled={pool === undefined || template === undefined}
         maxCores={get(() => pool.cpus.cores)}
-        maxVcpus={get(() => template.CPUs.max)}
+        maxVcpus={this._getCpusMax()}
         onChange={this._linkState('coresPerSocket')}
         value={coresPerSocket}
       />
@@ -1635,6 +1644,7 @@ export default class NewVm extends BaseComponent {
       autoPoweron,
       bootAfterCreate,
       cpuCap,
+      cpusMax,
       cpuWeight,
       hvmBootFirmware,
       memoryDynamicMin,
@@ -1726,6 +1736,14 @@ export default class NewVm extends BaseComponent {
                 })}
                 type='number'
                 value={cpuCap}
+              />
+            </Item>
+            <Item label={_('cpusMax')}>
+              <DebounceInput
+                className='form-control'
+                onChange={this._linkState('cpusMax')}
+                type='number'
+                value={cpusMax}
               />
             </Item>
           </SectionContent>,
