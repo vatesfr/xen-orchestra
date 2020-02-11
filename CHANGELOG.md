@@ -8,9 +8,19 @@
 
 ### Released packages
 
-## **5.43.1** (2020-02-06)
+## **5.43.2** (2020-02-11)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Bug fixes
+
+- Various bug fixes
+
+### Released packages
+
+- xo-server v5.56.2
+
+## **5.43.1** (2020-02-06)
 
 ### Bug fixes
 
