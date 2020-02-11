@@ -14,7 +14,7 @@
 
 ### Bug fixes
 
-- Various bug fixes
+- [Proxy] Correctly call the proxy when running backups (PRs [#4791](https://github.com/vatesfr/xen-orchestra/pull/4791) & [#4792](https://github.com/vatesfr/xen-orchestra/pull/4792))
 
 ### Released packages
 
