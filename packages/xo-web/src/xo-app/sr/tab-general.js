@@ -4,7 +4,7 @@ import decorate from 'apply-decorators'
 import HomeTags from 'home-tags'
 import Icon from 'icon'
 import React from 'react'
-import Usage, { UsageElement, getLimit } from 'usage'
+import Usage, { UsageElement } from 'usage'
 import { addTag, removeTag, getLicense } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -20,10 +20,11 @@ import {
   keyBy,
   map,
   mapValues,
+  pick,
   sumBy,
   uniq,
 } from 'lodash'
-import defined, { get } from '@xen-orchestra/defined'
+import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 
 const nestedUlStyle = { margin: '0.1em', marginLeft: '0.5em', padding: 0 }
@@ -238,25 +239,33 @@ export default class TabGeneral extends Component {
     }
   )
 
-  _getUrl = group => {
-    const { id, size } = this.props.sr
-    const { baseCopies, vdis, snapshots, usage } = group
+  _getUrl = createSelector(this._getDiskGroups, diskGroups => value => {
+    let ids = ''
+    const diskGroupsById = keyBy(diskGroups, 'id')
 
-    const vdisAndSnapshotsIds = `${vdis.map(_ => _.id).join(' ')} ${map(
-      snapshots,
-      'id'
-    ).join(' ')}`
+    if (Array.isArray(value)) {
+      const groups = pick(diskGroupsById, map(value, 'id'))
+      map(groups, ({ id, baseCopies, vdis, snapshots }) => {
+        ids =
+          ids +
+          (vdis === undefined
+            ? id
+            : `${map(vdis, 'id').join(' ')} ${map(snapshots, 'id').join(
+                ' '
+              )} ${map(baseCopies, 'id').join(' ')}`)
+      })
+    } else {
+      const { id, vdis, snapshots } = diskGroupsById[value.id]
+      ids =
+        vdis === undefined
+          ? id
+          : `${map(vdis, 'id').join(' ')} ${map(snapshots, 'id').join(' ')}`
+    }
 
-    const ids =
-      usage > getLimit(size)
-        ? vdisAndSnapshotsIds
-        : (this._lastIds = `${defined(
-            this._lastIds,
-            ''
-          )} ${vdisAndSnapshotsIds} ${map(baseCopies, 'id').join(' ')}`)
-
-    return `#/srs/${id}/disks?s=${encodeURIComponent(`id:|(${ids})`)}`
-  }
+    return `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
+      `id:|(${ids})`
+    )}`
+  })
 
   render() {
     const { sr } = this.props
@@ -293,11 +302,11 @@ export default class TabGeneral extends Component {
         </Row>
         <Row>
           <Col smallOffset={1} mediumSize={10}>
-            <Usage total={sr.size} type='disk'>
+            <Usage total={sr.size} type='disk' url={this._getUrl()}>
               {this._getDiskGroups().map(group => (
                 <UsageElement
+                  id={group.id}
                   highlight={group.type === 'orphanedSnapshot'}
-                  href={this._getUrl(group)}
                   key={group.id}
                   tooltip={<UsageTooltip group={group} />}
                   value={group.usage}
