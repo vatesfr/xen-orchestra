@@ -646,7 +646,7 @@ export default class Backups {
             }
 
             try {
-              return await new Backup({
+              await new Backup({
                 ...rest,
                 config,
                 getConnectedXapi,
