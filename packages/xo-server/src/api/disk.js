@@ -5,7 +5,6 @@ import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 
-import { parseSize } from '../utils'
 import { VDI_FORMAT_VHD } from '../xapi'
 
 const log = createLogger('xo:disk')
@@ -153,21 +152,6 @@ importContent.resolve = {
 }
 
 // -------------------------------------------------------------------
-
-export async function resize({ vdi, size }) {
-  await this.getXapi(vdi).resizeVdi(vdi._xapiId, parseSize(size))
-}
-
-resize.description = 'resize an existing VDI'
-
-resize.params = {
-  id: { type: 'string' },
-  size: { type: ['integer', 'string'] },
-}
-
-resize.resolve = {
-  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
-}
 
 async function handleImport(
   req,
