@@ -1,4 +1,8 @@
 function extractIdsFromSimplePattern(pattern) {
+  if (pattern === undefined) {
+    return []
+  }
+
   if (pattern === null || typeof pattern !== 'object') {
     return
   }
