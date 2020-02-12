@@ -240,30 +240,26 @@ export default class TabGeneral extends Component {
   )
 
   _getUrl = createSelector(this._getDiskGroups, diskGroups => value => {
-    let ids = ''
+    const disks = []
     const diskGroupsById = keyBy(diskGroups, 'id')
 
     if (Array.isArray(value)) {
+      // "Others" section
       const groups = pick(diskGroupsById, map(value, 'id'))
-      map(groups, ({ id, baseCopies, vdis, snapshots }) => {
-        ids =
-          ids +
-          (vdis === undefined
-            ? id
-            : `${map(vdis, 'id').join(' ')} ${map(snapshots, 'id').join(
-                ' '
-              )} ${map(baseCopies, 'id').join(' ')}`)
+      forEach(groups, ({ id, baseCopies = [], vdis, snapshots = [] }) => {
+        vdis === undefined
+          ? (disks[id] = { id })
+          : disks.push(...vdis, ...snapshots, ...baseCopies)
       })
     } else {
-      const { id, vdis, snapshots } = diskGroupsById[value.id]
-      ids =
-        vdis === undefined
-          ? id
-          : `${map(vdis, 'id').join(' ')} ${map(snapshots, 'id').join(' ')}`
+      const { id, vdis, snapshots = [] } = diskGroupsById[value.id]
+      vdis === undefined
+        ? (disks[id] = { id })
+        : disks.push(...vdis, ...snapshots)
     }
 
     return `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
-      `id:|(${ids})`
+      `id:|(${disks.map(_ => _.id).join(' ')})`
     )}`
   })
 
