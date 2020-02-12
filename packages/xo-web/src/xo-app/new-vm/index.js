@@ -1898,7 +1898,7 @@ export default class NewVm extends BaseComponent {
             <SectionContent>
               <Item label={_('vmBootFirmware')}>
                 <SelectBootFirmware
-                  host={pool.master}
+                  host={affinityHost == null ? pool.master : affinityHost.id}
                   onChange={this._handleBootFirmware}
                   value={hvmBootFirmware}
                 />

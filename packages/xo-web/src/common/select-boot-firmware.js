@@ -3,7 +3,7 @@ import decorate from 'apply-decorators'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { confirm } from 'modal'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObject } from 'selectors'
 import { injectState, provideState } from 'reaclette'
 import { satisfies as versionSatisfies } from 'semver'
 
@@ -14,13 +14,14 @@ const VM_BOOT_FIRMWARES = ['bios', 'uefi']
 
 const SelectBootFirmware = decorate([
   connectStore({
-    host: createGetObjectsOfType('host').find((_, { host: id }) => ({ id })),
+    host: createGetObject((_, props) => props.host),
   }),
   provideState({
     effects: {
       handleBootFirmwareChange(__, { target: { value } }) {
         if (
           value !== '' &&
+          this.props.host !== undefined &&
           versionSatisfies(this.props.host.version, '8.0.0')
         ) {
           // Guest UEFI boot is provided in CH/XCP-ng 8.0 as an experimental feature.
@@ -53,7 +54,7 @@ const SelectBootFirmware = decorate([
 ])
 
 SelectBootFirmware.propTypes = {
-  host: PropTypes.string.isRequired,
+  host: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   value: PropTypes.string.isRequired,
 }
