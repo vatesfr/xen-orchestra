@@ -4,6 +4,7 @@ const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pRetry = require('promise-toolbox/retry')
+const { NULL_REF } = require('xen-api')
 
 const AttachedVdiError = require('./_AttachedVdiError')
 const extractOpaqueRef = require('./_extractOpaqueRef')
@@ -103,6 +104,123 @@ module.exports = class Vm {
   //     throw error
   //   }
   // }
+
+  create(
+    {
+      actions_after_crash = 'reboot',
+      actions_after_reboot = 'reboot',
+      actions_after_shutdown = 'destroy',
+      affinity = NULL_REF,
+      appliance,
+      blocked_operations,
+      domain_type,
+      generation_id,
+      ha_restart_priority,
+      hardware_platform_version,
+      has_vendor_device = false, // Avoid issue with some Dundee builds.
+      HVM_boot_params,
+      HVM_boot_policy,
+      HVM_shadow_multiplier,
+      is_a_template = false,
+      is_vmss_snapshot,
+      last_boot_CPU_flags, // Used when the VM is created Suspended
+      last_booted_record, // Used when the VM is created Suspended
+      memory_static_max,
+      memory_static_min,
+      name_description,
+      name_label,
+      // NVRAM, // experimental
+      order,
+      other_config = {},
+      PCI_bus = '',
+      platform,
+      PV_args,
+      PV_bootloader_args,
+      PV_bootloader,
+      PV_kernel,
+      PV_legacy_args,
+      PV_ramdisk,
+      recommendations,
+      reference_label,
+      shutdown_delay,
+      snapshot_schedule,
+      start_delay,
+      suspend_SR,
+      tags,
+      user_version,
+      VCPUs_at_startup,
+      VCPUs_max,
+      VCPUs_params,
+      version,
+      xenstore_data,
+
+      memory_dynamic_max = memory_static_max,
+      memory_dynamic_min = memory_static_min,
+    },
+    {
+      // if set, will create the VM in Suspended power_state with this VDI
+      //
+      // it's a separate param because it's not supported for all versions of
+      // XCP-ng/XenServer and should be passed explicitly
+      suspend_VDI,
+    } = {}
+  ) {
+    return this.call('VM.create', {
+      actions_after_crash,
+      actions_after_reboot,
+      actions_after_shutdown,
+      affinity,
+      HVM_boot_params,
+      HVM_boot_policy,
+      is_a_template,
+      memory_dynamic_max,
+      memory_dynamic_min,
+      memory_static_max,
+      memory_static_min,
+      other_config,
+      PCI_bus,
+      platform,
+      PV_args,
+      PV_bootloader_args,
+      PV_bootloader,
+      PV_kernel,
+      PV_legacy_args,
+      PV_ramdisk,
+      recommendations,
+      user_version,
+      VCPUs_at_startup,
+      VCPUs_max,
+      VCPUs_params,
+
+      // Optional fields.
+      appliance,
+      blocked_operations,
+      domain_type,
+      generation_id,
+      ha_restart_priority,
+      hardware_platform_version,
+      has_vendor_device,
+      HVM_shadow_multiplier,
+      is_vmss_snapshot,
+      name_description,
+      name_label,
+      order,
+      reference_label,
+      shutdown_delay,
+      snapshot_schedule,
+      start_delay,
+      suspend_SR,
+      tags,
+      version,
+      xenstore_data,
+
+      // VM created Suspended
+      last_boot_CPU_flags,
+      last_booted_record,
+      power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
+      suspend_VDI,
+    })
+  }
 
   async destroy(
     vmRef,

@@ -4,16 +4,17 @@ import { formatDateTime } from '@xen-orchestra/xapi'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 
+import { importDeltaVm } from './_deltaVm'
 import { listReplicatedVms } from './_listReplicatedVms'
 
-export class DisasterRecoveryWriter {
+export class ContinuousReplicationWriter {
   constructor(backup, sr, settings) {
     this._backup = backup
     this._settings = settings
     this._sr = sr
   }
 
-  async run({ timestamp, stream }) {
+  async run({ timestamp, deltaExport }) {
     const sr = this._sr
     const settings = this._settings
     const { job, scheduleId, vm } = this._backup
@@ -40,7 +41,7 @@ export class DisasterRecoveryWriter {
     }
     const targetVm = await xapi.getRecord(
       'VM',
-      await xapi.VM_import(stream, sr.$ref)
+      await importDeltaVm(deltaExport, sr)
     )
 
     await Promise.all([

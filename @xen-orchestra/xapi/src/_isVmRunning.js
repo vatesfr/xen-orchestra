@@ -3,4 +3,7 @@ const RUNNING_POWER_STATES = {
   Paused: true,
 }
 
-module.exports = vm => vm.power_state in RUNNING_POWER_STATES
+module.exports = vmOrPowerState =>
+  (typeof vmOrPowerState === 'string'
+    ? vmOrPowerState
+    : vmOrPowerState.power_state) in RUNNING_POWER_STATES

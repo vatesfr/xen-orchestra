@@ -2,12 +2,12 @@ import assert from 'assert'
 import defer from 'golike-defer'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { createLogger } from '@xen-orchestra/log/dist'
-import { dirname, resolve } from 'path'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getHandler } from '@xen-orchestra/fs/dist'
 import { Xapi } from '@xen-orchestra/xapi'
 
 import { Backup } from './_Backup'
+import { importDeltaVm } from './_deltaVm'
 import { RemoteAdapter } from './_RemoteAdapter'
 
 const { warn } = createLogger('xo:proxy:backups')
@@ -35,12 +35,14 @@ export default class Backups {
         importVmBackup: [
           defer(
             async ($defer, { backupId, remote, srUuid, xapi: xapiOpts }) => {
-              const handler = getHandler(remote)
-              await handler.sync()
-              $defer.call(handler, 'forget')
-
-              const metadata = JSON.parse(await handler.readFile(backupId))
-              assert.strictEqual(metadata.mode, 'full')
+              const adapter = new RemoteAdapter(
+                (async () => {
+                  const handler = getHandler(remote)
+                  await handler.sync()
+                  $defer.call(handler, 'forget')
+                  return handler
+                })()
+              )
 
               const xapi = createXapi(xapiOpts)
               await xapi.connect()
@@ -48,12 +50,21 @@ export default class Backups {
 
               const srRef = await xapi.call('SR.get_by_uuid', srUuid)
 
-              const vmRef = await xapi.VM_import(
-                await handler.createReadStream(
-                  resolve('/', dirname(backupId), metadata.xva)
-                ),
-                srRef
-              )
+              const metadata = await adapter.readVmBackupMetadata(backupId)
+              let vmRef
+              if (metadata.mode === 'full') {
+                vmRef = await xapi.VM_import(
+                  await adapter.readFullVmBackup(metadata),
+                  srRef
+                )
+              } else {
+                assert.strictEqual(metadata.mode, 'delta')
+
+                vmRef = await importDeltaVm(
+                  await adapter.readDeltaVmBackup(metadata),
+                  srRef
+                )
+              }
 
               await Promise.all([
                 xapi.call('VM.add_tags', vmRef, 'restored from backup'),

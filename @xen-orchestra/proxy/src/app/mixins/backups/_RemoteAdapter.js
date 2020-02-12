@@ -1,6 +1,7 @@
 import asyncMap from '@xen-orchestra/async-map'
 import fromCallback from 'promise-toolbox/fromCallback'
 import pump from 'pump'
+import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
 import { basename, dirname, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -11,6 +12,7 @@ const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const isMetadataFile = filename => filename.endsWith('.json')
+const isVhdFile = filename => filename.endsWith('.vhd')
 
 const noop = Function.prototype
 
@@ -20,6 +22,63 @@ const resolveRelativeFromFile = (file, path) =>
 export class RemoteAdapter {
   constructor(handler) {
     this._handler = handler
+  }
+
+  async _deleteVhd(path) {
+    const handler = this._handler
+    const vhds = await asyncMap(
+      await handler.list(dirname(path), {
+        filter: isVhdFile,
+        prependDir: true,
+      }),
+      async path => {
+        try {
+          const vhd = new Vhd(handler, path)
+          await vhd.readHeaderAndFooter()
+          return {
+            footer: vhd.footer,
+            header: vhd.header,
+            path,
+          }
+        } catch (error) {
+          // Do not fail on corrupted VHDs (usually uncleaned temporary files),
+          // they are probably inconsequent to the backup process and should not
+          // fail it.
+          warn(`BackupNg#_deleteVhd ${path}`, { error })
+        }
+      }
+    )
+    const base = basename(path)
+    const child = vhds.find(
+      _ => _ !== undefined && _.header.parentUnicodeName === base
+    )
+    if (child === undefined) {
+      await handler.unlink(path)
+      return 0
+    }
+
+    try {
+      const childPath = child.path
+      const mergedDataSize = await mergeVhd(handler, path, handler, childPath)
+      await handler.rename(path, childPath)
+      return mergedDataSize
+    } catch (error) {
+      handler.unlink(path)
+    }
+  }
+
+  async deleteDeltaVmBackups(backups) {
+    const handler = this._handler
+    await asyncMap(backups, ({ _filename, vhds }) =>
+      Promise.all([
+        handler.unlink(_filename),
+        Promise.all(
+          Object.values(vhds).map(_ =>
+            this._deleteVhd(resolveRelativeFromFile(_filename, _))
+          )
+        ),
+      ])
+    )
   }
 
   async deleteFullVmBackups(backups) {
@@ -45,36 +104,24 @@ export class RemoteAdapter {
     return backups
   }
 
-  async listVmBackups(backupDir, predicate) {
+  async listVmBackups(vmUuid, predicate) {
     const handler = this._handler
     const backups = []
 
     try {
-      const files = await handler.list(backupDir)
+      const files = await handler.list(`${BACKUP_DIR}/${vmUuid}`, {
+        filter: isMetadataFile,
+        prependDir: true,
+      })
       await Promise.all(
-        files.filter(isMetadataFile).map(async file => {
-          const path = `${backupDir}/${file}`
+        files.map(async file => {
           try {
-            const metadata = JSON.parse(String(await handler.readFile(path)))
-            metadata.id = path
-            // if (metadata.mode === 'full') {
-            //   metadata.size = await timeout
-            //     .call(
-            //       handler.getSize(resolveRelativeFromFile(path, metadata.xva)),
-            //       parseDuration(this._backupOptions.vmBackupSizeTimeout)
-            //     )
-            //     .catch(err => {
-            //       warn(`listVmBackups, getSize`, { err })
-            //     })
-            // }
+            const metadata = await this.readVmBackupMetadata(file)
             if (predicate === undefined || predicate(metadata)) {
-              Object.defineProperty(metadata, '_filename', {
-                value: path,
-              })
               backups.push(metadata)
             }
           } catch (error) {
-            warn(`listVmBackups ${path}`, { error })
+            warn(`listVmBackups ${file}`, { error })
           }
         })
       )
@@ -108,5 +155,42 @@ export class RemoteAdapter {
       await handler.unlink(tmpPath, { checksum })
       throw error
     }
+  }
+
+  async readDeltaVmBackup(metadata) {
+    const handler = this._handler
+    const { vbds, vdis, vhds, vifs, vm } = metadata
+    const dir = dirname(metadata._filename)
+
+    const streams = {}
+    await asyncMap(vdis, async (vdi, id) => {
+      streams[`${id}.vhd`] = await createSyntheticStream(
+        handler,
+        resolve(dir, vhds[id])
+      )
+    })
+
+    return {
+      streams,
+      vbds,
+      vdis,
+      version: '1.0.0',
+      vifs,
+      vm,
+    }
+  }
+
+  readFullVmBackup(metadata) {
+    return this._handler.createReadStream(
+      resolve('/', dirname(metadata._filename), metadata.xva)
+    )
+  }
+
+  async readVmBackupMetadata(path) {
+    return Object.defineProperty(
+      JSON.parse(await this._handler.readFile(path)),
+      '_filename',
+      { value: path }
+    )
   }
 }

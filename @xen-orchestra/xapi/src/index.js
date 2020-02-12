@@ -11,7 +11,7 @@ exports.VDI_FORMAT_VHD = 'vhd'
 exports.formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
 
 const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
-exports.parseDateTime = (str, defaultValue) => {
+exports.parseDateTime = function (str, defaultValue) {
   const date = parseDateTimeHelper(str)
   if (date === null) {
     if (arguments.length > 1) {
@@ -51,8 +51,10 @@ function mixin(mixins) {
   defineProperties(xapiProto, descriptors)
 }
 mixin({
-  VDI: require('./vdi'),
-  VM: require('./vm'),
   task: require('./task'),
+  VBD: require('./vbd'),
+  VDI: require('./vdi'),
+  VIF: require('./vif'),
+  VM: require('./vm'),
 })
 exports.Xapi = Xapi

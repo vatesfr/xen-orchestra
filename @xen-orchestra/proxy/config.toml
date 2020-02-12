@@ -25,6 +25,11 @@ snapshotRetention = 0
 timeout = 0
 vmTimeout = 0
 
+# This is a work-around.
+#
+# See https://github.com/vatesfr/xen-orchestra/pull/4674
+maxMergedDeltasPerRun = 2
+
 # Each `http.listen.<name>` entry defines a specific listening configuration for
 # the HTTP server.
 #
@@ -49,4 +54,4 @@ timeout = 600e3
 
 [xapiOptions]
 maxUncoalescedVdis = 1
-watchEvents = ['task', 'VM']
+watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM']

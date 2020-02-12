@@ -12,7 +12,7 @@ export class FullBackupWriter {
     this._settings = settings
   }
 
-  async run({ timestamp, stream }) {
+  async run({ timestamp, sizeContainer, stream }) {
     const backup = this._backup
     const remoteId = this._remoteId
     const settings = this._settings
@@ -28,7 +28,7 @@ export class FullBackupWriter {
     const oldBackups = getOldEntries(
       settings.exportRetention - 1,
       await adapter.listVmBackups(
-        backupDir,
+        vm.uuid,
         _ => _.mode === 'full' && _.scheduleId === scheduleId
       )
     )
@@ -40,16 +40,16 @@ export class FullBackupWriter {
     const dataFilename = backupDir + '/' + dataBasename
 
     const metadataFilename = `${backupDir}/${basename}.json`
-    const metadataContent = JSON.stringify({
+    const metadata = {
       jobId: job.id,
       mode: job.mode,
       scheduleId,
       timestamp,
       version: '2.0.0',
       vm,
-      vmSnapshot: this.sourceVm,
+      vmSnapshot: this._backup.exportedVm,
       xva: './' + dataBasename,
-    })
+    }
 
     const { deleteFirst } = settings
     if (deleteFirst) {
@@ -63,7 +63,8 @@ export class FullBackupWriter {
         }
       },
     })
-    await handler.outputFile(metadataFilename, metadataContent)
+    metadata.size = sizeContainer.size
+    await handler.outputFile(metadataFilename, JSON.stringify(metadata))
 
     if (!deleteFirst) {
       await deleteOldBackups()
