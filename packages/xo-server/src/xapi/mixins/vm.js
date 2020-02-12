@@ -84,12 +84,13 @@ export default {
     )
     $defer.onFailure(() => this.deleteVm(vmRef))
 
-    let vm = await this._getOrWaitObject(vmRef)
-
-    const isHvm = isVmHvm(vm)
-
     // Copy BIOS strings
-    if (isHvm && copyHostBiosStrings && props.affinityHost !== undefined) {
+    if (
+      props.hvmBootFirmware !== 'uefi' &&
+      isVmHvm(template) &&
+      copyHostBiosStrings &&
+      props.affinityHost !== undefined
+    ) {
       await this.callAsync(
         'VM.copy_bios_strings',
         vmRef,
@@ -109,11 +110,15 @@ export default {
     // installation.
     await this.callAsync('VM.provision', vmRef)
 
+    let vm = await this._getOrWaitObject(vmRef)
+
     // Set VMs params.
     await this._editVm(vm, props, checkLimits)
 
     // Sets boot parameters.
     {
+      const isHvm = isVmHvm(vm)
+
       if (isHvm) {
         if (!isEmpty(vdis) || installMethod === 'network') {
           const { order } = vm.HVM_boot_params

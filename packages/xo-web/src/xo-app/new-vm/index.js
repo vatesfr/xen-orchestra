@@ -1879,15 +1879,17 @@ export default class NewVm extends BaseComponent {
           isAdmin && isHvm && (
             <SectionContent>
               <Item>
-                <input
-                  checked={copyHostBiosStrings}
-                  className='form-control'
-                  disabled={affinityHost == null}
-                  onChange={this._linkState('copyHostBiosStrings')}
-                  type='checkbox'
-                />
-                &nbsp;
-                {_('newVmCopyHostBiosStrings')}
+                <label>
+                  <input
+                    checked={copyHostBiosStrings}
+                    className='form-control'
+                    disabled={hvmBootFirmware === 'uefi'}
+                    onChange={this._toggleState('copyHostBiosStrings')}
+                    type='checkbox'
+                  />
+                  &nbsp;
+                  {_('newVmCopyHostBiosStrings')}
+                </label>
               </Item>
             </SectionContent>
           ),
