@@ -451,7 +451,6 @@ export default class {
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
-      this._xo.emit('server:disconnected', { server, xapi })
       this.updateXenServer(id, { error })::ignoreErrors()
       throw error
     }
