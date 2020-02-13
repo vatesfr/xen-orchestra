@@ -260,7 +260,7 @@ async function createTunnel(host, network) {
 }
 
 function getHostTunnelForNetwork(host, networkRef) {
-  const pif = host.$PIFs.find({ network: networkRef })
+  const pif = host.$PIFs.find(_ => _.network === networkRef)
   if (pif === undefined) {
     return
   }
@@ -564,7 +564,7 @@ class SDNController extends EventEmitter {
 
           // Re-elect a center to apply the VNI
           const privateNetwork = this._privateNetworks[
-            network.other_config['private-network-uuid']
+            network.other_config['xo:sdn-controller:private-network-uuid']
           ]
           await this._electNewCenter(privateNetwork)
         })
@@ -704,7 +704,7 @@ class SDNController extends EventEmitter {
           pool: object.$pool.name_label,
         })
 
-        if (this._newHosts.find({ $ref: object.$ref }) === undefined) {
+        if (this._newHosts.find(_ => _.$ref === object.$ref) === undefined) {
           this._newHosts.push(object)
         }
         this._createOvsdbClient(object)
@@ -831,7 +831,7 @@ class SDNController extends EventEmitter {
   }
 
   async _hostUpdated(host) {
-    const newHost = this._newHosts.find({ $ref: host.$ref })
+    const newHost = this._newHosts.find(_ => _.$ref === host.$ref)
     if (!host.enabled || host.PIFs.length === 0 || newHost === undefined) {
       return
     }

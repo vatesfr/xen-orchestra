@@ -126,9 +126,9 @@ export class PrivateNetwork {
     // TODO: make it random
     const hosts = this._getHosts()
     for (const host of hosts) {
-      const pif = host.$PIFs.find({
-        network: this.networks[host.$pool.uuid].$ref,
-      })
+      const pif = host.$PIFs.find(
+        _ => _.network === this.networks[host.$pool.uuid].$ref
+      )
       if (pif?.currently_attached && host.$metrics.live) {
         this.center = host
         break
