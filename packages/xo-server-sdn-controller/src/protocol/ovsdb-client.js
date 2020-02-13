@@ -487,7 +487,7 @@ export class OvsdbClient {
     let resultRequestId
     do {
       try {
-        result = await fromEvent(stream, 'data', {})
+        result = await fromEvent(stream, 'data')
       } catch (error) {
         log.error('Error while waiting for stream data', {
           error,
@@ -518,7 +518,7 @@ export class OvsdbClient {
     const socket = connect(options)
 
     try {
-      await fromEvent(socket, 'secureConnect', {})
+      await fromEvent(socket, 'secureConnect')
     } catch (error) {
       log.error('TLS connection failed', {
         error,

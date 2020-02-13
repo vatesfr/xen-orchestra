@@ -260,7 +260,7 @@ async function createTunnel(host, network) {
 }
 
 function getHostTunnelForNetwork(host, networkRef) {
-  const pif = find(host.$PIFs, { network: networkRef })
+  const pif = host.$PIFs.find({ network: networkRef })
   if (pif === undefined) {
     return
   }
@@ -368,7 +368,7 @@ class SDNController extends EventEmitter {
     await Promise.all(
       map(this._privateNetworks, async privateNetworks => {
         await Promise.all(
-          map(privateNetworks.getPools(), async pool => {
+          privateNetworks.getPools().map(async pool => {
             if (!updatedPools.includes(pool)) {
               const xapi = this._xo.getXapi(pool)
               await this._installCaCertificateIfNeeded(xapi)
@@ -621,7 +621,7 @@ class SDNController extends EventEmitter {
 
       await this._setPoolControllerIfNeeded(pool)
 
-      const pifId = find(pifIds, id => {
+      const pifId = pifIds.find(id => {
         const pif = this._xo.getXapiObject(this._xo.getObject(id, 'PIF'))
         return pif.$pool.$ref === pool.$ref
       })
@@ -704,7 +704,7 @@ class SDNController extends EventEmitter {
           pool: object.$pool.name_label,
         })
 
-        if (find(this._newHosts, { $ref: object.$ref }) === undefined) {
+        if (this._newHosts.find({ $ref: object.$ref }) === undefined) {
           this._newHosts.push(object)
         }
         this._createOvsdbClient(object)
@@ -831,7 +831,7 @@ class SDNController extends EventEmitter {
   }
 
   async _hostUpdated(host) {
-    const newHost = find(this._newHosts, { $ref: host.$ref })
+    const newHost = this._newHosts.find({ $ref: host.$ref })
     if (!host.enabled || host.PIFs.length === 0 || newHost === undefined) {
       return
     }
