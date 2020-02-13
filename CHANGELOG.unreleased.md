@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Usage Report] Fix wrong report date [#4779](https://github.com/vatesfr/xen-orchestra/issues/4779) (PR [#4799](https://github.com/vatesfr/xen-orchestra/pull/4799))
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
@@ -20,5 +22,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-usage-report v0.7.4
 - xo-server v5.57.0
 - xo-web v5.57.0
