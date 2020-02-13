@@ -24,6 +24,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-auth-ldap v0.7.0
 - xo-server-usage-report v0.7.4
 - xo-server-sdn-controller v0.4.0
 - xo-server v5.57.0
