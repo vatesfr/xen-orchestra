@@ -14,17 +14,16 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
+import { get } from '@xen-orchestra/defined'
 import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
 import {
   concat,
-  compact,
   forEach,
   groupBy,
   isEmpty,
-  keyBy,
   map,
   mapValues,
   pick,
@@ -37,7 +36,6 @@ import {
   getCheckPermissions,
 } from 'selectors'
 import {
-  areSrsOnSameHost,
   connectVbd,
   createDisk,
   deleteVbd,
@@ -308,83 +306,12 @@ class NewDisk extends Component {
   }
 }
 
-@connectStore(() => {
-  const getAllVdis = createGetObjectsOfType('VDI')
-  const getSrs = createGetObjectsOfType('SR')
-  const getVbds = createGetObjectsOfType('VBD')
-
-  const getVdisById = createSelector(
-    (_, props) => props.vdis,
-    vdis => keyBy(vdis, 'id')
-  )
-
-  const getVbdsByVdi = createSelector(
-    createSelector(getVbds, vbds => keyBy(vbds, 'id')),
-    createSelector(getVdisById, vdis => mapValues(vdis, '$VBDs')),
-    (vbds, vbdIdsByVdi) =>
-      mapValues(vbdIdsByVdi, vbdIds => map(vbdIds, vbdId => vbds[vbdId]))
-  )
-
-  const getVmIdsByVdi = createSelector(getVbdsByVdi, vbdsByVdi =>
-    mapValues(vbdsByVdi, vbds => map(vbds, 'VM'))
-  )
-
-  const getVmsByVdi = createSelector(
-    createGetObjectsOfType('VM'),
-    getVmIdsByVdi,
-    (vms, vmIdsByVdi) => mapValues(vmIdsByVdi, vmIds => pick(vms, vmIds))
-  )
-
-  const getVmControllersByVdi = createSelector(
-    createGetObjectsOfType('VM-controller'),
-    getVmIdsByVdi,
-    (vmControllers, vmIdsByVdi) =>
-      mapValues(vmIdsByVdi, vmIds => pick(vmControllers, vmIds))
-  )
-
-  const getVmSnapshotsByVdi = createSelector(
-    createGetObjectsOfType('VM-snapshot'),
-    getVmIdsByVdi,
-    (vmSnapshots, vmIdsByVdi) =>
-      mapValues(vmIdsByVdi, vmIds => pick(vmSnapshots, vmIds))
-  )
-
-  const getVmTemplatesByVdi = createSelector(
-    createGetObjectsOfType('VM-template'),
-    getVmIdsByVdi,
-    (vmTemplates, vmIdsByVdi) =>
-      mapValues(vmIdsByVdi, vmIds => pick(vmTemplates, vmIds))
-  )
-
-  const getAllVmsByVdi = createSelector(
-    getVdisById,
-    getVmsByVdi,
-    getVmControllersByVdi,
-    getVmSnapshotsByVdi,
-    getVmTemplatesByVdi,
-    (
-      vdisById,
-      vmsByVdi,
-      vmControllersByVdi,
-      vmSnapshotsByVdi,
-      vmTemplatesByVdi
-    ) =>
-      mapValues(vdisById, ({ id }) => ({
-        ...vmsByVdi[id],
-        ...vmControllersByVdi[id],
-        ...vmSnapshotsByVdi[id],
-        ...vmTemplatesByVdi[id],
-      }))
-  )
-
-  return {
-    allVdis: getAllVdis,
-    allVmsByVdi: getAllVmsByVdi,
-    checkPermissions: getCheckPermissions,
-    vbds: getVbds,
-    srs: getSrs,
-  }
-})
+@connectStore(() => ({
+  allVdis: createGetObjectsOfType('VDI'),
+  checkPermissions: getCheckPermissions,
+  vbds: createGetObjectsOfType('VBD'),
+  srs: createGetObjectsOfType('SR'),
+}))
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
 
@@ -410,57 +337,56 @@ export default class SrDisks extends Component {
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
 
-  _getVmSrs = createSelector(
-    _ => _,
-    () => this.props.vbds,
-    () => this.props.allVmsByVdi,
+  _getRequiredHosts = createSelector(
     () => this.props.allVdis,
+    () => this.props.vbds,
     () => this.props.srs,
-    (selectedVdis, allVbds, vmsByVdi, vdis, srs) => {
-      let vbds = []
-      forEach(selectedVdis, ({ id }) => {
-        forEach(vmsByVdi[id], vm => {
-          vbds = [...vbds, ...vm.$VBDs]
+    createSelector(
+      () => this.props.vbds,
+      vbds => groupBy(vbds, 'VM')
+    ),
+    createCollectionWrapper(_ => _),
+    (vdis, vbds, srs, vbdsByVm, selectedVdis) => {
+      const requiredHosts = new Set()
+
+      forEach(selectedVdis, vdi => {
+        forEach(vdi.$VBDs, vbdId => {
+          // get the required host for each VM
+          forEach(vbdsByVm[get(() => vbds[vbdId].VM)], vbd => {
+            let vdi, sr
+            if (
+              !vbd.is_cd_drive &&
+              (vdi = vdis[vbd.VDI]) !== undefined &&
+              (sr = srs[vdi.$SR]) !== undefined &&
+              !isSrShared(sr)
+            ) {
+              requiredHosts.add(sr.$container)
+              return false
+            }
+          })
         })
       })
 
-      return compact(
-        vbds.map(vbdId => {
-          const vbd = allVbds[vbdId]
-          let vdi
-          return (
-            !vbd.is_cd_drive &&
-            ((vdi = vdis[vbd.VDI]), vdi !== undefined && srs[vdi.$SR])
-          )
-        })
-      )
+      return requiredHosts
     }
   )
 
-  _getRequiredHost = createSelector(this._getVmSrs, srs => {
-    if (!areSrsOnSameHost(srs)) {
-      return
+  _getCheckSr = createSelector(this._getRequiredHosts, requiredHosts => sr => {
+    if (sr === undefined || isSrShared(sr)) {
+      return true
     }
 
-    let container
-    forEach(srs, sr => {
-      if (sr !== undefined && !isSrShared(sr)) {
-        container = sr.$container
-        return false
-      }
-    })
-    return container
+    if (requiredHosts.size > 1) {
+      // multiple hosts required
+      return true
+    }
+
+    const requiredHost = requiredHosts.values().next().value
+    return requiredHost === undefined || sr.$container === requiredHost
   })
 
-  _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
-    sr === undefined ||
-    isSrShared(sr) ||
-    requiredHost === undefined ||
-    sr.$container === requiredHost
-  )
-
-  _migrateVdis = vdis => {
-    return confirm({
+  _migrateVdis = vdis =>
+    confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
@@ -477,7 +403,6 @@ export default class SrDisks extends Component {
         map(migrateAll ? this.props.vdis : vdis, vdi => migrateVdi(vdi, sr))
       )
     })
-  }
 
   _actions = [
     {

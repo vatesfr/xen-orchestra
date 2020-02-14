@@ -11,7 +11,6 @@ import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { SelectHost } from 'select-objects'
 import {
-  every,
   filter,
   forEach,
   get,
@@ -21,7 +20,6 @@ import {
   map,
   once,
   size,
-  some,
   sortBy,
   throttle,
 } from 'lodash'
@@ -68,21 +66,6 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
 export const isSrShared = sr => sr && sr.shared
 export const isVmRunning = vm => vm && vm.power_state === 'Running'
-export const areSrsOnSameHost = srs => {
-  if (some(srs, sr => sr === undefined)) {
-    return true // the user doesn't have permissions on one of the SRs: no warning
-  }
-
-  let container
-  return every(srs, sr => {
-    if (isSrShared(sr)) {
-      return true
-    }
-    return container === undefined
-      ? ((container = sr.$container), true)
-      : container === sr.$container
-  })
-}
 
 // ===================================================================
 
