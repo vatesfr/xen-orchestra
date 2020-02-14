@@ -1175,7 +1175,7 @@ export default class BackupNg {
       }
     } else {
       const snapshots = vm.$snapshots
-        .filter(_ => _.other_config['xo:backup:job'] === jobId)
+        .filter(_ => _.other_config['xo:backup:schedule'] === scheduleId)
         .sort(compareSnapshotTime)
 
       const bypassVdiChainsCheck: boolean = getSetting(
