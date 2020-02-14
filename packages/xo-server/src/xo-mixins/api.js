@@ -304,6 +304,13 @@ export default class Api {
         )}] ==> ${kindOf(result)}`
       )
 
+      // it's a particular case which the user is defined at the end of the call
+      if (data.method === 'session.signIn') {
+        const { id, email } = await xo.getUser(session.get('user_id'))
+        data.userId = id
+        data.userName = email
+      }
+
       const now = Date.now()
       xo.emit('xo:postCall', {
         ...data,
