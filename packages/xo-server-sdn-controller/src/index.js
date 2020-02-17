@@ -704,7 +704,7 @@ class SDNController extends EventEmitter {
           pool: object.$pool.name_label,
         })
 
-        if (this._newHosts.find(_ => _.$ref === object.$ref) === undefined) {
+        if (!this._newHosts.some(_ => _.$ref === object.$ref)) {
           this._newHosts.push(object)
         }
         this._createOvsdbClient(object)
