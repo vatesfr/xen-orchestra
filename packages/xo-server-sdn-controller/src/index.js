@@ -831,16 +831,16 @@ class SDNController extends EventEmitter {
   }
 
   async _hostUpdated(host) {
-    let newHost
+    let i
     if (
       !host.enabled ||
       host.PIFs.length === 0 ||
-      (newHost = this._newHosts.find(_ => _.$ref === host.$ref)) === undefined
+      (i = this._newHosts.findIndex(_ => _.$ref === host.$ref)) === -1
     ) {
       return
     }
 
-    this._newHosts = this._newHosts.slice(this._newHosts.indexOf(newHost), 1)
+    this._newHosts.splice(i, 1)
 
     log.debug('Sync pool certificates', {
       newHost: host.name_label,
