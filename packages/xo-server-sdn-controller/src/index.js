@@ -831,8 +831,12 @@ class SDNController extends EventEmitter {
   }
 
   async _hostUpdated(host) {
-    const newHost = this._newHosts.find(_ => _.$ref === host.$ref)
-    if (!host.enabled || host.PIFs.length === 0 || newHost === undefined) {
+    let newHost
+    if (
+      !host.enabled ||
+      host.PIFs.length === 0 ||
+      (newHost = this._newHosts.find(_ => _.$ref === host.$ref)) === undefined
+    ) {
       return
     }
 
