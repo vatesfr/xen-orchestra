@@ -1,5 +1,5 @@
 import createLogger from '@xen-orchestra/log'
-import { filter, find, forOwn, map, sample } from 'lodash'
+import { filter, forOwn, sample } from 'lodash'
 
 // =============================================================================
 
@@ -111,7 +111,7 @@ export class PrivateNetwork {
 
     const hosts = filter(network.$pool.$xapi.objects.all, { $type: 'host' })
     return Promise.all(
-      map(hosts, async host => {
+      hosts.map(async host => {
         const hostClient = this.controller.ovsdbClients[host.$ref]
         const network = this.networks[host.$pool.uuid]
         await hostClient.resetForNetwork(network, this.uuid)
@@ -126,9 +126,9 @@ export class PrivateNetwork {
     // TODO: make it random
     const hosts = this._getHosts()
     for (const host of hosts) {
-      const pif = find(host.$PIFs, {
-        network: this.networks[host.$pool.uuid].$ref,
-      })
+      const pif = host.$PIFs.find(
+        _ => _.network === this.networks[host.$pool.uuid].$ref
+      )
       if (pif?.currently_attached && host.$metrics.live) {
         this.center = host
         break
@@ -145,7 +145,7 @@ export class PrivateNetwork {
     await this._reset()
 
     // Recreate star topology
-    await Promise.all(map(hosts, host => this.addHost(host)))
+    await Promise.all(hosts.map(host => this.addHost(host)))
 
     log.info('New star-center elected', {
       center: this.center.name_label,
@@ -167,7 +167,7 @@ export class PrivateNetwork {
 
   _reset() {
     return Promise.all(
-      map(this._getHosts(), async host => {
+      this._getHosts().map(async host => {
         // Clean old ports and interfaces
         const hostClient = this.controller.ovsdbClients[host.$ref]
         if (hostClient === undefined) {
