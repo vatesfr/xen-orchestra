@@ -564,7 +564,7 @@ class SDNController extends EventEmitter {
 
           // Re-elect a center to apply the VNI
           const privateNetwork = this._privateNetworks[
-            network.other_config['xo:sdn-controller:private-network-uuid']
+            network.other_config['private-network-uuid']
           ]
           await this._electNewCenter(privateNetwork)
         })
