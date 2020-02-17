@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup NG] Fix snapshots deleted by a not linked schedule in case of a job with multiple schedules (PR [#4803](https://github.com/vatesfr/xen-orchestra/pull/4803))
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
