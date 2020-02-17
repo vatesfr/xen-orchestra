@@ -836,7 +836,7 @@ class SDNController extends EventEmitter {
       return
     }
 
-    this._newHosts = this._newHosts.slice(this._newHosts.indexOf(newHost), 1)
+    this._newHosts.splice(this._newHosts.indexOf(newHost), 1)
 
     log.debug('Sync pool certificates', {
       newHost: host.name_label,
