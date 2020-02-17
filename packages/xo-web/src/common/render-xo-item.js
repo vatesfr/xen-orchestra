@@ -12,7 +12,12 @@ import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
-import { isSrWritable, subscribeProxies, subscribeRemotes } from './xo'
+import {
+  isSrWritable,
+  subscribeProxies,
+  subscribeRemotes,
+  subscribeUsers,
+} from './xo'
 
 // ===================================================================
 
@@ -407,6 +412,47 @@ Vgpu.propTypes = {
 
 // ===================================================================
 
+export const User = decorate([
+  addSubscriptions(({ id }) => ({
+    user: cb =>
+      subscribeUsers(users => {
+        const user = users.find(user => user.id === id)
+        cb(user === undefined ? 'unknown' : user)
+      }),
+  })),
+  ({ defaultRender, id, link, newTab, user }) => {
+    if (user === undefined) {
+      return <Icon icon='loading' />
+    }
+    if (user === 'unknown') {
+      return defaultRender || unknowItem(id, 'user')
+    }
+    return (
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={`/settings/users?s=id:${id}`}
+      >
+        <Icon icon='user' /> {user.email}
+      </LinkWrapper>
+    )
+  },
+])
+
+User.propTypes = {
+  defaultRender: PropTypes.node,
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+User.defaultProps = {
+  link: false,
+  newTab: false,
+}
+
+// ===================================================================
+
 const xoItemToRender = {
   // Subscription objects.
   cloudConfig: template => (
@@ -422,11 +468,7 @@ const xoItemToRender = {
   remote: ({ value: { id } }) => <Remote id={id} />,
   proxy: ({ id }) => <Proxy id={id} />,
   role: role => <span>{role.name}</span>,
-  user: user => (
-    <span>
-      <Icon icon='user' /> {user.email}
-    </span>
-  ),
+  user: ({ id }) => <User id={id} />,
   resourceSet: resourceSet => (
     <span>
       <strong>

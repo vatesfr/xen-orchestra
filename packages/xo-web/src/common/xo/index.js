@@ -3109,3 +3109,25 @@ export const checkProxyHealth = proxy =>
       _('proxyTestSuccessMessage')
     )
   )
+
+// Audit plugin ---------------------------------------------------------
+
+const METHOD_NOT_FOUND_CODE = -32601
+export const subscribeAuditRecords = createSubscription(async () => {
+  try {
+    const { $getFrom } = await _call('audit.getRecords', { ndjson: true })
+    const response = await fetch(`.${$getFrom}`)
+    const data = await response.text()
+
+    const records = []
+    parseNdJson(data, record => {
+      records.push(record)
+    })
+    return records
+  } catch (error) {
+    if (error.code === METHOD_NOT_FOUND_CODE) {
+      return []
+    }
+    throw error
+  }
+})
