@@ -14,10 +14,8 @@ const Usage = ({ total, children, url }) => {
       return value < limit && child.props
     })
   )
-
   const othersTotal = sumBy(othersProps, 'value')
   const nOthers = othersProps.length
-
   return (
     <span className='usage'>
       {nOthers > 1 ? (
@@ -27,8 +25,8 @@ const Usage = ({ total, children, url }) => {
             (child, index) =>
               child.props.value > limit &&
               cloneElement(child, {
-                total,
                 href: typeof url === 'function' ? url(child.props) : url,
+                total,
               })
           )}
           <Element
