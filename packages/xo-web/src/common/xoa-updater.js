@@ -126,23 +126,23 @@ class XoaUpdater extends EventEmitter {
       })
       middle.on('end', end => {
         this._lowState = end
-        switch (this._lowState.state) {
-          case 'xoa-up-to-date':
-          case 'xoa-upgraded':
-          case 'updater-upgraded':
-          case 'installer-upgraded':
-            this.state('upToDate')
-            break
-          case 'xoa-upgrade-needed':
-          case 'updater-upgrade-needed':
-          case 'installer-upgrade-needed':
-            this.state('upgradeNeeded')
-            break
-          case 'register-needed':
-            this.state('registerNeeded')
-            break
-          default:
-            this.state('error')
+        const { state } = end
+        if (state.endsWith('-upgrade-needed')) {
+          this.state('upgradeNeeded')
+        } else {
+          switch (this._lowState.state) {
+            case 'xoa-up-to-date':
+            case 'xoa-upgraded':
+            case 'updater-upgraded':
+            case 'installer-upgraded':
+              this.state('upToDate')
+              break
+            case 'register-needed':
+              this.state('registerNeeded')
+              break
+            default:
+              this.state('error')
+          }
         }
         this.log(end.level, end.message)
         this._lastRun = Date.now()
