@@ -247,8 +247,12 @@ const Updates = decorate([
         xoaTrialState.state === 'default' &&
         !isTrialRunning(xoaTrialState.trial) &&
         !exposeTrial(xoaTrialState.trial),
-      isUnlistedChannel: ({ consolidatedChannel, channels }) =>
-        consolidatedChannel !== undefined && !(consolidatedChannel in channels),
+      isUnlistedChannel: ({ consolidatedChannel, channels }) => {
+        return (
+          consolidatedChannel !== undefined &&
+          !(channels !== undefined && consolidatedChannel in channels)
+        )
+      },
       isUpdaterDown: (_, { xoaTrialState }) =>
         isEmpty(xoaTrialState) || xoaTrialState.state === 'ERROR',
       packagesList: ({ installedPackages }) =>
