@@ -239,20 +239,20 @@ export default class TabGeneral extends Component {
     }
   )
 
-  _getUrl = createSelector(this._getDiskGroups, diskGroups => value => {
+  _getUrl = createSelector(this._getDiskGroups, diskGroups => childProps => {
     const disks = []
     const diskGroupsById = keyBy(diskGroups, 'id')
 
-    if (Array.isArray(value)) {
+    if (Array.isArray(childProps)) {
       // "Others" section
-      const groups = pick(diskGroupsById, map(value, 'id'))
+      const groups = pick(diskGroupsById, map(childProps, 'id'))
       forEach(groups, ({ id, baseCopies = [], vdis, snapshots = [] }) => {
         vdis === undefined
           ? (disks[id] = { id })
           : disks.push(...vdis, ...snapshots, ...baseCopies)
       })
     } else {
-      const { id, vdis, snapshots = [] } = diskGroupsById[value.id]
+      const { id, vdis, snapshots = [] } = diskGroupsById[childProps.id]
       vdis === undefined
         ? (disks[id] = { id })
         : disks.push(...vdis, ...snapshots)

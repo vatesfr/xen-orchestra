@@ -8,15 +8,15 @@ import Tooltip from '../tooltip'
 
 const Usage = ({ total, children, url }) => {
   const limit = total / 400
-  const others = compact(
+  const othersProps = compact(
     React.Children.map(children, child => {
       const { value } = child.props
       return value < limit && child.props
     })
   )
 
-  const othersTotal = sumBy(others, 'value')
-  const nOthers = others.length
+  const othersTotal = sumBy(othersProps, 'value')
+  const nOthers = othersProps.length
 
   return (
     <span className='usage'>
@@ -32,7 +32,7 @@ const Usage = ({ total, children, url }) => {
               })
           )}
           <Element
-            href={url(others)}
+            href={typeof url === 'function' ? url(othersProps) : url}
             others
             tooltip={_('others', { nOthers })}
             total={total}
