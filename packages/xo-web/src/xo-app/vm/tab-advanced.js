@@ -780,6 +780,7 @@ export default class TabAdvanced extends Component {
                     <th>{_('vmBootFirmware')}</th>
                     <td>
                       <SelectBootFirmware
+                        host={vm.$container}
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />

@@ -21,8 +21,8 @@ const SelectBootFirmware = decorate([
       handleBootFirmwareChange(__, { target: { value } }) {
         if (
           value !== '' &&
-          this.props.host !== undefined &&
-          versionSatisfies(this.props.host.version, '8.0.0')
+          (this.props.host === undefined ||
+            versionSatisfies(this.props.host.version, '8.0.0'))
         ) {
           // Guest UEFI boot is provided in CH/XCP-ng 8.0 as an experimental feature.
           // https://docs.citrix.com/en-us/citrix-hypervisor/8-0/downloads/citrix-hypervisor-8.0.pdf#page=10
