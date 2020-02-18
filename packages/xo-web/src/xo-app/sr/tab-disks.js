@@ -313,8 +313,8 @@ export default class SrDisks extends Component {
   _getIsVdiAttached = createSelector(
     createSelector(
       () => this.props.vbds,
-      () => map(this.props.vdis, 'id'),
-      (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
+      () => this.props.vdis,
+      (vbds, vdis) => pick(groupBy(vbds, 'VDI'), map(vdis, 'id'))
     ),
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
