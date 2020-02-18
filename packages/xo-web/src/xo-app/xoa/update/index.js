@@ -199,7 +199,7 @@ const Updates = decorate([
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
       channelsFormId: generateId,
-      channels: COMMUNITY ? () => [] : () => xoaUpdater.getReleaseChannels(),
+      channels: COMMUNITY ? () => ({}) : () => xoaUpdater.getReleaseChannels(),
       channelsOptions: ({ channels }) =>
         channels === undefined
           ? undefined
