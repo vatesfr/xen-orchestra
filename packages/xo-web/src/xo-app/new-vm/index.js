@@ -1662,9 +1662,25 @@ export default class NewVm extends BaseComponent {
       showAdvanced,
       tags,
     } = this.state.state
-    const { isAdmin } = this.props
+    const { isAdmin, template } = this.props
     const { formatMessage } = this.props.intl
     const isHvm = this._isHvm()
+    const hasBiosStings =
+      template !== undefined && !isEmpty(template.bios_strings)
+    const copyHostBiosStrings_ =
+      isAdmin && isHvm ? (
+        <label>
+          <input
+            checked={copyHostBiosStrings}
+            className='form-control'
+            disabled={hvmBootFirmware === 'uefi' || hasBiosStings}
+            onChange={this._toggleState('copyHostBiosStrings')}
+            type='checkbox'
+          />
+          &nbsp;
+          {_('newVmCopyHostBiosStrings')}
+        </label>
+      ) : null
 
     return (
       <Section
@@ -1879,17 +1895,13 @@ export default class NewVm extends BaseComponent {
           isAdmin && isHvm && (
             <SectionContent>
               <Item>
-                <label>
-                  <input
-                    checked={copyHostBiosStrings}
-                    className='form-control'
-                    disabled={hvmBootFirmware === 'uefi'}
-                    onChange={this._toggleState('copyHostBiosStrings')}
-                    type='checkbox'
-                  />
-                  &nbsp;
-                  {_('newVmCopyHostBiosStrings')}
-                </label>
+                {hasBiosStings ? (
+                  <Tooltip content={_('copyHostBiosStringsTooltip')}>
+                    {copyHostBiosStrings_}
+                  </Tooltip>
+                ) : (
+                  copyHostBiosStrings_
+                )}
               </Item>
             </SectionContent>
           ),
