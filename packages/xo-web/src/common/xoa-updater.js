@@ -148,10 +148,9 @@ class XoaUpdater extends EventEmitter {
         this._lastRun = Date.now()
         this._waiting = false
         this.emit('end', end)
-        if (this._lowState === 'register-needed') {
+        if (this._lowState.state === 'register-needed') {
           this.isRegistered()
-        }
-        if (
+        } else if (
           this._lowState.state === 'updater-upgraded' ||
           this._lowState.state === 'installer-upgraded'
         ) {
