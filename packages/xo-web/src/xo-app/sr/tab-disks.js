@@ -341,48 +341,67 @@ export default class SrDisks extends Component {
     () => this.props.allVdis,
     () => this.props.vbds,
     () => this.props.srs,
-    createSelector(
-      () => this.props.vbds,
-      vbds => groupBy(vbds, 'VM')
-    ),
     createCollectionWrapper(_ => _),
-    (vdis, vbds, srs, vbdsByVm, selectedVdis) => {
+    (vdis, vbds, srs, selectedVdis) => {
+      const vbdsByVm = groupBy(vbds, 'VM')
       const requiredHosts = new Set()
+      const vms = new Set()
 
-      forEach(selectedVdis, vdi => {
+      selectedVdis.forEach(vdi => {
+        // Get the required host for each VM contains this VDI
         forEach(vdi.$VBDs, vbdId => {
-          // get the required host for each VM
-          forEach(vbdsByVm[get(() => vbds[vbdId].VM)], vbd => {
-            let vdi, sr
-            if (
-              !vbd.is_cd_drive &&
-              (vdi = vdis[vbd.VDI]) !== undefined &&
-              (sr = srs[vdi.$SR]) !== undefined &&
-              !isSrShared(sr)
-            ) {
-              requiredHosts.add(sr.$container)
-              return false
-            }
-          })
+          const vm = get(() => vbds[vbdId].VM)
+          if (vm !== undefined && !vms.has(vm)) {
+            vms.add(vm)
+            forEach(vbdsByVm[vm], vbd => {
+              let sr
+              let vmVdi
+              if (
+                !vbd.is_cd_drive &&
+                (vmVdi = vdis[vbd.VDI]) !== undefined &&
+                (sr = srs[vmVdi.$SR]) !== undefined &&
+                !isSrShared(sr)
+              ) {
+                requiredHosts.add(sr.$container)
+                return false
+              }
+            })
+          }
         })
+
+        if (requiredHosts.size > 1) {
+          // No need to get all the required hosts
+          return false
+        }
       })
+
+      if (
+        vms.size === 1 &&
+        vbdsByVm[vms.values().next().value].filter(vbd => !vbd.is_cd_drive)
+          .length === selectedVdis.length
+      ) {
+        // No required host when the selected VDIs are all the VDIs attached to a VM
+        return
+      }
 
       return requiredHosts
     }
   )
 
   _getCheckSr = createSelector(this._getRequiredHosts, requiredHosts => sr => {
-    if (sr === undefined || isSrShared(sr)) {
+    if (sr === undefined || isSrShared(sr) || requiredHosts === undefined) {
       return true
     }
 
     if (requiredHosts.size > 1) {
-      // multiple hosts required
-      return true
+      return false
     }
 
-    const requiredHost = requiredHosts.values().next().value
-    return requiredHost === undefined || sr.$container === requiredHost
+    let requiredHost
+    return (
+      (requiredHost = requiredHosts.values().next().value) === undefined ||
+      sr.$container === requiredHost
+    )
   })
 
   _migrateVdis = vdis =>
