@@ -301,8 +301,8 @@ export default class TabGeneral extends Component {
             <Usage total={sr.size} type='disk' url={this._getUrl()}>
               {this._getDiskGroups().map(group => (
                 <UsageElement
-                  id={group.id}
                   highlight={group.type === 'orphanedSnapshot'}
+                  id={group.id}
                   key={group.id}
                   tooltip={<UsageTooltip group={group} />}
                   value={group.usage}
