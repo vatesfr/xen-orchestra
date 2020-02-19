@@ -94,9 +94,7 @@ export default {
         'VM.copy_bios_strings',
         vmRef,
         this.getObject(
-          props.affinityHost === undefined
-            ? this.getObject(template.$pool).master
-            : props.affinityHost
+          props.affinityHost ?? this.getObject(template.$pool).master
         ).$ref
       )
     }
