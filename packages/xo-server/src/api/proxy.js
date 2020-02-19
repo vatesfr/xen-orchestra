@@ -96,14 +96,32 @@ update.params = {
   },
 }
 
-export function deploy({ sr }) {
-  return this.deployProxy(sr._xapiId)
+export function deploy({ network, sr }) {
+  return this.deployProxy(sr._xapiId, { network })
 }
 
 deploy.permission = 'admin'
 deploy.params = {
   sr: {
     type: 'string',
+  },
+  network: {
+    type: 'object',
+    optional: true,
+    properties: {
+      ip: {
+        type: 'string',
+      },
+      netmask: {
+        type: 'string',
+      },
+      gateway: {
+        type: 'string',
+      },
+      dns: {
+        type: 'string',
+      },
+    },
   },
 }
 deploy.resolve = {
