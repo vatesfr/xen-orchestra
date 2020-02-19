@@ -88,13 +88,16 @@ export default {
     if (
       props.hvmBootFirmware !== 'uefi' &&
       isVmHvm(template) &&
-      copyHostBiosStrings &&
-      props.affinityHost !== undefined
+      copyHostBiosStrings
     ) {
       await this.callAsync(
         'VM.copy_bios_strings',
         vmRef,
-        this.getObject(props.affinityHost).$ref
+        this.getObject(
+          props.affinityHost === undefined
+            ? this.getObject(template.$pool).master
+            : props.affinityHost
+        ).$ref
       )
     }
 
