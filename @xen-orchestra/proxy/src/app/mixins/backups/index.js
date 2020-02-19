@@ -1,7 +1,12 @@
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import { createLogger } from '@xen-orchestra/log/dist'
+import { getHandler } from '@xen-orchestra/fs/dist'
 import { Xapi } from '@xen-orchestra/xapi'
 
 import { Backup } from './_Backup'
+import { RemoteAdapter } from './_RemoteAdapter'
+
+const { warn } = createLogger('xo:proxy:backups')
 
 export default class Backups {
   constructor(
@@ -10,6 +15,37 @@ export default class Backups {
   ) {
     app.api.addMethods({
       backup: {
+        listVmBackups: [
+          async ({ remotes }) => {
+            const backups = {}
+            await Promise.all(
+              Object.keys(remotes).map(async remoteId => {
+                try {
+                  const handler = getHandler(remotes[remoteId])
+                  await handler.sync()
+                  try {
+                    const adapter = new RemoteAdapter(handler)
+                    backups[remoteId] = await adapter.listAllVmBackups()
+                  } finally {
+                    await handler.forget()
+                  }
+                } catch (error) {
+                  warn('listVmBackups', { error, remote: remotes[remoteId] })
+                }
+              })
+            )
+            return backups
+          },
+          {
+            description: 'list VM backups',
+            params: {
+              remotes: {
+                type: 'array',
+                items: { type: 'object', properties: {} },
+              },
+            },
+          },
+        ],
         run: [
           async ({ xapis: xapisOptions, ...rest }) => {
             const xapis = []

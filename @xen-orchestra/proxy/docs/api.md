@@ -114,6 +114,10 @@ declare namespace backup {
     url: string
   }
 
+  function listVmBackups(_: {
+    remotes: { [remoteId: string]: Remote }
+  }): { [remoteId: string]: { [vmUuid: string]: object[] } }
+
   function run(_: {
     job: BackupJob | MetadataBackupJob
     remotes: { [id: string]: Remote }

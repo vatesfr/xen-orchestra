@@ -4,6 +4,8 @@ import pump from 'pump'
 import { basename, dirname, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 
+import { BACKUP_DIR } from './_getVmBackupDir'
+
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
@@ -28,6 +30,19 @@ export class RemoteAdapter {
         handler.unlink(resolveRelativeFromFile(_filename, xva)),
       ])
     )
+  }
+
+  async listAllVmBackups() {
+    const handler = this._handler
+
+    const backups = { __proto__: null }
+    await Promise.all(
+      (await handler.list(BACKUP_DIR, { prependDir: true })).map(async dir => {
+        const vmBackups = await this.listVmBackups(dir)
+        backups[vmBackups[0].vm.uuid] = vmBackups
+      })
+    )
+    return backups
   }
 
   async listVmBackups(backupDir, predicate) {
