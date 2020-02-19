@@ -87,7 +87,6 @@ export default class Menu extends Component {
         map(this.props.hosts, 'id').sort()
       )
     ) {
-      this.setState({ missingPatches: {} })
       this._subscribeMissingPatches()
     }
   }
@@ -119,7 +118,7 @@ export default class Menu extends Component {
 
   _hasMissingPatches = createSelector(
     () => this.state.missingPatches,
-    missingPatches => some(missingPatches, nPatches => nPatches > 0)
+    missingPatches => some(missingPatches, _ => _)
   )
 
   _toggleCollapsed = event => {
@@ -139,12 +138,13 @@ export default class Menu extends Component {
   }
 
   _subscribeMissingPatches = () => {
+    this.setState({ missingPatches: {} })
     const unsubs = map(this.props.hosts, host =>
       subscribeHostMissingPatches(host, patches => {
         this.setState({
           missingPatches: {
             ...this.state.missingPatches,
-            [host.id]: patches.length,
+            [host.id]: patches.length > 0,
           },
         })
       })
@@ -173,7 +173,7 @@ export default class Menu extends Component {
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
 
-    const missingPatchWarning = this._hasMissingPatches() ? (
+    const missingPatchesWarning = this._hasMissingPatches() ? (
       <Tooltip content={_('homeMissingPatches')}>
         <span className='text-warning'>
           <Icon icon='alarm' />
@@ -187,7 +187,7 @@ export default class Menu extends Component {
         to: '/home',
         icon: 'menu-home',
         label: 'homePage',
-        extra: [missingPatchWarning],
+        extra: [missingPatchesWarning],
         subMenu: [
           { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
           nHosts !== 0 && {
@@ -199,7 +199,7 @@ export default class Menu extends Component {
             to: '/home?t=pool',
             icon: 'pool',
             label: 'homePoolPage',
-            extra: [missingPatchWarning],
+            extra: [missingPatchesWarning],
           },
           isAdmin && {
             to: '/home?t=VM-template',
