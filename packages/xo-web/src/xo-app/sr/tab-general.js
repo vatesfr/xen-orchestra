@@ -246,9 +246,8 @@ export default class TabGeneral extends Component {
     if (Array.isArray(childProps)) {
       // "Others" section
       const groups = pick(diskGroupsById, map(childProps, 'id'))
-      forEach(groups, ({ id, baseCopies = [], vdis, snapshots = [] }) => {
-        if (vdis === undefined) {
-          // orphaned snapshot
+      forEach(groups, ({ id, baseCopies = [], vdis, snapshots = [], type }) => {
+        if (type === 'orphanedSnapshot') {
           ids += id + ' '
         } else {
           vdis.forEach(({ id }) => {
@@ -263,9 +262,8 @@ export default class TabGeneral extends Component {
         }
       })
     } else {
-      const { id, vdis, snapshots = [] } = diskGroupsById[childProps.id]
-      if (vdis === undefined) {
-        // orphaned snapshot
+      const { id, vdis, snapshots = [], type } = diskGroupsById[childProps.id]
+      if (type === 'orphanedSnapshot') {
         ids += id + ' '
       } else {
         vdis.forEach(({ id }) => {
