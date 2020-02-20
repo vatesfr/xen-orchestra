@@ -8,7 +8,7 @@ import { compileTemplate } from '@xen-orchestra/template'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
-import { omit } from 'lodash'
+import { mapValues, omit } from 'lodash'
 import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis'
@@ -133,7 +133,7 @@ export default class Proxy {
   }
 
   @defer
-  async deployProxy($defer, srId) {
+  async deployProxy($defer, srId, { network } = {}) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
 
@@ -162,29 +162,34 @@ export default class Proxy {
       app.getApplianceRegistration(),
     ])
     const date = new Date()
+    const xenstoreData = {
+      'vm-data/system-account-xoa-password': password,
+      'vm-data/xo-proxy-authenticationToken': JSON.stringify(
+        proxyAuthenticationToken
+      ),
+      'vm-data/xoa-updater-credentials': JSON.stringify({
+        email,
+        registrationToken,
+      }),
+      'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
+    }
+    if (network !== undefined) {
+      xenstoreData['vm-data/ip'] = network.ip
+      xenstoreData['vm-data/gateway'] = network.gateway
+      xenstoreData['vm-data/netmask'] = network.netmask
+      xenstoreData['vm-data/dns'] = network.dns
+    }
     await Promise.all([
       vm.add_tags(xoProxyConf.vmTag),
       vm.set_name_label(this._generateDefaultVmName(date)),
-      vm.update_xenstore_data({
-        'vm-data/system-account-xoa-password': password,
-        'vm-data/xo-proxy-authenticationToken': JSON.stringify(
-          proxyAuthenticationToken
-        ),
-        'vm-data/xoa-updater-credentials': JSON.stringify({
-          email,
-          registrationToken,
-        }),
-        'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
-      }),
+      vm.update_xenstore_data(xenstoreData),
     ])
 
     await xapi.startVm(vm.$id)
 
-    await vm.update_xenstore_data({
-      'vm-data/system-account-xoa-password': null,
-      'vm-data/xo-proxy-authenticationToken': null,
-      'vm-data/xoa-updater-credentials': null,
-    })
+    await vm.update_xenstore_data(
+      mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
+    )
 
     // ensure appliance has an IP address
     const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
@@ -193,9 +198,10 @@ export default class Proxy {
       vmNetworksTimeout
     )
     await timeout.call(
-      xapi._waitObjectState(
-        vm.guest_metrics,
-        guest_metrics => guest_metrics.networks['0/ip'] !== undefined
+      xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
+        network === undefined
+          ? guest_metrics.networks['0/ip'] !== undefined
+          : guest_metrics.networks['0/ip'] === network.ip
       ),
       vmNetworksTimeout
     )

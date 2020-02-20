@@ -59,6 +59,10 @@ const messages = {
   name: 'Name',
   address: 'Address',
   vm: 'VM',
+  destinationSR: 'Destination SR',
+  dhcp: 'DHCP',
+  ip: 'IP',
+  static: 'Static',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2271,6 +2275,8 @@ const messages = {
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
+  proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
+  proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

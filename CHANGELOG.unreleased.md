@@ -9,6 +9,7 @@
 
 - [New VM] Ability to set VM max vCPUS [#4703](https://github.com/vatesfr/xen-orchestra/issues/4703) (PR [#4729](https://github.com/vatesfr/xen-orchestra/pull/4729))
 - [SDN Controller] Automatically handle new, connected and disconnected servers (PR [#4677](https://github.com/vatesfr/xen-orchestra/pull/4677))
+- [Proxy] Support network configuration for the deployed proxy (PR [#4810](https://github.com/vatesfr/xen-orchestra/pull/4810))
 
 ### Bug fixes
 
