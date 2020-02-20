@@ -490,10 +490,8 @@ export class XoSelect extends Editable {
 
 export class Size extends Editable {
   static propTypes = {
-    value: PropTypes.oneOfType([
-      PropTypes.number.isRequired,
-      PropTypes.oneOf([null]),
-    ]).isRequired,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])])
+      .isRequired,
   }
 
   get value() {
