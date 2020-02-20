@@ -9,7 +9,7 @@ import { pipeline } from 'readable-stream'
 const log = createLogger('xo:xo-server-audit')
 
 const LAST_ID = 'lastId'
-class DB extends Storage {
+class Db extends Storage {
   constructor(db) {
     super()
     this._db = db
@@ -55,7 +55,7 @@ class AuditXoPlugin {
 
     try {
       this._auditCore = new AuditCore(
-        new DB(await this._xo.getStore(NAMESPACE))
+        new Db(await this._xo.getStore(NAMESPACE))
       )
       this._blockList = (
         await appConf.load('xo-server-audit', {
