@@ -304,7 +304,7 @@ export default class Api {
         )}] ==> ${kindOf(result)}`
       )
 
-      // it's a particular case which the user is defined at the end of the call
+      // it's a special case in which the user is defined at the end of the call
       if (data.method === 'session.signIn') {
         const { id, email } = await xo.getUser(session.get('user_id'))
         data.userId = id
