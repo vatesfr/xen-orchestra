@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
+import defined from '@xen-orchestra/defined'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
@@ -131,7 +132,7 @@ const COLUMNS_VM_PV = [
   {
     itemRenderer: ({ vdi }) => (
       <Size
-        value={vdi.size || null}
+        value={defined(vdi.size, null)}
         onChange={size => editVdi(vdi, { size })}
       />
     ),

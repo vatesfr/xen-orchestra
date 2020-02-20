@@ -445,7 +445,9 @@ export default class {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
         delete this._serverIdsByPool[poolId]
+        this._xo.emit('server:disconnected', { server, xapi })
       })
+      this._xo.emit('server:connected', { server, xapi })
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()

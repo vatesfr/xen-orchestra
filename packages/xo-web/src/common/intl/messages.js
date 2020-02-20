@@ -45,6 +45,7 @@ const messages = {
   restore: 'Restore',
   delete: 'Delete',
   vms: 'VMs',
+  cpusMax: 'Max vCPUs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
   temporarilyDisabled: 'Temporarily disabled',
@@ -58,6 +59,10 @@ const messages = {
   name: 'Name',
   address: 'Address',
   vm: 'VM',
+  destinationSR: 'Destination SR',
+  dhcp: 'DHCP',
+  ip: 'IP',
+  static: 'Static',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1801,8 +1806,7 @@ const messages = {
   newNetworkEncrypted: 'Encrypted',
   encryptionWarning:
     'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
-  newNetworkSdnControllerTip:
-    'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
+  newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
@@ -2271,6 +2275,8 @@ const messages = {
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
+  proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
+  proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

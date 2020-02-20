@@ -199,7 +199,7 @@ const Updates = decorate([
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
       channelsFormId: generateId,
-      channels: COMMUNITY ? () => [] : () => xoaUpdater.getReleaseChannels(),
+      channels: COMMUNITY ? () => ({}) : () => xoaUpdater.getReleaseChannels(),
       channelsOptions: ({ channels }) =>
         channels === undefined
           ? undefined
@@ -247,8 +247,12 @@ const Updates = decorate([
         xoaTrialState.state === 'default' &&
         !isTrialRunning(xoaTrialState.trial) &&
         !exposeTrial(xoaTrialState.trial),
-      isUnlistedChannel: ({ consolidatedChannel, channels }) =>
-        consolidatedChannel !== undefined && !(consolidatedChannel in channels),
+      isUnlistedChannel: ({ consolidatedChannel, channels }) => {
+        return (
+          consolidatedChannel !== undefined &&
+          !(channels !== undefined && consolidatedChannel in channels)
+        )
+      },
       isUpdaterDown: (_, { xoaTrialState }) =>
         isEmpty(xoaTrialState) || xoaTrialState.state === 'ERROR',
       packagesList: ({ installedPackages }) =>
