@@ -222,6 +222,7 @@ export default class Proxy {
       name: this._generateDefaultProxyName(date),
       vmUuid: vm.uuid,
     })
+    $defer.onFailure.call(this, 'unregisterProxy', id)
 
     await this.checkProxyHealth(id)
   }
