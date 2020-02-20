@@ -600,6 +600,7 @@ export default class NewVm extends BaseComponent {
       nameLabels: map(Array(+state.nbVms), (_, index) =>
         replacer({ name_label, name_description, template }, index + 1)
       ),
+      copyHostBiosStrings: !isEmpty(template.bios_strings),
       // performances
       CPUs: template.CPUs.number,
       cpusMax: template.CPUs.max,
@@ -760,6 +761,11 @@ export default class NewVm extends BaseComponent {
       '{name}': state => state.name_label || '',
       '%': (_, i) => i,
     })
+
+  _hasBiosStrings = createSelector(
+    () => this.props.template,
+    template => template !== undefined && !isEmpty(template.bios_strings)
+  )
 
   _getVgpuTypePredicate = createSelector(
     () => this.props.pool,
@@ -926,7 +932,16 @@ export default class NewVm extends BaseComponent {
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
-  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value })
+  _handleBootFirmware = value =>
+    this._setState({
+      copyHostBiosStrings:
+        value === 'uefi'
+          ? false
+          : this._hasBiosStrings()
+          ? true
+          : this.state.state.copyHostBiosStrings,
+      hvmBootFirmware: value,
+    })
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1665,20 +1680,18 @@ export default class NewVm extends BaseComponent {
     const { isAdmin, template } = this.props
     const { formatMessage } = this.props.intl
     const isHvm = this._isHvm()
-    const hasBiosStings =
-      template !== undefined && !isEmpty(template.bios_strings)
-    const copyHostBiosStrings_ =
+    const _copyHostBiosStrings =
       isAdmin && isHvm ? (
         <label>
           <input
             checked={copyHostBiosStrings}
             className='form-control'
-            disabled={hvmBootFirmware === 'uefi' || hasBiosStings}
+            disabled={hvmBootFirmware === 'uefi' || this._hasBiosStrings()}
             onChange={this._toggleState('copyHostBiosStrings')}
             type='checkbox'
           />
           &nbsp;
-          {_('newVmCopyHostBiosStrings')}
+          {_('copyHostBiosStrings')}
         </label>
       ) : null
 
@@ -1895,12 +1908,12 @@ export default class NewVm extends BaseComponent {
           isAdmin && isHvm && (
             <SectionContent>
               <Item>
-                {hasBiosStings ? (
-                  <Tooltip content={_('copyHostBiosStringsTooltip')}>
-                    {copyHostBiosStrings_}
+                {this._hasBiosStrings() ? (
+                  <Tooltip content={_('templateHasBiosStrings')}>
+                    {_copyHostBiosStrings}
                   </Tooltip>
                 ) : (
-                  copyHostBiosStrings_
+                  _copyHostBiosStrings
                 )}
               </Item>
             </SectionContent>

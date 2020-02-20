@@ -85,7 +85,9 @@ export default {
     $defer.onFailure(() => this.deleteVm(vmRef))
 
     // Copy BIOS strings
+    // https://support.citrix.com/article/CTX230618
     if (
+      !isEmpty(template.bios_strings) &&
       props.hvmBootFirmware !== 'uefi' &&
       isVmHvm(template) &&
       copyHostBiosStrings

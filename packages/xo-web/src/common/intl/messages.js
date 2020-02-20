@@ -1314,6 +1314,7 @@ const messages = {
   createVmModalTitle: 'Create VM',
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
+  copyHostBiosStrings: 'Copy host BIOS strings to VM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
@@ -1356,8 +1357,6 @@ const messages = {
   coreOsDefaultTemplateError:
     'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
-  newVmCopyHostBiosStrings: 'Copy host BIOS strings',
-  copyHostBiosStringsTooltip: 'The template has the BIOS strings',
   newVmMacPlaceholder: 'Auto-generated if empty',
   newVmCpuWeightLabel: 'CPU weight',
   newVmDefaultCpuWeight: 'Default: {value, number}',
@@ -1387,6 +1386,7 @@ const messages = {
   newVmUserConfigLabel: 'User config',
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
+  templateHasBiosStrings: 'The template already contains the BIOS strings',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
