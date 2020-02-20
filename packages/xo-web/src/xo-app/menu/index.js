@@ -26,7 +26,16 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, forEach, identity, isEmpty, isEqual, map, some } from 'lodash'
+import {
+  every,
+  forEach,
+  identity,
+  isEmpty,
+  isEqual,
+  map,
+  pick,
+  some,
+} from 'lodash'
 
 import styles from './index.css'
 
@@ -83,8 +92,8 @@ export default class Menu extends Component {
   componentDidUpdate(prevProps) {
     if (
       !isEqual(
-        map(prevProps.hosts, 'id').sort(),
-        map(this.props.hosts, 'id').sort()
+        Object.keys(prevProps.hosts).sort(),
+        Object.keys(this.props.hosts).sort()
       )
     ) {
       this._subscribeMissingPatches()
@@ -138,7 +147,10 @@ export default class Menu extends Component {
   }
 
   _subscribeMissingPatches = () => {
-    this.setState({ missingPatches: {} })
+    this.setState(({ missingPatches }) => ({
+      missingPatches: pick(missingPatches, Object.keys(this.props.hosts)),
+    }))
+
     const unsubs = map(this.props.hosts, host =>
       subscribeHostMissingPatches(host, patches => {
         this.setState({
