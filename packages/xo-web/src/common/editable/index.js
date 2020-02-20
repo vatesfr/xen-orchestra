@@ -490,7 +490,8 @@ export class XoSelect extends Editable {
 
 export class Size extends Editable {
   static propTypes = {
-    value: PropTypes.number.isRequired,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])])
+      .isRequired,
   }
 
   get value() {
@@ -498,7 +499,15 @@ export class Size extends Editable {
   }
 
   _renderDisplay() {
-    return this.props.children || formatSize(this.props.value)
+    if (this.props.children !== undefined) {
+      return this.props.children
+    }
+
+    if (this.props.value != null) {
+      return formatSize(this.props.value)
+    }
+
+    return null
   }
 
   _saveIfUnfocused = () => {
