@@ -1677,7 +1677,7 @@ export default class NewVm extends BaseComponent {
       showAdvanced,
       tags,
     } = this.state.state
-    const { isAdmin, template } = this.props
+    const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
     const isHvm = this._isHvm()
     const _copyHostBiosStrings =
