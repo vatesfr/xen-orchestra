@@ -11,6 +11,7 @@ import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
   signOut,
+  subscribeHostMissingPatches,
   subscribeNotifications,
   subscribePermissions,
   subscribeResourceSets,
@@ -25,26 +26,39 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, identity, isEmpty, map } from 'lodash'
+import {
+  every,
+  forEach,
+  identity,
+  isEmpty,
+  isEqual,
+  map,
+  pick,
+  some,
+} from 'lodash'
 
 import styles from './index.css'
 
 const returnTrue = () => true
 
 @connectStore(
-  () => ({
-    isAdmin,
-    isPoolAdmin: getIsPoolAdmin,
-    nHosts: createGetObjectsOfType('host').count(),
-    nTasks: createGetObjectsOfType('task').count([
-      task => task.status === 'pending',
-    ]),
-    pools: createGetObjectsOfType('pool'),
-    srs: createGetObjectsOfType('SR'),
-    status: getStatus,
-    user: getUser,
-    xoaState: getXoaState,
-  }),
+  () => {
+    const getHosts = createGetObjectsOfType('host')
+    return {
+      hosts: getHosts,
+      isAdmin,
+      isPoolAdmin: getIsPoolAdmin,
+      nHosts: getHosts.count(),
+      nTasks: createGetObjectsOfType('task').count([
+        task => task.status === 'pending',
+      ]),
+      pools: createGetObjectsOfType('pool'),
+      srs: createGetObjectsOfType('SR'),
+      status: getStatus,
+      user: getUser,
+      xoaState: getXoaState,
+    }
+  },
   {
     withRef: true,
   }
@@ -66,10 +80,24 @@ export default class Menu extends Component {
       window.removeEventListener('resize', updateCollapsed)
       this._removeListener = noop
     }
+
+    this._updateMissingPatchesSubscriptions()
   }
 
   componentWillUnmount() {
     this._removeListener()
+    this._unsubscribeMissingPatches()
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      !isEqual(
+        Object.keys(prevProps.hosts).sort(),
+        Object.keys(this.props.hosts).sort()
+      )
+    ) {
+      this._updateMissingPatchesSubscriptions()
+    }
   }
 
   _checkPermissions = createSelector(
@@ -97,6 +125,11 @@ export default class Menu extends Component {
     return this.refs.content.offsetHeight
   }
 
+  _hasMissingPatches = createSelector(
+    () => this.state.missingPatches,
+    missingPatches => some(missingPatches, _ => _)
+  )
+
   _toggleCollapsed = event => {
     event.preventDefault()
     this._removeListener()
@@ -111,6 +144,29 @@ export default class Menu extends Component {
   _signOut = event => {
     event.preventDefault()
     return signOut()
+  }
+
+  _updateMissingPatchesSubscriptions = () => {
+    this.setState(({ missingPatches }) => ({
+      missingPatches: pick(missingPatches, Object.keys(this.props.hosts)),
+    }))
+
+    const unsubs = map(this.props.hosts, host =>
+      subscribeHostMissingPatches(host, patches => {
+        this.setState(state => ({
+          missingPatches: {
+            ...state.missingPatches,
+            [host.id]: patches.length > 0,
+          },
+        }))
+      })
+    )
+
+    if (this._unsubscribeMissingPatches !== undefined) {
+      this._unsubscribeMissingPatches()
+    }
+
+    this._unsubscribeMissingPatches = () => forEach(unsubs, unsub => unsub())
   }
 
   render() {
@@ -129,12 +185,21 @@ export default class Menu extends Component {
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
 
+    const missingPatchesWarning = this._hasMissingPatches() ? (
+      <Tooltip content={_('homeMissingPatches')}>
+        <span className='text-warning'>
+          <Icon icon='alarm' />
+        </span>
+      </Tooltip>
+    ) : null
+
     /* eslint-disable object-property-newline */
     const items = [
       {
         to: '/home',
         icon: 'menu-home',
         label: 'homePage',
+        extra: [missingPatchesWarning],
         subMenu: [
           { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
           nHosts !== 0 && {
@@ -146,6 +211,7 @@ export default class Menu extends Component {
             to: '/home?t=pool',
             icon: 'pool',
             label: 'homePoolPage',
+            extra: [missingPatchesWarning],
           },
           isAdmin && {
             to: '/home?t=VM-template',
