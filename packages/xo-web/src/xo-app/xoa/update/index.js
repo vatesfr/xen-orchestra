@@ -6,7 +6,6 @@ import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import React from 'react'
 import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
@@ -260,10 +259,10 @@ const Updates = decorate([
           .join('\n'),
       proxyFormId: generateId,
       xoaBuild: async () => {
-        const { build = 'unknown' } = defined(
-          await getApplianceInfo()::ignoreErrors(),
-          {}
-        )
+        const { build = 'unknown' } = await getApplianceInfo().catch(error => {
+          console.warn('getApplianceInfo', error)
+          return {}
+        })
         return build
       },
     },
