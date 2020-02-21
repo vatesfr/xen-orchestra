@@ -6,6 +6,7 @@ import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import React from 'react'
 import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
@@ -259,7 +260,10 @@ const Updates = decorate([
           .join('\n'),
       proxyFormId: generateId,
       xoaBuild: async () => {
-        const { build = 'unknown' } = await getApplianceInfo()
+        const { build = 'unknown' } = defined(
+          await getApplianceInfo()::ignoreErrors(),
+          {}
+        )
         return build
       },
     },
@@ -277,7 +281,6 @@ const Updates = decorate([
     xoaUpdaterState,
   }) => {
     const xoVersion = get(() => state.installedPackages['xen-orchestra'])
-    const xoaBuild = state.xoaBuild
     return (
       <Container>
         {COMMUNITY && (
@@ -299,17 +302,12 @@ const Updates = decorate([
                   <p>
                     {xoVersion !== undefined && (
                       <span>
-                        {_('currentVersion')} {xoVersion}
+                        {_('currentVersion')} {xoVersion} -{' '}
                       </span>
                     )}
-                    {xoVersion !== undefined && xoaBuild !== undefined && (
-                      <span> - </span>
-                    )}
-                    {xoaBuild !== undefined && (
-                      <span className='text-muted'>
-                        {_('xoaBuild')} {xoaBuild}
-                      </span>
-                    )}{' '}
+                    <span className='text-muted'>
+                      {_('xoaBuild')} {state.xoaBuild}
+                    </span>{' '}
                     {state.installedPackages !== undefined && (
                       <Button
                         name='showPackagesList'
