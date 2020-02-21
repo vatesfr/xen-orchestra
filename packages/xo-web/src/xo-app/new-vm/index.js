@@ -934,7 +934,7 @@ export default class NewVm extends BaseComponent {
 
   _handleBootFirmware = value => {
     const isUefi = value === 'uefi'
-    return this.setState(({ state }) => ({
+    this.setState(({ state }) => ({
       state: {
         ...state,
         copyHostBiosStrings:
