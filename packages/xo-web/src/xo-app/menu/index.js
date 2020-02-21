@@ -81,7 +81,7 @@ export default class Menu extends Component {
       this._removeListener = noop
     }
 
-    this._subscribeMissingPatches()
+    this._updateMissingPatchesSubscriptions()
   }
 
   componentWillUnmount() {
@@ -96,7 +96,7 @@ export default class Menu extends Component {
         Object.keys(this.props.hosts).sort()
       )
     ) {
-      this._subscribeMissingPatches()
+      this._updateMissingPatchesSubscriptions()
     }
   }
 
@@ -146,19 +146,19 @@ export default class Menu extends Component {
     return signOut()
   }
 
-  _subscribeMissingPatches = () => {
+  _updateMissingPatchesSubscriptions = () => {
     this.setState(({ missingPatches }) => ({
       missingPatches: pick(missingPatches, Object.keys(this.props.hosts)),
     }))
 
     const unsubs = map(this.props.hosts, host =>
       subscribeHostMissingPatches(host, patches => {
-        this.setState({
+        this.setState(state => ({
           missingPatches: {
-            ...this.state.missingPatches,
+            ...state.missingPatches,
             [host.id]: patches.length > 0,
           },
-        })
+        }))
       })
     )
 
