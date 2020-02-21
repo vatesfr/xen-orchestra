@@ -1,15 +1,13 @@
+import fromCallback from 'promise-toolbox/fromCallback'
+import fromEvent from 'promise-toolbox/fromEvent'
 import parsePairs from 'parse-pairs'
-import { createLogger } from '@xen-orchestra/log'
-import { execFile } from 'child_process'
+import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
 
-const { warn } = createLogger('xo:proxy:api')
+const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
-function closeSupportTunnel() {
-  const process = this._tunnelProcess
-  if (process !== undefined) {
-    process.kill()
-  }
+async function closeSupportTunnel() {
+  await fromCallback(execFile, 'systemctl', ['stop', TUNNEL_SERVICE])
 }
 
 async function getApplianceInfo() {
@@ -21,47 +19,38 @@ async function getApplianceInfo() {
   }
 }
 
-function getStateSupportTunnel() {
+async function getStateSupportTunnel() {
+  const isActive =
+    (await fromEvent(
+      spawn('systemctl', ['is-active', '--quiet', TUNNEL_SERVICE], {
+        stdio: 'ignore',
+      }),
+      'exit'
+    )) === 0
+
+  const isActiveOrFailed =
+    isActive ||
+    (await fromEvent(
+      spawn('systemctl', ['is-failed', '--quiet', TUNNEL_SERVICE], {
+        stdio: 'ignore',
+      }),
+      'exit'
+    )) === 0
+
   return {
-    open: this._tunnelProcess !== undefined,
-    stdout: this._tunnelOutput,
+    open: isActive,
+    stdout: isActiveOrFailed
+      ? await fromCallback(readFile, '/tmp/xoa-support-tunnel.out', 'utf8')
+      : '',
   }
 }
 
-function openSupportTunnel() {
-  if (this._tunnelProcess !== undefined) {
-    return
-  }
-
-  const process = execFile('xoa', ['support', 'tunnel'])
-    .on('error', error => {
-      this._tunnelProcess = undefined
-      warn('support tunnel', { error })
-    })
-    .on('exit', code => {
-      this._tunnelProcess = undefined
-
-      if (code === null) {
-        // external close by signal (normal workflow)
-        this._tunnelOutput = ''
-      } else {
-        this._stdoutTunnel += `\nThe process has closed with code ${code}`
-      }
-    })
-  const onData = data => {
-    this._tunnelOutput += data
-  }
-  process.stderr.on('data', onData)
-  process.stdout.on('data', onData)
-
-  this._tunnelProcess = process
+async function openSupportTunnel() {
+  await fromCallback(execFile, 'systemctl', ['start', TUNNEL_SERVICE])
 }
 
 export default class Appliance {
   constructor(app) {
-    this._tunnelProcess = undefined
-    this._tunnelOutput = ''
-
     app.api.addMethods({
       appliance: {
         getInfo: [
@@ -73,19 +62,19 @@ export default class Appliance {
         ],
         supportTunnel: {
           close: [
-            closeSupportTunnel.bind(this),
+            closeSupportTunnel,
             {
               description: 'close the support tunnel',
             },
           ],
           getState: [
-            getStateSupportTunnel.bind(this),
+            getStateSupportTunnel,
             {
               description: 'getState the support tunnel',
             },
           ],
           open: [
-            openSupportTunnel.bind(this),
+            openSupportTunnel,
             {
               description: 'open the support tunnel',
             },
