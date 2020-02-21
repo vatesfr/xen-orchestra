@@ -932,16 +932,19 @@ export default class NewVm extends BaseComponent {
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
-  _handleBootFirmware = value =>
-    this._setState({
-      copyHostBiosStrings:
-        value === 'uefi'
-          ? false
-          : this._hasBiosStrings()
-          ? true
-          : this.state.state.copyHostBiosStrings,
-      hvmBootFirmware: value,
-    })
+  _handleBootFirmware = value => {
+    const isUefi = value === 'uefi'
+    return this.setState(({ state }) => ({
+      state: {
+        ...state,
+        copyHostBiosStrings:
+          isUefi || this._hasBiosStrings()
+            ? !isUefi
+            : state.copyHostBiosStrings,
+        hvmBootFirmware: value,
+      },
+    }))
+  }
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1908,7 +1911,7 @@ export default class NewVm extends BaseComponent {
           isAdmin && isHvm && (
             <SectionContent>
               <Item>
-                {this._hasBiosStrings() ? (
+                {hvmBootFirmware !== 'uefi' && this._hasBiosStrings() ? (
                   <Tooltip content={_('templateHasBiosStrings')}>
                     {_copyHostBiosStrings}
                   </Tooltip>
