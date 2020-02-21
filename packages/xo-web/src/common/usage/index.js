@@ -6,7 +6,7 @@ import { compact, sumBy } from 'lodash'
 
 import Tooltip from '../tooltip'
 
-const Usage = ({ total, children, url }) => {
+const Usage = ({ total, children, link }) => {
   const limit = total / 400
   const othersProps = compact(
     React.Children.map(children, child => {
@@ -25,12 +25,16 @@ const Usage = ({ total, children, url }) => {
             (child, index) =>
               child.props.value > limit &&
               cloneElement(child, {
-                href: typeof url === 'function' ? url(child.props) : url,
+                href: typeof link === 'function' ? link(child.props.id) : link,
                 total,
               })
           )}
           <Element
-            href={typeof url === 'function' ? url(othersProps) : url}
+            href={
+              typeof link === 'function'
+                ? link(othersProps.map(_ => _.id))
+                : link
+            }
             others
             tooltip={_('others', { nOthers })}
             total={total}
@@ -46,8 +50,8 @@ const Usage = ({ total, children, url }) => {
   )
 }
 Usage.propTypes = {
+  link: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
   total: PropTypes.number.isRequired,
-  url: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 }
 export { Usage as default }
 

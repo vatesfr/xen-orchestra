@@ -14,6 +14,7 @@ import {
   createSelector,
 } from 'selectors'
 import {
+  flattenDeep,
   flatMap,
   forEach,
   groupBy,
@@ -239,46 +240,21 @@ export default class TabGeneral extends Component {
     }
   )
 
-  _getUrl = createSelector(this._getDiskGroups, diskGroups => childProps => {
-    const diskGroupsById = keyBy(diskGroups, 'id')
-    let ids = ''
-
-    if (Array.isArray(childProps)) {
-      // "Others" section
-      const groups = pick(diskGroupsById, map(childProps, 'id'))
-      forEach(groups, ({ id, baseCopies = [], vdis, snapshots = [], type }) => {
-        if (type === 'orphanedSnapshot') {
-          ids += id + ' '
-        } else {
-          vdis.forEach(({ id }) => {
-            ids += id + ' '
-          })
-          snapshots.forEach(({ id }) => {
-            ids += id + ' '
-          })
-          baseCopies.forEach(({ id }) => {
-            ids += id + ' '
-          })
-        }
-      })
-    } else {
-      const { id, vdis, snapshots = [], type } = diskGroupsById[childProps.id]
-      if (type === 'orphanedSnapshot') {
-        ids += id + ' '
-      } else {
-        vdis.forEach(({ id }) => {
-          ids += id + ' '
-        })
-        snapshots.forEach(({ id }) => {
-          ids += id + ' '
-        })
-      }
-    }
-
-    return `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
-      `id:|(${ids})`
+  _generateLink = createSelector(this._getDiskGroups, diskGroups => childIds =>
+    `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
+      `id:|(${flattenDeep(
+        map(
+          pick(keyBy(diskGroups, 'id'), childIds),
+          ({ id, baseCopies, vdis, snapshots, type }) =>
+            type === 'orphanedSnapshot'
+              ? id
+              : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
+        )
+      )
+        .sort()
+        .join(' ')})`
     )}`
-  })
+  )
 
   render() {
     const { sr } = this.props
@@ -315,7 +291,7 @@ export default class TabGeneral extends Component {
         </Row>
         <Row>
           <Col smallOffset={1} mediumSize={10}>
-            <Usage total={sr.size} type='disk' url={this._getUrl()}>
+            <Usage total={sr.size} type='disk' link={this._generateLink()}>
               {this._getDiskGroups().map(group => (
                 <UsageElement
                   highlight={group.type === 'orphanedSnapshot'}
