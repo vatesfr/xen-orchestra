@@ -11,9 +11,7 @@
 - [SDN Controller] Automatically handle new, connected and disconnected servers (PR [#4677](https://github.com/vatesfr/xen-orchestra/pull/4677))
 - [Proxy] Support network configuration for the deployed proxy (PR [#4810](https://github.com/vatesfr/xen-orchestra/pull/4810))
 - [Menu] Display a warning icon in case of missing patches [#4475](https://github.com/vatesfr/xen-orchestra/issues/4475) (PR [#4683](https://github.com/vatesfr/xen-orchestra/pull/4683))
-- [SR/general] Add a link to the disks group [#4747](https://github.com/vatesfr/xen-orchestra/issues/4747) (PR [#4754](https://github.com/vatesfr/xen-orchestra/pull/4754))
-- [SR/general] Clickable SR usage graph: show disks on clicking on a graph section [#4747](https://github.com/vatesfr/xen-orchestra/issues/4747) (PR [#4754](https://github.com/vatesfr/xen-orchestra/pull/4754))
-
+- [SR/general] Clickable SR usage graph: shows the corresponding disks when you click on one of the sections [#4747](https://github.com/vatesfr/xen-orchestra/issues/4747) (PR [#4754](https://github.com/vatesfr/xen-orchestra/pull/4754))
 
 ### Bug fixes
 
