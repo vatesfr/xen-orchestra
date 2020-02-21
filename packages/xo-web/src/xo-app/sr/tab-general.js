@@ -240,11 +240,11 @@ export default class TabGeneral extends Component {
     }
   )
 
-  _generateLink = createSelector(this._getDiskGroups, diskGroups => childIds =>
+  _getGenerateLink = createSelector(this._getDiskGroups, diskGroups => ids =>
     `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
       `id:|(${flattenDeep(
         map(
-          pick(keyBy(diskGroups, 'id'), childIds),
+          pick(keyBy(diskGroups, 'id'), ids),
           ({ id, baseCopies, vdis, snapshots, type }) =>
             type === 'orphanedSnapshot'
               ? id
@@ -291,7 +291,7 @@ export default class TabGeneral extends Component {
         </Row>
         <Row>
           <Col smallOffset={1} mediumSize={10}>
-            <Usage total={sr.size} type='disk' link={this._generateLink()}>
+            <Usage total={sr.size} type='disk' link={this._getGenerateLink()}>
               {this._getDiskGroups().map(group => (
                 <UsageElement
                   highlight={group.type === 'orphanedSnapshot'}
