@@ -345,7 +345,7 @@ export default class NewVm extends BaseComponent {
     this._replaceState(
       {
         bootAfterCreate: true,
-        copyHostBiosStrings: this._hasBiosStrings(),
+        copyHostBiosStrings: this._templateHasBiosStrings(),
         coresPerSocket: undefined,
         CPUs: '',
         cpuCap: '',
@@ -514,7 +514,9 @@ export default class NewVm extends BaseComponent {
       pv_args: state.pv_args,
       autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
-      copyHostBiosStrings: state.copyHostBiosStrings,
+      copyHostBiosStrings:
+        state.hvmBootFirmware !== 'uefi' &&
+        (this._templateHasBiosStrings() || state.copyHostBiosStrings),
       share: state.share,
       cloudConfig,
       networkConfig: this._isCoreOs() ? undefined : networkConfig,
@@ -762,7 +764,7 @@ export default class NewVm extends BaseComponent {
       '%': (_, i) => i,
     })
 
-  _hasBiosStrings = createSelector(
+  _templateHasBiosStrings = createSelector(
     () => this.props.template,
     template => template !== undefined && !isEmpty(template.bios_strings)
   )
@@ -932,19 +934,7 @@ export default class NewVm extends BaseComponent {
   _getRedirectionUrl = id =>
     this.state.state.multipleVms ? '/home' : `/vms/${id}`
 
-  _handleBootFirmware = value => {
-    const isUefi = value === 'uefi'
-    this.setState(({ state }) => ({
-      state: {
-        ...state,
-        copyHostBiosStrings:
-          isUefi || this._hasBiosStrings()
-            ? !isUefi
-            : state.copyHostBiosStrings,
-        hvmBootFirmware: value,
-      },
-    }))
-  }
+  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value })
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1687,9 +1677,14 @@ export default class NewVm extends BaseComponent {
       isAdmin && isHvm ? (
         <label>
           <input
-            checked={copyHostBiosStrings}
+            checked={
+              hvmBootFirmware !== 'uefi' &&
+              (this._templateHasBiosStrings() || copyHostBiosStrings)
+            }
             className='form-control'
-            disabled={hvmBootFirmware === 'uefi' || this._hasBiosStrings()}
+            disabled={
+              hvmBootFirmware === 'uefi' || this._templateHasBiosStrings()
+            }
             onChange={this._toggleState('copyHostBiosStrings')}
             type='checkbox'
           />
@@ -1911,7 +1906,8 @@ export default class NewVm extends BaseComponent {
           isAdmin && isHvm && (
             <SectionContent>
               <Item>
-                {hvmBootFirmware !== 'uefi' && this._hasBiosStrings() ? (
+                {hvmBootFirmware !== 'uefi' &&
+                this._templateHasBiosStrings() ? (
                   <Tooltip content={_('templateHasBiosStrings')}>
                     {_copyHostBiosStrings}
                   </Tooltip>
