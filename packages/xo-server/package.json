@@ -19,7 +19,6 @@
   },
   "preferGlobal": true,
   "files": [
-    "better-stacks.js",
     "bin/",
     "dist/",
     "config.toml",
