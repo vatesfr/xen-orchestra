@@ -2,10 +2,13 @@ import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
 import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
+import { createLogger } from '@xen-orchestra/log/dist'
 import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
+
+const { debug, warn } = createLogger('xo:proxy:appliance')
 
 async function _withUpdater(cb) {
   const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
@@ -93,6 +96,25 @@ export default class Appliance {
         },
         updater: {
           getLocalManifest: () => _withUpdater(_ => _.call('getLocalManifest')),
+          upgrade: () =>
+            _withUpdater(updater =>
+              updater
+                .on('notification', ({ method, params }) => {
+                  if (method === 'print') {
+                    debug('updater.upgrade: ' + params.content)
+                  } else if (
+                    method !== 'connected' &&
+                    method !== 'end' &&
+                    method !== 'server-error'
+                  ) {
+                    warn('update.upgrade, unhandled message', {
+                      method,
+                      params,
+                    })
+                  }
+                })
+                .call('update', { upgrade: true })
+            ),
         },
       },
     })
