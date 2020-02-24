@@ -1,10 +1,21 @@
 import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
+import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
 import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
+
+async function _withUpdater(cb) {
+  const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
+  await updater.open()
+  try {
+    return await cb(updater)
+  } finally {
+    await updater.close().then(Function.prototype)
+  }
+}
 
 async function closeSupportTunnel() {
   await fromCallback(execFile, 'systemctl', ['stop', TUNNEL_SERVICE])
@@ -79,6 +90,9 @@ export default class Appliance {
               description: 'open the support tunnel',
             },
           ],
+        },
+        updater: {
+          getLocalManifest: () => _withUpdater(_ => _.call('getLocalManifest')),
         },
       },
     })
