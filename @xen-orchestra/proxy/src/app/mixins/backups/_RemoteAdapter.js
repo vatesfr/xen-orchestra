@@ -56,6 +56,7 @@ export class RemoteAdapter {
           const path = `${backupDir}/${file}`
           try {
             const metadata = JSON.parse(String(await handler.readFile(path)))
+            metadata.id = path
             // if (metadata.mode === 'full') {
             //   metadata.size = await timeout
             //     .call(
