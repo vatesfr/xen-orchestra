@@ -1387,6 +1387,7 @@ const messages = {
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
   templateHasBiosStrings: 'The template already contains the BIOS strings',
+  vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
 
   // ----- Self -----
   resourceSets: 'Resource sets',

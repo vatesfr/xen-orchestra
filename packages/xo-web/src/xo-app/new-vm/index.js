@@ -1906,9 +1906,15 @@ export default class NewVm extends BaseComponent {
           isAdmin && isHvm && (
             <SectionContent>
               <Item>
-                {hvmBootFirmware !== 'uefi' &&
+                {hvmBootFirmware === 'uefi' ||
                 this._templateHasBiosStrings() ? (
-                  <Tooltip content={_('templateHasBiosStrings')}>
+                  <Tooltip
+                    content={
+                      hvmBootFirmware === 'uefi'
+                        ? _('vmBootFirmwareIsUefi')
+                        : _('templateHasBiosStrings')
+                    }
+                  >
                     {_copyHostBiosStrings}
                   </Tooltip>
                 ) : (
