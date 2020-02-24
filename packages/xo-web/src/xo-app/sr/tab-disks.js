@@ -388,21 +388,13 @@ export default class SrDisks extends Component {
     }
   )
 
-  _getCheckSr = createSelector(this._getRequiredHosts, requiredHosts => sr => {
-    if (sr === undefined || isSrShared(sr) || requiredHosts === undefined) {
-      return true
-    }
-
-    if (requiredHosts.size > 1) {
-      return false
-    }
-
-    let requiredHost
-    return (
-      (requiredHost = requiredHosts.values().next().value) === undefined ||
-      sr.$container === requiredHost
-    )
-  })
+  _getCheckSr = createSelector(this._getRequiredHosts, requiredHosts => sr =>
+    sr === undefined ||
+    isSrShared(sr) ||
+    requiredHosts === undefined ||
+    (requiredHosts.size === 1 &&
+      sr.$container === requiredHosts.values().next().value)
+  )
 
   _migrateVdis = vdis =>
     confirm({
