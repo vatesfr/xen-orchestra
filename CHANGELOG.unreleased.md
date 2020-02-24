@@ -18,6 +18,7 @@
 
 - [Usage Report] Fix wrong report date [#4779](https://github.com/vatesfr/xen-orchestra/issues/4779) (PR [#4799](https://github.com/vatesfr/xen-orchestra/pull/4799))
 - [SDN Controller] Fix plugin stuck loading [#4649](https://github.com/vatesfr/xen-orchestra/issues/4649) (PR [#4677](https://github.com/vatesfr/xen-orchestra/pull/4677))
+- [xo-server-logs] Fix `Cannot find module '../better-stacks'`
 
 ### Released packages
 
