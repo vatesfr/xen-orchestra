@@ -47,7 +47,7 @@ class AuditXoPlugin {
     this._xo = xo
 
     this._auditCore = undefined
-    this._blockList = undefined
+    this._blockedList = undefined
   }
 
   async load() {
@@ -57,19 +57,19 @@ class AuditXoPlugin {
       this._auditCore = new AuditCore(
         new Db(await this._xo.getStore(NAMESPACE))
       )
-      this._blockList = (
+      this._blockedList = (
         await appConf.load('xo-server-audit', {
           appDir: path.join(__dirname, '..'),
         })
-      ).blockList
+      ).blockedList
 
       cleaners.push(() => {
         this._auditCore = undefined
-        this._blockList = undefined
+        this._blockedList = undefined
       })
     } catch (error) {
       this._auditCore = undefined
-      this._blockList = undefined
+      this._blockedList = undefined
       throw error
     }
 
@@ -112,7 +112,7 @@ class AuditXoPlugin {
   }
 
   _handleEvent(event, { userId, userIp, userName, ...data }) {
-    if (event !== 'apiCall' || this._blockList.indexOf(data.method) === -1) {
+    if (event !== 'apiCall' || this._blockedList.indexOf(data.method) === -1) {
       return this._auditCore.add(
         {
           userId,

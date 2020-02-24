@@ -1,4 +1,5 @@
-blockList = [
+# List of skipped methods
+blockedList = [
   'audit.getRecords',
   'xo.getAllObjects',
 ]
