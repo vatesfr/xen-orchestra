@@ -40,8 +40,8 @@ export default class Backups {
             description: 'list VM backups',
             params: {
               remotes: {
-                type: 'array',
-                items: { type: 'object', properties: {} },
+                type: 'object',
+                additionalProperties: { type: 'object' },
               },
             },
           },
