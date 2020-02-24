@@ -20,15 +20,21 @@ const Usage = ({ total, children, link }) => {
     <span className='usage'>
       {nOthers > 1 ? (
         <span>
-          {React.Children.map(
-            children,
-            (child, index) =>
-              child.props.value > limit &&
+          {React.Children.map(children, (child, index) => {
+            const { id, href, value } = child.props
+            return (
+              value > limit &&
               cloneElement(child, {
-                href: typeof link === 'function' ? link(child.props.id) : link,
+                href:
+                  href === undefined
+                    ? typeof link === 'function'
+                      ? link(id)
+                      : link
+                    : href,
                 total,
               })
-          )}
+            )
+          })}
           <Element
             href={
               typeof link === 'function'
@@ -42,9 +48,18 @@ const Usage = ({ total, children, link }) => {
           />
         </span>
       ) : (
-        React.Children.map(children, (child, index) =>
-          cloneElement(child, { total })
-        )
+        React.Children.map(children, (child, index) => {
+          const { id, href } = child.props
+          return cloneElement(child, {
+            href:
+              href === undefined
+                ? typeof link === 'function'
+                  ? link(id)
+                  : link
+                : href,
+            total,
+          })
+        })
       )}
     </span>
   )
