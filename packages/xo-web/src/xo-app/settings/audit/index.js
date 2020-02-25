@@ -36,7 +36,7 @@ const COLUMNS = [
         <User
           defaultRender={
             <Copiable tagName='p' text={userId} className='text-muted'>
-              {_('auditDeletedUser', { name: userName })}
+              {_('deletedUser', { name: userName })}
             </Copiable>
           }
           id={userId}

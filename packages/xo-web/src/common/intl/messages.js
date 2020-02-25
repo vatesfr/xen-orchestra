@@ -60,6 +60,7 @@ const messages = {
   vm: 'VM',
   user: 'User',
   ip: 'IP',
+  deletedUser: 'deleted ({ name })',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2218,7 +2219,6 @@ const messages = {
 
   // Audit
   auditActionEvent: 'Action/Event',
-  auditDeletedUser: 'deleted ({ name })',
   auditRecord: 'Audit record',
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
