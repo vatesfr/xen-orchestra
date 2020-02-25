@@ -417,14 +417,14 @@ export const User = decorate([
     user: cb =>
       subscribeUsers(users => {
         const user = users.find(user => user.id === id)
-        cb(user === undefined ? 'unknown' : user)
+        cb(user === undefined ? null : user)
       }),
   })),
   ({ defaultRender, id, link, newTab, user }) => {
     if (user === undefined) {
       return <Icon icon='loading' />
     }
-    if (user === 'unknown') {
+    if (user === null) {
       return defaultRender || unknowItem(id, 'user')
     }
     return (
