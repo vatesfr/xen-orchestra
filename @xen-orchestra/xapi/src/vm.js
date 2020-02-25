@@ -10,6 +10,14 @@ const extractOpaqueRef = require('./_extractOpaqueRef')
 const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
 
+async function safeGetRecord(xapi, type, ref) {
+  try {
+    return await xapi.getRecord(type, ref)
+  } catch (_) {
+    return ref
+  }
+}
+
 module.exports = class Vm {
   async _assertHealthyVdiChain(vdiRef, cache, tolerance) {
     let vdi = cache[vdiRef]
@@ -201,8 +209,8 @@ module.exports = class Vm {
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, exportedVm] = await Promise.all([
-        this.getRecord('host', this.pool.master),
-        useSnapshot ? this.getRecord('VM', exportedVmRef) : vmRef,
+        safeGetRecord(this, 'host', this.pool.master),
+        useSnapshot ? safeGetRecord(this, 'VM', exportedVmRef) : vmRef,
       ])
       error.pool_master = poolMaster
       error.VM = exportedVm
@@ -252,8 +260,8 @@ module.exports = class Vm {
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, sr] = await Promise.all([
-        this.getRecord('host', this.pool.master),
-        this.getRecord('SR', srRef),
+        safeGetRecord(this, 'host', this.pool.master),
+        safeGetRecord(this, 'SR', srRef),
       ])
       error.pool_master = poolMaster
       error.SR = sr
