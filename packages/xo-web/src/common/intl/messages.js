@@ -63,6 +63,8 @@ const messages = {
   dhcp: 'DHCP',
   ip: 'IP',
   static: 'Static',
+  user: 'User',
+  deletedUser: 'deleted ({ name })',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -114,6 +116,7 @@ const messages = {
   notificationsPage: 'Notifications',
   supportPage: 'Support',
   settingsPage: 'Settings',
+  settingsAuditPage: 'Audit',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
   settingsGroupsPage: 'Groups',
@@ -2219,6 +2222,13 @@ const messages = {
   recipeNumberOfNodesLabel: 'Number of nodes',
   recipeSshKeyLabel: 'SSH key',
   recipeNetworkCidr: 'Network CIDR',
+
+  // Audit
+  auditActionEvent: 'Action/Event',
+  auditRecord: 'Audit record',
+  displayAuditRecord: 'Display record',
+  noAuditRecordAvailable: 'No audit record available',
+  refreshAuditRecordsList: 'Refresh records list',
 
   // Licenses
   xosanUnregisteredDisclaimer:

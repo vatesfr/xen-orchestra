@@ -103,6 +103,10 @@
     @extend .fa;
     @extend .fa-cube;
   }
+  &-audit {
+    @extend .fa;
+    @extend .fa-list-alt;
+  }
 
   &-grab {
     @extend .fa;
