@@ -3131,3 +3131,9 @@ export const fetchAuditRecords = async () => {
     throw error
   }
 }
+
+export const checkAuditRecordsIntegrity = (oldest, newest) =>
+  _call('audit.checkIntegrity', { oldest, newest })
+
+export const generateAuditFingerprint = oldest =>
+  _call('audit.generateFingerprint', { oldest })

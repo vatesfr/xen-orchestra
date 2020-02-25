@@ -2219,7 +2219,22 @@ const messages = {
 
   // Audit
   auditActionEvent: 'Action/Event',
+  auditAlteredRecord:
+    'The record ({ id }) was altered ({ n, number } valid records)',
+  auditCheckIntegrity: 'Check integrity',
+  auditCopyFingerprintToClipboard: 'Copy fingerprint to clipboard',
+  auditGenerateNewFingerprint: 'Generate a new fingerprint',
+  auditMissingRecord:
+    'The record ({ id }) is missing ({ n, number } valid records)',
+  auditEnterFingerprint: 'Enter the fingerprint…',
+  auditEnterFingerprintInfo: "If you don't have a fingerprint, click OK.",
   auditRecord: 'Audit record',
+  auditIntegrityVerified: 'Integrity verified',
+  auditSaveFingerprintInfo:
+    'Keep this fingerprint to be able to check the integrity of the current records',
+  auditSaveFingerprintInErrorInfo:
+    'If you trust the current state of your records, keep this fingerprint to be able to check their integrity',
+  auditNewFingerprint: 'New fingerprint',
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',

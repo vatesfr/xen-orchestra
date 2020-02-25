@@ -1,5 +1,7 @@
 # List of skipped methods
 blockedList = [
+  'audit.checkIntegrity',
+  'audit.generateFingerprint',
   'audit.getRecords',
   'xo.getAllObjects',
 ]

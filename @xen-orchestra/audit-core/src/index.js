@@ -67,11 +67,13 @@ export class AuditCore {
 
   // TODO: https://github.com/vatesfr/xen-orchestra/pull/4733#discussion_r366897798
   async checkIntegrity(oldest, newest) {
+    let nValid = 0
     while (newest !== oldest) {
       const record = await this._storage.get(newest)
       if (record === undefined) {
         const error = new Error('missing record')
         error.id = newest
+        error.nValid = nValid
         throw error
       }
       if (
@@ -79,11 +81,14 @@ export class AuditCore {
       ) {
         const error = new Error('altered record')
         error.id = newest
+        error.nValid = nValid
         error.record = record
         throw error
       }
       newest = record.previousId
+      nValid++
     }
+    return nValid
   }
 
   async *getFrom(newest) {

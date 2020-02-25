@@ -82,7 +82,11 @@ describe('auditCore', () => {
   it('detects that a record is missing', async () => {
     const [newestRecord, deletedRecord] = await storeAuditRecords()
 
-    await auditCore.checkIntegrity(NULL_ID, newestRecord.id)
+    const nValidRecords = await auditCore.checkIntegrity(
+      NULL_ID,
+      newestRecord.id
+    )
+    expect(nValidRecords).toBe(DATA.length)
 
     await db.del(deletedRecord.id)
     await expect(
