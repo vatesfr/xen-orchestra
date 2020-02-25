@@ -841,7 +841,36 @@ export default class BackupNg {
   // └─ task.end
   async importVmBackupNg(id: string, srId: string): Promise<string> {
     const app = this._app
+    const xapi = app.getXapi(srId)
+    const sr = xapi.getObject(srId)
+
     const { metadataFilename, remoteId } = parseVmBackupId(id)
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const {
+        allowUnauthorized,
+        host,
+        password,
+        username,
+      } = await app.getXenServer(app.getXenServerIdByObject(sr))
+      return app.callProxyMethod(proxy, 'backup.importVmBackup', {
+        backupId: metadataFilename,
+        remote: {
+          url,
+          options,
+        },
+        srUuid: sr.uuid,
+        xapi: {
+          allowUnauthorized,
+          credentials: {
+            username,
+            password,
+          },
+          url: host,
+        },
+      })
+    }
+
     const handler = await app.getRemoteHandler(remoteId)
     const metadata: Metadata = JSON.parse(
       String(await handler.readFile(metadataFilename))
@@ -852,7 +881,6 @@ export default class BackupNg {
       throw new Error(`no importer for backup mode ${metadata.mode}`)
     }
 
-    const xapi = app.getXapi(srId)
     const { jobId, timestamp: time } = metadata
     const logger = this._logger
     return wrapTaskFn(
@@ -872,7 +900,7 @@ export default class BackupNg {
           metadataFilename,
           metadata,
           xapi,
-          xapi.getObject(srId),
+          sr,
           taskId,
           logger
         )::pFinally(() => {
