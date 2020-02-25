@@ -7,6 +7,7 @@ import parseArgs from 'minimist'
 import sublevel from 'level-sublevel'
 import util from 'util'
 import { join as joinPath } from 'path'
+// eslint-disable-next-line node/no-extraneous-import
 import { repair as repairDb } from 'level'
 
 import { forEach } from './utils'
