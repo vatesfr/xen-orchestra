@@ -4,7 +4,7 @@ import highland from 'highland'
 import levelup from 'level-party'
 import ndjson from 'ndjson'
 import parseArgs from 'minimist'
-import sublevel from 'level-sublevel'
+import sublevel from 'subleveldown'
 import util from 'util'
 import { join as joinPath } from 'path'
 // eslint-disable-next-line node/no-extraneous-import
@@ -195,8 +195,9 @@ export default async function main() {
   }
 
   const db = sublevel(
-    levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' })
-  ).sublevel('logs')
+    levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' }),
+    'logs'
+  )
 
   return printLogs(db, args)
 }
