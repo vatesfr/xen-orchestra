@@ -16,6 +16,7 @@ const Usage = ({ total, children, link }) => {
   )
   const othersTotal = sumBy(othersProps, 'value')
   const nOthers = othersProps.length
+  const getLink = typeof link === 'function' ? link : () => link
   return (
     <span className='usage'>
       {nOthers > 1 ? (
@@ -25,22 +26,13 @@ const Usage = ({ total, children, link }) => {
             return (
               value > limit &&
               cloneElement(child, {
-                href:
-                  href === undefined
-                    ? typeof link === 'function'
-                      ? link(id)
-                      : link
-                    : href,
+                href: href === undefined ? getLink(id) : href,
                 total,
               })
             )
           })}
           <Element
-            href={
-              typeof link === 'function'
-                ? link(othersProps.map(_ => _.id))
-                : link
-            }
+            href={getLink(othersProps.map(_ => _.id))}
             others
             tooltip={_('others', { nOthers })}
             total={total}
@@ -51,12 +43,7 @@ const Usage = ({ total, children, link }) => {
         React.Children.map(children, (child, index) => {
           const { id, href } = child.props
           return cloneElement(child, {
-            href:
-              href === undefined
-                ? typeof link === 'function'
-                  ? link(id)
-                  : link
-                : href,
+            href: href === undefined ? getLink(id) : href,
             total,
           })
         })
