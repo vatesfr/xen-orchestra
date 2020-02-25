@@ -298,6 +298,11 @@ export default class Menu extends Component {
             icon: 'menu-settings-logs',
             label: 'settingsLogsPage',
           },
+          {
+            to: '/settings/audit',
+            icon: 'audit',
+            label: 'settingsAuditPage',
+          },
           { to: '/settings/ips', icon: 'ip', label: 'settingsIpsPage' },
           {
             to: '/settings/cloud-configs',
