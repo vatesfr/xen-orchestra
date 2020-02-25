@@ -516,7 +516,8 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       copyHostBiosStrings:
         state.hvmBootFirmware !== 'uefi' &&
-        (this._templateHasBiosStrings() || state.copyHostBiosStrings),
+        !this._templateHasBiosStrings() &&
+        state.copyHostBiosStrings,
       share: state.share,
       cloudConfig,
       networkConfig: this._isCoreOs() ? undefined : networkConfig,
