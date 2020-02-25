@@ -92,11 +92,13 @@ Usage:
       result.$responseType === 'ndjson'
     ) {
       for (let i = 1, n = lines.length; i < n; ++i) {
-        stdout.write(inspect(JSON.parse(lines[i]), { colors: true }))
+        stdout.write(
+          inspect(JSON.parse(lines[i]), { colors: true, depth: null })
+        )
         stdout.write('\n')
       }
     } else {
-      stdout.write(inspect(result, { colors: true }))
+      stdout.write(inspect(result, { colors: true, depth: null }))
       stdout.write('\n')
     }
   } catch (error) {
