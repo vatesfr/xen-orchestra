@@ -1,5 +1,5 @@
 import _ from 'intl'
-import addSubscriptions from 'add-subscriptions'
+import ActionButton from 'action-button'
 import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
@@ -7,9 +7,10 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { alert } from 'modal'
-import { FormattedDate, injectIntl } from 'react-intl'
+import { fetchAuditRecords } from 'xo'
+import { FormattedDate } from 'react-intl'
+import { injectState, provideState } from 'reaclette'
 import { startCase } from 'lodash'
-import { subscribeAuditRecords } from 'xo'
 import { User } from 'render-xo-item'
 
 const displayRecord = record =>
@@ -78,25 +79,47 @@ const COLUMNS = [
 ]
 
 export default decorate([
-  addSubscriptions({
-    records: subscribeAuditRecords,
+  provideState({
+    initialState: () => ({
+      records: undefined,
+    }),
+    effects: {
+      initialize({ fetchRecords }) {
+        return fetchRecords()
+      },
+      async fetchRecords() {
+        this.state.records = await fetchAuditRecords()
+      },
+    },
   }),
-  injectIntl,
-  ({ records, intl: { formatMessage } }) => (
-    <NoObjects
-      collection={records}
-      columns={COLUMNS}
-      component={SortedTable}
-      defaultColumn={3}
-      emptyMessage={
-        <span className='text-muted'>
-          <Icon icon='alarm' />
-          &nbsp;
-          {_('noAuditRecordAvailable')}
-        </span>
-      }
-      individualActions={INDIVIDUAL_ACTIONS}
-      stateUrlParam='s'
-    />
+  injectState,
+  ({ state, effects }) => (
+    <div>
+      <div className='mt-1 mb-1'>
+        <ActionButton
+          btnStyle='primary'
+          handler={effects.fetchRecords}
+          icon='refresh'
+          size='large'
+        >
+          {_('refreshAuditRecordsList')}
+        </ActionButton>
+      </div>
+      <NoObjects
+        collection={state.records}
+        columns={COLUMNS}
+        component={SortedTable}
+        defaultColumn={3}
+        emptyMessage={
+          <span className='text-muted'>
+            <Icon icon='alarm' />
+            &nbsp;
+            {_('noAuditRecordAvailable')}
+          </span>
+        }
+        individualActions={INDIVIDUAL_ACTIONS}
+        stateUrlParam='s'
+      />
+    </div>
   ),
 ])

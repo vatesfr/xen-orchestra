@@ -2222,6 +2222,7 @@ const messages = {
   auditRecord: 'Audit record',
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
+  refreshAuditRecordsList: 'Refresh records list',
 
   // Licenses
   xosanUnregisteredDisclaimer:

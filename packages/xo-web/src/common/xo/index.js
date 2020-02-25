@@ -3113,7 +3113,7 @@ export const checkProxyHealth = proxy =>
 // Audit plugin ---------------------------------------------------------
 
 const METHOD_NOT_FOUND_CODE = -32601
-export const subscribeAuditRecords = createSubscription(async () => {
+export const fetchAuditRecords = async () => {
   try {
     const { $getFrom } = await _call('audit.getRecords', { ndjson: true })
     const response = await fetch(`.${$getFrom}`)
@@ -3130,4 +3130,4 @@ export const subscribeAuditRecords = createSubscription(async () => {
     }
     throw error
   }
-})
+}
