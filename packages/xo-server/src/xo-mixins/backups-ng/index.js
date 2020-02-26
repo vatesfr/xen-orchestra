@@ -852,7 +852,7 @@ export default class BackupNg {
         host,
         password,
         username,
-      } = await app.getXenServer(app.getXenServerIdByObject(sr))
+      } = await app.getXenServer(app.getXenServerIdByObject(sr.$id))
       return app.callProxyMethod(proxy, 'backup.importVmBackup', {
         backupId: metadataFilename,
         remote: {
