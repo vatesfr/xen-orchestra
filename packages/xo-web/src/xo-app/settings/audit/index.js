@@ -21,19 +21,19 @@ import {
   generateAuditFingerprint,
 } from 'xo'
 
-const getIntegrityErrorRender = ({ nValid, errorData }) => (
+const getIntegrityErrorRender = ({ nValid, error }) => (
   <p className='text-danger'>
     <Icon icon='alarm' />{' '}
     {_(
-      missingAuditRecord.message === errorData.reason
+      missingAuditRecord.is(error)
         ? 'auditMissingRecord'
         : 'auditAlteredRecord',
       {
         id: (
           <Tooltip content={_('copyToClipboard')}>
-            <CopyToClipboard text={errorData.id}>
+            <CopyToClipboard text={error.data.id}>
               <span style={{ cursor: 'pointer' }}>
-                {errorData.id.slice(4, 8)}
+                {error.data.id.slice(4, 8)}
               </span>
             </CopyToClipboard>
           </Tooltip>
@@ -44,15 +44,15 @@ const getIntegrityErrorRender = ({ nValid, errorData }) => (
   </p>
 )
 
-const openGeneratedFingerprintModal = ({ fingerprint, nValid, errorData }) =>
+const openGeneratedFingerprintModal = ({ fingerprint, nValid, error }) =>
   alert(
     <span>
       <Icon icon='diagnosis' /> {_('auditNewFingerprint')}
     </span>,
     <div>
-      {errorData !== undefined ? (
+      {error !== undefined ? (
         <div>
-          {getIntegrityErrorRender({ nValid, errorData })}
+          {getIntegrityErrorRender({ nValid, error })}
           <p>{_('auditSaveFingerprintInErrorInfo')}</p>
         </div>
       ) : (
@@ -142,13 +142,8 @@ const checkIntegrity = async () => {
       const isRecordMissing = missingAuditRecord.is(error)
       if (isRecordMissing || alteredAuditRecord.is(error)) {
         return {
-          nValid: error.nValid,
-          errorData: {
-            id: error.id,
-            reason: isRecordMissing
-              ? missingAuditRecord.message
-              : alteredAuditRecord.message,
-          },
+          nValid: error.data.nValid,
+          error,
         }
       }
       throw error

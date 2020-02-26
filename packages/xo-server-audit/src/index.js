@@ -213,11 +213,7 @@ class AuditXoPlugin {
           return {
             fingerprint: `${error.data.id}|${newest}`,
             nValid: error.data.nValid,
-            errorData: {
-              id: error.data.id,
-              reason: error.message,
-              record: error.data.record,
-            },
+            error,
           }
         }
         throw error
