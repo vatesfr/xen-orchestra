@@ -6,9 +6,9 @@ import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 import {
-  ALTERED_RECORD_ERROR,
+  AlteredRecordError,
   AuditCore,
-  MISSING_RECORD_ERROR,
+  MissingRecordError,
   NULL_ID,
   Storage,
 } from '@xen-orchestra/audit-core'
@@ -190,10 +190,10 @@ class AuditXoPlugin {
     return this._auditCore
       .checkIntegrity(oldest, newest ?? (await this._storage.getLastId()))
       .catch(error => {
-        if (error.message === MISSING_RECORD_ERROR) {
+        if (error instanceof MissingRecordError) {
           throw missingAuditRecord(error)
         }
-        if (error.message === ALTERED_RECORD_ERROR) {
+        if (error instanceof AlteredRecordError) {
           throw alteredAuditRecord(error)
         }
         throw error
