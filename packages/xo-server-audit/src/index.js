@@ -186,24 +186,21 @@ class AuditXoPlugin {
     return records
   }
 
-  async _checkIntegrity({ oldest = NULL_ID, newest }) {
-    return this._auditCore
-      .checkIntegrity(oldest, newest ?? (await this._storage.getLastId()))
-      .catch(error => {
-        if (error instanceof MissingRecordError) {
-          throw missingAuditRecord(error)
-        }
-        if (error instanceof AlteredRecordError) {
-          throw alteredAuditRecord(error)
-        }
-        throw error
-      })
+  async _checkIntegrity(props) {
+    const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
+    return this._auditCore.checkIntegrity(oldest, newest).catch(error => {
+      if (error instanceof MissingRecordError) {
+        throw missingAuditRecord(error)
+      }
+      if (error instanceof AlteredRecordError) {
+        throw alteredAuditRecord(error)
+      }
+      throw error
+    })
   }
 
-  async _generateFingerprint({ oldest = NULL_ID, newest }) {
-    if (newest === undefined) {
-      newest = await this._storage.getLastId()
-    }
+  async _generateFingerprint(props) {
+    const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
     return this._checkIntegrity({ oldest, newest }).then(
       nValid => ({
         fingerprint: `${oldest}|${newest}`,
