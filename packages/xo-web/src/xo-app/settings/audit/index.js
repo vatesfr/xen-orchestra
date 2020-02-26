@@ -53,10 +53,10 @@ const openGeneratedFingerprintModal = ({ fingerprint, nValid, errorData }) =>
       {errorData !== undefined ? (
         <div>
           {getIntegrityErrorRender({ nValid, errorData })}
-          <p>{_('auditSaveFingerprintInfo')}</p>
+          <p>{_('auditSaveFingerprintInErrorInfo')}</p>
         </div>
       ) : (
-        <p>{_('auditSaveFingerprintInErrorInfo')}</p>
+        <p>{_('auditSaveFingerprintInfo')}</p>
       )}
       <p className='input-group mt-1'>
         <input className='form-control' value={fingerprint} disabled />
