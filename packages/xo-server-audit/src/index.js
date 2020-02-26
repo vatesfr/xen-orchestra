@@ -97,7 +97,7 @@ class AuditXoPlugin {
 
     const checkIntegrity = this._checkIntegrity.bind(this)
     checkIntegrity.description =
-      'Check records integrity from a passed interval'
+      'Check records integrity between oldest and newest'
     checkIntegrity.permission = 'admin'
     checkIntegrity.params = {
       newest: { type: 'string', optional: true },
