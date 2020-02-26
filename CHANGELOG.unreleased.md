@@ -31,8 +31,8 @@
 > Rule of thumb: add packages on top.
 
 - xo-common v0.4.0
-- xo-server-audit v0.1.0
 - @xen-orchestra/audit-core v0.1.0
+- xo-server-audit v0.1.0
 - xo-server-auth-ldap v0.7.0
 - xo-server-usage-report v0.7.4
 - xo-server-sdn-controller v0.4.0
