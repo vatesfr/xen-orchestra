@@ -24,6 +24,7 @@ blockedList = [
   'role.getAll',
   'schedule.getAll',
   'server.getAll',
+  'session.getUser',
   'sr.getUnhealthyVdiChainsLength',
   'sr.stats',
   'system.getMethodsInfo',
