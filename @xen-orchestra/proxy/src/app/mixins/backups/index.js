@@ -49,7 +49,7 @@ export default class Backups {
 
               const vmRef = await xapi.VM_import(
                 await handler.createReadStream(
-                  resolve(dirname(backupId), metadata.xva)
+                  resolve('/', dirname(backupId), metadata.xva)
                 ),
                 srRef
               )
