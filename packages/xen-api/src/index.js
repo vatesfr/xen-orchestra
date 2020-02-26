@@ -283,6 +283,17 @@ export class Xapi extends EventEmitter {
     return this.call(`${type}.set_${field}`, ref, value).then(noop)
   }
 
+  setFields(type, ref, fields) {
+    return Promise.all(
+      getKeys(fields).map(field => {
+        const value = fields[field]
+        if (value !== undefined) {
+          return this.call(`${type}.set_${field}`, ref, value)
+        }
+      })
+    ).then(noop)
+  }
+
   setFieldEntries(type, ref, field, entries) {
     return Promise.all(
       getKeys(entries).map(entry => {
