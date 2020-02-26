@@ -105,7 +105,7 @@ class AuditXoPlugin {
     }
 
     const generateFingerprint = this._generateFingerprint.bind(this)
-    generateFingerprint.description = 'Generate a fingerprint'
+    generateFingerprint.description = 'Generate a fingerprint of the chain oldest-newest'
     generateFingerprint.permission = 'admin'
     generateFingerprint.params = {
       newest: { type: 'string', optional: true },
