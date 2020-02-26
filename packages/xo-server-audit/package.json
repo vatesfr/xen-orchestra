@@ -48,7 +48,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "@xen-orchestra/audit-core": "^0.0.0",
+    "@xen-orchestra/audit-core": "^0.1.0",
     "@xen-orchestra/log": "^0.2.0",
     "app-conf": "^0.7.1",
     "async-iterator-to-stream": "^1.1.0",
