@@ -3,6 +3,7 @@ import defer from 'golike-defer'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { dirname, resolve } from 'path'
+import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getHandler } from '@xen-orchestra/fs/dist'
 import { Xapi } from '@xen-orchestra/xapi'
 
@@ -53,6 +54,17 @@ export default class Backups {
                 ),
                 srRef
               )
+
+              await Promise.all([
+                xapi.call('VM.add_tags', vmRef, 'restored from backup'),
+                xapi.call(
+                  'VM.set_name_label',
+                  vmRef,
+                  `${metadata.vm.name_label} (${formatFilenameDate(
+                    metadata.timestamp
+                  )})`
+                ),
+              ])
 
               return xapi.getField('VM', vmRef, 'uuid')
             }
