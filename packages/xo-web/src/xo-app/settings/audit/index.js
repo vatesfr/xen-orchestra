@@ -13,7 +13,7 @@ import { alert, chooseAction, form } from 'modal'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { startCase } from 'lodash'
+import { noop, startCase } from 'lodash'
 import { User } from 'render-xo-item'
 import {
   checkAuditRecordsIntegrity,
@@ -21,18 +21,20 @@ import {
   generateAuditFingerprint,
 } from 'xo'
 
-const getIntegrityErrorRender = ({ id, nValid, reason }) => (
+const getIntegrityErrorRender = ({ nValid, errorData }) => (
   <p className='text-danger'>
     <Icon icon='alarm' />{' '}
     {_(
-      missingAuditRecord.message === reason
+      missingAuditRecord.message === errorData.reason
         ? 'auditMissingRecord'
         : 'auditAlteredRecord',
       {
         id: (
           <Tooltip content={_('copyToClipboard')}>
-            <CopyToClipboard text={id}>
-              <span style={{ cursor: 'pointer' }}>{id.slice(4, 8)}</span>
+            <CopyToClipboard text={errorData.id}>
+              <span style={{ cursor: 'pointer' }}>
+                {errorData.id.slice(4, 8)}
+              </span>
             </CopyToClipboard>
           </Tooltip>
         ),
@@ -42,15 +44,15 @@ const getIntegrityErrorRender = ({ id, nValid, reason }) => (
   </p>
 )
 
-const openGeneratedFingerprintModal = ({ fingerprint, id, nValid, reason }) =>
+const openGeneratedFingerprintModal = ({ fingerprint, nValid, errorData }) =>
   alert(
     <span>
       <Icon icon='diagnosis' /> {_('auditNewFingerprint')}
     </span>,
     <div>
-      {reason !== undefined ? (
+      {errorData !== undefined ? (
         <div>
-          {getIntegrityErrorRender({ id, nValid, reason })}
+          {getIntegrityErrorRender({ nValid, errorData })}
           <p>{_('auditSaveFingerprintInfo')}</p>
         </div>
       ) : (
@@ -79,7 +81,9 @@ const openIntegrityFeedbackModal = error =>
       error !== undefined ? (
         getIntegrityErrorRender(error)
       ) : (
-        <p className='text-success'>{_('auditIntegrityVerified')}</p>
+        <p className='text-success'>
+          {_('auditIntegrityVerified')} <Icon icon='success' />
+        </p>
       ),
     buttons: [
       {
@@ -122,32 +126,40 @@ const openFingerprintPromptModal = () =>
     ),
   }).then((value = '') => {
     value = value.trim()
-    return (value !== '' ? value : DEFAULT_HASH).split('|')
-  })
+    return value !== '' ? value : DEFAULT_HASH
+  }, noop)
 
 const checkIntegrity = async () => {
-  const [oldest, newest] = await openFingerprintPromptModal()
+  const fingerprint = await openFingerprintPromptModal()
+  if (fingerprint === undefined) {
+    return
+  }
 
-  let integrityError
-  await checkAuditRecordsIntegrity(oldest, newest).catch(error => {
-    const isRecordMissing = missingAuditRecord.is(error)
-    if (isRecordMissing || alteredAuditRecord.is(error)) {
-      integrityError = {
-        id: error.id,
-        nValid: error.nValid,
-        reason: isRecordMissing
-          ? missingAuditRecord.message
-          : alteredAuditRecord.message,
+  const [oldest, newest] = fingerprint.split('|')
+  const error = await checkAuditRecordsIntegrity(oldest, newest).then(
+    noop,
+    error => {
+      const isRecordMissing = missingAuditRecord.is(error)
+      if (isRecordMissing || alteredAuditRecord.is(error)) {
+        return {
+          nValid: error.nValid,
+          errorData: {
+            id: error.id,
+            reason: isRecordMissing
+              ? missingAuditRecord.message
+              : alteredAuditRecord.message,
+          },
+        }
       }
+      throw error
     }
-    throw error
-  })
-  const shouldGenerateFingerprint = await openIntegrityFeedbackModal(
-    integrityError
   )
 
+  const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
   if (shouldGenerateFingerprint) {
-    openGeneratedFingerprintModal(await generateAuditFingerprint(newest))
+    openGeneratedFingerprintModal(await generateAuditFingerprint(newest)).catch(
+      noop
+    )
   }
 }
 
@@ -241,7 +253,7 @@ export default decorate([
           size='large'
         >
           {_('refreshAuditRecordsList')}
-        </ActionButton>
+        </ActionButton>{' '}
         <ActionButton
           btnStyle='success'
           handler={checkIntegrity}

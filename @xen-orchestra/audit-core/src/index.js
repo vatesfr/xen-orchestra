@@ -28,6 +28,8 @@ const ID_TO_ALGORITHM = {
   '5': 'sha256',
 }
 
+export const ALTERED_RECORD_ERROR = 'altered record'
+export const MISSING_RECORD_ERROR = 'missing record'
 export const NULL_ID = 'nullId'
 
 const HASH_ALGORITHM_ID = '5'
@@ -71,7 +73,7 @@ export class AuditCore {
     while (newest !== oldest) {
       const record = await this._storage.get(newest)
       if (record === undefined) {
-        const error = new Error('missing record')
+        const error = new Error(MISSING_RECORD_ERROR)
         error.id = newest
         error.nValid = nValid
         throw error
@@ -79,7 +81,7 @@ export class AuditCore {
       if (
         newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))
       ) {
-        const error = new Error('altered record')
+        const error = new Error(ALTERED_RECORD_ERROR)
         error.id = newest
         error.nValid = nValid
         error.record = record

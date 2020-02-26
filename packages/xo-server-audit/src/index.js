@@ -2,10 +2,16 @@ import appConf from 'app-conf'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
 import path from 'path'
-import { alteredAuditRecord, missingAuditRecord } from 'xo-common'
-import { AuditCore, NULL_ID, Storage } from '@xen-orchestra/audit-core'
+import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
+import {
+  ALTERED_RECORD_ERROR,
+  AuditCore,
+  MISSING_RECORD_ERROR,
+  NULL_ID,
+  Storage,
+} from '@xen-orchestra/audit-core'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -42,8 +48,6 @@ class Db extends Storage {
 }
 
 const NAMESPACE = 'audit'
-const MISSING_RECORD_ERROR_MESSAGE = 'missing record'
-const ALTERED_RECORD_ERROR_MESSAGE = 'altered record'
 class AuditXoPlugin {
   constructor({ xo }) {
     this._cleaners = []
@@ -185,10 +189,10 @@ class AuditXoPlugin {
     return this._auditCore
       .checkIntegrity(oldest, newest ?? (await this._storage.getLastId()))
       .catch(error => {
-        if (error.message === MISSING_RECORD_ERROR_MESSAGE) {
+        if (error.message === MISSING_RECORD_ERROR) {
           throw missingAuditRecord(error)
         }
-        if (error.message === ALTERED_RECORD_ERROR_MESSAGE) {
+        if (error.message === ALTERED_RECORD_ERROR) {
           throw alteredAuditRecord(error)
         }
         throw error
@@ -199,7 +203,7 @@ class AuditXoPlugin {
     if (newest === undefined) {
       newest = await this._storage.getLastId()
     }
-    return this._auditCore.checkIntegrity(oldest, newest).then(
+    return this._checkIntegrity(oldest, newest).then(
       nValid => ({
         fingerprint: `${oldest}|${newest}`,
         nValid,
@@ -208,9 +212,12 @@ class AuditXoPlugin {
         if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
           return {
             fingerprint: `${error.data.id}|${newest}`,
-            id: error.data.id,
             nValid: error.data.nValid,
-            reason: error.message,
+            errorData: {
+              id: error.data.id,
+              reason: error.message,
+              record: error.data.record,
+            },
           }
         }
         throw error

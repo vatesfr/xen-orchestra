@@ -1,6 +1,12 @@
 /* eslint-env jest */
 
-import { AuditCore, NULL_ID, Storage } from '.'
+import {
+  ALTERED_RECORD_ERROR,
+  AuditCore,
+  MISSING_RECORD_ERROR,
+  NULL_ID,
+  Storage,
+} from '.'
 
 const asyncIteratorToArray = async asyncIterator => {
   const array = []
@@ -91,7 +97,7 @@ describe('auditCore', () => {
     await db.del(deletedRecord.id)
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toThrow('missing record')
+    ).rejects.toThrow(MISSING_RECORD_ERROR)
   })
 
   it('detects that a record has been altered', async () => {
@@ -103,7 +109,7 @@ describe('auditCore', () => {
     })
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toThrow('altered record')
+    ).rejects.toThrow(ALTERED_RECORD_ERROR)
   })
 
   it('confirms interval integrity after deletion of records outside of the interval', async () => {
