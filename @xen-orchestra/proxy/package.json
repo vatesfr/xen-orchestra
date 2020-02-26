@@ -48,6 +48,7 @@
     "fs-extra": "^8.1.0",
     "get-stream": "^5.1.0",
     "getopts": "^2.2.3",
+    "golike-defer": "^0.4.1",
     "http-request-plus": "^0.9.1",
     "http-server-plus": "^0.11.0",
     "json-rpc-protocol": "^0.13.1",

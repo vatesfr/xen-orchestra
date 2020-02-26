@@ -114,6 +114,13 @@ declare namespace backup {
     url: string
   }
 
+  function importVmBackup(_: {
+    backupId: string
+    remote: Remote
+    srUuid: string
+    xapi: Xapi
+  }): string
+
   function listVmBackups(_: {
     remotes: { [remoteId: string]: Remote }
   }): { [remoteId: string]: { [vmUuid: string]: object[] } }

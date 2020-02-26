@@ -1,5 +1,9 @@
+import assert from 'assert'
+import defer from 'golike-defer'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { createLogger } from '@xen-orchestra/log/dist'
+import { dirname, resolve } from 'path'
+import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getHandler } from '@xen-orchestra/fs/dist'
 import { Xapi } from '@xen-orchestra/xapi'
 
@@ -13,8 +17,68 @@ export default class Backups {
     app,
     { config: { backups: config, xapiOptions: globalXapiOptions } }
   ) {
+    const createXapi = ({
+      credentials: { username: user, password },
+      ...opts
+    }) =>
+      new Xapi({
+        ...globalXapiOptions,
+        ...opts,
+        auth: {
+          user,
+          password,
+        },
+      })
+
     app.api.addMethods({
       backup: {
+        importVmBackup: [
+          defer(
+            async ($defer, { backupId, remote, srUuid, xapi: xapiOpts }) => {
+              const handler = getHandler(remote)
+              await handler.sync()
+              $defer.call(handler, 'forget')
+
+              const metadata = JSON.parse(await handler.readFile(backupId))
+              assert.strictEqual(metadata.mode, 'full')
+
+              const xapi = createXapi(xapiOpts)
+              await xapi.connect()
+              $defer.call(xapi, 'disconnect')
+
+              const srRef = await xapi.call('SR.get_by_uuid', srUuid)
+
+              const vmRef = await xapi.VM_import(
+                await handler.createReadStream(
+                  resolve('/', dirname(backupId), metadata.xva)
+                ),
+                srRef
+              )
+
+              await Promise.all([
+                xapi.call('VM.add_tags', vmRef, 'restored from backup'),
+                xapi.call(
+                  'VM.set_name_label',
+                  vmRef,
+                  `${metadata.vm.name_label} (${formatFilenameDate(
+                    metadata.timestamp
+                  )})`
+                ),
+              ])
+
+              return xapi.getField('VM', vmRef, 'uuid')
+            }
+          ),
+          {
+            description: 'create a new VM from a backup',
+            params: {
+              backupId: { type: 'string' },
+              remote: { type: 'object' },
+              srUuid: { type: 'string' },
+              xapi: { type: 'object' },
+            },
+          },
+        ],
         listVmBackups: [
           async ({ remotes }) => {
             const backups = {}
@@ -50,18 +114,7 @@ export default class Backups {
           async ({ xapis: xapisOptions, ...rest }) => {
             const xapis = []
             async function createConnectedXapi(id) {
-              const {
-                credentials: { username: user, password },
-                ...xapiOptions
-              } = xapisOptions[id]
-              const xapi = new Xapi({
-                ...globalXapiOptions,
-                ...xapiOptions,
-                auth: {
-                  user,
-                  password,
-                },
-              })
+              const xapi = createXapi(xapisOptions[id])
               xapis.push(xapi)
               await xapi.connect()
               await xapi.objectsFetched
