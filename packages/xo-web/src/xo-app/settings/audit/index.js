@@ -71,7 +71,7 @@ const openGeneratedFingerprintModal = ({ fingerprint, nValid, errorData }) =>
         </span>
       </p>
     </div>
-  )
+  ).catch(noop)
 
 const openIntegrityFeedbackModal = error =>
   chooseAction({
@@ -157,9 +157,7 @@ const checkIntegrity = async () => {
 
   const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
   if (shouldGenerateFingerprint) {
-    openGeneratedFingerprintModal(await generateAuditFingerprint(newest)).catch(
-      noop
-    )
+    openGeneratedFingerprintModal(await generateAuditFingerprint(newest))
   }
 }
 
