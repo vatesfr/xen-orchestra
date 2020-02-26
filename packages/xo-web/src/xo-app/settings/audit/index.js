@@ -151,9 +151,11 @@ const checkIntegrity = async () => {
   )
 
   const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
-  if (shouldGenerateFingerprint) {
-    openGeneratedFingerprintModal(await generateAuditFingerprint(newest))
+  if (!shouldGenerateFingerprint) {
+    return
   }
+
+  await openGeneratedFingerprintModal(await generateAuditFingerprint(newest))
 }
 
 const displayRecord = record =>
