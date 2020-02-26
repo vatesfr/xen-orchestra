@@ -345,6 +345,7 @@ export default class NewVm extends BaseComponent {
     this._replaceState(
       {
         bootAfterCreate: true,
+        copyHostBiosStrings: this._templateHasBiosStrings(),
         coresPerSocket: undefined,
         CPUs: '',
         cpuCap: '',
@@ -513,6 +514,10 @@ export default class NewVm extends BaseComponent {
       pv_args: state.pv_args,
       autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
+      copyHostBiosStrings:
+        state.hvmBootFirmware !== 'uefi' &&
+        !this._templateHasBiosStrings() &&
+        state.copyHostBiosStrings,
       share: state.share,
       cloudConfig,
       networkConfig: this._isCoreOs() ? undefined : networkConfig,
@@ -598,6 +603,7 @@ export default class NewVm extends BaseComponent {
       nameLabels: map(Array(+state.nbVms), (_, index) =>
         replacer({ name_label, name_description, template }, index + 1)
       ),
+      copyHostBiosStrings: !isEmpty(template.bios_strings),
       // performances
       CPUs: template.CPUs.number,
       cpusMax: template.CPUs.max,
@@ -758,6 +764,11 @@ export default class NewVm extends BaseComponent {
       '{name}': state => state.name_label || '',
       '%': (_, i) => i,
     })
+
+  _templateHasBiosStrings = createSelector(
+    () => this.props.template,
+    template => template !== undefined && !isEmpty(template.bios_strings)
+  )
 
   _getVgpuTypePredicate = createSelector(
     () => this.props.pool,
@@ -1643,6 +1654,7 @@ export default class NewVm extends BaseComponent {
       affinityHost,
       autoPoweron,
       bootAfterCreate,
+      copyHostBiosStrings,
       cpuCap,
       cpusMax,
       cpuWeight,
@@ -1662,6 +1674,25 @@ export default class NewVm extends BaseComponent {
     const { isAdmin } = this.props
     const { formatMessage } = this.props.intl
     const isHvm = this._isHvm()
+    const _copyHostBiosStrings =
+      isAdmin && isHvm ? (
+        <label>
+          <input
+            checked={
+              hvmBootFirmware !== 'uefi' &&
+              (this._templateHasBiosStrings() || copyHostBiosStrings)
+            }
+            className='form-control'
+            disabled={
+              hvmBootFirmware === 'uefi' || this._templateHasBiosStrings()
+            }
+            onChange={this._toggleState('copyHostBiosStrings')}
+            type='checkbox'
+          />
+          &nbsp;
+          {_('copyHostBiosStrings')}
+        </label>
+      ) : null
 
     return (
       <Section
@@ -1870,6 +1901,26 @@ export default class NewVm extends BaseComponent {
                   onChange={this._handleBootFirmware}
                   value={hvmBootFirmware}
                 />
+              </Item>
+            </SectionContent>
+          ),
+          isAdmin && isHvm && (
+            <SectionContent>
+              <Item>
+                {hvmBootFirmware === 'uefi' ||
+                this._templateHasBiosStrings() ? (
+                  <Tooltip
+                    content={
+                      hvmBootFirmware === 'uefi'
+                        ? _('vmBootFirmwareIsUefi')
+                        : _('templateHasBiosStrings')
+                    }
+                  >
+                    {_copyHostBiosStrings}
+                  </Tooltip>
+                ) : (
+                  _copyHostBiosStrings
+                )}
               </Item>
             </SectionContent>
           ),

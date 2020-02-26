@@ -1314,6 +1314,7 @@ const messages = {
   createVmModalTitle: 'Create VM',
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
+  copyHostBiosStrings: 'Copy host BIOS strings to VM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
@@ -1385,6 +1386,8 @@ const messages = {
   newVmUserConfigLabel: 'User config',
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
+  templateHasBiosStrings: 'The template already contains the BIOS strings',
+  vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
