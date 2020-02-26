@@ -1,3 +1,4 @@
+import assert from 'assert'
 import defer from 'golike-defer'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { createLogger } from '@xen-orchestra/log/dist'
@@ -38,6 +39,7 @@ export default class Backups {
               $defer.call(handler, 'forget')
 
               const metadata = JSON.parse(await handler.readFile(backupId))
+              assert.strictEqual(metadata.mode, 'full')
 
               const xapi = createXapi(xapiOpts)
               await xapi.connect()
