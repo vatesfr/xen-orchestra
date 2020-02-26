@@ -917,6 +917,32 @@ export default class BackupNg {
     const app = this._app
     const backupsByVm = {}
     try {
+      const { proxy, url, options } = await app.getRemoteWithCredentials(
+        remoteId
+      )
+      if (proxy !== undefined) {
+        const { [remoteId]: backupsByVm } = await app.callProxyMethod(
+          proxy,
+          'backup.listVmBackups',
+          {
+            remotes: {
+              [remoteId]: {
+                url,
+                options,
+              },
+            },
+          }
+        )
+
+        // inject the remote id on the backup which is needed for importVmBackupNg()
+        forOwn(backupsByVm, backups =>
+          backups.forEach(backup => {
+            backup.id = `${remoteId}${backup.id}`
+          })
+        )
+        return backupsByVm
+      }
+
       const handler = await app.getRemoteHandler(remoteId)
 
       const entries = (
