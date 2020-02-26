@@ -105,7 +105,8 @@ class AuditXoPlugin {
     }
 
     const generateFingerprint = this._generateFingerprint.bind(this)
-    generateFingerprint.description = 'Generate a fingerprint of the chain oldest-newest'
+    generateFingerprint.description =
+      'Generate a fingerprint of the chain oldest-newest'
     generateFingerprint.permission = 'admin'
     generateFingerprint.params = {
       newest: { type: 'string', optional: true },
@@ -203,7 +204,7 @@ class AuditXoPlugin {
     if (newest === undefined) {
       newest = await this._storage.getLastId()
     }
-    return this._checkIntegrity(oldest, newest).then(
+    return this._checkIntegrity({ oldest, newest }).then(
       nValid => ({
         fingerprint: `${oldest}|${newest}`,
         nValid,

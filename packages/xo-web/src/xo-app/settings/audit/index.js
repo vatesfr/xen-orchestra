@@ -139,8 +139,7 @@ const checkIntegrity = async () => {
   const error = await checkAuditRecordsIntegrity(oldest, newest).then(
     noop,
     error => {
-      const isRecordMissing = missingAuditRecord.is(error)
-      if (isRecordMissing || alteredAuditRecord.is(error)) {
+      if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
         return {
           nValid: error.data.nValid,
           error,
