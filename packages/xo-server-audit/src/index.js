@@ -202,10 +202,9 @@ class AuditXoPlugin {
   async _generateFingerprint(props) {
     const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
     try {
-      const nValid = await this._checkIntegrity({ oldest, newest })
       return {
         fingerprint: `${oldest}|${newest}`,
-        nValid,
+        nValid: await this._checkIntegrity({ oldest, newest }),
       }
     } catch (error) {
       if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
