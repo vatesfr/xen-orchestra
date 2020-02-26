@@ -21,5 +21,5 @@ export class AuditCore {
   public add(subject: any, event: string, data: any): Promise<Record> {}
   public checkIntegrity(oldest: string, newest: string): Promise<number> {}
   public getFrom(newest?: string): AsyncIterator {}
-  public deleteFrom(newest?: string): Promise<void> {}
+  public deleteFrom(newest: string): Promise<void> {}
 }
