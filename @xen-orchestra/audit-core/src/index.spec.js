@@ -1,6 +1,12 @@
 /* eslint-env jest */
 
-import { AuditCore, NULL_ID, Storage } from '.'
+import {
+  AlteredRecordError,
+  AuditCore,
+  MissingRecordError,
+  NULL_ID,
+  Storage,
+} from '.'
 
 const asyncIteratorToArray = async asyncIterator => {
   const array = []
@@ -82,24 +88,29 @@ describe('auditCore', () => {
   it('detects that a record is missing', async () => {
     const [newestRecord, deletedRecord] = await storeAuditRecords()
 
-    await auditCore.checkIntegrity(NULL_ID, newestRecord.id)
+    const nValidRecords = await auditCore.checkIntegrity(
+      NULL_ID,
+      newestRecord.id
+    )
+    expect(nValidRecords).toBe(DATA.length)
 
     await db.del(deletedRecord.id)
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toThrow('missing record')
+    ).rejects.toEqual(new MissingRecordError(deletedRecord.id, 1))
   })
 
   it('detects that a record has been altered', async () => {
     const [newestRecord, alteredRecord] = await storeAuditRecords()
 
-    await db.put({
-      ...alteredRecord,
-      event: '',
-    })
+    alteredRecord.event = ''
+    await db.put(alteredRecord)
+
     await expect(
       auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toThrow('altered record')
+    ).rejects.toEqual(
+      new AlteredRecordError(alteredRecord.id, 1, alteredRecord)
+    )
   })
 
   it('confirms interval integrity after deletion of records outside of the interval', async () => {

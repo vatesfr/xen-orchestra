@@ -1,17 +1,161 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Copiable from 'copiable'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { alert } from 'modal'
-import { fetchAuditRecords } from 'xo'
-import { FormattedDate } from 'react-intl'
+import Tooltip from 'tooltip'
+import { alert, chooseAction, form } from 'modal'
+import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
+import { FormattedDate, injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { startCase } from 'lodash'
+import { noop, startCase } from 'lodash'
 import { User } from 'render-xo-item'
+import {
+  checkAuditRecordsIntegrity,
+  fetchAuditRecords,
+  generateAuditFingerprint,
+} from 'xo'
+
+const getIntegrityErrorRender = ({ nValid, error }) => (
+  <p className='text-danger'>
+    <Icon icon='alarm' />{' '}
+    {_(
+      missingAuditRecord.is(error)
+        ? 'auditMissingRecord'
+        : 'auditAlteredRecord',
+      {
+        id: (
+          <Tooltip content={_('copyToClipboard')}>
+            <CopyToClipboard text={error.data.id}>
+              <span style={{ cursor: 'pointer' }}>
+                {error.data.id.slice(4, 8)}
+              </span>
+            </CopyToClipboard>
+          </Tooltip>
+        ),
+        n: nValid,
+      }
+    )}
+  </p>
+)
+
+const openGeneratedFingerprintModal = ({ fingerprint, nValid, error }) =>
+  alert(
+    <span>
+      <Icon icon='diagnosis' /> {_('auditNewFingerprint')}
+    </span>,
+    <div>
+      {error !== undefined ? (
+        <div>
+          {getIntegrityErrorRender({ nValid, error })}
+          <p>{_('auditSaveFingerprintInErrorInfo')}</p>
+        </div>
+      ) : (
+        <p>{_('auditSaveFingerprintInfo')}</p>
+      )}
+      <p className='input-group mt-1'>
+        <input className='form-control' value={fingerprint} disabled />
+        <span className='input-group-btn'>
+          <Tooltip content={_('auditCopyFingerprintToClipboard')}>
+            <CopyToClipboard text={fingerprint}>
+              <Button>
+                <Icon icon='clipboard' />
+              </Button>
+            </CopyToClipboard>
+          </Tooltip>
+        </span>
+      </p>
+    </div>
+  ).catch(noop)
+
+const openIntegrityFeedbackModal = error =>
+  chooseAction({
+    icon: 'diagnosis',
+    title: _('auditCheckIntegrity'),
+    body:
+      error !== undefined ? (
+        getIntegrityErrorRender(error)
+      ) : (
+        <p className='text-success'>
+          {_('auditIntegrityVerified')} <Icon icon='success' />
+        </p>
+      ),
+    buttons: [
+      {
+        btnStyle: 'success',
+        label: _('auditGenerateNewFingerprint'),
+      },
+    ],
+  }).then(
+    () => true,
+    () => false
+  )
+
+const FingerPrintModalBody = injectIntl(
+  ({ intl: { formatMessage }, onChange, value }) => (
+    <div>
+      <p>{_('auditEnterFingerprintInfo')}</p>
+      <div className='form-group'>
+        <input
+          className='form-control'
+          onChange={onChange}
+          pattern='[^|]+\|[^|]+'
+          placeholder={formatMessage(messages.auditEnterFingerprint)}
+          value={value}
+        />
+      </div>
+    </div>
+  )
+)
+
+const DEFAULT_HASH = 'nullId|nullId'
+const openFingerprintPromptModal = () =>
+  form({
+    render: ({ onChange, value }) => (
+      <FingerPrintModalBody onChange={onChange} value={value} />
+    ),
+    header: (
+      <span>
+        <Icon icon='diagnosis' /> {_('auditCheckIntegrity')}
+      </span>
+    ),
+  }).then((value = '') => {
+    value = value.trim()
+    return value !== '' ? value : DEFAULT_HASH
+  }, noop)
+
+const checkIntegrity = async () => {
+  const fingerprint = await openFingerprintPromptModal()
+  if (fingerprint === undefined) {
+    return
+  }
+
+  const [oldest, newest] = fingerprint.split('|')
+  const error = await checkAuditRecordsIntegrity(oldest, newest).then(
+    noop,
+    error => {
+      if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
+        return {
+          nValid: error.data.nValid,
+          error,
+        }
+      }
+      throw error
+    }
+  )
+
+  const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
+  if (!shouldGenerateFingerprint) {
+    return
+  }
+
+  await openGeneratedFingerprintModal(await generateAuditFingerprint(newest))
+}
 
 const displayRecord = record =>
   alert(
@@ -103,6 +247,14 @@ export default decorate([
           size='large'
         >
           {_('refreshAuditRecordsList')}
+        </ActionButton>{' '}
+        <ActionButton
+          btnStyle='success'
+          handler={checkIntegrity}
+          icon='diagnosis'
+          size='large'
+        >
+          {_('auditCheckIntegrity')}
         </ActionButton>
       </div>
       <NoObjects

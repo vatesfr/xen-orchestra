@@ -2,9 +2,16 @@ import appConf from 'app-conf'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
 import path from 'path'
-import { AuditCore, Storage } from '@xen-orchestra/audit-core'
+import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
+import {
+  AlteredRecordError,
+  AuditCore,
+  MissingRecordError,
+  NULL_ID,
+  Storage,
+} from '@xen-orchestra/audit-core'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -48,15 +55,17 @@ class AuditXoPlugin {
 
     this._auditCore = undefined
     this._blockedList = undefined
+    this._storage = undefined
   }
 
   async load() {
     const cleaners = this._cleaners
 
     try {
-      this._auditCore = new AuditCore(
-        new Db(await this._xo.getStore(NAMESPACE))
-      )
+      const storage = (this._storage = new Db(
+        await this._xo.getStore(NAMESPACE)
+      ))
+      this._auditCore = new AuditCore(storage)
       this._blockedList = (
         await appConf.load('xo-server-audit', {
           appDir: path.join(__dirname, '..'),
@@ -66,10 +75,12 @@ class AuditXoPlugin {
       cleaners.push(() => {
         this._auditCore = undefined
         this._blockedList = undefined
+        this._storage = undefined
       })
     } catch (error) {
       this._auditCore = undefined
       this._blockedList = undefined
+      this._storage = undefined
       throw error
     }
 
@@ -84,9 +95,29 @@ class AuditXoPlugin {
       ndjson: { type: 'boolean', optional: true },
     }
 
+    const checkIntegrity = this._checkIntegrity.bind(this)
+    checkIntegrity.description =
+      'Check records integrity between oldest and newest'
+    checkIntegrity.permission = 'admin'
+    checkIntegrity.params = {
+      newest: { type: 'string', optional: true },
+      oldest: { type: 'string', optional: true },
+    }
+
+    const generateFingerprint = this._generateFingerprint.bind(this)
+    generateFingerprint.description =
+      'Generate a fingerprint of the chain oldest-newest'
+    generateFingerprint.permission = 'admin'
+    generateFingerprint.params = {
+      newest: { type: 'string', optional: true },
+      oldest: { type: 'string', optional: true },
+    }
+
     cleaners.push(
       this._xo.addApiMethods({
         audit: {
+          checkIntegrity,
+          generateFingerprint,
           getRecords,
         },
       })
@@ -153,6 +184,38 @@ class AuditXoPlugin {
       records.push(record)
     }
     return records
+  }
+
+  async _checkIntegrity(props) {
+    const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
+    return this._auditCore.checkIntegrity(oldest, newest).catch(error => {
+      if (error instanceof MissingRecordError) {
+        throw missingAuditRecord(error)
+      }
+      if (error instanceof AlteredRecordError) {
+        throw alteredAuditRecord(error)
+      }
+      throw error
+    })
+  }
+
+  async _generateFingerprint(props) {
+    const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
+    try {
+      return {
+        fingerprint: `${oldest}|${newest}`,
+        nValid: await this._checkIntegrity({ oldest, newest }),
+      }
+    } catch (error) {
+      if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
+        return {
+          fingerprint: `${error.data.id}|${newest}`,
+          nValid: error.data.nValid,
+          error,
+        }
+      }
+      throw error
+    }
   }
 }
 

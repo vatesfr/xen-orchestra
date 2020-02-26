@@ -28,6 +28,25 @@ const ID_TO_ALGORITHM = {
   '5': 'sha256',
 }
 
+export class AlteredRecordError extends Error {
+  constructor(id, nValid, record) {
+    super('altered record')
+
+    this.id = id
+    this.nValid = nValid
+    this.record = record
+  }
+}
+
+export class MissingRecordError extends Error {
+  constructor(id, nValid) {
+    super('missing record')
+
+    this.id = id
+    this.nValid = nValid
+  }
+}
+
 export const NULL_ID = 'nullId'
 
 const HASH_ALGORITHM_ID = '5'
@@ -67,23 +86,21 @@ export class AuditCore {
 
   // TODO: https://github.com/vatesfr/xen-orchestra/pull/4733#discussion_r366897798
   async checkIntegrity(oldest, newest) {
+    let nValid = 0
     while (newest !== oldest) {
       const record = await this._storage.get(newest)
       if (record === undefined) {
-        const error = new Error('missing record')
-        error.id = newest
-        throw error
+        throw new MissingRecordError(newest, nValid)
       }
       if (
         newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))
       ) {
-        const error = new Error('altered record')
-        error.id = newest
-        error.record = record
-        throw error
+        throw new AlteredRecordError(newest, nValid, record)
       }
       newest = record.previousId
+      nValid++
     }
+    return nValid
   }
 
   async *getFrom(newest) {
