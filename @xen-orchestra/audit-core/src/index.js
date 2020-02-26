@@ -28,16 +28,20 @@ const ID_TO_ALGORITHM = {
   '5': 'sha256',
 }
 
-export class AlteredRecordError {
+export class AlteredRecordError extends Error {
   constructor(id, nValid, record) {
+    super('altered record')
+
     this.id = id
     this.nValid = nValid
     this.record = record
   }
 }
 
-export class MissingRecordError {
+export class MissingRecordError extends Error {
   constructor(id, nValid) {
+    super('missing record')
+
     this.id = id
     this.nValid = nValid
   }
