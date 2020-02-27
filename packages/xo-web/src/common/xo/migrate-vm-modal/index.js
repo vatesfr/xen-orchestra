@@ -11,6 +11,7 @@ import ChooseSrForEachVdisModal from '../choose-sr-for-each-vdis-modal'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
+import { Collapsible } from '../../collapse'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
@@ -262,8 +263,14 @@ export default class MigrateVmModalBody extends BaseComponent {
             </SingleLineRow>
           </div>
         )}
-        {intraPool !== undefined && !intraPool && (
-          <div>
+        {host !== undefined && (
+          <Collapsible
+            buttonText={
+              intraPool ? _('selectMigrationNetworkOptional') : undefined
+            }
+            collapsible={intraPool}
+            size='small'
+          >
             <div className={styles.groupBlock}>
               <SingleLineRow>
                 <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
@@ -276,6 +283,10 @@ export default class MigrateVmModalBody extends BaseComponent {
                 </Col>
               </SingleLineRow>
             </div>
+          </Collapsible>
+        )}
+        {intraPool !== undefined && !intraPool && (
+          <div>
             <div className={styles.groupBlock}>
               <SingleLineRow>
                 <Col>{_('migrateVmSelectNetworks')}</Col>
