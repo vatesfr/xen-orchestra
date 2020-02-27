@@ -49,6 +49,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
+    "@iarna/toml": "^2.2.3",
     "@xen-orchestra/audit-core": "^0.1.0",
     "@xen-orchestra/log": "^0.2.0",
     "app-conf": "^0.7.1",
