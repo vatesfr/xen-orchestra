@@ -134,6 +134,9 @@ class Plugin extends Component {
               />
               <span className='text-primary'>{` ${props.name} `}</span>
               <span>{`(v${props.version}) `}</span>
+              {props.description !== undefined && props.description !== '' && (
+                <span className='text-muted small'>{` - ${props.description}`}</span>
+              )}
               <div className='checkbox small'>
                 <label className='text-muted'>
                   {_('autoloadPlugin')}{' '}
