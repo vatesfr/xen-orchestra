@@ -18,5 +18,6 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-audit v0.1.1
 - xo-server v5.58.0
 - xo-web v5.58.0
