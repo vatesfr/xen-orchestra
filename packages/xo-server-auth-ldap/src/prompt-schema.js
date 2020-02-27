@@ -94,11 +94,12 @@ const promptByType = {
     }
 
     n = schema.maxItems || Infinity
+    const m = defaultValue.length
     while (
       // eslint-disable-next-line no-unmodified-loop-condition
       i < n &&
       (await confirm('additional item?', {
-        default: false,
+        default: i < m,
       }))
     ) {
       await promptItem()
