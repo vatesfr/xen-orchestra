@@ -26,7 +26,7 @@
 - xo-server-auth-ldap v0.7.0
 - xo-server-usage-report v0.7.4
 - xo-server-sdn-controller v0.4.0
-- xo-server v5.57.0
+- xo-server v5.57.1
 - xo-web v5.57.0
 
 ## **5.43.2** (2020-02-11)
