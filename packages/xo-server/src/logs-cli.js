@@ -196,7 +196,10 @@ export default async function main() {
 
   const db = sublevel(
     levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' }),
-    'logs'
+    'logs',
+    {
+      valueEncoding: 'json',
+    }
   )
 
   return printLogs(db, args)
