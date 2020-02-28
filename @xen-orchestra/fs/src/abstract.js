@@ -282,7 +282,8 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  async mkdir(dir: string): Promise<void> {
+  // mutualized to avoid the parallel execution restriction on `mkdir`
+  async _createDir(dir: string): Promise<void> {
     dir = normalizePath(dir)
     try {
       await this._mkdir(dir)
@@ -294,6 +295,10 @@ export default class RemoteHandlerAbstract {
       // this operation will throw if it's not already a directory
       await this._list(dir)
     }
+  }
+
+  mkdir(dir: string): Promise<void> {
+    return this._createDir(dir)
   }
 
   async mktree(dir: string): Promise<void> {
@@ -513,7 +518,7 @@ export default class RemoteHandlerAbstract {
 
   async _mktree(dir: string): Promise<void> {
     try {
-      return await this.mkdir(dir)
+      return await this._createDir(dir)
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
