@@ -1,13 +1,5 @@
 # ChangeLog
 
-## **next**
-
-### Enhancements)
-
-### Bug fixes
-
-### Released packages
-
 ## **5.44.0** (2020-02-28)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
