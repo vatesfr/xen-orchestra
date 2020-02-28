@@ -13,7 +13,7 @@
 
 - [Backup reports] Fix backup report not sent in case of interrupted backup job (PR [#4772](https://github.com/vatesfr/xen-orchestra/pull/4772))
 - Fix TLS error (`unsupported protocol`) with XenServer <= 6.5 and Node >= 12 (PR [#8437](https://github.com/vatesfr/xen-orchestra/pull/8437))
-- [Metadata backup] fix the metadata backup timeout (PR [#4831](https://github.com/vatesfr/xen-orchestra/pull/4831))
+- [Metadata backup] fix metadata backup timeout (PR [#4831](https://github.com/vatesfr/xen-orchestra/pull/4831))
 
 ### Released packages
 
