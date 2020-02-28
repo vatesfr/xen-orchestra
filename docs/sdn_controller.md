@@ -1,8 +1,8 @@
 # SDN Controller
 
-> SDN Controller is available in XOA 5.44 and higher
+> SDN Controller is available in XOA 5.36.0 and higher
 
-The SDN Controller enables a user to **create pool-wide and cross-pool** (since XOA 5.48.1) **private networks**.
+The SDN Controller enables a user to **create pool-wide and cross-pool** (since XOA 5.38.0) **private networks**.
 
 ![](./assets/sdn-controller.png)
 
