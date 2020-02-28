@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import AnsiUp from 'ansi_up'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
 import React from 'react'
 import { addSubscriptions, adminOnly, getXoaPlan } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -46,6 +47,15 @@ const Support = decorate([
           </Col>
         </Row>
       )}
+      <Row>
+        <Col>
+          <p>
+            <a href='https://support.vates.fr/#/createTicket'>
+              <Icon icon='add' /> <span>{_('createSupportTicket')}</span>
+            </a>
+          </p>
+        </Col>
+      </Row>
       <Row>
         <Col mediumSize={6}>
           <Card>
