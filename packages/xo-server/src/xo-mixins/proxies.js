@@ -227,8 +227,8 @@ export default class Proxy {
     await this.checkProxyHealth(id)
   }
 
-  checkProxyHealth(id) {
-    return this.callProxyMethod(id, 'system.getServerVersion')
+  async checkProxyHealth(id) {
+    await this.callProxyMethod(id, 'system.getServerVersion')
   }
 
   async callProxyMethod(id, method, params, expectStream = false) {
