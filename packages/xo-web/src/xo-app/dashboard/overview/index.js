@@ -89,13 +89,13 @@ class PatchesCard extends Component {
 @injectIntl
 class DefaultCard extends Component {
   _getPoolWisePredicate = createSelector(
-    () => map(this.state.pools, 'id'),
+    createCollectionWrapper(() => map(this.state.pools, 'id')),
     poolsIds => item => isEmpty(poolsIds) || includes(poolsIds, item.$pool)
   )
 
   _getPredicate = createSelector(
     this._getPoolWisePredicate,
-    () => map(this.state.hosts, 'id'),
+    createCollectionWrapper(() => map(this.state.hosts, 'id')),
     (poolWisePredicate, hostsIds) => item =>
       isEmpty(hostsIds)
         ? poolWisePredicate(item)
