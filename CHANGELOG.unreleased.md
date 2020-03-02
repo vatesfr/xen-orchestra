@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup reports] Fix backup report not sent in case of interrupted backup job (PR [#4772](https://github.com/vatesfr/xen-orchestra/pull/4772))
+- Fix TLS error (`unsupported protocol`) with XenServer 6.5 with Node >= 12 (PR [#8437](https://github.com/vatesfr/xen-orchestra/pull/8437))
 
 ### Released packages
 
