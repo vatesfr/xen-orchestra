@@ -15,6 +15,7 @@ import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { noop, startCase } from 'lodash'
+import { PREMIUM } from 'xoa-plans'
 import { User } from 'render-xo-item'
 import {
   checkAuditRecordsIntegrity,
@@ -239,7 +240,7 @@ export default decorate([
   }),
   injectState,
   ({ state, effects }) => (
-    <Upgrade place='audit' available={4}>
+    <Upgrade place='audit' available={PREMIUM}>
       <div>
         <div className='mt-1 mb-1'>
           <ActionButton
