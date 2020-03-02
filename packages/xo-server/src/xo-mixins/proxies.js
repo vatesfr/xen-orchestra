@@ -69,14 +69,15 @@ export default class Proxy {
   }) {
     await this._throwIfRegistered(address, vmUuid)
 
-    return this._db
-      .add({
-        address,
-        authenticationToken,
-        name,
-        vmUuid,
-      })
-      .then(extractProperties)
+    const {
+      properties: { id },
+    } = await this._db.add({
+      address,
+      authenticationToken,
+      name,
+      vmUuid,
+    })
+    return id
   }
 
   unregisterProxy(id) {
@@ -188,7 +189,7 @@ export default class Proxy {
       throw error
     }
 
-    const { id } = await this.registerProxy({
+    const id = await this.registerProxy({
       authenticationToken: proxyAuthenticationToken,
       name: this._generateDefaultProxyName(date),
       vmUuid: vm.uuid,
