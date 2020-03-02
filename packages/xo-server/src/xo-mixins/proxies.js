@@ -4,6 +4,7 @@ import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
+import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
@@ -17,6 +18,7 @@ import readChunk from '../_readStreamChunk'
 import { generateToken } from '../utils'
 
 const extractProperties = _ => _.properties
+const log = createLogger('xo:xo-mixins:proxies')
 const omitToken = proxy => omit(proxy, 'authenticationToken')
 const synchronizedWrite = synchronized()
 
@@ -132,7 +134,7 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  async deployProxy(srId, { network } = {}) {
+  async deployProxy(srId, { network, proxyId } = {}) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
 
@@ -149,10 +151,16 @@ export default class Proxy {
       }),
       { srId }
     )
-    let date, proxyAuthenticationToken, xenstoreData
+    let date, proxy, proxyAuthenticationToken, xenstoreData
     try {
       date = new Date()
-      proxyAuthenticationToken = await generateToken()
+
+      if (proxyId !== undefined) {
+        proxy = await this._getProxy(proxyId)
+        proxyAuthenticationToken = proxy.authenticationToken
+      } else {
+        proxyAuthenticationToken = await generateToken()
+      }
 
       const [
         password,
@@ -187,11 +195,20 @@ export default class Proxy {
       throw error
     }
 
-    const id = await this.registerProxy({
-      authenticationToken: proxyAuthenticationToken,
-      name: this._generateDefaultProxyName(date),
-      vmUuid: vm.uuid,
-    })
+    if (proxy !== undefined) {
+      if (proxy.vmUuid !== undefined) {
+        xapi.deleteVm(proxy.vmUuid).catch(log.warn)
+      }
+      await this.updateProxy(proxyId, {
+        vmUuid: vm.uuid,
+      })
+    } else {
+      proxyId = await this.registerProxy({
+        authenticationToken: proxyAuthenticationToken,
+        name: this._generateDefaultProxyName(date),
+        vmUuid: vm.uuid,
+      })
+    }
 
     await vm.update_xenstore_data(
       mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
@@ -223,7 +240,7 @@ export default class Proxy {
       xoaUpgradeTimeout
     )
 
-    await this.checkProxyHealth(id)
+    await this.checkProxyHealth(proxyId)
   }
 
   async checkProxyHealth(id) {
