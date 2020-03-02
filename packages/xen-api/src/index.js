@@ -777,7 +777,10 @@ export class Xapi extends EventEmitter {
   _setUrl(url) {
     this._humanId = `${this._auth.user}@${url.hostname}`
     this._transport = autoTransport({
-      allowUnauthorized: this._allowUnauthorized,
+      secureOptions: {
+        minVersion: 'TLSv1',
+        rejectUnauthorized: !this._allowUnauthorized,
+      },
       url,
     })
     this._url = url
