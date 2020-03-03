@@ -2,13 +2,14 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import AnsiUp from 'ansi_up'
 import decorate from 'apply-decorators'
-import Icon from 'icon'
 import React from 'react'
 import { addSubscriptions, adminOnly, getXoaPlan } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
 import { checkXoa, closeTunnel, openTunnel, subscribeTunnelState } from 'xo'
+
+import { reportOnSupportPanel } from 'report-bug-button'
 
 const ansiUp = new AnsiUp()
 const COMMUNITY = getXoaPlan() === 'Community'
@@ -47,13 +48,15 @@ const Support = decorate([
           </Col>
         </Row>
       )}
-      <Row>
+      <Row className='mb-1'>
         <Col>
-          <p>
-            <a href='https://support.vates.fr/#/createTicket'>
-              <Icon icon='add' /> <span>{_('createSupportTicket')}</span>
-            </a>
-          </p>
+          <ActionButton
+            btnStyle='primary'
+            handler={reportOnSupportPanel}
+            icon='add'
+          >
+            {_('createSupportTicket')}
+          </ActionButton>
         </Col>
       </Row>
       <Row>
