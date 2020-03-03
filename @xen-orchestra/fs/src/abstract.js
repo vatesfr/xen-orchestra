@@ -95,7 +95,6 @@ export default class RemoteHandlerAbstract {
     this.list = sharedLimit(this.list)
     this.mkdir = sharedLimit(this.mkdir)
     this.openFile = sharedLimit(this.openFile)
-    this.outputFile = sharedLimit(this.outputFile)
     this.read = sharedLimit(this.read)
     this.readFile = sharedLimit(this.readFile)
     this.rename = sharedLimit(this.rename)
@@ -282,8 +281,7 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  // mutualized to avoid the parallel execution restriction on `mkdir`
-  async _createDir(dir: string): Promise<void> {
+  async mkdir(dir: string): Promise<void> {
     dir = normalizePath(dir)
     try {
       await this._mkdir(dir)
@@ -295,10 +293,6 @@ export default class RemoteHandlerAbstract {
       // this operation will throw if it's not already a directory
       await this._list(dir)
     }
-  }
-
-  mkdir(dir: string): Promise<void> {
-    return this._createDir(dir)
   }
 
   async mktree(dir: string): Promise<void> {
@@ -518,7 +512,7 @@ export default class RemoteHandlerAbstract {
 
   async _mktree(dir: string): Promise<void> {
     try {
-      return await this._createDir(dir)
+      return await this.mkdir(dir)
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
@@ -539,14 +533,14 @@ export default class RemoteHandlerAbstract {
     options: { flags?: string }
   ): Promise<void> {
     try {
-      return await this._writeFile(file, data, options)
+      return await this.writeFile(file, data, options)
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
       }
     }
 
-    await this._mktree(dirname(file))
+    await this.mktree(dirname(file))
     return this._outputFile(file, data, options)
   }
 
