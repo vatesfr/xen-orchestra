@@ -1655,11 +1655,7 @@ export default class NewVm extends BaseComponent {
     () => this.props.template,
     () => this.state.state.affinityHost,
     (pool, pools, template, affinityHost) =>
-      affinityHost == null
-        ? pool === undefined
-          ? get(() => pools[template.$pool].master)
-          : pool.master
-        : affinityHost.id
+      affinityHost == null ? get(() => pool.master) : affinityHost.id
   )
 
   _renderAdvanced = () => {
