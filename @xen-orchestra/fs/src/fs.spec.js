@@ -220,7 +220,7 @@ handlers.forEach(url => {
         expect(error.code).toBe('EEXIST')
       })
 
-      it('should`t timeout in case of the respect of the parallel execution restriction', async () => {
+      it('shouldn`t timeout in case of the respect of the parallel execution restriction', async () => {
         const handler = getHandler({ url }, { maxParallelOperations: 1 })
         await handler.sync()
         await handler.outputFile(`xo-fs-tests-${Date.now()}/test`, '')
