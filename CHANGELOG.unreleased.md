@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM migration] Ability to choose network for migration within a pool [#2028](https://github.com/vatesfr/xen-orchestra/issues/2028) (PR [#4828](https://github.com/vatesfr/xen-orchestra/pull/4828))
+- [Proxies] Ability to re-deploy a proxy (PR [#4725](https://github.com/vatesfr/xen-orchestra/pull/4725))
 
 ### Bug fixes
 
