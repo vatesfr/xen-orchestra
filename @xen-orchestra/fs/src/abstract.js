@@ -450,6 +450,21 @@ export default class RemoteHandlerAbstract {
     await this._writeFile(normalizePath(file), data, { flags })
   }
 
+  // Methods that can be called by private methods to avoid parallel limit on public methods
+
+  async __closeFile(fd: FileDescriptor): Promise<void> {
+    await timeout.call(this._closeFile(fd.fd), this._timeout)
+  }
+
+  async __openFile(path: string, flags: string): Promise<FileDescriptor> {
+    path = normalizePath(path)
+
+    return {
+      fd: await timeout.call(this._openFile(path, flags), this._timeout),
+      path,
+    }
+  }
+
   // Methods that can be implemented by inheriting classes
 
   async _closeFile(fd: mixed): Promise<void> {
@@ -606,19 +621,6 @@ export default class RemoteHandlerAbstract {
     options: { flags?: string }
   ): Promise<void> {
     throw new Error('Not implemented')
-  }
-
-  async __closeFile(fd: FileDescriptor): Promise<void> {
-    await timeout.call(this._closeFile(fd.fd), this._timeout)
-  }
-
-  async __openFile(path: string, flags: string): Promise<FileDescriptor> {
-    path = normalizePath(path)
-
-    return {
-      fd: await timeout.call(this._openFile(path, flags), this._timeout),
-      path,
-    }
   }
 }
 
