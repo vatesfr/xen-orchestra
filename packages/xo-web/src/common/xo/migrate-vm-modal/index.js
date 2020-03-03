@@ -8,10 +8,10 @@ import store from 'store'
 
 import _ from '../../intl'
 import ChooseSrForEachVdisModal from '../choose-sr-for-each-vdis-modal'
+import Collapse from '../../collapse'
 import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
-import { Collapsible } from '../../collapse'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
@@ -232,6 +232,22 @@ export default class MigrateVmModalBody extends BaseComponent {
       migrationNetworkId,
       targetSrs,
     } = this.state
+    const selectMigrationNetwork =
+      host !== undefined ? (
+        <div className={styles.groupBlock}>
+          <SingleLineRow>
+            <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
+            <Col size={6}>
+              <SelectNetwork
+                onChange={this._selectMigrationNetwork}
+                predicate={this._getMigrationNetworkPredicate()}
+                value={migrationNetworkId}
+              />
+            </Col>
+          </SingleLineRow>
+        </div>
+      ) : null
+
     return (
       <div>
         <div className={styles.block}>
@@ -263,27 +279,15 @@ export default class MigrateVmModalBody extends BaseComponent {
             </SingleLineRow>
           </div>
         )}
-        {host !== undefined && (
-          <Collapsible
-            buttonText={
-              intraPool ? _('selectMigrationNetworkOptional') : undefined
-            }
-            collapsible={intraPool}
+        {host !== undefined && intraPool ? (
+          <Collapse
+            buttonText={_('selectMigrationNetworkOptional')}
             size='small'
           >
-            <div className={styles.groupBlock}>
-              <SingleLineRow>
-                <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
-                <Col size={6}>
-                  <SelectNetwork
-                    onChange={this._selectMigrationNetwork}
-                    predicate={this._getMigrationNetworkPredicate()}
-                    value={migrationNetworkId}
-                  />
-                </Col>
-              </SingleLineRow>
-            </div>
-          </Collapsible>
+            {selectMigrationNetwork}
+          </Collapse>
+        ) : (
+          selectMigrationNetwork
         )}
         {intraPool !== undefined && !intraPool && (
           <div>
