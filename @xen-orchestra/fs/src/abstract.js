@@ -102,7 +102,7 @@ export default class RemoteHandlerAbstract {
     this.rmdir = sharedLimit(this.rmdir)
     this.truncate = sharedLimit(this.truncate)
     this.unlink = sharedLimit(this.unlink)
-    this.writeFd = sharedLimit(this.writeFd)
+    this.write = sharedLimit(this.write)
     this.writeFile = sharedLimit(this.writeFile)
   }
 
@@ -117,8 +117,12 @@ export default class RemoteHandlerAbstract {
     return prefix === '/' ? this : new PrefixWrapper(this, prefix)
   }
 
-  async closeFile(fd: FileDescriptor): Promise<void> {
+  async __closeFile(fd: FileDescriptor): Promise<void> {
     await timeout.call(this._closeFile(fd.fd), this._timeout)
+  }
+
+  async closeFile(fd: FileDescriptor): Promise<void> {
+    await this.__closeFile(fd)
   }
 
   async createOutputStream(
@@ -300,13 +304,17 @@ export default class RemoteHandlerAbstract {
     await this._mktree(normalizePath(dir))
   }
 
-  async openFile(path: string, flags: string): Promise<FileDescriptor> {
+  async __openFile(path: string, flags: string): Promise<FileDescriptor> {
     path = normalizePath(path)
 
     return {
       fd: await timeout.call(this._openFile(path, flags), this._timeout),
       path,
     }
+  }
+
+  openFile(path: string, flags: string): Promise<FileDescriptor> {
+    return this.__openFile(path, flags)
   }
 
   async outputFile(
@@ -583,20 +591,16 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  writeFd(file: File, buffer: Buffer, position: number) {
-    return this._writeFd(file, buffer, position)
-  }
-
   async _write(file: File, buffer: Buffer, position: number): Promise<void> {
     const isPath = typeof file === 'string'
     if (isPath) {
-      file = await this.openFile(file, 'r+')
+      file = await this.__openFile(file, 'r+')
     }
     try {
-      return await this.writeFd(file, buffer, position)
+      return await this._writeFd(file, buffer, position)
     } finally {
       if (isPath) {
-        await this.closeFile(file)
+        await this.__closeFile(file)
       }
     }
   }
