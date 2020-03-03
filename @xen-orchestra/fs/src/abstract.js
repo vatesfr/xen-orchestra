@@ -117,10 +117,6 @@ export default class RemoteHandlerAbstract {
     return prefix === '/' ? this : new PrefixWrapper(this, prefix)
   }
 
-  async __closeFile(fd: FileDescriptor): Promise<void> {
-    await timeout.call(this._closeFile(fd.fd), this._timeout)
-  }
-
   async closeFile(fd: FileDescriptor): Promise<void> {
     await this.__closeFile(fd)
   }
@@ -302,15 +298,6 @@ export default class RemoteHandlerAbstract {
 
   async mktree(dir: string): Promise<void> {
     await this._mktree(normalizePath(dir))
-  }
-
-  async __openFile(path: string, flags: string): Promise<FileDescriptor> {
-    path = normalizePath(path)
-
-    return {
-      fd: await timeout.call(this._openFile(path, flags), this._timeout),
-      path,
-    }
   }
 
   openFile(path: string, flags: string): Promise<FileDescriptor> {
@@ -619,6 +606,19 @@ export default class RemoteHandlerAbstract {
     options: { flags?: string }
   ): Promise<void> {
     throw new Error('Not implemented')
+  }
+
+  async __closeFile(fd: FileDescriptor): Promise<void> {
+    await timeout.call(this._closeFile(fd.fd), this._timeout)
+  }
+
+  async __openFile(path: string, flags: string): Promise<FileDescriptor> {
+    path = normalizePath(path)
+
+    return {
+      fd: await timeout.call(this._openFile(path, flags), this._timeout),
+      path,
+    }
   }
 }
 
