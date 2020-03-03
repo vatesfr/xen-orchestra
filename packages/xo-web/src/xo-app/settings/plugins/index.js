@@ -17,6 +17,7 @@ import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'reselect'
 import { generateUiSchema } from 'xo-json-schema-input'
+import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { Row, Col } from 'grid'
 import {
@@ -121,6 +122,7 @@ class Plugin extends Component {
     const { props, state } = this
     const { editedConfig, expanded } = state
     const { configurationPresets, configurationSchema, loaded } = props
+    const description = get(() => props.description.trim())
 
     return (
       <div className='card-block'>
@@ -134,8 +136,8 @@ class Plugin extends Component {
               />
               <span className='text-primary'>{` ${props.name} `}</span>
               <span>{`(v${props.version}) `}</span>
-              {props.description !== '' && (
-                <span className='text-muted small'>{` - ${props.description.trim()}`}</span>
+              {description !== undefined && description !== '' && (
+                <span className='text-muted small'>{` - ${description}`}</span>
               )}
               <div className='checkbox small'>
                 <label className='text-muted'>
