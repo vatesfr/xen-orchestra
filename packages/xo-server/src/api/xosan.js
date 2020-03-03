@@ -883,7 +883,7 @@ async function createVDIOnLVMWithoutSizeLimit(xapi, lvmSr, diskSize) {
     throw Error('Could not create volume ->' + result.stdout)
   }
   await xapi.callAsync('SR.scan', xapi.getObject(lvmSr).$ref)
-  const vdi = find(xapi.getObject(lvmSr).$VDIs, vdi => vdi.uuid === uuid)
+  const vdi = xapi.getRecordByUuid('VDI', uuid)
   if (vdi != null) {
     await Promise.all([
       vdi.set_name_description('Created by XO'),
