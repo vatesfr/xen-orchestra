@@ -8,7 +8,6 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
 import { checkXoa, closeTunnel, openTunnel, subscribeTunnelState } from 'xo'
-
 import { reportOnSupportPanel } from 'report-bug-button'
 
 const ansiUp = new AnsiUp()
