@@ -7,11 +7,9 @@ import map from 'lodash/map'
 import { tap, delay } from 'promise-toolbox'
 import { NULL_REF } from 'xen-api'
 import { invalidParameters } from 'xo-common/api-errors'
-import { v4 as generateUuid } from 'uuid'
 import { includes, remove, filter, find, range } from 'lodash'
 
 import ensureArray from '../_ensureArray'
-import { asInteger } from '../xapi/utils'
 import { parseXml } from '../utils'
 
 const log = createLogger('xo:xosan')
@@ -861,40 +859,16 @@ async function umountDisk(localEndpoint, diskMountPoint) {
   )
 }
 
-// this is mostly what the LVM SR driver does, but we are avoiding the 2To limit it imposes.
-async function createVDIOnLVMWithoutSizeLimit(xapi, lvmSr, diskSize) {
-  const VG_PREFIX = 'VG_XenStorage-'
-  const LV_PREFIX = 'LV-'
-  const { type, uuid: srUuid, $PBDs } = xapi.getObject(lvmSr)
-  if (type !== 'lvm') {
-    throw new Error('expecting a lvm sr type, got"' + type + '"')
-  }
-  const uuid = generateUuid()
-  const lvName = LV_PREFIX + uuid
-  const vgName = VG_PREFIX + srUuid
-  const host = $PBDs[0].$host
-  const sizeMb = Math.ceil(diskSize / 1024 / 1024)
-  const result = await callPlugin(xapi, host, 'run_lvcreate', {
-    sizeMb: asInteger(sizeMb),
-    lvName,
-    vgName,
-  })
-  if (result.exit !== 0) {
-    throw Error('Could not create volume ->' + result.stdout)
-  }
-  await xapi.callAsync('SR.scan', xapi.getObject(lvmSr).$ref)
-  const vdi = xapi.getRecordByUuid('VDI', uuid)
-  if (vdi != null) {
-    await Promise.all([
-      vdi.set_name_description('Created by XO'),
-      vdi.set_name_label('xosan_data'),
-    ])
-    return vdi
-  }
-}
-
 async function createNewDisk(xapi, sr, vm, diskSize) {
-  const newDisk = await createVDIOnLVMWithoutSizeLimit(xapi, sr, diskSize)
+  const newDisk = await xapi.createVdi(
+    {
+      name_label: 'new VDI',
+      size: diskSize,
+      sr: sr._xapiId,
+      sm_config: { type: 'raw' },
+    },
+    { setSmConfig: true }
+  )
   await xapi.createVbd({ vdi: newDisk, vm })
   let vbd = await xapi._waitObjectState(newDisk.$id, disk =>
     Boolean(disk.$VBDs.length)
