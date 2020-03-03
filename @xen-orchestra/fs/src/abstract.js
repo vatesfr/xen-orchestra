@@ -102,7 +102,7 @@ export default class RemoteHandlerAbstract {
     this.rmdir = sharedLimit(this.rmdir)
     this.truncate = sharedLimit(this.truncate)
     this.unlink = sharedLimit(this.unlink)
-    this.write = sharedLimit(this.write)
+    this.writeFd = sharedLimit(this.writeFd)
     this.writeFile = sharedLimit(this.writeFile)
   }
 
@@ -583,13 +583,17 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  writeFd(file: File, buffer: Buffer, position: number) {
+    return this._writeFd(file, buffer, position)
+  }
+
   async _write(file: File, buffer: Buffer, position: number): Promise<void> {
     const isPath = typeof file === 'string'
     if (isPath) {
       file = await this.openFile(file, 'r+')
     }
     try {
-      return await this._writeFd(file, buffer, position)
+      return await this.writeFd(file, buffer, position)
     } finally {
       if (isPath) {
         await this.closeFile(file)
