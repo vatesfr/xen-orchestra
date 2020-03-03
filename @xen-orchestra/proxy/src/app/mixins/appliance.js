@@ -97,23 +97,27 @@ export default class Appliance {
         updater: {
           getLocalManifest: () => _withUpdater(_ => _.call('getLocalManifest')),
           upgrade: () =>
-            _withUpdater(updater =>
-              updater
-                .on('notification', ({ method, params }) => {
-                  if (method === 'print') {
-                    debug('updater.upgrade: ' + params.content)
-                  } else if (
-                    method !== 'connected' &&
-                    method !== 'end' &&
-                    method !== 'server-error'
-                  ) {
-                    warn('update.upgrade, unhandled message', {
-                      method,
-                      params,
+            _withUpdater(
+              updater =>
+                new Promise((resolve, reject) => {
+                  updater
+                    .on('error', reject)
+                    .on('notification', ({ method, params }) => {
+                      if (method === 'print') {
+                        debug('updater.upgrade: ' + params.content)
+                      } else if (method === 'end') {
+                        resolve(params)
+                      } else if (method === 'server-error') {
+                        reject(new Error(params.message))
+                      } else if (method !== 'connected') {
+                        warn('update.upgrade, unhandled message', {
+                          method,
+                          params,
+                        })
+                      }
                     })
-                  }
+                    .notify('update', { upgrade: true })
                 })
-                .call('update', { upgrade: true })
             ),
         },
       },
