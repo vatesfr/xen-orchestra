@@ -1,10 +1,11 @@
-import appConf from 'app-conf'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
 import path from 'path'
+import TOML from '@iarna/toml'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
+import { readFile } from 'fs-extra'
 import {
   AlteredRecordError,
   AuditCore,
@@ -66,10 +67,8 @@ class AuditXoPlugin {
         await this._xo.getStore(NAMESPACE)
       ))
       this._auditCore = new AuditCore(storage)
-      this._blockedList = (
-        await appConf.load('xo-server-audit', {
-          appDir: path.join(__dirname, '..'),
-        })
+      this._blockedList = TOML.parse(
+        await readFile(path.join(__dirname, '..', 'config.toml'), 'utf8')
       ).blockedList
 
       cleaners.push(() => {

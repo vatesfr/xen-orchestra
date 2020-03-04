@@ -52,8 +52,8 @@
     "@iarna/toml": "^2.2.3",
     "@xen-orchestra/audit-core": "^0.1.0",
     "@xen-orchestra/log": "^0.2.0",
-    "app-conf": "^0.7.1",
     "async-iterator-to-stream": "^1.1.0",
+    "fs-extra": "^8.1.0",
     "promise-toolbox": "^0.15.0",
     "readable-stream": "^3.5.0",
     "xo-common": "^0.4.0"
