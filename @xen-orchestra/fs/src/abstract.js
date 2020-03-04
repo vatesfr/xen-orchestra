@@ -283,7 +283,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async mkdir(dir: string): Promise<void> {
-    await this.__mkdir(dir)
+    await this.__mkdir(normalizePath(dir))
   }
 
   async mktree(dir: string): Promise<void> {
@@ -447,7 +447,6 @@ export default class RemoteHandlerAbstract {
   }
 
   async __mkdir(dir: string): Promise<void> {
-    dir = normalizePath(dir)
     try {
       await this._mkdir(dir)
     } catch (error) {
