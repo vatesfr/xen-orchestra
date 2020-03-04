@@ -282,8 +282,8 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  mkdir(dir: string): Promise<void> {
-    return this.__mkdir(dir)
+  async mkdir(dir: string): Promise<void> {
+    await this.__mkdir(dir)
   }
 
   async mktree(dir: string): Promise<void> {
