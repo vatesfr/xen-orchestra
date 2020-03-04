@@ -137,7 +137,7 @@ class Plugin extends Component {
               <span className='text-primary'>{` ${props.name} `}</span>
               <span>{`(v${props.version}) `}</span>
               {description !== undefined && description !== '' && (
-                <span className='text-muted small'>{` - ${description}`}</span>
+                <span className='text-muted small'> - {description}</span>
               )}
               <div className='checkbox small'>
                 <label className='text-muted'>
