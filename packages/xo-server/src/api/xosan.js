@@ -864,14 +864,14 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
     {
       name_label: 'new VDI',
       size: diskSize,
-      sr: sr._xapiId,
+      sr: sr,
       sm_config: { type: 'raw' },
     },
     { setSmConfig: true }
   )
   await xapi.createVbd({ vdi: newDisk, vm })
-  let vbd = await xapi._waitObjectState(newDisk.$id, disk =>
-    Boolean(disk.$VBDs.length)
+  let vbd = (
+    await xapi._waitObjectState(newDisk.$id, disk => Boolean(disk.$VBDs.length))
   ).$VBDs[0]
   vbd = await xapi._waitObjectState(vbd.$id, vbd => Boolean(vbd.device.length))
   return '/dev/' + vbd.device
