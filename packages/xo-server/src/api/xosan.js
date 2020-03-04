@@ -860,15 +860,33 @@ async function umountDisk(localEndpoint, diskMountPoint) {
 }
 
 async function createNewDisk(xapi, sr, vm, diskSize) {
+  const vdiMax = 2093050 * Math.pow(2, 20)
+  const createVdiSize = Math.min(vdiMax, diskSize)
+  const extensionSize = diskSize - createVdiSize
   const newDisk = await xapi.createVdi(
     {
       name_label: 'new VDI',
-      size: diskSize,
+      size: createVdiSize,
       sr: sr,
       sm_config: { type: 'raw' },
     },
     { setSmConfig: true }
   )
+  if (extensionSize > 0) {
+    const { type, uuid: srUuid, $PBDs } = xapi.getObject(sr)
+    const volume = `/dev/VG_XenStorage-${srUuid}/LV-${newDisk.uuid}`
+    if (type !== 'lvm') {
+      throw new Error('expecting a lvm sr type, got"' + type + '"')
+    }
+    const result = await callPlugin(xapi, $PBDs[0].$host, 'run_lvextend', {
+      sizeDiffMb: '+' + Math.floor(extensionSize / Math.pow(2, 20)),
+      volume,
+    })
+    if (result.exit !== 0) {
+      throw Error('Could not create volume ->' + result.stdout)
+    }
+    await xapi.callAsync('SR.scan', xapi.getObject(sr).$ref)
+  }
   await xapi.createVbd({ vdi: newDisk, vm })
   let vbd = (
     await xapi._waitObjectState(newDisk.$id, disk => Boolean(disk.$VBDs.length))
