@@ -283,17 +283,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async mkdir(dir: string): Promise<void> {
-    dir = normalizePath(dir)
-    try {
-      await this._mkdir(dir)
-    } catch (error) {
-      if (error == null || error.code !== 'EEXIST') {
-        throw error
-      }
-
-      // this operation will throw if it's not already a directory
-      await this._list(dir)
-    }
+    await this.__mkdir(normalizePath(dir))
   }
 
   async mktree(dir: string): Promise<void> {
@@ -456,6 +446,19 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
 
+  async __mkdir(dir: string): Promise<void> {
+    try {
+      await this._mkdir(dir)
+    } catch (error) {
+      if (error == null || error.code !== 'EEXIST') {
+        throw error
+      }
+
+      // this operation will throw if it's not already a directory
+      await this._list(dir)
+    }
+  }
+
   async __openFile(path: string, flags: string): Promise<FileDescriptor> {
     path = normalizePath(path)
 
@@ -513,7 +516,7 @@ export default class RemoteHandlerAbstract {
 
   async _mktree(dir: string): Promise<void> {
     try {
-      return await this.mkdir(dir)
+      return await this.__mkdir(dir)
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
