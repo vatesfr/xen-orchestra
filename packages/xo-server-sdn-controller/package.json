@@ -1,6 +1,6 @@
 {
   "name": "xo-server-sdn-controller",
-  "description": "Create the pool-wide and cross-pool private networks",
+  "description": "Creates pool-wide and cross-pool private networks",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-sdn-controller",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
