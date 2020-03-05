@@ -1,5 +1,6 @@
 {
   "name": "xo-server-transport-icinga2",
+  "description": "Sends backup runs statuses to icinga2 server",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-transport-icinga2",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

@@ -2,7 +2,7 @@
   "name": "xo-server-usage-report",
   "version": "0.7.4",
   "license": "AGPL-3.0",
-  "description": "",
+  "description": "Report resources usage with their evolution",
   "keywords": [
     "orchestra",
     "plugin",
