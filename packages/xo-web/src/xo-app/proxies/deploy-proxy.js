@@ -3,10 +3,14 @@ import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
+import Tooltip from 'tooltip'
 import { Col, Container } from 'grid'
+import { connectStore } from 'utils'
+import { createGetObjectsOfType } from 'selectors'
 import { deployProxyAppliance } from 'xo'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
+import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
 import { Select } from 'form'
@@ -33,6 +37,10 @@ const DEFAULT_DNS = '8.8.8.8'
 const DEFAULT_NETMASK = '255.255.255.0'
 
 const Modal = decorate([
+  connectStore({
+    hosts: createGetObjectsOfType('host'),
+    pbds: createGetObjectsOfType('PBD'),
+  }),
   provideState({
     effects: {
       onSrChange(_, sr) {
@@ -63,6 +71,8 @@ const Modal = decorate([
       idSelectSr: generateId,
 
       isStaticMode: (state, { value }) => value.networkMode === 'static',
+      srPredicate: (state, { pbds, hosts }) => sr =>
+        sr.$PBDs.some(pbd => get(() => hosts[pbds[pbd].host].hvmCapable)),
     },
   }),
   injectState,
@@ -71,12 +81,18 @@ const Modal = decorate([
     <Container>
       <SingleLineRow>
         <Col mediumSize={4}>
-          <Label htmlFor={state.idSelectSr}>{_('destinationSR')}</Label>
+          <Label htmlFor={state.idSelectSr}>
+            {_('destinationSR')}{' '}
+            <Tooltip content={_('proxySrPredicateInfo')}>
+              <Icon icon='info' />
+            </Tooltip>
+          </Label>
         </Col>
         <Col mediumSize={8}>
           <SelectSr
             id={state.idSelectSr}
             onChange={effects.onSrChange}
+            predicate={state.srPredicate}
             required
             value={value.sr}
           />
