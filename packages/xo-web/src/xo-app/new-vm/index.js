@@ -1649,15 +1649,6 @@ export default class NewVm extends BaseComponent {
 
   // ADVANCED --------------------------------------------------------------------
 
-  _getHost = createSelector(
-    () => this.props.pool,
-    () => this.props.pools,
-    () => this.props.template,
-    () => this.state.state.affinityHost,
-    (pool, pools, template, affinityHost) =>
-      affinityHost == null ? get(() => pool.master) : affinityHost.id
-  )
-
   _renderAdvanced = () => {
     const {
       affinityHost,
@@ -1680,7 +1671,7 @@ export default class NewVm extends BaseComponent {
       showAdvanced,
       tags,
     } = this.state.state
-    const { isAdmin } = this.props
+    const { isAdmin, pool } = this.props
     const { formatMessage } = this.props.intl
     const isHvm = this._isHvm()
     const _copyHostBiosStrings =
@@ -1907,7 +1898,11 @@ export default class NewVm extends BaseComponent {
             <SectionContent>
               <Item label={_('vmBootFirmware')}>
                 <SelectBootFirmware
-                  host={this._getHost()}
+                  host={
+                    affinityHost == null
+                      ? get(() => pool.master)
+                      : affinityHost.id
+                  }
                   onChange={this._handleBootFirmware}
                   value={hvmBootFirmware}
                 />
