@@ -17,6 +17,12 @@
 - @xen-orchestra/fs v0.10.3
 - xen-api: 0.28.3
 - xo-server-backup-reports v0.16.5
+- xo-server-perf-alert v0.2.1
+- xo-server-sdn-controller v0.4.1
+- xo-server-transport-icinga2 v0.1.1
+- xo-server-transport-nagios v0.1.1
+- xo-server-usage-report v0.7.5
+- xo-server-web-hooks v0.1.1
 - xo-server v5.57.3
 - xo-web v5.57.1
 
