@@ -9,11 +9,13 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
+import Upgrade from 'xoa-upgrade'
 import { alert, chooseAction, form } from 'modal'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { noop, startCase } from 'lodash'
+import { PREMIUM } from 'xoa-plans'
 import { User } from 'render-xo-item'
 import {
   checkAuditRecordsIntegrity,
@@ -238,40 +240,42 @@ export default decorate([
   }),
   injectState,
   ({ state, effects }) => (
-    <div>
-      <div className='mt-1 mb-1'>
-        <ActionButton
-          btnStyle='primary'
-          handler={effects.fetchRecords}
-          icon='refresh'
-          size='large'
-        >
-          {_('refreshAuditRecordsList')}
-        </ActionButton>{' '}
-        <ActionButton
-          btnStyle='success'
-          handler={checkIntegrity}
-          icon='diagnosis'
-          size='large'
-        >
-          {_('auditCheckIntegrity')}
-        </ActionButton>
+    <Upgrade place='audit' available={PREMIUM}>
+      <div>
+        <div className='mt-1 mb-1'>
+          <ActionButton
+            btnStyle='primary'
+            handler={effects.fetchRecords}
+            icon='refresh'
+            size='large'
+          >
+            {_('refreshAuditRecordsList')}
+          </ActionButton>{' '}
+          <ActionButton
+            btnStyle='success'
+            handler={checkIntegrity}
+            icon='diagnosis'
+            size='large'
+          >
+            {_('auditCheckIntegrity')}
+          </ActionButton>
+        </div>
+        <NoObjects
+          collection={state.records}
+          columns={COLUMNS}
+          component={SortedTable}
+          defaultColumn={3}
+          emptyMessage={
+            <span className='text-muted'>
+              <Icon icon='alarm' />
+              &nbsp;
+              {_('noAuditRecordAvailable')}
+            </span>
+          }
+          individualActions={INDIVIDUAL_ACTIONS}
+          stateUrlParam='s'
+        />
       </div>
-      <NoObjects
-        collection={state.records}
-        columns={COLUMNS}
-        component={SortedTable}
-        defaultColumn={3}
-        emptyMessage={
-          <span className='text-muted'>
-            <Icon icon='alarm' />
-            &nbsp;
-            {_('noAuditRecordAvailable')}
-          </span>
-        }
-        individualActions={INDIVIDUAL_ACTIONS}
-        stateUrlParam='s'
-      />
-    </div>
+    </Upgrade>
   ),
 ])
