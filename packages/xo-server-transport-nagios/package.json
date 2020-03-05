@@ -2,7 +2,7 @@
   "name": "xo-server-transport-nagios",
   "version": "0.1.0",
   "license": "ISC",
-  "description": "The Nagios transport for XO-Server",
+  "description": "The Nagios transport plugin for XO-Server",
   "keywords": [
     "nagios",
     "orchestra",
