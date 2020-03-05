@@ -2,7 +2,7 @@
   "name": "xo-server-web-hooks",
   "version": "0.1.0",
   "license": "AGPL-3.0",
-  "description": "",
+  "description": "The hooks for Xo-Server.",
   "keywords": [
     "hooks",
     "orchestra",
