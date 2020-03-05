@@ -1,5 +1,25 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Plugin] Show plugin description [#4569](https://github.com/vatesfr/xen-orchestra/issues/4569) (PR [#4832](https://github.com/vatesfr/xen-orchestra/pull/4832))
+
+### Bug fixes
+
+- [Backup reports] Fix backup report not sent in case of interrupted backup job (PR [#4772](https://github.com/vatesfr/xen-orchestra/pull/4772))
+- Fix TLS error (`unsupported protocol`) with XenServer <= 6.5 and Node >= 12 (PR [#8437](https://github.com/vatesfr/xen-orchestra/pull/8437))
+- [Metadata backup] Fix timeout when lots of pools are backed up [#4819](https://github.com/vatesfr/xen-orchestra/issues/4819) (PR [#4831](https://github.com/vatesfr/xen-orchestra/pull/4831))
+
+### Released packages
+
+- @xen-orchestra/fs v0.10.3
+- xen-api: 0.28.3
+- xo-server-backup-reports v0.16.5
+- xo-server v5.57.3
+- xo-web v5.57.1
+
 ## **5.44.0** (2020-02-28)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
