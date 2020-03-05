@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "0.28.0",
+  "version": "0.28.2",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -39,7 +39,7 @@
     "debug": "^4.0.1",
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
-    "http-request-plus": "^0.9.1",
+    "http-request-plus": "^0.8.0",
     "jest-diff": "^24.0.0",
     "json-rpc-protocol": "^0.13.1",
     "kindof": "^2.0.0",
