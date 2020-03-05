@@ -301,6 +301,7 @@ const messages = {
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
   selectProxies: 'Select proxy(ies)…',
+  selectProxy: 'Select proxy…',
   selectResourceSets: 'Select resource set(s)…',
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
