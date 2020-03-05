@@ -18,5 +18,5 @@
 >
 > Rule of thumb: add packages on top.
 
-- xo-server v5.58.0
-- xo-web v5.58.0
+- xo-server minor
+- xo-web minor
