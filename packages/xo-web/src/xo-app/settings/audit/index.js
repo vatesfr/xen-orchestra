@@ -113,7 +113,6 @@ const FingerPrintModalBody = injectIntl(
   )
 )
 
-const DEFAULT_HASH = 'nullId|nullId'
 const openFingerprintPromptModal = () =>
   form({
     render: ({ onChange, value }) => (
@@ -124,15 +123,16 @@ const openFingerprintPromptModal = () =>
         <Icon icon='diagnosis' /> {_('auditCheckIntegrity')}
       </span>
     ),
-  }).then((value = '') => {
-    value = value.trim()
-    return value !== '' ? value : DEFAULT_HASH
-  }, noop)
+  }).then((value = '') => value.trim(), noop)
 
 const checkIntegrity = async () => {
   const fingerprint = await openFingerprintPromptModal()
   if (fingerprint === undefined) {
     return
+  }
+
+  if (fingerprint === '') {
+    return openGeneratedFingerprintModal(await generateAuditFingerprint())
   }
 
   const [oldest, newest] = fingerprint.split('|')
