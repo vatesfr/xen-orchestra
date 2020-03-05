@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Proxies/Deploy] Remove SRs not connected to a HVM-capable host from selection [#4825](https://github.com/vatesfr/xen-orchestra/issues/4825) (PR [#4849](https://github.com/vatesfr/xen-orchestra/pull/4849))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
