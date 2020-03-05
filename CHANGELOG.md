@@ -17,7 +17,7 @@
 ### Released packages
 
 - @xen-orchestra/fs v0.10.3
-- xen-api: 0.28.3
+- xen-api v0.28.3
 - xo-server-backup-reports v0.16.5
 - xo-server-perf-alert v0.2.1
 - xo-server-sdn-controller v0.4.1
