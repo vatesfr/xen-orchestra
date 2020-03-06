@@ -1649,12 +1649,10 @@ const messages = {
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
   migrateVmNoDefaultSrError: 'No default SR',
   migrateVmNotConnectedDefaultSrError: 'Default SR not connected to host',
-  selectMigrationNetworkOptional: 'Select a migration network (optional)',
   chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR (optional)',
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
-  chooseSrForEachVdisModalOptionalEntry: '* optional',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage:
     'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
@@ -1727,6 +1725,7 @@ const messages = {
   forgetSrsFromHostModalTitle: 'Forget SR{nPbds, plural, one {} other {s}}',
   forgetSrsFromHostModalMessage:
     'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).',
+  optionalEntry: '* optional',
 
   // ----- Servers -----
   serverLabel: 'Label',

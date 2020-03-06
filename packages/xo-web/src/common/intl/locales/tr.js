@@ -3732,7 +3732,7 @@ export default {
   chooseSrForEachVdisModalSrLabel: 'SR*',
 
   // Original text: "* optional"
-  chooseSrForEachVdisModalOptionalEntry: '* opsiyonel',
+  optionalEntry: '* opsiyonel',
 
   // Original text: "Delete job{nJobs, plural, one {} other {s}}"
   deleteJobsModalTitle: 'İşi(leri) sil',
