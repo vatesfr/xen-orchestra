@@ -184,8 +184,9 @@ const Modal = decorate([
   ),
 ])
 
-const deployProxy = proxy =>
-  form({
+const deployProxy = proxy => {
+  const isReDeployMode = proxy !== undefined
+  return form({
     defaultValue: {
       dns: '',
       gateway: '',
@@ -193,11 +194,11 @@ const deployProxy = proxy =>
       netmask: '',
       networkMode: 'dhcp',
     },
-    render: props => <Modal {...props} reDeploy={proxy !== undefined} />,
+    render: props => <Modal {...props} reDeploy={isReDeployMode} />,
     header: (
       <span>
         <Icon icon='proxy' />{' '}
-        {proxy !== undefined ? _('reDeployProxyTitle') : _('deployProxy')}
+        {isReDeployMode ? _('reDeployProxyTitle') : _('deployProxy')}
       </span>
     ),
   }).then(({ sr, networkMode, ip, netmask, gateway, dns }) =>
@@ -215,5 +216,6 @@ const deployProxy = proxy =>
       proxy,
     })
   )
+}
 
 export { deployProxy as default }
