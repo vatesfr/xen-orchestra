@@ -59,7 +59,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     handler: deployProxy,
     icon: 'refresh',
-    label: _('reDeployProxy'),
+    label: _('reDeployProxyAction'),
     level: 'warning',
   },
   {

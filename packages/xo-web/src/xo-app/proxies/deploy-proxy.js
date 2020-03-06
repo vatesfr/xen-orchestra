@@ -198,7 +198,7 @@ const deployProxy = proxy => {
     header: (
       <span>
         <Icon icon='proxy' />{' '}
-        {isReDeployMode ? _('reDeployProxyTitle') : _('deployProxy')}
+        {isReDeployMode ? _('reDeployProxy') : _('deployProxy')}
       </span>
     ),
   }).then(({ sr, networkMode, ip, netmask, gateway, dns }) =>
