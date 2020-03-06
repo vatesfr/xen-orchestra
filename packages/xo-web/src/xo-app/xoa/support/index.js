@@ -51,6 +51,7 @@ const Support = decorate([
         <Col>
           <ActionButton
             btnStyle='primary'
+            disabled={COMMUNITY}
             handler={reportOnSupportPanel}
             icon='add'
           >
