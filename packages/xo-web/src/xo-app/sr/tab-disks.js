@@ -406,7 +406,7 @@ export default class SrDisks extends Component {
         />
       ),
     }).then(({ sr, migrateAll }) => {
-      if (!sr) {
+      if (sr === undefined) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
 

@@ -27,7 +27,7 @@ export default class MigrateVdiModalBody extends Component {
 
   _getCompareContainers = createSelector(
     () => this.props.pool,
-    poolId => createCompareContainers(poolId)
+    createCompareContainers
   )
 
   _checkSr = createSelector(
