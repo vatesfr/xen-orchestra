@@ -132,7 +132,7 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  async deployProxy(srId, { network, proxyId } = {}) {
+  async deployProxy(srId, { networkConfiguration, proxyId } = {}) {
     const app = this._app
 
     const redeploy = proxyId !== undefined
@@ -181,11 +181,11 @@ export default class Proxy {
         }),
         'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
       }
-      if (network !== undefined) {
-        xenstoreData['vm-data/ip'] = network.ip
-        xenstoreData['vm-data/gateway'] = network.gateway
-        xenstoreData['vm-data/netmask'] = network.netmask
-        xenstoreData['vm-data/dns'] = network.dns
+      if (networkConfiguration !== undefined) {
+        xenstoreData['vm-data/ip'] = networkConfiguration.ip
+        xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
+        xenstoreData['vm-data/netmask'] = networkConfiguration.netmask
+        xenstoreData['vm-data/dns'] = networkConfiguration.dns
       }
       await Promise.all([
         vm.add_tags(xoProxyConf.vmTag),
@@ -224,9 +224,9 @@ export default class Proxy {
     )
     await timeout.call(
       xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
-        network === undefined
+        networkConfiguration === undefined
           ? guest_metrics.networks['0/ip'] !== undefined
-          : guest_metrics.networks['0/ip'] === network.ip
+          : guest_metrics.networks['0/ip'] === networkConfiguration.ip
       ),
       vmNetworksTimeout
     )

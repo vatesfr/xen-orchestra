@@ -96,8 +96,8 @@ update.params = {
   },
 }
 
-export function deploy({ network, proxy, sr }) {
-  return this.deployProxy(sr._xapiId, { network, proxyId: proxy })
+export function deploy({ networkConfiguration, proxy, sr }) {
+  return this.deployProxy(sr._xapiId, { networkConfiguration, proxyId: proxy })
 }
 
 deploy.permission = 'admin'
@@ -105,7 +105,7 @@ deploy.params = {
   sr: {
     type: 'string',
   },
-  network: {
+  networkConfiguration: {
     type: 'object',
     optional: true,
     properties: {
