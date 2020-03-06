@@ -4,7 +4,6 @@ import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
-import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
@@ -18,7 +17,6 @@ import readChunk from '../_readStreamChunk'
 import { generateToken } from '../utils'
 
 const extractProperties = _ => _.properties
-const log = createLogger('xo:xo-mixins:proxies')
 const omitToken = proxy => omit(proxy, 'authenticationToken')
 const synchronizedWrite = synchronized()
 
@@ -136,6 +134,20 @@ export default class Proxy {
 
   async deployProxy(srId, { network, proxyId } = {}) {
     const app = this._app
+
+    let proxy
+    if (proxyId !== undefined) {
+      proxy = await this._getProxy(proxyId)
+
+      const vmUuid = proxy.vmUuid
+      if (vmUuid !== undefined) {
+        await app.getXapi(vmUuid).deleteVm(vmUuid)
+        await this.updateProxy(proxyId, {
+          vmUuid: null,
+        })
+      }
+    }
+
     const xoProxyConf = this._xoProxyConf
 
     const namespace = xoProxyConf.namespace
@@ -151,16 +163,10 @@ export default class Proxy {
       }),
       { srId }
     )
-    let date, proxy, proxyAuthenticationToken, xenstoreData
+    let date, proxyAuthenticationToken, xenstoreData
     try {
       date = new Date()
-
-      if (proxyId !== undefined) {
-        proxy = await this._getProxy(proxyId)
-        proxyAuthenticationToken = proxy.authenticationToken
-      } else {
-        proxyAuthenticationToken = await generateToken()
-      }
+      proxyAuthenticationToken = await generateToken()
 
       const [
         password,
@@ -195,11 +201,9 @@ export default class Proxy {
       throw error
     }
 
-    if (proxy !== undefined) {
-      if (proxy.vmUuid !== undefined) {
-        xapi.deleteVm(proxy.vmUuid).catch(log.warn)
-      }
+    if (proxyId !== undefined) {
       await this.updateProxy(proxyId, {
+        authenticationToken: proxyAuthenticationToken,
         vmUuid: vm.uuid,
       })
     } else {
