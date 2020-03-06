@@ -219,7 +219,10 @@ export default class MigrateVmModalBody extends BaseComponent {
   }
 
   _selectMigrationNetwork = migrationNetwork =>
-    this.setState({ migrationNetworkId: migrationNetwork.id })
+    this.setState({
+      migrationNetworkId:
+        migrationNetwork == null ? undefined : migrationNetwork.id,
+    })
 
   render() {
     const { vdis, vifs, networks } = this.props
@@ -270,6 +273,7 @@ export default class MigrateVmModalBody extends BaseComponent {
                 <SelectNetwork
                   onChange={this._selectMigrationNetwork}
                   predicate={this._getMigrationNetworkPredicate()}
+                  required={!intraPool}
                   value={migrationNetworkId}
                 />
               </Col>
