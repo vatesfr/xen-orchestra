@@ -196,7 +196,8 @@ const deployProxy = proxy =>
     render: props => <Modal {...props} reDeploy={proxy !== undefined} />,
     header: (
       <span>
-        <Icon icon='proxy' /> {_('deployProxy')}
+        <Icon icon='proxy' />{' '}
+        {proxy !== undefined ? _('reDeployProxyTitle') : _('deployProxy')}
       </span>
     ),
   }).then(({ sr, networkMode, ip, netmask, gateway, dns }) =>

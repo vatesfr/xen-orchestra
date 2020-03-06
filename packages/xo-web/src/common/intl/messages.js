@@ -2298,6 +2298,7 @@ const messages = {
     'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
   destroyProxies: 'Destroy proxy(ies)',
   deployProxy: 'Deploy a proxy',
+  reDeployProxyTitle: 'Re-deploy proxy',
   reDeployProxy: 'Re-deploy this proxy',
   reDeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
