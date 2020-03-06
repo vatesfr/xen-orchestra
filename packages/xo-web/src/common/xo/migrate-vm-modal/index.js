@@ -231,7 +231,6 @@ export default class MigrateVmModalBody extends BaseComponent {
       migrationNetworkId,
       targetSrs,
     } = this.state
-
     return (
       <div>
         <div className={styles.block}>
