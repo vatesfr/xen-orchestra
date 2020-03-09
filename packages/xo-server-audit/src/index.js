@@ -3,6 +3,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
 import path from 'path'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
+import { createGzip } from 'zlib'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 import {
@@ -95,6 +96,10 @@ class AuditXoPlugin {
       ndjson: { type: 'boolean', optional: true },
     }
 
+    const exportRecords = this._exportRecords.bind(this)
+    exportRecords.description = 'Export records'
+    exportRecords.permission = 'admin'
+
     const checkIntegrity = this._checkIntegrity.bind(this)
     checkIntegrity.description =
       'Check records integrity between oldest and newest'
@@ -117,6 +122,7 @@ class AuditXoPlugin {
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
+          exportRecords,
           generateFingerprint,
           getRecords,
         },
@@ -156,24 +162,25 @@ class AuditXoPlugin {
     }
   }
 
-  _handleGetRecords(req, res, id) {
-    res.set('Content-Type', 'application/json')
-    return fromCallback(
-      pipeline,
-      asyncIteratorToStream(async function*(asyncIterator) {
-        for await (const record of asyncIterator) {
-          yield JSON.stringify(record)
-          yield '\n'
-        }
-      })(this._auditCore.getFrom(id)),
-      res
-    )
+  _getRecordsStream(id) {
+    const createNdJsonStream = asyncIteratorToStream(async function*(
+      asyncIterator
+    ) {
+      for await (const record of asyncIterator) {
+        yield JSON.stringify(record)
+        yield '\n'
+      }
+    })
+    return createNdJsonStream(this._auditCore.getFrom(id))
   }
 
   async _getRecords({ id, ndjson = false }) {
     if (ndjson) {
       return this._xo
-        .registerHttpRequest(this._handleGetRecords.bind(this), id)
+        .registerHttpRequest((req, res) => {
+          res.set('Content-Type', 'application/json')
+          return fromCallback(pipeline, this._getRecordsStream(id), res)
+        })
         .then($getFrom => ({
           $getFrom,
         }))
@@ -184,6 +191,33 @@ class AuditXoPlugin {
       records.push(record)
     }
     return records
+  }
+
+  _exportRecords() {
+    return this._xo
+      .registerHttpRequest(
+        (req, res) => {
+          res.writeHead(200, {
+            'content-disposition': 'attachment',
+            'content-type': 'application/json',
+          })
+          return fromCallback(
+            pipeline,
+            this._getRecordsStream(),
+            createGzip(),
+            res
+          )
+        },
+        undefined,
+        {
+          suffix: `/audit-records-${new Date()
+            .toISOString()
+            .replace(/:/g, '_')}.gz`,
+        }
+      )
+      .then($getFrom => ({
+        $getFrom,
+      }))
   }
 
   async _checkIntegrity(props) {
