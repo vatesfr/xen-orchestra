@@ -132,7 +132,7 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  async deployProxy(srId, { networkConfiguration, proxyId } = {}) {
+  async deployProxy(srId, { networkConfiguration, networkId, proxyId } = {}) {
     const app = this._app
 
     const redeploy = proxyId !== undefined
@@ -163,6 +163,11 @@ export default class Proxy {
     )
     let date, proxyAuthenticationToken, xenstoreData
     try {
+      if (networkId !== undefined) {
+        await Promise.all(vm.VIFs.map(vif => xapi.deleteVif(vif)))
+        await xapi.createVif(vm.$id, networkId)
+      }
+
       date = new Date()
       proxyAuthenticationToken = await generateToken()
 
