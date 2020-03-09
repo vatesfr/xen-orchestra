@@ -1,5 +1,4 @@
 import cookie from 'cookie'
-import defer from 'golike-defer'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
@@ -133,8 +132,7 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  @defer
-  async deployProxy($defer, srId, { network } = {}) {
+  async deployProxy(srId, { network } = {}) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
 
