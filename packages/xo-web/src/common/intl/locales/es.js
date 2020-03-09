@@ -2958,7 +2958,7 @@ export default {
   chooseSrForEachVdisModalSrLabel: undefined,
 
   // Original text: '* optional'
-  chooseSrForEachVdisModalOptionalEntry: undefined,
+  optionalEntry: undefined,
 
   // Original text: 'Delete VDI'
   deleteVdiModalTitle: undefined,
