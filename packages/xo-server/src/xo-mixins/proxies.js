@@ -135,11 +135,9 @@ export default class Proxy {
   async deployProxy(srId, { network, proxyId } = {}) {
     const app = this._app
 
-    let proxy
     if (proxyId !== undefined) {
-      proxy = await this._getProxy(proxyId)
+      const { vmUuid } = await this._getProxy(proxyId)
 
-      const vmUuid = proxy.vmUuid
       if (vmUuid !== undefined) {
         await app.getXapi(vmUuid).deleteVm(vmUuid)
         await this.updateProxy(proxyId, {
