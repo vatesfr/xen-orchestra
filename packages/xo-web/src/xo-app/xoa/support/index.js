@@ -53,7 +53,7 @@ const Support = decorate([
             btnStyle='primary'
             disabled={COMMUNITY}
             handler={reportOnSupportPanel}
-            icon='add'
+            icon='ticket'
           >
             {_('createSupportTicket')}
           </ActionButton>
