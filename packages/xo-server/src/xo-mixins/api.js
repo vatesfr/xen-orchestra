@@ -255,6 +255,7 @@ export default class Api {
         .slice(2),
       userId,
       userName,
+      userIp: session.get('user_ip'),
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
       timestamp: Date.now(),
@@ -302,6 +303,13 @@ export default class Api {
           Date.now() - startTime
         )}] ==> ${kindOf(result)}`
       )
+
+      // it's a special case in which the user is defined at the end of the call
+      if (data.method === 'session.signIn') {
+        const { id, email } = await xo.getUser(session.get('user_id'))
+        data.userId = id
+        data.userName = email
+      }
 
       const now = Date.now()
       xo.emit('xo:postCall', {

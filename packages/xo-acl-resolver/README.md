@@ -17,10 +17,14 @@ import check from 'xo-acl-resolver'
 
 // This object contains a list of permissions returned from
 // xo-server's acl.getCurrentPermissions.
-const permissions = { /* ... */ }
+const permissions = {
+  /* ... */
+}
 
 // This function should returns synchronously an object from an id.
-const getObject = id => { /* ... */ }
+const getObject = id => {
+  /* ... */
+}
 
 // For a single object:
 if (check(permissions, getObject, objectId, permission)) {
@@ -28,10 +32,12 @@ if (check(permissions, getObject, objectId, permission)) {
 }
 
 // For multiple objects/permissions:
-if (check(permissions, getObject, [
-  [ object1Id, permission1 ],
-  [ object12d, permission2 ],
-])) {
+if (
+  check(permissions, getObject, [
+    [object1Id, permission1],
+    [object12d, permission2],
+  ])
+) {
   console.log('all permissions checked')
 }
 ```
@@ -60,7 +66,7 @@ The sources files are watched and automatically recompiled on changes.
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

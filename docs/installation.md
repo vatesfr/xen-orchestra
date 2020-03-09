@@ -1,4 +1,3 @@
-
 # Installation
 
 Log in to your account and use the deploy form available on [this page](https://xen-orchestra.com/#!/xoa)

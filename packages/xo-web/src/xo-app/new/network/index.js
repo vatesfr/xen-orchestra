@@ -61,6 +61,23 @@ const Item = ({ label, children, className }) => (
   </span>
 )
 
+/*
+From XAPI doc, a tunnel can only be created on:
+- Physical PIF
+- Bond master PIF
+- VLAN PIF
+If and only if the PIF:
+- Has an IP configuration
+- is NOT a bond slave
+
+For more info see: https://xapi-project.github.io/xapi/design/tunnelling.html
+*/
+const canSupportPrivateNetwork = (pool, pif) =>
+  (pif.isBondMaster || pif.physical || pif.vlan !== -1) &&
+  pif.mode !== 'None' &&
+  !pif.isBondSlave &&
+  pif.$host === pool.master
+
 const NewNetwork = decorate([
   addSubscriptions({
     plugins: subscribePlugins,
@@ -139,19 +156,9 @@ const NewNetwork = decorate([
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
       pifPredicateSdnController: (_, { pool }) => pif =>
-        pif.physical &&
-        pif.ip_configuration_mode !== 'None' &&
-        pif.bond_slave_of === 'OpaqueRef:NULL' &&
-        pif.$host === (pool && pool.master),
-      networkPifPredicate: ({ networks }) => (pif, key) => {
-        const pool = networks[key].pool
-        return (
-          pif.physical &&
-          pif.ip_configuration_mode !== 'None' &&
-          pif.bond_slave_of === 'OpaqueRef:NULL' &&
-          pif.$host === (pool !== undefined && pool.master)
-        )
-      },
+        canSupportPrivateNetwork(pool, pif),
+      networkPifPredicate: ({ networks }) => (pif, key) =>
+        canSupportPrivateNetwork(networks[key].pool, pif),
       networkPoolPredicate: ({ networks }, { pool: rootPool }) => (
         pool,
         index

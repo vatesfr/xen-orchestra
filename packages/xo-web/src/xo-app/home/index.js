@@ -6,6 +6,7 @@ import Button from 'button'
 import CenterPanel from 'center-panel'
 import classNames from 'classnames'
 import Component from 'base-component'
+import cookies from 'cookies-js'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import invoke from 'invoke'
@@ -93,7 +94,8 @@ import VmItem from './vm-item'
 import TemplateItem from './template-item'
 import SrItem from './sr-item'
 
-const ITEMS_PER_PAGE = 20
+const DEFAULT_ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE_OPTIONS = [20, 50, 100]
 
 const OPTIONS = {
   host: {
@@ -476,6 +478,10 @@ export default class Home extends Component {
   }
 
   state = {
+    homeItemsPerPage: +defined(
+      cookies.get('homeItemsPerPage'),
+      DEFAULT_ITEMS_PER_PAGE
+    ),
     selectedItems: {},
   }
 
@@ -516,6 +522,11 @@ export default class Home extends Component {
   _getNumberOfSelectedItems = createCounter(() => this.state.selectedItems, [
     identity,
   ])
+
+  _setNItemsPerPage(nItems) {
+    this.setState({ homeItemsPerPage: nItems })
+    cookies.set('homeItemsPerPage', nItems)
+  }
 
   _getPage() {
     const {
@@ -683,7 +694,7 @@ export default class Home extends Component {
   _getVisibleItems = createPager(
     this._getFilteredItems,
     () => this._getPage(),
-    ITEMS_PER_PAGE
+    () => this.state.homeItemsPerPage
   )
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
@@ -861,6 +872,7 @@ export default class Home extends Component {
     const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
 
     const {
+      homeItemsPerPage,
       selectedHosts,
       selectedPools,
       selectedResourceSets,
@@ -958,7 +970,7 @@ export default class Home extends Component {
           )}
         </Row>
         <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
-          <Col smallSize={11} mediumSize={3}>
+          <Col smallSize={6} mediumSize={2}>
             <input
               checked={this._getIsAllSelected()}
               onChange={this._toggleMaster}
@@ -1135,10 +1147,20 @@ export default class Home extends Component {
               </div>
             )}
           </Col>
-          <Col smallSize={1} mediumSize={1} className='text-xs-right'>
+          <Col smallSize={6} mediumSize={2} className='text-xs-right'>
             <Button onClick={this._expandAll}>
               <Icon icon='nav' />
-            </Button>
+            </Button>{' '}
+            <DropdownButton bsStyle='info' title={homeItemsPerPage}>
+              {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+                <MenuItem
+                  key={nItems}
+                  onClick={() => this._setNItemsPerPage(nItems)}
+                >
+                  {nItems}
+                </MenuItem>
+              ))}
+            </DropdownButton>
           </Col>
         </Row>
       </Container>
@@ -1223,13 +1245,15 @@ export default class Home extends Component {
               ))
             )}
           </div>
-          {filteredItems.length > ITEMS_PER_PAGE && (
+          {filteredItems.length > this.state.homeItemsPerPage && (
             <Row>
               <div style={{ display: 'flex', width: '100%' }}>
                 <div style={{ margin: 'auto' }}>
                   <Pagination
                     onChange={this._onPageSelection}
-                    pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
+                    pages={ceil(
+                      filteredItems.length / this.state.homeItemsPerPage
+                    )}
                     value={this._getPage()}
                   />
                 </div>

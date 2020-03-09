@@ -1,8 +1,8 @@
 {
   "name": "xo-server-transport-nagios",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "ISC",
-  "description": "",
+  "description": "Send backup runs statuses to Nagios",
   "keywords": [
     "nagios",
     "orchestra",

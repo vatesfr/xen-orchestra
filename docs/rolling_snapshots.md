@@ -12,6 +12,6 @@ This feature is similar to Backups, but it creates a snapshot when planned to do
 
 Example:
 
-* Schedule a nightly snapshot for a group of VMs, let's say at 4:30 in the morning. With a max snapshot of 7, you'll have a week of revert possibility
-* Schedule a snapshot every week, but precisely Sunday at 11 PM, with 4 snapshots max. This will give you a month max of revert
-* And so forth!
+- Schedule a nightly snapshot for a group of VMs, let's say at 4:30 in the morning. With a max snapshot of 7, you'll have a week of revert possibility
+- Schedule a snapshot every week, but precisely Sunday at 11 PM, with 4 snapshots max. This will give you a month max of revert
+- And so forth!

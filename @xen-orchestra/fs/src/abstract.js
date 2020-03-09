@@ -118,7 +118,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async closeFile(fd: FileDescriptor): Promise<void> {
-    await timeout.call(this._closeFile(fd.fd), this._timeout)
+    await this.__closeFile(fd)
   }
 
   async createOutputStream(
@@ -283,30 +283,15 @@ export default class RemoteHandlerAbstract {
   }
 
   async mkdir(dir: string): Promise<void> {
-    dir = normalizePath(dir)
-    try {
-      await this._mkdir(dir)
-    } catch (error) {
-      if (error == null || error.code !== 'EEXIST') {
-        throw error
-      }
-
-      // this operation will throw if it's not already a directory
-      await this._list(dir)
-    }
+    await this.__mkdir(normalizePath(dir))
   }
 
   async mktree(dir: string): Promise<void> {
     await this._mktree(normalizePath(dir))
   }
 
-  async openFile(path: string, flags: string): Promise<FileDescriptor> {
-    path = normalizePath(path)
-
-    return {
-      fd: await timeout.call(this._openFile(path, flags), this._timeout),
-      path,
-    }
+  openFile(path: string, flags: string): Promise<FileDescriptor> {
+    return this.__openFile(path, flags)
   }
 
   async outputFile(
@@ -455,6 +440,34 @@ export default class RemoteHandlerAbstract {
     await this._writeFile(normalizePath(file), data, { flags })
   }
 
+  // Methods that can be called by private methods to avoid parallel limit on public methods
+
+  async __closeFile(fd: FileDescriptor): Promise<void> {
+    await timeout.call(this._closeFile(fd.fd), this._timeout)
+  }
+
+  async __mkdir(dir: string): Promise<void> {
+    try {
+      await this._mkdir(dir)
+    } catch (error) {
+      if (error == null || error.code !== 'EEXIST') {
+        throw error
+      }
+
+      // this operation will throw if it's not already a directory
+      await this._list(dir)
+    }
+  }
+
+  async __openFile(path: string, flags: string): Promise<FileDescriptor> {
+    path = normalizePath(path)
+
+    return {
+      fd: await timeout.call(this._openFile(path, flags), this._timeout),
+      path,
+    }
+  }
+
   // Methods that can be implemented by inheriting classes
 
   async _closeFile(fd: mixed): Promise<void> {
@@ -503,7 +516,7 @@ export default class RemoteHandlerAbstract {
 
   async _mktree(dir: string): Promise<void> {
     try {
-      return await this.mkdir(dir)
+      return await this.__mkdir(dir)
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
@@ -586,13 +599,13 @@ export default class RemoteHandlerAbstract {
   async _write(file: File, buffer: Buffer, position: number): Promise<void> {
     const isPath = typeof file === 'string'
     if (isPath) {
-      file = await this.openFile(file, 'r+')
+      file = await this.__openFile(file, 'r+')
     }
     try {
       return await this._writeFd(file, buffer, position)
     } finally {
       if (isPath) {
-        await this.closeFile(file)
+        await this.__closeFile(file)
       }
     }
   }

@@ -14,9 +14,9 @@ the issues :)
 
 - **XO origin**: the sources / XO Appliance
 - **Versions**:
-   - Node: **FILL HERE**
-   - xo-web: **FILL HERE**
-   - xo-server: **FILL HERE**
+  - Node: **FILL HERE**
+  - xo-web: **FILL HERE**
+  - xo-server: **FILL HERE**
 
 ### Expected behavior
 

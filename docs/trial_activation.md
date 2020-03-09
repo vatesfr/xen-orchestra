@@ -1,13 +1,12 @@
-
 # Trial activation
 
 A trial will allow you to test all available features in XOA, for 15 days.
 
 The procedure is very simple:
 
-* register, then download a Free Edition [on our website](https://xen-orchestra.com/#/member)
-* [deploy the virtual appliance](xoa.md)
-* activate the trial via the "Update" view (details below)
+- register, then download a Free Edition [on our website](https://xen-orchestra.com/#/member)
+- [deploy the virtual appliance](xoa.md)
+- activate the trial via the "Update" view (details below)
 
 ## Activate the trial
 

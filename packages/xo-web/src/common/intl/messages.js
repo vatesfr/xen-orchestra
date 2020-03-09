@@ -45,13 +45,26 @@ const messages = {
   restore: 'Restore',
   delete: 'Delete',
   vms: 'VMs',
+  cpusMax: 'Max vCPUs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
+  temporarilyDisabled: 'Temporarily disabled',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
   iscsiSessions:
     '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
   requiresAdminPermissions: 'Requires admin permissions',
+  proxy: 'Proxy',
+  proxies: 'Proxies',
+  name: 'Name',
+  address: 'Address',
+  vm: 'VM',
+  destinationSR: 'Destination SR',
+  dhcp: 'DHCP',
+  ip: 'IP',
+  static: 'Static',
+  user: 'User',
+  deletedUser: 'deleted ({ name })',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -103,6 +116,7 @@ const messages = {
   notificationsPage: 'Notifications',
   supportPage: 'Support',
   settingsPage: 'Settings',
+  settingsAuditPage: 'Audit',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
   settingsGroupsPage: 'Groups',
@@ -229,6 +243,7 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
+  selectExistingTags: 'Select from existing tags',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -251,6 +266,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelDisk: 'Disk',
   labelMerge: 'Merge',
   labelSize: 'Size',
   labelSpeed: 'Speed',
@@ -261,6 +277,7 @@ const messages = {
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
+  formDescription: 'Description',
   formEdit: 'Edit',
   formId: 'ID',
   formName: 'Name',
@@ -283,6 +300,8 @@ const messages = {
   selectPifs: 'Select PIF(s)…',
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
+  selectProxies: 'Select proxy(ies)…',
+  selectProxy: 'Select proxy…',
   selectResourceSets: 'Select resource set(s)…',
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
@@ -500,6 +519,7 @@ const messages = {
   deleteOldBackupsFirst: 'Delete first',
   deleteOldBackupsFirstMessage:
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
+  customTag: 'Custom tag',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -540,9 +560,9 @@ const messages = {
   remoteAuth: 'Auth',
   remoteDeleteTip: 'Delete',
   remoteDeleteSelected: 'Delete selected remotes',
-  remoteMyNamePlaceHolder: 'Name *',
+  remoteMyNamePlaceHolder: 'Name',
   remoteLocalPlaceHolderPath: '/path/to/backup',
-  remoteNfsPlaceHolderHost: 'Host *',
+  remoteNfsPlaceHolderHost: 'Host',
   remoteNfsPlaceHolderPort: 'Port',
   remoteNfsPlaceHolderPath: 'path/to/backup',
   remoteNfsPlaceHolderOptions: 'Custom mount options. Default: vers=3',
@@ -550,7 +570,7 @@ const messages = {
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
   remoteSmbPlaceHolderDomain: 'Domain',
-  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share> *',
+  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
@@ -1298,6 +1318,7 @@ const messages = {
   createVmModalTitle: 'Create VM',
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
+  copyHostBiosStrings: 'Copy host BIOS strings to VM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
@@ -1369,6 +1390,8 @@ const messages = {
   newVmUserConfigLabel: 'User config',
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
+  templateHasBiosStrings: 'The template already contains the BIOS strings',
+  vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1431,6 +1454,12 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+
+  // ---- Disk import ---
+  diskImportFailed: 'Disk import failed',
+  diskImportSuccess: 'Disk import success',
+  dropDisksFiles: 'Drop VMDK or VHD files here to import disks.',
+  importToSr: 'To SR',
 
   // ---- Tasks ---
   cancelTask: 'Cancel',
@@ -1517,6 +1546,8 @@ const messages = {
     'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?',
   bulkDeleteMetadataBackupsConfirmText:
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
+  remoteNotCompatibleWithSelectedProxy:
+    "The backup will not be run on this remote because it's not compatible with the selected proxy",
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -1602,6 +1633,9 @@ const messages = {
   deleteVmBlockedModalTitle: 'Blocked operation',
   deleteVmBlockedModalMessage:
     'Removing the VM is a blocked operation. Would you like to remove it anyway?',
+  forceVmMigrateModalTitle: 'Force migration',
+  forceVmMigrateModalMessage:
+    'The VM is incompatible with the CPU features of the destination host. Would you like to force it anyway?',
   migrateVmModalTitle: 'Migrate VM',
   migrateVmSelectHost: 'Select a destination host:',
   migrateVmSelectMigrationNetwork: 'Select a migration network:',
@@ -1743,6 +1777,14 @@ const messages = {
     'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
+  // ----- Advanced Live Telemetry -----
+  advancedLiveTelemetry: 'Advanced Live Telemetry',
+  pluginNetDataIsNecessary: 'Netdata plugin is necessary',
+  enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
+  enableAdvancedLiveTelemetrySuccess:
+    'Advanced Live Telemetry successfully enabled',
+  xcpOnlyFeature: 'This feature is only XCP-ng compatible',
+
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
   forgetHostModalMessage:
@@ -1771,8 +1813,7 @@ const messages = {
   newNetworkEncrypted: 'Encrypted',
   encryptionWarning:
     'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
-  newNetworkSdnControllerTip:
-    'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
+  newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
@@ -1864,6 +1905,7 @@ const messages = {
   changeChannel: 'Change channel',
   updaterCommunity:
     'The Web updater, the release channels and the proxy settings are available in XOA.',
+  xoaBuild: 'XOA build:',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
@@ -2158,6 +2200,7 @@ const messages = {
 
   // Hub
   hubPage: 'Hub',
+  hubCommunity: 'Hub is available in XOA',
   noDefaultSr: 'The selected pool has no default SR',
   successfulInstall: 'VM installed successfully',
   vmNoAvailable: 'No VMs available ',
@@ -2171,6 +2214,38 @@ const messages = {
   hubImportNotificationTitle: 'XVA import',
   hubTemplateDescriptionNotAvailable:
     'No description available for this template',
+  recipeCreatedSuccessfully: 'Recipe created successfully',
+  recipeViewCreatedVms: 'View created VMs',
+  templatesLabel: 'Templates',
+  recipesLabel: 'Recipes',
+  network: 'Network',
+  recipeMasterNameLabel: 'Master name',
+  recipeNumberOfNodesLabel: 'Number of nodes',
+  recipeSshKeyLabel: 'SSH key',
+  recipeNetworkCidr: 'Network CIDR',
+
+  // Audit
+  auditActionEvent: 'Action/Event',
+  auditAlteredRecord:
+    'The record ({ id }) was altered ({ n, number } valid records)',
+  auditCheckIntegrity: 'Check integrity',
+  auditCopyFingerprintToClipboard: 'Copy fingerprint to clipboard',
+  auditGenerateNewFingerprint: 'Generate a new fingerprint',
+  auditMissingRecord:
+    'The record ({ id }) is missing ({ n, number } valid records)',
+  auditEnterFingerprint: 'Fingerprint',
+  auditEnterFingerprintInfo:
+    "Enter the saved fingerprint to check the previous logs' integrity. If you don't have any, click OK.",
+  auditRecord: 'Audit record',
+  auditIntegrityVerified: 'Integrity verified',
+  auditSaveFingerprintInfo:
+    'Keep this fingerprint to be able to check the integrity of the current records later.',
+  auditSaveFingerprintInErrorInfo:
+    'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
+  auditNewFingerprint: 'New fingerprint',
+  displayAuditRecord: 'Display record',
+  noAuditRecordAvailable: 'No audit record available',
+  refreshAuditRecordsList: 'Refresh records list',
 
   // Licenses
   xosanUnregisteredDisclaimer:
@@ -2212,6 +2287,26 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+
+  // ----- proxies -----
+  forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
+  forgetProxyApplianceMessage:
+    'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
+  forgetProxies: 'Forget proxy(ies)',
+  destroyProxyApplianceTitle: 'Destroy prox{n, plural, one {y} other {ies}}',
+  destroyProxyApplianceMessage:
+    'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
+  destroyProxies: 'Destroy proxy(ies)',
+  deployProxy: 'Deploy a proxy',
+  noProxiesAvailable: 'No proxies available',
+  checkProxyHealth: 'Test your proxy',
+  upgradeProxyAppliance: 'upgrade the appliance',
+  proxyTestSuccess: 'Test passed for {name}',
+  proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyLinkedRemotes: 'Click to see linked remotes',
+  proxyLinkedBackups: 'Click to see linked backups',
+  proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
+  proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

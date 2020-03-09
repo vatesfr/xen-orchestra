@@ -2,19 +2,19 @@
 
 XOA is the Xen Orchestra Appliance. XOA is a Debian VM with:
 
-* Xen Orchestra already installed (nothing to do!)
-* Tested with all bundled dependencies (QA)
-* The web updater (update in one click)
-* Support (+SSH support, tooling)
-* Secured system (sudo, firewall)
+- Xen Orchestra already installed (nothing to do!)
+- Tested with all bundled dependencies (QA)
+- The web updater (update in one click)
+- Support (+SSH support, tooling)
+- Secured system (sudo, firewall)
 
 ## Specifications
 
 By default, the VM is configured with:
 
-* 2 vCPUs
-* 2GB of RAM
-* 15GB of disk (10GB for `/` and 5GB for `/var`)
+- 2 vCPUs
+- 2GB of RAM
+- 15GB of disk (10GB for `/` and 5GB for `/var`)
 
 For use on huge infrastructure (more than 500+ VMs), feel free to increase the RAM.
 
@@ -33,16 +33,28 @@ The **fastest and most secure way** to install Xen Orchestra is to use our web d
 Alternatively, you can deploy it by connecting to your XenServer host and executing the following:
 
 ```
-bash -c "$(curl -s http://xoa.io/deploy)"
+curl -sS https://xoa.io/deploy | bash
 ```
 
-> **Note:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
+> **Note 1:** This won't write or modify anything on your XenServer host: it will just import the XOA VM into your default storage repository.
+
+> **Note 2:** If you are using an old XenServer version, you may get a `curl` error:
+>
+> ```
+> curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protocol version
+> ```
+>
+> It means that the secure HTTPS protocol is not supported, you can bypass this using the unsecure command instead:
+>
+> ```
+> curl -sS http://xoa.io/deploy | bash
+> ```
 
 Follow the instructions:
 
-* Your IP configuration will be requested: it's set to **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
-* If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS server should be provided.
-* XOA will be deployed on your default storage repository. You can move it elsewhere anytime after.
+- Your IP configuration will be requested: it's set to **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
+- If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS server should be provided.
+- XOA will be deployed on your default storage repository. You can move it elsewhere anytime after.
 
 ### Via a manual XVA download
 
@@ -52,13 +64,12 @@ After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` 
 
 ## First Login
 
-Once you have started the VM, you can access the web UI by putting the IP you configured during deployment into your web browser. If you did not configure an IP or are unsure, try one of the following methods to find it:  
+Once you have started the VM, you can access the web UI by putting the IP you configured during deployment into your web browser. If you did not configure an IP or are unsure, try one of the following methods to find it:
 
-* Run `xe vm-list params=name-label,networks | grep -A 1 XOA` on your host
-* Check your router's DHCP leases for an `xoa` lease
+- Run `xe vm-list params=name-label,networks | grep -A 1 XOA` on your host
+- Check your router's DHCP leases for an `xoa` lease
 
 **Note:** The default Web UI credentials are `admin@admin.net` / `admin`
-
 
 ## Registration
 
@@ -68,11 +79,11 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 
 In your appliance, you can access the support section in the XOA menu. In this section you can:
 
-* launch an `xoa check` command
+- launch an `xoa check` command
 
 ![](https://xen-orchestra.com/blog/content/images/2019/10/xoacheck.png)
 
-* Open a secure support tunnel so our team can remotely investigate
+- Open a secure support tunnel so our team can remotely investigate
 
 ![](https://user-images.githubusercontent.com/10992860/67384755-10f47f80-f592-11e9-974d-bbdefd0bf353.gif)
 
@@ -92,19 +103,18 @@ Give us this number, and we'll be able to access your XOA in a secure manner. Th
 
 > The tunnel utilizes the user `xoa-support`. If you want to deactivate this bundled user, you can run `chage -E 0 xoa-support`. To re-activate this account, you must run `chage -E 1 xoa-support`.
 
-
 ### First console connection
 
 If you connect via SSH or console, the default credentials are:
 
-* user: xoa
-* password: xoa
+- user: xoa
+- password: xoa
 
 During your first connection, the system will ask you to:
 
-* enter the current password again (`xoa`)
-* enter your new password
-* retype your new password
+- enter the current password again (`xoa`)
+- enter your new password
+- retype your new password
 
 When it's done, you'll be disconnected, so reconnect again with your new password.
 
@@ -179,12 +189,11 @@ $ xoa network static
 ? IP of the DNS server 192.168.100.254
 ```
 
-Xen Orchestra is now accessible in your browser at ` https://your-vm-ip`.
+Xen Orchestra is now accessible in your browser at `https://your-vm-ip`.
 
 You can access the VM console through XenCenter or using VNC through a SSH tunnel.
 
 If you want to go back in DHCP, just run `xoa network dhcp`
-
 
 ### Firewall
 

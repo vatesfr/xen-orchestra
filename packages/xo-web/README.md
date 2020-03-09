@@ -6,7 +6,7 @@ XO-Web is part of [Xen Orchestra](https://github.com/vatesfr/xo), a web interfac
 
 It is a web client for [XO-Server](https://github.com/vatesfr/xo-server).
 
-___
+---
 
 ## Installation
 
@@ -30,7 +30,7 @@ $ npm run dev
 
 #### `NODE_ENV`
 
-Set to *production* it disables many checks which result in increased
+Set to _production_ it disables many checks which result in increased
 performance.
 
 #### `XOA_PLAN`

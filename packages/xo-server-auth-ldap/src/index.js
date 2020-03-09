@@ -1,10 +1,7 @@
 /* eslint no-throw-literal: 0 */
 
-import eventToPromise from 'event-to-promise'
-import noop from 'lodash/noop'
-import { createClient } from 'ldapjs'
-import { escape } from 'ldapjs/lib/filters/escape'
-import { promisify } from 'promise-toolbox'
+import { Client } from 'ldapts'
+import { Filter } from 'ldapts/filters/Filter'
 import { readFile } from 'fs'
 
 // ===================================================================
@@ -13,6 +10,8 @@ const DEFAULTS = {
   checkCertificate: true,
   filter: '(uid={{name}})',
 }
+
+const { escape } = Filter.prototype
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) =>
@@ -25,6 +24,8 @@ const evalFilter = (filter, vars) =>
 
     return escape(value)
   })
+
+const noop = Function.prototype
 
 export const configurationSchema = {
   type: 'object',
@@ -194,68 +195,48 @@ class AuthLdap {
       return null
     }
 
-    const client = createClient(this._clientOpts)
+    const client = new Client(this._clientOpts)
 
     try {
-      // Promisify some methods.
-      const bind = promisify(client.bind, client)
-      const search = promisify(client.search, client)
-
-      await eventToPromise(client, 'connect')
-
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
         if (credentials) {
           logger(`attempting to bind with as ${credentials.dn}...`)
-          await bind(credentials.dn, credentials.password)
+          await client.bind(credentials.dn, credentials.password)
           logger(`successfully bound as ${credentials.dn}`)
         }
       }
 
       // Search for the user.
-      const entries = []
-      {
-        logger('searching for entries...')
-        const response = await search(this._searchBase, {
-          scope: 'sub',
-          filter: evalFilter(this._searchFilter, {
-            name: username,
-          }),
-        })
-
-        response.on('searchEntry', entry => {
-          logger('.')
-          entries.push(entry.json)
-        })
-
-        const { status } = await eventToPromise(response, 'end')
-        if (status) {
-          throw new Error('unexpected search response status: ' + status)
-        }
-
-        logger(`${entries.length} entries found`)
-      }
+      logger('searching for entries...')
+      const { searchEntries: entries } = await client.search(this._searchBase, {
+        scope: 'sub',
+        filter: evalFilter(this._searchFilter, {
+          name: username,
+        }),
+      })
+      logger(`${entries.length} entries found`)
 
       // Try to find an entry which can be bind with the given password.
       for (const entry of entries) {
         try {
-          logger(`attempting to bind as ${entry.objectName}`)
-          await bind(entry.objectName, password)
+          logger(`attempting to bind as ${entry.dn}`)
+          await client.bind(entry.dn, password)
           logger(
-            `successfully bound as ${entry.objectName} => ${username} authenticated`
+            `successfully bound as ${entry.dn} => ${username} authenticated`
           )
           logger(JSON.stringify(entry, null, 2))
           return { username }
         } catch (error) {
-          logger(`failed to bind as ${entry.objectName}: ${error.message}`)
+          logger(`failed to bind as ${entry.dn}: ${error.message}`)
         }
       }
 
       logger(`could not authenticate ${username}`)
       return null
     } finally {
-      client.unbind()
+      await client.unbind()
     }
   }
 }

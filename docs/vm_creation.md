@@ -36,7 +36,7 @@ These values can be changed anytime after your VM is created.
 
 #### Multiple VMs
 
-You can create multiple VMs at once by toggling the *Multiple VMs* option. The `{name}` pattern is the "Name" field of the VM. By default, it will start with number 1 and increment up. You can change this via the "First index" field.
+You can create multiple VMs at once by toggling the _Multiple VMs_ option. The `{name}` pattern is the "Name" field of the VM. By default, it will start with number 1 and increment up. You can change this via the "First index" field.
 
 Click on the refresh icon to see the change:
 
@@ -70,7 +70,7 @@ These templates will use PV configuration in order to boot: either from the righ
 
 #### Template with existing disks
 
-Because there is already disks installed, you shouldn't have "Install settings" *per se*. But you can use our `config drive` setup if your template already has CloudInit installed!
+Because there is already disks installed, you shouldn't have "Install settings" _per se_. But you can use our `config drive` setup if your template already has CloudInit installed!
 
 Please refer to the [XenServer CloudInit section](cloudinit.md) for more.
 

@@ -38,6 +38,7 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
       title: "Don't request an authentication context",
       description: 'This is known to help when using Active Directory',
       default: DEFAULTS.disableRequestedAuthnContext,
+      type: 'boolean',
     },
   },
   required: ['cert', 'entryPoint', 'issuer', 'usernameField'],
@@ -48,6 +49,7 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
 class AuthSamlXoPlugin {
   constructor({ xo }) {
     this._conf = null
+    this._unregisterPassportStrategy = undefined
     this._usernameField = null
     this._xo = xo
   }
@@ -66,7 +68,7 @@ class AuthSamlXoPlugin {
   load() {
     const xo = this._xo
 
-    xo.registerPassportStrategy(
+    this._unregisterPassportStrategy = xo.registerPassportStrategy(
       new Strategy(this._conf, async (profile, done) => {
         const name = profile[this._usernameField]
         if (!name) {
@@ -82,6 +84,10 @@ class AuthSamlXoPlugin {
         }
       })
     )
+  }
+
+  unload() {
+    this._unregisterPassportStrategy()
   }
 }
 

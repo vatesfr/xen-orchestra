@@ -1,9 +1,11 @@
 import createLogger from '@xen-orchestra/log'
 import pump from 'pump'
+import convertVmdkToVhdStream from 'xo-vmdk-to-vhd'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
+import { peekFooterFromVhdStream } from 'vhd-lib'
 
-import { parseSize } from '../utils'
+import { VDI_FORMAT_VHD } from '../xapi'
 
 const log = createLogger('xo:disk')
 
@@ -151,17 +153,96 @@ importContent.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function resize({ vdi, size }) {
-  await this.getXapi(vdi).resizeVdi(vdi._xapiId, parseSize(size))
+async function handleImport(
+  req,
+  res,
+  { type, name, description, vmdkData, srId, xapi }
+) {
+  req.setTimeout(43200000) // 12 hours
+  try {
+    req.length = req.headers['content-length']
+    let vhdStream, size
+    if (type === 'vmdk') {
+      vhdStream = await convertVmdkToVhdStream(
+        req,
+        vmdkData.grainLogicalAddressList,
+        vmdkData.grainFileOffsetList
+      )
+      size = vmdkData.capacity
+    } else if (type === 'vhd') {
+      vhdStream = req
+      const footer = await peekFooterFromVhdStream(req)
+      size = footer.currentSize
+    } else {
+      throw new Error(
+        `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
+      )
+    }
+    const vdi = await xapi.createVdi({
+      name_description: description,
+      name_label: name,
+      size,
+      sr: srId,
+    })
+    try {
+      await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+      res.end(format.response(0, vdi.$id))
+    } catch (e) {
+      await xapi.deleteVdi(vdi)
+      throw e
+    }
+  } catch (e) {
+    res.writeHead(500)
+    res.end(format.error(0, new JsonRpcError(e.message)))
+  }
 }
 
-resize.description = 'resize an existing VDI'
-
-resize.params = {
-  id: { type: 'string' },
-  size: { type: ['integer', 'string'] },
+// type is 'vhd' or 'vmdk'
+async function importDisk({ sr, type, name, description, vmdkData }) {
+  return {
+    $sendTo: await this.registerHttpRequest(handleImport, {
+      description,
+      name,
+      srId: sr._xapiId,
+      type,
+      vmdkData,
+      xapi: this.getXapi(sr),
+    }),
+  }
 }
 
-resize.resolve = {
-  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
+export { importDisk as import }
+
+importDisk.params = {
+  description: { type: 'string', optional: true },
+  name: { type: 'string' },
+  sr: { type: 'string' },
+  type: { type: 'string' },
+  vmdkData: {
+    type: 'object',
+    optional: true,
+    properties: {
+      capacity: { type: 'integer' },
+      grainLogicalAddressList: {
+        description:
+          'virtual address of the blocks on the disk (LBA), in order encountered in the VMDK',
+        type: 'array',
+        items: {
+          type: 'integer',
+        },
+      },
+      grainFileOffsetList: {
+        description:
+          'offset of the grains in the VMDK file, in order encountered in the VMDK',
+        optional: true,
+        type: 'array',
+        items: {
+          type: 'integer',
+        },
+      },
+    },
+  },
+}
+importDisk.resolve = {
+  sr: ['sr', 'SR', 'administrate'],
 }

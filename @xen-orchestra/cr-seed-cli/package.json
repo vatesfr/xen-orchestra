@@ -1,4 +1,5 @@
 {
+  "private": false,
   "name": "@xen-orchestra/cr-seed-cli",
   "version": "0.2.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/cr-seed-cli",
@@ -16,7 +17,7 @@
   },
   "dependencies": {
     "golike-defer": "^0.4.1",
-    "xen-api": "^0.27.3"
+    "xen-api": "^0.28.3"
   },
   "scripts": {
     "postversion": "npm publish"

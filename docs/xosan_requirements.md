@@ -8,9 +8,9 @@ XOSAN can be deployed on an existing **Local LVM storage**, that XenServer confi
 
 However, if you have unused disks on your host, you can also create yourself a local LVM storage while using Xen Orchestra:
 
-* Go on the "New" menu entry, then select "Storage"
-* Select the host having the disk you want to use for XOSAN
-* Select "Local LVM" and enter the path of this disk (e.g: `/dev/sdf`)
+- Go on the "New" menu entry, then select "Storage"
+- Select the host having the disk you want to use for XOSAN
+- Select "Local LVM" and enter the path of this disk (e.g: `/dev/sdf`)
 
 > You can discover disks names by issuing `fdisk -l` command on your XenServer host.
 
@@ -34,8 +34,8 @@ Each XOSAN VM deployed will use 2x vCPUs. This setting should be enough for all 
 
 For a 6 nodes setup, XOSAN will use in total:
 
-* 12 vCPUs (usage is in general pretty low)
-* 12 GiB RAM
-* All Local LVM disk space
+- 12 vCPUs (usage is in general pretty low)
+- 12 GiB RAM
+- All Local LVM disk space
 
 ![picture disperse](./assets/disperse6.png)

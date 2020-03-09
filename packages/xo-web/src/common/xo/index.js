@@ -32,6 +32,7 @@ import {
 import _ from '../intl'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
+import Icon from '../icon'
 import logError from '../log-error'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
@@ -306,6 +307,8 @@ export const subscribeRemotesInfo = createSubscription(() =>
   _call('remote.getAllInfo')
 )
 
+export const subscribeProxies = createSubscription(() => _call('proxy.getAll'))
+
 export const subscribeResourceSets = createSubscription(() =>
   _call('resourceSet.getAll')
 )
@@ -520,7 +523,7 @@ export const importConfig = config =>
 
 export const exportConfig = () =>
   _call('xo.exportConfig').then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+    window.open(`.${url}`)
   })
 
 // Server ------------------------------------------------------------
@@ -614,6 +617,37 @@ export const addHostsToPool = pool =>
       )
     })
   })
+
+export const enableAdvancedLiveTelemetry = async host => {
+  const isConfiguredToReceiveStreaming = await _call(
+    'netdata.isConfiguredToReceiveStreaming',
+    { host: host.id }
+  )
+  if (!isConfiguredToReceiveStreaming) {
+    await _call('netdata.configureXoaToReceiveData')
+  }
+  await _call('netdata.configureHostToStreamHere', {
+    host: host.id,
+  })
+  success(_('advancedLiveTelemetry'), _('enableAdvancedLiveTelemetrySuccess'))
+}
+
+export const isNetDataInstalledOnHost = async host => {
+  const isNetDataInstalledOnHost = await _call(
+    'netdata.isNetDataInstalledOnHost',
+    { host: host.id }
+  )
+  if (!isNetDataInstalledOnHost) {
+    return false
+  }
+  const [hostApiKey, localApiKey] = await Promise.all([
+    _call('netdata.getHostApiKey', {
+      host: host.id,
+    }),
+    _call('netdata.getLocalApiKey'),
+  ])
+  return hostApiKey === localApiKey
+}
 
 export const detachHost = host =>
   confirm({
@@ -1157,6 +1191,9 @@ export const changeVirtualizationMode = vm =>
     })
   )
 
+export const createKubernetesCluster = params =>
+  _call('xoa.recipe.createKubernetesCluster', params)
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
@@ -1248,19 +1285,44 @@ export const deleteSnapshots = vms =>
   )
 
 import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
-export const migrateVm = (vm, host) =>
-  confirm({
-    title: _('migrateVmModalTitle'),
-    body: <MigrateVmModalBody vm={vm} host={host} />,
-  }).then(params => {
-    if (!params.targetHost) {
-      return error(
-        _('migrateVmNoTargetHost'),
-        _('migrateVmNoTargetHostMessage')
-      )
+export const migrateVm = async (vm, host) => {
+  let params
+  try {
+    params = await confirm({
+      title: _('migrateVmModalTitle'),
+      body: <MigrateVmModalBody vm={vm} host={host} />,
+    })
+  } catch (error) {
+    return
+  }
+
+  if (!params.targetHost) {
+    return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+  }
+
+  try {
+    await _call('vm.migrate', { vm: vm.id, ...params })
+  } catch (error) {
+    // https://developer-docs.citrix.com/projects/citrix-hypervisor-management-api/en/latest/api-ref-autogen-errors/#vmincompatiblewiththishost
+    if (
+      error != null &&
+      error.data !== undefined &&
+      error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST'
+    ) {
+      // Retry with force.
+      try {
+        await confirm({
+          body: _('forceVmMigrateModalMessage'),
+          title: _('forceVmMigrateModalTitle'),
+        })
+      } catch (error) {
+        return
+      }
+      return _call('vm.migrate', { vm: vm.id, force: true, ...params })
     }
-    return _call('vm.migrate', { vm: vm.id, ...params })
-  }, noop)
+    throw error
+  }
+}
 
 import MigrateVmsModalBody from './migrate-vms-modal' // eslint-disable-line import/first
 export const migrateVms = vms =>
@@ -1468,6 +1530,33 @@ export const importVms = (vms, sr) =>
     )
   ).then(ids => ids.filter(_ => _ !== undefined))
 
+const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+  const res = await _call('disk.import', {
+    description,
+    name,
+    sr: resolveId(sr),
+    type,
+    vmdkData,
+  })
+  const result = await post(res.$sendTo, file)
+  if (result.status !== 200) {
+    throw result.status
+  }
+  success(_('diskImportSuccess'), name)
+  const body = await result.json()
+  await body.result
+}
+
+export const importDisks = (disks, sr) =>
+  Promise.all(
+    map(disks, disk =>
+      importDisk(disk, sr).catch(err => {
+        error(_('diskImportFailed'), err)
+        throw err
+      })
+    )
+  )
+
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = vm =>
   confirm({
@@ -1479,7 +1568,7 @@ export const exportVm = vm =>
     info(_('startVmExport'), id)
     return _call('vm.export', { vm: id, compress }).then(
       ({ $getFrom: url }) => {
-        window.location = `.${url}`
+        window.open(`.${url}`)
       }
     )
   })
@@ -1488,7 +1577,7 @@ export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
   return _call('disk.exportContent', { id: resolveId(vdi) }).then(
     ({ $getFrom: url }) => {
-      window.location = `.${url}`
+      window.open(`.${url}`)
     }
   )
 }
@@ -2128,6 +2217,11 @@ export const configurePlugin = (id, configuration) =>
       )
   )
 
+export const getPlugin = async id => {
+  const plugins = await _call('plugin.get')
+  return plugins.find(plugin => plugin.id === id)
+}
+
 export const purgePluginConfiguration = async id => {
   await confirm({
     title: _('purgePluginConfiguration'),
@@ -2185,8 +2279,13 @@ export const getRemote = remote =>
     error(_('getRemote'), err.message || String(err))
   )
 
-export const createRemote = (name, url, options) =>
-  _call('remote.create', { name, url, options })::tap(remote => {
+export const createRemote = (name, url, options, proxy) =>
+  _call('remote.create', {
+    name,
+    options,
+    proxy: resolveId(proxy),
+    url,
+  })::tap(remote => {
     testRemote(remote).catch(noop)
   })
 
@@ -2219,8 +2318,15 @@ export const disableRemote = remote =>
     subscribeRemotes.forceRefresh
   )
 
-export const editRemote = (remote, { name, url, options }) =>
-  _call('remote.set', resolveIds({ remote, name, url, options }))::tap(() => {
+export const editRemote = (remote, { name, options, proxy, url }) =>
+  _call('remote.set', {
+    id: resolveId(remote),
+    name,
+    options,
+    proxy: resolveId(proxy),
+    url,
+  })::tap(() => {
+    subscribeRemotes.forceRefresh()
     testRemote(remote).catch(noop)
   })
 
@@ -2255,7 +2361,7 @@ export const fetchFiles = (remote, disk, partition, paths, format) =>
     'backup.fetchFiles',
     resolveIds({ remote, disk, partition, paths, format })
   ).then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+    window.open(`.${url}`)
   })
 
 // File restore NG  ----------------------------------------------------
@@ -2271,7 +2377,7 @@ export const fetchFilesNg = (remote, disk, partition, paths) =>
     'backupNg.fetchFiles',
     resolveIds({ remote, disk, partition, paths })
   ).then(({ $getFrom: url }) => {
-    window.location = `.${url}`
+    window.open(`.${url}`)
   })
 
 // -------------------------------------------------------------------
@@ -2950,3 +3056,84 @@ export const openTunnel = () =>
 export const subscribeTunnelState = createSubscription(() =>
   _call('xoa.supportTunnel.getState')
 )
+
+export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
+
+// Proxy --------------------------------------------------------------------
+
+export const deployProxyAppliance = (sr, props) =>
+  _call('proxy.deploy', { sr: resolveId(sr), ...props })::tap(
+    subscribeProxies.forceRefresh
+  )
+
+export const editProxyAppliance = (proxy, { vm, ...props }) =>
+  _call('proxy.update', {
+    id: resolveId(proxy),
+    vm: resolveId(vm),
+    ...props,
+  })::tap(subscribeProxies.forceRefresh)
+
+const _forgetProxyAppliance = proxy =>
+  _call('proxy.unregister', { id: resolveId(proxy) })
+export const forgetProxyAppliances = proxies =>
+  confirm({
+    title: _('forgetProxyApplianceTitle', { n: proxies.length }),
+    body: _('forgetProxyApplianceMessage', { n: proxies.length }),
+  }).then(() =>
+    Promise.all(map(proxies, _forgetProxyAppliance))::tap(
+      subscribeProxies.forceRefresh
+    )
+  )
+
+const _destroyProxyAppliance = proxy =>
+  _call('proxy.destroy', { id: resolveId(proxy) })
+export const destroyProxyAppliances = proxies =>
+  confirm({
+    title: _('destroyProxyApplianceTitle', { n: proxies.length }),
+    body: _('destroyProxyApplianceMessage', { n: proxies.length }),
+  }).then(() =>
+    Promise.all(map(proxies, _destroyProxyAppliance))::tap(
+      subscribeProxies.forceRefresh
+    )
+  )
+
+export const upgradeProxyAppliance = proxy =>
+  _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
+
+export const checkProxyHealth = proxy =>
+  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>
+    success(
+      <span>
+        <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
+      </span>,
+      _('proxyTestSuccessMessage')
+    )
+  )
+
+// Audit plugin ---------------------------------------------------------
+
+const METHOD_NOT_FOUND_CODE = -32601
+export const fetchAuditRecords = async () => {
+  try {
+    const { $getFrom } = await _call('audit.getRecords', { ndjson: true })
+    const response = await fetch(`.${$getFrom}`)
+    const data = await response.text()
+
+    const records = []
+    parseNdJson(data, record => {
+      records.push(record)
+    })
+    return records
+  } catch (error) {
+    if (error.code === METHOD_NOT_FOUND_CODE) {
+      return []
+    }
+    throw error
+  }
+}
+
+export const checkAuditRecordsIntegrity = (oldest, newest) =>
+  _call('audit.checkIntegrity', { oldest, newest })
+
+export const generateAuditFingerprint = oldest =>
+  _call('audit.generateFingerprint', { oldest })

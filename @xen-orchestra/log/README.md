@@ -51,13 +51,10 @@ const transport = transportEmail({
   service: 'gmail',
   auth: {
     user: 'jane.smith@gmail.com',
-    pass: 'H&NbECcpXF|pyXe#%ZEb'
+    pass: 'H&NbECcpXF|pyXe#%ZEb',
   },
   from: 'jane.smith@gmail.com',
-  to: [
-    'jane.smith@gmail.com',
-    'sam.doe@yahoo.com'
-  ]
+  to: ['jane.smith@gmail.com', 'sam.doe@yahoo.com'],
 })
 
 configure([
@@ -67,14 +64,14 @@ configure([
     // matched against the namespace of the logs
     filter: process.env.DEBUG,
 
-    transport: transportConsole()
+    transport: transportConsole(),
   },
   {
     // only levels >= warn
     level: 'warn',
 
-    transport
-  }
+    transport,
+  },
 ])
 
 // send all global errors (uncaught exceptions, warnings, unhandled rejections)
@@ -105,18 +102,17 @@ Configuration:
 ```js
 import transportEmail from '@xen-orchestra/log/transports/email'
 
-configure(transportEmail({
-  service: 'gmail',
-  auth: {
-    user: 'jane.smith@gmail.com',
-    pass: 'H&NbECcpXF|pyXe#%ZEb'
-  },
-  from: 'jane.smith@gmail.com',
-  to: [
-    'jane.smith@gmail.com',
-    'sam.doe@yahoo.com'
-  ]
-}))
+configure(
+  transportEmail({
+    service: 'gmail',
+    auth: {
+      user: 'jane.smith@gmail.com',
+      pass: 'H&NbECcpXF|pyXe#%ZEb',
+    },
+    from: 'jane.smith@gmail.com',
+    to: ['jane.smith@gmail.com', 'sam.doe@yahoo.com'],
+  })
+)
 ```
 
 #### Syslog
@@ -160,7 +156,7 @@ configure(transportSyslog('tcp://syslog.company.lan'))
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:

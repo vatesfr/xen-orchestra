@@ -94,11 +94,30 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 @mixin(mapToArray(mixins))
 export default class Xapi extends XapiBase {
-  constructor({ guessVhdSizeOnImport, maxUncoalescedVdis, ...opts }) {
+  constructor({
+    guessVhdSizeOnImport,
+    maxUncoalescedVdis,
+    vdiExportConcurrency,
+    vmExportConcurrency,
+    vmSnapshotConcurrency,
+    ...opts
+  }) {
     super(opts)
 
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
     this._maxUncoalescedVdis = maxUncoalescedVdis
+
+    const waitStreamEnd = async stream => fromEvent(await stream, 'end')
+    this._exportVdi = concurrency(
+      vdiExportConcurrency,
+      waitStreamEnd
+    )(this._exportVdi)
+    this.exportVm = concurrency(
+      vmExportConcurrency,
+      waitStreamEnd
+    )(this.exportVm)
+
+    this._snapshotVm = concurrency(vmSnapshotConcurrency)(this._snapshotVm)
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (getObject => (...args) => {
@@ -205,7 +224,7 @@ export default class Xapi extends XapiBase {
   // Wait for an object to be in a given state.
   //
   // Faster than _waitObject() with a function.
-  _waitObjectState(idOrUuidOrRef, predicate) {
+  async _waitObjectState(idOrUuidOrRef, predicate) {
     const object = this.getObject(idOrUuidOrRef, null)
     if (object && predicate(object)) {
       return object
@@ -689,7 +708,6 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns a stream to the exported VM.
-  @concurrency(2, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   async exportVm($cancelToken, vmId, { compress = false } = {}) {
     const vm = this.getObject(vmId)
@@ -1121,6 +1139,7 @@ export default class Xapi extends XapiBase {
       sr,
       mapVdisSrs,
       mapVifsNetworks,
+      force = false,
     }
   ) {
     // VDIs/SRs mapping
@@ -1168,7 +1187,7 @@ export default class Xapi extends XapiBase {
         vdis,
         vifsMap,
         {
-          force: 'true',
+          force: force ? 'true' : 'false',
         }
         // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
         // might need to be changed one day.
@@ -1381,7 +1400,11 @@ export default class Xapi extends XapiBase {
         }
 
         const table = tables[entry.name]
-        const vhdStream = await vmdkToVhd(stream, table)
+        const vhdStream = await vmdkToVhd(
+          stream,
+          table.grainLogicalAddressList,
+          table.grainFileOffsetList
+        )
         await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
 
         // See: https://github.com/mafintosh/tar-stream#extracting
@@ -1418,7 +1441,7 @@ export default class Xapi extends XapiBase {
     vmId,
     hostXapi,
     hostId,
-    { sr, migrationNetworkId, mapVifsNetworks, mapVdisSrs } = {}
+    { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
@@ -1438,11 +1461,12 @@ export default class Xapi extends XapiBase {
         sr,
         mapVdisSrs,
         mapVifsNetworks,
+        force,
       })
     } else {
       try {
         await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
-          force: 'true',
+          force: force ? 'true' : 'false',
         })
       } catch (error) {
         if (error.code !== 'VM_REQUIRES_SR') {
@@ -1450,12 +1474,11 @@ export default class Xapi extends XapiBase {
         }
 
         // Retry using motion storage.
-        await this._migrateVmWithStorageMotion(vm, hostXapi, host, {})
+        await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force })
       }
     }
   }
 
-  @concurrency(2)
   @cancelable
   async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
     const vm = await this.getRecord('VM', vmRef)
@@ -1498,6 +1521,8 @@ export default class Xapi extends XapiBase {
         } catch (error) {
           const { code } = error
           if (
+            // removed in CH 8.1
+            code !== 'MESSAGE_REMOVED' &&
             code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
             // quiesce only work on a running VM
             code !== 'VM_BAD_POWER_STATE' &&
@@ -1693,25 +1718,31 @@ export default class Xapi extends XapiBase {
     return this.callAsync('VDI.clone', vdi.$ref).then(extractOpaqueRef)
   }
 
-  async createVdi({
-    // blindly copying `sm_config` from another VDI can create problems,
-    // therefore it is ignored by this method
-    //
-    // see https://github.com/vatesfr/xen-orchestra/issues/4482
-    name_description,
-    name_label,
-    other_config = {},
-    read_only = false,
-    sharable = false,
-    SR,
-    tags,
-    type = 'user',
-    virtual_size,
-    xenstore_data,
+  async createVdi(
+    {
+      name_description,
+      name_label,
+      other_config = {},
+      read_only = false,
+      sharable = false,
+      sm_config,
+      SR,
+      tags,
+      type = 'user',
+      virtual_size,
+      xenstore_data,
 
-    size,
-    sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
-  }) {
+      size,
+      sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
+    },
+    {
+      // blindly copying `sm_config` from another VDI can create problems,
+      // therefore it is ignored by default by this method
+      //
+      // see https://github.com/vatesfr/xen-orchestra/issues/4482
+      setSmConfig = false,
+    } = {}
+  ) {
     sr = this.getObject(sr)
     log.debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
@@ -1725,6 +1756,7 @@ export default class Xapi extends XapiBase {
         SR: sr.$ref,
         tags,
         type,
+        sm_config: setSmConfig ? sm_config : undefined,
         virtual_size: size !== undefined ? parseSize(size) : virtual_size,
         xenstore_data,
       }).then(extractOpaqueRef)
@@ -1910,7 +1942,6 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  @concurrency(12, stream => stream.then(stream => fromEvent(stream, 'end')))
   @cancelable
   _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const query = {
@@ -2117,18 +2148,25 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable
-  async createBondedNetwork($defer, { bondMode, mac = '', pifIds, ...params }) {
+  async createBondedNetwork(
+    $defer,
+    { bondMode, pifIds: masterPifIds, ...params }
+  ) {
     const network = await this.createNetwork(params)
     $defer.onFailure(() => this.deleteNetwork(network))
-    // TODO: test and confirm:
-    // Bond.create is called here with PIFs from one host but XAPI should then replicate the
-    // bond on each host in the same pool with the corresponding PIFs (ie same interface names?).
-    await this.call(
-      'Bond.create',
-      network.$ref,
-      map(pifIds, pifId => this.getObject(pifId).$ref),
-      mac,
-      bondMode
+
+    const pifsByHost = {}
+    masterPifIds.forEach(pifId => {
+      this.getObject(pifId).$network.$PIFs.forEach(pif => {
+        if (pifsByHost[pif.host] === undefined) {
+          pifsByHost[pif.host] = []
+        }
+        pifsByHost[pif.host].push(pif.$ref)
+      })
+    })
+
+    await asyncMap(pifsByHost, pifs =>
+      this.call('Bond.create', network.$ref, pifs, '', bondMode)
     )
 
     return network

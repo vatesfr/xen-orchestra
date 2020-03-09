@@ -1,0 +1,22 @@
+{
+  "private": false,
+  "name": "@xen-orchestra/backups",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/backups",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/backups",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "version": "0.1.1",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  },
+  "dependencies": {
+    "d3-time-format": "^2.2.3",
+    "fs-extra": "^8.1.0"
+  }
+}

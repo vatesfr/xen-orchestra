@@ -2,8 +2,7 @@
 
 ## Apache
 
-As XO-web and XO-server communicate with *WebSockets*, you need to have the [`mod_proxy`](http://httpd.apache.org/docs/2.4/mod/mod_proxy.html), [`mod_proxy_http`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_http.html), [`mod_proxy_wstunnel`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html) and [`mod_rewrite`](http://httpd.apache.org/docs/2.4/mod/mod_rewrite.html) modules enabled.
-
+As XO-web and XO-server communicate with _WebSockets_, you need to have the [`mod_proxy`](http://httpd.apache.org/docs/2.4/mod/mod_proxy.html), [`mod_proxy_http`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_http.html), [`mod_proxy_wstunnel`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html) and [`mod_rewrite`](http://httpd.apache.org/docs/2.4/mod/mod_rewrite.html) modules enabled.
 
 Please use this configuration in this order or it will not work. Do not forget the trailing slashes!:
 
@@ -16,11 +15,9 @@ ProxyPass /[<path>]/ http://<xo-server ip>:<xo-server port>/
 ProxyPassReverse /[<path>]/ http://<xo-server ip>:<xo-server port>/
 ```
 
-
 ## NGINX
 
 Just configure your VirtualHost as usual (or your default site), with a `location` section like this one:
-
 
 ```nginx
 location /[<path>] {

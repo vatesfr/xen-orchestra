@@ -131,7 +131,7 @@ export class OvsdbClient {
       table: 'Port',
       row: {
         name: portName,
-        interfaces: ['set', [['named-uuid', 'new_iface']]],
+        interfaces: ['named-uuid', 'new_iface'],
         other_config: toMap({
           'xo:sdn-controller:private-network-uuid': privateNetworkUuid,
         }),
@@ -143,7 +143,7 @@ export class OvsdbClient {
       op: 'mutate',
       table: 'Bridge',
       where: [['_uuid', '==', ['uuid', bridge.uuid]]],
-      mutations: [['ports', 'insert', ['set', [['named-uuid', 'new_port']]]]],
+      mutations: [['ports', 'insert', ['named-uuid', 'new_port']]],
     }
     const params = [
       'Open_vSwitch',
@@ -487,7 +487,7 @@ export class OvsdbClient {
     let resultRequestId
     do {
       try {
-        result = await fromEvent(stream, 'data', {})
+        result = await fromEvent(stream, 'data')
       } catch (error) {
         log.error('Error while waiting for stream data', {
           error,
@@ -518,7 +518,7 @@ export class OvsdbClient {
     const socket = connect(options)
 
     try {
-      await fromEvent(socket, 'secureConnect', {})
+      await fromEvent(socket, 'secureConnect')
     } catch (error) {
       log.error('TLS connection failed', {
         error,

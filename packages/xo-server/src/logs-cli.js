@@ -4,10 +4,9 @@ import highland from 'highland'
 import levelup from 'level-party'
 import ndjson from 'ndjson'
 import parseArgs from 'minimist'
-import sublevel from 'level-sublevel'
+import sublevel from 'subleveldown'
 import util from 'util'
 import { join as joinPath } from 'path'
-import { repair as repairDb } from 'level'
 
 import { forEach } from './utils'
 import globMatcher from './glob-matcher'
@@ -180,8 +179,12 @@ export default async function main() {
   })
 
   if (args.repair) {
+    // eslint-disable-next-line node/no-extraneous-require
+    const { repair } = require(require.resolve('level', {
+      paths: [require.resolve('level-party')],
+    }))
     await new Promise((resolve, reject) => {
-      repairDb(`${config.datadir}/leveldb`, error => {
+      repair(`${config.datadir}/leveldb`, error => {
         if (error) {
           reject(error)
         } else {
@@ -194,8 +197,12 @@ export default async function main() {
   }
 
   const db = sublevel(
-    levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' })
-  ).sublevel('logs')
+    levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' }),
+    'logs',
+    {
+      valueEncoding: 'json',
+    }
+  )
 
   return printLogs(db, args)
 }

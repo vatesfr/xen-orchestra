@@ -1,4 +1,3 @@
-import { forEach, isFinite, isInteger } from 'lodash'
 import { pForOwn } from 'promise-toolbox'
 import { prompt } from 'inquirer'
 
@@ -95,11 +94,12 @@ const promptByType = {
     }
 
     n = schema.maxItems || Infinity
+    const m = defaultValue.length
     while (
       // eslint-disable-next-line no-unmodified-loop-condition
       i < n &&
       (await confirm('additional item?', {
-        default: false,
+        default: i < m,
       }))
     ) {
       await promptItem()
@@ -122,7 +122,7 @@ const promptByType = {
     input(path, {
       default: defaultValue || schema.default,
       filter: input => +input,
-      validate: input => isInteger(+input),
+      validate: input => Number.isInteger(+input),
     }),
 
   number: (schema, defaultValue, path) =>
@@ -137,7 +137,7 @@ const promptByType = {
 
     const required = {}
     schema.required &&
-      forEach(schema.required, name => {
+      schema.required.forEach(name => {
         required[name] = true
       })
 

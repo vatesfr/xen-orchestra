@@ -284,6 +284,7 @@ const TRANSFORMS = {
       addresses: (guestMetrics && guestMetrics.networks) || null,
       affinityHost: link(obj, 'affinity'),
       auto_poweron: otherConfig.auto_poweron === 'true',
+      bios_strings: obj.bios_strings,
       boot: obj.HVM_boot_params,
       CPUs: {
         max: +obj.VCPUs_max,
@@ -503,6 +504,7 @@ const TRANSFORMS = {
 
       attached: Boolean(obj.currently_attached),
       isBondMaster: !isEmpty(obj.bond_master_of),
+      isBondSlave: obj.bond_slave_of !== 'OpaqueRef:NULL',
       device: obj.device,
       deviceName: metrics && metrics.device_name,
       dns: obj.DNS,

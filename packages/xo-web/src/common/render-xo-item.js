@@ -12,7 +12,12 @@ import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
-import { isSrWritable, subscribeRemotes } from './xo'
+import {
+  isSrWritable,
+  subscribeProxies,
+  subscribeRemotes,
+  subscribeUsers,
+} from './xo'
 
 // ===================================================================
 
@@ -372,6 +377,27 @@ Remote.defaultProps = {
 
 // ===================================================================
 
+export const Proxy = decorate([
+  addSubscriptions(({ id }) => ({
+    proxy: cb =>
+      subscribeProxies(proxies => cb(proxies.find(proxy => proxy.id === id))),
+  })),
+  ({ id, proxy }) =>
+    proxy !== undefined ? (
+      <span>
+        <Icon icon='proxy' /> {proxy.name || proxy.address}
+      </span>
+    ) : (
+      unknowItem(id, 'proxy')
+    ),
+])
+
+Proxy.propTypes = {
+  id: PropTypes.string.isRequired,
+}
+
+// ===================================================================
+
 export const Vgpu = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
 }))(({ vgpu, vgpuType }) => (
@@ -382,6 +408,47 @@ export const Vgpu = connectStore(() => ({
 
 Vgpu.propTypes = {
   vgpu: PropTypes.object.isRequired,
+}
+
+// ===================================================================
+
+export const User = decorate([
+  addSubscriptions(({ id }) => ({
+    user: cb =>
+      subscribeUsers(users => {
+        const user = users.find(user => user.id === id)
+        cb(user === undefined ? null : user)
+      }),
+  })),
+  ({ defaultRender, id, link, newTab, user }) => {
+    if (user === undefined) {
+      return <Icon icon='loading' />
+    }
+    if (user === null) {
+      return defaultRender || unknowItem(id, 'user')
+    }
+    return (
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={`/settings/users?s=id:${id}`}
+      >
+        <Icon icon='user' /> {user.email}
+      </LinkWrapper>
+    )
+  },
+])
+
+User.propTypes = {
+  defaultRender: PropTypes.node,
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+User.defaultProps = {
+  link: false,
+  newTab: false,
 }
 
 // ===================================================================
@@ -399,12 +466,9 @@ const xoItemToRender = {
     </span>
   ),
   remote: ({ value: { id } }) => <Remote id={id} />,
+  proxy: ({ id }) => <Proxy id={id} />,
   role: role => <span>{role.name}</span>,
-  user: user => (
-    <span>
-      <Icon icon='user' /> {user.email}
-    </span>
-  ),
+  user: ({ id }) => <User id={id} />,
   resourceSet: resourceSet => (
     <span>
       <strong>

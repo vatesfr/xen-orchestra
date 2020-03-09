@@ -106,6 +106,19 @@ export default {
     }
   ),
 
+  // whether a resource is currently being created: `recipeCreatingResources[<recipe id>]`
+  recipeCreatingResources: combineActionHandlers(
+    {},
+    {
+      [actions.markRecipeAsCreating]: (prevRecipeCreatingResources, id) => ({
+        ...prevRecipeCreatingResources,
+        [id]: true,
+      }),
+      [actions.markRecipeAsDone]: (prevRecipeCreatedResources, id) =>
+        omit(prevRecipeCreatedResources, id),
+    }
+  ),
+
   objects: combineActionHandlers(
     {
       all: {}, // Mutable for performance!

@@ -1,8 +1,8 @@
 # Xen Orchestra Partner Program
 
-The Xen Orchestra partner program is designed to offer you the opportunity to become a reseller of Xen Orchestra and deliver a full stack solution to your customers. 
+The Xen Orchestra partner program is designed to offer you the opportunity to become a reseller of Xen Orchestra and deliver a full stack solution to your customers.
 
-> Becoming a reseller will grant you a standard discount. However, **the reseller status is designed for companies that want to actively prospect for new Xen Orchestra users**. That's why we are asking our partners to **resell Xen Orchestra at least two times a year**. If you are acting as a third party purchaser answering to a specific request from one of your customers, you don't need to apply to the reseller program - you can follow [this process](https://xen-orchestra.com/docs/through_purchase_department.html) instead. 
+> Becoming a reseller will grant you a standard discount. However, **the reseller status is designed for companies that want to actively prospect for new Xen Orchestra users**. That's why we are asking our partners to **resell Xen Orchestra at least two times a year**. If you are acting as a third party purchaser answering to a specific request from one of your customers, you don't need to apply to the reseller program - you can follow [this process](https://xen-orchestra.com/docs/through_purchase_department.html) instead.
 
 ## Apply to the program
 
@@ -22,7 +22,7 @@ Now that you can see the reseller interface:
 
 ![](./assets/purchasing-process.png)
 
-You can follow these steps to purchase an XOA edition for your customer. 
+You can follow these steps to purchase an XOA edition for your customer.
 
 1. choose the edition you want to purchase for your customer
 2. Buy it on your reseller page (the discount is automatically applied - once it's done, a new line appears on your reseller page)

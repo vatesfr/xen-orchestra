@@ -1,5 +1,6 @@
 {
   "name": "xo-server-sdn-controller",
+  "description": "Creates pool-wide and cross-pool private networks",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-sdn-controller",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -15,7 +16,7 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
-  "version": "0.3.1",
+  "version": "0.4.1",
   "engines": {
     "node": ">=8.10"
   },
@@ -30,8 +31,8 @@
   "dependencies": {
     "@xen-orchestra/log": "^0.2.0",
     "lodash": "^4.17.11",
-    "node-openssl-cert": "^0.0.101",
-    "promise-toolbox": "^0.14.0",
+    "node-openssl-cert": "^0.0.117",
+    "promise-toolbox": "^0.15.0",
     "uuid": "^3.3.2"
   },
   "private": true

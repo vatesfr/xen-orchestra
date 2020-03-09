@@ -1,7 +1,7 @@
 import appConf from 'app-conf'
 import assert from 'assert'
 import authenticator from 'otplib/authenticator'
-import blocked from 'blocked'
+import blocked from 'blocked-at'
 import compression from 'compression'
 import createExpress from 'express'
 import createLogger from '@xen-orchestra/log'
@@ -9,13 +9,14 @@ import crypto from 'crypto'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
+import ms from 'ms'
 import proxyConsole from './proxy-console'
 import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
-import { forOwn, map } from 'lodash'
+import { forOwn, map, once } from 'lodash'
 import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
@@ -120,13 +121,19 @@ function createExpressApp(config) {
 
 async function setUpPassport(express, xo, { authentication: authCfg }) {
   const strategies = { __proto__: null }
-  xo.registerPassportStrategy = strategy => {
-    passport.use(strategy)
-
-    const { name } = strategy
+  xo.registerPassportStrategy = (
+    strategy,
+    { label = strategy.label, name = strategy.name } = {}
+  ) => {
+    passport.use(name, strategy)
     if (name !== 'local') {
-      strategies[name] = strategy.label || name
+      strategies[name] = label ?? name
     }
+
+    return once(() => {
+      passport.unuse(name)
+      delete strategies[name]
+    })
   }
 
   // Registers the sign in form.
@@ -172,7 +179,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       setToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')
-      return res.redirect(303, '/signin-otp')
+      res.redirect(303, '/signin-otp')
     }
   })
 
@@ -202,10 +209,15 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
+  const UNCHECKED_URL_RE = /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
   express.use(async (req, res, next) => {
     const { url } = req
-    const matches = url.match(SIGNIN_STRATEGY_RE)
 
+    if (UNCHECKED_URL_RE.test(url)) {
+      return next()
+    }
+
+    const matches = url.match(SIGNIN_STRATEGY_RE)
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
         if (err) {
@@ -231,13 +243,9 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
 
     if (req.cookies.token) {
       next()
-    } else if (
-      /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/.test(url)
-    ) {
-      next()
     } else {
       req.flash('return-url', url)
-      return res.redirect(authCfg.defaultSignInPage)
+      res.redirect(authCfg.defaultSignInPage)
     }
   })
 
@@ -517,6 +525,7 @@ const setUpApi = (webServer, xo, config) => {
 
     // Create the abstract XO object for this connection.
     const connection = xo.createUserConnection()
+    connection.set('user_ip', remoteAddress)
     connection.once('close', () => {
       socket.close()
     })
@@ -598,7 +607,21 @@ const setUpConsoleProxy = (webServer, xo) => {
 
         const { remoteAddress } = socket
         log.info(`+ Console proxy (${user.name} - ${remoteAddress})`)
+
+        const data = {
+          timestamp: Date.now(),
+          userId: user.id,
+          userIp: remoteAddress,
+          userName: user.name,
+          vmId: id,
+        }
+        xo.emit('xo:audit', 'consoleOpened', data)
+
         socket.on('close', () => {
+          xo.emit('xo:audit', 'consoleClosed', {
+            ...data,
+            timestamp: Date.now(),
+          })
           log.info(`- Console proxy (${user.name} - ${remoteAddress})`)
         })
       }
@@ -635,19 +658,20 @@ export default async function main(args) {
     return USAGE
   }
 
-  {
-    const logPerf = createLogger('xo:perf')
-    blocked(
-      ms => {
-        logPerf.info(`blocked for ${ms | 0}ms`)
-      },
-      {
-        threshold: 500,
-      }
-    )
-  }
-
   const config = await loadConfiguration()
+
+  {
+    const { enabled, ...options } = config.blockedAtOptions
+    if (enabled) {
+      const logPerf = createLogger('xo:perf')
+      blocked((time, stack) => {
+        logPerf.info(`blocked for ${ms(time)}`, {
+          time,
+          stack,
+        })
+      }, options)
+    }
+  }
 
   const webServer = await createWebServer(config.http)
 

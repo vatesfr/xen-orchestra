@@ -11,6 +11,7 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
+import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import {
   countBy,
   findLast,
@@ -90,6 +91,7 @@ export type BackupJob = {|
   ...$Exact<Job>,
   compression?: 'native' | 'zstd' | '',
   mode: Mode,
+  proxy?: string,
   remotes?: SimpleIdPattern,
   settings: $Dict<Settings>,
   srs?: SimpleIdPattern,
@@ -608,7 +610,63 @@ export default class BackupNg {
           }
         }
         const jobId = job.id
-        const srs = unboxIdsFromPattern(job.srs).map(id => {
+
+        const remoteIds = unboxIdsFromPattern(job.remotes)
+        const srIds = unboxIdsFromPattern(job.srs)
+
+        if (job.proxy !== undefined) {
+          const vmIds = Object.keys(vms)
+
+          const recordToXapi = {}
+          const servers = new Set()
+          const handleRecord = uuid => {
+            const serverId = app.getXenServerIdByObject(uuid)
+            recordToXapi[uuid] = serverId
+            servers.add(serverId)
+          }
+          vmIds.forEach(handleRecord)
+          srIds.forEach(handleRecord)
+
+          const remotes = {}
+          const xapis = {}
+          await waitAll([
+            asyncMap(remoteIds, async id => {
+              remotes[id] = await app.getRemoteWithCredentials(id)
+            }),
+            asyncMap([...servers], async id => {
+              const {
+                allowUnauthorized,
+                host,
+                password,
+                username,
+              } = await app.getXenServer(id)
+              xapis[id] = {
+                allowUnauthorized,
+                credentials: {
+                  username,
+                  password,
+                },
+                url: host,
+              }
+            }),
+          ])
+
+          return app.callProxyMethod(job.proxy, 'backup.run', {
+            job: {
+              ...job,
+
+              // Make sure we are passing only the VM to run which can be
+              // different than the VMs in the job itself.
+              vms: { id: { __or: vmIds } },
+            },
+            recordToXapi,
+            remotes,
+            schedule,
+            xapis,
+          })
+        }
+
+        const srs = srIds.map(id => {
           const xapi = app.getXapi(id)
           return {
             __proto__: xapi.getObject(id),
@@ -616,7 +674,7 @@ export default class BackupNg {
           }
         })
         const remotes = await Promise.all(
-          unboxIdsFromPattern(job.remotes).map(async id => ({
+          remoteIds.map(async id => ({
             id,
             handler: await app.getRemoteHandler(id),
           }))
@@ -783,7 +841,36 @@ export default class BackupNg {
   // └─ task.end
   async importVmBackupNg(id: string, srId: string): Promise<string> {
     const app = this._app
+    const xapi = app.getXapi(srId)
+    const sr = xapi.getObject(srId)
+
     const { metadataFilename, remoteId } = parseVmBackupId(id)
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const {
+        allowUnauthorized,
+        host,
+        password,
+        username,
+      } = await app.getXenServer(app.getXenServerIdByObject(sr.$id))
+      return app.callProxyMethod(proxy, 'backup.importVmBackup', {
+        backupId: metadataFilename,
+        remote: {
+          url,
+          options,
+        },
+        srUuid: sr.uuid,
+        xapi: {
+          allowUnauthorized,
+          credentials: {
+            username,
+            password,
+          },
+          url: host,
+        },
+      })
+    }
+
     const handler = await app.getRemoteHandler(remoteId)
     const metadata: Metadata = JSON.parse(
       String(await handler.readFile(metadataFilename))
@@ -794,7 +881,6 @@ export default class BackupNg {
       throw new Error(`no importer for backup mode ${metadata.mode}`)
     }
 
-    const xapi = app.getXapi(srId)
     const { jobId, timestamp: time } = metadata
     const logger = this._logger
     return wrapTaskFn(
@@ -814,7 +900,7 @@ export default class BackupNg {
           metadataFilename,
           metadata,
           xapi,
-          xapi.getObject(srId),
+          sr,
           taskId,
           logger
         )::pFinally(() => {
@@ -831,6 +917,32 @@ export default class BackupNg {
     const app = this._app
     const backupsByVm = {}
     try {
+      const { proxy, url, options } = await app.getRemoteWithCredentials(
+        remoteId
+      )
+      if (proxy !== undefined) {
+        const { [remoteId]: backupsByVm } = await app.callProxyMethod(
+          proxy,
+          'backup.listVmBackups',
+          {
+            remotes: {
+              [remoteId]: {
+                url,
+                options,
+              },
+            },
+          }
+        )
+
+        // inject the remote id on the backup which is needed for importVmBackupNg()
+        forOwn(backupsByVm, backups =>
+          backups.forEach(backup => {
+            backup.id = `${remoteId}${backup.id}`
+          })
+        )
+        return backupsByVm
+      }
+
       const handler = await app.getRemoteHandler(remoteId)
 
       const entries = (
@@ -1302,6 +1414,10 @@ export default class BackupNg {
                 },
                 writeStream(fork, handler, dataFilename)
               )
+
+              if (handler._getFilePath !== undefined) {
+                await isValidXva(handler._getFilePath(dataFilename))
+              }
 
               await handler.outputFile(metadataFilename, jsonMetadata)
 

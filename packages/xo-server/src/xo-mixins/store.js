@@ -1,15 +1,19 @@
 import assert from 'assert'
 import levelup from 'level-party'
-import sublevel from 'level-sublevel'
+import sublevel from 'subleveldown'
 import { defer, fromEvent } from 'promise-toolbox'
 import { ensureDir } from 'fs-extra'
 import { iteratee, stubTrue } from 'lodash'
 
-import { forEach, promisify } from '../utils'
-
 // ===================================================================
 
-async function _levelHas(key) {
+const _levelHas = async function has(key, cb) {
+  if (cb) {
+    return this.get(key, (error, value) =>
+      error ? (error.notFound ? cb(null, false) : cb(error)) : cb(null, true)
+    )
+  }
+
   try {
     await this.get(key)
     return true
@@ -17,8 +21,8 @@ async function _levelHas(key) {
     if (!error.notFound) {
       throw error
     }
-    return false
   }
+  return false
 }
 
 // keep n element in the DB
@@ -85,40 +89,19 @@ const levelMethods = db => {
   return db
 }
 
-const levelPromise = db => {
-  const dbP = {}
-  forEach(db, (value, name) => {
-    if (typeof value !== 'function') {
-      return
-    }
-
-    if (name.endsWith('Stream') || name.startsWith('is')) {
-      dbP[name] = db::value
-    } else {
-      dbP[name] = promisify(value, db)
-    }
-  })
-
-  return dbP
-}
-
 // ===================================================================
 
 export default class {
   constructor(xo, config) {
     const dir = `${config.datadir}/leveldb`
-    this._db = ensureDir(dir).then(() => {
-      return sublevel(
-        levelup(dir, {
-          valueEncoding: 'json',
-        })
-      )
-    })
+    this._db = ensureDir(dir).then(() => levelup(dir))
   }
 
-  getStore(namespace) {
-    return this._db.then(db =>
-      levelMethods(levelPromise(db.sublevel(namespace)))
+  async getStore(namespace) {
+    return levelMethods(
+      sublevel(await this._db, namespace, {
+        valueEncoding: 'json',
+      })
     )
   }
 }

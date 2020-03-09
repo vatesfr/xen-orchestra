@@ -1,6 +1,7 @@
 {
+  "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "0.10.1",
+  "version": "0.10.3",
   "license": "AGPL-3.0",
   "description": "The File System for Xen Orchestra backups.",
   "keywords": [],
@@ -21,7 +22,7 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@marsaud/smb2": "^0.14.0",
+    "@marsaud/smb2": "^0.15.0",
     "@sindresorhus/df": "^3.1.1",
     "@xen-orchestra/async-map": "^0.0.0",
     "decorator-synchronized": "^0.5.0",
@@ -30,7 +31,7 @@
     "get-stream": "^5.1.0",
     "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.14.0",
+    "promise-toolbox": "^0.15.0",
     "readable-stream": "^3.0.6",
     "through2": "^3.0.0",
     "tmp": "^0.1.0",

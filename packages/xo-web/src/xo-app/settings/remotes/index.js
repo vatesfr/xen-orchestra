@@ -19,7 +19,8 @@ import { get } from '@xen-orchestra/defined'
 import { groupBy, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { Number, Password, Text } from 'editable'
+import { Number, Password, Text, XoSelect } from 'editable'
+import { Proxy } from 'render-xo-item'
 
 import {
   deleteRemote,
@@ -119,6 +120,28 @@ const COLUMN_SPEED = {
   ),
 }
 
+const COLUMN_PROXY = {
+  itemRenderer: remote => (
+    <XoSelect
+      onChange={proxy => editRemote(remote, { proxy })}
+      value={remote.proxy}
+      xoType='proxy'
+    >
+      {remote.proxy !== undefined ? (
+        <div>
+          <Proxy id={remote.proxy} />{' '}
+          <a role='button' onClick={() => editRemote(remote, { proxy: null })}>
+            <Icon icon='remove' />
+          </a>
+        </div>
+      ) : (
+        _('noValue')
+      )}
+    </XoSelect>
+  ),
+  name: _('proxy'),
+}
+
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
 const COLUMNS_LOCAL_REMOTE = [
   COLUMN_NAME,
@@ -137,6 +160,7 @@ const COLUMNS_LOCAL_REMOTE = [
   COLUMN_STATE,
   COLUMN_DISK,
   COLUMN_SPEED,
+  COLUMN_PROXY,
 ]
 const COLUMNS_NFS_REMOTE = [
   COLUMN_NAME,
@@ -199,6 +223,7 @@ const COLUMNS_NFS_REMOTE = [
   COLUMN_STATE,
   COLUMN_DISK,
   COLUMN_SPEED,
+  COLUMN_PROXY,
 ]
 const COLUMNS_SMB_REMOTE = [
   COLUMN_NAME,
@@ -266,6 +291,7 @@ const COLUMNS_SMB_REMOTE = [
     name: _('remoteAuth'),
   },
   COLUMN_SPEED,
+  COLUMN_PROXY,
 ]
 
 const GROUPED_ACTIONS = [
@@ -312,7 +338,10 @@ const INDIVIDUAL_ACTIONS = [
     level: 'primary',
   },
   {
-    handler: (remote, { editRemote }) => editRemote(remote),
+    handler: (remote, { reset, editRemote }) => {
+      reset()
+      editRemote(remote)
+    },
     icon: 'edit',
     label: _('formEdit'),
     level: 'primary',
@@ -372,6 +401,7 @@ export default decorate([
             columns={COLUMNS_LOCAL_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
+            data-reset={effects.reset}
             filters={FILTERS}
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
@@ -388,6 +418,7 @@ export default decorate([
             columns={COLUMNS_NFS_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
+            data-reset={effects.reset}
             filters={FILTERS}
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
@@ -404,6 +435,7 @@ export default decorate([
             columns={COLUMNS_SMB_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}
+            data-reset={effects.reset}
             filters={FILTERS}
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}

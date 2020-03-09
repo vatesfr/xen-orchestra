@@ -71,14 +71,7 @@ $ cp sample.config.toml ~/.config/xo-server/config.toml
 
 > Note: If you're installing `xo-server` as a global service, you may want to copy the file to `/etc/xo-server/config.toml` instead.
 
-Edit and uncomment it to have the right path to serve `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xen-orchestra` and `xo-web` are in the same directory):
-
-```toml
-[http.mounts]
-'/' = '../xo-web/dist/'
-```
-
-In this config file, you can also change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
+In this config file, you can change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
 
 You can try to start xo-server to see if it works. You should have something like this:
 
@@ -95,6 +88,7 @@ The only part you need to launch is xo-server, which is quite easy to do. From t
 ```
 $ yarn start
 ```
+
 That's it! Use your browser to visit the xo-server IP address, and it works! :)
 
 ## Updating
@@ -109,6 +103,7 @@ $ git pull --ff-only
 $ yarn
 $ yarn build
 ```
+
 Then restart Xen Orchestra if it was running.
 
 ## Always Running
@@ -121,7 +116,7 @@ yarn global add forever
 forever start bin/xo-server
 ```
 
-- Or you can use  [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
+- Or you can use [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
 
 ```
 yarn global add forever

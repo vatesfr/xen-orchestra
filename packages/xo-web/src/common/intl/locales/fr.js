@@ -897,13 +897,13 @@ export default {
   remoteNamePlaceHolder: 'nom distant*',
 
   // Original text: "Name *"
-  remoteMyNamePlaceHolder: 'Nom *',
+  remoteMyNamePlaceHolder: 'Nom',
 
   // Original text: "/path/to/backup"
   remoteLocalPlaceHolderPath: '/chemin/de/la/sauvegarde',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'hôte *',
+  remoteNfsPlaceHolderHost: 'hôte',
 
   // Original text: "path/to/backup"
   remoteNfsPlaceHolderPath: 'chemin/de/la/sauvegarde',
@@ -922,7 +922,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domaine',
 
   // Original text: "<address>\\<share> *"
-  remoteSmbPlaceHolderAddressShare: '<adresse>\\<partage> *',
+  remoteSmbPlaceHolderAddressShare: '<adresse>\\<partage>',
 
   // Original text: "password(fill to edit)"
   remotePlaceHolderPassword: 'mot de passe (saisir ici pour éditer)',
