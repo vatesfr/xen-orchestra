@@ -1,5 +1,4 @@
 import cookie from 'cookie'
-import defer from 'golike-defer'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
@@ -69,14 +68,15 @@ export default class Proxy {
   }) {
     await this._throwIfRegistered(address, vmUuid)
 
-    return this._db
-      .add({
-        address,
-        authenticationToken,
-        name,
-        vmUuid,
-      })
-      .then(extractProperties)
+    const {
+      properties: { id },
+    } = await this._db.add({
+      address,
+      authenticationToken,
+      name,
+      vmUuid,
+    })
+    return id
   }
 
   unregisterProxy(id) {
@@ -132,8 +132,7 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  @defer
-  async deployProxy($defer, srId, { network } = {}) {
+  async deployProxy(srId, { network } = {}) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
 
@@ -150,42 +149,49 @@ export default class Proxy {
       }),
       { srId }
     )
-    $defer.onFailure.call(xapi, '_deleteVm', vm)
+    let date, proxyAuthenticationToken, xenstoreData
+    try {
+      date = new Date()
+      proxyAuthenticationToken = await generateToken()
 
-    const [
-      password,
-      proxyAuthenticationToken,
-      { registrationToken, registrationEmail: email },
-    ] = await Promise.all([
-      generateToken(10),
-      generateToken(),
-      app.getApplianceRegistration(),
-    ])
-    const date = new Date()
-    const xenstoreData = {
-      'vm-data/system-account-xoa-password': password,
-      'vm-data/xo-proxy-authenticationToken': JSON.stringify(
-        proxyAuthenticationToken
-      ),
-      'vm-data/xoa-updater-credentials': JSON.stringify({
-        email,
-        registrationToken,
-      }),
-      'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
-    }
-    if (network !== undefined) {
-      xenstoreData['vm-data/ip'] = network.ip
-      xenstoreData['vm-data/gateway'] = network.gateway
-      xenstoreData['vm-data/netmask'] = network.netmask
-      xenstoreData['vm-data/dns'] = network.dns
-    }
-    await Promise.all([
-      vm.add_tags(xoProxyConf.vmTag),
-      vm.set_name_label(this._generateDefaultVmName(date)),
-      vm.update_xenstore_data(xenstoreData),
-    ])
+      const [
+        password,
+        { registrationToken, registrationEmail: email },
+      ] = await Promise.all([generateToken(10), app.getApplianceRegistration()])
+      xenstoreData = {
+        'vm-data/system-account-xoa-password': password,
+        'vm-data/xo-proxy-authenticationToken': JSON.stringify(
+          proxyAuthenticationToken
+        ),
+        'vm-data/xoa-updater-credentials': JSON.stringify({
+          email,
+          registrationToken,
+        }),
+        'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
+      }
+      if (network !== undefined) {
+        xenstoreData['vm-data/ip'] = network.ip
+        xenstoreData['vm-data/gateway'] = network.gateway
+        xenstoreData['vm-data/netmask'] = network.netmask
+        xenstoreData['vm-data/dns'] = network.dns
+      }
+      await Promise.all([
+        vm.add_tags(xoProxyConf.vmTag),
+        vm.set_name_label(this._generateDefaultVmName(date)),
+        vm.update_xenstore_data(xenstoreData),
+      ])
 
-    await xapi.startVm(vm.$id)
+      await xapi.startVm(vm.$id)
+    } catch (error) {
+      await xapi._deleteVm(vm)
+      throw error
+    }
+
+    const id = await this.registerProxy({
+      authenticationToken: proxyAuthenticationToken,
+      name: this._generateDefaultProxyName(date),
+      vmUuid: vm.uuid,
+    })
 
     await vm.update_xenstore_data(
       mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
@@ -217,18 +223,11 @@ export default class Proxy {
       xoaUpgradeTimeout
     )
 
-    const { id } = await this.registerProxy({
-      authenticationToken: proxyAuthenticationToken,
-      name: this._generateDefaultProxyName(date),
-      vmUuid: vm.uuid,
-    })
-    $defer.onFailure.call(this, 'unregisterProxy', id)
-
     await this.checkProxyHealth(id)
   }
 
-  checkProxyHealth(id) {
-    return this.callProxyMethod(id, 'system.getServerVersion')
+  async checkProxyHealth(id) {
+    await this.callProxyMethod(id, 'system.getServerVersion')
   }
 
   async callProxyMethod(id, method, params, expectStream = false) {

@@ -326,7 +326,10 @@ const makeStoreSelect = (createSelectors, defaultProps) =>
     ))
   )
 
-const makeSubscriptionSelect = (subscribe, props) =>
+const makeSubscriptionSelect = (
+  subscribe,
+  { placeholder, placeholderMulti = placeholder, ...props } = {}
+) =>
   uncontrollableInput(options)(
     class extends React.PureComponent {
       state = {}
@@ -366,6 +369,7 @@ const makeSubscriptionSelect = (subscribe, props) =>
           <GenericSelect
             {...props}
             {...this.props}
+            placeholder={this.props.multi ? placeholderMulti : placeholder}
             xoObjects={this._getFilteredXoObjects()}
             xoContainers={
               this.state.xoContainers && this._getFilteredXoContainers()
@@ -854,7 +858,7 @@ export const SelectProxy = makeSubscriptionSelect(
         })),
       })
     }),
-  { placeholder: _('selectProxies') }
+  { placeholderMulti: _('selectProxies'), placeholder: _('selectProxy') }
 )
 
 // ===================================================================

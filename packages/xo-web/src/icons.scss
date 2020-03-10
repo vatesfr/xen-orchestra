@@ -103,6 +103,10 @@
     @extend .fa;
     @extend .fa-cube;
   }
+  &-audit {
+    @extend .fa;
+    @extend .fa-list-alt;
+  }
 
   &-grab {
     @extend .fa;
@@ -314,6 +318,11 @@
     @extend .fa;
     @extend .fa-area-chart;
   }
+  &-ticket {
+    @extend .fa;
+    @extend .fa-ticket;
+  }
+
 
   // Backups
   &-backup {

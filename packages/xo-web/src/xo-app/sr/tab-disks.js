@@ -18,6 +18,7 @@ import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
 import { concat, groupBy, isEmpty, map, mapValues, pick, some } from 'lodash'
 import {
+  createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
   getCheckPermissions,
@@ -313,7 +314,7 @@ export default class SrDisks extends Component {
   _getIsVdiAttached = createSelector(
     createSelector(
       () => this.props.vbds,
-      () => map(this.props.vdis, 'id'),
+      createCollectionWrapper(() => map(this.props.vdis, 'id')),
       (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
     ),
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))

@@ -807,7 +807,36 @@ export default class BackupNg {
   // └─ task.end
   async importVmBackupNg(id: string, srId: string): Promise<string> {
     const app = this._app
+    const xapi = app.getXapi(srId)
+    const sr = xapi.getObject(srId)
+
     const { metadataFilename, remoteId } = parseVmBackupId(id)
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const {
+        allowUnauthorized,
+        host,
+        password,
+        username,
+      } = await app.getXenServer(app.getXenServerIdByObject(sr.$id))
+      return app.callProxyMethod(proxy, 'backup.importVmBackup', {
+        backupId: metadataFilename,
+        remote: {
+          url,
+          options,
+        },
+        srUuid: sr.uuid,
+        xapi: {
+          allowUnauthorized,
+          credentials: {
+            username,
+            password,
+          },
+          url: host,
+        },
+      })
+    }
+
     const handler = await app.getRemoteHandler(remoteId)
     const metadata: Metadata = JSON.parse(
       String(await handler.readFile(metadataFilename))
@@ -818,7 +847,6 @@ export default class BackupNg {
       throw new Error(`no importer for backup mode ${metadata.mode}`)
     }
 
-    const xapi = app.getXapi(srId)
     const { jobId, timestamp: time } = metadata
     const logger = this._logger
     return wrapTaskFn(
@@ -838,7 +866,7 @@ export default class BackupNg {
           metadataFilename,
           metadata,
           xapi,
-          xapi.getObject(srId),
+          sr,
           taskId,
           logger
         )::pFinally(() => {
@@ -855,6 +883,32 @@ export default class BackupNg {
     const app = this._app
     const backupsByVm = {}
     try {
+      const { proxy, url, options } = await app.getRemoteWithCredentials(
+        remoteId
+      )
+      if (proxy !== undefined) {
+        const { [remoteId]: backupsByVm } = await app.callProxyMethod(
+          proxy,
+          'backup.listVmBackups',
+          {
+            remotes: {
+              [remoteId]: {
+                url,
+                options,
+              },
+            },
+          }
+        )
+
+        // inject the remote id on the backup which is needed for importVmBackupNg()
+        forOwn(backupsByVm, backups =>
+          backups.forEach(backup => {
+            backup.id = `${remoteId}${backup.id}`
+          })
+        )
+        return backupsByVm
+      }
+
       const handler = await app.getRemoteHandler(remoteId)
 
       const entries = (

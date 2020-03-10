@@ -63,6 +63,8 @@ const messages = {
   dhcp: 'DHCP',
   ip: 'IP',
   static: 'Static',
+  user: 'User',
+  deletedUser: 'deleted ({ name })',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -114,6 +116,7 @@ const messages = {
   notificationsPage: 'Notifications',
   supportPage: 'Support',
   settingsPage: 'Settings',
+  settingsAuditPage: 'Audit',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
   settingsGroupsPage: 'Groups',
@@ -165,6 +168,7 @@ const messages = {
   checkXoa: 'Check XOA',
   xoaCheck: 'XOA check',
   closeTunnel: 'Close tunnel',
+  createSupportTicket: 'Create a support ticket',
   openTunnel: 'Open tunnel',
   supportCommunity:
     'The XOA check and the support tunnel are available in XOA.',
@@ -298,6 +302,7 @@ const messages = {
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
   selectProxies: 'Select proxy(ies)…',
+  selectProxy: 'Select proxy…',
   selectResourceSets: 'Select resource set(s)…',
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
@@ -1314,6 +1319,7 @@ const messages = {
   createVmModalTitle: 'Create VM',
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
+  copyHostBiosStrings: 'Copy host BIOS strings to VM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
@@ -1385,6 +1391,8 @@ const messages = {
   newVmUserConfigLabel: 'User config',
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
+  templateHasBiosStrings: 'The template already contains the BIOS strings',
+  vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1647,7 +1655,6 @@ const messages = {
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
-  chooseSrForEachVdisModalOptionalEntry: '* optional',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage:
     'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
@@ -1720,6 +1727,7 @@ const messages = {
   forgetSrsFromHostModalTitle: 'Forget SR{nPbds, plural, one {} other {s}}',
   forgetSrsFromHostModalMessage:
     'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).',
+  optionalEntry: '* optional',
 
   // ----- Servers -----
   serverLabel: 'Label',
@@ -2216,6 +2224,29 @@ const messages = {
   recipeNumberOfNodesLabel: 'Number of nodes',
   recipeSshKeyLabel: 'SSH key',
   recipeNetworkCidr: 'Network CIDR',
+
+  // Audit
+  auditActionEvent: 'Action/Event',
+  auditAlteredRecord:
+    'The record ({ id }) was altered ({ n, number } valid records)',
+  auditCheckIntegrity: 'Check integrity',
+  auditCopyFingerprintToClipboard: 'Copy fingerprint to clipboard',
+  auditGenerateNewFingerprint: 'Generate a new fingerprint',
+  auditMissingRecord:
+    'The record ({ id }) is missing ({ n, number } valid records)',
+  auditEnterFingerprint: 'Fingerprint',
+  auditEnterFingerprintInfo:
+    "Enter the saved fingerprint to check the previous logs' integrity. If you don't have any, click OK.",
+  auditRecord: 'Audit record',
+  auditIntegrityVerified: 'Integrity verified',
+  auditSaveFingerprintInfo:
+    'Keep this fingerprint to be able to check the integrity of the current records later.',
+  auditSaveFingerprintInErrorInfo:
+    'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
+  auditNewFingerprint: 'New fingerprint',
+  displayAuditRecord: 'Display record',
+  noAuditRecordAvailable: 'No audit record available',
+  refreshAuditRecordsList: 'Refresh records list',
 
   // Licenses
   xosanUnregisteredDisclaimer:

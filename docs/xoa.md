@@ -43,13 +43,12 @@ curl -sS https://xoa.io/deploy | bash
 > ```
 > curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protocol version
 > ```
-
-````
 >
 > It means that the secure HTTPS protocol is not supported, you can bypass this using the unsecure command instead:
+>
 > ```
 > curl -sS http://xoa.io/deploy | bash
-````
+> ```
 
 Follow the instructions:
 
