@@ -8,7 +8,7 @@ import { parseSize } from '../utils'
 
 // ====================================================================
 
-export const delete_ = defer(async function($defer, { vdi }) {
+export const delete_ = async function({ vdi }) {
   const resourceSet = reduce(
     vdi.$VBDs,
     (resourceSet, vbd) =>
@@ -16,15 +16,12 @@ export const delete_ = defer(async function($defer, { vdi }) {
     undefined
   )
 
+  await this.getXapi(vdi).deleteVdi(vdi._xapiId)
+
   if (resourceSet !== undefined) {
     await this.releaseLimitsInResourceSet({ disk: vdi.size }, resourceSet)
-    $defer.onFailure(() =>
-      this.allocateLimitsInResourceSet({ disl: vdi.size }, resourceSet)
-    )
   }
-
-  await this.getXapi(vdi).deleteVdi(vdi._xapiId)
-})
+}
 
 delete_.params = {
   id: { type: 'string' },

@@ -49,6 +49,7 @@ export const create = defer(async function(
     size,
     sr: sr._xapiId,
   })
+  $defer.onFailure(() => xapi.deleteVdi(vdi.$id))
 
   if (attach) {
     await xapi.createVbd({

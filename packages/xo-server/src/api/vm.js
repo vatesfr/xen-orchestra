@@ -339,14 +339,17 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function delete_({
-  delete_disks, // eslint-disable-line camelcase
-  force,
-  forceDeleteDefaultTemplate,
-  vm,
+const delete_ = defer(async function(
+  $defer,
+  {
+    delete_disks, // eslint-disable-line camelcase
+    force,
+    forceDeleteDefaultTemplate,
+    vm,
 
-  deleteDisks = delete_disks,
-}) {
+    deleteDisks = delete_disks,
+  }
+) {
   const xapi = this.getXapi(vm)
 
   this.getAllAcls().then(acls => {
@@ -376,11 +379,15 @@ async function delete_({
   )
 
   // Update resource sets
+  let resourceSet
   if (
     vm.type === 'VM' && // only regular VMs
-    xapi.xo.getData(vm._xapiId, 'resourceSet') != null
+    (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
-    this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
+    await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
+    $defer.onFailure(() =>
+      this.setVmResourceSet(vm._xapiId, resourceSet)::ignoreErrors()
+    )
   }
 
   return xapi.deleteVm(
@@ -389,7 +396,7 @@ async function delete_({
     force,
     forceDeleteDefaultTemplate
   )
-}
+})
 
 delete_.params = {
   id: { type: 'string' },
@@ -694,9 +701,6 @@ export const clone = defer(async function(
       vmResourcesUsage,
       vm.resourceSet,
       isAdmin
-    )
-    $defer.onFailure(() =>
-      this.releaseLimitsInResourceSet(vmResourcesUsage, vm.resourceSet)
     )
   }
 

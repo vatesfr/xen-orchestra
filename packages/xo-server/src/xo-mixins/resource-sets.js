@@ -386,6 +386,9 @@ export default class {
         resourcesUsage,
         previousResourceSetId
       )
+      $defer.onFailure(() =>
+        this.allocateLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+      )
     }
 
     await xapi.xo.setData(
