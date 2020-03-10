@@ -865,7 +865,8 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
   const extensionSize = diskSize - createVdiSize
   const newDisk = await xapi.createVdi(
     {
-      name_label: 'new VDI',
+      name_label: 'xosan_data',
+      name_description: 'Created by XO',
       size: createVdiSize,
       sr: sr,
       sm_config: { type: 'raw' },
