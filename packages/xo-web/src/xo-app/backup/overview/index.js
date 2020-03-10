@@ -14,10 +14,12 @@ import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { confirm } from 'modal'
-import { createSelector } from 'selectors'
+import { connectStore } from 'utils'
+import { createGetObject, createSelector } from 'selectors'
+import { destructSmartPattern } from 'smart-backup'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, map, groupBy, some } from 'lodash'
+import { flatten, includes, isEmpty, map, groupBy, some } from 'lodash'
 import { Proxy } from 'render-xo-item'
 import {
   cancelJob,
@@ -83,6 +85,16 @@ const MODES = [
     test: job => job.xoMetadata,
   },
 ]
+
+export const destructVmsPattern = pattern =>
+  pattern.id === undefined
+    ? {
+        pools: destructSmartPattern(pattern.pools, flatten),
+        tags: destructSmartPattern(pattern.tags, flatten),
+      }
+    : {
+        vms: destructPattern(pattern),
+      }
 
 const _deleteBackupJobs = items => {
   const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(
@@ -193,6 +205,9 @@ const SchedulePreviewBody = decorate([
     subscribeSchedules(schedules => {
       cb(groupBy(schedules, 'jobId'))
     }),
+})
+@connectStore({
+  vm: createGetObject((_, props) => props.vm),
 })
 class JobsTable extends React.Component {
   static contextTypes = {
@@ -335,10 +350,35 @@ class JobsTable extends React.Component {
     this.context.router.push(path)
   }
 
-  _getCollection = createSelector(
+  _getJobs = createSelector(
     () => this.props.jobs,
+    () => this.props.vm,
+    (jobs = [], vm) => {
+      if (vm === undefined) {
+        return jobs
+      }
+
+      const { id: vmId, $pool: vmPool, tags: vmTags } = vm
+      return jobs.filter(job => {
+        const { vms = [], pools = [], tags = [] } = destructVmsPattern(job.vms)
+        return (
+          vms.includes(vmId) ||
+          // smart mode
+          includes(pools.values, vmPool) ||
+          some(pools.notValues, poolId => poolId !== vmPool) ||
+          some(tags.values, tag => vmTags.includes(tag)) ||
+          some(tags.notValues, tag => !vmTags.includes(tag))
+        )
+      })
+    }
+  )
+
+  _getCollection = createSelector(
+    this._getJobs,
     () => this.props.metadataJobs,
-    (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
+    () => this.props.vm,
+    (jobs, metadataJobs = [], vm) =>
+      vm === undefined ? [...jobs, ...metadataJobs] : jobs
   )
 
   render() {
@@ -373,23 +413,32 @@ const Overview = decorate([
     },
   }),
   injectState,
-  ({ state: { haveLegacyBackups } }) => (
-    <div>
-      {haveLegacyBackups && <LegacyOverview />}
-      <div className='mt-2 mb-1'>
-        {haveLegacyBackups && <h3>{_('backup')}</h3>}
-        <Card>
-          <CardHeader>
-            <Icon icon='backup' /> {_('backupJobs')}
-          </CardHeader>
-          <CardBlock>
-            <JobsTable />
-          </CardBlock>
-        </Card>
-        <LogsTable />
+  ({ vm, state: { haveLegacyBackups } }) =>
+    vm === undefined ? (
+      <div>
+        {haveLegacyBackups && <LegacyOverview />}
+        <div className='mt-2 mb-1'>
+          {haveLegacyBackups && <h3>{_('backup')}</h3>}
+          <Card>
+            <CardHeader>
+              <Icon icon='backup' /> {_('backupJobs')}
+            </CardHeader>
+            <CardBlock>
+              <JobsTable />
+            </CardBlock>
+          </Card>
+          <LogsTable />
+        </div>
       </div>
-    </div>
-  ),
+    ) : (
+      <div>
+        {haveLegacyBackups && <LegacyOverview vm={vm} />}
+        <div className='mt-2 mb-1'>
+          {haveLegacyBackups && <h3>{_('backup')}</h3>}
+          <JobsTable vm={vm} />
+        </div>
+      </div>
+    ),
 ])
 
 export default Overview
