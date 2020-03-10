@@ -8,7 +8,7 @@ import { parseSize } from '../utils'
 
 // ====================================================================
 
-export const delete_ = async function({ vdi }) {
+export async function delete_({ vdi }) {
   const resourceSet = reduce(
     vdi.$VBDs,
     (resourceSet, vbd) =>
