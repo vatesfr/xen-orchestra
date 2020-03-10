@@ -1,3 +1,4 @@
+import assert from 'assert'
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
@@ -876,9 +877,7 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
   if (extensionSize > 0) {
     const { type, uuid: srUuid, $PBDs } = xapi.getObject(sr)
     const volume = `/dev/VG_XenStorage-${srUuid}/LV-${newDisk.uuid}`
-    if (type !== 'lvm') {
-      throw new Error('expecting a lvm sr type, got"' + type + '"')
-    }
+    assert.strictEqual(type, 'lvm')
     const result = await callPlugin(xapi, $PBDs[0].$host, 'run_lvextend', {
       sizeDiffMb: '+' + Math.floor(extensionSize / Math.pow(2, 20)),
       volume,
