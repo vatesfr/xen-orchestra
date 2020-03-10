@@ -10,6 +10,7 @@ Backup restore for large VM disks (>1TiB usage) is [broken on all XenServer vers
 - Citrix Hypervisor 8.0
 - XenServer 7.6
 - XenServer 7.5
+  - [VDI I/O error](https://bugs.xenserver.org/browse/XSO-873), waiting for Citrix to release our fix
 - XenServer 7.4
 - XenServer 7.3
 - XenServer 7.2
