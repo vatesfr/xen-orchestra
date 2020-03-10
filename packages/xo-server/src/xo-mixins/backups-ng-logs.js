@@ -1,12 +1,18 @@
 import ms from 'ms'
 import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
+import { noSuchObject } from 'xo-common/api-errors'
 
 import { debounceWithKey } from '../_pDebounceWithKey'
 
 const isSkippedError = error =>
   error.message === 'no disks found' ||
   error.message === 'no VMs match this pattern' ||
-  error.message === 'unhealthy VDI chain'
+  error.message === 'unhealthy VDI chain' ||
+  noSuchObject.is(error, {
+    data: {
+      type: 'VM',
+    },
+  })
 
 const getStatus = (
   error,
