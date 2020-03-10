@@ -131,30 +131,33 @@ const checkIntegrity = async () => {
     return
   }
 
-  if (fingerprint === '') {
-    return openGeneratedFingerprintModal(await generateAuditFingerprint())
-  }
+  let recentRecord
+  if (fingerprint !== '') {
+    const [oldest, newest] = fingerprint.split('|')
+    recentRecord = newest
 
-  const [oldest, newest] = fingerprint.split('|')
-  const error = await checkAuditRecordsIntegrity(oldest, newest).then(
-    noop,
-    error => {
-      if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
-        return {
-          nValid: error.data.nValid,
-          error,
+    const error = await checkAuditRecordsIntegrity(oldest, newest).then(
+      noop,
+      error => {
+        if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
+          return {
+            nValid: error.data.nValid,
+            error,
+          }
         }
+        throw error
       }
-      throw error
-    }
-  )
+    )
 
-  const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
-  if (!shouldGenerateFingerprint) {
-    return
+    const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
+    if (!shouldGenerateFingerprint) {
+      return
+    }
   }
 
-  await openGeneratedFingerprintModal(await generateAuditFingerprint(newest))
+  await openGeneratedFingerprintModal(
+    await generateAuditFingerprint(recentRecord)
+  )
 }
 
 const displayRecord = record =>
