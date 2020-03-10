@@ -1,5 +1,6 @@
 // FIXME: rename to disk.*
 
+import defer from 'golike-defer'
 import { invalidParameters } from 'xo-common/api-errors'
 import { reduce } from 'lodash'
 
@@ -7,7 +8,7 @@ import { parseSize } from '../utils'
 
 // ====================================================================
 
-export async function delete_({ vdi }) {
+export const delete_ = defer(async function($defer, { vdi }) {
   const resourceSet = reduce(
     vdi.$VBDs,
     (resourceSet, vbd) =>
@@ -16,11 +17,14 @@ export async function delete_({ vdi }) {
   )
 
   if (resourceSet !== undefined) {
-    await this.allocateLimitsInResourceSet({ disk: -vdi.size }, resourceSet)
+    await this.releaseLimitsInResourceSet({ disk: vdi.size }, resourceSet)
+    $defer.onFailure(() =>
+      this.allocateLimitsInResourceSet({ disl: vdi.size }, resourceSet)
+    )
   }
 
   await this.getXapi(vdi).deleteVdi(vdi._xapiId)
-}
+})
 
 delete_.params = {
   id: { type: 'string' },
@@ -35,7 +39,7 @@ export { delete_ as delete }
 // -------------------------------------------------------------------
 
 // FIXME: human readable strings should be handled.
-export async function set(params) {
+export const set = defer(async function($defer, params) {
   const { vdi } = params
   const xapi = this.getXapi(vdi)
   const ref = vdi._xapiRef
@@ -67,6 +71,12 @@ export async function set(params) {
         { disk: size - vdi.size },
         resourceSetId
       )
+      $defer.onFailure(() =>
+        this.releaseLimitsInResourceSet(
+          { disk: size - vdi.size },
+          resourceSetId
+        )
+      )
     } else {
       await this.checkPermissions(this.user.id, [[vdi.$SR, 'operate']])
     }
@@ -89,7 +99,7 @@ export async function set(params) {
       await xapi.call(`VDI.set_${field}`, ref, `${params[param]}`)
     }
   }
-}
+})
 
 set.params = {
   // Identifier of the VDI to update.

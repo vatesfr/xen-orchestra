@@ -45,7 +45,7 @@ const extract = (obj, prop) => {
 }
 
 // TODO: Implement ACLs
-export async function create(params) {
+export const create = defer(async function($defer, params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
@@ -143,9 +143,10 @@ export async function create(params) {
   if (resourceSet) {
     await this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
     checkLimits = async limits2 => {
-      await this.allocateLimitsInResourceSet(
-        assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2),
-        resourceSet
+      const _limits = assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2)
+      await this.allocateLimitsInResourceSet(_limits, resourceSet)
+      $defer.onFailure(() =>
+        this.releaseLimitsInResourceSet(_limits, resourceSet)
       )
     }
   }
@@ -179,7 +180,7 @@ export async function create(params) {
   }
 
   return vm.id
-}
+})
 
 create.params = {
   affinityHost: { type: 'string', optional: true },
@@ -531,7 +532,7 @@ migrate.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function set(params) {
+export const set = defer(async function($defer, params) {
   const VM = extract(params, 'VM')
   const xapi = this.getXapi(VM)
   const vmId = VM._xapiId
@@ -555,7 +556,11 @@ export async function set(params) {
 
     if (resourceSet) {
       try {
-        return await this.allocateLimitsInResourceSet(limits, resourceSet)
+        await this.allocateLimitsInResourceSet(limits, resourceSet)
+        $defer.onFailure(() =>
+          this.releaseLimitsInResourceSet(limits, resourceSet)
+        )
+        return
       } catch (error) {
         // if the resource set no longer exist, behave as if the VM is free
         if (!noSuchObject.is(error)) {
@@ -568,7 +573,7 @@ export async function set(params) {
       throw unauthorized()
     }
   })
-}
+})
 
 set.params = {
   // Identifier of the VM to update.
@@ -684,10 +689,14 @@ export const clone = defer(async function(
   }
 
   if (vm.resourceSet !== undefined) {
+    const vmResourcesUsage = await this.computeVmResourcesUsage(vm)
     await this.allocateLimitsInResourceSet(
-      await this.computeVmResourcesUsage(vm),
+      vmResourcesUsage,
       vm.resourceSet,
       isAdmin
+    )
+    $defer.onFailure(() =>
+      this.releaseLimitsInResourceSet(vmResourcesUsage, vm.resourceSet)
     )
   }
 
