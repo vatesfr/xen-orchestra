@@ -696,9 +696,8 @@ export const clone = defer(async function(
   }
 
   if (vm.resourceSet !== undefined) {
-    const vmResourcesUsage = await this.computeVmResourcesUsage(vm)
     await this.allocateLimitsInResourceSet(
-      vmResourcesUsage,
+      await this.computeVmResourcesUsage(vm),
       vm.resourceSet,
       isAdmin
     )
