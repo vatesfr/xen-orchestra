@@ -137,7 +137,6 @@ export default class Proxy {
 
     if (proxyId !== undefined) {
       const { vmUuid } = await this._getProxy(proxyId)
-
       if (vmUuid !== undefined) {
         await app.getXapi(vmUuid).deleteVm(vmUuid)
         await this.updateProxy(proxyId, {
