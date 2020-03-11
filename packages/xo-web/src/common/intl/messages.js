@@ -168,6 +168,7 @@ const messages = {
   checkXoa: 'Check XOA',
   xoaCheck: 'XOA check',
   closeTunnel: 'Close tunnel',
+  createSupportTicket: 'Create a support ticket',
   openTunnel: 'Open tunnel',
   supportCommunity:
     'The XOA check and the support tunnel are available in XOA.',
@@ -2298,6 +2299,9 @@ const messages = {
     'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
   destroyProxies: 'Destroy proxy(ies)',
   deployProxy: 'Deploy a proxy',
+  redeployProxy: 'Redeploy proxy',
+  redeployProxyAction: 'Redeploy this proxy',
+  redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   upgradeProxyAppliance: 'upgrade the appliance',
