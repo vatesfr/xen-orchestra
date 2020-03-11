@@ -2,7 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
-import defined from '@xen-orchestra/defined'
+import defined, { get } from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
@@ -76,7 +76,12 @@ import {
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
-import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
+import {
+  createGetObject,
+  createGetObjectsOfType,
+  createSelector,
+  isAdmin,
+} from 'selectors'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -419,6 +424,7 @@ const NIC_TYPE_OPTIONS = [
     gpuGroup: getGpuGroup,
     isAdmin,
     vgpus: getVgpus,
+    vmPool: createGetObject((_, props) => get(() => props.vm.$pool)),
   }
 })
 export default class TabAdvanced extends Component {
@@ -456,7 +462,7 @@ export default class TabAdvanced extends Component {
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
   render() {
-    const { container, isAdmin, vgpus, vm } = this.props
+    const { container, isAdmin, vgpus, vm, vmPool } = this.props
     return (
       <Container>
         <Row>
@@ -780,7 +786,11 @@ export default class TabAdvanced extends Component {
                     <th>{_('vmBootFirmware')}</th>
                     <td>
                       <SelectBootFirmware
-                        host={vm.$container}
+                        host={
+                          vm.power_state === 'Running'
+                            ? vm.$container
+                            : get(() => vmPool.master)
+                        }
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
