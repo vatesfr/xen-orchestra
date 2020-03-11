@@ -117,11 +117,21 @@ encoding by prefixing with `json:`:
 > xo-cli vm.export vm=a01667e0-8e29-49fc-a550-17be4226783c @=vm.xva
 ```
 
-##### VM import
+##### XVA VM import
 
 ```
 > xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
+
+> Note: `xo-cli` only supports the import of XVA files. It will not import OVA files.
+
+##### OVA VM import
+
+```
+> xo-upload-ova --upload dsl.ova a7c630bf-b38c-489e-d3c3-e62507948980 --override 'nameLabel=dsl ' descriptionLabel='short desc' memory=json:671088640 disks.vmdisk1.descriptionLabel='disk description' disks.vmdisk1.capacity=json:1342177280
+```
+
+Note: `xo-upload-ova` is a separate utility to import .ova files
 
 ## Development
 

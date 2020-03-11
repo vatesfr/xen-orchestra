@@ -29,5 +29,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-vmdk-to-vhd v0.2.0
+- xo-upload-ova v0.1.0
 - xo-server minor
 - xo-web minor

@@ -1342,6 +1342,7 @@ export default class Xapi extends XapiBase {
         memory_dynamic_max: memory,
         memory_dynamic_min: memory,
         memory_static_max: memory,
+        memory_static_min: memory,
         name_description: descriptionLabel,
         name_label: nameLabel,
         VCPUs_at_startup: nCpus,
@@ -1405,11 +1406,14 @@ export default class Xapi extends XapiBase {
           table.grainLogicalAddressList,
           table.grainFileOffsetList
         )
-        await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
-
-        // See: https://github.com/mafintosh/tar-stream#extracting
-        // No import parallelization.
-        cb()
+        try {
+          await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+          // See: https://github.com/mafintosh/tar-stream#extracting
+          // No import parallelization.
+          cb()
+        } catch (e) {
+          reject(e)
+        }
       })
       stream.pipe(extract)
     })
