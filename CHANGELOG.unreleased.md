@@ -15,7 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XOSAN] Fix the installer (PR [#4839](https://github.com/vatesfr/xen-orchestra/pull/4839))
-- [OVA Import] Fix the minimum static memory of imported VM (PR [#4866](https://github.com/vatesfr/xen-orchestra/pull/4866))
+- [OVA Import] Fix *no host available* error when starting for imported VMs with low memory (PR [#4866](https://github.com/vatesfr/xen-orchestra/pull/4866))
 
 ### Released packages
 
