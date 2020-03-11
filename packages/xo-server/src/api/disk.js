@@ -1,6 +1,7 @@
-import createLogger from '@xen-orchestra/log'
-import pump from 'pump'
 import convertVmdkToVhdStream from 'xo-vmdk-to-vhd'
+import createLogger from '@xen-orchestra/log'
+import defer from 'golike-defer'
+import pump from 'pump'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { peekFooterFromVhdStream } from 'vhd-lib'
@@ -11,7 +12,10 @@ const log = createLogger('xo:disk')
 
 // ===================================================================
 
-export async function create({ name, size, sr, vm, bootable, position, mode }) {
+export const create = defer(async function(
+  $defer,
+  { name, size, sr, vm, bootable, position, mode }
+) {
   const attach = vm !== undefined
 
   do {
@@ -22,6 +26,9 @@ export async function create({ name, size, sr, vm, bootable, position, mode }) {
           sr.id,
         ])
         await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
+        $defer.onFailure(() =>
+          this.releaseLimitsInResourceSet({ disk: size }, resourceSet)
+        )
 
         break
       } catch (error) {
@@ -42,6 +49,7 @@ export async function create({ name, size, sr, vm, bootable, position, mode }) {
     size,
     sr: sr._xapiId,
   })
+  $defer.onFailure(() => xapi.deleteVdi(vdi.$id))
 
   if (attach) {
     await xapi.createVbd({
@@ -54,7 +62,7 @@ export async function create({ name, size, sr, vm, bootable, position, mode }) {
   }
 
   return vdi.$id
-}
+})
 
 create.description = 'create a new disk on a SR'
 
