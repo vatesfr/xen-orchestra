@@ -67,7 +67,7 @@ const Modal = decorate([
   }),
   injectState,
   injectIntl,
-  ({ effects, state, value, intl: { formatMessage } }) => (
+  ({ effects, redeploy, state, value, intl: { formatMessage } }) => (
     <Container>
       <SingleLineRow>
         <Col mediumSize={4}>
@@ -173,12 +173,20 @@ const Modal = decorate([
           </SingleLineRow>
         </div>
       )}
+      {redeploy && (
+        <SingleLineRow className='mt-1'>
+          <Col className='text-warning'>
+            <Icon icon='alarm' /> {_('redeployProxyWarning')}
+          </Col>
+        </SingleLineRow>
+      )}
     </Container>
   ),
 ])
 
-const deployProxy = () =>
-  form({
+const deployProxy = proxy => {
+  const isRedeployMode = proxy !== undefined
+  return form({
     defaultValue: {
       dns: '',
       gateway: '',
@@ -186,27 +194,28 @@ const deployProxy = () =>
       netmask: '',
       networkMode: 'dhcp',
     },
-    render: props => <Modal {...props} />,
+    render: props => <Modal {...props} redeploy={isRedeployMode} />,
     header: (
       <span>
-        <Icon icon='proxy' /> {_('deployProxy')}
+        <Icon icon='proxy' />{' '}
+        {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
       </span>
     ),
   }).then(({ sr, networkMode, ip, netmask, gateway, dns }) =>
-    deployProxyAppliance(
-      sr,
-      networkMode === 'static'
-        ? {
-            network: {
+    deployProxyAppliance(sr, {
+      network:
+        networkMode === 'static'
+          ? {
               dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
               gateway,
               ip,
               netmask:
                 (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
-            },
-          }
-        : undefined
-    )
+            }
+          : undefined,
+      proxy,
+    })
   )
+}
 
 export { deployProxy as default }
