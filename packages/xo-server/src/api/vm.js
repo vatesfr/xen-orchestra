@@ -152,6 +152,8 @@ export const create = defer(async function($defer, params) {
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
+  $defer.onFailure(() => xapi.deleteVm(xapiVm.$id, true, true))
+
   const vm = xapi.xo.addObject(xapiVm)
 
   if (resourceSet) {

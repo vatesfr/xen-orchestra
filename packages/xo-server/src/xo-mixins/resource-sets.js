@@ -396,6 +396,13 @@ export default class {
       'resourceSet',
       resourceSetId === undefined ? null : resourceSetId
     )
+    $defer.onFailure(() =>
+      xapi.xo.setData(
+        vmId,
+        'resourceSet',
+        previousResourceSetId === undefined ? null : previousResourceSetId
+      )
+    )
 
     if (previousResourceSetId !== undefined) {
       await this._xo.removeAclsForObject(vmId)
