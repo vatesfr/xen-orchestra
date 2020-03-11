@@ -83,7 +83,12 @@ test('An ova file is parsed correctly', async () => {
 })
 
 const expectedResult = {
-  tables: { [vmdkFileName]: [0, 65536] },
+  tables: {
+    [vmdkFileName]: {
+      grainFileOffsetList: [65536, 115712],
+      grainLogicalAddressList: [0, 65536],
+    },
+  },
   disks: {
     vmdisk1: {
       capacity: 134217728,
