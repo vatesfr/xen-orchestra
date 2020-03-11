@@ -14,14 +14,13 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
-import { get } from '@xen-orchestra/defined'
 import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
 import {
   concat,
-  forEach,
+  every,
   groupBy,
   isEmpty,
   map,
@@ -307,10 +306,8 @@ class NewDisk extends Component {
 }
 
 @connectStore(() => ({
-  allVdis: createGetObjectsOfType('VDI'),
   checkPermissions: getCheckPermissions,
   vbds: createGetObjectsOfType('VBD'),
-  srs: createGetObjectsOfType('SR'),
 }))
 export default class SrDisks extends Component {
   _closeNewDiskForm = () => this.setState({ newDisk: false })
@@ -337,63 +334,12 @@ export default class SrDisks extends Component {
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
 
-  _getRequiredHosts = createSelector(
-    () => this.props.allVdis,
-    () => this.props.vbds,
-    () => this.props.srs,
+  // the warning will be displayed if the SR is local
+  // or the VDIs contain at least one VBD.
+  _getCheckSr = createSelector(
     createCollectionWrapper(_ => _),
-    (vdis, vbds, srs, selectedVdis) => {
-      const vbdsByVm = groupBy(vbds, 'VM')
-      const requiredHosts = new Set()
-      const vms = new Set()
-
-      selectedVdis.forEach(vdi => {
-        // Get the required host for each VM contains this VDI
-        forEach(vdi.$VBDs, vbdId => {
-          const vm = get(() => vbds[vbdId].VM)
-          if (vm !== undefined && !vms.has(vm)) {
-            vms.add(vm)
-            forEach(vbdsByVm[vm], vbd => {
-              let sr
-              let vmVdi
-              if (
-                !vbd.is_cd_drive &&
-                (vmVdi = vdis[vbd.VDI]) !== undefined &&
-                (sr = srs[vmVdi.$SR]) !== undefined &&
-                !isSrShared(sr)
-              ) {
-                requiredHosts.add(sr.$container)
-                return false
-              }
-            })
-          }
-        })
-
-        if (requiredHosts.size > 1) {
-          // No need to get all the required hosts
-          return false
-        }
-      })
-
-      if (
-        vms.size === 1 &&
-        vbdsByVm[vms.values().next().value].filter(vbd => !vbd.is_cd_drive)
-          .length === selectedVdis.length
-      ) {
-        // No required host when the selected VDIs are all the VDIs attached to a VM
-        return
-      }
-
-      return requiredHosts
-    }
-  )
-
-  _getCheckSr = createSelector(this._getRequiredHosts, requiredHosts => sr =>
-    sr === undefined ||
-    isSrShared(sr) ||
-    requiredHosts === undefined ||
-    (requiredHosts.size === 1 &&
-      sr.$container === requiredHosts.values().next().value)
+    vdis => sr =>
+      sr === undefined || isSrShared(sr) || every(vdis, _ => isEmpty(_.$VDBs))
   )
 
   _migrateVdis = vdis =>
