@@ -135,7 +135,8 @@ export default class Proxy {
   async deployProxy(srId, { network, proxyId } = {}) {
     const app = this._app
 
-    if (proxyId !== undefined) {
+    const redeploy = proxyId !== undefined
+    if (redeploy) {
       const { vmUuid } = await this._getProxy(proxyId)
       if (vmUuid !== undefined) {
         await app.getXapi(vmUuid).deleteVm(vmUuid)
@@ -198,7 +199,7 @@ export default class Proxy {
       throw error
     }
 
-    if (proxyId !== undefined) {
+    if (redeploy) {
       await this.updateProxy(proxyId, {
         authenticationToken: proxyAuthenticationToken,
         vmUuid: vm.uuid,

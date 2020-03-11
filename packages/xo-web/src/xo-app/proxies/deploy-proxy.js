@@ -67,7 +67,7 @@ const Modal = decorate([
   }),
   injectState,
   injectIntl,
-  ({ effects, reDeploy, state, value, intl: { formatMessage } }) => (
+  ({ effects, redeploy, state, value, intl: { formatMessage } }) => (
     <Container>
       <SingleLineRow>
         <Col mediumSize={4}>
@@ -173,10 +173,10 @@ const Modal = decorate([
           </SingleLineRow>
         </div>
       )}
-      {reDeploy && (
+      {redeploy && (
         <SingleLineRow className='mt-1'>
           <Col className='text-warning'>
-            <Icon icon='alarm' /> {_('reDeployProxyWarning')}
+            <Icon icon='alarm' /> {_('redeployProxyWarning')}
           </Col>
         </SingleLineRow>
       )}
@@ -185,7 +185,7 @@ const Modal = decorate([
 ])
 
 const deployProxy = proxy => {
-  const isReDeployMode = proxy !== undefined
+  const isRedeployMode = proxy !== undefined
   return form({
     defaultValue: {
       dns: '',
@@ -194,11 +194,11 @@ const deployProxy = proxy => {
       netmask: '',
       networkMode: 'dhcp',
     },
-    render: props => <Modal {...props} reDeploy={isReDeployMode} />,
+    render: props => <Modal {...props} redeploy={isRedeployMode} />,
     header: (
       <span>
         <Icon icon='proxy' />{' '}
-        {isReDeployMode ? _('reDeployProxy') : _('deployProxy')}
+        {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
       </span>
     ),
   }).then(({ sr, networkMode, ip, netmask, gateway, dns }) =>
