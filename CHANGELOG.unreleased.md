@@ -15,7 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XOSAN] Fix the installer (PR [#4839](https://github.com/vatesfr/xen-orchestra/pull/4839))
-- [auth-{github,google,saml}] Don't require manually reloading the plugin for configuration changes to take effect [#4863](https://github.com/vatesfr/xen-orchestra/issues/4234) (PR [#4864](https://github.com/vatesfr/xen-orchestra/pull/4864))
+[auth-{github,google,saml}] Don't require manually reloading the plugin for configuration changes to take effect [#4863](https://github.com/vatesfr/xen-orchestra/issues/4863) (PR [#4864](https://github.com/vatesfr/xen-orchestra/pull/4864))
 
 ### Released packages
 
