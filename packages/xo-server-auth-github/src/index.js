@@ -23,8 +23,13 @@ class AuthGitHubXoPlugin {
     this._xo = xo
   }
 
-  configure(conf) {
+  async configure({ usernameField, ...conf }, { loaded }) {
     this._conf = conf
+
+    if (loaded) {
+      await this.unload()
+      await this.load()
+    }
   }
 
   load() {
