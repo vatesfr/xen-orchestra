@@ -591,7 +591,7 @@ export default class BackupNg {
                   parentId: runJobId,
                   data: {
                     type: 'VM',
-                    id: id,
+                    id,
                   },
                 }
               )
