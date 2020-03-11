@@ -168,6 +168,7 @@ const messages = {
   checkXoa: 'Check XOA',
   xoaCheck: 'XOA check',
   closeTunnel: 'Close tunnel',
+  createSupportTicket: 'Create a support ticket',
   openTunnel: 'Open tunnel',
   supportCommunity:
     'The XOA check and the support tunnel are available in XOA.',
