@@ -13,14 +13,15 @@
 - [Cloud Config] Support both NoCloud and Config Drive 2 datasources for maximum compatibility (PR [#4053](https://github.com/vatesfr/xen-orchestra/pull/4053))
 - [Advanced] Configurable cookie validity (PR [#4059](https://github.com/vatesfr/xen-orchestra/pull/4059))
 - [Plugins] Display number of installed plugins [#4008](https://github.com/vatesfr/xen-orchestra/issues/4008) (PR [#4050](https://github.com/vatesfr/xen-orchestra/pull/4050))
-- [Import] remove support for host in vm.import
 - [Import] add CLI tool to import OVA files (PR [#3630](https://github.com/vatesfr/xen-orchestra/pull/3630))
+- [Proxies] Ability to redeploy a proxy VM [#4825](https://github.com/vatesfr/xen-orchestra/issues/4825) (PR [#4725](https://github.com/vatesfr/xen-orchestra/pull/4725))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XOSAN] Fix the installer (PR [#4839](https://github.com/vatesfr/xen-orchestra/pull/4839))
+- [Self] When a Self Service related operation fails, always revert the quotas to what they were before the operation (PR [#4861](https://github.com/vatesfr/xen-orchestra/pull/4861))
 
 ### Released packages
 

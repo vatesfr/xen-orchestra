@@ -132,8 +132,20 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  async deployProxy(srId, { network } = {}) {
+  async deployProxy(srId, { network, proxyId } = {}) {
     const app = this._app
+
+    const redeploy = proxyId !== undefined
+    if (redeploy) {
+      const { vmUuid } = await this._getProxy(proxyId)
+      if (vmUuid !== undefined) {
+        await app.getXapi(vmUuid).deleteVm(vmUuid)
+        await this.updateProxy(proxyId, {
+          vmUuid: null,
+        })
+      }
+    }
+
     const xoProxyConf = this._xoProxyConf
 
     const namespace = xoProxyConf.namespace
@@ -187,11 +199,18 @@ export default class Proxy {
       throw error
     }
 
-    const id = await this.registerProxy({
-      authenticationToken: proxyAuthenticationToken,
-      name: this._generateDefaultProxyName(date),
-      vmUuid: vm.uuid,
-    })
+    if (redeploy) {
+      await this.updateProxy(proxyId, {
+        authenticationToken: proxyAuthenticationToken,
+        vmUuid: vm.uuid,
+      })
+    } else {
+      proxyId = await this.registerProxy({
+        authenticationToken: proxyAuthenticationToken,
+        name: this._generateDefaultProxyName(date),
+        vmUuid: vm.uuid,
+      })
+    }
 
     await vm.update_xenstore_data(
       mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
@@ -223,7 +242,7 @@ export default class Proxy {
       xoaUpgradeTimeout
     )
 
-    await this.checkProxyHealth(id)
+    await this.checkProxyHealth(proxyId)
   }
 
   async checkProxyHealth(id) {
