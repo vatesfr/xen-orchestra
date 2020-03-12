@@ -11,21 +11,10 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
-import { addSubscriptions, connectStore } from 'utils'
-import { createGetObject, createSelector } from 'selectors'
+import { addSubscriptions } from 'utils'
+import { createSelector } from 'selectors'
 import { Card, CardHeader, CardBlock } from 'card'
-import {
-  includes,
-  isEmpty,
-  filter,
-  find,
-  forEach,
-  get,
-  keyBy,
-  map,
-  orderBy,
-  some,
-} from 'lodash'
+import { filter, find, forEach, get, keyBy, map, orderBy } from 'lodash'
 import {
   deleteBackupSchedule,
   disableSchedule,
@@ -36,8 +25,6 @@ import {
   subscribeSchedules,
   subscribeUsers,
 } from 'xo'
-
-import { destructVmsPattern } from '../overview'
 
 // ===================================================================
 
@@ -154,14 +141,12 @@ const JOB_COLUMNS = [
 
 // ===================================================================
 
-@addSubscriptions({
-  jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
+@addSubscriptions(({ jobPredicate }) => ({
+  jobs: cb =>
+    subscribeJobs(jobs => cb(keyBy(filter(jobs, jobPredicate), 'id'))),
   schedules: cb => subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
   users: subscribeUsers,
-})
-@connectStore({
-  vm: createGetObject((_, props) => props.vm),
-})
+}))
 export default class LegacyOverview extends Component {
   static contextTypes = {
     router: PropTypes.object,
@@ -189,34 +174,11 @@ export default class LegacyOverview extends Component {
     })
   }
 
-  _getJobs = createSelector(
-    () => this.props.jobs,
-    () => this.props.vm,
-    (jobs = [], vm) => {
-      if (vm === undefined) {
-        return jobs
-      }
-
-      const { id: vmId, $pool: vmPool, tags: vmTags } = vm
-      return jobs.filter(job => {
-        const { vms = [], pools = [], tags = [] } = destructVmsPattern(job.vms)
-        return (
-          vms.includes(vmId) ||
-          // smart mode
-          includes(pools.values, vmPool) ||
-          some(pools.notValues, poolId => poolId !== vmPool) ||
-          some(tags.values, tag => vmTags.includes(tag)) ||
-          some(tags.notValues, tag => !vmTags.includes(tag))
-        )
-      })
-    }
-  )
-
   _getScheduleCollection = createSelector(
     this._getSchedules,
-    this._getJobs,
+    () => this.props.jobs,
     (schedules, jobs) => {
-      if (!schedules || isEmpty(jobs)) {
+      if (!schedules || !jobs) {
         return []
       }
       return map(schedules, schedule => {
@@ -277,7 +239,7 @@ export default class LegacyOverview extends Component {
       ) : null
 
     return schedules.length !== 0 ? (
-      this.props.vm === undefined ? (
+      this.props.jobPredicate === undefined ? (
         <div>
           <h3>Legacy backup</h3>
           <Card>
