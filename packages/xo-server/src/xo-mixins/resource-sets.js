@@ -1,4 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
+import deferrable from 'golike-defer'
 import synchronized from 'decorator-synchronized'
 import {
   every,
@@ -354,7 +355,8 @@ export default class {
     await Promise.all(mapToArray(sets, set => this._save(set)))
   }
 
-  async setVmResourceSet(vmId, resourceSetId) {
+  @deferrable
+  async setVmResourceSet($defer, vmId, resourceSetId) {
     const xapi = this._xo.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
@@ -371,6 +373,9 @@ export default class {
 
     if (resourceSetId != null) {
       await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
+      $defer.onFailure(() =>
+        this.releaseLimitsInResourceSet(resourcesUsage, resourceSetId)
+      )
     }
 
     if (
@@ -381,12 +386,22 @@ export default class {
         resourcesUsage,
         previousResourceSetId
       )
+      $defer.onFailure(() =>
+        this.allocateLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+      )
     }
 
     await xapi.xo.setData(
       vmId,
       'resourceSet',
       resourceSetId === undefined ? null : resourceSetId
+    )
+    $defer.onFailure(() =>
+      xapi.xo.setData(
+        vmId,
+        'resourceSet',
+        previousResourceSetId === undefined ? null : previousResourceSetId
+      )
     )
 
     if (previousResourceSetId !== undefined) {
