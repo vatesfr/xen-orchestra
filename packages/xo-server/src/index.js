@@ -596,6 +596,8 @@ const setUpConsoleProxy = (webServer, xo) => {
 
     const [, id] = matches
     try {
+      const xapi = xo.getXapi(id, ['VM', 'VM-controller'])
+
       // TODO: factorize permissions checking in an Express middleware.
       {
         const { token } = parseCookies(req.headers.cookie)
@@ -613,8 +615,20 @@ const setUpConsoleProxy = (webServer, xo) => {
           userId: user.id,
           userIp: remoteAddress,
           userName: user.name,
-          vmId: id,
         }
+
+        const vm = xapi.getObject(id)
+        if (vm.is_control_domain) {
+          const host = xapi.getObject(vm.resident_on)
+          data.hostDescription = host.name_description
+          data.hostName = host.name_label
+          data.hostUuid = host.uuid
+        } else {
+          data.vmDescription = vm.name_description
+          data.vmName = vm.name_label
+          data.vmUuid = vm.uuid
+        }
+
         xo.emit('xo:audit', 'consoleOpened', data)
 
         socket.on('close', () => {
@@ -626,7 +640,6 @@ const setUpConsoleProxy = (webServer, xo) => {
         })
       }
 
-      const xapi = xo.getXapi(id, ['VM', 'VM-controller'])
       const vmConsole = xapi.getVmConsole(id)
 
       // FIXME: lost connection due to VM restart is not detected.
