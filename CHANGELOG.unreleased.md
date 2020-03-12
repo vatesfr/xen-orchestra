@@ -17,6 +17,7 @@
 
 - [XOSAN] Fix the installer (PR [#4839](https://github.com/vatesfr/xen-orchestra/pull/4839))
 - [Self] When a Self Service related operation fails, always revert the quotas to what they were before the operation (PR [#4861](https://github.com/vatesfr/xen-orchestra/pull/4861))
+- [auth-{github,google,saml}] Don't require manually reloading the plugin for configuration changes to take effect [#4863](https://github.com/vatesfr/xen-orchestra/issues/4863) (PR [#4864](https://github.com/vatesfr/xen-orchestra/pull/4864))
 
 ### Released packages
 
@@ -25,5 +26,8 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-auth-github patch
+- xo-server-auth-google patch
+- xo-server-auth-saml patch
 - xo-server minor
 - xo-web minor
