@@ -26,5 +26,8 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-auth-github patch
+- xo-server-auth-google patch
+- xo-server-auth-saml patch
 - xo-server minor
 - xo-web minor
