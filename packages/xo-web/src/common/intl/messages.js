@@ -2308,7 +2308,7 @@ const messages = {
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
   proxySrPredicateInfo:
-    'The selected SR should be at least connected to an HVM-capable host',
+    'The select contains only SRs connected to at least one HVM-capable host',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
