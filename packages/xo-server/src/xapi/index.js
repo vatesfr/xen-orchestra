@@ -546,6 +546,8 @@ export default class Xapi extends XapiBase {
     VCPUs_params,
     version,
     xenstore_data,
+
+    suspended,
   }) {
     log.debug(`Creating VM ${name_label}`)
 
@@ -598,6 +600,8 @@ export default class Xapi extends XapiBase {
         tags,
         version: asInteger(version),
         xenstore_data,
+
+        suspended,
       })
     )
   }
@@ -1007,7 +1011,9 @@ export default class Xapi extends XapiBase {
           ...delta.vm.other_config,
           [TAG_COPY_SRC]: delta.vm.uuid,
         },
-        suspend_VDI: delta.vmSnapshot.suspend_VDI,
+
+        // See https://github.com/xcp-ng/xen-api/pull/1#discussion_r391519169
+        suspended: delta.vm.power_state === 'Suspended',
       })
     )
     $defer.onFailure(() => this._deleteVm(vm))
@@ -1047,8 +1053,8 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
 
-      if (vdiRef === delta.snapshotVm.suspend_VDI) {
-        await vm.set_suspend_VDI(newVdi.$ref)
+      if (vdiRef === delta.vm.suspend_VDI) {
+        await vm.$call('set_suspend_VDI', newVdi.$ref, true)
       }
 
       await asyncMap(vbds[vdiRef], vbd =>
