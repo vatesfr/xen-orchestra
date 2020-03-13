@@ -77,6 +77,8 @@ Don't forget to reload `systemd` conf and restart `xo-server`:
 # systemctl restart xo-server.service
 ```
 
+**Note:** The `--use-openssl-ca` option is ignored by Node if Xen-Orchestra is run with Linux capabilities. Capabilities are commonly used to bind applications to privileged ports (<1024) (i.e. `CAP_NET_BIND_SERVICE`). Local NAT rules (`iptables`) or a reverse proxy would be required to use privileged ports and a custom certficate authority.
+
 ### Redis server
 
 By default, XO-server will try to contact Redis server on `localhost`, with the port `6379`. But you can define whatever you want:
