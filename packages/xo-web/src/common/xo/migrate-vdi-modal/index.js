@@ -1,6 +1,5 @@
 import _ from 'intl'
 import Component from 'base-component'
-import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
@@ -17,8 +16,8 @@ const compareSrs = createCompare([isSrShared])
 
 export default class MigrateVdiModalBody extends Component {
   static propTypes = {
-    checkSr: PropTypes.func.isRequired,
     pool: PropTypes.string.isRequired,
+    warningBeforeMigrate: PropTypes.func.isRequired,
   }
 
   get value() {
@@ -30,13 +29,14 @@ export default class MigrateVdiModalBody extends Component {
     createCompareContainers
   )
 
-  _checkSr = createSelector(
-    () => this.props.checkSr,
+  _getWarningBeforeMigrate = createSelector(
+    () => this.props.warningBeforeMigrate,
     () => this.state.sr,
-    (check, sr) => check(sr)
+    (warningBeforeMigrate, sr) => warningBeforeMigrate(sr)
   )
 
   render() {
+    const warningBeforeMigrate = this._getWarningBeforeMigrate()
     return (
       <Container>
         <SingleLineRow>
@@ -58,13 +58,9 @@ export default class MigrateVdiModalBody extends Component {
             </label>
           </Col>
         </SingleLineRow>
-        {!this._checkSr() && (
+        {warningBeforeMigrate !== null && (
           <SingleLineRow>
-            <Col>
-              <span className='text-danger'>
-                <Icon icon='alarm' /> {_('warningVdiSr')}
-              </span>
-            </Col>
+            <Col>{warningBeforeMigrate}</Col>
           </SingleLineRow>
         )}
       </Container>

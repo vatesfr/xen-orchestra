@@ -691,8 +691,8 @@ export default class TabDisks extends Component {
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          checkSr={this._getCheckSr()}
           pool={this.props.vm.$pool}
+          warningBeforeMigrate={this._getWarningBeforeMigrate()}
         />
       ),
     }).then(({ sr, migrateAll }) => {
@@ -763,6 +763,14 @@ export default class TabDisks extends Component {
           )
         })
       )
+  )
+
+  _getWarningBeforeMigrate = createSelector(this._getCheckSr, checkSr =>
+    checkSr() ? null : (
+      <span className='text-danger'>
+        <Icon icon='alarm' /> {_('warningVdiSr')}
+      </span>
+    )
   )
 
   individualActions = [

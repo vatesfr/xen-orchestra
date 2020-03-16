@@ -336,10 +336,16 @@ export default class SrDisks extends Component {
 
   // the warning will be displayed if the SR is local
   // or the VDIs contain at least one VBD.
-  _getCheckSr = createSelector(
+  _getWarningBeforeMigrate = createSelector(
     createCollectionWrapper(_ => _),
     vdis => sr =>
-      sr === undefined || isSrShared(sr) || every(vdis, _ => isEmpty(_.$VDBs))
+      sr === undefined ||
+      isSrShared(sr) ||
+      every(vdis, _ => isEmpty(_.$VDBs)) ? null : (
+        <span className='text-warning'>
+          <Icon icon='alarm' /> {_('migrateVdiMessage')}
+        </span>
+      )
   )
 
   _migrateVdis = vdis =>
@@ -347,8 +353,8 @@ export default class SrDisks extends Component {
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          checkSr={this._getCheckSr(vdis)}
           pool={this.props.sr.$pool}
+          warningBeforeMigrate={this._getWarningBeforeMigrate(vdis)}
         />
       ),
     }).then(({ sr, migrateAll }) => {
