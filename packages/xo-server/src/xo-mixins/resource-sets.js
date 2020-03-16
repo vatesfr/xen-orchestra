@@ -26,7 +26,7 @@ const VM_RESOURCES = {
   vms: true,
 }
 
-const computeVmResourcesUsage = vm => {
+const computeVmXapiResourcesUsage = vm => {
   const processed = {}
   let disks = 0
   let disk = 0
@@ -124,7 +124,7 @@ export default class {
 
   async computeVmResourcesUsage(vm) {
     return Object.assign(
-      computeVmResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
+      computeVmXapiResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
       await this._xo.computeVmIpPoolsUsage(vm)
     )
   }
@@ -343,7 +343,7 @@ export default class {
         }
 
         const { limits } = set
-        forEach(computeVmResourcesUsage(object), (usage, resource) => {
+        forEach(computeVmXapiResourcesUsage(object), (usage, resource) => {
           const limit = limits[resource]
           if (limit) {
             limit.available -= usage
