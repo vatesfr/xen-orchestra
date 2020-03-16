@@ -317,40 +317,49 @@ export default class {
     const sets = keyBy(await this.getAllResourceSets(), 'id')
     forEach(sets, ({ limits }) => {
       forEach(limits, (limit, id) => {
-        if (VM_RESOURCES[id]) {
+        if (VM_RESOURCES[id] || id.startsWith('ipPool:')) {
           // only reset VMs related limits
           limit.available = limit.total
         }
       })
     })
 
-    forEach(this._xo.getAllXapis(), xapi => {
-      forEach(xapi.objects.all, object => {
-        let id
-        let set
-        if (
-          object.$type !== 'VM' ||
-          object.is_a_snapshot ||
-          ('start' in object.blocked_operations &&
-            (object.tags.includes('Disaster Recovery') ||
-              object.tags.includes('Continuous Replication'))) ||
-          // No set for this VM.
-          !(id = xapi.xo.getData(object, 'resourceSet')) ||
-          // Not our set.
-          !(set = sets[id])
-        ) {
-          return
-        }
+    await Promise.all(
+      mapToArray(this._xo.getAllXapis(), xapi =>
+        Promise.all(
+          mapToArray(xapi.objects.all, async object => {
+            let id
+            let set
+            if (
+              object.$type !== 'VM' ||
+              object.is_a_snapshot ||
+              ('start' in object.blocked_operations &&
+                (object.tags.includes('Disaster Recovery') ||
+                  object.tags.includes('Continuous Replication'))) ||
+              // No set for this VM.
+              !(id = xapi.xo.getData(object, 'resourceSet')) ||
+              // Not our set.
+              !(set = sets[id])
+            ) {
+              return
+            }
 
-        const { limits } = set
-        forEach(computeVmXapiResourcesUsage(object), (usage, resource) => {
-          const limit = limits[resource]
-          if (limit) {
-            limit.available -= usage
-          }
-        })
-      })
-    })
+            const { limits } = set
+            forEach(
+              await this.computeVmResourcesUsage(
+                this._xo.getObject(object.$id)
+              ),
+              (usage, resource) => {
+                const limit = limits[resource]
+                if (limit) {
+                  limit.available -= usage
+                }
+              }
+            )
+          })
+        )
+      )
+    )
 
     await Promise.all(mapToArray(sets, set => this._save(set)))
   }
