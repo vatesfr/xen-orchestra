@@ -502,53 +502,60 @@ export default class Xapi extends XapiBase {
   }
 
   // Low level create VM.
-  _createVmRecord({
-    actions_after_crash,
-    actions_after_reboot,
-    actions_after_shutdown,
-    affinity,
-    // appliance,
-    blocked_operations,
-    generation_id,
-    ha_always_run,
-    ha_restart_priority,
-    has_vendor_device = false, // Avoid issue with some Dundee builds.
-    hardware_platform_version,
-    HVM_boot_params,
-    HVM_boot_policy,
-    HVM_shadow_multiplier,
-    is_a_template,
-    memory_dynamic_max,
-    memory_dynamic_min,
-    memory_static_max,
-    memory_static_min,
-    name_description,
-    name_label,
-    order,
-    other_config,
-    PCI_bus,
-    platform,
-    protection_policy,
-    PV_args,
-    PV_bootloader,
-    PV_bootloader_args,
-    PV_kernel,
-    PV_legacy_args,
-    PV_ramdisk,
-    recommendations,
-    shutdown_delay,
-    start_delay,
-    // suspend_SR,
-    tags,
-    user_version,
-    VCPUs_at_startup,
-    VCPUs_max,
-    VCPUs_params,
-    version,
-    xenstore_data,
-
-    suspended,
-  }) {
+  _createVmRecord(
+    {
+      actions_after_crash,
+      actions_after_reboot,
+      actions_after_shutdown,
+      affinity,
+      // appliance,
+      blocked_operations,
+      generation_id,
+      ha_always_run,
+      ha_restart_priority,
+      has_vendor_device = false, // Avoid issue with some Dundee builds.
+      hardware_platform_version,
+      HVM_boot_params,
+      HVM_boot_policy,
+      HVM_shadow_multiplier,
+      is_a_template,
+      memory_dynamic_max,
+      memory_dynamic_min,
+      memory_static_max,
+      memory_static_min,
+      name_description,
+      name_label,
+      order,
+      other_config,
+      PCI_bus,
+      platform,
+      protection_policy,
+      PV_args,
+      PV_bootloader,
+      PV_bootloader_args,
+      PV_kernel,
+      PV_legacy_args,
+      PV_ramdisk,
+      recommendations,
+      shutdown_delay,
+      start_delay,
+      // suspend_SR,
+      tags,
+      user_version,
+      VCPUs_at_startup,
+      VCPUs_max,
+      VCPUs_params,
+      version,
+      xenstore_data,
+    },
+    {
+      // if set, will start create the VM in Suspended power_state with this VDI
+      //
+      // it's a separate param because it's not supported for all versions of
+      // XCP-ng/XenServer and should be passed explicitly
+      suspend_VDI,
+    } = {}
+  ) {
     log.debug(`Creating VM ${name_label}`)
 
     return this.call(
@@ -601,7 +608,8 @@ export default class Xapi extends XapiBase {
         version: asInteger(version),
         xenstore_data,
 
-        suspended,
+        power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
+        suspend_VDI,
       })
     )
   }
@@ -995,26 +1003,44 @@ export default class Xapi extends XapiBase {
         }
       })
 
+    // 0. Create suspend_VDI
+    let suspend_VDI
+    if (delta.vm.power_state === 'Suspended') {
+      const vdi = delta.vdis[delta.vm.suspend_VDI]
+      suspend_VDI = (
+        await this.createVdi({
+          ...vdi,
+          other_config: {
+            ...vdi.other_config,
+            [TAG_BASE_DELTA]: undefined,
+            [TAG_COPY_SRC]: vdi.uuid,
+          },
+          sr: mapVdisSrs[vdi.uuid] || srId,
+        })
+      ).$ref
+      $defer.onFailure.call(this, '_deleteVdi', suspend_VDI)
+    }
+
     // 1. Create the VMs.
     const vm = await this._getOrWaitObject(
-      await this._createVmRecord({
-        ...delta.vm,
-        affinity: null,
-        blocked_operations: {
-          ...delta.vm.blocked_operations,
-          start: 'Importing…',
+      await this._createVmRecord(
+        {
+          ...delta.vm,
+          affinity: null,
+          blocked_operations: {
+            ...delta.vm.blocked_operations,
+            start: 'Importing…',
+          },
+          ha_always_run: false,
+          is_a_template: false,
+          name_label: `[Importing…] ${name_label}`,
+          other_config: {
+            ...delta.vm.other_config,
+            [TAG_COPY_SRC]: delta.vm.uuid,
+          },
         },
-        ha_always_run: false,
-        is_a_template: false,
-        name_label: `[Importing…] ${name_label}`,
-        other_config: {
-          ...delta.vm.other_config,
-          [TAG_COPY_SRC]: delta.vm.uuid,
-        },
-
-        // See https://github.com/xcp-ng/xen-api/pull/1#discussion_r391519169
-        suspended: delta.vm.power_state === 'Suspended',
-      })
+        { suspend_VDI }
+      )
     )
     $defer.onFailure(() => this._deleteVm(vm))
 
@@ -1040,7 +1066,9 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
 
         await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
-      } else {
+      } else if (vdiRef !== delta.vm.suspend_VDI) {
+        // suspend VDI is already handled
+
         newVdi = await this.createVdi({
           ...vdi,
           other_config: {
@@ -1051,10 +1079,6 @@ export default class Xapi extends XapiBase {
           sr: mapVdisSrs[vdi.uuid] || srId,
         })
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
-      }
-
-      if (vdiRef === delta.vm.suspend_VDI) {
-        await vm.$call('set_suspend_VDI', newVdi.$ref, true)
       }
 
       await asyncMap(vbds[vdiRef], vbd =>
