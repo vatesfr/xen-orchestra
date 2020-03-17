@@ -2267,7 +2267,9 @@ export const deleteResourceSet = async id => {
 }
 
 export const recomputeResourceSetsLimits = () =>
-  _call('resourceSet.recomputeAllLimits')
+  _call('resourceSet.recomputeAllLimits')::tap(
+    subscribeResourceSets.forceRefresh
+  )
 
 export const getResourceSet = id =>
   _call('resourceSet.get', { id: resolveId(id) })
