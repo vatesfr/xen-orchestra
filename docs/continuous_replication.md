@@ -99,8 +99,8 @@ Your backup job should now be working correctly! Manually run the job the first 
 
 ### Failover process
 
-In the situation where you need to failover on your destination host, you simply need to start all your VMs on the destination host.
+In the situation where you need to failover to your destination host, you simply need to start all your VMs on the destination host.
 
-> Note: If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to copy and start the copy of your VM. This option is available when you try to start your VMs.
+> Note: If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VMs.
 
 ![](./assets/force-start.jpg)
