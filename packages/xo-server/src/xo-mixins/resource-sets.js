@@ -2,6 +2,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
 import synchronized from 'decorator-synchronized'
 import {
+  difference,
   every,
   forEach,
   isObject,
@@ -9,6 +10,7 @@ import {
   map as mapToArray,
   remove,
   some,
+  startsWith,
 } from 'lodash'
 import { noSuchObject, unauthorized } from 'xo-common/api-errors'
 
@@ -159,7 +161,9 @@ export default class {
     throw noSuchObject(id, 'resourceSet')
   }
 
+  @deferrable
   async updateResourceSet(
+    $defer,
     id,
     {
       name = undefined,
@@ -174,6 +178,27 @@ export default class {
       set.name = name
     }
     if (subjects) {
+      await Promise.all(
+        difference(set.subjects, subjects).map(async subjectId =>
+          Promise.all(
+            (await this._xo.getAclsForSubject(subjectId)).map(async acl => {
+              try {
+                const object = this._xo.getObject(acl.object)
+                if (object.type === 'VM' && object.resourceSet === id) {
+                  await this._xo.removeAcl(subjectId, acl.object, acl.action)
+                  $defer.onFailure(() =>
+                    this._xo.addAcl(subjectId, acl.object, acl.action)
+                  )
+                }
+              } catch (err) {
+                if (!startsWith(err && err.message, 'no such object')) {
+                  throw err
+                }
+              }
+            })
+          )
+        )
+      )
       set.subjects = subjects
     }
     if (objects) {
