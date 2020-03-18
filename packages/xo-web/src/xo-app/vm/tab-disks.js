@@ -767,8 +767,8 @@ export default class TabDisks extends Component {
 
   _getGenerateWarningBeforeMigrate = createSelector(
     this._getCheckSr,
-    checkSr => sr =>
-      checkSr(sr) ? null : (
+    check => sr =>
+      check(sr) ? null : (
         <span className='text-warning'>
           <Icon icon='alarm' /> {_('warningVdiSr')}
         </span>
