@@ -19,6 +19,7 @@
 - [OVA Import] Fix *no host available* error when starting for imported VMs with low memory (PR [#4866](https://github.com/vatesfr/xen-orchestra/pull/4866))
 - [Self] When a Self Service related operation fails, always revert the quotas to what they were before the operation (PR [#4861](https://github.com/vatesfr/xen-orchestra/pull/4861))
 - [auth-{github,google,saml}] Don't require manually reloading the plugin for configuration changes to take effect [#4863](https://github.com/vatesfr/xen-orchestra/issues/4863) (PR [#4864](https://github.com/vatesfr/xen-orchestra/pull/4864))
+- [auth-ldap] Fix reading certificate authorities files [#3873](https://github.com/vatesfr/xen-orchestra/issues/3873)
 
 ### Released packages
 
@@ -29,6 +30,7 @@
 
 - xo-server-auth-github patch
 - xo-server-auth-google patch
+- xo-server-auth-ldap patch
 - xo-server-auth-saml patch
 - xo-server minor
 - xo-web minor
