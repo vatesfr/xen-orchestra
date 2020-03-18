@@ -341,7 +341,7 @@ export default class SrDisks extends Component {
     vdis => sr =>
       sr === undefined ||
       isSrShared(sr) ||
-      every(vdis, _ => _.$VBDs.length === 0) ? null : (
+      every(vdis, _ => isEmpty(_.$VBDs)) ? null : (
         <span className='text-warning'>
           <Icon icon='alarm' /> {_('migrateVdiMessage')}
         </span>
