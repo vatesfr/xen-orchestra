@@ -472,6 +472,7 @@ const messages = {
   smartBackup: 'Smart backup',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
+  checkpointSnapshot: 'Checkpoint snapshot',
   offlineSnapshot: 'Offline snapshot',
   offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   offlineBackup: 'Offline backup',

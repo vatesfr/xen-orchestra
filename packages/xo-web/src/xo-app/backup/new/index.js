@@ -686,6 +686,15 @@ export default decorate([
           value,
         })
       },
+      setCheckpointSnapshot: (
+        { setGlobalSettings },
+        { target: { checked: value } }
+      ) => () => {
+        setGlobalSettings({
+          name: 'checkpointSnapshot',
+          value,
+        })
+      },
       setOfflineBackup: (
         { setGlobalSettings },
         { target: { checked: value } }
@@ -819,6 +828,7 @@ export default decorate([
     const { propSettings, settings = propSettings } = state
     const compression = defined(state.compression, job.compression, '')
     const {
+      checkpointSnapshot,
       concurrency,
       fullInterval,
       offlineBackup,
@@ -1158,19 +1168,33 @@ export default decorate([
                         </div>
                       )}
                       {!state.offlineBackupActive && (
-                        <FormGroup>
-                          <label>
-                            <strong>{_('offlineSnapshot')}</strong>{' '}
-                            <Tooltip content={_('offlineSnapshotInfo')}>
-                              <Icon icon='info' />
-                            </Tooltip>{' '}
-                            <input
-                              checked={offlineSnapshot}
-                              onChange={effects.setOfflineSnapshot}
-                              type='checkbox'
-                            />
-                          </label>
-                        </FormGroup>
+                        <div>
+                          <FormGroup>
+                            <label>
+                              <strong>{_('offlineSnapshot')}</strong>{' '}
+                              <Tooltip content={_('offlineSnapshotInfo')}>
+                                <Icon icon='info' />
+                              </Tooltip>{' '}
+                              <input
+                                checked={offlineSnapshot}
+                                disabled={checkpointSnapshot}
+                                onChange={effects.setOfflineSnapshot}
+                                type='checkbox'
+                              />
+                            </label>
+                          </FormGroup>
+                          <FormGroup>
+                            <label>
+                              <strong>{_('checkpointSnapshot')}</strong>{' '}
+                              <input
+                                checked={checkpointSnapshot}
+                                disabled={offlineSnapshot}
+                                onChange={effects.setCheckpointSnapshot}
+                                type='checkbox'
+                              />
+                            </label>
+                          </FormGroup>
+                        </div>
                       )}
                     </div>
                   )}
