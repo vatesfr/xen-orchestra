@@ -164,8 +164,10 @@ export default class Proxy {
     let date, proxyAuthenticationToken, xenstoreData
     try {
       if (networkId !== undefined) {
-        await Promise.all(vm.VIFs.map(vif => xapi.deleteVif(vif)))
-        await xapi.createVif(vm.$id, networkId)
+        await Promise.all([
+          ...vm.VIFs.map(vif => xapi.deleteVif(vif)),
+          xapi.createVif(vm.$id, networkId),
+        ])
       }
 
       date = new Date()
