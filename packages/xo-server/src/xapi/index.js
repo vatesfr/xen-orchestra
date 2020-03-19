@@ -2402,7 +2402,7 @@ export default class Xapi extends XapiBase {
 
   async _getHostServerTimeShift(hostRef) {
     return Math.abs(
-      parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
+      parseDateTime(await this.call('host.get_servertime', hostRef)) -
         Date.now()
     )
   }

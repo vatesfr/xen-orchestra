@@ -52,9 +52,9 @@ function toTimestamp(date) {
     return timestamp
   }
 
-  const ms = parseDateTime(date)?.getTime()
+  const ms = parseDateTime(date, 0)
 
-  return ms === undefined || ms === 0 ? null : Math.round(ms / 1000)
+  return ms === 0 ? null : Math.round(ms / 1000)
 }
 
 // ===================================================================
