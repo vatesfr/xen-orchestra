@@ -2001,7 +2001,6 @@ const messages = {
   logsRestoreTime: 'Restore time',
   copyLogToClipboard: 'Copy log to clipboard',
   logsVmNotFound: 'VM not found!',
-  logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',
   logsFailedRestoreTitle: 'Restore error',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
