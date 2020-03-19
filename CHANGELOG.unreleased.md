@@ -13,7 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup NG / logs] Fix incorrect backup job status in case of missing VMs [#4857](https://github.com/vatesfr/xen-orchestra/issues/4857) (PR [#4862](https://github.com/vatesfr/xen-orchestra/pull/4862))
+- [Backup NG / logs] Replace successful backup job status by failure status in case of missing VMs [#4857](https://github.com/vatesfr/xen-orchestra/issues/4857) (PR [#4862](https://github.com/vatesfr/xen-orchestra/pull/4862))
 
 ### Released packages
 

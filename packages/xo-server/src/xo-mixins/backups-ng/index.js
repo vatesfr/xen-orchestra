@@ -587,19 +587,19 @@ export default class BackupNg {
               const taskId = logger.notice(
                 `Starting backup of ${id}. (${job.id})`,
                 {
-                  event: 'task.start',
-                  parentId: runJobId,
                   data: {
                     type: 'VM',
                     id,
                   },
+                  event: 'task.start',
+                  parentId: runJobId,
                 }
               )
               logger.error(`Backuping ${id} has failed. (${job.id})`, {
                 event: 'task.end',
-                taskId,
-                status: 'failure',
                 result: serializeError(error),
+                status: 'failure',
+                taskId,
               })
             }
           })
