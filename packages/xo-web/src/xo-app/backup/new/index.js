@@ -623,13 +623,13 @@ export default decorate([
       toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
         _displayAdvancedSettings: !displayAdvancedSettings,
       }),
-      setGlobalSettings: (_, { name, value }) => ({
+      setGlobalSettings: (_, globalSettings) => ({
         propSettings,
         settings = propSettings,
       }) => ({
         settings: settings.update('', setting => ({
           ...setting,
-          [name]: value,
+          ...globalSettings,
         })),
       }),
       addReportRecipient({ setGlobalSettings }, value) {
@@ -640,8 +640,7 @@ export default decorate([
         )
         if (!reportRecipients.includes(value)) {
           setGlobalSettings({
-            name: 'reportRecipients',
-            value: (reportRecipients.push(value), reportRecipients),
+            reportRecipients: (reportRecipients.push(value), reportRecipients),
           })
         }
       },
@@ -649,59 +648,51 @@ export default decorate([
         const { propSettings, settings = propSettings } = this.state
         const reportRecipients = settings.getIn(['', 'reportRecipients'])
         setGlobalSettings({
-          name: 'reportRecipients',
-          value: (reportRecipients.splice(key, 1), reportRecipients),
+          reportRecipients: (reportRecipients.splice(key, 1), reportRecipients),
         })
       },
       setReportWhen: ({ setGlobalSettings }, { value }) => () => {
         setGlobalSettings({
-          name: 'reportWhen',
-          value,
+          reportWhen: value,
         })
       },
-      setConcurrency: ({ setGlobalSettings }, value) => () => {
+      setConcurrency: ({ setGlobalSettings }, concurrency) => () => {
         setGlobalSettings({
-          name: 'concurrency',
-          value,
+          concurrency,
         })
       },
       setTimeout: ({ setGlobalSettings }, value) => () => {
         setGlobalSettings({
-          name: 'timeout',
-          value: value && value * 3600e3,
+          timeout: value && value * 3600e3,
         })
       },
-      setFullInterval({ setGlobalSettings }, value) {
+      setFullInterval({ setGlobalSettings }, fullInterval) {
         setGlobalSettings({
-          name: 'fullInterval',
-          value,
+          fullInterval,
         })
       },
       setOfflineSnapshot: (
         { setGlobalSettings },
-        { target: { checked: value } }
+        { target: { checked: offlineSnapshot } }
       ) => () => {
         setGlobalSettings({
-          name: 'offlineSnapshot',
-          value,
+          offlineSnapshot,
         })
       },
       setCheckpointSnapshot: (
         { setGlobalSettings },
-        { target: { checked: value } }
+        { target: { checked: checkpointSnapshot } }
       ) => () => {
         setGlobalSettings({
-          name: 'checkpointSnapshot',
-          value,
+          checkpointSnapshot,
         })
       },
       setOfflineBackup: (
         { setGlobalSettings },
-        { target: { checked: value } }
+        { target: { checked: offlineBackup } }
       ) => () => {
         setGlobalSettings({
-          name: 'offlineBackup',
-          value,
+          offlineBackup,
         })
       },
     },
