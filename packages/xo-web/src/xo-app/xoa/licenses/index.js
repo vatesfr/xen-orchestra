@@ -17,18 +17,9 @@ import {
   selfBindLicense,
   subscribeCurrentLicense,
 } from 'xo'
-import { find, flatten, forEach, some, pick, toArray, zipObject } from 'lodash'
+import { find, forEach, groupBy, some } from 'lodash'
 
 import Xosan from './xosan'
-
-const PRODUCTS = [
-  'xosan',
-  'xosan.trial',
-  'starter',
-  'enterprise',
-  'premium',
-  'sb-premium',
-]
 
 // -----------------------------------------------------------------------------
 
@@ -77,7 +68,7 @@ const LicenseManager = ({ item, userData }) => {
         <ActionButton
           btnStyle='success'
           data-id={item.licenseId}
-          data-plan={item.productId}
+          data-plan={item.product}
           handler={selfBindLicense}
           icon='unlock'
         >
@@ -156,9 +147,9 @@ export default class Licenses extends Component {
   _updateLicenses = () => {
     this.setState({ licenseError: undefined })
 
-    return Promise.all(PRODUCTS.map(getLicenses))
+    return getLicenses()
       .then(licenses => {
-        this.setState({ licenses: zipObject(PRODUCTS, licenses) })
+        this.setState({ licenses: groupBy(licenses, 'productType') })
       })
       .catch(error => {
         this.setState({ licenseError: error })
@@ -179,12 +170,12 @@ export default class Licenses extends Component {
 
       // --- XOSAN ---
       forEach(licenses.xosan, license => {
-        if (!(license.expires < now)) {
+        if (!(license.expires < now) && license.productId === 'xosan') {
           products.push({
             buyer: license.buyer,
             expires: license.expires,
             id: license.id,
-            product: 'XOSAN',
+            product: license.product,
             srId: license.boundObjectId,
             type: 'xosan',
           })
@@ -192,25 +183,18 @@ export default class Licenses extends Component {
       })
 
       // --- XOA ---
-      forEach(
-        flatten(
-          toArray(
-            pick(licenses, ['starter', 'enterprise', 'premium', 'sb-premium'])
-          )
-        ),
-        license => {
-          if (!(license.expires < now)) {
-            products.push({
-              buyer: license.buyer,
-              expires: license.expires,
-              id: license.id,
-              product: `XOA ${license.productId}`,
-              type: 'xoa',
-              xoaId: license.boundObjectId,
-            })
-          }
+      forEach(licenses.xoa, license => {
+        if (!(license.expires < now)) {
+          products.push({
+            buyer: license.buyer,
+            expires: license.expires,
+            id: license.id,
+            product: license.product,
+            type: 'xoa',
+            xoaId: license.boundObjectId,
+          })
         }
-      )
+      })
 
       return products
     }
@@ -267,6 +251,7 @@ export default class Licenses extends Component {
               className='btn btn-success'
               href='https://xen-orchestra.com/#!/member/purchaser'
               target='_blank'
+              rel='noopener noreferrer'
             >
               <Icon icon='add' /> {_('newLicense')}
             </a>
@@ -300,6 +285,7 @@ export default class Licenses extends Component {
                 className='btn btn-secondary ml-1'
                 href='https://xen-orchestra.com/#!/xosan-home'
                 target='_blank'
+                rel='noopener noreferrer'
               >
                 <Icon icon='bug' /> {_('productSupport')}
               </a>

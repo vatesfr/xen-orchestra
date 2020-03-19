@@ -3042,7 +3042,8 @@ export const productId2Plan = (() => {
   return productId => PRODUCT_TO_PLAN[productId]
 })()
 
-export const getLicenses = productId => _call('xoa.getLicenses', { productId })
+export const getLicenses = ({ productId, productType }) =>
+  _call('xoa.getLicenses', { productId, productType })
 
 export const getLicense = (productId, boundObjectId) =>
   _call('xoa.getLicense', { productId, boundObjectId })

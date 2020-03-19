@@ -310,7 +310,7 @@ export default class Xosan extends Component {
   }
 
   _updateLicenses = () =>
-    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
+    getLicenses({ productType: 'xosan' })
       .then(([xosanLicenses, xosanTrialLicenses]) => {
         this.setState({
           xosanLicenses,
