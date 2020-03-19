@@ -13,7 +13,9 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
+import { connectStore } from 'utils'
 import { createFilter, createSelector } from 'selectors'
+import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
 import { groupBy, isEmpty, map, some } from 'lodash'
 import { Proxy } from 'render-xo-item'
@@ -88,12 +90,13 @@ const _deleteBackupJobs = items => {
   return deleteBackupJobs({ backupIds, metadataBackupIds })
 }
 
-const _runBackupJob = ({ id, name, schedule, type }) =>
+const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
   confirm({
     title: _('runJob'),
     body: _('runBackupNgJobConfirm', {
       id: id.slice(0, 5),
       name: <strong>{name}</strong>,
+      nVms,
     }),
   }).then(() =>
     type === 'backup'
@@ -117,6 +120,16 @@ const SchedulePreviewBody = decorate([
         }
         cb(lastRunLog)
       }),
+  })),
+  connectStore(() => ({
+    nVms: createGetObjectsOfType('VM')
+      .filter(
+        createSelector(
+          (_, props) => props.job.vms,
+          pattern => createPredicate(pattern)
+        )
+      )
+      .count(),
   })),
   ({ job, schedule, lastRunLog }) => (
     <Ul>
@@ -166,6 +179,7 @@ const SchedulePreviewBody = decorate([
             btnStyle='primary'
             data-id={job.id}
             data-name={job.name}
+            data-nVms={nVms}
             data-schedule={schedule.id}
             data-type={job.type}
             handler={_runBackupJob}
