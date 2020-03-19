@@ -35,8 +35,13 @@ class AuthGoogleXoPlugin {
     this._xo = xo
   }
 
-  configure(conf) {
+  async configure(conf, { loaded }) {
     this._conf = conf
+
+    if (loaded) {
+      await this.unload()
+      await this.load()
+    }
   }
 
   load() {

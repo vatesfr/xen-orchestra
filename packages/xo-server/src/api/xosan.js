@@ -1,3 +1,4 @@
+import assert from 'assert'
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
@@ -7,11 +8,9 @@ import map from 'lodash/map'
 import { tap, delay } from 'promise-toolbox'
 import { NULL_REF } from 'xen-api'
 import { invalidParameters } from 'xo-common/api-errors'
-import { v4 as generateUuid } from 'uuid'
 import { includes, remove, filter, find, range } from 'lodash'
 
 import ensureArray from '../_ensureArray'
-import { asInteger } from '../xapi/utils'
 import { parseXml } from '../utils'
 
 const log = createLogger('xo:xosan')
@@ -23,7 +22,7 @@ const HOST_FIRST_NUMBER = 1
 const GIGABYTE = 1024 * 1024 * 1024
 const XOSAN_VM_SYSTEM_DISK_SIZE = 10 * GIGABYTE
 const XOSAN_DATA_DISK_USEAGE_RATIO = 0.99
-const XOSAN_LICENSE_QUOTA = 50 * GIGABYTE
+const XOSAN_LICENSE_QUOTA = 200 * GIGABYTE
 
 const CURRENT_POOL_OPERATIONS = {}
 
@@ -861,43 +860,36 @@ async function umountDisk(localEndpoint, diskMountPoint) {
   )
 }
 
-// this is mostly what the LVM SR driver does, but we are avoiding the 2To limit it imposes.
-async function createVDIOnLVMWithoutSizeLimit(xapi, lvmSr, diskSize) {
-  const VG_PREFIX = 'VG_XenStorage-'
-  const LV_PREFIX = 'LV-'
-  const { type, uuid: srUuid, $PBDs } = xapi.getObject(lvmSr)
-  if (type !== 'lvm') {
-    throw new Error('expecting a lvm sr type, got"' + type + '"')
-  }
-  const uuid = generateUuid()
-  const lvName = LV_PREFIX + uuid
-  const vgName = VG_PREFIX + srUuid
-  const host = $PBDs[0].$host
-  const sizeMb = Math.ceil(diskSize / 1024 / 1024)
-  const result = await callPlugin(xapi, host, 'run_lvcreate', {
-    sizeMb: asInteger(sizeMb),
-    lvName,
-    vgName,
-  })
-  if (result.exit !== 0) {
-    throw Error('Could not create volume ->' + result.stdout)
-  }
-  await xapi.callAsync('SR.scan', xapi.getObject(lvmSr).$ref)
-  const vdi = find(xapi.getObject(lvmSr).$VDIs, vdi => vdi.uuid === uuid)
-  if (vdi != null) {
-    await Promise.all([
-      vdi.set_name_description('Created by XO'),
-      vdi.set_name_label('xosan_data'),
-    ])
-    return vdi
-  }
-}
-
 async function createNewDisk(xapi, sr, vm, diskSize) {
-  const newDisk = await createVDIOnLVMWithoutSizeLimit(xapi, sr, diskSize)
+  const vdiMax = 2093050 * Math.pow(2, 20)
+  const createVdiSize = Math.min(vdiMax, diskSize)
+  const extensionSize = diskSize - createVdiSize
+  const newDisk = await xapi.createVdi(
+    {
+      name_label: 'xosan_data',
+      name_description: 'Created by XO',
+      size: createVdiSize,
+      sr: sr,
+      sm_config: { type: 'raw' },
+    },
+    { setSmConfig: true }
+  )
+  if (extensionSize > 0) {
+    const { type, uuid: srUuid, $PBDs } = xapi.getObject(sr)
+    const volume = `/dev/VG_XenStorage-${srUuid}/LV-${newDisk.uuid}`
+    assert.strictEqual(type, 'lvm')
+    const result = await callPlugin(xapi, $PBDs[0].$host, 'run_lvextend', {
+      sizeDiffMb: '+' + Math.floor(extensionSize / Math.pow(2, 20)),
+      volume,
+    })
+    if (result.exit !== 0) {
+      throw Error('Could not create volume ->' + result.stdout)
+    }
+    await xapi.callAsync('SR.scan', xapi.getObject(sr).$ref)
+  }
   await xapi.createVbd({ vdi: newDisk, vm })
-  let vbd = await xapi._waitObjectState(newDisk.$id, disk =>
-    Boolean(disk.$VBDs.length)
+  let vbd = (
+    await xapi._waitObjectState(newDisk.$id, disk => Boolean(disk.$VBDs.length))
   ).$VBDs[0]
   vbd = await xapi._waitObjectState(vbd.$id, vbd => Boolean(vbd.device.length))
   return '/dev/' + vbd.device
