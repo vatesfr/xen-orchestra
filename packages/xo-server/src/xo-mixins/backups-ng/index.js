@@ -500,7 +500,6 @@ const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
 //
 // job.start(data: { mode: Mode, reportWhen: ReportWhen })
 // ├─ task.info(message: 'vms', data: { vms: string[] })
-// ├─ task.warning(message: 'missingVms', data: { vms: string[] })
 // ├─ task.warning(message: string)
 // ├─ task.start(data: { type: 'VM', id: string })
 // │  ├─ task.warning(message: string)
@@ -580,24 +579,30 @@ export default class BackupNg {
           (vmsId = extractIdsFromSimplePattern(vmsPattern)) !== undefined
         ) {
           vms = {}
-          const missingVms = []
           vmsId.forEach(id => {
             try {
               vms[id] = app.getObject(id, 'VM')
             } catch (error) {
-              missingVms.push(id)
+              // log failure task in case of missing VM
+              const taskId = logger.notice(
+                `Starting backup of ${id}. (${job.id})`,
+                {
+                  data: {
+                    type: 'VM',
+                    id,
+                  },
+                  event: 'task.start',
+                  parentId: runJobId,
+                }
+              )
+              logger.error(`Backuping ${id} has failed. (${job.id})`, {
+                event: 'task.end',
+                result: serializeError(error),
+                status: 'failure',
+                taskId,
+              })
             }
           })
-
-          if (missingVms.length !== 0) {
-            logger.warning('missingVms', {
-              event: 'task.warning',
-              taskId: runJobId,
-              data: {
-                vms: missingVms,
-              },
-            })
-          }
         } else {
           vms = app.getObjects({
             filter: createPredicate({

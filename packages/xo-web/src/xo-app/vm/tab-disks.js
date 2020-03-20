@@ -6,9 +6,9 @@ import defined from '@xen-orchestra/defined'
 import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
+import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
 import PropTypes from 'prop-types'
 import React from 'react'
-import SingleLineRow from 'single-line-row'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -624,63 +624,6 @@ class BootOrder extends Component {
   }
 }
 
-class MigrateVdiModalBody extends Component {
-  static propTypes = {
-    checkSr: PropTypes.func.isRequired,
-    pool: PropTypes.string.isRequired,
-  }
-
-  get value() {
-    return this.state
-  }
-
-  _getCompareContainers = createSelector(
-    () => this.props.pool,
-    poolId => createCompareContainers(poolId)
-  )
-
-  _checkSr = createSelector(
-    () => this.props.checkSr,
-    () => this.state.sr,
-    (check, sr) => check(sr)
-  )
-
-  render() {
-    return (
-      <Container>
-        <SingleLineRow>
-          <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
-          <Col size={6}>
-            <SelectSr
-              compareContainers={this._getCompareContainers()}
-              compareOptions={compareSrs}
-              onChange={this.linkState('sr')}
-              required
-            />
-          </Col>
-        </SingleLineRow>
-        <SingleLineRow className='mt-1'>
-          <Col>
-            <label>
-              <input type='checkbox' onChange={this.linkState('migrateAll')} />{' '}
-              {_('vdiMigrateAll')}
-            </label>
-          </Col>
-        </SingleLineRow>
-        {!this._checkSr() && (
-          <SingleLineRow>
-            <Col>
-              <span className='text-danger'>
-                <Icon icon='alarm' /> {_('warningVdiSr')}
-              </span>
-            </Col>
-          </SingleLineRow>
-        )}
-      </Container>
-    )
-  }
-}
-
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
   isAdmin,
@@ -748,8 +691,8 @@ export default class TabDisks extends Component {
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          checkSr={this._getCheckSr()}
           pool={this.props.vm.$pool}
+          warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
     }).then(({ sr, migrateAll }) => {
@@ -819,6 +762,16 @@ export default class TabDisks extends Component {
             vdi !== undefined && { ...vbd, vdi, vdiSr: srs[vdi.$SR] })
           )
         })
+      )
+  )
+
+  _getGenerateWarningBeforeMigrate = createSelector(
+    this._getCheckSr,
+    check => sr =>
+      check(sr) ? null : (
+        <span className='text-warning'>
+          <Icon icon='alarm' /> {_('warningVdiSr')}
+        </span>
       )
   )
 

@@ -2003,7 +2003,6 @@ const messages = {
   logsRestoreTime: 'Restore time',
   copyLogToClipboard: 'Copy log to clipboard',
   logsVmNotFound: 'VM not found!',
-  logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',
   logsFailedRestoreTitle: 'Restore error',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
@@ -2098,6 +2097,9 @@ const messages = {
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
+  migrateSelectedVdis: 'Migrate selected VDIs',
+  migrateVdiMessage:
+    'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
 
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',
