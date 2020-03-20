@@ -65,7 +65,7 @@ const messages = {
   static: 'Static',
   user: 'User',
   deletedUser: 'deleted ({ name })',
-  snapshotModes: 'Snapshot modes',
+  snapshotMode: 'Snapshot mode',
   normal: 'Normal',
   withMemory: 'With memory',
   offline: 'Offline',
