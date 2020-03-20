@@ -22,6 +22,7 @@
 - [auth-{github,google,saml}] Don't require manually reloading the plugin for configuration changes to take effect [#4863](https://github.com/vatesfr/xen-orchestra/issues/4863) (PR [#4864](https://github.com/vatesfr/xen-orchestra/pull/4864))
 - [auth-ldap] Fix reading certificate authorities files [#3873](https://github.com/vatesfr/xen-orchestra/issues/3873)
 - [Backup NG / logs] Replace successful backup job status by failed status in case of missing VMs [#4857](https://github.com/vatesfr/xen-orchestra/issues/4857) (PR [#4862](https://github.com/vatesfr/xen-orchestra/pull/4862))
+- [Jobs] Fix "no value for `user_ip`" error on jobs execution (PR [#4878](https://github.com/vatesfr/xen-orchestra/pull/4878))
 
 ### Released packages
 
