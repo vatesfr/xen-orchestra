@@ -32,6 +32,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/audit-core patch
 - xo-server-auth-github patch
 - xo-server-auth-google patch
 - xo-server-auth-ldap patch

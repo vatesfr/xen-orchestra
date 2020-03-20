@@ -84,11 +84,24 @@ export class AuditCore {
     return record
   }
 
-  // TODO: https://github.com/vatesfr/xen-orchestra/pull/4733#discussion_r366897798
   async checkIntegrity(oldest, newest) {
+    const storage = this._storage
+    if (newest !== (await storage.getLastId())) {
+      let isNewestAccessible = false
+      for await (const { id } of this.getFrom()) {
+        if (id === newest) {
+          isNewestAccessible = true
+          break
+        }
+      }
+      if (!isNewestAccessible) {
+        throw new MissingRecordError(newest, 0)
+      }
+    }
+
     let nValid = 0
     while (newest !== oldest) {
-      const record = await this._storage.get(newest)
+      const record = await storage.get(newest)
       if (record === undefined) {
         throw new MissingRecordError(newest, nValid)
       }

@@ -603,6 +603,15 @@ export default class SortedTable extends Component {
   }
   _setPage = this._setPage.bind(this)
 
+  goTo(id) {
+    this._setPage(
+      Math.ceil(
+        this._getItems().findIndex(item => item.id === id) /
+          this.props.itemsPerPage
+      )
+    )
+  }
+
   _selectAllVisibleItems = event => {
     const { checked } = event.target
     const { onSelect } = this.props

@@ -67,6 +67,10 @@ const messages = {
   user: 'User',
   deletedUser: 'deleted ({ name })',
   networkConfiguration: 'Network configuration',
+  integrity: 'Integrity',
+  altered: 'Altered',
+  missing: 'Missing',
+  verified: 'Verified',
 
   // ----- Modals -----
   alertOk: 'OK',
