@@ -1147,7 +1147,7 @@ export default decorate([
                       )}
                       <SnapshotModeSelect
                         checkpointSnapshot={checkpointSnapshot}
-                        offlineBackup={state.offlineBackupActive}
+                        disabled={state.offlineBackupActive}
                         offlineSnapshot={offlineSnapshot}
                         setGlobalSettings={effects.setGlobalSettings}
                       />
