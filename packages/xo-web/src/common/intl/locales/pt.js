@@ -1596,9 +1596,6 @@ export default {
   // Original text: 'Destination SR:'
   vdiMigrateSelectSr: undefined,
 
-  // Original text: 'Migrate all VDIs'
-  vdiMigrateAll: undefined,
-
   // Original text: 'No SR'
   vdiMigrateNoSr: undefined,
 
