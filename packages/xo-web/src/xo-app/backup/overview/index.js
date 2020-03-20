@@ -250,6 +250,7 @@ class JobsTable extends React.Component {
       {
         itemRenderer: job => {
           const {
+            checkpointSnapshot,
             compression,
             concurrency,
             fullInterval,
@@ -294,6 +295,14 @@ class JobsTable extends React.Component {
                   {_.keyValue(
                     _('offlineSnapshot'),
                     _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled')
+                  )}
+                </Li>
+              )}
+              {checkpointSnapshot !== undefined && (
+                <Li>
+                  {_.keyValue(
+                    _('checkpointSnapshot'),
+                    _(checkpointSnapshot ? 'stateEnabled' : 'stateDisabled')
                   )}
                 </Li>
               )}

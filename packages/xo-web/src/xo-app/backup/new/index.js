@@ -54,6 +54,8 @@ import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
+import SnapshotModesSelect from './_snapshotModesSelect'
+
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import {
   canDeltaBackup,
@@ -671,22 +673,6 @@ export default decorate([
           fullInterval,
         })
       },
-      setOfflineSnapshot: (
-        { setGlobalSettings },
-        { target: { checked: offlineSnapshot } }
-      ) => () => {
-        setGlobalSettings({
-          offlineSnapshot,
-        })
-      },
-      setCheckpointSnapshot: (
-        { setGlobalSettings },
-        { target: { checked: checkpointSnapshot } }
-      ) => () => {
-        setGlobalSettings({
-          checkpointSnapshot,
-        })
-      },
       setOfflineBackup: (
         { setGlobalSettings },
         { target: { checked: offlineBackup } }
@@ -1151,6 +1137,7 @@ export default decorate([
                               </Tooltip>{' '}
                               <input
                                 checked={offlineBackup}
+                                disabled={offlineSnapshot || checkpointSnapshot}
                                 onChange={effects.setOfflineBackup}
                                 type='checkbox'
                               />
@@ -1158,35 +1145,12 @@ export default decorate([
                           </FormGroup>
                         </div>
                       )}
-                      {!state.offlineBackupActive && (
-                        <div>
-                          <FormGroup>
-                            <label>
-                              <strong>{_('offlineSnapshot')}</strong>{' '}
-                              <Tooltip content={_('offlineSnapshotInfo')}>
-                                <Icon icon='info' />
-                              </Tooltip>{' '}
-                              <input
-                                checked={offlineSnapshot}
-                                disabled={checkpointSnapshot}
-                                onChange={effects.setOfflineSnapshot}
-                                type='checkbox'
-                              />
-                            </label>
-                          </FormGroup>
-                          <FormGroup>
-                            <label>
-                              <strong>{_('checkpointSnapshot')}</strong>{' '}
-                              <input
-                                checked={checkpointSnapshot}
-                                disabled={offlineSnapshot}
-                                onChange={effects.setCheckpointSnapshot}
-                                type='checkbox'
-                              />
-                            </label>
-                          </FormGroup>
-                        </div>
-                      )}
+                      <SnapshotModesSelect
+                        checkpointSnapshot={checkpointSnapshot}
+                        offlineBackup={state.offlineBackupActive}
+                        offlineSnapshot={offlineSnapshot}
+                        setGlobalSettings={effects.setGlobalSettings}
+                      />
                     </div>
                   )}
                 </CardBlock>

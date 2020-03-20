@@ -65,6 +65,10 @@ const messages = {
   static: 'Static',
   user: 'User',
   deletedUser: 'deleted ({ name })',
+  snapshotModes: 'Snapshot modes',
+  normal: 'Normal',
+  withMemory: 'With memory',
+  offline: 'Offline',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -474,7 +478,6 @@ const messages = {
   backupName: 'Name',
   checkpointSnapshot: 'Checkpoint snapshot',
   offlineSnapshot: 'Offline snapshot',
-  offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   offlineBackup: 'Offline backup',
   offlineBackupInfo:
     'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
