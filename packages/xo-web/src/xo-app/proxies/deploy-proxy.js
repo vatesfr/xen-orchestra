@@ -7,7 +7,7 @@ import Tooltip from 'tooltip'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { deployProxyAppliance } from 'xo'
+import { deployProxyAppliance, isSrWritable } from 'xo'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { get } from '@xen-orchestra/defined'
@@ -72,6 +72,7 @@ const Modal = decorate([
 
       isStaticMode: (state, { value }) => value.networkMode === 'static',
       srPredicate: (state, { pbds, hosts }) => sr =>
+        isSrWritable(sr) &&
         sr.$PBDs.some(pbd => get(() => hosts[pbds[pbd].host].hvmCapable)),
     },
   }),
