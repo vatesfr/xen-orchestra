@@ -20,7 +20,7 @@ const ACTIONS = [
         query: { s: `id: |(${selectedJobs.map(_ => _.id)})` },
       }),
     label: _('redirectToBackupJobs'),
-    icon: 'goTo',
+    icon: 'redirect',
     individualLabel: _('redirectToBackupJob'),
   },
 ]
