@@ -1,5 +1,7 @@
+import decorate from 'apply-decorators'
 import React from 'react'
 import PropTypes from 'prop-types'
+import { injectState, provideState } from 'reaclette'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
   filter,
@@ -20,6 +22,7 @@ import {
 
 import _ from './intl'
 import Button from './button'
+import EphemeralInput from './ephemeral-input'
 import Icon from './icon'
 import renderXoItem from './render-xo-item'
 import Select from './form/select'
@@ -42,11 +45,13 @@ import {
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
+  subscribeProxies,
   subscribeRemotes,
   subscribeResourceSets,
   subscribeRoles,
   subscribeUsers,
 } from './xo'
+import { toggleState } from './reaclette-utils'
 
 // ===================================================================
 
@@ -588,7 +593,7 @@ export const SelectPif = makeStoreSelect(
 
 // ===================================================================
 
-export const SelectTag = makeStoreSelect(
+const GenericSelectTag = makeStoreSelect(
   (_, props) => ({
     xoObjects: createSelector(
       createGetTags(
@@ -601,6 +606,66 @@ export const SelectTag = makeStoreSelect(
   }),
   { allowMissingObjects: true, placeholder: _('selectTags') }
 )
+
+export const SelectTag = decorate([
+  provideState({
+    initialState: () => ({
+      editing: false,
+    }),
+    effects: {
+      addTag: (effects, newTag) => ({ value }, { multi, onChange }) => {
+        if (newTag === value || (multi && includes(value, newTag))) {
+          return
+        }
+        const _newTag = { id: newTag, type: 'tag', value: newTag }
+        onChange(
+          multi
+            ? [
+                ...map(value, tag => ({ id: tag, type: 'tag', value: tag })),
+                _newTag,
+              ]
+            : _newTag
+        )
+      },
+      closeEdition: () => ({ editing: false }),
+      toggleState,
+    },
+    computed: {
+      value: createCollectionWrapper((_, { value }) => getIds(value)),
+    },
+  }),
+  injectState,
+  ({ state, effects, resetState, allowCustomTag, ...props }) => (
+    <span>
+      {allowCustomTag ? (
+        state.editing ? (
+          <EphemeralInput
+            closeEdition={effects.closeEdition}
+            onChange={effects.addTag}
+            type='text'
+          />
+        ) : (
+          <Tooltip content={_('customTag')}>
+            <Button name='editing' onClick={effects.toggleState} size='small'>
+              <Icon icon='edit' />
+            </Button>
+          </Tooltip>
+        )
+      ) : null}
+      <GenericSelectTag {...props} />
+    </span>
+  ),
+])
+
+SelectTag.propTypes = {
+  allowCustomTag: PropTypes.bool,
+}
+
+SelectTag.defaultProps = {
+  allowCustomTag: true,
+}
+
+// ===================================================================
 
 export const SelectHighLevelObject = makeStoreSelect(
   () => {
@@ -775,6 +840,21 @@ export const SelectRemote = makeSubscriptionSelect(
     return unsubscribeRemotes
   },
   { placeholder: _('selectRemotes') }
+)
+
+// ===================================================================
+
+export const SelectProxy = makeSubscriptionSelect(
+  subscriber =>
+    subscribeProxies(proxies => {
+      subscriber({
+        xoObjects: sortBy(proxies, 'name').map(proxy => ({
+          ...proxy,
+          type: 'proxy',
+        })),
+      })
+    }),
+  { placeholder: _('selectProxies') }
 )
 
 // ===================================================================

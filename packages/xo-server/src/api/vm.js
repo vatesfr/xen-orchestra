@@ -6,6 +6,7 @@ import {
   forbiddenOperation,
   invalidParameters,
   noSuchObject,
+  operationFailed,
   unauthorized,
 } from 'xo-common/api-errors'
 
@@ -453,6 +454,7 @@ export async function migrate({
   mapVdisSrs,
   mapVifsNetworks,
   migrationNetwork,
+  force,
 }) {
   let mapVdisSrsXapi, mapVifsNetworksXapi
   const permissions = []
@@ -480,23 +482,28 @@ export async function migrate({
 
   await this.checkPermissions(this.user.id, permissions)
 
-  await this.getXapi(vm).migrateVm(
-    vm._xapiId,
-    this.getXapi(host),
-    host._xapiId,
-    {
+  await this.getXapi(vm)
+    .migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
       sr: sr && this.getObject(sr, 'SR')._xapiId,
       migrationNetworkId:
         migrationNetwork != null ? migrationNetwork._xapiId : undefined,
       mapVifsNetworks: mapVifsNetworksXapi,
       mapVdisSrs: mapVdisSrsXapi,
-    }
-  )
+      force,
+    })
+    .catch(error => {
+      if (error?.code !== undefined) {
+        throw operationFailed({ objectId: vm.id, code: error.code })
+      }
+      throw error
+    })
 }
 
 migrate.params = {
   // Identifier of the VM to migrate.
   vm: { type: 'string' },
+
+  force: { type: 'boolean', optional: true },
 
   // Identifier of the host to migrate to.
   targetHost: { type: 'string' },

@@ -111,7 +111,7 @@ const SmartBackup = decorate([
       <FormGroup>
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
-        </label>
+        </label>{' '}
         <SelectTag
           multi
           onChange={effects.setTagValues}
@@ -124,7 +124,7 @@ const SmartBackup = decorate([
         </label>{' '}
         <Tooltip content={_('backupReplicatedVmsInfo')}>
           <Icon icon='info' />
-        </Tooltip>
+        </Tooltip>{' '}
         <SelectTag
           multi
           onChange={effects.setTagNotValues}

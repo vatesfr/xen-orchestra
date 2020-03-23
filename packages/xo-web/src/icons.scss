@@ -11,6 +11,10 @@
     @extend .fa;
     @extend .fa-desktop;
   }
+  &-proxy {
+    @extend .fa;
+    @extend .fa-globe;
+  }
   &-remote {
     @extend .fa;
     @extend .fa-plug;
@@ -156,6 +160,14 @@
   &-run {
     @extend .fa;
     @extend .fa-play;
+  }
+  &-forget {
+    @extend .fa;
+    @extend .fa-ban;
+  }
+  &-destroy {
+    @extend .fa;
+    @extend .fa-trash;
   }
   &-force-restart {
     @extend .fa;

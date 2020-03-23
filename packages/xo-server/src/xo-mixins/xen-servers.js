@@ -137,7 +137,7 @@ export default class {
       username,
     }
   ) {
-    const server = await this._getXenServer(id)
+    const server = await this.getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
       allowUnauthorized !== undefined ||
@@ -184,13 +184,29 @@ export default class {
 
   // TODO: this method will no longer be async when servers are
   // integrated to the main collection.
-  async _getXenServer(id) {
+  async getXenServer(id) {
     const server = await this._servers.first(id)
     if (server === undefined) {
       throw noSuchObject(id, 'xenServer')
     }
 
     return server
+  }
+
+  getXenServerIdByObject(object, type) {
+    if (typeof object === 'string') {
+      object = this._xo.getObject(object, type)
+    }
+    const { $pool: poolId } = object
+    if (!poolId) {
+      throw new Error(`object ${object.id} does not belong to a pool`)
+    }
+
+    const serverId = this._serverIdsByPool[poolId]
+    if (serverId === undefined) {
+      throw new Error(`no connection found for object ${object.id}`)
+    }
+    return serverId
   }
 
   _onXenAdd(
@@ -285,7 +301,7 @@ export default class {
   }
 
   async connectXenServer(id) {
-    const server = (await this._getXenServer(id)).properties
+    const server = (await this.getXenServer(id)).properties
 
     if (this._getXenServerStatus(id) !== 'disconnected') {
       throw new Error('the server is already connected')
@@ -442,10 +458,7 @@ export default class {
 
     const xapi = this._xapis[id]
     delete this._xapis[id]
-    if (status === 'connected') {
-      delete this._serverIdsByPool[xapi.pool.$id]
-      xapi.xo.uninstall()
-    }
+
     return xapi.disconnect()
   }
 
@@ -455,21 +468,7 @@ export default class {
 
   // Returns the XAPI connection associated to an object.
   getXapi(object, type) {
-    if (typeof object === 'string') {
-      object = this._xo.getObject(object, type)
-    }
-
-    const { $pool: poolId } = object
-    if (!poolId) {
-      throw new Error(`object ${object.id} does not belong to a pool`)
-    }
-
-    const xapi = this._xapis[this._serverIdsByPool[poolId]]
-    if (xapi === undefined) {
-      throw new Error(`no connection found for object ${object.id}`)
-    }
-
-    return xapi
+    return this._xapis[this.getXenServerIdByObject(object)]
   }
 
   // returns the XAPI object corresponding to an XO object
@@ -553,7 +552,7 @@ export default class {
 
     await xapi.ejectHostFromPool(hostId)
 
-    this._getXenServer(this._serverIdsByPool[poolId])
+    this.getXenServer(this._serverIdsByPool[poolId])
       .then(async ({ properties }) => {
         const { id } = await this.registerXenServer({
           ...properties,

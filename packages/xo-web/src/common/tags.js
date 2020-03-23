@@ -1,15 +1,20 @@
+import _ from 'intl'
 import filter from 'lodash/filter'
 import includes from 'lodash/includes'
 import map from 'lodash/map'
+import pFinally from 'promise-toolbox/finally'
 import PropTypes from 'prop-types'
 import React from 'react'
 
+import ActionButton from './action-button'
 import Component from './base-component'
 import Icon from './icon'
+import Tooltip from './tooltip'
+import { confirm } from './modal'
+import { SelectTag } from './select-objects'
 
 const INPUT_STYLE = {
-  margin: '2px',
-  maxWidth: '4em',
+  maxWidth: '8em',
 }
 const TAG_STYLE = {
   backgroundColor: '#2598d9',
@@ -31,6 +36,24 @@ const ADD_TAG_STYLE = {
 }
 const REMOVE_TAG_STYLE = {
   cursor: 'pointer',
+}
+
+class SelectExistingTag extends Component {
+  state = { tags: [] }
+
+  get value() {
+    return this.state.tags.map(_ => _.value)
+  }
+
+  render() {
+    return (
+      <SelectTag
+        multi
+        onChange={this.linkState('tags')}
+        value={this.state.tags}
+      />
+    )
+  }
 }
 
 export default class Tags extends Component {
@@ -85,6 +108,26 @@ export default class Tags extends Component {
     event.preventDefault()
   }
 
+  _selectExistingTags = () =>
+    confirm({
+      body: <SelectExistingTag />,
+      icon: 'add',
+      title: _('selectExistingTags'),
+    })
+      ::pFinally(this._stopEdit)
+      .then(tags => Promise.all(tags.map(this._addTag)))
+
+  _focus = () => {
+    this._focused = true
+  }
+
+  _closeEditionIfUnfocused = () => {
+    this._focused = false
+    setTimeout(() => {
+      !this._focused && this._stopEdit()
+    }, 10)
+  }
+
   render() {
     const { labels, onAdd, onChange, onClick, onDelete } = this.props
 
@@ -108,14 +151,25 @@ export default class Tags extends Component {
             <Icon icon='add-tag' />
           </span>
         ) : (
-          <span>
-            <input
-              type='text'
-              autoFocus
-              style={INPUT_STYLE}
-              onKeyDown={this._onKeyDown}
-              onBlur={this._stopEdit}
-            />
+          <span
+            className='form-inline'
+            onBlur={this._closeEditionIfUnfocused}
+            onFocus={this._focus}
+          >
+            <span className='input-group'>
+              <input
+                autoFocus
+                className='form-control'
+                onKeyDown={this._onKeyDown}
+                style={INPUT_STYLE}
+                type='text'
+              />
+              <span className='input-group-btn'>
+                <Tooltip content={_('selectExistingTags')}>
+                  <ActionButton handler={this._selectExistingTags} icon='add' />
+                </Tooltip>
+              </span>
+            </span>
           </span>
         )}
       </span>

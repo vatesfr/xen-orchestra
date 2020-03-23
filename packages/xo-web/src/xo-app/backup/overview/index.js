@@ -18,6 +18,7 @@ import { createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, map, groupBy, some } from 'lodash'
+import { Proxy } from 'render-xo-item'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -148,15 +149,22 @@ const SchedulePreviewBody = decorate([
           style={{ marginRight: '0.5em' }}
         />
         {job.runId !== undefined ? (
-          <ActionButton
-            btnStyle='danger'
-            handler={cancelJob}
-            handlerParam={job}
-            icon='cancel'
-            key='cancel'
-            size='small'
-            tooltip={_('formCancel')}
-          />
+          <Tooltip content={_('temporarilyDisabled')}>
+            <span>
+              <ActionButton
+                btnStyle='danger'
+                // 2020-01-29 Job cancellation will be disabled until we find a way to make it work.
+                // See https://github.com/vatesfr/xen-orchestra/issues/4657
+                disabled
+                handler={cancelJob}
+                handlerParam={job}
+                icon='cancel'
+                key='cancel'
+                size='small'
+                tooltip={_('formCancel')}
+              />
+            </span>
+          </Tooltip>
         ) : (
           <ActionButton
             btnStyle='primary'
@@ -247,15 +255,20 @@ class JobsTable extends React.Component {
             fullInterval,
             offlineBackup,
             offlineSnapshot,
+            proxyId,
             reportWhen,
             timeout,
           } = getSettingsWithNonDefaultValue(job.mode, {
             compression: job.compression,
+            proxyId: job.proxy,
             ...job.settings[''],
           })
 
           return (
             <Ul>
+              {proxyId !== undefined && (
+                <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} />)}</Li>
+              )}
               {reportWhen !== undefined && (
                 <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
               )}

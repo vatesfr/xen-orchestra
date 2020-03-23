@@ -124,3 +124,22 @@ maxUncoalescedVdis = 1
 vdiExportConcurrency = 12
 vmExportConcurrency = 2
 vmSnapshotConcurrency = 2
+
+["xo-proxy"]
+callTimeout = '1 min'
+
+channel = 'xo-proxy-appliance'
+
+namespace = 'xoProxyAppliance'
+
+proxyName = 'Proxy {date}'
+
+vmName = 'XOA Proxy {date}'
+
+# The duration for which we can wait for the VM networks to be defined
+vmNetworksTimeout = '1 min'
+
+vmTag = 'XOA Proxy'
+
+# The duration for which we can wait for the XOA to be upgraded
+xoaUpgradeTimeout = '5 min'

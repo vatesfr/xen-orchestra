@@ -12,7 +12,7 @@ import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
-import { isSrWritable, subscribeRemotes } from './xo'
+import { isSrWritable, subscribeProxies, subscribeRemotes } from './xo'
 
 // ===================================================================
 
@@ -372,6 +372,27 @@ Remote.defaultProps = {
 
 // ===================================================================
 
+export const Proxy = decorate([
+  addSubscriptions(({ id }) => ({
+    proxy: cb =>
+      subscribeProxies(proxies => cb(proxies.find(proxy => proxy.id === id))),
+  })),
+  ({ id, proxy }) =>
+    proxy !== undefined ? (
+      <span>
+        <Icon icon='proxy' /> {proxy.name || proxy.address}
+      </span>
+    ) : (
+      unknowItem(id, 'proxy')
+    ),
+])
+
+Proxy.propTypes = {
+  id: PropTypes.string.isRequired,
+}
+
+// ===================================================================
+
 export const Vgpu = connectStore(() => ({
   vgpuType: createGetObject((_, props) => props.vgpu.vgpuType),
 }))(({ vgpu, vgpuType }) => (
@@ -399,6 +420,7 @@ const xoItemToRender = {
     </span>
   ),
   remote: ({ value: { id } }) => <Remote id={id} />,
+  proxy: ({ id }) => <Proxy id={id} />,
   role: role => <span>{role.name}</span>,
   user: user => (
     <span>
