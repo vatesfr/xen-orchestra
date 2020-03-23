@@ -60,9 +60,19 @@
 - xo-server v5.57.2
 - xo-web v5.57.0
 
-## **5.43.2** (2020-02-11)
+## **5.43.3** (2020-03-06)
 
 ![Channel: stable](https://badgen.net/badge/channel/stable/green)
+
+### Bug fixes
+
+- [Backups] Fix an issue where DR and CR could stay stuck (commit [63739df](https://github.com/vatesfr/xen-orchestra/commit/63739df90369798f16b61bf96d1a89513c7edc77))
+
+### Released packages
+
+- xo-server v5.56.3
+
+## **5.43.2** (2020-02-11)
 
 ### Bug fixes
 

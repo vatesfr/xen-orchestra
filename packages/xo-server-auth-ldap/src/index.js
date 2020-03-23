@@ -1,5 +1,6 @@
 /* eslint no-throw-literal: 0 */
 
+import fromCallback from 'promise-toolbox/fromCallback'
 import { Client } from 'ldapts'
 import { Filter } from 'ldapts/filters/Filter'
 import { readFile } from 'fs'
@@ -153,7 +154,7 @@ class AuthLdap {
       tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
         tlsOptions.ca = await Promise.all(
-          certificateAuthorities.map(path => readFile(path))
+          certificateAuthorities.map(path => fromCallback(readFile, path))
         )
       }
     }

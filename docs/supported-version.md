@@ -6,6 +6,8 @@ Xen Orchestra is designed to work exclusively on [XCP-ng](https://xcp-ng.org/) a
 
 Backup restore for large VM disks (>1TiB usage) is [broken on all XenServer versions](https://bugs.xenserver.org/browse/XSO-868) until Citrix release a fix.
 
+- Citrix Hypervisor 8.1
+- Citrix Hypervisor 8.0
 - XenServer 7.6
 - XenServer 7.5
   - [VDI I/O error](https://bugs.xenserver.org/browse/XSO-873), waiting for Citrix to release our fix
@@ -27,6 +29,7 @@ Backup restore for large VM disks (>1TiB usage) is [broken on all XenServer vers
 
 All the pending fixes are already integrated in the latest XCP-ng version. We strongly suggest people to keep using the latest XCP-ng version as far as possible.
 
+- XCP-ng 8.0
 - XCP-ng 7.6
 - XCP-ng 7.5
 - XCP-ng 7.4.1

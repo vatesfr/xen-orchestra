@@ -116,7 +116,6 @@ const FingerPrintModalBody = injectIntl(
   )
 )
 
-const DEFAULT_HASH = 'nullId|nullId'
 const openFingerprintPromptModal = () =>
   form({
     render: ({ onChange, value }) => (
@@ -127,10 +126,7 @@ const openFingerprintPromptModal = () =>
         <Icon icon='diagnosis' /> {_('auditCheckIntegrity')}
       </span>
     ),
-  }).then((value = '') => {
-    value = value.trim()
-    return value !== '' ? value : DEFAULT_HASH
-  }, noop)
+  }).then((value = '') => value.trim(), noop)
 
 const checkIntegrity = async () => {
   const fingerprint = await openFingerprintPromptModal()
@@ -138,26 +134,33 @@ const checkIntegrity = async () => {
     return
   }
 
-  const [oldest, newest] = fingerprint.split('|')
-  const error = await checkAuditRecordsIntegrity(oldest, newest).then(
-    noop,
-    error => {
-      if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
-        return {
-          nValid: error.data.nValid,
-          error,
-        }
-      }
-      throw error
-    }
-  )
+  let recentRecord
+  if (fingerprint !== '') {
+    const [oldest, newest] = fingerprint.split('|')
+    recentRecord = newest
 
-  const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
-  if (!shouldGenerateFingerprint) {
-    return
+    const error = await checkAuditRecordsIntegrity(oldest, newest).then(
+      noop,
+      error => {
+        if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
+          return {
+            nValid: error.data.nValid,
+            error,
+          }
+        }
+        throw error
+      }
+    )
+
+    const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
+    if (!shouldGenerateFingerprint) {
+      return
+    }
   }
 
-  await openGeneratedFingerprintModal(await generateAuditFingerprint(newest))
+  await openGeneratedFingerprintModal(
+    await generateAuditFingerprint(recentRecord)
+  )
 }
 
 const displayRecord = record =>

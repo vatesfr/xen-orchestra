@@ -3061,10 +3061,12 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
-export const deployProxyAppliance = (sr, props) =>
-  _call('proxy.deploy', { sr: resolveId(sr), ...props })::tap(
-    subscribeProxies.forceRefresh
-  )
+export const deployProxyAppliance = (sr, { proxy, ...props } = {}) =>
+  _call('proxy.deploy', {
+    proxy: resolveId(proxy),
+    sr: resolveId(sr),
+    ...props,
+  })::tap(subscribeProxies.forceRefresh)
 
 export const editProxyAppliance = (proxy, { vm, ...props }) =>
   _call('proxy.update', {
