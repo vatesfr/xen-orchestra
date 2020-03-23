@@ -152,6 +152,15 @@ export default class LegacyOverview extends Component {
     router: PropTypes.object,
   }
 
+  static propTypes = {
+    jobPredicate: PropTypes.func,
+    showCard: PropTypes.bool,
+  }
+
+  static defaultProps = {
+    showCard: true,
+  }
+
   _getSchedules = createSelector(
     () => this.props.jobs,
     () => this.props.schedules,
@@ -239,7 +248,7 @@ export default class LegacyOverview extends Component {
       ) : null
 
     return schedules.length !== 0 ? (
-      this.props.jobPredicate === undefined ? (
+      this.props.showCard ? (
         <div>
           <h3>Legacy backup</h3>
           <Card>
