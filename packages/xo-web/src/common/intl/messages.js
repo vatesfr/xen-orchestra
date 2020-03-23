@@ -1136,6 +1136,10 @@ const messages = {
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
 
+  // ----- VM backup tab -----
+  redirectToBackupJob: 'Click to see this backup job in backup view',
+  redirectToBackupJobs: 'Click to see the selected backup jobs in backup view',
+
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
   noLogs: 'No logs so far',

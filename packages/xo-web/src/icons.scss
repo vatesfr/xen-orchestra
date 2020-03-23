@@ -367,6 +367,10 @@
     @extend .fa;
     @extend .fa-share;
   }
+  &-goTo {
+    @extend .fa;
+    @extend .fa-external-link;
+  }
 
   // VM
   &-vm {
