@@ -186,6 +186,34 @@ const SchedulePreviewBody = decorate([
   ),
 ])
 
+const ACTIONS = [
+  {
+    handler: _deleteBackupJobs,
+    label: _('deleteBackupSchedule'),
+    icon: 'delete',
+    level: 'danger',
+  },
+]
+
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: (job, { goTo }) =>
+      goTo({
+        pathname: '/home',
+        query: { t: 'VM', s: constructQueryString(job.vms) },
+      }),
+    disabled: job => job.type !== 'backup',
+    label: _('redirectToMatchingVms'),
+    icon: 'preview',
+  },
+  {
+    handler: (job, { goTo }) => goTo(`/backup/${job.id}/edit`),
+    label: _('formEdit'),
+    icon: 'edit',
+    level: 'primary',
+  },
+]
+
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
   metadataJobs: subscribeMetadataBackupJobs,
@@ -194,20 +222,12 @@ const SchedulePreviewBody = decorate([
       cb(groupBy(schedules, 'jobId'))
     }),
 })
-class JobsTable extends React.Component {
+export class JobsTable extends React.Component {
   static contextTypes = {
     router: PropTypes.object,
   }
 
   static tableProps = {
-    actions: [
-      {
-        handler: _deleteBackupJobs,
-        label: _('deleteBackupSchedule'),
-        icon: 'delete',
-        level: 'danger',
-      },
-    ],
     columns: [
       {
         itemRenderer: ({ id }) => (
@@ -311,24 +331,6 @@ class JobsTable extends React.Component {
         name: _('formNotes'),
       },
     ],
-    individualActions: [
-      {
-        handler: (job, { goTo }) =>
-          goTo({
-            pathname: '/home',
-            query: { t: 'VM', s: constructQueryString(job.vms) },
-          }),
-        disabled: job => job.type !== 'backup',
-        label: _('redirectToMatchingVms'),
-        icon: 'preview',
-      },
-      {
-        handler: (job, { goTo }) => goTo(`/backup/${job.id}/edit`),
-        label: _('formEdit'),
-        icon: 'edit',
-        level: 'primary',
-      },
-    ],
   }
 
   _goTo = path => {
@@ -342,18 +344,25 @@ class JobsTable extends React.Component {
       (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
     ),
     createSelector(
-      () => this.props.jobPredicate,
+      () => this.props.predicate,
       predicate => (predicate === undefined ? () => true : predicate)
     )
   )
 
   render() {
+    const { actions, individualActions } = this.props
     return (
       <SortedTable
         {...JobsTable.tableProps}
+        actions={actions === undefined ? ACTIONS : actions}
         collection={this._getCollection()}
         data-goTo={this._goTo}
         data-schedulesByJob={this.props.schedulesByJob}
+        individualActions={
+          individualActions === undefined
+            ? INDIVIDUAL_ACTIONS
+            : individualActions
+        }
         stateUrlParam='s'
       />
     )
@@ -379,32 +388,23 @@ const Overview = decorate([
     },
   }),
   injectState,
-  ({ jobPredicate, state: { haveLegacyBackups } }) =>
-    jobPredicate === undefined ? (
-      <div>
-        {haveLegacyBackups && <LegacyOverview />}
-        <div className='mt-2 mb-1'>
-          {haveLegacyBackups && <h3>{_('backup')}</h3>}
-          <Card>
-            <CardHeader>
-              <Icon icon='backup' /> {_('backupJobs')}
-            </CardHeader>
-            <CardBlock>
-              <JobsTable />
-            </CardBlock>
-          </Card>
-          <LogsTable />
-        </div>
+  ({ state: { haveLegacyBackups } }) => (
+    <div>
+      {haveLegacyBackups && <LegacyOverview />}
+      <div className='mt-2 mb-1'>
+        {haveLegacyBackups && <h3>{_('backup')}</h3>}
+        <Card>
+          <CardHeader>
+            <Icon icon='backup' /> {_('backupJobs')}
+          </CardHeader>
+          <CardBlock>
+            <JobsTable />
+          </CardBlock>
+        </Card>
+        <LogsTable />
       </div>
-    ) : (
-      <div>
-        {haveLegacyBackups && <LegacyOverview jobPredicate={jobPredicate} />}
-        <div className='mt-2 mb-1'>
-          {haveLegacyBackups && <h3>{_('backup')}</h3>}
-          <JobsTable jobPredicate={jobPredicate} />
-        </div>
-      </div>
-    ),
+    </div>
+  ),
 ])
 
 export default Overview
