@@ -5,6 +5,10 @@
 // ===================================================================
 
 // Better stack traces if possible.
-require('../better-stacks')
+try {
+  require('source-map-support').install({
+    handleUncaughtExceptions: false,
+  })
+} catch (_) {}
 
 require('exec-promise')(require('../dist/logs-cli').default)

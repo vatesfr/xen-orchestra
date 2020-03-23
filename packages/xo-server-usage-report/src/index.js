@@ -30,8 +30,6 @@ const GRANULARITY = 'days'
 const pReadFile = promisify(readFile)
 const pWriteFile = promisify(writeFile)
 
-const currDate = new Date().toISOString().slice(0, 10)
-
 const compareOperators = {
   '>': (l, r) => l > r,
 }
@@ -615,7 +613,7 @@ async function computeEvolution({ storedStatsPath, ...newStats }) {
   }
 }
 
-async function dataBuilder({ xo, storedStatsPath, all }) {
+async function dataBuilder({ currDate, xo, storedStatsPath, all }) {
   const xoObjects = values(xo.getObjects())
   const runningVms = filter(xoObjects, { type: 'VM', power_state: 'Running' })
   const haltedVms = filter(xoObjects, { type: 'VM', power_state: 'Halted' })
@@ -766,7 +764,9 @@ class UsageReportPlugin {
       )
     }
 
+    const currDate = new Date().toISOString().slice(0, 10)
     const data = await dataBuilder({
+      currDate,
       xo,
       storedStatsPath: this._storedStatsPath,
       all: this._conf.all,

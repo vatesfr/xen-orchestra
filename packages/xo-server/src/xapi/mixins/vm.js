@@ -57,6 +57,8 @@ export default {
       vgpuType = undefined,
       gpuGroup = undefined,
 
+      copyHostBiosStrings = false,
+
       ...props
     } = {},
     checkLimits
@@ -82,7 +84,22 @@ export default {
     )
     $defer.onFailure(() => this.deleteVm(vmRef))
 
-    // TODO: copy BIOS strings?
+    // Copy BIOS strings
+    // https://support.citrix.com/article/CTX230618
+    if (
+      isEmpty(template.bios_strings) &&
+      props.hvmBootFirmware !== 'uefi' &&
+      isVmHvm(template) &&
+      copyHostBiosStrings
+    ) {
+      await this.callAsync(
+        'VM.copy_bios_strings',
+        vmRef,
+        this.getObject(
+          props.affinityHost ?? this.getObject(template.$pool).master
+        ).$ref
+      )
+    }
 
     // Removes disks from the provision XML, we will create them by
     // ourselves.

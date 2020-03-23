@@ -3061,10 +3061,12 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
-export const deployProxyAppliance = sr =>
-  _call('proxy.deploy', { sr: resolveId(sr) })::tap(
-    subscribeProxies.forceRefresh
-  )
+export const deployProxyAppliance = (sr, { proxy, ...props } = {}) =>
+  _call('proxy.deploy', {
+    proxy: resolveId(proxy),
+    sr: resolveId(sr),
+    ...props,
+  })::tap(subscribeProxies.forceRefresh)
 
 export const editProxyAppliance = (proxy, { vm, ...props }) =>
   _call('proxy.update', {
@@ -3109,3 +3111,31 @@ export const checkProxyHealth = proxy =>
       _('proxyTestSuccessMessage')
     )
   )
+
+// Audit plugin ---------------------------------------------------------
+
+const METHOD_NOT_FOUND_CODE = -32601
+export const fetchAuditRecords = async () => {
+  try {
+    const { $getFrom } = await _call('audit.getRecords', { ndjson: true })
+    const response = await fetch(`.${$getFrom}`)
+    const data = await response.text()
+
+    const records = []
+    parseNdJson(data, record => {
+      records.push(record)
+    })
+    return records
+  } catch (error) {
+    if (error.code === METHOD_NOT_FOUND_CODE) {
+      return []
+    }
+    throw error
+  }
+}
+
+export const checkAuditRecordsIntegrity = (oldest, newest) =>
+  _call('audit.checkIntegrity', { oldest, newest })
+
+export const generateAuditFingerprint = oldest =>
+  _call('audit.generateFingerprint', { oldest })

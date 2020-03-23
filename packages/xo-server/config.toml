@@ -137,7 +137,7 @@ proxyName = 'Proxy {date}'
 vmName = 'XOA Proxy {date}'
 
 # The duration for which we can wait for the VM networks to be defined
-vmNetworksTimeout = '1 min'
+vmNetworksTimeout = '5 min'
 
 vmTag = 'XOA Proxy'
 

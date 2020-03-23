@@ -126,37 +126,36 @@ class XoaUpdater extends EventEmitter {
       })
       middle.on('end', end => {
         this._lowState = end
-        switch (this._lowState.state) {
-          case 'xoa-up-to-date':
-          case 'xoa-upgraded':
-          case 'updater-upgraded':
-          case 'installer-upgraded':
-            this.state('upToDate')
-            break
-          case 'xoa-upgrade-needed':
-          case 'updater-upgrade-needed':
-          case 'installer-upgrade-needed':
-            this.state('upgradeNeeded')
-            break
-          case 'register-needed':
-            this.state('registerNeeded')
-            break
-          default:
-            this.state('error')
+        const { state } = end
+        if (state.endsWith('-upgrade-needed')) {
+          this.state('upgradeNeeded')
+        } else {
+          switch (state) {
+            case 'xoa-up-to-date':
+            case 'xoa-upgraded':
+            case 'updater-upgraded':
+            case 'installer-upgraded':
+              this.state('upToDate')
+              break
+            case 'register-needed':
+              this.state('registerNeeded')
+              break
+            default:
+              this.state('error')
+          }
         }
         this.log(end.level, end.message)
         this._lastRun = Date.now()
         this._waiting = false
         this.emit('end', end)
-        if (this._lowState === 'register-needed') {
+        if (state === 'register-needed') {
           this.isRegistered()
-        }
-        if (
-          this._lowState.state === 'updater-upgraded' ||
-          this._lowState.state === 'installer-upgraded'
+        } else if (
+          state === 'updater-upgraded' ||
+          state === 'installer-upgraded'
         ) {
           this.update()
-        } else if (this._lowState.state === 'xoa-upgraded') {
+        } else if (state === 'xoa-upgraded') {
           this._upgradeSuccessful()
         }
         this.xoaState()

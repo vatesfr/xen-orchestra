@@ -45,7 +45,7 @@ const extract = (obj, prop) => {
 }
 
 // TODO: Implement ACLs
-export async function create(params) {
+export const create = defer(async function($defer, params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
@@ -143,14 +143,17 @@ export async function create(params) {
   if (resourceSet) {
     await this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
     checkLimits = async limits2 => {
-      await this.allocateLimitsInResourceSet(
-        assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2),
-        resourceSet
+      const _limits = assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2)
+      await this.allocateLimitsInResourceSet(_limits, resourceSet)
+      $defer.onFailure(() =>
+        this.releaseLimitsInResourceSet(_limits, resourceSet)
       )
     }
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
+  $defer.onFailure(() => xapi.deleteVm(xapiVm.$id, true, true))
+
   const vm = xapi.xo.addObject(xapiVm)
 
   if (resourceSet) {
@@ -179,7 +182,7 @@ export async function create(params) {
   }
 
   return vm.id
-}
+})
 
 create.params = {
   affinityHost: { type: 'string', optional: true },
@@ -324,6 +327,8 @@ create.params = {
 
   hvmBootFirmware: { type: 'string', optional: true },
 
+  copyHostBiosStrings: { type: 'boolean', optional: true },
+
   // other params are passed to `editVm`
   '*': { type: 'any' },
 }
@@ -336,14 +341,17 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function delete_({
-  delete_disks, // eslint-disable-line camelcase
-  force,
-  forceDeleteDefaultTemplate,
-  vm,
+const delete_ = defer(async function(
+  $defer,
+  {
+    delete_disks, // eslint-disable-line camelcase
+    force,
+    forceDeleteDefaultTemplate,
+    vm,
 
-  deleteDisks = delete_disks,
-}) {
+    deleteDisks = delete_disks,
+  }
+) {
   const xapi = this.getXapi(vm)
 
   this.getAllAcls().then(acls => {
@@ -373,11 +381,15 @@ async function delete_({
   )
 
   // Update resource sets
+  let resourceSet
   if (
     vm.type === 'VM' && // only regular VMs
-    xapi.xo.getData(vm._xapiId, 'resourceSet') != null
+    (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
-    this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
+    await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
+    $defer.onFailure(() =>
+      this.setVmResourceSet(vm._xapiId, resourceSet)::ignoreErrors()
+    )
   }
 
   return xapi.deleteVm(
@@ -386,7 +398,7 @@ async function delete_({
     force,
     forceDeleteDefaultTemplate
   )
-}
+})
 
 delete_.params = {
   id: { type: 'string' },
@@ -529,7 +541,7 @@ migrate.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function set(params) {
+export const set = defer(async function($defer, params) {
   const VM = extract(params, 'VM')
   const xapi = this.getXapi(VM)
   const vmId = VM._xapiId
@@ -553,7 +565,11 @@ export async function set(params) {
 
     if (resourceSet) {
       try {
-        return await this.allocateLimitsInResourceSet(limits, resourceSet)
+        await this.allocateLimitsInResourceSet(limits, resourceSet)
+        $defer.onFailure(() =>
+          this.releaseLimitsInResourceSet(limits, resourceSet)
+        )
+        return
       } catch (error) {
         // if the resource set no longer exist, behave as if the VM is free
         if (!noSuchObject.is(error)) {
@@ -566,7 +582,7 @@ export async function set(params) {
       throw unauthorized()
     }
   })
-}
+})
 
 set.params = {
   // Identifier of the VM to update.

@@ -137,7 +137,7 @@ export default class {
       username,
     }
   ) {
-    const server = await this.getXenServer(id)
+    const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
       allowUnauthorized !== undefined ||
@@ -182,9 +182,13 @@ export default class {
     await this._servers.update(server)
   }
 
+  async getXenServer(id) {
+    return (await this._getXenServer(id)).properties
+  }
+
   // TODO: this method will no longer be async when servers are
   // integrated to the main collection.
-  async getXenServer(id) {
+  async _getXenServer(id) {
     const server = await this._servers.first(id)
     if (server === undefined) {
       throw noSuchObject(id, 'xenServer')
@@ -301,7 +305,7 @@ export default class {
   }
 
   async connectXenServer(id) {
-    const server = (await this.getXenServer(id)).properties
+    const server = await this.getXenServer(id)
 
     if (this._getXenServerStatus(id) !== 'disconnected') {
       throw new Error('the server is already connected')
@@ -441,7 +445,9 @@ export default class {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
         delete this._serverIdsByPool[poolId]
+        this._xo.emit('server:disconnected', { server, xapi })
       })
+      this._xo.emit('server:connected', { server, xapi })
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
@@ -553,7 +559,7 @@ export default class {
     await xapi.ejectHostFromPool(hostId)
 
     this.getXenServer(this._serverIdsByPool[poolId])
-      .then(async ({ properties }) => {
+      .then(async properties => {
         const { id } = await this.registerXenServer({
           ...properties,
           host: address,

@@ -8,14 +8,11 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
-import { form } from 'modal'
-import { SelectSr } from 'select-objects'
 import { Text, XoSelect } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
 import {
   checkProxyHealth,
-  deployProxyAppliance,
   destroyProxyAppliances,
   forgetProxyAppliances,
   editProxyAppliance,
@@ -25,17 +22,7 @@ import {
 
 import Page from '../page'
 
-const _deployProxy = () =>
-  form({
-    render: ({ onChange, value }) => (
-      <SelectSr onChange={onChange} value={value} required />
-    ),
-    header: (
-      <span>
-        <Icon icon='proxy' /> {_('deployProxy')}
-      </span>
-    ),
-  }).then(deployProxyAppliance)
+import deployProxy from './deploy-proxy'
 
 const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })
@@ -69,6 +56,12 @@ const ACTIONS = [
 ]
 
 const INDIVIDUAL_ACTIONS = [
+  {
+    handler: deployProxy,
+    icon: 'refresh',
+    label: _('redeployProxyAction'),
+    level: 'warning',
+  },
   {
     handler: checkProxyHealth,
     icon: 'diagnosis',
@@ -172,7 +165,7 @@ export default decorate([
         <div className='mt-1 mb-1'>
           <ActionButton
             btnStyle='success'
-            handler={_deployProxy}
+            handler={deployProxy}
             icon='proxy'
             size='large'
           >

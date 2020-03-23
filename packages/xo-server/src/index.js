@@ -525,6 +525,7 @@ const setUpApi = (webServer, xo, config) => {
 
     // Create the abstract XO object for this connection.
     const connection = xo.createUserConnection()
+    connection.set('user_ip', remoteAddress)
     connection.once('close', () => {
       socket.close()
     })
@@ -606,7 +607,21 @@ const setUpConsoleProxy = (webServer, xo) => {
 
         const { remoteAddress } = socket
         log.info(`+ Console proxy (${user.name} - ${remoteAddress})`)
+
+        const data = {
+          timestamp: Date.now(),
+          userId: user.id,
+          userIp: remoteAddress,
+          userName: user.name,
+          vmId: id,
+        }
+        xo.emit('xo:audit', 'consoleOpened', data)
+
         socket.on('close', () => {
+          xo.emit('xo:audit', 'consoleClosed', {
+            ...data,
+            timestamp: Date.now(),
+          })
           log.info(`- Console proxy (${user.name} - ${remoteAddress})`)
         })
       }

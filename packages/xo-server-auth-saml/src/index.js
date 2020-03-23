@@ -54,7 +54,7 @@ class AuthSamlXoPlugin {
     this._xo = xo
   }
 
-  configure({ usernameField, ...conf }) {
+  async configure({ usernameField, ...conf }, { loaded }) {
     this._usernameField = usernameField
     this._conf = {
       ...DEFAULTS,
@@ -62,6 +62,11 @@ class AuthSamlXoPlugin {
 
       // must match the callback URL
       path: '/signin/saml/callback',
+    }
+
+    if (loaded) {
+      await this.unload()
+      await this.load()
     }
   }
 

@@ -39,6 +39,8 @@ const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 
 export const NULL_REF = 'OpaqueRef:NULL'
 
+export { isOpaqueRef }
+
 // -------------------------------------------------------------------
 
 const RESERVED_FIELDS = {
@@ -279,6 +281,17 @@ export class Xapi extends EventEmitter {
 
   setField(type, ref, field, value) {
     return this.call(`${type}.set_${field}`, ref, value).then(noop)
+  }
+
+  setFields(type, ref, fields) {
+    return Promise.all(
+      getKeys(fields).map(field => {
+        const value = fields[field]
+        if (value !== undefined) {
+          return this.call(`${type}.set_${field}`, ref, value)
+        }
+      })
+    ).then(noop)
   }
 
   setFieldEntries(type, ref, field, entries) {
@@ -764,7 +777,10 @@ export class Xapi extends EventEmitter {
   _setUrl(url) {
     this._humanId = `${this._auth.user}@${url.hostname}`
     this._transport = autoTransport({
-      allowUnauthorized: this._allowUnauthorized,
+      secureOptions: {
+        minVersion: 'TLSv1',
+        rejectUnauthorized: !this._allowUnauthorized,
+      },
       url,
     })
     this._url = url
@@ -987,6 +1003,8 @@ export class Xapi extends EventEmitter {
         this._processEvents(result.events)
 
         // detect and fix disappearing tasks (e.g. when toolstack restarts)
+        //
+        // FIXME: only if 'task' in 'types
         if (result.valid_ref_counts.task !== this._nTasks) {
           await this._refreshCachedRecords(['task'])
         }
@@ -1069,7 +1087,32 @@ export class Xapi extends EventEmitter {
       )
 
       const getters = { $pool: getPool }
-      const props = { $type: type }
+      const props = {
+        $call: function(method, ...args) {
+          return xapi.call(`${type}.${method}`, this.$ref, ...args)
+        },
+        $callAsync: function(method, ...args) {
+          return xapi.callAsync(`${type}.${method}`, this.$ref, ...args)
+        },
+        $type: type,
+      }
+      ;(function addMethods(object) {
+        Object.getOwnPropertyNames(object).forEach(name => {
+          // dont trigger getters (eg sessionId)
+          const fn = Object.getOwnPropertyDescriptor(object, name).value
+          if (typeof fn === 'function' && name.startsWith(type + '_')) {
+            const key = '$' + name.slice(type.length + 1)
+            assert.strictEqual(props[key], undefined)
+            props[key] = function(...args) {
+              return xapi[name](this.$ref, ...args)
+            }
+          }
+        })
+        const proto = Object.getPrototypeOf(object)
+        if (proto !== null) {
+          addMethods(proto)
+        }
+      })(xapi)
       fields.forEach(field => {
         props[`set_${field}`] = function(value) {
           return xapi.setField(this.$type, this.$ref, field, value)

@@ -1342,6 +1342,7 @@ export default class Xapi extends XapiBase {
         memory_dynamic_max: memory,
         memory_dynamic_min: memory,
         memory_static_max: memory,
+        memory_static_min: memory,
         name_description: descriptionLabel,
         name_label: nameLabel,
         VCPUs_at_startup: nCpus,
@@ -1718,25 +1719,31 @@ export default class Xapi extends XapiBase {
     return this.callAsync('VDI.clone', vdi.$ref).then(extractOpaqueRef)
   }
 
-  async createVdi({
-    // blindly copying `sm_config` from another VDI can create problems,
-    // therefore it is ignored by this method
-    //
-    // see https://github.com/vatesfr/xen-orchestra/issues/4482
-    name_description,
-    name_label,
-    other_config = {},
-    read_only = false,
-    sharable = false,
-    SR,
-    tags,
-    type = 'user',
-    virtual_size,
-    xenstore_data,
+  async createVdi(
+    {
+      name_description,
+      name_label,
+      other_config = {},
+      read_only = false,
+      sharable = false,
+      sm_config,
+      SR,
+      tags,
+      type = 'user',
+      virtual_size,
+      xenstore_data,
 
-    size,
-    sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
-  }) {
+      size,
+      sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
+    },
+    {
+      // blindly copying `sm_config` from another VDI can create problems,
+      // therefore it is ignored by default by this method
+      //
+      // see https://github.com/vatesfr/xen-orchestra/issues/4482
+      setSmConfig = false,
+    } = {}
+  ) {
     sr = this.getObject(sr)
     log.debug(`Creating VDI ${name_label} on ${sr.name_label}`)
 
@@ -1750,6 +1757,7 @@ export default class Xapi extends XapiBase {
         SR: sr.$ref,
         tags,
         type,
+        sm_config: setSmConfig ? sm_config : undefined,
         virtual_size: size !== undefined ? parseSize(size) : virtual_size,
         xenstore_data,
       }).then(extractOpaqueRef)

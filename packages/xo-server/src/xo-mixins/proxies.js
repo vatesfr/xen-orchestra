@@ -1,5 +1,4 @@
 import cookie from 'cookie'
-import defer from 'golike-defer'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
@@ -8,7 +7,7 @@ import { compileTemplate } from '@xen-orchestra/template'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
-import { omit } from 'lodash'
+import { mapValues, omit } from 'lodash'
 import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis'
@@ -69,14 +68,15 @@ export default class Proxy {
   }) {
     await this._throwIfRegistered(address, vmUuid)
 
-    return this._db
-      .add({
-        address,
-        authenticationToken,
-        name,
-        vmUuid,
-      })
-      .then(extractProperties)
+    const {
+      properties: { id },
+    } = await this._db.add({
+      address,
+      authenticationToken,
+      name,
+      vmUuid,
+    })
+    return id
   }
 
   unregisterProxy(id) {
@@ -132,9 +132,20 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  @defer
-  async deployProxy($defer, srId) {
+  async deployProxy(srId, { network, proxyId } = {}) {
     const app = this._app
+
+    const redeploy = proxyId !== undefined
+    if (redeploy) {
+      const { vmUuid } = await this._getProxy(proxyId)
+      if (vmUuid !== undefined) {
+        await app.getXapi(vmUuid).deleteVm(vmUuid)
+        await this.updateProxy(proxyId, {
+          vmUuid: null,
+        })
+      }
+    }
+
     const xoProxyConf = this._xoProxyConf
 
     const namespace = xoProxyConf.namespace
@@ -150,22 +161,16 @@ export default class Proxy {
       }),
       { srId }
     )
-    $defer.onFailure.call(xapi, '_deleteVm', vm)
+    let date, proxyAuthenticationToken, xenstoreData
+    try {
+      date = new Date()
+      proxyAuthenticationToken = await generateToken()
 
-    const [
-      password,
-      proxyAuthenticationToken,
-      { registrationToken, registrationEmail: email },
-    ] = await Promise.all([
-      generateToken(10),
-      generateToken(),
-      app.getApplianceRegistration(),
-    ])
-    const date = new Date()
-    await Promise.all([
-      vm.add_tags(xoProxyConf.vmTag),
-      vm.set_name_label(this._generateDefaultVmName(date)),
-      vm.update_xenstore_data({
+      const [
+        password,
+        { registrationToken, registrationEmail: email },
+      ] = await Promise.all([generateToken(10), app.getApplianceRegistration()])
+      xenstoreData = {
         'vm-data/system-account-xoa-password': password,
         'vm-data/xo-proxy-authenticationToken': JSON.stringify(
           proxyAuthenticationToken
@@ -175,16 +180,41 @@ export default class Proxy {
           registrationToken,
         }),
         'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
-      }),
-    ])
+      }
+      if (network !== undefined) {
+        xenstoreData['vm-data/ip'] = network.ip
+        xenstoreData['vm-data/gateway'] = network.gateway
+        xenstoreData['vm-data/netmask'] = network.netmask
+        xenstoreData['vm-data/dns'] = network.dns
+      }
+      await Promise.all([
+        vm.add_tags(xoProxyConf.vmTag),
+        vm.set_name_label(this._generateDefaultVmName(date)),
+        vm.update_xenstore_data(xenstoreData),
+      ])
 
-    await xapi.startVm(vm.$id)
+      await xapi.startVm(vm.$id)
+    } catch (error) {
+      await xapi._deleteVm(vm)
+      throw error
+    }
 
-    await vm.update_xenstore_data({
-      'vm-data/system-account-xoa-password': null,
-      'vm-data/xo-proxy-authenticationToken': null,
-      'vm-data/xoa-updater-credentials': null,
-    })
+    if (redeploy) {
+      await this.updateProxy(proxyId, {
+        authenticationToken: proxyAuthenticationToken,
+        vmUuid: vm.uuid,
+      })
+    } else {
+      proxyId = await this.registerProxy({
+        authenticationToken: proxyAuthenticationToken,
+        name: this._generateDefaultProxyName(date),
+        vmUuid: vm.uuid,
+      })
+    }
+
+    await vm.update_xenstore_data(
+      mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
+    )
 
     // ensure appliance has an IP address
     const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
@@ -193,9 +223,10 @@ export default class Proxy {
       vmNetworksTimeout
     )
     await timeout.call(
-      xapi._waitObjectState(
-        vm.guest_metrics,
-        guest_metrics => guest_metrics.networks['0/ip'] !== undefined
+      xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
+        network === undefined
+          ? guest_metrics.networks['0/ip'] !== undefined
+          : guest_metrics.networks['0/ip'] === network.ip
       ),
       vmNetworksTimeout
     )
@@ -211,17 +242,11 @@ export default class Proxy {
       xoaUpgradeTimeout
     )
 
-    const { id } = await this.registerProxy({
-      authenticationToken: proxyAuthenticationToken,
-      name: this._generateDefaultProxyName(date),
-      vmUuid: vm.uuid,
-    })
-
-    await this.checkProxyHealth(id)
+    await this.checkProxyHealth(proxyId)
   }
 
-  checkProxyHealth(id) {
-    return this.callProxyMethod(id, 'system.getServerVersion')
+  async checkProxyHealth(id) {
+    await this.callProxyMethod(id, 'system.getServerVersion')
   }
 
   async callProxyMethod(id, method, params, expectStream = false) {

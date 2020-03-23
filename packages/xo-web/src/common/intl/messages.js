@@ -45,6 +45,7 @@ const messages = {
   restore: 'Restore',
   delete: 'Delete',
   vms: 'VMs',
+  cpusMax: 'Max vCPUs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
   temporarilyDisabled: 'Temporarily disabled',
@@ -58,6 +59,12 @@ const messages = {
   name: 'Name',
   address: 'Address',
   vm: 'VM',
+  destinationSR: 'Destination SR',
+  dhcp: 'DHCP',
+  ip: 'IP',
+  static: 'Static',
+  user: 'User',
+  deletedUser: 'deleted ({ name })',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -109,6 +116,7 @@ const messages = {
   notificationsPage: 'Notifications',
   supportPage: 'Support',
   settingsPage: 'Settings',
+  settingsAuditPage: 'Audit',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
   settingsGroupsPage: 'Groups',
@@ -160,6 +168,7 @@ const messages = {
   checkXoa: 'Check XOA',
   xoaCheck: 'XOA check',
   closeTunnel: 'Close tunnel',
+  createSupportTicket: 'Create a support ticket',
   openTunnel: 'Open tunnel',
   supportCommunity:
     'The XOA check and the support tunnel are available in XOA.',
@@ -293,6 +302,7 @@ const messages = {
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
   selectProxies: 'Select proxy(ies)…',
+  selectProxy: 'Select proxy…',
   selectResourceSets: 'Select resource set(s)…',
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
@@ -1309,6 +1319,7 @@ const messages = {
   createVmModalTitle: 'Create VM',
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
+  copyHostBiosStrings: 'Copy host BIOS strings to VM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
@@ -1380,6 +1391,8 @@ const messages = {
   newVmUserConfigLabel: 'User config',
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
+  templateHasBiosStrings: 'The template already contains the BIOS strings',
+  vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1642,7 +1655,6 @@ const messages = {
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
-  chooseSrForEachVdisModalOptionalEntry: '* optional',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage:
     'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
@@ -1715,6 +1727,7 @@ const messages = {
   forgetSrsFromHostModalTitle: 'Forget SR{nPbds, plural, one {} other {s}}',
   forgetSrsFromHostModalMessage:
     'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).',
+  optionalEntry: '* optional',
 
   // ----- Servers -----
   serverLabel: 'Label',
@@ -1801,8 +1814,7 @@ const messages = {
   newNetworkEncrypted: 'Encrypted',
   encryptionWarning:
     'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
-  newNetworkSdnControllerTip:
-    'Private networks work on up-to-date XCP-ng hosts, for other scenarios please see the requirements',
+  newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
@@ -1989,7 +2001,6 @@ const messages = {
   logsRestoreTime: 'Restore time',
   copyLogToClipboard: 'Copy log to clipboard',
   logsVmNotFound: 'VM not found!',
-  logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',
   logsFailedRestoreTitle: 'Restore error',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
@@ -2084,6 +2095,9 @@ const messages = {
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
+  migrateSelectedVdis: 'Migrate selected VDIs',
+  migrateVdiMessage:
+    'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
 
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',
@@ -2213,6 +2227,29 @@ const messages = {
   recipeSshKeyLabel: 'SSH key',
   recipeNetworkCidr: 'Network CIDR',
 
+  // Audit
+  auditActionEvent: 'Action/Event',
+  auditAlteredRecord:
+    'The record ({ id }) was altered ({ n, number } valid records)',
+  auditCheckIntegrity: 'Check integrity',
+  auditCopyFingerprintToClipboard: 'Copy fingerprint to clipboard',
+  auditGenerateNewFingerprint: 'Generate a new fingerprint',
+  auditMissingRecord:
+    'The record ({ id }) is missing ({ n, number } valid records)',
+  auditEnterFingerprint: 'Fingerprint',
+  auditEnterFingerprintInfo:
+    "Enter the saved fingerprint to check the previous logs' integrity. If you don't have any, click OK.",
+  auditRecord: 'Audit record',
+  auditIntegrityVerified: 'Integrity verified',
+  auditSaveFingerprintInfo:
+    'Keep this fingerprint to be able to check the integrity of the current records later.',
+  auditSaveFingerprintInErrorInfo:
+    'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
+  auditNewFingerprint: 'New fingerprint',
+  displayAuditRecord: 'Display record',
+  noAuditRecordAvailable: 'No audit record available',
+  refreshAuditRecordsList: 'Refresh records list',
+
   // Licenses
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
@@ -2264,6 +2301,9 @@ const messages = {
     'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
   destroyProxies: 'Destroy proxy(ies)',
   deployProxy: 'Deploy a proxy',
+  redeployProxy: 'Redeploy proxy',
+  redeployProxyAction: 'Redeploy this proxy',
+  redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   upgradeProxyAppliance: 'upgrade the appliance',
@@ -2271,6 +2311,8 @@ const messages = {
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
+  proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
+  proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

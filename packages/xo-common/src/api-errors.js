@@ -180,3 +180,20 @@ export const operationFailed = create(21, ({ objectId, code }) => ({
   },
   message: 'operation failed',
 }))
+
+export const missingAuditRecord = create(22, ({ id, nValid }) => ({
+  data: {
+    id,
+    nValid,
+  },
+  message: 'missing record',
+}))
+
+export const alteredAuditRecord = create(23, ({ id, record, nValid }) => ({
+  data: {
+    id,
+    record,
+    nValid,
+  },
+  message: 'altered record',
+}))

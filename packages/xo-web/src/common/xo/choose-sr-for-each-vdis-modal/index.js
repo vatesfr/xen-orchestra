@@ -102,7 +102,7 @@ export default class ChooseSrForEachVdisModal extends Component {
                   </Col>
                 </SingleLineRow>
               ))}
-              <i>{_('chooseSrForEachVdisModalOptionalEntry')}</i>
+              <i>{_('optionalEntry')}</i>
             </Container>
           </Collapsible>
         )}
