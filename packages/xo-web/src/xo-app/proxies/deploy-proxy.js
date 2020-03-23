@@ -70,6 +70,8 @@ const Modal = decorate([
       idSelectSr: generateId,
 
       isStaticMode: (state, { value }) => value.networkMode === 'static',
+      networkPredicate: (state, { value }) => network =>
+        value.sr === undefined || value.sr.$pool === network.$pool,
     },
   }),
   injectState,
@@ -97,8 +99,10 @@ const Modal = decorate([
         </Col>
         <Col mediumSize={8}>
           <SelectNetwork
+            disabled={value.sr === undefined}
             id={state.idSelectNetwork}
             onChange={effects.onNetworkChange}
+            predicate={state.networkPredicate}
             value={value.network}
           />
         </Col>
