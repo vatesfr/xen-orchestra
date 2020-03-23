@@ -97,7 +97,6 @@ class AuditXoPlugin {
     }
 
     const exportRecords = this._exportRecords.bind(this)
-    exportRecords.description = 'Export records'
     exportRecords.permission = 'admin'
 
     const checkIntegrity = this._checkIntegrity.bind(this)
