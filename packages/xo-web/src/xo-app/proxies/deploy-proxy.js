@@ -10,7 +10,7 @@ import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
 import { Select } from 'form'
-import { SelectSr } from 'select-objects'
+import { SelectNetwork, SelectSr } from 'select-objects'
 
 const Label = ({ children, ...props }) => (
   <label {...props} style={{ cursor: 'pointer' }}>
@@ -41,6 +41,12 @@ const Modal = decorate([
           sr,
         })
       },
+      onNetworkChange(_, network) {
+        this.props.onChange({
+          ...this.props.value,
+          network,
+        })
+      },
       onNetworkModeChange(_, networkMode) {
         this.props.onChange({
           ...this.props.value,
@@ -59,10 +65,13 @@ const Modal = decorate([
       idGatewayInput: generateId,
       idIpInput: generateId,
       idNetmaskInput: generateId,
+      idSelectNetwork: generateId,
       idSelectNetworkMode: generateId,
       idSelectSr: generateId,
 
       isStaticMode: (state, { value }) => value.networkMode === 'static',
+      networkPredicate: (state, { value }) =>
+        value.sr && (network => value.sr.$pool === network.$pool),
     },
   }),
   injectState,
@@ -84,7 +93,25 @@ const Modal = decorate([
       </SingleLineRow>
       <SingleLineRow className='mt-1'>
         <Col mediumSize={4}>
-          <Label htmlFor={state.idSelectNetworkMode}>{_('network')}</Label>
+          <Label htmlFor={state.idSelectNetwork}>
+            {_('destinationNetwork')}
+          </Label>
+        </Col>
+        <Col mediumSize={8}>
+          <SelectNetwork
+            disabled={value.sr === undefined}
+            id={state.idSelectNetwork}
+            onChange={effects.onNetworkChange}
+            predicate={state.networkPredicate}
+            value={value.network}
+          />
+        </Col>
+      </SingleLineRow>
+      <SingleLineRow className='mt-1'>
+        <Col mediumSize={4}>
+          <Label htmlFor={state.idSelectNetworkMode}>
+            {_('networkConfiguration')}
+          </Label>
         </Col>
         <Col mediumSize={8}>
           <Select
@@ -201,9 +228,10 @@ const deployProxy = proxy => {
         {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
       </span>
     ),
-  }).then(({ sr, networkMode, ip, netmask, gateway, dns }) =>
+  }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
     deployProxyAppliance(sr, {
-      network:
+      network: network === null ? undefined : network,
+      networkConfiguration:
         networkMode === 'static'
           ? {
               dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,

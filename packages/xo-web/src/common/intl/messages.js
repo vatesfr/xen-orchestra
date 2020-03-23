@@ -60,11 +60,13 @@ const messages = {
   address: 'Address',
   vm: 'VM',
   destinationSR: 'Destination SR',
+  destinationNetwork: 'Destination network',
   dhcp: 'DHCP',
   ip: 'IP',
   static: 'Static',
   user: 'User',
   deletedUser: 'deleted ({ name })',
+  networkConfiguration: 'Network configuration',
 
   // ----- Modals -----
   alertOk: 'OK',
