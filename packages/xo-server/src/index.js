@@ -619,7 +619,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 
         const vm = xapi.getObject(id)
         if (vm.is_control_domain) {
-          const host = xapi.getObject(vm.resident_on)
+          const host = vm.$resident_on
           data.hostDescription = host.name_description
           data.hostName = host.name_label
           data.hostUuid = host.uuid
