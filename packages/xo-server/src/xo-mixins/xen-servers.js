@@ -478,8 +478,11 @@ export default class {
   }
 
   // returns the XAPI object corresponding to an XO object
-  getXapiObject(xoObject) {
-    return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
+  getXapiObject(xoObject, type) {
+    if (typeof xoObject === 'string') {
+      xoObject = this._xo.getObject(xoObject, type)
+    }
+    return this.getXapi(xoObject, type).getObjectByRef(xoObject._xapiRef)
   }
 
   _getXenServerStatus(id) {
