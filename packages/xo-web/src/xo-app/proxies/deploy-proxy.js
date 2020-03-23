@@ -70,8 +70,8 @@ const Modal = decorate([
       idSelectSr: generateId,
 
       isStaticMode: (state, { value }) => value.networkMode === 'static',
-      networkPredicate: (state, { value }) => network =>
-        value.sr === undefined || value.sr.$pool === network.$pool,
+      networkPredicate: (state, { value }) =>
+        value.sr && (network => value.sr.$pool === network.$pool),
     },
   }),
   injectState,
