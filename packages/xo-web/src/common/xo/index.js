@@ -3137,6 +3137,11 @@ export const fetchAuditRecords = async () => {
   }
 }
 
+export const exportAuditRecords = () =>
+  _call('audit.exportRecords').then(({ $getFrom: url }) => {
+    window.open(`.${url}`)
+  })
+
 export const checkAuditRecordsIntegrity = (oldest, newest) =>
   _call('audit.checkIntegrity', { oldest, newest })
 

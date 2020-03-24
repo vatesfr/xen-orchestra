@@ -19,6 +19,7 @@ import { PREMIUM } from 'xoa-plans'
 import { User } from 'render-xo-item'
 import {
   checkAuditRecordsIntegrity,
+  exportAuditRecords,
   fetchAuditRecords,
   generateAuditFingerprint,
 } from 'xo'
@@ -253,6 +254,14 @@ export default decorate([
             size='large'
           >
             {_('refreshAuditRecordsList')}
+          </ActionButton>{' '}
+          <ActionButton
+            btnStyle='primary'
+            handler={exportAuditRecords}
+            icon='download'
+            size='large'
+          >
+            {_('downloadAuditRecords')}
           </ActionButton>{' '}
           <ActionButton
             btnStyle='success'

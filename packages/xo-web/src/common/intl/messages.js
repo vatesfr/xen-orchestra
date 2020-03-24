@@ -2248,6 +2248,7 @@ const messages = {
   auditSaveFingerprintInErrorInfo:
     'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
   auditNewFingerprint: 'New fingerprint',
+  downloadAuditRecords: 'Download records',
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
