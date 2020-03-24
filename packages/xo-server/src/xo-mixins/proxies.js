@@ -1,5 +1,4 @@
 import cookie from 'cookie'
-import defer from 'golike-defer'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
@@ -133,9 +132,20 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  @defer
-  async deployProxy($defer, srId, { network } = {}) {
+  async deployProxy(srId, { networkConfiguration, networkId, proxyId } = {}) {
     const app = this._app
+
+    const redeploy = proxyId !== undefined
+    if (redeploy) {
+      const { vmUuid } = await this._getProxy(proxyId)
+      if (vmUuid !== undefined) {
+        await app.getXapi(vmUuid).deleteVm(vmUuid)
+        await this.updateProxy(proxyId, {
+          vmUuid: null,
+        })
+      }
+    }
+
     const xoProxyConf = this._xoProxyConf
 
     const namespace = xoProxyConf.namespace
@@ -153,6 +163,13 @@ export default class Proxy {
     )
     let date, proxyAuthenticationToken, xenstoreData
     try {
+      if (networkId !== undefined) {
+        await Promise.all([
+          ...vm.VIFs.map(vif => xapi.deleteVif(vif)),
+          xapi.createVif(vm.$id, networkId),
+        ])
+      }
+
       date = new Date()
       proxyAuthenticationToken = await generateToken()
 
@@ -171,11 +188,11 @@ export default class Proxy {
         }),
         'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
       }
-      if (network !== undefined) {
-        xenstoreData['vm-data/ip'] = network.ip
-        xenstoreData['vm-data/gateway'] = network.gateway
-        xenstoreData['vm-data/netmask'] = network.netmask
-        xenstoreData['vm-data/dns'] = network.dns
+      if (networkConfiguration !== undefined) {
+        xenstoreData['vm-data/ip'] = networkConfiguration.ip
+        xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
+        xenstoreData['vm-data/netmask'] = networkConfiguration.netmask
+        xenstoreData['vm-data/dns'] = networkConfiguration.dns
       }
       await Promise.all([
         vm.add_tags(xoProxyConf.vmTag),
@@ -189,11 +206,18 @@ export default class Proxy {
       throw error
     }
 
-    const id = await this.registerProxy({
-      authenticationToken: proxyAuthenticationToken,
-      name: this._generateDefaultProxyName(date),
-      vmUuid: vm.uuid,
-    })
+    if (redeploy) {
+      await this.updateProxy(proxyId, {
+        authenticationToken: proxyAuthenticationToken,
+        vmUuid: vm.uuid,
+      })
+    } else {
+      proxyId = await this.registerProxy({
+        authenticationToken: proxyAuthenticationToken,
+        name: this._generateDefaultProxyName(date),
+        vmUuid: vm.uuid,
+      })
+    }
 
     await vm.update_xenstore_data(
       mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
@@ -207,9 +231,9 @@ export default class Proxy {
     )
     await timeout.call(
       xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
-        network === undefined
+        networkConfiguration === undefined
           ? guest_metrics.networks['0/ip'] !== undefined
-          : guest_metrics.networks['0/ip'] === network.ip
+          : guest_metrics.networks['0/ip'] === networkConfiguration.ip
       ),
       vmNetworksTimeout
     )
@@ -225,7 +249,7 @@ export default class Proxy {
       xoaUpgradeTimeout
     )
 
-    await this.checkProxyHealth(id)
+    await this.checkProxyHealth(proxyId)
   }
 
   async checkProxyHealth(id) {

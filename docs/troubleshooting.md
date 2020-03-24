@@ -90,14 +90,13 @@ FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memo
 1: node::Abort() [node]
 ```
 
-In that case, you need to increase the memory allocated to the
-XOA VM (from 2GB to 4 or 8 GB), and then update the service file
-(`/etc/systemd/system/xo-server.service`) to increase the allocated
-memory to xo-server itself:
+In that case, you need to increase the memory allocated to the XOA VM (from 2GB to 4GB or 8GB). Note that simply increasing the RAM for the VM is not enough. You must also edit the service file (`/etc/systemd/system/xo-server.service`) to increase the memory allocated to the xo-server process itself.
+
+**Note:** you should leave ~512MB for the debian OS itself. Meaning if your VM has 4096MB total RAM, you should use `3584` for the memory value below.
 
 ```diff
 - ExecStart=/usr/local/bin/xo-server
-+ ExecStart=/usr/local/bin/node --max-old-space-size=8192 /usr/local/bin/xo-server
++ ExecStart=/usr/local/bin/node --max-old-space-size=3584 /usr/local/bin/xo-server
 ```
 
 The last step is to refresh and restart the service:

@@ -318,6 +318,11 @@
     @extend .fa;
     @extend .fa-area-chart;
   }
+  &-ticket {
+    @extend .fa;
+    @extend .fa-ticket;
+  }
+
 
   // Backups
   &-backup {

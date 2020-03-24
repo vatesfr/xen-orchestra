@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.44.1** (2020-03-05)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
@@ -15,14 +17,18 @@
 ### Released packages
 
 - @xen-orchestra/fs v0.10.3
-- xen-api: 0.28.3
+- xen-api v0.28.3
 - xo-server-backup-reports v0.16.5
+- xo-server-perf-alert v0.2.1
+- xo-server-sdn-controller v0.4.1
+- xo-server-transport-icinga2 v0.1.1
+- xo-server-transport-nagios v0.1.1
+- xo-server-usage-report v0.7.5
+- xo-server-web-hooks v0.1.1
 - xo-server v5.57.3
 - xo-web v5.57.1
 
 ## **5.44.0** (2020-02-28)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Highlights
 
@@ -54,9 +60,19 @@
 - xo-server v5.57.2
 - xo-web v5.57.0
 
-## **5.43.2** (2020-02-11)
+## **5.43.3** (2020-03-06)
 
 ![Channel: stable](https://badgen.net/badge/channel/stable/green)
+
+### Bug fixes
+
+- [Backups] Fix an issue where DR and CR could stay stuck (commit [63739df](https://github.com/vatesfr/xen-orchestra/commit/63739df90369798f16b61bf96d1a89513c7edc77))
+
+### Released packages
+
+- xo-server v5.56.3
+
+## **5.43.2** (2020-02-11)
 
 ### Bug fixes
 

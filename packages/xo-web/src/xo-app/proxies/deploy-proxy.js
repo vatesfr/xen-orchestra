@@ -14,7 +14,7 @@ import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
 import { Select } from 'form'
-import { SelectSr } from 'select-objects'
+import { SelectNetwork, SelectSr } from 'select-objects'
 
 const Label = ({ children, ...props }) => (
   <label {...props} style={{ cursor: 'pointer' }}>
@@ -49,6 +49,12 @@ const Modal = decorate([
           sr,
         })
       },
+      onNetworkChange(_, network) {
+        this.props.onChange({
+          ...this.props.value,
+          network,
+        })
+      },
       onNetworkModeChange(_, networkMode) {
         this.props.onChange({
           ...this.props.value,
@@ -67,6 +73,7 @@ const Modal = decorate([
       idGatewayInput: generateId,
       idIpInput: generateId,
       idNetmaskInput: generateId,
+      idSelectNetwork: generateId,
       idSelectNetworkMode: generateId,
       idSelectSr: generateId,
 
@@ -74,11 +81,13 @@ const Modal = decorate([
       srPredicate: (state, { pbds, hosts }) => sr =>
         isSrWritable(sr) &&
         sr.$PBDs.some(pbd => get(() => hosts[pbds[pbd].host].hvmCapable)),
+      networkPredicate: (state, { value }) =>
+        value.sr && (network => value.sr.$pool === network.$pool),
     },
   }),
   injectState,
   injectIntl,
-  ({ effects, state, value, intl: { formatMessage } }) => (
+  ({ effects, redeploy, state, value, intl: { formatMessage } }) => (
     <Container>
       <SingleLineRow>
         <Col mediumSize={4}>
@@ -101,7 +110,25 @@ const Modal = decorate([
       </SingleLineRow>
       <SingleLineRow className='mt-1'>
         <Col mediumSize={4}>
-          <Label htmlFor={state.idSelectNetworkMode}>{_('network')}</Label>
+          <Label htmlFor={state.idSelectNetwork}>
+            {_('destinationNetwork')}
+          </Label>
+        </Col>
+        <Col mediumSize={8}>
+          <SelectNetwork
+            disabled={value.sr === undefined}
+            id={state.idSelectNetwork}
+            onChange={effects.onNetworkChange}
+            predicate={state.networkPredicate}
+            value={value.network}
+          />
+        </Col>
+      </SingleLineRow>
+      <SingleLineRow className='mt-1'>
+        <Col mediumSize={4}>
+          <Label htmlFor={state.idSelectNetworkMode}>
+            {_('networkConfiguration')}
+          </Label>
         </Col>
         <Col mediumSize={8}>
           <Select
@@ -190,12 +217,20 @@ const Modal = decorate([
           </SingleLineRow>
         </div>
       )}
+      {redeploy && (
+        <SingleLineRow className='mt-1'>
+          <Col className='text-warning'>
+            <Icon icon='alarm' /> {_('redeployProxyWarning')}
+          </Col>
+        </SingleLineRow>
+      )}
     </Container>
   ),
 ])
 
-const deployProxy = () =>
-  form({
+const deployProxy = proxy => {
+  const isRedeployMode = proxy !== undefined
+  return form({
     defaultValue: {
       dns: '',
       gateway: '',
@@ -203,27 +238,29 @@ const deployProxy = () =>
       netmask: '',
       networkMode: 'dhcp',
     },
-    render: props => <Modal {...props} />,
+    render: props => <Modal {...props} redeploy={isRedeployMode} />,
     header: (
       <span>
-        <Icon icon='proxy' /> {_('deployProxy')}
+        <Icon icon='proxy' />{' '}
+        {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
       </span>
     ),
-  }).then(({ sr, networkMode, ip, netmask, gateway, dns }) =>
-    deployProxyAppliance(
-      sr,
-      networkMode === 'static'
-        ? {
-            network: {
+  }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
+    deployProxyAppliance(sr, {
+      network: network === null ? undefined : network,
+      networkConfiguration:
+        networkMode === 'static'
+          ? {
               dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
               gateway,
               ip,
               netmask:
                 (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
-            },
-          }
-        : undefined
-    )
+            }
+          : undefined,
+      proxy,
+    })
   )
+}
 
 export { deployProxy as default }

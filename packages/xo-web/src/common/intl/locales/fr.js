@@ -3029,7 +3029,7 @@ export default {
   chooseSrForEachVdisModalSrLabel: 'SR*',
 
   // Original text: "* optional"
-  chooseSrForEachVdisModalOptionalEntry: '* optionnel',
+  optionalEntry: '* optionnel',
 
   // Original text: "Delete VDI"
   deleteVdiModalTitle: 'Supprimer le VDI',

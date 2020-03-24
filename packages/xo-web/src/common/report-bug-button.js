@@ -49,15 +49,15 @@ const reportInNewWindow = (
   const encodedMessage = encodeURIComponent(
     message == null ? '' : formatMessage(message)
   )
-  window.open(`${url}?title=${encodedTitle}&body=${encodedMessage}}`)
+  window.open(`${url}?title=${encodedTitle}&body=${encodedMessage}`)
 }
 
-const reportOnSupportPanel = async ({
+export const reportOnSupportPanel = async ({
   files = [],
   formatMessage = identity,
   message,
   title,
-}) => {
+} = {}) => {
   const { FormData, open } = window
 
   const formData = new FormData()
