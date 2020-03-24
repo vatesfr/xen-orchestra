@@ -9,7 +9,18 @@ exports.VDI_FORMAT_VHD = 'vhd'
 // Format a date (pseudo ISO 8601) from one XenServer get by
 // xapi.call('host.get_servertime', host.$ref) for example
 exports.formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
-exports.parseDateTime = utcParse('%Y%m%dT%H:%M:%SZ')
+
+const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
+exports.parseDateTime = (str, defaultValue) => {
+  const date = parseDateTimeHelper(str)
+  if (date === null) {
+    if (arguments.length > 1) {
+      return defaultValue
+    }
+    throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(str)}`)
+  }
+  return date.getTime()
+}
 
 class Xapi extends Base {
   constructor({ maxUncoalescedVdis, ...opts }) {

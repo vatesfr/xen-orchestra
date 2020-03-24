@@ -1342,6 +1342,7 @@ export default class Xapi extends XapiBase {
         memory_dynamic_max: memory,
         memory_dynamic_min: memory,
         memory_static_max: memory,
+        memory_static_min: memory,
         name_description: descriptionLabel,
         name_label: nameLabel,
         VCPUs_at_startup: nCpus,
@@ -2401,7 +2402,7 @@ export default class Xapi extends XapiBase {
 
   async _getHostServerTimeShift(hostRef) {
     return Math.abs(
-      parseDateTime(await this.call('host.get_servertime', hostRef)).getTime() -
+      parseDateTime(await this.call('host.get_servertime', hostRef)) -
         Date.now()
     )
   }

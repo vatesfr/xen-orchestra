@@ -96,3 +96,11 @@ xo-cr-seed https://root:password@xen1.company.tld 4a21c1cd-e8bd-4466-910a-f7524e
 ### Finished
 
 Your backup job should now be working correctly! Manually run the job the first time to check if everything is OK. Then, enable the job. **Now, only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**
+
+### Failover process
+
+In the situation where you need to failover to your destination host, you simply need to start all your VMs on the destination host.
+
+> Note: If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VMs.
+
+![](./assets/force-start.jpg)
