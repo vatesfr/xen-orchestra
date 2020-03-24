@@ -160,19 +160,13 @@ class AffinityHost extends Component {
 @connectStore({
   isAdmin,
 })
-class ResourceSetItem extends Component {
+class ResourceSet extends Component {
   _getResourceSet = createSelector(
     () => this.props.resourceSets,
     () => this.props.vm.resourceSet,
     (resourceSets, resourceSetId) => {
-      let resourceSet
-      if (
-        (resourceSet = find(resourceSets, { id: resourceSetId })) === undefined
-      ) {
-        return
-      }
-
-      return Object.assign(resourceSet, { type: 'resourceSet' })
+      const resourceSet = find(resourceSets, { id: resourceSetId })
+      return resourceSet && Object.assign(resourceSet, { type: 'resourceSet' })
     }
   )
 
@@ -959,7 +953,7 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('resourceSet')}</th>
                   <td>
-                    <ResourceSetItem vm={vm} />
+                    <ResourceSet vm={vm} />
                   </td>
                 </tr>
                 {isAdmin && (
