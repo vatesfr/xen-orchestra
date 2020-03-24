@@ -3061,8 +3061,9 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
-export const deployProxyAppliance = (sr, { proxy, ...props } = {}) =>
+export const deployProxyAppliance = (sr, { network, proxy, ...props } = {}) =>
   _call('proxy.deploy', {
+    network: resolveId(network),
     proxy: resolveId(proxy),
     sr: resolveId(sr),
     ...props,
