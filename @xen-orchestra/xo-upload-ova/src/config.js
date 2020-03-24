@@ -11,7 +11,7 @@ import { mkdirp, readFile, writeFile } from 'fs-extra'
 const configPath = xdgBasedir.config + '/xo-upload-ova'
 const configFile = configPath + '/config.json'
 
-export async function load () {
+export async function load() {
   try {
     return JSON.parse(await readFile(configFile))
   } catch (e) {
@@ -19,25 +19,25 @@ export async function load () {
   }
 }
 
-export async function get (path) {
+export async function get(path) {
   const config = await load()
   return l33t(config).tap(path)
 }
 
-export async function save (config) {
+export async function save(config) {
   await mkdirp(configPath)
   await writeFile(configFile, JSON.stringify(config))
 }
 
-export async function set (data) {
+export async function set(data) {
   const config = await load()
   await save(assign(config, data))
 }
 
-export async function unset (paths) {
+export async function unset(paths) {
   const config = await load()
   const l33tConfig = l33t(config)
-  ;[].concat(paths).forEach(function (path) {
+  ;[].concat(paths).forEach(function(path) {
     l33tConfig.purge(path, true)
   })
   return save(config)

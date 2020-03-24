@@ -41,14 +41,14 @@ function help() {
 
       $name --unregister
         Remove stored credentials.
-        
+
       $name --inspect <file>
         Displays the data that would be imported from the ova.
 
       $name --upload <file> <sr> [--override <key>=<value> [<key>=<value>]+]
-        Actually imports the VM contained in <file> to the Storage Repository <sr>. 
+        Actually imports the VM contained in <file> to the Storage Repository <sr>.
         Some parameters can be overridden from the file, consult --inspect to get the list.
-        Note: --override has to come last. By default arguments are string, prefix them with <json:> to type 
+        Note: --override has to come last. By default arguments are string, prefix them with <json:> to type
         them, ex. " --override nameLabel='new VM'  memory=json:67108864 disks.vmdisk1.capacity=json:134217728"
 
     $name v$version
@@ -200,7 +200,7 @@ export async function upload(args) {
 
     if (key === '$sendTo') {
       if (typeof file !== 'string') {
-        // eslint-disable-next-line
+        // eslint-disable-next-line no-throw-literal
         throw 'file parameter should be a path'
       }
       url = new URL(result[key], baseUrl)
