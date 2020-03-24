@@ -161,18 +161,6 @@ class AuditXoPlugin {
     }
   }
 
-  _getRecordsStream(id) {
-    const createNdJsonStream = asyncIteratorToStream(async function*(
-      asyncIterator
-    ) {
-      for await (const record of asyncIterator) {
-        yield JSON.stringify(record)
-        yield '\n'
-      }
-    })
-    return createNdJsonStream(this._auditCore.getFrom(id))
-  }
-
   async _getRecords({ id, ndjson = false }) {
     if (ndjson) {
       return this._xo
@@ -251,5 +239,14 @@ class AuditXoPlugin {
     }
   }
 }
+
+AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(
+  async function*(id) {
+    for await (const record of this._auditCore.getFrom(id)) {
+      yield JSON.stringify(record)
+      yield '\n'
+    }
+  }
+)
 
 export default opts => new AuditXoPlugin(opts)
