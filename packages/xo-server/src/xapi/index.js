@@ -1342,7 +1342,6 @@ export default class Xapi extends XapiBase {
         memory_dynamic_max: memory,
         memory_dynamic_min: memory,
         memory_static_max: memory,
-        memory_static_min: memory,
         name_description: descriptionLabel,
         name_label: nameLabel,
         VCPUs_at_startup: nCpus,

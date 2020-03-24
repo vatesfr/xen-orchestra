@@ -1,6 +1,6 @@
 {
   "name": "xo-upload-ova",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "license": "AGPL-3.0",
   "description": "Basic CLI to upload ova files to Xen-Orchestra",
   "keywords": [
@@ -15,7 +15,6 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
   "preferGlobal": true,
   "main": "dist/",
   "bin": {
@@ -25,7 +24,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=8.10"
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
