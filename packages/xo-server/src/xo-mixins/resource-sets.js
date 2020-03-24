@@ -10,7 +10,6 @@ import {
   map as mapToArray,
   remove,
   some,
-  startsWith,
 } from 'lodash'
 import { noSuchObject, unauthorized } from 'xo-common/api-errors'
 
@@ -190,9 +189,9 @@ export default class {
                     this._xo.addAcl(subjectId, acl.object, acl.action)
                   )
                 }
-              } catch (err) {
-                if (!startsWith(err && err.message, 'no such object')) {
-                  throw err
+              } catch (error) {
+                if (!noSuchObject.is(error)) {
+                  throw error
                 }
               }
             })
