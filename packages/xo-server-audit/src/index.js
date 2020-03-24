@@ -88,6 +88,9 @@ class AuditXoPlugin {
     this._addListener('xo:postCall', this._handleEvent.bind(this, 'apiCall'))
     this._addListener('xo:audit', this._handleEvent.bind(this))
 
+    const exportRecords = this._exportRecords.bind(this)
+    exportRecords.permission = 'admin'
+
     const getRecords = this._getRecords.bind(this)
     getRecords.description = 'Get records from a passed record ID'
     getRecords.permission = 'admin'
@@ -95,9 +98,6 @@ class AuditXoPlugin {
       id: { type: 'string', optional: true },
       ndjson: { type: 'boolean', optional: true },
     }
-
-    const exportRecords = this._exportRecords.bind(this)
-    exportRecords.permission = 'admin'
 
     const checkIntegrity = this._checkIntegrity.bind(this)
     checkIntegrity.description =
