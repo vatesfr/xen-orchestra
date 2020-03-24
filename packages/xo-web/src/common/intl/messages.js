@@ -2315,6 +2315,8 @@ const messages = {
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
+  proxySrPredicateInfo:
+    'The select only contains SRs connected to at least one HVM-capable host',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
