@@ -356,9 +356,7 @@ export default class {
             let set
             if (
               object.$type !== 'VM' ||
-              ('start' in object.blocked_operations &&
-                (object.tags.includes('Disaster Recovery') ||
-                  object.tags.includes('Continuous Replication'))) ||
+              object.other_config['xo:backup:job'] !== undefined ||
               // No set for this VM.
               !(id = xapi.xo.getData(object, 'resourceSet')) ||
               // Not our set.
