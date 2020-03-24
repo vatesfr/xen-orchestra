@@ -474,11 +474,15 @@ export default class {
 
   // Returns the XAPI connection associated to an object.
   getXapi(object, type) {
-    return this._xapis[this.getXenServerIdByObject(object)]
+    return this._xapis[this.getXenServerIdByObject(object, type)]
   }
 
-  // returns the XAPI object corresponding to an XO object
-  getXapiObject(xoObject) {
+  // returns the XAPI object corresponding to an XO object/ID
+  getXapiObject(xoObjectOrId, type) {
+    const xoObject =
+      typeof xoObjectOrId === 'string'
+        ? this._xo.getObject(xoObjectOrId, type)
+        : xoObjectOrId
     return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
   }
 

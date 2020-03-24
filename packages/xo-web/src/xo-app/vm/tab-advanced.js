@@ -2,7 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
-import defined from '@xen-orchestra/defined'
+import defined, { get } from '@xen-orchestra/defined'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
 import Link from 'link'
@@ -76,7 +76,12 @@ import {
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
-import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
+import {
+  createGetObject,
+  createGetObjectsOfType,
+  createSelector,
+  isAdmin,
+} from 'selectors'
 
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
@@ -152,18 +157,63 @@ class AffinityHost extends Component {
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
 })
-class ResourceSetItem extends Component {
+@connectStore({
+  isAdmin,
+})
+class ResourceSet extends Component {
   _getResourceSet = createSelector(
     () => this.props.resourceSets,
-    () => this.props.id,
-    (resourceSets, id) =>
-      Object.assign(find(resourceSets, { id }), { type: 'resourceSet' })
+    () => this.props.vm.resourceSet,
+    (resourceSets, resourceSetId) => {
+      const resourceSet = find(resourceSets, { id: resourceSetId })
+      return resourceSet && Object.assign(resourceSet, { type: 'resourceSet' })
+    }
   )
 
   render() {
-    return this.props.resourceSets === undefined
-      ? null
-      : renderXoItem(this._getResourceSet())
+    const resourceSet = this._getResourceSet()
+    const { vm, isAdmin } = this.props
+
+    return isAdmin ? (
+      <div className='input-group'>
+        <SelectResourceSet
+          onChange={resourceSet =>
+            editVm(vm, {
+              resourceSet: resourceSet != null ? resourceSet.id : resourceSet,
+            })
+          }
+          value={vm.resourceSet}
+        />
+        {resourceSet !== undefined && (
+          <span className='input-group-btn'>
+            <ActionButton
+              btnStyle='primary'
+              handler={shareVmProxy}
+              handlerParam={vm}
+              icon='vm-share'
+              style={SHARE_BUTTON_STYLE}
+              tooltip={_('vmShareButton')}
+            />
+          </span>
+        )}
+      </div>
+    ) : vm.resourceSet === undefined ? (
+      _('resourceSetNone')
+    ) : resourceSet === undefined ? (
+      _('errorUnknownItem', { type: 'resource set' })
+    ) : (
+      <span>
+        {renderXoItem(resourceSet)}{' '}
+        <ActionButton
+          btnStyle='primary'
+          handler={shareVmProxy}
+          handlerParam={vm}
+          icon='vm-share'
+          size='small'
+          tooltip={_('vmShareButton')}
+        />
+      </span>
+    )
   }
 }
 
@@ -419,6 +469,7 @@ const NIC_TYPE_OPTIONS = [
     gpuGroup: getGpuGroup,
     isAdmin,
     vgpus: getVgpus,
+    vmPool: createGetObject((_, props) => get(() => props.vm.$pool)),
   }
 })
 export default class TabAdvanced extends Component {
@@ -456,7 +507,7 @@ export default class TabAdvanced extends Component {
     editVm(this.props.vm, { nicType: value === '' ? null : value })
 
   render() {
-    const { container, isAdmin, vgpus, vm } = this.props
+    const { container, isAdmin, vgpus, vm, vmPool } = this.props
     return (
       <Container>
         <Row>
@@ -780,6 +831,11 @@ export default class TabAdvanced extends Component {
                     <th>{_('vmBootFirmware')}</th>
                     <td>
                       <SelectBootFirmware
+                        host={
+                          vm.power_state === 'Running'
+                            ? vm.$container
+                            : get(() => vmPool.master)
+                        }
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
@@ -897,47 +953,7 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('resourceSet')}</th>
                   <td>
-                    {isAdmin ? (
-                      <div className='input-group'>
-                        <SelectResourceSet
-                          onChange={resourceSet =>
-                            editVm(vm, {
-                              resourceSet:
-                                resourceSet != null
-                                  ? resourceSet.id
-                                  : resourceSet,
-                            })
-                          }
-                          value={vm.resourceSet}
-                        />
-                        {vm.resourceSet !== undefined && (
-                          <span className='input-group-btn'>
-                            <ActionButton
-                              btnStyle='primary'
-                              handler={shareVmProxy}
-                              handlerParam={vm}
-                              icon='vm-share'
-                              style={SHARE_BUTTON_STYLE}
-                              tooltip={_('vmShareButton')}
-                            />
-                          </span>
-                        )}
-                      </div>
-                    ) : vm.resourceSet !== undefined ? (
-                      <span>
-                        <ResourceSetItem id={vm.resourceSet} />{' '}
-                        <ActionButton
-                          btnStyle='primary'
-                          handler={shareVmProxy}
-                          handlerParam={vm}
-                          icon='vm-share'
-                          size='small'
-                          tooltip={_('vmShareButton')}
-                        />
-                      </span>
-                    ) : (
-                      _('resourceSetNone')
-                    )}
+                    <ResourceSet vm={vm} />
                   </td>
                 </tr>
                 {isAdmin && (
