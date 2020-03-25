@@ -96,6 +96,39 @@ update.params = {
   },
 }
 
+export function updateApplianceNetworkConfiguration({
+  id,
+  networkConfiguration,
+}) {
+  return this.updateProxyApplianceNetworkConfiguration(id, networkConfiguration)
+}
+updateApplianceNetworkConfiguration.permission = 'admin'
+updateApplianceNetworkConfiguration.description =
+  "Update appliance static network configuration. To switch to DHCP, don't put the network configuration"
+updateApplianceNetworkConfiguration.params = {
+  id: {
+    type: 'string',
+  },
+  networkConfiguration: {
+    type: 'object',
+    optional: true,
+    properties: {
+      ip: {
+        type: 'string',
+      },
+      netmask: {
+        type: 'string',
+      },
+      gateway: {
+        type: 'string',
+      },
+      dns: {
+        type: 'string',
+      },
+    },
+  },
+}
+
 export function deploy({ network, networkConfiguration, proxy, sr }) {
   return this.deployProxy(sr._xapiId, {
     networkConfiguration,

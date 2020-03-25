@@ -3102,6 +3102,15 @@ export const destroyProxyAppliances = proxies =>
     )
   )
 
+export const updateProxyApplianceNetworkConfiguration = (
+  proxy,
+  networkConfiguration
+) =>
+  _call('proxy.updateApplianceNetworkConfiguration', {
+    id: resolveId(proxy),
+    networkConfiguration,
+  })
+
 export const upgradeProxyAppliance = proxy =>
   _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
 

@@ -5,7 +5,7 @@ import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
 import { format, parse } from 'json-rpc-peer'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject, vmBadPowerState } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
 import { mapValues, omit } from 'lodash'
 import { timeout } from 'promise-toolbox'
@@ -15,6 +15,21 @@ import parseDuration from '../_parseDuration'
 import patch from '../patch'
 import readChunk from '../_readStreamChunk'
 import { generateToken } from '../utils'
+
+const getXenstoreNetworkConfiguration = networkConfiguration =>
+  networkConfiguration !== undefined
+    ? {
+        'vm-data/dns': networkConfiguration.dns,
+        'vm-data/gateway': networkConfiguration.gateway,
+        'vm-data/ip': networkConfiguration.ip,
+        'vm-data/netmask': networkConfiguration.netmask,
+      }
+    : {
+        'vm-data/dns': null,
+        'vm-data/gateway': null,
+        'vm-data/ip': null,
+        'vm-data/netmask': null,
+      }
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
@@ -132,6 +147,48 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
+  async _waitVmNetworks(vm, ip) {
+    const xapi = vm.$xapi
+    const vmNetworksTimeout = parseDuration(this._xoProxyConf.vmNetworksTimeout)
+
+    vm = await timeout.call(
+      xapi._waitObjectState(vm.$id, _ => _.guest_metrics !== NULL_REF),
+      vmNetworksTimeout
+    )
+    await timeout.call(
+      xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
+        ip === undefined
+          ? guest_metrics.networks['0/ip'] !== undefined
+          : guest_metrics.networks['0/ip'] === ip
+      ),
+      vmNetworksTimeout
+    )
+  }
+
+  async updateProxyApplianceNetworkConfiguration(id, networkConfiguration) {
+    const { vmUuid } = await this._getProxy(id)
+    const vm = this._app.getXapiObject(vmUuid, 'VM')
+    await vm.update_xenstore_data(
+      getXenstoreNetworkConfiguration(networkConfiguration)
+    )
+
+    const xapi = vm.$xapi
+    try {
+      await xapi.rebootVm(vmUuid)
+    } catch (error) {
+      if (!vmBadPowerState.is(error)) {
+        throw error
+      }
+      await xapi.startVm(vmUuid)
+    }
+
+    if (networkConfiguration !== undefined) {
+      await vm.update_xenstore_data(getXenstoreNetworkConfiguration())
+    }
+
+    await this._waitVmNetworks(vm, networkConfiguration?.ip)
+  }
+
   async deployProxy(srId, { networkConfiguration, networkId, proxyId } = {}) {
     const app = this._app
 
@@ -153,7 +210,7 @@ export default class Proxy {
       [namespace]: { xva },
     } = await app.getResourceCatalog()
     const xapi = app.getXapi(srId)
-    let vm = await xapi.importVm(
+    const vm = await xapi.importVm(
       await app.requestResource({
         id: xva.id,
         namespace,
@@ -189,10 +246,10 @@ export default class Proxy {
         'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
       }
       if (networkConfiguration !== undefined) {
-        xenstoreData['vm-data/ip'] = networkConfiguration.ip
-        xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
-        xenstoreData['vm-data/netmask'] = networkConfiguration.netmask
-        xenstoreData['vm-data/dns'] = networkConfiguration.dns
+        Object.assign(
+          xenstoreData,
+          getXenstoreNetworkConfiguration(networkConfiguration)
+        )
       }
       await Promise.all([
         vm.add_tags(xoProxyConf.vmTag),
@@ -223,20 +280,7 @@ export default class Proxy {
       mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
     )
 
-    // ensure appliance has an IP address
-    const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
-    vm = await timeout.call(
-      xapi._waitObjectState(vm.$id, _ => _.guest_metrics !== NULL_REF),
-      vmNetworksTimeout
-    )
-    await timeout.call(
-      xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
-        networkConfiguration === undefined
-          ? guest_metrics.networks['0/ip'] !== undefined
-          : guest_metrics.networks['0/ip'] === networkConfiguration.ip
-      ),
-      vmNetworksTimeout
-    )
+    await this._waitVmNetworks(vm, networkConfiguration?.ip)
 
     // wait for the appliance to be upgraded
     const xoaUpgradeTimeout = parseDuration(xoProxyConf.xoaUpgradeTimeout)
