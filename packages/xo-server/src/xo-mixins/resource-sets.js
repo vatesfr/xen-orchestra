@@ -386,7 +386,7 @@ export default class {
   }
 
   @deferrable
-  async setVmResourceSet($defer, vmId, resourceSetId) {
+  async setVmResourceSet($defer, vmId, resourceSetId, force = false) {
     const xapi = this._xo.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
@@ -402,7 +402,11 @@ export default class {
     )
 
     if (resourceSetId != null) {
-      await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
+      await this.allocateLimitsInResourceSet(
+        resourcesUsage,
+        resourceSetId,
+        force || this._xo.user.permission === 'admin'
+      )
       $defer.onFailure(() =>
         this.releaseLimitsInResourceSet(resourcesUsage, resourceSetId)
       )
@@ -417,7 +421,11 @@ export default class {
         previousResourceSetId
       )
       $defer.onFailure(() =>
-        this.allocateLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+        this.allocateLimitsInResourceSet(
+          resourcesUsage,
+          previousResourceSetId,
+          true
+        )
       )
     }
 

@@ -383,12 +383,12 @@ const delete_ = defer(async function(
   // Update resource sets
   let resourceSet
   if (
-    (vm.type === 'VM' || vm.type === 'VM-snapshot') && // only regular VMs
+    (vm.type === 'VM' || vm.type === 'VM-snapshot') &&
     (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
     await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
     $defer.onFailure(() =>
-      this.setVmResourceSet(vm._xapiId, resourceSet)::ignoreErrors()
+      this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors()
     )
   }
 
