@@ -502,7 +502,11 @@ export default {
 
   async resumeVm(vmId) {
     // the force parameter is always true
-    await this.callAsync('VM.resume', this.getObject(vmId).$ref, false, true)
+    const vm = this.getObject(vmId)
+    await this.call('VM.resume', vm.$ref, false, true)
+
+    vm.$VBDs.forEach(vbd => vbd.$call('plug'))
+    vm.$VIFs.forEach(vif => vif.$call('plug'))
   },
 
   async unpauseVm(vmId) {
