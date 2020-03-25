@@ -510,6 +510,7 @@ export default class Xapi extends XapiBase {
       affinity,
       // appliance,
       blocked_operations,
+      domain_type, // Used when the VM is created Suspended
       generation_id,
       ha_always_run,
       ha_restart_priority,
@@ -519,6 +520,8 @@ export default class Xapi extends XapiBase {
       HVM_boot_policy,
       HVM_shadow_multiplier,
       is_a_template,
+      last_boot_CPU_flags, // Used when the VM is created Suspended
+      last_booted_record, // Used when the VM is created Suspended
       memory_dynamic_max,
       memory_dynamic_min,
       memory_static_max,
@@ -608,8 +611,12 @@ export default class Xapi extends XapiBase {
         version: asInteger(version),
         xenstore_data,
 
+        // VM created Suspended
         power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
         suspend_VDI,
+        domain_type,
+        last_boot_CPU_flags,
+        last_booted_record,
       })
     )
   }
