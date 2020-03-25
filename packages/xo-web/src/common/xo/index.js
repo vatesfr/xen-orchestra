@@ -2267,7 +2267,9 @@ export const deleteResourceSet = async id => {
 }
 
 export const recomputeResourceSetsLimits = () =>
-  _call('resourceSet.recomputeAllLimits')
+  _call('resourceSet.recomputeAllLimits')::tap(
+    subscribeResourceSets.forceRefresh
+  )
 
 export const getResourceSet = id =>
   _call('resourceSet.get', { id: resolveId(id) })
@@ -3134,6 +3136,11 @@ export const fetchAuditRecords = async () => {
     throw error
   }
 }
+
+export const exportAuditRecords = () =>
+  _call('audit.exportRecords').then(({ $getFrom: url }) => {
+    window.open(`.${url}`)
+  })
 
 export const checkAuditRecordsIntegrity = (oldest, newest) =>
   _call('audit.checkIntegrity', { oldest, newest })

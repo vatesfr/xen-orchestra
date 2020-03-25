@@ -2252,6 +2252,7 @@ const messages = {
   auditSaveFingerprintInErrorInfo:
     'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
   auditNewFingerprint: 'New fingerprint',
+  downloadAuditRecords: 'Download records',
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
@@ -2319,6 +2320,8 @@ const messages = {
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
+  proxySrPredicateInfo:
+    'The select only contains SRs connected to at least one HVM-capable host',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
