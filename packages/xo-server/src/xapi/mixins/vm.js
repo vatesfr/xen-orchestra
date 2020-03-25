@@ -480,12 +480,8 @@ export default {
     return /* await */ this._editVm(this.getObject(id), props, checkLimits)
   },
 
-  async revertVm(snapshotId, snapshotBefore = true) {
+  async revertVm(snapshotId) {
     const snapshot = this.getObject(snapshotId)
-    let newSnapshot
-    if (snapshotBefore) {
-      newSnapshot = await this._snapshotVm(snapshot.$snapshot_of)
-    }
     await this.callAsync('VM.revert', snapshot.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
       const vm = await this.barrier(snapshot.snapshot_of)
@@ -495,7 +491,6 @@ export default {
         this.resumeVm(vm.$id)::ignoreErrors()
       }
     }
-    return newSnapshot
   },
 
   async resumeVm(vmId) {

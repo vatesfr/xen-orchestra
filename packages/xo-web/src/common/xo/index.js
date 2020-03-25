@@ -1439,16 +1439,13 @@ export const revertSnapshot = snapshot =>
   confirm({
     title: _('revertVmModalTitle'),
     body: <RevertSnapshotModalBody />,
-  }).then(
-    snapshotBefore =>
-      _call('vm.revert', {
-        snapshotBefore,
-        snapshot: resolveId(snapshot),
-      }).then(() =>
-        success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
-      ),
-    noop
-  )
+  }).then(async snapshotBefore => {
+    if (snapshotBefore) {
+      await _call('vm.snapshot', { id: snapshot.$snapshot_of })
+    }
+    await _call('vm.revert', { snapshot: snapshot.id })
+    success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
+  }, noop)
 
 export const editVm = (vm, props) =>
   _call('vm.set', { ...props, id: resolveId(vm) }).catch(err => {
