@@ -1004,21 +1004,19 @@ export default class Xapi extends XapiBase {
       })
 
     // 0. Create suspend_VDI
-    let suspend_VDI
+    let suspendVdi
     if (delta.vm.power_state === 'Suspended') {
       const vdi = delta.vdis[delta.vm.suspend_VDI]
-      suspend_VDI = (
-        await this.createVdi({
-          ...vdi,
-          other_config: {
-            ...vdi.other_config,
-            [TAG_BASE_DELTA]: undefined,
-            [TAG_COPY_SRC]: vdi.uuid,
-          },
-          sr: mapVdisSrs[vdi.uuid] || srId,
-        })
-      ).$ref
-      $defer.onFailure.call(this, '_deleteVdi', suspend_VDI)
+      suspendVdi = await this.createVdi({
+        ...vdi,
+        other_config: {
+          ...vdi.other_config,
+          [TAG_BASE_DELTA]: undefined,
+          [TAG_COPY_SRC]: vdi.uuid,
+        },
+        sr: mapVdisSrs[vdi.uuid] || srId,
+      })
+      $defer.onFailure.call(this, '_deleteVdi', suspendVdi.$ref)
     }
 
     // 1. Create the VMs.
@@ -1039,7 +1037,7 @@ export default class Xapi extends XapiBase {
             [TAG_COPY_SRC]: delta.vm.uuid,
           },
         },
-        { suspend_VDI }
+        { suspend_VDI: suspendVdi?.$ref }
       )
     )
     $defer.onFailure(() => this._deleteVm(vm))
@@ -1091,6 +1089,13 @@ export default class Xapi extends XapiBase {
 
       return newVdi
     })::pAll()
+
+    // add suspend VDI to the newVdis map
+    //
+    // TODO: move all VDIs creation before the VM and simplify the code
+    if (suspendVdi !== undefined) {
+      newVdis[delta.vm.suspend_VDI] = suspendVdi
+    }
 
     const networksByNameLabelByVlan = {}
     let defaultNetwork
