@@ -1765,6 +1765,8 @@ export default class Xapi extends XapiBase {
     if (isVmRunning(vm)) {
       await this.callAsync('VBD.plug', vbdRef)
     }
+
+    return this.getObject(vbdRef)
   }
 
   _cloneVdi(vdi) {
