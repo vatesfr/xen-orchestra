@@ -1188,7 +1188,13 @@ export default class Xapi extends XapiBase {
 
     await vm.$call('resume', false, false)
 
-    await Promise.all(newVbds.map(vbd => vbd.$call('plug')))
+    await Promise.all(
+      newVbds.map(vbd =>
+        vbd.$call('plug').catch(error => {
+          console.error('fail to plug VBD', vbd, error)
+        })
+      )
+    )
 
     return { transferSize, vm }
   }
