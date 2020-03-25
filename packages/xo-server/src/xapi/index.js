@@ -1046,6 +1046,8 @@ export default class Xapi extends XapiBase {
     await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
 
     // 3. Create VDIs & VBDs.
+    //
+    // TODO: move all VDIs creation before the VM and simplify the code
     const vbds = groupBy(delta.vbds, 'VDI')
     const newVdis = await map(delta.vdis, async (vdi, vdiRef) => {
       let newVdi
@@ -1064,9 +1066,10 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
 
         await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
-      } else if (vdiRef !== delta.vm.suspend_VDI) {
-        // suspend VDI is already handled
-
+      } else if (vdiRef === delta.vm.suspend_VDI) {
+        // suspend VDI has been already created
+        newVdi = suspendVdi
+      } else {
         newVdi = await this.createVdi({
           ...vdi,
           other_config: {
@@ -1089,13 +1092,6 @@ export default class Xapi extends XapiBase {
 
       return newVdi
     })::pAll()
-
-    // add suspend VDI to the newVdis map
-    //
-    // TODO: move all VDIs creation before the VM and simplify the code
-    if (suspendVdi !== undefined) {
-      newVdis[delta.vm.suspend_VDI] = suspendVdi
-    }
 
     const networksByNameLabelByVlan = {}
     let defaultNetwork
