@@ -604,12 +604,11 @@ export default class SortedTable extends Component {
   _setPage = this._setPage.bind(this)
 
   goTo(id) {
-    this._setPage(
-      Math.ceil(
-        this._getItems().findIndex(item => item.id === id) /
-          this.props.itemsPerPage
-      )
+    const page = Math.ceil(
+      this._getItems().findIndex(item => item.id === id) /
+        this.props.itemsPerPage
     )
+    this._setPage(page === 0 ? 1 : page)
   }
 
   _selectAllVisibleItems = event => {

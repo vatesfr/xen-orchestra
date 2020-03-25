@@ -295,13 +295,13 @@ export default decorate([
 
         if (error !== undefined) {
           const { id } = error.data
-          state.goTo((oldest = id))
-
           if (missingAuditRecord.is(error)) {
             state.missingRecord = id
           } else {
             checkedRecords[id] = false
           }
+
+          state.goTo((oldest = id))
 
           // the newest is inaccessible or altered
           if (id === newest) {
