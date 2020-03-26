@@ -58,7 +58,9 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     )
     await execa(
       'python /usr/share/pyshared/VMDKstream.py ' +
-      inputRawFileName + ' ' + vmdkFileName,
+        inputRawFileName +
+        ' ' +
+        vmdkFileName,
       [],
       { shell: true }
     )
