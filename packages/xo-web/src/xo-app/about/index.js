@@ -6,19 +6,11 @@ import Link from 'link'
 import Page from '../page'
 import React from 'react'
 import { getUser } from 'selectors'
-import { productId2Plan } from 'xoa-plans'
-import { serverVersion, subscribeCurrentLicense } from 'xo'
+import { serverVersion } from 'xo'
 import { Container, Row, Col } from 'grid'
-import { addSubscriptions, connectStore, getXoaPlan } from 'utils'
+import { connectStore, getXoaPlan } from 'utils'
 
 import pkg from '../../../package'
-
-const LICENSE_LABELS = {
-  starter: _('starterLicense'),
-  enterprise: _('enterpriseLicense'),
-  premium: _('premiumLicense'),
-  'sb-premium': _('premiumLicense'),
-}
 
 const HEADER = (
   <Container>
@@ -36,9 +28,6 @@ const HEADER = (
 @connectStore(() => ({
   user: getUser,
 }))
-@addSubscriptions({
-  license: subscribeCurrentLicense,
-})
 export default class About extends Component {
   componentWillMount() {
     serverVersion.then(serverVersion => {
@@ -46,7 +35,7 @@ export default class About extends Component {
     })
   }
   render() {
-    const { user, license } = this.props
+    const { user } = this.props
     const isAdmin = user && user.permission === 'admin'
 
     return (
@@ -137,22 +126,6 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  {license && license.productId && (
-                    <div className='mb-1'>
-                      <h2>
-                        <Link to='xoa/licenses'>
-                          {LICENSE_LABELS[license.productId]}
-                        </Link>
-                      </h2>
-                      {productId2Plan(license.productId) !==
-                        process.env.XOA_PLAN && (
-                        <span>
-                          <Icon icon='error' />{' '}
-                          <Link to='xoa/update'>{_('updateNeeded')}</Link>
-                        </span>
-                      )}
-                    </div>
-                  )}
                   <h2 className='text-success'>{_('proSupportIncluded')}</h2>
                   <a href='https://xen-orchestra.com/#!/member/products'>
                     {_('xoAccount')}

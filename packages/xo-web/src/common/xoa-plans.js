@@ -34,7 +34,7 @@ export const productId2Plan = (() => {
 })()
 
 export const getXoaPlan = (plan = +process.env.XOA_PLAN) => {
-  switch (plan) {
+  switch (+plan) {
     case 1:
       return FREE
     case 2:

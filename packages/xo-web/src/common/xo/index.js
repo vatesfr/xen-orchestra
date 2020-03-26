@@ -3050,16 +3050,13 @@ export const selfBindLicense = ({ id, plan }) =>
       values: { licenseType: plan },
     },
     icon: 'unlock',
-  }).then(() => _call('xoa.selfBindLicense', { licenseId: id }), noop)
+  })
+    .then(() => _call('xoa.selfBindLicense', { licenseId: id }), noop)
+    ::tap(subscribeSelfLicenses.forceRefresh)
 
-export const subscribeCurrentLicense = createSubscription(async () => {
-  const licenses = await _call('xoa.getSelfLicenses')
-  if (!Array.isArray(licenses)) {
-    throw new Error('Cannot get self license')
-  }
-
-  return licenses[0]
-})
+export const subscribeSelfLicenses = createSubscription(() =>
+  _call('xoa.getSelfLicenses')
+)
 
 // Support --------------------------------------------------------------------
 

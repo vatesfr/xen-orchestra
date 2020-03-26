@@ -23,6 +23,7 @@ const messages = {
   messageReply: 'Reply',
   sr: 'SR',
   tryXoa: 'Try XOA for free and deploy it here.',
+  notInstalled: 'Not installed',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',

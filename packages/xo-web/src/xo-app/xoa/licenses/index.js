@@ -7,7 +7,7 @@ import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
-import { CURRENT } from 'xoa-plans'
+import { CURRENT, productId2Plan, getXoaPlan } from 'xoa-plans'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
@@ -15,7 +15,7 @@ import {
   subscribePlugins,
   getLicenses,
   selfBindLicense,
-  subscribeCurrentLicense,
+  subscribeSelfLicenses,
 } from 'xo'
 import { find, forEach, some } from 'lodash'
 
@@ -42,26 +42,20 @@ const LicenseManager = ({ item, userData }) => {
   }
 
   if (type === 'xoa') {
-    const { id, xoaId } = item
-    const { xoaLicense } = userData
+    const { id, xoaId, productId } = item
+    const { selfLicenses } = userData
 
-    if (xoaLicense != null) {
-      if (xoaLicense.id === id) {
+    if (Array.isArray(selfLicenses)) {
+      if (selfLicenses.some(license => license.id === id)) {
         return (
           <span>
             {_('licenseBoundToThisXoa')}{' '}
-            {xoaLicense.productId.toLowerCase() !==
-              CURRENT.name.toLowerCase() && (
-              <span className='ml-1'>
-                <Icon icon='error' />{' '}
-                <Link to='/xoa/update'>{_('updateNeeded')}</Link>
-              </span>
+            {productId !== CURRENT.name.toLowerCase() && (
+              <span className='text-muted'>({_('notInstalled')})</span>
             )}
           </span>
         )
       }
-
-      return null // XOA is bound to another license
     }
 
     if (xoaId === undefined) {
@@ -136,7 +130,7 @@ const PRODUCTS_COLUMNS = [
 })
 @addSubscriptions(() => ({
   plugins: subscribePlugins,
-  xoaLicense: subscribeCurrentLicense,
+  selfLicenses: subscribeSelfLicenses,
 }))
 export default class Licenses extends Component {
   constructor() {
@@ -188,6 +182,7 @@ export default class Licenses extends Component {
             expires: license.expires,
             id: license.id,
             product: 'XOSAN',
+            productId: license.productId,
             srId: license.boundObjectId,
             type: 'xosan',
           })
@@ -201,7 +196,9 @@ export default class Licenses extends Component {
             buyer: license.buyer,
             expires: license.expires,
             id: license.id,
-            product: 'XOA ' + license.productId,
+            product:
+              'XOA ' + getXoaPlan(productId2Plan(license.productId)).name,
+            productId: license.productId,
             type: 'xoa',
             xoaId: license.boundObjectId,
           })
@@ -253,7 +250,7 @@ export default class Licenses extends Component {
       return <em>{_('statusLoading')}</em>
     }
 
-    const { xoaRegistration, xoaLicense, xosanSrs } = this.props
+    const { xoaRegistration, selfLicenses, xosanSrs } = this.props
 
     return (
       <Container>
@@ -283,7 +280,7 @@ export default class Licenses extends Component {
               collection={this._getProducts()}
               columns={PRODUCTS_COLUMNS}
               data-registeredEmail={xoaRegistration.email}
-              data-xoaLicense={xoaLicense}
+              data-selfLicenses={selfLicenses}
               data-xosanSrs={xosanSrs}
               stateUrlParam='s'
             />
