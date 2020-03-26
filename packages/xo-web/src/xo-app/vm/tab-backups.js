@@ -28,13 +28,13 @@ const BackupTab = decorate([
     computed: {
       haveLegacyBackups: (_, { legacyJobs }) =>
         some(legacyJobs, job => legacyJobKey.includes(job.key)),
+      jobIds: ({ predicate }, { jobs }) =>
+        filter(jobs, predicate).map(_ => _.id),
       predicate: (_, { vm }) => ({ vms }) =>
         vms === undefined
           ? undefined
           : // ignore transient properties
             createPredicate(omit(vms, 'power_state'))(vm),
-      jobIds: ({ predicate }, { jobs }) =>
-        filter(jobs, predicate).map(_ => _.id),
     },
   }),
   injectState,
@@ -57,7 +57,7 @@ const BackupTab = decorate([
         </div>
 
         <div className='mt-2'>
-          <JobsTable mainView={false} predicate={predicate} />
+          <JobsTable main={false} predicate={predicate} />
         </div>
       </div>
     )

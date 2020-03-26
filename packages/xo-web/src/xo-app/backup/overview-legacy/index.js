@@ -220,6 +220,7 @@ export default class LegacyOverview extends Component {
 
   render() {
     const schedules = this._getScheduleCollection()
+
     return (
       schedules.length !== 0 && (
         <div>
@@ -229,19 +230,17 @@ export default class LegacyOverview extends Component {
               <Icon icon='schedule' /> {_('backupSchedules')}
             </CardHeader>
             <CardBlock>
-              <div>
-                <div className='alert alert-warning'>
-                  <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
-                    {_('backupMigrationLink')}
-                  </a>
-                </div>
-                <SortedTable
-                  columns={JOB_COLUMNS}
-                  collection={schedules}
-                  data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
-                  stateUrlParam='s_legacy'
-                />
+              <div className='alert alert-warning'>
+                <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
+                  {_('backupMigrationLink')}
+                </a>
               </div>
+              <SortedTable
+                columns={JOB_COLUMNS}
+                collection={schedules}
+                data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
+                stateUrlParam='s_legacy'
+              />
             </CardBlock>
           </Card>
           <LogList jobKeys={Object.keys(jobKeyToLabel)} />

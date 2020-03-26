@@ -15,7 +15,7 @@ import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { createFilter, createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
-import { isEmpty, map, groupBy, some } from 'lodash'
+import { groupBy, isEmpty, map, some } from 'lodash'
 import { Proxy } from 'render-xo-item'
 import {
   cancelJob,
@@ -196,11 +196,11 @@ class JobsTable extends React.Component {
   }
 
   static propTypes = {
-    mainView: PropTypes.bool,
+    main: PropTypes.bool,
   }
 
   static defaultProps = {
-    mainView: true,
+    main: true,
   }
 
   static tableProps = {
@@ -327,7 +327,7 @@ class JobsTable extends React.Component {
     ],
   }
 
-  _actions = this.props.mainView
+  _actions = this.props.main
     ? [
         {
           handler: _deleteBackupJobs,
@@ -363,7 +363,7 @@ class JobsTable extends React.Component {
         collection={this._getCollection()}
         data-goTo={this._goTo}
         data-goToNewTab={this._goToNewTab}
-        data-mainView={this.props.mainView}
+        data-main={this.props.main}
         data-schedulesByJob={this.props.schedulesByJob}
         stateUrlParam='s'
       />
