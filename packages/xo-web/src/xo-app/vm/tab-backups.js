@@ -38,7 +38,7 @@ const BackupTab = decorate([
     },
   }),
   injectState,
-  ({ jobs, state: { haveLegacyBackups, jobIds, predicate } }) => {
+  ({ state: { haveLegacyBackups, jobIds, predicate } }) => {
     return (
       <div>
         {haveLegacyBackups && (
