@@ -36,8 +36,8 @@
 >
 > Rule of thumb: add packages on top.
 
-- @xen-orchestra/xo-upload-ova major
 - xo-vmdk-to-vhd major
+- @xen-orchestra/xo-upload-ova major
 - xo-server-audit minor
 - xo-server-auth-github patch
 - xo-server-auth-google patch
