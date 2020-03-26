@@ -86,6 +86,8 @@ export class AuditCore {
 
   async checkIntegrity(oldest, newest) {
     const storage = this._storage
+
+    // handle separated chains case
     if (newest !== (await storage.getLastId())) {
       let isNewestAccessible = false
       for await (const { id } of this.getFrom()) {

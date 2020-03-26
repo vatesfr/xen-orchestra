@@ -166,6 +166,8 @@ const checkIntegrity = async ({ handleCheck }) => {
   }
 
   const generatedFingerprint = await generateAuditFingerprint(recentRecord)
+
+  // display coherence feedback
   handleCheck(
     ...generatedFingerprint.fingerprint.split('|'),
     generatedFingerprint.error
@@ -222,20 +224,19 @@ const COLUMNS = [
       event === 'apiCall' ? data.method : event,
   },
   {
-    itemRenderer: ({ time }) =>
-      time !== undefined && (
-        <FormattedDate
-          day='numeric'
-          hour='2-digit'
-          minute='2-digit'
-          month='short'
-          second='2-digit'
-          value={new Date(time)}
-          year='numeric'
-        />
-      ),
+    itemRenderer: ({ time }) => (
+      <FormattedDate
+        day='numeric'
+        hour='2-digit'
+        minute='2-digit'
+        month='short'
+        second='2-digit'
+        value={new Date(time)}
+        year='numeric'
+      />
+    ),
     name: _('date'),
-    sortCriteria: ({ fakeTime, time = fakeTime }) => time,
+    sortCriteria: 'time',
     sortOrder: 'desc',
   },
   {
@@ -296,13 +297,15 @@ export default decorate([
 
         if (error !== undefined) {
           const { id } = error.data
+          oldest = id
+
           if (missingAuditRecord.is(error)) {
             state.missingRecord = id
           } else {
             checkedRecords[id] = false
           }
 
-          state.goTo((oldest = id))
+          state.goTo(id)
 
           // the newest is inaccessible or altered
           if (id === newest) {
@@ -328,7 +331,7 @@ export default decorate([
           ? [
               ..._records,
               {
-                fakeTime: _records[_records.length - 1].time - 1,
+                time: 0,
                 id: missingRecord,
                 subject: {},
               },
