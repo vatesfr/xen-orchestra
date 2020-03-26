@@ -8,7 +8,7 @@ import { injectState, provideState } from 'reaclette'
 import { filter, omit, some } from 'lodash'
 import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
-import { JobsTable } from '../backup/overview'
+import JobsTable from '../backup/overview/tab-jobs'
 
 const legacyJobKey = [
   'continuousReplication',
