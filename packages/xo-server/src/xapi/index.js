@@ -1088,7 +1088,6 @@ export default class Xapi extends XapiBase {
         })
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
-
       await asyncMap(vbds[vdiRef], vbd =>
         this.createVbd({
           ...vbd,
@@ -1096,7 +1095,6 @@ export default class Xapi extends XapiBase {
           vm,
         })
       )
-
       return newVdi
     })::pAll()
 
@@ -1765,8 +1763,6 @@ export default class Xapi extends XapiBase {
     if (isVmRunning(vm)) {
       await this.callAsync('VBD.plug', vbdRef)
     }
-
-    return this.getRecord('VBD', vbdRef)
   }
 
   _cloneVdi(vdi) {
