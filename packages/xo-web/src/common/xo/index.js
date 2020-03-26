@@ -3042,8 +3042,8 @@ export const productId2Plan = (() => {
   return productId => PRODUCT_TO_PLAN[productId]
 })()
 
-export const getLicenses = ({ productId, productType } = {}) =>
-  _call('xoa.getLicenses', { productId, productType })
+export const getLicenses = ({ productType } = {}) =>
+  _call('xoa.getLicenses', { productType })
 
 export const getLicense = (productId, boundObjectId) =>
   _call('xoa.getLicense', { productId, boundObjectId })
@@ -3062,9 +3062,14 @@ export const selfBindLicense = ({ id, plan }) =>
     icon: 'unlock',
   }).then(() => _call('xoa.selfBindLicense', { licenseId: id }), noop)
 
-export const subscribeCurrentLicense = createSubscription(() =>
-  _call('xoa.getSelfLicense')
-)
+export const subscribeCurrentLicense = createSubscription(async () => {
+  const licenses = await _call('xoa.getSelfLicenses')
+  if (!Array.isArray(licenses)) {
+    throw new Error('Cannot get self license')
+  }
+
+  return licenses[0]
+})
 
 // Support --------------------------------------------------------------------
 

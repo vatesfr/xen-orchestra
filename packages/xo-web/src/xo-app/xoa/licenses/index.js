@@ -6,18 +6,23 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
+import {
+  addSubscriptions,
+  adminOnly,
+  connectStore,
+  getXoaPlan,
+  ShortDate,
+} from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import {
   subscribePlugins,
   getLicenses,
-  productId2Plan,
   selfBindLicense,
   subscribeCurrentLicense,
 } from 'xo'
-import { find, forEach, groupBy, some } from 'lodash'
+import { find, forEach, some } from 'lodash'
 
 import Xosan from './xosan'
 
@@ -50,7 +55,8 @@ const LicenseManager = ({ item, userData }) => {
         return (
           <span>
             {_('licenseBoundToThisXoa')}{' '}
-            {productId2Plan(xoaLicense.productId) !== process.env.XOA_PLAN && (
+            {xoaLicense.productId.toLowerCase() !==
+              getXoaPlan().toLowerCase() && (
               <span className='ml-1'>
                 <Icon icon='error' />{' '}
                 <Link to='/xoa/update'>{_('updateNeeded')}</Link>
@@ -67,7 +73,7 @@ const LicenseManager = ({ item, userData }) => {
       return (
         <ActionButton
           btnStyle='success'
-          data-id={item.licenseId}
+          data-id={item.id}
           data-plan={item.product}
           handler={selfBindLicense}
           icon='unlock'
@@ -149,7 +155,18 @@ export default class Licenses extends Component {
 
     return getLicenses()
       .then(licenses => {
-        this.setState({ licenses: groupBy(licenses, 'productType') })
+        const xoaLicenses = licenses.filter(license =>
+          license.productTypes.includes('xo')
+        )
+        const xosanLicenses = licenses.filter(license =>
+          license.productTypes.includes('xosan')
+        )
+        this.setState({
+          licenses: {
+            xoa: xoaLicenses,
+            xosan: xosanLicenses,
+          },
+        })
       })
       .catch(error => {
         this.setState({ licenseError: error })
@@ -175,7 +192,7 @@ export default class Licenses extends Component {
             buyer: license.buyer,
             expires: license.expires,
             id: license.id,
-            product: license.product,
+            product: 'XOSAN',
             srId: license.boundObjectId,
             type: 'xosan',
           })
@@ -189,7 +206,7 @@ export default class Licenses extends Component {
             buyer: license.buyer,
             expires: license.expires,
             id: license.id,
-            product: license.product,
+            product: 'XOA ' + license.productId,
             type: 'xoa',
             xoaId: license.boundObjectId,
           })
