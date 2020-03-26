@@ -1766,7 +1766,7 @@ export default class Xapi extends XapiBase {
       await this.callAsync('VBD.plug', vbdRef)
     }
 
-    return this.getObject(vbdRef)
+    return this.getRecord('VBD', vbdRef)
   }
 
   _cloneVdi(vdi) {
