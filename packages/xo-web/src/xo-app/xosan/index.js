@@ -10,7 +10,7 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
-import { every, filter, find, flatten, forEach, isEmpty, map } from 'lodash'
+import { every, filter, find, forEach, isEmpty, map } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import {
   addSubscriptions,
@@ -105,7 +105,9 @@ const XOSAN_COLUMNS = [
       <span>
         {map(sr.hosts, (host, i) => [
           i ? ', ' : null,
-          <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>,
+          <Link key={host.id} to={`/hosts/${host.id}`}>
+            {host.name_label}
+          </Link>,
         ])}
       </span>
     ),
@@ -311,10 +313,9 @@ export default class Xosan extends Component {
 
   _updateLicenses = () =>
     getLicenses({ productType: 'xosan' })
-      .then(([xosanLicenses, xosanTrialLicenses]) => {
+      .then(xosanLicenses => {
         this.setState({
           xosanLicenses,
-          xosanTrialLicenses,
         })
       })
       .catch(error => {
@@ -354,10 +355,9 @@ export default class Xosan extends Component {
 
   _getLicensesByXosan = createSelector(
     () => this.state.xosanLicenses,
-    () => this.state.xosanTrialLicenses,
-    (xosanLicenses = [], xosanTrialLicenses = []) => {
+    (xosanLicenses = []) => {
       const licensesByXosan = {}
-      forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
+      forEach(xosanLicenses, license => {
         let xosanId
         if ((xosanId = license.boundObjectId) === undefined) {
           return

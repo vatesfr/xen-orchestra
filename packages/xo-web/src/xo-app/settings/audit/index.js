@@ -244,7 +244,7 @@ export default decorate([
   }),
   injectState,
   ({ state, effects }) => (
-    <Upgrade place='audit' available={PREMIUM}>
+    <Upgrade place='audit' available={PREMIUM.value}>
       <div>
         <div className='mt-1 mb-1'>
           <ActionButton

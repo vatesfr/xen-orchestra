@@ -144,9 +144,7 @@ export default class Xosan extends Component {
   _getKnownXosans = createSelector(
     createSelector(
       () => this.props.xosanLicenses,
-      () => this.props.xosanTrialLicenses,
-      (licenses = [], trialLicenses = []) =>
-        filter(map(licenses.concat(trialLicenses), 'boundObjectId'))
+      (licenses = []) => filter(map(licenses, 'boundObjectId'))
     ),
     () => this.props.xosanSrs,
     (knownXosanIds, xosanSrs) =>

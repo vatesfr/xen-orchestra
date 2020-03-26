@@ -10,6 +10,7 @@ import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
 import { CURRENT, productId2Plan, getXoaPlan } from 'xoa-plans'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
+import { find, forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import {
   subscribePlugins,
@@ -17,7 +18,6 @@ import {
   selfBindLicense,
   subscribeSelfLicenses,
 } from 'xo'
-import { find, forEach, some } from 'lodash'
 
 import Xosan from './xosan'
 
@@ -50,7 +50,7 @@ const LicenseManager = ({ item, userData }) => {
         return (
           <span>
             {_('licenseBoundToThisXoa')}{' '}
-            {productId !== CURRENT.name.toLowerCase() && (
+            {productId2Plan[productId] !== CURRENT.value && (
               <span className='text-muted'>({_('notInstalled')})</span>
             )}
           </span>
@@ -144,16 +144,17 @@ export default class Licenses extends Component {
 
     return getLicenses()
       .then(licenses => {
-        const xoaLicenses = licenses.filter(license =>
+        const { xoa, xosan } = groupBy(licenses, license =>
           license.productTypes.includes('xo')
-        )
-        const xosanLicenses = licenses.filter(license =>
-          license.productTypes.includes('xosan')
+            ? 'xoa'
+            : license.productTypes.includes('xosan')
+            ? 'xosan'
+            : 'other'
         )
         this.setState({
           licenses: {
-            xoa: xoaLicenses,
-            xosan: xosanLicenses,
+            xoa,
+            xosan,
           },
         })
       })
@@ -163,9 +164,8 @@ export default class Licenses extends Component {
   }
 
   _getProducts = createSelector(
-    () => this.props.xosanSrs,
     () => this.state.licenses,
-    (xosanSrs, licenses) => {
+    licenses => {
       if (get(() => licenses.xosan.state) === 'register-needed') {
         // Should not happen
         return
@@ -197,7 +197,7 @@ export default class Licenses extends Component {
             expires: license.expires,
             id: license.id,
             product:
-              'XOA ' + getXoaPlan(productId2Plan(license.productId)).name,
+              'XOA ' + getXoaPlan(productId2Plan[license.productId]).name,
             productId: license.productId,
             type: 'xoa',
             xoaId: license.boundObjectId,
@@ -246,7 +246,7 @@ export default class Licenses extends Component {
       return <span className='text-danger'>{_('xosanGetLicensesError')}</span>
     }
 
-    if (!some(this.state.licenses)) {
+    if (this.state.licenses === undefined) {
       return <em>{_('statusLoading')}</em>
     }
 
@@ -300,8 +300,7 @@ export default class Licenses extends Component {
               </a>
             </h2>
             <Xosan
-              xosanLicenses={this.state.xosan}
-              xosanTrialLicenses={this.state['xosan.trial']}
+              xosanLicenses={this.state.licenses.xosan}
               updateLicenses={this._updateLicenses}
             />
           </Col>
