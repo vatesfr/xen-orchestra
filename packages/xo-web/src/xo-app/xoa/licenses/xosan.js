@@ -88,7 +88,7 @@ const XOSAN_COLUMNS = [
         )
       }
 
-      return license !== undefined ? (
+      return license !== undefined && license.productId === 'xosan' ? (
         license.id.slice(-4)
       ) : (
         <SelectLicense
