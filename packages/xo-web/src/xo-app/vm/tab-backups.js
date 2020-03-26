@@ -1,41 +1,14 @@
 import _ from 'intl'
 import addSubscriptions from 'add-subscriptions'
-import constructQueryString from 'construct-query-string'
 import decorate from 'apply-decorators'
 import React from 'react'
 import { adminOnly } from 'utils'
 import { createPredicate } from 'value-matcher'
 import { injectState, provideState } from 'reaclette'
-import { some } from 'lodash'
-import { subscribeJobs } from 'xo'
+import { filter, omit, some } from 'lodash'
+import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
-import LegacyOverview from '../backup/overview-legacy'
 import { JobsTable } from '../backup/overview'
-
-const ACTIONS = [
-  {
-    handler: (selectedJobs, { goTo }) =>
-      goTo({
-        pathname: '/backup/overview',
-        query: { s: `id: |(${selectedJobs.map(_ => _.id)})` },
-      }),
-    label: _('redirectToBackupJobs'),
-    icon: 'redirect',
-    individualLabel: _('redirectToBackupJob'),
-  },
-]
-
-const INDIVIDUAL_ACTIONS = [
-  {
-    handler: (job, { goTo }) =>
-      goTo({
-        pathname: '/home',
-        query: { t: 'VM', s: constructQueryString(job.vms) },
-      }),
-    label: _('redirectToMatchingVms'),
-    icon: 'preview',
-  },
-]
 
 const legacyJobKey = [
   'continuousReplication',
@@ -49,34 +22,42 @@ const BackupTab = decorate([
   adminOnly,
   addSubscriptions({
     legacyJobs: subscribeJobs,
+    jobs: subscribeBackupNgJobs,
   }),
   provideState({
     computed: {
       haveLegacyBackups: (_, { legacyJobs }) =>
         some(legacyJobs, job => legacyJobKey.includes(job.key)),
       predicate: (_, { vm }) => ({ vms }) =>
-        vms !== undefined &&
-        createPredicate({
-          ...vms,
-          // ignore transient properties
-          power_state: vm.power_state,
-        })(vm),
+        vms === undefined
+          ? undefined
+          : // ignore transient properties
+            createPredicate(omit(vms, 'power_state'))(vm),
+      jobIds: ({ predicate }, { jobs }) =>
+        filter(jobs, predicate).map(_ => _.id),
     },
   }),
   injectState,
-  ({ state: { haveLegacyBackups, predicate } }) => {
+  ({ jobs, state: { haveLegacyBackups, jobIds, predicate } }) => {
     return (
       <div>
         {haveLegacyBackups && (
-          <LegacyOverview jobPredicate={predicate} showCard={false} />
+          <div className='alert alert-warning'>
+            <a href='#/backup'>{_('vmlegacyBackupLink')}</a>
+          </div>
         )}
-        <div className='mt-2 mb-1'>
-          {haveLegacyBackups && <h3>{_('backup')}</h3>}
-          <JobsTable
-            actions={ACTIONS}
-            individualActions={INDIVIDUAL_ACTIONS}
-            predicate={predicate}
-          />
+        <div className='mt-1'>
+          <a
+            href={`#/backup/overview?s=${encodeURIComponent(
+              `id: |(${jobIds.join(' ')})`
+            )}`}
+          >
+            {_('goToBackupPage')}
+          </a>
+        </div>
+
+        <div className='mt-2'>
+          <JobsTable mainView={false} predicate={predicate} />
         </div>
       </div>
     )

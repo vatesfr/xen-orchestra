@@ -141,24 +141,14 @@ const JOB_COLUMNS = [
 
 // ===================================================================
 
-@addSubscriptions(({ jobPredicate }) => ({
-  jobs: cb =>
-    subscribeJobs(jobs => cb(keyBy(filter(jobs, jobPredicate), 'id'))),
+@addSubscriptions({
+  jobs: cb => subscribeJobs(jobs => cb(keyBy(jobs, 'id'))),
   schedules: cb => subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
   users: subscribeUsers,
-}))
+})
 export default class LegacyOverview extends Component {
   static contextTypes = {
     router: PropTypes.object,
-  }
-
-  static propTypes = {
-    jobPredicate: PropTypes.func,
-    showCard: PropTypes.bool,
-  }
-
-  static defaultProps = {
-    showCard: true,
   }
 
   _getSchedules = createSelector(
@@ -230,41 +220,33 @@ export default class LegacyOverview extends Component {
 
   render() {
     const schedules = this._getScheduleCollection()
-    const legacyBackup =
-      schedules.length !== 0 ? (
-        <div>
-          <div className='alert alert-warning'>
-            <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
-              {_('backupMigrationLink')}
-            </a>
-          </div>
-          <SortedTable
-            columns={JOB_COLUMNS}
-            collection={schedules}
-            data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
-            stateUrlParam='s_legacy'
-          />
-        </div>
-      ) : null
-
-    return schedules.length !== 0 ? (
-      this.props.showCard ? (
+    return (
+      schedules.length !== 0 && (
         <div>
           <h3>Legacy backup</h3>
           <Card>
             <CardHeader>
               <Icon icon='schedule' /> {_('backupSchedules')}
             </CardHeader>
-            <CardBlock>{legacyBackup}</CardBlock>
+            <CardBlock>
+              <div>
+                <div className='alert alert-warning'>
+                  <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
+                    {_('backupMigrationLink')}
+                  </a>
+                </div>
+                <SortedTable
+                  columns={JOB_COLUMNS}
+                  collection={schedules}
+                  data-isScheduleUserMissing={this._getIsScheduleUserMissing()}
+                  stateUrlParam='s_legacy'
+                />
+              </div>
+            </CardBlock>
           </Card>
           <LogList jobKeys={Object.keys(jobKeyToLabel)} />
         </div>
-      ) : (
-        <div>
-          <h3>Legacy backup</h3>
-          {legacyBackup}
-        </div>
       )
-    ) : null
+    )
   }
 }

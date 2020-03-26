@@ -186,34 +186,6 @@ const SchedulePreviewBody = decorate([
   ),
 ])
 
-const ACTIONS = [
-  {
-    handler: _deleteBackupJobs,
-    label: _('deleteBackupSchedule'),
-    icon: 'delete',
-    level: 'danger',
-  },
-]
-
-const INDIVIDUAL_ACTIONS = [
-  {
-    handler: (job, { goTo }) =>
-      goTo({
-        pathname: '/home',
-        query: { t: 'VM', s: constructQueryString(job.vms) },
-      }),
-    disabled: job => job.type !== 'backup',
-    label: _('redirectToMatchingVms'),
-    icon: 'preview',
-  },
-  {
-    handler: (job, { goTo }) => goTo(`/backup/${job.id}/edit`),
-    label: _('formEdit'),
-    icon: 'edit',
-    level: 'primary',
-  },
-]
-
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
   metadataJobs: subscribeMetadataBackupJobs,
@@ -225,6 +197,14 @@ const INDIVIDUAL_ACTIONS = [
 export class JobsTable extends React.Component {
   static contextTypes = {
     router: PropTypes.object,
+  }
+
+  static propTypes = {
+    mainView: PropTypes.bool,
+  }
+
+  static defaultProps = {
+    mainView: true,
   }
 
   static tableProps = {
@@ -331,10 +311,43 @@ export class JobsTable extends React.Component {
         name: _('formNotes'),
       },
     ],
+    individualActions: [
+      {
+        handler: (job, { goTo }) =>
+          goTo({
+            pathname: '/home',
+            query: { t: 'VM', s: constructQueryString(job.vms) },
+          }),
+        disabled: job => job.type !== 'backup',
+        label: _('redirectToMatchingVms'),
+        icon: 'preview',
+      },
+      {
+        handler: (job, { goToNewTab }) => goToNewTab(`/backup/${job.id}/edit`),
+        label: _('formEdit'),
+        icon: 'edit',
+        level: 'primary',
+      },
+    ],
   }
+
+  _actions = this.props.mainView
+    ? [
+        {
+          handler: _deleteBackupJobs,
+          label: _('deleteBackupSchedule'),
+          icon: 'delete',
+          level: 'danger',
+        },
+      ]
+    : undefined
 
   _goTo = path => {
     this.context.router.push(path)
+  }
+
+  _goToNewTab = path => {
+    window.open(this.context.router.createHref(path))
   }
 
   _getCollection = createFilter(
@@ -343,26 +356,19 @@ export class JobsTable extends React.Component {
       () => this.props.metadataJobs,
       (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
     ),
-    createSelector(
-      () => this.props.predicate,
-      predicate => (predicate === undefined ? () => true : predicate)
-    )
+    () => this.props.predicate
   )
 
   render() {
-    const { actions, individualActions } = this.props
     return (
       <SortedTable
         {...JobsTable.tableProps}
-        actions={actions === undefined ? ACTIONS : actions}
+        actions={this._actions}
         collection={this._getCollection()}
         data-goTo={this._goTo}
+        data-goToNewTab={this._goToNewTab}
+        data-mainView={this.props.mainView}
         data-schedulesByJob={this.props.schedulesByJob}
-        individualActions={
-          individualActions === undefined
-            ? INDIVIDUAL_ACTIONS
-            : individualActions
-        }
         stateUrlParam='s'
       />
     )
