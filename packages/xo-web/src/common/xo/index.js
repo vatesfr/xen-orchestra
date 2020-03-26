@@ -3032,16 +3032,6 @@ export const updateXosanPacks = pool =>
 
 // Licenses --------------------------------------------------------------------
 
-export const productId2Plan = (() => {
-  const PRODUCT_TO_PLAN = {
-    starter: '2',
-    enterprise: '3',
-    premium: '4',
-    'sb-premium': '4',
-  }
-  return productId => PRODUCT_TO_PLAN[productId]
-})()
-
 export const getLicenses = ({ productType } = {}) =>
   _call('xoa.getLicenses', { productType })
 

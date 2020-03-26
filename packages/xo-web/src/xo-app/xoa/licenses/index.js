@@ -6,13 +6,8 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import {
-  addSubscriptions,
-  adminOnly,
-  connectStore,
-  getXoaPlan,
-  ShortDate,
-} from 'utils'
+import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
+import { CURRENT } from 'xoa-plans'
 import { Container, Row, Col } from 'grid'
 import { createSelector, createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
@@ -56,7 +51,7 @@ const LicenseManager = ({ item, userData }) => {
           <span>
             {_('licenseBoundToThisXoa')}{' '}
             {xoaLicense.productId.toLowerCase() !==
-              getXoaPlan().toLowerCase() && (
+              CURRENT.name.toLowerCase() && (
               <span className='ml-1'>
                 <Icon icon='error' />{' '}
                 <Link to='/xoa/update'>{_('updateNeeded')}</Link>

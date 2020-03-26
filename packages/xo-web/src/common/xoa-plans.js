@@ -1,53 +1,53 @@
-const FREE = {
-  valueOf: () => 1,
+export const FREE = {
+  value: 1,
   name: 'Free',
 }
-const STARTER = {
-  valueOf: () => 2,
+export const STARTER = {
+  value: 2,
   name: 'Starter',
 }
 export const ENTERPRISE = {
-  valueOf: () => 3,
+  value: 3,
   name: 'Enterprise',
 }
 export const PREMIUM = {
-  valueOf: () => 4,
+  value: 4,
   name: 'Premium',
 }
 export const SOURCES = {
-  valueOf: () => 5,
+  value: 5,
   name: 'Community',
 }
+const UNKNOWN = {
+  value: 0,
+  name: 'Unknown',
+}
+
+export const productId2Plan = (() => {
+  const PRODUCT_TO_PLAN = {
+    starter: '2',
+    enterprise: '3',
+    premium: '4',
+    'sb-premium': '4',
+  }
+  return productId => PRODUCT_TO_PLAN[productId]
+})()
 
 export const getXoaPlan = (plan = +process.env.XOA_PLAN) => {
   switch (plan) {
-    case +FREE:
+    case 1:
       return FREE
-    case +STARTER:
+    case 2:
       return STARTER
-    case +ENTERPRISE:
+    case 3:
       return ENTERPRISE
-    case +PREMIUM:
+    case 4:
       return PREMIUM
-    case +SOURCES:
+    case 5:
       return SOURCES
+    default:
+      return UNKNOWN
   }
-  return { name: 'Unknown' }
 }
 
 export const CURRENT = getXoaPlan()
-
-export const idToPlan = id => {
-  switch (id) {
-    case 'free':
-      return FREE
-    case 'starter':
-      return STARTER
-    case 'enterprise':
-      return ENTERPRISE
-    case 'premium':
-      return PREMIUM
-    case 'sb-premium':
-      return PREMIUM
-  }
-}

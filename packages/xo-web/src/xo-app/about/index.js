@@ -6,7 +6,8 @@ import Link from 'link'
 import Page from '../page'
 import React from 'react'
 import { getUser } from 'selectors'
-import { serverVersion, subscribeCurrentLicense, productId2Plan } from 'xo'
+import { productId2Plan } from 'xoa-plans'
+import { serverVersion, subscribeCurrentLicense } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { addSubscriptions, connectStore, getXoaPlan } from 'utils'
 
@@ -136,23 +137,22 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  {license &&
-                    license.productId && (
-                      <div className='mb-1'>
-                        <h2>
-                          <Link to='xoa/licenses'>
-                            {LICENSE_LABELS[license.productId]}
-                          </Link>
-                        </h2>
-                        {productId2Plan(license.productId) !==
-                          process.env.XOA_PLAN && (
-                            <span>
-                              <Icon icon='error' />{' '}
-                              <Link to='xoa/update'>{_('updateNeeded')}</Link>
-                            </span>
-                          )}
-                      </div>
-                    )}
+                  {license && license.productId && (
+                    <div className='mb-1'>
+                      <h2>
+                        <Link to='xoa/licenses'>
+                          {LICENSE_LABELS[license.productId]}
+                        </Link>
+                      </h2>
+                      {productId2Plan(license.productId) !==
+                        process.env.XOA_PLAN && (
+                        <span>
+                          <Icon icon='error' />{' '}
+                          <Link to='xoa/update'>{_('updateNeeded')}</Link>
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <h2 className='text-success'>{_('proSupportIncluded')}</h2>
                   <a href='https://xen-orchestra.com/#!/member/products'>
                     {_('xoAccount')}
