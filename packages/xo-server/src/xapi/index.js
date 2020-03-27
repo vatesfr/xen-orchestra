@@ -1412,6 +1412,7 @@ export default class Xapi extends XapiBase {
           // No import parallelization.
           cb()
         } catch (e) {
+          cb(e)
           reject(e)
         }
       })
