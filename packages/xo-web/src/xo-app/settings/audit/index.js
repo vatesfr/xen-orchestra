@@ -287,7 +287,7 @@ export default decorate([
         this.state._records = await fetchAuditRecords()
       },
       handleRef(_, ref) {
-        this.state.goTo = ref.goTo.bind(ref)
+        this.state.goTo = get(() => ref.goTo.bind(ref))
       },
       handleCheck(_, oldest, newest, error) {
         const { state } = this
