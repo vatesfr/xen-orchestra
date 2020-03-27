@@ -241,7 +241,7 @@ const COLUMNS = [
   },
   {
     itemRenderer: ({ id }, { checkedRecords, missingRecord }) => {
-      if (missingRecord === undefined && checkedRecords[id] === undefined) {
+      if (missingRecord !== id && checkedRecords[id] === undefined) {
         return
       }
 
