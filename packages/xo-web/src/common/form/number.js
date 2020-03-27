@@ -64,7 +64,7 @@ const Number_ = decorate([
 
 Number_.propTypes = {
   onChange: PropTypes.func.isRequired,
-  value: PropTypes.number.isRequired,
+  value: PropTypes.number,
 }
 
 export default Number_
