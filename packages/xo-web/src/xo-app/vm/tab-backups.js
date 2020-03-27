@@ -55,7 +55,6 @@ const BackupTab = decorate([
             {_('goToBackupPage')}
           </a>
         </div>
-
         <div className='mt-2'>
           <JobsTable main={false} predicate={predicate} />
         </div>
