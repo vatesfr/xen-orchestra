@@ -1705,7 +1705,8 @@ export default class Xapi extends XapiBase {
 
   async createVbd({
     bootable = false,
-    device = undefined,
+    currently_attached = false,
+    device = '',
     other_config = {},
     qos_algorithm_params = {},
     qos_algorithm_type = '',
@@ -1751,6 +1752,8 @@ export default class Xapi extends XapiBase {
       'VBD.create',
       filterUndefineds({
         bootable: Boolean(bootable),
+        currently_attached:
+          vm.power_state === 'Suspended' ? currently_attached : undefined,
         device: vm.power_state === 'Suspended' ? device : undefined,
         empty: Boolean(empty),
         mode,
@@ -2102,6 +2105,8 @@ export default class Xapi extends XapiBase {
     const vifRef = await this.call(
       'VIF.create',
       filterUndefineds({
+        currently_attached:
+          vm.power_state === 'Suspended' ? currently_attached : undefined,
         device,
         ipv4_allowed,
         ipv6_allowed,
