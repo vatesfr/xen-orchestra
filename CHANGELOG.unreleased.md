@@ -36,8 +36,6 @@
 >
 > Rule of thumb: add packages on top.
 
-- xoa-updater minor
-- xo-server-xoa minor
 - xo-server-audit minor
 - xo-server-auth-github patch
 - xo-server-auth-google patch
