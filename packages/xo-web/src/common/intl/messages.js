@@ -68,6 +68,10 @@ const messages = {
   user: 'User',
   deletedUser: 'deleted ({ name })',
   networkConfiguration: 'Network configuration',
+  integrity: 'Integrity',
+  altered: 'Altered',
+  missing: 'Missing',
+  verified: 'Verified',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1136,6 +1140,11 @@ const messages = {
   snapshotQuiesce: 'Quiesced snapshot',
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
+
+  // ----- VM backup tab -----
+  goToBackupPage: 'Go to the backup page.',
+  vmInLegacyBackup:
+    'This VM may be backed up by the legacy backup system. See legacy jobs.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',

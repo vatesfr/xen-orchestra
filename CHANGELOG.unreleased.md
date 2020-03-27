@@ -14,6 +14,8 @@
 - [Proxy / Deploy] Ability to select the destination network [#4825](https://github.com/vatesfr/xen-orchestra/issues/4825) (PR [#4855](https://github.com/vatesfr/xen-orchestra/pull/4855))
 - [Proxies/Deploy] Remove SRs not connected to an HVM-capable host from selection [#4825](https://github.com/vatesfr/xen-orchestra/issues/4825) (PR [#4849](https://github.com/vatesfr/xen-orchestra/pull/4849))
 - [Audit] Ability to export records [#4798](https://github.com/vatesfr/xen-orchestra/issues/4798) (PR [#4858](https://github.com/vatesfr/xen-orchestra/pull/4858))
+- [VM/backup] Show backup jobs [#4623](https://github.com/vatesfr/xen-orchestra/issues/4623) (PR [#4860](https://github.com/vatesfr/xen-orchestra/pull/4860))
+- [Audit] Improve integrity check feedback [#4798](https://github.com/vatesfr/xen-orchestra/issues/4798) (PR [#4879](https://github.com/vatesfr/xen-orchestra/pull/4879))
 - [XOA] Manage the XOA licenses from the xoa/licenses page (PR [#3717](https://github.com/vatesfr/xen-orchestra/pull/3717))
 
 ### Bug fixes
@@ -36,6 +38,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- @xen-orchestra/audit-core patch
 - xo-server-audit minor
 - xo-server-auth-github patch
 - xo-server-auth-google patch
