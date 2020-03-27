@@ -15,7 +15,7 @@ import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, noop, startCase } from 'lodash'
+import { noop, startCase } from 'lodash'
 import { PREMIUM } from 'xoa-plans'
 import { User } from 'render-xo-item'
 import {
@@ -241,7 +241,7 @@ const COLUMNS = [
   },
   {
     itemRenderer: ({ id }, { checkedRecords, missingRecord }) => {
-      if (missingRecord === undefined && isEmpty(checkedRecords)) {
+      if (missingRecord === undefined && checkedRecords[id] === undefined) {
         return
       }
 
@@ -261,13 +261,11 @@ const COLUMNS = [
         )
       }
 
-      if (checkedRecords[id] === false) {
-        return (
-          <span className='text-danger'>
-            <Icon icon='error' /> {_('altered')}
-          </span>
-        )
-      }
+      return (
+        <span className='text-danger'>
+          <Icon icon='error' /> {_('altered')}
+        </span>
+      )
     },
     name: _('integrity'),
   },
@@ -331,9 +329,9 @@ export default decorate([
           ? [
               ..._records,
               {
-                time: 0,
                 id: missingRecord,
                 subject: {},
+                time: 0,
               },
             ]
           : _records,
