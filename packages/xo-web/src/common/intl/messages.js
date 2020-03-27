@@ -1139,7 +1139,7 @@ const messages = {
   // ----- VM backup tab -----
   goToBackupPage: 'Go to the backup page.',
   vmInLegacyBackup:
-    'This VM is backed up using the legacy backup system. Go to see the legacy backups.',
+    'This VM may be backed up by the legacy backup system. See legacy jobs.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
