@@ -1136,6 +1136,11 @@ const messages = {
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
 
+  // ----- VM backup tab -----
+  goToBackupPage: 'Go to the backup page.',
+  vmInLegacyBackup:
+    'This VM may be backed up by the legacy backup system. See legacy jobs.',
+
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
   noLogs: 'No logs so far',
