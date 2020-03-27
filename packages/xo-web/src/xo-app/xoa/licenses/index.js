@@ -176,6 +176,7 @@ export default class Licenses extends Component {
 
       // --- XOSAN ---
       forEach(licenses.xosan, license => {
+        // When `expires` is undefined, the license isn't expired
         if (!(license.expires < now) && license.productId === 'xosan') {
           products.push({
             buyer: license.buyer,
@@ -191,6 +192,7 @@ export default class Licenses extends Component {
 
       // --- XOA ---
       forEach(licenses.xoa, license => {
+        // When `expires` is undefined, the license isn't expired
         if (!(license.expires < now)) {
           products.push({
             buyer: license.buyer,
