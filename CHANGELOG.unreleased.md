@@ -16,6 +16,7 @@
 - [Audit] Ability to export records [#4798](https://github.com/vatesfr/xen-orchestra/issues/4798) (PR [#4858](https://github.com/vatesfr/xen-orchestra/pull/4858))
 - [VM/backup] Show backup jobs [#4623](https://github.com/vatesfr/xen-orchestra/issues/4623) (PR [#4860](https://github.com/vatesfr/xen-orchestra/pull/4860))
 - [Audit] Improve integrity check feedback [#4798](https://github.com/vatesfr/xen-orchestra/issues/4798) (PR [#4879](https://github.com/vatesfr/xen-orchestra/pull/4879))
+- [XOA] Manage the XOA licenses from the xoa/licenses page (PR [#3717](https://github.com/vatesfr/xen-orchestra/pull/3717))
 
 ### Bug fixes
 

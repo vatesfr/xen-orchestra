@@ -23,6 +23,7 @@ const messages = {
   messageReply: 'Reply',
   sr: 'SR',
   tryXoa: 'Try XOA for free and deploy it here.',
+  notInstalled: 'Not installed',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -2271,7 +2272,6 @@ const messages = {
   licensesUnregisteredDisclaimer:
     'You need to register your appliance to manage your licenses.',
   licenseProduct: 'Product',
-  licenseBoundObject: 'Attached to',
   licensePurchaser: 'Purchaser',
   licenseExpires: 'Expires',
   licensePurchaserYou: 'You',
@@ -2281,8 +2281,6 @@ const messages = {
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
-  xoaLicenseNotShown:
-    'XOA license management is not supported yet (current license: {plan})',
   xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
@@ -2290,7 +2288,9 @@ const messages = {
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
   xosanGetLicensesError: 'Could not fetch licenses',
-  xosanLicenseHasExpired: 'License has expired.',
+  licenseHasExpired: 'License has expired.',
+  licenseBoundToOtherXoa: 'License bound to another XOA',
+  licenseBoundToThisXoa: 'This license is active on this XOA',
   xosanLicenseExpiresDate: 'License expires on {date}.',
   xosanUpdateLicenseMessage: 'Update the license now!',
   xosanUnknownSr: 'Unknown XOSAN SR.',
@@ -2302,6 +2302,14 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+  bindXoaLicense: 'Activate license',
+  bindXoaLicenseConfirm:
+    'Are you sure you want to activate this license on your XOA? This action is not reversible!',
+  bindXoaLicenseConfirmText: 'activate {licenseType} license',
+  updateNeeded: 'Update needed',
+  starterLicense: 'Starter license',
+  enterpriseLicense: 'Enterprise license',
+  premiumLicense: 'Premium license',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
