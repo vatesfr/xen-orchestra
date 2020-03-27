@@ -43,7 +43,7 @@ const BackupTab = decorate([
       <div>
         {haveLegacyBackups && (
           <div className='alert alert-warning'>
-            <a href='#/backup'>{_('vmlegacyBackupLink')}</a>
+            <a href='#/backup'>{_('vmInLegacyBackup')}</a>
           </div>
         )}
         <div className='mt-1'>

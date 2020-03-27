@@ -1138,8 +1138,8 @@ const messages = {
 
   // ----- VM backup tab -----
   goToBackupPage: 'Go to the backup page.',
-  vmlegacyBackupLink:
-    'This VM is backed up using the legacy backup system. Go to the backup page.',
+  vmInLegacyBackup:
+    'This VM is backed up using the legacy backup system. Go to see the legacy backups.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',

@@ -196,6 +196,7 @@ class JobsTable extends React.Component {
   }
 
   static propTypes = {
+    predicate: PropTypes.func,
     main: PropTypes.bool,
   }
 
@@ -327,16 +328,20 @@ class JobsTable extends React.Component {
     ],
   }
 
-  _actions = this.props.main
-    ? [
-        {
-          handler: _deleteBackupJobs,
-          label: _('deleteBackupSchedule'),
-          icon: 'delete',
-          level: 'danger',
-        },
-      ]
-    : undefined
+  _getActions = createSelector(
+    () => this.props.main,
+    main =>
+      main
+        ? [
+            {
+              handler: _deleteBackupJobs,
+              label: _('deleteBackupSchedule'),
+              icon: 'delete',
+              level: 'danger',
+            },
+          ]
+        : undefined
+  )
 
   _goTo = path => {
     this.context.router.push(path)
@@ -359,7 +364,7 @@ class JobsTable extends React.Component {
     return (
       <SortedTable
         {...JobsTable.tableProps}
-        actions={this._actions}
+        actions={this._getActions()}
         collection={this._getCollection()}
         data-goTo={this._goTo}
         data-goToNewTab={this._goToNewTab}
