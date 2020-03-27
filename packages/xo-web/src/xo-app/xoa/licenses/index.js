@@ -13,9 +13,9 @@ import { createSelector, createGetObjectsOfType } from 'selectors'
 import { find, forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import {
-  subscribePlugins,
   getLicenses,
   selfBindLicense,
+  subscribePlugins,
   subscribeSelfLicenses,
 } from 'xo'
 
