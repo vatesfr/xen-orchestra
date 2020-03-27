@@ -502,7 +502,7 @@ export default {
 
   async resumeVm(vmId) {
     // the force parameter is always true
-    await this.call('VM.resume', this.getObject(vmId).$ref, false, true)
+    await this.callAsync('VM.resume', this.getObject(vmId).$ref, false, true)
   },
 
   async unpauseVm(vmId) {
