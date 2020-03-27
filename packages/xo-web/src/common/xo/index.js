@@ -3033,10 +3033,10 @@ export const updateXosanPacks = pool =>
 // Licenses --------------------------------------------------------------------
 
 export const getLicenses = ({ productType } = {}) =>
-  _call('xoa.getLicenses', { productType })
+  _call('xoa.licenses.getLicenses', { productType })
 
 export const getLicense = (productId, boundObjectId) =>
-  _call('xoa.getLicense', { productId, boundObjectId })
+  _call('xoa.licenses.getLicense', { productId, boundObjectId })
 
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, sr: srId })
@@ -3051,11 +3051,11 @@ export const selfBindLicense = ({ id, plan }) =>
     },
     icon: 'unlock',
   })
-    .then(() => _call('xoa.selfBindLicense', { licenseId: id }), noop)
+    .then(() => _call('xoa.licenses.selfBindLicense', { licenseId: id }), noop)
     ::tap(subscribeSelfLicenses.forceRefresh)
 
 export const subscribeSelfLicenses = createSubscription(() =>
-  _call('xoa.getSelfLicenses')
+  _call('xoa.licenses.getSelfLicenses')
 )
 
 // Support --------------------------------------------------------------------
