@@ -1052,8 +1052,6 @@ export default class Xapi extends XapiBase {
     // 2. Delete all VBDs which may have been created by the import.
     await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
 
-    const newVbds = []
-
     // 3. Create VDIs & VBDs.
     //
     // TODO: move all VDIs creation before the VM and simplify the code
@@ -1091,15 +1089,13 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
 
-      await asyncMap(vbds[vdiRef], async vbd => {
-        newVbds.push(
-          await this.createVbd({
-            ...vbd,
-            vdi: newVdi,
-            vm,
-          })
-        )
-      })
+      await asyncMap(vbds[vdiRef], vbd =>
+        this.createVbd({
+          ...vbd,
+          vdi: newVdi,
+          vm,
+        })
+      )
 
       return newVdi
     })::pAll()
@@ -1179,16 +1175,11 @@ export default class Xapi extends XapiBase {
       // FIXME: move
       vm.update_blocked_operations(
         'start',
-        null
-        // disableStartAfterImport
-        //   ? 'Do not start this VM, clone it if you want to use it.'
-        //   : null
+        disableStartAfterImport
+          ? 'Do not start this VM, clone it if you want to use it.'
+          : null
       ),
     ])
-
-    await vm.$call('resume', false, false)
-
-    await Promise.all(newVbds.map(vbd => vbd.$call('plug')))
 
     return { transferSize, vm }
   }
