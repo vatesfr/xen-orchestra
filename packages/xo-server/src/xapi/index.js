@@ -28,6 +28,7 @@ import {
   flatMap,
   flatten,
   groupBy,
+  identity,
   includes,
   isEmpty,
   noop,
@@ -1707,6 +1708,8 @@ export default class Xapi extends XapiBase {
 
   async createVbd({
     bootable = false,
+    currently_attached = false,
+    device = '',
     other_config = {},
     qos_algorithm_params = {},
     qos_algorithm_type = '',
@@ -1747,9 +1750,13 @@ export default class Xapi extends XapiBase {
       }
     }
 
+    const ifVmSuspended = vm.power_state === 'Suspended' ? identity : noop
+
     // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
       bootable: Boolean(bootable),
+      currently_attached: ifVmSuspended(currently_attached),
+      device: ifVmSuspended(device),
       empty: Boolean(empty),
       mode,
       other_config,
@@ -2099,6 +2106,8 @@ export default class Xapi extends XapiBase {
     const vifRef = await this.call(
       'VIF.create',
       filterUndefineds({
+        currently_attached:
+          vm.power_state === 'Suspended' ? currently_attached : undefined,
         device,
         ipv4_allowed,
         ipv6_allowed,
