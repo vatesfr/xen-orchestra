@@ -25,7 +25,7 @@ const OPTIONS = [
   },
 ]
 
-const SnapshotModeSelect = decorate([
+const SelectSnapshotMode = decorate([
   provideState({
     effects: {
       setMode(_, value) {
@@ -64,10 +64,10 @@ const SnapshotModeSelect = decorate([
   ),
 ])
 
-SnapshotModeSelect.propTypes = {
+SelectSnapshotMode.propTypes = {
   checkpointSnapshot: PropTypes.bool,
   offlineSnapshot: PropTypes.bool,
   setGlobalSettings: PropTypes.func.isRequired,
 }
 
-export { SnapshotModeSelect as default }
+export { SelectSnapshotMode as default }
