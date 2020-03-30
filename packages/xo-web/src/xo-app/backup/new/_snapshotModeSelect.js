@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
-import { PREMIUM } from 'xoa-plans'
+import { CURRENT, PREMIUM } from 'xoa-plans'
 import { Select } from 'form'
 
 import { FormGroup } from '../utils'
@@ -15,7 +15,7 @@ const OPTIONS = [
     value: '',
   },
   {
-    disabled: process.env.XOA_PLAN < PREMIUM,
+    disabled: CURRENT.value < PREMIUM.value,
     label: _('withMemory'),
     value: 'checkpointSnapshot',
   },
