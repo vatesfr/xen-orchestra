@@ -242,7 +242,7 @@ const Action = decorate([
 
 const LEVELS = [undefined, 'primary', 'warning', 'danger']
 // page number and sort info are optional for backward compatibility
-const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc|_asc)?)?-)?(.*)$/
+const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(?:_(desc|asc))?)?-)?(.*)$/
 
 class SortedTable extends Component {
   static propTypes = {
@@ -333,7 +333,7 @@ class SortedTable extends Component {
     })
 
     this._getSelectedColumn = () =>
-      this.props.columns[this.getSelectedColumnId()]
+      this.props.columns[this._getSelectedColumnId()]
 
     let getAllItems = () => this.props.collection
     if ('rowTransform' in props) {
@@ -350,14 +350,11 @@ class SortedTable extends Component {
     this._getItems = createSort(
       createFilter(
         getAllItems,
-        createSelector(
-          this.getFilter,
-          filter => {
-            try {
-              return CM.parse(filter).createPredicate()
-            } catch (_) {}
-          }
-        )
+        createSelector(this._getFilter, filter => {
+          try {
+            return CM.parse(filter).createPredicate()
+          } catch (_) {}
+        })
       ),
       createSelector(
         () => this._getSelectedColumn().valuePath,
@@ -368,12 +365,12 @@ class SortedTable extends Component {
             ? object => sortCriteria(object, userData)
             : sortCriteria
       ),
-      this.getSortOrder
+      this._getSortOrder
     )
 
     this._getVisibleItems = createPager(
       this._getItems,
-      this.getPage,
+      this._getPage,
       () => this.props.itemsPerPage
     )
 
@@ -473,17 +470,14 @@ class SortedTable extends Component {
   }
 
   _sort = columnId => {
-    let sortOrder
-    if (this.getSelectedColumnId() === columnId) {
-      sortOrder = this.getSortOrder() === 'desc' ? 'asc' : 'desc'
-    } else {
-      sortOrder =
-        this.props.columns[columnId].sortOrder === 'desc' ? 'desc' : 'asc'
-    }
-
     this._updateQueryString({
       selectedColumn: columnId,
-      sortOrder,
+      sortOrder:
+        this._getSelectedColumnId() === columnId
+          ? this._getSortOrder() === 'desc'
+            ? 'asc'
+            : 'desc'
+          : defined(this.props.columns[columnId].sortOrder, 'asc'),
     })
   }
 
@@ -505,10 +499,10 @@ class SortedTable extends Component {
   }
 
   _updateQueryString({
-    filter = this.getFilter(),
-    page = this.getPage(),
-    selectedColumn = this.getSelectedColumnId(),
-    sortOrder = this.getSortOrder(),
+    filter = this._getFilter(),
+    page = this._getPage(),
+    selectedColumn = this._getSelectedColumnId(),
+    sortOrder = this._getSortOrder(),
   }) {
     const { location, router } = this.props
     router.replace({
@@ -656,7 +650,7 @@ class SortedTable extends Component {
     }
   )
 
-  getFilter = createSelector(
+  _getFilter = createSelector(
     () => this._getParsedQueryString().filter,
     () => this.props.filters,
     () => this.props.defaultFilter,
@@ -664,25 +658,19 @@ class SortedTable extends Component {
       defined(filter, () => filters[defaultFilter], '')
   )
 
-  getPage = createSelector(
-    () => this._getParsedQueryString().page,
+  _getNPages = createSelector(
     () => this._getItems().length,
     () => this.props.itemsPerPage,
-    (page, nItems, itemsPerPage) => {
-      if (page === undefined || nItems < itemsPerPage) {
-        return 1
-      }
-
-      const last = ceil(nItems / itemsPerPage)
-      if ((page = +page) > last) {
-        return last
-      }
-
-      return page
-    }
+    (nItems, itemsPerPage) => ceil(nItems / itemsPerPage)
   )
 
-  getSelectedColumnId = createSelector(
+  _getPage = createSelector(
+    () => this._getParsedQueryString().page,
+    this._getNPages,
+    (page = 1, lastPage) => Math.min(+page, lastPage)
+  )
+
+  _getSelectedColumnId = createSelector(
     () => this._getParsedQueryString().selectedColumnId,
     () => this.props.columns,
     () => this.props.defaultColumn,
@@ -695,14 +683,12 @@ class SortedTable extends Component {
           )
   )
 
-  getSortOrder = createSelector(
+  _getSortOrder = createSelector(
     () => this._getParsedQueryString().sortOrder,
-    this.getSelectedColumnId,
+    this._getSelectedColumnId,
     () => this.props.columns,
     (sortOrder, selectedColumnIndex, columns) =>
-      sortOrder !== undefined
-        ? sortOrder.slice(1)
-        : defined(columns[selectedColumnIndex].sortOrder, 'asc')
+      defined(sortOrder, columns[selectedColumnIndex].sortOrder, 'asc')
   )
 
   _getGroupedActions = createSelector(
@@ -848,9 +834,9 @@ class SortedTable extends Component {
 
     const paginationInstance = displayPagination && (
       <Pagination
-        pages={ceil(nItems / itemsPerPage)}
+        pages={this._getNPages()}
         onChange={this._setPage}
-        value={this.getPage()}
+        value={this._getPage()}
       />
     )
 
@@ -859,7 +845,7 @@ class SortedTable extends Component {
         filters={props.filters}
         onChange={this._setFilter}
         ref='filterInput'
-        value={this.getFilter()}
+        value={this._getFilter()}
       />
     )
 
@@ -960,8 +946,8 @@ class SortedTable extends Component {
                     this._sort
                   }
                   sortIcon={
-                    this.getSelectedColumnId() === key
-                      ? this.getSortOrder()
+                    this._getSelectedColumnId() === key
+                      ? this._getSortOrder()
                       : 'sort'
                   }
                 />
