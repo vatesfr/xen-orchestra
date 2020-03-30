@@ -2369,7 +2369,7 @@ anymatch@^2.0.0:
     micromatch "^3.1.4"
     normalize-path "^2.1.1"
 
-app-conf@^0.7.0, app-conf@^0.7.1:
+app-conf@^0.7.0:
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/app-conf/-/app-conf-0.7.1.tgz#59bf3605e6d8fa19107408ae9f94c1c9984764b4"
   integrity sha512-arusY8qGB4EmPFUweuLVQde4cj0zQfMBo+D7wRk285SQPfetX9Jk+4VRL+20n5dsJr4Rm4uj2y6exm78wsgCFg==
