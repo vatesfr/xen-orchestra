@@ -1750,25 +1750,22 @@ export default class Xapi extends XapiBase {
     }
 
     // By default a VBD is unpluggable.
-    const vbdRef = await this.call(
-      'VBD.create',
-      filterUndefineds({
-        bootable: Boolean(bootable),
-        currently_attached:
-          vm.power_state === 'Suspended' ? currently_attached : undefined,
-        device: vm.power_state === 'Suspended' ? device : undefined,
-        empty: Boolean(empty),
-        mode,
-        other_config,
-        qos_algorithm_params,
-        qos_algorithm_type,
-        type,
-        unpluggable: Boolean(unpluggable),
-        userdevice,
-        VDI: vdi && vdi.$ref,
-        VM: vm.$ref,
-      })
-    )
+    const vbdRef = await this.call('VBD.create', {
+      bootable: Boolean(bootable),
+      currently_attached:
+        vm.power_state === 'Suspended' ? currently_attached : undefined,
+      device: vm.power_state === 'Suspended' ? device : undefined,
+      empty: Boolean(empty),
+      mode,
+      other_config,
+      qos_algorithm_params,
+      qos_algorithm_type,
+      type,
+      unpluggable: Boolean(unpluggable),
+      userdevice,
+      VDI: vdi && vdi.$ref,
+      VM: vm.$ref,
+    })
 
     if (isVmRunning(vm)) {
       await this.callAsync('VBD.plug', vbdRef)
