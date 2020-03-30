@@ -155,7 +155,7 @@ export default class IpPools {
       }
     }
 
-    return countBy(ipPools, ({ id }) => `ipPool:${id}`)
+    return countBy(ipPools, id => `ipPool:${id}`)
   }
 
   @synchronized()

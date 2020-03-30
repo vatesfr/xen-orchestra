@@ -2,6 +2,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
 import synchronized from 'decorator-synchronized'
 import {
+  difference,
   every,
   forEach,
   isObject,
@@ -26,7 +27,7 @@ const VM_RESOURCES = {
   vms: true,
 }
 
-const computeVmResourcesUsage = vm => {
+const computeVmXapiResourcesUsage = vm => {
   const processed = {}
   let disks = 0
   let disk = 0
@@ -124,7 +125,7 @@ export default class {
 
   async computeVmResourcesUsage(vm) {
     return Object.assign(
-      computeVmResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
+      computeVmXapiResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
       await this._xo.computeVmIpPoolsUsage(vm)
     )
   }
@@ -159,7 +160,9 @@ export default class {
     throw noSuchObject(id, 'resourceSet')
   }
 
+  @deferrable
   async updateResourceSet(
+    $defer,
     id,
     {
       name = undefined,
@@ -174,6 +177,27 @@ export default class {
       set.name = name
     }
     if (subjects) {
+      await Promise.all(
+        difference(set.subjects, subjects).map(async subjectId =>
+          Promise.all(
+            (await this._xo.getAclsForSubject(subjectId)).map(async acl => {
+              try {
+                const object = this._xo.getObject(acl.object)
+                if (object.type === 'VM' && object.resourceSet === id) {
+                  await this._xo.removeAcl(subjectId, acl.object, acl.action)
+                  $defer.onFailure(() =>
+                    this._xo.addAcl(subjectId, acl.object, acl.action)
+                  )
+                }
+              } catch (error) {
+                if (!noSuchObject.is(error)) {
+                  throw error
+                }
+              }
+            })
+          )
+        )
+      )
       set.subjects = subjects
     }
     if (objects) {
@@ -317,40 +341,49 @@ export default class {
     const sets = keyBy(await this.getAllResourceSets(), 'id')
     forEach(sets, ({ limits }) => {
       forEach(limits, (limit, id) => {
-        if (VM_RESOURCES[id]) {
+        if (VM_RESOURCES[id] || id.startsWith('ipPool:')) {
           // only reset VMs related limits
           limit.available = limit.total
         }
       })
     })
 
-    forEach(this._xo.getAllXapis(), xapi => {
-      forEach(xapi.objects.all, object => {
-        let id
-        let set
-        if (
-          object.$type !== 'VM' ||
-          object.is_a_snapshot ||
-          ('start' in object.blocked_operations &&
-            (object.tags.includes('Disaster Recovery') ||
-              object.tags.includes('Continuous Replication'))) ||
-          // No set for this VM.
-          !(id = xapi.xo.getData(object, 'resourceSet')) ||
-          // Not our set.
-          !(set = sets[id])
-        ) {
-          return
-        }
+    await Promise.all(
+      mapToArray(this._xo.getAllXapis(), xapi =>
+        Promise.all(
+          mapToArray(xapi.objects.all, async object => {
+            let id
+            let set
+            if (
+              object.$type !== 'VM' ||
+              object.is_a_snapshot ||
+              ('start' in object.blocked_operations &&
+                (object.tags.includes('Disaster Recovery') ||
+                  object.tags.includes('Continuous Replication'))) ||
+              // No set for this VM.
+              !(id = xapi.xo.getData(object, 'resourceSet')) ||
+              // Not our set.
+              !(set = sets[id])
+            ) {
+              return
+            }
 
-        const { limits } = set
-        forEach(computeVmResourcesUsage(object), (usage, resource) => {
-          const limit = limits[resource]
-          if (limit) {
-            limit.available -= usage
-          }
-        })
-      })
-    })
+            const { limits } = set
+            forEach(
+              await this.computeVmResourcesUsage(
+                this._xo.getObject(object.$id)
+              ),
+              (usage, resource) => {
+                const limit = limits[resource]
+                if (limit) {
+                  limit.available -= usage
+                }
+              }
+            )
+          })
+        )
+      )
+    )
 
     await Promise.all(mapToArray(sets, set => this._save(set)))
   }

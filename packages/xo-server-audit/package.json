@@ -1,6 +1,6 @@
 {
   "name": "xo-server-audit",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "license": "AGPL-3.0",
   "description": "Audit plugin for XO-Server",
   "keywords": [
@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.3",
-    "@xen-orchestra/audit-core": "^0.1.0",
+    "@xen-orchestra/audit-core": "^0.1.1",
     "@xen-orchestra/log": "^0.2.0",
     "app-conf": "^0.7.1",
     "async-iterator-to-stream": "^1.1.0",
