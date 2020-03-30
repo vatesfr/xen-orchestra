@@ -509,9 +509,8 @@ class SortedTable extends Component {
       ...location,
       query: {
         ...location.query,
-        [this.props.stateUrlParam]: `${page}_${selectedColumn}${
-          sortOrder === 'desc' ? '_desc' : '_asc'
-        }-${filter}`,
+        [this.props
+          .stateUrlParam]: `${page}_${selectedColumn}_${sortOrder}-${filter}`,
       },
     })
   }
