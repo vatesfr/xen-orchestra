@@ -28,6 +28,7 @@ import {
   flatMap,
   flatten,
   groupBy,
+  identity,
   includes,
   isEmpty,
   noop,
@@ -1749,12 +1750,13 @@ export default class Xapi extends XapiBase {
       }
     }
 
+    const ifVmSuspended = vm.power_state === 'Suspended' ? identity : noop
+
     // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
       bootable: Boolean(bootable),
-      currently_attached:
-        vm.power_state === 'Suspended' ? currently_attached : undefined,
-      device: vm.power_state === 'Suspended' ? device : undefined,
+      currently_attached: ifVmSuspended(currently_attached),
+      device: ifVmSuspended(device),
       empty: Boolean(empty),
       mode,
       other_config,
