@@ -552,7 +552,7 @@ export default class Xapi extends XapiBase {
       xenstore_data,
     },
     {
-      // if set, will start create the VM in Suspended power_state with this VDI
+      // if set, will create the VM in Suspended power_state with this VDI
       //
       // it's a separate param because it's not supported for all versions of
       // XCP-ng/XenServer and should be passed explicitly
