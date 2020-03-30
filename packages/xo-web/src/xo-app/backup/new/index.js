@@ -54,7 +54,7 @@ import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
-import SnapshotModeSelect from './_snapshotModeSelect'
+import SelectSnapshotMode from './_selectSnapshotMode'
 
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import {
@@ -1145,7 +1145,7 @@ export default decorate([
                           </FormGroup>
                         </div>
                       )}
-                      <SnapshotModeSelect
+                      <SelectSnapshotMode
                         checkpointSnapshot={checkpointSnapshot}
                         disabled={state.offlineBackupActive}
                         offlineSnapshot={offlineSnapshot}
