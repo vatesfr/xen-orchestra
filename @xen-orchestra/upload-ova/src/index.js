@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /* eslint no-console: "off" */
 
 import chalk from 'chalk'
