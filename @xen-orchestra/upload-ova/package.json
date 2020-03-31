@@ -4,10 +4,15 @@
   "license": "AGPL-3.0",
   "description": "Basic CLI to upload ova files to Xen-Orchestra",
   "keywords": [
-    "xo",
+    "import",
+    "orchestra",
+    "ova",
+    "xcp-ng",
+    "xcp",
     "xen-orchestra",
+    "xen-server",
     "xen",
-    "orchestra"
+    "xo"
   ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/upload-ova",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
