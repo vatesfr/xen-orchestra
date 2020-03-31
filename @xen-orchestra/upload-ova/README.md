@@ -4,14 +4,6 @@
 
 > Basic CLI to upload ova files to Xen-Orchestra
 
-## Install
-
-#### [npm](https://npmjs.org/package/xo-upload-ova)
-
-```
-npm install -g xo-upload-ova
-```
-
 ## Usage
 
 ```
