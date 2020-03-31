@@ -1,5 +1,5 @@
 {
-  "name": "@xen-orchestra/xo-upload-ova",
+  "name": "@xen-orchestra/upload-ova",
   "version": "0.0.0",
   "license": "AGPL-3.0",
   "description": "Basic CLI to upload ova files to Xen-Orchestra",
@@ -9,10 +9,10 @@
     "xen",
     "orchestra"
   ],
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-upload-ova",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/upload-ova",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "@xen-orchestra/xo-upload-ova",
+    "directory": "@xen-orchestra/upload-ova",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

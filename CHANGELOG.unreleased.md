@@ -22,6 +22,6 @@
 > Rule of thumb: add packages on top.
 
 - xo-vmdk-to-vhd major
-- @xen-orchestra/xo-upload-ova major
+- @xen-orchestra/upload-ova major
 - xo-server minor
 - xo-web minor
