@@ -27,6 +27,7 @@
   "dependencies": {
     "child-process-promise": "^2.0.3",
     "core-js": "^3.0.0",
+    "lodash": "^4.17.15",
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.15.0",
     "tmp": "^0.1.0",
