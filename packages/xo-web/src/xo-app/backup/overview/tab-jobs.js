@@ -14,7 +14,7 @@ import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
 import { connectStore } from 'utils'
-import { createFilter, createSelector } from 'selectors'
+import { createFilter, createGetObjectsOfType, createSelector } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
 import { groupBy, isEmpty, map, some } from 'lodash'
@@ -131,7 +131,7 @@ const SchedulePreviewBody = decorate([
       )
       .count(),
   })),
-  ({ job, schedule, lastRunLog }) => (
+  ({ job, schedule, lastRunLog, nVms }) => (
     <Ul>
       <Li>
         {schedule.name
