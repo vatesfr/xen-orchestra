@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/upload-ova",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "AGPL-3.0",
   "description": "Basic CLI to upload ova files to Xen-Orchestra",
   "keywords": [
