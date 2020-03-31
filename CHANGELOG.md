@@ -38,8 +38,8 @@
 - xo-server-auth-google 0.2.2
 - xo-server-auth-ldap 0.7.1
 - xo-server-auth-saml 0.7.2
-- xo-server 5.58.0
-- xo-web 5.58.0
+- xo-server 5.58.1
+- xo-web 5.58.1
 
 ## **5.44.1** (2020-03-05)
 
