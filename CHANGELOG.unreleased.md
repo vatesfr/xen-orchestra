@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup] **BETA** Ability to backup running VMs with their memory [#645](https://github.com/vatesfr/xen-orchestra/issues/645) (PR [#4252](https://github.com/vatesfr/xen-orchestra/pull/4252))
+- [Import] add CLI tool to import OVA files (PR [#3630](https://github.com/vatesfr/xen-orchestra/pull/3630))
 
 ### Bug fixes
 
@@ -20,5 +21,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-vmdk-to-vhd major
+- @xen-orchestra/upload-ova major
 - xo-server minor
 - xo-web minor

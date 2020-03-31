@@ -9,7 +9,7 @@ import mixin from '@xen-orchestra/mixin'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
-import vmdkToVhd from 'xo-vmdk-to-vhd'
+import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import {
   cancelable,
   defer,
@@ -1461,11 +1461,15 @@ export default class Xapi extends XapiBase {
           table.grainLogicalAddressList,
           table.grainFileOffsetList
         )
-        await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
-
-        // See: https://github.com/mafintosh/tar-stream#extracting
-        // No import parallelization.
-        cb()
+        try {
+          await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+          // See: https://github.com/mafintosh/tar-stream#extracting
+          // No import parallelization.
+        } catch (e) {
+          reject(e)
+        } finally {
+          cb()
+        }
       })
       stream.pipe(extract)
     })
