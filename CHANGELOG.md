@@ -14,6 +14,8 @@
 - [VM/backup] Show backup jobs [#4623](https://github.com/vatesfr/xen-orchestra/issues/4623) (PR [#4860](https://github.com/vatesfr/xen-orchestra/pull/4860))
 - [Audit] Improve integrity check feedback [#4798](https://github.com/vatesfr/xen-orchestra/issues/4798) (PR [#4879](https://github.com/vatesfr/xen-orchestra/pull/4879))
 - [XOA] Manage the XOA licenses from the xoa/licenses page (PR [#3717](https://github.com/vatesfr/xen-orchestra/pull/3717))
+- [Backup] **BETA** Ability to backup running VMs with their memory [#645](https://github.com/vatesfr/xen-orchestra/issues/645) (PR [#4252](https://github.com/vatesfr/xen-orchestra/pull/4252))
+- [Import] add CLI tool to import OVA files (PR [#3630](https://github.com/vatesfr/xen-orchestra/pull/3630))
 
 ### Bug fixes
 
@@ -28,6 +30,8 @@
 
 ### Released packages
 
+- xo-vmdk-to-vhd 1.0.0
+- @xen-orchestra/upload-ova 0.1.0
 - @xen-orchestra/audit-core 0.1.1
 - xo-server-audit 0.2.0
 - xo-server-auth-github 0.2.2
