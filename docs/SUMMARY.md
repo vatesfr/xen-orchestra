@@ -10,6 +10,7 @@
   - [XOA](xoa.md)
     - [Updater](updater.md)
     - [Trial activation](trial_activation.md)
+    - [License activation](license_activation.md)
     - [Plugins](plugins.md)
     - [Logs](logs.md)
     - [Compatibility](supported-version.md)
