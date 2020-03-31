@@ -1,7 +1,5 @@
 # XO-UPLOAD-OVA
 
-[![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](http://travis-ci.org/vatesfr/xen-orchestra)
-
 > Basic CLI to upload ova files to Xen-Orchestra
 
 ## Usage
