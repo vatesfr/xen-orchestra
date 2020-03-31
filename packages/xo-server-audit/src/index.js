@@ -40,6 +40,7 @@ const DEFAULT_BLOCKED_LIST = {
   'schedule.getAll': true,
   'server.getAll': true,
   'session.getUser': true,
+  'session.signIn': true,
   'sr.getUnhealthyVdiChainsLength': true,
   'sr.stats': true,
   'system.getMethodsInfo': true,

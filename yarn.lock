@@ -10812,6 +10812,11 @@ node-xmpp-tls-connect@^1.0.1:
   resolved "https://registry.yarnpkg.com/node-xmpp-tls-connect/-/node-xmpp-tls-connect-1.0.1.tgz#91ace43ac26b138861b2be478df9df19d61dc5c3"
   integrity sha1-kazkOsJrE4hhsr5HjfnfGdYdxcM=
 
+node-zone@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/node-zone/-/node-zone-0.4.0.tgz#b058401a2e7c4bd34cb8cda8ee9d61360f620711"
+  integrity sha512-JzQcDNvCdWF1wmHAvNN2U63+8K72u4hN40axkrpRWE6Yvhkuf2i72SMzWUHiP3rxdm2CbgaaOw8N5Gw2qN5pbA==
+
 nodemailer-markdown@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/nodemailer-markdown/-/nodemailer-markdown-1.0.3.tgz#13b1f9bcbcce3ff5d5c22a32bf097583e5f194bd"

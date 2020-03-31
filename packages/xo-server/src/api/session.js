@@ -1,3 +1,4 @@
+import Zone from 'node-zone'
 import { deprecate } from 'util'
 
 import { getUserPublicProperties } from '../utils'
@@ -7,7 +8,12 @@ import { getUserPublicProperties } from '../utils'
 export async function signIn(credentials) {
   const { session } = this
 
-  const { user, expiration } = await this.authenticateUser(credentials)
+  const zone = Zone.current.fork('clientAuthentication')
+  zone.data.userIp = session.get('user_ip', undefined)
+  const { user, expiration } = await zone.run(() =>
+    this.authenticateUser(credentials)
+  )
+
   session.set('user_id', user.id)
 
   if (expiration === undefined) {

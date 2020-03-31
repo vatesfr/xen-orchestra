@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import Zone from 'node-zone'
 import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
@@ -40,6 +41,12 @@ export default class {
       if (user && (await xo.checkUserPassword(user.id, password))) {
         return { userId: user.id }
       }
+
+      xo.emit('xo:audit', 'signInFailed', {
+        userId: user?.id,
+        userName: username,
+        userIp: Zone.current.data.userIp,
+      })
     })
 
     // Token authentication provider.
