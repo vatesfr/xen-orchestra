@@ -30,7 +30,6 @@
     "lodash": "^4.17.15",
     "pipette": "^0.9.3",
     "promise-toolbox": "^0.15.0",
-    "tmp": "^0.1.0",
     "vhd-lib": "^0.7.2",
     "xml2js": "^0.4.23"
   },
@@ -45,7 +44,8 @@
     "fs-extra": "^8.0.1",
     "get-stream": "^5.1.0",
     "index-modules": "^0.3.0",
-    "rimraf": "^3.0.0"
+    "rimraf": "^3.0.0",
+    "tmp": "^0.1.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
