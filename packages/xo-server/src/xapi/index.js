@@ -1465,10 +1465,10 @@ export default class Xapi extends XapiBase {
           await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
           // See: https://github.com/mafintosh/tar-stream#extracting
           // No import parallelization.
-          cb()
         } catch (e) {
-          cb(e)
           reject(e)
+        } finally {
+          cb()
         }
       })
       stream.pipe(extract)
