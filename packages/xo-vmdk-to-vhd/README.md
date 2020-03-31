@@ -1,6 +1,6 @@
 # xo-vmdk-to-vhd [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> JS lib streaming a vmdk file to a vhd.
+> JS lib streaming a vmdk file to a vhd
 
 ## Install
 

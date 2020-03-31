@@ -1,5 +1,3 @@
-/* eslint no-console: "off" */
-
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import fromEvent from 'promise-toolbox/fromEvent'
