@@ -13,7 +13,7 @@
 - Automatic generation of self signed certificate if `autoCert` is not `false` in `xo-server`'s configuration in the corresponding `http.listen` section (PR [#4954](https://github.com/vatesfr/xen-orchestra/pull/4954))
 - [Self] Better error when not enough available resources (PR [#4952](https://github.com/vatesfr/xen-orchestra/pull/4952))
 - [Backup/run backup] confirmation modal: show the number of VMs will backed up (PR [#4875](https://github.com/vatesfr/xen-orchestra/pull/4875))
-
+- [Backup/run backup] Confirmation modal: show the number of VMs will backed up (PR [#4875](https://github.com/vatesfr/xen-orchestra/pull/4875))
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
