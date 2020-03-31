@@ -54,6 +54,8 @@ import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
+import SelectSnapshotMode from './_selectSnapshotMode'
+
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import {
   canDeltaBackup,
@@ -623,13 +625,13 @@ export default decorate([
       toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
         _displayAdvancedSettings: !displayAdvancedSettings,
       }),
-      setGlobalSettings: (_, { name, value }) => ({
+      setGlobalSettings: (_, globalSettings) => ({
         propSettings,
         settings = propSettings,
       }) => ({
         settings: settings.update('', setting => ({
           ...setting,
-          [name]: value,
+          ...globalSettings,
         })),
       }),
       addReportRecipient({ setGlobalSettings }, value) {
@@ -640,8 +642,7 @@ export default decorate([
         )
         if (!reportRecipients.includes(value)) {
           setGlobalSettings({
-            name: 'reportRecipients',
-            value: (reportRecipients.push(value), reportRecipients),
+            reportRecipients: (reportRecipients.push(value), reportRecipients),
           })
         }
       },
@@ -649,50 +650,35 @@ export default decorate([
         const { propSettings, settings = propSettings } = this.state
         const reportRecipients = settings.getIn(['', 'reportRecipients'])
         setGlobalSettings({
-          name: 'reportRecipients',
-          value: (reportRecipients.splice(key, 1), reportRecipients),
+          reportRecipients: (reportRecipients.splice(key, 1), reportRecipients),
         })
       },
       setReportWhen: ({ setGlobalSettings }, { value }) => () => {
         setGlobalSettings({
-          name: 'reportWhen',
-          value,
+          reportWhen: value,
         })
       },
-      setConcurrency: ({ setGlobalSettings }, value) => () => {
+      setConcurrency: ({ setGlobalSettings }, concurrency) => () => {
         setGlobalSettings({
-          name: 'concurrency',
-          value,
+          concurrency,
         })
       },
       setTimeout: ({ setGlobalSettings }, value) => () => {
         setGlobalSettings({
-          name: 'timeout',
-          value: value && value * 3600e3,
+          timeout: value && value * 3600e3,
         })
       },
-      setFullInterval({ setGlobalSettings }, value) {
+      setFullInterval({ setGlobalSettings }, fullInterval) {
         setGlobalSettings({
-          name: 'fullInterval',
-          value,
-        })
-      },
-      setOfflineSnapshot: (
-        { setGlobalSettings },
-        { target: { checked: value } }
-      ) => () => {
-        setGlobalSettings({
-          name: 'offlineSnapshot',
-          value,
+          fullInterval,
         })
       },
       setOfflineBackup: (
         { setGlobalSettings },
-        { target: { checked: value } }
+        { target: { checked: offlineBackup } }
       ) => () => {
         setGlobalSettings({
-          name: 'offlineBackup',
-          value,
+          offlineBackup,
         })
       },
     },
@@ -819,6 +805,7 @@ export default decorate([
     const { propSettings, settings = propSettings } = state
     const compression = defined(state.compression, job.compression, '')
     const {
+      checkpointSnapshot,
       concurrency,
       fullInterval,
       offlineBackup,
@@ -1150,6 +1137,7 @@ export default decorate([
                               </Tooltip>{' '}
                               <input
                                 checked={offlineBackup}
+                                disabled={offlineSnapshot || checkpointSnapshot}
                                 onChange={effects.setOfflineBackup}
                                 type='checkbox'
                               />
@@ -1157,21 +1145,12 @@ export default decorate([
                           </FormGroup>
                         </div>
                       )}
-                      {!state.offlineBackupActive && (
-                        <FormGroup>
-                          <label>
-                            <strong>{_('offlineSnapshot')}</strong>{' '}
-                            <Tooltip content={_('offlineSnapshotInfo')}>
-                              <Icon icon='info' />
-                            </Tooltip>{' '}
-                            <input
-                              checked={offlineSnapshot}
-                              onChange={effects.setOfflineSnapshot}
-                              type='checkbox'
-                            />
-                          </label>
-                        </FormGroup>
-                      )}
+                      <SelectSnapshotMode
+                        checkpointSnapshot={checkpointSnapshot}
+                        disabled={state.offlineBackupActive}
+                        offlineSnapshot={offlineSnapshot}
+                        setGlobalSettings={effects.setGlobalSettings}
+                      />
                     </div>
                   )}
                 </CardBlock>

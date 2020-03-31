@@ -13,6 +13,7 @@ import Upgrade from 'xoa-upgrade'
 import { alert, chooseAction, form } from 'modal'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { FormattedDate, injectIntl } from 'react-intl'
+import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { noop, startCase } from 'lodash'
 import { PREMIUM } from 'xoa-plans'
@@ -128,7 +129,7 @@ const openFingerprintPromptModal = () =>
     ),
   }).then((value = '') => value.trim(), noop)
 
-const checkIntegrity = async () => {
+const checkIntegrity = async ({ handleCheck }) => {
   const fingerprint = await openFingerprintPromptModal()
   if (fingerprint === undefined) {
     return
@@ -139,7 +140,7 @@ const checkIntegrity = async () => {
     const [oldest, newest] = fingerprint.split('|')
     recentRecord = newest
 
-    const error = await checkAuditRecordsIntegrity(oldest, newest).then(
+    const result = await checkAuditRecordsIntegrity(oldest, newest).then(
       noop,
       error => {
         if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
@@ -152,15 +153,27 @@ const checkIntegrity = async () => {
       }
     )
 
-    const shouldGenerateFingerprint = await openIntegrityFeedbackModal(error)
+    handleCheck(
+      oldest,
+      newest,
+      get(() => result.error)
+    )
+
+    const shouldGenerateFingerprint = await openIntegrityFeedbackModal(result)
     if (!shouldGenerateFingerprint) {
       return
     }
   }
 
-  await openGeneratedFingerprintModal(
-    await generateAuditFingerprint(recentRecord)
+  const generatedFingerprint = await generateAuditFingerprint(recentRecord)
+
+  // display coherence feedback
+  handleCheck(
+    ...generatedFingerprint.fingerprint.split('|'),
+    generatedFingerprint.error
   )
+
+  await openGeneratedFingerprintModal(generatedFingerprint)
 }
 
 const displayRecord = record =>
@@ -226,25 +239,107 @@ const COLUMNS = [
     sortCriteria: 'time',
     sortOrder: 'desc',
   },
+  {
+    itemRenderer: ({ id }, { checkedRecords, missingRecord }) => {
+      if (missingRecord !== id && checkedRecords[id] === undefined) {
+        return
+      }
+
+      if (missingRecord === id) {
+        return (
+          <span className='text-danger'>
+            <Icon icon='error' /> {_('missing')}
+          </span>
+        )
+      }
+
+      if (checkedRecords[id]) {
+        return (
+          <span className='text-success'>
+            <Icon icon='success' /> {_('verified')}
+          </span>
+        )
+      }
+
+      return (
+        <span className='text-danger'>
+          <Icon icon='error' /> {_('altered')}
+        </span>
+      )
+    },
+    name: _('integrity'),
+  },
 ]
 
 export default decorate([
   provideState({
     initialState: () => ({
-      records: undefined,
+      _records: undefined,
+      checkedRecords: {},
+      goTo: undefined,
+      missingRecord: undefined,
     }),
     effects: {
       initialize({ fetchRecords }) {
         return fetchRecords()
       },
       async fetchRecords() {
-        this.state.records = await fetchAuditRecords()
+        this.state._records = await fetchAuditRecords()
       },
+      handleRef(_, ref) {
+        this.state.goTo = get(() => ref.goTo.bind(ref))
+      },
+      handleCheck(_, oldest, newest, error) {
+        const { state } = this
+        const checkedRecords = { ...state.checkedRecords }
+
+        if (error !== undefined) {
+          const { id } = error.data
+          oldest = id
+
+          if (missingAuditRecord.is(error)) {
+            state.missingRecord = id
+          } else {
+            checkedRecords[id] = false
+          }
+
+          state.goTo(id)
+
+          // the newest is inaccessible or altered
+          if (id === newest) {
+            return
+          }
+        }
+
+        const records = state._records
+        let i = records.findIndex(({ id }) => id === newest)
+        let record
+        do {
+          record = records[i]
+          checkedRecords[record.id] = true
+          i++
+        } while (record.previousId !== oldest)
+
+        state.checkedRecords = checkedRecords
+      },
+    },
+    computed: {
+      records: ({ _records, missingRecord }) =>
+        _records !== undefined && missingRecord !== undefined
+          ? [
+              ..._records,
+              {
+                id: missingRecord,
+                subject: {},
+                time: 0,
+              },
+            ]
+          : _records,
     },
   }),
   injectState,
   ({ state, effects }) => (
-    <Upgrade place='audit' available={PREMIUM}>
+    <Upgrade place='audit' available={PREMIUM.value}>
       <div>
         <div className='mt-1 mb-1'>
           <ActionButton
@@ -265,6 +360,7 @@ export default decorate([
           </ActionButton>{' '}
           <ActionButton
             btnStyle='success'
+            data-handleCheck={effects.handleCheck}
             handler={checkIntegrity}
             icon='diagnosis'
             size='large'
@@ -276,6 +372,9 @@ export default decorate([
           collection={state.records}
           columns={COLUMNS}
           component={SortedTable}
+          componentRef={effects.handleRef}
+          data-checkedRecords={state.checkedRecords}
+          data-missingRecord={state.missingRecord}
           defaultColumn={3}
           emptyMessage={
             <span className='text-muted'>
