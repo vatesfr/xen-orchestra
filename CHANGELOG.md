@@ -31,7 +31,7 @@
 ### Released packages
 
 - xo-vmdk-to-vhd 1.1.1
-- @xen-orchestra/upload-ova 0.1.2
+- @xen-orchestra/upload-ova 0.1.3
 - @xen-orchestra/audit-core 0.1.1
 - xo-server-audit 0.2.0
 - xo-server-auth-github 0.2.2
