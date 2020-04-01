@@ -290,7 +290,7 @@ async function registerPlugin(pluginPath, pluginName) {
       ? factory({
           config: merge(
             await readFile(`${pluginPath}/config.toml`).then(TOML.parse, noop),
-            config.plugins[pluginName]
+            config?.plugins[pluginName]
           ),
           xo: this,
           getDataDir: () => {
