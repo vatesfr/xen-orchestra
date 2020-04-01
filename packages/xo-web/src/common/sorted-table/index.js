@@ -633,13 +633,9 @@ class SortedTable extends Component {
 
   _getParsedQueryString = createSelector(
     () => this.props.router.location.query[this.props.stateUrlParam],
-    urlState => {
-      let matches
+    (urlState = '') => {
       const [, page, selectedColumnId, sortOrder, filter] =
-        urlState !== undefined &&
-        (matches = URL_STATE_RE.exec(urlState)) !== null
-          ? matches
-          : []
+        URL_STATE_RE.exec(urlState) || []
       return {
         filter,
         page,
@@ -673,12 +669,14 @@ class SortedTable extends Component {
     () => this._getParsedQueryString().selectedColumnId,
     () => this.props.columns,
     () => this.props.defaultColumn,
-    (columnId, columns, defaultColumnId) =>
-      columnId !== undefined && (columnId = +columnId) < columns.length
-        ? columnId
+    (columnIndex, columns, defaultColumnIndex) =>
+      columnIndex !== undefined && (columnIndex = +columnIndex) < columns.length
+        ? columnIndex
         : defined(
-            defaultColumnId,
-            (columnId = findIndex(columns, 'default')) !== -1 ? columnId : 0
+            defaultColumnIndex,
+            (columnIndex = findIndex(columns, 'default')) !== -1
+              ? columnIndex
+              : 0
           )
   )
 
