@@ -77,6 +77,7 @@ export type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
   bypassVdiChainsCheck?: boolean,
+  checkpointSnapshot?: boolean,
   concurrency?: number,
   deleteFirst?: boolean,
   copyRetention?: number,
@@ -144,6 +145,7 @@ const compareTimestamp = (a: Metadata, b: Metadata): number =>
 
 const defaultSettings: Settings = {
   bypassVdiChainsCheck: false,
+  checkpointSnapshot: false,
   concurrency: 0,
   deleteFirst: false,
   exportRetention: 0,
@@ -1174,6 +1176,9 @@ export default class BackupNg {
         )
       }
 
+      const checkpointSnapshot =
+        !offlineSnapshot &&
+        getSetting(settings, 'checkpointSnapshot', [vmUuid, ''])
       exported = (await wrapTask(
         {
           logger,
@@ -1181,11 +1186,17 @@ export default class BackupNg {
           parentId: taskId,
           result: _ => _.uuid,
         },
-        xapi._snapshotVm(
-          $cancelToken,
-          vm,
-          `[XO Backup ${job.name}] ${vm.name_label}`
-        )
+        checkpointSnapshot
+          ? xapi.checkpointVm(
+              $cancelToken,
+              vm.$id,
+              `[XO Backup ${job.name}] ${vm.name_label}`
+            )
+          : xapi._snapshotVm(
+              $cancelToken,
+              vm,
+              `[XO Backup ${job.name}] ${vm.name_label}`
+            )
       ): any)
 
       if (startAfterSnapshot) {
@@ -1607,7 +1618,12 @@ export default class BackupNg {
           deltaExport.vdis,
           vdi =>
             `vdis/${jobId}/${
-              (xapi.getObject(vdi.snapshot_of): Object).uuid
+              (vdi.type === 'suspend'
+                ? // doesn't make sense to group by parent for memory because we
+                  // don't do delta for it
+                  vdi
+                : (xapi.getObject(vdi.snapshot_of): Object)
+              ).uuid
             }/${basename}.vhd`
         ),
         vm,

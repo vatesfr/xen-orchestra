@@ -3,6 +3,7 @@ import { pickBy } from 'lodash'
 const DEFAULTS = {
   __proto__: null,
 
+  checkpointSnapshot: false,
   compression: '',
   concurrency: 0,
   fullInterval: 0,

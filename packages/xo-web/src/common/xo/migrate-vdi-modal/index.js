@@ -50,14 +50,6 @@ export default class MigrateVdiModalBody extends Component {
             />
           </Col>
         </SingleLineRow>
-        <SingleLineRow className='mt-1'>
-          <Col>
-            <label>
-              <input type='checkbox' onChange={this.linkState('migrateAll')} />{' '}
-              {_('vdiMigrateAll')}
-            </label>
-          </Col>
-        </SingleLineRow>
         {warningBeforeMigrate !== null && (
           <SingleLineRow>
             <Col>{warningBeforeMigrate}</Col>

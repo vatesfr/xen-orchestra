@@ -2267,7 +2267,9 @@ export const deleteResourceSet = async id => {
 }
 
 export const recomputeResourceSetsLimits = () =>
-  _call('resourceSet.recomputeAllLimits')
+  _call('resourceSet.recomputeAllLimits')::tap(
+    subscribeResourceSets.forceRefresh
+  )
 
 export const getResourceSet = id =>
   _call('resourceSet.get', { id: resolveId(id) })
@@ -3030,13 +3032,31 @@ export const updateXosanPacks = pool =>
 
 // Licenses --------------------------------------------------------------------
 
-export const getLicenses = productId => _call('xoa.getLicenses', { productId })
+export const getLicenses = ({ productType } = {}) =>
+  _call('xoa.licenses.getAll', { productType })
 
 export const getLicense = (productId, boundObjectId) =>
-  _call('xoa.getLicense', { productId, boundObjectId })
+  _call('xoa.licenses.get', { productId, boundObjectId })
 
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, sr: srId })
+
+export const selfBindLicense = ({ id, plan }) =>
+  confirm({
+    title: _('bindXoaLicense'),
+    body: _('bindXoaLicenseConfirm'),
+    strongConfirm: {
+      messageId: 'bindXoaLicenseConfirmText',
+      values: { licenseType: plan },
+    },
+    icon: 'unlock',
+  })
+    .then(() => _call('xoa.licenses.bindToSelf', { licenseId: id }), noop)
+    ::tap(subscribeSelfLicenses.forceRefresh)
+
+export const subscribeSelfLicenses = createSubscription(() =>
+  _call('xoa.licenses.getSelf')
+)
 
 // Support --------------------------------------------------------------------
 
@@ -3061,8 +3081,9 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
-export const deployProxyAppliance = (sr, { proxy, ...props } = {}) =>
+export const deployProxyAppliance = (sr, { network, proxy, ...props } = {}) =>
   _call('proxy.deploy', {
+    network: resolveId(network),
     proxy: resolveId(proxy),
     sr: resolveId(sr),
     ...props,
@@ -3133,6 +3154,11 @@ export const fetchAuditRecords = async () => {
     throw error
   }
 }
+
+export const exportAuditRecords = () =>
+  _call('audit.exportRecords').then(({ $getFrom: url }) => {
+    window.open(`.${url}`)
+  })
 
 export const checkAuditRecordsIntegrity = (oldest, newest) =>
   _call('audit.checkIntegrity', { oldest, newest })

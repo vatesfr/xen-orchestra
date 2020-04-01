@@ -157,18 +157,63 @@ class AffinityHost extends Component {
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
 })
-class ResourceSetItem extends Component {
+@connectStore({
+  isAdmin,
+})
+class ResourceSet extends Component {
   _getResourceSet = createSelector(
     () => this.props.resourceSets,
-    () => this.props.id,
-    (resourceSets, id) =>
-      Object.assign(find(resourceSets, { id }), { type: 'resourceSet' })
+    () => this.props.vm.resourceSet,
+    (resourceSets, resourceSetId) => {
+      const resourceSet = find(resourceSets, { id: resourceSetId })
+      return resourceSet && Object.assign(resourceSet, { type: 'resourceSet' })
+    }
   )
 
   render() {
-    return this.props.resourceSets === undefined
-      ? null
-      : renderXoItem(this._getResourceSet())
+    const resourceSet = this._getResourceSet()
+    const { vm, isAdmin } = this.props
+
+    return isAdmin ? (
+      <div className='input-group'>
+        <SelectResourceSet
+          onChange={resourceSet =>
+            editVm(vm, {
+              resourceSet: resourceSet != null ? resourceSet.id : resourceSet,
+            })
+          }
+          value={vm.resourceSet}
+        />
+        {resourceSet !== undefined && (
+          <span className='input-group-btn'>
+            <ActionButton
+              btnStyle='primary'
+              handler={shareVmProxy}
+              handlerParam={vm}
+              icon='vm-share'
+              style={SHARE_BUTTON_STYLE}
+              tooltip={_('vmShareButton')}
+            />
+          </span>
+        )}
+      </div>
+    ) : vm.resourceSet === undefined ? (
+      _('resourceSetNone')
+    ) : resourceSet === undefined ? (
+      _('errorUnknownItem', { type: 'resource set' })
+    ) : (
+      <span>
+        {renderXoItem(resourceSet)}{' '}
+        <ActionButton
+          btnStyle='primary'
+          handler={shareVmProxy}
+          handlerParam={vm}
+          icon='vm-share'
+          size='small'
+          tooltip={_('vmShareButton')}
+        />
+      </span>
+    )
   }
 }
 
@@ -908,47 +953,7 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('resourceSet')}</th>
                   <td>
-                    {isAdmin ? (
-                      <div className='input-group'>
-                        <SelectResourceSet
-                          onChange={resourceSet =>
-                            editVm(vm, {
-                              resourceSet:
-                                resourceSet != null
-                                  ? resourceSet.id
-                                  : resourceSet,
-                            })
-                          }
-                          value={vm.resourceSet}
-                        />
-                        {vm.resourceSet !== undefined && (
-                          <span className='input-group-btn'>
-                            <ActionButton
-                              btnStyle='primary'
-                              handler={shareVmProxy}
-                              handlerParam={vm}
-                              icon='vm-share'
-                              style={SHARE_BUTTON_STYLE}
-                              tooltip={_('vmShareButton')}
-                            />
-                          </span>
-                        )}
-                      </div>
-                    ) : vm.resourceSet !== undefined ? (
-                      <span>
-                        <ResourceSetItem id={vm.resourceSet} />{' '}
-                        <ActionButton
-                          btnStyle='primary'
-                          handler={shareVmProxy}
-                          handlerParam={vm}
-                          icon='vm-share'
-                          size='small'
-                          tooltip={_('vmShareButton')}
-                        />
-                      </span>
-                    ) : (
-                      _('resourceSetNone')
-                    )}
+                    <ResourceSet vm={vm} />
                   </td>
                 </tr>
                 {isAdmin && (

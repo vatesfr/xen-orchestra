@@ -357,14 +357,12 @@ export default class SrDisks extends Component {
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate(vdis)}
         />
       ),
-    }).then(({ sr, migrateAll }) => {
+    }).then(({ sr }) => {
       if (sr === undefined) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
 
-      return Promise.all(
-        map(migrateAll ? this.props.vdis : vdis, vdi => migrateVdi(vdi, sr))
-      )
+      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
     }, noop)
 
   _actions = [

@@ -1,6 +1,6 @@
 import deferrable from 'golike-defer'
 import { find, gte, includes, isEmpty, lte, noop } from 'lodash'
-import { ignoreErrors, pCatch } from 'promise-toolbox'
+import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
 import { NULL_REF } from 'xen-api'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
@@ -18,10 +18,12 @@ const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 export default {
   // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
-  async checkpointVm(vmId, nameLabel) {
+  @cancelable
+  async checkpointVm($cancelToken, vmId, nameLabel) {
     const vm = this.getObject(vmId)
     try {
       const ref = await this.callAsync(
+        $cancelToken,
         'VM.checkpoint',
         vm.$ref,
         nameLabel != null ? nameLabel : vm.name_label
@@ -29,7 +31,7 @@ export default {
       return this.barrier(ref)
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
-        return this._snapshotVm(vm, nameLabel)
+        return this._snapshotVm($cancelToken, vm, nameLabel)
       }
       throw error
     }

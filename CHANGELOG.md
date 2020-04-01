@@ -1,8 +1,54 @@
 # ChangeLog
 
-## **5.44.1** (2020-03-05)
+## **5.45.0** (2020-03-31)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Highlights
+
+- [Proxy / Deploy] Ability to select the destination network [#4825](https://github.com/vatesfr/xen-orchestra/issues/4825) (PR [#4855](https://github.com/vatesfr/xen-orchestra/pull/4855))
+- [VM/backup] Show backup jobs [#4623](https://github.com/vatesfr/xen-orchestra/issues/4623) (PR [#4860](https://github.com/vatesfr/xen-orchestra/pull/4860))
+- [SR / Disks] Ability to migrate VDIs [#4455](https://github.com/vatesfr/xen-orchestra/issues/4455) (PR [#4696](https://github.com/vatesfr/xen-orchestra/pull/4696))
+- [VM migration] Ability to choose network for migration within a pool [#2028](https://github.com/vatesfr/xen-orchestra/issues/2028) (PR [#4828](https://github.com/vatesfr/xen-orchestra/pull/4828))
+- [XOA] Manage the XOA licenses from the xoa/licenses page (PR [#3717](https://github.com/vatesfr/xen-orchestra/pull/3717))
+
+### Enhancements
+
+- [Support] Link to create a new support ticket [#4234](https://github.com/vatesfr/xen-orchestra/issues/4234) (PR [#4833](https://github.com/vatesfr/xen-orchestra/pull/4833))
+- [Proxies] Ability to redeploy a proxy VM [#4825](https://github.com/vatesfr/xen-orchestra/issues/4825) (PR [#4725](https://github.com/vatesfr/xen-orchestra/pull/4725))
+- [Proxies/Deploy] Remove SRs not connected to an HVM-capable host from selection [#4825](https://github.com/vatesfr/xen-orchestra/issues/4825) (PR [#4849](https://github.com/vatesfr/xen-orchestra/pull/4849))
+- [Audit] Ability to export records [#4798](https://github.com/vatesfr/xen-orchestra/issues/4798) (PR [#4858](https://github.com/vatesfr/xen-orchestra/pull/4858))
+- [Audit] Improve integrity check feedback [#4798](https://github.com/vatesfr/xen-orchestra/issues/4798) (PR [#4879](https://github.com/vatesfr/xen-orchestra/pull/4879))
+- [Backup] **BETA** Ability to backup running VMs with their memory [#645](https://github.com/vatesfr/xen-orchestra/issues/645) (PR [#4252](https://github.com/vatesfr/xen-orchestra/pull/4252))
+- [Import] add CLI tool to import OVA files (PR [#3630](https://github.com/vatesfr/xen-orchestra/pull/3630))
+
+### Bug fixes
+
+- [XOSAN] Fix the installer (PR [#4839](https://github.com/vatesfr/xen-orchestra/pull/4839))
+- [OVA Import] Fix _no host available_ error when starting for imported VMs with low memory (PR [#4866](https://github.com/vatesfr/xen-orchestra/pull/4866))
+- [Self] When a Self Service related operation fails, always revert the quotas to what they were before the operation (PR [#4861](https://github.com/vatesfr/xen-orchestra/pull/4861))
+- [auth-{github,google,saml}] Don't require manually reloading the plugin for configuration changes to take effect [#4863](https://github.com/vatesfr/xen-orchestra/issues/4863) (PR [#4864](https://github.com/vatesfr/xen-orchestra/pull/4864))
+- [auth-ldap] Fix reading certificate authorities files [#3873](https://github.com/vatesfr/xen-orchestra/issues/3873)
+- [Backup NG / logs] Replace successful backup job status by failed status in case of missing VMs [#4857](https://github.com/vatesfr/xen-orchestra/issues/4857) (PR [#4862](https://github.com/vatesfr/xen-orchestra/pull/4862))
+- [Jobs] Fix "no value for `user_ip`" error on jobs execution (PR [#4878](https://github.com/vatesfr/xen-orchestra/pull/4878))
+- [Self] Properly take IP pools into account when computing quotas (PR [#4871](https://github.com/vatesfr/xen-orchestra/pull/4871))
+
+### Released packages
+
+- xo-vmdk-to-vhd 1.1.1
+- @xen-orchestra/upload-ova 0.1.3
+- @xen-orchestra/audit-core 0.1.1
+- xo-server-audit 0.2.0
+- xo-server-auth-github 0.2.2
+- xo-server-auth-google 0.2.2
+- xo-server-auth-ldap 0.7.1
+- xo-server-auth-saml 0.7.2
+- xo-server 5.58.1
+- xo-web 5.58.1
+
+## **5.44.1** (2020-03-05)
+
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 
@@ -61,8 +107,6 @@
 - xo-web v5.57.0
 
 ## **5.43.3** (2020-03-06)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Bug fixes
 

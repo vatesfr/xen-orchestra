@@ -197,6 +197,9 @@ const TRANSFORMS = {
       tags: obj.tags,
       version: softwareVersion.product_version,
       productBrand: softwareVersion.product_brand,
+      hvmCapable: obj.capabilities.some(capability =>
+        capability.startsWith('hvm')
+      ),
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),

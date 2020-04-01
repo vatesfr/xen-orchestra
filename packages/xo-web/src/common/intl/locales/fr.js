@@ -1903,9 +1903,6 @@ export default {
   // Original text: "Destination SR:"
   vdiMigrateSelectSr: 'SR de destination :',
 
-  // Original text: "Migrate all VDIs"
-  vdiMigrateAll: 'Migrer tous les VDIs',
-
   // Original text: "No SR"
   vdiMigrateNoSr: 'Pas de SR',
 

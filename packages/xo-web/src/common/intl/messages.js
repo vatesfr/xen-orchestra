@@ -23,6 +23,7 @@ const messages = {
   messageReply: 'Reply',
   sr: 'SR',
   tryXoa: 'Try XOA for free and deploy it here.',
+  notInstalled: 'Not installed',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -60,11 +61,21 @@ const messages = {
   address: 'Address',
   vm: 'VM',
   destinationSR: 'Destination SR',
+  destinationNetwork: 'Destination network',
   dhcp: 'DHCP',
   ip: 'IP',
   static: 'Static',
   user: 'User',
   deletedUser: 'deleted ({ name })',
+  networkConfiguration: 'Network configuration',
+  integrity: 'Integrity',
+  altered: 'Altered',
+  missing: 'Missing',
+  verified: 'Verified',
+  snapshotMode: 'Snapshot mode',
+  normal: 'Normal',
+  withMemory: 'With memory',
+  offline: 'Offline',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -472,8 +483,8 @@ const messages = {
   smartBackup: 'Smart backup',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
+  checkpointSnapshot: 'Checkpoint snapshot',
   offlineSnapshot: 'Offline snapshot',
-  offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   offlineBackup: 'Offline backup',
   offlineBackupInfo:
     'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
@@ -1055,7 +1066,6 @@ const messages = {
   vdiVms: 'VMs',
   vdiMigrate: 'Migrate VDI',
   vdiMigrateSelectSr: 'Destination SR:',
-  vdiMigrateAll: 'Migrate all VDIs',
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
   vdiForget: 'Forget',
@@ -1133,6 +1143,11 @@ const messages = {
   snapshotQuiesce: 'Quiesced snapshot',
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
+
+  // ----- VM backup tab -----
+  goToBackupPage: 'Go to the backup page.',
+  vmInLegacyBackup:
+    'This VM may be backed up by the legacy backup system. See legacy jobs.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
@@ -2246,6 +2261,7 @@ const messages = {
   auditSaveFingerprintInErrorInfo:
     'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
   auditNewFingerprint: 'New fingerprint',
+  downloadAuditRecords: 'Download records',
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
@@ -2259,7 +2275,6 @@ const messages = {
   licensesUnregisteredDisclaimer:
     'You need to register your appliance to manage your licenses.',
   licenseProduct: 'Product',
-  licenseBoundObject: 'Attached to',
   licensePurchaser: 'Purchaser',
   licenseExpires: 'Expires',
   licensePurchaserYou: 'You',
@@ -2269,8 +2284,6 @@ const messages = {
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
-  xoaLicenseNotShown:
-    'XOA license management is not supported yet (current license: {plan})',
   xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
@@ -2278,7 +2291,9 @@ const messages = {
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
   xosanGetLicensesError: 'Could not fetch licenses',
-  xosanLicenseHasExpired: 'License has expired.',
+  licenseHasExpired: 'License has expired.',
+  licenseBoundToOtherXoa: 'License bound to another XOA',
+  licenseBoundToThisXoa: 'This license is active on this XOA',
   xosanLicenseExpiresDate: 'License expires on {date}.',
   xosanUpdateLicenseMessage: 'Update the license now!',
   xosanUnknownSr: 'Unknown XOSAN SR.',
@@ -2290,6 +2305,14 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+  bindXoaLicense: 'Activate license',
+  bindXoaLicenseConfirm:
+    'Are you sure you want to activate this license on your XOA? This action is not reversible!',
+  bindXoaLicenseConfirmText: 'activate {licenseType} license',
+  updateNeeded: 'Update needed',
+  starterLicense: 'Starter license',
+  enterpriseLicense: 'Enterprise license',
+  premiumLicense: 'Premium license',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
@@ -2313,6 +2336,8 @@ const messages = {
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
+  proxySrPredicateInfo:
+    'The select only contains SRs connected to at least one HVM-capable host',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

@@ -1805,9 +1805,6 @@ export default {
   // Original text: "Destination SR:"
   vdiMigrateSelectSr: 'Cél Adattároló:',
 
-  // Original text: "Migrate all VDIs"
-  vdiMigrateAll: 'Migrate all VDIs',
-
   // Original text: "No SR"
   vdiMigrateNoSr: 'Nincs Adattároló',
 
