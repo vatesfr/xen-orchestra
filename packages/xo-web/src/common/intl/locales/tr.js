@@ -2341,9 +2341,6 @@ export default {
   // Original text: "Destination SR:"
   vdiMigrateSelectSr: 'Hedef SR:',
 
-  // Original text: "Migrate all VDIs"
-  vdiMigrateAll: "Tüm VDI'ları taşı",
-
   // Original text: "No SR"
   vdiMigrateNoSr: 'SR yok',
 

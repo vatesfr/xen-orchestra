@@ -695,13 +695,11 @@ export default class TabDisks extends Component {
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
-    }).then(({ sr, migrateAll }) => {
+    }).then(({ sr }) => {
       if (!sr) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
-      return migrateAll
-        ? Promise.all(map(this.props.vdis, vdi => migrateVdi(vdi, sr)))
-        : migrateVdi(vdi, sr)
+      return migrateVdi(vdi, sr)
     })
   }
 
