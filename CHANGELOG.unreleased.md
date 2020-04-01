@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup] Fix TLS error (`unsupported protocol`) when XenServer <= 6.5 is used as target
+- [XOA] Allow to access the license page when a XOA trial has ended
 
 ### Released packages
 

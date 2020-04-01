@@ -217,7 +217,10 @@ export default class XoApp extends Component {
 
   render() {
     const { signedUp, trial, registerNeeded } = this.props
-    const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
+    const blocked =
+      signedUp &&
+      blockXoaAccess(trial) &&
+      !this.context.router.location.pathname.startsWith('/xoa/') // If we are under expired or unstable trial (signed up only)
     const plan = getXoaPlan()
 
     return (
