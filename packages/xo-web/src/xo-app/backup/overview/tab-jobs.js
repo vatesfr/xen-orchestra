@@ -123,12 +123,7 @@ const SchedulePreviewBody = decorate([
   })),
   connectStore(() => ({
     nVms: createGetObjectsOfType('VM')
-      .filter(
-        createSelector(
-          (_, props) => props.job.vms,
-          pattern => createPredicate(pattern)
-        )
-      )
+      .filter(createSelector((_, props) => props.job.vms, createPredicate))
       .count(),
   })),
   ({ job, schedule, lastRunLog, nVms }) => (
