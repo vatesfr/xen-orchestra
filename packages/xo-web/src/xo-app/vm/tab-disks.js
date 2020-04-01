@@ -687,8 +687,8 @@ export default class TabDisks extends Component {
       newDisk: false,
     })
 
-  _migrateVdis = vdis => {
-    return confirm({
+  _migrateVdis = vdis =>
+    confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
@@ -700,9 +700,9 @@ export default class TabDisks extends Component {
       if (sr === undefined) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
+
       return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
-    })
-  }
+    }, noop)
 
   _getIsVmAdmin = createSelector(
     () => this.props.checkPermissions,
