@@ -15,11 +15,10 @@ Installation of the [npm package](https://npmjs.org/package/xo-vmdk-to-vhd):
 To convert a VMDK stream to a Fixed VHD stream without buffering the entire input or output:
 
 ```js
-import convertFromVMDK from 'xo-vmdk-to-vhd'
+import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { createReadStream, createWriteStream } from 'fs'
-
 ;(async () => {
-  const stream = await convertFromVMDK(fs.createReadStream(vmdkFileName))
+  const stream = await vmdkToVhd(fs.createReadStream(vmdkFileName))
 
   stream.pipe(fs.createWriteStream(vhdFileName))
 })()
@@ -28,11 +27,11 @@ import { createReadStream, createWriteStream } from 'fs'
 or:
 
 ```js
-var convertFromVMDK = require('xo-vmdk-to-vhd').default
+var vmdkToVhd = require('xo-vmdk-to-vhd').vmdkToVhd
 var createReadStream = require('fs').createReadStream
 var createWriteStream = require('fs').createWriteStream
 
-convertFromVMDK(fs.createReadStream(vmdkFileName)).then(function(stream) {
+vmdkToVhd(fs.createReadStream(vmdkFileName)).then(function(stream) {
   stream.pipe(fs.createWriteStream(vhdFileName))
 })
 ```
