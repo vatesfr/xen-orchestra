@@ -179,25 +179,26 @@ const COLUMNS_VM_PV = [
 
 const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
-const ACTIONS = [
+const INDIVIDUAL_ACTIONS = [
+  ...(process.env.XOA_PLAN > 1
+    ? [
+        {
+          handler: vbd => exportVdi(vbd.vdi),
+          icon: 'export',
+          label: _('exportVdi'),
+        },
+        {
+          disabled: vbd => vbd.attached,
+          handler: vbd => importVdi(vbd.vdi),
+          icon: 'import',
+          label: _('importVdi'),
+        },
+      ]
+    : []),
   {
-    disabled: selectedVbds => some(selectedVbds, 'attached'),
-    handler: deleteVbds,
-    individualDisabled: vbd => vbd.attached,
-    individualHandler: deleteVbd,
-    icon: 'vdi-forget',
-    label: _('vdiForget'),
-    level: 'danger',
-  },
-  {
-    disabled: selectedVbds => some(selectedVbds, 'attached'),
-    handler: selectedVbds => deleteVdis(uniq(map(selectedVbds, 'vdi'))),
-    individualDisabled: vbd => vbd.attached,
-    individualHandler: vbd => deleteVdi(vbd.vdi),
-    individualLabel: _('vdiRemove'),
-    icon: 'vdi-remove',
-    label: _('deleteSelectedVdis'),
-    level: 'danger',
+    handler: vbd => copy(vbd.vdi.uuid),
+    icon: 'clipboard',
+    label: vbd => _('copyUuid', { uuid: vbd.vdi.uuid }),
   },
 ]
 
@@ -686,8 +687,8 @@ export default class TabDisks extends Component {
       newDisk: false,
     })
 
-  _migrateVdi = vdi => {
-    return confirm({
+  _migrateVdis = vdis =>
+    confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
@@ -696,12 +697,12 @@ export default class TabDisks extends Component {
         />
       ),
     }).then(({ sr }) => {
-      if (!sr) {
+      if (sr === undefined) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
-      return migrateVdi(vdi, sr)
-    })
-  }
+
+      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
+    }, noop)
 
   _getIsVmAdmin = createSelector(
     () => this.props.checkPermissions,
@@ -773,31 +774,32 @@ export default class TabDisks extends Component {
       )
   )
 
-  individualActions = [
-    ...(process.env.XOA_PLAN > 1
-      ? [
-          {
-            handler: vbd => exportVdi(vbd.vdi),
-            icon: 'export',
-            label: _('exportVdi'),
-          },
-          {
-            disabled: vbd => vbd.attached,
-            handler: vbd => importVdi(vbd.vdi),
-            icon: 'import',
-            label: _('importVdi'),
-          },
-        ]
-      : []),
+  actions = [
     {
-      handler: vbd => this._migrateVdi(vbd.vdi),
-      icon: 'vdi-migrate',
-      label: _('vdiMigrate'),
+      disabled: selectedVbds => some(selectedVbds, 'attached'),
+      handler: deleteVbds,
+      individualDisabled: vbd => vbd.attached,
+      individualHandler: deleteVbd,
+      icon: 'vdi-forget',
+      label: _('vdiForget'),
+      level: 'danger',
     },
     {
-      handler: vbd => copy(vbd.vdi.uuid),
-      icon: 'clipboard',
-      label: vbd => _('copyUuid', { uuid: vbd.vdi.uuid }),
+      disabled: selectedVbds => some(selectedVbds, 'attached'),
+      handler: selectedVbds => deleteVdis(uniq(map(selectedVbds, 'vdi'))),
+      individualDisabled: vbd => vbd.attached,
+      individualHandler: vbd => deleteVdi(vbd.vdi),
+      individualLabel: _('vdiRemove'),
+      icon: 'vdi-remove',
+      label: _('deleteSelectedVdis'),
+      level: 'danger',
+    },
+    {
+      handler: selectedVbds =>
+        this._migrateVdis(uniq(map(selectedVbds, 'vdi'))),
+      icon: 'vdi-migrate',
+      individualLabel: _('vdiMigrate'),
+      label: _('migrateSelectedVdis'),
     },
   ]
 
@@ -875,11 +877,11 @@ export default class TabDisks extends Component {
           )}
           <Col>
             <SortedTable
-              actions={ACTIONS}
+              actions={this.actions}
               collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
               data-vm={vm}
-              individualActions={this.individualActions}
+              individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'
               stateUrlParam='s'
             />
