@@ -16,7 +16,7 @@ async function main(argv) {
     ignoreUnknownFormats: true,
   })
 
-  const { hostname = 'localhost', port } = config.http.listen.https
+  const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
 
   const { _: args, help, host, token } = getopts(argv, {
     alias: { help: 'h' },
