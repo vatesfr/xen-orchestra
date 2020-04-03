@@ -28,7 +28,6 @@
   "main": "dist/",
   "bin": {},
   "files": [
-    "config.toml",
     "dist/"
   ],
   "engines": {
