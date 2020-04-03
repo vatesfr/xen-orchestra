@@ -1173,12 +1173,33 @@ resume.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function revert({ snapshot }) {
+export const revert = defer(async function($defer, { snapshot }) {
   await this.checkPermissions(this.user.id, [
     [snapshot.$snapshot_of, 'operate'],
   ])
+  const vm = this.getObject(snapshot.$snapshot_of)
+  const { resourceSet } = vm
+  if (resourceSet !== undefined) {
+    const vmUsage = await this.computeVmResourcesUsage(vm)
+    await this.releaseLimitsInResourceSet(vmUsage, resourceSet)
+    $defer.onFailure(() =>
+      this.allocateLimitsInResourceSet(vmUsage, resourceSet, true)
+    )
+    if (snapshot.resourceSet !== undefined) {
+      const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
+      await this.allocateLimitsInResourceSet(
+        snapshotUsage,
+        resourceSet,
+        this.user.permission === 'admin'
+      )
+      $defer.onFailure(() =>
+        this.releaseLimitsInResourceSet(snapshotUsage, resourceSet)
+      )
+    }
+  }
   await this.getXapi(snapshot).revertVm(snapshot._xapiId)
-}
+  await this.setData(vm.id, 'resourceSet', resourceSet)
+})
 
 revert.params = {
   snapshot: { type: 'string' },
