@@ -5,7 +5,7 @@ import TOML from '@iarna/toml'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
 import { fromCallback } from 'promise-toolbox'
-import { merge } from 'lodash'
+import merge from 'lodash/merge'
 import { pipeline } from 'readable-stream'
 import { readFile } from 'fs-extra'
 import {
