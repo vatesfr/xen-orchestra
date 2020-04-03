@@ -49,12 +49,9 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "@iarna/toml": "^2.2.3",
     "@xen-orchestra/audit-core": "^0.1.1",
     "@xen-orchestra/log": "^0.2.0",
     "async-iterator-to-stream": "^1.1.0",
-    "fs-extra": "^8.0.1",
-    "lodash": "^4.17.15",
     "promise-toolbox": "^0.15.0",
     "readable-stream": "^3.5.0",
     "xo-common": "^0.4.0"
