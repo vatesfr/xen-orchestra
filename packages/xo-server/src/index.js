@@ -14,10 +14,9 @@ import proxyConsole from './proxy-console'
 import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
-import TOML from '@iarna/toml'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
-import { forOwn, map, merge, noop, once } from 'lodash'
+import { forOwn, map, once } from 'lodash'
 import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
@@ -285,13 +284,10 @@ async function registerPlugin(pluginPath, pluginName) {
   let instance
 
   const config = this._config
-  const handleFactory = async factory =>
+  const handleFactory = factory =>
     typeof factory === 'function'
       ? factory({
-          config: merge(
-            await readFile(`${pluginPath}/config.toml`).then(TOML.parse, noop),
-            config.plugins?.[pluginName]
-          ),
+          config: config.plugins?.[pluginName],
           xo: this,
           getDataDir: () => {
             const dir = `${config.datadir}/${pluginName}`

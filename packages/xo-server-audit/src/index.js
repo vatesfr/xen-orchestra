@@ -1,9 +1,13 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
+import path from 'path'
+import TOML from '@iarna/toml'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
 import { fromCallback } from 'promise-toolbox'
+import { merge } from 'lodash'
 import { pipeline } from 'readable-stream'
+import { readFile } from 'fs-extra'
 import {
   AlteredRecordError,
   AuditCore,
@@ -49,23 +53,41 @@ class Db extends Storage {
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
   constructor({ config, xo }) {
-    this._blockedList = config.blockedList
     this._cleaners = []
     this._xo = xo
 
     this._auditCore = undefined
+    this._config = config
     this._storage = undefined
   }
 
   async load() {
-    const storage = (this._storage = new Db(await this._xo.getStore(NAMESPACE)))
-    this._auditCore = new AuditCore(storage)
-
     const cleaners = this._cleaners
-    cleaners.push(() => {
+    const config = this._config
+
+    try {
+      const storage = (this._storage = new Db(
+        await this._xo.getStore(NAMESPACE)
+      ))
+      this._auditCore = new AuditCore(storage)
+      this._config = merge(
+        await readFile(path.join(__dirname, '..', 'config.toml')).then(
+          TOML.parse
+        ),
+        config
+      )
+
+      cleaners.push(() => {
+        this._auditCore = undefined
+        this._config = config
+        this._storage = undefined
+      })
+    } catch (error) {
       this._auditCore = undefined
+      this._config = config
       this._storage = undefined
-    })
+      throw error
+    }
 
     this._addListener('xo:postCall', this._handleEvent.bind(this, 'apiCall'))
     this._addListener('xo:audit', this._handleEvent.bind(this))
@@ -130,7 +152,7 @@ class AuditXoPlugin {
   }
 
   _handleEvent(event, { userId, userIp, userName, ...data }) {
-    if (event !== 'apiCall' || !this._blockedList[data.method]) {
+    if (event !== 'apiCall' || !this._config.blockedList[data.method]) {
       return this._auditCore.add(
         {
           userId,
