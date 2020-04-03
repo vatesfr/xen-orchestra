@@ -183,7 +183,10 @@ export default class {
             (await this._xo.getAclsForSubject(subjectId)).map(async acl => {
               try {
                 const object = this._xo.getObject(acl.object)
-                if (object.type === 'VM' && object.resourceSet === id) {
+                if (
+                  (object.type === 'VM' || object.type === 'VM-snapshot') &&
+                  object.resourceSet === id
+                ) {
                   await this._xo.removeAcl(subjectId, acl.object, acl.action)
                   $defer.onFailure(() =>
                     this._xo.addAcl(subjectId, acl.object, acl.action)
