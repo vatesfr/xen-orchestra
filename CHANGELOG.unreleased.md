@@ -25,6 +25,6 @@
 >
 > Rule of thumb: add packages on top.
 
-- xo-server-audit patch
+- xo-server-audit minor
 - xo-server minor
 - xo-web minor
