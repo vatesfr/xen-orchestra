@@ -1,7 +1,5 @@
-import appConf from 'app-conf'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
-import path from 'path'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
 import { fromCallback } from 'promise-toolbox'
@@ -15,6 +13,45 @@ import {
 } from '@xen-orchestra/audit-core'
 
 const log = createLogger('xo:xo-server-audit')
+
+const DEFAULT_BLOCKED_LIST = {
+  'acl.get': true,
+  'acl.getCurrentPermissions': true,
+  'audit.checkIntegrity': true,
+  'audit.generateFingerprint': true,
+  'audit.getRecords': true,
+  'backupNg.getAllJobs': true,
+  'backupNg.getAllLogs': true,
+  'cloud.getResourceCatalog': true,
+  'cloudConfig.getAll': true,
+  'group.getAll': true,
+  'host.stats': true,
+  'ipPool.getAll': true,
+  'job.getAll': true,
+  'log.get': true,
+  'metadataBackup.getAllJobs': true,
+  'plugin.get': true,
+  'pool.listMissingPatches': true,
+  'proxy.getAll': true,
+  'remote.getAll': true,
+  'remote.getAllInfo': true,
+  'resourceSet.getAll': true,
+  'role.getAll': true,
+  'schedule.getAll': true,
+  'server.getAll': true,
+  'session.getUser': true,
+  'sr.getUnhealthyVdiChainsLength': true,
+  'sr.stats': true,
+  'system.getMethodsInfo': true,
+  'system.getServerTimezone': true,
+  'system.getServerVersion': true,
+  'user.getAll': true,
+  'vm.stats': true,
+  'xo.getAllObjects': true,
+  'xoa.supportTunnel.getState': true,
+  'xosan.checkSrCurrentState': true,
+  'xosan.getVolumeInfo': true,
+}
 
 const LAST_ID = 'lastId'
 class Db extends Storage {
@@ -50,40 +87,27 @@ class Db extends Storage {
 
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
-  constructor({ xo }) {
+  constructor({ staticConfig, xo }) {
+    this._blockedList = {
+      ...DEFAULT_BLOCKED_LIST,
+      ...staticConfig.blockedList,
+    }
     this._cleaners = []
     this._xo = xo
 
     this._auditCore = undefined
-    this._blockedList = undefined
     this._storage = undefined
   }
 
   async load() {
+    const storage = (this._storage = new Db(await this._xo.getStore(NAMESPACE)))
+    this._auditCore = new AuditCore(storage)
+
     const cleaners = this._cleaners
-
-    try {
-      const storage = (this._storage = new Db(
-        await this._xo.getStore(NAMESPACE)
-      ))
-      this._auditCore = new AuditCore(storage)
-      this._blockedList = (
-        await appConf.load('xo-server-audit', {
-          appDir: path.join(__dirname, '..'),
-        })
-      ).blockedList
-
-      cleaners.push(() => {
-        this._auditCore = undefined
-        this._blockedList = undefined
-        this._storage = undefined
-      })
-    } catch (error) {
+    cleaners.push(() => {
       this._auditCore = undefined
-      this._blockedList = undefined
       this._storage = undefined
-      throw error
-    }
+    })
 
     this._addListener('xo:postCall', this._handleEvent.bind(this, 'apiCall'))
     this._addListener('xo:audit', this._handleEvent.bind(this))
@@ -148,7 +172,7 @@ class AuditXoPlugin {
   }
 
   _handleEvent(event, { userId, userIp, userName, ...data }) {
-    if (event !== 'apiCall' || this._blockedList.indexOf(data.method) === -1) {
+    if (event !== 'apiCall' || !this._blockedList[data.method]) {
       return this._auditCore.add(
         {
           userId,
