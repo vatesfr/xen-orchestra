@@ -47,8 +47,9 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
 // ===================================================================
 
 class AuthSamlXoPlugin {
-  constructor({ xo }) {
+  constructor({ staticConfig, xo }) {
     this._conf = null
+    this._strategyOptions = staticConfig.strategyOptions
     this._unregisterPassportStrategy = undefined
     this._usernameField = null
     this._xo = xo
@@ -57,6 +58,7 @@ class AuthSamlXoPlugin {
   async configure({ usernameField, ...conf }, { loaded }) {
     this._usernameField = usernameField
     this._conf = {
+      ...this._strategyOptions,
       ...DEFAULTS,
       ...conf,
 

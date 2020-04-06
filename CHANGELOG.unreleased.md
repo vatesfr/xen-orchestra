@@ -10,6 +10,7 @@
 - [VDI migration]
   - Remove 'Migrate all VDIs' checkbox (PR [#4876](https://github.com/vatesfr/xen-orchestra/pull/4876))
   - [VM/disks]: Add bulk migration (PR [#4877](https://github.com/vatesfr/xen-orchestra/pull/4877))
+- [SAML] Possibility to pass [settings to the underlying library](https://github.com/bergie/passport-saml#config-parameter-details) via the `plugins.auth-saml.strategyOptions` section in `xo-server`'s configuration file
 
 ### Bug fixes
 
@@ -25,6 +26,7 @@
 >
 > Rule of thumb: add packages on top.
 
+- xo-server-saml minor
 - xo-server-audit minor
 - xo-server minor
 - xo-web minor
