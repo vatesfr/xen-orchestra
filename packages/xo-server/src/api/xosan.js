@@ -861,7 +861,7 @@ async function umountDisk(localEndpoint, diskMountPoint) {
 }
 
 async function createNewDisk(xapi, sr, vm, diskSize) {
-  const vdiMax = 2093050 * Math.pow(2, 20)
+  const vdiMax = 2088960 * Math.pow(2, 20)
   const createVdiSize = Math.min(vdiMax, diskSize)
   const extensionSize = diskSize - createVdiSize
   const newDisk = await xapi.createVdi(
