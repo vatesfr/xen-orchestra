@@ -87,10 +87,10 @@ class Db extends Storage {
 
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
-  constructor({ config = {}, xo }) {
+  constructor({ staticConfig, xo }) {
     this._blockedList = {
       ...DEFAULT_BLOCKED_LIST,
-      ...config.blockedList,
+      ...staticConfig.blockedList,
     }
     this._cleaners = []
     this._xo = xo

@@ -287,7 +287,7 @@ async function registerPlugin(pluginPath, pluginName) {
   const handleFactory = factory =>
     typeof factory === 'function'
       ? factory({
-          config: config.plugins?.[pluginName],
+          staticConfig: config.plugins?.[pluginName] ?? {},
           xo: this,
           getDataDir: () => {
             const dir = `${config.datadir}/${pluginName}`
