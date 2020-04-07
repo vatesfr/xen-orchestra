@@ -132,7 +132,11 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  async deployProxy(srId, { networkConfiguration, networkId, proxyId } = {}) {
+  async deployProxy(
+    srId,
+    licenseId,
+    { networkConfiguration, networkId, proxyId } = {}
+  ) {
     const app = this._app
 
     const redeploy = proxyId !== undefined
@@ -163,6 +167,8 @@ export default class Proxy {
     )
     let date, proxyAuthenticationToken, xenstoreData
     try {
+      await app.bindLicense({ licenseId, boundObjectId: vm.uuid })
+
       if (networkId !== undefined) {
         await Promise.all([
           ...vm.VIFs.map(vif => xapi.deleteVif(vif)),
@@ -202,7 +208,10 @@ export default class Proxy {
 
       await xapi.startVm(vm.$id)
     } catch (error) {
-      await xapi._deleteVm(vm)
+      await Promise.all([
+        app.unbindLicense({ licenseId, boundObjectId: vm.uuid }),
+        xapi._deleteVm(vm),
+      ])
       throw error
     }
 
