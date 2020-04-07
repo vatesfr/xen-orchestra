@@ -861,6 +861,7 @@ async function umountDisk(localEndpoint, diskMountPoint) {
 }
 
 async function createNewDisk(xapi, sr, vm, diskSize) {
+  // VDI size must be between 1 MB and 2088960 MB
   const vdiMax = 2088960 * Math.pow(2, 20)
   const createVdiSize = Math.min(vdiMax, diskSize)
   const extensionSize = diskSize - createVdiSize
