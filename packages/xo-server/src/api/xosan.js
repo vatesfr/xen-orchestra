@@ -861,7 +861,8 @@ async function umountDisk(localEndpoint, diskMountPoint) {
 }
 
 async function createNewDisk(xapi, sr, vm, diskSize) {
-  const vdiMax = 2093050 * Math.pow(2, 20)
+  // https://github.com/xapi-project/sm/blob/c9e959b70b43930b33f3a5abe5afe0a36dc95f06/drivers/vhdutil.py#L31
+  const vdiMax = 2040 * 1024 * 1024 * 1024
   const createVdiSize = Math.min(vdiMax, diskSize)
   const extensionSize = diskSize - createVdiSize
   const newDisk = await xapi.createVdi(
