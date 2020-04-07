@@ -35,26 +35,20 @@ const log = createLogger('xo:xapi')
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 
-const XCP_NG_DEBOUNCE_TIME_MS = 60000
+const LISTING_DEBOUNCE_TIME_MS = 60000
 
-// list all yum updates available for a XCP-ng host
-// (hostObject) → { uuid: patchObject }
-async function _listXcpUpdates(host) {
-  return JSON.parse(
-    await this.call(
-      'host.call_plugin',
-      host.$ref,
-      'updater.py',
-      'check_update',
-      {}
-    )
-  )
+async function _listMissingPatches(hostId) {
+  const host = this.getObject(hostId)
+  return _isXcp(host)
+    ? this._listXcpUpdates(host)
+    : // TODO: list paid patches of free hosts as well so the UI can show them
+      this._listInstallablePatches(host)
 }
 
-const _listXcpUpdateDebounced = debounceWithKey(
-  _listXcpUpdates,
-  XCP_NG_DEBOUNCE_TIME_MS,
-  host => host.$ref
+const listMissingPatches = debounceWithKey(
+  _listMissingPatches,
+  LISTING_DEBOUNCE_TIME_MS,
+  hostId => hostId
 )
 
 // =============================================================================
@@ -163,8 +157,19 @@ export default {
 
   // LIST ----------------------------------------------------------------------
 
-  _listXcpUpdates,
-  _listXcpUpdateDebounced,
+  // list all yum updates available for a XCP-ng host
+  // (hostObject) → { uuid: patchObject }
+  async _listXcpUpdates(host) {
+    return JSON.parse(
+      await this.call(
+        'host.call_plugin',
+        host.$ref,
+        'updater.py',
+        'check_update',
+        {}
+      )
+    )
+  },
 
   // list all patches provided by Citrix for this host version regardless
   // of if they're installed or not
@@ -314,13 +319,7 @@ export default {
   },
 
   // high level
-  listMissingPatches(hostId) {
-    const host = this.getObject(hostId)
-    return _isXcp(host)
-      ? this._listXcpUpdateDebounced(host)
-      : // TODO: list paid patches of free hosts as well so the UI can show them
-        this._listInstallablePatches(host)
-  },
+  listMissingPatches,
 
   // convenient method to find which patches should be installed from a
   // list of patch names
