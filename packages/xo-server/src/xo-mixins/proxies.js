@@ -158,10 +158,9 @@ export default class Proxy {
     )
     $defer.onFailure(() => xapi._deleteVm(vm))
 
-    await app.bindLicense({ licenseId, boundObjectId: vm.uuid })
-    $defer.onFailure(() =>
-      app.unbindLicense({ licenseId, boundObjectId: vm.uuid })
-    )
+    const props = { licenseId, boundObjectId: vm.uuid }
+    await app.bindLicense(props)
+    $defer.onFailure(() => app.unbindLicense(props))
 
     if (networkId !== undefined) {
       await Promise.all([
