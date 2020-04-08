@@ -232,7 +232,7 @@ export default class Proxy {
       proxyAuthenticationToken,
       vm,
       xenstoreData,
-    } = this._createProxyVm(srId, licenseId, {
+    } = await this._createProxyVm(srId, licenseId, {
       networkId,
       networkConfiguration,
     })
