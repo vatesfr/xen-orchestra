@@ -17,6 +17,13 @@
 - [Audit] Fix "EACCES" error in case of changing the user that run "xo-server" [#4854](https://github.com/vatesfr/xen-orchestra/issues/4854) (PR [#4897](https://github.com/vatesfr/xen-orchestra/pull/4897))
 - [Patches] Reduce the amount of error logs related to missing patches (PR [#4911](https://github.com/vatesfr/xen-orchestra/pull/4911))
 
+### Released packages
+
+- xo-server-auth-saml 0.8.0
+- xo-server-audit 0.3.0
+- xo-server 5.58.2
+- xo-web 5.58.2
+
 ## **5.45.0** (2020-03-31)
 
 ### Highlights
