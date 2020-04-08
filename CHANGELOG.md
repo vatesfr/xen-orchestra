@@ -1,8 +1,23 @@
 # ChangeLog
 
-## **5.45.0** (2020-03-31)
+## **5.45.1** (2020-04-08)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
+- [VDI migration]
+  - Remove 'Migrate all VDIs' checkbox (PR [#4876](https://github.com/vatesfr/xen-orchestra/pull/4876))
+  - [VM/disks]: Add bulk migration (PR [#4877](https://github.com/vatesfr/xen-orchestra/pull/4877))
+- [SAML] Possibility to pass [settings to the underlying library](https://github.com/bergie/passport-saml#config-parameter-details) via the `plugins.auth-saml.strategyOptions` section in `xo-server`'s configuration file
+
+### Bug fixes
+
+- Fix TLS error (`unsupported protocol`) with XenServer <= 6.5 and Node >= 12 for backups, consoles, and statistics [#4906](https://github.com/vatesfr/xen-orchestra/issues/4906)
+- [Audit] Fix "EACCES" error in case of changing the user that run "xo-server" [#4854](https://github.com/vatesfr/xen-orchestra/issues/4854) (PR [#4897](https://github.com/vatesfr/xen-orchestra/pull/4897))
+- [Patches] Reduce the amount of error logs related to missing patches (PR [#4911](https://github.com/vatesfr/xen-orchestra/pull/4911))
+
+## **5.45.0** (2020-03-31)
 
 ### Highlights
 
