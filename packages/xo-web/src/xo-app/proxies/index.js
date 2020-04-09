@@ -17,7 +17,7 @@ import {
   destroyProxyAppliances,
   editProxyAppliance,
   forgetProxyAppliances,
-  subscribeLicenses,
+  getLicenses,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -166,12 +166,12 @@ export default decorate([
   adminOnly,
   withRouter,
   addSubscriptions({
-    licenses: cb => subscribeLicenses('xoproxy', cb),
     proxies: subscribeProxies,
   }),
   provideState({
     computed: {
-      validLicensePerAppliance: (state, { licenses = [] }) => {
+      licenses: () => getLicenses('xoproxy'),
+      validLicensePerAppliance: ({ licenses = [] }) => {
         const result = {}
         licenses.forEach(license => {
           if (!(license.expires < Date.now())) {

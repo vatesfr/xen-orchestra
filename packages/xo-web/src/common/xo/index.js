@@ -13,7 +13,6 @@ import { SelectHost } from 'select-objects'
 import {
   filter,
   forEach,
-  forOwn,
   get,
   includes,
   isEmpty,
@@ -3032,21 +3031,6 @@ export const updateXosanPacks = pool =>
 
 export const getLicenses = ({ productType } = {}) =>
   _call('xoa.licenses.getAll', { productType })
-
-const licenseSubscriptionsByProductType = {}
-export const subscribeLicenses = (productType, cb) => {
-  if (licenseSubscriptionsByProductType[productType] === undefined) {
-    licenseSubscriptionsByProductType[productType] = createSubscription(() =>
-      getLicenses({ productType })
-    )
-  }
-
-  return licenseSubscriptionsByProductType[productType](cb)
-}
-subscribeLicenses.forceRefresh = () =>
-  forOwn(licenseSubscriptionsByProductType, subscription =>
-    subscription.forceRefresh()
-  )
 
 export const getLicense = (productId, boundObjectId) =>
   _call('xoa.licenses.get', { productId, boundObjectId })
