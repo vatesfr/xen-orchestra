@@ -5,6 +5,7 @@ import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
+import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
@@ -20,6 +21,8 @@ import { generateToken } from '../utils'
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
 const synchronizedWrite = synchronized()
+
+const log = createLogger('xo:proxy')
 
 export default class Proxy {
   constructor(app, conf) {
@@ -209,6 +212,29 @@ export default class Proxy {
     }
   }
 
+  async _unbindProxyApplianceLicense(vmUuid, licenseId) {
+    const app = this._app
+    const productId = this._xoProxyConf.proxyProductId
+
+    let license
+    try {
+      license = await app.getLicense({
+        boundObjectId: vmUuid,
+        productId,
+      })
+      await app.unbindLicense({
+        boundObjectId: vmUuid,
+        licenseId: license.id,
+        productId,
+      })
+    } catch (error) {
+      if (license?.id === licenseId) {
+        throw error
+      }
+      log.warn(error)
+    }
+  }
+
   async deployProxy(
     srId,
     licenseId,
@@ -221,9 +247,12 @@ export default class Proxy {
       const { vmUuid } = await this._getProxy(proxyId)
       if (vmUuid !== undefined) {
         await app.getXapi(vmUuid).deleteVm(vmUuid)
-        await this.updateProxy(proxyId, {
-          vmUuid: null,
-        })
+        await Promise.all([
+          this.updateProxy(proxyId, {
+            vmUuid: null,
+          }),
+          this._unbindProxyApplianceLicense(vmUuid, licenseId),
+        ])
       }
     }
 
