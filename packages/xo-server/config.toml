@@ -134,7 +134,7 @@ namespace = 'xoProxyAppliance'
 
 proxyName = 'Proxy {date}'
 
-proxyProductId = 'xo-proxy'
+licenseProductId = 'xo-proxy'
 
 vmName = 'XOA Proxy {date}'
 

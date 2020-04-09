@@ -212,35 +212,13 @@ export default class Proxy {
     }
   }
 
-  async _unbindProxyApplianceLicense(vmUuid, licenseId) {
-    const app = this._app
-    const productId = this._xoProxyConf.proxyProductId
-
-    let license
-    try {
-      license = await app.getLicense({
-        boundObjectId: vmUuid,
-        productId,
-      })
-      await app.unbindLicense({
-        boundObjectId: vmUuid,
-        licenseId: license.id,
-        productId,
-      })
-    } catch (error) {
-      if (license?.id === licenseId) {
-        throw error
-      }
-      log.warn(error)
-    }
-  }
-
   async deployProxy(
     srId,
     licenseId,
     { networkConfiguration, networkId, proxyId } = {}
   ) {
     const app = this._app
+    const xoProxyConf = this._xoProxyConf
 
     const redeploy = proxyId !== undefined
     if (redeploy) {
@@ -248,10 +226,15 @@ export default class Proxy {
       if (vmUuid !== undefined) {
         await app.getXapi(vmUuid).deleteVm(vmUuid)
         await Promise.all([
+          app
+            .unbindLicense({
+              boundObjectId: vmUuid,
+              productId: xoProxyConf.licenseProductId,
+            })
+            .catch(log.warn),
           this.updateProxy(proxyId, {
             vmUuid: null,
           }),
-          this._unbindProxyApplianceLicense(vmUuid, licenseId),
         ])
       }
     }
@@ -283,7 +266,6 @@ export default class Proxy {
       mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
     )
 
-    const xoProxyConf = this._xoProxyConf
     const xapi = app.getXapi(srId)
 
     // ensure appliance has an IP address
