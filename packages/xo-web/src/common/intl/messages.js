@@ -1129,6 +1129,8 @@ const messages = {
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
   newSnapshotWithMemory: 'New snapshot with memory',
+  newSnapshotWithMemoryConfirm:
+    'Are you sure you want to create a snapshot with memory? This could take a while and the VM will be unusable during that time.',
   snapshotMemorySaved: 'Memory saved',
   snapshotCreateButton: 'New snapshot',
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
