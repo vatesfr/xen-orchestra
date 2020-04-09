@@ -4,11 +4,11 @@ import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
+import { alert, form } from 'modal'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { deployProxyAppliance, isSrWritable } from 'xo'
-import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
@@ -230,6 +230,22 @@ const Modal = decorate([
 
 const deployProxy = ({ license, proxy }) => {
   const isRedeployMode = proxy !== undefined
+  const header = (
+    <span>
+      <Icon icon='proxy' />{' '}
+      {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
+    </span>
+  )
+
+  if (license === undefined) {
+    return alert(
+      header,
+      <div className='text-muted'>
+        <Icon icon='info' /> {_('noAvailableLicense')}
+      </div>
+    )
+  }
+
   return form({
     defaultValue: {
       dns: '',
@@ -239,12 +255,7 @@ const deployProxy = ({ license, proxy }) => {
       networkMode: 'dhcp',
     },
     render: props => <Modal {...props} redeploy={isRedeployMode} />,
-    header: (
-      <span>
-        <Icon icon='proxy' />{' '}
-        {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
-      </span>
-    ),
+    header,
   }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
     deployProxyAppliance(license, sr, {
       network: network === null ? undefined : network,

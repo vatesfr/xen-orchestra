@@ -59,7 +59,14 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: proxy => deployProxy({ proxy }),
+    handler: (proxy, { validLicensePerAppliance }) =>
+      deployProxy({
+        proxy,
+        license: defined(
+          validLicensePerAppliance[proxy.vmUuid],
+          validLicensePerAppliance.none
+        ),
+      }),
     icon: 'refresh',
     label: _('redeployProxyAction'),
     level: 'warning',
@@ -164,40 +171,38 @@ export default decorate([
   }),
   provideState({
     computed: {
-      availableLicense: (state, { licenses = [] }) =>
-        licenses.find(
-          license =>
-            license.boundObjectId === undefined &&
-            !(license.expires < Date.now())
-        ),
+      validLicensePerAppliance: (state, { licenses = [] }) => {
+        const result = {}
+        licenses.forEach(license => {
+          if (!(license.expires < Date.now())) {
+            result[defined(license.boundObjectId, 'none')] = license
+          }
+        })
+        return result
+      },
     },
   }),
   injectState,
-  ({ licenses, proxies, router, state }) => (
+  ({ proxies, router, state }) => (
     <Page header={HEADER} title='proxies' formatTitle>
       <div>
         <div className='mt-1 mb-1'>
           <ActionButton
             btnStyle='success'
-            data-license={state.availableLicense}
-            disabled={state.availableLicense === undefined}
+            data-license={state.validLicensePerAppliance.none}
             handler={deployProxy}
             icon='proxy'
             size='large'
           >
             {_('deployProxy')}
           </ActionButton>
-          {state.availableLicense === undefined && (
-            <div className='text-muted'>
-              <Icon icon='info' /> {_('noAvailableLicense')}
-            </div>
-          )}
         </div>
         <NoObjects
           actions={ACTIONS}
           collection={proxies}
           columns={COLUMNS}
           component={SortedTable}
+          data-validLicensePerAppliance={state.validLicensePerAppliance}
           data-router={router}
           emptyMessage={
             <span className='text-muted'>
