@@ -131,7 +131,7 @@ export default class TabSnapshot extends Component {
           <Col className='text-xs-right'>
             {vm.power_state !== 'Halted' && (
               <TabButton
-                btnStyle='primary'
+                btnStyle='warning'
                 handler={_snapshotVmWithMemory}
                 handlerParam={vm}
                 icon='memory'
