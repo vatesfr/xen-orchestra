@@ -8,14 +8,16 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
+import { provideState, injectState } from 'reaclette'
 import { Text, XoSelect } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
 import {
   checkProxyHealth,
   destroyProxyAppliances,
-  forgetProxyAppliances,
   editProxyAppliance,
+  forgetProxyAppliances,
+  subscribeLicenses,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -57,7 +59,7 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: deployProxy,
+    handler: proxy => deployProxy({ proxy }),
     icon: 'refresh',
     label: _('redeployProxyAction'),
     level: 'warning',
@@ -157,20 +159,39 @@ export default decorate([
   adminOnly,
   withRouter,
   addSubscriptions({
+    licenses: cb => subscribeLicenses('xoproxy', cb),
     proxies: subscribeProxies,
   }),
-  ({ proxies, router }) => (
+  provideState({
+    computed: {
+      availableLicense: (state, { licenses = [] }) =>
+        licenses.find(
+          license =>
+            license.boundObjectId === undefined &&
+            !(license.expires < Date.now())
+        ),
+    },
+  }),
+  injectState,
+  ({ licenses, proxies, router, state }) => (
     <Page header={HEADER} title='proxies' formatTitle>
       <div>
         <div className='mt-1 mb-1'>
           <ActionButton
             btnStyle='success'
+            data-license={state.availableLicense}
+            disabled={state.availableLicense === undefined}
             handler={deployProxy}
             icon='proxy'
             size='large'
           >
             {_('deployProxy')}
           </ActionButton>
+          {state.availableLicense === undefined && (
+            <div className='text-muted'>
+              <Icon icon='info' /> {_('noAvailableLicense')}
+            </div>
+          )}
         </div>
         <NoObjects
           actions={ACTIONS}

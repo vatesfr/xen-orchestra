@@ -228,7 +228,7 @@ const Modal = decorate([
   ),
 ])
 
-const deployProxy = proxy => {
+const deployProxy = ({ license, proxy }) => {
   const isRedeployMode = proxy !== undefined
   return form({
     defaultValue: {
@@ -246,7 +246,7 @@ const deployProxy = proxy => {
       </span>
     ),
   }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
-    deployProxyAppliance(sr, {
+    deployProxyAppliance(license, sr, {
       network: network === null ? undefined : network,
       networkConfiguration:
         networkMode === 'static'

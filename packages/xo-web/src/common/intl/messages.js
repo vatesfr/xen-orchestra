@@ -76,6 +76,7 @@ const messages = {
   normal: 'Normal',
   withMemory: 'With memory',
   offline: 'Offline',
+  noAvailableLicense: 'No available license',
 
   // ----- Modals -----
   alertOk: 'OK',
