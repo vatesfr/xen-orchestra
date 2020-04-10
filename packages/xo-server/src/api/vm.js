@@ -386,7 +386,11 @@ const delete_ = defer(async function(
     (vm.type === 'VM' || vm.type === 'VM-snapshot') &&
     (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
-    await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
+    await this.setVmResourceSet(
+      vm._xapiId,
+      null,
+      this.user.permission === 'admin'
+    )::ignoreErrors()
     $defer.onFailure(() =>
       this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors()
     )
@@ -562,7 +566,7 @@ export const set = defer(async function($defer, params) {
       throw unauthorized()
     }
 
-    await this.setVmResourceSet(vmId, resourceSetId)
+    await this.setVmResourceSet(vmId, resourceSetId, true)
   }
 
   const share = extract(params, 'share')

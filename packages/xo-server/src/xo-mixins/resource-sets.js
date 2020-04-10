@@ -408,7 +408,7 @@ export default class {
       await this.allocateLimitsInResourceSet(
         resourcesUsage,
         resourceSetId,
-        force || this._xo.user.permission === 'admin'
+        force
       )
       $defer.onFailure(() =>
         this.releaseLimitsInResourceSet(resourcesUsage, resourceSetId)
