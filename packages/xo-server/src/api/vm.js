@@ -1185,6 +1185,28 @@ export const revert = defer(async function($defer, { snapshot }) {
     $defer.onFailure(() =>
       this.allocateLimitsInResourceSet(vmUsage, resourceSet, true)
     )
+
+    // Deallocate IP addresses
+    const vmIpsByVif = {}
+    vm.VIFs.forEach(vifId => {
+      const vif = this.getObject[vifId]
+      vmIpsByVif[vifId] = [
+        ...vif.allowedIpv4Addresses,
+        ...vif.allowedIpv6Addresses,
+      ]
+    })
+    await Promise.all(
+      Object.entries(vmIpsByVif).map(([vifId, ips]) =>
+        this.allocIpAddresses(vifId, null, ips)
+      )
+    )
+    $defer.onFailure(() =>
+      Promise.all(
+        Object.entries(vmIpsByVif).map(([vifId, ips]) =>
+          this.allocIpAddresses(vifId, ips)
+        )
+      )
+    )
     if (snapshot.resourceSet !== undefined) {
       const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
       await this.allocateLimitsInResourceSet(
@@ -1194,6 +1216,28 @@ export const revert = defer(async function($defer, { snapshot }) {
       )
       $defer.onFailure(() =>
         this.releaseLimitsInResourceSet(snapshotUsage, resourceSet)
+      )
+
+      // Reallocate the snapshot's IP addresses
+      const snapshotIpsByVif = {}
+      snapshot.VIFs.forEach(vifId => {
+        const vif = this.getObject[vifId]
+        snapshotIpsByVif[vifId] = [
+          ...vif.allowedIpv4Addresses,
+          ...vif.allowedIpv6Addresses,
+        ]
+      })
+      await Promise.all(
+        Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
+          this.allocIpAddresses(vifId, null, ips)
+        )
+      )
+      $defer.onFailure(() =>
+        Promise.all(
+          Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
+            this.allocIpAddresses(vifId, ips)
+          )
+        )
       )
     }
   }
