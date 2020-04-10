@@ -170,7 +170,7 @@ export default decorate([
   }),
   provideState({
     computed: {
-      licenses: () => getLicenses('xoproxy'),
+      licenses: () => getLicenses({ productType: 'xoproxy' }),
       validLicensePerAppliance: ({ licenses = [] }) => {
         const result = {}
         licenses.forEach(license => {
