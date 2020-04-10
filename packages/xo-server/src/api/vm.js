@@ -392,6 +392,16 @@ const delete_ = defer(async function(
     )
   }
 
+  await Promise.all(
+    vm.snapshots.map(async id => {
+      const { resourceSet } = this.getObject(id)
+      if (resourceSet !== undefined) {
+        await this.setVmResourceSet(id, null)::ignoreErrors()
+        $defer.onFailure(() => this.setVmResourceSet(id, resourceSet, true))
+      }
+    })
+  )
+
   return xapi.deleteVm(
     vm._xapiId,
     deleteDisks,
