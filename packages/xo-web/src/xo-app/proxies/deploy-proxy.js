@@ -241,7 +241,7 @@ const deployProxy = ({ license, proxy }) => {
     return alert(
       header,
       <div className='text-muted'>
-        <Icon icon='info' /> {_('noAvailableLicense')}
+        <Icon icon='info' /> {_('noLicenseAvailable')}
       </div>
     )
   }
