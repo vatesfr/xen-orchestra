@@ -134,6 +134,8 @@ namespace = 'xoProxyAppliance'
 
 proxyName = 'Proxy {date}'
 
+licenseProductId = 'xo-proxy'
+
 vmName = 'XOA Proxy {date}'
 
 # The duration for which we can wait for the VM networks to be defined
