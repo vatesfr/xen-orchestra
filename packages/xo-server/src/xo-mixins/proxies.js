@@ -1,9 +1,11 @@
 import cookie from 'cookie'
+import defer from 'golike-defer'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
+import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
@@ -19,6 +21,8 @@ import { generateToken } from '../utils'
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
 const synchronizedWrite = synchronized()
+
+const log = createLogger('xo:proxy')
 
 export default class Proxy {
   constructor(app, conf) {
@@ -132,20 +136,14 @@ export default class Proxy {
     return xapi.rebootVm(vmUuid)
   }
 
-  async deployProxy(srId, { networkConfiguration, networkId, proxyId } = {}) {
+  @defer
+  async _createProxyVm(
+    $defer,
+    srId,
+    licenseId,
+    { networkId, networkConfiguration }
+  ) {
     const app = this._app
-
-    const redeploy = proxyId !== undefined
-    if (redeploy) {
-      const { vmUuid } = await this._getProxy(proxyId)
-      if (vmUuid !== undefined) {
-        await app.getXapi(vmUuid).deleteVm(vmUuid)
-        await this.updateProxy(proxyId, {
-          vmUuid: null,
-        })
-      }
-    }
-
     const xoProxyConf = this._xoProxyConf
 
     const namespace = xoProxyConf.namespace
@@ -153,7 +151,7 @@ export default class Proxy {
       [namespace]: { xva },
     } = await app.getResourceCatalog()
     const xapi = app.getXapi(srId)
-    let vm = await xapi.importVm(
+    const vm = await xapi.importVm(
       await app.requestResource({
         id: xva.id,
         namespace,
@@ -161,50 +159,95 @@ export default class Proxy {
       }),
       { srId }
     )
-    let date, proxyAuthenticationToken, xenstoreData
-    try {
-      if (networkId !== undefined) {
+    $defer.onFailure(() => xapi._deleteVm(vm))
+
+    const arg = { licenseId, boundObjectId: vm.uuid }
+    await app.bindLicense(arg)
+    $defer.onFailure(() => app.unbindLicense(arg))
+
+    if (networkId !== undefined) {
+      await Promise.all([
+        ...vm.VIFs.map(vif => xapi.deleteVif(vif)),
+        xapi.createVif(vm.$id, networkId),
+      ])
+    }
+
+    const date = new Date()
+    const proxyAuthenticationToken = await generateToken()
+
+    const [
+      password,
+      { registrationToken, registrationEmail: email },
+    ] = await Promise.all([generateToken(10), app.getApplianceRegistration()])
+    const xenstoreData = {
+      'vm-data/system-account-xoa-password': password,
+      'vm-data/xo-proxy-authenticationToken': JSON.stringify(
+        proxyAuthenticationToken
+      ),
+      'vm-data/xoa-updater-credentials': JSON.stringify({
+        email,
+        registrationToken,
+      }),
+      'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
+    }
+    if (networkConfiguration !== undefined) {
+      xenstoreData['vm-data/ip'] = networkConfiguration.ip
+      xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
+      xenstoreData['vm-data/netmask'] = networkConfiguration.netmask
+      xenstoreData['vm-data/dns'] = networkConfiguration.dns
+    }
+    await Promise.all([
+      vm.add_tags(xoProxyConf.vmTag),
+      vm.set_name_label(this._generateDefaultVmName(date)),
+      vm.update_xenstore_data(xenstoreData),
+    ])
+
+    await xapi.startVm(vm.$id)
+
+    return {
+      date,
+      proxyAuthenticationToken,
+      vm,
+      xenstoreData,
+    }
+  }
+
+  async deployProxy(
+    srId,
+    licenseId,
+    { networkConfiguration, networkId, proxyId } = {}
+  ) {
+    const app = this._app
+    const xoProxyConf = this._xoProxyConf
+
+    const redeploy = proxyId !== undefined
+    if (redeploy) {
+      const { vmUuid } = await this._getProxy(proxyId)
+      if (vmUuid !== undefined) {
+        await app.getXapi(vmUuid).deleteVm(vmUuid)
         await Promise.all([
-          ...vm.VIFs.map(vif => xapi.deleteVif(vif)),
-          xapi.createVif(vm.$id, networkId),
+          app
+            .unbindLicense({
+              boundObjectId: vmUuid,
+              productId: xoProxyConf.licenseProductId,
+            })
+            .catch(log.warn),
+          this.updateProxy(proxyId, {
+            vmUuid: null,
+          }),
         ])
       }
-
-      date = new Date()
-      proxyAuthenticationToken = await generateToken()
-
-      const [
-        password,
-        { registrationToken, registrationEmail: email },
-      ] = await Promise.all([generateToken(10), app.getApplianceRegistration()])
-      xenstoreData = {
-        'vm-data/system-account-xoa-password': password,
-        'vm-data/xo-proxy-authenticationToken': JSON.stringify(
-          proxyAuthenticationToken
-        ),
-        'vm-data/xoa-updater-credentials': JSON.stringify({
-          email,
-          registrationToken,
-        }),
-        'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
-      }
-      if (networkConfiguration !== undefined) {
-        xenstoreData['vm-data/ip'] = networkConfiguration.ip
-        xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
-        xenstoreData['vm-data/netmask'] = networkConfiguration.netmask
-        xenstoreData['vm-data/dns'] = networkConfiguration.dns
-      }
-      await Promise.all([
-        vm.add_tags(xoProxyConf.vmTag),
-        vm.set_name_label(this._generateDefaultVmName(date)),
-        vm.update_xenstore_data(xenstoreData),
-      ])
-
-      await xapi.startVm(vm.$id)
-    } catch (error) {
-      await xapi._deleteVm(vm)
-      throw error
     }
+
+    let {
+      date,
+      proxyAuthenticationToken,
+      vm,
+      xenstoreData,
+    } = await this._createProxyVm(srId, licenseId, {
+      networkId,
+      networkConfiguration,
+    })
 
     if (redeploy) {
       await this.updateProxy(proxyId, {
@@ -222,6 +265,8 @@ export default class Proxy {
     await vm.update_xenstore_data(
       mapValues(omit(xenstoreData, 'vm-data/xoa-updater-channel'), _ => null)
     )
+
+    const xapi = app.getXapi(srId)
 
     // ensure appliance has an IP address
     const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
