@@ -59,12 +59,12 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: (proxy, { validLicensePerAppliance }) =>
+    handler: (proxy, { validLicensePerProxyVm }) =>
       deployProxy({
         proxy,
         license: defined(
-          validLicensePerAppliance[proxy.vmUuid],
-          validLicensePerAppliance.none
+          validLicensePerProxyVm[proxy.vmUuid],
+          validLicensePerProxyVm.none
         ),
       }),
     icon: 'refresh',
@@ -171,7 +171,7 @@ export default decorate([
   provideState({
     computed: {
       licenses: () => getLicenses({ productType: 'xoproxy' }),
-      validLicensePerAppliance: ({ licenses = [] }) => {
+      validLicensePerProxyVm: ({ licenses = [] }) => {
         const result = {}
         licenses.forEach(license => {
           if (!(license.expires < Date.now())) {
@@ -189,7 +189,7 @@ export default decorate([
         <div className='mt-1 mb-1'>
           <ActionButton
             btnStyle='success'
-            data-license={state.validLicensePerAppliance.none}
+            data-license={state.validLicensePerProxyVm.none}
             handler={deployProxy}
             icon='proxy'
             size='large'
@@ -202,8 +202,8 @@ export default decorate([
           collection={proxies}
           columns={COLUMNS}
           component={SortedTable}
-          data-validLicensePerAppliance={state.validLicensePerAppliance}
           data-router={router}
+          data-validLicensePerProxyVm={state.validLicensePerProxyVm}
           emptyMessage={
             <span className='text-muted'>
               <Icon icon='alarm' />
