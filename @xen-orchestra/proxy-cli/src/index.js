@@ -18,9 +18,9 @@ async function main(argv) {
 
   const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
 
-  const { _: args, help, host, token } = getopts(argv, {
+  const { _: args, help, host, raw, token } = getopts(argv, {
     alias: { help: 'h' },
-    boolean: ['help'],
+    boolean: ['help', 'raw'],
     default: {
       host: `${hostname}:${port}`,
       token: config.authenticationToken,
@@ -97,8 +97,10 @@ Usage:
         )
         stdout.write('\n')
       }
+    } else if (raw && typeof result === 'string') {
+      stdout.write(result)
     } else {
-      stdout.write(inspect(result, { colors: true, depth: null }))
+      process.stdout.write(inspect(result, { colors: true, depth: null }))
       stdout.write('\n')
     }
   } catch (error) {
