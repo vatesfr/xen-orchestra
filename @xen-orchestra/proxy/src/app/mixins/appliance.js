@@ -44,6 +44,33 @@ const callUpdate = params =>
       })
   )
 
+async function checkAppliance() {
+  const child = spawn('xoa', ['check'], {
+    all: true,
+    env: {
+      ...process.env,
+
+      // dont inherit this var from xo-server or the output will be polluted
+      DEBUG: '',
+
+      FORCE_COLOR: '1',
+    },
+  })
+
+  const chunks = []
+  let length = 0
+  const onData = chunk => {
+    chunks.push(chunk)
+    length += chunk.length
+  }
+  child.stdout.on('data', onData)
+  child.stderr.on('data', onData)
+
+  await fromEvent(child, 'exit')
+
+  return Buffer.concat(chunks, length).toString()
+}
+
 async function closeSupportTunnel() {
   await fromCallback(execFile, 'systemctl', ['stop', TUNNEL_SERVICE])
 }
@@ -91,6 +118,7 @@ export default class Appliance {
   constructor(app) {
     app.api.addMethods({
       appliance: {
+        check: checkAppliance,
         getInfo: [
           getApplianceInfo,
           {
