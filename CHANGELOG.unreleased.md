@@ -13,9 +13,13 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [OVA import] Fix memory hogging behavior when the destination SR is slower than the file upload. (PR [#4920](https://github.com/vatesfr/xen-orchestra/pull/4920))
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
 > be listed by inverse order of dependency.
 >
 > Rule of thumb: add packages on top.
+
+xo-vmdk-to-vhd patch
