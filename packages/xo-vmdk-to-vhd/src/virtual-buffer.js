@@ -1,35 +1,52 @@
 'use strict'
 
-import { Slicer } from 'pipette'
-
 export class VirtualBuffer {
   constructor(readStream) {
-    this.slicer = new Slicer(readStream)
+    const _this = this
+    this.readStream = readStream
+    readStream.on('readable', () => {
+      _this.tryToMoveQueue()
+    })
+    readStream.on('error', error => {
+      this.queue.forEach(e => e.reject(error))
+      this.queue.length = 0
+    })
+    readStream.on('end', () => {
+      this.queue.forEach(e => e.reject())
+      this.queue.length = 0
+    })
+    this.queue = []
     this.position = 0
-    this.promise = null
   }
 
-  get isDepleted() {
-    return !this.slicer.readable
+  tryToMoveQueue() {
+    while (this.queue.length > 0 && this.queue[0].tryToRead()) {
+      this.queue.shift()
+    }
   }
 
   async readChunk(length, label) {
     const _this = this
-    if (this.promise !== null) {
-      throw new Error('pomise already there !!!', this.promise)
-    }
-    this.promise = label
-    return new Promise((resolve, reject) => {
-      this.slicer.read(length, (error, actualLength, data, offset) => {
-        if (error !== false && error !== true) {
-          _this.promise = null
-          reject(error)
-        } else {
-          _this.promise = null
-          _this.position += data.length
-          resolve(data)
-        }
-      })
+    const promise = new Promise((resolve, reject) => {
+      if (length === 0) {
+        resolve(Buffer.alloc(0))
+      } else {
+        this.queue.push({
+          reject,
+          // putting the label in the queue, it's useful when debugging.
+          label,
+          tryToRead() {
+            const result = _this.readStream.read(length)
+            if (result !== null) {
+              _this.position += result.length
+              resolve(result)
+            }
+            return !!result
+          },
+        })
+      }
     })
+    this.tryToMoveQueue()
+    return promise
   }
 }
