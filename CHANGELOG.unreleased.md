@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Snapshot] Confirmation message before creating a snapshot with memory [#4914](https://github.com/vatesfr/xen-orchestra/issues/4914) (PR [#4917](https://github.com/vatesfr/xen-orchestra/pull/4917))
+- [OVA import] Add support for OVA 2.0 file format (PR [#4921](https://github.com/vatesfr/xen-orchestra/pull/4921))
 
 ### Bug fixes
 
@@ -19,3 +20,6 @@
 > be listed by inverse order of dependency.
 >
 > Rule of thumb: add packages on top.
+
+xo-vmdk-to-vhd minor
+xo-web minor
