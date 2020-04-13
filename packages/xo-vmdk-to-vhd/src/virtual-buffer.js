@@ -20,8 +20,9 @@ export class VirtualBuffer {
   }
 
   tryToMoveQueue() {
-    while (this.queue.length > 0 && this.queue[0].tryToRead()) {
-      this.queue.shift()
+    const { queue } = this
+    while (queue.length > 0 && queue[0].tryToRead()) {
+      queue.shift()
     }
   }
 
