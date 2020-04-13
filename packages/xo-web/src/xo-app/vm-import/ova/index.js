@@ -42,12 +42,14 @@ const RESOURCE_TYPE_TO_HANDLER = {
       AddressOnParent: position,
       Description: description = 'No description',
       ElementName: name,
+      Caption: caption,
       HostResource: resource,
     }
   ) => {
     const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
     const disk = diskId && disks[diskId[1]]
-
+    // OVA 2.0 uses caption
+    name = name || caption
     if (disk) {
       disk.descriptionLabel = description
       disk.nameLabel = name
@@ -102,14 +104,6 @@ function parseTarHeader(header) {
       fileSize = fileSize * 256 + sizeBuffer[i]
     }
   } else fileSize = parseInt(sizeBuffer.slice(0, -1).toString('ascii'), 8)
-  console.log(
-    'fileSize',
-    fileName,
-    fileSize,
-    'B',
-    fileSize / Math.pow(1024, 3),
-    'GB'
-  )
   // normal files are either the char '0' (charcode 48) or the char null (charcode zero)
   const typeSlice = new Uint8Array(header.slice(156, 156 + 1))[0]
   const fileType = typeSlice === 0 ? '0' : String.fromCharCode(typeSlice)
@@ -170,13 +164,19 @@ async function parseOVF(fileFragment) {
         })
 
         // Get hardware info: CPU, RAM, disks, networks...
-        forEach(ensureArray(hardware.Item), item => {
-          const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
-          if (!handler) {
-            return
+        // OVA 2.0 uses StorageItem and EthernetPortItem
+        forEach(
+          ensureArray(hardware.Item)
+            .concat(ensureArray(hardware.StorageItem))
+            .concat(ensureArray(hardware.EthernetPortItem)),
+          item => {
+            const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
+            if (!handler) {
+              return
+            }
+            handler(data, item)
           }
-          handler(data, item)
-        })
+        )
 
         // Remove disks which not have a position.
         // (i.e. no info in hardware.Item section.)
