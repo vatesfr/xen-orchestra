@@ -3,43 +3,42 @@
 export class VirtualBuffer {
   constructor(readStream) {
     const _this = this
-    this.readStream = readStream
+    this._readStream = readStream
     readStream.on('readable', () => {
-      _this.tryToMoveQueue()
+      _this._tryToMoveQueue()
     })
     readStream.on('error', error => {
-      this.queue.forEach(e => e.reject(error))
-      this.queue.length = 0
+      this._queue.forEach(e => e.reject(error))
+      this._queue.length = 0
     })
     readStream.on('end', () => {
-      this.queue.forEach(e => e.reject())
-      this.queue.length = 0
+      this._queue.forEach(e => e.reject(new Error('stream ended')))
+      this._queue.length = 0
     })
-    this.queue = []
+    this._queue = []
     this.position = 0
   }
 
-  tryToMoveQueue() {
-    const { queue } = this
+  _tryToMoveQueue() {
+    const queue = this._queue
     while (queue.length > 0 && queue[0].tryToRead()) {
       queue.shift()
     }
   }
 
   async readChunk(length, label) {
-    const _this = this
     const promise = new Promise((resolve, reject) => {
       if (length === 0) {
         resolve(Buffer.alloc(0))
       } else {
-        this.queue.push({
+        this._queue.push({
           reject,
-          // putting the label in the queue, it's useful when debugging.
+          // putting the label in the _queue, it's useful when debugging.
           label,
-          tryToRead() {
-            const result = _this.readStream.read(length)
+          tryToRead: () => {
+            const result = this._readStream.read(length)
             if (result !== null) {
-              _this.position += result.length
+              this.position += result.length
               resolve(result)
             }
             return !!result
@@ -47,7 +46,7 @@ export class VirtualBuffer {
         })
       }
     })
-    this.tryToMoveQueue()
+    this._tryToMoveQueue()
     return promise
   }
 }

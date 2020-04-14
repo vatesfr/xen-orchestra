@@ -23,3 +23,5 @@
 > Rule of thumb: add packages on top.
 
 xo-vmdk-to-vhd patch
+xo-web minor
+xo-server minor
