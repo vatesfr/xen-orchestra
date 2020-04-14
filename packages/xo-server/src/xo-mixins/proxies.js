@@ -83,7 +83,17 @@ export default class Proxy {
     return id
   }
 
-  unregisterProxy(id) {
+  async unregisterProxy(id) {
+    const { vmUuid } = await this._getProxy(id)
+    if (vmUuid !== undefined) {
+      this._app
+        .unbindLicense({
+          boundObjectId: vmUuid,
+          productId: this._xoProxyConf.licenseProductId,
+        })
+        .catch(log.warn)
+    }
+
     return this._db.remove(id)
   }
 
