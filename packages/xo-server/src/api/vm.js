@@ -386,11 +386,7 @@ const delete_ = defer(async function(
     (vm.type === 'VM' || vm.type === 'VM-snapshot') &&
     (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
-    await this.setVmResourceSet(
-      vm._xapiId,
-      null,
-      this.user.permission === 'admin'
-    )::ignoreErrors()
+    await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
     $defer.onFailure(() =>
       this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors()
     )
@@ -1221,39 +1217,38 @@ export const revert = defer(async function($defer, { snapshot }) {
         )
       )
     )
-    if (snapshot.resourceSet !== undefined) {
-      const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
-      await this.allocateLimitsInResourceSet(
-        snapshotUsage,
-        resourceSet,
-        this.user.permission === 'admin'
-      )
-      $defer.onFailure(() =>
-        this.releaseLimitsInResourceSet(snapshotUsage, resourceSet)
-      )
 
-      // Reallocate the snapshot's IP addresses
-      const snapshotIpsByVif = {}
-      snapshot.VIFs.forEach(vifId => {
-        const vif = this.getObject[vifId]
-        snapshotIpsByVif[vifId] = [
-          ...vif.allowedIpv4Addresses,
-          ...vif.allowedIpv6Addresses,
-        ]
-      })
-      await Promise.all(
+    const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
+    await this.allocateLimitsInResourceSet(
+      snapshotUsage,
+      resourceSet,
+      this.user.permission === 'admin'
+    )
+    $defer.onFailure(() =>
+      this.releaseLimitsInResourceSet(snapshotUsage, resourceSet)
+    )
+
+    // Reallocate the snapshot's IP addresses
+    const snapshotIpsByVif = {}
+    snapshot.VIFs.forEach(vifId => {
+      const vif = this.getObject[vifId]
+      snapshotIpsByVif[vifId] = [
+        ...vif.allowedIpv4Addresses,
+        ...vif.allowedIpv6Addresses,
+      ]
+    })
+    await Promise.all(
+      Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
+        this.allocIpAddresses(vifId, null, ips)
+      )
+    )
+    $defer.onFailure(() =>
+      Promise.all(
         Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
-          this.allocIpAddresses(vifId, null, ips)
+          this.allocIpAddresses(vifId, ips)
         )
       )
-      $defer.onFailure(() =>
-        Promise.all(
-          Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
-            this.allocIpAddresses(vifId, ips)
-          )
-        )
-      )
-    }
+    )
   }
   await this.getXapi(snapshot).revertVm(snapshot._xapiId)
   await this.setData(vm.id, 'resourceSet', resourceSet)
