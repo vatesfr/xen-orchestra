@@ -271,7 +271,9 @@ export default class Proxy {
       }
 
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
-      if ((proxy.address = vm.$guest_metrics?.networks['0/ip']) === undefined) {
+      if (
+        (proxy.address = extractIp(vm.$guest_metrics?.networks)) === undefined
+      ) {
         throw new Error(`cannot get the proxy VM IP (${proxy.vmUuid})`)
       }
     }
