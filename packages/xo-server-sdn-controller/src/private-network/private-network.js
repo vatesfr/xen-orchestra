@@ -5,8 +5,6 @@ import { filter, forOwn, sample } from 'lodash'
 
 const log = createLogger('xo:xo-server:sdn-controller:private-network')
 
-// =============================================================================
-
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
 const createPassword = () =>
   Array.from({ length: 16 }, _ => sample(CHARS)).join('')
