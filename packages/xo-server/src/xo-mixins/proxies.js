@@ -4,10 +4,10 @@ import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
+import { find, mapValues, omit } from 'lodash'
 import { format, parse } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
-import { mapValues, omit } from 'lodash'
 import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis'
@@ -15,6 +15,10 @@ import parseDuration from '../_parseDuration'
 import patch from '../patch'
 import readChunk from '../_readStreamChunk'
 import { generateToken } from '../utils'
+
+const IP_REG = /^\d+\/ip$/
+const extractIp = networks =>
+  find(networks, (ip, network) => IP_REG.test(network))
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
@@ -230,11 +234,12 @@ export default class Proxy {
       vmNetworksTimeout
     )
     await timeout.call(
-      xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
-        networkConfiguration === undefined
-          ? guest_metrics.networks['0/ip'] !== undefined
-          : guest_metrics.networks['0/ip'] === networkConfiguration.ip
-      ),
+      xapi._waitObjectState(vm.guest_metrics, guest_metrics => {
+        const ip = extractIp(guest_metrics.networks)
+        return networkConfiguration === undefined
+          ? ip !== undefined
+          : ip === networkConfiguration.ip
+      }),
       vmNetworksTimeout
     )
 
