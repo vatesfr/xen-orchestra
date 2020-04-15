@@ -84,6 +84,8 @@ export default class Proxy {
   }
 
   async unregisterProxy(id) {
+    await this._db.remove(id)
+
     const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       this._app
@@ -93,8 +95,6 @@ export default class Proxy {
         })
         .catch(log.warn)
     }
-
-    return this._db.remove(id)
   }
 
   async destroyProxy(id) {
