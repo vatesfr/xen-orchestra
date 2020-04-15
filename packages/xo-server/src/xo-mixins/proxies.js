@@ -90,7 +90,13 @@ export default class Proxy {
   async destroyProxy(id) {
     const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
-      await this._app.getXapi(vmUuid).deleteVm(vmUuid)
+      try {
+        await this._app.getXapi(vmUuid).deleteVm(vmUuid)
+      } catch (error) {
+        if (!noSuchObject.is(error)) {
+          throw error
+        }
+      }
     }
     return this.unregisterProxy(id)
   }
