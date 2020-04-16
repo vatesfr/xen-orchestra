@@ -89,6 +89,7 @@ export default class Proxy {
     await this._db.remove(id)
 
     if (vmUuid !== undefined) {
+      // waiting the unbind of the license in order to be available at the end of the method call
       await this._app
         .unbindLicense({
           boundObjectId: vmUuid,
