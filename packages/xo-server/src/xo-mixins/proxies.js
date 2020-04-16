@@ -89,7 +89,7 @@ export default class Proxy {
     await this._db.remove(id)
 
     if (vmUuid !== undefined) {
-      this._app
+      await this._app
         .unbindLicense({
           boundObjectId: vmUuid,
           productId: this._xoProxyConf.licenseProductId,
