@@ -1,3 +1,4 @@
+import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
@@ -392,15 +393,13 @@ const delete_ = defer(async function(
     )
   }
 
-  await Promise.all(
-    vm.snapshots.map(async id => {
-      const { resourceSet } = this.getObject(id)
-      if (resourceSet !== undefined) {
-        await this.setVmResourceSet(id, null)::ignoreErrors()
-        $defer.onFailure(() => this.setVmResourceSet(id, resourceSet, true))
-      }
-    })
-  )
+  await asyncMap(vm.snapshots, async id => {
+    const { resourceSet } = this.getObject(id)
+    if (resourceSet !== undefined) {
+      await this.setVmResourceSet(id, null)
+      $defer.onFailure(() => this.setVmResourceSet(id, resourceSet, true))
+    }
+  })
 
   return xapi.deleteVm(
     vm._xapiId,
@@ -802,10 +801,24 @@ export const snapshot = defer(async function(
   }
 ) {
   const { user } = this
-  if (
-    vm.resourceSet !== undefined &&
-    (await this.getResourceSet(vm.resourceSet)).subjects.includes(this.user.id)
-  ) {
+  let resourceSet
+  try {
+    if (vm.resourceSet !== undefined) {
+      resourceSet = this.getResourceSet(vm.resourceSet)
+    }
+  } catch (error) {
+    if (noSuchObject.is(error)) {
+      console.warn(`Cannot find resource set ${vm.resourceSet}`)
+    } else {
+      throw error
+    }
+  }
+
+  if (resourceSet === undefined || !resourceSet.subjects.includes(user.id)) {
+    await checkPermissionOnSrs.call(this, vm)
+  }
+
+  if (vm.resourceSet !== undefined) {
     const usage = await this.computeVmResourcesUsage(vm)
     await this.allocateLimitsInResourceSet(
       usage,
@@ -815,8 +828,6 @@ export const snapshot = defer(async function(
     $defer.onFailure(() =>
       this.releaseLimitsInResourceSet(usage, vm.resourceSet)
     )
-  } else {
-    await checkPermissionOnSrs.call(this, vm)
   }
 
   const xapi = this.getXapi(vm)
