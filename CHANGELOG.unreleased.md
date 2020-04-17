@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Snapshot] Confirmation message before creating a snapshot with memory [#4914](https://github.com/vatesfr/xen-orchestra/issues/4914) (PR [#4917](https://github.com/vatesfr/xen-orchestra/pull/4917))
+- [Internationalization] Italian translation (Thanks @infodavide!) [#4908](https://github.com/vatesfr/xen-orchestra/issues/4908)
 
 ### Bug fixes
 
