@@ -619,6 +619,17 @@ export default class BackupNg {
         const jobId = job.id
 
         const remoteIds = unboxIdsFromPattern(job.remotes)
+        for (const id of remoteIds) {
+          const remote = await app.getRemote(id)
+          if (remote.proxy !== job.proxy) {
+            throw new Error(
+              job.proxy !== undefined
+                ? `The remote ${remote.name} should be linked to the proxy ${job.proxy}`
+                : `The remote ${remote.name} should not be linked to a proxy`
+            )
+          }
+        }
+
         const srIds = unboxIdsFromPattern(job.srs)
 
         if (job.proxy !== undefined) {
