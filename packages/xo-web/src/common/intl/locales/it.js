@@ -9,7 +9,7 @@ addLocaleData(reactIntlData)
 
 export default {
   // Original text: '{key}: {value}'
-  keyValue: '{chiave}: {valore}',
+  keyValue: '{key}: {value}',
 
   // Original text: "Connecting"
   statusConnecting: 'Connessione',
@@ -147,7 +147,8 @@ export default {
   backupJobs: 'Processi di backup',
 
   // Original text: '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}'
-  iscsiSessions: '({nSessions, number}) session{nSessions, plural, one {e} other {i}} iSCSI',
+  iscsiSessions:
+    '({nSessions, number}) session{nSessions, plural, one {e} other {i}} iSCSI',
 
   // Original text: 'Requires admin permissions'
   requiresAdminPermissions: 'Richiede le autorizzazioni di amministratore',
@@ -496,7 +497,8 @@ export default {
   openTunnel: 'Tunnel aperto',
 
   // Original text: 'The XOA check and the support tunnel are available in XOA.'
-  supportCommunity: 'Il controllo XOA e il tunnel di supporto sono disponibili in XOA.',
+  supportCommunity:
+    'Il controllo XOA e il tunnel di supporto sono disponibili in XOA.',
 
   // Original text: 'Support tunnel'
   supportTunnel: 'Tunnel di supporto',
@@ -520,7 +522,8 @@ export default {
   homeWelcomeText: 'Aggiungi i tuoi hosts o pools XenServer',
 
   // Original text: 'Some XenServers have been registered but are not connected'
-  homeConnectServerText: 'Alcuni XenServers sono stati registrati ma non sono collegati',
+  homeConnectServerText:
+    'Alcuni XenServers sono stati registrati ma non sono collegati',
 
   // Original text: 'Want some help?'
   homeHelp: 'Vuoi un aiuto?',
@@ -664,7 +667,8 @@ export default {
   homeDisplayedItems: '{displayed, number}x {icon} (su {total, number})',
 
   // Original text: '{selected, number}x {icon} selected (on {total, number})'
-  homeSelectedItems: '{selected, number}x {icon} selezionat{selected, plural, one {o} other {i}} (su {total, number})',
+  homeSelectedItems:
+    '{selected, number}x {icon} selezionat{selected, plural, one {o} other {i}} (su {total, number})',
 
   // Original text: 'More'
   homeMore: 'Più',
@@ -688,7 +692,8 @@ export default {
   srSharedType: 'Condiviso {type}',
 
   // Original text: 'Host time and XOA time are not consistent with each other'
-  warningHostTimeTooltip: "L'ora dello host e l'ora XOA non sono coerenti tra loro",
+  warningHostTimeTooltip:
+    "L'ora dello host e l'ora XOA non sono coerenti tra loro",
 
   // Original text: 'Select from existing tags'
   selectExistingTags: 'Seleziona da etichette esistenti',
@@ -706,13 +711,15 @@ export default {
   sortedTableNoItems: 'Nessun elemento trovato',
 
   // Original text: '{nFiltered, number} of {nTotal, number} items'
-  sortedTableNumberOfFilteredItems: '{nFiltered, number} di {nTotal, number} elementi',
+  sortedTableNumberOfFilteredItems:
+    '{nFiltered, number} di {nTotal, number} elementi',
 
   // Original text: '{nTotal, number} items'
   sortedTableNumberOfItems: '{nTotal, number} elementi',
 
   // Original text: '{nSelected, number} selected'
-  sortedTableNumberOfSelectedItems: '{nSelected, number} selezionat{nSelected, plural, one {o} other {i}}',
+  sortedTableNumberOfSelectedItems:
+    '{nSelected, number} selezionat{nSelected, plural, one {o} other {i}}',
 
   // Original text: 'Click here to select all items'
   sortedTableSelectAllItems: 'Clicca qui per selezionare tutti gli elementi',
@@ -1105,7 +1112,8 @@ export default {
   deleteBackupSchedule: 'Rimuovere la pianificazione di backup',
 
   // Original text: 'Are you sure you want to delete this backup job?'
-  deleteBackupScheduleQuestion: 'Sei sicuro di voler eliminare questa pianificazione di backup?',
+  deleteBackupScheduleQuestion:
+    'Sei sicuro di voler eliminare questa pianificazione di backup?',
 
   // Original text: 'Delete selected jobs'
   deleteSelectedJobs: 'Elimina i lavori selezionati',
@@ -1114,10 +1122,12 @@ export default {
   scheduleEnableAfterCreation: 'Abilita subito dopo la creazione',
 
   // Original text: 'You are editing schedule {name} ({id}). Saving will override previous schedule state.'
-  scheduleEditMessage: 'Stai modificando la pianificazione {name} ({id}). Il salvataggio sostituirà lo stato di pianificazione precedente.',
+  scheduleEditMessage:
+    'Stai modificando la pianificazione {name} ({id}). Il salvataggio sostituirà lo stato di pianificazione precedente.',
 
   // Original text: 'You are editing job {name} ({id}). Saving will override previous job state.'
-  jobEditMessage: 'Stai modificando il lavoro {name} ({id}). Il salvataggio sostituirà lo stato del lavoro precedente.',
+  jobEditMessage:
+    'Stai modificando il lavoro {name} ({id}). Il salvataggio sostituirà lo stato del lavoro precedente.',
 
   // Original text: 'Edit schedule'
   scheduleEdit: 'Modifica pianificazione',
@@ -1144,16 +1154,20 @@ export default {
   missingSchedules: 'Pianificazioni mancanti!',
 
   // Original text: 'The modes need at least a schedule with retention higher than 0'
-  missingRetentions: 'Le modalità richiedono almeno una pianificazione con ritenzione superiore a 0',
+  missingRetentions:
+    'Le modalità richiedono almeno una pianificazione con ritenzione superiore a 0',
 
   // Original text: 'The Backup mode and the Delta Backup mode require backup retention to be higher than 0!'
-  missingExportRetention: 'La modalità di backup e la modalità di backup delta richiedono che la ritenzione del backup sia superiore a 0!',
+  missingExportRetention:
+    'La modalità di backup e la modalità di backup delta richiedono che la ritenzione del backup sia superiore a 0!',
 
   // Original text: 'The CR mode and The DR mode require replication retention to be higher than 0!'
-  missingCopyRetention: 'La modalità CR e la modalità DR richiedono che la ritenzione della replica sia superiore a 0!',
+  missingCopyRetention:
+    'La modalità CR e la modalità DR richiedono che la ritenzione della replica sia superiore a 0!',
 
   // Original text: 'The Rolling Snapshot mode requires snapshot retention to be higher than 0!'
-  missingSnapshotRetention: "La modalità Istantanea a Rotazione richiede che la ritenzione dell'istantanea sia superiore a 0!",
+  missingSnapshotRetention:
+    "La modalità Istantanea a Rotazione richiede che la ritenzione dell'istantanea sia superiore a 0!",
 
   // Original text: 'Requires one retention to be higher than 0!'
   retentionNeeded: 'Richiede che una ritenzione sia superiore a 0!',
@@ -1162,7 +1176,8 @@ export default {
   newScheduleError: 'Pianificazione non valida',
 
   // Original text: 'No remotes found, please click on the remotes settings button to create one!'
-  createRemoteMessage: 'Nessun remoto trovato, fai clic sul pulsante delle impostazioni remoti per crearne uno!',
+  createRemoteMessage:
+    'Nessun remoto trovato, fai clic sul pulsante delle impostazioni remoti per crearne uno!',
 
   // Original text: 'Remotes settings'
   remotesSettings: 'Impostazioni remoti',
@@ -1171,7 +1186,8 @@ export default {
   pluginsSettings: 'Impostazioni dei plugins',
 
   // Original text: 'To receive the report, the plugins backup-reports and transport-email need to be loaded.'
-  pluginsWarning: "Per ricevere il rapporto, è necessario caricare i rapporti di backup dei plugins e l'e-mail di trasporto.",
+  pluginsWarning:
+    "Per ricevere il rapporto, è necessario caricare i rapporti di backup dei plugins e l'e-mail di trasporto.",
 
   // Original text: 'Add a schedule'
   scheduleAdd: 'Aggiungi una pianificazione',
@@ -1201,7 +1217,8 @@ export default {
   jobActionPlaceHolder: 'Seleziona un comando API xo-server',
 
   // Original text: 'Timeout (number of seconds after which a VM is considered failed)'
-  jobTimeoutPlaceHolder: 'Timeout (numero di secondi dopo i quali una VM viene considerata fallita)',
+  jobTimeoutPlaceHolder:
+    'Timeout (numero di secondi dopo i quali una VM viene considerata fallita)',
 
   // Original text: 'Schedules'
   jobSchedules: 'Pianificazioni',
@@ -1237,7 +1254,8 @@ export default {
   migrateBackupSchedule: 'Migrare al nuovo sistema di backup',
 
   // Original text: 'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?'
-  migrateBackupScheduleMessage: 'Ciò convertirà il processo di backup nel nuovo sistema di backup. Questa operazione non è reversibile. Vuoi continuare?',
+  migrateBackupScheduleMessage:
+    'Ciò convertirà il processo di backup nel nuovo sistema di backup. Questa operazione non è reversibile. Vuoi continuare?',
 
   // Original text: 'Are you sure you want to run {name} ({id})?'
   runBackupNgJobConfirm: 'Sei sicuro di voler eseguire {name} ({id})?',
@@ -1246,7 +1264,8 @@ export default {
   cancelJobConfirm: 'Sei sicuro di voler cancellare {name} ({id})?',
 
   // Original text: 'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.'
-  scheduleDstWarning: "Se il tuo paese partecipa all'ora legale, si consiglia di evitare la pianificazione dei lavori al momento della modifica (tra le 2 e 3 del matino).",
+  scheduleDstWarning:
+    "Se il tuo paese partecipa all'ora legale, si consiglia di evitare la pianificazione dei lavori al momento della modifica (tra le 2 e 3 del matino).",
 
   // Original text: 'Advanced settings'
   newBackupAdvancedSettings: 'Impostazioni avanzate',
@@ -1300,13 +1319,15 @@ export default {
   offlineBackup: 'Backup offline',
 
   // Original text: 'Export VMs without snapshotting them. The VMs will be shutdown during the export.'
-  offlineBackupInfo: "Esporta VMs senza istantanea. Le VMs verranno arrestate durante l'esportazione.",
+  offlineBackupInfo:
+    "Esporta VMs senza istantanea. Le VMs verranno arrestate durante l'esportazione.",
 
   // Original text: 'Timeout'
   timeout: 'Timeout',
 
   // Original text: 'Number of hours after which a job is considered failed'
-  timeoutInfo: 'Numero di ore dopo le quali un lavoro viene considerato non riuscito',
+  timeoutInfo:
+    'Numero di ore dopo le quali un lavoro viene considerato non riuscito',
 
   // Original text: 'Full backup interval'
   fullBackupInterval: 'Intervallo di backup completo',
@@ -1315,7 +1336,8 @@ export default {
   timeoutUnit: 'Tra ore',
 
   // Original text: 'Delta Backup and DR require an Enterprise plan'
-  dbAndDrRequireEnterprisePlan: 'Delta Backup e DR richiedono un piano Enterprise',
+  dbAndDrRequireEnterprisePlan:
+    'Delta Backup e DR richiedono un piano Enterprise',
 
   // Original text: 'CR requires a Premium plan'
   crRequiresPremiumPlan: 'CR richiede un piano Premium',
@@ -1333,22 +1355,28 @@ export default {
   localRemoteWarningTitle: 'Remoto locale selezionato',
 
   // Original text: 'Tip: Using thin-provisioned storage will consume less space. Please click on the icon to get more information'
-  crOnThickProvisionedSrWarning: "Suggerimento: l'utilizzo dell'archiviazione con thin provisioning consumerà meno spazio. Fare clic sull'icona per ottenere maggiori informazioni",
+  crOnThickProvisionedSrWarning:
+    "Suggerimento: l'utilizzo dell'archiviazione con thin provisioning consumerà meno spazio. Fare clic sull'icona per ottenere maggiori informazioni",
 
   // Original text: 'Tip: Creating VMs on thin-provisioned storage will consume less space. Please click on the icon to get more information'
-  vmsOnThinProvisionedSrTip: "Suggerimento: la creazione di VMs su deposito thin provisioning consumerà meno spazio. Fare clic sull'icona per ottenere maggiori informazioni.",
+  vmsOnThinProvisionedSrTip:
+    "Suggerimento: la creazione di VMs su deposito thin provisioning consumerà meno spazio. Fare clic sull'icona per ottenere maggiori informazioni.",
 
   // Original text: 'Delta Backup and Continuous Replication require at least XenServer 6.5.'
-  deltaBackupOnOutdatedXenServerWarning: 'Delta Backup e Replica Continua richiedono almeno XenServer 6.5.',
+  deltaBackupOnOutdatedXenServerWarning:
+    'Delta Backup e Replica Continua richiedono almeno XenServer 6.5.',
 
   // Original text: 'Click for more information about the backup methods.'
-  backupNgLinkToDocumentationMessage: 'Fare clic per ulteriori informazioni sui metodi di backup.',
+  backupNgLinkToDocumentationMessage:
+    'Fare clic per ulteriori informazioni sui metodi di backup.',
 
   // Original text: 'Warning: Local remotes will use limited XOA disk space. Only for advanced users.'
-  localRemoteWarningMessage: 'Avvertenza: i remoti locali utilizzeranno uno spazio su disco XOA limitato. Solo per utenti esperti.',
+  localRemoteWarningMessage:
+    'Avvertenza: i remoti locali utilizzeranno uno spazio su disco XOA limitato. Solo per utenti esperti.',
 
   // Original text: 'Warning: This feature works only with XenServer 6.5 or newer.'
-  backupVersionWarning: 'Avviso: questa funzione è disponibile solo con XenServer 6.5 o versioni successive.',
+  backupVersionWarning:
+    'Avviso: questa funzione è disponibile solo con XenServer 6.5 o versioni successive.',
 
   // Original text: 'VMs'
   editBackupVmsTitle: 'VMs',
@@ -1372,7 +1400,8 @@ export default {
   sampleOfMatchingVms: 'Esempio di VMs corrispondenti',
 
   // Original text: 'Replicated VMs (VMs with Continuous Replication or Disaster Recovery tag) must be excluded!'
-  backupReplicatedVmsInfo: 'Le VMs replicate (VMs con Replica Continua o etichetta di Disaster Recovery) devono essere escluse!',
+  backupReplicatedVmsInfo:
+    'Le VMs replicate (VMs con Replica Continua o etichetta di Disaster Recovery) devono essere escluse!',
 
   // Original text: 'VMs Tags'
   editBackupSmartTagsTitle: 'Etichette di VMs',
@@ -1402,7 +1431,8 @@ export default {
   deleteOldBackupsFirst: 'Elimina prima',
 
   // Original text: 'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.'
-  deleteOldBackupsFirstMessage: 'Elimina i vecchi backup prima di eseguire il backup delle VMs. Se il nuovo backup fallisce, perderai i tuoi vecchi backup.',
+  deleteOldBackupsFirstMessage:
+    'Elimina i vecchi backup prima di eseguire il backup delle VMs. Se il nuovo backup fallisce, perderai i tuoi vecchi backup.',
 
   // Original text: 'Custom tag'
   customTag: 'Etichetta personalizzata',
@@ -1423,7 +1453,8 @@ export default {
   remoteType: 'Tipo',
 
   // Original text: 'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.'
-  remoteSmbWarningMessage: 'I remoti SMB sono progettati per funzionare con Windows Server. Per altri sistemi (Linux Samba, quasi tutti i NAS), utilizzare NFS.',
+  remoteSmbWarningMessage:
+    'I remoti SMB sono progettati per funzionare con Windows Server. Per altri sistemi (Linux Samba, quasi tutti i NAS), utilizzare NFS.',
 
   // Original text: 'Test your remote'
   remoteTestTip: 'Prova il tuo remoto',
@@ -1456,10 +1487,12 @@ export default {
   remoteConnectionFailed: 'Connessione fallita',
 
   // Original text: 'Delete backup job{nJobs, plural, one {} other {s}}'
-  confirmDeleteBackupJobsTitle: 'Elimina process{nJobs, plural, one {o} other {i}} di backup',
+  confirmDeleteBackupJobsTitle:
+    'Elimina process{nJobs, plural, one {o} other {i}} di backup',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?'
-  confirmDeleteBackupJobsBody: 'Sei sicuro di voler eliminare {nJobs, number} process{nJobs, plural, one {o} other {i}} di backup?',
+  confirmDeleteBackupJobsBody:
+    'Sei sicuro di voler eliminare {nJobs, number} process{nJobs, plural, one {o} other {i}} di backup?',
 
   // Original text: 'Name'
   remoteName: 'Nome',
@@ -1480,7 +1513,8 @@ export default {
   remoteSpeed: 'Velocità (scrittura / lettura)',
 
   // Original text: 'Read and write rate speed performed during latest test'
-  remoteSpeedInfo: "Velocità di lettura e scrittura della velocità eseguita durante l'ultima prova",
+  remoteSpeedInfo:
+    "Velocità di lettura e scrittura della velocità eseguita durante l'ultima prova",
 
   // Original text: 'Options'
   remoteOptions: 'Opzioni',
@@ -1522,7 +1556,7 @@ export default {
   remoteSmbPlaceHolderUsername: 'Nome utente',
 
   // Original text: 'Password'
-  remoteSmbPlaceHolderPassword: "Parola chiave",
+  remoteSmbPlaceHolderPassword: 'Parola chiave',
 
   // Original text: 'Domain'
   remoteSmbPlaceHolderDomain: 'Dominio',
@@ -1549,7 +1583,7 @@ export default {
   newSrSettings: 'Impostazioni',
 
   // Original text: 'Storage usage'
-  newSrUsage: "Utilizzo dello deposito",
+  newSrUsage: 'Utilizzo dello deposito',
 
   // Original text: 'Summary'
   newSrSummary: 'Sommario',
@@ -1588,7 +1622,7 @@ export default {
   newSrUsername: 'Nome utente',
 
   // Original text: 'Password'
-  newSrPassword: "Parola chiave",
+  newSrPassword: 'Parola chiave',
 
   // Original text: 'Device'
   newSrDevice: 'Dispositivo',
@@ -1606,7 +1640,7 @@ export default {
   newSrNamePlaceHolder: 'Nome di deposito',
 
   // Original text: 'Storage description'
-  newSrDescPlaceHolder: "Descrizione dello deposito",
+  newSrDescPlaceHolder: 'Descrizione dello deposito',
 
   // Original text: 'e.g 93.184.216.34 or iscsi.example.net'
   newSrIscsiAddressPlaceHolder: 'ad esempio 93.184.216.34 o iscsi.example.net',
@@ -1624,7 +1658,7 @@ export default {
   newSrUsernamePlaceHolder: 'Nome utente',
 
   // Original text: 'Password'
-  newSrPasswordPlaceHolder: "Parola chiave",
+  newSrPasswordPlaceHolder: 'Parola chiave',
 
   // Original text: 'Device, e.g /dev/sda…'
   newSrLvmDevicePlaceHolder: 'Dispositivo, ad esempio /dev/sda…',
@@ -1696,10 +1730,12 @@ export default {
   deleteSelectedUsers: 'Elimina gli utenti selezionati',
 
   // Original text: 'Delete user{nUsers, plural, one {} other {s}}'
-  deleteUsersModalTitle: "Elimina {nUsers, plural, one {l'utente} other {i utenti}}",
+  deleteUsersModalTitle:
+    "Elimina {nUsers, plural, one {l'utente} other {i utenti}}",
 
   // Original text: 'Are you sure you want to delete {nUsers, number} user{nUsers, plural, one {} other {s}}?'
-  deleteUsersModalMessage: 'Sei sicuro di voler eliminare {nUsers, number} utent{nUsers, plural, one {e} other {i}}?',
+  deleteUsersModalMessage:
+    'Sei sicuro di voler eliminare {nUsers, number} utent{nUsers, plural, one {e} other {i}}?',
 
   // Original text: 'No user'
   noUser: 'Nessun utente',
@@ -1726,13 +1762,14 @@ export default {
   userGroupsColumn: 'Membro di',
 
   // Original text: '{nGroups, number} group{nGroups, plural, one {} other {s}}'
-  userCountGroups: '{nGroups, number} grupp{nGruppi, plural, one {o} other {i}}',
+  userCountGroups:
+    '{nGroups, number} grupp{nGruppi, plural, one {o} other {i}}',
 
   // Original text: 'Permissions'
   userPermissionColumn: 'Permessi',
 
   // Original text: 'Password'
-  userPasswordColumn: "Parola chiave",
+  userPasswordColumn: 'Parola chiave',
 
   // Original text: 'Username'
   userName: 'Nome utente',
@@ -1768,10 +1805,11 @@ export default {
   deleteSelectedAcls: 'Elimina ACL selezionati',
 
   // Original text: 'Delete ACL{nAcls, plural, one {} other {s}}'
-  deleteAclsModalTitle: 'Elimina ACL{nAcls, plural, one {} other {s}}'
+  deleteAclsModalTitle: 'Elimina ACL{nAcls, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nAcls, number} ACL{nAcls, plural, one {} other {s}}?'
-  deleteAclsModalMessage: 'Sei sicuro di voler eliminare {nAcls, number} ACL{nAcls, plural, one {} other {s}}?'
+  deleteAclsModalMessage:
+    'Sei sicuro di voler eliminare {nAcls, number} ACL{nAcls, plural, one {} other {s}}?',
 
   // Original text: 'No plugins found'
   noPlugins: 'Nessun plugin trovato',
@@ -1795,7 +1833,8 @@ export default {
   purgePluginConfiguration: 'Elimina la configurazione del plug-in',
 
   // Original text: 'Are you sure you want to purge this configuration?'
-  purgePluginConfigurationQuestion: 'Sei sicuro di voler eliminare questa configurazione?',
+  purgePluginConfigurationQuestion:
+    'Sei sicuro di voler eliminare questa configurazione?',
 
   // Original text: 'Cancel'
   cancelPluginEdition: 'Annulla',
@@ -1804,7 +1843,8 @@ export default {
   pluginConfigurationSuccess: 'Configurazione del plugin',
 
   // Original text: 'Plugin configuration successfully saved!'
-  pluginConfigurationChanges: 'Configurazione del plugin salvata correttamente!',
+  pluginConfigurationChanges:
+    'Configurazione del plugin salvata correttamente!',
 
   // Original text: 'Predefined configuration'
   pluginConfigurationPresetTitle: 'Configurazione predefinita',
@@ -1819,7 +1859,8 @@ export default {
   saveNewUserFilterErrorTitle: 'Salva errore filtro',
 
   // Original text: 'Bad parameter: name must be given.'
-  saveNewUserFilterErrorBody: 'Parametro errato: è necessario indicare il nome.',
+  saveNewUserFilterErrorBody:
+    'Parametro errato: è necessario indicare il nome.',
 
   // Original text: 'Name:'
   filterName: 'Nome:',
@@ -1834,7 +1875,8 @@ export default {
   removeUserFilterTitle: 'Rimuovi filtro personalizzato',
 
   // Original text: 'Are you sure you want to remove the custom filter?'
-  removeUserFilterBody: 'Sei sicuro di voler rimuovere il filtro personalizzato?',
+  removeUserFilterBody:
+    'Sei sicuro di voler rimuovere il filtro personalizzato?',
 
   // Original text: 'Default filter'
   defaultFilter: 'Filtro predefinito',
@@ -1909,25 +1951,27 @@ export default {
   fastCloneVmLabel: 'Clone veloce',
 
   // Original text: 'Console'
-  vmConsoleLabel: 'consolle',
+  vmConsoleLabel: 'Consolle',
 
   // Original text: 'Backup'
   backupLabel: 'di riserva',
 
   // Original text: '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})'
-  baseCopyTooltip: '{n, number} copi{n, plural, one {a} other {e}} di base ({usage})',
+  baseCopyTooltip:
+    '{n, number} copi{n, plural, one {a} other {e}} di base ({usage})',
 
   // Original text: '{name} ({usage})'
   diskTooltip: '{name} ({usage})',
 
   // Original text: '{n, number} snapshot{n, plural, one {} other {s}} ({usage})'
-  snapshotsTooltip: '{n, number} istantane{n, plural, one {a} other {e}} ({usage})',
+  snapshotsTooltip:
+    '{n, number} istantane{n, plural, one {a} other {e}} ({usage})',
 
   // Original text: '{name} ({usage}) on {vmName}'
   vdiOnVmTooltip: '{name} ({usage}) su {vmName}',
 
   // Original text: '{n, number} VDI{n, plural, one {} other {s}} ({usage})'
-  vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})'
+  vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})',
 
   // Original text: 'Depth'
   srUnhealthyVdiDepth: 'Profondità',
@@ -2002,7 +2046,8 @@ export default {
   licenseRestrictions: 'Limitazioni della licenza',
 
   // Original text: 'Warning: You are using a Free XenServer license'
-  licenseRestrictionsModalTitle: 'Avviso: stai usando una licenza XenServer gratuita',
+  licenseRestrictionsModalTitle:
+    'Avviso: stai usando una licenza XenServer gratuita',
 
   // Original text: 'Some functionality is restricted.'
   actionsRestricted: 'Alcune funzionalità sono limitate.',
@@ -2011,10 +2056,12 @@ export default {
   counterRestrictionsOptions: 'Puoi:',
 
   // Original text: 'upgrade to XCP-ng for free to get rid of these restrictions'
-  counterRestrictionsOptionsXcp: 'aggiornare a XCP-ng gratuitamente per sbarazzarsi di queste restrizioni',
+  counterRestrictionsOptionsXcp:
+    'aggiornare a XCP-ng gratuitamente per sbarazzarsi di queste restrizioni',
 
   // Original text: 'or get a commercial Citrix license'
-  counterRestrictionsOptionsXsLicense: 'o ottenere una licenza Citrix commerciale',
+  counterRestrictionsOptionsXsLicense:
+    'o ottenere una licenza Citrix commerciale',
 
   // Original text: 'Hosts'
   hostsTabName: 'host',
@@ -2116,19 +2163,24 @@ export default {
   addHostsLabel: 'Aggiungi host',
 
   // Original text: 'The pool needs to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.'
-  missingPatchesPool: 'Il pool deve installare {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. Questa operazione potrebbe richiedere del tempo.',
+  missingPatchesPool:
+    'Il pool deve installare {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. Questa operazione potrebbe richiedere del tempo.',
 
   // Original text: 'The selected host{nHosts, plural, one {} other {s}} need{nHosts, plural, one {s} other {}} to install {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. This operation may take a while.'
-  missingPatchesHost: "{nHosts, plural, one {Li} other {l'}} host{nHosts, plural, one {} other {s}} selezionat{nHosts, plural, one {o} other {i}} {nHosts, plural, one {richiede} other {richiedono}} di installare {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. Questa operazione potrebbe richiedere del tempo.",
+  missingPatchesHost:
+    "{nHosts, plural, one {Li} other {l'}} host{nHosts, plural, one {} other {s}} selezionat{nHosts, plural, one {o} other {i}} {nHosts, plural, one {richiede} other {richiedono}} di installare {nMissingPatches, number} patch{nMissingPatches, plural, one {} other {es}}. Questa operazione potrebbe richiedere del tempo.",
 
   // Original text: 'The selected host{nHosts, plural, one {} other {s}} cannot be added to the pool because the patches are not homogeneous.'
-  patchUpdateNoInstall: "{nHosts, plural, one {Li} other {l'}} host{nHosts, plural, one {} other {s}} selezionat{nHosts, plural, one {o} other {i}} non {nHosts, plural, one {può} other {possono}} essere aggiunto al pool perché le patches non sono omogenee.",
+  patchUpdateNoInstall:
+    "{nHosts, plural, one {Li} other {l'}} host{nHosts, plural, one {} other {s}} selezionat{nHosts, plural, one {o} other {i}} non {nHosts, plural, one {può} other {possono}} essere aggiunto al pool perché le patches non sono omogenee.",
 
   // Original text: 'Adding host{nHosts, plural, one {} other {s}} failed'
-  addHostsErrorTitle: "Aggiunta de{nHosts, plural, one {llo} other {i}} host{nHosts, plural, one {} other {s}} fallito",
+  addHostsErrorTitle:
+    'Aggiunta de{nHosts, plural, one {llo} other {i}} host{nHosts, plural, one {} other {s}} fallito',
 
   // Original text: 'Host patches could not be homogenized.'
-  addHostNotHomogeneousErrorMessage: 'Non è stato possibile omogeneizzare le patch dello host.',
+  addHostNotHomogeneousErrorMessage:
+    'Non è stato possibile omogeneizzare le patch dello host.',
 
   // Original text: 'Disconnect'
   disconnectServer: 'Disconnect',
@@ -2158,13 +2210,15 @@ export default {
   noHostsAvailableErrorTitle: "Errore durante il riavvio dell'host",
 
   // Original text: 'Some VMs cannot be migrated without first rebooting this host. Please try force reboot.'
-  noHostsAvailableErrorMessage: 'Alcune VM non possono essere migrate senza prima aver riavviato questo host. Prova a forzare il riavvio.',
+  noHostsAvailableErrorMessage:
+    'Alcune VM non possono essere migrate senza prima aver riavviato questo host. Prova a forzare il riavvio.',
 
   // Original text: 'Error while restarting hosts'
   failHostBulkRestartTitle: 'Errore durante il riavvio degli host',
 
   // Original text: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.'
-  failHostBulkRestartMessage: 'Alcune VM non possono essere migrate senza prima aver riavviato questo host. Prova a forzare il riavvio.',
+  failHostBulkRestartMessage:
+    'Alcune VM non possono essere migrate senza prima aver riavviato questo host. Prova a forzare il riavvio.',
 
   // Original text: 'Reboot to apply updates'
   rebootUpdateHostLabel: 'Riavvia per applicare gli aggiornamenti',
@@ -2185,13 +2239,15 @@ export default {
   editHostIscsiIqnTitle: 'Modifica iSCSI IQN',
 
   // Original text: 'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.'
-  editHostIscsiIqnMessage: "Ciò può comportare errori nella connessione a SR esistenti se l'host è collegato a SR iSCSI.",
+  editHostIscsiIqnMessage:
+    "Ciò può comportare errori nella connessione a SR esistenti se l'host è collegato a SR iSCSI.",
 
   // Original text: 'Host RAM usage:'
-  hostTitleRamUsage: "Utilizzo della RAM dello host:",
+  hostTitleRamUsage: 'Utilizzo della RAM dello host:',
 
   // Original text: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)'
-  memoryHostState: 'RAM: {memoryUsed} usata su {memoryTotal} ({memoryFree} disponibile)',
+  memoryHostState:
+    'RAM: {memoryUsed} usata su {memoryTotal} ({memoryFree} disponibile)',
 
   // Original text: 'Hardware'
   hardwareHostSettingsLabel: 'Hardware',
@@ -2200,7 +2256,8 @@ export default {
   hyperThreading: 'Hyper-threading (SMT)',
 
   // Original text: 'HT detection is only available on XCP-ng 7.6 and higher'
-  hyperThreadingNotAvailable: 'Il rilevamento HT è disponibile solo su XCP-ng 7.6 e versioni successive',
+  hyperThreadingNotAvailable:
+    'Il rilevamento HT è disponibile solo su XCP-ng 7.6 e versioni successive',
 
   // Original text: 'Address'
   hostAddress: 'Indirizzo',
@@ -2221,13 +2278,16 @@ export default {
   hostMultipathingSrs: 'Fare clic per visualizzare gli SR interessati',
 
   // Original text: '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}'
-  hostMultipathingPaths: '{nActives, number} di {nPaths, number} percors{nPaths, plural, one {o} other {i}}',
+  hostMultipathingPaths:
+    '{nActives, number} di {nPaths, number} percors{nPaths, plural, one {o} other {i}}',
 
   // Original text: 'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before performing this action!'
-  hostMultipathingRequiredState: 'Questa azione non verrà eseguita se una VM è in esecuzione. Assicurati che tutte le VMs siano evacuate o arrestate prima di eseguire questa azione!',
+  hostMultipathingRequiredState:
+    'Questa azione non verrà eseguita se una VM è in esecuzione. Assicurati che tutte le VMs siano evacuate o arrestate prima di eseguire questa azione!',
 
   // Original text: 'The host{nHosts, plural, one {} other {s}} will lose their connection to the SRs. Do you want to continue?'
-  hostMultipathingWarning: "{nHosts, plural, one {Li} other {l'}} host{nHosts, plural, one {} other {s}} {nHosts, plural, one {perderà} other {perderanno}} la connessione agli SR. Vuoi continuare?",
+  hostMultipathingWarning:
+    "{nHosts, plural, one {Li} other {l'}} host{nHosts, plural, one {} other {s}} {nHosts, plural, one {perderà} other {perderanno}} la connessione agli SR. Vuoi continuare?",
 
   // Original text: 'Version'
   hostXenServerVersion: 'Versione',
@@ -2293,19 +2353,22 @@ export default {
   supplementalPackInstallStartedTitle: 'Installazione avviata',
 
   // Original text: 'Installing new supplemental pack…'
-  supplementalPackInstallStartedMessage: 'Installazione del nuovo pacchetto supplementare…',
+  supplementalPackInstallStartedMessage:
+    'Installazione del nuovo pacchetto supplementare…',
 
   // Original text: 'Installation error'
   supplementalPackInstallErrorTitle: 'Errore di installazione',
 
   // Original text: 'The installation of the supplemental pack failed.'
-  supplementalPackInstallErrorMessage: "L'installazione del pacchetto supplementare è fallita.",
+  supplementalPackInstallErrorMessage:
+    "L'installazione del pacchetto supplementare è fallita.",
 
   // Original text: 'Installation success'
   supplementalPackInstallSuccessTitle: 'Installazione riuscita',
 
   // Original text: 'Supplemental pack successfully installed.'
-  supplementalPackInstallSuccessMessage: 'Pacchetto supplementare installato correttamente.',
+  supplementalPackInstallSuccessMessage:
+    'Pacchetto supplementare installato correttamente.',
 
   // Original text: 'The iSCSI IQN must be unique. '
   uniqueHostIscsiIqnInfo: "L'iSCSI IQN deve essere univoco.",
@@ -2449,13 +2512,15 @@ export default {
   installAllPatchesRedirect: 'Vai in piscina',
 
   // Original text: 'Are you sure you want to install all patches on this host?'
-  installAllPatchesOnHostContent: 'Sei sicuro di voler installare tutte le patch su questo host?',
+  installAllPatchesOnHostContent:
+    'Sei sicuro di voler installare tutte le patch su questo host?',
 
   // Original text: 'Release'
   patchRelease: 'pubblicazione',
 
   // Original text: 'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.'
-  updatePluginNotInstalled: "Assicurati che il plugin di aggiornamento sia installato eseguendo `yum install xcp-ng-updater` sull'host.",
+  updatePluginNotInstalled:
+    "Assicurati che il plugin di aggiornamento sia installato eseguendo `yum install xcp-ng-updater` sull'host.",
 
   // Original text: 'Show changelog'
   showChangelog: 'Mostra il log delle modifiche',
@@ -2482,19 +2547,23 @@ export default {
   installPatchesTitle: 'Installa patch{nPatches, plural, one {} other {es}}',
 
   // Original text: 'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?'
-  installPatchesContent: 'Sei sicuro di voler installare {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
+  installPatchesContent:
+    'Sei sicuro di voler installare {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
 
   // Original text: 'Install pool patches'
   installPoolPatches: 'Installa patches di pool',
 
   // Original text: 'Are you sure you want to install all the patches on this pool?'
-  confirmPoolPatch: 'Sei sicuro di voler installare tutte le patches su questo pool?',
+  confirmPoolPatch:
+    'Sei sicuro di voler installare tutte le patches su questo pool?',
 
   // Original text: 'The pool needs a default SR to install the patches.'
-  poolNeedsDefaultSr: 'Il pool ha bisogno di un SR predefinito per installare le patches.',
+  poolNeedsDefaultSr:
+    'Il pool ha bisogno di un SR predefinito per installare le patches.',
 
   // Original text: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs'
-  vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {ha} other {hanno}} CDs',
+  vmsHaveCds:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {ha} other {hanno}} CDs',
 
   // Original text: 'Eject CDs'
   ejectCds: 'Espellere i CD',
@@ -2515,7 +2584,7 @@ export default {
   statsTabName: 'Statistiche',
 
   // Original text: 'Console'
-  consoleTabName: 'consolle',
+  consoleTabName: 'Consolle',
 
   // Original text: 'Container'
   containersTabName: 'Contenitore',
@@ -2524,7 +2593,7 @@ export default {
   snapshotsTabName: 'Istantanei',
 
   // Original text: 'Logs'
-  logsTabName: 'logs',
+  logsTabName: 'Logs',
 
   // Original text: 'Advanced'
   advancedTabName: 'Avanzati',
@@ -2575,7 +2644,7 @@ export default {
   started: 'Iniziato {ago}',
 
   // Original text: 'Created on {date}'
-  created: 'Creato il {data}',
+  created: 'Creato il {date}',
 
   // Original text: 'Paravirtualization (PV)'
   paraVirtualizedMode: 'Paravirtualizzazione (PV)',
@@ -2584,13 +2653,14 @@ export default {
   hardwareVirtualizedMode: 'Virtualizzazione hardware (HVM)',
 
   // Original text: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)'
-  hvmModeWithPvDriversEnabled: 'Virtualizzazione hardware con driver di paravirtualizzazione abilitati (PVHVM)',
+  hvmModeWithPvDriversEnabled:
+    'Virtualizzazione hardware con driver di paravirtualizzazione abilitati (PVHVM)',
 
   // Original text: 'Windows Update tools'
   windowsUpdateTools: 'Strumenti di Windows Update',
 
   // Original text: 'CPU usage'
-  statsCpu: 'uso della CPU',
+  statsCpu: 'Uso della CPU',
 
   // Original text: 'Memory usage'
   statsMemory: 'Utilizzo della memoria',
@@ -2737,7 +2807,8 @@ export default {
   vdiMigrateNoSr: 'No SR',
 
   // Original text: 'A target SR is required to migrate a VDI'
-  vdiMigrateNoSrMessage: 'Per la migrazione di un VDI è necessario un SR di destinazione',
+  vdiMigrateNoSrMessage:
+    'Per la migrazione di un VDI è necessario un SR di destinazione',
 
   // Original text: 'Forget'
   vdiForget: 'Dimenticare',
@@ -2818,13 +2889,16 @@ export default {
   selectVdiMessage: 'Trascina qui il file VHD',
 
   // Original text: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)'
-  useQuotaWarning: 'La creazione di questo disco utilizzerà la quota di spazio su disco dal set di risorse {resourceSet} ({spaceLeft} rimanente)',
+  useQuotaWarning:
+    'La creazione di questo disco utilizzerà la quota di spazio su disco dal set di risorse {resourceSet} ({spaceLeft} rimanente)',
 
   // Original text: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)'
-  notEnoughSpaceInResourceSet: 'Spazio insufficiente nel set di risorse {resourceSet} ({spaceLeft} rimanente)',
+  notEnoughSpaceInResourceSet:
+    'Spazio insufficiente nel set di risorse {resourceSet} ({spaceLeft} rimanente)',
 
   // Original text: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start."
-  warningVdiSr: "Gli SR dei VDI devono essere condivisi o sullo stesso host per consentire l'avvio della macchina virtuale.",
+  warningVdiSr:
+    "Gli SR dei VDI devono essere condivisi o sullo stesso host per consentire l'avvio della macchina virtuale.",
 
   // Original text: 'New device'
   vifCreateDeviceButton: 'Nuovo dispositivo',
@@ -2881,7 +2955,8 @@ export default {
   vifLockedNetwork: 'Rete bloccata',
 
   // Original text: 'Network locked and no IPs are allowed for this interface'
-  vifLockedNetworkNoIps: 'Rete bloccata e nessun IP consentito per questa interfaccia',
+  vifLockedNetworkNoIps:
+    'Rete bloccata e nessun IP consentito per questa interfaccia',
 
   // Original text: 'Network not locked'
   vifUnLockedNetwork: 'Rete non bloccata',
@@ -2905,7 +2980,8 @@ export default {
   snapshotCreateButton: 'Nuova istantanea',
 
   // Original text: 'Just click on the snapshot button to create one!'
-  tipCreateSnapshotLabel: 'Basta fare clic sul pulsante Istantanea per crearne uno!',
+  tipCreateSnapshotLabel:
+    'Basta fare clic sul pulsante Istantanea per crearne uno!',
 
   // Original text: 'Revert VM to this snapshot'
   revertSnapshot: 'Ripristina VM in questa istantanea',
@@ -2977,7 +3053,8 @@ export default {
   vmVirtualizationModeModalTitle: 'Cambia modalità di virtualizzazione',
 
   // Original text: "You must know what you are doing, because it could break your setup (if you didn't install the bootloader in the MBR while switching from PV to HVM, or even worse, in HVM to PV, if you don't have the correct PV args)"
-  vmVirtualizationModeModalBody: "Devi sapere cosa stai facendo, perché potrebbe interrompere la configurazione (se non hai installato il bootloader nell'MBR mentre passavi da PV a HVM, o, peggio ancora, da HVM a PV, se non disponi del corretto",
+  vmVirtualizationModeModalBody:
+    "Devi sapere cosa stai facendo, perché potrebbe interrompere la configurazione (se non hai installato il bootloader nell'MBR mentre passavi da PV a HVM, o, peggio ancora, da HVM a PV, se non disponi del corretto",
 
   // Original text: 'Share'
   vmShareButton: 'Condividere',
@@ -3085,22 +3162,26 @@ export default {
   vmChooseCoresPerSocket: 'Comportamento predefinito',
 
   // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmSocketsWithCoresPerSocket: '{nSockets, number} socket{nSockets, plural, one {} other {s}} con {nCores, number} cuor{nCores, plural, one {e} other {i}} per socket',
+  vmSocketsWithCoresPerSocket:
+    '{nSockets, number} socket{nSockets, plural, one {} other {s}} con {nCores, number} cuor{nCores, plural, one {e} other {i}} per socket',
 
   // Original text: 'None'
   vmCoresPerSocketNone: 'Nessuna',
 
   // Original text: '{nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: '{nCores, number} cuor{nCores, plural, one {e} other {i}} per socket',
+  vmCoresPerSocket:
+    '{nCores, number} cuor{nCores, plural, one {e} other {i}} per socket',
 
   // Original text: "Not a divisor of the VM's max CPUs"
   vmCoresPerSocketNotDivisor: 'Non è un divisore delle CPUs massime della VM',
 
   // Original text: 'The selected value exceeds the cores limit ({maxCores, number})'
-  vmCoresPerSocketExceedsCoresLimit: 'Il valore selezionato supera il limite dei cuori ({maxCores, number})',
+  vmCoresPerSocketExceedsCoresLimit:
+    'Il valore selezionato supera il limite dei cuori ({maxCores, number})',
 
   // Original text: 'The selected value exceeds the sockets limit ({maxSockets, number})'
-  vmCoresPerSocketExceedsSocketsLimit: 'Il valore selezionato supera il limite dei sockets ({maxSocket, number})',
+  vmCoresPerSocketExceedsSocketsLimit:
+    'Il valore selezionato supera il limite dei sockets ({maxSocket, number})',
 
   // Original text: 'Disabled'
   vmHaDisabled: 'Disabilitato',
@@ -3148,7 +3229,8 @@ export default {
   vmDefaultBootFirmwareLabel: 'predefinitio (bios)',
 
   // Original text: "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?"
-  vmBootFirmwareWarningMessage: 'Stai per cambiare il firmware di avvio. Questo è ancora sperimentale in CH/XCP-ng 8.0. Sei sicuro di voler continuare?',
+  vmBootFirmwareWarningMessage:
+    'Stai per cambiare il firmware di avvio. Questo è ancora sperimentale in CH/XCP-ng 8.0. Sei sicuro di voler continuare?',
 
   // Original text: 'Long click to add a name'
   vmHomeNamePlaceholder: 'Fai clic lungo per aggiungere un nome',
@@ -3166,22 +3248,28 @@ export default {
   templateDelete: 'Elimina modello',
 
   // Original text: 'Delete VM template{templates, plural, one {} other {s}}'
-  templateDeleteModalTitle: 'Elimina modell{templates, plural, one {o} other {i}} di VM ',
+  templateDeleteModalTitle:
+    'Elimina modell{templates, plural, one {o} other {i}} di VM ',
 
   // Original text: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?'
-  templateDeleteModalBody: 'Sei sicuro di voler eliminare {templates, plural, one {questo} other {questi}} modell{templates, plural, one {o} other {i}}?',
+  templateDeleteModalBody:
+    'Sei sicuro di voler eliminare {templates, plural, one {questo} other {questi}} modell{templates, plural, one {o} other {i}}?',
 
   // Original text: 'Delete template{nTemplates, plural, one {} other {s}} failed'
-  failedToDeleteTemplatesTitle: 'Eliminazione {nTemplates, plural, one {del} other {dei}} modell{nTemplates, plural, one {o} other {i}} non riuscita',
+  failedToDeleteTemplatesTitle:
+    'Eliminazione {nTemplates, plural, one {del} other {dei}} modell{nTemplates, plural, one {o} other {i}} non riuscita',
 
   // Original text: 'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.'
-  failedToDeleteTemplatesMessage: 'Impossibile eliminare {nTemplates, number} modell{nTemplates, plural, one {o} other {i}}.',
+  failedToDeleteTemplatesMessage:
+    'Impossibile eliminare {nTemplates, number} modell{nTemplates, plural, one {o} other {i}}.',
 
   // Original text: 'Delete default template{nDefaultTemplates, plural, one {} other {s}}'
-  deleteDefaultTemplatesTitle: 'Elimina modell{nDefaultTemplates, plural, one {o} other {i}} predefinit{nDefaultTemplates, plural, one {o} other {i}}',
+  deleteDefaultTemplatesTitle:
+    'Elimina modell{nDefaultTemplates, plural, one {o} other {i}} predefinit{nDefaultTemplates, plural, one {o} other {i}}',
 
   // Original text: 'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?'
-  deleteDefaultTemplatesMessage: 'Stai tentando di eliminare {nDefaultTemplates, number} modell{nDefaultTemplates, plural, one {o} other {i}} predefinit{nDefaultTemplates, plural, one {o} other {i}}. Vuoi continuare?',
+  deleteDefaultTemplatesMessage:
+    'Stai tentando di eliminare {nDefaultTemplates, number} modell{nDefaultTemplates, plural, one {o} other {i}} predefinit{nDefaultTemplates, plural, one {o} other {i}}. Vuoi continuare?',
 
   // Original text: 'Pool{pools, plural, one {} other {s}}'
   poolPanel: 'Pool{pools, plural, one {} other {s}}',
@@ -3244,7 +3332,8 @@ export default {
   ofUsage: '{usage} (di {total})',
 
   // Original text: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})'
-  ofCpusUsage: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (su {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
+  ofCpusUsage:
+    '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (su {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
 
   // Original text: 'No storage'
   noSrs: 'Nessuno deposito',
@@ -3283,7 +3372,8 @@ export default {
   notEnoughPermissionsError: 'Autorizzazioni insufficienti!',
 
   // Original text: '{running, number} running ({halted, number} halted)'
-  vmsStates: '{running, in } in esecuzione ({halted, number} arrestat{halted, plural, one {o} other {i}})',
+  vmsStates:
+    '{running, in } in esecuzione ({halted, number} arrestat{halted, plural, one {o} other {i}})',
 
   // Original text: 'Clear selection'
   dashboardStatsButtonRemoveAll: 'Cancella selezione',
@@ -3301,10 +3391,12 @@ export default {
   dashboardReport: 'Rapporto',
 
   // Original text: 'This will send a usage report to your configured emails.'
-  dashboardSendReportMessage: 'Questo invierà un rapporto di utilizzo alle e-mail configurate.',
+  dashboardSendReportMessage:
+    'Questo invierà un rapporto di utilizzo alle e-mail configurate.',
 
   // Original text: 'The usage report and transport email plugins need to be loaded!'
-  dashboardSendReportInfo: "È necessario caricare il rapporto sull'utilizzo e i plug-in e-mail di trasporto!",
+  dashboardSendReportInfo:
+    "È necessario caricare il rapporto sull'utilizzo e i plug-in e-mail di trasporto!",
 
   // Original text: '{value} {date, date, medium}'
   weekHeatmapData: '{value} {date, date, medium}',
@@ -3364,7 +3456,8 @@ export default {
   vmContainer: 'Residente su',
 
   // Original text: 'VM snapshots related to non-existent backups'
-  vmSnapshotsRelatedToNonExistentBackups: 'Snapshot VM relativi a backup inesistenti',
+  vmSnapshotsRelatedToNonExistentBackups:
+    'Snapshot VM relativi a backup inesistenti',
 
   // Original text: 'Snapshot of'
   snapshotOf: 'Istantanea di',
@@ -3397,7 +3490,8 @@ export default {
   createVmModalTitle: 'Crea VM',
 
   // Original text: "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?"
-  createVmModalWarningMessage: 'Stai per utilizzare una grande quantità di risorse disponibili sul set di risorse. Sei sicuro di voler continuare?',
+  createVmModalWarningMessage:
+    'Stai per utilizzare una grande quantità di risorse disponibili sul set di risorse. Sei sicuro di voler continuare?',
 
   // Original text: 'Copy host BIOS strings to VM'
   copyHostBiosStrings: 'Copia le stringhe del BIOS host su VM',
@@ -3406,7 +3500,8 @@ export default {
   newVmCreateNewVmOn: 'Crea una nuova macchina virtuale su {select}',
 
   // Original text: 'You have no permission to create a VM'
-  newVmCreateNewVmNoPermission: 'Non sei autorizzato a creare una macchina virtuale',
+  newVmCreateNewVmNoPermission:
+    'Non sei autorizzato a creare una macchina virtuale',
 
   // Original text: 'Infos'
   newVmInfoPanel: 'Informazioni',
@@ -3502,7 +3597,8 @@ export default {
   newVmCustomConfig: 'Configurazione personalizzata',
 
   // Original text: 'Click here to see the available template variables'
-  availableTemplateVarsInfo: 'Fai clic qui per visualizzare le variabili del modello disponibili',
+  availableTemplateVarsInfo:
+    'Fai clic qui per visualizzare le variabili del modello disponibili',
 
   // Original text: 'Available template variables'
   availableTemplateVarsTitle: 'Variabili di modello disponibili',
@@ -3514,10 +3610,12 @@ export default {
   templateIndexInfo: "l'indice della VM, ci vorrà 0 in caso di VM singola",
 
   // Original text: 'Tip: escape any variable with a preceding backslash (\\)'
-  templateEscape: 'Suggerimento: usare una barra rovesciata precedente (\\) per qualsiasi variabile',
+  templateEscape:
+    'Suggerimento: usare una barra rovesciata precedente (\\) per qualsiasi variabile',
 
   // Original text: 'Error on getting the default coreOS cloud template'
-  coreOsDefaultTemplateError: "Errore durante l'acquisizione del modello cloud coreOS predefinito",
+  coreOsDefaultTemplateError:
+    "Errore durante l'acquisizione del modello cloud coreOS predefinito",
 
   // Original text: 'Boot VM after creation'
   newVmBootAfterCreate: 'Avvia la VM dopo la creazione',
@@ -3586,13 +3684,15 @@ export default {
   newVmNetworkConfigLabel: 'Configurazione della rete',
 
   // Original text: 'Network configuration is only compatible with the {noCloudDatasourceLink}.'
-  newVmNetworkConfigInfo: 'La configurazione di rete è compatibile solo con {noCloudDatasourceLink}.',
+  newVmNetworkConfigInfo:
+    'La configurazione di rete è compatibile solo con {noCloudDatasourceLink}.',
 
   // Original text: 'See {networkConfigDocLink}.'
   newVmNetworkConfigDocLink: 'Vedi {networkConfigDocLink}.',
 
   // Original text: 'Click here to get more information about network config'
-  newVmNetworkConfigTooltip: 'Fai clic qui per ulteriori informazioni sulla configurazione di rete',
+  newVmNetworkConfigTooltip:
+    'Fai clic qui per ulteriori informazioni sulla configurazione di rete',
 
   // Original text: 'User config'
   newVmUserConfigLabel: "Configurazione dell'utente",
@@ -3652,7 +3752,8 @@ export default {
   deleteResourceSetWarning: 'Elimina set di risorse',
 
   // Original text: 'Are you sure you want to delete this resource set?'
-  deleteResourceSetQuestion: 'Sei sicuro di voler eliminare questo set di risorse?',
+  deleteResourceSetQuestion:
+    'Sei sicuro di voler eliminare questo set di risorse?',
 
   // Original text: 'Missing objects:'
   resourceSetMissingObjects: 'Oggetti mancanti:',
@@ -3670,7 +3771,8 @@ export default {
   noHostsAvailable: 'Nessun host disponibile.',
 
   // Original text: 'VMs created from this resource set shall run on the following hosts.'
-  availableHostsDescription: 'Le macchine virtuali create da questo set di risorse devono essere eseguite sui seguenti host.',
+  availableHostsDescription:
+    'Le macchine virtuali create da questo set di risorse devono essere eseguite sui seguenti host.',
 
   // Original text: 'Maximum CPUs'
   maxCpus: 'CPUs massime',
@@ -3700,7 +3802,8 @@ export default {
   resourceSetNew: 'Nuovo',
 
   // Original text: 'Drop OVA or XVA files here to import Virtual Machines.'
-  importVmsList: 'Rilascia qui i file OVA o XVA per importare macchine virtuali.',
+  importVmsList:
+    'Rilascia qui i file OVA o XVA per importare macchine virtuali.',
 
   // Original text: 'No selected VMs.'
   noSelectedVms: 'Nessuna VM selezionata.',
@@ -3820,13 +3923,15 @@ export default {
   backupSchedules: 'Orari',
 
   // Original text: '{nLoneSnapshots} lone snapshot{nLoneSnapshots, plural, one {} other {s}} to delete!'
-  loneSnapshotsMessages: '{nLoneSnapshots} istantane{nLoneSnapshots, plural, one {a} other {e}} isolat{nLoneSnapshots, plural, one {a} other {e}} to delete!',
+  loneSnapshotsMessages:
+    '{nLoneSnapshots} istantane{nLoneSnapshots, plural, one {a} other {e}} isolat{nLoneSnapshots, plural, one {a} other {e}} to delete!',
 
   // Original text: 'Cron pattern'
   scheduleCron: 'Modello cron',
 
   // Original text: 'Click to display last run details'
-  scheduleLastRun: "Fare clic per visualizzare i dettagli dell'ultima esecuzione",
+  scheduleLastRun:
+    "Fare clic per visualizzare i dettagli dell'ultima esecuzione",
 
   // Original text: 'Name'
   scheduleName: 'Nome',
@@ -3868,10 +3973,12 @@ export default {
   noBackups: 'Non ci sono backup!',
 
   // Original text: 'Click on a VM to display restore options'
-  restoreBackupsInfo: 'Fare clic su una VM per visualizzare le opzioni di ripristino',
+  restoreBackupsInfo:
+    'Fare clic su una VM per visualizzare le opzioni di ripristino',
 
   // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: 'È possibile ripristinare solo i file di Delta Backup che non si trovano su un SMB remoto',
+  restoreDeltaBackupsInfo:
+    'È possibile ripristinare solo i file di Delta Backup che non si trovano su un SMB remoto',
 
   // Original text: 'Enabled'
   remoteEnabled: 'Abilitato',
@@ -3886,7 +3993,8 @@ export default {
   disableRemote: 'Disabilitare',
 
   // Original text: 'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.'
-  remoteErrorMessage: "L'URL ({url}) non è valido (due punti nel percorso). Fai clic su questo pulsante per modificare l'URL in {newUrl}.",
+  remoteErrorMessage:
+    "L'URL ({url}) non è valido (due punti nel percorso). Fai clic su questo pulsante per modificare l'URL in {newUrl}.",
 
   // Original text: 'VM Name'
   backupVmNameColumn: 'Nome VM',
@@ -3907,7 +4015,7 @@ export default {
   availableBackupsColumn: 'Backup disponibili',
 
   // Original text: 'Missing parameters'
-  backupRestoreErrorTitle: "Parametri mancanti",
+  backupRestoreErrorTitle: 'Parametri mancanti',
 
   // Original text: 'Choose a SR and a backup'
   backupRestoreErrorMessage: 'Scegli un SR e un backup',
@@ -3937,10 +4045,12 @@ export default {
   restoreVmBackupsTitle: 'Ripristina {vm}',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}'
-  restoreVmBackupsBulkTitle: 'Ripristina {nVms, number} VM{nVms, plural, one {} other {s}}',
+  restoreVmBackupsBulkTitle:
+    'Ripristina {nVms, number} VM{nVms, plural, one {} other {s}}',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.'
-  restoreVmBackupsBulkMessage: 'Ripristina {nVms, number} VM{nVms, plural, one {} other {s}} da {nVms, plural, one {suo} other {loro}} {oldestOrLatest} backup.',
+  restoreVmBackupsBulkMessage:
+    'Ripristina {nVms, number} VM{nVms, plural, one {} other {s}} da {nVms, plural, one {suo} other {loro}} {oldestOrLatest} backup.',
 
   // Original text: 'oldest'
   oldest: 'il più vecchio',
@@ -3949,7 +4059,8 @@ export default {
   latest: 'più recente',
 
   // Original text: 'Start VM{nVms, plural, one {} other {s}} after restore'
-  restoreVmBackupsStart: 'Avvia VM{nVms, plural, one {} other {s}} dopo il ripristino',
+  restoreVmBackupsStart:
+    'Avvia VM{nVms, plural, one {} other {s}} dopo il ripristino',
 
   // Original text: 'Multi-restore error'
   restoreVmBackupsBulkErrorTitle: 'Errore di ripristino multiplo',
@@ -3958,10 +4069,12 @@ export default {
   restoreMetadataBackupTitle: 'Ripristina {item}',
 
   // Original text: 'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}'
-  bulkRestoreMetadataBackupTitle: 'Ripristina {nMetadataBackups, number} metadati backup{nMetadataBackups, plural, one {} other {s}}',
+  bulkRestoreMetadataBackupTitle:
+    'Ripristina {nMetadataBackups, number} metadati backup{nMetadataBackups, plural, one {} other {s}}',
 
   // Original text: 'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}} from {nMetadataBackups, plural, one {its} other {their}} {oldestOrLatest} backup'
-  bulkRestoreMetadataBackupMessage: 'Ripristina {nMetadataBackups, number} backup{nMetadataBackups, plural, one {} other {s}} dei metadati da {nMetadataBackups, plurale, uno {suo} altro {suoi}} {vecchiOrLatest} backup',
+  bulkRestoreMetadataBackupMessage:
+    'Ripristina {nMetadataBackups, number} backup{nMetadataBackups, plural, one {} other {s}} dei metadati da {nMetadataBackups, plurale, uno {suo} altro {suoi}} {vecchiOrLatest} backup',
 
   // Original text: 'Delete {item} backup'
   deleteMetadataBackupTitle: 'Elimina il backup di {item}',
@@ -3985,22 +4098,27 @@ export default {
   deleteVmBackupsBulkTitle: 'Elimina i backup',
 
   // Original text: 'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?'
-  deleteVmBackupsBulkMessage: 'Sei sicuro di voler eliminare tutti i backup da {nVms, number} VM{nVms, plural, one {} other {s}}?'
+  deleteVmBackupsBulkMessage:
+    'Sei sicuro di voler eliminare tutti i backup da {nVms, number} VM{nVms, plural, one {} other {s}}?',
 
   // Original text: 'delete {nBackups} backup{nBackups, plural, one {} other {s}}'
-  deleteVmBackupsBulkConfirmText: 'elimina {nBackups} backup{nBackups, plural, one {} other {s}}',
+  deleteVmBackupsBulkConfirmText:
+    'elimina {nBackups} backup{nBackups, plural, one {} other {s}}',
 
   // Original text: 'Delete metadata backups'
   bulkDeleteMetadataBackupsTitle: 'Elimina i backup dei metadati',
 
   // Original text: 'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?'
-  bulkDeleteMetadataBackupsMessage: 'Sei sicuro di voler eliminare tutti i backup da {nMetadataBackups, numero} metadati backup{nMetadataBackups, plural, one {} other {s}}?',
+  bulkDeleteMetadataBackupsMessage:
+    'Sei sicuro di voler eliminare tutti i backup da {nMetadataBackups, numero} metadati backup{nMetadataBackups, plural, one {} other {s}}?',
 
   // Original text: 'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}'
-  bulkDeleteMetadataBackupsConfirmText: 'elimina {nMetadataBackups} metadati backup{nMetadataBackups, plural, one {} other {s}}',
+  bulkDeleteMetadataBackupsConfirmText:
+    'elimina {nMetadataBackups} metadati backup{nMetadataBackups, plural, one {} other {s}}',
 
   // Original text: "The backup will not be run on this remote because it's not compatible with the selected proxy"
-  remoteNotCompatibleWithSelectedProxy: 'Il backup non verrà eseguito su questo remoto perché non è compatibile con il proxy selezionato',
+  remoteNotCompatibleWithSelectedProxy:
+    'Il backup non verrà eseguito su questo remoto perché non è compatibile con il proxy selezionato',
 
   // Original text: 'List remote backups'
   listRemoteBackups: 'Elenca backup remoti',
@@ -4054,13 +4172,15 @@ export default {
   emergencyShutdownHostModalMessage: 'Sei sicuro di voler arrestare {host}?',
 
   // Original text: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}'
-  emergencyShutdownHostsModalTitle: 'Arresto di emergenza {nHosts, plural, one {dello} other {degli}} host{nHosts, plural, one {} other {s}}'
+  emergencyShutdownHostsModalTitle:
+    'Arresto di emergenza {nHosts, plural, one {dello} other {degli}} host{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  emergencyShutdownHostsModalMessage: 'Sei sicuro di voler chiudere {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  emergencyShutdownHostsModalMessage:
+    'Sei sicuro di voler chiudere {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: 'Shutdown host'
-  stopHostModalTitle: "Arresto dello host",
+  stopHostModalTitle: 'Arresto dello host',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
   stopHostModalMessage: 'Questo spegnerà il tuo host.',
@@ -4078,19 +4198,22 @@ export default {
   restartHostModalMessage: 'Vuoi continuare?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
-  restartHostsAgentsModalTitle: 'Riavvia host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {e} other {i}}',
+  restartHostsAgentsModalTitle:
+    'Riavvia host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {e} other {i}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
-  restartHostsAgentsModalMessage: 'Sei sicuro di voler riavviare {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {e} other {i}}?',
+  restartHostsAgentsModalMessage:
+    'Sei sicuro di voler riavviare {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {e} other {i}}?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}}'
   restartHostsModalTitle: 'Riavvia host{nHosts, plurale, uno {} altro {s}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  restartHostsModalMessage: 'Sei sicuro di voler riavviare {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  restartHostsModalMessage:
+    'Sei sicuro di voler riavviare {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: 'Start VM{vms, plural, one {} other {s}}'
-  startVmsModalTitle: 'Avvia VM{vms, plural, one {} other {s}}'
+  startVmsModalTitle: 'Avvia VM{vms, plural, one {} other {s}}',
 
   // Original text: 'Start a copy'
   cloneAndStartVM: 'Inizia una copia',
@@ -4105,28 +4228,33 @@ export default {
   blockedStartVmModalMessage: "L'operazione di avvio per questa VM è bloccata.",
 
   // Original text: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.'
-  blockedStartVmsModalMessage: "Inizio dell'operazione proibita per {nVms, number} VM{nVms, plural, one {} other {s}}.",
+  blockedStartVmsModalMessage:
+    "Inizio dell'operazione proibita per {nVms, number} VM{nVms, plural, one {} other {s}}.",
 
   // Original text: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?'
-  startVmsModalMessage: 'Sei sicuro di voler avviare {vms, number} VMvms, plural, one {} other {s}}?',
+  startVmsModalMessage:
+    'Sei sicuro di voler avviare {vms, number} VMvms, plural, one {} other {s}}?',
 
   // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
-  failedVmsErrorMessage: 'Si prega di consultare i registri per ottenere maggiori informazioni',
+  failedVmsErrorMessage:
+    'Si prega di consultare i registri per ottenere maggiori informazioni',
 
   // Original text: 'Start failed'
   failedVmsErrorTitle: 'Inizio fallito',
 
   // Original text: 'Stop Host{nHosts, plural, one {} other {s}}'
-  stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}'
+  stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  stopHostsModalMessage: 'Sei sicuro di voler interrompere {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  stopHostsModalMessage:
+    'Sei sicuro di voler interrompere {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: 'Stop VM{vms, plural, one {} other {s}}'
-  stopVmsModalTitle: 'Arresta VM{vms, plural, one {} other {s}}'
+  stopVmsModalTitle: 'Arresta VM{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?'
-  stopVmsModalMessage: 'Sei sicuro di voler arrestare {vms, number} VM{vms, plural, one {} other {s}}?',
+  stopVmsModalMessage:
+    'Sei sicuro di voler arrestare {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: 'Restart VM'
   restartVmModalTitle: 'Riavvia VM',
@@ -4144,52 +4272,61 @@ export default {
   suspendVmsModalTitle: 'Sospendi VM{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?'
-  suspendVmsModalMessage: 'Sei sicuro di voler sospendere {vms, number} VM{vms, plural, one {} other {s}}?',
+  suspendVmsModalMessage:
+    'Sei sicuro di voler sospendere {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: 'Pause VM{vms, plural, one {} other {s}}'
   pauseVmsModalTitle: 'Metti in pausa VM{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to pause {vms, number} VM{vms, plural, one {} other {s}}?'
-  pauseVmsModalMessage: 'Vuoi mettere in pausa {vms, number} VM{vms, plural, one {} other {s}}?',
+  pauseVmsModalMessage:
+    'Vuoi mettere in pausa {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: 'Restart VM{vms, plural, one {} other {s}}'
   restartVmsModalTitle: 'Riavvia VM{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?'
-  restartVmsModalMessage: 'Vuoi riavviare {vms, number} VM{vms, plural, one {} other {s}}?',
+  restartVmsModalMessage:
+    'Vuoi riavviare {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: 'save memory'
   snapshotSaveMemory: 'salva la memoria',
 
   // Original text: 'Snapshot VM{vms, plural, one {} other {s}}'
-  snapshotVmsModalTitle: 'Istantane{vms, plural, one {a} other {e}} VM{vms, plural, one {} other {s}}',
+  snapshotVmsModalTitle:
+    'Istantane{vms, plural, one {a} other {e}} VM{vms, plural, one {} other {s}}',
 
   // Original text: 'Delete VM{vms, plural, one {} other {s}}'
   deleteVmsModalTitle: 'Elimina VM{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
-  deleteVmsModalMessage: 'Sei sicuro di voler eliminare {vms, number} VM{vms, plural, one {} other {s}}? TUTTI I DISCHI DELLE VM VERRANNO RIMOSSI',
+  deleteVmsModalMessage:
+    'Sei sicuro di voler eliminare {vms, number} VM{vms, plural, one {} other {s}}? TUTTI I DISCHI DELLE VM VERRANNO RIMOSSI',
 
   // Original text: 'delete {nVms, number} vm{nVms, plural, one {} other {s}}'
-  deleteVmsConfirmText: 'elimina {nVms, number} VM{nVms, plural, one {} other {s}}',
+  deleteVmsConfirmText:
+    'elimina {nVms, number} VM{nVms, plural, one {} other {s}}',
 
   // Original text: 'Delete VM'
   deleteVmModalTitle: 'Elimina VM',
 
   // Original text: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED'
-  deleteVmModalMessage: 'Sei sicuro di voler eliminare questa VM? TUTTI I DISCHI DELLA VM VERRANNO RIMOSSI',
+  deleteVmModalMessage:
+    'Sei sicuro di voler eliminare questa VM? TUTTI I DISCHI DELLA VM VERRANNO RIMOSSI',
 
   // Original text: 'Blocked operation'
   deleteVmBlockedModalTitle: 'Operazione bloccata',
 
   // Original text: 'Removing the VM is a blocked operation. Would you like to remove it anyway?'
-  deleteVmBlockedModalMessage: "La rimozione della VM è un'operazione bloccata. Vuoi rimuoverlo comunque?",
+  deleteVmBlockedModalMessage:
+    "La rimozione della VM è un'operazione bloccata. Vuoi rimuoverlo comunque?",
 
   // Original text: 'Force migration'
   forceVmMigrateModalTitle: 'Forza la migrazione',
 
   // Original text: 'The VM is incompatible with the CPU features of the destination host. Would you like to force it anyway?'
-  forceVmMigrateModalMessage: "La VM non è compatibile con le funzionalità della CPU dell'host di destinazione. Ti piacerebbe forzarlo comunque?",
+  forceVmMigrateModalMessage:
+    "La VM non è compatibile con le funzionalità della CPU dell'host di destinazione. Ti piacerebbe forzarlo comunque?",
 
   // Original text: 'Migrate VM'
   migrateVmModalTitle: 'Migrare VM',
@@ -4207,7 +4344,8 @@ export default {
   migrateVmsSelectSr: 'Seleziona un SR di destinazione:',
 
   // Original text: 'Select a destination SR for local disks:'
-  migrateVmsSelectSrIntraPool: 'Seleziona un SR di destinazione per i dischi locali:',
+  migrateVmsSelectSrIntraPool:
+    'Seleziona un SR di destinazione per i dischi locali:',
 
   // Original text: 'Select a network on which to connect each VIF:'
   migrateVmsSelectNetwork: 'Seleziona una rete su cui connettere ogni VIF:',
@@ -4225,7 +4363,8 @@ export default {
   migrateVmNoTargetHost: 'Nessun host di destinazione',
 
   // Original text: 'A target host is required to migrate a VM'
-  migrateVmNoTargetHostMessage: 'Per eseguire la migrazione di una VM è necessario un host di destinazione',
+  migrateVmNoTargetHostMessage:
+    'Per eseguire la migrazione di una VM è necessario un host di destinazione',
 
   // Original text: 'No default SR'
   migrateVmNoDefaultSrError: 'Nessuna SR predefinita',
@@ -4234,7 +4373,8 @@ export default {
   migrateVmNotConnectedDefaultSrError: "SR predefinito non connesso all'host",
 
   // Original text: 'For each VDI, select an SR (optional)'
-  chooseSrForEachVdisModalSelectSr: 'Per ogni VDI, selezionare un SR (opzionale)',
+  chooseSrForEachVdisModalSelectSr:
+    'Per ogni VDI, selezionare un SR (opzionale)',
 
   // Original text: 'Select main SR…'
   chooseSrForEachVdisModalMainSr: 'Seleziona SR principale…',
@@ -4249,37 +4389,44 @@ export default {
   deleteJobsModalTitle: 'Elimina process{nJobs, plural, one {o} other {i}}',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?'
-  deleteJobsModalMessage: 'Sei sicuro di voler eliminare {nJobs, number} lavor{nJobs, plural, one {o} other {i}}?',
+  deleteJobsModalMessage:
+    'Sei sicuro di voler eliminare {nJobs, number} lavor{nJobs, plural, one {o} other {i}}?',
 
   // Original text: 'Delete VBD{nVbds, plural, one {} other {s}}'
   deleteVbdsModalTitle: 'Elimina VBD{nVbds, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  deleteVbdsModalMessage: 'Sei sicuro di voler eliminare {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
+  deleteVbdsModalMessage:
+    'Sei sicuro di voler eliminare {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
 
   // Original text: 'Delete VDI'
   deleteVdiModalTitle: 'Elimina VDI',
 
   // Original text: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST'
-  deleteVdiModalMessage: 'Sei sicuro di voler eliminare questo disco? TUTTI I DATI SU QUESTO DISCO SARANNO PERDUTI',
+  deleteVdiModalMessage:
+    'Sei sicuro di voler eliminare questo disco? TUTTI I DATI SU QUESTO DISCO SARANNO PERDUTI',
 
   // Original text: 'Delete VDI{nVdis, plural, one {} other {s}}'
   deleteVdisModalTitle: 'Elimina VDI{nVdis, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST'
-  deleteVdisModalMessage: 'Sei sicuro di voler eliminare {nVdis, number} disc{nVdis, plural, one {o} other {hi}}? TUTTI I DATI SU QUESTI DISCHI SARANNO PERDUTI',
+  deleteVdisModalMessage:
+    'Sei sicuro di voler eliminare {nVdis, number} disc{nVdis, plural, one {o} other {hi}}? TUTTI I DATI SU QUESTI DISCHI SARANNO PERDUTI',
 
   // Original text: 'Delete schedule{nSchedules, plural, one {} other {s}}'
-  deleteSchedulesModalTitle: 'Elimina pianificazion{nSchedules, plural, one {e} other {i}}',
+  deleteSchedulesModalTitle:
+    'Elimina pianificazion{nSchedules, plural, one {e} other {i}}',
 
   // Original text: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?'
-  deleteSchedulesModalMessage: 'Sei sicuro di voler eliminare {nSchedules, number} pianificazion{nSchedules, plural, one {e} other {i}}?',
+  deleteSchedulesModalMessage:
+    'Sei sicuro di voler eliminare {nSchedules, number} pianificazion{nSchedules, plural, one {e} other {i}}?',
 
   // Original text: 'Delete remote{nRemotes, plural, one {} other {s}}'
   deleteRemotesModalTitle: 'Elimina remot{nRemote, plural, one {o} other {i}}',
 
   // Original text: 'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?'
-  deleteRemotesModalMessage: 'Sei sicuro di voler eliminare {nRemote, number} remot{nRemote, plural, one {o} other {i}}?',
+  deleteRemotesModalMessage:
+    'Sei sicuro di voler eliminare {nRemote, number} remot{nRemote, plural, one {o} other {i}}?',
 
   // Original text: 'Revert your VM'
   revertVmModalTitle: 'Ripristina la tua VM',
@@ -4294,25 +4441,30 @@ export default {
   deleteVifsModalTitle: 'Elimina VIF{nVifs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?'
-  deleteVifsModalMessage: 'Sei sicuro di voler eliminare {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',
+  deleteVifsModalMessage:
+    'Sei sicuro di voler eliminare {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',
 
   // Original text: 'Delete snapshot'
   deleteSnapshotModalTitle: 'Elimina istantanea',
 
   // Original text: 'Are you sure you want to delete this snapshot?'
-  deleteSnapshotModalMessage: 'Sei sicuro di voler eliminare questa istantanea?',
+  deleteSnapshotModalMessage:
+    'Sei sicuro di voler eliminare questa istantanea?',
 
   // Original text: 'Delete snapshot{nVms, plural, one {} other {s}}'
-  deleteSnapshotsModalTitle: 'Elimina istantane{nVms, plural, one {a} other {e}}',
+  deleteSnapshotsModalTitle:
+    'Elimina istantane{nVms, plural, one {a} other {e}}',
 
   // Original text: 'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?'
-  deleteSnapshotsModalMessage: 'Sei sicuro di voler eliminare {nVms, number} istantane{nVms, plural, one {a} other {e}}?',
+  deleteSnapshotsModalMessage:
+    'Sei sicuro di voler eliminare {nVms, number} istantane{nVms, plural, one {a} other {e}}?',
 
   // Original text: 'Disconnect VBD{nVbds, plural, one {} other {s}}'
   disconnectVbdsModalTitle: 'Disconnetti VBD{nVbds, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  disconnectVbdsModalMessage: 'Sei sicuro di voler disconnettere {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
+  disconnectVbdsModalMessage:
+    'Sei sicuro di voler disconnettere {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
 
   // Original text: 'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.'
   revertVmModalMessage: 'Questa operazione è irreversibile.',
@@ -4336,7 +4488,8 @@ export default {
   deleteOrphanedVdisModalTitle: 'Elimina VDI snapshot orfani',
 
   // Original text: 'Are you sure you want to delete {nVdis, number} orphaned snapshot VDI{nVdis, plural, one {} other {s}}?'
-  deleteOrphanedVdisModalMessage: 'Sei sicuro di voler eliminare {nVdis, number} VDI istantane{nVdis, plural, one {a} other {e}} orfan{nVdis, plural, one {a} other {e}}?',
+  deleteOrphanedVdisModalMessage:
+    'Sei sicuro di voler eliminare {nVdis, number} VDI istantane{nVdis, plural, one {a} other {e}} orfan{nVdis, plural, one {a} other {e}}?',
 
   // Original text: 'This operation is definitive.'
   definitiveMessageModal: 'Questa operazione è definitiva.',
@@ -4345,55 +4498,65 @@ export default {
   existingLunModalTitle: 'Utilizzo LUN precedente',
 
   // Original text: 'This LUN has been previously used as storage by a XenServer host. All data will be lost if you choose to continue with the SR creation.'
-  existingLunModalText: 'Tutti i dati andranno persi se si sceglie di continuare con la creazione di SR.',
+  existingLunModalText:
+    'Tutti i dati andranno persi se si sceglie di continuare con la creazione di SR.',
 
   // Original text: 'Replace current registration?'
   alreadyRegisteredModal: 'Sostituisci la registrazione attuale?',
 
   // Original text: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?'
-  alreadyRegisteredModalText: "L'appliance XO è già registrata su {email}, vuoi dimenticare e sostituire questa registrazione?",
+  alreadyRegisteredModalText:
+    "L'appliance XO è già registrata su {email}, vuoi dimenticare e sostituire questa registrazione?",
 
   // Original text: 'Ready for trial?'
   trialReadyModal: 'Pronto per il processo?',
 
   // Original text: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!'
-  trialReadyModalText: 'Durante il periodo di prova, XOA deve disporre di una connessione Internet funzionante. Questa limitazione non si applica ai nostri piani a pagamento!',
+  trialReadyModalText:
+    'Durante il periodo di prova, XOA deve disporre di una connessione Internet funzionante. Questa limitazione non si applica ai nostri piani a pagamento!',
 
   // Original text: 'Cancel task{nTasks, plural, one {} other {s}}'
   cancelTasksModalTitle: 'Annulla attività',
 
   // Original text: 'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  cancelTasksModalMessage: 'Sei sicuro di voler annullare {nTasks, number} compit{nTasks, plural, one {o} other {i}}?',
+  cancelTasksModalMessage:
+    'Sei sicuro di voler annullare {nTasks, number} compit{nTasks, plural, one {o} other {i}}?',
 
   // Original text: 'Destroy task{nTasks, plural, one {} other {s}}'
   destroyTasksModalTitle: 'Distruggi compit{nTasks, plural, one {o} other {i}}',
 
   // Original text: 'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  destroyTasksModalMessage: 'Sei sicuro di voler distruggere {nTasks, number} compit{nTasks, plural, one {o} other {i}}?',
+  destroyTasksModalMessage:
+    'Sei sicuro di voler distruggere {nTasks, number} compit{nTasks, plural, one {o} other {i}}?',
 
   // Original text: 'Forget host'
   forgetHostFromSrModalTitle: "Dimentica l'host",
 
   // Original text: 'Are you sure you want to forget this host? This will disconnect the SR from the host by removing the link between them (PBD).'
-  forgetHostFromSrModalMessage: "Sei sicuro di voler dimenticare questo host? Ciò disconnetterà lo SR dallo host rimuovendo il collegamento tra loro (PBD).",
+  forgetHostFromSrModalMessage:
+    'Sei sicuro di voler dimenticare questo host? Ciò disconnetterà lo SR dallo host rimuovendo il collegamento tra loro (PBD).',
 
   // Original text: 'Forget host{nPbds, plural, one {} other {s}}'
-  forgetHostsFromSrModalTitle: "Dimentica {nPbds, plural, one {l'} other {gli}} host{nPbds, plural, one {} other {s}}",
+  forgetHostsFromSrModalTitle:
+    "Dimentica {nPbds, plural, one {l'} other {gli}} host{nPbds, plural, one {} other {s}}",
 
   // Original text: 'Are you sure you want to forget {nPbds, number} host{nPbds, plural, one {} other {s}}? This will disconnect the SR from these hosts by removing the links between the SR and the hosts (PBDs).'
-  forgetHostsFromSrModalMessage: "Sei sicuro di voler dimenticare {nPbds, number} host{nPbds, plural, one {} other {s}}? Ciò disconnetterà lo SR da questi hosts rimuovendo i collegamenti tra lo SR e gli host (PBD).",
+  forgetHostsFromSrModalMessage:
+    'Sei sicuro di voler dimenticare {nPbds, number} host{nPbds, plural, one {} other {s}}? Ciò disconnetterà lo SR da questi hosts rimuovendo i collegamenti tra lo SR e gli host (PBD).',
 
   // Original text: 'Forget SR'
   forgetSrFromHostModalTitle: 'Dimentica SR',
 
   // Original text: 'Are you sure you want to forget this SR? This will disconnect the SR from the host by removing the link between them (PBD).'
-  forgetSrFromHostModalMessage: "Sei sicuro di voler dimenticare questo SR? Ciò disconnetterà il SR dalo host rimuovendo il collegamento tra loro (PBD).",
+  forgetSrFromHostModalMessage:
+    'Sei sicuro di voler dimenticare questo SR? Ciò disconnetterà il SR dalo host rimuovendo il collegamento tra loro (PBD).',
 
   // Original text: 'Forget SR{nPbds, plural, one {} other {s}}'
   forgetSrsFromHostModalTitle: 'Dimentica SR{nPbds, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).'
-  forgetSrsFromHostModalMessage: "Sei sicuro di voler dimenticare {nPbds, number} SR{nPbds, plural, one {} other {s}}? Ciò disconnetterà gli SR dallo host rimuovendo i collegamenti tra l'host e gli SR (PBD).",
+  forgetSrsFromHostModalMessage:
+    "Sei sicuro di voler dimenticare {nPbds, number} SR{nPbds, plural, one {} other {s}}? Ciò disconnetterà gli SR dallo host rimuovendo i collegamenti tra l'host e gli SR (PBD).",
 
   // Original text: '* optional'
   optionalEntry: '* opzionale',
@@ -4408,7 +4571,7 @@ export default {
   serverUsername: 'Nome utente',
 
   // Original text: 'Password'
-  serverPassword: "Parola chiave",
+  serverPassword: 'Parola chiave',
 
   // Original text: 'Read Only'
   serverReadOnly: 'Sola lettura',
@@ -4420,13 +4583,14 @@ export default {
   serverAllowUnauthorizedCertificates: 'Consenti certificati non autorizzati',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: 'Abilitalo se il certificato viene rifiutato, ma non è consigliato perché la connessione non sarà protetta.',
+  serverUnauthorizedCertificatesInfo:
+    'Abilitalo se il certificato viene rifiutato, ma non è consigliato perché la connessione non sarà protetta.',
 
   // Original text: 'username'
   serverPlaceHolderUser: 'nome utente',
 
   // Original text: 'password'
-  serverPlaceHolderPassword: "parola chiave",
+  serverPlaceHolderPassword: 'parola chiave',
 
   // Original text: 'address[:port]'
   serverPlaceHolderAddress: 'Indirizzo[:porta]',
@@ -4447,7 +4611,8 @@ export default {
   serverStatus: 'Stato',
 
   // Original text: 'Connection failed. Click for more information.'
-  serverConnectionFailed: 'Connessione fallita. Clicca per maggiori informazioni.',
+  serverConnectionFailed:
+    'Connessione fallita. Clicca per maggiori informazioni.',
 
   // Original text: 'Authentication error'
   serverAuthFailed: 'Errore di autenticazione',
@@ -4459,7 +4624,8 @@ export default {
   serverSelfSignedCertError: 'Certificato autofirmato non valido',
 
   // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
-  serverSelfSignedCertQuestion: 'Vuoi accettare il certificato autofirmato per questo server anche se ridurrebbe la sicurezza?',
+  serverSelfSignedCertQuestion:
+    'Vuoi accettare il certificato autofirmato per questo server anche se ridurrebbe la sicurezza?',
 
   // Original text: 'Enable'
   serverEnable: 'Abilitare',
@@ -4492,10 +4658,12 @@ export default {
   copyVmsNoTargetSr: 'Nessuna SR di destinazione',
 
   // Original text: 'A target SR is required to copy a VM'
-  copyVmsNoTargetSrMessage: 'È richiesto un SR di destinazione per copiare una VM',
+  copyVmsNoTargetSrMessage:
+    'È richiesto un SR di destinazione per copiare una VM',
 
   // Original text: 'Zstd is not supported on {nVms, number} VM{nVms, plural, one {} other {s}}'
-  notSupportedZstdWarning: 'Zstd non è supportato su {nVms, number} VM{nVms, plural, one {} other {s}}',
+  notSupportedZstdWarning:
+    'Zstd non è supportato su {nVms, number} VM{nVms, plural, one {} other {s}}',
 
   // Original text: 'Click to see the concerned VMs'
   notSupportedZstdTooltip: 'Fare clic per visualizzare le VM interessate',
@@ -4510,7 +4678,8 @@ export default {
   detachHostModalTitle: "Scollega l'host",
 
   // Original text: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.'
-  detachHostModalMessage: "Sei sicuro di voler staccare {host} dal suo pool? QUESTO RIMUOVERÀ TUTTE LE VM SUL SUO STOCCAGGIO LOCALE E RIAVVIERÀ L'HOST.",
+  detachHostModalMessage:
+    "Sei sicuro di voler staccare {host} dal suo pool? QUESTO RIMUOVERÀ TUTTE LE VM SUL SUO STOCCAGGIO LOCALE E RIAVVIERÀ L'HOST.",
 
   // Original text: 'Detach'
   detachHost: 'Scollegare',
@@ -4525,7 +4694,8 @@ export default {
   enableAdvancedLiveTelemetry: 'Abilita telemetria live avanzata',
 
   // Original text: 'Advanced Live Telemetry successfully enabled'
-  enableAdvancedLiveTelemetrySuccess: 'Telemetria live avanzata abilitata correttamente',
+  enableAdvancedLiveTelemetrySuccess:
+    'Telemetria live avanzata abilitata correttamente',
 
   // Original text: 'This feature is only XCP-ng compatible'
   xcpOnlyFeature: 'Questa funzione è compatibile solo con XCP-ng',
@@ -4534,7 +4704,8 @@ export default {
   forgetHostModalTitle: "Dimentica l'host",
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: 'Assicurati che questo host non possa essere di nuovo online, oppure usa detach invece.',
+  forgetHostModalMessage:
+    'Assicurati che questo host non possa essere di nuovo online, oppure usa detach invece.',
 
   // Original text: 'Forget'
   forgetHost: 'Dimenticare',
@@ -4585,7 +4756,8 @@ export default {
   newNetworkEncrypted: 'Criptato',
 
   // Original text: 'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max'
-  encryptionWarning: 'Un pool può avere 1 rete GRE crittografata e 1 rete VxLAN crittografata massima',
+  encryptionWarning:
+    'Un pool può avere 1 rete GRE crittografata e 1 rete VxLAN crittografata massima',
 
   // Original text: 'Please see the requirements'
   newNetworkSdnControllerTip: 'Si prega di consultare i requisiti',
@@ -4633,7 +4805,8 @@ export default {
   productionUse: 'Vuoi usare in produzione?',
 
   // Original text: 'Get pro support with the Xen Orchestra Appliance at {website}'
-  getSupport: 'Ottieni supporto professionale con Xen Orchestra Appliance su {website}',
+  getSupport:
+    'Ottieni supporto professionale con Xen Orchestra Appliance su {website}',
 
   // Original text: 'Bug Tracker'
   bugTracker: 'Bug Tracker',
@@ -4693,7 +4866,8 @@ export default {
   availableIn: "Questa funzione è disponibile a partire dall'edizione {plan}",
 
   // Original text: 'This feature is not available in your version, contact your administrator to know more.'
-  notAvailable: 'Questa funzione non è disponibile nella tua versione, contatta il tuo amministratore per saperne di più.',
+  notAvailable:
+    'Questa funzione non è disponibile nella tua versione, contatta il tuo amministratore per saperne di più.',
 
   // Original text: 'Registration'
   registration: 'Registrazione',
@@ -4714,7 +4888,7 @@ export default {
   proxySettingsUsernamePlaceHolder: 'Nome utente',
 
   // Original text: 'Password'
-  proxySettingsPasswordPlaceHolder: "Parola chiave",
+  proxySettingsPasswordPlaceHolder: 'Parola chiave',
 
   // Original text: 'Your email account'
   updateRegistrationEmailPlaceHolder: 'Il tuo account e-mail',
@@ -4738,7 +4912,8 @@ export default {
   downgrade: 'Retrocedere',
 
   // Original text: 'Please consider subscribing and trying it with all the features for free during 15 days on {link}.'
-  considerSubscribe: "Ti preghiamo di prendere in considerazione l'abbonamento e provarlo con tutte le funzionalità gratuitamente per 15 giorni su {link}.",
+  considerSubscribe:
+    "Ti preghiamo di prendere in considerazione l'abbonamento e provarlo con tutte le funzionalità gratuitamente per 15 giorni su {link}.",
 
   // Original text: 'Current version:'
   currentVersion: 'Versione attuale:',
@@ -4750,7 +4925,8 @@ export default {
   editRegistration: 'Modifica registrazione',
 
   // Original text: 'Please, take time to register in order to enjoy your trial.'
-  trialRegistration: 'Per favore, prenditi del tempo per registrarti per goderti la tua prova.',
+  trialRegistration:
+    'Per favore, prenditi del tempo per registrarti per goderti la tua prova.',
 
   // Original text: 'Start trial'
   trialStartButton: 'Inizia la prova',
@@ -4762,13 +4938,15 @@ export default {
   trialConsumed: 'Contattaci o effettua il downgrade alla versione gratuita',
 
   // Original text: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.'
-  trialLocked: 'Il tuo XOA non può funzionare completamente senza connettersi a questo servizio.',
+  trialLocked:
+    'Il tuo XOA non può funzionare completamente senza connettersi a questo servizio.',
 
   // Original text: 'No update information available'
   noUpdateInfo: 'Nessuna informazione di aggiornamento disponibile',
 
   // Original text: 'Update information may be available'
-  waitingUpdateInfo: "Informazioni sull'aggiornamento potrebbero essere disponibili",
+  waitingUpdateInfo:
+    "Informazioni sull'aggiornamento potrebbero essere disponibili",
 
   // Original text: 'Your XOA is up-to-date'
   upToDate: 'Il tuo XOA è aggiornato',
@@ -4786,13 +4964,15 @@ export default {
   promptUpgradeReloadTitle: 'Aggiornamento eseguito correttamente',
 
   // Original text: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?'
-  promptUpgradeReloadMessage: "Il tuo XOA è stato aggiornato correttamente e il tuo browser deve ricaricare l'applicazione. Vuoi ricaricare ora?",
+  promptUpgradeReloadMessage:
+    "Il tuo XOA è stato aggiornato correttamente e il tuo browser deve ricaricare l'applicazione. Vuoi ricaricare ora?",
 
   // Original text: 'Upgrade warning'
   upgradeWarningTitle: 'Avviso di aggiornamento',
 
   // Original text: 'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?'
-  upgradeWarningMessage: "Sono in corso alcuni processi di backup. Se esegui l'aggiornamento adesso, questi lavori verranno interrotti! Sei sicuro di voler continuare?",
+  upgradeWarningMessage:
+    "Sono in corso alcuni processi di backup. Se esegui l'aggiornamento adesso, questi lavori verranno interrotti! Sei sicuro di voler continuare?",
 
   // Original text: 'Release channels'
   releaseChannels: 'Canali di rilascio',
@@ -4810,7 +4990,8 @@ export default {
   changeChannel: 'Cambia canale',
 
   // Original text: 'The Web updater, the release channels and the proxy settings are available in XOA.'
-  updaterCommunity: "L'aggiornamento Web, i canali di rilascio e le impostazioni proxy sono disponibili in XOA.",
+  updaterCommunity:
+    "L'aggiornamento Web, i canali di rilascio e le impostazioni proxy sono disponibili in XOA.",
 
   // Original text: 'XOA build:'
   xoaBuild: 'XOA build:',
@@ -4819,22 +5000,27 @@ export default {
   disclaimerTitle: 'Stai usando XO dai sorgenti!',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1: 'Stai usando XO dai sorgenti! È fantastico per un uso personale/non lucrativo.',
+  disclaimerText1:
+    'Stai usando XO dai sorgenti! È fantastico per un uso personale/non lucrativo.',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: "Se sei un'azienda, è meglio utilizzarlo con il nostro supporto appliance + pro incluso:",
+  disclaimerText2:
+    "Se sei un'azienda, è meglio utilizzarlo con il nostro supporto appliance + pro incluso:",
 
   // Original text: 'This version is not bundled with any support nor updates. Use it with caution.'
-  disclaimerText3: 'Questa versione non è fornita con alcun supporto né aggiornamento. Usalo con cautela.',
+  disclaimerText3:
+    'Questa versione non è fornita con alcun supporto né aggiornamento. Usalo con cautela.',
 
   // Original text: 'You are not registered. Your XOA may not be up to date.'
-  notRegisteredDisclaimerInfo: 'Non sei registrato Il tuo XOA potrebbe non essere aggiornato.',
+  notRegisteredDisclaimerInfo:
+    'Non sei registrato Il tuo XOA potrebbe non essere aggiornato.',
 
   // Original text: 'Click here to create an account.'
   notRegisteredDisclaimerCreateAccount: 'Clicca qui per creare un account.',
 
   // Original text: 'Click here to register and update your XOA.'
-  notRegisteredDisclaimerRegister: 'Fai clic qui per registrarti e aggiornare il tuo XOA.',
+  notRegisteredDisclaimerRegister:
+    'Fai clic qui per registrarti e aggiornare il tuo XOA.',
 
   // Original text: 'Connect PIF'
   connectPif: 'Collega PIF',
@@ -4858,7 +5044,8 @@ export default {
   deletePifs: 'Elimina PIF',
 
   // Original text: 'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?'
-  deletePifsConfirm: 'Sei sicuro di voler eliminare {nPifs, number} PIF{nPifs, plural, one {} other {s}}?',
+  deletePifsConfirm:
+    'Sei sicuro di voler eliminare {nPifs, number} PIF{nPifs, plural, one {} other {s}}?',
 
   // Original text: 'Connected'
   pifConnected: 'Collegato',
@@ -4876,7 +5063,7 @@ export default {
   username: 'Nome utente',
 
   // Original text: 'Password'
-  password: "Parola chiave",
+  password: 'Parola chiave',
 
   // Original text: 'Language'
   language: 'Linguaggio',
@@ -4894,7 +5081,8 @@ export default {
   confirmationPasswordError: 'Parola chiave di conferma errata',
 
   // Original text: 'Password does not match the confirm password.'
-  confirmationPasswordErrorBody: 'La parola chiave non corrisponde alla parola chiave di conferma.',
+  confirmationPasswordErrorBody:
+    'La parola chiave non corrisponde alla parola chiave di conferma.',
 
   // Original text: 'Password changed'
   pwdChangeSuccess: 'Parola chiave cambiata',
@@ -4915,7 +5103,8 @@ export default {
   forgetTokens: 'Dimentica tutti i token di connessione',
 
   // Original text: 'This will prevent other clients from authenticating with existing tokens but will not kill active sessions'
-  forgetTokensExplained: 'Ciò impedirà ad altri client di autenticarsi con token esistenti ma non ucciderà le sessioni attive',
+  forgetTokensExplained:
+    'Ciò impedirà ad altri client di autenticarsi con token esistenti ma non ucciderà le sessioni attive',
 
   // Original text: 'Successfully forgot connection tokens'
   forgetTokensSuccess: 'Token di connessione dimenticati correttamente',
@@ -4954,13 +5143,15 @@ export default {
   deleteSshKeyConfirm: 'Elimina chiave SSH',
 
   // Original text: 'Are you sure you want to delete the SSH key {title}?'
-  deleteSshKeyConfirmMessage: 'Sei sicuro di voler eliminare la chiave SSH {title}?',
+  deleteSshKeyConfirmMessage:
+    'Sei sicuro di voler eliminare la chiave SSH {title}?',
 
   // Original text: 'Delete SSH key{nKeys, plural, one {} other {s}}'
   deleteSshKeysConfirm: 'Elimina chiav{nKeys, plural, one {e} other {i}} SSH',
 
   // Original text: 'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?'
-  deleteSshKeysConfirmMessage: 'Sei sicuro di voler eliminare {nKeys, number} chiav{nKeys, plural, one {e} other {i}} SSH?',
+  deleteSshKeysConfirmMessage:
+    'Sei sicuro di voler eliminare {nKeys, number} chiav{nKeys, plural, one {e} other {i}} SSH?',
 
   // Original text: 'Add OTP authentication'
   addOtpConfirm: 'Aggiungi autenticazione OTP',
@@ -4972,7 +5163,8 @@ export default {
   removeOtpConfirm: 'Rimuovi autenticazione OTP',
 
   // Original text: 'Are you sure you want to remove OTP authentication?'
-  removeOtpConfirmMessage: "Sei sicuro di voler rimuovere l'autenticazione OTP?",
+  removeOtpConfirmMessage:
+    "Sei sicuro di voler rimuovere l'autenticazione OTP?",
 
   // Original text: 'OTP authentication'
   OtpAuthentication: 'Autenticazione OTP',
@@ -4996,7 +5188,7 @@ export default {
   logError: 'Errore',
 
   // Original text: 'Logs'
-  logTitle: 'logs',
+  logTitle: 'Logs',
 
   // Original text: 'Display details'
   logDisplayDetails: 'Visualizza i dettagli',
@@ -5041,7 +5233,8 @@ export default {
   logDeleteMultiple: 'Elimina registr{nLogs, plural, one {o} other {i}}',
 
   // Original text: 'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?'
-  logDeleteMultipleMessage: 'Vuoi eliminare {nLogs, number} log{nLogs, plural, one {o} other {i}}?',
+  logDeleteMultipleMessage:
+    'Vuoi eliminare {nLogs, number} log{nLogs, plural, one {o} other {i}}?',
 
   // Original text: 'Click to enable'
   logIndicationToEnable: 'Fai clic per abilitare',
@@ -5146,7 +5339,8 @@ export default {
   shortcut_SortedTable: 'Tabelle supportate',
 
   // Original text: 'Focus the table search bar'
-  shortcut_SortedTable_SEARCH: 'Mettere a fuoco la barra di ricerca della tabella',
+  shortcut_SortedTable_SEARCH:
+    'Mettere a fuoco la barra di ricerca della tabella',
 
   // Original text: 'Next item'
   shortcut_SortedTable_NAV_DOWN: 'Elemento successivo',
@@ -5179,10 +5373,12 @@ export default {
   settingsCloudConfigTemplate: 'Modello',
 
   // Original text: 'Delete cloud config{nCloudConfigs, plural, one {} other {s}}'
-  confirmDeleteCloudConfigsTitle: 'Elimina cloud configurazion{nCloudConfigs, plural, one {e} other {i}}',
+  confirmDeleteCloudConfigsTitle:
+    'Elimina cloud configurazion{nCloudConfigs, plural, one {e} other {i}}',
 
   // Original text: 'Are you sure you want to delete {nCloudConfigs, number} cloud config{nCloudConfigs, plural, one {} other {s}}?'
-  confirmDeleteCloudConfigsBody: 'Sei sicuro di voler eliminare {nCloudConfigs, number} cloud configurazion{nCloudConfigs, plural, one {e} other {i}}?',
+  confirmDeleteCloudConfigsBody:
+    'Sei sicuro di voler eliminare {nCloudConfigs, number} cloud configurazion{nCloudConfigs, plural, one {e} other {i}}?',
 
   // Original text: 'Delete cloud config'
   deleteCloudConfig: 'Elimina configurazione cloud',
@@ -5197,7 +5393,8 @@ export default {
   noConfigFile: 'Nessun file di configurazione selezionato',
 
   // Original text: 'Try dropping a config file here or click to select a config file to upload.'
-  importTip: 'Prova a rilasciare un file di configurazione qui o fai clic per selezionare un file di configurazione da caricare.',
+  importTip:
+    'Prova a rilasciare un file di configurazione qui o fai clic per selezionare un file di configurazione da caricare.',
 
   // Original text: 'Config'
   config: 'Configurazione',
@@ -5227,10 +5424,12 @@ export default {
   srDisconnectAllModalTitle: 'Disconnetti tutti gli hosts',
 
   // Original text: 'This will disconnect this SR from all its hosts.'
-  srDisconnectAllModalMessage: 'Questo disconnetterà questo SR da tutti i suoi hosts.',
+  srDisconnectAllModalMessage:
+    'Questo disconnetterà questo SR da tutti i suoi hosts.',
 
   // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
-  srsDisconnectAllModalMessage: 'Ciò disconnetterà ogni SR selezionato dal suo host (SR locale) o da tutti gli hosts del suo pool (SR condiviso).',
+  srsDisconnectAllModalMessage:
+    'Ciò disconnetterà ogni SR selezionato dal suo host (SR locale) o da tutti gli hosts del suo pool (SR condiviso).',
 
   // Original text: 'Forget SR'
   srForgetModalTitle: 'Dimentica SR',
@@ -5239,10 +5438,12 @@ export default {
   srsForgetModalTitle: 'Dimentica i SRs selezionati',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage: 'Sei sicuro di voler dimenticare questo SR? I VDI su questo deposito non verranno rimossi.',
+  srForgetModalMessage:
+    'Sei sicuro di voler dimenticare questo SR? I VDI su questo deposito non verranno rimossi.',
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage: 'Sei sicuro di voler dimenticare tutti gli SR selezionati? I VDI su questi depositi non verranno rimossi.',
+  srsForgetModalMessage:
+    'Sei sicuro di voler dimenticare tutti gli SR selezionati? I VDI su questi depositi non verranno rimossi.',
 
   // Original text: 'Disconnected'
   srAllDisconnected: 'Scollegato',
@@ -5257,7 +5458,8 @@ export default {
   migrateSelectedVdis: 'Migrare i VDI selezionati',
 
   // Original text: 'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.'
-  migrateVdiMessage: 'Tutti i VDI collegati a una VM devono trovarsi su un SR condiviso o sullo stesso host (SR locale) affinché la VM possa avviarsi.',
+  migrateVdiMessage:
+    'Tutti i VDI collegati a una VM devono trovarsi su un SR condiviso o sullo stesso host (SR locale) affinché la VM possa avviarsi.',
 
   // Original text: 'XOSAN'
   xosanTitle: 'XOSAN',
@@ -5293,13 +5495,15 @@ export default {
   xosanMultipleLicenses: 'Questo XOSAN ha più di 1 licenza!',
 
   // Original text: 'XOSAN pack needs to be installed and up to date on each host of the pool.'
-  xosanNeedPack: 'Il pacchetto XOSAN deve essere installato e aggiornato su ogni host del pool.',
+  xosanNeedPack:
+    'Il pacchetto XOSAN deve essere installato e aggiornato su ogni host del pool.',
 
   // Original text: 'Install it now!'
   xosanInstallIt: 'Installarlo ora!',
 
   // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: 'Alcuni hosts necessitano di riavviare il loro toolstack prima di poter creare un XOSAN',
+  xosanNeedRestart:
+    'Alcuni hosts necessitano di riavviare il loro toolstack prima di poter creare un XOSAN',
 
   // Original text: 'Restart toolstacks'
   xosanRestartAgents: 'Riavvia toolstacks',
@@ -5338,10 +5542,11 @@ export default {
   xosanRemoveSubvolumes: 'Rimuovi sottovolumi',
 
   // Original text: 'Add subvolume…'
-  xosanAddSubvolume: 'Aggiungi volume secondario ...',
+  xosanAddSubvolume: 'Aggiungi volume secondario…',
 
   // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
-  xosanWarning: 'Questa versione di XOSAN SR è della prima fase beta. Puoi continuare a usarlo, ma per modificarlo dovrai salvare i tuoi dischi e ricrearli.',
+  xosanWarning:
+    'Questa versione di XOSAN SR è della prima fase beta. Puoi continuare a usarlo, ma per modificarlo dovrai salvare i tuoi dischi e ricrearli.',
 
   // Original text: 'VLAN'
   xosanVlan: 'VLAN',
@@ -5365,7 +5570,8 @@ export default {
   xosanPackUpdateChecking: 'Verifica aggiornamenti',
 
   // Original text: 'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded, and that the updater is reachable.'
-  xosanPackUpdateError: 'Assicurati che il plug-in Cloud sia installato e caricato e che il programma di aggiornamento sia raggiungibile.',
+  xosanPackUpdateError:
+    'Assicurati che il plug-in Cloud sia installato e caricato e che il programma di aggiornamento sia raggiungibile.',
 
   // Original text: 'XOSAN resources are unavailable'
   xosanPackUpdateUnavailable: 'Le risorse XOSAN non sono disponibili',
@@ -5374,10 +5580,12 @@ export default {
   xosanPackUpdateUnregistered: 'Non registrato per le risorse XOSAN',
 
   // Original text: "✓ This pool's XOSAN packs are up to date!"
-  xosanPackUpdateUpToDate: '✓ I pacchetti XOSAN di questo pool sono aggiornati!',
+  xosanPackUpdateUpToDate:
+    '✓ I pacchetti XOSAN di questo pool sono aggiornati!',
 
   // Original text: 'Update pool with latest pack v{version}'
-  xosanPackUpdateVersion: "Pool di aggiornamento con l'ultimo pacchetto v{versione}",
+  xosanPackUpdateVersion:
+    "Pool di aggiornamento con l'ultimo pacchetto v{versione}",
 
   // Original text: 'Delete XOSAN'
   xosanDelete: 'Elimina XOSAN',
@@ -5416,7 +5624,8 @@ export default {
   xosanLoadCloudPlugin: 'Carica prima il plugin XOA',
 
   // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: 'Nessun pacchetto XOSAN compatibile trovato per le tue versioni XenServer.',
+  xosanNoPackFound:
+    'Nessun pacchetto XOSAN compatibile trovato per le tue versioni XenServer.',
 
   // Original text: 'Some XOSAN Virtual Machines are not running'
   xosanVmsNotRunning: 'Alcune VMs XOSAN non sono in esecuzione',
@@ -5500,7 +5709,8 @@ export default {
   xosanAddSubvolumeErrorTitle: 'Valori errati',
 
   // Original text: 'You need to select {nSrs, number} and a size'
-  xosanAddSubvolumeErrorMessage: 'Devi selezionare {nSrs, number} e una dimensione',
+  xosanAddSubvolumeErrorMessage:
+    'Devi selezionare {nSrs, number} e una dimensione',
 
   // Original text: 'Select {nSrs, number} SRs'
   xosanSelectNSrs: 'Seleziona {nSrs, number} SR',
@@ -5527,7 +5737,8 @@ export default {
   xosanCustomIpNetwork: 'Rete IP personalizzata (/ 24)',
 
   // Original text: 'Will configure the host xosan network device with a static IP address and plug it in.'
-  xosanIssueHostNotInNetwork: 'Configurerà il dispositivo di rete xosan host con un indirizzo IP statico e lo collegherà.',
+  xosanIssueHostNotInNetwork:
+    'Configurerà il dispositivo di rete xosan host con un indirizzo IP statico e lo collegherà.',
 
   // Original text: 'Hub'
   hubPage: 'Hub',
@@ -5569,7 +5780,8 @@ export default {
   hubImportNotificationTitle: 'Importazione XVA',
 
   // Original text: 'No description available for this template'
-  hubTemplateDescriptionNotAvailable: 'Nessuna descrizione disponibile per questo modello',
+  hubTemplateDescriptionNotAvailable:
+    'Nessuna descrizione disponibile per questo modello',
 
   // Original text: 'Recipe created successfully'
   recipeCreatedSuccessfully: 'Ricetta creata con successo',
@@ -5602,7 +5814,8 @@ export default {
   auditActionEvent: 'Azione/Evento',
 
   // Original text: 'The record ({ id }) was altered ({ n, number } valid records)'
-  auditAlteredRecord: 'Il record ({id}) è stato modificato ({n, number} record validi)',
+  auditAlteredRecord:
+    'Il record ({id}) è stato modificato ({n, number} record validi)',
 
   // Original text: 'Check integrity'
   auditCheckIntegrity: "Verifica l'integrità",
@@ -5620,7 +5833,8 @@ export default {
   auditEnterFingerprint: 'Impronta digitale',
 
   // Original text: "Enter the saved fingerprint to check the previous logs' integrity. If you don't have any, click OK."
-  auditEnterFingerprintInfo: "Immettere l'impronta digitale salvata per verificare l'integrità dei registri precedenti.",
+  auditEnterFingerprintInfo:
+    "Immettere l'impronta digitale salvata per verificare l'integrità dei registri precedenti.",
 
   // Original text: 'Audit record'
   auditRecord: 'Registro di audit',
@@ -5629,10 +5843,12 @@ export default {
   auditIntegrityVerified: 'Integrità verificata',
 
   // Original text: 'Keep this fingerprint to be able to check the integrity of the current records later.'
-  auditSaveFingerprintInfo: "Conservare questa impronta digitale per poter verificare in seguito l'integrità dei record correnti.",
+  auditSaveFingerprintInfo:
+    "Conservare questa impronta digitale per poter verificare in seguito l'integrità dei record correnti.",
 
   // Original text: 'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.'
-  auditSaveFingerprintInErrorInfo: "Tuttavia, se ti fidi dell'attuale stato dei record, mantieni questa impronta digitale per poterne verificare l'integrità in un secondo tempo.",
+  auditSaveFingerprintInErrorInfo:
+    "Tuttavia, se ti fidi dell'attuale stato dei record, mantieni questa impronta digitale per poterne verificare l'integrità in un secondo tempo.",
 
   // Original text: 'New fingerprint'
   auditNewFingerprint: 'Nuova impronta digitale',
@@ -5650,16 +5866,19 @@ export default {
   refreshAuditRecordsList: "Aggiorna l'elenco dei record",
 
   // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
-  xosanUnregisteredDisclaimer: 'Non sei registrato e pertanto non sarai in grado di creare o gestire i tuoi XOSAN SR. {link}',
+  xosanUnregisteredDisclaimer:
+    'Non sei registrato e pertanto non sarai in grado di creare o gestire i tuoi XOSAN SR. {link}',
 
   // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
-  xosanSourcesDisclaimer: 'Per creare un XOSAN SR, è necessario utilizzare Xen Orchestra Appliance e acquistare una licenza XOSAN su {link}.',
+  xosanSourcesDisclaimer:
+    'Per creare un XOSAN SR, è necessario utilizzare Xen Orchestra Appliance e acquistare una licenza XOSAN su {link}.',
 
   // Original text: 'Register now!'
   registerNow: 'Iscriviti ora!',
 
   // Original text: 'You need to register your appliance to manage your licenses.'
-  licensesUnregisteredDisclaimer: "È necessario registrare l'appliance per gestire le licenze.",
+  licensesUnregisteredDisclaimer:
+    "È necessario registrare l'appliance per gestire le licenze.",
 
   // Original text: 'Product'
   licenseProduct: 'Prodotto',
@@ -5695,13 +5914,16 @@ export default {
   xosanLicenseRestricted: 'Dimensioni limitate perché XOSAN è in prova',
 
   // Original text: 'You need a license on this SR to manage the XOSAN.'
-  xosanAdminNoLicenseDisclaimer: 'Per gestire XOSAN è necessaria una licenza su questo SR.',
+  xosanAdminNoLicenseDisclaimer:
+    'Per gestire XOSAN è necessaria una licenza su questo SR.',
 
   // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
-  xosanAdminExpiredLicenseDisclaimer: 'La tua licenza XOSAN è scaduta. È ancora possibile utilizzare SR ma non è più possibile gestirlo.',
+  xosanAdminExpiredLicenseDisclaimer:
+    'La tua licenza XOSAN è scaduta. È ancora possibile utilizzare SR ma non è più possibile gestirlo.',
 
   // Original text: 'Could not check the license on this XOSAN SR'
-  xosanCheckLicenseError: 'Impossibile verificare la licenza su questo XOSAN SR',
+  xosanCheckLicenseError:
+    'Impossibile verificare la licenza su questo XOSAN SR',
 
   // Original text: 'Could not fetch licenses'
   xosanGetLicensesError: 'Impossibile recuperare le licenze',
@@ -5716,7 +5938,7 @@ export default {
   licenseBoundToThisXoa: 'Questa licenza è attiva su questo XOA',
 
   // Original text: 'License expires on {date}.'
-  xosanLicenseExpiresDate: 'La licenza scade il {data}.',
+  xosanLicenseExpiresDate: 'La licenza scade il {date}.',
 
   // Original text: 'Update the license now!'
   xosanUpdateLicenseMessage: 'Aggiorna subito la licenza!',
@@ -5740,7 +5962,7 @@ export default {
   bindLicense: 'Licenza vincolante',
 
   // Original text: 'expires on {date}'
-  expiresOn: 'scade il {data}',
+  expiresOn: 'scade il {date}',
 
   // Original text: 'Install XOA plugin first'
   xosanInstallXoaPlugin: 'Installare prima il plugin XOA',
@@ -5773,7 +5995,8 @@ export default {
   forgetProxyApplianceTitle: 'Dimentica prox{n, plural, one {y} other {ies}}',
 
   // Original text: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?'
-  forgetProxyApplianceMessage: 'Sei sicuro di voler dimenticare {n, number} prox{n, plural, one {y} other {ies}}?',
+  forgetProxyApplianceMessage:
+    'Sei sicuro di voler dimenticare {n, number} prox{n, plural, one {y} other {ies}}?',
 
   // Original text: 'Forget proxy(ies)'
   forgetProxies: 'Dimentica i proxy',
@@ -5782,7 +6005,8 @@ export default {
   destroyProxyApplianceTitle: 'Distruggi prox{n, plural, one {y} other {ies}}',
 
   // Original text: 'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?'
-  destroyProxyApplianceMessage: 'Sei sicuro di voler distruggere {n, number} prox{n, plural, one {y} other {ies}}?',
+  destroyProxyApplianceMessage:
+    'Sei sicuro di voler distruggere {n, number} prox{n, plural, one {y} other {ies}}?',
 
   // Original text: 'Destroy proxy(ies)'
   destroyProxies: 'Distruggi i prox(ies)',
@@ -5809,7 +6033,7 @@ export default {
   upgradeProxyAppliance: "aggiornare l'appliance",
 
   // Original text: 'Test passed for {name}'
-  proxyTestSuccess: 'Test 0k per {nome}',
+  proxyTestSuccess: 'Test OK per {name}',
 
   // Original text: 'The proxy appears to work correctly'
   proxyTestSuccessMessage: 'Il proxy sembra funzionare correttamente',
@@ -5827,11 +6051,13 @@ export default {
   proxyNetworkNetmaskPlaceHolder: "L'impostazione predefinita è: {netmask}",
 
   // Original text: 'The select only contains SRs connected to at least one HVM-capable host'
-  proxySrPredicateInfo: 'La selezione contiene solo SR collegati ad almeno un host abilitato per HVM',
+  proxySrPredicateInfo:
+    'La selezione contiene solo SR collegati ad almeno un host abilitato per HVM',
 
   // Original text: '{seconds, plural, one {# second} other {# seconds}}'
   secondsFormat: '{seconds, plural, one {# secondo} other {# secondi}}',
 
   // Original text: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}'
-  durationFormat: '{days, plural, =0 {} one {# giorno } other {# giorni }}{hours, plural, =0 {} one {# ora } other {# ore }}{minutes, plural, =0 {} one {# minuto } other {# minuti }}{seconds, plural, =0 {} one {# secondo} other {# secondi}}'
+  durationFormat:
+    '{days, plural, =0 {} one {# giorno } other {# giorni }}{hours, plural, =0 {} one {# ora } other {# ore }}{minutes, plural, =0 {} one {# minuto } other {# minuti }}{seconds, plural, =0 {} one {# secondo} other {# secondi}}',
 }
