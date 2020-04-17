@@ -1775,7 +1775,7 @@ export const addAclRule = ({
   allow,
   protocol = undefined,
   port = undefined,
-  ipRange = undefined,
+  ipRange = '',
   direction,
   vif,
 }) =>
@@ -1787,10 +1787,11 @@ export const addAclRule = ({
     direction,
     vifId: resolveId(vif),
   })
+
 export const deleteAclRule = ({
   protocol = undefined,
   port = undefined,
-  ipRange = undefined,
+  ipRange = '',
   direction,
   vif,
 }) =>

@@ -1,7 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
-import Button from 'button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
@@ -29,6 +28,7 @@ import {
   SelectResourceSetIp,
   SelectResourceSetsNetwork,
 } from 'select-objects'
+import { Select, Toggle } from 'form'
 import {
   concat,
   every,
@@ -52,7 +52,7 @@ import {
 } from 'selectors'
 
 import {
-  // addAclRule,
+  addAclRule,
   connectVif,
   createVmInterface,
   deleteAclRule,
@@ -310,13 +310,13 @@ class VifStatus extends BaseComponent {
 
 // -----------------------------------------------------------------------------
 
-class newAclRuleForm extends BaseComponent {
+class NewAclRuleForm extends BaseComponent {
   state = {
     allow: true,
     protocol: undefined,
     port: undefined,
     ipRange: '',
-    direction: 'from/to',
+    direction: undefined,
   }
 
   get value() {
@@ -325,32 +325,53 @@ class newAclRuleForm extends BaseComponent {
   }
 
   render() {
-    // protocol
-    const { allow, port, ipRange /* direction */ } = this.state
-
+    const { protocol, allow, port, ipRange, direction } = this.state
     return (
       <form id='newAclForm'>
         <fieldset className='form-inline'>
           <div className='form-group'>
+            <Toggle onChange={this.toggleState('allow')} value={allow} />
+            {_('aclRuleAllow')}
+            <Select
+              name='protocol'
+              onChange={this.linkState('protocol')}
+              options={[
+                { label: 'IP', value: 'IP' },
+                { label: 'TCP', value: 'TCP' },
+                { label: 'UDP', value: 'UDP' },
+                { label: 'ICMP', value: 'ICMP' },
+                { label: 'ARP', value: 'ARP' },
+              ]}
+              value={protocol}
+            />
+            {_('aclRuleProtocol')}
             <input
-              type='boolean'
-              value={allow}
-              onChange={this.toggleState('allow')}
-              className='form-control'
-            />{' '}
-            <input
-              type='integer'
+              type='number'
               value={port}
+              min='1'
               onChange={this.linkState('port')}
               className='form-control'
-            />{' '}
+            />
+            {_('aclRulePort')}
             <input
               type='text'
               value={ipRange}
               onChange={this.linkState('ipRange')}
               className='form-control'
-            />{' '}
-            ({_('vifMacAutoGenerate')})
+            />
+            {_('aclRuleIpRange')}
+            <Select
+              name='direction'
+              onChange={this.linkState('direction')}
+              options={[
+                { label: 'from', value: 'from' },
+                { label: 'to', value: 'to' },
+                { label: 'from/to', value: 'from/to' },
+              ]}
+              required
+              value={direction}
+            />
+            {_('aclRuleDirection')}
           </div>
         </fieldset>
       </form>
@@ -384,13 +405,20 @@ class AclRuleItem extends Component {
 }
 
 class AclRulesItems extends BaseComponent {
-  newAclRule() {
-    confirm({
+  newAclRule(vif) {
+    return confirm({
       icon: 'add',
       title: _('addRule'),
-      body: <newAclRuleForm />,
+      body: <NewAclRuleForm />,
     }).then(({ allow, protocol, port, ipRange, direction }) => {
-      // console.log('totototo', { allow, protocol, port, ipRange, direction })
+      return addAclRule({
+        allow,
+        protocol: protocol.value,
+        port: +port,
+        ipRange,
+        direction: direction.value,
+        vif,
+      })
     })
   }
 
@@ -400,24 +428,19 @@ class AclRulesItems extends BaseComponent {
 
     return (
       <div>
-        <Tooltip content={showRules ? _('hideRules') : _('showRules')}>
-          <Button
-            size='small'
-            className='mb-1 pull-right'
-            onClick={this.toggleState('showRules')}
-          >
-            <Icon icon={showRules ? 'hidden' : 'shown'} />
-          </Button>
-        </Tooltip>
-        <Tooltip content={_('addRule')}>
-          <Button
-            size='small'
-            className='mb-1 pull-right'
-            onClick={this.newAclRule()}
-          >
-            <Icon icon='add' />
-          </Button>
-        </Tooltip>
+        {vif.other_config['xo:sdn-controller:of-rules'] !== undefined && (
+          <ActionButton
+            handler={this.toggleState('showRules')}
+            icon={showRules ? 'hidden' : 'shown'}
+            tooltip={showRules ? _('hideRules') : _('showRules')}
+          />
+        )}
+        <ActionButton
+          handler={this.newAclRule}
+          handlerParam={vif}
+          icon='add'
+          tooltip={_('addRule')}
+        />
         {showRules && (
           <table className='table'>
             <thead className='thead-default'>

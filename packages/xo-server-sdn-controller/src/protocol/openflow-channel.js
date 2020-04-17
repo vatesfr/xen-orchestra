@@ -17,6 +17,10 @@ const OPENFLOW_PORT = ofProtocol.sslPort
 // -----------------------------------------------------------------------------
 
 const parseIp = ipAddress => {
+  if (ipAddress === '') {
+    return
+  }
+
   let addr, mask
   if (ipAddress.includes('/')) {
     const ip = ipaddr.parseCIDR(ipAddress)
@@ -117,8 +121,8 @@ export class OpenFlowChannel extends EventEmitter {
           dl_type: dlType,
           dl_src: mac,
           nw_proto: nwProto,
-          nw_dst: ip.addr,
-          nw_dst_mask: ip.mask,
+          nw_dst: ip?.addr,
+          nw_dst_mask: ip?.mask,
           tp_src: port,
           in_port: ofport,
         },
@@ -130,8 +134,8 @@ export class OpenFlowChannel extends EventEmitter {
           dl_type: dlType,
           dl_dst: mac,
           nw_proto: nwProto,
-          nw_src: ip.addr,
-          nw_src_mask: ip.mask,
+          nw_src: ip?.addr,
+          nw_src_mask: ip?.mask,
           tp_dst: port,
         },
         instructions
@@ -144,8 +148,8 @@ export class OpenFlowChannel extends EventEmitter {
           dl_type: dlType,
           dl_src: mac,
           nw_proto: nwProto,
-          nw_dst: ip.addr,
-          nw_dst_mask: ip.mask,
+          nw_dst: ip?.addr,
+          nw_dst_mask: ip?.mask,
           tp_dst: port,
           in_port: ofport,
         },
@@ -157,8 +161,8 @@ export class OpenFlowChannel extends EventEmitter {
           dl_type: dlType,
           dl_dst: mac,
           nw_proto: nwProto,
-          nw_src: ip.addr,
-          nw_src_mask: ip.mask,
+          nw_src: ip?.addr,
+          nw_src_mask: ip?.mask,
           tp_src: port,
         },
         instructions
@@ -185,8 +189,8 @@ export class OpenFlowChannel extends EventEmitter {
         dl_type: dlType,
         dl_src: mac,
         nw_proto: nwProto,
-        nw_dst: ip.addr,
-        nw_dst_mask: ip.mask,
+        nw_dst: ip?.addr,
+        nw_dst_mask: ip?.mask,
         tp_src: port,
       })
       this._removeFlows({
@@ -194,8 +198,8 @@ export class OpenFlowChannel extends EventEmitter {
         dl_type: dlType,
         dl_dst: mac,
         nw_proto: nwProto,
-        nw_src: ip.addr,
-        nw_src_mask: ip.mask,
+        nw_src: ip?.addr,
+        nw_src_mask: ip?.mask,
         tp_dst: port,
       })
     }
@@ -205,8 +209,8 @@ export class OpenFlowChannel extends EventEmitter {
         dl_type: dlType,
         dl_src: mac,
         nw_proto: nwProto,
-        nw_dst: ip.addr,
-        nw_dst_mask: ip.mask,
+        nw_dst: ip?.addr,
+        nw_dst_mask: ip?.mask,
         tp_dst: port,
       })
       this._removeFlows({
@@ -214,8 +218,8 @@ export class OpenFlowChannel extends EventEmitter {
         dl_type: dlType,
         dl_dst: mac,
         nw_proto: nwProto,
-        nw_src: ip.addr,
-        nw_src_mask: ip.mask,
+        nw_src: ip?.addr,
+        nw_src_mask: ip?.mask,
         tp_src: port,
       })
     }
