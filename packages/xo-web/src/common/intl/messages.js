@@ -1105,6 +1105,17 @@ const messages = {
     "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
+
+  aclRuleAllow: 'Allow',
+  aclRuleProtocol: 'Protocol',
+  aclRulePort: 'Port',
+  aclRuleIpRange: 'IP range (CIDR)',
+  aclRuleDirection: 'Direction',
+  addRule: 'Add rule',
+  deleteRule: 'Delete rule',
+  hideRules: 'Hide rules',
+  showRules: 'Show rules',
+  vifAclRules: 'ACL rules',
   vifCreateDeviceButton: 'New device',
   vifDeviceLabel: 'Device',
   vifMacLabel: 'MAC address',

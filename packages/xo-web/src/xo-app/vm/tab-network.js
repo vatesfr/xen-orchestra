@@ -1,15 +1,17 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
+import Button from 'button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
-import React from 'react'
+import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
+import { confirm } from 'modal'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
@@ -50,8 +52,10 @@ import {
 } from 'selectors'
 
 import {
+  // addAclRule,
   connectVif,
   createVmInterface,
+  deleteAclRule,
   deleteVif,
   deleteVifs,
   disconnectVif,
@@ -304,6 +308,145 @@ class VifStatus extends BaseComponent {
   }
 }
 
+// -----------------------------------------------------------------------------
+
+class newAclRuleForm extends BaseComponent {
+  state = {
+    allow: true,
+    protocol: undefined,
+    port: undefined,
+    ipRange: '',
+    direction: 'from/to',
+  }
+
+  get value() {
+    const { allow, protocol, port, ipRange, direction } = this.state
+    return { allow, protocol, port, ipRange, direction }
+  }
+
+  render() {
+    // protocol
+    const { allow, port, ipRange /* direction */ } = this.state
+
+    return (
+      <form id='newAclForm'>
+        <fieldset className='form-inline'>
+          <div className='form-group'>
+            <input
+              type='boolean'
+              value={allow}
+              onChange={this.toggleState('allow')}
+              className='form-control'
+            />{' '}
+            <input
+              type='integer'
+              value={port}
+              onChange={this.linkState('port')}
+              className='form-control'
+            />{' '}
+            <input
+              type='text'
+              value={ipRange}
+              onChange={this.linkState('ipRange')}
+              className='form-control'
+            />{' '}
+            ({_('vifMacAutoGenerate')})
+          </div>
+        </fieldset>
+      </form>
+    )
+  }
+}
+class AclRuleItem extends Component {
+  render() {
+    const { rule, vif } = this.props
+    const ruleObj = JSON.parse(rule)
+
+    return (
+      <tr>
+        <td>{ruleObj.allow ? 'Enable' : 'Disable'}</td>
+        <td>{ruleObj.protocol}</td>
+        <td>{ruleObj.port}</td>
+        <td>{ruleObj.ipRange}</td>
+        <td>{ruleObj.direction}</td>
+        <td className='text-xs-right'>
+          <ActionRowButton
+            handler={deleteAclRule}
+            handlerParam={{ ...ruleObj, vif }}
+            icon='delete'
+            tooltip={_('deleteRule')}
+            level='danger'
+          />
+        </td>
+      </tr>
+    )
+  }
+}
+
+class AclRulesItems extends BaseComponent {
+  newAclRule() {
+    confirm({
+      icon: 'add',
+      title: _('addRule'),
+      body: <newAclRuleForm />,
+    }).then(({ allow, protocol, port, ipRange, direction }) => {
+      // console.log('totototo', { allow, protocol, port, ipRange, direction })
+    })
+  }
+
+  render() {
+    const { vif } = this.props
+    const { showRules } = this.state
+
+    return (
+      <div>
+        <Tooltip content={showRules ? _('hideRules') : _('showRules')}>
+          <Button
+            size='small'
+            className='mb-1 pull-right'
+            onClick={this.toggleState('showRules')}
+          >
+            <Icon icon={showRules ? 'hidden' : 'shown'} />
+          </Button>
+        </Tooltip>
+        <Tooltip content={_('addRule')}>
+          <Button
+            size='small'
+            className='mb-1 pull-right'
+            onClick={this.newAclRule()}
+          >
+            <Icon icon='add' />
+          </Button>
+        </Tooltip>
+        {showRules && (
+          <table className='table'>
+            <thead className='thead-default'>
+              <tr>
+                <th>{_('aclRuleAllow')}</th>
+                <th>{_('aclRuleProtocol')}</th>
+                <th>{_('aclRulePort')}</th>
+                <th>{_('aclRuleIpRange')}</th>
+                <th>{_('aclRuleDirection')}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {map(
+                JSON.parse(vif.other_config['xo:sdn-controller:of-rules']),
+                rule => (
+                  <AclRuleItem rule={rule} vif={vif} />
+                )
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 const COLUMNS = [
   {
     itemRenderer: vif => `VIF #${vif.device}`,
@@ -345,6 +488,10 @@ const COLUMNS = [
   {
     component: VifAllowedIps,
     name: _('vifAllowedIps'),
+  },
+  {
+    itemRenderer: vif => <AclRulesItems vif={vif} />,
+    name: _('vifAclRules'),
   },
   {
     itemRenderer: (vif, userData) => (
