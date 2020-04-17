@@ -18,7 +18,7 @@ export async function exportConfig() {
   return {
     $getFrom: await this.registerHttpRequest(
       (req, res) => {
-        res.writeHead(200, 'OK', {
+        res.set({
           'content-disposition': 'attachment',
           'content-type': 'application/json',
         })
