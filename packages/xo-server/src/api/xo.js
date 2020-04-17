@@ -64,7 +64,7 @@ getAllObjects.params = {
 export async function importConfig() {
   return {
     $sendTo: await this.registerHttpRequest(async (req, res) => {
-      await this.importConfig(JSON.parse(await getStream.buffer(req)))
+      await this.importConfig(await getStream.buffer(req))
 
       res.end('config successfully imported')
     }),
