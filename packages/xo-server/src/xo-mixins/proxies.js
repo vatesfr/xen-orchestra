@@ -4,8 +4,8 @@ import pumpify from 'pumpify'
 import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
-import { find, mapValues, omit } from 'lodash'
 import { format, parse } from 'json-rpc-peer'
+import { mapValues, omit } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
 import { timeout } from 'promise-toolbox'
@@ -16,9 +16,35 @@ import patch from '../patch'
 import readChunk from '../_readStreamChunk'
 import { generateToken } from '../utils'
 
-const IP_REG = /^\d+\/ip$/
-const extractIp = networks =>
-  find(networks, (ip, network) => IP_REG.test(network))
+// networks field contains:
+// - <n>/ip <=> <n>/ipv4/0
+// - <n>/ipv4/<m>
+// - <n>/ipv6/<m>
+// which n correspond to the PIF
+// for more information, see: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
+const IPV4_KEY_RE = /^\d+\/ipv4\/\d+$/
+const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
+const extractIp = networks => {
+  if (networks === undefined) {
+    return
+  }
+
+  let ipv4, ipv6
+
+  // <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)>
+  for (const key of Object.keys(networks).sort()) {
+    if (IPV4_KEY_RE.test(key)) {
+      ipv4 = networks[key]
+      break
+    }
+
+    if (ipv6 === undefined && IPV6_KEY_RE.test(key)) {
+      ipv6 = networks[key]
+    }
+  }
+
+  return ipv4 ?? ipv6
+}
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
