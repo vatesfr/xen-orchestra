@@ -128,33 +128,38 @@ export class OpenFlowChannel extends EventEmitter {
         },
         instructions
       )
-      this._addFlow(
-        {
-          type: ofProtocol.matchType.standard,
-          dl_type: dlType,
-          dl_dst: mac,
-          nw_proto: nwProto,
-          nw_src: ip?.addr,
-          nw_src_mask: ip?.mask,
-          tp_dst: port,
-        },
-        instructions
-      )
+
+      if (nwProto !== undefined) {
+        this._addFlow(
+          {
+            type: ofProtocol.matchType.standard,
+            dl_type: dlType,
+            dl_dst: mac,
+            nw_proto: nwProto,
+            nw_src: ip?.addr,
+            nw_src_mask: ip?.mask,
+            tp_dst: port,
+          },
+          instructions
+        )
+      }
     }
     if (direction.includes('to')) {
-      this._addFlow(
-        {
-          type: ofProtocol.matchType.standard,
-          dl_type: dlType,
-          dl_src: mac,
-          nw_proto: nwProto,
-          nw_dst: ip?.addr,
-          nw_dst_mask: ip?.mask,
-          tp_dst: port,
-          in_port: ofport,
-        },
-        instructions
-      )
+      if (nwProto !== undefined) {
+        this._addFlow(
+          {
+            type: ofProtocol.matchType.standard,
+            dl_type: dlType,
+            dl_src: mac,
+            nw_proto: nwProto,
+            nw_dst: ip?.addr,
+            nw_dst_mask: ip?.mask,
+            tp_dst: port,
+            in_port: ofport,
+          },
+          instructions
+        )
+      }
       this._addFlow(
         {
           type: ofProtocol.matchType.standard,

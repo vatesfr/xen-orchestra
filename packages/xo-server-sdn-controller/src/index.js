@@ -622,33 +622,9 @@ class SDNController extends EventEmitter {
       // -----------------------------------------------------------------------
 
       const vifs = filter(xapi.objects.all, { $type: 'VIF' })
-      await Promise.all(vifs.map(vif => this._applyVifOfRules(vif)))
-
-      // TODO: REMOVE ME WHEN UI ALLOW TO ADD/DELETE RULES
-      /*
-      setTimeout(() => {
-        const vifs = filter(xapi.objects.all, { $type: 'VIF' })
-        const vif = vifs[0]
-        this._addRule({
-          allow: false,
-          vifId: vif.$id,
-          protocol: 'ICMP',
-          // port: 5060,
-          ipRange: '192.168.42.42/17',
-          direction: 'from',
-        })
-
-        setTimeout(() => {
-          this._deleteRule({
-            vifId: vif.$id,
-            protocol: 'ICMP',
-            port: 5060,
-            ipRange: '192.168.42.42/17',
-            direction: 'from',
-          })
-        }, 10000)
-      }, 5000)
-*/
+      for (const vif of vifs) {
+        await this._applyVifOfRules(vif)
+      }
     } catch (error) {
       log.error('Error while handling xapi connection', {
         id: xapi.pool.uuid,
@@ -761,6 +737,9 @@ class SDNController extends EventEmitter {
       'xo:sdn-controller:of-rules',
       Object.keys(newVifRules).length === 0 ? null : JSON.stringify(newVifRules)
     )
+
+    // Put back rules that could have been wrongfully deleted because delete rule too general
+    await this._applyVifOfRules(vif)
   }
 
   // ---------------------------------------------------------------------------
@@ -1264,12 +1243,10 @@ class SDNController extends EventEmitter {
   async _applyVifOfRules(vif) {
     const vifRules = vif.other_config['xo:sdn-controller:of-rules']
     const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
-    await Promise.all(
-      newVifRules.map(async stringRule => {
-        const rule = JSON.parse(stringRule)
-        await this._addRule({ ...rule, vifId: vif.$id })
-      })
-    )
+    for (const stringRule of newVifRules) {
+      const rule = JSON.parse(stringRule)
+      await this._addRule({ ...rule, vifId: vif.$id })
+    }
   }
 
   // ---------------------------------------------------------------------------
