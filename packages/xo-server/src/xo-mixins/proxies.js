@@ -20,7 +20,7 @@ import { generateToken } from '../utils'
 // - <n>/ip <=> <n>/ipv4/0
 // - <n>/ipv4/<m>
 // - <n>/ipv6/<m>
-// which n correspond to the PIF
+// where n corresponds to the PIF
 // for more information, see: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
 const IPV4_KEY_RE = /^\d+\/ipv4\/\d+$/
 const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
@@ -29,21 +29,18 @@ const extractIp = networks => {
     return
   }
 
-  let ipv4, ipv6
-
   // <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)>
+  let ipv6
   for (const key of Object.keys(networks).sort()) {
     if (IPV4_KEY_RE.test(key)) {
-      ipv4 = networks[key]
-      break
+      return networks[key]
     }
 
     if (ipv6 === undefined && IPV6_KEY_RE.test(key)) {
       ipv6 = networks[key]
     }
   }
-
-  return ipv4 ?? ipv6
+  return ipv6
 }
 
 const extractProperties = _ => _.properties
