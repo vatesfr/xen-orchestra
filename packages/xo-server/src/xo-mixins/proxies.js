@@ -20,7 +20,7 @@ import { generateToken } from '../utils'
 // - <n>/ip <=> <n>/ipv4/0
 // - <n>/ipv4/<m>
 // - <n>/ipv6/<m>
-// where n corresponds to the PIF
+// where n is the VIF order and m is the IP order
 // for more information, see: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
 const IPV4_KEY_RE = /^\d+\/ipv4\/\d+$/
 const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
