@@ -88,7 +88,7 @@ export default {
           patch => patch.requiredpatch.uuid
         ),
         paid: patch['update-stream'] === 'premium',
-        upgrade: /^XS\d{2,}$/.test(patch['name-label']),
+        upgrade: /^(XS|CH)\d{2,}$/.test(patch['name-label']),
         // TODO: what does it mean, should we handle it?
         // version: patch.version,
       }
