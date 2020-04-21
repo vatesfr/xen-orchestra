@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup] Fix TLS error (`unsupported protocol`) when XenServer <= 6.5 is used as target
+- [Patches] Hide patch `CH81` (upgrade patch) from the pool patches (PR [#4942](https://github.com/vatesfr/xen-orchestra/pull/4942))
 
 ### Released packages
 
