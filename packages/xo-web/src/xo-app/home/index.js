@@ -2,6 +2,7 @@ import * as ComplexMatcher from 'complex-matcher'
 import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
+
 import Button from 'button'
 import CenterPanel from 'center-panel'
 import classNames from 'classnames'
@@ -86,8 +87,10 @@ import {
   OverlayTrigger,
   Popover,
 } from 'react-bootstrap-4/lib'
+import { Select } from 'form'
 
 import styles from './index.css'
+import BackedUpVms, { NotBackedUpVms } from './backed-up-vms'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
@@ -308,6 +311,12 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
+const VMS_OPTIONS = [
+  { value: 'all', label: _('allVms') },
+  { value: 'backedUpVms', label: _('backedUpVms') },
+  { value: 'notBackedUpVms', label: _('notBackedUpVms') },
+]
+
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -478,6 +487,7 @@ export default class Home extends Component {
   }
 
   state = {
+    displayedVms: DEFAULT_TYPE === 'VM' ? VMS_OPTIONS[0] : {},
     homeItemsPerPage: +defined(
       cookies.get('homeItemsPerPage'),
       DEFAULT_ITEMS_PER_PAGE
@@ -843,7 +853,7 @@ export default class Home extends Component {
                 : items.length - 1,
           })
           break
-        case 'SELECT':
+        case 'SELECT': {
           const itemId = items[this.state.highlighted].id
           this.setState({
             selectedItems: {
@@ -852,13 +862,15 @@ export default class Home extends Component {
             },
           })
           break
-        case 'JUMP_INTO':
+        }
+        case 'JUMP_INTO': {
           const item = items[this.state.highlighted]
           if (includes(['VM', 'host', 'pool', 'SR'], item && item.type)) {
             this.context.router.push({
               pathname: `${item.type.toLowerCase()}s/${item.id}`,
             })
           }
+        }
       }
     }
   )
@@ -872,6 +884,7 @@ export default class Home extends Component {
     const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
 
     const {
+      displayedVms,
       homeItemsPerPage,
       selectedHosts,
       selectedPools,
@@ -889,6 +902,8 @@ export default class Home extends Component {
       showPoolsSelector,
       showResourceSetsSelector,
     } = options
+
+    const showAllVms = type === 'VM' && displayedVms.value === 'all'
 
     return (
       <Container>
@@ -972,6 +987,7 @@ export default class Home extends Component {
         <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
           <Col smallSize={6} mediumSize={2}>
             <input
+              disabled={!showAllVms}
               checked={this._getIsAllSelected()}
               onChange={this._toggleMaster}
               ref='masterCheckbox'
@@ -992,7 +1008,7 @@ export default class Home extends Component {
             </span>
           </Col>
           <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
-            {this._getNumberOfSelectedItems() ? (
+            {this._getNumberOfSelectedItems() && showAllVms ? (
               <div>
                 {mainActions && (
                   <div className='btn-group'>
@@ -1033,6 +1049,28 @@ export default class Home extends Component {
               </div>
             ) : (
               <div>
+                {type === 'VM' && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover className={styles.selectObject} id='vmPopover'>
+                        <Select
+                          autoFocus
+                          onChange={this.linkState('displayedVms')}
+                          options={VMS_OPTIONS}
+                          required
+                          value={this.state.displayedVms}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='vm' /> {_('vms')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
                 {showPoolsSelector && (
                   <OverlayTrigger
                     trigger='click'
@@ -1122,6 +1160,7 @@ export default class Home extends Component {
                 )}
                 <DropdownButton
                   bsStyle='link'
+                  disabled={!showAllVms}
                   id='sort'
                   title={_('homeSortBy')}
                 >
@@ -1147,11 +1186,16 @@ export default class Home extends Component {
               </div>
             )}
           </Col>
+
           <Col smallSize={6} mediumSize={2} className='text-xs-right'>
-            <Button onClick={this._expandAll}>
+            <Button onClick={this._expandAll} disabled={!showAllVms}>
               <Icon icon='nav' />
             </Button>{' '}
-            <DropdownButton bsStyle='info' title={homeItemsPerPage}>
+            <DropdownButton
+              bsStyle='info'
+              title={homeItemsPerPage}
+              disabled={!showAllVms}
+            >
               {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
                 <MenuItem
                   key={nItems}
@@ -1175,6 +1219,7 @@ export default class Home extends Component {
       isAdmin,
       isPoolAdmin,
       noResourceSets,
+      type,
     } = this.props
 
     if (!areObjectsFetched) {
@@ -1201,14 +1246,22 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
-    const { Item } = OPTIONS[this.props.type]
-    const { expandAll, highlighted, selectedItems } = this.state
+    const { Item } = OPTIONS[type]
+    const { displayedVms, expandAll, highlighted, selectedItems } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
       this.refs.masterCheckbox.indeterminate =
         this._getIsSomeSelected() && !this._getIsAllSelected()
     }
+
+    const { value } = displayedVms
+    const showAllVms = value === 'all'
+    const VmList = showAllVms
+      ? null
+      : value === 'backedUpVms'
+      ? BackedUpVms
+      : NotBackedUpVms
 
     return (
       <Page header={this._renderHeader()}>
@@ -1218,49 +1271,53 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        <div>
-          <div className={styles.itemContainer}>
-            {isEmpty(filteredItems) ? (
-              <p className='text-xs-center mt-1'>
-                <a className='btn btn-link' onClick={this._clearFilter}>
-                  <Icon icon='info' /> {_('homeNoMatches')}
-                </a>
-              </p>
-            ) : (
-              map(visibleItems, (item, index) => (
-                <div
-                  key={item.id}
-                  className={
-                    highlighted === index ? styles.highlight : undefined
-                  }
-                >
-                  <Item
-                    expandAll={expandAll}
-                    item={item}
+        {type !== 'VM' || showAllVms ? (
+          <div>
+            <div className={styles.itemContainer}>
+              {isEmpty(filteredItems) ? (
+                <p className='text-xs-center mt-1'>
+                  <a className='btn btn-link' onClick={this._clearFilter}>
+                    <Icon icon='info' /> {_('homeNoMatches')}
+                  </a>
+                </p>
+              ) : (
+                map(visibleItems, (item, index) => (
+                  <div
                     key={item.id}
-                    onSelect={this.toggleState(`selectedItems.${item.id}`)}
-                    selected={Boolean(selectedItems[item.id])}
-                  />
+                    className={
+                      highlighted === index ? styles.highlight : undefined
+                    }
+                  >
+                    <Item
+                      expandAll={expandAll}
+                      item={item}
+                      key={item.id}
+                      onSelect={this.toggleState(`selectedItems.${item.id}`)}
+                      selected={Boolean(selectedItems[item.id])}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+            {filteredItems.length > this.state.homeItemsPerPage && (
+              <Row>
+                <div style={{ display: 'flex', width: '100%' }}>
+                  <div style={{ margin: 'auto' }}>
+                    <Pagination
+                      onChange={this._onPageSelection}
+                      pages={ceil(
+                        filteredItems.length / this.state.homeItemsPerPage
+                      )}
+                      value={this._getPage()}
+                    />
+                  </div>
                 </div>
-              ))
+              </Row>
             )}
           </div>
-          {filteredItems.length > this.state.homeItemsPerPage && (
-            <Row>
-              <div style={{ display: 'flex', width: '100%' }}>
-                <div style={{ margin: 'auto' }}>
-                  <Pagination
-                    onChange={this._onPageSelection}
-                    pages={ceil(
-                      filteredItems.length / this.state.homeItemsPerPage
-                    )}
-                    value={this._getPage()}
-                  />
-                </div>
-              </div>
-            </Row>
-          )}
-        </div>
+        ) : (
+          <VmList vms={filteredItems} />
+        )}
       </Page>
     )
   }

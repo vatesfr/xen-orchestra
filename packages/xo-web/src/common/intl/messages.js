@@ -194,6 +194,9 @@ const messages = {
   editUserProfile: 'Edit my settings {username}',
 
   // ----- Home view ------
+  allVms: 'All VMs',
+  backedUpVms: 'Backed up VMs',
+  notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XenServer hosts or pools',
