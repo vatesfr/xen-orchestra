@@ -11669,13 +11669,6 @@ pinkie@^2.0.0:
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
   integrity sha1-clVrgM+g1IqXToDnckjoDtT3+HA=
 
-pipette@^0.9.3:
-  version "0.9.3"
-  resolved "https://registry.yarnpkg.com/pipette/-/pipette-0.9.3.tgz#80c048e08629dd13b1bb0f01ef4532ee85b6a2a7"
-  integrity sha1-gMBI4IYp3ROxuw8B70Uy7oW2oqc=
-  dependencies:
-    typ "~0.6.1"
-
 pirates@^4.0.0, pirates@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/pirates/-/pirates-4.0.1.tgz#643a92caf894566f91b2b986d2c66950a8e2fb87"
@@ -14538,11 +14531,6 @@ tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   version "0.14.5"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
   integrity sha1-WuaBd/GS1EViadEIr6k/+HQ/T2Q=
-
-typ@~0.6.1:
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/typ/-/typ-0.6.3.tgz#9fbe66d8e4131e127c0d782daa456fd5c6a5ded3"
-  integrity sha1-n75m2OQTHhJ8DXgtqkVv1cal3tM=
 
 type-check@~0.3.2:
   version "0.3.2"
