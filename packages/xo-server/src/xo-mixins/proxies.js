@@ -7,9 +7,9 @@ import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
 import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
+import { isEmpty, mapValues, some, omit } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
-import { mapValues, omit } from 'lodash'
 import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis'
@@ -17,6 +17,30 @@ import parseDuration from '../_parseDuration'
 import patch from '../patch'
 import readChunk from '../_readStreamChunk'
 import { generateToken } from '../utils'
+
+// See: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
+//
+// Returns <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)> || undefined
+// where n corresponds to the network interface and m to its IP
+const IPV4_KEY_RE = /^\d+\/ipv4\/\d+$/
+const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
+const extractIp = networks => {
+  if (networks === undefined) {
+    return
+  }
+
+  let ipv6
+  for (const key of Object.keys(networks).sort()) {
+    if (IPV4_KEY_RE.test(key)) {
+      return networks[key]
+    }
+
+    if (ipv6 === undefined && IPV6_KEY_RE.test(key)) {
+      ipv6 = networks[key]
+    }
+  }
+  return ipv6
+}
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
@@ -302,8 +326,8 @@ export default class Proxy {
     await timeout.call(
       xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
         networkConfiguration === undefined
-          ? guest_metrics.networks['0/ip'] !== undefined
-          : guest_metrics.networks['0/ip'] === networkConfiguration.ip
+          ? !isEmpty(guest_metrics.networks)
+          : some(guest_metrics.networks, ip => ip === networkConfiguration.ip)
       ),
       vmNetworksTimeout
     )
@@ -336,7 +360,9 @@ export default class Proxy {
       }
 
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
-      if ((proxy.address = vm.$guest_metrics?.networks['0/ip']) === undefined) {
+      if (
+        (proxy.address = extractIp(vm.$guest_metrics?.networks)) === undefined
+      ) {
         throw new Error(`cannot get the proxy VM IP (${proxy.vmUuid})`)
       }
     }
