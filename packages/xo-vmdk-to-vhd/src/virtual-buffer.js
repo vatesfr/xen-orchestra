@@ -12,7 +12,8 @@ export class VirtualBuffer {
       this._queue.length = 0
     })
     readStream.on('end', () => {
-      this._queue.forEach(e => e.reject(new Error('stream ended')))
+      const error = new Error('stream ended')
+      this._queue.forEach(e => e.reject(error))
       this._queue.length = 0
     })
     this._queue = []
