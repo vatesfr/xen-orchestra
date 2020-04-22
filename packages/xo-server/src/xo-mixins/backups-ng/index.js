@@ -698,7 +698,7 @@ export default class BackupNg {
 
             return {
               id,
-              handler: await app.getRemoteHandler(id),
+              handler: await app.getRemoteHandler(remote),
             }
           })
         )
