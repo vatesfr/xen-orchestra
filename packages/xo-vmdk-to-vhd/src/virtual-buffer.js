@@ -2,10 +2,9 @@
 
 export class VirtualBuffer {
   constructor(readStream) {
-    const _this = this
     this._readStream = readStream
     readStream.on('readable', () => {
-      _this._tryToMoveQueue()
+      this._tryToMoveQueue()
     })
     readStream.on('error', error => {
       this._queue.forEach(e => e.reject(error))
