@@ -5,7 +5,7 @@ import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
 import { format, parse } from 'json-rpc-peer'
-import { mapValues, omit } from 'lodash'
+import { isEmpty, mapValues, some, omit } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
 import { timeout } from 'promise-toolbox'
@@ -22,6 +22,8 @@ import { generateToken } from '../utils'
 // - <n>/ipv6/<m>
 // where n is the VIF order and m is the IP order
 // for more information, see: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
+//
+// It returns <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)> if <networks> isn't empty
 const IPV4_KEY_RE = /^\d+\/ipv4\/\d+$/
 const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
 const extractIp = networks => {
@@ -29,7 +31,6 @@ const extractIp = networks => {
     return
   }
 
-  // <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)>
   let ipv6
   for (const key of Object.keys(networks).sort()) {
     if (IPV4_KEY_RE.test(key)) {
@@ -257,12 +258,11 @@ export default class Proxy {
       vmNetworksTimeout
     )
     await timeout.call(
-      xapi._waitObjectState(vm.guest_metrics, guest_metrics => {
-        const ip = extractIp(guest_metrics.networks)
-        return networkConfiguration === undefined
-          ? ip !== undefined
-          : ip === networkConfiguration.ip
-      }),
+      xapi._waitObjectState(vm.guest_metrics, guest_metrics =>
+        networkConfiguration === undefined
+          ? !isEmpty(guest_metrics.networks)
+          : some(guest_metrics.networks, ip => ip === networkConfiguration.ip)
+      ),
       vmNetworksTimeout
     )
 
