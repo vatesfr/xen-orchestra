@@ -28,7 +28,6 @@ test('Virtual Buffer can read a file correctly', async () => {
   const part1 = await buffer.readChunk(10)
   const part2 = await buffer.readChunk(1038)
   const original = await readFile(rawFileName)
-  expect(buffer.isDepleted).toBeTruthy()
   expect(Buffer.concat([part1, part2]).toString('ascii')).toEqual(
     original.toString('ascii')
   )
