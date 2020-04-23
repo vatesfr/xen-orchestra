@@ -1,5 +1,6 @@
 import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
+import { createLogger } from '@xen-orchestra/log'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import { assignWith, concat } from 'lodash'
@@ -12,6 +13,8 @@ import {
 } from 'xo-common/api-errors'
 
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils'
+
+const log = createLogger('xo:vm')
 
 // ===================================================================
 
@@ -808,7 +811,7 @@ export const snapshot = defer(async function(
     }
   } catch (error) {
     if (noSuchObject.is(error)) {
-      console.warn(`Cannot find resource set ${vm.resourceSet}`)
+      log.warn('cannot find resource set', { resourceSet: vm.resourceSet })
     } else {
       throw error
     }
