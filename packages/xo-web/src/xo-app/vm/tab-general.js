@@ -72,7 +72,7 @@ export default connectStore(() => {
       CPUs: cpus,
       id,
       installTime,
-      ip,
+      mainIpAddress,
       memory,
       os_version: osVersion,
       power_state: powerState,
@@ -180,8 +180,8 @@ export default connectStore(() => {
           </Col>
           <Col mediumSize={3}>
             <BlockLink to={`/vms/${id}/network`}>
-              {ip !== undefined ? (
-                <Copiable tagName='p'>{ip}</Copiable>
+              {mainIpAddress !== undefined ? (
+                <Copiable tagName='p'>{mainIpAddress}</Copiable>
               ) : (
                 <p>{_('noIpv4Record')}</p>
               )}

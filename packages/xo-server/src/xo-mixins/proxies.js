@@ -16,7 +16,7 @@ import Collection from '../collection/redis'
 import parseDuration from '../_parseDuration'
 import patch from '../patch'
 import readChunk from '../_readStreamChunk'
-import { extractIpFromVmNetworks as extractIp } from '../_extractIpFromVmNetworks'
+import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks'
 import { generateToken } from '../utils'
 
 const extractProperties = _ => _.properties
@@ -338,7 +338,9 @@ export default class Proxy {
 
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
       if (
-        (proxy.address = extractIp(vm.$guest_metrics?.networks)) === undefined
+        (proxy.address = extractIpFromVmNetworks(
+          vm.$guest_metrics?.networks
+        )) === undefined
       ) {
         throw new Error(`cannot get the proxy VM IP (${proxy.vmUuid})`)
       }

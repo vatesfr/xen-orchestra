@@ -325,7 +325,7 @@ const TRANSFORMS = {
         }
       })(),
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
-      ip: extractIpFromVmNetworks(guestMetrics?.networks),
+      mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
 
       memory: (function() {
