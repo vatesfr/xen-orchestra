@@ -855,7 +855,7 @@ class SDNController extends EventEmitter {
 
   async _manageXapi(xapi) {
     if (this._managed.includes(xapi.pool.uuid)) {
-      return
+      return noop // pushed in _cleaners
     }
 
     const { objects } = xapi
