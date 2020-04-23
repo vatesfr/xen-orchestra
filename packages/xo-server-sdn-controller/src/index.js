@@ -680,36 +680,48 @@ class SDNController extends EventEmitter {
     direction,
   }) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
-    assert(vif.currently_attached, 'VIF needs to be plugged to add rule')
-    await this._setPoolControllerIfNeeded(vif.$pool)
+    try {
+      assert(vif.currently_attached, 'VIF needs to be plugged to add rule')
+      await this._setPoolControllerIfNeeded(vif.$pool)
 
-    const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-    const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
-    const ofport = await client.getOfPortForVif(vif)
-    await channel.addRule(
-      vif,
-      allow,
-      protocol,
-      port,
-      ipRange,
-      direction,
-      ofport
-    )
-    const vifRules = vif.other_config['xo:sdn-controller:of-rules']
-    const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
-    const stringRule = JSON.stringify({
-      allow,
-      protocol,
-      port,
-      ipRange,
-      direction,
-    })
-    if (!newVifRules.includes(stringRule)) {
-      newVifRules.push(stringRule)
-      vif.update_other_config(
-        'xo:sdn-controller:of-rules',
-        JSON.stringify(newVifRules)
+      const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
+      const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
+      const ofport = await client.getOfPortForVif(vif)
+      await channel.addRule(
+        vif,
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+        ofport
       )
+      const vifRules = vif.other_config['xo:sdn-controller:of-rules']
+      const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
+      const stringRule = JSON.stringify({
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+      if (!newVifRules.includes(stringRule)) {
+        newVifRules.push(stringRule)
+        vif.update_other_config(
+          'xo:sdn-controller:of-rules',
+          JSON.stringify(newVifRules)
+        )
+      }
+    } catch (error) {
+      log.error('Error while adding OF rule', {
+        vif: vif.uuid,
+        host: vif.$VM.$resident_on.uuid,
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
     }
   }
 
@@ -718,38 +730,51 @@ class SDNController extends EventEmitter {
     updateOtherConfig = true
   ) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
-    await this._setPoolControllerIfNeeded(vif.$pool)
+    try {
+      await this._setPoolControllerIfNeeded(vif.$pool)
 
-    const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-    const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
-    const ofport = await client.getOfPortForVif(vif)
-    await channel.deleteRule(vif, protocol, port, ipRange, direction, ofport)
-    if (!updateOtherConfig) {
-      return
-    }
+      const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
+      const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
+      const ofport = await client.getOfPortForVif(vif)
+      await channel.deleteRule(vif, protocol, port, ipRange, direction, ofport)
+      if (!updateOtherConfig) {
+        return
+      }
 
-    const vifRules = vif.other_config['xo:sdn-controller:of-rules']
-    if (vifRules === undefined) {
-      // Nothing to do
-      return
-    }
+      const vifRules = vif.other_config['xo:sdn-controller:of-rules']
+      if (vifRules === undefined) {
+        // Nothing to do
+        return
+      }
 
-    const newVifRules = JSON.parse(vifRules).filter(vifRule => {
-      const rule = JSON.parse(vifRule)
-      return (
-        rule.protocol !== protocol ||
-        rule.port !== port ||
-        rule.ipRange !== ipRange ||
-        rule.direction !== direction
+      const newVifRules = JSON.parse(vifRules).filter(vifRule => {
+        const rule = JSON.parse(vifRule)
+        return (
+          rule.protocol !== protocol ||
+          rule.port !== port ||
+          rule.ipRange !== ipRange ||
+          rule.direction !== direction
+        )
+      })
+      vif.update_other_config(
+        'xo:sdn-controller:of-rules',
+        Object.keys(newVifRules).length === 0
+          ? null
+          : JSON.stringify(newVifRules)
       )
-    })
-    vif.update_other_config(
-      'xo:sdn-controller:of-rules',
-      Object.keys(newVifRules).length === 0 ? null : JSON.stringify(newVifRules)
-    )
 
-    // Put back rules that could have been wrongfully deleted because delete rule too general
-    await this._applyVifOfRules(vif)
+      // Put back rules that could have been wrongfully deleted because delete rule too general
+      await this._applyVifOfRules(vif)
+    } catch (error) {
+      log.error('Error while adding OF rule', {
+        vif: vif.uuid,
+        host: vif.$VM.$resident_on.uuid,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+    }
   }
 
   // ---------------------------------------------------------------------------
