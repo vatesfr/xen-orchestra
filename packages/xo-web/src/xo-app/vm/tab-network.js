@@ -410,16 +410,16 @@ class AclRulesItems extends BaseComponent {
       icon: 'add',
       title: _('addRule'),
       body: <NewAclRuleForm />,
-    }).then(({ allow, protocol, port, ipRange, direction }) => {
-      return addAclRule({
+    }).then(({ allow, protocol, port, ipRange, direction }) =>
+      addAclRule({
         allow,
-        protocol: protocol.value,
-        port: +port,
+        protocol: protocol !== undefined ? protocol.value : undefined,
+        port: port !== undefined ? +port : undefined,
         ipRange,
         direction: direction.value,
         vif,
       })
-    })
+    )
   }
 
   render() {
