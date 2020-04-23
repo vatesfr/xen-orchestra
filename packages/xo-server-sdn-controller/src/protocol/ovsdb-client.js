@@ -329,10 +329,7 @@ export class OvsdbClient {
       })
     } else {
       this._controller = jsonObjects[0].result[0].uuid[1]
-      log.info('Controller set', {
-        controller: this._controllerUuid,
-        host: this.host.name_label,
-      })
+      log.info('Controller set', { host: this.host.name_label })
     }
 
     socket.destroy()
@@ -404,9 +401,10 @@ export class OvsdbClient {
     const socket = await this._connect()
     const selectResult = await this._select(
       'Interface',
-      ['ofport'],
+      ['name', 'ofport'],
       where,
-      socket
+      socket,
+      false
     )
     if (selectResult === undefined) {
       log.error('No of port found for VIF', {
@@ -418,8 +416,17 @@ export class OvsdbClient {
       return
     }
 
+    let ofport
+    for (const i in selectResult) {
+      const row = selectResult[i]
+      if (!row.name.includes('tap')) {
+        ofport = row.ofport
+        break
+      }
+    }
+
     socket.destroy()
-    return selectResult.ofport
+    return ofport
   }
 
   // ===========================================================================
@@ -602,7 +609,7 @@ export class OvsdbClient {
 
   // ---------------------------------------------------------------------------
 
-  async _select(table, columns, where, socket) {
+  async _select(table, columns, where, socket, onlyOne = true) {
     const selectOperation = {
       op: 'select',
       table,
@@ -636,6 +643,10 @@ export class OvsdbClient {
         host: this.host.name_label,
       })
       return
+    }
+
+    if (!onlyOne) {
+      return jsonResult.rows
     }
 
     // For now all select operations should return only 1 row

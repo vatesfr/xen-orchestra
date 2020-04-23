@@ -50,6 +50,10 @@ export const configurationSchema = {
 
 // =============================================================================
 
+const noop = () => {}
+
+// -----------------------------------------------------------------------------
+
 const fileWrite = promisify(writeFile)
 const fileRead = promisify(readFile)
 async function fileExists(path) {
@@ -335,6 +339,9 @@ class SDNController extends EventEmitter {
     this.ofChannels = {}
 
     this._tlsHelper = new TlsHelper()
+
+    this._handledTasks = []
+    this._managed = []
   }
 
   // ---------------------------------------------------------------------------
@@ -486,6 +493,9 @@ class SDNController extends EventEmitter {
 
     this.ovsdbClients = {}
     this.ofChannels = {}
+
+    this._handledTasks = []
+    this._managed = []
 
     this._unsetApiMethods()
   }
@@ -703,21 +713,21 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _deleteRule({
-    vifId,
-    protocol = undefined,
-    port = undefined,
-    ipRange = '',
-    direction,
-  }) {
+  async _deleteRule(
+    { vifId, protocol = undefined, port = undefined, ipRange = '', direction },
+    updateOtherConfig = true
+  ) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
-    assert(vif.currently_attached, 'VIF needs to be plugged to delete rule')
     await this._setPoolControllerIfNeeded(vif.$pool)
 
     const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
     const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
     const ofport = await client.getOfPortForVif(vif)
     await channel.deleteRule(vif, protocol, port, ipRange, direction, ofport)
+    if (!updateOtherConfig) {
+      return
+    }
+
     const vifRules = vif.other_config['xo:sdn-controller:of-rules']
     if (vifRules === undefined) {
       // Nothing to do
@@ -817,6 +827,10 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _manageXapi(xapi) {
+    if (this._managed.includes(xapi.pool.uuid)) {
+      return
+    }
+
     const { objects } = xapi
 
     const objectsRemovedXapi = this._objectsRemoved.bind(this, xapi)
@@ -825,6 +839,7 @@ class SDNController extends EventEmitter {
     objects.on('remove', objectsRemovedXapi)
 
     await this._installCaCertificateIfNeeded(xapi)
+    this._managed.push(xapi.pool.uuid)
 
     return () => {
       objects.removeListener('add', this._objectsAdded)
@@ -872,6 +887,10 @@ class SDNController extends EventEmitter {
           await this._hostUpdated(object)
         } else if ($type === 'host_metrics') {
           await this._hostMetricsUpdated(object)
+        } else if ($type === 'VM') {
+          await this._vmUpdated(object)
+        } else if ($type === 'VIF') {
+          await this._vifUpdated(object)
         }
       } catch (error) {
         log.error('Error in _objectsUpdated', {
@@ -1039,6 +1058,64 @@ class SDNController extends EventEmitter {
     }
 
     return this._hostUnreachable(ovsdbClient.host)
+  }
+
+  async _vmUpdated(vm) {
+    forOwn(vm.current_operations, async (value, key) => {
+      if (this._handledTasks.includes(key)) {
+        return
+      }
+
+      this._handledTasks.push(key)
+      // Clean before task ends
+      if (
+        value === 'migrate_send' ||
+        value === 'pool_migrate' ||
+        value === 'clean_reboot' ||
+        value === 'hard_reboot' ||
+        value === 'hard_shutdown' ||
+        value === 'clean_shutdown'
+      ) {
+        await this._cleanOfRules(vm)
+      }
+
+      await vm.$xapi.watchTask(key).catch(noop)
+      // Re-apply rules after task ended
+      if (
+        value === 'migrate_send' ||
+        value === 'pool_migrate' ||
+        value === 'clean_reboot' ||
+        value === 'hard_reboot' ||
+        value === 'start' ||
+        value === 'start_on'
+      ) {
+        vm = await vm.$xapi.barrier(vm.$ref)
+        await this._applyOfRules(vm)
+      }
+
+      this._handledTasks = filter(this._handledTasks, ref => ref !== key)
+    })
+  }
+
+  async _vifUpdated(vif) {
+    await Promise.all(
+      map(vif.current_operations, async (value, key) => {
+        if (this._handledTasks.includes(key)) {
+          return
+        }
+
+        this._handledTasks.push(key)
+        if (value === 'plug') {
+          await vif.$xapi.watchTask(key).catch(noop)
+          vif = await vif.$xapi.barrier(vif.$ref)
+          await this._applyVifOfRules(vif)
+        } else if (value === 'unplug' || value === 'unplug_force') {
+          await this._cleanVifOfRules(vif)
+          await vif.$xapi.watchTask(key).catch(noop)
+        }
+        this._handledTasks = filter(this._handledTasks, ref => ref !== key)
+      })
+    )
   }
 
   // ---------------------------------------------------------------------------
@@ -1241,11 +1318,36 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _applyVifOfRules(vif) {
+    if (!vif.currently_attached) {
+      return
+    }
+
     const vifRules = vif.other_config['xo:sdn-controller:of-rules']
-    const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
-    for (const stringRule of newVifRules) {
+    const parsedRules = vifRules !== undefined ? JSON.parse(vifRules) : []
+    for (const stringRule of parsedRules) {
       const rule = JSON.parse(stringRule)
       await this._addRule({ ...rule, vifId: vif.$id })
+    }
+  }
+
+  async _cleanVifOfRules(vif) {
+    const vifRules = vif.other_config['xo:sdn-controller:of-rules']
+    const parsedRules = vifRules !== undefined ? JSON.parse(vifRules) : []
+    for (const stringRule of parsedRules) {
+      const rule = JSON.parse(stringRule)
+      await this._deleteRule({ ...rule, vifId: vif.$id }, false)
+    }
+  }
+
+  async _cleanOfRules(vm) {
+    for (const vif of vm.$VIFs) {
+      await this._cleanVifOfRules(vif)
+    }
+  }
+
+  async _applyOfRules(vm) {
+    for (const vif of vm.$VIFs) {
+      await this._applyVifOfRules(vif)
     }
   }
 
