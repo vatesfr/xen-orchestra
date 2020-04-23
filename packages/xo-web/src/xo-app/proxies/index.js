@@ -9,7 +9,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
 import { provideState, injectState } from 'reaclette'
-import { Text, XoSelect } from 'editable'
+import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
 import {
@@ -136,27 +136,7 @@ const COLUMNS = [
     sortCriteria: 'address',
   },
   {
-    itemRenderer: proxy => (
-      <XoSelect
-        onChange={value => _editProxy(value, { name: 'vm', proxy })}
-        value={proxy.vmUuid}
-        xoType='VM'
-      >
-        {proxy.vmUuid !== undefined ? (
-          <div>
-            <Vm id={proxy.vmUuid} />{' '}
-            <a
-              role='button'
-              onClick={() => _editProxy(null, { name: 'vm', proxy })}
-            >
-              <Icon icon='remove' />
-            </a>
-          </div>
-        ) : (
-          _('noValue')
-        )}
-      </XoSelect>
-    ),
+    itemRenderer: proxy => <Vm id={proxy.vmUuid} link newTab />,
     name: _('vm'),
     sortCriteria: 'vm',
   },
