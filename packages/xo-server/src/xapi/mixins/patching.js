@@ -4,7 +4,6 @@ import unzip from 'unzipper'
 import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
-import { debounce } from '../../decorators'
 import { debounceWithKey } from '../../_pDebounceWithKey'
 import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
@@ -56,7 +55,9 @@ const listMissingPatches = debounceWithKey(
 export default {
   // raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
   // FIXME: should be static
-  @debounce(24 * 60 * 60 * 1000)
+  @debounceWithKey.decorate(24 * 60 * 60 * 1000, function() {
+    return this
+  })
   async _getXenUpdates() {
     const response = await this.xo.httpRequest(
       'http://updates.xensource.com/XenServer/updates.xml'
