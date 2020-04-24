@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "name": "@xen-orchestra/openflow",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/openflow",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.0.0",
+  "version": "0.1.0",
   "engines": {
     "node": ">=8.10"
   },
@@ -16,6 +16,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "postversion": "npm publish --access public",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"

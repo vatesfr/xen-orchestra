@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.2.0",
-    "@xen-orchestra/openflow": "^0.0.0",
+    "@xen-orchestra/openflow": "^0.1.0",
     "ipaddr.js": "^1.9.1",
     "lodash": "^4.17.11",
     "node-openssl-cert": "^0.0.117",
