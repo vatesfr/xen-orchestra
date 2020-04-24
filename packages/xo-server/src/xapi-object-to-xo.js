@@ -1,5 +1,6 @@
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
+import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
 import {
   extractProperty,
   forEach,
@@ -324,6 +325,7 @@ const TRANSFORMS = {
         }
       })(),
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
+      mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
 
       memory: (function() {
