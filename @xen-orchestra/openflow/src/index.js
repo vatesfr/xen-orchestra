@@ -1,4 +1,5 @@
 import assert from 'assert'
+
 import ofVersion from './version'
 // TODO: More openflow versions
 import of11 from './openflow-11/index'
