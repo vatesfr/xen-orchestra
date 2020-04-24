@@ -423,7 +423,9 @@ class AclRuleRow extends Component {
             icon='delete'
             level='danger'
             tooltip={
-              sdnControllerLoaded ? _('deleteRule') : _('noAclRuleReason')
+              sdnControllerLoaded
+                ? _('deleteRule')
+                : _('sdnControllerNotLoaded')
             }
           />
         </td>
@@ -493,7 +495,9 @@ class AclRulesRows extends BaseComponent {
           handlerParam={vif}
           icon='add'
           size='small'
-          tooltip={sdnControllerLoaded ? _('addRule') : _('noAclRuleReason')}
+          tooltip={
+            sdnControllerLoaded ? _('addRule') : _('sdnControllerNotLoaded')
+          }
         />
         {showRules && rulesToSee && (
           <table className='table'>
