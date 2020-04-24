@@ -807,7 +807,7 @@ export const snapshot = defer(async function(
   let resourceSet
   try {
     if (vm.resourceSet !== undefined) {
-      resourceSet = this.getResourceSet(vm.resourceSet)
+      resourceSet = await this.getResourceSet(vm.resourceSet)
     }
   } catch (error) {
     if (noSuchObject.is(error)) {
@@ -1213,7 +1213,7 @@ export const revert = defer(async function($defer, { snapshot }) {
     // Deallocate IP addresses
     const vmIpsByVif = {}
     vm.VIFs.forEach(vifId => {
-      const vif = this.getObject[vifId]
+      const vif = this.getObject(vifId)
       vmIpsByVif[vifId] = [
         ...vif.allowedIpv4Addresses,
         ...vif.allowedIpv6Addresses,
@@ -1245,7 +1245,7 @@ export const revert = defer(async function($defer, { snapshot }) {
     // Reallocate the snapshot's IP addresses
     const snapshotIpsByVif = {}
     snapshot.VIFs.forEach(vifId => {
-      const vif = this.getObject[vifId]
+      const vif = this.getObject(vifId)
       snapshotIpsByVif[vifId] = [
         ...vif.allowedIpv4Addresses,
         ...vif.allowedIpv6Addresses,
@@ -1253,19 +1253,25 @@ export const revert = defer(async function($defer, { snapshot }) {
     })
     await Promise.all(
       Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
-        this.allocIpAddresses(vifId, null, ips)
+        this.allocIpAddresses(vifId, ips)
       )
     )
     $defer.onFailure(() =>
       Promise.all(
         Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
-          this.allocIpAddresses(vifId, ips)
+          this.allocIpAddresses(vifId, null, ips)
         )
       )
     )
   }
   await this.getXapi(snapshot).revertVm(snapshot._xapiId)
-  await this.setData(vm.id, 'resourceSet', resourceSet)
+
+  // Reverting a snapshot must not set the VM back to the old resource set
+  await this.getXapi(vm).xo.setData(
+    vm._xapiId,
+    'resourceSet',
+    resourceSet === undefined ? null : resourceSet
+  )
 })
 
 revert.params = {
