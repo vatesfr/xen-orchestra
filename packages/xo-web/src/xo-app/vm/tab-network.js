@@ -479,7 +479,6 @@ class AclRulesRows extends BaseComponent {
       <div>
         {rulesToSee && (
           <ActionButton
-            btnStyle='success'
             className='mb-1 pull-right'
             handler={this.toggleState('showRules')}
             icon={showRules ? 'hidden' : 'shown'}
