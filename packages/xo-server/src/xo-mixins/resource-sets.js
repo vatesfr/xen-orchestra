@@ -11,7 +11,11 @@ import {
   remove,
   some,
 } from 'lodash'
-import { noSuchObject, unauthorized } from 'xo-common/api-errors'
+import {
+  noSuchObject,
+  notEnoughResources,
+  unauthorized,
+} from 'xo-common/api-errors'
 
 import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils'
 
@@ -315,7 +319,12 @@ export default class {
       }
 
       if ((limit.available -= quantity) < 0 && !force) {
-        throw new Error(`not enough ${id} available in the set ${setId}`)
+        throw notEnoughResources({
+          resourceSet: setId,
+          resourceType: id,
+          available: limit.available + quantity,
+          requested: quantity,
+        })
       }
     })
     await this._save(set)
