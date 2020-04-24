@@ -138,7 +138,6 @@ const COLUMNS = [
   {
     itemRenderer: proxy => <Vm id={proxy.vmUuid} link newTab />,
     name: _('vm'),
-    sortCriteria: 'vmUuid',
   },
 ]
 
