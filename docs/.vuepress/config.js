@@ -56,7 +56,7 @@ module.exports = {
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
         children: [
-          ['/rolling_snapshots', 'Rolling Snapshots'],
+          ['/rolling_snapshots', 'Snapshots'],
           ['/full_backups', 'Full backup'],
           ['/delta_backups', 'Delta Backup'],
           ['/disaster_recovery.md', 'Disaster Recovery'],
