@@ -2173,6 +2173,8 @@ const messages = {
   xosanState_configuringGluster: 'Configuring gluster…',
   xosanState_creatingSr: 'Creating SR…',
   xosanState_scanningSr: 'Scanning SR…',
+  xosanXcpngWarning:
+    'XOSAN cannot be installed on XCP-ng yet. Incoming XOSANv2 will be compatible with XCP-ng: {link}.',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install XOA plugin first',
   xosanLoadCloudPlugin: 'Load XOA plugin first',

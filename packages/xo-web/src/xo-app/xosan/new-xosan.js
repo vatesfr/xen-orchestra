@@ -111,6 +111,11 @@ export default class NewXosan extends Component {
     suggestion: 0,
   }
 
+  _hasXcpng = createSelector(
+    () => this.props.hosts,
+    hosts => Object.values(hosts).some(host => host.productBrand === 'XCP-ng')
+  )
+
   _checkPacks = pool =>
     getResourceCatalog().then(
       catalog => {
@@ -347,6 +352,24 @@ export default class NewXosan extends Component {
 
     return (
       <Container>
+        {this._hasXcpng() && (
+          <Row className='mb-1'>
+            <span className='text-muted'>
+              <Icon icon='info' />{' '}
+              {_('xosanXcpngWarning', {
+                link: (
+                  <a
+                    href='https://xcp-ng.org/docs/storage.html#xosanv2'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    https://xcp-ng.org/docs/storage.html
+                  </a>
+                ),
+              })}
+            </span>
+          </Row>
+        )}
         <Row className='mb-1'>
           <Col size={4}>
             <SelectPool
