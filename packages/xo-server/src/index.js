@@ -17,6 +17,7 @@ import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
 import { forOwn, map, once } from 'lodash'
+import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
@@ -27,7 +28,7 @@ import { join as joinPath } from 'path'
 
 import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
-import { ensureDir, readdir, readFile } from 'fs-extra'
+import { ensureDir, outputFile, readdir, readFile } from 'fs-extra'
 
 import ensureArray from './_ensureArray'
 import parseDuration from './_parseDuration'
@@ -372,6 +373,8 @@ async function registerPlugins(xo) {
 async function makeWebServerListen(
   webServer,
   {
+    autoCert,
+
     certificate,
 
     // The properties was called `certificate` before.
@@ -381,18 +384,37 @@ async function makeWebServerListen(
     ...opts
   }
 ) {
-  if (cert && key) {
-    ;[opts.cert, opts.key] = await Promise.all([readFile(cert), readFile(key)])
-    if (opts.key.includes('ENCRYPTED')) {
-      opts.passphrase = await new Promise(resolve => {
-        // eslint-disable-next-line no-console
-        console.log('Encrypted key %s', key)
-        process.stdout.write(`Enter pass phrase: `)
-        pw(resolve)
-      })
-    }
-  }
   try {
+    if (cert && key) {
+      try {
+        ;[opts.cert, opts.key] = await Promise.all([
+          readFile(cert),
+          readFile(key),
+        ])
+        if (opts.key.includes('ENCRYPTED')) {
+          opts.passphrase = await new Promise(resolve => {
+            // eslint-disable-next-line no-console
+            console.log('Encrypted key %s', key)
+            process.stdout.write(`Enter pass phrase: `)
+            pw(resolve)
+          })
+        }
+      } catch (error) {
+        if (!(autoCert && error.code === 'ENOENT')) {
+          throw error
+        }
+
+        const pems = await genSelfSignedCert()
+        await Promise.all([
+          outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
+          outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
+        ])
+        log.info('new certificate generated', { cert, key })
+        opts.cert = pems.cert
+        opts.key = pems.key
+      }
+    }
+
     const niceAddress = await webServer.listen(opts)
     log.info(`Web server listening on ${niceAddress}`)
   } catch (error) {

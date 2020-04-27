@@ -95,6 +95,12 @@ port = 80
 # #hostname = '127.0.0.1'
 # port = 443
 #
+# # Whether to autogenerate a self signed certificate if the `cert` and `file`
+# # entries could not be found.
+# #
+# # Default: false
+# autoCert = true
+#
 # # File containing the certificate (PEM format).
 # #
 # # If a chain of certificates authorities is needed, you may bundle them
