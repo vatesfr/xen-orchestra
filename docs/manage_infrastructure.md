@@ -431,6 +431,46 @@ You can see more screenshots here: https://xen-orchestra.com/blog/hotfix-xs70e00
 
 ![](./assets/xo5patching.png)
 
+## Visualizations
+
+Visualizations can help you to understand your XenServer infrastructure, as well as correlate events and detect bottlenecks.
+
+> :construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+
+### Dashboard
+
+The dashboard view gathers information on all your connected pools/hosts.
+
+![](./assets/visualizationdashboard.png)
+
+:::tip
+You can also update all your hosts (install missing patches) from this page.
+:::
+
+### Parallel Coordinates
+
+A Parallel Coordinates visualization helps to detect proportions in a hierarchical environment. In a XenServer environment, it's especially useful if you want to see useful information from a large amount of data.
+
+![](./assets/parralelcoordinates.png)
+
+## Health
+
+This view will help you find any bottlenecks and compare the metrics of your infrastructure.
+
+> :construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+
+### Heatmap
+
+A heatmap allows its reader to understand when your VMs or hosts are stressed. Values are relative, thus it's easy to detect trends or spikes.
+
+[![](./assets/heatmap.png)](https://xen-orchestra.com/blog/xen-orchestra-4-4/#heatmapforinfrastructurehealth).
+
+### Event correlation
+
+This is the place to compare metrics on comparable objects (VMs to VMs, hosts to hosts).
+
+[![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
+
 ## Docker support
 
 This allows you to enjoy Docker containers displayed directly in Xen Orchestra.
