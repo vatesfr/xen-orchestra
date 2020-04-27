@@ -40,7 +40,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-common patch
+- xo-common minor
 - xo-vmdk-to-vhd patch
 - xo-server-audit patch
 - xen-api patch
