@@ -8,6 +8,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
+import SingleLineRow from 'single-line-row'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
@@ -341,55 +342,76 @@ class NewAclRuleForm extends BaseComponent {
     return (
       <form id='newAclForm'>
         <fieldset className='form-inline'>
-          <div className='form-group'>
-            <Toggle onChange={this.toggleState('allow')} value={allow} />
-            {_('aclRuleAllow')}
-            <Select
-              name='protocol'
-              onChange={this.linkState('protocol')}
-              options={[
-                { label: 'IP', value: 'IP' },
-                { label: 'TCP', value: 'TCP' },
-                { label: 'UDP', value: 'UDP' },
-                { label: 'ICMP', value: 'ICMP' },
-                { label: 'ARP', value: 'ARP' },
-              ]}
-              value={protocol}
-            />
-            {_('aclRuleProtocol')}
-            {showPort && [
-              <input
-                className='form-control'
-                key='key'
-                min='1'
-                onChange={this.linkState('port')}
-                type='number'
-                value={port}
-              />,
-              _('aclRulePort'),
-            ]}
-            {showIpRange && [
-              <input
-                className='form-control'
-                key='key'
-                onChange={this.linkState('ipRange')}
-                type='text'
-                value={ipRange}
-              />,
-              _('aclRuleIpRange'),
-            ]}
-            <Select
-              name='direction'
-              onChange={this.linkState('direction')}
-              options={[
-                { label: 'from', value: 'from' },
-                { label: 'to', value: 'to' },
-                { label: 'from/to', value: 'from/to' },
-              ]}
-              required
-              value={direction}
-            />
-            {_('aclRuleDirection')}
+          <div>
+            <Container>
+              <SingleLineRow>
+                <Col size={6}>{_('aclRuleAllow')}</Col>
+                <Col size={6}>
+                  <Toggle onChange={this.toggleState('allow')} value={allow} />
+                </Col>
+              </SingleLineRow>
+              <SingleLineRow>
+                <Col size={6}>{_('aclRuleProtocol')}</Col>
+                <Col size={6}>
+                  <Select
+                    name='protocol'
+                    onChange={this.linkState('protocol')}
+                    options={[
+                      { label: 'IP', value: 'IP' },
+                      { label: 'TCP', value: 'TCP' },
+                      { label: 'UDP', value: 'UDP' },
+                      { label: 'ICMP', value: 'ICMP' },
+                      { label: 'ARP', value: 'ARP' },
+                    ]}
+                    value={protocol}
+                  />
+                </Col>
+              </SingleLineRow>
+              {showPort && (
+                <SingleLineRow>
+                  <Col size={6}>{_('aclRulePort')}</Col>
+                  <Col size={6}>
+                    <input
+                      className='form-control'
+                      min='1'
+                      onChange={this.linkState('port')}
+                      type='number'
+                      value={port}
+                    />
+                  </Col>
+                </SingleLineRow>
+              )}
+              {showIpRange && (
+                <SingleLineRow>
+                  <Col size={6}>{_('aclRuleIpRange')}</Col>
+                  <Col size={6}>
+                    <input
+                      className='form-control'
+                      key='key'
+                      onChange={this.linkState('ipRange')}
+                      type='text'
+                      value={ipRange}
+                    />
+                  </Col>
+                </SingleLineRow>
+              )}
+              <SingleLineRow>
+                <Col size={6}>{_('aclRuleDirection')}</Col>
+                <Col size={6}>
+                  <Select
+                    name='direction'
+                    onChange={this.linkState('direction')}
+                    options={[
+                      { label: 'from', value: 'from' },
+                      { label: 'to', value: 'to' },
+                      { label: 'from/to', value: 'from/to' },
+                    ]}
+                    required
+                    value={direction}
+                  />
+                </Col>
+              </SingleLineRow>
+            </Container>
           </div>
         </fieldset>
       </form>

@@ -1106,11 +1106,11 @@ const messages = {
 
   // ----- VM network tab -----
 
-  aclRuleAllow: 'Allow',
-  aclRuleProtocol: 'Protocol',
-  aclRulePort: 'Port',
-  aclRuleIpRange: 'IP range (CIDR)',
-  aclRuleDirection: 'Direction',
+  aclRuleAllow: 'Allow the traffic',
+  aclRuleProtocol: 'Select a protocol',
+  aclRulePort: 'Select a port',
+  aclRuleIpRange: 'Select an IP or an IP range (CIDR format)',
+  aclRuleDirection: 'Select a direction',
   addRule: 'Add rule',
   deleteRule: 'Delete rule',
   hideRules: 'Hide rules',
