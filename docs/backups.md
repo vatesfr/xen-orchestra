@@ -20,11 +20,15 @@ You also have a filter to search anything related to these logs.
 Logs are not "live" tasks. If you restart XOA during a backup, the log associated with the job will stay in orange (in progress), because it wasn't finished. It will stay forever unfinished because the job was cut in the middle.
 :::
 
-## Backups execution
+### Backups execution
 
 Each backups' job execution is identified by a `runId`. You can find this `runId` in its detailed log.
 
 ![](./assets/log-runId.png)
+
+## Schedule
+
+> :construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
 
 ## Smart Backup
 
@@ -148,6 +152,26 @@ All your scheduled backups are acccessible in the "Restore" view in the backup s
 :::tip
 You can restore your backup even on a brand new host/pool and on brand new hardware.
 :::
+
+## File level restore
+
+You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
+
+:::warning
+File level restore **is only possible on delta backups**
+:::
+
+### Restore a file
+
+Go into the Backup/File restore section:
+
+![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore1.png)
+
+Then, click on the VM where your files are, and follow the instructions:
+
+![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore2.png)
+
+That's it! Your chosen file will be restored.
 
 ## About backup compression
 
