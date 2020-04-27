@@ -1,7 +1,5 @@
 # Continuous Delta backups
 
-> WARNING: Delta backups are only available on XenServer 6.5 or later
-
 You can export only the delta (difference) between your current VM disks and a previous snapshot (called here the _reference_). They are called _continuous_ because you'll **never export a full backup** after the first one.
 
 ## Introduction
