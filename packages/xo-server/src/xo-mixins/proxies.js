@@ -337,9 +337,8 @@ export default class Proxy {
     }
 
     if (ipAddress === undefined) {
-      const error = new Error('cannot get the proxy VM IP')
-      error.vmUuid = proxy.vmUuid
-      error.address = proxy.address
+      const error = new Error('cannot get the proxy IP')
+      error.proxy = omit(proxy, 'authenticationToken')
       throw error
     }
 
