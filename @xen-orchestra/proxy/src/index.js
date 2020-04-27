@@ -65,7 +65,7 @@ ${name} v${version}
             throw error
           }
 
-          const pems = require('./_genSelfSignedCert').genSelfSignedCert()
+          const pems = await require('./_genSelfSignedCert').genSelfSignedCert()
           outputFileSync(cert, pems.cert, { mode: 0o400 })
           outputFileSync(key, pems.private, { mode: 0o400 })
           info('new certificate generated', { cert, key })
