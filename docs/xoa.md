@@ -57,6 +57,8 @@ After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` 
 
 ## Technical Support
 
+### XOA Check
+
 In your appliance, you can access the support section in the XOA menu. In this section you can launch an `xoa check` command:
 
 ![](https://xen-orchestra.com/blog/content/images/2019/10/xoacheck.png)
