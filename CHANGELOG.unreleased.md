@@ -10,7 +10,7 @@
 - [Snapshot] Confirmation message before creating a snapshot with memory [#4914](https://github.com/vatesfr/xen-orchestra/issues/4914) (PR [#4917](https://github.com/vatesfr/xen-orchestra/pull/4917))
 - [Internationalization] Italian translation (Thanks [@infodavide](https://github.com/infodavide)!) [#4908](https://github.com/vatesfr/xen-orchestra/issues/4908) (PRs [#4931](https://github.com/vatesfr/xen-orchestra/pull/4931) [#4932](https://github.com/vatesfr/xen-orchestra/pull/4932))
 - [Proxy] Associate a license to the deployed proxy (PR [#4912](https://github.com/vatesfr/xen-orchestra/pull/4912))
-- [Self] Better error message when there aren't enough resources available (PR [#4952](https://github.com/vatesfr/xen-orchestra/pull/4952))
+- [Self] Better error when not enough available resources (PR [#4952](https://github.com/vatesfr/xen-orchestra/pull/4952))
 
 ### Bug fixes
 
