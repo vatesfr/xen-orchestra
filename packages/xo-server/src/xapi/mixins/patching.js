@@ -5,6 +5,7 @@ import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
 import { debounceWithKey } from '../../_pDebounceWithKey'
+import { decorateWith } from '../../_decorateWith'
 import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
 import { extractOpaqueRef, useUpdateSystem } from '../utils'
@@ -55,7 +56,7 @@ const listMissingPatches = debounceWithKey(
 export default {
   // raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
   // FIXME: should be static
-  @debounceWithKey.decorate(24 * 60 * 60 * 1000, function() {
+  @decorateWith(debounceWithKey, 24 * 60 * 60 * 1000, function() {
     return this
   })
   async _getXenUpdates() {
