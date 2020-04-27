@@ -39,7 +39,9 @@ certificate = './certificate.pem'
 key = './key.pem'
 ```
 
-> If a chain of certificates authorities is needed, you may bundle them directly in the certificate. Note: the order of certificates does matter, your certificate should come first followed by the certificate of the above certificate authority up to the root.
+:::tip
+If a chain of certificates authorities is needed, you may bundle them directly in the certificate. Note: the order of certificates does matter, your certificate should come first followed by the certificate of the above certificate authority up to the root.
+:::
 
 ### HTTPS redirection
 
@@ -79,7 +81,9 @@ Don't forget to reload `systemd` conf and restart `xo-server`:
 # systemctl restart xo-server.service
 ```
 
-**Note:** The `--use-openssl-ca` option is ignored by Node if Xen-Orchestra is run with Linux capabilities. Capabilities are commonly used to bind applications to privileged ports (<1024) (i.e. `CAP_NET_BIND_SERVICE`). Local NAT rules (`iptables`) or a reverse proxy would be required to use privileged ports and a custom certficate authority.
+:::tip
+The `--use-openssl-ca` option is ignored by Node if Xen-Orchestra is run with Linux capabilities. Capabilities are commonly used to bind applications to privileged ports (<1024) (i.e. `CAP_NET_BIND_SERVICE`). Local NAT rules (`iptables`) or a reverse proxy would be required to use privileged ports and a custom certficate authority.
+:::
 
 ## Redis server
 
