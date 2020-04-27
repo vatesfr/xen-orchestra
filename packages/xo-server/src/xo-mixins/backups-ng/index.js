@@ -47,6 +47,7 @@ import { type Schedule } from '../scheduling'
 import createSizeStream from '../../size-stream'
 import parseDuration from '../../_parseDuration'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
+import { decorateWith } from '../../_decorateWith'
 import { waitAll } from '../../_waitAll'
 import {
   type DeltaVmExport,
@@ -933,7 +934,7 @@ export default class BackupNg {
     )()
   }
 
-  @debounceWithKey.decorate(10e3, function keyFn(remoteId) {
+  @decorateWith(debounceWithKey, 10e3, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async _listVmBackupsOnRemote(remoteId: string) {
