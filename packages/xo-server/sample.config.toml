@@ -98,8 +98,8 @@ port = 80
 # # Whether to autogenerate a self signed certificate if the `cert` or `key`
 # # files could not be found.
 # #
-# # Default: false
-# autoCert = true
+# # Default: true
+# autoCert = false
 #
 # # File containing the certificate (PEM format).
 # #

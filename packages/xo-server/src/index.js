@@ -373,7 +373,7 @@ async function registerPlugins(xo) {
 async function makeWebServerListen(
   webServer,
   {
-    autoCert,
+    autoCert = true,
 
     certificate,
 
