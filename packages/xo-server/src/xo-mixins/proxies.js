@@ -330,10 +330,12 @@ export default class Proxy {
   async callProxyMethod(id, method, params, expectStream = false) {
     const proxy = await this._getProxy(id)
 
-    let ipAddress = proxy.address
+    let ipAddress
     if (proxy.vmUuid !== undefined) {
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
       ipAddress = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
+    } else {
+      ipAddress = proxy.address
     }
 
     if (ipAddress === undefined) {
