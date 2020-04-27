@@ -29,13 +29,6 @@ import deployProxy from './deploy-proxy'
 const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })
 
-const _editProxyAddress = (value, { proxy }) => {
-  value = value.trim()
-  return editProxyAppliance(proxy, {
-    address: value !== '' ? value : null,
-  })
-}
-
 const HEADER = (
   <h2>
     <Icon icon='proxy' /> {_('proxies')}
@@ -123,17 +116,6 @@ const COLUMNS = [
     ),
     name: _('name'),
     sortCriteria: 'name',
-  },
-  {
-    itemRenderer: proxy => (
-      <Text
-        data-proxy={proxy}
-        onChange={_editProxyAddress}
-        value={defined(proxy.address, '')}
-      />
-    ),
-    name: _('address'),
-    sortCriteria: 'address',
   },
   {
     itemRenderer: proxy => <Vm id={proxy.vmUuid} link newTab />,
