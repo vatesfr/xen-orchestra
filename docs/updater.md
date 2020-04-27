@@ -1,10 +1,12 @@
-# Updater
+# Updates
 
-The updater is the central piece that keeps your XO Appliance running the latest Xen Orchestra code.
+All updates are pushed trhough the updater, which is the central piece that keeps your XO Appliance running the latest Xen Orchestra code.
 
-It also allows you to change your current version into another (Trial, Starter, Enterprise or Premium) **without downloading a new XOA**.
+It also allows you to change your current version into another (Free, Starter, Enterprise or Premium) **without downloading a new XOA**.
 
-> By design, the updater is only available in XOA. If you are using XO from the sources, you'll have to use `git` commands and rebuild to keep up.
+:::tip
+By design, the updater is only available in XOA. If you are using XO from the sources, you'll have to use `git` commands and rebuild to keep up.
+:::
 
 ## Requirements
 
@@ -40,29 +42,30 @@ However, if you want to start a manual check, you can do it by clicking on the "
 
 ![](./assets/xo5updatebutton.png)
 
-#### Release channel
+### Release channel
 
 In Xen Orchestra, you can make a choice between two different release channels.
 
-##### Stable
+#### Stable ![](https://camo.githubusercontent.com/3eeb45846aece7f2db1348c8aa38191d18d66aec/68747470733a2f2f62616467656e2e6e65742f62616467652f6368616e6e656c2f737461626c652f677265656e)
 
 The stable channel is intended to be a version of Xen Orchestra that is already **one month old** (and therefore will benefit from one month of community feedback and various fixes). This way, users more concerned with the stability of their appliance will have the option to stay on a slightly older (and tested) version of XO (still supported by our pro support).
 
-##### Latest
+#### Latest ![](https://camo.githubusercontent.com/0ef9d8d2b62afd14829822d40cc5a949a7bcdedc/68747470733a2f2f62616467656e2e6e65742f62616467652f6368616e6e656c2f6c61746573742f79656c6c6f77)
 
 The latest channel will include all the latest improvements available in Xen Orchestra. The version available in latest has already been QA'd by our team, but issues may still occur once deployed in vastly varying environments, such as our user base has.
 
-> To select the release channel of your choice, go to the XOA > Updates view.
-
+:::tip
+To select the release channel of your choice, go to the XOA > Updates view:
 ![](./assets/release-channels.png)
+:::
 
-#### Upgrade
+### Upgrade
 
 If a new version is found, you'll have an upgrade button and its tooltip displayed:
 
 ![](./assets/xo5updatetooltipneedupdate.png)
 
-#### Proxy configuration
+### Proxy configuration
 
 If you are behind a proxy, you can edit your proxy settings in this panel:
 

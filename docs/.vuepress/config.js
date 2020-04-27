@@ -29,9 +29,11 @@ module.exports = {
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
         children: [
+          ['/releases', 'Releases'],
+          ['/supported_hosts', 'Host Compatibility List'],
           ['/installation', 'Installation'],
           ['/configuration', 'Configuration'],
-          ['/updates', 'Updates'],
+          ['/updater', 'Updates'],
           ['/architecture', 'Architecture'],
           ['/troubleshooting', 'Troubleshooting'],
         ],
@@ -82,7 +84,10 @@ module.exports = {
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
         children: [
-          ['/changelog', 'Changelog'],
+          [
+            'https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#changelog',
+            'Changelog',
+          ],
           ['/code_of_conduct', 'Code of Conduct'],
           ['/contributing', 'Contributing'],
           ['/licenses', 'Licenses'],

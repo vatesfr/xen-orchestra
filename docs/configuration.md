@@ -2,11 +2,11 @@
 
 Once Xen Orchestra is installed, you can configure some parameters in the configuration file. Let's see how to do that.
 
-## Configuration
-
+:::tip
 The configuration file is located at `/etc/xo-server/config.toml`.
+:::
 
-### User to run XO-server as
+## User to run XO-server as
 
 By default, XO-server runs as 'root'. You can change that by uncommenting these lines and choose whatever user/group you want:
 
@@ -17,7 +17,7 @@ group = 'nogroup'
 
 **Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](from_the_sources.md).
 
-### HTTP listen address and port
+## HTTP listen address and port
 
 By default, XO-server listens on all addresses (0.0.0.0) and runs on port 80. If you need to, you can change this in the `# Basic HTTP` section:
 
@@ -26,7 +26,7 @@ hostname = '0.0.0.0'
 port = 80
 ```
 
-### HTTPS
+## HTTPS
 
 XO-server can also run in HTTPS (you can run HTTP and HTTPS at the same time) - just modify what's needed in the `# Basic HTTPS` section, this time with the certificates/keys you need and their path:
 
@@ -39,7 +39,7 @@ key = './key.pem'
 
 > If a chain of certificates authorities is needed, you may bundle them directly in the certificate. Note: the order of certificates does matter, your certificate should come first followed by the certificate of the above certificate authority up to the root.
 
-#### HTTPS redirection
+### HTTPS redirection
 
 If you want to redirect everything to HTTPS, you can modify the configuration like this:
 
@@ -51,7 +51,7 @@ redirectToHttps = true
 
 This should be written just before the `mount` option, inside the `http:` block.
 
-### Link to XO-web
+## Link to XO-web
 
 You shouldn't have to change this. It's the path where `xo-web` files are served by `xo-server`.
 
@@ -60,7 +60,7 @@ You shouldn't have to change this. It's the path where `xo-web` files are served
 '/' = '../xo-web/dist/'
 ```
 
-### Custom certificate authority
+## Custom certificate authority
 
 If you use certificates signed by an in-house CA for your XenServer hosts, and want to have Xen Orchestra connect to them without rejection, you need to add the `--use-openssl-ca` option in Node, but also add the CA to your trust store (`/etc/ssl/certs` via `update-ca-certificates` in your XOA).
 
@@ -79,7 +79,7 @@ Don't forget to reload `systemd` conf and restart `xo-server`:
 
 **Note:** The `--use-openssl-ca` option is ignored by Node if Xen-Orchestra is run with Linux capabilities. Capabilities are commonly used to bind applications to privileged ports (<1024) (i.e. `CAP_NET_BIND_SERVICE`). Local NAT rules (`iptables`) or a reverse proxy would be required to use privileged ports and a custom certficate authority.
 
-### Redis server
+## Redis server
 
 By default, XO-server will try to contact Redis server on `localhost`, with the port `6379`. But you can define whatever you want:
 
@@ -87,7 +87,7 @@ By default, XO-server will try to contact Redis server on `localhost`, with the 
 uri = 'tcp://db:password@hostname:port'
 ```
 
-### Proxy for XenServer updates and patches
+## Proxy for XenServer updates and patches
 
 To check if your hosts are up-to-date, we need to access `http://updates.xensource.com/XenServer/updates.xml`.
 
@@ -105,6 +105,6 @@ You can add this at the end of your config file:
 httpProxy = 'http://username:password@proxyAddress:port'
 ```
 
-### Log file
+## Log file
 
 On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the server information returned and can be a real help when you have trouble.
