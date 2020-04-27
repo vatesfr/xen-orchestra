@@ -40,7 +40,8 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/self-signed minor
 - xo-vmdk-to-vhd patch
 - xo-server-audit patch
 - xen-api patch
-- xo-server patch
+- xo-server minor
