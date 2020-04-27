@@ -56,25 +56,25 @@ ${name} v${version}
   require('lodash/forOwn')(
     config.http.listen,
     async ({ autoCert, cert, key, ...opts }) => {
-      if (cert !== undefined && key !== undefined) {
-        try {
-          opts.cert = readFileSync(cert)
-          opts.key = readFileSync(key)
-        } catch (error) {
-          if (!(autoCert && error.code === 'ENOENT')) {
-            throw error
-          }
-
-          const pems = await require('./_genSelfSignedCert').genSelfSignedCert()
-          outputFileSync(cert, pems.cert, { mode: 0o400 })
-          outputFileSync(key, pems.private, { mode: 0o400 })
-          info('new certificate generated', { cert, key })
-          opts.cert = pems.cert
-          opts.key = pems.private
-        }
-      }
-
       try {
+        if (cert !== undefined && key !== undefined) {
+          try {
+            opts.cert = readFileSync(cert)
+            opts.key = readFileSync(key)
+          } catch (error) {
+            if (!(autoCert && error.code === 'ENOENT')) {
+              throw error
+            }
+
+            const pems = await require('./_genSelfSignedCert').genSelfSignedCert()
+            outputFileSync(cert, pems.cert, { mode: 0o400 })
+            outputFileSync(key, pems.private, { mode: 0o400 })
+            info('new certificate generated', { cert, key })
+            opts.cert = pems.cert
+            opts.key = pems.private
+          }
+        }
+
         const niceAddress = await httpServer.listen(opts)
         info(`Web server listening on ${niceAddress}`)
       } catch (error) {
