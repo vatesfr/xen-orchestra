@@ -44,7 +44,7 @@ module.exports = {
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
         children: [
-          ['/management', 'Infrastructure'],
+          ['/manage_infrastructure', 'Infrastructure'],
           ['/users', 'Users'],
           ['/advanced', 'Advanced features'],
           ['/load_balancing', 'VM Load Balancing'],
