@@ -1009,8 +1009,8 @@ export default {
   migrateBackupScheduleMessage:
     "Bu, yedeklemeyi Backup NG'ye taşıyacak. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?",
 
-  // Original text: "The job {name} ({id}) will backup {nVms, number} VM{nVms, plural, one {} other {s}}. Are you sure you want to run it?"
-  runBackupNgJobConfirm: undefined,
+  // Original text: "Are you sure you want to run {name} ({id})?"
+  runBackupNgJobConfirm: 'Çalıştırmak istediğinize emin misiniz {name} ({id})?',
 
   // Original text: 'Are you sure you want to cancel {name} ({id})?'
   cancelJobConfirm: undefined,

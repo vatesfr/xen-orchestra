@@ -93,11 +93,17 @@ const _deleteBackupJobs = items => {
 const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
   confirm({
     title: _('runJob'),
-    body: _('runBackupNgJobConfirm', {
-      id: id.slice(0, 5),
-      name: <strong>{name}</strong>,
-      nVms,
-    }),
+    body: (
+      <span>
+        {_('runBackupNgJobConfirm', {
+          id: id.slice(0, 5),
+          name: <strong>{name}</strong>,
+        })}
+        {_('vmBackupsInfo', {
+          nVms,
+        })}
+      </span>
+    ),
   }).then(() =>
     type === 'backup'
       ? runBackupNgJob({ id, schedule })

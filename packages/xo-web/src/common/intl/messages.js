@@ -464,8 +464,9 @@ const messages = {
   migrateBackupSchedule: 'Migrate to the new backup system',
   migrateBackupScheduleMessage:
     'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
-  runBackupNgJobConfirm:
-    'The job {name} ({id}) will backup {nVms, number} VM{nVms, plural, one {} other {s}}. Are you sure you want to run it?',
+  runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
+  vmBackupsInfo:
+    'This job will backup {nVms, number} VM{nVms, plural, one {} other {s}}.',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
