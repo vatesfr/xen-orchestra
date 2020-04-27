@@ -67,8 +67,8 @@ ${name} v${version}
             }
 
             const pems = await require('./_genSelfSignedCert').genSelfSignedCert()
-            outputFileSync(cert, pems.cert, { mode: 0o400 })
-            outputFileSync(key, pems.private, { mode: 0o400 })
+            outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
+            outputFileSync(key, pems.private, { flag: 'wx', mode: 0o400 })
             info('new certificate generated', { cert, key })
             opts.cert = pems.cert
             opts.key = pems.private
