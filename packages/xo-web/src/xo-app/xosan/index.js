@@ -279,8 +279,8 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     getXosanSrs,
     getHosts,
     (srs, hosts) => pool =>
-      every(srs, sr => sr.$pool !== pool.id) &&
-      hosts[pool.master].productBrand !== 'XCP-ng'
+      hosts[pool.master].productBrand !== 'XCP-ng' &&
+      every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {
