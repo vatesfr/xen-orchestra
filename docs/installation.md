@@ -10,6 +10,25 @@ All the deploy code is within your browser, nothing is sent to our server!
 
 ![](./assets/deploy_form.png)
 
+### First Login
+
+Once you have started the VM, you can access the web UI by putting the IP you configured during deployment into your web browser. If you did not configure an IP or are unsure, try one of the following methods to find it:
+
+- Run `xe vm-list params=name-label,networks | grep -A 1 XOA` on your host
+- Check your router's DHCP leases for an `xoa` lease
+
+:::tip
+The default Web UI credentials are `admin@admin.net` / `admin`
+:::
+
+### Registration
+
+**The first thing** you need to do with your XOA is register. [Read the documentation on the page dedicated to the updater/register inferface](updater.md#register).
+
+:::tip
+We don't generate virtual appliances every month (unlike XO code itself). It's very likely you'll need to update Xen Orchestra after the initial deploy. You need to register to do so!
+:::
+
 ### More on XOA
 
 You can get all the info you want on XOA in its [dedicated section](xoa.md).

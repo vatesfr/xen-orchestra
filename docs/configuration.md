@@ -6,6 +6,8 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 The configuration file is located at `/etc/xo-server/config.toml`.
 :::
 
+If you need to do any configuration on the system itself (firewall, SSH…), check the [XOA dedicated section](xoa.md).
+
 ## User to run XO-server as
 
 By default, XO-server runs as 'root'. You can change that by uncommenting these lines and choose whatever user/group you want:
