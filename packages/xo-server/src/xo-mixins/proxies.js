@@ -329,17 +329,18 @@ export default class Proxy {
 
   async callProxyMethod(id, method, params, expectStream = false) {
     const proxy = await this._getProxy(id)
-    if (proxy.address === undefined && proxy.vmUuid === undefined) {
-      throw new Error('proxy VM and proxy address should not be both undefined')
-    }
 
+    let ipAddress = proxy.address
     if (proxy.vmUuid !== undefined) {
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
-      proxy.address =
-        extractIpFromVmNetworks(vm.$guest_metrics?.networks) ?? proxy.address
-      if (proxy.address === undefined) {
-        throw new Error(`cannot get the proxy VM IP (${proxy.vmUuid})`)
-      }
+      ipAddress = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
+    }
+
+    if (ipAddress === undefined) {
+      const error = new Error('cannot get the proxy VM IP')
+      error.vmUuid = proxy.vmUuid
+      error.address = proxy.address
+      throw error
     }
 
     const response = await this._app.httpRequest({
@@ -351,7 +352,7 @@ export default class Proxy {
           proxy.authenticationToken
         ),
       },
-      host: proxy.address,
+      hostname: ipAddress,
       method: 'POST',
       pathname: '/api/v1',
       protocol: 'https:',
