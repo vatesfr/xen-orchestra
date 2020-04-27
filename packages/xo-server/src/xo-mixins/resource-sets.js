@@ -319,12 +319,14 @@ export default class {
       }
 
       if ((limit.available -= quantity) < 0 && !force) {
-        throw notEnoughResources({
-          resourceSet: setId,
-          resourceType: id,
-          available: limit.available + quantity,
-          requested: quantity,
-        })
+        throw notEnoughResources([
+          {
+            resourceSet: setId,
+            resourceType: id,
+            available: limit.available + quantity,
+            requested: quantity,
+          },
+        ])
       }
     })
     await this._save(set)
