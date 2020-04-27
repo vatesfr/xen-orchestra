@@ -355,7 +355,7 @@ export default class Proxy {
           proxy.authenticationToken
         ),
       },
-      host: proxy.address,
+      hostname: proxy.address,
       method: 'POST',
       pathname: '/api/v1',
       protocol: 'https:',
