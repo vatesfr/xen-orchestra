@@ -353,7 +353,7 @@ export default class Proxy {
           proxy.authenticationToken
         ),
       },
-      host: ipAddress,
+      hostname: ipAddress,
       method: 'POST',
       pathname: '/api/v1',
       protocol: 'https:',
