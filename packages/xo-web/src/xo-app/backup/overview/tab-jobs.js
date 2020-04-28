@@ -98,8 +98,8 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
         {_('runBackupNgJobConfirm', {
           id: id.slice(0, 5),
           name: <strong>{name}</strong>,
-        })}
-        {_('vmBackupsInfo', {
+        })}{' '}
+        {_('runBackupJobWarningNVms', {
           nVms,
         })}
       </span>
