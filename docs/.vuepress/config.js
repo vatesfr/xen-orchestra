@@ -80,6 +80,7 @@ module.exports = {
         sidebarDepth: 1, // optional, defaults to 1
         children: [
           ['/xoa', 'XOA Support'],
+          ['/purchase', 'Purchase XOA'],
           ['/community', 'Community Support'],
         ],
       },

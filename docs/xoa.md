@@ -2,13 +2,53 @@
 
 This is the section dedicated to all XOA details and how to get support on it.
 
-## Specifications
+:::tip
+As a XOA user, you can open tickets in your support panel: <https://support.vates.fr/>.
+:::
+
+## Technical Support
+
+XOA is the only way to get our pro support, which is available remotely via SSH and a special tunnel.
+
+### XOA Check
+
+XOA check is a way to test if you XOA is correctly configured. It should be the first thing to do if you have any problem!
+
+To run this check, in the web UI, you can access the support section in the XOA menu. In this section you can launch an `xoa check` command:
+
+![](https://xen-orchestra.com/blog/content/images/2019/10/xoacheck.png)
+
+### Support tunnel
+
+Open a secure support tunnel so our team can remotely investigate on your XOA. For that, we need to get the "support ID". See below:
+
+![](https://user-images.githubusercontent.com/10992860/67384755-10f47f80-f592-11e9-974d-bbdefd0bf353.gif)
+
+<a id="ssh-pro-support"></a>
+
+If your web UI is not working, you can also open the secure support tunnel from the CLI. To open a private tunnel (we are the only one with the private key), you can use the command `xoa support tunnel` like below:
+
+```
+$ xoa support tunnel
+The support tunnel has been created.
+
+Do not stop this command before the intervention is over!
+Give this id to the support: 40713
+```
+
+Give us this number, and we'll be able to access your XOA in a secure manner. Then, close the tunnel with `Ctrl+C` after your issue has been solved by support.
+
+:::tip
+The user `xoa-support` is used by the tunnel. If you want to deactivate this bundled user, you can run `chage -E 0 xoa-support`. To re-activate this account, you must run `chage -E 1 xoa-support`.
+:::
+
+## XOA VM Specifications
 
 By default, the VM is configured with:
 
 - 2 vCPUs
-- 2GB of RAM
-- 15GB of disk (10GB for `/` and 5GB for `/var`)
+- 2GiB of RAM
+- 20GiB of free SR space (2GiB on thin pro SR)
 
 For use on huge infrastructure (more than 500+ VMs), feel free to increase the RAM.
 
@@ -54,36 +94,6 @@ Follow the instructions:
 You can also download XOA from xen-orchestra.com in an XVA file. Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_unified.xva` or via XenCenter.
 
 After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` or with XenCenter.
-
-## Technical Support
-
-### XOA Check
-
-In your appliance, you can access the support section in the XOA menu. In this section you can launch an `xoa check` command:
-
-![](https://xen-orchestra.com/blog/content/images/2019/10/xoacheck.png)
-
-### Support tunnel
-
-Open a secure support tunnel so our team can remotely investigate on your XOA:
-
-![](https://user-images.githubusercontent.com/10992860/67384755-10f47f80-f592-11e9-974d-bbdefd0bf353.gif)
-
-<a id="ssh-pro-support"></a>
-
-If your web UI is not working, you can also open the secure support tunnel from the CLI. To open a private tunnel (we are the only one with the private key), you can use the command `xoa support tunnel` like below:
-
-```
-$ xoa support tunnel
-The support tunnel has been created.
-
-Do not stop this command before the intervention is over!
-Give this id to the support: 40713
-```
-
-Give us this number, and we'll be able to access your XOA in a secure manner. Then, close the tunnel with `Ctrl+C` after your issue has been solved by support.
-
-> The tunnel utilizes the user `xoa-support`. If you want to deactivate this bundled user, you can run `chage -E 0 xoa-support`. To re-activate this account, you must run `chage -E 1 xoa-support`.
 
 ## First console connection
 
