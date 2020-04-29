@@ -37,14 +37,16 @@ const Number_ = decorate([
       },
     },
     computed: {
-      value: ({ displayedValue }, { value }) =>
-        displayedValue !== '' &&
-        (Number.isNaN((displayedValue = +displayedValue)) ||
-          displayedValue === value)
-          ? displayedValue
-          : value === undefined
-          ? ''
-          : String(value),
+      value: ({ displayedValue }, { value }) => {
+        const numericValue = +displayedValue
+        if (
+          displayedValue === '' ||
+          (!Number.isNaN(numericValue) && numericValue !== value)
+        ) {
+          return value === undefined ? '' : String(value)
+        }
+        return displayedValue
+      },
     },
   }),
   injectState,
