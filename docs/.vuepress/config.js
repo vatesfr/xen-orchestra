@@ -62,6 +62,7 @@ module.exports = {
         sidebarDepth: 1, // optional, defaults to 1
         children: [
           ['/backups', 'Concepts'],
+          ['/proxy', 'Proxy'],
           ['/rolling_snapshots', 'Snapshots'],
           ['/full_backups', 'Full backup'],
           ['/delta_backups', 'Delta Backup'],
