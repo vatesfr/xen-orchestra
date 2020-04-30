@@ -228,7 +228,7 @@ const Modal = decorate([
   ),
 ])
 
-const deployProxy = async ({ proxy }) => {
+const deployProxy = async ({ proxy } = {}) => {
   const licenses = await getLicenses({ productType: 'xoproxy' })
   const isRedeployMode = proxy !== undefined
 
