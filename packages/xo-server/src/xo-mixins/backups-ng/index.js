@@ -1449,7 +1449,7 @@ export default class BackupNg {
               )
 
               if (handler._getFilePath !== undefined) {
-                await isValidXva('/' + handler._getFilePath(dataFilename))
+                await isValidXva(handler._getFilePath('/' + dataFilename))
               }
 
               await handler.outputFile(metadataFilename, jsonMetadata)
