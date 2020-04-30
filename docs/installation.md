@@ -79,13 +79,13 @@ XO needs the following packages to be installed. Redis is used as a database by 
 For example, on Debian/Ubuntu:
 
 ```
-apt-get install build-essential redis-server libpng-dev git python-minimal libvhdi-utils lvm2 cifs-utils
+$ apt-get install build-essential redis-server libpng-dev git python-minimal libvhdi-utils lvm2 cifs-utils
 ```
 
 On Fedora/CentOS like:
 
 ```
-dnf install redis libpng-devel git libvhdi-utils lvm2 cifs-utils make automake gcc gcc-c++
+$ dnf install redis libpng-devel git libvhdi-utils lvm2 cifs-utils make automake gcc gcc-c++
 ```
 
 ### Fetching the Code
@@ -96,7 +96,9 @@ You need to use the `git` source code manager to fetch the code. Ideally, you sh
 git clone -b master http://github.com/vatesfr/xen-orchestra
 ```
 
-> Note: xo-server and xo-web have been migrated to the [xen-orchestra](https://github.com/vatesfr/xen-orchestra) mono-repository - so you only need the single clone command above
+:::tip
+`xo-server` and `xo-web` have been migrated to the [xen-orchestra](https://github.com/vatesfr/xen-orchestra) mono-repository - so you only need the single clone command above
+:::
 
 ### Installing dependencies
 

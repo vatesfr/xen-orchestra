@@ -123,9 +123,9 @@ If you don't want to have Xen Orchestra exposed directly outside, or just integr
 
 As `xo-web` and `xo-server` communicate with _WebSockets_, you need to have the [`mod_proxy`](http://httpd.apache.org/docs/2.4/mod/mod_proxy.html), [`mod_proxy_http`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_http.html), [`mod_proxy_wstunnel`](http://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html) and [`mod_rewrite`](http://httpd.apache.org/docs/2.4/mod/mod_rewrite.html) modules enabled.
 
-Please use this configuration in this order or it will not work. Do not forget the trailing slashes!
+Please use this configuration in this order or it will not work. Do not forget the trailing slashes:
 
-```
+```apacheconf
 RewriteEngine On
 RewriteCond %{HTTP:upgrade} websocket [NC]
 RewriteRule /[<path>]/(.*) ws://<xo-server ip>:<xo-server port>/$1 [L,P]
@@ -138,7 +138,7 @@ ProxyPassReverse /[<path>]/ http://<xo-server ip>:<xo-server port>/
 
 Just configure your VirtualHost as usual (or your default site), with a `location` section like this one:
 
-```
+```nginx
 location /[<path>] {
   # Add some headers
   proxy_set_header        Host $host;
