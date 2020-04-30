@@ -9,6 +9,7 @@ import crypto from 'crypto'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
+import memoryStoreFactory from 'memorystore'
 import ms from 'ms'
 import proxyConsole from './proxy-console'
 import pw from 'pw'
@@ -96,10 +97,14 @@ function createExpressApp(config) {
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
   app.use(cookieParser(null, config.http.cookies))
+  const MemoryStore = memoryStoreFactory(expressSession)
   app.use(
     expressSession({
       resave: false,
       saveUninitialized: false,
+      store: new MemoryStore({
+        checkPeriod: 24 * 3600 * 1e3,
+      }),
 
       // TODO: should be in the config file.
       secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS',

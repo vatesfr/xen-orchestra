@@ -10056,7 +10056,7 @@ lower-case@^1.1.1:
   resolved "https://registry.yarnpkg.com/lower-case/-/lower-case-1.1.4.tgz#9a2cabd1b9e8e0ae993a4bf7d5875c39c42e8eac"
   integrity sha1-miyr0bno4K6ZOkv31YdcOcQujqw=
 
-lru-cache@^4.0.1:
+lru-cache@^4.0.1, lru-cache@^4.0.3:
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-4.1.5.tgz#8bbe50ea85bed59bc9e33dcab8235ee9bcf443cd"
   integrity sha512-sWZlbEP2OsHNkXrMl5GYk/jKk70MBng6UU4YI/qGDYbgf6YbP4EvmqISbXCoJiRKs+1bSpFHVgQxvJ17F2li5g==
@@ -10203,6 +10203,14 @@ memoizee@0.4.X:
     lru-queue "0.1"
     next-tick "1"
     timers-ext "^0.1.5"
+
+memorystore@^1.6.2:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/memorystore/-/memorystore-1.6.2.tgz#66e7190d7d54885372c1aec3e256b92e3bf1d163"
+  integrity sha512-HQM+cZB/kY1+jj57It22FsptJ3nuZRYxnwh3rWZEvDZO1zuzhIrX9uyFcjP9AhFQvM5WS6vZKtn3veohDH4S7w==
+  dependencies:
+    debug "3.1.0"
+    lru-cache "^4.0.3"
 
 meow@^3.7.0:
   version "3.7.0"

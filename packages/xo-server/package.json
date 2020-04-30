@@ -88,6 +88,7 @@
     "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.4",
     "make-error": "^1",
+    "memorystore": "^1.6.2",
     "micromatch": "^4.0.2",
     "minimist": "^1.2.0",
     "moment-timezone": "^0.5.14",
