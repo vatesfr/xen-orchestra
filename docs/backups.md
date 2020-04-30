@@ -70,6 +70,43 @@ Now if you do this:
 
 It means any VMs on "Lab Pool" with the "prod" tag will be backed up.
 
+## RAM Enabled bakcup
+
+:::tip
+This feature is **only compatible** with XCP-ng 8.0 or more recent. Citrix Hypervisor didn't yet merge our changes, despite we contributed to their code directly.
+:::
+
+![](https://xen-orchestra.com/blog/content/images/2020/03/REB.png)
+
+XCP-ng modified XAPI is now able to create VMs in a `Suspended` state with a `suspend_VDI` property set. When a VM is suspended, all of its memory contents are written into a disk called `suspend_VDI`. When the VM is restored, the `suspend_VDI` is read to recreate the memory of the VM. Once the resuming is done it's as if the VM was never suspended.
+
+### Use cases
+
+It is already possible to snapshot a VM with its RAM, however when restoring a VM, the VM was created in the `Halted` state so it wasn't possible to restore the VM with its RAM. With our XAPI modification a VM can now be created in a `Suspended` state with preset memory contents, so when snapshotting a VM with RAM, the snapshotted VM will also have the RAM contents set.
+
+This can be very useful when you're running a VM that needs RAM coherence to run:
+
+- For instance, snapshotting a Windows VM used to be very tricky for this reason. The Citrix VSS script previously answered part of this problem, when snapshotted, the VM flushed its cache but if it happened that the snapshot had coherence issues, the restored VM would be broken. And the VSS script is no longer available.
+- VMs running databases could also need such a feature in order to keep transient transactions.
+- A VM can be restored on a different host, now the RAM can be as well.
+
+In a nutshell this functionality can be seen as _hot copy_, similar to _hot migration_ but the original VM is not deleted.
+
+### Continuous replication with RAM
+
+This feature allows you to regularly send a copy of a VM to a target SR. The copied VM will be `Suspended` and ready to be resumed if the original VM encounters issues. As the copied VM is `Suspended`, no reboot will be required, resuming it is much faster.
+
+For instance, if an hourly continuous replication is configured on a VM, if the VM is lost, you can quickly resume a running VM with a memory loss of one hour tops.
+
+:::warning
+In order to use this functionality, the CPU of the host the VM is restored on should be the same or more recent than the CPU of the host the VM was originally running on.
+:::
+
+### Future of RAM enabled backup
+
+- Better analyze of compatible CPUs to avoid manual compatibility checks
+- RAM snapshot using Xen copy-on-write memory capabilities (time to snapshot reduce to almost 0)
+
 ## Consistent backup
 
 :::warning
