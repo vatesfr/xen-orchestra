@@ -2,13 +2,11 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
-import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
-import { provideState, injectState } from 'reaclette'
 import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
@@ -17,7 +15,6 @@ import {
   destroyProxyAppliances,
   editProxyAppliance,
   forgetProxyAppliances,
-  getLicenses,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -52,13 +49,9 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: (proxy, { validLicensePerProxyVm }) =>
+    handler: proxy =>
       deployProxy({
         proxy,
-        license: defined(
-          validLicensePerProxyVm[proxy.vmUuid],
-          validLicensePerProxyVm.none
-        ),
       }),
     icon: 'refresh',
     label: _('redeployProxyAction'),
@@ -129,28 +122,12 @@ export default decorate([
   addSubscriptions({
     proxies: subscribeProxies,
   }),
-  provideState({
-    computed: {
-      licenses: () => getLicenses({ productType: 'xoproxy' }),
-      validLicensePerProxyVm: ({ licenses = [] }) => {
-        const result = {}
-        licenses.forEach(license => {
-          if (!(license.expires < Date.now())) {
-            result[defined(license.boundObjectId, 'none')] = license
-          }
-        })
-        return result
-      },
-    },
-  }),
-  injectState,
-  ({ proxies, router, state }) => (
+  ({ proxies, router }) => (
     <Page header={HEADER} title='proxies' formatTitle>
       <div>
         <div className='mt-1 mb-1'>
           <ActionButton
             btnStyle='success'
-            data-license={state.validLicensePerProxyVm.none}
             handler={deployProxy}
             icon='proxy'
             size='large'
@@ -164,7 +141,6 @@ export default decorate([
           columns={COLUMNS}
           component={SortedTable}
           data-router={router}
-          data-validLicensePerProxyVm={state.validLicensePerProxyVm}
           emptyMessage={
             <span className='text-muted'>
               <Icon icon='alarm' />
