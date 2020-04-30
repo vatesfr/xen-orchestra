@@ -85,7 +85,7 @@ apt-get install build-essential redis-server libpng-dev git python-minimal libvh
 On Fedora/CentOS like:
 
 ```
-dnf install libpng-devel git libvhdi-utils lvm2 cifs-utils make automake gcc gcc-c++
+dnf install redis libpng-devel git libvhdi-utils lvm2 cifs-utils make automake gcc gcc-c++
 ```
 
 ### Fetching the Code
