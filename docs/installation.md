@@ -76,10 +76,16 @@ See [this page](https://yarnpkg.com/en/docs/install#debian-stable) for instructi
 
 XO needs the following packages to be installed. Redis is used as a database by XO.
 
-For example, on Debian:
+For example, on Debian/Ubuntu:
 
 ```
 apt-get install build-essential redis-server libpng-dev git python-minimal libvhdi-utils lvm2 cifs-utils
+```
+
+On Fedora/CentOS like:
+
+```
+dnf install libpng-devel git libvhdi-utils lvm2 cifs-utils make automake gcc gcc-c++
 ```
 
 ### Fetching the Code
