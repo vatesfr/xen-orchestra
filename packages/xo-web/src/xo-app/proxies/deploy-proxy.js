@@ -230,16 +230,25 @@ const Modal = decorate([
 
 const deployProxy = async ({ proxy }) => {
   const licenses = await getLicenses({ productType: 'xoproxy' })
-  const license =
-    licenses &&
-    licenses.find(
+  const isRedeployMode = proxy !== undefined
+
+  let license
+  if (isRedeployMode) {
+    license = licenses.find(
       license =>
         !(license.expires < Date.now()) &&
-        (license.boundObjectId === get(() => proxy.vmUuid) ||
-          license.boundObjectId === undefined)
+        license.boundObjectId === proxy.vmUuid
     )
+  }
 
-  const isRedeployMode = proxy !== undefined
+  // in case of deploying a proxy or when the associated proxy VM doesn't have a license
+  if (license === undefined) {
+    license = licenses.find(
+      license =>
+        !(license.expires < Date.now()) && license.boundObjectId === undefined
+    )
+  }
+
   const header = (
     <span>
       <Icon icon='proxy' />{' '}
