@@ -17,7 +17,8 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
-import { forOwn, map, once } from 'lodash'
+import xdg from 'xdg-basedir'
+import { forOwn, map, merge, once } from 'lodash'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { URL } from 'url'
 
@@ -45,6 +46,7 @@ import { Strategy as LocalStrategy } from 'passport-local'
 
 import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
+import { generateToken } from './utils'
 
 // ===================================================================
 
@@ -65,10 +67,12 @@ const log = createLogger('xo:main')
 
 // ===================================================================
 
+const APP_NAME = 'xo-server'
+
 const DEPRECATED_ENTRIES = ['users', 'servers']
 
 async function loadConfiguration() {
-  const config = await appConf.load('xo-server', {
+  const config = await appConf.load(APP_NAME, {
     appDir: joinPath(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
@@ -85,29 +89,46 @@ async function loadConfiguration() {
   return config
 }
 
+const LOCAL_CONFIG_FILE = `${xdg.config}/${APP_NAME}/config.z-auto.json`
+async function updateLocalConfig(diff) {
+  // TODO lock file
+  const localConfig = await readFile(LOCAL_CONFIG_FILE).then(
+    JSON.parse,
+    () => ({})
+  )
+  merge(localConfig, diff)
+  await outputFile(LOCAL_CONFIG_FILE, JSON.stringify(localConfig), {
+    mode: 0o600,
+  })
+}
+
 // ===================================================================
 
-function createExpressApp(config) {
+async function createExpressApp(config) {
   const app = createExpress()
 
   app.use(helmet(config.http.helmet))
 
   app.use(compression())
 
+  let { sessionSecret } = config.http
+  if (sessionSecret === undefined) {
+    sessionSecret = await generateToken()
+    await updateLocalConfig({ http: { sessionSecret } })
+  }
+
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
-  app.use(cookieParser(null, config.http.cookies))
+  app.use(cookieParser(sessionSecret, config.http.cookies))
   const MemoryStore = memoryStoreFactory(expressSession)
   app.use(
     expressSession({
       resave: false,
       saveUninitialized: false,
+      secret: sessionSecret,
       store: new MemoryStore({
         checkPeriod: 24 * 3600 * 1e3,
       }),
-
-      // TODO: should be in the config file.
-      secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS',
     })
   )
 
@@ -745,7 +766,7 @@ export default async function main(args) {
   await xo.clean()
 
   // Express is used to manage non WebSocket connections.
-  const express = createExpressApp(config)
+  const express = await createExpressApp(config)
 
   if (config.http.redirectToHttps) {
     let port
