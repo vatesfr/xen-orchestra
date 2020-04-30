@@ -1116,7 +1116,7 @@ const messages = {
   hideRules: 'Hide rules',
   sdnControllerNotLoaded: 'SDN Controller must be loaded',
   showRules: 'Show rules',
-  vifAclRules: 'ACL rules',
+  vifAclRules: 'Traffic rules',
   vifCreateDeviceButton: 'New device',
   vifDeviceLabel: 'Device',
   vifMacLabel: 'MAC address',
