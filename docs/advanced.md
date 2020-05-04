@@ -2,6 +2,42 @@
 
 This section is dedicated to all others Xen Orchestra "advanced features".
 
+## Live Telemetry
+
+When you are working on your virtualized infrastructure, you might need a very detailed view on what's going on. From resource consumption analysis (CPU/RAM) to network traffic, but also storage, having a kind of very detailed dashboard per host can be really useful.
+
+:::tip
+This feature will be only available in XCP-ng+XOA. If you are a hardcore Citrix Hypervisor user, let us know if you want this.
+:::
+
+### Enable Advanced Live Telemtry for a host
+
+Go into the Advanced host view:
+
+![](https://xen-orchestra.com/blog/content/images/2019/11/advancedenable.png)
+
+By clicking here, XOA will handle everything: installing netdata on the host, and configure a secured/encrypted streaming toward your XOA.
+
+As soon it's installed, the button will now be replaced by a "Go to Advanced Live Telemetry". As soon you'll click on it, you'll be redirected to the netdata page of the host. If you have multiple host, you can access any of them directly from the top menu of the netdata UI.
+
+### Examples
+
+IMPI info (power, temperatures, voltages, fans…):
+
+![](https://xen-orchestra.com/blog/content/images/2019/11/ipmistats.png)
+
+:::tip
+This feature is only available in one-click in your XOA. However, all sources and packages to do it yourself are available!
+:::
+
+Memory details:
+
+![](https://xen-orchestra.com/blog/content/images/2019/11/memorystats.png)
+
+Firewall:
+
+![](https://xen-orchestra.com/blog/content/images/2019/11/firewallstats.png)
+
 ## Cloud init
 
 Cloud-init is a program "that handles the early initialization of a cloud instance"[^n]. In other words, you can, on a "cloud-init"-ready template VM, pass a lot of data at first boot:
