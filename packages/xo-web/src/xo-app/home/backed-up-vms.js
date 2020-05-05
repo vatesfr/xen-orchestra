@@ -117,6 +117,14 @@ const ACTIONS = [
     label: _('copyVmLabel'),
   },
   {
+    handler: (vms, { setHomeVmIdsSelection }) => {
+      setHomeVmIdsSelection(map(vms, 'id'))
+    },
+    icon: 'backup',
+    label: _('backupLabel'),
+    redirectOnSuccess: '/backup/new/vms',
+  },
+  {
     handler: deleteVms,
     icon: 'vm-delete',
     label: _('vmRemoveButton'),
@@ -168,7 +176,12 @@ export const NotBackedUpVms = decorate([
     },
   }),
   injectState,
-  ({ hosts, pools, state: { notBackedUpVms } }) => (
+  ({
+    hosts,
+    pools,
+    setHomeVmIdsSelection,
+    state: { actions, notBackedUpVms },
+  }) => (
     <div>
       <h5>{_('notBackedUpVms')}</h5>
       <SortedTable
@@ -177,6 +190,7 @@ export const NotBackedUpVms = decorate([
         columns={COLUMNS}
         data-hosts={hosts}
         data-pools={pools}
+        data-setHomeVmIdsSelection={setHomeVmIdsSelection}
         groupedActions={GROUPED_ACTIONS}
         shortcutsTarget='body'
         stateUrlParam='s'
@@ -214,7 +228,12 @@ const BackedUpVms = decorate([
     },
   }),
   injectState,
-  ({ hosts, pools, state: { backedUpVms, notBackedUpVms } }) => (
+  ({
+    hosts,
+    pools,
+    setHomeVmIdsSelection,
+    state: { backedUpVms, notBackedUpVms },
+  }) => (
     <div>
       <h5>{_('backedUpVms')}</h5>
       <SortedTable
@@ -223,6 +242,7 @@ const BackedUpVms = decorate([
         columns={COLUMNS}
         data-hosts={hosts}
         data-pools={pools}
+        data-setHomeVmIdsSelection={setHomeVmIdsSelection}
         groupedActions={GROUPED_ACTIONS}
         shortcutsTarget='body'
         stateUrlParam='s'

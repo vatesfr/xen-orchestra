@@ -2,7 +2,6 @@ import * as ComplexMatcher from 'complex-matcher'
 import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
-
 import Button from 'button'
 import CenterPanel from 'center-panel'
 import classNames from 'classnames'
@@ -903,7 +902,7 @@ export default class Home extends Component {
       showResourceSetsSelector,
     } = options
 
-    const showAllVms = type === 'VM' && displayedVms.value === 'all'
+    const disableAction = type === 'VM' && displayedVms.value !== 'all'
 
     return (
       <Container>
@@ -987,7 +986,7 @@ export default class Home extends Component {
         <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
           <Col smallSize={6} mediumSize={2}>
             <input
-              disabled={!showAllVms}
+              disabled={disableAction}
               checked={this._getIsAllSelected()}
               onChange={this._toggleMaster}
               ref='masterCheckbox'
@@ -1008,7 +1007,7 @@ export default class Home extends Component {
             </span>
           </Col>
           <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
-            {this._getNumberOfSelectedItems() && showAllVms ? (
+            {this._getNumberOfSelectedItems() ? (
               <div>
                 {mainActions && (
                   <div className='btn-group'>
@@ -1160,7 +1159,7 @@ export default class Home extends Component {
                 )}
                 <DropdownButton
                   bsStyle='link'
-                  disabled={!showAllVms}
+                  disabled={disableAction}
                   id='sort'
                   title={_('homeSortBy')}
                 >
@@ -1188,13 +1187,13 @@ export default class Home extends Component {
           </Col>
 
           <Col smallSize={6} mediumSize={2} className='text-xs-right'>
-            <Button onClick={this._expandAll} disabled={!showAllVms}>
+            <Button onClick={this._expandAll} disabled={disableAction}>
               <Icon icon='nav' />
             </Button>{' '}
             <DropdownButton
               bsStyle='info'
               title={homeItemsPerPage}
-              disabled={!showAllVms}
+              disabled={disableAction}
             >
               {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
                 <MenuItem
