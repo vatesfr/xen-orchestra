@@ -288,6 +288,10 @@ class SortedTable extends Component {
         individualLabel: PropTypes.node,
         label: PropTypes.node.isRequired,
         level: PropTypes.oneOf(['primary', 'warning', 'danger']),
+        redirectOnSuccess: PropTypes.oneOfType([
+          PropTypes.func,
+          PropTypes.string,
+        ]),
       })
     ),
     groupedActions: actionsShape,
@@ -718,6 +722,7 @@ class SortedTable extends Component {
         icon: a.icon,
         label: a.individualLabel !== undefined ? a.individualLabel : a.label,
         level: a.level,
+        redirectOnSuccess: a.redirectOnSuccess,
       }))
 
       return sortBy(
