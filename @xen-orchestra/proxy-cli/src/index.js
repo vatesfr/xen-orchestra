@@ -3,9 +3,13 @@
 import fs from 'fs'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
+import split2 from 'split2'
+import pumpify from 'pumpify'
 import { format, parse } from 'json-rpc-protocol'
 import { inspect } from 'util'
 import { load as loadConfig } from 'app-conf'
+
+import readChunk from './_readChunk'
 
 const parseValue = value =>
   value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
@@ -65,25 +69,25 @@ Usage:
     }
   }
 
-  const lines = (
-    await hrp
-      .post({
-        body: format.request(0, method, params),
-        headers: {
-          'content-type': 'application/json',
-          cookie: `authenticationToken=${token}`,
-        },
-        host,
-        pathname: '/api/v1',
-        protocol: 'https:',
-        rejectUnauthorized: false,
-      })
-      .readAll('utf8')
+  const lines = pumpify.obj(
+    await hrp.post({
+      body: format.request(0, method, params),
+      headers: {
+        'content-type': 'application/json',
+        cookie: `authenticationToken=${token}`,
+      },
+      host,
+      pathname: '/api/v1',
+      protocol: 'https:',
+      rejectUnauthorized: false,
+    }),
+    split2()
   )
-    .split(/\r?\n/)
-    .filter(_ => _.length !== 0)
+
+  const firstLine = await readChunk(lines)
+
   try {
-    const result = await parse.result(lines[0])
+    const result = await parse.result(firstLine)
     const { stdout } = process
     if (
       result !== null &&
@@ -91,10 +95,9 @@ Usage:
       Object.keys(result).length === 1 &&
       result.$responseType === 'ndjson'
     ) {
-      for (let i = 1, n = lines.length; i < n; ++i) {
-        stdout.write(
-          inspect(JSON.parse(lines[i]), { colors: true, depth: null })
-        )
+      let line
+      while ((line = await readChunk(lines)) !== null) {
+        stdout.write(inspect(JSON.parse(line), { colors: true, depth: null }))
         stdout.write('\n')
       }
     } else if (raw && typeof result === 'string') {
