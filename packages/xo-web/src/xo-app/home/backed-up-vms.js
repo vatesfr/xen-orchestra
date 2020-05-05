@@ -48,7 +48,7 @@ const COLUMNS = [
     sortCriteria: _ => _.name_description,
   },
   {
-    name: 'Container',
+    name: _('containersTabName'),
     itemRenderer: (vm, { pools, hosts }) => {
       let container
       return vm.power_state === 'Running' &&
@@ -176,12 +176,7 @@ export const NotBackedUpVms = decorate([
     },
   }),
   injectState,
-  ({
-    hosts,
-    pools,
-    setHomeVmIdsSelection,
-    state: { actions, notBackedUpVms },
-  }) => (
+  ({ hosts, pools, setHomeVmIdsSelection, state: { notBackedUpVms } }) => (
     <div>
       <h5>{_('notBackedUpVms')}</h5>
       <SortedTable
@@ -228,12 +223,7 @@ const BackedUpVms = decorate([
     },
   }),
   injectState,
-  ({
-    hosts,
-    pools,
-    setHomeVmIdsSelection,
-    state: { backedUpVms, notBackedUpVms },
-  }) => (
+  ({ hosts, pools, setHomeVmIdsSelection, state: { backedUpVms } }) => (
     <div>
       <h5>{_('backedUpVms')}</h5>
       <SortedTable
