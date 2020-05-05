@@ -1,10 +1,12 @@
 # SDN Controller
 
-The SDN Controller enables a user to **create pool-wide and cross-pool private networks** and more. It's available as a Xen Orchestra plugin (embed in XOA Premium).
+The SDN Controller enables a user to **create pool-wide and cross-pool private networks** and more. It's available as a Xen Orchestra plugin (included in XOA Premium).
 
 ## Global Private Networks
 
-![](https://xen-orchestra.com/blog/content/images/2019/08/gpn.png)
+Interconnect your VMs and hosts within a dedicated and secured private network, even accross different pools all around the world. This is a great way to protect "private links" (eg between applications and databases, management networks etc.) without any complicated deployment.
+
+![](./assets/gpn.png)
 
 ### How does it work?
 
