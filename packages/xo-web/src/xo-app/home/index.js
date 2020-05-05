@@ -310,7 +310,7 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
-const VMS_OPTIONS = [
+const VM_FILTERS = [
   { value: 'all', label: _('allVms') },
   { value: 'backedUpVms', label: _('backedUpVms') },
   { value: 'notBackedUpVms', label: _('notBackedUpVms') },
@@ -486,7 +486,7 @@ export default class Home extends Component {
   }
 
   state = {
-    displayedVms: DEFAULT_TYPE === 'VM' ? VMS_OPTIONS[0] : {},
+    vmsFilter: DEFAULT_TYPE === 'VM' ? VM_FILTERS[0] : {},
     homeItemsPerPage: +defined(
       cookies.get('homeItemsPerPage'),
       DEFAULT_ITEMS_PER_PAGE
@@ -883,7 +883,7 @@ export default class Home extends Component {
     const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
 
     const {
-      displayedVms,
+      vmsFilter,
       homeItemsPerPage,
       selectedHosts,
       selectedPools,
@@ -902,7 +902,7 @@ export default class Home extends Component {
       showResourceSetsSelector,
     } = options
 
-    const disableAction = type === 'VM' && displayedVms.value !== 'all'
+    const disableAction = type === 'VM' && vmsFilter.value !== 'all'
 
     return (
       <Container>
@@ -1057,10 +1057,10 @@ export default class Home extends Component {
                       <Popover className={styles.selectObject} id='vmPopover'>
                         <Select
                           autoFocus
-                          onChange={this.linkState('displayedVms')}
-                          options={VMS_OPTIONS}
+                          onChange={this.linkState('vmsFilter')}
+                          options={VM_FILTERS}
                           required
-                          value={this.state.displayedVms}
+                          value={this.state.vmsFilter}
                         />
                       </Popover>
                     }
@@ -1246,7 +1246,7 @@ export default class Home extends Component {
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { Item } = OPTIONS[type]
-    const { displayedVms, expandAll, highlighted, selectedItems } = this.state
+    const { expandAll, highlighted, selectedItems, vmsFilter } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
@@ -1254,7 +1254,7 @@ export default class Home extends Component {
         this._getIsSomeSelected() && !this._getIsAllSelected()
     }
 
-    const { value } = displayedVms
+    const { value } = vmsFilter
     const showAllVms = value === 'all'
     const VmList = showAllVms
       ? null
