@@ -110,13 +110,6 @@ export default class Proxy {
           throw error
         }
       }
-
-      this._app
-        .unbindLicense({
-          boundObjectId: vmUuid,
-          productId: this._xoProxyConf.licenseProductId,
-        })
-        .catch(log.warn)
     }
     return this.unregisterProxy(id)
   }
