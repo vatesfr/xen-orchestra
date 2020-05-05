@@ -7,10 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VDI migration]
-  - Remove 'Migrate all VDIs' checkbox (PR [#4876](https://github.com/vatesfr/xen-orchestra/pull/4876))
-  - [VM/disks]: Add bulk migration (PR [#4877](https://github.com/vatesfr/xen-orchestra/pull/4877))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -21,6 +17,15 @@
 > be listed by inverse order of dependency.
 >
 > Rule of thumb: add packages on top.
+>
+> The format is the following: - `$packageName` `$version`
+>
+> Where `$version` is
+>
+> - patch: if the change is a bug fix or a simple code improvement
+> - minor: if the change is a new feature
+> - major: if the change breaks compatibility
+>
+> In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server minor
-- xo-web minor
+- xo-web patch

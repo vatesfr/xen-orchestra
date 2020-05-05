@@ -197,3 +197,8 @@ export const alteredAuditRecord = create(23, ({ id, record, nValid }) => ({
   },
   message: 'altered record',
 }))
+
+export const notEnoughResources = create(24, data => ({
+  data, // [{ resourceSet, resourceType, available, requested }]
+  message: 'not enough resources in resource set',
+}))

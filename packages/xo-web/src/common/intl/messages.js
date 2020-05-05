@@ -76,6 +76,7 @@ const messages = {
   normal: 'Normal',
   withMemory: 'With memory',
   offline: 'Offline',
+  noLicenseAvailable: 'No license available',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -464,6 +465,8 @@ const messages = {
   migrateBackupScheduleMessage:
     'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
+  runBackupJobWarningNVms:
+    'This job will backup {nVms, number} VM{nVms, plural, one {} other {s}}.',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
@@ -1129,6 +1132,8 @@ const messages = {
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
   newSnapshotWithMemory: 'New snapshot with memory',
+  newSnapshotWithMemoryConfirm:
+    'Are you sure you want to create a snapshot with memory? This could take a while and the VM will be unusable during that time.',
   snapshotMemorySaved: 'Memory saved',
   snapshotCreateButton: 'New snapshot',
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
@@ -2170,6 +2175,8 @@ const messages = {
   xosanState_configuringGluster: 'Configuring gluster…',
   xosanState_creatingSr: 'Creating SR…',
   xosanState_scanningSr: 'Scanning SR…',
+  xosanXcpngWarning:
+    'XOSAN cannot be installed on XCP-ng yet. Incoming XOSANv2 will be compatible with XCP-ng: {link}.',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install XOA plugin first',
   xosanLoadCloudPlugin: 'Load XOA plugin first',

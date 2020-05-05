@@ -211,17 +211,29 @@ export const osFamily = invoke(
 
 // -------------------------------------------------------------------
 
+function safeHumanFormat(value, opts) {
+  try {
+    return humanFormat(value, opts)
+  } catch (error) {
+    console.error('humanFormat', value, opts, error)
+    return 'N/D'
+  }
+}
+
 export const formatSize = bytes =>
-  humanFormat(bytes, { scale: 'binary', unit: 'B' })
+  safeHumanFormat(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSizeShort = bytes =>
-  humanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
+  safeHumanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
 
 export const formatSizeRaw = bytes =>
   humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSpeed = (bytes, milliseconds) =>
-  humanFormat((bytes * 1e3) / milliseconds, { scale: 'binary', unit: 'B/s' })
+  safeHumanFormat((bytes * 1e3) / milliseconds, {
+    scale: 'binary',
+    unit: 'B/s',
+  })
 
 const timeScale = new humanFormat.Scale({
   ns: 1e-6,
@@ -234,7 +246,7 @@ const timeScale = new humanFormat.Scale({
   y: 2592000 * 1e3,
 })
 export const formatTime = milliseconds =>
-  humanFormat(milliseconds, { scale: timeScale, decimals: 0 })
+  safeHumanFormat(milliseconds, { scale: timeScale, decimals: 0 })
 
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })

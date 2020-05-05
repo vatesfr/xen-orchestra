@@ -95,6 +95,12 @@ port = 80
 # #hostname = '127.0.0.1'
 # port = 443
 #
+# # Whether to autogenerate a self signed certificate if the `cert` or `key`
+# # files could not be found.
+# #
+# # Default: true
+# autoCert = false
+#
 # # File containing the certificate (PEM format).
 # #
 # # If a chain of certificates authorities is needed, you may bundle them
@@ -157,3 +163,11 @@ port = 80
 #
 # Default: false
 #useSudo = false
+
+#=====================================================================
+
+# Configuration for plugins
+[plugins]
+# Each configuration is passed to the dedicated plugin instance
+#
+# Syntax: [plugins.<pluginName>]

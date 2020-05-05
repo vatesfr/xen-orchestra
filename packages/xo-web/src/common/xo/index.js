@@ -1251,8 +1251,25 @@ export const deleteTemplates = templates =>
           }, noop)
   }, noop)
 
-export const snapshotVm = (vm, name, saveMemory, description) =>
-  _call('vm.snapshot', { id: resolveId(vm), name, description, saveMemory })
+export const snapshotVm = async (vm, name, saveMemory, description) => {
+  if (saveMemory) {
+    try {
+      await confirm({
+        title: _('newSnapshotWithMemory'),
+        body: _('newSnapshotWithMemoryConfirm'),
+        icon: 'memory',
+      })
+    } catch (error) {
+      return
+    }
+  }
+  return _call('vm.snapshot', {
+    id: resolveId(vm),
+    name,
+    description,
+    saveMemory,
+  })::tap(subscribeResourceSets.forceRefresh)
+}
 
 import SnapshotVmModalBody from './snapshot-vm-modal' // eslint-disable-line import/first
 export const snapshotVms = vms =>
@@ -1385,7 +1402,9 @@ export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
 export const pureDeleteVm = (vm, props) =>
-  _call('vm.delete', { id: resolveId(vm), ...props })
+  _call('vm.delete', { id: resolveId(vm), ...props })::tap(
+    subscribeResourceSets.forceRefresh
+  )
 
 export const deleteVm = (vm, retryWithForce = true) =>
   confirm({
@@ -1439,24 +1458,25 @@ export const revertSnapshot = snapshot =>
   confirm({
     title: _('revertVmModalTitle'),
     body: <RevertSnapshotModalBody />,
-  }).then(
-    snapshotBefore =>
-      _call('vm.revert', {
-        snapshotBefore,
-        snapshot: resolveId(snapshot),
-      }).then(() =>
-        success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
-      ),
-    noop
-  )
+  }).then(async snapshotBefore => {
+    if (snapshotBefore) {
+      await _call('vm.snapshot', { id: snapshot.$snapshot_of })
+    }
+    await _call('vm.revert', { snapshot: snapshot.id })::tap(
+      subscribeResourceSets.forceRefresh
+    )
+    success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
+  }, noop)
 
 export const editVm = (vm, props) =>
-  _call('vm.set', { ...props, id: resolveId(vm) }).catch(err => {
-    error(
-      _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
-      err.message
-    )
-  })
+  _call('vm.set', { ...props, id: resolveId(vm) })
+    .catch(err => {
+      error(
+        _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
+        err.message
+      )
+    })
+    ::tap(subscribeResourceSets.forceRefresh)
 
 export const fetchVmStats = (vm, granularity) =>
   _call('vm.stats', { id: resolveId(vm), granularity })
@@ -3081,8 +3101,13 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
-export const deployProxyAppliance = (sr, { network, proxy, ...props } = {}) =>
+export const deployProxyAppliance = (
+  license,
+  sr,
+  { network, proxy, ...props } = {}
+) =>
   _call('proxy.deploy', {
+    license: resolveId(license),
     network: resolveId(network),
     proxy: resolveId(proxy),
     sr: resolveId(sr),

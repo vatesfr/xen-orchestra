@@ -18,7 +18,7 @@ export async function exportConfig() {
   return {
     $getFrom: await this.registerHttpRequest(
       (req, res) => {
-        res.writeHead(200, 'OK', {
+        res.set({
           'content-disposition': 'attachment',
           'content-type': 'application/json',
         })
@@ -64,7 +64,7 @@ getAllObjects.params = {
 export async function importConfig() {
   return {
     $sendTo: await this.registerHttpRequest(async (req, res) => {
-      await this.importConfig(JSON.parse(await getStream.buffer(req)))
+      await this.importConfig(await getStream.buffer(req))
 
       res.end('config successfully imported')
     }),

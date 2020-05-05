@@ -22,11 +22,15 @@ export default class ConfigManagement {
     this._managers[id] = { exporter, importer }
   }
 
-  exportConfig() {
-    return mapValues(this._managers, ({ exporter }, key) => exporter())::pAll()
+  async exportConfig() {
+    return JSON.stringify(
+      await mapValues(this._managers, ({ exporter }, key) => exporter())::pAll()
+    )
   }
 
   async importConfig(config) {
+    config = JSON.parse(config)
+
     const managers = this._managers
     for (const key of this._depTree.resolve()) {
       const manager = managers[key]
