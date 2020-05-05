@@ -1,5 +1,6 @@
 import assert from 'assert'
 
+import debounce from './_pDebounceWithKey'
 import ensureArray from './_ensureArray'
 import MultiKeyMap from './_MultiKeyMap'
 
@@ -8,7 +9,7 @@ function State() {
   this.value = undefined
 }
 
-export const dedupeUnmount = (fn, keyFn) => {
+export const dedupeUnmount = (fn, debounceDelay, keyFn) => {
   const states = new MultiKeyMap()
 
   return function() {
@@ -23,13 +24,13 @@ export const dedupeUnmount = (fn, keyFn) => {
           const value = await fn.apply(this, arguments)
           return {
             __proto__: value,
-            async unmount() {
+            unmount: debounce(async () => {
               assert(state.i > 0)
               if (--state.i === 0) {
                 states.delete(keys)
                 await value.unmount()
               }
-            },
+            }, debounceDelay),
           }
         } catch (error) {
           states.delete(keys)
