@@ -34,7 +34,7 @@ const ProxyLicense = decorate([
         )
       ),
   })),
-  ({ license, proxy, state }) =>
+  ({ license, proxy }) =>
     license.vmId === undefined ? (
       _('licenseNotBoundProxy')
     ) : proxy !== undefined ? (
