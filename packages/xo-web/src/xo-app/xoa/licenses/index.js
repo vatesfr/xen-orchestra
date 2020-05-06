@@ -35,12 +35,12 @@ const ProxyLicense = decorate([
       ),
   })),
   ({ license, proxy, state }) =>
-    proxy !== undefined ? (
-      <Proxy id={proxy.id} link newTab />
-    ) : license.vmId !== undefined ? (
-      _('licenseBoundUnknownProxy')
-    ) : (
+    license.vmId === undefined ? (
       _('licenseNotBoundProxy')
+    ) : proxy !== undefined ? (
+      <Proxy id={proxy.id} link newTab />
+    ) : (
+      _('licenseBoundUnknownProxy')
     ),
 ])
 
