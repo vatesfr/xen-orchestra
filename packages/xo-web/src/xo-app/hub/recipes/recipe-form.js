@@ -94,6 +94,66 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
+        <label>{_('recipeMasterHostNameLabel')}</label>
+        <input
+          className='form-control'
+          name='masterHostName'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeMasterHostNameLabel)}
+          required
+          type='text'
+          value={value.masterHostName}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeMasterIpLabel')}</label>
+        <div className='input-group'>
+          <input
+            className='form-control'
+            name='masterIp'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.recipeMasterIpLabel)}
+            type='text'
+            value={value.masterIp}
+          />
+          <span className='input-group-addon'>/</span>
+          <input
+            className='form-control'
+            max='32'
+            min='0'
+            name='masterIpPrefix'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.recipeMasterIpPrefixLabel)}
+            type='number'
+            value={value.masterIpPrefix}
+          />
+        </div>
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeNodeNamePatternLabel')}</label>
+        <input
+          className='form-control'
+          name='nodeNamePattern'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeNodeNamePatternLabel)}
+          required
+          type='text'
+          value={value.nodeNamePattern}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeNodeHostNamePatternLabel')}</label>
+        <input
+          className='form-control'
+          name='nodeHostNamePattern'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeNodeHostNamePatternLabel)}
+          required
+          type='text'
+          value={value.nodeHostNamePattern}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
         <label>{_('recipeNumberOfNodesLabel')}</label>
         <input
           className='form-control'
@@ -120,15 +180,29 @@ export default decorate([
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('recipeNetworkCidr')}</label>
-        <input
-          className='form-control'
-          name='cidr'
-          onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeNetworkCidr)}
-          required
-          type='text'
-          value={value.cidr}
-        />
+        <div className='input-group'>
+          <input
+            className='form-control'
+            name='cidrRange'
+            onChange={effects.onChangeValue}
+            placeholder='IP range'
+            required
+            type='text'
+            value={value.cidrRange}
+          />
+          <span className='input-group-addon'>/</span>
+          <input
+            className='form-control'
+            max='32'
+            min='0'
+            name='cidrPrefix'
+            onChange={effects.onChangeValue}
+            placeholder='CIDR prefix'
+            required
+            type='number'
+            value={value.cidrPrefix}
+          />
+        </div>
       </FormGrid.Row>
     </Container>
   ),

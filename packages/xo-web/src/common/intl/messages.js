@@ -2245,6 +2245,13 @@ const messages = {
   recipesLabel: 'Recipes',
   network: 'Network',
   recipeMasterNameLabel: 'Master name',
+  recipeMasterHostNameLabel: 'Master hostname',
+  recipeMasterIpLabel: 'Master IP (optional)',
+  recipeMasterIpPrefixLabel: 'Master IP CIDR prefix (optional)',
+  recipeNodeNamePatternLabel:
+    'Node name pattern (put "%" for node index in name)',
+  recipeNodeHostNamePatternLabel:
+    'Node hostname pattern (put "%" for node index in hostname)',
   recipeNumberOfNodesLabel: 'Number of nodes',
   recipeSshKeyLabel: 'SSH key',
   recipeNetworkCidr: 'Network CIDR',
