@@ -37,7 +37,7 @@ export const dedupeUnmount = (fn, keyFn) => {
         }
       }
 
-      state.value = mount.apply(this, arguments)
+      state.value = mount()
     }
     ++state.i
     return state.value
