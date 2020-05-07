@@ -13,8 +13,7 @@ import { resolveSubpath, tmpDir } from '../utils'
 
 const compose = (...fns) => value => fns.reduce((value, fn) => fn(value), value)
 
-const dedupeUnmountWithArgs = fn =>
-  dedupeUnmount(fn, 10 * 60 * 1e3, (...args) => args)
+const dedupeUnmountWithArgs = fn => dedupeUnmount(fn, (...args) => args)
 
 const IGNORED_PARTITION_TYPES = {
   // https://github.com/jhermsmeier/node-mbr/blob/master/lib/partition.js#L38
