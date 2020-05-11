@@ -12,7 +12,8 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-- Fix mounting of NFS remote in FreeBSD [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988)
+
+- Fix mounting of NFS remote in FreeBSD (PR [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988))
 
 ### Released packages
 
@@ -31,4 +32,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/fs patch
+- xo-server patch
 - xo-web patch
