@@ -746,7 +746,10 @@ export class Xapi extends EventEmitter {
     this._sessionId = await pRetry(
       () =>
         this._interruptOnDisconnect(
-          this._call('session.login_with_password', params)
+          this._call('session.login_with_password', params).catch(error => {
+            error.call.params = '* obfuscated *'
+            throw error
+          })
         ),
       {
         tries: 2,
