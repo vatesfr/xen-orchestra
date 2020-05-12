@@ -17,6 +17,7 @@
 
 - Fix mounting of NFS remote in FreeBSD (PR [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988))
 - [Remotes] Fix "remote is disabled" error on getting the remotes info (commit [eb2f429964d7adc264bf678c37e49a856454388e](https://github.com/vatesfr/xen-orchestra/commit/eb2f429964d7adc264bf678c37e49a856454388e))
+- Remove server's credentials from the error `SESSION_AUTHENTICATION_FAILED` (PR [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988))
 
 ### Released packages
 
@@ -35,6 +36,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xen-api patch
 - @xen-orchestra/fs patch
 - xo-server patch
 - xo-web minor
