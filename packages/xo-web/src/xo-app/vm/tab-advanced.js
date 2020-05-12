@@ -83,6 +83,8 @@ import {
   isAdmin,
 } from 'selectors'
 
+import BootOrder from './boot-order'
+
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
 const SHARE_BUTTON_STYLE = { height: '38px' }
@@ -629,6 +631,14 @@ export default class TabAdvanced extends Component {
             />
           </Col>
         </Row>
+        {vm.virtualizationMode !== 'pv' && (
+          <Row>
+            <Col>
+              <h3>{_('vdiBootOrder')}</h3>
+              <BootOrder vm={vm} />
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <h3>{_('xenSettingsLabel')}</h3>
