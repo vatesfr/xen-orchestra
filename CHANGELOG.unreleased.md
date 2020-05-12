@@ -8,11 +8,14 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM] Move boot order setting from Disk tab to Advanced tab [#1523](https://github.com/vatesfr/xen-orchestra/issues/1523#issuecomment-563141573) (PR [#4975](https://github.com/vatesfr/xen-orchestra/pull/4975))
+- [XOA/licenses] Display proxy licenses (PR [#4944](https://github.com/vatesfr/xen-orchestra/pull/4944))
 - [Network selector] Display pool's name [#4885](https://github.com/vatesfr/xen-orchestra/issues/4885) (PR [#4990](https://github.com/vatesfr/xen-orchestra/pull/4990))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- Fix mounting of NFS remote in FreeBSD (PR [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988))
 
 ### Released packages
 
@@ -31,4 +34,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-web patch
+- @xen-orchestra/fs patch
+- xo-server patch
+- xo-web minor

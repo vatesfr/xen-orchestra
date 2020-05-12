@@ -390,11 +390,20 @@ export const Proxy = decorate([
     proxy: cb =>
       subscribeProxies(proxies => cb(proxies.find(proxy => proxy.id === id))),
   })),
-  ({ id, proxy }) =>
+  ({ id, proxy, link, newTab }) =>
     proxy !== undefined ? (
-      <span>
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={{
+          pathname: '/proxies',
+          query: {
+            s: `id:${id}`,
+          },
+        }}
+      >
         <Icon icon='proxy' /> {proxy.name || proxy.address}
-      </span>
+      </LinkWrapper>
     ) : (
       unknowItem(id, 'proxy')
     ),
@@ -402,6 +411,13 @@ export const Proxy = decorate([
 
 Proxy.propTypes = {
   id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+Proxy.defaultProps = {
+  link: false,
+  newTab: false,
 }
 
 // ===================================================================
