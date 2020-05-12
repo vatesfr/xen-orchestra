@@ -16,13 +16,20 @@ export class Backup {
     config,
     getConnectedXapi,
     job,
+    taskLogger,
     recordToXapi,
     remotes,
     schedule,
   }) {
+    this.run = taskLogger.wrapFn(this.run, 'backup run', {
+      mode: job.mode,
+      reportWhen: job.settings['']?.reportWhen,
+    })
+
     this._config = config
     this._getConnectedXapi = getConnectedXapi
     this._job = job
+    this._task = taskLogger
     this._recordToXapi = recordToXapi
     this._remotes = remotes
     this._schedule = schedule
@@ -34,9 +41,10 @@ export class Backup {
   }
 
   async run() {
+    const job = this._job
+
     // FIXME: proper SimpleIdPattern handling
     const getSnapshotNameLabel = this._getSnapshotNameLabel
-    const job = this._job
     const schedule = this._schedule
 
     const { settings } = job
@@ -59,7 +67,9 @@ export class Backup {
         remoteHandlers[id] = handler
       })
       const handleVm = async vmUuid => {
+        const subtask = await this._task.fork()
         try {
+          const vm = await this._getRecord('VM', vmUuid)
           return await new VmBackup({
             getSnapshotNameLabel,
             job,
@@ -68,7 +78,8 @@ export class Backup {
             schedule,
             settings: { ...scheduleSettings, ...settings[vmUuid] },
             srs,
-            vm: await this._getRecord('VM', vmUuid),
+            taskLogger: subtask,
+            vm,
           }).run()
         } catch (error) {
           warn('VM backup failure', {
@@ -78,7 +89,7 @@ export class Backup {
         }
       }
       const { concurrency } = scheduleSettings
-      return await asyncMap(
+      await asyncMap(
         extractIdsFromSimplePattern(job.vms),
         concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm)
       )

@@ -50,6 +50,7 @@ export class VmBackup {
     schedule,
     settings,
     srs,
+    taskLogger,
     vm,
   }) {
     this.job = job
@@ -64,6 +65,12 @@ export class VmBackup {
 
     // VM (snapshot) that is really exported
     this.exportedVm = undefined
+
+    this.run = taskLogger.wrapFn(this.run, 'backup VM', {
+      type: 'VM',
+      id: vm.uuid,
+    })
+    this._task = taskLogger
 
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isDelta = job.mode === 'delta'
@@ -105,21 +112,25 @@ export class VmBackup {
       vm.power_state === 'Running' ||
       settings.snapshotRetention !== 0
     if (doSnapshot) {
-      if (!settings.bypassVdiChainsCheck) {
-        await vm.$assertHealthyVdiChains()
-      }
+      await this._task.fork().run('snapshot', async () => {
+        if (!settings.bypassVdiChainsCheck) {
+          await vm.$assertHealthyVdiChains()
+        }
 
-      const snapshotRef = await vm.$snapshot(this._getSnapshotNameLabel(vm))
-      this.timestamp = Date.now()
+        const snapshotRef = await vm.$snapshot(this._getSnapshotNameLabel(vm))
+        this.timestamp = Date.now()
 
-      await xapi.setFieldEntries('VM', snapshotRef, 'other_config', {
-        'xo:backup:datetime': formatDateTime(this.timestamp),
-        'xo:backup:job': this._jobId,
-        'xo:backup:schedule': this.scheduleId,
-        'xo:backup:vm': vm.uuid,
+        await xapi.setFieldEntries('VM', snapshotRef, 'other_config', {
+          'xo:backup:datetime': formatDateTime(this.timestamp),
+          'xo:backup:job': this._jobId,
+          'xo:backup:schedule': this.scheduleId,
+          'xo:backup:vm': vm.uuid,
+        })
+
+        this.exportedVm = await xapi.getRecord('VM', snapshotRef)
+
+        return this.exportedVm.uuid
       })
-
-      this.exportedVm = await xapi.getRecord('VM', snapshotRef)
     } else {
       this.exportedVm = vm
       this.timestamp = Date.now()
@@ -137,7 +148,14 @@ export class VmBackup {
         ...allSettings[remoteId],
       }
       if (targetSettings.exportRetention !== 0) {
-        writers.push(new DeltaBackupWriter(this, remoteId, targetSettings))
+        writers.push(
+          new DeltaBackupWriter(
+            this,
+            remoteId,
+            targetSettings,
+            this._task.fork()
+          )
+        )
       }
     })
     this.srs.forEach(sr => {
@@ -146,7 +164,14 @@ export class VmBackup {
         ...allSettings[sr.uuid],
       }
       if (targetSettings.copyRetention !== 0) {
-        writers.push(new ContinuousReplicationWriter(this, sr, targetSettings))
+        writers.push(
+          new ContinuousReplicationWriter(
+            this,
+            sr,
+            targetSettings,
+            this._task.fork()
+          )
+        )
       }
     })
 
@@ -212,7 +237,14 @@ export class VmBackup {
         ...allSettings[remoteId],
       }
       if (targetSettings.exportRetention !== 0) {
-        writers.push(new FullBackupWriter(this, remoteId, targetSettings))
+        writers.push(
+          new FullBackupWriter(
+            this,
+            remoteId,
+            targetSettings,
+            this._task.fork()
+          )
+        )
       }
     })
     this.srs.forEach(sr => {
@@ -221,7 +253,14 @@ export class VmBackup {
         ...allSettings[sr.uuid],
       }
       if (targetSettings.copyRetention !== 0) {
-        writers.push(new DisasterRecoveryWriter(this, sr, targetSettings))
+        writers.push(
+          new DisasterRecoveryWriter(
+            this,
+            sr,
+            targetSettings,
+            this._task.fork()
+          )
+        )
       }
     })
 
