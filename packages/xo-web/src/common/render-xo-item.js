@@ -318,12 +318,17 @@ Vdi.defaultProps = {
 export const Network = decorate([
   connectStore(() => {
     const getObject = createGetObject()
+    const getPool = createGetObject(
+      createSelector(getObject, network => get(() => network.$pool))
+    )
+
     // FIXME: props.self ugly workaround to get object as a self user
     return (state, props) => ({
       network: getObject(state, props, props.self),
+      pool: getPool(state, props),
     })
   }),
-  ({ id, network }) => {
+  ({ id, network, pool }) => {
     if (network === undefined) {
       return unknowItem(id, 'network')
     }
@@ -331,6 +336,9 @@ export const Network = decorate([
     return (
       <span>
         <Icon icon='network' /> {network.name_label}
+        {pool !== undefined && (
+          <span className='text-muted'>{` - ${pool.name_label}`}</span>
+        )}
       </span>
     )
   },
