@@ -1,12 +1,14 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
 import Link from 'link'
 import PropTypes from 'prop-types'
 import React from 'react'
-import renderXoItem, { Vm } from 'render-xo-item'
+import Tooltip from 'tooltip'
+import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, connectStore, createCompare } from 'utils'
-import { compact, every, find, isEmpty, map, omit, some, uniq } from 'lodash'
+import { compact, find, isEmpty, map, omit, some, uniq } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { injectState, provideState } from 'reaclette'
@@ -29,14 +31,45 @@ import {
 const createCompareContainers = poolId =>
   createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
 
+const getVmUrl = ({ id }) => `vms/${id}/general`
+
 const COLUMNS = [
   {
     name: _('name'),
-    itemRenderer: _ => <Vm id={_.id} link newTab />,
-    sortCriteria: _ => _.name_label,
+    itemRenderer: vm => {
+      const operations = vm.current_operations
+      const state = isEmpty(operations) ? vm.power_state : 'Busy'
+      return (
+        <span>
+          <Tooltip
+            content={
+              <span>
+                {_(`powerState${state}`)}
+                {state === 'Busy' && (
+                  <span>
+                    {' ('}
+                    {map(operations)[0]}
+                    {')'}
+                  </span>
+                )}
+              </span>
+            }
+          >
+            <Icon icon={state.toLowerCase()} />
+          </Tooltip>
+          <Text
+            value={vm.name_label}
+            onChange={value => editVm(vm, { name_label: value })}
+            placeholder={_('vmHomeNamePlaceholder')}
+            useLongClick
+          />
+        </span>
+      )
+    },
+    sortCriteria: 'name_label',
   },
   {
-    name: _('formDescription'),
+    name: _('description'),
     itemRenderer: vm => (
       <Text
         value={vm.name_description}
@@ -45,14 +78,14 @@ const COLUMNS = [
         useLongClick
       />
     ),
-    sortCriteria: _ => _.name_description,
+    sortCriteria: 'name_description',
   },
   {
     name: _('containersTabName'),
     itemRenderer: (vm, { pools, hosts }) => {
       let container
       return vm.power_state === 'Running' &&
-        (container = hosts[vm.$container]) ? (
+        (container = hosts[vm.$container]) !== undefined ? (
         <XoSelect
           compareContainers={createCompareContainers(vm.$pool)}
           labelProp='name_label'
@@ -67,7 +100,7 @@ const COLUMNS = [
           </Link>
         </XoSelect>
       ) : (
-        (container = pools[vm.$container]) && (
+        (container = pools[vm.$container]) !== undefined && (
           <Link to={`/${container.type}s/${container.id}`}>
             {renderXoItem(container)}
           </Link>
@@ -79,27 +112,16 @@ const COLUMNS = [
 
 const ACTIONS = [
   {
-    handler: vms => {
-      if (every(vms, _ => _.power_state === 'Halted')) {
-        return startVms(vms)
-      }
-
-      return stopVms(vms)
-    },
-    icon: vms => {
-      if (every(vms, _ => _.power_state === 'Halted')) {
-        return 'vm-start'
-      }
-
-      return 'vm-stop'
-    },
-    label: vms => {
-      if (every(vms, _ => _.power_state === 'Halted')) {
-        return _('startVmLabel')
-      }
-
-      return _('stopVmLabel')
-    },
+    disabled: vms => some(vms, { power_state: 'Running' }),
+    handler: startVms,
+    icon: 'vm-start',
+    label: _('startVmLabel'),
+  },
+  {
+    disabled: vms => some(vms, { power_state: 'Halted' }),
+    handler: stopVms,
+    icon: 'vm-stop',
+    label: _('stopVmLabel'),
   },
   {
     handler: migrateVms,
@@ -153,51 +175,6 @@ const GROUPED_ACTIONS = [
   },
 ]
 
-export const NotBackedUpVms = decorate([
-  addSubscriptions({
-    jobs: subscribeBackupNgJobs,
-  }),
-  connectStore(() => ({
-    hosts: createGetObjectsOfType('host'),
-    pools: createGetObjectsOfType('pool'),
-  })),
-  provideState({
-    computed: {
-      notBackedUpVms: (_, { jobs, vms }) => {
-        if (isEmpty(vms)) {
-          return []
-        }
-
-        const backedUpVms = map(jobs, job =>
-          find(vms, createPredicate(omit(job.vms, 'power_state')))
-        )
-        return vms.filter(vm => !backedUpVms.includes(vm))
-      },
-    },
-  }),
-  injectState,
-  ({ hosts, pools, setHomeVmIdsSelection, state: { notBackedUpVms } }) => (
-    <div>
-      <h5>{_('notBackedUpVms')}</h5>
-      <SortedTable
-        actions={ACTIONS}
-        collection={notBackedUpVms}
-        columns={COLUMNS}
-        data-hosts={hosts}
-        data-pools={pools}
-        data-setHomeVmIdsSelection={setHomeVmIdsSelection}
-        groupedActions={GROUPED_ACTIONS}
-        shortcutsTarget='body'
-        stateUrlParam='s'
-      />
-    </div>
-  ),
-])
-
-NotBackedUpVms.propTypes = {
-  vms: PropTypes.arrayOf(PropTypes.object),
-}
-
 const BackedUpVms = decorate([
   addSubscriptions({
     jobs: subscribeBackupNgJobs,
@@ -208,32 +185,46 @@ const BackedUpVms = decorate([
   })),
   provideState({
     computed: {
-      backedUpVms: (_, { jobs, vms }) => {
+      collection: (_, { showBackedUpVms, jobs, vms }) => {
         if (isEmpty(vms)) {
           return []
         }
-        return uniq(
+
+        const backedUpVms = uniq(
           compact(
             map(jobs, job =>
               find(vms, createPredicate(omit(job.vms, 'power_state')))
             )
           )
         )
+
+        return showBackedUpVms
+          ? backedUpVms
+          : vms.filter(vm => !backedUpVms.includes(vm))
       },
     },
   }),
   injectState,
-  ({ hosts, pools, setHomeVmIdsSelection, state: { backedUpVms } }) => (
+  ({
+    hosts,
+    itemsPerPage,
+    pools,
+    setHomeVmIdsSelection,
+    showBackedUpVms,
+    state: { collection },
+  }) => (
     <div>
-      <h5>{_('backedUpVms')}</h5>
+      <h5>{showBackedUpVms ? _('backedUpVms') : _('notBackedUpVms')}</h5>
       <SortedTable
         actions={ACTIONS}
-        collection={backedUpVms}
+        collection={collection}
         columns={COLUMNS}
         data-hosts={hosts}
         data-pools={pools}
         data-setHomeVmIdsSelection={setHomeVmIdsSelection}
         groupedActions={GROUPED_ACTIONS}
+        itemsPerPage={itemsPerPage}
+        rowLink={getVmUrl}
         shortcutsTarget='body'
         stateUrlParam='s'
       />
@@ -242,7 +233,12 @@ const BackedUpVms = decorate([
 ])
 
 BackedUpVms.propTypes = {
+  showBackedUpVms: PropTypes.bool,
   vms: PropTypes.arrayOf(PropTypes.object),
+}
+
+BackedUpVms.defaultProps = {
+  showBackedUpVms: true,
 }
 
 export default BackedUpVms

@@ -89,7 +89,7 @@ import {
 import { Select } from 'form'
 
 import styles from './index.css'
-import BackedUpVms, { NotBackedUpVms } from './backed-up-vms'
+import BackedUpVms from './backed-up-vms'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
@@ -98,6 +98,9 @@ import SrItem from './sr-item'
 
 const DEFAULT_ITEMS_PER_PAGE = 20
 const ITEMS_PER_PAGE_OPTIONS = [20, 50, 100]
+
+// page number and sort info are optional for backward compatibility
+const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(?:_(desc|asc))?)?-)?(.*)$/
 
 const OPTIONS = {
   host: {
@@ -486,7 +489,7 @@ export default class Home extends Component {
   }
 
   state = {
-    vmsFilter: DEFAULT_TYPE === 'VM' ? VM_FILTERS[0] : {},
+    vmsFilter: 'all',
     homeItemsPerPage: +defined(
       cookies.get('homeItemsPerPage'),
       DEFAULT_ITEMS_PER_PAGE
@@ -505,7 +508,10 @@ export default class Home extends Component {
       this._initFilterAndSortBy(props)
     }
     if (type !== this.props.type) {
-      this.setState({ highlighted: undefined })
+      this.setState({
+        highlighted: undefined,
+        vmsFilter: 'all',
+      })
     }
   }
 
@@ -650,7 +656,11 @@ export default class Home extends Component {
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
   _getFilter(props = this.props) {
-    return props.location.query.s
+    const { s } = props.location.query
+    if (s === undefined) {
+      return
+    }
+    return URL_STATE_RE.exec(s)[4]
   }
 
   _getParsedFilter = createSelector(
@@ -876,6 +886,19 @@ export default class Home extends Component {
 
   // Header --------------------------------------------------------------------
 
+  _setVmsFilter = vmsFilter => {
+    this.setState({ vmsFilter })
+    const { pathname, query } = this.props.location
+    this.context.router.push({
+      pathname,
+      query: {
+        ...query,
+        p: vmsFilter === 'all' ? 1 : undefined,
+        s: URL_STATE_RE.exec(query.s)[4],
+      },
+    })
+  }
+
   _renderHeader() {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
@@ -883,13 +906,13 @@ export default class Home extends Component {
     const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
 
     const {
-      vmsFilter,
       homeItemsPerPage,
       selectedHosts,
       selectedPools,
       selectedResourceSets,
       selectedTags,
       sortBy,
+      vmsFilter,
     } = this.state
 
     const options = OPTIONS[type]
@@ -902,7 +925,7 @@ export default class Home extends Component {
       showResourceSetsSelector,
     } = options
 
-    const disableAction = type === 'VM' && vmsFilter.value !== 'all'
+    const disableAction = type === 'VM' && vmsFilter !== 'all'
 
     return (
       <Container>
@@ -985,26 +1008,29 @@ export default class Home extends Component {
         </Row>
         <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
           <Col smallSize={6} mediumSize={2}>
-            <input
-              disabled={disableAction}
-              checked={this._getIsAllSelected()}
-              onChange={this._toggleMaster}
-              ref='masterCheckbox'
-              type='checkbox'
-            />{' '}
-            <span className='text-muted'>
-              {this._getNumberOfSelectedItems()
-                ? _('homeSelectedItems', {
-                    icon: <Icon icon={type.toLowerCase()} />,
-                    selected: this._getNumberOfSelectedItems(),
-                    total: nItems,
-                  })
-                : _('homeDisplayedItems', {
-                    displayed: filteredItems.length,
-                    icon: <Icon icon={type.toLowerCase()} />,
-                    total: nItems,
-                  })}
-            </span>
+            {!disableAction && (
+              <span>
+                <input
+                  checked={this._getIsAllSelected()}
+                  onChange={this._toggleMaster}
+                  ref='masterCheckbox'
+                  type='checkbox'
+                />{' '}
+                <span className='text-muted'>
+                  {this._getNumberOfSelectedItems()
+                    ? _('homeSelectedItems', {
+                        icon: <Icon icon={type.toLowerCase()} />,
+                        selected: this._getNumberOfSelectedItems(),
+                        total: nItems,
+                      })
+                    : _('homeDisplayedItems', {
+                        displayed: filteredItems.length,
+                        icon: <Icon icon={type.toLowerCase()} />,
+                        total: nItems,
+                      })}
+                </span>
+              </span>
+            )}
           </Col>
           <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
             {this._getNumberOfSelectedItems() ? (
@@ -1057,9 +1083,10 @@ export default class Home extends Component {
                       <Popover className={styles.selectObject} id='vmPopover'>
                         <Select
                           autoFocus
-                          onChange={this.linkState('vmsFilter')}
+                          onChange={this._setVmsFilter}
                           options={VM_FILTERS}
                           required
+                          simpleValue
                           value={this.state.vmsFilter}
                         />
                       </Popover>
@@ -1185,16 +1212,13 @@ export default class Home extends Component {
               </div>
             )}
           </Col>
-
           <Col smallSize={6} mediumSize={2} className='text-xs-right'>
-            <Button onClick={this._expandAll} disabled={disableAction}>
-              <Icon icon='nav' />
-            </Button>{' '}
-            <DropdownButton
-              bsStyle='info'
-              title={homeItemsPerPage}
-              disabled={disableAction}
-            >
+            {!disableAction && (
+              <Button onClick={this._expandAll}>
+                <Icon icon='nav' />
+              </Button>
+            )}{' '}
+            <DropdownButton bsStyle='info' title={homeItemsPerPage}>
               {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
                 <MenuItem
                   key={nItems}
@@ -1246,21 +1270,19 @@ export default class Home extends Component {
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { Item } = OPTIONS[type]
-    const { expandAll, highlighted, selectedItems, vmsFilter } = this.state
+    const {
+      expandAll,
+      highlighted,
+      homeItemsPerPage,
+      selectedItems,
+      vmsFilter,
+    } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
       this.refs.masterCheckbox.indeterminate =
         this._getIsSomeSelected() && !this._getIsAllSelected()
     }
-
-    const { value } = vmsFilter
-    const showAllVms = value === 'all'
-    const VmList = showAllVms
-      ? null
-      : value === 'backedUpVms'
-      ? BackedUpVms
-      : NotBackedUpVms
 
     return (
       <Page header={this._renderHeader()}>
@@ -1270,7 +1292,7 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        {type !== 'VM' || showAllVms ? (
+        {type !== 'VM' || vmsFilter === 'all' ? (
           <div>
             <div className={styles.itemContainer}>
               {isEmpty(filteredItems) ? (
@@ -1298,15 +1320,13 @@ export default class Home extends Component {
                 ))
               )}
             </div>
-            {filteredItems.length > this.state.homeItemsPerPage && (
+            {filteredItems.length > homeItemsPerPage && (
               <Row>
                 <div style={{ display: 'flex', width: '100%' }}>
                   <div style={{ margin: 'auto' }}>
                     <Pagination
                       onChange={this._onPageSelection}
-                      pages={ceil(
-                        filteredItems.length / this.state.homeItemsPerPage
-                      )}
+                      pages={ceil(filteredItems.length / homeItemsPerPage)}
                       value={this._getPage()}
                     />
                   </div>
@@ -1315,7 +1335,11 @@ export default class Home extends Component {
             )}
           </div>
         ) : (
-          <VmList vms={filteredItems} />
+          <BackedUpVms
+            itemsPerPage={homeItemsPerPage}
+            showBackedUpVms={vmsFilter === 'backedUpVms'}
+            vms={filteredItems}
+          />
         )}
       </Page>
     )
