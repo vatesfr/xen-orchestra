@@ -15,6 +15,11 @@ clean.permission = 'admin'
 // -------------------------------------------------------------------
 
 export async function exportConfig({ passphrase }) {
+  let suffix = '/config.json'
+  if (passphrase !== undefined) {
+    suffix += '.enc'
+  }
+
   return {
     $getFrom: await this.registerHttpRequest(
       (req, res) => {
@@ -26,7 +31,7 @@ export async function exportConfig({ passphrase }) {
         return this.exportConfig({ passphrase })
       },
       undefined,
-      { suffix: '/config.json' }
+      { suffix }
     ),
   }
 }
