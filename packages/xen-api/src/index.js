@@ -659,7 +659,11 @@ export class Xapi extends EventEmitter {
 
       error.call = {
         method,
-        params: replaceSensitiveValues(params, '* obfuscated *'),
+        params:
+          // it pass server's credentials as param
+          method === 'session.login_with_password'
+            ? '* obfuscated *'
+            : replaceSensitiveValues(params, '* obfuscated *'),
       }
 
       debug(
@@ -746,10 +750,7 @@ export class Xapi extends EventEmitter {
     this._sessionId = await pRetry(
       () =>
         this._interruptOnDisconnect(
-          this._call('session.login_with_password', params).catch(error => {
-            error.call.params = '* obfuscated *'
-            throw error
-          })
+          this._call('session.login_with_password', params)
         ),
       {
         tries: 2,
