@@ -75,9 +75,12 @@ export default class MountHandler extends LocalHandler {
 
     try {
       const { type, device, options, env } = this._params
+
+      // Linux mount is more flexible in which order the mount arguments appear.
+      // But FreeBSD requires this order of the arguments.
       await this._execa(
         'mount',
-        ['-t', type, device, realPath, '-o', options],
+        ['-o', options, '-t', type, device, realPath],
         {
           env: {
             LANG: 'C',

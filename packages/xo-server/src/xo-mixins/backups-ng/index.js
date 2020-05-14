@@ -900,9 +900,15 @@ export default class BackupNg {
     )()
   }
 
-  @decorateWith(debounceWithKey, 10e3, function keyFn(remoteId) {
-    return [this, remoteId]
-  })
+  @decorateWith(
+    debounceWithKey,
+    function() {
+      return parseDuration(this._backupOptions.listingDebounce)
+    },
+    function keyFn(remoteId) {
+      return [this, remoteId]
+    }
+  )
   async _listVmBackupsOnRemote(remoteId: string) {
     const app = this._app
     const backupsByVm = {}
