@@ -236,8 +236,16 @@ async function createTunnel(host, network) {
   }
 
   try {
-    await host.$xapi.call('tunnel.create', hostPif.$ref, network.$ref)
-    await host.$xapi.barrier(host.$ref)
+    const tunnelRef = await host.$xapi.call(
+      'tunnel.create',
+      hostPif.$ref,
+      network.$ref
+    )
+    const tunnel = await host.$xapi._getOrWaitObject(tunnelRef)
+    await tunnel.$xapi._waitObjectState(
+      tunnel.access_PIF,
+      pif => pif.currently_attached
+    )
   } catch (error) {
     log.error('Error while creating tunnel', {
       error,
@@ -293,6 +301,7 @@ class SDNController extends EventEmitter {
     - `xo:sdn-controller:encapsulation`       : encapsulation protocol used for tunneling (either `gre` or `vxlan`)
     - `xo:sdn-controller:encrypted`           : `true` if the network is encrypted
     - `xo:sdn-controller:pif-device`          : PIF device on which the tunnels are created, must be physical or VLAN or bond master and have an IP configuration
+    - `xo:sdn-controller:preferred-center`    : The host UUID to prioritize as network center (or not defined)
     - `xo:sdn-controller:private-network-uuid`: UUID of the private network, same across pools
     - `xo:sdn-controller:vlan`                : VLAN of the PIFs on which the network is created
     - `xo:sdn-controller:vni`                 : VxLAN Network Identifier,
@@ -410,6 +419,7 @@ class SDNController extends EventEmitter {
       encapsulation: { type: 'string' },
       encrypted: { type: 'boolean', optional: true },
       mtu: { type: 'integer', optional: true },
+      preferredCenterId: { type: 'string', optional: true },
     }
 
     this._unsetApiMethods = this._xo.addApiMethods({
@@ -500,10 +510,19 @@ class SDNController extends EventEmitter {
             return
           }
 
-          const privateNetwork =
-            this.privateNetworks[uuid] !== undefined
-              ? this.privateNetworks[uuid]
-              : new PrivateNetwork(this, uuid)
+          let privateNetwork = this._privateNetworks[uuid]
+          if (privateNetwork === undefined) {
+            const preferredCenterUuid =
+              otherConfig['xo:sdn-controller:preferred-center']
+            const preferredCenter =
+              preferredCenterUuid !== undefined
+                ? this._xo.getXapiObject(
+                    this._xo.getObject(preferredCenterUuid, 'host')
+                  )
+                : undefined
+            privateNetwork = new PrivateNetwork(this, uuid, preferredCenter)
+            this._privateNetworks[uuid] = privateNetwork
+          }
 
           const vni = otherConfig['xo:sdn-controller:vni']
           if (vni === undefined) {
@@ -622,8 +641,25 @@ class SDNController extends EventEmitter {
     vni,
     encrypted,
     mtu,
+    preferredCenterId,
   }) {
-    const privateNetwork = new PrivateNetwork(this, uuidv4())
+    const preferredCenter =
+      preferredCenterId !== undefined
+        ? this._xo.getXapiObject(this._xo.getObject(preferredCenterId, 'host'))
+        : undefined
+
+    if (preferredCenter !== undefined) {
+      // Put pool of preferred center first
+      const orderedPoolIds = [preferredCenter.$pool.$id]
+      for (const poolId of poolIds) {
+        if (!orderedPoolIds.includes(poolId)) {
+          orderedPoolIds.push(poolId)
+        }
+      }
+      poolIds = orderedPoolIds
+    }
+
+    const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
     for (const poolId of poolIds) {
       const pool = this._xo.getXapiObject(this._xo.getObject(poolId, 'pool'))
 
@@ -647,6 +683,7 @@ class SDNController extends EventEmitter {
           'xo:sdn-controller:encapsulation': encapsulation,
           'xo:sdn-controller:encrypted': encrypted ? 'true' : undefined,
           'xo:sdn-controller:pif-device': pif.device,
+          'xo:sdn-controller:preferred-center': preferredCenter?.uuid,
           'xo:sdn-controller:private-network-uuid': privateNetwork.uuid,
           'xo:sdn-controller:vlan': String(pif.VLAN),
           'xo:sdn-controller:vni': String(vni),

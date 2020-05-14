@@ -14,7 +14,9 @@ const createPassword = () =>
 // =============================================================================
 
 export class PrivateNetwork {
-  constructor(controller, uuid) {
+  constructor(controller, uuid, preferredCenter) {
+    this._preferredCenter = preferredCenter
+
     this.controller = controller
     this.uuid = uuid
     this.networks = {}
@@ -125,15 +127,21 @@ export class PrivateNetwork {
   async electNewCenter() {
     delete this.center
 
-    // TODO: make it random
     const hosts = this._getHosts()
-    for (const host of hosts) {
-      const pif = host.$PIFs.find(
-        _ => _.network === this.networks[host.$pool.uuid].$ref
+    if (this._preferredCenter !== undefined) {
+      this._preferredCenter = await this._preferredCenter.$xapi.barrier(
+        this._preferredCenter.$ref
       )
-      if (pif?.currently_attached && host.$metrics.live) {
-        this.center = host
-        break
+      if (this._hostCanBeCenter(this._preferredCenter)) {
+        this.center = this._preferredCenter
+      }
+    } else {
+      // TODO: make it random
+      for (const host of hosts) {
+        if (this._hostCanBeCenter(host)) {
+          this.center = host
+          break
+        }
       }
     }
 
@@ -200,5 +208,12 @@ export class PrivateNetwork {
       hosts.push(...filter(network.$pool.$xapi.objects.all, { $type: 'host' }))
     })
     return hosts
+  }
+
+  _hostCanBeCenter(host) {
+    const pif = host.$PIFs.find(
+      _ => _.network === this.networks[host.$pool.uuid].$ref
+    )
+    return pif?.currently_attached && host.$metrics.live
   }
 }
