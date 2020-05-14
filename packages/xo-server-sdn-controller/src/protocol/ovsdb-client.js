@@ -116,32 +116,16 @@ export class OvsdbClient {
       }
 
       // Remove port and interface to recreate it with new password
-      const mutateBridgeOperation = {
-        op: 'mutate',
-        table: 'Bridge',
-        where: [['_uuid', '==', ['uuid', bridge.uuid]]],
-        mutations: [['ports', 'delete', port]],
-      }
-
-      const params = ['Open_vSwitch', mutateBridgeOperation]
-      const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-      if (jsonObjects === undefined) {
+      try {
+        await this._removePortsFromBridge(bridge, port, socket)
+      } catch (error) {
         socket.destroy()
         this._adding = this._adding.filter(
           elem => elem.id !== network.uuid || elem.addr !== remoteAddress
         )
-        return
-      }
-      if (jsonObjects[0].error != null) {
-        log.error('Error while deleting ports from bridge with old password', {
-          error: jsonObjects[0].error,
-          bridge: bridge.name,
-          host: this.host.name_label,
+        log.error('Error while deleting port for encrypted password update', {
+          error,
         })
-        this._adding = this._adding.filter(
-          elem => elem.id !== network.uuid || elem.addr !== remoteAddress
-        )
-        socket.destroy()
         return
       }
     }
@@ -293,34 +277,12 @@ export class OvsdbClient {
       return
     }
 
-    const mutateBridgeOperation = {
-      op: 'mutate',
-      table: 'Bridge',
-      where: [['_uuid', '==', ['uuid', bridge.uuid]]],
-      mutations: [['ports', 'delete', ['set', portsToDelete]]],
+    try {
+      await this._removePortsFromBridge(bridge, ['set', portsToDelete], socket)
+    } catch (error) {
+      log.error('Error while deleting ports for network reset', { error })
     }
 
-    const params = ['Open_vSwitch', mutateBridgeOperation]
-    const jsonObjects = await this._sendOvsdbTransaction(params, socket)
-    if (jsonObjects === undefined) {
-      socket.destroy()
-      return
-    }
-    if (jsonObjects[0].error != null) {
-      log.error('Error while deleting ports from bridge', {
-        error: jsonObjects[0].error,
-        bridge: bridge.name,
-        host: this.host.name_label,
-      })
-      socket.destroy()
-      return
-    }
-
-    log.debug('Ports deleted from bridge', {
-      nPorts: jsonObjects[0].result[0].count,
-      bridge: bridge.name,
-      host: this.host.name_label,
-    })
     socket.destroy()
   }
 
@@ -355,6 +317,39 @@ export class OvsdbClient {
   }
 
   // ---------------------------------------------------------------------------
+
+  async _removePortsFromBridge(bridge, portsToDelete, socket) {
+    const mutateBridgeOperation = {
+      op: 'mutate',
+      table: 'Bridge',
+      where: [['_uuid', '==', ['uuid', bridge.uuid]]],
+      mutations: [['ports', 'delete', portsToDelete]],
+    }
+
+    const params = ['Open_vSwitch', mutateBridgeOperation]
+    const jsonObjects = await this._sendOvsdbTransaction(params, socket)
+    if (jsonObjects === undefined) {
+      throw Error('Undefined OVSDB result while deleting ports from bridge', {
+        bridge: bridge.name,
+        host: this.host.name_label,
+        portsToDelete,
+      })
+    }
+    if (jsonObjects[0].error != null) {
+      throw Error('Error while deleting ports from bridge', {
+        error: jsonObjects[0].error,
+        bridge: bridge.name,
+        host: this.host.name_label,
+        portsToDelete,
+      })
+    }
+
+    log.debug('Ports deleted from bridge', {
+      nPorts: jsonObjects[0].result[0].count,
+      bridge: bridge.name,
+      host: this.host.name_label,
+    })
+  }
 
   async _getBridgeForNetwork(network, socket) {
     const where = [
