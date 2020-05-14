@@ -49,7 +49,7 @@ export default class ConfigManagement {
       config = (
         await openpgp.decrypt({
           format: 'utf8',
-          message: openpgp.message.read(config),
+          message: await openpgp.message.read(config),
           passwords: passphrase,
         })
       ).data
