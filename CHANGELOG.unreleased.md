@@ -23,6 +23,7 @@
 - Fix default filters not being set in all tables (PR [#4994](https://github.com/vatesfr/xen-orchestra/pull/4994))
 - [SDN Controller] Broken encrypted tunnels after host reboot [#4996](https://github.com/vatesfr/xen-orchestra/pull/4996)
 - Don't log server's credentials in case of `SESSION_AUTHENTICATION_FAILED` error (PR [#4995](https://github.com/vatesfr/xen-orchestra/pull/4995))
+- [Plugin/backup-reports] Fix `No recipients defined` error (PR [#4998](https://github.com/vatesfr/xen-orchestra/pull/4998))
 
 ### Released packages
 
@@ -41,6 +42,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-backup-reports patch
 - xen-api patch
 - xo-server-auth-ldap minor
 - xo-server-sdn-controller patch
