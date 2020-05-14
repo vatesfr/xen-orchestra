@@ -202,6 +202,8 @@ const BackedUpVms = decorate([
           ? backedUpVms
           : vms.filter(vm => !backedUpVms.includes(vm))
       },
+      title: (state, { showBackedUpVms }) =>
+        showBackedUpVms ? _('backedUpVms') : _('notBackedUpVms'),
     },
   }),
   injectState,
@@ -211,10 +213,10 @@ const BackedUpVms = decorate([
     pools,
     setHomeVmIdsSelection,
     showBackedUpVms,
-    state: { collection },
+    state: { collection, title },
   }) => (
     <div>
-      <h5>{showBackedUpVms ? _('backedUpVms') : _('notBackedUpVms')}</h5>
+      <h5>{title}</h5>
       <SortedTable
         actions={ACTIONS}
         collection={collection}
