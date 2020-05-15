@@ -17,7 +17,7 @@
 
 - Fix mounting of NFS remote in FreeBSD (PR [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988))
 - [Remotes] Fix "remote is disabled" error on getting the remotes info (commit [eb2f429964d7adc264bf678c37e49a856454388e](https://github.com/vatesfr/xen-orchestra/commit/eb2f429964d7adc264bf678c37e49a856454388e))
-- [SDN Controller] Fix encrypted tunnels recreation [#4996](https://github.com/vatesfr/xen-orchestra/pull/4996)
+- [SDN Controller] Broken encrypted tunnels after host reboot [#4996](https://github.com/vatesfr/xen-orchestra/pull/4996)
 
 ### Released packages
 
