@@ -3,7 +3,7 @@ import Component from 'base-component'
 import React from 'react'
 import { Password } from 'form'
 
-export default class ImportConfigModalBody extends Component {
+export default class ExportConfigModalBody extends Component {
   get value() {
     const { passphrase } = this.state
     return passphrase === '' ? undefined : passphrase
