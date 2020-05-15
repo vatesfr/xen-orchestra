@@ -450,6 +450,15 @@ class SDNController extends EventEmitter {
     this._unsetApiMethods()
   }
 
+  // ---------------------------------------------------------------------------
+
+  registerPrivateNetwork(privateNetwork) {
+    this.privateNetworks[privateNetwork.uuid] = privateNetwork
+    log.info('Private network registered', {
+      privateNetwork: privateNetwork.uuid,
+    })
+  }
+
   // ===========================================================================
 
   async _handleConnectedXapi(xapi) {

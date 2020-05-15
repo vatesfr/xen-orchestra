@@ -19,7 +19,7 @@ export class PrivateNetwork {
     this.uuid = uuid
     this.networks = {}
 
-    this.controller.privateNetworks[this.uuid] = this
+    this.controller.registerPrivateNetwork(this)
   }
 
   // ---------------------------------------------------------------------------
