@@ -368,7 +368,9 @@ export const FormModal = decorate([
   injectState,
   ({ state, effects }) => (
     <ReactModal
+      backdrop='static'
       bsSize={state.size}
+      keyboard={false}
       onExited={effects.reset}
       onHide={effects.onCancel}
       show={state.opened}
