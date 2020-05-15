@@ -38,7 +38,6 @@ import {
   remove,
   some,
   uniq,
-  values,
 } from 'lodash'
 
 import {
@@ -343,6 +342,28 @@ const COLUMNS = [
     sortCriteria: 'rateLimit',
   },
   {
+    itemRenderer: ({ device }, { addresses, addressKeys }) => {
+      // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
+      // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
+      // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
+      const ipAdressess = uniq(
+        addressKeys.map(key => {
+          if (key.startsWith(`${device}/`)) {
+            return addresses[key]
+          }
+        })
+      )
+      return isEmpty(ipAdressess)
+        ? _('noIpRecord')
+        : ipAdressess.map(address => (
+            <span key={address} className='tag tag-info tag-ip'>
+              {address}
+            </span>
+          ))
+    },
+    name: _('vifIpAddresses'),
+  },
+  {
     component: VifAllowedIps,
     name: _('vifAllowedIps'),
   },
@@ -527,13 +548,7 @@ export default class TabNetwork extends BaseComponent {
       newVif: !this.state.newVif,
     })
 
-  _getIpAddresses = createSelector(
-    () => this.props.vm.addresses,
-    // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
-    // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
-    // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
-    addresses => uniq(values(addresses))
-  )
+  _getAddressKeys = createSelector(() => this.props.vm.addresses, keys)
 
   render() {
     const { newVif } = this.state
@@ -562,24 +577,14 @@ export default class TabNetwork extends BaseComponent {
             <SortedTable
               collection={vifs}
               columns={COLUMNS}
+              data-addressKeys={this._getAddressKeys()}
+              data-addresses={vm.addresses}
+              data-networks={networks}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
               stateUrlParam='s'
-              userData={{ networks }}
             />
-            {!isEmpty(vm.addresses) ? (
-              <span>
-                <h4>{_('vifIpAddresses')}</h4>
-                {map(this._getIpAddresses(), address => (
-                  <span key={address} className='tag tag-info tag-ip'>
-                    {address}
-                  </span>
-                ))}
-              </span>
-            ) : (
-              _('noIpRecord')
-            )}
           </Col>
         </Row>
       </Container>
