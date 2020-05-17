@@ -102,6 +102,10 @@ Or something like this if you also want to filter by group:
       type: 'string',
       default: DEFAULTS.filter,
     },
+    startTls: {
+      title: 'Use StartTLS',
+      type: 'boolean',
+    },
   },
   required: ['uri', 'base'],
 }
@@ -157,11 +161,13 @@ class AuthLdap {
       bind: credentials,
       base: searchBase,
       filter: searchFilter = DEFAULTS.filter,
+      startTls = false,
     } = conf
 
     this._credentials = credentials
     this._searchBase = searchBase
     this._searchFilter = searchFilter
+    this._startTls = startTls
   }
 
   load() {
@@ -193,6 +199,10 @@ class AuthLdap {
     const client = new Client(this._clientOpts)
 
     try {
+      if (this._startTls) {
+        await client.startTLS(this._clientOpts.tlsOptions)
+      }
+
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
