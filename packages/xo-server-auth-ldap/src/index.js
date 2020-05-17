@@ -138,7 +138,6 @@ class AuthLdap {
     const clientOpts = (this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
-      tlsOptions: {},
     })
 
     {
@@ -147,13 +146,17 @@ class AuthLdap {
         certificateAuthorities,
       } = conf
 
-      const { tlsOptions } = clientOpts
+      const tlsOptions = (this._tlsOptions = {})
 
       tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
         tlsOptions.ca = await Promise.all(
           certificateAuthorities.map(path => fromCallback(readFile, path))
         )
+      }
+
+      if (clientOpts.url.startsWith('ldaps:')) {
+        clientOpts.tlsOptions = tlsOptions
       }
     }
 

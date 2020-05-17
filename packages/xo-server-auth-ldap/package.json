@@ -31,12 +31,12 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   },
   "dependencies": {
     "exec-promise": "^0.7.0",
     "inquirer": "^7.0.0",
-    "ldapts": "1.10.0",
+    "ldapts": "^2.2.1",
     "promise-toolbox": "^0.15.0"
   },
   "devDependencies": {
