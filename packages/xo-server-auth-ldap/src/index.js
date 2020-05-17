@@ -203,7 +203,7 @@ class AuthLdap {
 
     try {
       if (this._startTls) {
-        await client.startTLS(this._clientOpts.tlsOptions)
+        await client.startTLS(this._tlsOptions)
       }
 
       // Bind if necessary.
