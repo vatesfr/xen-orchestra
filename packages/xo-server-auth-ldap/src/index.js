@@ -139,15 +139,9 @@ class AuthLdap {
 
     {
       const {
-        bind,
         checkCertificate = DEFAULTS.checkCertificate,
         certificateAuthorities,
       } = conf
-
-      if (bind) {
-        clientOpts.bindDN = bind.dn
-        clientOpts.bindCredentials = bind.password
-      }
 
       const { tlsOptions } = clientOpts
 
