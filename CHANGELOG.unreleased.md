@@ -12,6 +12,7 @@
 - [Network selector] Display pool's name [#4885](https://github.com/vatesfr/xen-orchestra/issues/4885) (PR [#4990](https://github.com/vatesfr/xen-orchestra/pull/4990))
 - [Usage report] Include CSV raw data files to the sent email [#4970](https://github.com/vatesfr/xen-orchestra/issues/4970) (PR [#4979](https://github.com/vatesfr/xen-orchestra/pull/4979))
 - [Modal] Don't close pop-up forms when you click outside or press escape (PR [#5002](https://github.com/vatesfr/xen-orchestra/pull/5002))
+- [Plugin/auth-ldap] Support `StartTLS` [#4999](https://github.com/vatesfr/xen-orchestra/issues/4999)
 
 ### Bug fixes
 
@@ -39,6 +40,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-auth-ldap minor
 - xo-server-sdn-controller patch
 - xo-server-usage-report minor
 - @xen-orchestra/fs patch
