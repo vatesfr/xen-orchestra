@@ -22,6 +22,7 @@
 - [Remotes] Fix "remote is disabled" error on getting the remotes info (commit [eb2f429964d7adc264bf678c37e49a856454388e](https://github.com/vatesfr/xen-orchestra/commit/eb2f429964d7adc264bf678c37e49a856454388e))
 - Fix default filters not being set in all tables (PR [#4994](https://github.com/vatesfr/xen-orchestra/pull/4994))
 - [SDN Controller] Broken encrypted tunnels after host reboot [#4996](https://github.com/vatesfr/xen-orchestra/pull/4996)
+- Don't log server's credentials in case of `SESSION_AUTHENTICATION_FAILED` error (PR [#4995](https://github.com/vatesfr/xen-orchestra/pull/4995))
 - [Plugin/perf-alert] Fix compatibility of the alert messages with XenCenter (PR [#5004](https://github.com/vatesfr/xen-orchestra/pull/5004))
 
 ### Released packages
@@ -42,6 +43,7 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-perf-alert patch
+- xen-api patch
 - xo-server-auth-ldap minor
 - xo-server-sdn-controller patch
 - xo-server-usage-report minor
