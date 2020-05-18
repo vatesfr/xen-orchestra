@@ -42,12 +42,11 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-audit minor
 - xen-api patch
 - xo-server-auth-ldap minor
 - xo-server-sdn-controller patch
 - xo-server-usage-report minor
 - @xen-orchestra/fs patch
-- xo-server patch
-- xo-web minor
-- xo-server-audit minor
 - xo-server minor
+- xo-web minor
