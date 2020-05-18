@@ -667,14 +667,8 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport({
-    mailReceivers = [],
-    markdown,
-    nagiosMarkdown,
-    subject,
-    success,
-  }) {
-    if (mailReceivers.length === 0) {
+  _sendReport({ mailReceivers, markdown, nagiosMarkdown, subject, success }) {
+    if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
 
