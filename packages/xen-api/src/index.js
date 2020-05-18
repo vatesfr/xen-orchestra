@@ -659,7 +659,11 @@ export class Xapi extends EventEmitter {
 
       error.call = {
         method,
-        params: replaceSensitiveValues(params, '* obfuscated *'),
+        params:
+          // it pass server's credentials as param
+          method === 'session.login_with_password'
+            ? '* obfuscated *'
+            : replaceSensitiveValues(params, '* obfuscated *'),
       }
 
       debug(

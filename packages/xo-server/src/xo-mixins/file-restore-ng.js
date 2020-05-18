@@ -6,8 +6,14 @@ import { normalize } from 'path'
 import { readdir, rmdir, stat } from 'fs-extra'
 import { ZipFile } from 'yazl'
 
+import { decorateWith } from '../_decorateWith'
+import { dedupeUnmount } from '../_dedupeUnmount'
 import { lvs, pvs } from '../lvm'
 import { resolveSubpath, tmpDir } from '../utils'
+
+const compose = (...fns) => value => fns.reduce((value, fn) => fn(value), value)
+
+const dedupeUnmountWithArgs = fn => dedupeUnmount(fn, (...args) => args)
 
 const IGNORED_PARTITION_TYPES = {
   // https://github.com/jhermsmeier/node-mbr/blob/master/lib/partition.js#L38
@@ -60,50 +66,56 @@ const parsePartxLine = createPairsParser({
       : value,
 })
 
-const listLvmLogicalVolumes = defer(
-  async ($defer, devicePath, partition, results = []) => {
-    const pv = await mountLvmPhysicalVolume(devicePath, partition)
-    $defer(pv.unmount)
+const listLvmLogicalVolumes = compose(
+  defer,
+  dedupeUnmountWithArgs
+)(async ($defer, devicePath, partition, results = []) => {
+  const pv = await mountLvmPhysicalVolume(devicePath, partition)
+  $defer(pv.unmount)
 
-    const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], pv.path)
-    const partitionId = partition !== undefined ? partition.id : ''
-    lvs.forEach((lv, i) => {
-      const name = lv.lv_name
-      if (name !== '') {
-        results.push({
-          id: `${partitionId}/${lv.vg_name}/${name}`,
-          name,
-          size: lv.lv_size,
-        })
-      }
-    })
-    return results
+  const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], pv.path)
+  const partitionId = partition !== undefined ? partition.id : ''
+  lvs.forEach((lv, i) => {
+    const name = lv.lv_name
+    if (name !== '') {
+      results.push({
+        id: `${partitionId}/${lv.vg_name}/${name}`,
+        name,
+        size: lv.lv_size,
+      })
+    }
+  })
+  return results
+})
+
+const mountLvmPhysicalVolume = dedupeUnmountWithArgs(
+  async (devicePath, partition) => {
+    const args = []
+    if (partition !== undefined) {
+      args.push('-o', partition.start * 512)
+    }
+    args.push('--show', '-f', devicePath)
+    const path = (await execa('losetup', args)).stdout.trim()
+    await execa('pvscan', ['--cache', path])
+
+    return {
+      path,
+      unmount: async () => {
+        try {
+          const vgNames = await pvs('vg_name', path)
+          await execa('vgchange', ['-an', ...vgNames])
+        } finally {
+          await execa('losetup', ['-d', path])
+        }
+      },
+    }
   }
 )
 
-async function mountLvmPhysicalVolume(devicePath, partition) {
-  const args = []
-  if (partition !== undefined) {
-    args.push('-o', partition.start * 512)
-  }
-  args.push('--show', '-f', devicePath)
-  const path = (await execa('losetup', args)).stdout.trim()
-  await execa('pvscan', ['--cache', path])
-
-  return {
-    path,
-    unmount: async () => {
-      try {
-        const vgNames = await pvs('vg_name', path)
-        await execa('vgchange', ['-an', ...vgNames])
-      } finally {
-        await execa('losetup', ['-d', path])
-      }
-    },
-  }
-}
-
-const mountPartition = defer(async ($defer, devicePath, partition) => {
+const mountPartition = compose(
+  defer,
+  dedupeUnmountWithArgs
+)(async ($defer, devicePath, partition) => {
   const options = ['loop', 'ro']
 
   if (partition !== undefined) {
@@ -280,6 +292,7 @@ export default class BackupNgFileRestore {
     return partitions
   }
 
+  @decorateWith(dedupeUnmountWithArgs)
   @defer
   async _mountDisk($defer, remoteId, diskId) {
     const handler = await this._app.getRemoteHandler(remoteId)
@@ -321,6 +334,7 @@ export default class BackupNgFileRestore {
     }
   }
 
+  @decorateWith(dedupeUnmountWithArgs)
   @defer
   async _mountPartition($defer, devicePath, partitionId) {
     if (partitionId === undefined) {

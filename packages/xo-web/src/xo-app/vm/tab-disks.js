@@ -3,7 +3,6 @@ import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
 import defined from '@xen-orchestra/defined'
-import HTML5Backend from 'react-dnd-html5-backend'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
 import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
@@ -22,7 +21,6 @@ import {
   getCheckPermissions,
   isAdmin,
 } from 'selectors'
-import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
 import {
   addSubscriptions,
@@ -65,7 +63,6 @@ import {
   isVmRunning,
   migrateVdi,
   setBootableVbd,
-  setVmBootOrder,
   subscribeResourceSets,
 } from 'xo'
 
@@ -201,28 +198,6 @@ const INDIVIDUAL_ACTIONS = [
     label: vbd => _('copyUuid', { uuid: vbd.vdi.uuid }),
   },
 ]
-
-const parseBootOrder = bootOrder => {
-  // FIXME missing translation
-  const bootOptions = {
-    c: 'Hard-Drive',
-    d: 'DVD-Drive',
-    n: 'Network',
-  }
-  const order = []
-  if (bootOrder) {
-    for (const id of bootOrder) {
-      if (id in bootOptions) {
-        order.push({ id, text: bootOptions[id], active: true })
-        delete bootOptions[id]
-      }
-    }
-  }
-  forEach(bootOptions, (text, id) => {
-    order.push({ id, text, active: false })
-  })
-  return order
-}
 
 @injectIntl
 @addSubscriptions({
@@ -494,137 +469,6 @@ class AttachDisk extends Component {
   }
 }
 
-const orderItemSource = {
-  beginDrag: props => ({
-    id: props.id,
-    index: props.index,
-  }),
-}
-
-const orderItemTarget = {
-  hover: (props, monitor, component) => {
-    const dragIndex = monitor.getItem().index
-    const hoverIndex = props.index
-
-    if (dragIndex === hoverIndex) {
-      return
-    }
-
-    props.move(dragIndex, hoverIndex)
-    monitor.getItem().index = hoverIndex
-  },
-}
-
-@DropTarget('orderItem', orderItemTarget, connect => ({
-  connectDropTarget: connect.dropTarget(),
-}))
-@DragSource('orderItem', orderItemSource, (connect, monitor) => ({
-  connectDragSource: connect.dragSource(),
-  isDragging: monitor.isDragging(),
-}))
-class OrderItem extends Component {
-  static propTypes = {
-    connectDragSource: PropTypes.func.isRequired,
-    connectDropTarget: PropTypes.func.isRequired,
-    index: PropTypes.number.isRequired,
-    isDragging: PropTypes.bool.isRequired,
-    id: PropTypes.any.isRequired,
-    item: PropTypes.object.isRequired,
-    move: PropTypes.func.isRequired,
-  }
-
-  _toggle = checked => {
-    const { item } = this.props
-    item.active = checked
-    this.forceUpdate()
-  }
-
-  render() {
-    const { item, connectDragSource, connectDropTarget } = this.props
-    return connectDragSource(
-      connectDropTarget(
-        <li className='list-group-item'>
-          <Icon icon='grab' /> <Icon icon='grab' /> {item.text}
-          <span className='pull-right'>
-            <Toggle value={item.active} onChange={this._toggle} />
-          </span>
-        </li>
-      )
-    )
-  }
-}
-
-@DragDropContext(HTML5Backend)
-class BootOrder extends Component {
-  static propTypes = {
-    onClose: PropTypes.func,
-    vm: PropTypes.object.isRequired,
-  }
-
-  constructor(props) {
-    super(props)
-    const { vm } = props
-    const order = parseBootOrder(vm.boot && vm.boot.order)
-    this.state = { order }
-  }
-
-  _moveOrderItem = (dragIndex, hoverIndex) => {
-    const order = this.state.order.slice()
-    const dragItem = order.splice(dragIndex, 1)
-    if (dragItem.length) {
-      order.splice(hoverIndex, 0, dragItem.pop())
-      this.setState({ order })
-    }
-  }
-
-  _reset = () => {
-    const { vm } = this.props
-    const order = parseBootOrder(vm.boot && vm.boot.order)
-    this.setState({ order })
-  }
-
-  _save = () => {
-    const { vm, onClose = noop } = this.props
-    const { order: newOrder } = this.state
-    let order = ''
-    forEach(newOrder, item => {
-      item.active && (order += item.id)
-    })
-    return setVmBootOrder(vm, order).then(onClose)
-  }
-
-  render() {
-    const { order } = this.state
-
-    return (
-      <form>
-        <ul>
-          {map(order, (item, index) => (
-            <OrderItem
-              key={index}
-              index={index}
-              id={item.id}
-              // FIXME missing translation
-              item={item}
-              move={this._moveOrderItem}
-            />
-          ))}
-        </ul>
-        <fieldset className='form-inline'>
-          <span className='pull-right'>
-            <ActionButton icon='save' btnStyle='primary' handler={this._save}>
-              {_('saveBootOption')}
-            </ActionButton>{' '}
-            <ActionButton icon='reset' handler={this._reset}>
-              {_('resetBootOption')}
-            </ActionButton>
-          </span>
-        </fieldset>
-      </form>
-    )
-  }
-}
-
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
   isAdmin,
@@ -635,7 +479,6 @@ export default class TabDisks extends Component {
     super(props)
     this.state = {
       attachDisk: false,
-      bootOrder: false,
       newDisk: false,
     }
   }
@@ -670,20 +513,11 @@ export default class TabDisks extends Component {
     this.setState({
       newDisk: !this.state.newDisk,
       attachDisk: false,
-      bootOrder: false,
     })
 
   _toggleAttachDisk = () =>
     this.setState({
       attachDisk: !this.state.attachDisk,
-      bootOrder: false,
-      newDisk: false,
-    })
-
-  _toggleBootOrder = () =>
-    this.setState({
-      bootOrder: !this.state.bootOrder,
-      attachDisk: false,
       newDisk: false,
     })
 
@@ -806,7 +640,7 @@ export default class TabDisks extends Component {
   render() {
     const { allVbds, vm } = this.props
 
-    const { attachDisk, bootOrder, newDisk } = this.state
+    const { attachDisk, newDisk } = this.state
 
     return (
       <Container>
@@ -824,14 +658,6 @@ export default class TabDisks extends Component {
                 handler={this._toggleAttachDisk}
                 icon='disk'
                 labelId='vdiAttachDevice'
-              />
-            )}
-            {vm.virtualizationMode !== 'pv' && (
-              <TabButton
-                btnStyle={bootOrder ? 'info' : 'primary'}
-                handler={this._toggleBootOrder}
-                icon='sort'
-                labelId='vdiBootOrder'
               />
             )}
           </Col>
@@ -856,12 +682,6 @@ export default class TabDisks extends Component {
                   vbds={allVbds}
                   onClose={this._toggleAttachDisk}
                 />
-                <hr />
-              </div>
-            )}
-            {bootOrder && (
-              <div>
-                <BootOrder vm={vm} onClose={this._toggleBootOrder} />
                 <hr />
               </div>
             )}

@@ -318,12 +318,17 @@ Vdi.defaultProps = {
 export const Network = decorate([
   connectStore(() => {
     const getObject = createGetObject()
+    const getPool = createGetObject(
+      createSelector(getObject, network => get(() => network.$pool))
+    )
+
     // FIXME: props.self ugly workaround to get object as a self user
     return (state, props) => ({
       network: getObject(state, props, props.self),
+      pool: getPool(state, props),
     })
   }),
-  ({ id, network }) => {
+  ({ id, network, pool }) => {
     if (network === undefined) {
       return unknowItem(id, 'network')
     }
@@ -331,6 +336,9 @@ export const Network = decorate([
     return (
       <span>
         <Icon icon='network' /> {network.name_label}
+        {pool !== undefined && (
+          <span className='text-muted'>{` - ${pool.name_label}`}</span>
+        )}
       </span>
     )
   },
@@ -382,11 +390,20 @@ export const Proxy = decorate([
     proxy: cb =>
       subscribeProxies(proxies => cb(proxies.find(proxy => proxy.id === id))),
   })),
-  ({ id, proxy }) =>
+  ({ id, proxy, link, newTab }) =>
     proxy !== undefined ? (
-      <span>
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={{
+          pathname: '/proxies',
+          query: {
+            s: `id:${id}`,
+          },
+        }}
+      >
         <Icon icon='proxy' /> {proxy.name || proxy.address}
-      </span>
+      </LinkWrapper>
     ) : (
       unknowItem(id, 'proxy')
     ),
@@ -394,6 +411,13 @@ export const Proxy = decorate([
 
 Proxy.propTypes = {
   id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+Proxy.defaultProps = {
+  link: false,
+  newTab: false,
 }
 
 // ===================================================================
