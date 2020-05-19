@@ -1781,7 +1781,10 @@ export const createNetwork = params => _call('network.create', params)
 export const createBondedNetwork = params =>
   _call('network.createBonded', params)
 export const createPrivateNetwork = params =>
-  _call('sdnController.createPrivateNetwork', params)
+  _call('sdnController.createPrivateNetwork', {
+    ...params,
+    preferredCenterId: resolveId(params.preferredCenter),
+  })
 
 export const deleteNetwork = network =>
   confirm({

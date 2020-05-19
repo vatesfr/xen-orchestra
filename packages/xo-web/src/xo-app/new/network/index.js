@@ -33,7 +33,7 @@ import styles from './index.css'
 const EMPTY = {
   bonded: false,
   bondMode: undefined,
-  center: undefined,
+  networkCenter: undefined,
   description: '',
   encapsulation: 'gre',
   encrypted: false,
@@ -118,8 +118,8 @@ const NewNetwork = decorate([
       onChangeEncapsulation(_, encapsulation) {
         return { encapsulation: encapsulation.value }
       },
-      onChangeCenter(_, center) {
-        this.state.center = center !== null ? center : undefined
+      onChangeCenter(_, networkCenter) {
+        this.state.networkCenter = networkCenter
       },
       onDeletePool(_, { currentTarget: { dataset } }) {
         const networks = [...this.state.networks]
@@ -157,15 +157,11 @@ const NewNetwork = decorate([
               value: mode,
             }))
           : [],
-      hostPredicate: ({ networks }, { pool }) => host => {
-        const poolIds = [pool.id]
-        for (const network of networks) {
-          if (network.pool !== undefined) {
-            poolIds.push(network.pool.id)
-          }
-        }
-        return poolIds.includes(host.$pool)
-      },
+      hostPredicate: ({ networks }, { pool }) => host =>
+        host.$pool === pool.id ||
+        networks.some(
+          ({ pool }) => pool !== undefined && pool.id === host.$pool
+        ),
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
       pifPredicateSdnController: (_, { pool }) => pif =>
@@ -198,7 +194,7 @@ const NewNetwork = decorate([
       const {
         bonded,
         bondMode,
-        center,
+        networkCenter,
         isPrivate,
         description,
         encapsulation,
@@ -235,7 +231,7 @@ const NewNetwork = decorate([
               encapsulation,
               encrypted,
               mtu: mtu !== '' ? +mtu : undefined,
-              preferredCenterId: center !== undefined ? center.id : undefined,
+              preferredCenter: networkCenter,
             })
           })()
         : createNetwork({
@@ -282,7 +278,7 @@ const NewNetwork = decorate([
       const {
         bonded,
         bondMode,
-        center,
+        networkCenter,
         hostPredicate,
         isPrivate,
         description,
@@ -390,7 +386,7 @@ const NewNetwork = decorate([
                         <SelectHost
                           onChange={effects.onChangeCenter}
                           predicate={hostPredicate}
-                          value={center}
+                          value={networkCenter}
                         />
                         <div>
                           <em>
