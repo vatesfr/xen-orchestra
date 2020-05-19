@@ -1,16 +1,15 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
-import Link from 'link'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Tooltip from 'tooltip'
-import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, connectStore, createCompare } from 'utils'
-import { compact, find, isEmpty, map, omit, some, uniq } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { createPredicate } from 'value-matcher'
+import { filter, flatMap, isEmpty, map, omit, some, uniq } from 'lodash'
+import { Host, Pool } from 'render-xo-item'
 import { injectState, provideState } from 'reaclette'
 import { Text, XoSelect } from 'editable'
 import {
@@ -46,11 +45,7 @@ const COLUMNS = [
               <span>
                 {_(`powerState${state}`)}
                 {state === 'Busy' && (
-                  <span>
-                    {' ('}
-                    {map(operations)[0]}
-                    {')'}
-                  </span>
+                  <span> ({Object.values(operations)[0]})</span>
                 )}
               </span>
             }
@@ -95,15 +90,11 @@ const COLUMNS = [
           value={container}
           xoType='host'
         >
-          <Link to={`/${container.type}s/${container.id}`}>
-            {renderXoItem(container)}
-          </Link>
+          <Host id={container.id} link />
         </XoSelect>
       ) : (
         (container = pools[vm.$container]) !== undefined && (
-          <Link to={`/${container.type}s/${container.id}`}>
-            {renderXoItem(container)}
-          </Link>
+          <Pool id={container.id} link />
         )
       )
     },
@@ -191,10 +182,8 @@ const BackedUpVms = decorate([
         }
 
         const backedUpVms = uniq(
-          compact(
-            map(jobs, job =>
-              find(vms, createPredicate(omit(job.vms, 'power_state')))
-            )
+          flatMap(jobs, job =>
+            filter(vms, createPredicate(omit(job.vms, 'power_state')))
           )
         )
 

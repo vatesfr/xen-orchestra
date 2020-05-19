@@ -313,6 +313,8 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
+const DEFAULT_VMS_FILTER = 'all'
+
 const VM_FILTERS = [
   { value: 'all', label: _('allVms') },
   { value: 'backedUpVms', label: _('backedUpVms') },
@@ -489,7 +491,6 @@ export default class Home extends Component {
   }
 
   state = {
-    vmsFilter: 'all',
     homeItemsPerPage: +defined(
       cookies.get('homeItemsPerPage'),
       DEFAULT_ITEMS_PER_PAGE
@@ -508,10 +509,7 @@ export default class Home extends Component {
       this._initFilterAndSortBy(props)
     }
     if (type !== this.props.type) {
-      this.setState({
-        highlighted: undefined,
-        vmsFilter: 'all',
-      })
+      this.setState({ highlighted: undefined })
     }
   }
 
@@ -559,7 +557,13 @@ export default class Home extends Component {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
-      query: { ...query, t: type, s: undefined, p: 1 },
+      query: {
+        ...query,
+        p: 1,
+        s: undefined,
+        s_vms: undefined,
+        t: type,
+      },
     })
   }
 
@@ -886,15 +890,20 @@ export default class Home extends Component {
 
   // Header --------------------------------------------------------------------
 
+  _getVmsFilter = () => {
+    const { s_vms } = this.props.location.query
+    return s_vms === undefined ? DEFAULT_VMS_FILTER : s_vms
+  }
+
   _setVmsFilter = vmsFilter => {
-    this.setState({ vmsFilter })
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
       query: {
         ...query,
-        p: vmsFilter === 'all' ? 1 : undefined,
+        p: vmsFilter === DEFAULT_VMS_FILTER ? 1 : undefined,
         s: URL_STATE_RE.exec(query.s)[4],
+        s_vms: vmsFilter,
       },
     })
   }
@@ -903,6 +912,7 @@ export default class Home extends Component {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
     const nItems = this._getNumberOfItems()
+    const vmsFilter = this._getVmsFilter()
     const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
 
     const {
@@ -912,7 +922,6 @@ export default class Home extends Component {
       selectedResourceSets,
       selectedTags,
       sortBy,
-      vmsFilter,
     } = this.state
 
     const options = OPTIONS[type]
@@ -925,7 +934,7 @@ export default class Home extends Component {
       showResourceSetsSelector,
     } = options
 
-    const disableAction = type === 'VM' && vmsFilter !== 'all'
+    const disableAction = type === 'VM' && vmsFilter !== DEFAULT_VMS_FILTER
 
     return (
       <Container>
@@ -1087,7 +1096,7 @@ export default class Home extends Component {
                           options={VM_FILTERS}
                           required
                           simpleValue
-                          value={this.state.vmsFilter}
+                          value={vmsFilter}
                         />
                       </Popover>
                     }
@@ -1269,13 +1278,13 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
+    const vmsFilter = this._getVmsFilter()
     const { Item } = OPTIONS[type]
     const {
       expandAll,
       highlighted,
       homeItemsPerPage,
       selectedItems,
-      vmsFilter,
     } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
@@ -1292,7 +1301,7 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        {type !== 'VM' || vmsFilter === 'all' ? (
+        {type !== 'VM' || vmsFilter === DEFAULT_VMS_FILTER ? (
           <div>
             <div className={styles.itemContainer}>
               {isEmpty(filteredItems) ? (
