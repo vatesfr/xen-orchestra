@@ -127,24 +127,13 @@ export class PrivateNetwork {
   async electNewCenter() {
     delete this.center
 
-    const hosts = this._getHosts()
     if (this._preferredCenter !== undefined) {
       this._preferredCenter = await this._preferredCenter.$xapi.barrier(
         this._preferredCenter.$ref
       )
-      if (this._hostCanBeCenter(this._preferredCenter)) {
-        this.center = this._preferredCenter
-      }
-    } else {
-      // TODO: make it random
-      for (const host of hosts) {
-        if (this._hostCanBeCenter(host)) {
-          this.center = host
-          break
-        }
-      }
     }
 
+    this.center = this._findBestCenter()
     if (this.center === undefined) {
       log.error('No available host to elect new star-center', {
         privateNetwork: this.uuid,
@@ -155,8 +144,7 @@ export class PrivateNetwork {
     await this._reset()
 
     // Recreate star topology
-    await Promise.all(hosts.map(host => this.addHost(host)))
-
+    await Promise.all(this._getHosts().map(host => this.addHost(host)))
     log.info('New star-center elected', {
       center: this.center.name_label,
       privateNetwork: this.uuid,
@@ -215,5 +203,21 @@ export class PrivateNetwork {
       _ => _.network === this.networks[host.$pool.uuid].$ref
     )
     return pif?.currently_attached && host.$metrics.live
+  }
+
+  _findBestCenter() {
+    if (
+      this._preferredCenter !== undefined &&
+      this._hostCanBeCenter(this._preferredCenter)
+    ) {
+      return this._preferredCenter
+    }
+
+    // TODO: make it random
+    for (const host of this._getHosts()) {
+      if (this._hostCanBeCenter(host)) {
+        return host
+      }
+    }
   }
 }
