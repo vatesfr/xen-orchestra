@@ -650,7 +650,9 @@ class SDNController extends EventEmitter {
       )
 
       // Put pool of preferred center first
-      poolIds = [...new Set([preferredCenter.$pool.$id, ...poolIds])]
+      const i = poolIds.indexOf(preferredCenterId)
+      poolIds[i] = poolIds[0]
+      poolIds[0] = preferredCenterId
     }
 
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
