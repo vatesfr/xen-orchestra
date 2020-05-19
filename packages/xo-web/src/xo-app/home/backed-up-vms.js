@@ -201,7 +201,6 @@ const BackedUpVms = decorate([
     itemsPerPage,
     pools,
     setHomeVmIdsSelection,
-    showBackedUpVms,
     state: { collection, title },
   }) => (
     <div>
