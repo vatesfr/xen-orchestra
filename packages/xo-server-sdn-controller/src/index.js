@@ -643,20 +643,14 @@ class SDNController extends EventEmitter {
     mtu,
     preferredCenterId,
   }) {
-    const preferredCenter =
-      preferredCenterId !== undefined
-        ? this._xo.getXapiObject(this._xo.getObject(preferredCenterId, 'host'))
-        : undefined
+    let preferredCenter
+    if (preferredCenterId !== undefined) {
+      preferredCenter = this._xo.getXapiObject(
+        this._xo.getObject(preferredCenterId, 'host')
+      )
 
-    if (preferredCenter !== undefined) {
       // Put pool of preferred center first
-      const orderedPoolIds = [preferredCenter.$pool.$id]
-      for (const poolId of poolIds) {
-        if (!orderedPoolIds.includes(poolId)) {
-          orderedPoolIds.push(poolId)
-        }
-      }
-      poolIds = orderedPoolIds
+      poolIds = [...new Set([preferredCenter.$pool.$id, ...poolIds])]
     }
 
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
