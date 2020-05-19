@@ -510,7 +510,7 @@ class SDNController extends EventEmitter {
             return
           }
 
-          let privateNetwork = this._privateNetworks[uuid]
+          let privateNetwork = this.privateNetworks[uuid]
           if (privateNetwork === undefined) {
             const preferredCenterUuid =
               otherConfig['xo:sdn-controller:preferred-center']
@@ -521,7 +521,7 @@ class SDNController extends EventEmitter {
                   )
                 : undefined
             privateNetwork = new PrivateNetwork(this, uuid, preferredCenter)
-            this._privateNetworks[uuid] = privateNetwork
+            this.privateNetworks[uuid] = privateNetwork
           }
 
           const vni = otherConfig['xo:sdn-controller:vni']
