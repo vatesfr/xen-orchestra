@@ -37,7 +37,6 @@ import {
   map,
   remove,
   some,
-  uniq,
 } from 'lodash'
 
 import {
@@ -342,22 +341,13 @@ const COLUMNS = [
     sortCriteria: 'rateLimit',
   },
   {
-    itemRenderer: ({ device }, { addresses, addressKeys }) => {
-      // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
-      // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
-      // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
-      const ipAdressess = uniq(
-        addressKeys.map(key => {
-          if (key.startsWith(`${device}/`)) {
-            return addresses[key]
-          }
-        })
-      )
-      return isEmpty(ipAdressess)
+    itemRenderer: ({ device }, { ipsByDevice }) => {
+      const ips = ipsByDevice[device]
+      return isEmpty(ips)
         ? _('noIpRecord')
-        : ipAdressess.map(address => (
-            <span key={address} className='tag tag-info tag-ip'>
-              {address}
+        : map(ips, ip => (
+            <span key={ip} className='tag tag-info tag-ip'>
+              {ip}
             </span>
           ))
     },
@@ -548,7 +538,24 @@ export default class TabNetwork extends BaseComponent {
       newVif: !this.state.newVif,
     })
 
-  _getAddressKeys = createSelector(() => this.props.vm.addresses, keys)
+  _getIpsByDevice = createSelector(
+    () => this.props.vm.addresses,
+    addresses => {
+      // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
+      // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
+      // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
+      const ipsByDevice = {}
+      Object.keys(addresses).forEach(key => {
+        const device = key.split('/')[0]
+        const ips = ipsByDevice[device] || []
+        const ip = addresses[key]
+        if (!ips.includes(ip)) {
+          ipsByDevice[device] = ips.concat(ip)
+        }
+      })
+      return ipsByDevice
+    }
+  )
 
   render() {
     const { newVif } = this.state
@@ -577,8 +584,7 @@ export default class TabNetwork extends BaseComponent {
             <SortedTable
               collection={vifs}
               columns={COLUMNS}
-              data-addressKeys={this._getAddressKeys()}
-              data-addresses={vm.addresses}
+              data-ipsByDevice={this._getIpsByDevice()}
               data-networks={networks}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
