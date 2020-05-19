@@ -527,7 +527,7 @@ export const importConfig = config =>
           }
         })
       ),
-    noop
+    () => false
   )
 
 import ExportConfigModal from './export-config-modal' // eslint-disable-line import/first

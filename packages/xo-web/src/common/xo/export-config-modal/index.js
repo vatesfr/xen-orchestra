@@ -4,6 +4,10 @@ import React from 'react'
 import { Password } from 'form'
 
 export default class ExportConfigModalBody extends Component {
+  state = {
+    passphrase: '',
+  }
+
   get value() {
     const { passphrase } = this.state
     return passphrase === '' ? undefined : passphrase
@@ -14,11 +18,10 @@ export default class ExportConfigModalBody extends Component {
       <div>
         <p>{_('exportConfigEnterPassphrase')}</p>
         <Password
-          className='form-control'
+          autoFocus
           defaultVisible
           enableGenerator
           onChange={this.linkState('passphrase')}
-          type='password'
           value={this.state.passphrase}
         />
       </div>
