@@ -15,6 +15,7 @@ export default class ExportConfigModalBody extends Component {
         <p>{_('exportConfigEnterPassphrase')}</p>
         <Password
           className='form-control'
+          defaultVisible
           enableGenerator
           onChange={this.linkState('passphrase')}
           type='password'
