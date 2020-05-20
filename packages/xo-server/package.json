@@ -95,7 +95,6 @@
     "ms": "^2.1.1",
     "multikey-hash": "^1.0.4",
     "ndjson": "^1.5.0",
-    "node-zone": "^0.4.0",
     "openpgp": "^4.10.4",
     "otplib": "^11.0.0",
     "parse-pairs": "^1.0.0",

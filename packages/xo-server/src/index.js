@@ -18,7 +18,6 @@ import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
 import xdg from 'xdg-basedir'
-import Zone from 'node-zone'
 import { forOwn, map, merge, once } from 'lodash'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { URL } from 'url'
@@ -282,11 +281,10 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
     new LocalStrategy(
       { passReqToCallback: true },
       async (req, username, password, done) => {
-        const zone = Zone.current.fork('webAuthentication')
-        zone.data.userIp = req.socket.remoteAddress
         try {
-          const { user } = await zone.run(() =>
-            xo.authenticateUser({ username, password })
+          const { user } = await xo.authenticateUser(
+            { username, password },
+            { ip: req.socket.remoteAddress }
           )
           done(null, user)
         } catch (error) {
