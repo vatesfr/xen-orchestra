@@ -19,7 +19,7 @@ export default class Config extends Component {
     this.setState({ importStatus: 'start' }, () =>
       importConfig(this.state.configFile).then(
         imported => {
-          if (imported) {
+          if (imported !== false) {
             this.setState({ configFile: undefined, importStatus: 'end' })
           } else {
             this.setState({ importStatus: 'selectedFile' })
