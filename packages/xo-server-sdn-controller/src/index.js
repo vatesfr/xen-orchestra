@@ -651,6 +651,7 @@ class SDNController extends EventEmitter {
 
       // Put pool of preferred center first
       const i = poolIds.indexOf(preferredCenterId)
+      assert.notStrictEqual(i, -1)
       poolIds[i] = poolIds[0]
       poolIds[0] = preferredCenterId
     }
