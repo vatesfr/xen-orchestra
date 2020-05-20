@@ -284,7 +284,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
         try {
           const { user } = await xo.authenticateUser(
             { username, password },
-            { ip: req.socket.remoteAddress }
+            { ip: req.ip }
           )
           done(null, user)
         } catch (error) {
