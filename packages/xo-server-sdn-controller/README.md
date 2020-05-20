@@ -1,6 +1,6 @@
 # xo-server-sdn-controller [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-XO Server plugin that allows the creation of pool-wide and cross-pool private networks.
+XO Server plugin that allows the creation of pool-wide and cross-pool private networks and to add/delete network traffic rules on a VIF.
 
 ## Install
 
