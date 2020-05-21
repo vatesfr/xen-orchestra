@@ -2,7 +2,9 @@
 
 Xen Orchestra (XO) is software built with a server and clients, such as the web client `xo-web`, but also a CLI capable client, called `xo-cli`.
 
-> XO is totally agent-less: you don't have to install any program on your hosts to get it working!
+:::tip
+XO is totally agent-less: you don't have to install any program on your hosts to get it working!
+:::
 
 ## XOA
 
@@ -10,7 +12,7 @@ _Xen Orchestra Virtual Appliance_ (XOA) is a virtual machine with Xen Orchestra 
 
 This is the easiest way to try Xen Orchestra quickly.
 
-Your XOA is connected to all your hosts, or the pool master only if you are using Pools in XenServer:
+Your XOA is connected to all your hosts, or the pool master only if you are using Pools in XCP-ng/Citrix Hypervisor:
 
 ![](./assets/partner2.jpg)
 

@@ -1,16 +1,16 @@
 # Backup troubleshooting
 
+This section is dedicated to help you if you have problems with XO Backups.
+
 ## Backup progress
 
 While a backup job is running, you should see activity in the "Tasks" view (Menu/Tasks), like this:
 
-![](assets/export_task.png)
+![](./assets/export_task.png)
 
 Another good way to check if there is activity is the XOA VM stats view (on the Network graph).
 
-## Error messages
-
-### VDI chain protection
+## VDI chain protection
 
 Backup jobs regularly delete snapshots. When a snapshot is deleted, either manually or via a backup job, it triggers the need for Xenserver to coalesce the VDI chain - to merge the remaining VDIs and base copies in the chain. This means generally we cannot take too many new snapshots on said VM until Xenserver has finished running a coalesce job on the VDI chain.
 
@@ -43,15 +43,17 @@ If you don't see any running coalesce jobs, and can't find any other reason that
 
 As a last resort, migrating the VM (more specifically, its disks) to a new storage repository will also force a coalesce and solve this issue. That means migrating a VM to another host (with its own storage) and back will force the VDI chain for that VM to be coalesced, and get rid of the `VDI Chain Protection` message.
 
-### Parse Error
+## Parse Error
 
 This is most likely due to running a backup job that uses Delta functionality (eg: delta backups, or continuous replication) on a version of XenServer older than 6.5. To use delta functionality you must run [XenServer 6.5 or later](https://xen-orchestra.com/docs/supported-version.html).
 
-### SR_BACKEND_FAILURE_44 (insufficient space)
+## SR_BACKEND_FAILURE_44
 
-> This message can be triggered by any backup method.
+:::tip
+This message can be triggered by any backup method.
+:::
 
-The Storage Repository (where your VM disks are currently stored) is full. Note that doing a snapshot on a thick provisioned SR (LVM family for all block devices, like iSCSI, HBA or Local LVM) will consume the current disk size. Eg if you are using this kind of SR at more than 50% and you want to backup ALL VM disks on it, you'll hit this wall.
+`SR_BACKEND_FAILURE_44 (insufficient space)` means the Storage Repository (where your VM disks are currently stored) is full. Note that doing a snapshot on a thick provisioned SR (LVM family for all block devices, like iSCSI, HBA or Local LVM) will consume the current disk size. Eg if you are using this kind of SR at more than 50% and you want to backup ALL VM disks on it, you'll hit this wall.
 
 Workarounds:
 
@@ -60,23 +62,23 @@ Workarounds:
 - wait for Citrix to allow another mechanism besides snapshot to be able to export disks
 - use less than 50% of SR space or don't backup all VMs
 
-### Could not find the base VM
+## Could not find the base VM
 
 This message appears when the previous replicated VM has been deleted on the target side which breaks the replication. To reset the process it's necessary to delete VM snapshot related to this CR job on the original VM. The name of this snapshot is: `XO_DELTA_EXPORT: <name label of target SR> (<UUID of target SR>)`
 
-### LICENSE_RESTRICTION(PCI_device_for_auto_update)
+## LICENSE_RESTRICTION
 
-This message appears when you try to do a backup/snapshot from a VM that was previously on a host with an active commercial XenServer license but is now on a host with a free edition of XenServer.
+`LICENSE_RESTRICTION (PCI_device_for_auto_update)` message appears when you try to do a backup/snapshot from a VM that was previously on a host with an **active commercial XenServer license** but is now on a host with a free edition of XenServer/Citrix Hypervisor.
 
-To solve it, you have to change a parameter in your VM. `xe vm-param-set has-vendor-device=false uuid=<VM_UUID>`
+To solve it, you have to change a parameter in your VM. `xe vm-param-set has-vendor-device=false uuid=<VM_UUID>`.
 
-### ENOSPC: no space left on device
+## ENOSPC: no space left on device
 
 This message appears when you do not have enough free space on the target remote when running a backup to it.
 
 To check your free space, enter your XOA and run `xoa check` to check free system space and `df -h` to check free space on your chosen remote storage.
 
-### Error: no VMs match this pattern
+## Error: no VMs match this pattern
 
 This is happening when you have a _smart backup job_ that doesn't match any VMs. For example: you created a job to backup all running VMs. If no VMs are running on backup schedule, you'll have this message. This could also happen if you lost connection with your pool master (the VMs aren't visible anymore from Xen Orchestra).
 

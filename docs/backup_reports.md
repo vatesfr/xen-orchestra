@@ -1,8 +1,8 @@
-# How to configure backup reports
+# Backup reports
 
 At the end of a backup job, you can configure Xen Orchestra to send backup reports directly by email, Slack or in Mattermost. It's up to you.
 
-## Email notifications
+## Email
 
 ### Step-by-step
 
@@ -16,7 +16,7 @@ At the end of a backup job, you can configure Xen Orchestra to send backup repor
    ![](./assets/backup-report-config.png)
    > Note: You can also modify existing backup jobs and change the behaviour of the report system.
 
-## XMPP nofications
+## XMPP
 
 You can **be notified via XMPP** after the backup task is finished (scheduled "full backup", "snapshots" or "disaster recovery").
 
@@ -29,7 +29,7 @@ That's it: your next scheduled job will be recapped in a message:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/xmpp.png)
 
-## Slack or Mattermost notifications
+## Slack or Mattermost
 
 Xen Orchestra is able to send backup reports to Slack or Mattermost.
 
@@ -45,23 +45,23 @@ Like all other xo-server plugins, it can be configured directly via the web inte
 
 2. Click on the **Main menu** at the top and choose **Apps & Integrations**
 
-![Apps & Integrations](assets/DocImg1.png)
+![Apps & Integrations](./assets/DocImg1.png)
 
 3. Search **Incoming WebHooks**
 
-![Incoming WebHooks](assets/DocImg2.png)
+![Incoming WebHooks](./assets/DocImg2.png)
 
 4. Click on **Add Configuration**
 
-![Add Configuration](assets/DocImg3.png)
+![Add Configuration](./assets/DocImg3.png)
 
 5. Choose the default channel and click on **Add Incoming WebHooks integration**
 
-![Add Incoming WebHooks integration](assets/DocImg4.png)
+![Add Incoming WebHooks integration](./assets/DocImg4.png)
 
 6. Modify the default settings and click on **Save Settings**
 
-![Save Settings](assets/DocImg5.png)
+![Save Settings](./assets/DocImg5.png)
 
 #### Mattermost
 
@@ -75,12 +75,12 @@ You need to be an admin:
 
 #### Slack
 
-![Slack configuration](assets/DocImg6.png)
+![Slack configuration](./assets/DocImg6.png)
 
-![Slack](assets/DocImg7.png)
+![Slack](./assets/DocImg7.png)
 
 #### Mattermost
 
-![Mattermost configuration](assets/DocImg8.png)
+![Mattermost configuration](./assets/DocImg8.png)
 
-![Mattermost](assets/DocImg9.png)
+![Mattermost](./assets/DocImg9.png)
