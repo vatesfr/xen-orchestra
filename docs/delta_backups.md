@@ -48,3 +48,15 @@ Unlike other types of backup jobs which delete the associated snapshot when the 
 During a delta backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
 
 The disks marked with `[NOBAK]` will be now ignored in all following backups.
+
+## Delta backup initial seed
+
+If you don't want to do an initial full directly toward the destination, you can create a local delta backup first, then transfer the files to your destination.
+
+Then, only the diff will be sent.
+
+1. create a delta backup job to the first remote
+1. run the backup (full)
+1. edit the job to target the other remote
+1. copy files from the first remote to the other one
+1. run the backup (delta)
