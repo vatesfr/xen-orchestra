@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.58.2",
+  "version": "5.59.0",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -142,10 +142,10 @@
     "whatwg-fetch": "^3.0.0",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.4.1",
-    "xo-common": "^0.4.0",
+    "xo-common": "^0.5.0",
     "xo-lib": "^0.8.0",
     "xo-remote-parser": "^0.5.0",
-    "xo-vmdk-to-vhd": "^1.1.1"
+    "xo-vmdk-to-vhd": "^1.1.2"
   },
   "scripts": {
     "build": "NODE_ENV=production gulp build",

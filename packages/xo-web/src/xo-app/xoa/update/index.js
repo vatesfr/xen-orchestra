@@ -263,7 +263,7 @@ const Updates = decorate([
           .join('\n'),
       proxyFormId: generateId,
       xoaBuild: async () => {
-        const { build = 'unknown' } = await getApplianceInfo().catch(error => {
+        const { build } = await getApplianceInfo().catch(error => {
           console.warn('getApplianceInfo', error)
           return {}
         })
@@ -305,12 +305,17 @@ const Updates = decorate([
                   <p>
                     {xoVersion !== undefined && (
                       <span>
-                        {_('currentVersion')} {xoVersion} -{' '}
+                        {_('currentVersion')} {xoVersion}
                       </span>
                     )}
-                    <span className='text-muted'>
-                      {_('xoaBuild')} {state.xoaBuild}
-                    </span>{' '}
+                    {xoVersion !== undefined &&
+                      state.xoaBuild !== undefined &&
+                      ' - '}
+                    {state.xoaBuild !== undefined && (
+                      <span className='text-muted'>
+                        {_('xoaBuild')} {state.xoaBuild}
+                      </span>
+                    )}{' '}
                     {state.installedPackages !== undefined && (
                       <Button
                         name='showPackagesList'

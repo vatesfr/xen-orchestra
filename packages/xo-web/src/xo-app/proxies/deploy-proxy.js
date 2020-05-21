@@ -8,7 +8,7 @@ import { alert, form } from 'modal'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { deployProxyAppliance, isSrWritable } from 'xo'
+import { deployProxyAppliance, getLicenses, isSrWritable } from 'xo'
 import { generateId } from 'reaclette-utils'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
@@ -228,8 +228,27 @@ const Modal = decorate([
   ),
 ])
 
-const deployProxy = ({ license, proxy }) => {
+const deployProxy = async ({ proxy } = {}) => {
+  const licenses = await getLicenses({ productType: 'xoproxy' })
   const isRedeployMode = proxy !== undefined
+
+  let license
+  if (isRedeployMode) {
+    license = licenses.find(
+      license =>
+        !(license.expires < Date.now()) &&
+        license.boundObjectId === proxy.vmUuid
+    )
+  }
+
+  // in case of deploying a proxy or when the associated proxy VM doesn't have a license
+  if (license === undefined) {
+    license = licenses.find(
+      license =>
+        !(license.expires < Date.now()) && license.boundObjectId === undefined
+    )
+  }
+
   const header = (
     <span>
       <Icon icon='proxy' />{' '}

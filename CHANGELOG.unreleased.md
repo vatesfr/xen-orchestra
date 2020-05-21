@@ -7,20 +7,24 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Snapshot] Confirmation message before creating a snapshot with memory [#4914](https://github.com/vatesfr/xen-orchestra/issues/4914) (PR [#4917](https://github.com/vatesfr/xen-orchestra/pull/4917))
-- [Internationalization] Italian translation (Thanks [@infodavide](https://github.com/infodavide)!) [#4908](https://github.com/vatesfr/xen-orchestra/issues/4908) (PRs [#4931](https://github.com/vatesfr/xen-orchestra/pull/4931) [#4932](https://github.com/vatesfr/xen-orchestra/pull/4932))
-- [Proxy] Associate a license to the deployed proxy (PR [#4912](https://github.com/vatesfr/xen-orchestra/pull/4912))
+- [VM] Move boot order setting from Disk tab to Advanced tab [#1523](https://github.com/vatesfr/xen-orchestra/issues/1523#issuecomment-563141573) (PR [#4975](https://github.com/vatesfr/xen-orchestra/pull/4975))
+- [XOA/licenses] Display proxy licenses (PR [#4944](https://github.com/vatesfr/xen-orchestra/pull/4944))
+- [Network selector] Display pool's name [#4885](https://github.com/vatesfr/xen-orchestra/issues/4885) (PR [#4990](https://github.com/vatesfr/xen-orchestra/pull/4990))
+- [Usage report] Include CSV raw data files to the sent email [#4970](https://github.com/vatesfr/xen-orchestra/issues/4970) (PR [#4979](https://github.com/vatesfr/xen-orchestra/pull/4979))
+- [Modal] Don't close pop-up forms when you click outside or press escape (PR [#5002](https://github.com/vatesfr/xen-orchestra/pull/5002))
+- [Plugin/auth-ldap] Support `StartTLS` [#4999](https://github.com/vatesfr/xen-orchestra/issues/4999)
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] Fix TLS error (`unsupported protocol`) when XenServer <= 6.5 is used as target
-- [Patches] Hide patch `CH81` (upgrade patch) from the pool patches (PR [#4942](https://github.com/vatesfr/xen-orchestra/pull/4942))
-- [Proxy] Fix some `operation timed out` errors on (re)deploy [#4927](https://github.com/vatesfr/xen-orchestra/issues/4927) (PR [#4928](https://github.com/vatesfr/xen-orchestra/pull/4928))
-- [Backup] Fix some `cannot get the proxy VM IP` errors on backup's execution [#4927](https://github.com/vatesfr/xen-orchestra/issues/4927) (PR [#4928](https://github.com/vatesfr/xen-orchestra/pull/4928))
-- [XOA] Allow to access the license page when a XOA trial has ended (PR [#4941](https://github.com/vatesfr/xen-orchestra/pull/4941))
-- [OVA import] Fix memory hogging behavior when the destination SR is slower than the file upload. (PR [#4920](https://github.com/vatesfr/xen-orchestra/pull/4920))
+- Fix mounting of NFS remote in FreeBSD (PR [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988))
+- [Remotes] Fix "remote is disabled" error on getting the remotes info (commit [eb2f429964d7adc264bf678c37e49a856454388e](https://github.com/vatesfr/xen-orchestra/commit/eb2f429964d7adc264bf678c37e49a856454388e))
+- Fix default filters not being set in all tables (PR [#4994](https://github.com/vatesfr/xen-orchestra/pull/4994))
+- [SDN Controller] Broken encrypted tunnels after host reboot [#4996](https://github.com/vatesfr/xen-orchestra/pull/4996)
+- Don't log server's credentials in case of `SESSION_AUTHENTICATION_FAILED` error (PR [#4995](https://github.com/vatesfr/xen-orchestra/pull/4995))
+- [Plugin/perf-alert] Fix compatibility of the alert messages with XenCenter (PR [#5004](https://github.com/vatesfr/xen-orchestra/pull/5004))
+- [Plugin/backup-reports] Fix `No recipients defined` error when recipients defined at plugin level (PR [#4998](https://github.com/vatesfr/xen-orchestra/pull/4998))
 
 ### Released packages
 
@@ -39,7 +43,12 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-vmdk-to-vhd patch
-- xo-server-audit patch
+- xo-server-backup-reports patch
+- xo-server-perf-alert patch
 - xen-api patch
+- xo-server-auth-ldap minor
+- xo-server-sdn-controller patch
+- xo-server-usage-report minor
+- @xen-orchestra/fs patch
 - xo-server patch
+- xo-web minor
