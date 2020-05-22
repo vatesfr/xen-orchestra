@@ -6,6 +6,20 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, createCompare } from 'utils'
+import {
+  copyVms,
+  deleteVms,
+  editVm,
+  migrateVm,
+  migrateVms,
+  pauseVms,
+  restartVms,
+  snapshotVms,
+  startVms,
+  stopVms,
+  subscribeBackupNgJobs,
+  suspendVms,
+} from 'xo'
 import { createGetObjectsOfType } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import {
@@ -21,20 +35,6 @@ import {
 import { Host, Pool } from 'render-xo-item'
 import { injectState, provideState } from 'reaclette'
 import { Text, XoSelect } from 'editable'
-import {
-  copyVms,
-  deleteVms,
-  editVm,
-  migrateVm,
-  migrateVms,
-  pauseVms,
-  restartVms,
-  snapshotVms,
-  startVms,
-  stopVms,
-  subscribeBackupNgJobs,
-  suspendVms,
-} from 'xo'
 
 const createCompareContainers = poolId =>
   createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
