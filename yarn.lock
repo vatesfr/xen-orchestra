@@ -2031,6 +2031,11 @@
     "@webassemblyjs/wast-parser" "1.9.0"
     "@xtuc/long" "4.2.2"
 
+"@xen-orchestra/openflow@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/openflow/-/openflow-0.1.0.tgz#35da46f7e98e701f25280ffdd6a0a69c8a6f9833"
+  integrity sha512-gOcPigvahz7mwu5aLIn3hEPxIODG/ieJDvRZDcjv6trkFxCgk/0mYkTzgSwO6qAlki6nztuycb4isoWB2y0B9g==
+
 "@xmpp/jid@^0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@xmpp/jid/-/jid-0.0.2.tgz#0d528ca9d58dafc833665564ffe62f332a3167f2"
@@ -18035,16 +18040,6 @@ util@0.10.3:
   dependencies:
     inherits "2.0.1"
 
-<<<<<<< HEAD
-util@^0.11.0:
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/util/-/util-0.11.1.tgz#3236733720ec64bb27f6e26f421aaa2e1b588d61"
-  integrity sha512-HShAsny+zS2TZfaXxD9tYj4HQGlBezXZMZuM/S5PKLLoZkShZiGk9o5CzukI1LVHZvjdvZ2Sj1aW/Ndn2NB/HQ==
-  dependencies:
-    inherits "2.0.3"
-
-||||||| parent of 4b556acdb... feat(sdn-controlle): Use OpenFlow lib to create an add/remove network rules API
-=======
 util@^0.12.3:
   version "0.12.3"
   resolved "https://registry.yarnpkg.com/util/-/util-0.12.3.tgz#971bb0292d2cc0c892dab7c6a5d37c2bec707888"
@@ -18057,7 +18052,6 @@ util@^0.12.3:
     safe-buffer "^5.1.2"
     which-typed-array "^1.1.2"
 
->>>>>>> 4b556acdb... feat(sdn-controlle): Use OpenFlow lib to create an add/remove network rules API
 util@~0.10.1:
   version "0.10.4"
   resolved "https://registry.yarnpkg.com/util/-/util-0.10.4.tgz#3aa0125bfe668a4672de58857d3ace27ecb76901"
@@ -18662,14 +18656,11 @@ which-module@^2.0.0:
   resolved "https://registry.yarnpkg.com/which-module/-/which-module-2.0.0.tgz#d9ef07dce77b9902b8a3a8fa4b31c3e3f7e6e87a"
   integrity sha1-2e8H3Od7mQK4o6j6SzHD4/fm6Ho=
 
-<<<<<<< HEAD
 which-pm-runs@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/which-pm-runs/-/which-pm-runs-1.0.0.tgz#670b3afbc552e0b55df6b7780ca74615f23ad1cb"
   integrity sha1-Zws6+8VS4LVd9rd4DKdGFfI60cs=
 
-||||||| parent of 4b556acdb... feat(sdn-controlle): Use OpenFlow lib to create an add/remove network rules API
-=======
 which-typed-array@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/which-typed-array/-/which-typed-array-1.1.2.tgz#e5f98e56bda93e3dac196b01d47c1156679c00b2"
@@ -18682,7 +18673,6 @@ which-typed-array@^1.1.2:
     has-symbols "^1.0.1"
     is-typed-array "^1.1.3"
 
->>>>>>> 4b556acdb... feat(sdn-controlle): Use OpenFlow lib to create an add/remove network rules API
 which@1, which@^1.2.14, which@^1.2.9, which@^1.3.0:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/which/-/which-1.3.1.tgz#a45043d54f5805316da8d62f9f50918d3da70b0a"
