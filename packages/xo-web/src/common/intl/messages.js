@@ -260,7 +260,7 @@ const messages = {
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
-  description: 'description',
+  description: 'Description',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',

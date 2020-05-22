@@ -8,7 +8,16 @@ import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, createCompare } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 import { createPredicate } from 'value-matcher'
-import { filter, flatMap, isEmpty, map, omit, some, uniq } from 'lodash'
+import {
+  difference,
+  filter,
+  flatMap,
+  isEmpty,
+  map,
+  omit,
+  some,
+  uniq,
+} from 'lodash'
 import { Host, Pool } from 'render-xo-item'
 import { injectState, provideState } from 'reaclette'
 import { Text, XoSelect } from 'editable'
@@ -52,6 +61,7 @@ const COLUMNS = [
           >
             <Icon icon={state.toLowerCase()} />
           </Tooltip>
+          &nbsp;&nbsp;
           <Text
             value={vm.name_label}
             onChange={value => editVm(vm, { name_label: value })}
@@ -110,7 +120,7 @@ const ACTIONS = [
   },
   {
     disabled: vms => some(vms, { power_state: 'Halted' }),
-    handler: stopVms,
+    handler: vms => stopVms(vms),
     icon: 'vm-stop',
     label: _('stopVmLabel'),
   },
@@ -148,7 +158,7 @@ const ACTIONS = [
 const GROUPED_ACTIONS = [
   {
     disabled: vms => some(vms, _ => _.power_state !== 'Running'),
-    handler: restartVms,
+    handler: vms => restartVms(vms),
     icon: 'vm-reboot',
     label: _('rebootVmLabel'),
   },
@@ -176,21 +186,22 @@ const BackedUpVms = decorate([
   })),
   provideState({
     computed: {
-      collection: (_, { showBackedUpVms, jobs, vms }) => {
+      backedUpVms: (_, { showBackedUpVms, jobs, vms }) => {
         if (isEmpty(vms)) {
           return []
         }
 
-        const backedUpVms = uniq(
+        return uniq(
           flatMap(jobs, job =>
             filter(vms, createPredicate(omit(job.vms, 'power_state')))
           )
         )
-
-        return showBackedUpVms
-          ? backedUpVms
-          : vms.filter(vm => !backedUpVms.includes(vm))
       },
+
+      collection: ({ backedUpVms, notBackedUpVms }, { showBackedUpVms }) =>
+        showBackedUpVms ? backedUpVms : notBackedUpVms,
+      notBackedUpVms: ({ backedUpVms }, { showBackedUpVms, vms }) =>
+        showBackedUpVms ? [] : difference(vms, backedUpVms),
       title: (state, { showBackedUpVms }) =>
         showBackedUpVms ? _('backedUpVms') : _('notBackedUpVms'),
     },
