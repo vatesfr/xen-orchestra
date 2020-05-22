@@ -68,6 +68,7 @@
   - [Reseller](reseller.md)
   - [Editions](editions.md)
   - [Trial](trial.md)
+  - [License Management](license-management.md)
   - [Invoices](invoices.md)
   - [Upgrade](upgrade.md)
 - [XOSAN](xosan.md)
