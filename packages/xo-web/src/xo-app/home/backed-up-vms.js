@@ -186,18 +186,14 @@ const BackedUpVms = decorate([
   })),
   provideState({
     computed: {
-      backedUpVms: (_, { showBackedUpVms, jobs, vms }) => {
-        if (isEmpty(vms)) {
-          return []
-        }
-
-        return uniq(
-          flatMap(jobs, job =>
-            filter(vms, createPredicate(omit(job.vms, 'power_state')))
-          )
-        )
-      },
-
+      backedUpVms: (_, { showBackedUpVms, jobs, vms }) =>
+        isEmpty(vms)
+          ? []
+          : uniq(
+              flatMap(jobs, job =>
+                filter(vms, createPredicate(omit(job.vms, 'power_state')))
+              )
+            ),
       collection: ({ backedUpVms, notBackedUpVms }, { showBackedUpVms }) =>
         showBackedUpVms ? backedUpVms : notBackedUpVms,
       notBackedUpVms: ({ backedUpVms }, { showBackedUpVms, vms }) =>
