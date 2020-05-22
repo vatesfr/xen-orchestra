@@ -4,10 +4,10 @@
 
 2. All the license available and not already bind to any appliance will be displayed here with a green `activate license` button
 
-![](.assets/activate-license.jpg)
+![](.assets/activate-license.png)
 
 3. By clicking on the activate license option, you will be required to confirm your choice. 
 
-![](.assets/activate-confirm.jpg)
+![](.assets/activate-confirm.png)
 
 > ⚠ Once a license is bind, the only way to unbind it is to contact us!
