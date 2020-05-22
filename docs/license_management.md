@@ -1,5 +1,6 @@
 # License management
-This section will cover the license management system for commercial editions of our products. 
+
+This section will cover the license management system for commercial editions of our products.
 
 ## Activate a Xen Orchestra license
 
@@ -9,7 +10,7 @@ This section will cover the license management system for commercial editions of
 
 ![](./assets/activate-license.png)
 
-3. By clicking on the activate license option, you will be required to confirm your choice. 
+3. By clicking on the activate license option, you will be required to confirm your choice.
 
 ![](./assets/activate-confirm.png)
 
