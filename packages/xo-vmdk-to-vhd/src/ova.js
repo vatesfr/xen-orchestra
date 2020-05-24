@@ -42,17 +42,16 @@ const RESOURCE_TYPE_TO_HANDLER = {
       AddressOnParent: position,
       Description: description = 'No description',
       ElementName: name,
-      Caption: caption,
+      // OVA 2.0 uses caption
+      Caption: caption = name,
       HostResource: resource,
     }
   ) => {
     const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
     const disk = diskId && disks[diskId[1]]
-    // OVA 2.0 uses caption
-    name = name || caption
     if (disk) {
       disk.descriptionLabel = description
-      disk.nameLabel = name
+      disk.nameLabel = caption
       disk.position = +position
     } else {
       // TODO: Log error in U.I.
@@ -167,19 +166,16 @@ async function parseOVF(fileFragment, stringDeserializer) {
         })
 
         // Get hardware info: CPU, RAM, disks, networks...
-        forEach(
-          ensureArray(hardware.Item)
-            .concat(ensureArray(hardware.StorageItem))
-            .concat(ensureArray(hardware.EthernetPortItem)),
-          item => {
-            const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
-            if (!handler) {
-              return
-            }
-            handler(data, item)
+        const handleItem = item => {
+          const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
+          if (!handler) {
+            return
           }
-        )
-
+          handler(data, item)
+        }
+        forEach(ensureArray(hardware.Item), handleItem)
+        forEach(ensureArray(hardware.StorageItem), handleItem)
+        forEach(ensureArray(hardware.EthernetPortItem), handleItem)
         // Remove disks which not have a position.
         // (i.e. no info in hardware.Item section.)
         filterDisks(data.disks)
