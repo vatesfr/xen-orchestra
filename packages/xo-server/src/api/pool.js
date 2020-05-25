@@ -1,4 +1,4 @@
-import { format, JsonRPcError } from 'json-rpc-peer'
+import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
@@ -214,14 +214,8 @@ async function handleInstallSupplementalPack(req, res, { poolId }) {
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   req.length = req.headers['content-length']
-
-  try {
-    await xapi.installSupplementalPackOnAllHosts(req)
-    res.end(format.response(0))
-  } catch (e) {
-    res.writeHead(500)
-    res.end(format.error(0, new JsonRPcError(e.message)))
-  }
+  await xapi.installSupplementalPackOnAllHosts(req)
+  res.end(format.response(0))
 }
 
 export async function installSupplementalPack({ pool }) {

@@ -1,7 +1,7 @@
 import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
 import { createLogger } from '@xen-orchestra/log'
-import { format, JsonRpcError } from 'json-rpc-peer'
+import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import { assignWith, concat } from 'lodash'
 import {
@@ -1340,14 +1340,8 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
-
-  try {
-    const vm = await xapi.importVm(req, { data, srId, type })
-    res.end(format.response(0, vm.$id))
-  } catch (e) {
-    res.writeHead(500)
-    res.end(format.error(0, new JsonRpcError(e.message)))
-  }
+  const vm = await xapi.importVm(req, { data, srId, type })
+  res.end(format.response(0, vm.$id))
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR
