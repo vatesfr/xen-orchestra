@@ -34,14 +34,15 @@ fs.readdir2 = path =>
       return entries
     },
     error => {
-      if (
-        error != null &&
-        (error.code === 'ENOENT' || error.code === 'ENOTDIR')
-      ) {
+      const { code } = error
+      if (code === 'ENOENT') {
+        // do nothing
+      } else if (code === 'ENOTDIR') {
         console.warn('WARN: readdir(%s)', path, error)
-        return []
+      } else {
+        throw error
       }
-      throw error
+      return []
     }
   )
 
