@@ -14,6 +14,7 @@
 - [Modal] Don't close pop-up forms when you click outside or press escape (PR [#5002](https://github.com/vatesfr/xen-orchestra/pull/5002))
 - [Plugin/auth-ldap] Support `StartTLS` [#4999](https://github.com/vatesfr/xen-orchestra/issues/4999)
 - [OVA import] Add support for OVA 2.0 file format (PR [#4921](https://github.com/vatesfr/xen-orchestra/pull/4921))
+- [Audit] Record failed connection attempts [#4844](https://github.com/vatesfr/xen-orchestra/issues/4844) (PR [#4900](https://github.com/vatesfr/xen-orchestra/pull/4900))
 
 ### Bug fixes
 
@@ -44,6 +45,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-audit minor
 - xo-vmdk-to-vhd minor
 - xo-server-backup-reports patch
 - xo-server-perf-alert patch
@@ -52,5 +54,5 @@
 - xo-server-sdn-controller patch
 - xo-server-usage-report minor
 - @xen-orchestra/fs patch
-- xo-server patch
+- xo-server minor
 - xo-web minor
