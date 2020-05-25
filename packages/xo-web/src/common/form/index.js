@@ -23,8 +23,8 @@ export Select from './select'
 
 export class Password extends Component {
   static propTypes = {
-    enableGenerator: PropTypes.bool,
     defaultVisible: PropTypes.bool,
+    enableGenerator: PropTypes.bool,
   }
 
   state = {
