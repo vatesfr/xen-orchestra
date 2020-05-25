@@ -13,6 +13,7 @@
 - [Usage report] Include CSV raw data files to the sent email [#4970](https://github.com/vatesfr/xen-orchestra/issues/4970) (PR [#4979](https://github.com/vatesfr/xen-orchestra/pull/4979))
 - [Modal] Don't close pop-up forms when you click outside or press escape (PR [#5002](https://github.com/vatesfr/xen-orchestra/pull/5002))
 - [Plugin/auth-ldap] Support `StartTLS` [#4999](https://github.com/vatesfr/xen-orchestra/issues/4999)
+- [OVA import] Add support for OVA 2.0 file format (PR [#4921](https://github.com/vatesfr/xen-orchestra/pull/4921))
 
 ### Bug fixes
 
@@ -43,6 +44,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-vmdk-to-vhd minor
 - xo-server-backup-reports patch
 - xo-server-perf-alert patch
 - xen-api patch
