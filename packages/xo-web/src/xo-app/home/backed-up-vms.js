@@ -48,7 +48,7 @@ const COLUMNS = [
       const operations = vm.current_operations
       const state = isEmpty(operations) ? vm.power_state : 'Busy'
       return (
-        <span>
+        <span style={{ 'white-space': 'nowrap' }}>
           <Tooltip
             content={
               <span>
@@ -61,7 +61,6 @@ const COLUMNS = [
           >
             <Icon icon={state.toLowerCase()} />
           </Tooltip>
-          &nbsp;&nbsp;
           <Text
             value={vm.name_label}
             onChange={value => editVm(vm, { name_label: value })}
@@ -187,13 +186,11 @@ const BackedUpVms = decorate([
   provideState({
     computed: {
       backedUpVms: (_, { showBackedUpVms, jobs, vms }) =>
-        isEmpty(vms)
-          ? []
-          : uniq(
-              flatMap(jobs, job =>
-                filter(vms, createPredicate(omit(job.vms, 'power_state')))
-              )
-            ),
+        uniq(
+          flatMap(jobs, job =>
+            filter(vms, createPredicate(omit(job.vms, 'power_state')))
+          )
+        ),
       collection: ({ backedUpVms, notBackedUpVms }, { showBackedUpVms }) =>
         showBackedUpVms ? backedUpVms : notBackedUpVms,
       notBackedUpVms: ({ backedUpVms }, { showBackedUpVms, vms }) =>
@@ -205,6 +202,7 @@ const BackedUpVms = decorate([
   injectState,
   ({
     hosts,
+    filterContainer,
     itemsPerPage,
     pools,
     setHomeVmIdsSelection,
@@ -219,11 +217,12 @@ const BackedUpVms = decorate([
         data-hosts={hosts}
         data-pools={pools}
         data-setHomeVmIdsSelection={setHomeVmIdsSelection}
+        displayFilter={false}
         groupedActions={GROUPED_ACTIONS}
         itemsPerPage={itemsPerPage}
         rowLink={getVmUrl}
         shortcutsTarget='body'
-        stateUrlParam='s'
+        stateUrlParam='s_backed'
       />
     </div>
   ),

@@ -99,9 +99,6 @@ import SrItem from './sr-item'
 const DEFAULT_ITEMS_PER_PAGE = 20
 const ITEMS_PER_PAGE_OPTIONS = [20, 50, 100]
 
-// page number and sort info are optional for backward compatibility
-const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(?:_(desc|asc))?)?-)?(.*)$/
-
 const OPTIONS = {
   host: {
     defaultFilter: 'power_state:running ',
@@ -312,8 +309,6 @@ const TYPES = {
 }
 
 const DEFAULT_TYPE = 'VM'
-
-const DEFAULT_VMS_FILTER = 'all'
 
 const VM_FILTERS = [
   { value: 'all', label: _('allVms') },
@@ -561,7 +556,7 @@ export default class Home extends Component {
         ...query,
         p: 1,
         s: undefined,
-        s_vms: undefined,
+        backup: undefined,
         t: type,
       },
     })
@@ -660,11 +655,7 @@ export default class Home extends Component {
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
   _getFilter(props = this.props) {
-    const { s } = props.location.query
-    if (s === undefined) {
-      return
-    }
-    return URL_STATE_RE.exec(s)[4]
+    return props.location.query.s
   }
 
   _getParsedFilter = createSelector(
@@ -890,10 +881,15 @@ export default class Home extends Component {
 
   // Header --------------------------------------------------------------------
 
-  _getVmsFilter = () => {
-    const { s_vms } = this.props.location.query
-    return s_vms === undefined ? DEFAULT_VMS_FILTER : s_vms
-  }
+  _getVmsFilter = createSelector(
+    () => this.props.location.query.backup,
+    backup =>
+      backup === undefined
+        ? 'all'
+        : backup === 'true'
+        ? 'backedUpVms'
+        : 'notBackedUpVms'
+  )
 
   _setVmsFilter = vmsFilter => {
     const { pathname, query } = this.props.location
@@ -901,9 +897,9 @@ export default class Home extends Component {
       pathname,
       query: {
         ...query,
-        p: vmsFilter === DEFAULT_VMS_FILTER ? 1 : undefined,
-        s: URL_STATE_RE.exec(query.s)[4],
-        s_vms: vmsFilter,
+        p: vmsFilter === 'all' ? 1 : undefined,
+        backup: vmsFilter === 'all' ? undefined : vmsFilter === 'backedUpVms',
+        s_backed: undefined,
       },
     })
   }
@@ -912,8 +908,14 @@ export default class Home extends Component {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
     const nItems = this._getNumberOfItems()
-    const vmsFilter = this._getVmsFilter()
-    const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
+    const {
+      isAdmin,
+      isPoolAdmin,
+      items,
+      location,
+      noResourceSets,
+      type,
+    } = this.props
 
     const {
       homeItemsPerPage,
@@ -934,7 +936,7 @@ export default class Home extends Component {
       showResourceSetsSelector,
     } = options
 
-    const disableAction = type === 'VM' && vmsFilter !== DEFAULT_VMS_FILTER
+    const disableAction = type === 'VM' && location.query.backup !== undefined
 
     return (
       <Container>
@@ -1089,20 +1091,24 @@ export default class Home extends Component {
                     rootClose
                     placement='bottom'
                     overlay={
-                      <Popover className={styles.selectObject} id='vmPopover'>
+                      <Popover
+                        className={styles.selectObject}
+                        id='backupPopover'
+                      >
                         <Select
                           autoFocus
                           onChange={this._setVmsFilter}
+                          openOnFocus
                           options={VM_FILTERS}
                           required
                           simpleValue
-                          value={vmsFilter}
+                          value={this._getVmsFilter()}
                         />
                       </Popover>
                     }
                   >
                     <Button btnStyle='link'>
-                      <Icon icon='vm' /> {_('vms')}
+                      <Icon icon='backup' /> {_('backup')}
                     </Button>
                   </OverlayTrigger>
                 )}
@@ -1250,6 +1256,7 @@ export default class Home extends Component {
       areObjectsFetched,
       isAdmin,
       isPoolAdmin,
+      location,
       noResourceSets,
       type,
     } = this.props
@@ -1278,7 +1285,6 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
-    const vmsFilter = this._getVmsFilter()
     const { Item } = OPTIONS[type]
     const {
       expandAll,
@@ -1301,7 +1307,7 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        {type !== 'VM' || vmsFilter === DEFAULT_VMS_FILTER ? (
+        {type !== 'VM' || location.query.backup === undefined ? (
           <div>
             <div className={styles.itemContainer}>
               {isEmpty(filteredItems) ? (
@@ -1346,7 +1352,7 @@ export default class Home extends Component {
         ) : (
           <BackedUpVms
             itemsPerPage={homeItemsPerPage}
-            showBackedUpVms={vmsFilter === 'backedUpVms'}
+            showBackedUpVms={location.query.backup === 'true'}
             vms={filteredItems}
           />
         )}
