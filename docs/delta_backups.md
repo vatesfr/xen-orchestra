@@ -10,7 +10,7 @@ Full backups can be represented like this:
 
 It means huge files for each backup. Delta backups will only export the difference between the previous backup:
 
-![](https://xen-orchestra.com/blog/content/images/2015/12/delta_final.png)
+![](https://xen-orchestra.com/blog/content/images/2020/05/delta_final.png)
 
 You can imagine making your first initial full backup during a weekend, and then only delta backups every night. It combines the flexibility of snapshots and the power of full backups, because:
 
