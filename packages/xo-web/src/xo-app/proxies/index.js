@@ -2,20 +2,19 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
-import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
-import { Text, XoSelect } from 'editable'
+import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
 import {
   checkProxyHealth,
   destroyProxyAppliances,
-  forgetProxyAppliances,
   editProxyAppliance,
+  forgetProxyAppliances,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -26,13 +25,6 @@ import deployProxy from './deploy-proxy'
 
 const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })
-
-const _editProxyAddress = (value, { proxy }) => {
-  value = value.trim()
-  return editProxyAppliance(proxy, {
-    address: value !== '' ? value : null,
-  })
-}
 
 const HEADER = (
   <h2>
@@ -57,7 +49,10 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: deployProxy,
+    handler: proxy =>
+      deployProxy({
+        proxy,
+      }),
     icon: 'refresh',
     label: _('redeployProxyAction'),
     level: 'warning',
@@ -116,40 +111,8 @@ const COLUMNS = [
     sortCriteria: 'name',
   },
   {
-    itemRenderer: proxy => (
-      <Text
-        data-proxy={proxy}
-        onChange={_editProxyAddress}
-        value={defined(proxy.address, '')}
-      />
-    ),
-    name: _('address'),
-    sortCriteria: 'address',
-  },
-  {
-    itemRenderer: proxy => (
-      <XoSelect
-        onChange={value => _editProxy(value, { name: 'vm', proxy })}
-        value={proxy.vmUuid}
-        xoType='VM'
-      >
-        {proxy.vmUuid !== undefined ? (
-          <div>
-            <Vm id={proxy.vmUuid} />{' '}
-            <a
-              role='button'
-              onClick={() => _editProxy(null, { name: 'vm', proxy })}
-            >
-              <Icon icon='remove' />
-            </a>
-          </div>
-        ) : (
-          _('noValue')
-        )}
-      </XoSelect>
-    ),
+    itemRenderer: proxy => <Vm id={proxy.vmUuid} link newTab />,
     name: _('vm'),
-    sortCriteria: 'vm',
   },
 ]
 

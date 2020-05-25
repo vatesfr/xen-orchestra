@@ -208,7 +208,7 @@ class AuditXoPlugin {
     return this._xo
       .registerHttpRequest(
         (req, res) => {
-          res.writeHead(200, {
+          res.set({
             'content-disposition': 'attachment',
             'content-type': 'application/json',
           })

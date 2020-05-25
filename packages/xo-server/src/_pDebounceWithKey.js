@@ -52,8 +52,3 @@ export const debounceWithKey = (fn, delay, keyFn = defaultKeyFn) => {
     return promise
   }
 }
-
-debounceWithKey.decorate = (...params) => (target, name, descriptor) => ({
-  ...descriptor,
-  value: debounceWithKey(descriptor.value, ...params),
-})

@@ -127,7 +127,7 @@ encoding by prefixing with `json:`:
 
 ##### OVA VM import
 
-A separate utility, [`xo-upload-ova`](https://github.com/vatesfr/xen-orchestra/blob/master/packages/@xen-orchestra/upload-ova/README.md), can be used to import `.ova` files.
+A separate utility, [`xo-upload-ova`](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/upload-ova/README.md), can be used to import `.ova` files.
 
 ## Development
 

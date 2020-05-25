@@ -312,7 +312,7 @@ class SDNController extends EventEmitter {
     this._getDataDir = getDataDir
 
     this._newHosts = []
-    this._privateNetworks = {}
+    this.privateNetworks = {}
 
     this._networks = new Map()
     this._starCenters = new Map()
@@ -366,7 +366,7 @@ class SDNController extends EventEmitter {
     })
     const updatedPools = []
     await Promise.all(
-      map(this._privateNetworks, async privateNetworks => {
+      map(this.privateNetworks, async privateNetworks => {
         await Promise.all(
           privateNetworks.getPools().map(async pool => {
             if (!updatedPools.includes(pool)) {
@@ -436,7 +436,7 @@ class SDNController extends EventEmitter {
   }
 
   async unload() {
-    this._privateNetworks = {}
+    this.privateNetworks = {}
     this._newHosts = []
 
     this._networks.clear()
@@ -448,6 +448,15 @@ class SDNController extends EventEmitter {
     this.ovsdbClients = {}
 
     this._unsetApiMethods()
+  }
+
+  // ---------------------------------------------------------------------------
+
+  registerPrivateNetwork(privateNetwork) {
+    this.privateNetworks[privateNetwork.uuid] = privateNetwork
+    log.info('Private network registered', {
+      privateNetwork: privateNetwork.uuid,
+    })
   }
 
   // ===========================================================================
@@ -491,11 +500,10 @@ class SDNController extends EventEmitter {
             return
           }
 
-          let privateNetwork = this._privateNetworks[uuid]
-          if (privateNetwork === undefined) {
-            privateNetwork = new PrivateNetwork(this, uuid)
-            this._privateNetworks[uuid] = privateNetwork
-          }
+          const privateNetwork =
+            this.privateNetworks[uuid] !== undefined
+              ? this.privateNetworks[uuid]
+              : new PrivateNetwork(this, uuid)
 
           const vni = otherConfig['xo:sdn-controller:vni']
           if (vni === undefined) {
@@ -563,7 +571,7 @@ class SDNController extends EventEmitter {
           )
 
           // Re-elect a center to apply the VNI
-          const privateNetwork = this._privateNetworks[
+          const privateNetwork = this.privateNetworks[
             network.other_config['xo:sdn-controller:private-network-uuid']
           ]
           await this._electNewCenter(privateNetwork)
@@ -580,7 +588,7 @@ class SDNController extends EventEmitter {
   _handleDisconnectedXapi(xapi) {
     log.debug('xapi disconnected', { id: xapi.pool.uuid })
     try {
-      forOwn(this._privateNetworks, privateNetwork => {
+      forOwn(this.privateNetworks, privateNetwork => {
         privateNetwork.networks = omitBy(
           privateNetwork.networks,
           network => network.$pool.uuid === xapi.pool.uuid
@@ -591,8 +599,8 @@ class SDNController extends EventEmitter {
         }
       })
 
-      this._privateNetworks = filter(
-        this._privateNetworks,
+      this.privateNetworks = filter(
+        this.privateNetworks,
         privateNetwork => Object.keys(privateNetwork.networks).length !== 0
       )
     } catch (error) {
@@ -745,7 +753,7 @@ class SDNController extends EventEmitter {
         if (starCenterRef !== undefined) {
           this._starCenters.delete(id)
           const privateNetworks = filter(
-            this._privateNetworks,
+            this.privateNetworks,
             privateNetwork => privateNetwork.center?.$ref === starCenterRef
           )
           for (const privateNetwork of privateNetworks) {
@@ -754,19 +762,19 @@ class SDNController extends EventEmitter {
           return
         }
 
-        // If a network is removed, clean this._privateNetworks from it
+        // If a network is removed, clean this.privateNetworks from it
         const networkRef = this._networks.get(id)
         if (networkRef !== undefined) {
           this._networks.delete(id)
-          forOwn(this._privateNetworks, privateNetwork => {
+          forOwn(this.privateNetworks, privateNetwork => {
             privateNetwork.networks = omitBy(
               privateNetwork.networks,
               network => network.$ref === networkRef
             )
           })
 
-          this._privateNetworks = filter(
-            this._privateNetworks,
+          this.privateNetworks = filter(
+            this.privateNetworks,
             privateNetwork => Object.keys(privateNetwork.networks).length !== 0
           )
         }
@@ -782,7 +790,7 @@ class SDNController extends EventEmitter {
   async _pifUpdated(pif) {
     // Only if PIF is in a private network
     const privateNetwork = find(
-      this._privateNetworks,
+      this.privateNetworks,
       privateNetwork =>
         privateNetwork.networks[pif.$pool.uuid]?.$ref === pif.network
     )
@@ -856,7 +864,7 @@ class SDNController extends EventEmitter {
     }
 
     const privateNetworks = filter(
-      this._privateNetworks,
+      this.privateNetworks,
       privateNetwork => privateNetwork[host.$pool.uuid] !== undefined
     )
     for (const privateNetwork of privateNetworks) {
@@ -888,23 +896,23 @@ class SDNController extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _setPoolControllerIfNeeded(pool) {
-    if (!isControllerNeeded(pool.$xapi)) {
-      // Nothing to do
-      return
-    }
+    if (isControllerNeeded(pool.$xapi)) {
+      const controller = find(pool.$xapi.objects.all, {
+        $type: 'SDN_controller',
+      })
+      if (controller !== undefined) {
+        await pool.$xapi.call('SDN_controller.forget', controller.$ref)
+        log.debug('Old SDN controller removed', {
+          pool: pool.name_label,
+        })
+      }
 
-    const controller = find(pool.$xapi.objects.all, { $type: 'SDN_controller' })
-    if (controller !== undefined) {
-      await pool.$xapi.call('SDN_controller.forget', controller.$ref)
-      log.debug('Old SDN controller removed', {
+      await pool.$xapi.call('SDN_controller.introduce', PROTOCOL)
+      log.debug('SDN controller has been set', {
         pool: pool.name_label,
       })
     }
 
-    await pool.$xapi.call('SDN_controller.introduce', PROTOCOL)
-    log.debug('SDN controller has been set', {
-      pool: pool.name_label,
-    })
     this._cleaners.push(await this._manageXapi(pool.$xapi))
   }
 
@@ -965,7 +973,7 @@ class SDNController extends EventEmitter {
     }
 
     const privateNetwork = find(
-      this._privateNetworks,
+      this.privateNetworks,
       privateNetwork =>
         privateNetwork.networks[host.$pool.uuid]?.$ref === network.$ref
     )
@@ -1041,7 +1049,7 @@ class SDNController extends EventEmitter {
   }
 
   async _hostUnreachable(host) {
-    let privateNetworks = filter(this._privateNetworks, privateNetwork => {
+    let privateNetworks = filter(this.privateNetworks, privateNetwork => {
       return privateNetwork.center.$ref === host.$ref
     })
     for (const privateNetwork of privateNetworks) {
@@ -1055,7 +1063,7 @@ class SDNController extends EventEmitter {
     }
 
     privateNetworks = filter(
-      this._privateNetworks,
+      this.privateNetworks,
       privateNetwork => privateNetwork[host.$pool.uuid] !== undefined
     )
     await Promise.all(

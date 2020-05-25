@@ -1173,10 +1173,12 @@ export default decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
-                  <span className='text-muted'>
-                    <Icon icon='info' />{' '}
-                    {_('deltaBackupOnOutdatedXenServerWarning')}
-                  </span>
+                  {state.isDelta && (
+                    <span className='text-muted'>
+                      <Icon icon='info' />{' '}
+                      {_('deltaBackupOnOutdatedXenServerWarning')}
+                    </span>
+                  )}
 
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>

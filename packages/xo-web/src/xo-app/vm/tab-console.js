@@ -100,7 +100,7 @@ export default class TabConsole extends Component {
 
   _openSsh = (username = 'root') => {
     window.location = `ssh://${encodeURIComponent(username)}@${
-      this.props.vm.addresses['0/ip']
+      this.props.vm.mainIpAddress
     }`
   }
 
@@ -131,7 +131,7 @@ export default class TabConsole extends Component {
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
-    const canSsh = vm.addresses && vm.addresses['0/ip']
+    const canSsh = vm.mainIpAddress !== undefined
 
     if (!isVmRunning(vm)) {
       return (

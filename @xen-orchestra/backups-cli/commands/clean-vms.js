@@ -8,12 +8,12 @@ let force
 const assert = require('assert')
 const flatten = require('lodash/flatten')
 const getopts = require('getopts')
-const isValidXva = require('@xen-orchestra/backups/isValidXva')
 const lockfile = require('proper-lockfile')
 const pipe = require('promise-toolbox/pipe')
 const { default: Vhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
+const { isValidXva } = require('@xen-orchestra/backups/isValidXva')
 
 const asyncMap = require('../_asyncMap')
 const fs = require('../_fs')

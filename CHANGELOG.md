@@ -1,8 +1,43 @@
 # ChangeLog
 
-## **5.45.1** (2020-04-08)
+## **5.46.0** (2020-04-30)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Highlights
+
+- [Internationalization] Italian translation (Thanks [@infodavide](https://github.com/infodavide)!) [#4908](https://github.com/vatesfr/xen-orchestra/issues/4908) (PRs [#4931](https://github.com/vatesfr/xen-orchestra/pull/4931) [#4932](https://github.com/vatesfr/xen-orchestra/pull/4932))
+- [Proxy] Associate a license to the deployed proxy (PR [#4912](https://github.com/vatesfr/xen-orchestra/pull/4912))
+- [OVA import] Fix memory hogging behavior when the destination SR is slower than the file upload. (PR [#4920](https://github.com/vatesfr/xen-orchestra/pull/4920))
+
+### Enhancements
+
+- [Snapshot] Confirmation message before creating a snapshot with memory [#4914](https://github.com/vatesfr/xen-orchestra/issues/4914) (PR [#4917](https://github.com/vatesfr/xen-orchestra/pull/4917))
+- Automatic generation of self signed certificate if `autoCert` is not `false` in `xo-server`'s configuration in the corresponding `http.listen` section (PR [#4954](https://github.com/vatesfr/xen-orchestra/pull/4954))
+- [Self] Better error when not enough available resources (PR [#4952](https://github.com/vatesfr/xen-orchestra/pull/4952))
+- [Backup/run job] Confirmation modal: show the number of VMs that will be backed up (PR [#4875](https://github.com/vatesfr/xen-orchestra/pull/4875))
+
+### Bug fixes
+
+- [Backup] Fix TLS error (`unsupported protocol`) when XenServer <= 6.5 is used as target
+- [Patches] Hide patch `CH81` (upgrade patch) from the pool patches (PR [#4942](https://github.com/vatesfr/xen-orchestra/pull/4942))
+- [Proxy] Fix some `operation timed out` errors on (re)deploy [#4927](https://github.com/vatesfr/xen-orchestra/issues/4927) (PR [#4928](https://github.com/vatesfr/xen-orchestra/pull/4928))
+- [Backup] Fix some `cannot get the proxy VM IP` errors on backup's execution [#4927](https://github.com/vatesfr/xen-orchestra/issues/4927) (PR [#4928](https://github.com/vatesfr/xen-orchestra/pull/4928))
+- [XOA] Allow to access the license page when a XOA trial has ended (PR [#4941](https://github.com/vatesfr/xen-orchestra/pull/4941))
+
+### Released packages
+
+- xo-common 0.5.0
+- @xen-orchestra/self-signed 0.1.0
+- xo-vmdk-to-vhd 1.1.2
+- xo-server-audit 0.3.1
+- xen-api 0.28.4
+- xo-server 5.59.0
+- xo-web 5.59.0
+
+## **5.45.1** (2020-04-08)
+
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 
@@ -69,8 +104,6 @@
 - xo-web 5.58.1
 
 ## **5.44.1** (2020-03-05)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 

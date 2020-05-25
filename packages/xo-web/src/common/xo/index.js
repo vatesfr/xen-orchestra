@@ -1268,7 +1268,7 @@ export const snapshotVm = async (vm, name, saveMemory, description) => {
     name,
     description,
     saveMemory,
-  })
+  })::tap(subscribeResourceSets.forceRefresh)
 }
 
 import SnapshotVmModalBody from './snapshot-vm-modal' // eslint-disable-line import/first
@@ -1402,7 +1402,9 @@ export const getCloudInitConfig = template =>
   _call('vm.getCloudInitConfig', { template })
 
 export const pureDeleteVm = (vm, props) =>
-  _call('vm.delete', { id: resolveId(vm), ...props })
+  _call('vm.delete', { id: resolveId(vm), ...props })::tap(
+    subscribeResourceSets.forceRefresh
+  )
 
 export const deleteVm = (vm, retryWithForce = true) =>
   confirm({
@@ -1460,17 +1462,21 @@ export const revertSnapshot = snapshot =>
     if (snapshotBefore) {
       await _call('vm.snapshot', { id: snapshot.$snapshot_of })
     }
-    await _call('vm.revert', { snapshot: snapshot.id })
+    await _call('vm.revert', { snapshot: snapshot.id })::tap(
+      subscribeResourceSets.forceRefresh
+    )
     success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
   }, noop)
 
 export const editVm = (vm, props) =>
-  _call('vm.set', { ...props, id: resolveId(vm) }).catch(err => {
-    error(
-      _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
-      err.message
-    )
-  })
+  _call('vm.set', { ...props, id: resolveId(vm) })
+    .catch(err => {
+      error(
+        _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
+        err.message
+      )
+    })
+    ::tap(subscribeResourceSets.forceRefresh)
 
 export const fetchVmStats = (vm, granularity) =>
   _call('vm.stats', { id: resolveId(vm), granularity })
@@ -3095,8 +3101,13 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
-export const deployProxyAppliance = (sr, { network, proxy, ...props } = {}) =>
+export const deployProxyAppliance = (
+  license,
+  sr,
+  { network, proxy, ...props } = {}
+) =>
   _call('proxy.deploy', {
+    license: resolveId(license),
     network: resolveId(network),
     proxy: resolveId(proxy),
     sr: resolveId(sr),

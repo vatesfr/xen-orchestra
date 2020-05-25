@@ -1,10 +1,11 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
+import renderXoItem, { Proxy } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
 import { CURRENT, productId2Plan, getXoaPlan } from 'xoa-plans'
@@ -16,12 +17,32 @@ import {
   getLicenses,
   selfBindLicense,
   subscribePlugins,
+  subscribeProxies,
   subscribeSelfLicenses,
 } from 'xo'
 
 import Xosan from './xosan'
 
 // -----------------------------------------------------------------------------
+
+const ProxyLicense = decorate([
+  addSubscriptions(({ license }) => ({
+    proxy: cb =>
+      subscribeProxies(proxies =>
+        cb(
+          license.vmId && proxies.find(({ vmUuid }) => vmUuid === license.vmId)
+        )
+      ),
+  })),
+  ({ license, proxy }) =>
+    license.vmId === undefined ? (
+      _('licenseNotBoundProxy')
+    ) : proxy !== undefined ? (
+      <Proxy id={proxy.id} link newTab />
+    ) : (
+      _('licenseBoundUnknownProxy')
+    ),
+])
 
 const LicenseManager = ({ item, userData }) => {
   const { type } = item
@@ -73,6 +94,10 @@ const LicenseManager = ({ item, userData }) => {
     }
 
     return <span>{_('licenseBoundToOtherXoa')}</span>
+  }
+
+  if (type === 'proxy') {
+    return <ProxyLicense license={item} />
   }
 
   console.warn('encountered unsupported license type')
@@ -144,15 +169,23 @@ export default class Licenses extends Component {
 
     return getLicenses()
       .then(licenses => {
-        const { xoa, xosan } = groupBy(licenses, license =>
-          license.productTypes.includes('xo')
-            ? 'xoa'
-            : license.productTypes.includes('xosan')
-            ? 'xosan'
-            : 'other'
-        )
+        const { proxy, xoa, xosan } = groupBy(licenses, license => {
+          for (const productType of license.productTypes) {
+            if (productType === 'xo') {
+              return 'xoa'
+            }
+            if (productType === 'xosan') {
+              return 'xosan'
+            }
+            if (productType === 'xoproxy') {
+              return 'proxy'
+            }
+          }
+          return 'other'
+        })
         this.setState({
           licenses: {
+            proxy,
             xoa,
             xosan,
           },
@@ -203,6 +236,21 @@ export default class Licenses extends Component {
             productId: license.productId,
             type: 'xoa',
             xoaId: license.boundObjectId,
+          })
+        }
+      })
+
+      // --- proxy ---
+      forEach(licenses.proxy, license => {
+        // When `expires` is undefined, the license isn't expired
+        if (!(license.expires < now)) {
+          products.push({
+            buyer: license.buyer,
+            expires: license.expires,
+            id: license.id,
+            product: _('proxy'),
+            type: 'proxy',
+            vmId: license.boundObjectId,
           })
         }
       })

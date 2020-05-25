@@ -11,7 +11,11 @@ import {
   remove,
   some,
 } from 'lodash'
-import { noSuchObject, unauthorized } from 'xo-common/api-errors'
+import {
+  noSuchObject,
+  notEnoughResources,
+  unauthorized,
+} from 'xo-common/api-errors'
 
 import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils'
 
@@ -183,7 +187,10 @@ export default class {
             (await this._xo.getAclsForSubject(subjectId)).map(async acl => {
               try {
                 const object = this._xo.getObject(acl.object)
-                if (object.type === 'VM' && object.resourceSet === id) {
+                if (
+                  (object.type === 'VM' || object.type === 'VM-snapshot') &&
+                  object.resourceSet === id
+                ) {
                   await this._xo.removeAcl(subjectId, acl.object, acl.action)
                   $defer.onFailure(() =>
                     this._xo.addAcl(subjectId, acl.object, acl.action)
@@ -315,7 +322,14 @@ export default class {
       }
 
       if ((limit.available -= quantity) < 0 && !force) {
-        throw new Error(`not enough ${id} available in the set ${setId}`)
+        throw notEnoughResources([
+          {
+            resourceSet: setId,
+            resourceType: id,
+            available: limit.available + quantity,
+            requested: quantity,
+          },
+        ])
       }
     })
     await this._save(set)
@@ -356,10 +370,7 @@ export default class {
             let set
             if (
               object.$type !== 'VM' ||
-              object.is_a_snapshot ||
-              ('start' in object.blocked_operations &&
-                (object.tags.includes('Disaster Recovery') ||
-                  object.tags.includes('Continuous Replication'))) ||
+              object.other_config['xo:backup:job'] !== undefined ||
               // No set for this VM.
               !(id = xapi.xo.getData(object, 'resourceSet')) ||
               // Not our set.
@@ -389,7 +400,7 @@ export default class {
   }
 
   @deferrable
-  async setVmResourceSet($defer, vmId, resourceSetId) {
+  async setVmResourceSet($defer, vmId, resourceSetId, force = false) {
     const xapi = this._xo.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
@@ -405,7 +416,11 @@ export default class {
     )
 
     if (resourceSetId != null) {
-      await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
+      await this.allocateLimitsInResourceSet(
+        resourcesUsage,
+        resourceSetId,
+        force
+      )
       $defer.onFailure(() =>
         this.releaseLimitsInResourceSet(resourcesUsage, resourceSetId)
       )
@@ -420,7 +435,11 @@ export default class {
         previousResourceSetId
       )
       $defer.onFailure(() =>
-        this.allocateLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+        this.allocateLimitsInResourceSet(
+          resourcesUsage,
+          previousResourceSetId,
+          true
+        )
       )
     }
 

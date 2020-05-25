@@ -425,6 +425,9 @@ export class Xapi extends EventEmitter {
 
         // this is an inactivity timeout (unclear in Node doc)
         timeout: this._httpInactivityTimeout,
+
+        // Support XS <= 6.5 with Node => 12
+        minVersion: 'TLSv1',
       }
     )
 
@@ -656,7 +659,11 @@ export class Xapi extends EventEmitter {
 
       error.call = {
         method,
-        params: replaceSensitiveValues(params, '* obfuscated *'),
+        params:
+          // it pass server's credentials as param
+          method === 'session.login_with_password'
+            ? '* obfuscated *'
+            : replaceSensitiveValues(params, '* obfuscated *'),
       }
 
       debug(

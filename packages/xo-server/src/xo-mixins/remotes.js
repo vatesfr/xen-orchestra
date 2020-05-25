@@ -113,6 +113,10 @@ export default class {
   async getAllRemotesInfo() {
     const remotesInfo = this._remotesInfo
     await asyncMap(this._remotes.get(), async remote => {
+      if (!remote.enabled) {
+        return
+      }
+
       const promise =
         remote.proxy !== undefined
           ? this._xo.callProxyMethod(remote.proxy, 'remote.getInfo', {

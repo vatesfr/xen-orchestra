@@ -50,7 +50,7 @@
     "strip-indent": "^2.0.0",
     "xdg-basedir": "^3.0.0",
     "xo-lib": "^0.9.0",
-    "xo-vmdk-to-vhd": "^1.1.1"
+    "xo-vmdk-to-vhd": "^1.1.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

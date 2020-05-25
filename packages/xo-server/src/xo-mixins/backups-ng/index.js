@@ -47,6 +47,7 @@ import { type Schedule } from '../scheduling'
 import createSizeStream from '../../size-stream'
 import parseDuration from '../../_parseDuration'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
+import { decorateWith } from '../../_decorateWith'
 import { waitAll } from '../../_waitAll'
 import {
   type DeltaVmExport,
@@ -638,7 +639,14 @@ export default class BackupNg {
           const xapis = {}
           await waitAll([
             asyncMap(remoteIds, async id => {
-              remotes[id] = await app.getRemoteWithCredentials(id)
+              const remote = await app.getRemoteWithCredentials(id)
+              if (remote.proxy !== job.proxy) {
+                throw new Error(
+                  `The remote ${remote.name} must be linked to the proxy ${job.proxy}`
+                )
+              }
+
+              remotes[id] = remote
             }),
             asyncMap([...servers], async id => {
               const {
@@ -681,10 +689,19 @@ export default class BackupNg {
           }
         })
         const remotes = await Promise.all(
-          remoteIds.map(async id => ({
-            id,
-            handler: await app.getRemoteHandler(id),
-          }))
+          remoteIds.map(async id => {
+            const remote = await app.getRemote(id)
+            if (remote.proxy !== undefined) {
+              throw new Error(
+                `The remote ${remote.name} must not be linked to a proxy`
+              )
+            }
+
+            return {
+              id,
+              handler: await app.getRemoteHandler(remote),
+            }
+          })
         )
 
         const settings = merge(job.settings, data?.settings)
@@ -917,9 +934,15 @@ export default class BackupNg {
     )()
   }
 
-  @debounceWithKey.decorate(10e3, function keyFn(remoteId) {
-    return [this, remoteId]
-  })
+  @decorateWith(
+    debounceWithKey,
+    function() {
+      return parseDuration(this._backupOptions.listingDebounce)
+    },
+    function keyFn(remoteId) {
+      return [this, remoteId]
+    }
+  )
   async _listVmBackupsOnRemote(remoteId: string) {
     const app = this._app
     const backupsByVm = {}
@@ -970,25 +993,30 @@ export default class BackupNg {
             return
           }
 
-          // inject an id usable by importVmBackupNg()
-          backups.forEach(backup => {
-            backup.id = `${remoteId}/${backup._filename}`
-
-            const { vdis, vhds } = backup
-            backup.disks =
-              vhds === undefined
+          backupsByVm[vmUuid] = backups.map(backup => ({
+            disks:
+              backup.vhds === undefined
                 ? []
-                : Object.keys(vhds).map(vdiId => {
-                    const vdi = vdis[vdiId]
+                : Object.keys(backup.vhds).map(vdiId => {
+                    const vdi = backup.vdis[vdiId]
                     return {
-                      id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                      id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
                       name: vdi.name_label,
                       uuid: vdi.uuid,
                     }
-                  })
-          })
+                  }),
 
-          backupsByVm[vmUuid] = backups
+            // inject an id usable by importVmBackupNg()
+            id: `${remoteId}/${backup._filename}`,
+            jobId: backup.jobId,
+            mode: backup.mode,
+            size: backup.size,
+            timestamp: backup.timestamp,
+            vm: {
+              name_description: backup.vm.name_description,
+              name_label: backup.vm.name_label,
+            },
+          }))
         })
       )
     } catch (error) {
@@ -1432,7 +1460,7 @@ export default class BackupNg {
               )
 
               if (handler._getFilePath !== undefined) {
-                await isValidXva(handler._getFilePath(dataFilename))
+                await isValidXva(handler._getFilePath('/' + dataFilename))
               }
 
               await handler.outputFile(metadataFilename, jsonMetadata)

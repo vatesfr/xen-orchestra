@@ -27,6 +27,7 @@ import {
 import createSizeStream from '../size-stream'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import { debounceWithKey } from '../_pDebounceWithKey'
+import { decorateWith } from '../_decorateWith'
 import { lvs, pvs } from '../lvm'
 import {
   forEach,
@@ -301,7 +302,7 @@ export default class {
     this._xo = xo
   }
 
-  @debounceWithKey.decorate(DEBOUNCE_DELAY, function keyFn(remoteId) {
+  @decorateWith(debounceWithKey, DEBOUNCE_DELAY, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async listRemoteBackups(remoteId) {
@@ -330,7 +331,7 @@ export default class {
     return backups
   }
 
-  @debounceWithKey.decorate(DEBOUNCE_DELAY, function keyFn(remoteId) {
+  @decorateWith(debounceWithKey, DEBOUNCE_DELAY, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async listVmBackups(remoteId) {

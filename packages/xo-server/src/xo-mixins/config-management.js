@@ -1,5 +1,7 @@
+import * as openpgp from 'openpgp'
 import createLogger from '@xen-orchestra/log'
 import DepTree from 'deptree'
+
 import { mapValues } from 'lodash'
 import { pAll } from 'promise-toolbox'
 
@@ -22,11 +24,39 @@ export default class ConfigManagement {
     this._managers[id] = { exporter, importer }
   }
 
-  exportConfig() {
-    return mapValues(this._managers, ({ exporter }, key) => exporter())::pAll()
+  async exportConfig({ passphrase } = {}) {
+    let config = JSON.stringify(
+      await mapValues(this._managers, ({ exporter }, key) => exporter())::pAll()
+    )
+
+    if (passphrase !== undefined) {
+      config = Buffer.from(
+        (
+          await openpgp.encrypt({
+            armor: false,
+            message: openpgp.message.fromText(config),
+            passwords: passphrase,
+          })
+        ).message.packets.write()
+      )
+    }
+
+    return config
   }
 
-  async importConfig(config) {
+  async importConfig(config, { passphrase } = {}) {
+    if (passphrase !== undefined) {
+      config = (
+        await openpgp.decrypt({
+          format: 'utf8',
+          message: await openpgp.message.read(config),
+          passwords: passphrase,
+        })
+      ).data
+    }
+
+    config = JSON.parse(config)
+
     const managers = this._managers
     for (const key of this._depTree.resolve()) {
       const manager = managers[key]
