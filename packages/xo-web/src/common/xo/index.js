@@ -512,19 +512,37 @@ export const getXoServerTimezone = _call('system.getServerTimezone')
 
 // XO --------------------------------------------------------------------------
 
+import ImportConfigModal from './import-config-modal' // eslint-disable-line import/first
 export const importConfig = config =>
-  _call('xo.importConfig').then(({ $sendTo }) =>
-    post($sendTo, config).then(response => {
-      if (response.status !== 200) {
-        throw new Error('config import failed')
-      }
-    })
+  confirm({
+    title: _('importConfig'),
+    body: <ImportConfigModal />,
+    icon: 'import',
+  }).then(
+    passphrase =>
+      _call('xo.importConfig', { passphrase }).then(({ $sendTo }) =>
+        post($sendTo, config).then(response => {
+          if (response.status !== 200) {
+            throw new Error('config import failed')
+          }
+        })
+      ),
+    () => false
   )
 
+import ExportConfigModal from './export-config-modal' // eslint-disable-line import/first
 export const exportConfig = () =>
-  _call('xo.exportConfig').then(({ $getFrom: url }) => {
-    window.open(`.${url}`)
-  })
+  confirm({
+    title: _('exportConfig'),
+    body: <ExportConfigModal />,
+    icon: 'export',
+  }).then(
+    passphrase =>
+      _call('xo.exportConfig', { passphrase }).then(({ $getFrom: url }) => {
+        window.open(`.${url}`)
+      }),
+    noop
+  )
 
 // Server ------------------------------------------------------------
 
