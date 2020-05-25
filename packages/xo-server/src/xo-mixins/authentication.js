@@ -31,16 +31,24 @@ export default class {
     }))
 
     // Password authentication provider.
-    this.registerAuthenticationProvider(async ({ username, password }) => {
-      if (username === undefined || password === undefined) {
-        return
-      }
+    this.registerAuthenticationProvider(
+      async ({ username, password }, { ip } = {}) => {
+        if (username === undefined || password === undefined) {
+          return
+        }
 
-      const user = await xo.getUserByName(username, true)
-      if (user && (await xo.checkUserPassword(user.id, password))) {
-        return { userId: user.id }
+        const user = await xo.getUserByName(username, true)
+        if (user && (await xo.checkUserPassword(user.id, password))) {
+          return { userId: user.id }
+        }
+
+        xo.emit('xo:audit', 'signInFailed', {
+          userId: user?.id,
+          userName: username,
+          userIp: ip,
+        })
       }
-    })
+    )
 
     // Token authentication provider.
     this.registerAuthenticationProvider(async ({ token: tokenId }) => {
@@ -84,7 +92,7 @@ export default class {
     return this._providers.delete(provider)
   }
 
-  async _authenticateUser(credentials) {
+  async _authenticateUser(credentials, userData) {
     for (const provider of this._providers) {
       try {
         // A provider can return:
@@ -96,7 +104,7 @@ export default class {
         //     valid
         // - an object with a property `username` containing the name
         //   of the authenticated user
-        const result = await provider(credentials)
+        const result = await provider(credentials, userData)
 
         // No match.
         if (result == null) {
@@ -127,7 +135,8 @@ export default class {
   }
 
   async authenticateUser(
-    credentials
+    credentials,
+    userData
   ): Promise<{| user: Object, expiration?: number |}> {
     // don't even attempt to authenticate with empty password
     const { password } = credentials
@@ -155,7 +164,7 @@ export default class {
       throw new Error('too fast authentication tries')
     }
 
-    const result = await this._authenticateUser(credentials)
+    const result = await this._authenticateUser(credentials, userData)
     if (result === undefined) {
       failures[username] = now
       throw invalidCredentials()
