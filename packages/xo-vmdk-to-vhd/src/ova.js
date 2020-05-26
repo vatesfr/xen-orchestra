@@ -1,6 +1,6 @@
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
-import xml2js from 'xml2js'
+import xml2js, { processors } from 'xml2js'
 
 import { readVmdkGrainTable } from '.'
 
@@ -22,21 +22,15 @@ const MEMORY_UNIT_TO_FACTOR = {
 }
 const RESOURCE_TYPE_TO_HANDLER = {
   // CPU.
-  '3': (data, { 'rasd:VirtualQuantity': nCpus }) => {
+  '3': (data, { VirtualQuantity: nCpus }) => {
     data.nCpus = +nCpus
   },
   // RAM.
-  '4': (
-    data,
-    { 'rasd:AllocationUnits': unit, 'rasd:VirtualQuantity': quantity }
-  ) => {
+  '4': (data, { AllocationUnits: unit, VirtualQuantity: quantity }) => {
     data.memory = quantity * allocationUnitsToFactor(unit)
   },
   // Network.
-  '10': (
-    { networks },
-    { 'rasd:AutomaticAllocation': enabled, 'rasd:Connection': name }
-  ) => {
+  '10': ({ networks }, { AutomaticAllocation: enabled, Connection: name }) => {
     if (enabled) {
       networks.push(name)
     }
@@ -45,18 +39,19 @@ const RESOURCE_TYPE_TO_HANDLER = {
   '17': (
     { disks },
     {
-      'rasd:AddressOnParent': position,
-      'rasd:Description': description = 'No description',
-      'rasd:ElementName': name,
-      'rasd:HostResource': resource,
+      AddressOnParent: position,
+      Description: description = 'No description',
+      ElementName: name,
+      // OVA 2.0 uses caption
+      Caption: caption = name,
+      HostResource: resource,
     }
   ) => {
     const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
     const disk = diskId && disks[diskId[1]]
-
     if (disk) {
       disk.descriptionLabel = description
-      disk.nameLabel = name
+      disk.nameLabel = caption
       disk.position = +position
     } else {
       // TODO: Log error in U.I.
@@ -122,7 +117,12 @@ async function parseOVF(fileFragment, stringDeserializer) {
   return new Promise((resolve, reject) =>
     xml2js.parseString(
       xmlString,
-      { mergeAttrs: true, explicitArray: false },
+      {
+        mergeAttrs: true,
+        explicitArray: false,
+        tagNameProcessors: [processors.stripPrefix],
+        attrNameProcessors: [processors.stripPrefix],
+      },
       (err, res) => {
         if (err) {
           reject(err)
@@ -144,7 +144,7 @@ async function parseOVF(fileFragment, stringDeserializer) {
         const hardware = system.VirtualHardwareSection
 
         // Get VM name/description.
-        data.nameLabel = hardware.System['vssd:VirtualSystemIdentifier']
+        data.nameLabel = hardware.System.VirtualSystemIdentifier
         data.descriptionLabel =
           (system.AnnotationSection && system.AnnotationSection.Annotation) ||
           (system.OperatingSystemSection &&
@@ -154,27 +154,28 @@ async function parseOVF(fileFragment, stringDeserializer) {
         forEach(ensureArray(disks), disk => {
           const file = find(
             ensureArray(files),
-            file => file['ovf:id'] === disk['ovf:fileRef']
+            file => file.id === disk.fileRef
           )
-          const unit = disk['ovf:capacityAllocationUnits']
+          const unit = disk.capacityAllocationUnits
 
-          data.disks[disk['ovf:diskId']] = {
+          data.disks[disk.diskId] = {
             capacity:
-              disk['ovf:capacity'] *
-              ((unit && allocationUnitsToFactor(unit)) || 1),
-            path: file && file['ovf:href'],
+              disk.capacity * ((unit && allocationUnitsToFactor(unit)) || 1),
+            path: file && file.href,
           }
         })
 
         // Get hardware info: CPU, RAM, disks, networks...
-        forEach(ensureArray(hardware.Item), item => {
-          const handler = RESOURCE_TYPE_TO_HANDLER[item['rasd:ResourceType']]
+        const handleItem = item => {
+          const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
           if (!handler) {
             return
           }
           handler(data, item)
-        })
-
+        }
+        forEach(ensureArray(hardware.Item), handleItem)
+        forEach(ensureArray(hardware.StorageItem), handleItem)
+        forEach(ensureArray(hardware.EthernetPortItem), handleItem)
         // Remove disks which not have a position.
         // (i.e. no info in hardware.Item section.)
         filterDisks(data.disks)

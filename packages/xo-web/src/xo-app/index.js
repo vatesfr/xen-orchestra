@@ -123,6 +123,10 @@ export default class XoApp extends Component {
   }
   getChildContext = () => ({ shortcuts: shortcutManager })
 
+  state = {
+    dismissedSourceBanner: Boolean(cookies.get('dismissedSourceBanner')),
+  }
+
   displayOpenSourceDisclaimer() {
     const previousDisclaimer = cookies.get('previousDisclaimer')
     const now = Math.floor(Date.now() / 1e3)
@@ -145,7 +149,10 @@ export default class XoApp extends Component {
     }
   }
 
-  dismissSourceBanner = () => this.setState({ dismissedSourceBanner: true })
+  dismissSourceBanner = () => {
+    cookies.set('dismissedSourceBanner', true, { expires: 24 * 60 * 60 }) // 1 day
+    this.setState({ dismissedSourceBanner: true })
+  }
 
   componentDidMount() {
     this.refs.bodyWrapper.style.minHeight =
@@ -252,6 +259,13 @@ export default class XoApp extends Component {
                     target='_blank'
                   >
                     {_('disclaimerText3')}
+                  </a>{' '}
+                  <a
+                    href='https://xen-orchestra.com/docs/installation.html#banner-and-warnings'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    {_('disclaimerText4')}
                   </a>
                   <button className='close' onClick={this.dismissSourceBanner}>
                     &times;

@@ -25,7 +25,8 @@
     "lodash": "^4.17.4",
     "prettier": "^1.10.2",
     "promise-toolbox": "^0.15.0",
-    "sorted-object": "^2.0.1"
+    "sorted-object": "^2.0.1",
+    "vuepress": "^1.4.1"
   },
   "engines": {
     "yarn": "^1.7.0"
@@ -64,6 +65,8 @@
     "clean": "scripts/run-script --parallel clean",
     "dev": "scripts/run-script --parallel dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
     "posttest": "scripts/run-script test",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
