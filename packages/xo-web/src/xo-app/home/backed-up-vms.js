@@ -48,7 +48,7 @@ const COLUMNS = [
       const operations = vm.current_operations
       const state = isEmpty(operations) ? vm.power_state : 'Busy'
       return (
-        <span style={{ 'white-space': 'nowrap' }}>
+        <span style={{ whiteSpace: 'nowrap' }}>
           <Tooltip
             content={
               <span>
@@ -221,7 +221,7 @@ const BackedUpVms = decorate([
         itemsPerPage={itemsPerPage}
         rowLink={getVmUrl}
         shortcutsTarget='body'
-        stateUrlParam='s_backed'
+        stateUrlParam='s_backup'
       />
     </div>
   ),

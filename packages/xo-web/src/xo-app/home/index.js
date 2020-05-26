@@ -310,7 +310,7 @@ const TYPES = {
 
 const DEFAULT_TYPE = 'VM'
 
-const VM_FILTERS = [
+const BACKUP_FILTERS = [
   { value: 'all', label: _('allVms') },
   { value: 'backedUpVms', label: _('backedUpVms') },
   { value: 'notBackedUpVms', label: _('notBackedUpVms') },
@@ -557,7 +557,7 @@ export default class Home extends Component {
         backup: undefined,
         p: 1,
         s: undefined,
-        s_backed: undefined,
+        s_backup: undefined,
         t: type,
       },
     })
@@ -882,7 +882,7 @@ export default class Home extends Component {
 
   // Header --------------------------------------------------------------------
 
-  _getVmsFilter = createSelector(
+  _getBackupFilter = createSelector(
     () => this.props.location.query.backup,
     backup =>
       backup === undefined
@@ -892,16 +892,16 @@ export default class Home extends Component {
         : 'notBackedUpVms'
   )
 
-  _setVmsFilter = vmsFilter => {
+  _setBackupFilter = backupFilter => {
     const { pathname, query } = this.props.location
-    const isAllVms = vmsFilter === 'all'
+    const isAll = backupFilter === 'all'
     this.context.router.push({
       pathname,
       query: {
         ...query,
-        backup: isAllVms ? undefined : vmsFilter === 'backedUpVms',
-        p: isAllVms ? 1 : undefined,
-        s_backed: undefined,
+        backup: isAll ? undefined : backupFilter === 'backedUpVms',
+        p: isAll ? 1 : undefined,
+        s_backup: undefined,
       },
     })
   }
@@ -938,7 +938,8 @@ export default class Home extends Component {
       showResourceSetsSelector,
     } = options
 
-    const disableAction = type === 'VM' && location.query.backup !== undefined
+    // Disable all the feature are already handled by the SortedTable or irrelevant with the SortedTable.
+    const disableHomeFeatures = location.query.backup !== undefined
 
     return (
       <Container>
@@ -1021,7 +1022,7 @@ export default class Home extends Component {
         </Row>
         <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
           <Col smallSize={6} mediumSize={2}>
-            {!disableAction && (
+            {!disableHomeFeatures && (
               <span>
                 <input
                   checked={this._getIsAllSelected()}
@@ -1099,12 +1100,12 @@ export default class Home extends Component {
                       >
                         <Select
                           autoFocus
-                          onChange={this._setVmsFilter}
+                          onChange={this._setBackupFilter}
                           openOnFocus
-                          options={VM_FILTERS}
+                          options={BACKUP_FILTERS}
                           required
                           simpleValue
-                          value={this._getVmsFilter()}
+                          value={this._getBackupFilter()}
                         />
                       </Popover>
                     }
@@ -1203,7 +1204,7 @@ export default class Home extends Component {
                 )}
                 <DropdownButton
                   bsStyle='link'
-                  disabled={disableAction}
+                  disabled={disableHomeFeatures}
                   id='sort'
                   title={_('homeSortBy')}
                 >
@@ -1230,7 +1231,7 @@ export default class Home extends Component {
             )}
           </Col>
           <Col smallSize={6} mediumSize={2} className='text-xs-right'>
-            {!disableAction && (
+            {!disableHomeFeatures && (
               <Button onClick={this._expandAll}>
                 <Icon icon='nav' />
               </Button>

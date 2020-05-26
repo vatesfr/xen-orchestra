@@ -248,6 +248,9 @@ class SortedTable extends Component {
   static propTypes = {
     defaultColumn: PropTypes.number,
     defaultFilter: PropTypes.string,
+    // To not duplicate filter on the home page
+    // and the filter is not supported by the home page
+    // because the URL can contain page number and sort info
     displayFilter: PropTypes.bool,
     collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
       .isRequired,
