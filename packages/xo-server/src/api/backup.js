@@ -50,31 +50,33 @@ function handleFetchFiles(
   res,
   { remote, disk, partition, paths, format: archiveFormat }
 ) {
-  this.fetchFilesInDiskBackup(remote, disk, partition, paths).then(files => {
-    res.setHeader('content-disposition', 'attachment')
-    res.setHeader('content-type', 'application/octet-stream')
+  return this.fetchFilesInDiskBackup(remote, disk, partition, paths).then(
+    files => {
+      res.setHeader('content-disposition', 'attachment')
+      res.setHeader('content-type', 'application/octet-stream')
 
-    const nFiles = paths.length
+      const nFiles = paths.length
 
-    // Send lone file directly
-    if (nFiles === 1) {
-      files[0].pipe(res)
-      return
+      // Send lone file directly
+      if (nFiles === 1) {
+        files[0].pipe(res)
+        return
+      }
+
+      const archive = archiver(archiveFormat)
+      archive.on('error', error => {
+        log.error(error)
+        res.end(format.error(0, error))
+      })
+
+      forEach(files, file => {
+        archive.append(file, { name: basename(file.path) })
+      })
+      archive.finalize()
+
+      archive.pipe(res)
     }
-
-    const archive = archiver(archiveFormat)
-    archive.on('error', error => {
-      log.error(error)
-      res.end(format.error(0, error))
-    })
-
-    forEach(files, file => {
-      archive.append(file, { name: basename(file.path) })
-    })
-    archive.finalize()
-
-    archive.pipe(res)
-  })
+  )
 }
 
 export async function fetchFiles({ format = 'zip', ...params }) {
