@@ -1313,7 +1313,7 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        {type !== 'VM' || backup === undefined ? (
+        {backup === undefined ? (
           <div>
             <div className={styles.itemContainer}>
               {isEmpty(filteredItems) ? (
