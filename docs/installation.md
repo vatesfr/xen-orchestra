@@ -191,9 +191,7 @@ forever-service delete orchestra
 
 ### Banner and warnings
 
-You probably noticed a banner and some warnings when using XO "from the sources": no pro support, no QA done, etc.
-
-But why? We don't sell any license, just the turnkey appliance with QA/support and extra services. And we don't sell that to individuals, only companies.
+You probably noticed a banner and some warnings when using XO "from the sources": no pro support, no QA done, etc. But why? We don't sell any license, just the turnkey appliance with QA/support and extra services. And we don't sell that to individuals, only companies.
 
 However, there's no way to discriminate if this "from the sources" version is used by a company or an individual. Remember that we have no control where or when XO from the sources is running on premises, nor how many people use it.
 
