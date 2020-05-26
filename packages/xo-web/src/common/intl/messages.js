@@ -1936,6 +1936,7 @@ const messages = {
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText4: 'Why do I see this message?',
   notRegisteredDisclaimerInfo:
     'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',

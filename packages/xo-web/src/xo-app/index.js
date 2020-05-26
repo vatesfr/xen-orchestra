@@ -259,6 +259,13 @@ export default class XoApp extends Component {
                     target='_blank'
                   >
                     {_('disclaimerText3')}
+                  </a>{' '}
+                  <a
+                    href='https://xen-orchestra.com/docs/installation.html#banner-and-warnings'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    {_('disclaimerText4')}
                   </a>
                   <button className='close' onClick={this.dismissSourceBanner}>
                     &times;
