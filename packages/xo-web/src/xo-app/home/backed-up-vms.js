@@ -202,7 +202,6 @@ const BackedUpVms = decorate([
   injectState,
   ({
     hosts,
-    filterContainer,
     itemsPerPage,
     pools,
     setHomeVmIdsSelection,

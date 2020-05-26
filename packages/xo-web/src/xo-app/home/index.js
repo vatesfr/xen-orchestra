@@ -554,9 +554,10 @@ export default class Home extends Component {
       pathname,
       query: {
         ...query,
+        backup: undefined,
         p: 1,
         s: undefined,
-        backup: undefined,
+        s_backed: undefined,
         t: type,
       },
     })
@@ -893,12 +894,13 @@ export default class Home extends Component {
 
   _setVmsFilter = vmsFilter => {
     const { pathname, query } = this.props.location
+    const isAllVms = vmsFilter === 'all'
     this.context.router.push({
       pathname,
       query: {
         ...query,
-        p: vmsFilter === 'all' ? 1 : undefined,
-        backup: vmsFilter === 'all' ? undefined : vmsFilter === 'backedUpVms',
+        backup: isAllVms ? undefined : vmsFilter === 'backedUpVms',
+        p: isAllVms ? 1 : undefined,
         s_backed: undefined,
       },
     })
