@@ -1936,6 +1936,7 @@ const messages = {
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText4: 'Why do I see this message?',
   notRegisteredDisclaimerInfo:
     'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',
@@ -2093,9 +2094,13 @@ const messages = {
     'Try dropping a config file here or click to select a config file to upload.',
   config: 'Config',
   importConfig: 'Import',
+  importConfigEnterPassphrase:
+    'If the config is encrypted, please enter the passphrase:',
   importConfigSuccess: 'Config file successfully imported',
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
+  exportConfigEnterPassphrase:
+    'If you want to encrypt the exported config, please enter a passphrase:',
   downloadConfig: 'Download current config',
 
   // ----- SR -----

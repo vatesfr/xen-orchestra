@@ -633,7 +633,10 @@ class SortedTable extends Component {
 
   _getParsedQueryString = createSelector(
     () => this.props.router.location.query[this.props.stateUrlParam],
-    (urlState = '') => {
+    urlState => {
+      if (urlState === undefined) {
+        return {}
+      }
       const [, page, selectedColumnId, sortOrder, filter] =
         URL_STATE_RE.exec(urlState) || []
       return {

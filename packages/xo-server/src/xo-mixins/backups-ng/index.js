@@ -959,25 +959,30 @@ export default class BackupNg {
             return
           }
 
-          // inject an id usable by importVmBackupNg()
-          backups.forEach(backup => {
-            backup.id = `${remoteId}/${backup._filename}`
-
-            const { vdis, vhds } = backup
-            backup.disks =
-              vhds === undefined
+          backupsByVm[vmUuid] = backups.map(backup => ({
+            disks:
+              backup.vhds === undefined
                 ? []
-                : Object.keys(vhds).map(vdiId => {
-                    const vdi = vdis[vdiId]
+                : Object.keys(backup.vhds).map(vdiId => {
+                    const vdi = backup.vdis[vdiId]
                     return {
-                      id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                      id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
                       name: vdi.name_label,
                       uuid: vdi.uuid,
                     }
-                  })
-          })
+                  }),
 
-          backupsByVm[vmUuid] = backups
+            // inject an id usable by importVmBackupNg()
+            id: `${remoteId}/${backup._filename}`,
+            jobId: backup.jobId,
+            mode: backup.mode,
+            size: backup.size,
+            timestamp: backup.timestamp,
+            vm: {
+              name_description: backup.vm.name_description,
+              name_label: backup.vm.name_label,
+            },
+          }))
         })
       )
     } catch (error) {

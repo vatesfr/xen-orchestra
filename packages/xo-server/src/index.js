@@ -278,14 +278,20 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
 
   // Install the local strategy.
   xo.registerPassportStrategy(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const { user } = await xo.authenticateUser({ username, password })
-        done(null, user)
-      } catch (error) {
-        done(null, false, { message: error.message })
+    new LocalStrategy(
+      { passReqToCallback: true },
+      async (req, username, password, done) => {
+        try {
+          const { user } = await xo.authenticateUser(
+            { username, password },
+            { ip: req.ip }
+          )
+          done(null, user)
+        } catch (error) {
+          done(null, false, { message: error.message })
+        }
       }
-    })
+    )
   )
 }
 
@@ -387,10 +393,11 @@ async function registerPluginsInPath(path) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'].map(
-      registerPluginsInPath,
-      xo
-    )
+    [
+      `${__dirname}/../../`, // in monorepo
+      `${__dirname}/../node_modules/`, // installed as dependencies
+      '/usr/local/lib/node_modules/', // installed globally
+    ].map(registerPluginsInPath, xo)
   )
 }
 

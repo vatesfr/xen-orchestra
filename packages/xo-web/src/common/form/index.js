@@ -23,7 +23,12 @@ export Select from './select'
 
 export class Password extends Component {
   static propTypes = {
+    defaultVisible: PropTypes.bool,
     enableGenerator: PropTypes.bool,
+  }
+
+  state = {
+    visible: this.props.defaultVisible,
   }
 
   get value() {
@@ -57,7 +62,12 @@ export class Password extends Component {
   }
 
   render() {
-    const { className, enableGenerator = false, ...props } = this.props
+    const {
+      className,
+      defaultVisible,
+      enableGenerator = false,
+      ...props
+    } = this.props
     const { visible } = this.state
 
     return (

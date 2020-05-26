@@ -11,6 +11,11 @@
 - [XOA/licenses] Display proxy licenses (PR [#4944](https://github.com/vatesfr/xen-orchestra/pull/4944))
 - [Network selector] Display pool's name [#4885](https://github.com/vatesfr/xen-orchestra/issues/4885) (PR [#4990](https://github.com/vatesfr/xen-orchestra/pull/4990))
 - [Usage report] Include CSV raw data files to the sent email [#4970](https://github.com/vatesfr/xen-orchestra/issues/4970) (PR [#4979](https://github.com/vatesfr/xen-orchestra/pull/4979))
+- [Modal] Don't close pop-up forms when you click outside or press escape (PR [#5002](https://github.com/vatesfr/xen-orchestra/pull/5002))
+- [Plugin/auth-ldap] Support `StartTLS` [#4999](https://github.com/vatesfr/xen-orchestra/issues/4999)
+- [OVA import] Add support for OVA 2.0 file format (PR [#4921](https://github.com/vatesfr/xen-orchestra/pull/4921))
+- [Audit] Record failed connection attempts [#4844](https://github.com/vatesfr/xen-orchestra/issues/4844) (PR [#4900](https://github.com/vatesfr/xen-orchestra/pull/4900))
+- [XO config export] Ability to encrypt the exported file (PR [#4997](https://github.com/vatesfr/xen-orchestra/pull/4997))
 
 ### Bug fixes
 
@@ -18,6 +23,11 @@
 
 - Fix mounting of NFS remote in FreeBSD (PR [#4988](https://github.com/vatesfr/xen-orchestra/issues/4988))
 - [Remotes] Fix "remote is disabled" error on getting the remotes info (commit [eb2f429964d7adc264bf678c37e49a856454388e](https://github.com/vatesfr/xen-orchestra/commit/eb2f429964d7adc264bf678c37e49a856454388e))
+- Fix default filters not being set in all tables (PR [#4994](https://github.com/vatesfr/xen-orchestra/pull/4994))
+- [SDN Controller] Broken encrypted tunnels after host reboot [#4996](https://github.com/vatesfr/xen-orchestra/pull/4996)
+- Don't log server's credentials in case of `SESSION_AUTHENTICATION_FAILED` error (PR [#4995](https://github.com/vatesfr/xen-orchestra/pull/4995))
+- [Plugin/perf-alert] Fix compatibility of the alert messages with XenCenter (PR [#5004](https://github.com/vatesfr/xen-orchestra/pull/5004))
+- [Plugin/backup-reports] Fix `No recipients defined` error when recipients defined at plugin level (PR [#4998](https://github.com/vatesfr/xen-orchestra/pull/4998))
 
 ### Released packages
 
@@ -36,7 +46,14 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-audit minor
+- xo-vmdk-to-vhd minor
+- xo-server-backup-reports patch
+- xo-server-perf-alert patch
+- xen-api patch
+- xo-server-auth-ldap minor
+- xo-server-sdn-controller patch
 - xo-server-usage-report minor
 - @xen-orchestra/fs patch
-- xo-server patch
+- xo-server minor
 - xo-web minor
