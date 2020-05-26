@@ -938,7 +938,8 @@ export default class Home extends Component {
       showResourceSetsSelector,
     } = options
 
-    // Disable all the feature are already handled by the SortedTable or irrelevant with the SortedTable.
+    // Disable all the features that are already handled by the SortedTable
+    // or irrelevant with the SortedTable.
     const disableHomeFeatures = location.query.backup !== undefined
 
     return (
