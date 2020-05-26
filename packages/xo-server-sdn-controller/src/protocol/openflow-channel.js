@@ -10,8 +10,8 @@ import { fromEvent } from 'promise-toolbox'
 
 const log = createLogger('xo:xo-server:sdn-controller:openflow-controller')
 
-const version = openflow.version.openFlow11
-const ofProtocol = openflow.protocol[version]
+const version = openflow.versions.openFlow11
+const ofProtocol = openflow.protocols[version]
 const OPENFLOW_PORT = ofProtocol.sslPort
 
 // -----------------------------------------------------------------------------
@@ -260,7 +260,7 @@ export class OpenFlowChannel extends EventEmitter {
           log.error('OpenFlow error', {
             code,
             type,
-            // data: openflow.toJson(data),
+            // data: openflow.unpack(data),
           })
         }
         break
@@ -343,7 +343,7 @@ export class OpenFlowChannel extends EventEmitter {
   // ---------------------------------------------------------------------------
 
   async _sendPacket(packet) {
-    const buf = openflow.fromJson(packet)
+    const buf = openflow.pack(packet)
     try {
       this._socket.write(buf)
     } catch (error) {
