@@ -1258,7 +1258,9 @@ export default class Home extends Component {
       areObjectsFetched,
       isAdmin,
       isPoolAdmin,
-      location,
+      location: {
+        query: { backup },
+      },
       noResourceSets,
       type,
     } = this.props
@@ -1309,7 +1311,7 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        {type !== 'VM' || location.query.backup === undefined ? (
+        {type !== 'VM' || backup === undefined ? (
           <div>
             <div className={styles.itemContainer}>
               {isEmpty(filteredItems) ? (
@@ -1354,7 +1356,7 @@ export default class Home extends Component {
         ) : (
           <BackedUpVms
             itemsPerPage={homeItemsPerPage}
-            showBackedUpVms={location.query.backup === 'true'}
+            showBackedUpVms={backup === 'true'}
             vms={filteredItems}
           />
         )}
