@@ -16,7 +16,7 @@ Unpacking a received OpenFlow message from a socket:
 
 ```js
 import openflow from '@xen-orchestra/openflow'
-import Stream from '@xen-orchestra/openflow/dist/stream'
+import Stream from '@xen-orchestra/openflow/stream'
 
 const version = openflow.versions.openFlow11
 const ofProtocol = openflow.protocols[version]
