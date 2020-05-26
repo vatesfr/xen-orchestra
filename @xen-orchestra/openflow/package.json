@@ -1,4 +1,5 @@
 {
+  "description": "Pack and unpack OpenFlow messages",
   "private": false,
   "name": "@xen-orchestra/openflow",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/openflow",

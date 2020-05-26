@@ -1,5 +1,4 @@
-import assert from 'assert'
-
+import get from './util/get-from-map'
 import ofVersion from './version'
 // TODO: More openflow versions
 import of11 from './openflow-11/index'
@@ -14,22 +13,26 @@ const OPENFLOW = {
 // =============================================================================
 
 export default {
-  version: ofVersion,
-  protocol: { [ofVersion.openFlow11]: of11.protocol },
+  versions: ofVersion,
+  protocols: { [ofVersion.openFlow11]: of11.protocol },
 
   // ---------------------------------------------------------------------------
 
-  fromJson: object => {
+  pack: object => {
     const version = object.header.version
-    assert(Object.keys(OPENFLOW).includes(String(version)))
-
-    return OPENFLOW[version].fromJson(object)
+    return get(
+      OPENFLOW,
+      version,
+      `Unsupported OpenFlow version: ${version}`
+    ).pack(object)
   },
 
-  toJson: (buffer, offset = 0) => {
+  unpack: (buffer, offset = 0) => {
     const version = buffer.readUInt8(offset + scheme.offsets.version)
-    assert(Object.keys(OPENFLOW).includes(String(version)))
-
-    return OPENFLOW[version].toJson(buffer, offset)
+    return get(
+      OPENFLOW,
+      version,
+      `Unsupported OpenFlow version: ${version}`
+    ).unpack(buffer, offset)
   },
 }

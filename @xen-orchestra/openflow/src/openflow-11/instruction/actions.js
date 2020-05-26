@@ -1,4 +1,7 @@
 import assert from 'assert'
+
+import get from '../../util/get-from-map'
+
 import ofAction from '../action/action'
 import of from '../openflow-11'
 
@@ -46,7 +49,7 @@ const PAD_LENGTH = 4
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     const { type } = object
     assert(TYPES.includes(type))
     object.len = of.sizes.instructionActions
@@ -54,7 +57,11 @@ export default {
     actions.forEach(action => {
       assert(Object.values(of.actionType).includes(action.type))
       // TODO: manage experimenter
-      object.len += SIZES[action.type]
+      object.len += get(
+        SIZES,
+        action.type,
+        `Invalid action type: ${action.type}`
+      )
     })
 
     buffer = buffer !== undefined ? buffer : Buffer.alloc(object.len)
@@ -65,12 +72,12 @@ export default {
 
     let actionOffset = offset + OFFSETS.actions
     actions.forEach(action => {
-      ofAction.fromJson(action, buffer, actionOffset)
+      ofAction.pack(action, buffer, actionOffset)
       actionOffset += SIZES[action.type]
     })
   },
 
-  toJson: (buffer = undefined, offset = 0) => {
+  unpack: (buffer = undefined, offset = 0) => {
     const type = buffer.readUInt16BE(offset + OFFSETS.type)
     assert(TYPES.includes(type))
 
@@ -85,7 +92,7 @@ export default {
     object.actions = []
     let actionOffset = offset + OFFSETS.actions
     while (actionOffset < object.len) {
-      const action = ofAction.toJson(buffer, actionOffset)
+      const action = ofAction.unpack(buffer, actionOffset)
       actionOffset += action.len
       object.actions.push(action)
     }

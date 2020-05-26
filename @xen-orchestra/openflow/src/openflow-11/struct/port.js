@@ -10,7 +10,7 @@ const PAD2_LENGTH = 2
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     buffer = buffer !== undefined ? buffer : Buffer.alloc(of.sizes.port)
     const {
       port_no: portNo,
@@ -50,7 +50,7 @@ export default {
     return buffer
   },
 
-  toJson: (buffer, offset = 0) => {
+  unpack: (buffer, offset = 0) => {
     const body = {}
 
     body.port_no = buffer.readUInt32BE(offset + OFFSETS.portNo)

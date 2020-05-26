@@ -1,9 +1,12 @@
 import assert from 'assert'
+
+import get from '../../util/get-from-map'
+import ofInstruction from '../instruction/instruction'
+import uIntHelper from '../../util/uint-helper'
+
 import ofHeader from './header'
 import of from '../openflow-11'
 import ofMatch from '../struct/match/match'
-import ofInstruction from '../instruction/instruction'
-import uIntHelper from '../../util/uint-helper'
 
 // =============================================================================
 
@@ -53,7 +56,7 @@ const PAD_LENGTH = 2
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     const {
       header,
       cookie,
@@ -73,18 +76,24 @@ export default {
     // fill header length
     header.length = of.sizes.flowMod
     instructions.forEach(instruction => {
-      assert(Object.keys(INSTRUCTION_SIZE).includes(String(instruction.type)))
-      header.length += INSTRUCTION_SIZE[instruction.type]
+      header.length += get(
+        INSTRUCTION_SIZE,
+        instruction.type,
+        `Invalid instruction type: ${instruction.type}`
+      )
       const { actions = [] } = instruction
       actions.forEach(action => {
-        assert(Object.keys(ACTION_SIZE).includes(String(action.type)))
-        header.length += ACTION_SIZE[action.type]
+        header.length += get(
+          ACTION_SIZE,
+          action.type,
+          `Invalid instruction type: ${action.type}`
+        )
       })
     })
 
     buffer = buffer !== undefined ? buffer : Buffer.alloc(header.length)
 
-    ofHeader.fromJson(header, buffer, offset + OFFSETS.header)
+    ofHeader.pack(header, buffer, offset + OFFSETS.header)
 
     if (cookie !== undefined) {
       if (cookie_mask !== undefined) {
@@ -122,19 +131,19 @@ export default {
     buffer.writeUInt16BE(flags, offset + OFFSETS.flags)
     buffer.fill(0, offset + OFFSETS.pad, offset + OFFSETS.pad + PAD_LENGTH)
 
-    ofMatch.fromJson(match, buffer, offset + OFFSETS.match)
+    ofMatch.pack(match, buffer, offset + OFFSETS.match)
 
     let instructionOffset = offset + OFFSETS.instructions
     instructions.forEach(instruction => {
-      ofInstruction.fromJson(instruction, buffer, instructionOffset)
+      ofInstruction.pack(instruction, buffer, instructionOffset)
       instructionOffset += instruction.len
     })
 
     return buffer
   },
 
-  toJson: (buffer, offset = 0) => {
-    const header = ofHeader.toJson(buffer, offset + OFFSETS.header)
+  unpack: (buffer, offset = 0) => {
+    const header = ofHeader.unpack(buffer, offset + OFFSETS.header)
     assert(header.type === of.type.flowMod)
 
     const object = { header }
@@ -173,12 +182,12 @@ export default {
     object.out_group = buffer.readUInt32BE(offset + OFFSETS.outGroup)
     object.flags = buffer.readUInt16BE(offset + OFFSETS.flags)
 
-    object.match = ofMatch.toJson(buffer, offset + OFFSETS.match)
+    object.match = ofMatch.unpack(buffer, offset + OFFSETS.match)
 
     object.instructions = []
     let instructionOffset = offset + OFFSETS.instructions
     while (instructionOffset < header.length) {
-      const instruction = ofInstruction.toJson(buffer, instructionOffset)
+      const instruction = ofInstruction.unpack(buffer, instructionOffset)
       object.instructions.push(instruction)
       instructionOffset += instruction.len
     }

@@ -38,7 +38,7 @@ export default class Stream {
     data.copy(this.buffer, this.size, offset, offset + msgSize - this.size)
 
     this.size = 0
-    const result = of.toJson(data, offset)
+    const result = of.unpack(data, offset)
     if (data.length - offset === msgDataSize) {
       return [result]
     }

@@ -1,4 +1,5 @@
-import assert from 'assert'
+import get from '../../util/get-from-map'
+
 import actions from './actions'
 // import goToTable from './goToTable'
 import of from '../openflow-11'
@@ -8,8 +9,8 @@ import of from '../openflow-11'
 
 const INSTRUCTION = {
   /* TODO:
-  [of.instructionType.goToTable]: goToTable.fromJson,
-  [of.instructionType.writeMetadata]: writeMetadata.fromJson,
+  [of.instructionType.goToTable]: goToTable,
+  [of.instructionType.writeMetadata]: writeMetadata,
   */
   [of.instructionType.writeActions]: actions,
   [of.instructionType.applyActions]: actions,
@@ -23,17 +24,20 @@ const OFFSETS = of.offsets.instruction
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     const { type } = object
-    assert(Object.keys(INSTRUCTION).includes(String(type)))
-
-    return INSTRUCTION[type].fromJson(object, buffer, offset)
+    return get(INSTRUCTION, type, `Invalid instruction type: ${type}`).pack(
+      object,
+      buffer,
+      offset
+    )
   },
 
-  toJson: (buffer = undefined, offset = 0) => {
+  unpack: (buffer = undefined, offset = 0) => {
     const type = buffer.readUInt16BE(offset + OFFSETS.type)
-    assert(Object.keys(INSTRUCTION).includes(String(type)))
-
-    return INSTRUCTION[type].toJson(buffer, offset)
+    return get(INSTRUCTION, type, `Invalid instruction type: ${type}`).unpack(
+      buffer,
+      offset
+    )
   },
 }

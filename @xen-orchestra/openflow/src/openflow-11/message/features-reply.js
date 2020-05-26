@@ -1,4 +1,5 @@
 import assert from 'assert'
+
 import ofHeader from './header'
 import ofPort from '../struct/port'
 import of from '../openflow-11'
@@ -11,7 +12,7 @@ const PAD_LENGTH = 3
 // =============================================================================
 
 export default {
-  fromJson: object => {
+  pack: object => {
     const {
       header,
       datapath_id: did,
@@ -26,7 +27,7 @@ export default {
     header.length = of.sizes.switchFeatures + ports.length * of.sizes.port
 
     const buffer = Buffer.alloc(header.length)
-    ofHeader.fromJson(header, buffer, OFFSETS.header)
+    ofHeader.pack(header, buffer, OFFSETS.header)
 
     buffer.writeBigUInt64BE(did, OFFSETS.datapathId)
     buffer.writeUInt32BE(nBufs, OFFSETS.nBuffers)
@@ -37,18 +38,14 @@ export default {
 
     let portsOffset = 0
     ports.forEach(port => {
-      ofPort.fromJson(
-        port,
-        buffer,
-        OFFSETS.ports + portsOffset++ * of.sizes.port
-      )
+      ofPort.pack(port, buffer, OFFSETS.ports + portsOffset++ * of.sizes.port)
     })
 
     return buffer
   },
 
-  toJson: (buffer, offset = 0) => {
-    const header = ofHeader.toJson(buffer, offset + OFFSETS.header)
+  unpack: (buffer, offset = 0) => {
+    const header = ofHeader.unpack(buffer, offset + OFFSETS.header)
     assert(header.type === of.type.featuresReply)
 
     const object = { header }
@@ -67,7 +64,7 @@ export default {
     const nPorts = (header.length - of.sizes.switchFeatures) / of.sizes.port
     for (let i = 0; i < nPorts; ++i) {
       object.ports.push(
-        ofPort.toJson(buffer, offset + OFFSETS.ports + i * of.sizes.port)
+        ofPort.unpack(buffer, offset + OFFSETS.ports + i * of.sizes.port)
       )
     }
 

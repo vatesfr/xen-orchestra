@@ -1,4 +1,5 @@
 import assert from 'assert'
+
 import of from '../openflow-11'
 
 // =============================================================================
@@ -10,7 +11,7 @@ const PAD_LENGTH = 6
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     assert(object.type === of.actionType.output)
     object.len = of.sizes.actionOutput
 
@@ -27,7 +28,7 @@ export default {
     return buffer
   },
 
-  toJson: (buffer, offset = 0) => {
+  unpack: (buffer, offset = 0) => {
     const object = {}
 
     object.type = buffer.readUInt16BE(offset + OFFSETS.type)

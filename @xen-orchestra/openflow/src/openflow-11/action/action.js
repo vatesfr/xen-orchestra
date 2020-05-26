@@ -1,4 +1,5 @@
-import assert from 'assert'
+import get from '../../util/get-from-map'
+
 import ofOutput from './output'
 import of from '../openflow-11'
 
@@ -38,17 +39,20 @@ const ACTION = {
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     const { type } = object
-    assert(Object.keys(ACTION).includes(String(type)))
-
-    return ACTION[type].fromJson(object, buffer, offset)
+    return get(ACTION, type, `Invalid action type: ${type}`).pack(
+      object,
+      buffer,
+      offset
+    )
   },
 
-  toJson: (buffer, offset = 0) => {
+  unpack: (buffer, offset = 0) => {
     const type = buffer.readUInt16BE(offset + of.offsets.actionHeader.type)
-    assert(Object.keys(ACTION).includes(String(type)))
-
-    return ACTION[type].toJson(buffer, offset)
+    return get(ACTION, type, `Invalid action type: ${type}`).unpack(
+      buffer,
+      offset
+    )
   },
 }

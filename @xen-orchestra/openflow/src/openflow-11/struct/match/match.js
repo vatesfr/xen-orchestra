@@ -16,7 +16,7 @@ const PAD2_LENGTH = 3
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     assert(object.type === of.matchType.standard)
     object.length = of.sizes.match
     buffer = buffer !== undefined ? buffer : Buffer.alloc(object.length)
@@ -260,7 +260,7 @@ export default {
     return buffer
   },
 
-  toJson: (buffer, offset = 0) => {
+  unpack: (buffer, offset = 0) => {
     const object = {}
     object.type = buffer.readUInt16BE(offset + OFFSETS.type)
     assert(object.type === of.matchType.standard)

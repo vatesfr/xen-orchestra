@@ -1,4 +1,7 @@
 import assert from 'assert'
+
+import get from '../../util/get-from-map'
+
 import ofHeader from './header'
 import of from '../openflow-11'
 
@@ -25,11 +28,11 @@ const OFFSETS = of.offsets.errorMsg
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     const { header, type, code, data } = object
     assert(header.type === of.type.error)
-    assert(Object.keys(ERROR_CODE).includes(String(type)))
-    assert(Object.values(ERROR_CODE[type]).includes(code))
+    const errorCodes = get(ERROR_CODE, type, `Invalid error type: ${type}`)
+    assert(Object.values(errorCodes).includes(code))
 
     object.length = of.sizes.errorMsg
     if (data !== undefined) {
@@ -38,7 +41,7 @@ export default {
 
     buffer = buffer !== undefined ? buffer : Buffer.alloc(object.length)
 
-    ofHeader.fromJson(header, buffer, offset + OFFSETS.header)
+    ofHeader.pack(header, buffer, offset + OFFSETS.header)
     buffer.writeUInt16BE(type, offset + OFFSETS.type)
     buffer.writeUInt16BE(code, offset + OFFSETS.code)
 
@@ -49,15 +52,15 @@ export default {
     return buffer
   },
 
-  toJson: (buffer, offset = 0) => {
-    const header = ofHeader.toJson(buffer, offset + OFFSETS.header)
+  unpack: (buffer, offset = 0) => {
+    const header = ofHeader.unpack(buffer, offset + OFFSETS.header)
     assert(header.type === of.type.error)
 
     const type = buffer.readUInt16BE(offset + OFFSETS.type)
-    assert(Object.keys(ERROR_CODE).includes(String(type)))
+    const errorCodes = get(ERROR_CODE, type, `Invalid error type: ${type}`)
 
     const code = buffer.readUInt16BE(offset + OFFSETS.code)
-    assert(Object.values(ERROR_CODE[type]).includes(code))
+    assert(Object.values(errorCodes).includes(code))
 
     const object = { header, type, code }
     const dataSize = header.length - of.sizes.errorMsg

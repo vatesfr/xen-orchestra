@@ -1,4 +1,5 @@
 import assert from 'assert'
+
 import of from '../openflow-11'
 
 // =============================================================================
@@ -8,7 +9,7 @@ const OFFSETS = of.offsets.header
 // =============================================================================
 
 export default {
-  fromJson: (object, buffer = undefined, offset = 0) => {
+  pack: (object, buffer = undefined, offset = 0) => {
     buffer = buffer !== undefined ? buffer : Buffer.alloc(of.sizes.header)
     const { version, type, length, xid } = object
 
@@ -23,7 +24,7 @@ export default {
     return buffer
   },
 
-  toJson: (buffer, offset = 0) => {
+  unpack: (buffer, offset = 0) => {
     const version = buffer.readUInt8(offset + OFFSETS.version)
     assert(version === of.version)
 

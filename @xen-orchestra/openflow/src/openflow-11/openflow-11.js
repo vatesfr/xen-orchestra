@@ -19,7 +19,7 @@ export default {
     max: 0xffffff00, // Maximum number of physical switch ports
 
     // Fake output "ports"
-    in_port: 0xfffffff8,
+    inPort: 0xfffffff8,
     /* Send the packet out the input port.
      * This virtual port must be explicitly used
      * in order to send back out of the input port.

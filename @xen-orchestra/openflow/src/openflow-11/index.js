@@ -1,4 +1,5 @@
-import assert from 'assert'
+import get from '../util/get-from-map'
+
 import echo from './message/echo'
 import error from './message/error'
 import hello from './message/hello'
@@ -31,17 +32,18 @@ export default {
 
   // ---------------------------------------------------------------------------
 
-  fromJson: object => {
+  pack: object => {
     const type = object.header.type
-    assert(Object.keys(MESSAGE).includes(String(type)))
-
-    return MESSAGE[type].fromJson(object)
+    return get(MESSAGE, type, `Invalid OpenFlow message type: ${type}`).pack(
+      object
+    )
   },
 
-  toJson: (buffer, offset = 0) => {
+  unpack: (buffer, offset = 0) => {
     const type = buffer.readUInt8(offset + of.offsets.header.type)
-    assert(Object.keys(MESSAGE).includes(String(type)))
-
-    return MESSAGE[type].toJson(buffer, offset)
+    return get(MESSAGE, type, `Invalid OpenFlow message type: ${type}`).unpack(
+      buffer,
+      offset
+    )
   },
 }
