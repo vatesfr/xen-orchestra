@@ -1,6 +1,6 @@
 # @xen-orchestra/log [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> ${pkg.description}
+> \${pkg.description}
 
 ## Install
 
@@ -161,7 +161,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-web/issues/)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues/)
   you've encountered;
 - fork and create a pull request.
 
