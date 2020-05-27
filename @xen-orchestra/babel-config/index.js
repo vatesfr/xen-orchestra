@@ -32,7 +32,6 @@ const configs = {
         }
         return { browsers: pkg.browserslist, node }
       })(),
-      useBuiltIns: 'core-js' in (pkg.dependencies || {}) && 'usage',
     }
   },
 }
