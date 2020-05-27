@@ -30,7 +30,6 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
     "bluebird": "^3.5.1",
     "chalk": "^3.0.0",
     "exec-promise": "^0.7.0",
