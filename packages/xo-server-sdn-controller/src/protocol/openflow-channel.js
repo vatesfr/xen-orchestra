@@ -2,7 +2,7 @@ import createLogger from '@xen-orchestra/log'
 import ipaddr from 'ipaddr.js'
 import openflow from '@xen-orchestra/openflow'
 import util from 'util'
-import Stream from '@xen-orchestra/openflow/dist/stream'
+import Stream from '@xen-orchestra/openflow/stream'
 import { EventEmitter } from 'events'
 import { fromEvent } from 'promise-toolbox'
 
