@@ -32,7 +32,7 @@ const configs = {
         }
         return { browsers: pkg.browserslist, node }
       })(),
-      useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
+      useBuiltIns: 'core-js' in (pkg.dependencies || {}) && 'usage',
     }
   },
 }
