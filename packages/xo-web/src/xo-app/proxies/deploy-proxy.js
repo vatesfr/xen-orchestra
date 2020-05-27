@@ -5,7 +5,7 @@ import noop from 'lodash/noop'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
-import { chooseAction, form } from 'modal'
+import { alert, chooseAction, form } from 'modal'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
@@ -279,7 +279,16 @@ const deployProxy = async ({ proxy } = {}) => {
       return
     }
 
-    license = await createProxyTrialLicense()
+    try {
+      license = await createProxyTrialLicense()
+    } catch (error) {
+      return alert(
+        _('trialStartButton'),
+        <span className='text-danger'>
+          <Icon icon='alarm' /> {error.message}
+        </span>
+      )
+    }
   }
 
   return form({
