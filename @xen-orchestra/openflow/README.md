@@ -16,15 +16,13 @@ Unpacking a received OpenFlow message from a socket:
 
 ```js
 import openflow from '@xen-orchestra/openflow'
-import Stream from '@xen-orchestra/openflow/stream'
+import parse from '@xen-orchestra/openflow/parse-socket'
 
 const version = openflow.versions.openFlow11
 const ofProtocol = openflow.protocols[version]
 
-function unpackReceivedMsg(data) {
-  const stream = new Stream()
-  const msgs = this._stream.process(data)
-  msgs.forEach(msg => {
+function parseOpenFlowMessages(socket) {
+  for await (msg from parse(socket)) {
     if (msg.header !== undefined) {
       const ofType = message.header.type
       switch (ofType) {
@@ -59,7 +57,7 @@ function unpackReceivedMsg(data) {
     } else {
       // Error: Message is unparseable
     }
-  })
+  }
 }
 ```
 
