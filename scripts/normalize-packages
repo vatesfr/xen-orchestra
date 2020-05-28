@@ -38,6 +38,9 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
+    if (!('license' in pkg)) {
+      pkg.license = 'AGPL-3.0'
+    }
     if (!('version' in pkg)) {
       pkg.version = '0.0.0'
     }

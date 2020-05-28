@@ -21,5 +21,6 @@
   },
   "scripts": {
     "postversion": "npm publish"
-  }
+  },
+  "license": "AGPL-3.0"
 }

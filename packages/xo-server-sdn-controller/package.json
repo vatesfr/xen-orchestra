@@ -35,5 +35,6 @@
     "promise-toolbox": "^0.15.0",
     "uuid": "^3.3.2"
   },
-  "private": true
+  "private": true,
+  "license": "AGPL-3.0"
 }
