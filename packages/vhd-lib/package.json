@@ -12,7 +12,6 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "preferGlobal": true,
   "main": "dist/",
   "bin": {},
   "files": [
