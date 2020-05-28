@@ -1834,10 +1834,12 @@ const messages = {
   newNetworkBondMode: 'Bond mode',
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
+  newNetworkPreferredCenter: 'Preferred center (optional)',
   newNetworkEncapsulation: 'Encapsulation',
   newNetworkEncrypted: 'Encrypted',
   encryptionWarning:
     'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
+  preferredCenterTip: 'The host to try first to elect as center of the network',
   newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
@@ -1940,6 +1942,7 @@ const messages = {
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText4: 'Why do I see this message?',
   notRegisteredDisclaimerInfo:
     'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',

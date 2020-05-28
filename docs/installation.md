@@ -189,6 +189,20 @@ If you need to delete the service:
 forever-service delete orchestra
 ```
 
+### Banner and warnings
+
+You probably noticed a banner and some warnings when using XO "from the sources": no pro support, no QA performed, etc. But why? We don't sell any licenses, just the turnkey appliance with QA/support and extra services. And we don't sell that to individuals, only companies.
+
+However, there's no way to discriminate if this "from the sources" version is used by a company or an individual. Remember that we have no control where or when XO from the sources is running on premise, nor how many people use it.
+
+That's why we have to notify these companies about XOA: it's better to run XO with XOA in production. So as a home user, just ignore it. Also, removing this with your own scripts that you distribute might hurt XO and the [XCP-ng project](https://xcp-ng.org). Indeed, since XOA is our main revenue stream for both projects, this banner is important to get the attention of companies potentially interested by that, driving revenue helping us to develop our fully Open Source products further/faster. We are not Facebook or Google with their giant ad revenue, and each dollar/euro earned by selling support is **directly and 100% invested into XO or XCP-ng**.
+
+As a home user, you can support the XO project in a lot of ways: spreading the word, giving your feedback, finding bugs and ultimately contribute to the code. Keeping this banner is also a way to support us!
+
+:::tip
+Exceptional individual contributers are awarded with a free XOA Premium subscription. If you think you deserve it, feel free to contact us!
+:::
+
 ### Troubleshooting
 
 If you have problems during the building phase, follow these steps in your `xen-orchestra` directory:

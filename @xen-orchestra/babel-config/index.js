@@ -32,7 +32,6 @@ const configs = {
         }
         return { browsers: pkg.browserslist, node }
       })(),
-      useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
     }
   },
 }
