@@ -14,7 +14,9 @@ To apply to our partner program, you can access the [partner page](https://xen-o
 
 You will have to complete a form in order to provide information regarding your expectations and location. Once you've finished, you should receive an email in order to **start the discussion with someone from our team**.
 
-> It's important to answer the email - this will start the discussion with someone from our team in order to determine together if the partner status is what you really need.
+:::tip
+It's important to answer the email - this will start the discussion with someone from our team in order to determine together if the partner status is what you really need.
+:::
 
 Once we have activated your partner space, you will have the ability to access the purchasing page [at the same place](https://xen-orchestra.com/#!/partner).
 

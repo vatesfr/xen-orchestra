@@ -28,7 +28,9 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 
 ## Schedule
 
-> :construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::tip
+:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::
 
 ## Smart Backup
 
@@ -127,7 +129,7 @@ The tooltip confirms this:
 
 ## Remotes
 
-> Remotes are places where your _backup_ and _delta backup_ files will be stored.
+Remotes are places where your _backup_ and _delta backup_ files will be stored.
 
 To add a _remote_, go to the **Settings/Remotes** menu.
 
@@ -169,7 +171,9 @@ PATH TO BACKUP is only needed if you have subfolders in your share.
 
 ### Local
 
-> **This is for advanced users**. Using the local XOA filesystem without extra mounts/disks will **use the default system disk of XOA**.
+:::warning
+**This is for advanced users**. Using the local XOA filesystem without extra mounts/disks will **use the default system disk of XOA**.
+:::
 
 If you need to mount an unsupported store (FTP for example), you can always do it manually:
 
@@ -294,7 +298,9 @@ So what's the best choice? Continue below to learn how to best configure concurr
 
 By default the _parallel strategy_ is, on paper, the most logical one. But we need to give it some limits on concurrency.
 
-> Note: Xen Orchestra can be connected to multiple pools at once. So the concurrency number applies **per pool**.
+:::tip
+Xen Orchestra can be connected to multiple pools at once. So the concurrency number applies **per pool**.
+:::
 
 Each step has its own concurrency to fit its requirements:
 
@@ -305,6 +311,8 @@ Each step has its own concurrency to fit its requirements:
 
 This is how it currently works in Xen Orchestra. But sometimes, you also want to have _sequential_ backups combined with the _parallel strategy_. That's why we introduced a sequential option in the advanced section of backup-ng:
 
-> Note: 0 means it will be fully **parallel** for all VMs.
+:::tip
+0 means it will be fully **parallel** for all VMs.
+:::
 
 If you job contains 50 VMs for example, you could specify a sequential backup with a limit of "25 at once" (enter 25 in the concurrency field). This means at 3 AM, we'll do 25 snapshots (2 at a time), then exports. As soon as the first VM backup is completely finished (snapshot removed), then we'll start the 26th and so on, to always keep a max of 25x VM backups going in parallel.

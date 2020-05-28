@@ -194,7 +194,9 @@ If a package disappears due to a build problem or human error, you can redownloa
 1. `rm /var/lib/xoa-updater/update.json`
 2. `xoa-updater --upgrade`
 
-> We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+:::tip
+We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+:::
 
 ### Reset configuration
 

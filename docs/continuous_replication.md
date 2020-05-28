@@ -58,7 +58,9 @@ Manually create a snapshot on the VM being backed up, then copy this snapshot UU
 
 ![](./assets/cr-seed-3.png)
 
-> DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
+:::warning
+DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
+:::
 
 ### Seed copy
 
@@ -68,7 +70,9 @@ We need to copy the UUID of this newly created VM as well, `targetVmUuid`:
 
 ![](./assets/cr-seed-4.png)
 
-> DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
+:::warning
+DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
+:::
 
 ### Set up metadata
 
@@ -103,6 +107,8 @@ Your backup job should now be working correctly! Manually run the job the first 
 
 In the situation where you need to failover to your destination host, you simply need to start all your VMs on the destination host.
 
-> Note: If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VMs.
+:::tip
+If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VMs.
+:::
 
 ![](./assets/force-start.jpg)

@@ -14,3 +14,4 @@ Only after that, you can go on the [dedicated forum](https://xcp-ng.org/forum/ca
 
 :::tip
 If you want a consistent and tested solution for using Xen Orchestra, we strongly advise to use our preconfigured and validated [Xen Orchestra virtual Appliance](installation.md#xoa).
+:::

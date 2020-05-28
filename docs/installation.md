@@ -96,7 +96,7 @@ If not, see [this page](https://nodejs.org/en/download/package-manager/) for ins
 
 #### Yarn
 
-> Yarn is a package manager that offers more guarantees than npm.
+Yarn is a package manager that offers more guarantees than npm.
 
 See [this page](https://yarnpkg.com/en/docs/install#debian-stable) for instructions on how to install Yarn.
 

@@ -39,8 +39,11 @@ The second step is to select your purchase option:
 
 - Paid period: **check or wire transfer only**. This purchase allows you to subscribe for a one, two or three year period
 
-> A 2 year subscription period grants you 1 month discounted
-> A 3 year subscription period grants you 2 months discounted
+:::tip
+
+- A 2 year subscription period grants you 1 month discounted
+- A 3 year subscription period grants you 2 months discounted
+  :::
 
 Then you need to fill in your information and select **"Buy for my own use"** (direct purchase)
 
@@ -50,8 +53,10 @@ Then you need to fill in your information and select **"Buy for my own use"** (d
 
 You need to complete all the required information on this page in order to move forward.
 
-> Note: If you are part of the Eurozone, you will need to provide a valid EU VAT number in order to proceed to payment. Transactions between companies inside the Eurozone are VAT free.
-> Transactions outside the Eurozone are VAT free.
+:::tip
+If you are part of the Eurozone, you will need to provide a valid EU VAT number in order to proceed to payment. Transactions between companies inside the Eurozone are VAT free.
+Transactions outside the Eurozone are VAT free.
+:::
 
 ![](./assets/billing_info.png)
 
@@ -59,12 +64,16 @@ You need to complete all the required information on this page in order to move 
 
 Credit Card, Wire transfer or Bank check are the three payment methods available on our store. Some methods can be unavailable regarding the purchase option you have selected during step one.
 
-> Wire transfer is not available for monthly and yearly subscription - Credit Card is not available for paid period.
+:::tip
+Wire transfer is not available for monthly and yearly subscription - Credit Card is not available for paid period.
+:::
 
 ![](./assets/payment_mode.png)
 
-> All required information for wire transfer and Check payment will be available in the last step of the payment AND on your proforma invoice.
-> ⚠ Please, use an explicit reference for your wire transfer in order for us to easily identify your payment.
+:::tip
+All required information for wire transfer and Check payment will be available in the last step of the payment AND on your proforma invoice.
+:warning: Please, use an explicit reference for your wire transfer in order for us to easily identify your payment.
+:::
 
 ## Via your purchase departement
 
@@ -113,7 +122,9 @@ To apply to our partner program, you can access the [partner page](https://xen-o
 
 You will have to complete a form in order to provide information regarding your expectations and location. Once you've finished, you should receive an email in order to **start the discussion with someone from our team**.
 
-> It's important to answer the email - this will start the discussion with someone from our team in order to determine together if the partner status is what you really need.
+:::tip
+It's important to answer the email - this will start the discussion with someone from our team in order to determine together if the partner status is what you really need.
+:::
 
 Once we have activated your partner space, you will have the ability to access the purchasing page [at the same place](https://xen-orchestra.com/#!/partner).
 

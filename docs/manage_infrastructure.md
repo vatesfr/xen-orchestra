@@ -34,7 +34,9 @@ Let's take a quick tour:
 - the home view has a header with a type selector (VMs, hosts or pools), a filter zone and a button to create new VMs
 - the VM list also has a header (number of filtered VMs and total VMs) and assisted filters (by pool, host and tags) and a sort menu (by name, memory etc.). You can also expand all VMs details here with the icon ![](./assets/xo5expandhome.png)
 
-> Pro Tip: you can edit a VM name, description and even current host by long clicking on the field
+:::tip
+You can edit a VM name, description and even current host by long clicking on the field
+:::
 
 ## Bulk actions
 
@@ -54,7 +56,9 @@ All host objects are displayed:
 
 You have power status, name, description, number of CPU cores, total memory, management IP and pool name displayed. You can also edit these by long clicking.
 
-> Pro Tip: If hosts have missing patches, you'll see a red dot with the total patches missing. Click on it to go the patch section of the host. See this blog post on [patches for XenServer](https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0/) for more details.
+:::tip
+If hosts have missing patches, you'll see a red dot with the total patches missing. Click on it to go the patch section of the host. See this blog post on [patches for XenServer](https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0/) for more details.
+:::
 
 ### Pools
 
@@ -64,7 +68,9 @@ All your pools are displayed here:
 
 You can also see missing patches in red.
 
-> Did you know? Even a single XenServer host is inside a pool!
+:::tip
+Did you know? Even a single XenServer host is inside a pool!
+:::
 
 ## Live filter search
 
@@ -75,7 +81,9 @@ The idea is not just to provide a good search engine, but also a complete soluti
 - perform bulk actions on all results found
 - sort your results for more pertinent insight
 
-> Pro Tip: the URL of Xen Orchestra contains the search string, eg `home?s=power_state%3Arunning+`. You can share these URLs to your colleagues to share your search!
+:::tip
+Pro Tip: the URL of Xen Orchestra contains the search string, eg `home?s=power_state%3Arunning+`. You can share these URLs to your colleagues to share your search!
+:::
 
 ### Search examples
 
@@ -105,11 +113,15 @@ There, you can edit or remove any filter/search you've created!
 
 In this user section, you can set a default filter (preset filters or your own).
 
-> Pro Tip: this is saved in your user preferences. It means that you can connect anywhere on any browser, and you'll still see the same behavior.
+:::tip
+Pro Tip: this is saved in your user preferences. It means that you can connect anywhere on any browser, and you'll still see the same behavior.
+:::
 
 ### Filter syntax
 
-> A filter allows you to search through a collection of objects which have multiple properties and may even contain other nested objects.
+:::tip
+A filter allows you to search through a collection of objects which have multiple properties and may even contain other nested objects.
+:::
 
 #### Searching for a string (or substring)
 
@@ -118,7 +130,9 @@ Simply type the string, if it contains special characters just surround it with 
 - `simple-string`
 - `"string with special characters like whitespaces"`
 
-> The search is recursive, case insensitive and non-anchored (i.e. matches if the pattern is contained in a string).
+:::tip
+The search is recursive, case insensitive and non-anchored (i.e. matches if the pattern is contained in a string).
+:::
 
 A simple string can also contain a wildcard character (`*`) to match any character in a portion of the string:
 
@@ -223,7 +237,9 @@ The next step is to select a template:
 
 ![](./assets/xo5createwithtemplate.png)
 
-> What is a XenServer template? It can be 2 things: first an "empty" template, meaning it contains only the configuration for your future VM, such as example settings (minimum disk size, RAM and CPU, BIOS settings if HVM etc.) Or it could be a previous VM you converted into a template: in this case, creating a VM will clone the existing disks.
+:::tip
+What is a XenServer template? It can be 2 things: first an "empty" template, meaning it contains only the configuration for your future VM, such as example settings (minimum disk size, RAM and CPU, BIOS settings if HVM etc.) Or it could be a previous VM you converted into a template: in this case, creating a VM will clone the existing disks.
+:::
 
 ##### Name and description
 
@@ -247,7 +263,9 @@ The default CPU weight is `256` which means it will be scheduled by Xen like any
 
 What about cap? It's the maximum amount of CPUs a VM can consume, using a 100 base (1 vCPU: 100). Default is 0 and means no upper cap.
 
-> Should I mess with these settings? In general: nope. Change this only if you are sure of what are you doing. More can be found here: https://wiki.xen.org/wiki/Credit_Scheduler
+:::tip
+Should I mess with these settings? In general: nope. Change this only if you are sure of what are you doing. More can be found here: https://wiki.xen.org/wiki/Credit_Scheduler
+:::
 
 #### Install settings
 
@@ -277,7 +295,9 @@ This is the network section of the VM configuration: in general, MAC field is ke
 
 This section is for configuring new or existing disks (according to your selected template).
 
-> Protip: avoid using large disks for your VMs. Want to store a lot of files? Use a network share for that (NFS, SMB) and keep using VMs with small system disks. It's far easier to maintain, migrate, backup and restore!
+:::tip
+Protip: avoid using large disks for your VMs. Want to store a lot of files? Use a network share for that (NFS, SMB) and keep using VMs with small system disks. It's far easier to maintain, migrate, backup and restore!
+:::
 
 ## VM management
 
@@ -328,7 +348,9 @@ If you pool supports HA (must have shared storage), you can activate "HA". Read 
 
 #### Docker management
 
-> Please [read the dedicated section](docker_support.md) to install a Docker Ready VM.
+:::tip
+Please [read the dedicated section](docker_support.md) to install a Docker Ready VM.
+:::
 
 ### VM CPU priority
 
@@ -356,13 +378,17 @@ You can create a snapshot with one click. It will be named automatically. After 
 - revert your VM to this snapshot (it will restart the VM)
 - delete this snapshot
 
-> By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fallback to the default snapshot system.
+:::tip
+By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fallback to the default snapshot system.
+:::
 
 ## VM import and export
 
 Xen Orchestra can import and export VM's in XVA format (XenServer format) or import OVA files (OVF1 format).
 
-> We support OVA import from VirtualBox. Feel free to report issues with OVA from other virtualization platforms.
+:::tip
+We support OVA import from VirtualBox. Feel free to report issues with OVA from other virtualization platforms.
+:::
 
 ### VM import
 
@@ -384,7 +410,9 @@ When you are OK with these settings, just click on the "Import" button.
 
 ### VM export
 
-> Exported VMs are in XVA format
+:::tip
+Exported VMs are in XVA format
+:::
 
 Just access the page for the VM that you want to export, and click on the "Export" button in the toolbar. You'll instantly download a compressed XVA file.
 
@@ -421,7 +449,9 @@ When you click on "Install all patches", XOA will do all of the following automa
 
 You can see more screenshots here: https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0/
 
-> If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md#proxy-for-xenserver-updates-and-patches).
+:::tip
+If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md#proxy-for-xenserver-updates-and-patches).
+:::
 
 ### Notes on patching
 
@@ -435,7 +465,9 @@ You can see more screenshots here: https://xen-orchestra.com/blog/hotfix-xs70e00
 
 Visualizations can help you to understand your XenServer infrastructure, as well as correlate events and detect bottlenecks.
 
-> :construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::tip
+:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::
 
 ### Dashboard
 
@@ -457,7 +489,9 @@ A Parallel Coordinates visualization helps to detect proportions in a hierarchic
 
 This view will help you find any bottlenecks and compare the metrics of your infrastructure.
 
-> :construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::tip
+:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::
 
 ### Heatmap
 
@@ -484,7 +518,9 @@ This allows you to enjoy Docker containers displayed directly in Xen Orchestra.
 
 This first step is needed until Docker is supported natively in the XenServer API (XAPI).
 
-> The plugin should be installed on every host you will be using, even if they are on the same pool.
+:::tip
+The plugin should be installed on every host you will be using, even if they are on the same pool.
+:::
 
 #### For XenServer 6.5
 
