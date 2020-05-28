@@ -25,4 +25,4 @@ You may:
 
 ## License
 
-[ISC](hhttps://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

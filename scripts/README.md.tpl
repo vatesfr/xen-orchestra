@@ -39,4 +39,4 @@ You may:
 
 ## License
 
-[{{pkg.license}}](hhttps://spdx.org/licenses/{{pkg.license}}) © [{{pkg.author.name}}]({{pkg.author.url}})
+[{{pkg.license}}](https://spdx.org/licenses/{{pkg.license}}) © [{{pkg.author.name}}]({{pkg.author.url}})
