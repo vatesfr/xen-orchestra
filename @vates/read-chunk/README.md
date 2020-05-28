@@ -19,7 +19,7 @@ Installation of the [npm package](https://npmjs.org/package/@vates/read-chunk):
 - returns `null` if the stream has ended
 
 ```js
-import { readChunk } from '@xen-orchestra/read-chunk'
+import { readChunk } from '@vates/read-chunk'
 ;(async () => {
   let chunk
   while ((chunk = await readChunk(stream, 1024)) !== null) {

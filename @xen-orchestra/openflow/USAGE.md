@@ -1,19 +1,3 @@
-<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
-
-# @xen-orchestra/openflow [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
-
-> Pack and unpack OpenFlow messages
-
-## Install
-
-Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/openflow):
-
-```
-> npm install --save @xen-orchestra/openflow
-```
-
-## Usage
-
 Unpacking a received OpenFlow message from a socket:
 
 ```js
@@ -122,18 +106,3 @@ const buf = openflow.pack({
   },
 })
 ```
-
-## Contributions
-
-Contributions are _very_ welcomed, either on the documentation or on
-the code.
-
-You may:
-
-- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
-  you've encountered;
-- fork and create a pull request.
-
-## License
-
-© [Vates SAS](https://vates.fr)
