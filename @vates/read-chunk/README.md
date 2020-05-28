@@ -2,6 +2,8 @@
 
 # @vates/read-chunk [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
+[![Package Version](https://badgen.net/npm/v/@vates/read-chunk)](https://npmjs.org/package/@vates/read-chunk) ![License](https://badgen.net/npm/license/@vates/read-chunk) [![PackagePhobia](https://badgen.net/packagephobia/install/@vates/read-chunk)](https://packagephobia.now.sh/result?p=@vates/read-chunk)
+
 > Read a chunk of a Node stream
 
 ## Install
@@ -41,4 +43,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](hhttps://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

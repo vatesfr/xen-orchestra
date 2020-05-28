@@ -1,6 +1,8 @@
-# xo-remote-parser [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# xo-remote-parser [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+
+[![Package Version](https://badgen.net/npm/v/xo-remote-parser)](https://npmjs.org/package/xo-remote-parser) ![License](https://badgen.net/npm/license/xo-remote-parser) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-remote-parser)](https://packagephobia.now.sh/result?p=xo-remote-parser)
 
 ## Install
 
@@ -8,29 +10,6 @@ Installation of the [npm package](https://npmjs.org/package/xo-remote-parser):
 
 ```
 > npm install --save xo-remote-parser
-```
-
-## Usage
-
-**TODO**
-
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
 ```
 
 ## Contributions
@@ -46,4 +25,4 @@ You may:
 
 ## License
 
-AGPL-3.0 © [Vates SAS](https://vates.fr)
+[AGPL-3.0-or-later](hhttps://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

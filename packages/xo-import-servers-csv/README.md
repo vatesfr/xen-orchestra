@@ -1,4 +1,8 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # xo-import-servers-csv [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+
+[![Package Version](https://badgen.net/npm/v/xo-import-servers-csv)](https://npmjs.org/package/xo-import-servers-csv) ![License](https://badgen.net/npm/license/xo-import-servers-csv) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-import-servers-csv)](https://packagephobia.now.sh/result?p=xo-import-servers-csv)
 
 > CLI to import servers in XO from a CSV file
 
@@ -29,25 +33,6 @@ Shell command:
 > xo-import-servers-csv 'https://xo.company.tld' admin@admin.net admin < servers.csv
 ```
 
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -61,4 +46,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](hhttps://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

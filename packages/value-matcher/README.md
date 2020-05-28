@@ -1,6 +1,8 @@
-# value-matcher [![Build Status](https://travis-ci.org/vatefr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatefr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# value-matcher [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+
+[![Package Version](https://badgen.net/npm/v/value-matcher)](https://npmjs.org/package/value-matcher) ![License](https://badgen.net/npm/license/value-matcher) [![PackagePhobia](https://badgen.net/packagephobia/install/value-matcher)](https://packagephobia.now.sh/result?p=value-matcher)
 
 ## Install
 
@@ -30,25 +32,6 @@ import { createPredicate } from 'value-matcher'
 // ]
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -62,4 +45,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](hhttps://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)
