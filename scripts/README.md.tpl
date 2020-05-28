@@ -2,24 +2,30 @@
 
 # {{pkg.name}} [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
+{{#unless pkg.private}}
+[![Package Version](https://badgen.net/npm/v/{{pkg.name}})](https://npmjs.org/package/{{pkg.name}}) ![License](https://badgen.net/npm/license/{{pkg.name}}) [![PackagePhobia](https://badgen.net/packagephobia/install/{{pkg.name}})](https://packagephobia.now.sh/result?p={{pkg.name}})
+
+{{/unless}}
 {{#if pkg.description}}
 > {{pkg.description}}
-{{/if}}
 
+{{/if}}
 {{#unless pkg.private}}
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/{{pkg.name}}):
 
 ```
-> npm install --save {{pkg.name}}
+> npm install --{{#if pkg.preferGlobal}}global{{^}}save{{/if}} {{pkg.name}}
 ```
-{{/unless}}
 
+{{/unless}}
+{{#if usage}}
 ## Usage
 
 {{{usage}}}
 
+{{/if}}
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -33,4 +39,4 @@ You may:
 
 ## License
 
-{{pkg.license}} © [{{pkg.author.name}}]({{pkg.author.url}})
+[{{pkg.license}}](hhttps://spdx.org/licenses/{{pkg.license}}) © [{{pkg.author.name}}]({{pkg.author.url}})

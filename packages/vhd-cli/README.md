@@ -1,6 +1,8 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # vhd-cli [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> ${pkg.description}
+[![Package Version](https://badgen.net/npm/v/vhd-cli)](https://npmjs.org/package/vhd-cli) ![License](https://badgen.net/npm/license/vhd-cli) [![PackagePhobia](https://badgen.net/packagephobia/install/vhd-cli)](https://packagephobia.now.sh/result?p=vhd-cli)
 
 ## Install
 
@@ -8,31 +10,6 @@ Installation of the [npm package](https://npmjs.org/package/vhd-cli):
 
 ```
 > npm install --global vhd-cli
-```
-
-## Usage
-
-```
-> vhd-cli <VHD file>
-```
-
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
 ```
 
 ## Contributions
@@ -48,4 +25,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](hhttps://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

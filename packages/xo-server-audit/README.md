@@ -1,38 +1,13 @@
-# xo-server-audit [![Build Status](https://api.travis-ci.org/vatesfr/xo-server-audit.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> **TODO**
+# xo-server-audit [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-## Install
-
-Installation of the [npm package](https://npmjs.org/package/xo-server-audit):
-
-```
-> npm install --global xo-server-audit
-```
+> Audit plugin for XO-Server
 
 ## Usage
 
 Like all other xo-server plugins, it can be configured directly via
 the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
-
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production
-> yarn build
-```
 
 ## Contributions
 
@@ -47,4 +22,4 @@ You may:
 
 ## License
 
-AGPL3 © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](hhttps://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)
