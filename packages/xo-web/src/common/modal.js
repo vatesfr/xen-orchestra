@@ -306,7 +306,7 @@ export const form = ({
     formModalState.value = defaultValue
     disableShortcuts()
 
-    // the modal should be opened after the set of its props to avoid race conditions
+    // the modal should be opened after its props have been set to avoid race conditions
     formModalState.opened = true
   })
 
