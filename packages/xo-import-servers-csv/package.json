@@ -29,6 +29,7 @@
   "bin": {
     "xo-import-servers-csv": "dist/index.js"
   },
+  "preferGlobal": true,
   "files": [
     "dist/"
   ],

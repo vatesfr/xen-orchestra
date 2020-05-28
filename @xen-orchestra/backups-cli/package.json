@@ -3,6 +3,7 @@
   "bin": {
     "xo-backups": "index.js"
   },
+  "preferGlobal": true,
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
     "@xen-orchestra/backups": "^0.1.1",

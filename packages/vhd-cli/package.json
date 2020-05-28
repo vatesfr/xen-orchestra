@@ -16,7 +16,7 @@
     "name": "Julien Fontanet",
     "email": "julien.fontanet@isonoe.net"
   },
-  "preferGlobal": false,
+  "preferGlobal": true,
   "main": "dist/",
   "bin": {
     "vhd-cli": "dist/index.js"
