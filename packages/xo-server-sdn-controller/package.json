@@ -36,5 +36,5 @@
     "uuid": "^3.3.2"
   },
   "private": true,
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0-or-later"
 }

@@ -2,7 +2,7 @@
   "private": false,
   "name": "xo-vmdk-to-vhd",
   "version": "1.2.0",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "description": "JS lib streaming a vmdk file to a vhd",
   "keywords": [
     "vhd",

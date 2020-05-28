@@ -2,7 +2,7 @@
   "private": false,
   "name": "xo-remote-parser",
   "version": "0.5.0",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "description": "",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-remote-parser",

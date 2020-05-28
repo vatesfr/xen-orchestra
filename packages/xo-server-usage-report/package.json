@@ -1,7 +1,7 @@
 {
   "name": "xo-server-usage-report",
   "version": "0.8.0",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "description": "Report resources usage with their evolution",
   "keywords": [
     "orchestra",

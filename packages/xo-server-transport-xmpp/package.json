@@ -1,7 +1,7 @@
 {
   "name": "xo-server-transport-xmpp",
   "version": "0.1.1",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "description": "Transport Xmpp plugin for XO-Server",
   "keywords": [
     "jabber",
