@@ -3125,6 +3125,9 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
+export const createProxyTrialLicense = () =>
+  _call('xoa.licenses.createProxyTrial')
+
 export const deployProxyAppliance = (
   license,
   sr,
