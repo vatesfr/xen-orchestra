@@ -4,14 +4,12 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { Container, Col } from 'grid'
-import { createCompare } from 'utils'
+import { createCompare, createCompareContainers } from 'utils'
 import { createSelector } from 'selectors'
 import { SelectSr } from 'select-objects'
 
 import { isSrShared } from '../'
 
-const createCompareContainers = poolId =>
-  createCompare([_ => _.$pool === poolId, _ => _.type === 'pool'])
 const compareSrs = createCompare([isSrShared])
 
 export default class MigrateVdiModalBody extends Component {

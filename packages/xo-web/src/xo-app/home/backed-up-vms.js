@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { addSubscriptions, connectStore, createCompare } from 'utils'
+import { addSubscriptions, connectStore, createCompareContainers } from 'utils'
 import {
   copyVms,
   deleteVms,
@@ -35,9 +35,6 @@ import {
 import { Host, Pool } from 'render-xo-item'
 import { injectState, provideState } from 'reaclette'
 import { Text, XoSelect } from 'editable'
-
-const createCompareContainers = poolId =>
-  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
 
 const getVmUrl = ({ id }) => `vms/${id}/general`
 
@@ -191,10 +188,10 @@ const BackedUpVms = decorate([
             filter(vms, createPredicate(omit(job.vms, 'power_state')))
           )
         ),
-      collection: ({ backedUpVms, notBackedUpVms }, { showBackedUpVms }) =>
-        showBackedUpVms ? backedUpVms : notBackedUpVms,
-      notBackedUpVms: ({ backedUpVms }, { showBackedUpVms, vms }) =>
-        showBackedUpVms ? [] : difference(vms, backedUpVms),
+      collection: (state, { showBackedUpVms }) =>
+        showBackedUpVms ? state.backedUpVms : state.notBackedUpVms,
+      notBackedUpVms: ({ backedUpVms }, { vms }) =>
+        difference(vms, backedUpVms),
       title: (state, { showBackedUpVms }) =>
         showBackedUpVms ? _('backedUpVms') : _('notBackedUpVms'),
     },

@@ -613,6 +613,11 @@ export const createCompare = criterias => (...items) => {
 
 // ===================================================================
 
+export const createCompareContainers = poolId =>
+  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
+
+// ===================================================================
+
 export const hasLicenseRestrictions = host => {
   const licenseType = host.license_params.sku_type
   return (
