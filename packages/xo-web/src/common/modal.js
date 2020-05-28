@@ -299,13 +299,15 @@ export const form = ({
     formModalState.component = component
     formModalState.handler = handler
     formModalState.header = header
-    formModalState.opened = true
     formModalState.reject = reject
     formModalState.render = render
     formModalState.resolve = resolve
     formModalState.size = size
     formModalState.value = defaultValue
     disableShortcuts()
+
+    // the modal should be opened after its props have been set to avoid race conditions
+    formModalState.opened = true
   })
 
 const getInitialState = () => ({
