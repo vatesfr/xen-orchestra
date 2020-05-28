@@ -423,12 +423,17 @@ export default class {
             return value && JSON.parse(value)
           },
           setData: async (id, key, value) => {
-            await xapi
-              .getObject(id)
-              .update_other_config(
-                `xo:${camelToSnakeCase(key)}`,
-                value !== null ? JSON.stringify(value) : value
-              )
+            key = `xo:${camelToSnakeCase(key)}`
+            value = value !== null ? JSON.stringify(value) : value
+
+            const object = await xapi.getObject(id)
+            if (
+              object.other_config[key] === (value === null ? undefined : value)
+            ) {
+              return
+            }
+
+            await object.update_other_config(key, value)
 
             // Register the updated object.
             addObject(await xapi._waitObject(id))
