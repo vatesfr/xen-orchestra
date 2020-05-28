@@ -31,6 +31,7 @@
 - Don't log server's credentials in case of `SESSION_AUTHENTICATION_FAILED` error (PR [#4995](https://github.com/vatesfr/xen-orchestra/pull/4995))
 - [Plugin/perf-alert] Fix compatibility of the alert messages with XenCenter (PR [#5004](https://github.com/vatesfr/xen-orchestra/pull/5004))
 - [Plugin/backup-reports] Fix `No recipients defined` error when recipients defined at plugin level (PR [#4998](https://github.com/vatesfr/xen-orchestra/pull/4998))
+- [Snapshots] Fix reverts sometimes being stuck (PR [#5027](https://github.com/vatesfr/xen-orchestra/pull/5027))
 
 ### Released packages
 
