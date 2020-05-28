@@ -162,3 +162,39 @@ If you want to purchase XO using the quote you receive, you just have to enter t
 If you choose a Stripe payment, you can always edit the credit card information in case it changes. To do so, you only have to login to your personal account page and access the _profile_ menu.
 
 ![](./assets/updatecreditcard.png)
+
+## Upgrade your plan
+
+If you want to upgrade your active plan to a higher version of Xen Orchestra, you can do it from your **personal space**.
+
+### Step by step:
+
+1. Connect on your personal account on the [website](https://xen-orchestra.com/#!/login?source=member.index).
+
+![](./assets/upgradestep1.png)
+
+2. Go on the purchase menu
+
+![](./assets/upgradestep2.png)
+
+3. Pick the line corresponding to the account you want to upgrade. Click on the "upgrade" button on the right.
+
+![](./assets/upgradestep3.png)
+
+4. At this point, you will see a standard subscription page. **Choose the same payment method you used to purchase the initial plan** and confirm the purchase.
+
+![](./assets/upgradestep4.png)
+
+5. If you chosse wire transfer, you have now the possibility to download a quote. As you can see, the remaining period of your previous plan is now a credit note applied on this upgrade.
+
+![](./assets/upgradestep5.png)
+
+6. As for a regular purchase, upload a proof of payment in order for us to activate your new plan as soon as possible.
+
+![](./assets/upgradestep6.png)
+
+7. **Enjoy your new plan!**
+
+:::tip
+As a reseller, the process is quite the same. The only difference is that you have to pick your customer line into you reseller space an not your personal space.
+:::
