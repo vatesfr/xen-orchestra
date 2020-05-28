@@ -1,6 +1,6 @@
 # xo-server-usage-report [![Build Status](https://travis-ci.org/vatesfr/xo-server-usage-report.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-usage-report)
 
-> ${pkg.description}
+> \${pkg.description}
 
 ## Install
 
@@ -37,7 +37,7 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-server-usage-report/issues)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 

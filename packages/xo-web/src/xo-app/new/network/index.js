@@ -25,7 +25,7 @@ import { injectState, provideState } from 'reaclette'
 import { linkState } from 'reaclette-utils'
 import { map } from 'lodash'
 import { Select, Toggle } from 'form'
-import { SelectPif, SelectPool } from 'select-objects'
+import { SelectHost, SelectPif, SelectPool } from 'select-objects'
 
 import Page from '../../page'
 import styles from './index.css'
@@ -33,6 +33,7 @@ import styles from './index.css'
 const EMPTY = {
   bonded: false,
   bondMode: undefined,
+  networkCenter: undefined,
   description: '',
   encapsulation: 'gre',
   encrypted: false,
@@ -117,6 +118,9 @@ const NewNetwork = decorate([
       onChangeEncapsulation(_, encapsulation) {
         return { encapsulation: encapsulation.value }
       },
+      onChangeCenter(_, networkCenter) {
+        this.state.networkCenter = networkCenter
+      },
       onDeletePool(_, { currentTarget: { dataset } }) {
         const networks = [...this.state.networks]
         networks.splice(dataset.position, 1)
@@ -153,6 +157,11 @@ const NewNetwork = decorate([
               value: mode,
             }))
           : [],
+      hostPredicate: ({ networks }, { pool }) => host =>
+        host.$pool === pool.id ||
+        networks.some(
+          ({ pool }) => pool !== undefined && pool.id === host.$pool
+        ),
       pifPredicate: (_, { pool }) => pif =>
         pif.vlan === -1 && pif.$host === (pool && pool.master),
       pifPredicateSdnController: (_, { pool }) => pif =>
@@ -185,6 +194,7 @@ const NewNetwork = decorate([
       const {
         bonded,
         bondMode,
+        networkCenter,
         isPrivate,
         description,
         encapsulation,
@@ -221,6 +231,7 @@ const NewNetwork = decorate([
               encapsulation,
               encrypted,
               mtu: mtu !== '' ? +mtu : undefined,
+              preferredCenter: networkCenter,
             })
           })()
         : createNetwork({
@@ -267,6 +278,8 @@ const NewNetwork = decorate([
       const {
         bonded,
         bondMode,
+        networkCenter,
+        hostPredicate,
         isPrivate,
         description,
         encapsulation,
@@ -367,6 +380,17 @@ const NewNetwork = decorate([
                         <div>
                           <em>
                             <Icon icon='info' /> {_('encryptionWarning')}
+                          </em>
+                        </div>
+                        <label>{_('newNetworkPreferredCenter')}</label>
+                        <SelectHost
+                          onChange={effects.onChangeCenter}
+                          predicate={hostPredicate}
+                          value={networkCenter}
+                        />
+                        <div>
+                          <em>
+                            <Icon icon='info' /> {_('preferredCenterTip')}
                           </em>
                         </div>
                         <div className='mt-1'>

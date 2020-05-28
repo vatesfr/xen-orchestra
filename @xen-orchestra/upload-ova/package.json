@@ -33,7 +33,6 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
     "chalk": "^2.2.0",
     "exec-promise": "^0.7.0",
     "fs-extra": "^7.0.0",
