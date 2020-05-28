@@ -194,6 +194,9 @@ const messages = {
   editUserProfile: 'Edit my settings {username}',
 
   // ----- Home view ------
+  allVms: 'All VMs',
+  backedUpVms: 'Backed up VMs',
+  notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XenServer hosts or pools',
@@ -257,6 +260,7 @@ const messages = {
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
+  description: 'Description',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',

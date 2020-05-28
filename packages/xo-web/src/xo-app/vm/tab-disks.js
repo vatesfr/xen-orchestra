@@ -26,6 +26,7 @@ import {
   addSubscriptions,
   connectStore,
   createCompare,
+  createCompareContainers,
   formatSize,
   noop,
   resolveResourceSet,
@@ -66,8 +67,6 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
-const createCompareContainers = poolId =>
-  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
 const compareSrs = createCompare([isSrShared])
 
 class VdiSr extends Component {

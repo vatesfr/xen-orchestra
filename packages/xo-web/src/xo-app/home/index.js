@@ -86,8 +86,10 @@ import {
   OverlayTrigger,
   Popover,
 } from 'react-bootstrap-4/lib'
+import { Select } from 'form'
 
 import styles from './index.css'
+import BackedUpVms from './backed-up-vms'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
@@ -307,6 +309,12 @@ const TYPES = {
 }
 
 const DEFAULT_TYPE = 'VM'
+
+const BACKUP_FILTERS = [
+  { value: 'all', label: _('allVms') },
+  { value: 'backedUpVms', label: _('backedUpVms') },
+  { value: 'notBackedUpVms', label: _('notBackedUpVms') },
+]
 
 @connectStore(() => {
   const noServersConnected = invoke(
@@ -544,7 +552,14 @@ export default class Home extends Component {
     const { pathname, query } = this.props.location
     this.context.router.push({
       pathname,
-      query: { ...query, t: type, s: undefined, p: 1 },
+      query: {
+        ...query,
+        backup: undefined,
+        p: 1,
+        s: undefined,
+        s_backup: undefined,
+        t: type,
+      },
     })
   }
 
@@ -843,7 +858,7 @@ export default class Home extends Component {
                 : items.length - 1,
           })
           break
-        case 'SELECT':
+        case 'SELECT': {
           const itemId = items[this.state.highlighted].id
           this.setState({
             selectedItems: {
@@ -852,24 +867,57 @@ export default class Home extends Component {
             },
           })
           break
-        case 'JUMP_INTO':
+        }
+        case 'JUMP_INTO': {
           const item = items[this.state.highlighted]
           if (includes(['VM', 'host', 'pool', 'SR'], item && item.type)) {
             this.context.router.push({
               pathname: `${item.type.toLowerCase()}s/${item.id}`,
             })
           }
+        }
       }
     }
   )
 
   // Header --------------------------------------------------------------------
 
+  _getBackupFilter = createSelector(
+    () => this.props.location.query.backup,
+    backup =>
+      backup === undefined
+        ? 'all'
+        : backup === 'true'
+        ? 'backedUpVms'
+        : 'notBackedUpVms'
+  )
+
+  _setBackupFilter = backupFilter => {
+    const { pathname, query } = this.props.location
+    const isAll = backupFilter === 'all'
+    this.context.router.push({
+      pathname,
+      query: {
+        ...query,
+        backup: isAll ? undefined : backupFilter === 'backedUpVms',
+        p: isAll ? 1 : undefined,
+        s_backup: undefined,
+      },
+    })
+  }
+
   _renderHeader() {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
     const nItems = this._getNumberOfItems()
-    const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
+    const {
+      isAdmin,
+      isPoolAdmin,
+      items,
+      location,
+      noResourceSets,
+      type,
+    } = this.props
 
     const {
       homeItemsPerPage,
@@ -889,6 +937,10 @@ export default class Home extends Component {
       showPoolsSelector,
       showResourceSetsSelector,
     } = options
+
+    // Disable all the features that are already handled by the SortedTable
+    // or irrelevant with the SortedTable.
+    const disableHomeFeatures = location.query.backup !== undefined
 
     return (
       <Container>
@@ -971,25 +1023,29 @@ export default class Home extends Component {
         </Row>
         <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
           <Col smallSize={6} mediumSize={2}>
-            <input
-              checked={this._getIsAllSelected()}
-              onChange={this._toggleMaster}
-              ref='masterCheckbox'
-              type='checkbox'
-            />{' '}
-            <span className='text-muted'>
-              {this._getNumberOfSelectedItems()
-                ? _('homeSelectedItems', {
-                    icon: <Icon icon={type.toLowerCase()} />,
-                    selected: this._getNumberOfSelectedItems(),
-                    total: nItems,
-                  })
-                : _('homeDisplayedItems', {
-                    displayed: filteredItems.length,
-                    icon: <Icon icon={type.toLowerCase()} />,
-                    total: nItems,
-                  })}
-            </span>
+            {!disableHomeFeatures && (
+              <span>
+                <input
+                  checked={this._getIsAllSelected()}
+                  onChange={this._toggleMaster}
+                  ref='masterCheckbox'
+                  type='checkbox'
+                />{' '}
+                <span className='text-muted'>
+                  {this._getNumberOfSelectedItems()
+                    ? _('homeSelectedItems', {
+                        icon: <Icon icon={type.toLowerCase()} />,
+                        selected: this._getNumberOfSelectedItems(),
+                        total: nItems,
+                      })
+                    : _('homeDisplayedItems', {
+                        displayed: filteredItems.length,
+                        icon: <Icon icon={type.toLowerCase()} />,
+                        total: nItems,
+                      })}
+                </span>
+              </span>
+            )}
           </Col>
           <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
             {this._getNumberOfSelectedItems() ? (
@@ -1033,6 +1089,33 @@ export default class Home extends Component {
               </div>
             ) : (
               <div>
+                {type === 'VM' && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover
+                        className={styles.selectObject}
+                        id='backupPopover'
+                      >
+                        <Select
+                          autoFocus
+                          onChange={this._setBackupFilter}
+                          openOnFocus
+                          options={BACKUP_FILTERS}
+                          required
+                          simpleValue
+                          value={this._getBackupFilter()}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='backup' /> {_('backup')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
                 {showPoolsSelector && (
                   <OverlayTrigger
                     trigger='click'
@@ -1122,6 +1205,7 @@ export default class Home extends Component {
                 )}
                 <DropdownButton
                   bsStyle='link'
+                  disabled={disableHomeFeatures}
                   id='sort'
                   title={_('homeSortBy')}
                 >
@@ -1148,9 +1232,11 @@ export default class Home extends Component {
             )}
           </Col>
           <Col smallSize={6} mediumSize={2} className='text-xs-right'>
-            <Button onClick={this._expandAll}>
-              <Icon icon='nav' />
-            </Button>{' '}
+            {!disableHomeFeatures && (
+              <Button onClick={this._expandAll}>
+                <Icon icon='nav' />
+              </Button>
+            )}{' '}
             <DropdownButton bsStyle='info' title={homeItemsPerPage}>
               {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
                 <MenuItem
@@ -1174,7 +1260,11 @@ export default class Home extends Component {
       areObjectsFetched,
       isAdmin,
       isPoolAdmin,
+      location: {
+        query: { backup },
+      },
       noResourceSets,
+      type,
     } = this.props
 
     if (!areObjectsFetched) {
@@ -1201,8 +1291,13 @@ export default class Home extends Component {
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
-    const { Item } = OPTIONS[this.props.type]
-    const { expandAll, highlighted, selectedItems } = this.state
+    const { Item } = OPTIONS[type]
+    const {
+      expandAll,
+      highlighted,
+      homeItemsPerPage,
+      selectedItems,
+    } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
@@ -1218,49 +1313,55 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        <div>
-          <div className={styles.itemContainer}>
-            {isEmpty(filteredItems) ? (
-              <p className='text-xs-center mt-1'>
-                <a className='btn btn-link' onClick={this._clearFilter}>
-                  <Icon icon='info' /> {_('homeNoMatches')}
-                </a>
-              </p>
-            ) : (
-              map(visibleItems, (item, index) => (
-                <div
-                  key={item.id}
-                  className={
-                    highlighted === index ? styles.highlight : undefined
-                  }
-                >
-                  <Item
-                    expandAll={expandAll}
-                    item={item}
+        {backup === undefined ? (
+          <div>
+            <div className={styles.itemContainer}>
+              {isEmpty(filteredItems) ? (
+                <p className='text-xs-center mt-1'>
+                  <a className='btn btn-link' onClick={this._clearFilter}>
+                    <Icon icon='info' /> {_('homeNoMatches')}
+                  </a>
+                </p>
+              ) : (
+                map(visibleItems, (item, index) => (
+                  <div
                     key={item.id}
-                    onSelect={this.toggleState(`selectedItems.${item.id}`)}
-                    selected={Boolean(selectedItems[item.id])}
-                  />
+                    className={
+                      highlighted === index ? styles.highlight : undefined
+                    }
+                  >
+                    <Item
+                      expandAll={expandAll}
+                      item={item}
+                      key={item.id}
+                      onSelect={this.toggleState(`selectedItems.${item.id}`)}
+                      selected={Boolean(selectedItems[item.id])}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+            {filteredItems.length > homeItemsPerPage && (
+              <Row>
+                <div style={{ display: 'flex', width: '100%' }}>
+                  <div style={{ margin: 'auto' }}>
+                    <Pagination
+                      onChange={this._onPageSelection}
+                      pages={ceil(filteredItems.length / homeItemsPerPage)}
+                      value={this._getPage()}
+                    />
+                  </div>
                 </div>
-              ))
+              </Row>
             )}
           </div>
-          {filteredItems.length > this.state.homeItemsPerPage && (
-            <Row>
-              <div style={{ display: 'flex', width: '100%' }}>
-                <div style={{ margin: 'auto' }}>
-                  <Pagination
-                    onChange={this._onPageSelection}
-                    pages={ceil(
-                      filteredItems.length / this.state.homeItemsPerPage
-                    )}
-                    value={this._getPage()}
-                  />
-                </div>
-              </div>
-            </Row>
-          )}
-        </div>
+        ) : (
+          <BackedUpVms
+            itemsPerPage={homeItemsPerPage}
+            showBackedUpVms={backup === 'true'}
+            vms={filteredItems}
+          />
+        )}
       </Page>
     )
   }
