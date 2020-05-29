@@ -8,10 +8,9 @@ import pumpify from 'pumpify'
 import { format, parse } from 'json-rpc-protocol'
 import { inspect } from 'util'
 import { load as loadConfig } from 'app-conf'
+import { readChunk } from '@vates/read-chunk'
 
 import pkg from '../package.json'
-
-import readChunk from './_readChunk'
 
 const parseValue = value =>
   value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
