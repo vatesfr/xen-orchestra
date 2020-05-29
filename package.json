@@ -77,7 +77,7 @@
     "travis-tests": "scripts/travis-tests"
   },
   "workspaces": [
-    "@xen-orchestra/*",
+    "@*/*",
     "packages/*"
   ]
 }
