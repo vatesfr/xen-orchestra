@@ -1,21 +1,27 @@
 # ChangeLog
 
-## **next**
+## **5.47.0** (2020-05-29)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Highlights
+
+- [Proxy] Ability to start a trial if no license available (PR [#5022](https://github.com/vatesfr/xen-orchestra/pull/5022))
+- [Home/VM] Ability to list VMs which are (not) backed up [#4777](https://github.com/vatesfr/xen-orchestra/issues/4777) (PR [#4974](https://github.com/vatesfr/xen-orchestra/pull/4974))
+- [SDN Controller] Ability to choose host as preferred center at private network creation [#4991](https://github.com/vatesfr/xen-orchestra/issues/4991) (PR [#5000](https://github.com/vatesfr/xen-orchestra/pull/5000))
+- [Plugin/auth-ldap] Support `StartTLS` [#4999](https://github.com/vatesfr/xen-orchestra/issues/4999)
+- [XO config export] Ability to encrypt the exported file (PR [#4997](https://github.com/vatesfr/xen-orchestra/pull/4997))
+- [Backup] Improve listing performance (PR [#4985](https://github.com/vatesfr/xen-orchestra/pull/4985))
+- [Audit] Record failed connection attempts [#4844](https://github.com/vatesfr/xen-orchestra/issues/4844) (PR [#4900](https://github.com/vatesfr/xen-orchestra/pull/4900))
+- [OVA import] Add support for OVA 2.0 file format (PR [#4921](https://github.com/vatesfr/xen-orchestra/pull/4921))
+- [XOA/licenses] Display proxy licenses (PR [#4944](https://github.com/vatesfr/xen-orchestra/pull/4944))
+- [Usage report] Include CSV raw data files to the sent email [#4970](https://github.com/vatesfr/xen-orchestra/issues/4970) (PR [#4979](https://github.com/vatesfr/xen-orchestra/pull/4979))
 
 ### Enhancements
 
 - [VM] Move boot order setting from Disk tab to Advanced tab [#1523](https://github.com/vatesfr/xen-orchestra/issues/1523#issuecomment-563141573) (PR [#4975](https://github.com/vatesfr/xen-orchestra/pull/4975))
-- [XOA/licenses] Display proxy licenses (PR [#4944](https://github.com/vatesfr/xen-orchestra/pull/4944))
 - [Network selector] Display pool's name [#4885](https://github.com/vatesfr/xen-orchestra/issues/4885) (PR [#4990](https://github.com/vatesfr/xen-orchestra/pull/4990))
-- [Usage report] Include CSV raw data files to the sent email [#4970](https://github.com/vatesfr/xen-orchestra/issues/4970) (PR [#4979](https://github.com/vatesfr/xen-orchestra/pull/4979))
 - [Modal] Don't close pop-up forms when you click outside or press escape (PR [#5002](https://github.com/vatesfr/xen-orchestra/pull/5002))
-- [Plugin/auth-ldap] Support `StartTLS` [#4999](https://github.com/vatesfr/xen-orchestra/issues/4999)
-- [OVA import] Add support for OVA 2.0 file format (PR [#4921](https://github.com/vatesfr/xen-orchestra/pull/4921))
-- [Audit] Record failed connection attempts [#4844](https://github.com/vatesfr/xen-orchestra/issues/4844) (PR [#4900](https://github.com/vatesfr/xen-orchestra/pull/4900))
-- [XO config export] Ability to encrypt the exported file (PR [#4997](https://github.com/vatesfr/xen-orchestra/pull/4997))
-- [SDN Controller] Ability to choose host as preferred center at private network creation [#4991](https://github.com/vatesfr/xen-orchestra/issues/4991) (PR [#5000](https://github.com/vatesfr/xen-orchestra/pull/5000))
-- [Home/VM] Ability to list VMs which are (not) backed up [#4777](https://github.com/vatesfr/xen-orchestra/issues/4777) (PR [#4974](https://github.com/vatesfr/xen-orchestra/pull/4974))
-- [Proxy] Ability to start a trial if no license available (PR [#5022](https://github.com/vatesfr/xen-orchestra/pull/5022))
 
 ### Bug fixes
 
@@ -44,7 +50,7 @@
 
 ## **5.46.0** (2020-04-30)
 
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Highlights
 
@@ -78,8 +84,6 @@
 - xo-web 5.59.0
 
 ## **5.45.1** (2020-04-08)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 

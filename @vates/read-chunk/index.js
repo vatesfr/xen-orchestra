@@ -1,4 +1,4 @@
-export const readChunk = (stream, size) =>
+exports.readChunk = (stream, size) =>
   new Promise((resolve, reject) => {
     function onEnd() {
       resolve(null)
