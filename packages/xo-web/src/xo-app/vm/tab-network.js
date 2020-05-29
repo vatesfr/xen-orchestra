@@ -546,9 +546,9 @@ export default class TabNetwork extends BaseComponent {
       // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
       const ipsByDevice = {}
       Object.entries(addresses).forEach(([key, address]) => {
+        const [device, type] = key.split('/')
         // The ip and ipv4 fields have the same address.
-        if (key.includes('ipv4') || key.includes('ipv6')) {
-          const device = key.split('/')[0]
+        if (type !== 'ip') {
           if (ipsByDevice[device] === undefined) {
             ipsByDevice[device] = []
           }
