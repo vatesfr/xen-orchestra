@@ -9,6 +9,8 @@ import { format, parse } from 'json-rpc-protocol'
 import { inspect } from 'util'
 import { load as loadConfig } from 'app-conf'
 
+import pkg from '../package.json'
+
 import readChunk from './_readChunk'
 
 const parseValue = value =>
@@ -43,7 +45,9 @@ async function main(argv) {
 
   xo-proxy-cli <file>
     Read a JSON file containing an object with \`method\` and \`params\`
-    properties and call the API method.`
+    properties and call the API method.
+
+${pkg.name} v${pkg.version}`
     )
   }
 
