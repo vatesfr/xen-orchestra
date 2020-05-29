@@ -545,12 +545,11 @@ export default class TabNetwork extends BaseComponent {
       // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
       // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
       const ipsByDevice = {}
-      Object.keys(addresses).forEach(key => {
+      Object.entries(addresses).forEach(([key, address]) => {
         const device = key.split('/')[0]
         const ips = ipsByDevice[device] || []
-        const ip = addresses[key]
-        if (!ips.includes(ip)) {
-          ipsByDevice[device] = ips.concat(ip)
+        if (!ips.includes(address)) {
+          ipsByDevice[device] = ips.concat(address)
         }
       })
       return ipsByDevice
