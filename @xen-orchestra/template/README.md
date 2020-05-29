@@ -1,4 +1,8 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # @xen-orchestra/template [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/template)](https://npmjs.org/package/@xen-orchestra/template) ![License](https://badgen.net/npm/license/@xen-orchestra/template) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/template)](https://packagephobia.now.sh/result?p=@xen-orchestra/template)
 
 ## Install
 
@@ -30,25 +34,6 @@ const newString = myReplacer(
 newString === 'foo_COPY_{name}_42_32%' // true
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -62,4 +47,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

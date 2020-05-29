@@ -17,21 +17,23 @@ const _getPackages = scope => {
 }
 
 exports.getPackages = (readPackageJson = false) => {
-  const p = Promise.all([_getPackages(), _getPackages('@xen-orchestra')]).then(
-    pkgs => {
-      pkgs = [].concat(...pkgs) // flatten
-      return readPackageJson
-        ? Promise.all(
-            pkgs.map(pkg =>
-              readFile(`${pkg.dir}/package.json`).then(data => {
-                pkg.package = JSON.parse(data)
-                return pkg
-              }, noop)
-            )
-          ).then(pkgs => pkgs.filter(pkg => pkg !== undefined))
-        : pkgs
-    }
-  )
+  const p = Promise.all([
+    _getPackages(),
+    _getPackages('@vates'),
+    _getPackages('@xen-orchestra'),
+  ]).then(pkgs => {
+    pkgs = [].concat(...pkgs) // flatten
+    return readPackageJson
+      ? Promise.all(
+          pkgs.map(pkg =>
+            readFile(`${pkg.dir}/package.json`).then(data => {
+              pkg.package = JSON.parse(data)
+              return pkg
+            }, noop)
+          )
+        ).then(pkgs => pkgs.filter(pkg => pkg !== undefined))
+      : pkgs
+  })
   p.forEach = fn => p.then(pkgs => forEach.call(pkgs, fn))
   p.map = fn => p.then(pkgs => Promise.all(pkgs.map(fn))).then(noop)
   return p

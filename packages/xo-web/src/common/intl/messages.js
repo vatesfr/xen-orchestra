@@ -194,6 +194,9 @@ const messages = {
   editUserProfile: 'Edit my settings {username}',
 
   // ----- Home view ------
+  allVms: 'All VMs',
+  backedUpVms: 'Backed up VMs',
+  notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XenServer hosts or pools',
@@ -257,6 +260,7 @@ const messages = {
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
+  description: 'Description',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -1830,10 +1834,12 @@ const messages = {
   newNetworkBondMode: 'Bond mode',
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
+  newNetworkPreferredCenter: 'Preferred center (optional)',
   newNetworkEncapsulation: 'Encapsulation',
   newNetworkEncrypted: 'Encrypted',
   encryptionWarning:
     'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
+  preferredCenterTip: 'The host to try first to elect as center of the network',
   newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',

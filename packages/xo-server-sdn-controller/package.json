@@ -16,7 +16,7 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
-  "version": "0.4.1",
+  "version": "0.4.2",
   "engines": {
     "node": ">=8.10"
   },
@@ -35,5 +35,6 @@
     "promise-toolbox": "^0.15.0",
     "uuid": "^3.3.2"
   },
-  "private": true
+  "private": true,
+  "license": "AGPL-3.0-or-later"
 }

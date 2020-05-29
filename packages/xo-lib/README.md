@@ -1,19 +1,17 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # xo-lib [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> Library to connect to XO-Server.
+[![Package Version](https://badgen.net/npm/v/xo-lib)](https://npmjs.org/package/xo-lib) ![License](https://badgen.net/npm/license/xo-lib) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-lib)](https://packagephobia.now.sh/result?p=xo-lib)
+
+> Library to connect to XO-Server
 
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/xo-lib):
 
 ```
-npm install --save xo-lib
-```
-
-Then require the package:
-
-```javascript
-import Xo from 'xo-lib'
+> npm install --save xo-lib
 ```
 
 ## Usage
@@ -22,6 +20,8 @@ import Xo from 'xo-lib'
 > browser, the location of the current page will be used.
 
 ```javascript
+import Xo from 'xo-lib'
+
 // Connect to XO.
 const xo = new Xo({ url: 'https://xo.company.tld' })
 
@@ -133,25 +133,6 @@ xo.on('authenticationFailure', () => {
 })
 ```
 
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -165,4 +146,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

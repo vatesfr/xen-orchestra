@@ -1799,7 +1799,13 @@ export const createNetwork = params => _call('network.create', params)
 export const createBondedNetwork = params =>
   _call('network.createBonded', params)
 export const createPrivateNetwork = params =>
-  _call('sdnController.createPrivateNetwork', params)
+  _call('sdnController.createPrivateNetwork', {
+    ...params,
+    preferredCenterId:
+      params.preferredCenter !== null
+        ? resolveId(params.preferredCenter)
+        : undefined,
+  })
 
 export const deleteNetwork = network =>
   confirm({
@@ -3118,6 +3124,9 @@ export const subscribeTunnelState = createSubscription(() =>
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
+
+export const createProxyTrialLicense = () =>
+  _call('xoa.licenses.createProxyTrial')
 
 export const deployProxyAppliance = (
   license,

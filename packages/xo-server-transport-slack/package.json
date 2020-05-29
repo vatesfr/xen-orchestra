@@ -1,7 +1,7 @@
 {
   "name": "xo-server-transport-slack",
   "version": "0.0.0",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "description": "xo-server plugin to send messages to Slack/Mattermost",
   "keywords": [
     "mattermost",

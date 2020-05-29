@@ -1,10 +1,8 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # xo-server-perf-alert [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> Alert plugin for Xen Orchestra
-
-## Install
-
-For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
+> Sends alerts based on performance criteria
 
 ## Usage
 
@@ -24,4 +22,4 @@ You may:
 
 ## License
 
-AGPL3 © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

@@ -18,6 +18,10 @@ const deleteProperties = (object, property, properties) => {
   }
 }
 
+const generateReadme = require('handlebars').compile(
+  require('fs').readFileSync(`${__dirname}/README.md.tpl`, 'utf8')
+)
+
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {
     // consider packages as private by default to avoid publishing them by mistake
@@ -34,6 +38,9 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
+    if (!('license' in pkg)) {
+      pkg.license = 'AGPL-3.0-or-later'
+    }
     if (!('version' in pkg)) {
       pkg.version = '0.0.0'
     }
@@ -92,27 +99,26 @@ require('exec-promise')(() =>
     }
 
     return Promise.all([
-      readFile(`${dir}/README.md`, 'utf8')
-        .then(content => {
-          const data = {
-            pkg: {
-              ...pkg,
-              author: {
-                name: 'Vates SAS',
-                url: 'https://vates.fr',
-              },
-            },
-          }
-          return writeFile(
+      readFile(`${dir}/USAGE.md`, 'utf8')
+        .then(content =>
+          writeFile(
             `${dir}/README.md`,
-            content.replace(
-              /\$\{([^}]+)\}/g,
-              (_, path) => get(data, path, _) || _
-            )
+            generateReadme({
+              pkg: {
+                ...pkg,
+                author: {
+                  name: 'Vates SAS',
+                  url: 'https://vates.fr',
+                },
+              },
+              usage: content.trim(),
+            })
           )
-        })
+        )
         .catch(error => {
-          console.error('Error while handling README', error)
+          if (error.code !== 'ENOENT') {
+            console.error('Error while handling README', error)
+          }
         }),
       writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
       unlink(`${dir}/.editorconfig`),

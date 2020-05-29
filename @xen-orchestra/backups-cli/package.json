@@ -3,10 +3,11 @@
   "bin": {
     "xo-backups": "index.js"
   },
+  "preferGlobal": true,
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
     "@xen-orchestra/backups": "^0.1.1",
-    "@xen-orchestra/fs": "^0.10.3",
+    "@xen-orchestra/fs": "^0.10.4",
     "filenamify": "^4.1.0",
     "getopts": "^2.2.5",
     "lodash": "^4.17.15",
@@ -31,5 +32,6 @@
   "scripts": {
     "postversion": "npm publish --access public"
   },
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "license": "AGPL-3.0-or-later"
 }

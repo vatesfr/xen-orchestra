@@ -1,20 +1,26 @@
 import _, { messages } from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
+import noop from 'lodash/noop'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
-import { alert, form } from 'modal'
+import { alert, chooseAction, form } from 'modal'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { deployProxyAppliance, getLicenses, isSrWritable } from 'xo'
 import { generateId } from 'reaclette-utils'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
 import { Select } from 'form'
 import { SelectNetwork, SelectSr } from 'select-objects'
+import {
+  createProxyTrialLicense,
+  deployProxyAppliance,
+  getLicenses,
+  isSrWritable,
+} from 'xo'
 
 const Label = ({ children, ...props }) => (
   <label {...props} style={{ cursor: 'pointer' }}>
@@ -249,20 +255,40 @@ const deployProxy = async ({ proxy } = {}) => {
     )
   }
 
-  const header = (
-    <span>
-      <Icon icon='proxy' />{' '}
-      {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
-    </span>
-  )
-
+  const title = isRedeployMode ? _('redeployProxy') : _('deployProxy')
   if (license === undefined) {
-    return alert(
-      header,
-      <div className='text-muted'>
-        <Icon icon='info' /> {_('noLicenseAvailable')}
-      </div>
-    )
+    const value = 'trial'
+    const choice = await chooseAction({
+      body: (
+        <div className='text-muted'>
+          <Icon icon='info' /> {_('noLicenseAvailable')}
+        </div>
+      ),
+      buttons: [
+        {
+          btnStyle: 'success',
+          icon: 'trial',
+          label: _('trialStartButton'),
+          value,
+        },
+      ],
+      icon: 'proxy',
+      title,
+    }).catch(noop)
+    if (choice !== value) {
+      return
+    }
+
+    try {
+      license = await createProxyTrialLicense()
+    } catch (error) {
+      return alert(
+        _('trialStartButton'),
+        <span className='text-danger'>
+          <Icon icon='alarm' /> {error.message}
+        </span>
+      )
+    }
   }
 
   return form({
@@ -274,7 +300,11 @@ const deployProxy = async ({ proxy } = {}) => {
       networkMode: 'dhcp',
     },
     render: props => <Modal {...props} redeploy={isRedeployMode} />,
-    header,
+    header: (
+      <span>
+        <Icon icon='proxy' /> {title}
+      </span>
+    ),
   }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
     deployProxyAppliance(license, sr, {
       network: network === null ? undefined : network,

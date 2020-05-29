@@ -1,37 +1,6 @@
-# @xen-orchestra/proxy [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> \${pkg.description}
-
-## Install
-
-Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/proxy):
-
-```
-> npm install --save @xen-orchestra/proxy
-```
-
-## Usage
-
-**TODO**
-
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production
-> yarn build
-```
+# @xen-orchestra/proxy [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 ## Contributions
 
@@ -46,4 +15,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

@@ -1,8 +1,8 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "0.10.3",
-  "license": "AGPL-3.0",
+  "version": "0.10.4",
+  "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",

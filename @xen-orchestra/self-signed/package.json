@@ -15,5 +15,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public"
-  }
+  },
+  "license": "ISC"
 }

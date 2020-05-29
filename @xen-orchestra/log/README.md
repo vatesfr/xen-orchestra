@@ -1,6 +1,8 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # @xen-orchestra/log [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> ${pkg.description}
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/log)](https://npmjs.org/package/@xen-orchestra/log) ![License](https://badgen.net/npm/license/@xen-orchestra/log) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/log)](https://packagephobia.now.sh/result?p=@xen-orchestra/log)
 
 ## Install
 
@@ -135,25 +137,6 @@ configure(transportSyslog())
 configure(transportSyslog('tcp://syslog.company.lan'))
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -161,10 +144,10 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-web/issues/)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

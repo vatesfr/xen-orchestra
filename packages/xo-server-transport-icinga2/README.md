@@ -1,17 +1,13 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # xo-server-transport-icinga2 [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> xo-server plugin to send status to icinga2 server
-
-## Install
-
-For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
+> Sends backup runs statuses to icinga2 server
 
 ## Usage
 
 Like all other xo-server plugins, it can be configured directly via
 the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
-
-## Development
 
 ### `Xo#sendIcinga2Status({ status, message })`
 
@@ -20,23 +16,6 @@ It has two parameters:
 
 - status: it's the service status in icinga2 (0: OK | 1: WARNING | 2: CRITICAL | 3: UNKNOWN).
 - message: it's the status information in icinga2.
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
 
 ## Contributions
 
@@ -51,4 +30,4 @@ You may:
 
 ## License
 
-AGPL3 © [Vates SAS](https://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

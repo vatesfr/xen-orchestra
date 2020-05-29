@@ -1,4 +1,8 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # xo-vmdk-to-vhd [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+
+[![Package Version](https://badgen.net/npm/v/xo-vmdk-to-vhd)](https://npmjs.org/package/xo-vmdk-to-vhd) ![License](https://badgen.net/npm/license/xo-vmdk-to-vhd) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-vmdk-to-vhd)](https://packagephobia.now.sh/result?p=xo-vmdk-to-vhd)
 
 > JS lib streaming a vmdk file to a vhd
 
@@ -36,25 +40,6 @@ vmdkToVhd(fs.createReadStream(vmdkFileName)).then(function(stream) {
 })
 ```
 
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -62,10 +47,10 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xen-orchestra/issues/)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-AGPLv3.0 © [Vates SAS](https://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

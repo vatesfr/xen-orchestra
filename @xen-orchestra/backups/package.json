@@ -18,5 +18,6 @@
   "dependencies": {
     "d3-time-format": "^2.2.3",
     "fs-extra": "^8.1.0"
-  }
+  },
+  "license": "AGPL-3.0-or-later"
 }

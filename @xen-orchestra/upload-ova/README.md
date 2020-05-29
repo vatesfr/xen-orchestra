@@ -1,4 +1,6 @@
-# XO-UPLOAD-OVA
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# @xen-orchestra/upload-ova [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > Basic CLI to upload ova files to Xen-Orchestra
 
@@ -58,5 +60,4 @@ You may:
 
 ## License
 
-XO-UPLOAD-OVA is released under the [AGPL
-v3](http://www.gnu.org/licenses/agpl-3.0-standalone.html).
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

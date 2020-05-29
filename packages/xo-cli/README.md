@@ -1,17 +1,17 @@
-# XO-CLI
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-[![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](http://travis-ci.org/vatesfr/xen-orchestra)
-[![Dependency Status](https://david-dm.org/vatesfr/xo-cli/status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli)
-[![devDependency Status](https://david-dm.org/vatesfr/xo-cli/dev-status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli#info=devDependencies)
+# xo-cli [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+
+[![Package Version](https://badgen.net/npm/v/xo-cli)](https://npmjs.org/package/xo-cli) ![License](https://badgen.net/npm/license/xo-cli) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-cli)](https://packagephobia.now.sh/result?p=xo-cli)
 
 > Basic CLI for Xen-Orchestra
 
 ## Install
 
-#### [npm](https://npmjs.org/package/xo-cli)
+Installation of the [npm package](https://npmjs.org/package/xo-cli):
 
 ```
-npm install -g xo-cli
+> npm install --global xo-cli
 ```
 
 ## Usage
@@ -129,25 +129,6 @@ encoding by prefixing with `json:`:
 
 A separate utility, [`xo-upload-ova`](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/upload-ova/README.md), can be used to import `.ova` files.
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -161,5 +142,4 @@ You may:
 
 ## License
 
-XO-CLI is released under the [AGPL
-v3](http://www.gnu.org/licenses/agpl-3.0-standalone.html).
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

@@ -29,5 +29,6 @@
   "dependencies": {
     "@xen-orchestra/log": "^0.2.0"
   },
-  "private": true
+  "private": true,
+  "license": "AGPL-3.0-or-later"
 }

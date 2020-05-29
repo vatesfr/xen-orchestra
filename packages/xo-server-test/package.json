@@ -2,7 +2,7 @@
   "private": true,
   "name": "xo-server-test",
   "version": "0.0.0",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "description": "Test client for Xo-Server",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-test",

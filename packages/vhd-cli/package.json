@@ -16,7 +16,7 @@
     "name": "Julien Fontanet",
     "email": "julien.fontanet@isonoe.net"
   },
-  "preferGlobal": false,
+  "preferGlobal": true,
   "main": "dist/",
   "bin": {
     "vhd-cli": "dist/index.js"
@@ -28,7 +28,7 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^0.10.3",
+    "@xen-orchestra/fs": "^0.10.4",
     "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",

@@ -1,6 +1,10 @@
-# xo-server-test
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xo-server-test [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
 > Test client for Xo-Server
+
+## Usage
 
 Tests are ran sequentially to avoid concurrency issues.
 
@@ -145,10 +149,10 @@ describe('issue', () => {
 
 - You can run only tests related to changed files, and review the failed output by using: `> yarn test --watch`
 
-- ⚠ Warning: snapshots ⚠  
+- ⚠ Warning: snapshots ⚠
   After each run of the tests, check that snapshots are not inadvertently modified.
 
-- ⚠ Jest known issue ⚠  
+- ⚠ Jest known issue ⚠
   If a test timeout is triggered the next async tests can fail, it's due to an inadvertently modified snapshots.
   As a workaround, you can clean your git working tree and re-run jest using a large timeout: `> yarn test --testTimeout=100000`
 
@@ -165,4 +169,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

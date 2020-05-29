@@ -1,6 +1,10 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # xo-acl-resolver [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
 
-> [Xen-Orchestra](http://xen-orchestra.com/) internal: do ACLs resolution.
+[![Package Version](https://badgen.net/npm/v/xo-acl-resolver)](https://npmjs.org/package/xo-acl-resolver) ![License](https://badgen.net/npm/license/xo-acl-resolver) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-acl-resolver)](https://packagephobia.now.sh/result?p=xo-acl-resolver)
+
+> Xen-Orchestra internal: do ACLs resolution
 
 ## Install
 
@@ -42,28 +46,6 @@ if (
 }
 ```
 
-## Development
-
-### Installing dependencies
-
-```
-> npm install
-```
-
-### Compilation
-
-The sources files are watched and automatically recompiled on changes.
-
-```
-> npm run dev
-```
-
-### Tests
-
-```
-> npm run test-dev
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -77,4 +59,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

@@ -393,11 +393,10 @@ async function registerPluginsInPath(path) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    [
-      `${__dirname}/../../`, // in monorepo
-      `${__dirname}/../node_modules/`, // installed as dependencies
-      '/usr/local/lib/node_modules/', // installed globally
-    ].map(registerPluginsInPath, xo)
+    [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'].map(
+      registerPluginsInPath,
+      xo
+    )
   )
 }
 
