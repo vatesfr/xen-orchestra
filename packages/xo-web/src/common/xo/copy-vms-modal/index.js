@@ -44,10 +44,9 @@ import {
 class CopyVmsModalBody extends BaseComponent {
   get value() {
     const { state } = this
-    if (!state || (state.copyMode === 'fullCopy' && state.sr == null)) {
+    if (state.copyMode === 'fullCopy' && state.sr == null) {
       return {}
     }
-
     const { resolvedVms } = this.props
     const { compression, copyMode, namePattern, sr } = state
 

@@ -1788,7 +1788,6 @@ const messages = {
   // ----- Copy VM -----
   copyVm: 'Copy VM',
   copyVmName: 'Name',
-  copyVmNamePlaceholder: 'If empty: name of the copied VM',
   copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
