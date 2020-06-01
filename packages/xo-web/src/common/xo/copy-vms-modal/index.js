@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import map from 'lodash/map'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { compileTemplate } from '@xen-orchestra/template'
 import { injectIntl } from 'react-intl'
@@ -13,13 +14,28 @@ import { connectStore } from 'utils'
 
 import SelectCompression from '../../select-compression'
 import ZstdChecker from '../../zstd-checker'
-import { createGetObjectsOfType } from '../../selectors'
+import {
+  createGetObject,
+  createGetObjectsOfType,
+  createSelector,
+} from '../../selectors'
 
 @connectStore(
   () => {
     const getVms = createGetObjectsOfType('VM').pick((_, props) => props.vms)
+
+    const getIsZstdSupported = createSelector(
+      createGetObject(
+        createSelector(getVms, vms =>
+          vms.length === 1 ? Object.values(vms)[0].$container : undefined
+        )
+      ),
+      container => container === undefined || container.zstdSupported
+    )
+
     return {
       resolvedVms: getVms,
+      isZstdSupported: getIsZstdSupported,
     }
   },
   { withRef: true }
@@ -27,11 +43,12 @@ import { createGetObjectsOfType } from '../../selectors'
 class CopyVmsModalBody extends BaseComponent {
   get value() {
     const { state } = this
-    if (!state || !state.sr) {
+    if (!state || (state.copyMode === 'fullCopy' && state.sr == null)) {
       return {}
     }
+
     const { resolvedVms } = this.props
-    const { namePattern } = state
+    const { compression, copyMode, namePattern, sr } = state
 
     const names = namePattern
       ? map(
@@ -42,17 +59,19 @@ class CopyVmsModalBody extends BaseComponent {
           })
         )
       : map(resolvedVms, vm => vm.name_label)
+
     return {
-      compression:
-        state.compression === 'zstd' ? 'zstd' : state.compression === 'native',
+      compression: compression === 'zstd' ? 'zstd' : compression === 'native',
+      copyMode,
       names,
-      sr: state.sr.id,
+      sr: sr == null ? undefined : sr.id,
     }
   }
 
   componentWillMount() {
     this.setState({
       compression: '',
+      copyMode: 'fullCopy',
       namePattern: '{name}_COPY',
     })
   }
@@ -64,19 +83,13 @@ class CopyVmsModalBody extends BaseComponent {
   render() {
     const {
       intl: { formatMessage },
+      isZstdSupported,
       vms,
     } = this.props
-    const { compression, namePattern, sr } = this.state
+    const { compression, copyMode, namePattern, sr } = this.state
 
     return process.env.XOA_PLAN > 2 ? (
       <div>
-        <SingleLineRow>
-          <Col size={6}>{_('copyVmSelectSr')}</Col>
-          <Col size={6}>
-            <SelectSr onChange={this.linkState('sr')} value={sr} />
-          </Col>
-        </SingleLineRow>
-        &nbsp;
         <SingleLineRow>
           <Col size={6}>{_('copyVmName')}</Col>
           <Col size={6}>
@@ -89,17 +102,66 @@ class CopyVmsModalBody extends BaseComponent {
             />
           </Col>
         </SingleLineRow>
-        &nbsp;
-        <SingleLineRow>
-          <Col size={6}>{_('compression')}</Col>
-          <Col size={6}>
-            <SelectCompression
-              onChange={this.linkState('compression')}
-              value={compression}
-            />
-            {compression === 'zstd' && <ZstdChecker vms={vms} />}
-          </Col>
-        </SingleLineRow>
+        <div className='mt-1'>
+          <SingleLineRow>
+            <Col>
+              <label>
+                <input
+                  checked={copyMode === 'fullCopy'}
+                  name='copyMode'
+                  onChange={this.linkState('copyMode')}
+                  type='radio'
+                  value='fullCopy'
+                />
+                <span> {_('fullCopyMode')} </span>
+              </label>
+            </Col>
+          </SingleLineRow>
+          <SingleLineRow className='mt-1'>
+            <Col size={4} className='ml-2'>
+              {_('copyVmSelectSr')}
+            </Col>
+            <Col size={6}>
+              <SelectSr
+                disabled={copyMode !== 'fullCopy'}
+                onChange={this.linkState('sr')}
+                value={sr}
+              />
+            </Col>
+          </SingleLineRow>
+          <SingleLineRow className='mt-1'>
+            <Col size={4} className='ml-2'>
+              {_('compression')}
+            </Col>
+            <Col size={6}>
+              <SelectCompression
+                disabled={copyMode !== 'fullCopy'}
+                onChange={this.linkState('compression')}
+                showZstd={isZstdSupported}
+                value={compression}
+              />
+              {vms.length > 1 && compression === 'zstd' && (
+                <ZstdChecker vms={vms} />
+              )}
+            </Col>
+          </SingleLineRow>
+        </div>
+        <div>
+          <SingleLineRow className='mt-1'>
+            <Col>
+              <label>
+                <input
+                  checked={copyMode === 'fastClone'}
+                  name='copyMode'
+                  onChange={this.linkState('copyMode')}
+                  type='radio'
+                  value='fastClone'
+                />
+                <span> {_('fastCloneMode')} </span>
+              </label>
+            </Col>
+          </SingleLineRow>
+        </div>
       </div>
     ) : (
       <div>
@@ -108,4 +170,9 @@ class CopyVmsModalBody extends BaseComponent {
     )
   }
 }
+
+CopyVmsModalBody.PropTypes = {
+  vms: PropTypes.arrayOf(PropTypes.string).isRequired,
+}
+
 export default injectIntl(CopyVmsModalBody, { withRef: true })
