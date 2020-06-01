@@ -38,6 +38,12 @@ require('exec-promise')(() =>
       url: 'https://github.com/vatesfr/xen-orchestra.git',
     }
 
+    if (!('author' in pkg)) {
+      pkg.author = {
+        name: 'Vates SAS',
+        url: 'https://vates.fr',
+      }
+    }
     if (!('license' in pkg)) {
       pkg.license = 'AGPL-3.0-or-later'
     }

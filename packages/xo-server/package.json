@@ -167,5 +167,9 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
     "start": "node bin/xo-server"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

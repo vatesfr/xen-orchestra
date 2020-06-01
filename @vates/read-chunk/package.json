@@ -25,5 +25,9 @@
   },
   "scripts": {
     "postversion": "npm publish --access public"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

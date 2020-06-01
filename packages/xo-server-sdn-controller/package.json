@@ -36,5 +36,9 @@
     "uuid": "^3.3.2"
   },
   "private": true,
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
 }
