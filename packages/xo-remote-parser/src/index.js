@@ -5,6 +5,9 @@ import trimStart from 'lodash/trimStart'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0]+)(?:\0(.*))?$/
+// keyId:secretKey@awsEndPoint/bucket/directory
+// the protocol "s3://" has already been parsed
+const S3_RE = /^([^:]+):(.+)@([^@/]+)(\/.*)$/
 
 const sanitizePath = (...paths) =>
   filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join(
@@ -39,6 +42,13 @@ export const parse = string => {
     object.domain = domain
     object.username = username
     object.password = password
+  } else if (type === 's3') {
+    object.type = 's3'
+    const [, keyId, secretKey, endPoint, path] = S3_RE.exec(rest)
+    object.host = endPoint
+    object.path = path
+    object.username = keyId
+    object.password = secretKey
   }
   return object
 }
@@ -59,6 +69,9 @@ export const format = ({
   }
   if (type === 'smb') {
     string += `${username}:${password}@${domain}\\\\${host}`
+  }
+  if (type === 's3') {
+    string += `${username}:${password}@${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {

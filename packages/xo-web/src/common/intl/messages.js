@@ -545,6 +545,7 @@ const messages = {
   remoteTypeLocal: 'Local',
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
+  remoteTypeS3: 'Amazon Web Services S3',
   remoteType: 'Type',
   remoteSmbWarningMessage:
     'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
@@ -591,6 +592,8 @@ const messages = {
   remoteSmbPlaceHolderDomain: 'Domain',
   remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
+  remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
+  remoteS3PlaceHolderDirectory: 'directory',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----

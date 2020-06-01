@@ -294,6 +294,38 @@ const COLUMNS_SMB_REMOTE = [
   COLUMN_PROXY,
 ]
 
+const COLUMNS_S3_REMOTE = [
+  COLUMN_NAME,
+  {
+    itemRenderer: (remote, { formatMessage }) => (
+      <Text
+        data-element='bucket'
+        data-remote={remote}
+        onChange={_changeUrlElement}
+        placeholder='bucket placeholder'
+        value={remote.bucket}
+      />
+    ),
+    name: _('remotePath'),
+  },
+  COLUMN_STATE,
+  {
+    itemRenderer: (remote, { formatMessage }) => (
+      <span>
+        <Text
+          data-element='username'
+          data-remote={remote}
+          onChange={_changeUrlElement}
+          value={remote.username}
+        />
+      </span>
+    ),
+    name: 'Key ID',
+  },
+  COLUMN_SPEED,
+  COLUMN_PROXY,
+]
+
 const GROUPED_ACTIONS = [
   {
     handler: deleteRemotes,
@@ -440,6 +472,23 @@ export default decorate([
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
             stateUrlParam='smb'
+          />
+        </div>
+      )}
+
+      {!isEmpty(state.remoteWithInfo.s3) && (
+        <div>
+          <h2>{_('remoteTypeS3')}</h2>
+          <SortedTable
+            collection={state.remoteWithInfo.s3}
+            columns={COLUMNS_S3_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            data-reset={effects.reset}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='s3'
           />
         </div>
       )}
