@@ -1152,11 +1152,11 @@ export const cloneVm = (
   })::tap(subscribeResourceSets.forceRefresh)
 
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
-export const copyVms = vms => {
+export const copyVms = (vms, type) => {
   const _vms = resolveIds(vms)
   return confirm({
-    title: _('copyVm'),
-    body: <CopyVmsModalBody vms={_vms} />,
+    title: type === 'VM-template' ? _('copyTemplate') : _('copyVm'),
+    body: <CopyVmsModalBody vms={_vms} type={type} />,
   }).then(({ compress, copyMode, names, sr }) => {
     if (copyMode === 'fastClone') {
       return Promise.all(

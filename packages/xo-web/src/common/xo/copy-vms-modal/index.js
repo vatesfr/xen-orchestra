@@ -22,8 +22,9 @@ import {
 
 @connectStore(
   () => {
-    const getVms = createGetObjectsOfType('VM').pick((_, props) => props.vms)
-
+    const getVms = createGetObjectsOfType((_, props) => props.type).pick(
+      (_, props) => props.vms
+    )
     const getIsZstdSupported = createSelector(
       createGetObject(
         createSelector(getVms, vms =>
@@ -173,6 +174,11 @@ class CopyVmsModalBody extends BaseComponent {
 
 CopyVmsModalBody.PropTypes = {
   vms: PropTypes.arrayOf(PropTypes.string).isRequired,
+  type: PropTypes.oneOf(['VM', 'VM-snapshot', 'VM-template']),
+}
+
+CopyVmsModalBody.defaultProps = {
+  type: 'VM',
 }
 
 export default injectIntl(CopyVmsModalBody, { withRef: true })

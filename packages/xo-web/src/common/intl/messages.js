@@ -1798,6 +1798,7 @@ const messages = {
   notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
+  copyTemplate: 'Copy template',
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',
