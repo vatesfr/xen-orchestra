@@ -110,13 +110,7 @@ require('exec-promise')(() =>
           writeFile(
             `${dir}/README.md`,
             generateReadme({
-              pkg: {
-                ...pkg,
-                author: {
-                  name: 'Vates SAS',
-                  url: 'https://vates.fr',
-                },
-              },
+              pkg,
               usage: content.trim(),
             })
           )
