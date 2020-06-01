@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-cli [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-cli
 
-[![Package Version](https://badgen.net/npm/v/xo-cli)](https://npmjs.org/package/xo-cli) ![License](https://badgen.net/npm/license/xo-cli) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-cli)](https://packagephobia.now.sh/result?p=xo-cli)
+[![Package Version](https://badgen.net/npm/v/xo-cli)](https://npmjs.org/package/xo-cli) ![License](https://badgen.net/npm/license/xo-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-cli)](https://bundlephobia.com/result?p=xo-cli) [![Node compatibility](https://badgen.net/npm/node/xo-cli)](https://npmjs.org/package/xo-cli)
 
 > Basic CLI for Xen-Orchestra
 

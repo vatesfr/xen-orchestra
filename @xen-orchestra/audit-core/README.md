@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/audit-core [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/audit-core
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/audit-core)](https://npmjs.org/package/@xen-orchestra/audit-core) ![License](https://badgen.net/npm/license/@xen-orchestra/audit-core) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/audit-core)](https://packagephobia.now.sh/result?p=@xen-orchestra/audit-core)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/audit-core)](https://npmjs.org/package/@xen-orchestra/audit-core) ![License](https://badgen.net/npm/license/@xen-orchestra/audit-core) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/audit-core)](https://bundlephobia.com/result?p=@xen-orchestra/audit-core) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/audit-core)](https://npmjs.org/package/@xen-orchestra/audit-core)
 
 ## Install
 

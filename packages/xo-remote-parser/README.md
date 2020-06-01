@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-remote-parser [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-remote-parser
 
-[![Package Version](https://badgen.net/npm/v/xo-remote-parser)](https://npmjs.org/package/xo-remote-parser) ![License](https://badgen.net/npm/license/xo-remote-parser) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-remote-parser)](https://packagephobia.now.sh/result?p=xo-remote-parser)
+[![Package Version](https://badgen.net/npm/v/xo-remote-parser)](https://npmjs.org/package/xo-remote-parser) ![License](https://badgen.net/npm/license/xo-remote-parser) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-remote-parser)](https://bundlephobia.com/result?p=xo-remote-parser) [![Node compatibility](https://badgen.net/npm/node/xo-remote-parser)](https://npmjs.org/package/xo-remote-parser)
 
 ## Install
 

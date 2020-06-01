@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/cr-seed-cli [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/cr-seed-cli
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/cr-seed-cli)](https://npmjs.org/package/@xen-orchestra/cr-seed-cli) ![License](https://badgen.net/npm/license/@xen-orchestra/cr-seed-cli) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/cr-seed-cli)](https://packagephobia.now.sh/result?p=@xen-orchestra/cr-seed-cli)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/cr-seed-cli)](https://npmjs.org/package/@xen-orchestra/cr-seed-cli) ![License](https://badgen.net/npm/license/@xen-orchestra/cr-seed-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/cr-seed-cli)](https://bundlephobia.com/result?p=@xen-orchestra/cr-seed-cli) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/cr-seed-cli)](https://npmjs.org/package/@xen-orchestra/cr-seed-cli)
 
 ## Install
 

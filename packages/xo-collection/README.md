@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-collection [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-collection
 
-[![Package Version](https://badgen.net/npm/v/xo-collection)](https://npmjs.org/package/xo-collection) ![License](https://badgen.net/npm/license/xo-collection) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-collection)](https://packagephobia.now.sh/result?p=xo-collection)
+[![Package Version](https://badgen.net/npm/v/xo-collection)](https://npmjs.org/package/xo-collection) ![License](https://badgen.net/npm/license/xo-collection) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-collection)](https://bundlephobia.com/result?p=xo-collection) [![Node compatibility](https://badgen.net/npm/node/xo-collection)](https://npmjs.org/package/xo-collection)
 
 > Generic in-memory collection with events
 

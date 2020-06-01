@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/self-signed [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/self-signed
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/self-signed)](https://npmjs.org/package/@xen-orchestra/self-signed) ![License](https://badgen.net/npm/license/@xen-orchestra/self-signed) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/self-signed)](https://packagephobia.now.sh/result?p=@xen-orchestra/self-signed)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/self-signed)](https://npmjs.org/package/@xen-orchestra/self-signed) ![License](https://badgen.net/npm/license/@xen-orchestra/self-signed) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/self-signed)](https://bundlephobia.com/result?p=@xen-orchestra/self-signed) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/self-signed)](https://npmjs.org/package/@xen-orchestra/self-signed)
 
 > Minimalist wrapper around openssl to generate a self signed certificate
 

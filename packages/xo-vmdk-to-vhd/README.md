@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-vmdk-to-vhd [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-vmdk-to-vhd
 
-[![Package Version](https://badgen.net/npm/v/xo-vmdk-to-vhd)](https://npmjs.org/package/xo-vmdk-to-vhd) ![License](https://badgen.net/npm/license/xo-vmdk-to-vhd) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-vmdk-to-vhd)](https://packagephobia.now.sh/result?p=xo-vmdk-to-vhd)
+[![Package Version](https://badgen.net/npm/v/xo-vmdk-to-vhd)](https://npmjs.org/package/xo-vmdk-to-vhd) ![License](https://badgen.net/npm/license/xo-vmdk-to-vhd) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-vmdk-to-vhd)](https://bundlephobia.com/result?p=xo-vmdk-to-vhd) [![Node compatibility](https://badgen.net/npm/node/xo-vmdk-to-vhd)](https://npmjs.org/package/xo-vmdk-to-vhd)
 
 > JS lib streaming a vmdk file to a vhd
 
