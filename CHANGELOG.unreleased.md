@@ -32,3 +32,4 @@
 
 @xen-orchestra/fs minor
 xo-remote-parser minor
+xo-server minor
