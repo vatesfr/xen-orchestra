@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/defined [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/defined
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/defined)](https://npmjs.org/package/@xen-orchestra/defined) ![License](https://badgen.net/npm/license/@xen-orchestra/defined) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/defined)](https://packagephobia.now.sh/result?p=@xen-orchestra/defined)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/defined)](https://npmjs.org/package/@xen-orchestra/defined) ![License](https://badgen.net/npm/license/@xen-orchestra/defined) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/defined)](https://bundlephobia.com/result?p=@xen-orchestra/defined) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/defined)](https://npmjs.org/package/@xen-orchestra/defined)
 
 ## Install
 

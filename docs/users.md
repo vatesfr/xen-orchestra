@@ -62,9 +62,9 @@ In the "Settings" then "Plugins" view, expand the SAML plugin configuration. The
 
 Save the configuration and then activate the plugin (button on top).
 
-> Important: When registering your instance to your identity provider,
-> you must configure its callback URL to
-> `http://xo.example.net/signin/saml/callback`!
+:::warning
+When registering your instance to your identity provider, you must configure its callback URL to `http://xo.example.net/signin/saml/callback`!
+:::
 
 ### GitHub
 
@@ -132,7 +132,9 @@ ACLs are the permissions for your users or groups. The ACLs view can be accessed
 
 ![](./assets/createacl.png)
 
-> Pro tip: you can click to add multiple objects at the same time!
+:::tip
+You can click to add multiple objects at the same time!
+:::
 
 Your ACL is now available in the right list:
 
@@ -204,7 +206,9 @@ To create a new set of resources to delegate, go to the "Self Service" section i
 
 #### Create a set
 
-> Only an admin can create a set of resources
+:::tip
+Only an admin can create a set of resources
+:::
 
 To allow people to create VMs as they want, we need to give them a _part_ of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you first need to decide which resources will be used.
 
@@ -220,7 +224,9 @@ In this example below, we'll create a set called **"sandbox"** with:
 
 As you can see, only compatible hosts are shown and can be used for this resource set (hosts in another pool aren't shown). This way, you can be sure to have resources free for tasks other than self-service.
 
-> Don't forget to add an ISO SR to allow your users to install VMs with CD if necessary
+:::tip
+Don't forget to add an ISO SR to allow your users to install VMs with CD if necessary
+:::
 
 ##### Quotas
 
@@ -230,7 +236,9 @@ Then, you can define quotas on this set:
 - max RAM
 - max disk usage
 
-> Note: Snapshotting a VM within a self-service will _not_ use the quota from the resource set. The same rule applies for backups and replication.
+:::tip
+Snapshotting a VM within a self-service will _not_ use the quota from the resource set. The same rule applies for backups and replication.
+:::
 
 When you click on create, you can see the resource set and remove or edit it:
 

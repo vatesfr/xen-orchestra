@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/backups-cli [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/backups-cli
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/backups-cli)](https://npmjs.org/package/@xen-orchestra/backups-cli) ![License](https://badgen.net/npm/license/@xen-orchestra/backups-cli) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/backups-cli)](https://packagephobia.now.sh/result?p=@xen-orchestra/backups-cli)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/backups-cli)](https://npmjs.org/package/@xen-orchestra/backups-cli) ![License](https://badgen.net/npm/license/@xen-orchestra/backups-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/backups-cli)](https://bundlephobia.com/result?p=@xen-orchestra/backups-cli) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/backups-cli)](https://npmjs.org/package/@xen-orchestra/backups-cli)
 
 ## Install
 

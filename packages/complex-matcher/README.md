@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# complex-matcher [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# complex-matcher
 
-[![Package Version](https://badgen.net/npm/v/complex-matcher)](https://npmjs.org/package/complex-matcher) ![License](https://badgen.net/npm/license/complex-matcher) [![PackagePhobia](https://badgen.net/packagephobia/install/complex-matcher)](https://packagephobia.now.sh/result?p=complex-matcher)
+[![Package Version](https://badgen.net/npm/v/complex-matcher)](https://npmjs.org/package/complex-matcher) ![License](https://badgen.net/npm/license/complex-matcher) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/complex-matcher)](https://bundlephobia.com/result?p=complex-matcher) [![Node compatibility](https://badgen.net/npm/node/complex-matcher)](https://npmjs.org/package/complex-matcher)
 
 ## Install
 

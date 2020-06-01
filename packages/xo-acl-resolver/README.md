@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-acl-resolver [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-acl-resolver
 
-[![Package Version](https://badgen.net/npm/v/xo-acl-resolver)](https://npmjs.org/package/xo-acl-resolver) ![License](https://badgen.net/npm/license/xo-acl-resolver) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-acl-resolver)](https://packagephobia.now.sh/result?p=xo-acl-resolver)
+[![Package Version](https://badgen.net/npm/v/xo-acl-resolver)](https://npmjs.org/package/xo-acl-resolver) ![License](https://badgen.net/npm/license/xo-acl-resolver) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-acl-resolver)](https://bundlephobia.com/result?p=xo-acl-resolver) [![Node compatibility](https://badgen.net/npm/node/xo-acl-resolver)](https://npmjs.org/package/xo-acl-resolver)
 
 > Xen-Orchestra internal: do ACLs resolution
 

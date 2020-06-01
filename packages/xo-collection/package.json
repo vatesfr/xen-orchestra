@@ -13,8 +13,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Fabrice Marsaud",
-    "email": "fabrice.marsaud@vates.fr"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/collection",

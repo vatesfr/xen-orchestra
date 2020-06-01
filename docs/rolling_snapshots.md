@@ -8,7 +8,9 @@ We strongly advise that you do NOT rely only on snapshots!
 
 This feature is similar to Backups, but it creates a snapshot when planned to do so. It also handles the retention (removing the oldest snapshot). This feature is very convenient to rollback to a previous state.
 
-> :construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::tip
+:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+:::
 
 :::tip
 Due to space usage, rolling snapshots should be avoided for large VMs on non-thin provisioned storages.

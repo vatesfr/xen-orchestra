@@ -17,7 +17,10 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
   "preferGlobal": true,
   "main": "dist/",
   "bin": {

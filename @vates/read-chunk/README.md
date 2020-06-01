@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @vates/read-chunk [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @vates/read-chunk
 
-[![Package Version](https://badgen.net/npm/v/@vates/read-chunk)](https://npmjs.org/package/@vates/read-chunk) ![License](https://badgen.net/npm/license/@vates/read-chunk) [![PackagePhobia](https://badgen.net/packagephobia/install/@vates/read-chunk)](https://packagephobia.now.sh/result?p=@vates/read-chunk)
+[![Package Version](https://badgen.net/npm/v/@vates/read-chunk)](https://npmjs.org/package/@vates/read-chunk) ![License](https://badgen.net/npm/license/@vates/read-chunk) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@vates/read-chunk)](https://bundlephobia.com/result?p=@vates/read-chunk) [![Node compatibility](https://badgen.net/npm/node/@vates/read-chunk)](https://npmjs.org/package/@vates/read-chunk)
 
 > Read a chunk of a Node stream
 

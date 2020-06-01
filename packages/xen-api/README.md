@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xen-api [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xen-api
 
-[![Package Version](https://badgen.net/npm/v/xen-api)](https://npmjs.org/package/xen-api) ![License](https://badgen.net/npm/license/xen-api) [![PackagePhobia](https://badgen.net/packagephobia/install/xen-api)](https://packagephobia.now.sh/result?p=xen-api)
+[![Package Version](https://badgen.net/npm/v/xen-api)](https://npmjs.org/package/xen-api) ![License](https://badgen.net/npm/license/xen-api) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xen-api)](https://bundlephobia.com/result?p=xen-api) [![Node compatibility](https://badgen.net/npm/node/xen-api)](https://npmjs.org/package/xen-api)
 
 > Connector to the Xen API
 

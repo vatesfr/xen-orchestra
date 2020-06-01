@@ -1,6 +1,6 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-server-web-hooks [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-server-web-hooks
 
 > Sends HTTP requests on XO-Server API calls
 

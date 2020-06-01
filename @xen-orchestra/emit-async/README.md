@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/emit-async [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/emit-async
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async) ![License](https://badgen.net/npm/license/@xen-orchestra/emit-async) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/emit-async)](https://packagephobia.now.sh/result?p=@xen-orchestra/emit-async)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async) ![License](https://badgen.net/npm/license/@xen-orchestra/emit-async) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/emit-async)](https://bundlephobia.com/result?p=@xen-orchestra/emit-async) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async)
 
 ## Install
 

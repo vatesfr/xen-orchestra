@@ -61,5 +61,9 @@
     "predev": "yarn run clean",
     "prepare": "yarn run build",
     "postversion": "npm publish"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

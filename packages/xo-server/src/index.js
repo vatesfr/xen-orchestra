@@ -367,10 +367,7 @@ function registerPluginWrapper(pluginPath, pluginName) {
   )
 }
 
-const PLUGIN_PREFIX = 'xo-server-'
-const PLUGIN_PREFIX_LENGTH = PLUGIN_PREFIX.length
-
-async function registerPluginsInPath(path) {
+async function registerPluginsInPath(path, prefix) {
   const files = await readdir(path).catch(error => {
     if (error.code === 'ENOENT') {
       return []
@@ -380,11 +377,11 @@ async function registerPluginsInPath(path) {
 
   await Promise.all(
     files.map(name => {
-      if (name.startsWith(PLUGIN_PREFIX)) {
+      if (name.startsWith(prefix)) {
         return registerPluginWrapper.call(
           this,
           `${path}/${name}`,
-          name.slice(PLUGIN_PREFIX_LENGTH)
+          name.slice(prefix.length)
         )
       }
     })
@@ -393,9 +390,11 @@ async function registerPluginsInPath(path) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'].map(
-      registerPluginsInPath,
-      xo
+    [`${__dirname}/../node_modules`, `${__dirname}/../node_modules`].map(path =>
+      Promise.all([
+        registerPluginsInPath.call(xo, path, 'xo-server-'),
+        registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),
+      ])
     )
   )
 }
