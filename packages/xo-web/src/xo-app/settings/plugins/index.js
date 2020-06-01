@@ -246,6 +246,7 @@ class Plugin extends Component {
             <div className='form-group pull-right'>
               <ActionButton
                 btnStyle='primary'
+                disabled={!loaded}
                 form={this.testFormId}
                 handler={this._test}
                 icon='diagnosis'
