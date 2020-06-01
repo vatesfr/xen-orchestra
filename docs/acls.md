@@ -1,6 +1,6 @@
 # ACLs
 
-> ACLs are permissions that apply to pre-existing objects. Only a super admin (XO administrator) can create objects.
+ACLs are permissions that apply to pre-existing objects. Only a super admin (XO administrator) can create objects.
 
 ACLs are the permissions for your users or groups. The ACLs view can be accessed in the "Settings" panel.
 
@@ -11,7 +11,9 @@ ACLs are the permissions for your users or groups. The ACLs view can be accessed
 
 ![](./assets/createacl.png)
 
-> Pro tip: you can click to add multiple objects at the same time!
+:::tip
+You can click to add multiple objects at the same time!
+:::
 
 Your ACL is now available in the right list:
 

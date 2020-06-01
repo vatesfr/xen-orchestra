@@ -39,8 +39,11 @@ The second step is to select your purchase option:
 
 - Paid period: **check or wire transfer only**. This purchase allows you to subscribe for a one, two or three year period
 
-> A 2 year subscription period grants you 1 month discounted
-> A 3 year subscription period grants you 2 months discounted
+:::tip
+
+- A 2 year subscription period grants you 1 month discounted
+- A 3 year subscription period grants you 2 months discounted
+  :::
 
 Then you need to fill in your information and select **"Buy for my own use"** (direct purchase)
 
@@ -50,8 +53,10 @@ Then you need to fill in your information and select **"Buy for my own use"** (d
 
 You need to complete all the required information on this page in order to move forward.
 
-> Note: If you are part of the Eurozone, you will need to provide a valid EU VAT number in order to proceed to payment. Transactions between companies inside the Eurozone are VAT free.
-> Transactions outside the Eurozone are VAT free.
+:::tip
+If you are part of the Eurozone, you will need to provide a valid EU VAT number in order to proceed to payment. Transactions between companies inside the Eurozone are VAT free.
+Transactions outside the Eurozone are VAT free.
+:::
 
 ![](./assets/billing_info.png)
 
@@ -59,12 +64,16 @@ You need to complete all the required information on this page in order to move 
 
 Credit Card, Wire transfer or Bank check are the three payment methods available on our store. Some methods can be unavailable regarding the purchase option you have selected during step one.
 
-> Wire transfer is not available for monthly and yearly subscription - Credit Card is not available for paid period.
+:::tip
+Wire transfer is not available for monthly and yearly subscription - Credit Card is not available for paid period.
+:::
 
 ![](./assets/payment_mode.png)
 
-> All required information for wire transfer and Check payment will be available in the last step of the payment AND on your proforma invoice.
-> ⚠ Please, use an explicit reference for your wire transfer in order for us to easily identify your payment.
+:::tip
+All required information for wire transfer and Check payment will be available in the last step of the payment AND on your proforma invoice.
+:warning: Please, use an explicit reference for your wire transfer in order for us to easily identify your payment.
+:::
 
 ## Via your purchase departement
 
@@ -113,7 +122,9 @@ To apply to our partner program, you can access the [partner page](https://xen-o
 
 You will have to complete a form in order to provide information regarding your expectations and location. Once you've finished, you should receive an email in order to **start the discussion with someone from our team**.
 
-> It's important to answer the email - this will start the discussion with someone from our team in order to determine together if the partner status is what you really need.
+:::tip
+It's important to answer the email - this will start the discussion with someone from our team in order to determine together if the partner status is what you really need.
+:::
 
 Once we have activated your partner space, you will have the ability to access the purchasing page [at the same place](https://xen-orchestra.com/#!/partner).
 
@@ -162,3 +173,39 @@ If you want to purchase XO using the quote you receive, you just have to enter t
 If you choose a Stripe payment, you can always edit the credit card information in case it changes. To do so, you only have to login to your personal account page and access the _profile_ menu.
 
 ![](./assets/updatecreditcard.png)
+
+## Upgrade your plan
+
+If you want to upgrade your active plan to a higher version of Xen Orchestra, you can do it from your **personal space**.
+
+### Step by step:
+
+1. Connect on your personal account on the [website](https://xen-orchestra.com/#!/login?source=member.index).
+
+![](./assets/upgradestep1.png)
+
+2. Go on the purchase menu
+
+![](./assets/upgradestep2.png)
+
+3. Pick the line corresponding to the account you want to upgrade. Click on the "upgrade" button on the right.
+
+![](./assets/upgradestep3.png)
+
+4. At this point, you will see a standard subscription page. **Choose the same payment method you used to purchase the initial plan** and confirm the purchase.
+
+![](./assets/upgradestep4.png)
+
+5. If you chosse wire transfer, you have now the possibility to download a quote. As you can see, the remaining period of your previous plan is now a credit note applied on this upgrade.
+
+![](./assets/upgradestep5.png)
+
+6. As for a regular purchase, upload a proof of payment in order for us to activate your new plan as soon as possible.
+
+![](./assets/upgradestep6.png)
+
+7. **Enjoy your new plan!**
+
+:::tip
+As a reseller, the process is quite the same. The only difference is that you have to pick your customer line into you reseller space an not your personal space.
+:::

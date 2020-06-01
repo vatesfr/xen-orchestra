@@ -31,6 +31,34 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 We don't generate virtual appliances every month (unlike XO code itself). It's very likely you'll need to update Xen Orchestra after the initial deploy. You need to register to do so!
 :::
 
+### Trial
+
+In your current Free XOA, register it in the "Updates" view in the main menu:
+
+![](./assets/xo5updatemenu.png)
+
+**To register your appliance, please use your email/password from your previous registration on xen-orchestra.com**:
+
+![](./assets/xo5register.png)
+
+Then you can click on "Start Trial", the green button:
+
+![](./assets/xo5starttrial.png)
+
+Remember to click on the Upgrade button after requesting a trial - this will download the **Premium Edition** for 15 days!
+
+![](./assets/xo5updatebutton.png)
+
+### Trial availability
+
+In this update view, you can see when your trial will end:
+
+![](./assets/xo5trialend.png)
+
+:::tip
+Don't worry! XOA will still work after the trial: you'll be forced to downgrade to Free version, but you won't lose any configuration data.
+:::
+
 ### More on XOA
 
 You can get all the info you want on XOA in its [dedicated section](xoa.md).
@@ -68,7 +96,7 @@ If not, see [this page](https://nodejs.org/en/download/package-manager/) for ins
 
 #### Yarn
 
-> Yarn is a package manager that offers more guarantees than npm.
+Yarn is a package manager that offers more guarantees than npm.
 
 See [this page](https://yarnpkg.com/en/docs/install#debian-stable) for instructions on how to install Yarn.
 

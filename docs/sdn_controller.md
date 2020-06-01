@@ -61,7 +61,9 @@ The plugin's configuration contains:
 
 ### Encryption
 
-> Encryption is not available prior to 8.0.
+:::warning
+Encryption is not available prior to XCP-ng 8.0.
+:::
 
 - On XCP-ng 8.0:
   - To be able to encrypt the networks, `openvswitch-ipsec` package must be installed on all the hosts:

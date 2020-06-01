@@ -87,8 +87,148 @@ On "top" of there 2 types, you can also decide to spread all operations to multi
 
 Here is those 2 types:
 
-- [Replicated](xosan_replicated.md)
-- [Disperse](xosan_disperse.md)
+- Replicated
+- Disperse
+
+### Disperse type
+
+Data are **chunked and dispersed** on multiple nodes. There is a kind of "parity" data allowing to lost one or mode nodes ("like" RAID5 or RAID6).
+
+Pros:
+
+- good capacity (perfect for **HDD storage**)
+- simple to setup
+- simple to maintain
+- various level of protection
+
+Cons:
+
+- not all configrations possible (3, 5, 6 nodes and more)
+- limited performances on SSDs (replication is better in this case)
+
+![pictore disperse principle]()
+
+#### Disperse 3
+
+This is similar to **RAID5**: there is an [algorithm](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction) that will generate a kind of parity, being able to continue to work even if 1 node is down. If you reintroduce the node, it will be "healed" automatically.
+
+![picture disperse 3](./assets/disperse3.png)
+
+If you lose one node, your data are still here. This mode will give you **66% of your total disk space**.
+
+#### Disperse 5
+
+Same than 3, like **RAID5**, you can lose 1 node without service interruption.
+
+![picture disperse 5](./assets/disperse5.png)
+
+In this case, you'll be able to use up to **80%** of your total storage capacity!
+
+#### Disperse 6
+
+It's very similar to **RAID6**. You can lose up to 2 nodes, it will continue to work in read and write.
+
+![picture disperse 6](./assets/disperse6.png)
+
+![disperse 6 with 2 nodes down](./assets/disperse6_2nodesoff.png)
+
+#### Growing a disperse XOSAN
+
+You can grow a replicated XOSAN by adding extra disperse volumes, in other words a new disperse will be like in RAID 0 with the old one. It's a **distributed-disperse** type. Some examples:
+
+- To grow a disperse 3, you need 3 new nodes. You'll add the total capacity of each disperse to make a distributed-disperse on 2x3 dispersed nodes.
+- To grow a disperse 6, you need 6 new nodes.
+
+![growing disperse](./assets/disperse3_grow.png)
+
+### Replicated type
+
+Data are replicated from a node to another.
+
+Pros:
+
+- fast (**must be used for SSDs**)
+- relatively flexible
+
+Cons:
+
+- lower capacity (so higher cost, better for SSDs)
+- a bit more complex to maintain in distributed-replicated (see "RAID 10 like")
+
+#### 2-way replication
+
+This type is pretty simple to understand: everything written on one node is mirrored to another one. It's very similar to **RAID 1**.
+
+![picture replication](./assets/replicate2.png)
+
+If you lose one node, your data are still here. This mode will give you **50% of your total disk space** (e.g with 2x nodes of 100GiB, you'll have only 100GiB of space).
+
+#### 3-way replication
+
+Same than 2-way, but data is replicated on 3 nodes in total.
+
+![picture triplication](./assets/replicate3.png)
+
+2 nodes can be destroyed without losing your data. This mode will give you **33% of your total disk space** (e.g with 3x nodes of 100GiB, you'll have only 100GiB of space).
+
+#### Building a "RAID 10" like
+
+If you have more than 2 or 3 nodes, it could be interesting to **distribute** data on multiple replicated nodes. This is called "**distributed-replicated**" type. Here is an example with 6 nodes:
+
+![picture distributed-replicated with 6 nodes](./assets/replicate3x2.png)
+
+It's very similar to **RAID 10**. In this example, you'll have 300GiB of data usable.
+
+> This is the mode you'll use in a more than 3 nodes setup.
+
+#### Examples
+
+Here is some examples depending of the number of XenServer hosts.
+
+##### 2 hosts
+
+This is a kind of special mode. On a 2 nodes setup, one node must know what's happening if it can't contact the other node. This is called a **split brain** scenario. To avoid data loss, it goes on read only. But there is a way to overcome this, with a special node, called **the arbiter**. It will only require an extra VM using only few disk space.
+
+Thanks to this arbiter, you'll have 3 nodes running on 2 XenServer hosts:
+
+- if the host with 1 node is down, the other host will continue to provide a working XOSAN
+- if the host with 2 nodes (1 normal and 1 arbiter) id down, the other node will go into read only mode, to avoid split brain scenario.
+
+This way, in all cases, you are protected.
+
+##### 3 hosts
+
+The easiest way is to use 3-way replication. You can lose completely 2 hosts, it will continue to work on the survivor!
+
+##### 4 hosts
+
+The usual deal is to create a "group" of 2 replicated nodes (2x2). In a picture:
+
+![2x2 replication](./assets/replicate2x2.png)
+
+##### 5 hosts
+
+There is no way to use the local disks of 5 nodes in a replicated type. So you'll use 4 hosts in XOSAN, and the 5th would be also able to use the shared XOSAN SR, without participating directly to it.
+
+##### 6 hosts
+
+You have 2 choices:
+
+1. 2-way replication on 3 replicated nodes (2x3)
+2. 3-way replication on 2 triplicated nodes (3x2)
+
+There is more fault tolerance on mode 2, but less space usable. It's up to you!
+
+![2x3 mode](./assets/replicate2x3_full.png)
+
+![3x2 mode](./assets/replicate3x2_full.png)
+
+#### Growing a replicated XOSAN
+
+You can grow a replicated XOSAN by adding pairs, in other words "RAID 1"-like mirrors to the existing setup, like you would adds mirrored disks in "RAID 10" setup. Examples:
+
+- on a 2 hosts setup, going for 4 hosts by adding 2 mirrored nodes
+- on a 3 hosts setup using 3-way replication, by adding 3 mirrored nodes
 
 ### Which mode to choose
 
@@ -196,4 +336,6 @@ Access the XOSAN menu and click on the "new" button. By default, your XOSAN will
 
 ![activate-trial-xosan](./assets/xosan_trial.png)
 
-> _You will always have the opportunity to upgrade an existing XOSAN cluster which is in trial version to a standard XOSAN license._
+:::tip
+You will always have the opportunity to upgrade an existing XOSAN cluster which is in trial version to a standard XOSAN license.
+:::
