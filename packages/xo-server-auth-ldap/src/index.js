@@ -128,7 +128,8 @@ export const testSchema = {
 // ===================================================================
 
 class AuthLdap {
-  constructor(xo) {
+  constructor({ logger = noop, xo }) {
+    this._logger = logger
     this._xo = xo
 
     this._authenticate = this._authenticate.bind(this)
@@ -192,7 +193,9 @@ class AuthLdap {
     })
   }
 
-  async _authenticate({ username, password }, logger = noop) {
+  async _authenticate({ username, password }) {
+    const logger = this._logger
+
     if (username === undefined || password === undefined) {
       logger('require `username` and `password` to authenticate!')
 
@@ -251,4 +254,4 @@ class AuthLdap {
 
 // ===================================================================
 
-export default ({ xo }) => new AuthLdap(xo)
+export default opts => new AuthLdap(opts)
