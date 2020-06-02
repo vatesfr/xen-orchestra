@@ -185,7 +185,7 @@ export default class ActionButton extends Component {
     return tooltip ? (
       <Tooltip content={tooltip}>
         {props.disabled ? (
-          // disabled button should be wrapped before wrapping it with Tooltip
+          // tooltip not showing up on disabled button
           <span>{button}</span>
         ) : (
           button
