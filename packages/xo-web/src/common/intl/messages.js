@@ -267,7 +267,7 @@ const messages = {
   snapshotVmsDescription: 'Description',
 
   // ----- Common components -----
-  sortedTableAllItemsSelected: 'All of them are selected',
+  sortedTableAllItemsSelected: 'All of them are selected ({nItems, number})',
   sortedTableNoItems: 'No items found',
   sortedTableNumberOfFilteredItems:
     '{nFiltered, number} of {nTotal, number} items',

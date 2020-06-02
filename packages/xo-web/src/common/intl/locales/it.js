@@ -705,7 +705,7 @@ export default {
   snapshotVmsDescription: 'Descrizione',
 
   // Original text: 'All of them are selected'
-  sortedTableAllItemsSelected: 'Tutti sono selezionati',
+  sortedTableAllItemsSelected: 'Tutti sono selezionati ({nItems, number})',
 
   // Original text: 'No items found'
   sortedTableNoItems: 'Nessun elemento trovato',
