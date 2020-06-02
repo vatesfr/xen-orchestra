@@ -115,14 +115,26 @@ export default class Tooltip extends Component {
     this._node = null
   }
 
-  _showTooltip = () => {
+  _showTooltip = event => {
     const { props } = this
+    const { position } = getPosition(
+      event,
+      event.currentTarget,
+      ReactDOM.findDOMNode(instance),
+      instance.state.place,
+      'solid',
+      {}
+    )
 
     instance.setState({
       className: props.className,
       content: props.content,
       show: true,
-      style: props.style,
+      style: {
+        ...props.style,
+        left: `${position.left}px`,
+        top: `${position.top}px`,
+      },
     })
   }
 
