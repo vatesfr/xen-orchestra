@@ -175,13 +175,14 @@ export default {
             const vdi = vbd.$VDI
             await this._setObjectProperties(vdi, properties)
 
-            // if the disk is bigger
-            if (size != null && size > vdi.virtual_size) {
-              await this.resizeVdi(vdi.$id, size)
-            }
             // if another SR is set, move it there
             if (srId) {
               await this.moveVdi(vdi.$id, srId)
+            }
+
+            // if the disk is bigger
+            if (size != null && size > vdi.virtual_size) {
+              await this.resizeVdi(vdi.$id, size)
             }
           }
         )
