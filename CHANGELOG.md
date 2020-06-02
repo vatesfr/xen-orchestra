@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.47.1** (2020-06-02)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Bug fixes
 
@@ -11,8 +13,6 @@
 - xo-server-auth-ldap 0.8.1
 
 ## **5.47.0** (2020-05-29)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Highlights
 
