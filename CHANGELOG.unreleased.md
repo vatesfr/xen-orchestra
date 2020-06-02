@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/General] Fix displayed IPV6 instead of IPV4 in case of an old version of XenServer (PR [#5036](https://github.com/vatesfr/xen-orchestra/pull/5036)))
+
 ### Released packages
 
 > Packages will be released in the order they are here, therefore, they should
