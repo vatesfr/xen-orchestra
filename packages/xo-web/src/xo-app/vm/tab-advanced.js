@@ -51,6 +51,7 @@ import {
 } from 'lodash'
 import {
   addAcl,
+  blockVmDeletion,
   changeVirtualizationMode,
   cloneVm,
   convertVmToTemplate,
@@ -733,6 +734,15 @@ export default class TabAdvanced extends Component {
                     <Toggle
                       value={Boolean(vm.auto_poweron)}
                       onChange={value => editVm(vm, { auto_poweron: value })}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('protectFromDeletion')}</th>
+                  <td>
+                    <Toggle
+                      value={'destroy' in vm.blocked_operations}
+                      onChange={value => blockVmDeletion(vm, value)}
                     />
                   </td>
                 </tr>
