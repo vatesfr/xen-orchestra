@@ -182,6 +182,17 @@ export default class ActionButton extends Component {
       </Button>
     )
 
-    return tooltip ? <Tooltip content={tooltip}>{button}</Tooltip> : button
+    return tooltip ? (
+      <Tooltip content={tooltip}>
+        {props.disabled ? (
+          // disabled button should be wrapped before wrapping it with Tooltip
+          <span>{button}</span>
+        ) : (
+          button
+        )}
+      </Tooltip>
+    ) : (
+      button
+    )
   }
 }
