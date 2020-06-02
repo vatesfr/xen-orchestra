@@ -250,7 +250,7 @@ class Plugin extends Component {
                 form={this.testFormId}
                 handler={this._test}
                 icon='diagnosis'
-                tooltip={loaded ? '' : _('disabledTestPluginTootltip')}
+                tooltip={loaded ? undefined : _('disabledTestPluginTootltip')}
               >
                 Test plugin
               </ActionButton>
