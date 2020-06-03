@@ -1847,6 +1847,7 @@ export default class Xapi extends XapiBase {
           when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
         }
       ).then(extractOpaqueRef)
+
       return sr.$xapi._getOrWaitObject(ref)
     } catch (error) {
       const { code } = error
