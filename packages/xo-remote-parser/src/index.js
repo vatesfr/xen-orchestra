@@ -43,7 +43,7 @@ export const parse = string => {
   } else if (type === 's3') {
     const parsed = new Url(string)
     object.type = 's3'
-    object.host = parsed.hostname
+    object.host = parsed.host
     object.path = parsed.pathname
     object.username = parsed.username
     object.password = parsed.password

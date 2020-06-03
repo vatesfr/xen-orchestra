@@ -299,14 +299,26 @@ const COLUMNS_S3_REMOTE = [
   {
     itemRenderer: (remote, { formatMessage }) => (
       <Text
-        data-element='bucket'
+        data-element='host'
+        data-remote={remote}
+        onChange={_changeUrlElement}
+        placeholder='AWS endpoint'
+        value={remote.host}
+      />
+    ),
+    name: 'AWS S3 Endpoint',
+  },
+  {
+    itemRenderer: (remote, { formatMessage }) => (
+      <Text
+        data-element='path'
         data-remote={remote}
         onChange={_changeUrlElement}
         placeholder='bucket placeholder'
-        value={remote.bucket}
+        value={remote.path}
       />
     ),
-    name: _('remotePath'),
+    name: 'Bucket',
   },
   COLUMN_STATE,
   {
@@ -318,9 +330,17 @@ const COLUMNS_S3_REMOTE = [
           onChange={_changeUrlElement}
           value={remote.username}
         />
+        :
+        <Password
+          data-element='password'
+          data-remote={remote}
+          onChange={_changeUrlElement}
+          placeholder='Click to change Secret Key'
+          value=''
+        />
       </span>
     ),
-    name: 'Key ID',
+    name: 'Key',
   },
   COLUMN_SPEED,
   COLUMN_PROXY,
@@ -478,7 +498,7 @@ export default decorate([
 
       {!isEmpty(state.remoteWithInfo.s3) && (
         <div>
-          <h2>{_('remoteTypeS3')}</h2>
+          <h2>{_('remoteTypeS3')} (about S3 permissions)</h2>
           <SortedTable
             collection={state.remoteWithInfo.s3}
             columns={COLUMNS_S3_REMOTE}

@@ -177,6 +177,9 @@ export default decorate([
             {type === 'smb' && (
               <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
             )}
+            {type === 's3' && (
+              <em className='text-warning'>About S3 bucket permissions</em>
+            )}
           </div>
           <div className='form-group'>
             <input
@@ -347,7 +350,7 @@ export default decorate([
                   name='host'
                   onChange={effects.linkState}
                   // pattern='^[^\\/]+\\[^\\/]+$'
-                  placeholder='S3 endpoint'
+                  placeholder='AWS S3 endpoint (ex: s3.us-east-2.amazonaws.com)'
                   required
                   type='text'
                   value={host}
@@ -371,7 +374,7 @@ export default decorate([
               <div className='input-group form-group'>
                 <input
                   className='form-control'
-                  name='directory'
+                  name='Directory'
                   onChange={effects.linkState}
                   pattern='^(([^/]+)+(/[^/]+)*)?$'
                   placeholder={formatMessage(
@@ -382,23 +385,23 @@ export default decorate([
                   value={directory}
                 />
               </div>
-              <div className='input-group form-group'>
+              <div className='input-group'>
                 <input
                   className='form-control'
                   name='username'
                   onChange={effects.linkState}
-                  placeholder='Key ID'
+                  placeholder='Access key ID'
                   required
                   type='text'
                   value={username}
                 />
               </div>
-              <div className='input-group form-group'>
+              <div className='input-group'>
                 <input
                   className='form-control'
                   name='password'
                   onChange={effects.linkState}
-                  placeholder='Secret key'
+                  placeholder='Secret access key'
                   required
                   type='text'
                   value={password}
