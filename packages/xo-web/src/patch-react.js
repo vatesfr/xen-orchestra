@@ -30,7 +30,7 @@ React.createElement = (createElement => {
     return patchedRender
   }
 
-  return function(Component) {
+  return function (Component) {
     if (typeof Component === 'function') {
       const patched = Component._patched
       if (patched) {

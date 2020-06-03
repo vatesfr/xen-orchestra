@@ -108,7 +108,7 @@ describe('vbd', () => {
         () => {
           throw new Error('vbd.delete() should have thrown')
         },
-        function(error) {
+        function (error) {
           // TODO: check with Julien if it is ok
           expect(error.message).to.match('unknown error from the peer')
         }

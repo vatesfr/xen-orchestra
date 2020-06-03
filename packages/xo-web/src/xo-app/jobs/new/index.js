@@ -76,7 +76,7 @@ const ACTIONS = [
   },
 ]
 
-const getType = function(param) {
+const getType = function (param) {
   if (!param) {
     return
   }
@@ -101,7 +101,7 @@ const reduceObject = (value, propertyName = 'id') =>
 /**
  * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick
  */
-const dataToParamVectorItems = function(params, data) {
+const dataToParamVectorItems = function (params, data) {
   const items = []
   forEach(params, (param, name) => {
     if (Array.isArray(data[name]) && param.items) {

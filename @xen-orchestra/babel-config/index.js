@@ -51,7 +51,7 @@ const pluginsOrder = [
   '@babel/plugin-proposal-class-properties',
 ]
 
-module.exports = function(pkg, plugins, presets) {
+module.exports = function (pkg, plugins, presets) {
   plugins === undefined && (plugins = {})
   presets === undefined && (presets = {})
 

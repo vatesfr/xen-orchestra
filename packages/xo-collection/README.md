@@ -132,7 +132,7 @@ var bar = col.get('bar', 6.28)
 var _ = require('lodash')
 
 // Prints all the items.
-_.forEach(col.all, function(value, key) {
+_.forEach(col.all, function (value, key) {
   console.log('- %s: %j', key, value)
 })
 

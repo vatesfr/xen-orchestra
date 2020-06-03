@@ -704,7 +704,7 @@ ${entry.listItem}
   }
 }
 
-exports.default = function({ xo }) {
+exports.default = function ({ xo }) {
   return new PerfAlertXoPlugin(xo)
 }
 

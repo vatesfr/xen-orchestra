@@ -28,7 +28,7 @@ afterEach(async () => {
 })
 
 async function createRandomFile(name, sizeMB) {
-  const createRandomStream = asyncIteratorToStream(function*(size) {
+  const createRandomStream = asyncIteratorToStream(function* (size) {
     while (size-- > 0) {
       yield Buffer.from([Math.floor(Math.random() * 256)])
     }

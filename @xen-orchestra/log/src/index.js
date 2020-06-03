@@ -38,7 +38,7 @@ const { prototype } = Logger
 for (const name in LEVELS) {
   const level = LEVELS[name]
 
-  prototype[name.toLowerCase()] = function(message, data) {
+  prototype[name.toLowerCase()] = function (message, data) {
     if (typeof message !== 'string') {
       if (message instanceof Error) {
         data = { error: message }
@@ -54,13 +54,13 @@ for (const name in LEVELS) {
   }
 }
 
-prototype.wrap = function(message, fn) {
+prototype.wrap = function (message, fn) {
   const logger = this
   const warnAndRethrow = error => {
     logger.warn(message, { error })
     throw error
   }
-  return function() {
+  return function () {
     try {
       const result = fn.apply(this, arguments)
       const then = result != null && result.then

@@ -31,10 +31,7 @@ export default class MountHandler extends LocalHandler {
     }
     this._realPath = join(
       mountsDir,
-      remote.id ||
-        Math.random()
-          .toString(36)
-          .slice(2)
+      remote.id || Math.random().toString(36).slice(2)
     )
   }
 

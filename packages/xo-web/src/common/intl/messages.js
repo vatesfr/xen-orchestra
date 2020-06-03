@@ -2364,7 +2364,7 @@ const messages = {
   durationFormat:
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
-forEach(messages, function(message, id) {
+forEach(messages, function (message, id) {
   if (typeof message === 'string') {
     messages[id] = {
       id,

@@ -144,10 +144,7 @@ class XoWeekChart extends Component {
 
     const svg = this._svg
 
-    svg
-      .select('.horizon-area')
-      .selectAll('path')
-      .remove()
+    svg.select('.horizon-area').selectAll('path').remove()
     forEach(splittedData, data => {
       svg
         .select('.horizon-area')
@@ -195,11 +192,7 @@ class XoWeekChart extends Component {
       ::setStyles(X_AXIS_TEXT_STYLE)
 
     // 4. Update label.
-    svg
-      .select('.label')
-      .attr('dx', 5)
-      .attr('dy', 20)
-      .text(props.label)
+    svg.select('.label').attr('dx', 5).attr('dy', 20).text(props.label)
   }
 
   _handleMouseMove = () => {
@@ -228,10 +221,7 @@ class XoWeekChart extends Component {
     const { props } = this
     const hover = this._svg.select('.hover-container')
 
-    hover
-      .select('.hover-line')
-      .attr('x1', x)
-      .attr('x2', x)
+    hover.select('.hover-line').attr('x1', x).attr('x2', x)
 
     hover
       .select('.hover-text')
@@ -247,16 +237,10 @@ class XoWeekChart extends Component {
       .select(this.refs.chart)
       .append('svg')
       .attr('transform', `translate(${HORIZON_AREA_MARGIN}, 0)`))
-    svg
-      .append('g')
-      .attr('class', 'x-axis')
-      ::setStyles(X_AXIS_STYLE)
+    svg.append('g').attr('class', 'x-axis')::setStyles(X_AXIS_STYLE)
 
     svg.append('g').attr('class', 'horizon-area')
-    svg
-      .append('text')
-      .attr('class', 'label')
-      ::setStyles(LABEL_STYLE)
+    svg.append('text').attr('class', 'label')::setStyles(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
     svg

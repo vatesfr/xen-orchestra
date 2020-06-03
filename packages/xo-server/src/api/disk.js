@@ -12,7 +12,7 @@ const log = createLogger('xo:disk')
 
 // ===================================================================
 
-export const create = defer(async function(
+export const create = defer(async function (
   $defer,
   { name, size, sr, vm, bootable, position, mode }
 ) {

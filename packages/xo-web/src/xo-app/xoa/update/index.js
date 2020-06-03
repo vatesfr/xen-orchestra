@@ -223,7 +223,7 @@ const Updates = decorate([
             defined(channel, xoaConfiguration.channel),
       installedPackages: COMMUNITY
         ? () => ({ 'xen-orchestra': 'sources' })
-        : async function() {
+        : async function () {
             const {
               engine,
               installer,
