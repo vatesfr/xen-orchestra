@@ -1841,7 +1841,7 @@ export default class Xapi extends XapiBase {
       `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`
     )
     try {
-      return sr.$xapi.barrier(
+      return this.barrier(
         await pRetry(
           () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
           {
