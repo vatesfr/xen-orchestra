@@ -21,8 +21,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -37,7 +37,7 @@
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
     "@babel/preset-env": "^7.7.1",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {

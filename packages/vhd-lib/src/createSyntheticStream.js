@@ -96,7 +96,7 @@ export default async function createSyntheticStream(handler, paths) {
     }
     const fileSize = blockOffset * SECTOR_SIZE + FOOTER_SIZE
 
-    const iterator = function*() {
+    const iterator = function* () {
       try {
         footer = fuFooter.pack(footer)
         checksumStruct(footer, fuFooter)
@@ -119,7 +119,7 @@ export default async function createSyntheticStream(handler, paths) {
           yield bitmap
 
           const blocksByVhd = new Map()
-          const emitBlockSectors = function*(iVhd, i, n) {
+          const emitBlockSectors = function* (iVhd, i, n) {
             const vhd = vhds[iVhd]
             const isRootVhd = vhd === rootVhd
             if (!vhd.containsBlock(iBlock)) {

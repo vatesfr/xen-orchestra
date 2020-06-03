@@ -266,7 +266,7 @@ class AuditXoPlugin {
 }
 
 AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(
-  async function*(id) {
+  async function* (id) {
     for await (const record of this._auditCore.getFrom(id)) {
       yield JSON.stringify(record)
       yield '\n'

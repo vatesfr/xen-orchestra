@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xapi-explore-sr [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xapi-explore-sr
 
-[![Package Version](https://badgen.net/npm/v/xapi-explore-sr)](https://npmjs.org/package/xapi-explore-sr) ![License](https://badgen.net/npm/license/xapi-explore-sr) [![PackagePhobia](https://badgen.net/packagephobia/install/xapi-explore-sr)](https://packagephobia.now.sh/result?p=xapi-explore-sr)
+[![Package Version](https://badgen.net/npm/v/xapi-explore-sr)](https://npmjs.org/package/xapi-explore-sr) ![License](https://badgen.net/npm/license/xapi-explore-sr) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xapi-explore-sr)](https://bundlephobia.com/result?p=xapi-explore-sr) [![Node compatibility](https://badgen.net/npm/node/xapi-explore-sr)](https://npmjs.org/package/xapi-explore-sr)
 
 > Display the list of VDIs (unmanaged and snapshots included) of a SR
 

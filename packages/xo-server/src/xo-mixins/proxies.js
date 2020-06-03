@@ -139,10 +139,7 @@ export default class Proxy {
     )
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
-    return this._db
-      .update(proxy)
-      .then(extractProperties)
-      .then(omitToken)
+    return this._db.update(proxy).then(extractProperties).then(omitToken)
   }
 
   async upgradeProxyAppliance(id) {

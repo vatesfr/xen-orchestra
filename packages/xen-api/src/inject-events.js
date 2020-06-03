@@ -22,9 +22,7 @@ async function main([url]) {
   while (loop) {
     await pool.update_other_config(
       'xo:injectEvents',
-      Math.random()
-        .toString(36)
-        .slice(2)
+      Math.random().toString(36).slice(2)
     )
     await pDelay(1e2)
   }

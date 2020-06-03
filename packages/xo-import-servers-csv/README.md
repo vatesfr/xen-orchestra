@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-import-servers-csv [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-import-servers-csv
 
-[![Package Version](https://badgen.net/npm/v/xo-import-servers-csv)](https://npmjs.org/package/xo-import-servers-csv) ![License](https://badgen.net/npm/license/xo-import-servers-csv) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-import-servers-csv)](https://packagephobia.now.sh/result?p=xo-import-servers-csv)
+[![Package Version](https://badgen.net/npm/v/xo-import-servers-csv)](https://npmjs.org/package/xo-import-servers-csv) ![License](https://badgen.net/npm/license/xo-import-servers-csv) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-import-servers-csv)](https://bundlephobia.com/result?p=xo-import-servers-csv) [![Node compatibility](https://badgen.net/npm/node/xo-import-servers-csv)](https://npmjs.org/package/xo-import-servers-csv)
 
 > CLI to import servers in XO from a CSV file
 

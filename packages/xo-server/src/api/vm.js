@@ -49,7 +49,7 @@ const extract = (obj, prop) => {
 }
 
 // TODO: Implement ACLs
-export const create = defer(async function($defer, params) {
+export const create = defer(async function ($defer, params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
@@ -345,7 +345,7 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-const delete_ = defer(async function(
+const delete_ = defer(async function (
   $defer,
   {
     delete_disks, // eslint-disable-line camelcase
@@ -553,7 +553,7 @@ migrate.resolve = {
 
 // -------------------------------------------------------------------
 
-export const set = defer(async function($defer, params) {
+export const set = defer(async function ($defer, params) {
   const VM = extract(params, 'VM')
   const xapi = this.getXapi(VM)
   const vmId = VM._xapiId
@@ -691,7 +691,7 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export const clone = defer(async function(
+export const clone = defer(async function (
   $defer,
   { vm, name, full_copy: fullCopy }
 ) {
@@ -794,7 +794,7 @@ export { convertToTemplate as convert }
 
 // -------------------------------------------------------------------
 
-export const snapshot = defer(async function(
+export const snapshot = defer(async function (
   $defer,
   {
     vm,
@@ -1197,7 +1197,7 @@ resume.resolve = {
 
 // -------------------------------------------------------------------
 
-export const revert = defer(async function($defer, { snapshot }) {
+export const revert = defer(async function ($defer, { snapshot }) {
   await this.checkPermissions(this.user.id, [
     [snapshot.$snapshot_of, 'operate'],
   ])

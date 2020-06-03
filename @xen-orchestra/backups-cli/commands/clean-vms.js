@@ -152,11 +152,12 @@ async function handleVm(vmDir) {
     await Promise.all(deletions)
   }
 
-  const [jsons, xvas] = await fs
+  const [jsons, xvas, xvaSums] = await fs
     .readdir2(vmDir)
     .then(entries => [
       entries.filter(_ => _.endsWith('.json')),
       new Set(entries.filter(_ => _.endsWith('.xva'))),
+      entries.filter(_ => _.endsWith('.xva.cheksum')),
     ])
 
   await asyncMap(xvas, async path => {
@@ -273,6 +274,15 @@ async function handleVm(vmDir) {
       force && console.warn('  deleting…')
       console.warn('')
       return force && handler.unlink(path)
+    }),
+    asyncMap(xvaSums, path => {
+      // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
+      if (!xvas.has(path.slice(0, -'.checksum'.length))) {
+        console.warn('Unused XVA checksum', path)
+        force && console.warn('  deleting…')
+        console.warn('')
+        return force && handler.unlink(path)
+      }
     }),
   ])
 }

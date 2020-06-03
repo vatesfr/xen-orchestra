@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# value-matcher [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# value-matcher
 
-[![Package Version](https://badgen.net/npm/v/value-matcher)](https://npmjs.org/package/value-matcher) ![License](https://badgen.net/npm/license/value-matcher) [![PackagePhobia](https://badgen.net/packagephobia/install/value-matcher)](https://packagephobia.now.sh/result?p=value-matcher)
+[![Package Version](https://badgen.net/npm/v/value-matcher)](https://npmjs.org/package/value-matcher) ![License](https://badgen.net/npm/license/value-matcher) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/value-matcher)](https://bundlephobia.com/result?p=value-matcher) [![Node compatibility](https://badgen.net/npm/node/value-matcher)](https://npmjs.org/package/value-matcher)
 
 ## Install
 
@@ -16,6 +16,7 @@ Installation of the [npm package](https://npmjs.org/package/value-matcher):
 
 ```js
 import { createPredicate } from 'value-matcher'
+
 ;[
   { user: 'sam', age: 65, active: false },
   { user: 'barney', age: 36, active: true },

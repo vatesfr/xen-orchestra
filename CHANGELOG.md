@@ -1,8 +1,18 @@
 # ChangeLog
 
-## **5.47.0** (2020-05-29)
+## **5.47.1** (2020-06-02)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Bug fixes
+
+- [auth-ldap] Sign in was broken in XO 5.47.0 (PR [#5039](https://github.com/vatesfr/xen-orchestra/pull/5039))
+
+### Released packages
+
+- xo-server-auth-ldap 0.8.1
+
+## **5.47.0** (2020-05-29)
 
 ### Highlights
 

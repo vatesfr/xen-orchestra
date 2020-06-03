@@ -24,8 +24,9 @@ Please, do explain:
 The best way to propose a change to the documentation or code is
 to create a [GitHub pull request](https://help.github.com/articles/using-pull-requests/).
 
-> Your pull request should always be against the `master`
-> branch and not against `stable` which is the stable branch!
+:::tip
+Your pull request should always be against the `master` branch and not against `stable` which is the stable branch!
+:::
 
 1. Create a branch for your work
 2. Add a summary of your changes to `CHANGELOG.md` under the `next` section, if your changes do not relate to an existing changelog item
@@ -46,11 +47,15 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 - meta: points to other issues and is used to manage long term goals (similar but orthogonal to milestones)
 - question
 
-> All issues MUST have one of these labels!
+:::warning
+All issues MUST have one of these labels!
+:::
 
 **Difficulty**
 
-> This helps new people to contribute.
+:::tip
+This helps new people to contribute.
+:::
 
 1. easy
 2. medium
@@ -68,8 +73,9 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 3. high: should be fixed for the next release
 4. critical: should be fixed ASAP and a patch release is done once fixed
 
-> A new version MUST NOT be released with a `high` or `critical`
-> issue.
+:::warning
+A new version MUST NOT be released with a `high` or `critical` issue.
+:::
 
 **Status**
 

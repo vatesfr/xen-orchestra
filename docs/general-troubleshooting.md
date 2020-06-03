@@ -17,7 +17,9 @@ $ xoa check
 
 If the result you have is completely different from that, or if error messages are displayed, lost packets, etc., you have, indeed, a problem. The next step should be to check in this document if there is an existing troubleshooting for the problem you have.
 
-> You can also access the log by using this command: `$ tail -f /var/log/syslog` ([learn more](https://xen-orchestra.com/docs/logs.html))
+:::tip
+You can also access the log by using this command: `$ tail -f /var/log/syslog` ([learn more](https://xen-orchestra.com/docs/logs.html))
+:::
 
 ## General
 

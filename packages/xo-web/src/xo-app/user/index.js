@@ -268,7 +268,10 @@ const SshKeys = addSubscriptions({
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
 
-  const sshKeysWithIds = map(sshKeys, sshKey => ({ ...sshKey, id: sshKey.key }))
+  const sshKeysWithIds = map(sshKeys, sshKey => ({
+    ...sshKey,
+    id: sshKey.key,
+  }))
 
   return (
     <div>

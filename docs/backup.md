@@ -14,7 +14,9 @@ Alternatively, here is a video recap on different backup capabilities:
 - [Continuous Replication](continuous_replication.md)
 - [File Level Restore](file_level_restore.md)
 
-> Don't forget to take a look at the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look at the [backup reports](backup_reports.md) section for configuring notifications.
+:::tip
+Don't forget to take a look at the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look at the [backup reports](backup_reports.md) section for configuring notifications.
+:::
 
 :::tip
 There is also a way to automatically select the VMs to backup: **[smart backup](backups.md#smart-backup)**.

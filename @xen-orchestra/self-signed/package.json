@@ -16,5 +16,9 @@
   "scripts": {
     "postversion": "npm publish --access public"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
 }

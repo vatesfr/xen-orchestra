@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# vhd-cli [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# vhd-cli
 
-[![Package Version](https://badgen.net/npm/v/vhd-cli)](https://npmjs.org/package/vhd-cli) ![License](https://badgen.net/npm/license/vhd-cli) [![PackagePhobia](https://badgen.net/packagephobia/install/vhd-cli)](https://packagephobia.now.sh/result?p=vhd-cli)
+[![Package Version](https://badgen.net/npm/v/vhd-cli)](https://npmjs.org/package/vhd-cli) ![License](https://badgen.net/npm/license/vhd-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/vhd-cli)](https://bundlephobia.com/result?p=vhd-cli) [![Node compatibility](https://badgen.net/npm/node/vhd-cli)](https://npmjs.org/package/vhd-cli)
 
 ## Install
 

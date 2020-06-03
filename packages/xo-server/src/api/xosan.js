@@ -114,7 +114,7 @@ function createVolumeInfoTypes() {
   }
 
   const sshInfoType = (command, handler) => {
-    return async function(sr) {
+    return async function (sr) {
       const glusterEndpoint = this::_getGlusterEndpoint(sr)
       const cmdShouldRetry = result =>
         !result.commandStatus &&
@@ -412,7 +412,7 @@ async function glusterCmd(glusterEndpoint, cmd, ignoreError = false) {
   return result
 }
 
-const createNetworkAndInsertHosts = defer(async function(
+const createNetworkAndInsertHosts = defer(async function (
   $defer,
   xapi,
   pif,
@@ -483,7 +483,7 @@ async function getOrCreateSshKey(xapi) {
   return sshKey
 }
 
-const _probePoolAndWaitForPresence = defer(async function(
+const _probePoolAndWaitForPresence = defer(async function (
   $defer,
   glusterEndpoint,
   addresses
@@ -618,7 +618,7 @@ async function _removeQuota(glusterEndpoint) {
   await glusterCmd(glusterEndpoint, 'volume quota xosan disable', true)
 }
 
-export const createSR = defer(async function(
+export const createSR = defer(async function (
   $defer,
   {
     template,
@@ -669,11 +669,7 @@ export const createSR = defer(async function(
   $defer.onFailure(() => this.unbindXosanLicense({ srId: tmpBoundObjectId }))
 
   // '172.31.100.0' -> '172.31.100.'
-  const networkPrefix =
-    ipRange
-      .split('.')
-      .slice(0, 3)
-      .join('.') + '.'
+  const networkPrefix = ipRange.split('.').slice(0, 3).join('.') + '.'
   let vmIpLastNumber = VM_FIRST_NUMBER
 
   try {
@@ -1199,7 +1195,7 @@ const _median = arr => {
   return arr[Math.floor(arr.length / 2)]
 }
 
-const insertNewGlusterVm = defer(async function(
+const insertNewGlusterVm = defer(async function (
   $defer,
   xapi,
   xosansr,
@@ -1249,7 +1245,7 @@ const insertNewGlusterVm = defer(async function(
   return { data, newVM, addressAndHost, glusterEndpoint }
 })
 
-export const addBricks = defer(async function(
+export const addBricks = defer(async function (
   $defer,
   { xosansr, lvmsrs, brickSize }
 ) {
@@ -1345,7 +1341,7 @@ addBricks.resolve = {
   lvmsrs: ['sr', 'SR', 'administrate'],
 }
 
-export const removeBricks = defer(async function($defer, { xosansr, bricks }) {
+export const removeBricks = defer(async function ($defer, { xosansr, bricks }) {
   await this.checkXosanLicense({ srId: xosansr.uuid })
 
   const xapi = this.getXapi(xosansr)

@@ -16,7 +16,7 @@ import { version as serverVersion } from '../../../package.json'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
-const ndJsonStream = asyncIteratorToStream(async function*(
+const ndJsonStream = asyncIteratorToStream(async function* (
   responseId,
   iterable
 ) {
@@ -92,7 +92,7 @@ export default class Api {
     this.addMethods({
       system: {
         getMethodsInfo: [
-          function*() {
+          function* () {
             const methods = this._methods
             for (const name in methods) {
               const { description, params = {} } = methods[name]
@@ -110,7 +110,7 @@ export default class Api {
           },
         ],
         listMethods: [
-          function*() {
+          function* () {
             const methods = this._methods
             for (const name in methods) {
               yield name
@@ -140,7 +140,7 @@ export default class Api {
       },
       test: {
         range: [
-          function*({ start = 0, stop, step }) {
+          function* ({ start = 0, stop, step }) {
             if (step === undefined) {
               step = start > stop ? -1 : 1
             }

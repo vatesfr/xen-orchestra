@@ -17,7 +17,11 @@
   },
   "dependencies": {
     "d3-time-format": "^2.2.3",
-    "fs-extra": "^8.1.0"
+    "fs-extra": "^9.0.0"
   },
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
 }

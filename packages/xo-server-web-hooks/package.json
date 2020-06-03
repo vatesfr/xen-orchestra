@@ -20,8 +20,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Pierre Donias",
-    "email": "pierre.donias@gmail.com"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -42,7 +42,7 @@
     "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-optional-chaining": "^7.6.0",
     "@babel/preset-env": "^7.7.1",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {

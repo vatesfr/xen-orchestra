@@ -4,7 +4,7 @@ export default function coalesceCalls(fn) {
   const clean = () => {
     promise = undefined
   }
-  return function() {
+  return function () {
     if (promise !== undefined) {
       return promise
     }

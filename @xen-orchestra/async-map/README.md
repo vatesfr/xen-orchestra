@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/async-map [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/async-map
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/async-map)](https://npmjs.org/package/@xen-orchestra/async-map) ![License](https://badgen.net/npm/license/@xen-orchestra/async-map) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/async-map)](https://packagephobia.now.sh/result?p=@xen-orchestra/async-map)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/async-map)](https://npmjs.org/package/@xen-orchestra/async-map) ![License](https://badgen.net/npm/license/@xen-orchestra/async-map) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/async-map)](https://bundlephobia.com/result?p=@xen-orchestra/async-map) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/async-map)](https://npmjs.org/package/@xen-orchestra/async-map)
 
 > Similar to Promise.all + lodash.map but wait for all promises to be settled
 

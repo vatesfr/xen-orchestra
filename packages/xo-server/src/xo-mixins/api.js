@@ -250,9 +250,7 @@ export default class Api {
     const userName = context.user ? context.user.email : '(unknown user)'
 
     const data = {
-      callId: Math.random()
-        .toString(36)
-        .slice(2),
+      callId: Math.random().toString(36).slice(2),
       userId,
       userName,
       userIp: session.get('user_ip', undefined),

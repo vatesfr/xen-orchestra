@@ -381,7 +381,7 @@ const wrapTaskFn = <T>(
   opts: any,
   task: (...any) => Promise<T>
 ): ((taskId: string, ...any) => Promise<T>) =>
-  async function() {
+  async function () {
     const { data, logger, message, parentId, result } =
       typeof opts === 'function' ? opts.apply(this, arguments) : opts
 
@@ -902,7 +902,7 @@ export default class BackupNg {
 
   @decorateWith(
     debounceWithKey,
-    function() {
+    function () {
       return parseDuration(this._backupOptions.listingDebounce)
     },
     function keyFn(remoteId) {

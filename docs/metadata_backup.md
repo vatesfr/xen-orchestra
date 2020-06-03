@@ -26,7 +26,9 @@ Once created, the job is displayed with the other classic jobs.
 
 ## Performing a restore
 
-> WARNING: restoring pool metadata completely overwrites the XAPI database of a host. Only perform a metadata restore if it is a new server with nothing running on it (eg replacing a host with new hardware).
+:::warning
+Restoring pool metadata completely overwrites the XAPI database of a host. Only perform a metadata restore if it is a new server with nothing running on it (eg replacing a host with new hardware).
+:::
 
 If you browse to the Backup NG Restore panel, you will now notice a Metadata filter button:
 

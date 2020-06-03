@@ -76,7 +76,7 @@
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.7.4",
     "@babel/plugin-proposal-optional-chaining": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "cross-env": "^6.0.0",
+    "cross-env": "^7.0.2",
     "index-modules": "^0.3.0",
     "rimraf": "^3.0.0"
   },

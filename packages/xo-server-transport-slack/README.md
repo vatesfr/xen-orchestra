@@ -1,6 +1,6 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-server-transport-slack [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-server-transport-slack
 
 > xo-server plugin to send messages to Slack/Mattermost
 

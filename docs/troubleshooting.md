@@ -51,6 +51,32 @@ XOA is configured in HVM. It means you need hardware that supports HVM instructi
 
 Please check that you have enabled virtualization settings in your BIOS or upgrade your hardware.
 
+## Logs
+
+This section will explain how to check the XOA logs, and use them to detect issues.
+
+### From the web interface
+
+Go into Settings/Logs view.
+
+### CLI
+
+All XOA logs are stored in `/var/log/syslog` (on the XO Appliance).
+
+To filter only what you need, you can use `journalctl`. Below is an example to filter only logs for `xo-server`:
+
+```
+$ journalctl -u xo-server -f -n 50
+```
+
+This will return the 50 last lines and tail the file. If you have an error message in your application, start this command and try to reproduce the issue. You'll see clearly what the problem is.
+
+You can also filter for the updater program:
+
+```
+$ journalctl -u xoa-updater -f -n 50
+```
+
 ## Configuration
 
 XOA is a virtual appliance running Debian with Xen Orchestra installed. If you have any problems, the first thing to do is to use our check service by running the `xoa check` command in a terminal:
@@ -143,7 +169,7 @@ $ openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt -nodes -
 $ systemctl restart xo-server.service
 ```
 
-## Configuration
+### Logs
 
 The system logs are visible by using this command:
 
@@ -169,7 +195,9 @@ If a package disappears due to a build problem or human error, you can redownloa
 1. `rm /var/lib/xoa-updater/update.json`
 2. `xoa-updater --upgrade`
 
-> We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+:::tip
+We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+:::
 
 ### Reset configuration
 

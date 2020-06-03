@@ -11,7 +11,7 @@ function State() {
 export const dedupeUnmount = (fn, keyFn) => {
   const states = new MultiKeyMap()
 
-  return function() {
+  return function () {
     const keys = ensureArray(keyFn.apply(this, arguments))
     let state = states.get(keys)
     if (state === undefined) {

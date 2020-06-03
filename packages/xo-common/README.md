@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-common [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-common
 
-[![Package Version](https://badgen.net/npm/v/xo-common)](https://npmjs.org/package/xo-common) ![License](https://badgen.net/npm/license/xo-common) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-common)](https://packagephobia.now.sh/result?p=xo-common)
+[![Package Version](https://badgen.net/npm/v/xo-common)](https://npmjs.org/package/xo-common) ![License](https://badgen.net/npm/license/xo-common) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-common)](https://bundlephobia.com/result?p=xo-common) [![Node compatibility](https://badgen.net/npm/node/xo-common)](https://npmjs.org/package/xo-common)
 
 > Code shared between [XO](https://xen-orchestra.com) server and clients
 

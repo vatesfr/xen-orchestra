@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# xo-lib [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# xo-lib
 
-[![Package Version](https://badgen.net/npm/v/xo-lib)](https://npmjs.org/package/xo-lib) ![License](https://badgen.net/npm/license/xo-lib) [![PackagePhobia](https://badgen.net/packagephobia/install/xo-lib)](https://packagephobia.now.sh/result?p=xo-lib)
+[![Package Version](https://badgen.net/npm/v/xo-lib)](https://npmjs.org/package/xo-lib) ![License](https://badgen.net/npm/license/xo-lib) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-lib)](https://bundlephobia.com/result?p=xo-lib) [![Node compatibility](https://badgen.net/npm/node/xo-lib)](https://npmjs.org/package/xo-lib)
 
 > Library to connect to XO-Server
 
@@ -118,7 +118,7 @@ xo.on('closed', () => {
 ```
 
 ```javascript
-xo.on('notification', function(notif) {
+xo.on('notification', function (notif) {
   console.log('notification:', notif.method, notif.params)
 })
 ```

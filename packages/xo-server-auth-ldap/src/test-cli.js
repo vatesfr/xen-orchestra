@@ -33,16 +33,15 @@ execPromise(async args => {
     }
   )
 
-  const plugin = createPlugin({})
+  const plugin = createPlugin({
+    logger: console.log.bind(console),
+  })
   await plugin.configure(config)
 
-  await plugin._authenticate(
-    {
-      username: await input('Username', {
-        validate: input => !!input.length,
-      }),
-      password: await password('Password'),
-    },
-    console.log.bind(console)
-  )
+  await plugin._authenticate({
+    username: await input('Username', {
+      validate: input => !!input.length,
+    }),
+    password: await password('Password'),
+  })
 })

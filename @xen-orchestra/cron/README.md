@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/cron [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/cron
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/cron)](https://npmjs.org/package/@xen-orchestra/cron) ![License](https://badgen.net/npm/license/@xen-orchestra/cron) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/cron)](https://packagephobia.now.sh/result?p=@xen-orchestra/cron)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/cron)](https://npmjs.org/package/@xen-orchestra/cron) ![License](https://badgen.net/npm/license/@xen-orchestra/cron) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/cron)](https://bundlephobia.com/result?p=@xen-orchestra/cron) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/cron)](https://npmjs.org/package/@xen-orchestra/cron)
 
 > Focused, well maintained, cron parser/scheduler
 

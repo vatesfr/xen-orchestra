@@ -36,7 +36,7 @@ export { delete_ as delete }
 // -------------------------------------------------------------------
 
 // FIXME: human readable strings should be handled.
-export const set = defer(async function($defer, params) {
+export const set = defer(async function ($defer, params) {
   const { vdi } = params
   const xapi = this.getXapi(vdi)
   const ref = vdi._xapiRef

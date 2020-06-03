@@ -37,7 +37,7 @@ export async function set(data) {
 export async function unset(paths) {
   const config = await load()
   const l33tConfig = l33t(config)
-  ;[].concat(paths).forEach(function(path) {
+  ;[].concat(paths).forEach(function (path) {
     l33tConfig.purge(path, true)
   })
   return save(config)

@@ -14,7 +14,10 @@ At the end of a backup job, you can configure Xen Orchestra to send backup repor
 
 3. Once it's done, you can now create your backup job. In the "report" selection you can choose the situation in wish you want to receive an email (always, never or failure).
    ![](./assets/backup-report-config.png)
-   > Note: You can also modify existing backup jobs and change the behaviour of the report system.
+
+:::tip
+You can also modify existing backup jobs and change the behaviour of the report system.
+:::
 
 ## XMPP
 

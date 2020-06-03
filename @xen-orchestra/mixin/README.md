@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/mixin [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/mixin
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/mixin)](https://npmjs.org/package/@xen-orchestra/mixin) ![License](https://badgen.net/npm/license/@xen-orchestra/mixin) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/mixin)](https://packagephobia.now.sh/result?p=@xen-orchestra/mixin)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/mixin)](https://npmjs.org/package/@xen-orchestra/mixin) ![License](https://badgen.net/npm/license/@xen-orchestra/mixin) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/mixin)](https://bundlephobia.com/result?p=@xen-orchestra/mixin) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/mixin)](https://npmjs.org/package/@xen-orchestra/mixin)
 
 ## Install
 

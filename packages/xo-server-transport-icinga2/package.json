@@ -24,11 +24,15 @@
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
-    "cross-env": "^6.0.3"
+    "cross-env": "^7.0.2"
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.2.0"
   },
   "private": true,
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
 }
