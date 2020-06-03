@@ -1841,14 +1841,14 @@ export default class Xapi extends XapiBase {
       `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`
     )
     try {
-      const ref = await pRetry(
-        () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
-        {
-          when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
-        }
-      ).then(extractOpaqueRef)
-
-      return sr.$xapi._getOrWaitObject(ref)
+      return sr.$xapi.barrier(
+        await pRetry(
+          () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
+          {
+            when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+          }
+        ).then(extractOpaqueRef)
+      )
     } catch (error) {
       const { code } = error
       if (
