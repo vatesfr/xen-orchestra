@@ -46,10 +46,10 @@ export default class MigrateVdiModalBody extends Component {
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
             <SelectSr
-              predicate={this._getSrPredicate()}
               compareContainers={this._getCompareContainers()}
               compareOptions={compareSrs}
               onChange={this.linkState('sr')}
+              predicate={this._getSrPredicate()}
               required
             />
           </Col>
