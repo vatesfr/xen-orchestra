@@ -1110,6 +1110,9 @@ export default decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
+                          <Tooltip content={_('fullBackupIntervalInfo')}>
+                            <Icon icon='info' />
+                          </Tooltip>
                           <Number
                             id={state.inputFullIntervalId}
                             onChange={effects.setFullInterval}
