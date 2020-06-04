@@ -63,6 +63,10 @@ Then, only the diff will be sent.
 
 ## Full backup interval
 
-Full backup interval is a delta backup advanced setting which allows to define after which backup execution a full backup will be triggered.
+This advanced setting defines the number of backups after which a full backup is triggered, ie the maximum length of a delta chain.
 
-For example, if the full backup interval is set to 2, the first backup execution will be a **full**, the second will be a **delta** and the third will be a **full**.
+For example, with a value of 2, the two first backups will be a full and a delta, and the third will start a new chain with a full.
+
+This is important because a backup can be corrupted, and in case of delta backups, this corruption might impact all the following backups in the chain, keeping its length bounded prevent the corruption from propagating.
+
+The value to use depends of your storage constraints and the frequency of your backups, but a value of 20 is a good start.
