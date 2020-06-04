@@ -498,8 +498,6 @@ const messages = {
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
-  fullBackupIntervalInfo:
-    'After which interval a full backup will be triggered',
   timeoutUnit: 'In hours',
   dbAndDrRequireEnterprisePlan:
     'Delta Backup and DR require an Enterprise plan',

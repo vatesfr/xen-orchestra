@@ -60,3 +60,9 @@ Then, only the diff will be sent.
 1. edit the job to target the other remote
 1. copy files from the first remote to the other one
 1. run the backup (delta)
+
+## Full backup interval
+
+Full backup interval is a delta backup advanced setting which allows to define after which backup execution a full backup will be triggered.
+
+For example, if the full backup interval is set to 2, the first backup execution will be a **full**, the second will be a **delta** and the third will be a **full**.
