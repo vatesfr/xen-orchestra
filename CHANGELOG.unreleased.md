@@ -13,7 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/Creation] Fix `SR_BACKEND_FAILURE_44` error in case of changing the existing VDIs' SRs (PR [#5044](https://github.com/vatesfr/xen-orchestra/pull/5044))
+- [VM/Creation] Fix `insufficient space` which could happened when moving and resizing disks (PR [#5044](https://github.com/vatesfr/xen-orchestra/pull/5044))
 
 ### Released packages
 
