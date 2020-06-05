@@ -2,7 +2,7 @@
 //
 // Returns <min(n)>/ip || <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)> || undefined
 // where n corresponds to the network interface and m to its IP
-const IPV4_KEY_RE = /^\d+\/ip(v4\/\d+)?$/
+const IPV4_KEY_RE = /^\d+\/ip(?:v4\/\d+)?$/
 const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
 export const extractIpFromVmNetworks = networks => {
   if (networks === undefined) {
