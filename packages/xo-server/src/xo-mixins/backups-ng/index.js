@@ -1004,6 +1004,7 @@ export default class BackupNg {
             id: `${remoteId}/${backup._filename}`,
             jobId: backup.jobId,
             mode: backup.mode,
+            scheduleId: backup.scheduleId,
             size: backup.size,
             timestamp: backup.timestamp,
             vm: {

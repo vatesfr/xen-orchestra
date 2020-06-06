@@ -4,14 +4,68 @@ import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
+import renderXoItem, { Vm } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions, connectStore, noop } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
+import {
+  compact,
+  filter,
+  flatMap,
+  forEach,
+  isEqual,
+  keyBy,
+  map,
+  omit,
+  toArray,
+} from 'lodash'
 import { Container, Row, Col } from 'grid'
+import { confirm } from 'modal'
+import { createPredicate } from 'value-matcher'
 import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
-import { deleteSnapshot, deleteSnapshots, subscribeSchedules } from 'xo'
+import {
+  deleteBackups,
+  deleteSnapshot,
+  deleteSnapshots,
+  listVmBackups,
+  subscribeBackupNgJobs,
+  subscribeRemotes,
+  subscribeSchedules,
+} from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+
+const DETACHED_BACKUP_COLUMNS = [
+  {
+    name: _('vm'),
+    itemRenderer: ({ vmId }) => <Vm id={vmId} link />,
+    sortCriteria: ({ vmId }, { vms }) => {
+      const vm = vms[vmId]
+      return vm !== undefined && vm.name_label
+    },
+  },
+  {
+    name: _('job'),
+    itemRenderer: ({ jobId }, { jobs }) => {
+      const job = jobs[jobId]
+      return job === undefined ? null : (
+        <Link to={`/backup/overview?s=id:${jobId}`}>{job.name}</Link>
+      )
+    },
+    sortCriteria: ({ jobId }, { jobs }) => {
+      const job = jobs[jobId]
+      return job !== undefined && job.name
+    },
+  },
+  {
+    name: _('jobModes'),
+    itemRenderer: ({ mode }) => mode,
+    sortCriteria: 'mode',
+  },
+  {
+    name: _('reason'),
+    itemRenderer: backup => backup.reason,
+  },
+]
 
 const SNAPSHOT_COLUMNS = [
   {
@@ -68,7 +122,15 @@ const ACTIONS = [
 
 @addSubscriptions({
   // used by createGetLoneSnapshots
-  schedules: subscribeSchedules,
+  schedules: cb =>
+    subscribeSchedules(schedules => {
+      cb(keyBy(schedules, 'id'))
+    }),
+  jobs: cb =>
+    subscribeBackupNgJobs(jobs => {
+      cb(keyBy(jobs, 'id'))
+    }),
+  remotes: subscribeRemotes,
 })
 @connectStore({
   loneSnapshots: createGetLoneSnapshots,
@@ -83,9 +145,122 @@ const ACTIONS = [
   vms: createGetObjectsOfType('VM'),
 })
 export default class Health extends Component {
+  componentDidUpdate(prevProps) {
+    const { jobs, vms, remotes, schedules } = this.props
+    if (
+      !isEqual(
+        map(prevProps.remotes, 'id').sort(),
+        map(remotes, 'id').sort()
+      ) ||
+      !isEqual(map(prevProps.vms, 'id').sort(), map(vms, 'id').sort()) ||
+      !isEqual(map(prevProps.jobs, 'id').sort(), map(jobs, 'id').sort()) ||
+      !isEqual(
+        map(prevProps.schedules, 'id').sort(),
+        map(schedules, 'id').sort()
+      )
+    ) {
+      this._setDetachedBackups()
+    }
+  }
+
+  _deleteBackups = backups => {
+    const nBackups = backups.length
+    return confirm({
+      title: _('deleteBackups', { nBackups }),
+      body: _('deleteBackupsMessage', { nBackups }),
+      icon: 'delete',
+    })
+      .then(() => deleteBackups(backups), noop)
+      .then(this._setDetachedBackups)
+  }
+
+  _detachedBackupActions = [
+    {
+      handler: this._deleteBackups,
+      icon: 'delete',
+      label: backups => _('deleteBackups', { nBackups: backups.length }),
+      level: 'danger',
+    },
+  ]
+
+  _getDetachedBackups = async () => {
+    const { jobs, vms, remotes, schedules } = this.props
+    const backupsByRemote = await listVmBackups(toArray(remotes))
+    const detachedBackups = []
+    forEach(backupsByRemote, backups => {
+      detachedBackups.push(
+        ...flatMap(backups, (vmBackups, vmId) => {
+          if (vms[vmId] === undefined) {
+            return map(vmBackups, backup => ({
+              ...backup,
+              vmId,
+              reason: _('missingVm'),
+            }))
+          }
+
+          return compact(
+            map(vmBackups, backup => {
+              const job = jobs[backup.jobId]
+              let reason
+              if (job === undefined) {
+                reason = _('missingJob')
+              } else if (schedules[backup.scheduleId] === undefined) {
+                reason = _('missingSchedule')
+              } else {
+                const filtredVmIds = filter(
+                  vms,
+                  createPredicate(omit(job.vms, 'power_state'))
+                ).map(_ => _.id)
+                if (filtredVmIds.length === 0 || !filtredVmIds.includes(vmId)) {
+                  reason = _('missingVmInJob')
+                }
+              }
+              return (
+                reason !== undefined && {
+                  ...backup,
+                  vmId,
+                  reason,
+                }
+              )
+            })
+          )
+        })
+      )
+    })
+    return detachedBackups
+  }
+
+  _setDetachedBackups = () => {
+    this._getDetachedBackups().then(detachedBackups => {
+      this.setState({ detachedBackups })
+    })
+  }
+
   render() {
     return (
       <Container>
+        <Row className='detached-backups'>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='backup' /> {_('detachedBackups')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  actions={this._detachedBackupActions}
+                  collection={this.state.detachedBackups}
+                  columns={DETACHED_BACKUP_COLUMNS}
+                  component={SortedTable}
+                  data-jobs={this.props.jobs}
+                  data-vms={this.props.vms}
+                  emptyMessage={_('noDetachedBackups')}
+                  shortcutsTarget='.detached-backups'
+                  stateUrlParam='s_detached_backups'
+                />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
         <Row className='lone-snapshots'>
           <Col>
             <Card>

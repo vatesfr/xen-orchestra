@@ -1318,6 +1318,16 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
+  deleteBackupsMessage:
+    'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
+  detachedBackups: 'Detached backups',
+  missingJob: 'Missing job',
+  missingVm: 'Missing Vm',
+  missingVmInJob: 'This VM does not belong to this job',
+  missingSchedule: 'Missing schedule',
+  noDetachedBackups: 'No backups',
+  reason: 'Reason',
   orphanedVdis: 'Orphaned snapshot VDIs',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
