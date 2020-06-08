@@ -517,9 +517,7 @@ export class Xapi extends EventEmitter {
       throw new Error('Xapi#barrier() requires events watching')
     }
 
-    const key = `xo:barrier:${Math.random()
-      .toString(36)
-      .slice(2)}`
+    const key = `xo:barrier:${Math.random().toString(36).slice(2)}`
     const poolRef = this._pool.$ref
 
     const { promise, resolve } = defer()
@@ -1079,7 +1077,7 @@ export class Xapi extends EventEmitter {
       const getObjectByRef = ref => this._objectsByRef[ref]
 
       Record = defineProperty(
-        function(ref, data) {
+        function (ref, data) {
           defineProperties(this, {
             $id: { value: data.uuid ?? ref },
             $ref: { value: ref },
@@ -1098,10 +1096,10 @@ export class Xapi extends EventEmitter {
 
       const getters = { $pool: getPool }
       const props = {
-        $call: function(method, ...args) {
+        $call: function (method, ...args) {
           return xapi.call(`${type}.${method}`, this.$ref, ...args)
         },
-        $callAsync: function(method, ...args) {
+        $callAsync: function (method, ...args) {
           return xapi.callAsync(`${type}.${method}`, this.$ref, ...args)
         },
         $type: type,
@@ -1113,7 +1111,7 @@ export class Xapi extends EventEmitter {
           if (typeof fn === 'function' && name.startsWith(type + '_')) {
             const key = '$' + name.slice(type.length + 1)
             assert.strictEqual(props[key], undefined)
-            props[key] = function(...args) {
+            props[key] = function (...args) {
               return xapi[name](this.$ref, ...args)
             }
           }
@@ -1124,7 +1122,7 @@ export class Xapi extends EventEmitter {
         }
       })(xapi)
       fields.forEach(field => {
-        props[`set_${field}`] = function(value) {
+        props[`set_${field}`] = function (value) {
           return xapi.setField(this.$type, this.$ref, field, value)
         }
 
@@ -1133,24 +1131,24 @@ export class Xapi extends EventEmitter {
         const value = data[field]
         if (Array.isArray(value)) {
           if (value.length === 0 || isOpaqueRef(value[0])) {
-            getters[$field] = function() {
+            getters[$field] = function () {
               const value = this[field]
               return value.length === 0 ? value : value.map(getObjectByRef)
             }
           }
 
-          props[`add_${field}`] = function(value) {
+          props[`add_${field}`] = function (value) {
             return xapi
               .call(`${type}.add_${field}`, this.$ref, value)
               .then(noop)
           }
-          props[`remove_${field}`] = function(value) {
+          props[`remove_${field}`] = function (value) {
             return xapi
               .call(`${type}.remove_${field}`, this.$ref, value)
               .then(noop)
           }
         } else if (value !== null && typeof value === 'object') {
-          getters[$field] = function() {
+          getters[$field] = function () {
             const value = this[field]
             const result = {}
             getKeys(value).forEach(key => {
@@ -1158,7 +1156,7 @@ export class Xapi extends EventEmitter {
             })
             return result
           }
-          props[`update_${field}`] = function(entries, value) {
+          props[`update_${field}`] = function (entries, value) {
             return typeof entries === 'string'
               ? xapi.setFieldEntry(this.$type, this.$ref, field, entries, value)
               : xapi.setFieldEntries(this.$type, this.$ref, field, entries)
@@ -1167,7 +1165,7 @@ export class Xapi extends EventEmitter {
           // 2019-02-07 - JFT: even if `value` should not be an empty string for
           // a ref property, an user had the case on XenServer 7.0 on the CD VBD
           // of a VM created by XenCenter
-          getters[$field] = function() {
+          getters[$field] = function () {
             return xapi._objectsByRef[this[field]]
           }
         }

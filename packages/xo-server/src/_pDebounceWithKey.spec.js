@@ -6,7 +6,7 @@ describe('REMOVE_CACHE_ENTRY', () => {
   it('clears the cache', async () => {
     let i = 0
     const debouncedFn = debounceWithKey(
-      function() {
+      function () {
         return Promise.resolve(++i)
       },
       Infinity,

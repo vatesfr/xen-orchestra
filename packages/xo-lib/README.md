@@ -118,7 +118,7 @@ xo.on('closed', () => {
 ```
 
 ```javascript
-xo.on('notification', function(notif) {
+xo.on('notification', function (notif) {
   console.log('notification:', notif.method, notif.params)
 })
 ```

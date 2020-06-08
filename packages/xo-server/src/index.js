@@ -390,7 +390,7 @@ async function registerPluginsInPath(path, prefix) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    [`${__dirname}/../node_modules`, `${__dirname}/../node_modules`].map(path =>
+    [`${__dirname}/../node_modules`, '/usr/local/lib/node_modules'].map(path =>
       Promise.all([
         registerPluginsInPath.call(xo, path, 'xo-server-'),
         registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),

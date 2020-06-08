@@ -12,7 +12,7 @@ function* values(object) {
  *
  * @param {(Array|Object)} collection
  */
-module.exports = asyncIteratorToStream(function*(collection) {
+module.exports = asyncIteratorToStream(function* (collection) {
   for (const value of Array.isArray(collection)
     ? collection
     : values(collection)) {

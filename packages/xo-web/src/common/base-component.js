@@ -111,7 +111,7 @@ if (VERBOSE) {
     }
   }
 
-  BaseComponent.prototype.componentDidUpdate = function(oldProps, oldState) {
+  BaseComponent.prototype.componentDidUpdate = function (oldProps, oldState) {
     const prefix = `${this.constructor.name} updated because of its`
     diff(`${prefix} props:`, oldProps, this.props)
     diff(`${prefix} state:`, oldState, this.state)

@@ -55,7 +55,7 @@ function help() {
 
     $name v$version
   `
-  ).replace(/<([^>]+)>|\$(\w+)/g, function(_, arg, key) {
+  ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
     if (arg) {
       return '<' + chalk.yellow(arg) + '>'
     }

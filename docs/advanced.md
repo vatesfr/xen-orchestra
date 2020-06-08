@@ -173,9 +173,9 @@ const handleHook = data => {
 
   // Log it
   console.log(
-    `${new Date(
-      timestamp
-    ).toISOString()} [${method}|${type}] ${params} → ${result || error}`
+    `${new Date(timestamp).toISOString()} [${method}|${type}] ${params} → ${
+      result || error
+    }`
   )
 
   // Run scripts

@@ -151,7 +151,7 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      memory: (function() {
+      memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free
           const total = +metrics.memory_total
@@ -298,7 +298,7 @@ const TRANSFORMS = {
             : +obj.VCPUs_at_startup,
       },
       current_operations: currentOperations,
-      docker: (function() {
+      docker: (function () {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
           return
@@ -328,7 +328,7 @@ const TRANSFORMS = {
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
 
-      memory: (function() {
+      memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min
         const dynamicMax = +obj.memory_dynamic_max
         const staticMin = +obj.memory_static_min
@@ -413,7 +413,7 @@ const TRANSFORMS = {
       vm.CPUs.number = +obj.VCPUs_at_startup
       vm.template_info = {
         arch: otherConfig['install-arch'],
-        disks: (function() {
+        disks: (function () {
           const { disks: xml } = otherConfig
           let data
           if (!xml || !(data = parseXml(xml)).provision) {
@@ -429,7 +429,7 @@ const TRANSFORMS = {
 
           return disks
         })(),
-        install_methods: (function() {
+        install_methods: (function () {
           const methods = otherConfig['install-methods']
 
           return methods ? methods.split(',') : []

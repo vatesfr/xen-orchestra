@@ -56,7 +56,7 @@ const listMissingPatches = debounceWithKey(
 export default {
   // raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
   // FIXME: should be static
-  @decorateWith(debounceWithKey, 24 * 60 * 60 * 1000, function() {
+  @decorateWith(debounceWithKey, 24 * 60 * 60 * 1000, function () {
     return this
   })
   async _getXenUpdates() {
@@ -102,7 +102,7 @@ export default {
       }
     })
 
-    const resolveVersionPatches = function(uuids) {
+    const resolveVersionPatches = function (uuids) {
       const versionPatches = { __proto__: null }
 
       forEach(ensureArray(uuids), ({ uuid }) => {
@@ -444,7 +444,7 @@ export default {
     return vdi
   },
 
-  _poolWideInstall: deferrable(async function($defer, patches) {
+  _poolWideInstall: deferrable(async function ($defer, patches) {
     // Legacy XS patches
     if (!useUpdateSystem(this.pool.$master)) {
       // for each patch: pool_patch.pool_apply

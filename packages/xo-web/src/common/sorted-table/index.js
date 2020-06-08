@@ -599,9 +599,9 @@ class SortedTable extends Component {
         selectedItemsIds.delete(item.id)
       })
     } else {
-      const method = (selected === undefined
-      ? !selectedItemsIds.has(item.id)
-      : selected)
+      const method = (
+        selected === undefined ? !selectedItemsIds.has(item.id) : selected
+      )
         ? 'add'
         : 'delete'
 

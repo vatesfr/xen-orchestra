@@ -69,10 +69,7 @@ const STATUS_ICON = {
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormatter = timezone =>
   timezone !== undefined
-    ? timestamp =>
-        moment(timestamp)
-          .tz(timezone)
-          .format(DATE_FORMAT)
+    ? timestamp => moment(timestamp).tz(timezone).format(DATE_FORMAT)
     : timestamp => moment(timestamp).format(DATE_FORMAT)
 
 const formatDuration = milliseconds => moment.duration(milliseconds).humanize()

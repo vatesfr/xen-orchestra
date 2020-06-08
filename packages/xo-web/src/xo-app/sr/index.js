@@ -62,9 +62,7 @@ import TabXosan from './tab-xosan'
 
   const getVdiIds = (state, props) => getSr(state, props).VDIs
 
-  const getVdis = createGetObjectsOfType('VDI')
-    .pick(getVdiIds)
-    .sort()
+  const getVdis = createGetObjectsOfType('VDI').pick(getVdiIds).sort()
   const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
     .pick(getVdiIds)
     .sort()

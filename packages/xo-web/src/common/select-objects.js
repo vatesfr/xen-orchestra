@@ -413,9 +413,7 @@ export const SelectHost = makeStoreSelect(
 
 export const SelectPool = makeStoreSelect(
   () => ({
-    xoObjects: createGetObjectsOfType('pool')
-      .filter(getPredicate)
-      .sort(),
+    xoObjects: createGetObjectsOfType('pool').filter(getPredicate).sort(),
   }),
   { placeholder: _('selectPools') }
 )
@@ -463,12 +461,8 @@ export const SelectVm = makeStoreSelect(
       keys(vmsByContainer)
     )
 
-    const getPools = createGetObjectsOfType('pool')
-      .pick(getContainerIds)
-      .sort()
-    const getHosts = createGetObjectsOfType('host')
-      .pick(getContainerIds)
-      .sort()
+    const getPools = createGetObjectsOfType('pool').pick(getContainerIds).sort()
+    const getHosts = createGetObjectsOfType('host').pick(getContainerIds).sort()
 
     const getContainers = createSelector(getPools, getHosts, (pools, hosts) =>
       pools.concat(hosts)
@@ -507,12 +501,8 @@ export const SelectVmSnapshot = makeStoreSelect(
 
 export const SelectHostVm = makeStoreSelect(
   () => {
-    const getHosts = createGetObjectsOfType('host')
-      .filter(getPredicate)
-      .sort()
-    const getVms = createGetObjectsOfType('VM')
-      .filter(getPredicate)
-      .sort()
+    const getHosts = createGetObjectsOfType('host').filter(getPredicate).sort()
+    const getVms = createGetObjectsOfType('VM').filter(getPredicate).sort()
 
     const getObjects = createSelector(getHosts, getVms, (hosts, vms) =>
       hosts.concat(vms)

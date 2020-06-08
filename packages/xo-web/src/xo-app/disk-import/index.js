@@ -30,7 +30,7 @@ const DiskImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      handleDrop: async function(_, files) {
+      handleDrop: async function (_, files) {
         this.state.loadingDisks = true
         const disks = await Promise.all(
           map(files, async file => {
