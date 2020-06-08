@@ -124,7 +124,7 @@ export default class PerformancePlan extends Plan {
       if (
         exceededAverages.cpu - vmAverages.cpu <
           destinationAverages.cpu + vmAverages.cpu ||
-        destinationAverages.memoryFree > vmAverages.memory
+        destinationAverages.memoryFree < vmAverages.memory
       ) {
         debug(`Cannot migrate VM (${vm.id}) to Host (${destination.id}).`)
         debug(
