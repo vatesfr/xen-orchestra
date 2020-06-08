@@ -16,7 +16,7 @@
 - [VM/Creation] Fix `insufficient space` which could happened when moving and resizing disks (PR [#5044](https://github.com/vatesfr/xen-orchestra/pull/5044))
 - [VM/General] Fix displayed IPV6 instead of IPV4 in case of an old version of XenServer (PR [#5036](https://github.com/vatesfr/xen-orchestra/pull/5036)))
 
-### Released packages
+### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
 > be listed by inverse order of dependency.
