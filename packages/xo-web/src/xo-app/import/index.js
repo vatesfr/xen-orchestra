@@ -31,7 +31,7 @@ const HEADER = (
   </Container>
 )
 
-const Import = routes('import', {
+const Import = routes('vm', {
   disk: DiskImport,
   vm: VmImport,
 })(({ children }) => (

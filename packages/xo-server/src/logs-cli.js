@@ -13,6 +13,56 @@ import globMatcher from './glob-matcher'
 
 // ===================================================================
 
+const GC_KEEP = 2e4
+
+const gc = (db, args) =>
+  new Promise((resolve, reject) => {
+    let keep = GC_KEEP
+
+    let count = 1
+    const cb = () => {
+      if (--count === 0) {
+        resolve()
+      }
+    }
+    const stream = db.createKeyStream({
+      reverse: true,
+    })
+
+    const deleteEntry = key => {
+      ++count
+      db.del(key, cb)
+    }
+
+    let onData =
+      keep !== 0
+        ? () => {
+            if (--keep === 0) {
+              stream.removeListener('data', onData)
+              onData = deleteEntry
+              stream.on('data', onData)
+            }
+          }
+        : deleteEntry
+    const onEnd = () => {
+      console.log('end')
+      removeListeners()
+      cb()
+    }
+    const onError = error => {
+      console.log('error')
+      removeListeners()
+      reject(error)
+    }
+    const removeListeners = () => {
+      stream
+        .removeListener('data', onData)
+        .removeListener('end', onEnd)
+        .removeListener('error', onError)
+    }
+    stream.on('data', onData).on('end', onEnd).on('error', onError)
+  })
+
 async function printLogs(db, args) {
   let stream = highland(db.createReadStream({ reverse: true }))
 
@@ -86,6 +136,10 @@ xo-server-logs [--json] [--limit=<limit>] [--since=<date>] [--until=<date>] [<pa
 
       Patterns have the following format \`<field>=<value>\`/\`<field>\`.
 
+xo-server-logs --gc
+
+    Remove all but the ${GC_KEEP}th most recent log entries.
+
 xo-server-logs --repair
 
     Repair/compact the database.
@@ -100,7 +154,7 @@ function getArgs() {
   const stringArgs = ['since', 'until', 'limit']
   const args = parseArgs(process.argv.slice(2), {
     string: stringArgs,
-    boolean: ['help', 'json', 'repair'],
+    boolean: ['help', 'json', 'gc', 'repair'],
     default: {
       limit: 100,
       json: false,
@@ -204,5 +258,5 @@ export default async function main() {
     }
   )
 
-  return printLogs(db, args)
+  return args.gc ? gc(db) : printLogs(db, args)
 }

@@ -70,6 +70,7 @@ export default class PerformancePlan extends Plan {
 
       debug(`Try to optimize Host (${exceededHost.id}).`)
       const availableHosts = filter(hosts, host => host.id !== id)
+      debug(`Available destinations: ${availableHosts.map(host => host.id)}.`)
 
       // Search bests combinations for the worst host.
       await this._optimize({
@@ -97,6 +98,8 @@ export default class PerformancePlan extends Plan {
       hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
 
     for (const vm of vms) {
+      debug(`Trying to migrate ${vm.id}...`)
+
       // Search host with lower cpu usage in the same pool first. In other pool if necessary.
       let destination = searchBestObject(
         find(hosts, host => host.$poolId === vm.$poolId),
@@ -104,18 +107,32 @@ export default class PerformancePlan extends Plan {
       )
 
       if (!destination) {
+        debug(
+          'No destination host found in the current VM pool. Trying in all pools.'
+        )
         destination = searchBestObject(hosts, searchFunction)
       }
 
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
 
+      debug(
+        `Trying to migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id})...`
+      )
+
       // Unable to move the vm.
       if (
         exceededAverages.cpu - vmAverages.cpu <
           destinationAverages.cpu + vmAverages.cpu ||
-        destinationAverages.memoryFree > vmAverages.memory
+        destinationAverages.memoryFree < vmAverages.memory
       ) {
+        debug(`Cannot migrate VM (${vm.id}) to Host (${destination.id}).`)
+        debug(
+          `Src Host CPU=${exceededAverages.cpu}, Dest Host CPU=${destinationAverages.cpu}, VM CPU=${vmAverages.cpu}`
+        )
+        debug(
+          `Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`
+        )
         continue
       }
 
