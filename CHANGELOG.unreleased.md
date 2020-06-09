@@ -12,6 +12,7 @@
 - [Plugin] Disable test plugin action when the plugin is not loaded (PR [#5038](https://github.com/vatesfr/xen-orchestra/pull/5038))
 - [Home/Template] Ability to copy/clone VM templates [#4734](https://github.com/vatesfr/xen-orchestra/issues/4734) (PR [#5006](https://github.com/vatesfr/xen-orchestra/pull/5006))
 - [VM/bulk copy] Add fast clone option (PR [#5006](https://github.com/vatesfr/xen-orchestra/pull/5006))
+- [@xen-orchestra/openflow] Pack and unpack OpenFlow messages (PR [#5010](https://github.com/vatesfr/xen-orchestra/pull/5010))
 
 ### Bug fixes
 
@@ -45,6 +46,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/openflow patch
 - xo-server-audit minor
 - xo-server-sdn-controller patch
 - xo-server-load-balancer patch
