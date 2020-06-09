@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [@xen-orchestra/openflow] Pack and unpack OpenFlow messages (PR [#5010](https://github.com/vatesfr/xen-orchestra/pull/5010))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +32,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/openflow patch
 - xo-server-perf-alert patch
 - xo-web minor
