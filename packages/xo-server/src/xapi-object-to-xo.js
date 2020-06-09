@@ -58,6 +58,33 @@ function toTimestamp(date) {
   return ms === 0 ? null : Math.round(ms / 1000)
 }
 
+// https://github.com/xenserver/xenadmin/blob/093ab0bcd6c4b3dd69da7b1e63ef34bb807c1ddb/XenModel/XenAPI-Extensions/VM.cs#L773
+const getVmGuestToolsProps = vm => {
+  const { $metrics: metrics, $guest_metrics: guestMetrics } = vm
+  if (!isVmRunning(vm) || metrics === undefined || guestMetrics === undefined) {
+    return {}
+  }
+
+  const { major, minor } = guestMetrics.PV_drivers_version
+  const hasPvVersion = major !== undefined && minor !== undefined
+  const pvDriversVersion = hasPvVersion ? +`${major}.${minor}` : undefined
+
+  // "PV_drivers_detected" field don't exists on XS < 7
+  const pvDriversDetected = guestMetrics.PV_drivers_detected ?? hasPvVersion
+
+  return {
+    // Linux VMs don't have the flag "feature-static-ip-setting"
+    managementAgentDetected:
+      hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
+
+    pvDriversDetected,
+    pvDriversVersion,
+    pvDriversUpToDate: pvDriversDetected
+      ? guestMetrics.PV_drivers_up_to_date
+      : undefined,
+  }
+}
+
 // ===================================================================
 
 const TRANSFORMS = {
@@ -369,13 +396,9 @@ const TRANSFORMS = {
       VIFs: link(obj, 'VIFs'),
       virtualizationMode: domainType,
 
-      // <=> Are the Xen Server tools installed?
-      //
-      // - undefined: unknown status
-      // - false: not optimized
-      // - 'out of date': optimized but drivers should be updated
-      // - 'up to date': optimized
+      // deprecated, use pvDriversVersion instead
       xenTools,
+      ...getVmGuestToolsProps(obj),
 
       // TODO: handle local VMs (`VM.get_possible_hosts()`).
       $container: isRunning ? link(obj, 'resident_on') : link(obj, 'pool'),
