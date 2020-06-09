@@ -21,20 +21,19 @@ export class TlsHelper {
   async connect(address, port) {
     const options = {
       ca: this._caCert,
-      key: this._clientKey,
       cert: this._clientCert,
       host: address,
+      key: this._clientKey,
       port,
       rejectUnauthorized: false,
       requestCert: false,
     }
     const socket = connect(options)
     try {
-      await fromEvent(socket, 'secureConnect', {})
+      await fromEvent(socket, 'secureConnect')
     } catch (error) {
       log.error('TLS connection failed', {
         error,
-        code: error.code,
         address,
         port,
       })
@@ -44,7 +43,6 @@ export class TlsHelper {
     socket.on('error', error => {
       log.error('Socket error', {
         error,
-        code: error.code,
         address,
         port,
       })
