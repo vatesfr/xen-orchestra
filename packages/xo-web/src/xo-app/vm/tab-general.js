@@ -33,6 +33,60 @@ import {
   XvdSparkLines,
 } from 'xo-sparklines'
 
+const GuestToolsDetection = ({ vm }) => {
+  if (vm.power_state !== 'Running' || vm.pvDriversDetected === undefined) {
+    return null
+  }
+
+  if (!vm.pvDriversDetected) {
+    return (
+      <Row className='text-xs-center'>
+        <Col>
+          <Icon icon='error' /> <em>{_('noToolsDetected')}</em>
+        </Col>
+      </Row>
+    )
+  }
+
+  if (!vm.managementAgentDetected) {
+    return (
+      <Row className='text-xs-center'>
+        <Col>
+          <Icon icon='error' /> <em>{_('managementAgentNotDetected')}</em>
+        </Col>
+      </Row>
+    )
+  }
+
+  if (!vm.pvDriversUpToDate) {
+    return (
+      <Row className='text-xs-center'>
+        <Col>
+          <Icon color='text-warning' icon='alarm' />{' '}
+          <em>
+            {_('managementAgentOutOfDate', {
+              version:
+                vm.pvDriversVersion > 0 ? String(vm.pvDriversVersion) : '',
+            })}
+          </em>
+        </Col>
+      </Row>
+    )
+  }
+
+  return (
+    <Row className='text-xs-center'>
+      <Col>
+        <em>
+          {_('managementAgentDetected', {
+            version: vm.pvDriversVersion > 0 ? String(vm.pvDriversVersion) : '',
+          })}
+        </em>
+      </Col>
+    </Row>
+  )
+}
+
 export default connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu')
     .pick((_, { vm }) => vm.$VGPUs)
@@ -79,7 +133,6 @@ export default connectStore(() => {
       startTime,
       tags,
       VIFs: vifs,
-      xenTools,
     } = vm
     return (
       <Container>
@@ -206,14 +259,7 @@ export default connectStore(() => {
             </BlockLink>
           </Col>
         </Row>
-        {!xenTools && powerState === 'Running' && (
-          <Row className='text-xs-center'>
-            <Col>
-              <Icon icon='error' />
-              <em> {_('noToolsDetected')}.</em>
-            </Col>
-          </Row>
-        )}
+        <GuestToolsDetection vm={vm} />
         {/* TODO: use CSS style */}
         <br />
         <Row>

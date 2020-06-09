@@ -1008,6 +1008,9 @@ const messages = {
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
+  managementAgentDetected: 'Management agent {version} detected',
+  managementAgentOutOfDate: 'Management agent {version} out of date',
+  managementAgentNotDetected: 'Management agent not detected',
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
