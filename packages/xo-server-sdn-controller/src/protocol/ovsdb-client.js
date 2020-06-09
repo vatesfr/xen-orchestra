@@ -1,7 +1,6 @@
 import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
 import fromEvent from 'promise-toolbox/fromEvent'
-import { connect } from 'tls'
 import { forOwn, toPairs } from 'lodash'
 
 const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
@@ -36,7 +35,7 @@ export class OvsdbClient {
     - `remote_ip`: Remote IP of the tunnel
   */
 
-  constructor(host, clientKey, clientCert, caCert) {
+  constructor(host, tlsHelper) {
     this._numberOfPortAndInterface = 0
     this._requestId = 0
 
@@ -44,21 +43,9 @@ export class OvsdbClient {
 
     this.host = host
 
-    this.updateCertificates(clientKey, clientCert, caCert)
+    this._tlsHelper = tlsHelper
 
     log.debug('New OVSDB client', {
-      host: this.host.name_label,
-    })
-  }
-
-  // ---------------------------------------------------------------------------
-
-  updateCertificates(clientKey, clientCert, caCert) {
-    this._clientKey = clientKey
-    this._clientCert = clientCert
-    this._caCert = caCert
-
-    log.debug('Certificates have been updated', {
       host: this.host.name_label,
     })
   }
@@ -538,37 +525,7 @@ export class OvsdbClient {
 
   // ---------------------------------------------------------------------------
 
-  async _connect() {
-    const options = {
-      ca: this._caCert,
-      key: this._clientKey,
-      cert: this._clientCert,
-      host: this.host.address,
-      port: OVSDB_PORT,
-      rejectUnauthorized: false,
-      requestCert: false,
-    }
-    const socket = connect(options)
-
-    try {
-      await fromEvent(socket, 'secureConnect')
-    } catch (error) {
-      log.error('TLS connection failed', {
-        error,
-        code: error.code,
-        host: this.host.name_label,
-      })
-      throw error
-    }
-
-    socket.on('error', error => {
-      log.error('Socket error', {
-        error,
-        code: error.code,
-        host: this.host.name_label,
-      })
-    })
-
-    return socket
+  _connect() {
+    return this._tlsHelper.connect(this.host.address, OVSDB_PORT)
   }
 }
