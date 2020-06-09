@@ -77,6 +77,7 @@ const messages = {
   withMemory: 'With memory',
   offline: 'Offline',
   noLicenseAvailable: 'No license available',
+  unknown: 'Unknown',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1186,8 +1187,7 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools version',
-  xenToolsNotInstalled: 'Not installed',
+  managementAgentVersion: 'Management agent version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
