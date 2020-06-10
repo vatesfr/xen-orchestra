@@ -32,9 +32,25 @@ import {
   subscribeRemotes,
   subscribeSchedules,
 } from 'xo'
-import { FormattedRelative, FormattedTime } from 'react-intl'
+import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
 
 const DETACHED_BACKUP_COLUMNS = [
+  {
+    name: _('date'),
+    itemRenderer: backup => (
+      <FormattedDate
+        value={new Date(backup.timestamp)}
+        month='long'
+        day='numeric'
+        year='numeric'
+        hour='2-digit'
+        minute='2-digit'
+        second='2-digit'
+      />
+    ),
+    sortCriteria: 'timestamp',
+    sortOrder: 'desc',
+  },
   {
     name: _('vm'),
     itemRenderer: ({ vmId }) => <Vm id={vmId} link />,
