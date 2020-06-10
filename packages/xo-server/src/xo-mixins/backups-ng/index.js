@@ -1586,7 +1586,7 @@ export default class BackupNg {
           }
         })
 
-        for (const { uuid: srUuid, xapi } of srs) {
+        for (const { uuid: srUuid, $xapi: xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
             jobId,
