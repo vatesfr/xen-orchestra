@@ -1081,7 +1081,6 @@ export class Xapi extends EventEmitter {
           defineProperties(this, {
             $id: { value: data.uuid ?? ref },
             $ref: { value: ref },
-            $xapi: { value: xapi },
           })
           for (let i = 0; i < nFields; ++i) {
             const field = fields[i]
@@ -1103,6 +1102,7 @@ export class Xapi extends EventEmitter {
           return xapi.callAsync(`${type}.${method}`, this.$ref, ...args)
         },
         $type: type,
+        $xapi: xapi,
       }
       ;(function addMethods(object) {
         Object.getOwnPropertyNames(object).forEach(name => {
