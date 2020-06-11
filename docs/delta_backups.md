@@ -60,13 +60,3 @@ Then, only the diff will be sent.
 1. edit the job to target the other remote
 1. copy files from the first remote to the other one
 1. run the backup (delta)
-
-## Full backup interval
-
-This advanced setting defines the number of backups after which a full backup is triggered, ie the maximum length of a delta chain.
-
-For example, with a value of 2, the first two backups will be a full and a delta, and the third will start a new chain with a full backup.
-
-This is important because on rare occasions a backup can be corrupted, and in the case of delta backups, this corruption might impact all the following backups in the chain. Occasionally performing a full backup limits how far a corrupted delta backup can propagate.
-
-The value to use depends on your storage constraints and the frequency of your backups, but a value of 20 is a good start.
