@@ -2,8 +2,8 @@ import createLogger from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
+import { parseDuration } from '@vates/parse-duration'
 
-import parseDuration from '../_parseDuration'
 import Token, { Tokens } from '../models/token'
 import { forEach, generateToken } from '../utils'
 
