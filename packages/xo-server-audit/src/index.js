@@ -55,6 +55,22 @@ const DEFAULT_BLOCKED_LIST = {
 }
 
 const LAST_ID = 'lastId'
+
+// Db {
+//   lastId: String,
+//   [record ID]: {
+//     data?: Object,
+//     event: String,
+//     previousId: String,
+//     subject: {
+//       userId?: String,
+//       userIp?: String,
+//       userName?: String,
+//     },
+//     time: Number,
+//     id: string
+//   }
+// }
 class Db extends Storage {
   constructor(db) {
     super()
