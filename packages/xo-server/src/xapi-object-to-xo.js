@@ -19,6 +19,24 @@ import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
 
+const TYPES_BY_ALLOCATION = {
+  thin: ['ext', 'file', 'nfs', 'shm', 'smb', 'xosan', 'zfs'],
+  thick: [
+    'hba',
+    'lvhd',
+    'lvhdofcoe',
+    'lvhdohba',
+    'lvhdoiscsi',
+    'ocfs',
+    'ocfsohba',
+    'ocfsoiscsi',
+    'rawhba',
+    'rawiscsi',
+  ],
+}
+
+// ===================================================================
+
 const { defineProperties, freeze } = Object
 
 function link(obj, prop, idField = '$id') {
@@ -455,7 +473,8 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   sr(obj) {
-    return {
+    const srType = obj.type
+    const sr = {
       type: 'SR',
 
       content_type: obj.content_type,
@@ -467,7 +486,7 @@ const TRANSFORMS = {
       name_label: obj.name_label,
       size: +obj.physical_size,
       shared: Boolean(obj.shared),
-      SR_type: obj.type,
+      SR_type: srType,
       tags: obj.tags,
       usage: +obj.virtual_allocation,
       VDIs: link(obj, 'VDIs'),
@@ -480,6 +499,14 @@ const TRANSFORMS = {
           : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
     }
+
+    Object.entries(TYPES_BY_ALLOCATION).forEach(([key, types]) => {
+      if (types.includes(srType)) {
+        sr.allocationStrategy = key
+      }
+    })
+
+    return sr
   },
 
   // -----------------------------------------------------------------
