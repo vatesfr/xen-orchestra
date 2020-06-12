@@ -68,7 +68,7 @@ const MultipathableSrs = decorate([
               <Col>
                 <Sr
                   id={pbd.SR}
-                  allocation={false}
+                  allocationStrategy={false}
                   link
                   newTab
                   container={false}

@@ -226,7 +226,16 @@ export const Sr = decorate([
       container: getContainer(state, props),
     })
   }),
-  ({ id, sr, container, link, newTab, spaceLeft, self, allocation }) => {
+  ({
+    id,
+    sr,
+    container,
+    link,
+    newTab,
+    spaceLeft,
+    self,
+    allocationStrategy,
+  }) => {
     if (sr === undefined) {
       return unknowItem(id, 'SR')
     }
@@ -237,7 +246,7 @@ export const Sr = decorate([
         {!self && spaceLeft && isSrWritable(sr) && (
           <span className={!link && 'text-muted'}>
             {` (${formatSize(sr.size - sr.physical_usage)} free`}
-            {allocation &&
+            {allocationStrategy &&
               sr.allocationStrategy !== undefined &&
               ` - ${sr.allocationStrategy}`}
             {')'}
@@ -255,7 +264,7 @@ export const Sr = decorate([
 ])
 
 Sr.propTypes = {
-  allocation: PropTypes.bool,
+  allocationStrategy: PropTypes.bool,
   container: PropTypes.bool,
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
@@ -265,7 +274,7 @@ Sr.propTypes = {
 }
 
 Sr.defaultProps = {
-  allocation: true,
+  allocationStrategy: true,
   container: true,
   link: false,
   newTab: false,

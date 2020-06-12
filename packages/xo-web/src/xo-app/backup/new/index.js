@@ -1000,7 +1000,6 @@ export default decorate([
                         <strong>{_('backupTargetSrs')}</strong>
                       </label>
                       <FormFeedback
-                        allocationStrategy
                         component={SelectSr}
                         message={_('missingSrs')}
                         onChange={effects.addSr}
