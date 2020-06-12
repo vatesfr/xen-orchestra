@@ -18,8 +18,8 @@ const { fatal, info, warn } = require('@xen-orchestra/log').createLogger(
 
 const main = async args => {
   const opts = require('getopts')(args, {
+    boolean: ['help', 'safe-mode'],
     alias: {
-      boolean: ['help', 'safe-mode'],
       help: ['h'],
     },
   })
