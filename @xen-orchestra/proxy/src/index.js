@@ -95,13 +95,9 @@ ${name} v${version}
     }
   )
 
-  try {
-    const { group, user } = config
-    group != null && process.setgid(group)
-    user != null && process.setuid(user)
-  } catch (error) {
-    warn('failed to change group/user', { error })
-  }
+  const { group, user } = config
+  group != null && process.setgid(group)
+  user != null && process.setuid(user)
 
   require('source-map-support/register')
 
