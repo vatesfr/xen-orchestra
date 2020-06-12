@@ -885,7 +885,7 @@ class SortedTable extends Component {
                     {' '}
                     -{' '}
                     <span className='text-danger'>
-                      {_('sortedTableAllItemsSelected')}
+                      {_('sortedTableAllItemsSelected', { nItems })}
                     </span>
                   </span>
                 ) : (

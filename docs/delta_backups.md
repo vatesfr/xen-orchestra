@@ -6,11 +6,11 @@ You can export only the delta (difference) between your current VM disks and a p
 
 Full backups can be represented like this:
 
-![](https://xen-orchestra.com/blog/content/images/2015/12/nodelta.png)
+![](./assets/nodelta.png)
 
 It means huge files for each backup. Delta backups will only export the difference between the previous backup:
 
-![](https://xen-orchestra.com/blog/content/images/2020/05/delta_final.png)
+![](./assets/delta_final.png)
 
 You can imagine making your first initial full backup during a weekend, and then only delta backups every night. It combines the flexibility of snapshots and the power of full backups, because:
 
@@ -29,11 +29,11 @@ You can even imagine using this to backup more often! Because deltas will be sma
 
 They are called continuous because you'll **never export a full backup** after the first one. We'll merge the oldest delta into the full:
 
-![](https://xen-orchestra.com/blog/content/images/2016/01/deltamergesmall-1.png)
+![](./assets/deltamerge1.png)
 
 This way we can go "forward" and remove this oldest VHD after the merge:
 
-![](https://xen-orchestra.com/blog/content/images/2016/01/finaldeltasmall.png)
+![](./assets/deltamerge2.png)
 
 ## Create Delta backup
 

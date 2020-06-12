@@ -27,6 +27,7 @@ const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
 const pw = require('pw')
 const Xo = require('xo-lib').default
+const { PassThrough } = require('stream')
 
 // -------------------------------------------------------------------
 
@@ -48,6 +49,17 @@ async function connect() {
   await xo.open()
   await xo.signIn({ token })
   return xo
+}
+
+function createOutputStream(path) {
+  if (path !== undefined && path !== '-') {
+    return createWriteStream(path)
+  }
+
+  // introduce a through stream because stdout is not a normal stream!
+  const stream = new PassThrough()
+  stream.pipe(process.stdout)
+  return stream
 }
 
 const FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
@@ -375,7 +387,7 @@ async function call(args) {
     if (key === '$getFrom') {
       ensurePathParam(method, file)
       url = resolveUrl(baseUrl, result[key])
-      const output = createWriteStream(file)
+      const output = createOutputStream(file)
       const response = await hrp(url)
 
       const progress = progressStream(

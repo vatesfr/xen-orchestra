@@ -593,7 +593,10 @@ export default class NewVm extends BaseComponent {
         : state.name_label
     const name_description =
       state.name_description === '' || !state.name_descriptionHasChanged
-        ? template.name_description || ''
+        ? template.other.default_template === 'true' ||
+          template.name_description === undefined
+          ? ''
+          : template.name_description
         : state.name_description
     const replacer = this._buildVmsNameTemplate()
     this._setState({

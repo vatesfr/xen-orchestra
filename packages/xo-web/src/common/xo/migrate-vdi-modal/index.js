@@ -8,7 +8,7 @@ import { createCompare, createCompareContainers } from 'utils'
 import { createSelector } from 'selectors'
 import { SelectSr } from 'select-objects'
 
-import { isSrShared } from '../'
+import { isSrShared, isSrWritable } from '../'
 
 const compareSrs = createCompare([isSrShared])
 
@@ -33,6 +33,11 @@ export default class MigrateVdiModalBody extends Component {
     (warningBeforeMigrate, sr) => warningBeforeMigrate(sr)
   )
 
+  _getSrPredicate = createSelector(
+    () => this.props.pool,
+    pool => sr => isSrWritable(sr) && sr.$pool === pool
+  )
+
   render() {
     const warningBeforeMigrate = this._getWarningBeforeMigrate()
     return (
@@ -44,6 +49,7 @@ export default class MigrateVdiModalBody extends Component {
               compareContainers={this._getCompareContainers()}
               compareOptions={compareSrs}
               onChange={this.linkState('sr')}
+              predicate={this._getSrPredicate()}
               required
             />
           </Col>

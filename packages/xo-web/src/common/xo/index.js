@@ -372,7 +372,8 @@ const setNotificationCookie = (id, changes) => {
   })
   cookies.set(
     `notifications:${store.getState().user.id}`,
-    JSON.stringify(notifications)
+    JSON.stringify(notifications),
+    { expires: Infinity }
   )
 }
 

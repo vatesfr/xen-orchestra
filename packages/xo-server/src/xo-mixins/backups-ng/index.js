@@ -11,10 +11,12 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
+import { decorateWith } from '@vates/decorate-with'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
 import { formatDateTime } from '@xen-orchestra/xapi'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
+import { parseDuration } from '@vates/parse-duration'
 import {
   countBy,
   findLast,
@@ -48,9 +50,7 @@ import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
-import parseDuration from '../../_parseDuration'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
-import { decorateWith } from '../../_decorateWith'
 import { waitAll } from '../../_waitAll'
 import {
   type DeltaVmExport,
@@ -647,13 +647,7 @@ export default class BackupNg {
           })
         }
 
-        const srs = srIds.map(id => {
-          const xapi = app.getXapi(id)
-          return {
-            __proto__: xapi.getObject(id),
-            xapi,
-          }
-        })
+        const srs = srIds.map(id => app.getXapiObject(id, 'SR'))
         const remotes = await Promise.all(
           remoteIds.map(async id => {
             const remote = await app.getRemote(id)
@@ -1448,7 +1442,7 @@ export default class BackupNg {
             async (taskId, sr) => {
               const fork = forkExport()
 
-              const { uuid: srUuid, xapi } = sr
+              const { uuid: srUuid, $xapi: xapi } = sr
 
               // delete previous interrupted copies
               ignoreErrors.call(
@@ -1558,7 +1552,7 @@ export default class BackupNg {
           }
         })
 
-        for (const { uuid: srUuid, xapi } of srs) {
+        for (const { uuid: srUuid, $xapi: xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
             jobId,
@@ -1837,7 +1831,7 @@ export default class BackupNg {
             async (taskId, sr) => {
               const fork = forkExport()
 
-              const { uuid: srUuid, xapi } = sr
+              const { uuid: srUuid, $xapi: xapi } = sr
 
               // delete previous interrupted copies
               ignoreErrors.call(

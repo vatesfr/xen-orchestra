@@ -125,7 +125,6 @@ In that case, you need to increase the memory allocated to the XOA VM (from 2GB 
 :::tip
 You should leave ~512MB for the debian OS itself. Meaning if your VM has 4096MB total RAM, you should use `3584` for the memory value below.
 
-
 ```diff
 - ExecStart=/usr/local/bin/xo-server
 + ExecStart=/usr/local/bin/node --max-old-space-size=3584 /usr/local/bin/xo-server
