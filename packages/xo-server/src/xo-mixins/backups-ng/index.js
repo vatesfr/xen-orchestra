@@ -11,6 +11,7 @@ import { type Pattern, createPredicate } from 'value-matcher'
 import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
+import { decorateWith } from '@vates/decorate-with'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
 import {
@@ -47,7 +48,6 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
-import { decorateWith } from '../../_decorateWith'
 import { waitAll } from '../../_waitAll'
 import {
   type DeltaVmExport,

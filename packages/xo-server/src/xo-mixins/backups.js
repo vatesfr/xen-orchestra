@@ -6,6 +6,7 @@ import splitLines from 'split-lines'
 import { CancelToken, fromEvent, ignoreErrors } from 'promise-toolbox'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
+import { decorateWith } from '@vates/decorate-with'
 import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import { basename, dirname } from 'path'
@@ -27,7 +28,6 @@ import {
 import createSizeStream from '../size-stream'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import { debounceWithKey } from '../_pDebounceWithKey'
-import { decorateWith } from '../_decorateWith'
 import { lvs, pvs } from '../lvm'
 import {
   forEach,
