@@ -227,14 +227,14 @@ export const Sr = decorate([
     })
   }),
   ({
-    id,
-    sr,
+    allocationStrategy,
     container,
+    id,
     link,
     newTab,
-    spaceLeft,
     self,
-    allocationStrategy,
+    spaceLeft,
+    sr,
   }) => {
     if (sr === undefined) {
       return unknowItem(id, 'SR')
