@@ -66,12 +66,12 @@ ${name} v${version}
               throw error
             }
 
-            const pems = await require('./_genSelfSignedCert').genSelfSignedCert()
+            const pems = await require('@xen-orchestra/self-signed').genSelfSignedCert()
             outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
-            outputFileSync(key, pems.private, { flag: 'wx', mode: 0o400 })
+            outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
             info('new certificate generated', { cert, key })
             opts.cert = pems.cert
-            opts.key = pems.private
+            opts.key = pems.key
           }
         }
 
