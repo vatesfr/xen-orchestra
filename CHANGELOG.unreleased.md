@@ -40,3 +40,4 @@
 
 - xo-server-load-balancer patch
 - xo-server patch
+- xo-web minor
