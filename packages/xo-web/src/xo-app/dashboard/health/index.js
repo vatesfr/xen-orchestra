@@ -162,7 +162,9 @@ const ORPHANED_VDI_COLUMNS = [
   },
   {
     name: _('vdiSr'),
-    itemRenderer: vdi => <Sr id={vdi.$SR} link spaceLeft={false} />,
+    itemRenderer: vdi => (
+      <Sr allocationStrategy={false} id={vdi.$SR} link spaceLeft={false} />
+    ),
   },
 ]
 
@@ -256,7 +258,9 @@ const AttachedVdisTable = decorate([
       {
         name: _('vdiSr'),
         itemRenderer: ({ sr }) =>
-          sr === undefined ? null : <Sr id={sr.id} link spaceLeft={false} />,
+          sr === undefined ? null : (
+            <Sr allocationStrategy={false} id={sr.id} link spaceLeft={false} />
+          ),
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
       },
     ],

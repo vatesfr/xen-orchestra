@@ -58,7 +58,13 @@ const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 const XOSAN_SR_COLUMNS = [
   {
     itemRenderer: sr => (
-      <Sr id={sr.id} container={false} spaceLeft={false} link />
+      <Sr
+        allocationStrategy={false}
+        id={sr.id}
+        container={false}
+        spaceLeft={false}
+        link
+      />
     ),
     name: _('xosanName'),
     sortCriteria: 'name_label',
