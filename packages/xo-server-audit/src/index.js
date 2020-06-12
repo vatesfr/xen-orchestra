@@ -2,6 +2,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
+import { createSchedule } from '@xen-orchestra/cron'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 import {
@@ -86,6 +87,7 @@ class Db extends Storage {
   }
 }
 
+const DAILY_CRON = '0 6 * * *'
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
   constructor({ staticConfig, xo }) {
@@ -95,6 +97,9 @@ class AuditXoPlugin {
     }
     this._cleaners = []
     this._xo = xo
+    this._storeLastFingerprintJob = createSchedule(DAILY_CRON).createJob(() =>
+      this._storeLastFingerprintInCustomerDb().catch(log.error)
+    )
 
     this._auditCore = undefined
     this._storage = undefined
@@ -142,7 +147,9 @@ class AuditXoPlugin {
       oldest: { type: 'string', optional: true },
     }
 
+    this._storeLastFingerprintJob.start()
     cleaners.push(
+      this._storeLastFingerprintJob.stop,
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
@@ -232,6 +239,37 @@ class AuditXoPlugin {
       }))
   }
 
+  async _storeLastFingerprintInCustomerDb() {
+    const xo = this._xo
+    const hashes = await xo.audit.getLastChain()
+    const lastHash = hashes[hashes.length - 1]
+
+    // check the integrity of all stored hashes
+    const integrityCheckSuccess = await Promise.all(
+      hashes.map((oldest, key) =>
+        oldest !== lastHash
+          ? this.checkIntegrity(oldest, hashes[key + 1])
+          : true
+      )
+    ).then(
+      () => true,
+      () => false
+    )
+
+    const { oldest, newest, error } = await this._generateFingerprint({
+      oldest: lastHash,
+    })
+
+    if (!integrityCheckSuccess || error !== undefined) {
+      return xo.audit.startNewChain({
+        oldest,
+        newest,
+      })
+    }
+
+    await xo.audit.extendLastChain(oldest, newest)
+  }
+
   async _checkIntegrity(props) {
     const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
     return this._auditCore.checkIntegrity(oldest, newest).catch(error => {
@@ -250,14 +288,18 @@ class AuditXoPlugin {
     try {
       return {
         fingerprint: `${oldest}|${newest}`,
+        newest,
         nValid: await this._checkIntegrity({ oldest, newest }),
+        oldest,
       }
     } catch (error) {
       if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
         return {
-          fingerprint: `${error.data.id}|${newest}`,
-          nValid: error.data.nValid,
           error,
+          fingerprint: `${error.data.id}|${newest}`,
+          newest,
+          nValid: error.data.nValid,
+          oldest,
         }
       }
       throw error
