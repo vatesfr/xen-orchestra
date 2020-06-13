@@ -1799,13 +1799,11 @@ export const getBondModes = () => _call('network.getBondModes')
 export const createNetwork = params => _call('network.create', params)
 export const createBondedNetwork = params =>
   _call('network.createBonded', params)
-export const createPrivateNetwork = params =>
+export const createPrivateNetwork = ({ preferredCenter, ...params }) =>
   _call('sdnController.createPrivateNetwork', {
     ...params,
     preferredCenterId:
-      params.preferredCenter !== null
-        ? resolveId(params.preferredCenter)
-        : undefined,
+      preferredCenter !== null ? resolveId(preferredCenter) : undefined,
   })
 
 export const deleteNetwork = network =>
