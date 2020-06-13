@@ -39,6 +39,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-sdn-controller patch
 - xo-server-load-balancer patch
 - xo-server patch
 - xo-web minor
