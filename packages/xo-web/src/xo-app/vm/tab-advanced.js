@@ -51,7 +51,6 @@ import {
 } from 'lodash'
 import {
   addAcl,
-  blockVmDeletion,
   changeVirtualizationMode,
   cloneVm,
   convertVmToTemplate,
@@ -741,8 +740,12 @@ export default class TabAdvanced extends Component {
                   <th>{_('protectFromDeletion')}</th>
                   <td>
                     <Toggle
-                      value={'destroy' in vm.blocked_operations}
-                      onChange={value => blockVmDeletion(vm, value)}
+                      value={'destroy' in vm.blockedOperations}
+                      onChange={blockDeletion =>
+                        editVm(vm, {
+                          blockedOperations: { destroy: blockDeletion },
+                        })
+                      }
                     />
                   </td>
                 </tr>

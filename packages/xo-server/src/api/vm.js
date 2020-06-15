@@ -668,6 +668,8 @@ set.params = {
   hvmBootFirmware: { type: ['string', 'null'], optional: true },
 
   virtualizationMode: { type: 'string', optional: true },
+
+  blockedOperations: { type: 'object', optional: true },
 }
 
 set.resolve = {
@@ -1669,25 +1671,4 @@ deleteVgpu.params = {
 
 deleteVgpu.resolve = {
   vgpu: ['vgpu', 'vgpu', ''],
-}
-
-// -------------------------------------------------------------------
-
-export async function blockDeletion({ vm, block = true }) {
-  await this.getXapi(vm).setFieldEntry(
-    'VM',
-    vm._xapiRef,
-    'blocked_operations',
-    'destroy',
-    block ? 'true' : null
-  )
-}
-
-blockDeletion.params = {
-  block: { type: 'boolean' },
-  vm: { type: 'string' },
-}
-
-blockDeletion.resolve = {
-  vm: ['vm', 'VM', 'administrate'],
 }

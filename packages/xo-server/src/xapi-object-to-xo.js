@@ -289,7 +289,7 @@ const TRANSFORMS = {
       affinityHost: link(obj, 'affinity'),
       auto_poweron: otherConfig.auto_poweron === 'true',
       bios_strings: obj.bios_strings,
-      blocked_operations: obj.blocked_operations,
+      blockedOperations: obj.blocked_operations,
       boot: obj.HVM_boot_params,
       CPUs: {
         max: +obj.VCPUs_max,
