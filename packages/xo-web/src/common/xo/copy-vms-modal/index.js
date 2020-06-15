@@ -27,11 +27,11 @@ import {
     )
     const getIsZstdSupported = createSelector(
       createGetObject(
-        createSelector(getVms, vms =>
+        createSelector(getVms, (vms) =>
           vms.length === 1 ? Object.values(vms)[0].$container : undefined
         )
       ),
-      container => container === undefined || container.zstdSupported
+      (container) => container === undefined || container.zstdSupported
     )
 
     return {
@@ -54,11 +54,11 @@ class CopyVmsModalBody extends BaseComponent {
       ? map(
           resolvedVms,
           compileTemplate(namePattern, {
-            '{name}': vm => vm.name_label,
-            '{id}': vm => vm.id,
+            '{name}': (vm) => vm.name_label,
+            '{id}': (vm) => vm.id,
           })
         )
-      : map(resolvedVms, vm => vm.name_label)
+      : map(resolvedVms, (vm) => vm.name_label)
 
     return {
       compression: compression === 'zstd' ? 'zstd' : compression === 'native',
@@ -76,8 +76,8 @@ class CopyVmsModalBody extends BaseComponent {
     })
   }
 
-  _onChangeSr = sr => this.setState({ sr })
-  _onChangeNamePattern = event =>
+  _onChangeSr = (sr) => this.setState({ sr })
+  _onChangeNamePattern = (event) =>
     this.setState({ namePattern: event.target.value })
 
   render() {
@@ -118,9 +118,7 @@ class CopyVmsModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
           <SingleLineRow className='mt-1'>
-            <Col size={4} className='ml-2'>
-              {_('copyVmSelectSr')}
-            </Col>
+            <Col size={6}>{_('copyVmSelectSr')}</Col>
             <Col size={6}>
               <SelectSr
                 disabled={copyMode !== 'fullCopy'}
@@ -130,9 +128,7 @@ class CopyVmsModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
           <SingleLineRow className='mt-1'>
-            <Col size={4} className='ml-2'>
-              {_('compression')}
-            </Col>
+            <Col size={6}>{_('compression')}</Col>
             <Col size={6}>
               <SelectCompression
                 disabled={copyMode !== 'fullCopy'}
