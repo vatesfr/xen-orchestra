@@ -650,11 +650,14 @@ class SDNController extends EventEmitter {
       )
 
       // Put pool of preferred center first
-      const preferredCenterPoolId = preferredCenter.$pool.uuid
-      const i = poolIds.indexOf(preferredCenterPoolId)
+      const preferredCenterPoolUuid = preferredCenter.$pool.uuid
+      const i = poolIds.findIndex(id => {
+        const pool = this._xo.getXapiObject(this._xo.getObject(id, 'pool'))
+        return pool.uuid === preferredCenterPoolUuid
+      })
       assert.notStrictEqual(i, -1)
       poolIds[i] = poolIds[0]
-      poolIds[0] = preferredCenterPoolId
+      poolIds[0] = preferredCenterPoolUuid
     }
 
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
