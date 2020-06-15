@@ -1,5 +1,7 @@
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import pako from 'pako'
+import sum from 'lodash/sum'
 import xml2js, { processors } from 'xml2js'
 
 import { readVmdkGrainTable } from '.'
@@ -75,11 +77,6 @@ function parseTarHeader(header, stringDeserializer) {
 }
 
 export class ParsableFile {
-  // noinspection JSMethodCanBeStatic
-  get size() {
-    return 0
-  }
-
   /** returns a ParsableFile */
   slice(start, end) {}
 
@@ -162,9 +159,9 @@ async function parseOVF(fileFragment, stringDeserializer) {
             capacity:
               disk.capacity * ((unit && allocationUnitsToFactor(unit)) || 1),
             path: file && file.href,
+            compression: file && file.compression,
           }
         })
-
         // Get hardware info: CPU, RAM, disks, networks...
         const handleItem = item => {
           const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
@@ -183,6 +180,77 @@ async function parseOVF(fileFragment, stringDeserializer) {
       }
     )
   )
+}
+
+const GZIP_CHUNK_SIZE = 4 * 1024 * 1024
+
+async function parseGzipFromStart(start, end, fileSlice) {
+  let currentDeflatedPos = 0
+  let currentInflatedPos = 0
+  const inflate = new pako.Inflate()
+  const chunks = []
+  while (currentInflatedPos < end) {
+    const slice = fileSlice.slice(
+      currentDeflatedPos,
+      currentDeflatedPos + GZIP_CHUNK_SIZE
+    )
+    const compressed = await slice.read()
+    inflate.push(compressed, pako.Z_SYNC_FLUSH)
+    let chunk = inflate.result
+    const inflatedChunkEnd = currentInflatedPos + chunk.length
+    if (inflatedChunkEnd > start) {
+      if (currentInflatedPos < start) {
+        chunk = chunk.slice(start - currentInflatedPos)
+      }
+      if (inflatedChunkEnd > end) {
+        chunk = chunk.slice(0, -(inflatedChunkEnd - end))
+      }
+      chunks.push(chunk)
+    }
+    currentInflatedPos = inflatedChunkEnd
+    currentDeflatedPos += GZIP_CHUNK_SIZE
+  }
+  const resultBuffer = new Uint8Array(sum(chunks.map(c => c.length)))
+  let index = 0
+  chunks.forEach(c => {
+    resultBuffer.set(c, index)
+    index += c.length
+  })
+  return resultBuffer.buffer
+}
+
+// start and end are negative numbers
+// used with streamOptimized format where only the footer has the directory address filled
+async function parseGzipFromEnd(start, end, fileSlice, header) {
+  const l = end - start
+  const chunks = []
+  let savedSize = 0
+  let currentDeflatedPos = 0
+  const inflate = new pako.Inflate()
+  while (currentDeflatedPos < header.fileSize) {
+    const slice = fileSlice.slice(
+      currentDeflatedPos,
+      currentDeflatedPos + GZIP_CHUNK_SIZE
+    )
+    const compressed = await slice.read()
+    inflate.push(compressed, pako.Z_SYNC_FLUSH)
+    const chunk = inflate.result.slice()
+    chunks.push({ pos: currentDeflatedPos, buffer: chunk })
+    savedSize += chunk.length
+    if (savedSize - chunks[0].buffer.length >= l) {
+      savedSize -= chunks[0].buffer.length
+      chunks.shift()
+    }
+    currentDeflatedPos += GZIP_CHUNK_SIZE
+  }
+  let resultBuffer = new Uint8Array(sum(chunks.map(c => c.buffer.length)))
+  let index = 0
+  chunks.forEach(c => {
+    resultBuffer.set(c.buffer, index)
+    index += c.buffer.length
+  })
+  resultBuffer = resultBuffer.slice(start, end)
+  return resultBuffer.buffer
 }
 
 /**
@@ -219,6 +287,20 @@ export async function parseOVAFile(
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk')) {
       const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
       const readFile = async (start, end) => fileSlice.slice(start, end).read()
+      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+    }
+    if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
+      const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
+      const readFile = async (start, end) => {
+        if (start === end) {
+          return new Uint8Array(0)
+        }
+        if (start >= 0 && end >= 0) {
+          return parseGzipFromStart(start, end, fileSlice)
+        } else if (start < 0 && end < 0) {
+          return parseGzipFromEnd(start, end, fileSlice, header)
+        }
+      }
       data.tables[header.fileName] = await readVmdkGrainTable(readFile)
     }
     offset += Math.ceil(header.fileSize / 512) * 512
