@@ -1413,6 +1413,7 @@ export default class Xapi extends XapiBase {
 
     // 2. Create VDIs & Vifs.
     const vdis = {}
+    const compression = {}
     const vifDevices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
     await Promise.all(
       map(disks, async disk => {
@@ -1423,7 +1424,7 @@ export default class Xapi extends XapiBase {
           sr: sr.$ref,
         }))
         $defer.onFailure(() => this._deleteVdi(vdi.$ref))
-
+        compression[disk.path] = disk.compression
         return this.createVbd({
           userdevice: String(disk.position),
           vdi,
@@ -1454,12 +1455,12 @@ export default class Xapi extends XapiBase {
           stream.resume()
           return
         }
-
         const table = tables[entry.name]
         const vhdStream = await vmdkToVhd(
           stream,
           table.grainLogicalAddressList,
-          table.grainFileOffsetList
+          table.grainFileOffsetList,
+          compression[entry.name] === 'gzip'
         )
         try {
           await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)

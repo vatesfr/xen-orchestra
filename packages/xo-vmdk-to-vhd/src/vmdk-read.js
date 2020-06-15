@@ -30,7 +30,7 @@ function parseDescriptor(descriptorSlice) {
         sizeSectors: items[1],
         type: items[2],
         name: items[3],
-        offset: items.length > 4 ? items[4] : 0,
+        offset: items.length > 4 ? items[4] : 0
       })
     }
   }
@@ -51,7 +51,7 @@ function readGrain(offsetSectors, buffer, compressed) {
     size,
     buffer: grainBuffer,
     grain: grainContent,
-    grainSize: grainContent.byteLength,
+    grainSize: grainContent.byteLength
   }
 }
 
@@ -67,7 +67,17 @@ function alignSectors(number) {
 }
 
 export default class VMDKDirectParser {
-  constructor(readStream, grainLogicalAddressList, grainFileOffsetList) {
+  constructor(
+    readStream,
+    grainLogicalAddressList,
+    grainFileOffsetList,
+    gzipped = false
+  ) {
+    if (gzipped) {
+      const unzipStream = zlib.createGunzip()
+      readStream.pipe(unzipStream)
+      readStream = unzipStream
+    }
     this.grainLogicalAddressList = grainLogicalAddressList
     this.grainFileOffsetList = grainFileOffsetList
     this.virtualBuffer = new VirtualBuffer(readStream)
