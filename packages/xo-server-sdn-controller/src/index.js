@@ -643,6 +643,8 @@ class SDNController extends EventEmitter {
     mtu,
     preferredCenterId,
   }) {
+    const pools = poolIds.map(id => this._xo.getXapiObject(id, 'pool'))
+
     let preferredCenter
     if (preferredCenterId !== undefined) {
       preferredCenter = this._xo.getXapiObject(
@@ -651,7 +653,6 @@ class SDNController extends EventEmitter {
 
       // Put pool of preferred center first
       const preferredCenterPoolUuid = preferredCenter.$pool.uuid
-      const pools = poolIds.map(id => this._xo.getXapiObject(id, 'pool'))
       const i = pools.findIndex(pool => pool.uuid === preferredCenterPoolUuid)
       assert.notStrictEqual(i, -1)
       poolIds[i] = poolIds[0]
@@ -659,9 +660,7 @@ class SDNController extends EventEmitter {
     }
 
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
-    for (const poolId of poolIds) {
-      const pool = this._xo.getXapiObject(this._xo.getObject(poolId, 'pool'))
-
+    for (const pool of pools) {
       await this._setPoolControllerIfNeeded(pool)
 
       const pifId = pifIds.find(id => {
