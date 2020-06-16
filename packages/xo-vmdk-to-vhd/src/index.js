@@ -5,7 +5,7 @@ import VMDKDirectParser from './vmdk-read'
 
 export {
   default as readVmdkGrainTable,
-  readCapacityAndGrainTable
+  readCapacityAndGrainTable,
 } from './vmdk-read-table'
 
 async function vmdkToVhd(
