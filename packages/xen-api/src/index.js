@@ -63,10 +63,34 @@ const DISCONNECTED = 'disconnected'
 
 // -------------------------------------------------------------------
 
+const identity = value => value
+
+// save current stack trace and add it to any rejected error
+//
+// This is especially useful when the resolution is separate of the initial
+// call, which is often the case with RPC libs.
+//
+// There is a perf impact and it should be avoided in production.
+const addSyncStackTrace = async promise => {
+  const stackContainer = new Error()
+  try {
+    return await promise
+  } catch (error) {
+    error.stack = stackContainer.stack
+    throw error
+  }
+}
+
+// -------------------------------------------------------------------
+
 export class Xapi extends EventEmitter {
   constructor(opts) {
     super()
 
+    this._addSyncStackTrace =
+      opts.syncStackTraces ?? process.env.NODE_ENV === 'development'
+        ? addSyncStackTrace
+        : identity
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
@@ -531,7 +555,7 @@ export class Xapi extends EventEmitter {
       String(Date.now()),
     ])
 
-    await promise
+    await this._addSyncStackTrace(promise)
 
     ignoreErrors.call(
       this._sessionCall('pool.remove_from_other_config', [poolRef, key])
@@ -629,7 +653,7 @@ export class Xapi extends EventEmitter {
 
       watcher = watchers[ref] = defer()
     }
-    return watcher.promise
+    return this._addSyncStackTrace(watcher.promise)
   }
 
   // ===========================================================================
@@ -639,7 +663,10 @@ export class Xapi extends EventEmitter {
   async _call(method, args, timeout = this._callTimeout(method, args)) {
     const startTime = Date.now()
     try {
-      const result = await pTimeout.call(this._transport(method, args), timeout)
+      const result = await pTimeout.call(
+        this._addSyncStackTrace(this._transport(method, args)),
+        timeout
+      )
       debug(
         '%s: %s(...) [%s] ==> %s',
         this._humanId,
