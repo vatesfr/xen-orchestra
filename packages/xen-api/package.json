@@ -31,7 +31,7 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=7.6"
   },
   "dependencies": {
     "bind-property-descriptor": "^1.0.0",
