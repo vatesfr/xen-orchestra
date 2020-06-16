@@ -1,3 +1,5 @@
+import { findKey } from 'lodash'
+
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
@@ -474,7 +476,7 @@ const TRANSFORMS = {
 
   sr(obj) {
     const srType = obj.type
-    const sr = {
+    return {
       type: 'SR',
 
       content_type: obj.content_type,
@@ -482,6 +484,9 @@ const TRANSFORMS = {
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
 
+      allocationStrategy: findKey(TYPES_BY_ALLOCATION, types =>
+        types.includes(srType)
+      ),
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
@@ -499,14 +504,6 @@ const TRANSFORMS = {
           : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
     }
-
-    Object.entries(TYPES_BY_ALLOCATION).forEach(([key, types]) => {
-      if (types.includes(srType)) {
-        sr.allocationStrategy = key
-      }
-    })
-
-    return sr
   },
 
   // -----------------------------------------------------------------

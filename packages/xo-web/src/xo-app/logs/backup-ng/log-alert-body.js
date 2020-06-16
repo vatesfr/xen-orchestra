@@ -240,7 +240,7 @@ const RemoteTask = ({ children, task }) => (
 
 const SrTask = ({ children, task }) => (
   <div>
-    <Sr allocationStrategy={false} id={task.data.id} link newTab />{' '}
+    <Sr id={task.data.id} link newTab showAllocationStrategy={false} />{' '}
     <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     {children}

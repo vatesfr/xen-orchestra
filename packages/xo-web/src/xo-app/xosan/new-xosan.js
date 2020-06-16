@@ -59,9 +59,9 @@ const XOSAN_SR_COLUMNS = [
   {
     itemRenderer: sr => (
       <Sr
-        allocationStrategy={false}
         id={sr.id}
         container={false}
+        showAllocationStrategy={false}
         spaceLeft={false}
         link
       />

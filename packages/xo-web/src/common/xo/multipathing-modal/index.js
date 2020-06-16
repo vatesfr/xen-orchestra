@@ -48,7 +48,7 @@ export default class MultipathingModal extends Component {
         >
           {srIds.map(srId => (
             <div key={srId}>
-              <Sr allocationStrategy={false} id={srId} link newTab />
+              <Sr id={srId} link newTab showAllocationStrategy={false} />
             </div>
           ))}
         </Collapse>

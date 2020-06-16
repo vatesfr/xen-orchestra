@@ -227,12 +227,12 @@ export const Sr = decorate([
     })
   }),
   ({
-    allocationStrategy,
     container,
     id,
     link,
     newTab,
     self,
+    showAllocationStrategy,
     spaceLeft,
     sr,
   }) => {
@@ -243,15 +243,15 @@ export const Sr = decorate([
     return (
       <LinkWrapper link={link} newTab={newTab} to={`/srs/${sr.id}`}>
         <Icon icon='sr' /> {sr.name_label}
-        {!self && (allocationStrategy || spaceLeft) && isSrWritable(sr) && (
+        {!self && (showAllocationStrategy || spaceLeft) && isSrWritable(sr) && (
           <span className={!link && 'text-muted'}>
             {' ('}
             {spaceLeft && `${formatSize(sr.size - sr.physical_usage)} free`}
-            {spaceLeft && allocationStrategy && ' - '}
-            {allocationStrategy &&
+            {spaceLeft && showAllocationStrategy && ' - '}
+            {showAllocationStrategy &&
               sr.allocationStrategy !== undefined &&
               sr.allocationStrategy}
-            {')'}
+            )
           </span>
         )}
         {!self && container !== undefined && (
@@ -266,21 +266,21 @@ export const Sr = decorate([
 ])
 
 Sr.propTypes = {
-  allocationStrategy: PropTypes.bool,
   container: PropTypes.bool,
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
   newTab: PropTypes.bool,
   self: PropTypes.bool,
+  showAllocationStrategy: PropTypes.bool,
   spaceLeft: PropTypes.bool,
 }
 
 Sr.defaultProps = {
-  allocationStrategy: true,
   container: true,
   link: false,
   newTab: false,
   self: false,
+  showAllocationStrategy: true,
   spaceLeft: true,
 }
 
