@@ -593,10 +593,10 @@ ${monitorBodies.join('\n')}`
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
 
-      const failedEntries = []
+      const entriesWithMissingStats = []
       for (const entry of snapshot) {
         if (entry.value === undefined) {
-          failedEntries.push(entry)
+          entriesWithMissingStats.push(entry)
           continue
         }
 
@@ -647,16 +647,16 @@ ${entry.listItem}
       }
 
       raiseOrLowerAlarm(
-        `${monitor.alarmId}|${failedEntries
+        `${monitor.alarmId}|${entriesWithMissingStats
           .map(({ uuid }) => uuid)
           .join('|')}|RRD`,
-        failedEntries.length !== 0,
+        entriesWithMissingStats.length !== 0,
         () => {
           this._sendAlertEmail(
             'Secondary Issue',
             `
 ## There was an issue when trying to check ${monitor.title}
-${failedEntries.map(({ listItem }) => listItem).join('\n')}`
+${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
           )
         },
         () => {}
