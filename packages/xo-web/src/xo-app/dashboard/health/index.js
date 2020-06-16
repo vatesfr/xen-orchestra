@@ -262,8 +262,8 @@ const AttachedVdisTable = decorate([
             <Sr
               id={sr.id}
               link
-              spaceLeft={false}
               showAllocationStrategy={false}
+              spaceLeft={false}
             />
           ),
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
