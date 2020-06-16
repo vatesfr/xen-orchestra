@@ -292,10 +292,7 @@ export default {
 
     blockedOperations: {
       set(operations, vm) {
-        return this.setFieldEntries(
-          'VM',
-          vm.$ref,
-          'blocked_operations',
+        return vm.update_blocked_operations(
           mapValues(operations, value => (value ? 'true' : null))
         )
       },
