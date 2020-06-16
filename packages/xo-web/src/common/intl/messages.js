@@ -1191,6 +1191,7 @@ const messages = {
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
+  protectFromDeletion: 'Protect from accidental deletion',
   ha: 'HA',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
