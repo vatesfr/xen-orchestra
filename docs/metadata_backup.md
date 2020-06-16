@@ -1,17 +1,13 @@
 # Metadata backup
 
-> WARNING: Metadata backup is an experimental feature. Unexpected issues are possible, but unlikely.
-
-## Introduction
-
 XCP-ng and Citrix Hypervisor (Xenserver) hosts use a database to store metadata about VMs and their associated resources such as storage and networking. Metadata forms this complete view of all VMs available on your pool. Backing up the metadata of your pool allows you to recover from a physical hardware failure scenario in which you lose your hosts without losing your storage (SAN, NAS...).
 
 In Xen Orchestra, Metadata backup is divided into two different options:
 
-* Pool metadata backup
-* XO configuration backup
+- Pool metadata backup
+- XO configuration backup
 
-### Performing a backup
+## Performing a backup
 
 In the backup job section, when creating a new backup job, you will now have a choice between backing up VMs and backing up Metadata:
 ![](./assets/metadata-1.png)
@@ -28,10 +24,11 @@ Once created, the job is displayed with the other classic jobs.
 
 ![](./assets/metadata-4.png)
 
+## Performing a restore
 
-### Performing a restore
-
-> WARNING: restoring pool metadata completely overwrites the XAPI database of a host. Only perform a metadata restore if it is a new server with nothing running on it (eg replacing a host with new hardware).
+:::warning
+Restoring pool metadata completely overwrites the XAPI database of a host. Only perform a metadata restore if it is a new server with nothing running on it (eg replacing a host with new hardware).
+:::
 
 If you browse to the Backup NG Restore panel, you will now notice a Metadata filter button:
 

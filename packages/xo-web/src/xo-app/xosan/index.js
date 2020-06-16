@@ -10,7 +10,7 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
-import { every, filter, find, flatten, forEach, isEmpty, map } from 'lodash'
+import { every, filter, find, forEach, isEmpty, map } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import {
   addSubscriptions,
@@ -19,6 +19,7 @@ import {
   cowSet,
   formatSize,
   ShortDate,
+  TryXoa,
 } from 'utils'
 import {
   deleteSr,
@@ -104,7 +105,9 @@ const XOSAN_COLUMNS = [
       <span>
         {map(sr.hosts, (host, i) => [
           i ? ', ' : null,
-          <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>,
+          <Link key={host.id} to={`/hosts/${host.id}`}>
+            {host.name_label}
+          </Link>,
         ])}
       </span>
     ),
@@ -171,7 +174,7 @@ const XOSAN_COLUMNS = [
             '✔'
           ) : expired ? (
             <span>
-              {_('xosanLicenseHasExpired')}{' '}
+              {_('licenseHasExpired')}{' '}
               {isAdmin && (
                 <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
               )}
@@ -274,7 +277,10 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 
   const getPoolPredicate = createSelector(
     getXosanSrs,
-    srs => pool => every(srs, sr => sr.$pool !== pool.id)
+    getHosts,
+    (srs, hosts) => pool =>
+      hosts[pool.master].productBrand !== 'XCP-ng' &&
+      every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {
@@ -310,11 +316,10 @@ export default class Xosan extends Component {
   }
 
   _updateLicenses = () =>
-    Promise.all([getLicenses('xosan'), getLicenses('xosan.trial')])
-      .then(([xosanLicenses, xosanTrialLicenses]) => {
+    getLicenses({ productType: 'xosan' })
+      .then(xosanLicenses => {
         this.setState({
           xosanLicenses,
-          xosanTrialLicenses,
         })
       })
       .catch(error => {
@@ -354,10 +359,9 @@ export default class Xosan extends Component {
 
   _getLicensesByXosan = createSelector(
     () => this.state.xosanLicenses,
-    () => this.state.xosanTrialLicenses,
-    (xosanLicenses = [], xosanTrialLicenses = []) => {
+    (xosanLicenses = []) => {
       const licensesByXosan = {}
-      forEach(flatten([xosanLicenses, xosanTrialLicenses]), license => {
+      forEach(xosanLicenses, license => {
         let xosanId
         if ((xosanId = license.boundObjectId) === undefined) {
           return
@@ -375,12 +379,12 @@ export default class Xosan extends Component {
   _getError = createSelector(
     () => this.props.plugins,
     plugins => {
-      const cloudPlugin = find(plugins, { id: 'cloud' })
-      if (!cloudPlugin) {
+      const xoaPlugin = find(plugins, { id: 'xoa' })
+      if (!xoaPlugin) {
         return _('xosanInstallCloudPlugin')
       }
 
-      if (!cloudPlugin.loaded) {
+      if (!xoaPlugin.loaded) {
         return _('xosanLoadCloudPlugin')
       }
     }
@@ -482,6 +486,7 @@ export default class Xosan extends Component {
                         collection={xosanSrs}
                         columns={XOSAN_COLUMNS}
                         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
+                        stateUrlParam='s'
                         userData={{
                           isAdmin,
                           licensesByXosan: this._getLicensesByXosan(),
@@ -498,15 +503,9 @@ export default class Xosan extends Component {
           </Container>
         ) : (
           <Container>
-            <h2 className='text-danger'>{_('xosanCommunity')}</h2>
+            <h2 className='text-info'>{_('xosanCommunity')}</h2>
             <p>
-              {_('considerSubscribe', {
-                link: (
-                  <a href='https://xen-orchestra.com'>
-                    https://xen-orchestra.com
-                  </a>
-                ),
-              })}
+              <TryXoa page='xosan' />
             </p>
           </Container>
         )}

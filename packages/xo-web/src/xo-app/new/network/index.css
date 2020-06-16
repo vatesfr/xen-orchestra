@@ -3,3 +3,20 @@
   font-size: 1rem;
   width: 20em;
 }
+
+.lineItem {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.item {
+  align-items: center;
+  display: inline-flex;
+  margin: 0.5em;
+  white-space: nowrap;
+}
+
+.input {
+  flex: 1 0 20rem;
+}

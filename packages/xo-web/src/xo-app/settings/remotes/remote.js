@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import { addSubscriptions } from 'utils'
+import { addSubscriptions, resolveId } from 'utils'
 import { alert, confirm } from 'modal'
 import { createRemote, editRemote, subscribeRemotes } from 'xo'
 import { error } from 'notification'
@@ -12,6 +12,7 @@ import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { map, some, trimStart } from 'lodash'
 import { Password, Number } from 'form'
+import { SelectProxy } from 'select-objects'
 
 const remoteTypes = {
   file: 'remoteTypeLocal',
@@ -32,6 +33,7 @@ export default decorate([
       password: undefined,
       path: undefined,
       port: undefined,
+      proxyId: undefined,
       type: undefined,
       username: undefined,
     }),
@@ -40,16 +42,20 @@ export default decorate([
       setPort: (_, port) => state => ({
         port: port === undefined && state.remote !== undefined ? '' : port,
       }),
+      setProxy(_, proxy) {
+        this.state.proxyId = resolveId(proxy)
+      },
       editRemote: ({ reset }) => state => {
         const {
           remote,
-          domain = remote.domain,
+          domain = remote.domain || '',
           host = remote.host,
           name,
           options = remote.options || '',
           password = remote.password,
           path = remote.path,
           port = remote.port,
+          proxyId = remote.proxy,
           type = remote.type,
           username = remote.username,
         } = state
@@ -65,6 +71,7 @@ export default decorate([
             username,
           }),
           options: options !== '' ? options : null,
+          proxy: proxyId,
         }).then(reset)
       },
       createRemote: ({ reset }) => async (state, { remotes }) => {
@@ -85,6 +92,7 @@ export default decorate([
           password,
           path,
           port,
+          proxyId,
           type = 'nfs',
           username,
         } = state
@@ -107,7 +115,12 @@ export default decorate([
         }
 
         const url = format(urlParams)
-        return createRemote(name, url, options !== '' ? options : undefined)
+        return createRemote(
+          name,
+          url,
+          options !== '' ? options : undefined,
+          proxyId === null ? undefined : proxyId
+        )
           .then(reset)
           .catch(err => error('Create Remote', err.message || String(err)))
       },
@@ -130,6 +143,7 @@ export default decorate([
       parsedPath,
       path = parsedPath || '',
       port = remote.port,
+      proxyId = remote.proxy,
       type = remote.type || 'nfs',
       username = remote.username || '',
     } = state
@@ -167,6 +181,9 @@ export default decorate([
               type='text'
               value={name}
             />
+          </div>
+          <div className='form-group'>
+            <SelectProxy onChange={effects.setProxy} value={proxyId} />
           </div>
           {type === 'file' && (
             <fieldset className='form-group'>
@@ -242,7 +259,7 @@ export default decorate([
                   className='form-control'
                   name='host'
                   onChange={effects.linkState}
-                  pattern='^([^\\/]+)\\([^\\/]+)$'
+                  pattern='^[^\\/]+\\[^\\/]+$'
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderAddressShare
                   )}
@@ -255,7 +272,7 @@ export default decorate([
                   className='form-control'
                   name='path'
                   onChange={effects.linkState}
-                  pattern='^(([^\\/]+)+(\\[^\\/]+)*)?$'
+                  pattern='^([^\\/]+(\\[^\\/]+)*)?$'
                   placeholder={formatMessage(
                     messages.remoteSmbPlaceHolderRemotePath
                   )}

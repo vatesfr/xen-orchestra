@@ -1,7 +1,8 @@
 {
+  "private": false,
   "name": "xo-acl-resolver",
   "version": "0.4.1",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "description": "Xen-Orchestra internal: do ACLs resolution",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-acl-resolver",
@@ -12,8 +13,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@vates.fr"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "bin": {},
@@ -24,7 +25,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "xo-common": "^0.2.0"
+    "xo-common": "^0.5.0"
   },
   "scripts": {
     "postversion": "npm publish"

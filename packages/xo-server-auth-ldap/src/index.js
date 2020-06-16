@@ -1,13 +1,18 @@
 /* eslint no-throw-literal: 0 */
 
-import eventToPromise from 'event-to-promise'
-import { bind, noop } from 'lodash'
-import { createClient } from 'ldapjs'
-import { escape } from 'ldapjs/lib/filters/escape'
-import { promisify } from 'promise-toolbox'
+import fromCallback from 'promise-toolbox/fromCallback'
+import { Client } from 'ldapts'
+import { Filter } from 'ldapts/filters/Filter'
 import { readFile } from 'fs'
 
 // ===================================================================
+
+const DEFAULTS = {
+  checkCertificate: true,
+  filter: '(uid={{name}})',
+}
+
+const { escape } = Filter.prototype
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) =>
@@ -20,6 +25,8 @@ const evalFilter = (filter, vars) =>
 
     return escape(value)
   })
+
+const noop = Function.prototype
 
 export const configurationSchema = {
   type: 'object',
@@ -43,7 +50,7 @@ If not specified, it will use a default set of well-known CAs.
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
-      default: true,
+      defaults: DEFAULTS.checkCertificate,
     },
     bind: {
       description: 'Credentials to use before looking for the user record.',
@@ -76,6 +83,11 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
       description: `
 Filter used to find the user.
 
+For LDAP if you want to filter for a special group you can try
+something like:
+
+- \`(&(uid={{name}})(memberOf=<group DN>))\`
+
 For Microsoft Active Directory, you can try one of the following filters:
 
 - \`(cn={{name}})\`
@@ -83,13 +95,16 @@ For Microsoft Active Directory, you can try one of the following filters:
 - \`(sAMAccountName={{name}}@<domain>)\` (replace \`<domain>\` by your own domain)
 - \`(userPrincipalName={{name}})\`
 
-For LDAP if you want to filter for a special group you can try
-something like:
+Or something like this if you also want to filter by group:
 
-- \`(&(uid={{name}})(memberOf=<group DN>))\`
+- \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: '(uid={{name}})',
+      default: DEFAULTS.filter,
+    },
+    startTls: {
+      title: 'Use StartTLS',
+      type: 'boolean',
     },
   },
   required: ['uri', 'base'],
@@ -113,46 +128,50 @@ export const testSchema = {
 // ===================================================================
 
 class AuthLdap {
-  constructor(xo) {
+  constructor({ logger = noop, xo }) {
+    this._logger = logger
     this._xo = xo
 
-    this._authenticate = bind(this._authenticate, this)
+    this._authenticate = this._authenticate.bind(this)
   }
 
   async configure(conf) {
     const clientOpts = (this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
-      tlsOptions: {},
     })
 
     {
-      const { bind, checkCertificate = true, certificateAuthorities } = conf
+      const {
+        checkCertificate = DEFAULTS.checkCertificate,
+        certificateAuthorities,
+      } = conf
 
-      if (bind) {
-        clientOpts.bindDN = bind.dn
-        clientOpts.bindCredentials = bind.password
-      }
-
-      const { tlsOptions } = clientOpts
+      const tlsOptions = (this._tlsOptions = {})
 
       tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
         tlsOptions.ca = await Promise.all(
-          certificateAuthorities.map(path => readFile(path))
+          certificateAuthorities.map(path => fromCallback(readFile, path))
         )
+      }
+
+      if (clientOpts.url.startsWith('ldaps:')) {
+        clientOpts.tlsOptions = tlsOptions
       }
     }
 
     const {
       bind: credentials,
       base: searchBase,
-      filter: searchFilter = '(uid={{name}})',
+      filter: searchFilter = DEFAULTS.filter,
+      startTls = false,
     } = conf
 
     this._credentials = credentials
     this._searchBase = searchBase
     this._searchFilter = searchFilter
+    this._startTls = startTls
   }
 
   load() {
@@ -174,79 +193,65 @@ class AuthLdap {
     })
   }
 
-  async _authenticate({ username, password }, logger = noop) {
+  async _authenticate({ username, password }) {
+    const logger = this._logger
+
     if (username === undefined || password === undefined) {
       logger('require `username` and `password` to authenticate!')
 
       return null
     }
 
-    const client = createClient(this._clientOpts)
+    const client = new Client(this._clientOpts)
 
     try {
-      // Promisify some methods.
-      const bind = promisify(client.bind, client)
-      const search = promisify(client.search, client)
-
-      await eventToPromise(client, 'connect')
+      if (this._startTls) {
+        await client.startTLS(this._tlsOptions)
+      }
 
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
         if (credentials) {
           logger(`attempting to bind with as ${credentials.dn}...`)
-          await bind(credentials.dn, credentials.password)
+          await client.bind(credentials.dn, credentials.password)
           logger(`successfully bound as ${credentials.dn}`)
         }
       }
 
       // Search for the user.
-      const entries = []
-      {
-        logger('searching for entries...')
-        const response = await search(this._searchBase, {
-          scope: 'sub',
-          filter: evalFilter(this._searchFilter, {
-            name: username,
-          }),
-        })
-
-        response.on('searchEntry', entry => {
-          logger('.')
-          entries.push(entry.json)
-        })
-
-        const { status } = await eventToPromise(response, 'end')
-        if (status) {
-          throw new Error('unexpected search response status: ' + status)
-        }
-
-        logger(`${entries.length} entries found`)
-      }
+      logger('searching for entries...')
+      const { searchEntries: entries } = await client.search(this._searchBase, {
+        scope: 'sub',
+        filter: evalFilter(this._searchFilter, {
+          name: username,
+        }),
+      })
+      logger(`${entries.length} entries found`)
 
       // Try to find an entry which can be bind with the given password.
       for (const entry of entries) {
         try {
-          logger(`attempting to bind as ${entry.objectName}`)
-          await bind(entry.objectName, password)
+          logger(`attempting to bind as ${entry.dn}`)
+          await client.bind(entry.dn, password)
           logger(
-            `successfully bound as ${entry.objectName} => ${username} authenticated`
+            `successfully bound as ${entry.dn} => ${username} authenticated`
           )
           logger(JSON.stringify(entry, null, 2))
           return { username }
         } catch (error) {
-          logger(`failed to bind as ${entry.objectName}: ${error.message}`)
+          logger(`failed to bind as ${entry.dn}: ${error.message}`)
         }
       }
 
       logger(`could not authenticate ${username}`)
       return null
     } finally {
-      client.unbind()
+      await client.unbind()
     }
   }
 }
 
 // ===================================================================
 
-export default ({ xo }) => new AuthLdap(xo)
+export default opts => new AuthLdap(opts)

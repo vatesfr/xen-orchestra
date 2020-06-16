@@ -2,12 +2,12 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
-import HTML5Backend from 'react-dnd-html5-backend'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
+import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
 import PropTypes from 'prop-types'
 import React from 'react'
-import SingleLineRow from 'single-line-row'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -21,12 +21,12 @@ import {
   getCheckPermissions,
   isAdmin,
 } from 'selectors'
-import { DragDropContext, DragSource, DropTarget } from 'react-dnd'
 import { injectIntl } from 'react-intl'
 import {
   addSubscriptions,
   connectStore,
   createCompare,
+  createCompareContainers,
   formatSize,
   noop,
   resolveResourceSet,
@@ -37,17 +37,15 @@ import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import {
+  compact,
   every,
   filter,
-  find,
   forEach,
   get,
-  groupBy,
   map,
-  mapValues,
-  pick,
   some,
   sortedUniq,
+  uniq,
 } from 'lodash'
 import {
   attachDiskToVm,
@@ -66,12 +64,9 @@ import {
   isVmRunning,
   migrateVdi,
   setBootableVbd,
-  setVmBootOrder,
   subscribeResourceSets,
 } from 'xo'
 
-const createCompareContainers = poolId =>
-  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
 const compareSrs = createCompare([isSrShared])
 
 class VdiSr extends Component {
@@ -85,11 +80,10 @@ class VdiSr extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  _onChangeSr = sr => migrateVdi(this.props.item, sr)
+  _onChangeSr = sr => migrateVdi(this.props.item.vdi, sr)
 
   render() {
-    const { item: vdi, userData } = this.props
-    const sr = userData.srs[vdi.$SR]
+    const sr = this.props.item.vdiSr
     return (
       sr !== undefined && (
         <XoSelect
@@ -111,142 +105,98 @@ class VdiSr extends Component {
 
 const COLUMNS_VM_PV = [
   {
-    itemRenderer: vdi => (
+    itemRenderer: ({ vdi }) => (
       <Text
         value={vdi.name_label}
         onChange={value => editVdi(vdi, { name_label: value })}
       />
     ),
     name: _('vdiNameLabel'),
-    sortCriteria: 'name_label',
+    sortCriteria: 'vdi.name_label',
     default: true,
   },
   {
-    itemRenderer: vdi => (
+    itemRenderer: ({ vdi }) => (
       <Text
         value={vdi.name_description}
         onChange={value => editVdi(vdi, { name_description: value })}
       />
     ),
     name: _('vdiNameDescription'),
-    sortCriteria: 'name_description',
+    sortCriteria: 'vdi.name_description',
   },
   {
-    itemRenderer: vdi => (
+    itemRenderer: ({ vdi }) => (
       <Size
-        value={vdi.size || null}
+        value={defined(vdi.size, null)}
         onChange={size => editVdi(vdi, { size })}
       />
     ),
     name: _('vdiSize'),
-    sortCriteria: 'size',
+    sortCriteria: 'vdi.size',
   },
   {
     component: VdiSr,
     name: _('vdiSr'),
-    sortCriteria: (vdi, userData) => {
-      const sr = userData.srs[vdi.$SR]
-      return sr !== undefined && sr.name_label
-    },
+    sortCriteria: ({ vdiSr }) => vdiSr !== undefined && vdiSr.name_label,
   },
   {
-    itemRenderer: ({ id }, userData) => (
-      <span>{userData.vbdsByVdi[id].device}</span>
-    ),
+    itemRenderer: vbd => <span>{vbd.device}</span>,
     name: _('vbdDevice'),
-    sortCriteria: ({ id }, userData) => userData.vbdsByVdi[id].device,
+    sortCriteria: 'device',
   },
   {
-    itemRenderer: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return (
-        <Toggle
-          onChange={bootable => setBootableVbd(vbd, bootable)}
-          value={vbd.bootable}
-        />
-      )
-    },
+    itemRenderer: vbd => (
+      <Toggle
+        onChange={bootable => setBootableVbd(vbd, bootable)}
+        value={vbd.bootable}
+      />
+    ),
     name: _('vbdBootableStatus'),
     id: 'vbdBootableStatus',
   },
   {
-    itemRenderer: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return (
-        <StateButton
-          disabledLabel={_('vbdStatusDisconnected')}
-          disabledHandler={connectVbd}
-          disabledTooltip={_('vbdConnect')}
-          enabledLabel={_('vbdStatusConnected')}
-          enabledHandler={disconnectVbd}
-          enabledTooltip={_('vbdDisconnect')}
-          disabled={!(vbd.attached || isVmRunning(userData.vm))}
-          handlerParam={vbd}
-          state={vbd.attached}
-        />
-      )
-    },
+    itemRenderer: (vbd, { vm }) => (
+      <StateButton
+        disabledLabel={_('vbdStatusDisconnected')}
+        disabledHandler={connectVbd}
+        disabledTooltip={_('vbdConnect')}
+        enabledLabel={_('vbdStatusConnected')}
+        enabledHandler={disconnectVbd}
+        enabledTooltip={_('vbdDisconnect')}
+        disabled={!(vbd.attached || isVmRunning(vm))}
+        handlerParam={vbd}
+        state={vbd.attached}
+      />
+    ),
     name: _('vbdStatus'),
   },
 ]
 
 const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
-const ACTIONS = [
+const INDIVIDUAL_ACTIONS = [
+  ...(process.env.XOA_PLAN > 1
+    ? [
+        {
+          handler: vbd => exportVdi(vbd.vdi),
+          icon: 'export',
+          label: _('exportVdi'),
+        },
+        {
+          disabled: vbd => vbd.attached,
+          handler: vbd => importVdi(vbd.vdi),
+          icon: 'import',
+          label: _('importVdi'),
+        },
+      ]
+    : []),
   {
-    disabled: (selectedItems, userData) =>
-      some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
-    handler: (selectedItems, userData) =>
-      deleteVbds(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id])),
-    individualDisabled: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return vbd !== undefined && vbd.attached
-    },
-    individualHandler: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return vbd !== undefined && deleteVbd(vbd)
-    },
-    icon: 'vdi-forget',
-    label: _('vdiForget'),
-    level: 'danger',
-  },
-  {
-    disabled: (selectedItems, userData) =>
-      some(map(selectedItems, vdi => userData.vbdsByVdi[vdi.id]), 'attached'),
-    handler: deleteVdis,
-    individualDisabled: (vdi, userData) => {
-      const vbd = userData.vbdsByVdi[vdi.id]
-      return vbd !== undefined && vbd.attached
-    },
-    individualHandler: deleteVdi,
-    individualLabel: _('vdiRemove'),
-    icon: 'vdi-remove',
-    label: _('deleteSelectedVdis'),
-    level: 'danger',
+    handler: vbd => copy(vbd.vdi.uuid),
+    icon: 'clipboard',
+    label: vbd => _('copyUuid', { uuid: vbd.vdi.uuid }),
   },
 ]
-
-const parseBootOrder = bootOrder => {
-  // FIXME missing translation
-  const bootOptions = {
-    c: 'Hard-Drive',
-    d: 'DVD-Drive',
-    n: 'Network',
-  }
-  const order = []
-  if (bootOrder) {
-    for (const id of bootOrder) {
-      if (id in bootOptions) {
-        order.push({ id, text: bootOptions[id], active: true })
-        delete bootOptions[id]
-      }
-    }
-  }
-  forEach(bootOptions, (text, id) => {
-    order.push({ id, text, active: false })
-  })
-  return order
-}
 
 @injectIntl
 @addSubscriptions({
@@ -295,9 +245,8 @@ class NewDisk extends Component {
     resolveResourceSet
   )
 
-  _getResourceSetDiskLimit = createSelector(
-    this._getResourceSet,
-    resourceSet => get(resourceSet, 'limits.disk.available')
+  _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
+    get(resourceSet, 'limits.disk.available')
   )
 
   _checkSr = createSelector(
@@ -519,194 +468,6 @@ class AttachDisk extends Component {
   }
 }
 
-const orderItemSource = {
-  beginDrag: props => ({
-    id: props.id,
-    index: props.index,
-  }),
-}
-
-const orderItemTarget = {
-  hover: (props, monitor, component) => {
-    const dragIndex = monitor.getItem().index
-    const hoverIndex = props.index
-
-    if (dragIndex === hoverIndex) {
-      return
-    }
-
-    props.move(dragIndex, hoverIndex)
-    monitor.getItem().index = hoverIndex
-  },
-}
-
-@DropTarget('orderItem', orderItemTarget, connect => ({
-  connectDropTarget: connect.dropTarget(),
-}))
-@DragSource('orderItem', orderItemSource, (connect, monitor) => ({
-  connectDragSource: connect.dragSource(),
-  isDragging: monitor.isDragging(),
-}))
-class OrderItem extends Component {
-  static propTypes = {
-    connectDragSource: PropTypes.func.isRequired,
-    connectDropTarget: PropTypes.func.isRequired,
-    index: PropTypes.number.isRequired,
-    isDragging: PropTypes.bool.isRequired,
-    id: PropTypes.any.isRequired,
-    item: PropTypes.object.isRequired,
-    move: PropTypes.func.isRequired,
-  }
-
-  _toggle = checked => {
-    const { item } = this.props
-    item.active = checked
-    this.forceUpdate()
-  }
-
-  render() {
-    const { item, connectDragSource, connectDropTarget } = this.props
-    return connectDragSource(
-      connectDropTarget(
-        <li className='list-group-item'>
-          <Icon icon='grab' /> <Icon icon='grab' /> {item.text}
-          <span className='pull-right'>
-            <Toggle value={item.active} onChange={this._toggle} />
-          </span>
-        </li>
-      )
-    )
-  }
-}
-
-@DragDropContext(HTML5Backend)
-class BootOrder extends Component {
-  static propTypes = {
-    onClose: PropTypes.func,
-    vm: PropTypes.object.isRequired,
-  }
-
-  constructor(props) {
-    super(props)
-    const { vm } = props
-    const order = parseBootOrder(vm.boot && vm.boot.order)
-    this.state = { order }
-  }
-
-  _moveOrderItem = (dragIndex, hoverIndex) => {
-    const order = this.state.order.slice()
-    const dragItem = order.splice(dragIndex, 1)
-    if (dragItem.length) {
-      order.splice(hoverIndex, 0, dragItem.pop())
-      this.setState({ order })
-    }
-  }
-
-  _reset = () => {
-    const { vm } = this.props
-    const order = parseBootOrder(vm.boot && vm.boot.order)
-    this.setState({ order })
-  }
-
-  _save = () => {
-    const { vm, onClose = noop } = this.props
-    const { order: newOrder } = this.state
-    let order = ''
-    forEach(newOrder, item => {
-      item.active && (order += item.id)
-    })
-    return setVmBootOrder(vm, order).then(onClose)
-  }
-
-  render() {
-    const { order } = this.state
-
-    return (
-      <form>
-        <ul>
-          {map(order, (item, index) => (
-            <OrderItem
-              key={index}
-              index={index}
-              id={item.id}
-              // FIXME missing translation
-              item={item}
-              move={this._moveOrderItem}
-            />
-          ))}
-        </ul>
-        <fieldset className='form-inline'>
-          <span className='pull-right'>
-            <ActionButton icon='save' btnStyle='primary' handler={this._save}>
-              {_('saveBootOption')}
-            </ActionButton>{' '}
-            <ActionButton icon='reset' handler={this._reset}>
-              {_('resetBootOption')}
-            </ActionButton>
-          </span>
-        </fieldset>
-      </form>
-    )
-  }
-}
-
-class MigrateVdiModalBody extends Component {
-  static propTypes = {
-    checkSr: PropTypes.func.isRequired,
-    pool: PropTypes.string.isRequired,
-  }
-
-  get value() {
-    return this.state
-  }
-
-  _getCompareContainers = createSelector(
-    () => this.props.pool,
-    poolId => createCompareContainers(poolId)
-  )
-
-  _checkSr = createSelector(
-    () => this.props.checkSr,
-    () => this.state.sr,
-    (check, sr) => check(sr)
-  )
-
-  render() {
-    return (
-      <Container>
-        <SingleLineRow>
-          <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
-          <Col size={6}>
-            <SelectSr
-              compareContainers={this._getCompareContainers()}
-              compareOptions={compareSrs}
-              onChange={this.linkState('sr')}
-              required
-            />
-          </Col>
-        </SingleLineRow>
-        <SingleLineRow className='mt-1'>
-          <Col>
-            <label>
-              <input type='checkbox' onChange={this.linkState('migrateAll')} />{' '}
-              {_('vdiMigrateAll')}
-            </label>
-          </Col>
-        </SingleLineRow>
-        {!this._checkSr() && (
-          <SingleLineRow>
-            <Col>
-              <span className='text-danger'>
-                <Icon icon='alarm' /> {_('warningVdiSr')}
-              </span>
-            </Col>
-          </SingleLineRow>
-        )}
-      </Container>
-    )
-  }
-}
-
 @connectStore(() => ({
   checkPermissions: getCheckPermissions,
   isAdmin,
@@ -717,7 +478,6 @@ export default class TabDisks extends Component {
     super(props)
     this.state = {
       attachDisk: false,
-      bootOrder: false,
       newDisk: false,
     }
   }
@@ -752,41 +512,30 @@ export default class TabDisks extends Component {
     this.setState({
       newDisk: !this.state.newDisk,
       attachDisk: false,
-      bootOrder: false,
     })
 
   _toggleAttachDisk = () =>
     this.setState({
       attachDisk: !this.state.attachDisk,
-      bootOrder: false,
       newDisk: false,
     })
 
-  _toggleBootOrder = () =>
-    this.setState({
-      bootOrder: !this.state.bootOrder,
-      attachDisk: false,
-      newDisk: false,
-    })
-
-  _migrateVdi = vdi => {
-    return confirm({
+  _migrateVdis = vdis =>
+    confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          checkSr={this._getCheckSr()}
           pool={this.props.vm.$pool}
+          warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
-    }).then(({ sr, migrateAll }) => {
-      if (!sr) {
+    }).then(({ sr }) => {
+      if (sr === undefined) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
-      return migrateAll
-        ? Promise.all(map(this.props.vdis, vdi => migrateVdi(vdi, sr)))
-        : migrateVdi(vdi, sr)
-    })
-  }
+
+      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
+    }, noop)
 
   _getIsVmAdmin = createSelector(
     () => this.props.checkPermissions,
@@ -824,63 +573,73 @@ export default class TabDisks extends Component {
     }
   )
 
-  _getCheckSr = createSelector(
-    this._getRequiredHost,
-    requiredHost => sr =>
-      sr === undefined ||
-      isSrShared(sr) ||
-      requiredHost === undefined ||
-      sr.$container === requiredHost
+  _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
+    sr === undefined ||
+    isSrShared(sr) ||
+    requiredHost === undefined ||
+    sr.$container === requiredHost
   )
 
-  _getVbdsByVdi = createSelector(
-    () => this.props.vdis,
+  _getVbds = createSelector(
     () => this.props.vbds,
-    () => this.props.vm,
-    (vdis, vbds, vm) => mapValues(vdis, vdi => find(vbds, { VDI: vdi.id }))
+    () => this.props.vdis,
+    () => this.props.srs,
+    (vbds, vdis, srs) =>
+      compact(
+        map(vbds, vbd => {
+          let vdi
+          return (
+            !vbd.is_cd_drive &&
+            ((vdi = vdis[vbd.VDI]),
+            vdi !== undefined && { ...vbd, vdi, vdiSr: srs[vdi.$SR] })
+          )
+        })
+      )
   )
 
-  _getIsVdiAttached = createSelector(
-    createSelector(
-      () => this.props.allVbds,
-      () => Object.keys(this.props.vdis),
-      (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
-    ),
-    vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
+  _getGenerateWarningBeforeMigrate = createSelector(
+    this._getCheckSr,
+    check => sr =>
+      check(sr) ? null : (
+        <span className='text-warning'>
+          <Icon icon='alarm' /> {_('warningVdiSr')}
+        </span>
+      )
   )
 
-  individualActions = [
-    ...(process.env.XOA_PLAN > 1
-      ? [
-          {
-            handler: exportVdi,
-            icon: 'export',
-            label: _('exportVdi'),
-          },
-          {
-            disabled: ({ id }, { isVdiAttached }) => isVdiAttached[id],
-            handler: importVdi,
-            icon: 'import',
-            label: _('importVdi'),
-          },
-        ]
-      : []),
+  actions = [
     {
-      handler: this._migrateVdi,
-      icon: 'vdi-migrate',
-      label: _('vdiMigrate'),
+      disabled: selectedVbds => some(selectedVbds, 'attached'),
+      handler: deleteVbds,
+      individualDisabled: vbd => vbd.attached,
+      individualHandler: deleteVbd,
+      icon: 'vdi-forget',
+      label: _('vdiForget'),
+      level: 'danger',
     },
     {
-      handler: vdi => copy(vdi.uuid),
-      icon: 'clipboard',
-      label: vdi => _('copyUuid', { uuid: vdi.uuid }),
+      disabled: selectedVbds => some(selectedVbds, 'attached'),
+      handler: selectedVbds => deleteVdis(uniq(map(selectedVbds, 'vdi'))),
+      individualDisabled: vbd => vbd.attached,
+      individualHandler: vbd => deleteVdi(vbd.vdi),
+      individualLabel: _('vdiRemove'),
+      icon: 'vdi-remove',
+      label: _('deleteSelectedVdis'),
+      level: 'danger',
+    },
+    {
+      handler: selectedVbds =>
+        this._migrateVdis(uniq(map(selectedVbds, 'vdi'))),
+      icon: 'vdi-migrate',
+      individualLabel: _('vdiMigrate'),
+      label: _('migrateSelectedVdis'),
     },
   ]
 
   render() {
-    const { allVbds, srs, vdis, vm } = this.props
+    const { allVbds, vm } = this.props
 
-    const { attachDisk, bootOrder, newDisk } = this.state
+    const { attachDisk, newDisk } = this.state
 
     return (
       <Container>
@@ -898,14 +657,6 @@ export default class TabDisks extends Component {
                 handler={this._toggleAttachDisk}
                 icon='disk'
                 labelId='vdiAttachDevice'
-              />
-            )}
-            {vm.virtualizationMode !== 'pv' && (
-              <TabButton
-                btnStyle={bootOrder ? 'info' : 'primary'}
-                handler={this._toggleBootOrder}
-                icon='sort'
-                labelId='vdiBootOrder'
               />
             )}
           </Col>
@@ -933,12 +684,6 @@ export default class TabDisks extends Component {
                 <hr />
               </div>
             )}
-            {bootOrder && (
-              <div>
-                <BootOrder vm={vm} onClose={this._toggleBootOrder} />
-                <hr />
-              </div>
-            )}
           </Col>
         </Row>
         <Row>
@@ -951,14 +696,11 @@ export default class TabDisks extends Component {
           )}
           <Col>
             <SortedTable
-              actions={ACTIONS}
-              collection={vdis}
+              actions={this.actions}
+              collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
-              data-isVdiAttached={this._getIsVdiAttached()}
-              data-srs={srs}
-              data-vbdsByVdi={this._getVbdsByVdi()}
               data-vm={vm}
-              individualActions={this.individualActions}
+              individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'
               stateUrlParam='s'
             />

@@ -1,5 +1,5 @@
 import { BaseError } from 'make-error'
-import { isArray, iteratee } from 'lodash'
+import { iteratee } from 'lodash'
 
 class XoError extends BaseError {
   constructor({ code, message, data }) {
@@ -77,7 +77,7 @@ export const serverUnreachable = create(9, objectId => ({
 }))
 
 export const invalidParameters = create(10, (message, errors) => {
-  if (isArray(message)) {
+  if (Array.isArray(message)) {
     errors = message
     message = undefined
   }
@@ -171,4 +171,34 @@ export const patchPrecheckFailed = create(20, ({ errorType, patch }) => ({
     errorType,
   },
   message: `patch precheck failed: ${errorType}`,
+}))
+
+export const operationFailed = create(21, ({ objectId, code }) => ({
+  data: {
+    objectId,
+    code,
+  },
+  message: 'operation failed',
+}))
+
+export const missingAuditRecord = create(22, ({ id, nValid }) => ({
+  data: {
+    id,
+    nValid,
+  },
+  message: 'missing record',
+}))
+
+export const alteredAuditRecord = create(23, ({ id, record, nValid }) => ({
+  data: {
+    id,
+    record,
+    nValid,
+  },
+  message: 'altered record',
+}))
+
+export const notEnoughResources = create(24, data => ({
+  data, // [{ resourceSet, resourceType, available, requested }]
+  message: 'not enough resources in resource set',
 }))

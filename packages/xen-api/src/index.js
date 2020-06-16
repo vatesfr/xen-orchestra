@@ -4,7 +4,7 @@ import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { EventEmitter } from 'events'
-import { isArray, map, noop, omit } from 'lodash'
+import { map, noop, omit } from 'lodash'
 import {
   cancelable,
   defer,
@@ -25,7 +25,6 @@ import isReadOnlyCall from './_isReadOnlyCall'
 import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
 import replaceSensitiveValues from './_replaceSensitiveValues'
-import XapiError from './_XapiError'
 
 // ===================================================================
 
@@ -39,6 +38,8 @@ const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 // -------------------------------------------------------------------
 
 export const NULL_REF = 'OpaqueRef:NULL'
+
+export { isOpaqueRef }
 
 // -------------------------------------------------------------------
 
@@ -113,7 +114,7 @@ export class Xapi extends EventEmitter {
     this._watchedTypes = undefined
     const { watchEvents } = opts
     if (watchEvents !== false) {
-      if (isArray(watchEvents)) {
+      if (Array.isArray(watchEvents)) {
         this._watchedTypes = watchEvents
       }
       this.watchEvents()
@@ -282,6 +283,17 @@ export class Xapi extends EventEmitter {
     return this.call(`${type}.set_${field}`, ref, value).then(noop)
   }
 
+  setFields(type, ref, fields) {
+    return Promise.all(
+      getKeys(fields).map(field => {
+        const value = fields[field]
+        if (value !== undefined) {
+          return this.call(`${type}.set_${field}`, ref, value)
+        }
+      })
+    ).then(noop)
+  }
+
   setFieldEntries(type, ref, field, entries) {
     return Promise.all(
       getKeys(entries).map(entry => {
@@ -343,6 +355,9 @@ export class Xapi extends EventEmitter {
 
         // this is an inactivity timeout (unclear in Node doc)
         timeout: this._httpInactivityTimeout,
+
+        // Support XS <= 6.5 with Node => 12
+        minVersion: 'TLSv1',
       }
     )
 
@@ -410,6 +425,9 @@ export class Xapi extends EventEmitter {
 
         // this is an inactivity timeout (unclear in Node doc)
         timeout: this._httpInactivityTimeout,
+
+        // Support XS <= 6.5 with Node => 12
+        minVersion: 'TLSv1',
       }
     )
 
@@ -499,15 +517,19 @@ export class Xapi extends EventEmitter {
       throw new Error('Xapi#barrier() requires events watching')
     }
 
-    const key = `xo:barrier:${Math.random()
-      .toString(36)
-      .slice(2)}`
+    const key = `xo:barrier:${Math.random().toString(36).slice(2)}`
     const poolRef = this._pool.$ref
 
     const { promise, resolve } = defer()
     eventWatchers[key] = resolve
 
-    await this._sessionCall('pool.add_to_other_config', [poolRef, key, ''])
+    await this._sessionCall('pool.add_to_other_config', [
+      poolRef,
+      key,
+
+      // use ms timestamp as values to enable identification of stale entries
+      String(Date.now()),
+    ])
 
     await promise
 
@@ -626,9 +648,7 @@ export class Xapi extends EventEmitter {
         kindOf(result)
       )
       return result
-    } catch (e) {
-      const error = e instanceof Error ? e : XapiError.wrap(e)
-
+    } catch (error) {
       // do not log the session ID
       //
       // TODO: should log at the session level to avoid logging sensitive
@@ -637,7 +657,11 @@ export class Xapi extends EventEmitter {
 
       error.call = {
         method,
-        params: replaceSensitiveValues(params, '* obfuscated *'),
+        params:
+          // it pass server's credentials as param
+          method === 'session.login_with_password'
+            ? '* obfuscated *'
+            : replaceSensitiveValues(params, '* obfuscated *'),
       }
 
       debug(
@@ -743,9 +767,9 @@ export class Xapi extends EventEmitter {
     // the event loop in that case
     if (this._pool.$ref !== oldPoolRef) {
       // Uses introspection to list available types.
-      const types = (this._types = (await this._interruptOnDisconnect(
-        this._call('system.listMethods')
-      ))
+      const types = (this._types = (
+        await this._interruptOnDisconnect(this._call('system.listMethods'))
+      )
         .filter(isGetAllRecordsMethod)
         .map(method => method.slice(0, method.indexOf('.'))))
       this._lcToTypes = { __proto__: null }
@@ -761,7 +785,10 @@ export class Xapi extends EventEmitter {
   _setUrl(url) {
     this._humanId = `${this._auth.user}@${url.hostname}`
     this._transport = autoTransport({
-      allowUnauthorized: this._allowUnauthorized,
+      secureOptions: {
+        minVersion: 'TLSv1',
+        rejectUnauthorized: !this._allowUnauthorized,
+      },
       url,
     })
     this._url = url
@@ -984,6 +1011,8 @@ export class Xapi extends EventEmitter {
         this._processEvents(result.events)
 
         // detect and fix disappearing tasks (e.g. when toolstack restarts)
+        //
+        // FIXME: only if 'task' in 'types
         if (result.valid_ref_counts.task !== this._nTasks) {
           await this._refreshCachedRecords(['task'])
         }
@@ -1048,11 +1077,10 @@ export class Xapi extends EventEmitter {
       const getObjectByRef = ref => this._objectsByRef[ref]
 
       Record = defineProperty(
-        function(ref, data) {
+        function (ref, data) {
           defineProperties(this, {
             $id: { value: data.uuid ?? ref },
             $ref: { value: ref },
-            $xapi: { value: xapi },
           })
           for (let i = 0; i < nFields; ++i) {
             const field = fields[i]
@@ -1066,35 +1094,61 @@ export class Xapi extends EventEmitter {
       )
 
       const getters = { $pool: getPool }
-      const props = { $type: type }
+      const props = {
+        $call: function (method, ...args) {
+          return xapi.call(`${type}.${method}`, this.$ref, ...args)
+        },
+        $callAsync: function (method, ...args) {
+          return xapi.callAsync(`${type}.${method}`, this.$ref, ...args)
+        },
+        $type: type,
+        $xapi: xapi,
+      }
+      ;(function addMethods(object) {
+        Object.getOwnPropertyNames(object).forEach(name => {
+          // dont trigger getters (eg sessionId)
+          const fn = Object.getOwnPropertyDescriptor(object, name).value
+          if (typeof fn === 'function' && name.startsWith(type + '_')) {
+            const key = '$' + name.slice(type.length + 1)
+            assert.strictEqual(props[key], undefined)
+            props[key] = function (...args) {
+              return xapi[name](this.$ref, ...args)
+            }
+          }
+        })
+        const proto = Object.getPrototypeOf(object)
+        if (proto !== null) {
+          addMethods(proto)
+        }
+      })(xapi)
       fields.forEach(field => {
-        props[`set_${field}`] = function(value) {
+        props[`set_${field}`] = function (value) {
           return xapi.setField(this.$type, this.$ref, field, value)
         }
 
         const $field = (field in RESERVED_FIELDS ? '$$' : '$') + field
 
         const value = data[field]
-        if (isArray(value)) {
+        if (Array.isArray(value)) {
           if (value.length === 0 || isOpaqueRef(value[0])) {
-            getters[$field] = function() {
+            getters[$field] = function () {
               const value = this[field]
               return value.length === 0 ? value : value.map(getObjectByRef)
             }
           }
 
-          props[`add_${field}`] = function(value) {
+          props[`add_${field}`] = function (value) {
             return xapi
               .call(`${type}.add_${field}`, this.$ref, value)
               .then(noop)
           }
-          props[`remove_${field}`] = function(value) {
+          props[`remove_${field}`] = function (value) {
             return xapi
               .call(`${type}.remove_${field}`, this.$ref, value)
               .then(noop)
           }
         } else if (value !== null && typeof value === 'object') {
-          getters[$field] = function() {
+          getters[$field] = function () {
             const value = this[field]
             const result = {}
             getKeys(value).forEach(key => {
@@ -1102,7 +1156,7 @@ export class Xapi extends EventEmitter {
             })
             return result
           }
-          props[`update_${field}`] = function(entries, value) {
+          props[`update_${field}`] = function (entries, value) {
             return typeof entries === 'string'
               ? xapi.setFieldEntry(this.$type, this.$ref, field, entries, value)
               : xapi.setFieldEntries(this.$type, this.$ref, field, entries)
@@ -1111,7 +1165,7 @@ export class Xapi extends EventEmitter {
           // 2019-02-07 - JFT: even if `value` should not be an empty string for
           // a ref property, an user had the case on XenServer 7.0 on the CD VBD
           // of a VM created by XenCenter
-          getters[$field] = function() {
+          getters[$field] = function () {
             return xapi._objectsByRef[this[field]]
           }
         }

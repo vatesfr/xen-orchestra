@@ -1,3 +1,4 @@
+import xapiObjectToXo from '../xapi-object-to-xo'
 import { mapToArray } from '../utils'
 
 export function getBondModes() {
@@ -12,13 +13,15 @@ export async function create({
   mtu = 1500,
   vlan = 0,
 }) {
-  return this.getXapi(pool).createNetwork({
-    name,
-    description,
-    pifId: pif && this.getObject(pif, 'PIF')._xapiId,
-    mtu: +mtu,
-    vlan: +vlan,
-  })
+  return xapiObjectToXo(
+    await this.getXapi(pool).createNetwork({
+      name,
+      description,
+      pifId: pif && this.getObject(pif, 'PIF')._xapiId,
+      mtu: +mtu,
+      vlan: +vlan,
+    })
+  ).id
 }
 
 create.params = {
@@ -43,7 +46,6 @@ export async function createBonded({
   description,
   pifs,
   mtu = 1500,
-  mac,
   bondMode,
 }) {
   return this.getXapi(pool).createBondedNetwork({
@@ -51,7 +53,6 @@ export async function createBonded({
     description,
     pifIds: mapToArray(pifs, pif => this.getObject(pif, 'PIF')._xapiId),
     mtu: +mtu,
-    mac,
     bondMode,
   })
 }
@@ -67,7 +68,6 @@ createBonded.params = {
     },
   },
   mtu: { type: ['integer', 'string'], optional: true },
-  mac: { type: 'string', optional: true },
   // RegExp since schema-inspector does not provide a param check based on an enumeration
   bondMode: {
     type: 'string',
@@ -115,6 +115,9 @@ set.params = {
   defaultIsLocked: {
     type: 'boolean',
     optional: true,
+  },
+  id: {
+    type: 'string',
   },
   name_description: {
     type: 'string',

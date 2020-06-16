@@ -2,7 +2,6 @@
 // `create-locale`.
 
 const forEach = require('lodash/forEach')
-const isString = require('lodash/isString')
 
 const messages = {
   keyValue: '{key}: {value}',
@@ -18,9 +17,13 @@ const messages = {
   notifications: 'Notifications',
   noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
+  moreDetails: 'More details',
   messageSubject: 'Subject',
   messageFrom: 'From',
   messageReply: 'Reply',
+  sr: 'SR',
+  tryXoa: 'Try XOA for free and deploy it here.',
+  notInstalled: 'Not installed',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -43,12 +46,37 @@ const messages = {
   restore: 'Restore',
   delete: 'Delete',
   vms: 'VMs',
+  cpusMax: 'Max vCPUs',
   metadata: 'Metadata',
   chooseBackup: 'Choose a backup',
+  temporarilyDisabled: 'Temporarily disabled',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
   iscsiSessions:
     '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
+  requiresAdminPermissions: 'Requires admin permissions',
+  proxy: 'Proxy',
+  proxies: 'Proxies',
+  name: 'Name',
+  address: 'Address',
+  vm: 'VM',
+  destinationSR: 'Destination SR',
+  destinationNetwork: 'Destination network',
+  dhcp: 'DHCP',
+  ip: 'IP',
+  static: 'Static',
+  user: 'User',
+  deletedUser: 'deleted ({ name })',
+  networkConfiguration: 'Network configuration',
+  integrity: 'Integrity',
+  altered: 'Altered',
+  missing: 'Missing',
+  verified: 'Verified',
+  snapshotMode: 'Snapshot mode',
+  normal: 'Normal',
+  withMemory: 'With memory',
+  offline: 'Offline',
+  noLicenseAvailable: 'No license available',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -98,7 +126,9 @@ const messages = {
   updatePage: 'Updates',
   licensesPage: 'Licenses',
   notificationsPage: 'Notifications',
+  supportPage: 'Support',
   settingsPage: 'Settings',
+  settingsAuditPage: 'Audit',
   settingsServersPage: 'Servers',
   settingsUsersPage: 'Users',
   settingsGroupsPage: 'Groups',
@@ -119,11 +149,7 @@ const messages = {
   newServerPage: 'Server',
   newImport: 'Import',
   xosan: 'XOSAN',
-  backupDeprecatedMessage:
-    'Warning: Backup is deprecated, use Backup NG instead.',
-  moveRestoreLegacyMessage: 'Warning: Your legacy backups can be found here',
-  backupMigrationLink: 'How to migrate to Backup NG',
-  backupNgNewPage: 'Create a new backup with Backup NG',
+  backupMigrationLink: 'How to migrate to the new backup system',
   backupOverviewPage: 'Overview',
   backupNewPage: 'New',
   backupRemotesPage: 'Remotes',
@@ -131,7 +157,6 @@ const messages = {
   backupFileRestorePage: 'File restore',
   schedule: 'Schedule',
   newVmBackup: 'New VM backup',
-  editVmBackup: 'Edit VM backup',
   backup: 'Backup',
   rollingSnapshot: 'Rolling Snapshot',
   deltaBackup: 'Delta Backup',
@@ -152,6 +177,15 @@ const messages = {
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
+  checkXoa: 'Check XOA',
+  xoaCheck: 'XOA check',
+  closeTunnel: 'Close tunnel',
+  createSupportTicket: 'Create a support ticket',
+  openTunnel: 'Open tunnel',
+  supportCommunity:
+    'The XOA check and the support tunnel are available in XOA.',
+  supportTunnel: 'Support tunnel',
+  supportTunnelClosed: 'The support tunnel is closed.',
 
   // ----- Sign out -----
   signOut: 'Sign out',
@@ -160,6 +194,9 @@ const messages = {
   editUserProfile: 'Edit my settings {username}',
 
   // ----- Home view ------
+  allVms: 'All VMs',
+  backedUpVms: 'Backed up VMs',
+  notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XenServer hosts or pools',
@@ -222,13 +259,15 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
+  selectExistingTags: 'Select from existing tags',
+  description: 'Description',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
   snapshotVmsDescription: 'Description',
 
   // ----- Common components -----
-  sortedTableAllItemsSelected: 'All of them are selected',
+  sortedTableAllItemsSelected: 'All of them are selected ({nItems, number})',
   sortedTableNoItems: 'No items found',
   sortedTableNumberOfFilteredItems:
     '{nFiltered, number} of {nTotal, number} items',
@@ -244,6 +283,7 @@ const messages = {
   stateEnabled: 'Enabled',
 
   // ----- Labels -----
+  labelDisk: 'Disk',
   labelMerge: 'Merge',
   labelSize: 'Size',
   labelSpeed: 'Speed',
@@ -254,6 +294,7 @@ const messages = {
   // ----- Forms -----
   formCancel: 'Cancel',
   formCreate: 'Create',
+  formDescription: 'Description',
   formEdit: 'Edit',
   formId: 'ID',
   formName: 'Name',
@@ -276,6 +317,8 @@ const messages = {
   selectPifs: 'Select PIF(s)…',
   selectPools: 'Select pool(s)…',
   selectRemotes: 'Select remote(s)…',
+  selectProxies: 'Select proxy(ies)…',
+  selectProxy: 'Select proxy…',
   selectResourceSets: 'Select resource set(s)…',
   selectResourceSetsVmTemplate: 'Select template(s)…',
   selectResourceSetsSr: 'Select SR(s)…',
@@ -419,14 +462,15 @@ const messages = {
   jobUserNotFound: "This job's creator no longer exists",
   backupUserNotFound: "This backup's creator no longer exists",
   redirectToMatchingVms: 'Click here to see the matching VMs',
-  migrateToBackupNg: 'Migrate to Backup NG',
   noMatchingVms: 'There are no matching VMs!',
   allMatchingVms: '{icon} See the matching VMs ({nMatchingVms, number})',
   backupOwner: 'Backup owner',
-  migrateBackupSchedule: 'Migrate to Backup NG',
+  migrateBackupSchedule: 'Migrate to the new backup system',
   migrateBackupScheduleMessage:
-    'This will convert the old backup job to a Backup NG job. This operation is not reversible. Do you want to continue?',
+    'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
+  runBackupJobWarningNVms:
+    'This job will backup {nVms, number} VM{nVms, plural, one {} other {s}}.',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
@@ -437,6 +481,7 @@ const messages = {
   reportWhenAlways: 'Always',
   reportWhenFailure: 'Failure',
   reportWhenNever: 'Never',
+  reportRecipients: 'Report recipients',
   reportWhen: 'Report when',
   concurrency: 'Concurrency',
   newBackupSelection: 'Select your backup type:',
@@ -445,8 +490,11 @@ const messages = {
   smartBackup: 'Smart backup',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
+  checkpointSnapshot: 'Checkpoint snapshot',
   offlineSnapshot: 'Offline snapshot',
-  offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
+  offlineBackup: 'Offline backup',
+  offlineBackupInfo:
+    'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
@@ -490,6 +538,7 @@ const messages = {
   deleteOldBackupsFirst: 'Delete first',
   deleteOldBackupsFirstMessage:
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
+  customTag: 'Custom tag',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -530,9 +579,9 @@ const messages = {
   remoteAuth: 'Auth',
   remoteDeleteTip: 'Delete',
   remoteDeleteSelected: 'Delete selected remotes',
-  remoteMyNamePlaceHolder: 'Name *',
+  remoteMyNamePlaceHolder: 'Name',
   remoteLocalPlaceHolderPath: '/path/to/backup',
-  remoteNfsPlaceHolderHost: 'Host *',
+  remoteNfsPlaceHolderHost: 'Host',
   remoteNfsPlaceHolderPort: 'Port',
   remoteNfsPlaceHolderPath: 'path/to/backup',
   remoteNfsPlaceHolderOptions: 'Custom mount options. Default: vers=3',
@@ -540,7 +589,7 @@ const messages = {
   remoteSmbPlaceHolderUsername: 'Username',
   remoteSmbPlaceHolderPassword: 'Password',
   remoteSmbPlaceHolderDomain: 'Domain',
-  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share> *',
+  remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
@@ -569,7 +618,9 @@ const messages = {
   newSrCreate: 'Create',
   newSrNamePlaceHolder: 'Storage name',
   newSrDescPlaceHolder: 'Storage description',
-  newSrAddressPlaceHolder: 'Address',
+  newSrIscsiAddressPlaceHolder: 'e.g 93.184.216.34 or iscsi.example.net',
+  newSrNfsAddressPlaceHolder: 'e.g 93.184.216.34 or nfs.example.net',
+  newSrSmbAddressPlaceHolder: 'e.g \\\\server\\sharename',
   newSrPortPlaceHolder: '[port]',
   newSrUsernamePlaceHolder: 'Username',
   newSrPasswordPlaceHolder: 'Password',
@@ -981,11 +1032,18 @@ const messages = {
   // ----- VM console tab -----
   copyToClipboardLabel: 'Copy',
   ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
+  ctrlAltDelConfirmation: 'Send Ctrl+Alt+Del to VM?',
   multilineCopyToClipboard: 'Multiline copy',
   tipLabel: 'Tip:',
   hideHeaderTooltip: 'Hide info',
   showHeaderTooltip: 'Show info',
   sendToClipboard: 'Send to clipboard',
+  sshRootTooltip: 'Connect using external SSH tool as root',
+  sshRootLabel: 'SSH',
+  sshUserTooltip: 'Connect using external SSH tool as user…',
+  sshUserLabel: 'SSH as…',
+  sshUsernameLabel: 'SSH user name',
+  sshNeedClientTools: 'No IP address reported by client tools',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1015,7 +1073,6 @@ const messages = {
   vdiVms: 'VMs',
   vdiMigrate: 'Migrate VDI',
   vdiMigrateSelectSr: 'Destination SR:',
-  vdiMigrateAll: 'Migrate all VDIs',
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
   vdiForget: 'Forget',
@@ -1079,6 +1136,8 @@ const messages = {
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
   newSnapshotWithMemory: 'New snapshot with memory',
+  newSnapshotWithMemoryConfirm:
+    'Are you sure you want to create a snapshot with memory? This could take a while and the VM will be unusable during that time.',
   snapshotMemorySaved: 'Memory saved',
   snapshotCreateButton: 'New snapshot',
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
@@ -1093,6 +1152,11 @@ const messages = {
   snapshotQuiesce: 'Quiesced snapshot',
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
+
+  // ----- VM backup tab -----
+  goToBackupPage: 'Go to the backup page.',
+  vmInLegacyBackup:
+    'This VM may be backed up by the legacy backup system. See legacy jobs.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
@@ -1144,12 +1208,16 @@ const messages = {
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNone: 'None',
-  vmCoresPerSocketIncorrectValue: 'Incorrect cores per socket value',
-  vmCoresPerSocketIncorrectValueSolution:
-    'Please change the selected value to fix it.',
+  vmCoresPerSocket:
+    '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocketNotDivisor: "Not a divisor of the VM's max CPUs",
+  vmCoresPerSocketExceedsCoresLimit:
+    'The selected value exceeds the cores limit ({maxCores, number})',
+  vmCoresPerSocketExceedsSocketsLimit:
+    'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmVgpu: 'vGPU',
@@ -1275,6 +1343,7 @@ const messages = {
   createVmModalTitle: 'Create VM',
   createVmModalWarningMessage:
     "You're about to use a large amount of resources available on the resource set. Are you sure you want to continue?",
+  copyHostBiosStrings: 'Copy host BIOS strings to VM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
   newVmInfoPanel: 'Infos',
@@ -1308,12 +1377,12 @@ const messages = {
   newVmSshKey: 'SSH key',
   noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
-  premiumOnly: 'Only available in Premium',
   availableTemplateVarsInfo:
     'Click here to see the available template variables',
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError:
     'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -1346,6 +1415,8 @@ const messages = {
   newVmUserConfigLabel: 'User config',
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
+  templateHasBiosStrings: 'The template already contains the BIOS strings',
+  vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1408,6 +1479,12 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+
+  // ---- Disk import ---
+  diskImportFailed: 'Disk import failed',
+  diskImportSuccess: 'Disk import success',
+  dropDisksFiles: 'Drop VMDK or VHD files here to import disks.',
+  importToSr: 'To SR',
 
   // ---- Tasks ---
   cancelTask: 'Cancel',
@@ -1494,6 +1571,8 @@ const messages = {
     'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?',
   bulkDeleteMetadataBackupsConfirmText:
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
+  remoteNotCompatibleWithSelectedProxy:
+    "The backup will not be run on this remote because it's not compatible with the selected proxy",
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -1579,6 +1658,9 @@ const messages = {
   deleteVmBlockedModalTitle: 'Blocked operation',
   deleteVmBlockedModalMessage:
     'Removing the VM is a blocked operation. Would you like to remove it anyway?',
+  forceVmMigrateModalTitle: 'Force migration',
+  forceVmMigrateModalMessage:
+    'The VM is incompatible with the CPU features of the destination host. Would you like to force it anyway?',
   migrateVmModalTitle: 'Migrate VM',
   migrateVmSelectHost: 'Select a destination host:',
   migrateVmSelectMigrationNetwork: 'Select a migration network:',
@@ -1597,7 +1679,6 @@ const messages = {
   chooseSrForEachVdisModalMainSr: 'Select main SR…',
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
-  chooseSrForEachVdisModalOptionalEntry: '* optional',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
   deleteJobsModalMessage:
     'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
@@ -1670,6 +1751,7 @@ const messages = {
   forgetSrsFromHostModalTitle: 'Forget SR{nPbds, plural, one {} other {s}}',
   forgetSrsFromHostModalMessage:
     'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).',
+  optionalEntry: '* optional',
 
   // ----- Servers -----
   serverLabel: 'Label',
@@ -1720,6 +1802,14 @@ const messages = {
     'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.',
   detachHost: 'Detach',
 
+  // ----- Advanced Live Telemetry -----
+  advancedLiveTelemetry: 'Advanced Live Telemetry',
+  pluginNetDataIsNecessary: 'Netdata plugin is necessary',
+  enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
+  enableAdvancedLiveTelemetrySuccess:
+    'Advanced Live Telemetry successfully enabled',
+  xcpOnlyFeature: 'This feature is only XCP-ng compatible',
+
   // ----- Forget host -----
   forgetHostModalTitle: 'Forget host',
   forgetHostModalMessage:
@@ -1744,13 +1834,20 @@ const messages = {
   newNetworkBondMode: 'Bond mode',
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
+  newNetworkPreferredCenter: 'Preferred center (optional)',
   newNetworkEncapsulation: 'Encapsulation',
+  newNetworkEncrypted: 'Encrypted',
+  encryptionWarning:
+    'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
+  preferredCenterTip: 'The host to try first to elect as center of the network',
+  newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
   networkInUse: 'This network is currently in use',
   pillBonded: 'Bonded',
   bondedNetwork: 'Bonded network',
   privateNetwork: 'Private network',
+  addPool: 'Add pool',
 
   // ----- Add host -----
   hosts: 'Hosts',
@@ -1761,8 +1858,8 @@ const messages = {
   xenOrchestraServer: 'Xen Orchestra server',
   xenOrchestraWeb: 'Xen Orchestra web client',
   noProSupport: 'Professional support missing!',
-  noProductionUse: 'Use in production at your own risk',
-  downloadXoaFromWebsite: 'You can download the turnkey appliance at {website}',
+  productionUse: 'Want to use in production?',
+  getSupport: 'Get pro support with the Xen Orchestra Appliance at {website}',
   bugTracker: 'Bug Tracker',
   bugTrackerText: 'Issues? Report it!',
   community: 'Community',
@@ -1802,11 +1899,8 @@ const messages = {
   refresh: 'Refresh',
   upgrade: 'Upgrade',
   downgrade: 'Downgrade',
-  noUpdaterCommunity: 'No updater available for Community Edition',
   considerSubscribe:
     'Please consider subscribing and trying it with all the features for free during 15 days on {link}.',
-  noUpdaterWarning:
-    'Manual update could break your current installation due to dependencies issues, do it with caution',
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
@@ -1836,6 +1930,9 @@ const messages = {
   unlistedChannelName: 'Unlisted channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
+  updaterCommunity:
+    'The Web updater, the release channels and the proxy settings are available in XOA.',
+  xoaBuild: 'XOA build:',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
@@ -1845,6 +1942,7 @@ const messages = {
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText4: 'Why do I see this message?',
   notRegisteredDisclaimerInfo:
     'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',
@@ -1916,6 +2014,7 @@ const messages = {
   logUser: 'User',
   logMessage: 'Message',
   logSuggestXcpNg: 'Use XCP-ng to get rid of restrictions',
+  logXapiError: 'This is a XenServer/XCP-ng error',
   logError: 'Error',
   logTitle: 'Logs',
   logDisplayDetails: 'Display details',
@@ -1929,7 +2028,6 @@ const messages = {
   logsRestoreTime: 'Restore time',
   copyLogToClipboard: 'Copy log to clipboard',
   logsVmNotFound: 'VM not found!',
-  logsMissingVms: 'Missing VMs skipped ({ vms })',
   logsFailedRestoreError: 'Click to show error',
   logsFailedRestoreTitle: 'Restore error',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
@@ -2002,11 +2100,14 @@ const messages = {
     'Try dropping a config file here or click to select a config file to upload.',
   config: 'Config',
   importConfig: 'Import',
+  importConfigEnterPassphrase:
+    'If the config is encrypted, please enter the passphrase:',
   importConfigSuccess: 'Config file successfully imported',
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
+  exportConfigEnterPassphrase:
+    'If you want to encrypt the exported config, please enter a passphrase:',
   downloadConfig: 'Download current config',
-  noConfigImportCommunity: 'No config import available for Community Edition',
 
   // ----- SR -----
   srReconnectAllModalTitle: 'Reconnect all hosts',
@@ -2025,6 +2126,9 @@ const messages = {
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
+  migrateSelectedVdis: 'Migrate selected VDIs',
+  migrateVdiMessage:
+    'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
 
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',
@@ -2052,7 +2156,7 @@ const messages = {
   xosanAvailableSpace: 'Available space',
   xosanDiskLossLegend: '* Can fail without data loss',
   xosanCreate: 'Create',
-  xosanCommunity: 'No XOSAN available for Community Edition',
+  xosanCommunity: 'XOSAN is available in XOA',
   xosanNew: 'New',
   xosanAdvanced: 'Advanced',
   xosanRemoveSubvolumes: 'Remove subvolumes',
@@ -2082,9 +2186,11 @@ const messages = {
   xosanState_configuringGluster: 'Configuring gluster…',
   xosanState_creatingSr: 'Creating SR…',
   xosanState_scanningSr: 'Scanning SR…',
+  xosanXcpngWarning:
+    'XOSAN cannot be installed on XCP-ng yet. Incoming XOSANv2 will be compatible with XCP-ng: {link}.',
   // Pack download modal
-  xosanInstallCloudPlugin: 'Install cloud plugin first',
-  xosanLoadCloudPlugin: 'Load cloud plugin first',
+  xosanInstallCloudPlugin: 'Install XOA plugin first',
+  xosanLoadCloudPlugin: 'Load XOA plugin first',
   xosanNoPackFound:
     'No compatible XOSAN pack found for your XenServer versions.',
   // SR tab XOSAN
@@ -2128,6 +2234,56 @@ const messages = {
   xosanIssueHostNotInNetwork:
     'Will configure the host xosan network device with a static IP address and plug it in.',
 
+  // Hub
+  hubPage: 'Hub',
+  hubCommunity: 'Hub is available in XOA',
+  noDefaultSr: 'The selected pool has no default SR',
+  successfulInstall: 'VM installed successfully',
+  vmNoAvailable: 'No VMs available ',
+  create: 'Create',
+  hubResourceAlert: 'Resource alert',
+  os: 'OS',
+  version: 'Version',
+  size: 'Size',
+  totalDiskSize: 'Total disk size',
+  hideInstalledPool: 'Already installed templates are hidden',
+  hubImportNotificationTitle: 'XVA import',
+  hubTemplateDescriptionNotAvailable:
+    'No description available for this template',
+  recipeCreatedSuccessfully: 'Recipe created successfully',
+  recipeViewCreatedVms: 'View created VMs',
+  templatesLabel: 'Templates',
+  recipesLabel: 'Recipes',
+  network: 'Network',
+  recipeMasterNameLabel: 'Master name',
+  recipeNumberOfNodesLabel: 'Number of nodes',
+  recipeSshKeyLabel: 'SSH key',
+  recipeNetworkCidr: 'Network CIDR',
+
+  // Audit
+  auditActionEvent: 'Action/Event',
+  auditAlteredRecord:
+    'The record ({ id }) was altered ({ n, number } valid records)',
+  auditCheckIntegrity: 'Check integrity',
+  auditCopyFingerprintToClipboard: 'Copy fingerprint to clipboard',
+  auditGenerateNewFingerprint: 'Generate a new fingerprint',
+  auditMissingRecord:
+    'The record ({ id }) is missing ({ n, number } valid records)',
+  auditEnterFingerprint: 'Fingerprint',
+  auditEnterFingerprintInfo:
+    "Enter the saved fingerprint to check the previous logs' integrity. If you don't have any, click OK.",
+  auditRecord: 'Audit record',
+  auditIntegrityVerified: 'Integrity verified',
+  auditSaveFingerprintInfo:
+    'Keep this fingerprint to be able to check the integrity of the current records later.',
+  auditSaveFingerprintInErrorInfo:
+    'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
+  auditNewFingerprint: 'New fingerprint',
+  downloadAuditRecords: 'Download records',
+  displayAuditRecord: 'Display record',
+  noAuditRecordAvailable: 'No audit record available',
+  refreshAuditRecordsList: 'Refresh records list',
+
   // Licenses
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
@@ -2137,18 +2293,17 @@ const messages = {
   licensesUnregisteredDisclaimer:
     'You need to register your appliance to manage your licenses.',
   licenseProduct: 'Product',
-  licenseBoundObject: 'Attached to',
   licensePurchaser: 'Purchaser',
   licenseExpires: 'Expires',
   licensePurchaserYou: 'You',
   productSupport: 'Support',
   licenseNotBoundXosan: 'No XOSAN attached',
+  licenseNotBoundProxy: 'No proxy attached',
   licenseBoundUnknownXosan: 'License attached to an unknown XOSAN',
+  licenseBoundUnknownProxy: 'License attached to an unknown proxy',
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
-  xoaLicenseNotShown:
-    'XOA license management is not supported yet (current license: {plan})',
   xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
@@ -2156,7 +2311,9 @@ const messages = {
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
   xosanGetLicensesError: 'Could not fetch licenses',
-  xosanLicenseHasExpired: 'License has expired.',
+  licenseHasExpired: 'License has expired.',
+  licenseBoundToOtherXoa: 'License bound to another XOA',
+  licenseBoundToThisXoa: 'This license is active on this XOA',
   xosanLicenseExpiresDate: 'License expires on {date}.',
   xosanUpdateLicenseMessage: 'Update the license now!',
   xosanUnknownSr: 'Unknown XOSAN SR.',
@@ -2168,14 +2325,47 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+  bindXoaLicense: 'Activate license',
+  bindXoaLicenseConfirm:
+    'Are you sure you want to activate this license on your XOA? This action is not reversible!',
+  bindXoaLicenseConfirmText: 'activate {licenseType} license',
+  updateNeeded: 'Update needed',
+  starterLicense: 'Starter license',
+  enterpriseLicense: 'Enterprise license',
+  premiumLicense: 'Premium license',
+
+  // ----- proxies -----
+  forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
+  forgetProxyApplianceMessage:
+    'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
+  forgetProxies: 'Forget proxy(ies)',
+  destroyProxyApplianceTitle: 'Destroy prox{n, plural, one {y} other {ies}}',
+  destroyProxyApplianceMessage:
+    'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
+  destroyProxies: 'Destroy proxy(ies)',
+  deployProxy: 'Deploy a proxy',
+  redeployProxy: 'Redeploy proxy',
+  redeployProxyAction: 'Redeploy this proxy',
+  redeployProxyWarning: 'This action will destroy the old proxy VM',
+  noProxiesAvailable: 'No proxies available',
+  checkProxyHealth: 'Test your proxy',
+  upgradeProxyAppliance: 'upgrade the appliance',
+  proxyTestSuccess: 'Test passed for {name}',
+  proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyLinkedRemotes: 'Click to see linked remotes',
+  proxyLinkedBackups: 'Click to see linked backups',
+  proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
+  proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
+  proxySrPredicateInfo:
+    'The select only contains SRs connected to at least one HVM-capable host',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
   durationFormat:
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
-forEach(messages, function(message, id) {
-  if (isString(message)) {
+forEach(messages, function (message, id) {
+  if (typeof message === 'string') {
     messages[id] = {
       id,
       defaultMessage: message,

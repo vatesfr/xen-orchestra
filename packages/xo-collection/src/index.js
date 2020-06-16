@@ -1,4 +1,4 @@
-import { bind, iteratee } from 'lodash'
+import iteratee from 'lodash/iteratee'
 
 import clearObject from './clear-object'
 import isEmpty from './is-empty'
@@ -17,9 +17,9 @@ export default class Index {
     this._keysToHash = Object.create(null)
 
     // Bound versions of listeners.
-    this._onAdd = bind(this._onAdd, this)
-    this._onUpdate = bind(this._onUpdate, this)
-    this._onRemove = bind(this._onRemove, this)
+    this._onAdd = this._onAdd.bind(this)
+    this._onUpdate = this._onUpdate.bind(this)
+    this._onRemove = this._onRemove.bind(this)
   }
 
   // This method is used to compute the hash under which an item must

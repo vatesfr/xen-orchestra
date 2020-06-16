@@ -4,7 +4,7 @@ set -eu
 
 if [ $# -eq 0 ] || [ "$1" = "-h" ]
 then
-  echo "Usage: $0 <package> <version>"
+  echo "Usage: $0 <package> [<version>]"
   exit
 fi
 
@@ -21,9 +21,13 @@ case "$pkg" in
     cd "packages/$pkg"
 esac
 
-npm version "$2"
+if [ $# -ge 2 ]
+then
+  npm version "$2"
 
-git add --patch
+  git add --patch
+fi
+# if version is not passed, simply update other packages
 
 newVersion=$(node --eval 'console.log(require("./package.json").version)')
 
@@ -52,4 +56,8 @@ files.forEach(file => {
 git add --patch
 
 git commit -m "feat($pkg): $newVersion"
-git tag $pkg-v$newVersion
+
+# Don't create tags: we have no use for them ATM and they are not really
+# compatible with GitHub PRs (which are used for the release process)
+#
+# git tag $pkg-v$newVersion

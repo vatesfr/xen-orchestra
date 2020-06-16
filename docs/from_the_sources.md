@@ -14,13 +14,13 @@ As you may have seen in other parts of the documentation, XO is composed of two 
 
 ### NodeJS
 
-XO needs Node.js. **Please use Node 8**.
+XO needs Node.js. **Please use Node LTS version 12**.
 
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v8.12.0
+v12.16.3
 ```
 
 If not, see [this page](https://nodejs.org/en/download/package-manager/) for instructions on how to install Node.
@@ -65,17 +65,13 @@ Now you have to create a config file for `xo-server`:
 
 ```
 $ cd packages/xo-server
-$ cp sample.config.toml .xo-server.toml
+$ mkdir -p ~/.config/xo-server
+$ cp sample.config.toml ~/.config/xo-server/config.toml
 ```
 
-Edit and uncomment it to have the right path to serve `xo-web`, because `xo-server` embeds an HTTP server (we assume that `xen-orchestra` and `xo-web` are in the same directory):
+> Note: If you're installing `xo-server` as a global service, you may want to copy the file to `/etc/xo-server/config.toml` instead.
 
-```toml
-[http.mounts]
-'/' = '../xo-web/dist/'
-```
-
-In this config file, you can also change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
+In this config file, you can change default ports (80 and 443) for xo-server. If you are running the server as a non-root user, you will need to set the port to 1024 or higher.
 
 You can try to start xo-server to see if it works. You should have something like this:
 
@@ -92,6 +88,7 @@ The only part you need to launch is xo-server, which is quite easy to do. From t
 ```
 $ yarn start
 ```
+
 That's it! Use your browser to visit the xo-server IP address, and it works! :)
 
 ## Updating
@@ -106,6 +103,7 @@ $ git pull --ff-only
 $ yarn
 $ yarn build
 ```
+
 Then restart Xen Orchestra if it was running.
 
 ## Always Running
@@ -118,7 +116,7 @@ yarn global add forever
 forever start bin/xo-server
 ```
 
-- Or you can use  [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
+- Or you can use [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
 
 ```
 yarn global add forever
@@ -186,7 +184,7 @@ service redis start
 
 ## SUDO
 
-If you are running `xo-server` as a non-root user, you need to use `sudo` to be able to mount NFS remotes. You can do this by editing `xo-server/.xo-server.toml` and setting `useSudo = true`. It's near the end of the file:
+If you are running `xo-server` as a non-root user, you need to use `sudo` to be able to mount NFS remotes. You can do this by editing `xo-server` configuration file and setting `useSudo = true`. It's near the end of the file:
 
 ```
 useSudo = true

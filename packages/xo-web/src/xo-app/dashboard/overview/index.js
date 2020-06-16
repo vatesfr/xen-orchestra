@@ -89,13 +89,13 @@ class PatchesCard extends Component {
 @injectIntl
 class DefaultCard extends Component {
   _getPoolWisePredicate = createSelector(
-    () => map(this.state.pools, 'id'),
+    createCollectionWrapper(() => map(this.state.pools, 'id')),
     poolsIds => item => isEmpty(poolsIds) || includes(poolsIds, item.$pool)
   )
 
   _getPredicate = createSelector(
     this._getPoolWisePredicate,
-    () => map(this.state.hosts, 'id'),
+    createCollectionWrapper(() => map(this.state.hosts, 'id')),
     (poolWisePredicate, hostsIds) => item =>
       isEmpty(hostsIds)
         ? poolWisePredicate(item)
@@ -146,43 +146,37 @@ class DefaultCard extends Component {
   _getHostMetrics = createGetHostMetrics(this._getHosts)
 
   _getVmMetrics = createCollectionWrapper(
-    createSelector(
-      this._getVms,
-      vms => {
-        const metrics = {
-          vcpus: 0,
-          running: 0,
-          halted: 0,
-          other: 0,
-        }
-        forEach(vms, vm => {
-          if (vm.power_state === 'Running') {
-            metrics.running++
-            metrics.vcpus += vm.CPUs.number
-          } else if (vm.power_state === 'Halted') {
-            metrics.halted++
-          } else metrics.other++
-        })
-        return metrics
+    createSelector(this._getVms, vms => {
+      const metrics = {
+        vcpus: 0,
+        running: 0,
+        halted: 0,
+        other: 0,
       }
-    )
+      forEach(vms, vm => {
+        if (vm.power_state === 'Running') {
+          metrics.running++
+          metrics.vcpus += vm.CPUs.number
+        } else if (vm.power_state === 'Halted') {
+          metrics.halted++
+        } else metrics.other++
+      })
+      return metrics
+    })
   )
 
   _getSrMetrics = createCollectionWrapper(
-    createSelector(
-      this._getSrs,
-      srs => {
-        const metrics = {
-          srTotal: 0,
-          srUsage: 0,
-        }
-        forEach(srs, sr => {
-          metrics.srUsage += sr.physical_usage
-          metrics.srTotal += sr.size
-        })
-        return metrics
+    createSelector(this._getSrs, srs => {
+      const metrics = {
+        srTotal: 0,
+        srUsage: 0,
       }
-    )
+      forEach(srs, sr => {
+        metrics.srUsage += sr.physical_usage
+        metrics.srTotal += sr.size
+      })
+      return metrics
+    })
   )
 
   _getTopSrs = createTop(this._getSrs, [sr => sr.physical_usage / sr.size], 5)

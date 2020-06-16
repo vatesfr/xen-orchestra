@@ -41,21 +41,11 @@ const LINE_STYLE = { paddingBottom: '1em' }
     const getVms = createGetObjectsOfType('VM').pick((_, props) => props.vms)
 
     const getVbdsByVm = createGetObjectsOfType('VBD')
-      .pick(
-        createSelector(
-          getVms,
-          vms => flatten(map(vms, vm => vm.$VBDs))
-        )
-      )
+      .pick(createSelector(getVms, vms => flatten(map(vms, vm => vm.$VBDs))))
       .groupBy('VM')
 
     const getVifsByVM = createGetObjectsOfType('VIF')
-      .pick(
-        createSelector(
-          getVms,
-          vms => flatten(map(vms, vm => vm.VIFs))
-        )
-      )
+      .pick(createSelector(getVms, vms => flatten(map(vms, vm => vm.VIFs))))
       .groupBy('$VM')
 
     return {
@@ -89,7 +79,10 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
 
     this._getTargetNetworkPredicate = createSelector(
-      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
       pifs => {
         if (!pifs) {
           return false
@@ -105,7 +98,10 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
 
     this._getMigrationNetworkPredicate = createSelector(
-      createPicker(() => this.props.pifs, () => this.state.host.$PIFs),
+      createPicker(
+        () => this.props.pifs,
+        () => this.state.host.$PIFs
+      ),
       pifs => {
         if (!pifs) {
           return false

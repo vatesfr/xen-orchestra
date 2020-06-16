@@ -1,6 +1,10 @@
-# xo-acl-resolver [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> [Xen-Orchestra](http://xen-orchestra.com/) internal: do ACLs resolution.
+# xo-acl-resolver
+
+[![Package Version](https://badgen.net/npm/v/xo-acl-resolver)](https://npmjs.org/package/xo-acl-resolver) ![License](https://badgen.net/npm/license/xo-acl-resolver) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-acl-resolver)](https://bundlephobia.com/result?p=xo-acl-resolver) [![Node compatibility](https://badgen.net/npm/node/xo-acl-resolver)](https://npmjs.org/package/xo-acl-resolver)
+
+> Xen-Orchestra internal: do ACLs resolution
 
 ## Install
 
@@ -17,10 +21,14 @@ import check from 'xo-acl-resolver'
 
 // This object contains a list of permissions returned from
 // xo-server's acl.getCurrentPermissions.
-const permissions = { /* ... */ }
+const permissions = {
+  /* ... */
+}
 
 // This function should returns synchronously an object from an id.
-const getObject = id => { /* ... */ }
+const getObject = id => {
+  /* ... */
+}
 
 // For a single object:
 if (check(permissions, getObject, objectId, permission)) {
@@ -28,39 +36,19 @@ if (check(permissions, getObject, objectId, permission)) {
 }
 
 // For multiple objects/permissions:
-if (check(permissions, getObject, [
-  [ object1Id, permission1 ],
-  [ object12d, permission2 ],
-])) {
+if (
+  check(permissions, getObject, [
+    [object1Id, permission1],
+    [object12d, permission2],
+  ])
+) {
   console.log('all permissions checked')
 }
 ```
 
-## Development
-
-### Installing dependencies
-
-```
-> npm install
-```
-
-### Compilation
-
-The sources files are watched and automatically recompiled on changes.
-
-```
-> npm run dev
-```
-
-### Tests
-
-```
-> npm run test-dev
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -71,4 +59,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

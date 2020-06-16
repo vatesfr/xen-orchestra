@@ -4,34 +4,37 @@
     "@babel/register": "^7.0.0",
     "babel-core": "^7.0.0-0",
     "babel-eslint": "^10.0.1",
-    "babel-jest": "^24.1.0",
+    "babel-jest": "^26.0.1",
     "benchmark": "^2.1.4",
     "eslint": "^6.0.1",
     "eslint-config-prettier": "^6.0.0",
-    "eslint-config-standard": "12.0.0",
-    "eslint-config-standard-jsx": "^6.0.2",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-config-standard-jsx": "^8.1.0",
     "eslint-plugin-eslint-comments": "^3.1.1",
     "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-node": "^9.0.1",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.0.0",
     "eslint-plugin-react": "^7.6.1",
     "eslint-plugin-standard": "^4.0.0",
     "exec-promise": "^0.7.0",
-    "flow-bin": "^0.102.0",
-    "globby": "^10.0.0",
-    "husky": "^3.0.0",
-    "jest": "^24.1.0",
+    "flow-bin": "^0.126.0",
+    "globby": "^11.0.1",
+    "handlebars": "^4.7.6",
+    "husky": "^4.2.5",
+    "jest": "^26.0.1",
+    "lint-staged": "^10.2.7",
     "lodash": "^4.17.4",
-    "prettier": "^1.10.2",
-    "promise-toolbox": "^0.13.0",
-    "sorted-object": "^2.0.1"
+    "prettier": "^2.0.5",
+    "promise-toolbox": "^0.15.0",
+    "sorted-object": "^2.0.1",
+    "vuepress": "^1.4.1"
   },
   "engines": {
     "yarn": "^1.7.0"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "scripts/lint-staged"
+      "pre-commit": "lint-staged && scripts/lint-staged"
     }
   },
   "jest": {
@@ -46,9 +49,13 @@
       "/xo-web/"
     ],
     "testRegex": "\\.spec\\.js$",
+    "timers": "fake",
     "transform": {
       "\\.jsx?$": "babel-jest"
     }
+  },
+  "lint-staged": {
+    "*.{md,ts,ts}": "prettier --write"
   },
   "private": true,
   "scripts": {
@@ -56,15 +63,18 @@
     "clean": "scripts/run-script --parallel clean",
     "dev": "scripts/run-script --parallel dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
     "posttest": "scripts/run-script test",
     "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
+    "prettify": "prettier --ignore-path .gitignore --write '**/*.{js,jsx,md,mjs,ts,tsx}'",
     "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "travis-tests": "scripts/travis-tests"
   },
   "workspaces": [
-    "@xen-orchestra/*",
+    "@*/*",
     "packages/*"
   ]
 }

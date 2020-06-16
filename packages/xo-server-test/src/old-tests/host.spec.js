@@ -231,7 +231,7 @@ describe('host', () => {
       })
       expect(stats).to.be.an.object()
 
-      forEach(stats, function(array, key) {
+      forEach(stats, function (array, key) {
         expect(array).to.be.an.array()
       })
     })

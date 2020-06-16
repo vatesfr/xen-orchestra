@@ -145,6 +145,7 @@ export default decorate([
               actions={HOST_ACTIONS}
               collection={pbds}
               columns={state.columns}
+              stateUrlParam='s'
               userData={hosts}
             />
           ) : (

@@ -2,6 +2,7 @@ import createLogger from '@xen-orchestra/log'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
 import { forEach, groupBy, startCase } from 'lodash'
+import { get } from '@xen-orchestra/defined'
 import pkg from '../package'
 
 const logger = createLogger('xo:xo-server-backup-reports')
@@ -68,10 +69,7 @@ const STATUS_ICON = {
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormatter = timezone =>
   timezone !== undefined
-    ? timestamp =>
-        moment(timestamp)
-          .tz(timezone)
-          .format(DATE_FORMAT)
+    ? timestamp => moment(timestamp).tz(timezone).format(DATE_FORMAT)
     : timestamp => moment(timestamp).format(DATE_FORMAT)
 
 const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
@@ -186,7 +184,7 @@ const MARKDOWN_BY_TYPE = {
 }
 
 const getMarkdown = (task, props) =>
-  MARKDOWN_BY_TYPE[(task.data?.type)]?.(task, props)
+  MARKDOWN_BY_TYPE[task.data?.type]?.(task, props)
 
 const toMarkdown = parts => {
   const lines = []
@@ -317,6 +315,7 @@ class BackupReportsXoPlugin {
         const taskMarkdown = await getMarkdown(task, {
           formatDate,
           jobName: log.jobName,
+          xo,
         })
         if (taskMarkdown === undefined) {
           continue
@@ -354,7 +353,7 @@ class BackupReportsXoPlugin {
         log.jobName
       } ${STATUS_ICON[log.status]}`,
       markdown: toMarkdown(markdown),
-      nagiosStatus: log.status === 'success' ? 0 : 2,
+      success: log.status === 'success',
       nagiosMarkdown:
         log.status === 'success'
           ? `[Xen Orchestra] [Success] Metadata backup report for ${log.jobName}`
@@ -364,9 +363,10 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _ngVmHandler(log, { name: jobName }, schedule, force) {
+  async _ngVmHandler(log, { name: jobName, settings }, schedule, force) {
     const xo = this._xo
 
+    const mailReceivers = get(() => settings[''].reportRecipients)
     const { reportWhen, mode } = log.data || {}
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -389,9 +389,16 @@ class BackupReportsXoPlugin {
         subject: `[Xen Orchestra] ${
           log.status
         } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
+        mailReceivers,
         markdown: toMarkdown(markdown),
-        nagiosStatus: 2,
-        nagiosMarkdown: `[Xen Orchestra] [${log.status}] Backup report for ${jobName} - Error : ${log.result.message}`,
+        success: false,
+        nagiosMarkdown: `[Xen Orchestra] [${
+          log.status
+        }] Backup report for ${jobName}${
+          log.result?.message !== undefined
+            ? ` - Error : ${log.result.message}`
+            : ''
+        }`,
       })
     }
 
@@ -642,11 +649,12 @@ class BackupReportsXoPlugin {
 
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
     return this._sendReport({
+      mailReceivers,
       markdown: toMarkdown(markdown),
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
         STATUS_ICON[log.status]
       }`,
-      nagiosStatus: log.status === 'success' ? 0 : 2,
+      success: log.status === 'success',
       nagiosMarkdown:
         log.status === 'success'
           ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
@@ -656,12 +664,16 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport({ markdown, subject, nagiosStatus, nagiosMarkdown }) {
+  _sendReport({ mailReceivers, markdown, nagiosMarkdown, subject, success }) {
+    if (mailReceivers === undefined || mailReceivers.length === 0) {
+      mailReceivers = this._mailsReceivers
+    }
+
     const xo = this._xo
     return Promise.all([
       xo.sendEmail !== undefined &&
         xo.sendEmail({
-          to: this._mailsReceivers,
+          to: mailReceivers,
           subject,
           markdown,
         }),
@@ -676,8 +688,13 @@ class BackupReportsXoPlugin {
         }),
       xo.sendPassiveCheck !== undefined &&
         xo.sendPassiveCheck({
-          status: nagiosStatus,
+          status: success ? 0 : 2,
           message: nagiosMarkdown,
+        }),
+      xo.sendIcinga2Status !== undefined &&
+        xo.sendIcinga2Status({
+          status: success ? 'OK' : 'CRITICAL',
+          message: markdown,
         }),
     ])
   }
@@ -708,7 +725,7 @@ class BackupReportsXoPlugin {
       return this._sendReport({
         subject: `[Xen Orchestra] ${globalStatus} ${icon}`,
         markdown,
-        nagiosStatus: 2,
+        success: false,
         nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Error : ${error.message}`,
       })
     }
@@ -904,7 +921,7 @@ class BackupReportsXoPlugin {
           ? ICON_FAILURE
           : ICON_SKIPPED
       }`,
-      nagiosStatus: globalSuccess ? 0 : 2,
+      success: globalSuccess,
       nagiosMarkdown: globalSuccess
         ? `[Xen Orchestra] [Success] Backup report for ${tag}`
         : `[Xen Orchestra] [${

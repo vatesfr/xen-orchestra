@@ -8,7 +8,7 @@ import tmp from 'tmp'
 
 import { createReadStream, createWriteStream, stat } from 'fs-extra'
 import { pFromCallback } from 'promise-toolbox'
-import convertFromVMDK, { readVmdkGrainTable } from '.'
+import { vmdkToVhd, readVmdkGrainTable } from '.'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -51,20 +51,27 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
   const reconvertedFromVmdk = 'from-vhd-by-vbox.raw'
   const dataSize = 100 * 1024 * 1024 // this number is an integer head/cylinder/count equation solution
   try {
-    await execa.shell(
-      'base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName
+    await execa(
+      'base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName,
+      [],
+      { shell: true }
     )
-    await execa.shell(
+    await execa(
       'python /usr/share/pyshared/VMDKstream.py ' +
         inputRawFileName +
         ' ' +
-        vmdkFileName
+        vmdkFileName,
+      [],
+      { shell: true }
     )
     const result = await readVmdkGrainTable(createFileAccessor(vmdkFileName))
-    const pipe = (await convertFromVMDK(
-      createReadStream(vmdkFileName),
-      result
-    )).pipe(createWriteStream(vhdFileName))
+    const pipe = (
+      await vmdkToVhd(
+        createReadStream(vmdkFileName),
+        result.grainLogicalAddressList,
+        result.grainFileOffsetList
+      )
+    ).pipe(createWriteStream(vhdFileName))
     await eventToPromise(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
     await execa('qemu-img', [

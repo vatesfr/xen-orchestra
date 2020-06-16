@@ -629,7 +629,7 @@ describe('vm', () => {
           () => {
             throw new Error('createInterface() sould have trown')
           },
-          function(error) {
+          function (error) {
             expect(error.message).to.be.equal('unknown error from the peer')
           }
         )

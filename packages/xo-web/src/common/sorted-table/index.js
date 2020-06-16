@@ -1,7 +1,7 @@
 import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
-import defined, { get } from '@xen-orchestra/defined'
+import defined from '@xen-orchestra/defined'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import PropTypes from 'prop-types'
@@ -9,19 +9,17 @@ import React from 'react'
 import Shortcuts from 'shortcuts'
 import { Input as DebouncedInput } from 'debounce-input-decorator'
 import { Portal } from 'react-overlays'
-import { routerShape } from 'react-router/lib/PropTypes'
 import { Set } from 'immutable'
 import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
 import { injectState, provideState } from 'reaclette'
+import { withRouter } from 'react-router'
 import {
   ceil,
   filter,
   findIndex,
   forEach,
   get as getProperty,
-  isArray,
   isEmpty,
-  isFunction,
   map,
   sortBy,
 } from 'lodash'
@@ -109,6 +107,7 @@ class TableFilter extends Component {
           <a
             className='input-group-addon'
             href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+            rel='noopener noreferrer'
             target='_blank'
           >
             <Icon icon='info' />
@@ -215,17 +214,17 @@ const Action = decorate([
   provideState({
     computed: {
       disabled: ({ items }, { disabled, userData }) =>
-        isFunction(disabled) ? disabled(items, userData) : disabled,
+        typeof disabled === 'function' ? disabled(items, userData) : disabled,
       handler: ({ items }, { handler, userData }) => () =>
         handler(items, userData),
       icon: ({ items }, { icon, userData }) =>
-        isFunction(icon) ? icon(items, userData) : icon,
+        typeof icon === 'function' ? icon(items, userData) : icon,
       items: (_, { items, grouped }) =>
-        isArray(items) || !grouped ? items : [items],
+        Array.isArray(items) || !grouped ? items : [items],
       label: ({ items }, { label, userData }) =>
-        isFunction(label) ? label(items, userData) : label,
+        typeof label === 'function' ? label(items, userData) : label,
       level: ({ items }, { level, userData }) =>
-        isFunction(level) ? level(items, userData) : level,
+        typeof level === 'function' ? level(items, userData) : level,
     },
   }),
   injectState,
@@ -243,12 +242,14 @@ const Action = decorate([
 
 const LEVELS = [undefined, 'primary', 'warning', 'danger']
 // page number and sort info are optional for backward compatibility
-const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(_desc)?)?-)?(.*)$/
+const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(?:_(desc|asc))?)?-)?(.*)$/
 
-export default class SortedTable extends Component {
+class SortedTable extends Component {
   static propTypes = {
     defaultColumn: PropTypes.number,
     defaultFilter: PropTypes.string,
+    // To not duplicate filter on the home page.
+    displayFilter: PropTypes.bool,
     collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object])
       .isRequired,
     columns: PropTypes.arrayOf(
@@ -289,6 +290,10 @@ export default class SortedTable extends Component {
         individualLabel: PropTypes.node,
         label: PropTypes.node.isRequired,
         level: PropTypes.oneOf(['primary', 'warning', 'danger']),
+        redirectOnSuccess: PropTypes.oneOfType([
+          PropTypes.func,
+          PropTypes.string,
+        ]),
       })
     ),
     groupedActions: actionsShape,
@@ -302,18 +307,15 @@ export default class SortedTable extends Component {
     // DOM node selector like body or .my-class
     // The shortcuts will be enabled when the node is focused
     shortcutsTarget: PropTypes.string,
-    stateUrlParam: PropTypes.string,
+    stateUrlParam: PropTypes.string.isRequired,
 
     // @deprecated, use `data-${key}` instead
     userData: PropTypes.any,
   }
 
   static defaultProps = {
+    displayFilter: true,
     itemsPerPage: 10,
-  }
-
-  static contextTypes = {
-    router: routerShape,
   }
 
   constructor(props, context) {
@@ -333,50 +335,12 @@ export default class SortedTable extends Component {
             return isEmpty(userData) ? undefined : userData
           })
 
-    let selectedColumn = props.defaultColumn
-    if (selectedColumn == null) {
-      selectedColumn = findIndex(props.columns, 'default')
-
-      if (selectedColumn === -1) {
-        selectedColumn = 0
-      }
-    }
-
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      filter: defined(() => props.filters[props.defaultFilter], ''),
-      page: 1,
-      selectedColumn,
-      sortOrder:
-        props.columns[selectedColumn].sortOrder === 'desc' ? 'desc' : 'asc',
     })
 
-    const urlState = get(
-      () => context.router.location.query[props.stateUrlParam]
-    )
-
-    let matches
-    if (
-      urlState !== undefined &&
-      (matches = URL_STATE_RE.exec(urlState)) !== null
-    ) {
-      state.filter = matches[4]
-      const page = matches[1]
-      if (page !== undefined) {
-        state.page = +page
-      }
-      let selectedColumn = matches[2]
-      if (
-        selectedColumn !== undefined &&
-        (selectedColumn = +selectedColumn) < props.columns.length
-      ) {
-        state.selectedColumn = selectedColumn
-        state.sortOrder = matches[3] !== undefined ? 'desc' : 'asc'
-      }
-    }
-
     this._getSelectedColumn = () =>
-      this.props.columns[this.state.selectedColumn]
+      this.props.columns[this._getSelectedColumnId()]
 
     let getAllItems = () => this.props.collection
     if ('rowTransform' in props) {
@@ -393,14 +357,11 @@ export default class SortedTable extends Component {
     this._getItems = createSort(
       createFilter(
         getAllItems,
-        createSelector(
-          () => this.state.filter,
-          filter => {
-            try {
-              return CM.parse(filter).createPredicate()
-            } catch (_) {}
-          }
-        )
+        createSelector(this._getFilter, filter => {
+          try {
+            return CM.parse(filter).createPredicate()
+          } catch (_) {}
+        })
       ),
       createSelector(
         () => this._getSelectedColumn().valuePath,
@@ -411,12 +372,12 @@ export default class SortedTable extends Component {
             ? object => sortCriteria(object, userData)
             : sortCriteria
       ),
-      () => this.state.sortOrder
+      this._getSortOrder
     )
 
     this._getVisibleItems = createPager(
       this._getItems,
-      () => this.state.page,
+      this._getPage,
       () => this.props.itemsPerPage
     )
 
@@ -492,8 +453,10 @@ export default class SortedTable extends Component {
           case 'ROW_ACTION':
             if (item !== undefined) {
               if (rowLink !== undefined) {
-                this.context.router.push(
-                  isFunction(rowLink) ? rowLink(item, userData) : rowLink
+                this.props.router.push(
+                  typeof rowLink === 'function'
+                    ? rowLink(item, userData)
+                    : rowLink
                 )
               } else if (rowAction !== undefined) {
                 rowAction(item, userData)
@@ -506,8 +469,6 @@ export default class SortedTable extends Component {
   }
 
   componentDidMount() {
-    this._checkUpdatePage()
-
     // Force one Portal refresh.
     // Because Portal cannot see the container reference at first rendering.
     if (this.props.paginationContainer) {
@@ -516,19 +477,14 @@ export default class SortedTable extends Component {
   }
 
   _sort = columnId => {
-    const { state } = this
-    let sortOrder
-
-    if (state.selectedColumn === columnId) {
-      sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc'
-    } else {
-      sortOrder =
-        this.props.columns[columnId].sortOrder === 'desc' ? 'desc' : 'asc'
-    }
-
-    this._setVisibleState({
+    this._updateQueryString({
       selectedColumn: columnId,
-      sortOrder,
+      sortOrder:
+        this._getSelectedColumnId() === columnId
+          ? this._getSortOrder() === 'desc'
+            ? 'asc'
+            : 'desc'
+          : defined(this.props.columns[columnId].sortOrder, 'asc'),
     })
   }
 
@@ -547,60 +503,48 @@ export default class SortedTable extends Component {
         this.setState({ selectedItemsIds: newSelectedItems })
       }
     }
-
-    this._checkUpdatePage()
   }
 
-  _saveUrlState = () => {
-    const { filter, page, selectedColumn, sortOrder } = this.state
-    const { router } = this.context
-    const { location } = router
+  _updateQueryString({
+    filter = this._getFilter(),
+    page = this._getPage(),
+    selectedColumn = this._getSelectedColumnId(),
+    sortOrder = this._getSortOrder(),
+  }) {
+    const { location, router } = this.props
     router.replace({
       ...location,
       query: {
         ...location.query,
-        [this.props.stateUrlParam]: `${page}_${selectedColumn}${
-          sortOrder === 'desc' ? '_desc' : ''
-        }-${filter}`,
+        [this.props
+          .stateUrlParam]: `${page}_${selectedColumn}_${sortOrder}-${filter}`,
       },
     })
   }
 
-  // update state in the state and update the URL param
-  _setVisibleState(state) {
-    this.setState(state, this.props.stateUrlParam && this._saveUrlState)
-  }
-
   _setFilter = filter => {
-    this._setVisibleState({
+    this.setState({
+      highlighted: undefined,
+    })
+    this._updateQueryString({
       filter,
       page: 1,
-      highlighted: undefined,
     })
   }
 
-  _checkUpdatePage() {
-    const { page } = this.state
-    if (page === 1) {
-      return
-    }
-
-    const n = this._getItems().length
-    const { itemsPerPage } = this.props
-    if (n < itemsPerPage) {
-      return this._setPage(1)
-    }
-
-    const last = ceil(n / itemsPerPage)
-    if (page > last) {
-      return this._setPage(last)
-    }
-  }
-
   _setPage(page) {
-    this._setVisibleState({ page })
+    this._updateQueryString({ page })
   }
   _setPage = this._setPage.bind(this)
+
+  goTo(id) {
+    this._setPage(
+      Math.floor(
+        this._getItems().findIndex(item => item.id === id) /
+          this.props.itemsPerPage
+      ) + 1
+    )
+  }
 
   _selectAllVisibleItems = event => {
     const { checked } = event.target
@@ -655,9 +599,9 @@ export default class SortedTable extends Component {
         selectedItemsIds.delete(item.id)
       })
     } else {
-      const method = (selected === undefined
-      ? !selectedItemsIds.has(item.id)
-      : selected)
+      const method = (
+        selected === undefined ? !selectedItemsIds.has(item.id) : selected
+      )
         ? 'add'
         : 'delete'
 
@@ -694,6 +638,66 @@ export default class SortedTable extends Component {
     this._selectItem(+target.name, target.checked, event.nativeEvent.shiftKey)
   }
 
+  _getParsedQueryString = createSelector(
+    () => this.props.router.location.query[this.props.stateUrlParam],
+    urlState => {
+      if (urlState === undefined) {
+        return {}
+      }
+      const [, page, selectedColumnId, sortOrder, filter] =
+        URL_STATE_RE.exec(urlState) || []
+      return {
+        filter,
+        page,
+        selectedColumnId,
+        sortOrder,
+      }
+    }
+  )
+
+  _getFilter = createSelector(
+    () => this._getParsedQueryString().filter,
+    () => this.props.filters,
+    () => this.props.defaultFilter,
+    (filter, filters, defaultFilter) =>
+      defined(filter, () => filters[defaultFilter], '')
+  )
+
+  _getNPages = createSelector(
+    () => this._getItems().length,
+    () => this.props.itemsPerPage,
+    (nItems, itemsPerPage) => ceil(nItems / itemsPerPage)
+  )
+
+  _getPage = createSelector(
+    () => this._getParsedQueryString().page,
+    this._getNPages,
+    (page = 1, lastPage) => Math.min(+page, lastPage)
+  )
+
+  _getSelectedColumnId = createSelector(
+    () => this._getParsedQueryString().selectedColumnId,
+    () => this.props.columns,
+    () => this.props.defaultColumn,
+    (columnIndex, columns, defaultColumnIndex) =>
+      columnIndex !== undefined && (columnIndex = +columnIndex) < columns.length
+        ? columnIndex
+        : defined(
+            defaultColumnIndex,
+            (columnIndex = findIndex(columns, 'default')) !== -1
+              ? columnIndex
+              : 0
+          )
+  )
+
+  _getSortOrder = createSelector(
+    () => this._getParsedQueryString().sortOrder,
+    this._getSelectedColumnId,
+    () => this.props.columns,
+    (sortOrder, selectedColumnIndex, columns) =>
+      defined(sortOrder, columns[selectedColumnIndex].sortOrder, 'asc')
+  )
+
   _getGroupedActions = createSelector(
     () => this.props.groupedActions,
     () => this.props.actions,
@@ -721,6 +725,7 @@ export default class SortedTable extends Component {
         icon: a.icon,
         label: a.individualLabel !== undefined ? a.individualLabel : a.label,
         level: a.level,
+        redirectOnSuccess: a.redirectOnSuccess,
       }))
 
       return sortBy(
@@ -785,7 +790,7 @@ export default class SortedTable extends Component {
         className={state.highlighted === i ? styles.highlight : undefined}
         key={id}
         tagName='tr'
-        to={isFunction(rowLink) ? rowLink(item, userData) : rowLink}
+        to={typeof rowLink === 'function' ? rowLink(item, userData) : rowLink}
       >
         {selectionColumn}
         {columns}
@@ -811,6 +816,7 @@ export default class SortedTable extends Component {
     const { props, state } = this
     const {
       actions,
+      displayFilter,
       filterContainer,
       individualActions,
       itemsPerPage,
@@ -837,18 +843,18 @@ export default class SortedTable extends Component {
 
     const paginationInstance = displayPagination && (
       <Pagination
-        pages={ceil(nItems / itemsPerPage)}
+        pages={this._getNPages()}
         onChange={this._setPage}
-        value={state.page}
+        value={this._getPage()}
       />
     )
 
-    const filterInstance = (
+    const filterInstance = displayFilter && (
       <TableFilter
         filters={props.filters}
         onChange={this._setFilter}
         ref='filterInput'
-        value={state.filter}
+        value={this._getFilter()}
       />
     )
 
@@ -879,7 +885,7 @@ export default class SortedTable extends Component {
                     {' '}
                     -{' '}
                     <span className='text-danger'>
-                      {_('sortedTableAllItemsSelected')}
+                      {_('sortedTableAllItemsSelected', { nItems })}
                     </span>
                   </span>
                 ) : (
@@ -949,7 +955,9 @@ export default class SortedTable extends Component {
                     this._sort
                   }
                   sortIcon={
-                    state.selectedColumn === key ? state.sortOrder : 'sort'
+                    this._getSelectedColumnId() === key
+                      ? this._getSortOrder()
+                      : 'sort'
                   }
                 />
               ))}
@@ -982,13 +990,14 @@ export default class SortedTable extends Component {
                 ))}
             </Col>
             <Col mediumSize={4}>
-              {filterContainer ? (
-                <Portal container={() => filterContainer()}>
-                  {filterInstance}
-                </Portal>
-              ) : (
-                filterInstance
-              )}
+              {displayFilter &&
+                (filterContainer ? (
+                  <Portal container={() => filterContainer()}>
+                    {filterInstance}
+                  </Portal>
+                ) : (
+                  filterInstance
+                ))}
             </Col>
           </SingleLineRow>
         </Container>
@@ -996,3 +1005,5 @@ export default class SortedTable extends Component {
     )
   }
 }
+
+export default withRouter(SortedTable)

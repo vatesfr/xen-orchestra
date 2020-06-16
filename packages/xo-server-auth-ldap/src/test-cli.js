@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import execPromise from 'exec-promise'
-import { bind } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
@@ -17,7 +16,7 @@ const CACHE_FILE = './ldap.cache.conf'
 execPromise(async args => {
   const config = await promptSchema(
     configurationSchema,
-    await fromCallback(cb => readFile(CACHE_FILE, 'utf-8', cb)).then(
+    await fromCallback(readFile, CACHE_FILE, 'utf-8').then(
       JSON.parse,
       () => ({})
     )
@@ -34,16 +33,15 @@ execPromise(async args => {
     }
   )
 
-  const plugin = createPlugin({})
+  const plugin = createPlugin({
+    logger: console.log.bind(console),
+  })
   await plugin.configure(config)
 
-  await plugin._authenticate(
-    {
-      username: await input('Username', {
-        validate: input => !!input.length,
-      }),
-      password: await password('Password'),
-    },
-    bind(console.log, console)
-  )
+  await plugin._authenticate({
+    username: await input('Username', {
+      validate: input => !!input.length,
+    }),
+    password: await password('Password'),
+  })
 })

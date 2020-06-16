@@ -2,7 +2,8 @@ import createLogger from '@xen-orchestra/log'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
-import { forEach, isFunction } from 'lodash'
+import { forEach } from 'lodash'
+import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api'
@@ -182,7 +183,7 @@ export default class Api {
     const addMethod = (method, name) => {
       name = base + name
 
-      if (isFunction(method)) {
+      if (typeof method === 'function') {
         removes.push(this.addApiMethod(name, method))
         return
       }
@@ -219,17 +220,29 @@ export default class Api {
       throw new MethodNotFound(name)
     }
 
-    // FIXME: it can cause issues if there any property assignments in
-    // XO methods called from the API.
-    const context = Object.create(xo, {
-      api: {
-        // Used by system.*().
-        value: this,
-      },
-      session: {
-        value: session,
-      },
-    })
+    // create the context which is an augmented XO
+    const context = (() => {
+      const descriptors = {
+        api: {
+          // Used by system.*().
+          value: this,
+        },
+        session: {
+          value: session,
+        },
+      }
+
+      let obj = xo
+      do {
+        Object.getOwnPropertyNames(obj).forEach(name => {
+          if (!(name in descriptors)) {
+            descriptors[name] = getBoundPropertyDescriptor(obj, name, xo)
+          }
+        })
+      } while ((obj = Reflect.getPrototypeOf(obj)) !== null)
+
+      return Object.create(null, descriptors)
+    })()
 
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
@@ -237,19 +250,16 @@ export default class Api {
     const userName = context.user ? context.user.email : '(unknown user)'
 
     const data = {
+      callId: Math.random().toString(36).slice(2),
       userId,
+      userName,
+      userIp: session.get('user_ip', undefined),
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
+      timestamp: Date.now(),
     }
 
-    const callId = Math.random()
-      .toString(36)
-      .slice(2)
-
-    xo.emit('xo:preCall', {
-      ...data,
-      callId,
-    })
+    xo.emit('xo:preCall', data)
 
     try {
       await checkPermission.call(context, method)
@@ -292,20 +302,31 @@ export default class Api {
         )}] ==> ${kindOf(result)}`
       )
 
+      // it's a special case in which the user is defined at the end of the call
+      if (data.method === 'session.signIn') {
+        const { id, email } = await xo.getUser(session.get('user_id'))
+        data.userId = id
+        data.userName = email
+      }
+
+      const now = Date.now()
       xo.emit('xo:postCall', {
-        callId,
-        method: name,
+        ...data,
+        duration: now - data.timestamp,
         result,
+        timestamp: now,
       })
 
       return result
     } catch (error) {
       const serializedError = serializeError(error)
 
+      const now = Date.now()
       xo.emit('xo:postCall', {
-        callId,
+        ...data,
+        duration: now - data.timestamp,
         error: serializedError,
-        method: name,
+        timestamp: now,
       })
 
       const message = `${userName} | ${name}(${JSON.stringify(

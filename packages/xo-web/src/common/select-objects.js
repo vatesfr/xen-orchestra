@@ -1,17 +1,16 @@
+import decorate from 'apply-decorators'
 import React from 'react'
 import PropTypes from 'prop-types'
+import { injectState, provideState } from 'reaclette'
 import { parse as parseRemote } from 'xo-remote-parser'
 import {
-  assign,
   filter,
   flatten,
   forEach,
   groupBy,
   includes,
-  isArray,
   isEmpty,
   isInteger,
-  isString,
   keyBy,
   keys,
   map,
@@ -23,6 +22,7 @@ import {
 
 import _ from './intl'
 import Button from './button'
+import EphemeralInput from './ephemeral-input'
 import Icon from './icon'
 import renderXoItem from './render-xo-item'
 import Select from './form/select'
@@ -45,11 +45,13 @@ import {
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
+  subscribeProxies,
   subscribeRemotes,
   subscribeResourceSets,
   subscribeRoles,
   subscribeUsers,
 } from './xo'
+import { toggleState } from './reaclette-utils'
 
 // ===================================================================
 
@@ -60,9 +62,9 @@ import {
 const ADDON_BUTTON_STYLE = { lineHeight: '1.4' }
 
 const getIds = value =>
-  value == null || isString(value) || isInteger(value)
+  value == null || typeof value === 'string' || isInteger(value)
     ? value
-    : isArray(value)
+    : Array.isArray(value)
     ? map(value, getIds)
     : value.id
 
@@ -87,7 +89,7 @@ const options = props => ({
 })
 
 const getObjectsById = objects =>
-  keyBy(isArray(objects) ? objects : flatten(toArray(objects)), 'id')
+  keyBy(Array.isArray(objects) ? objects : flatten(toArray(objects)), 'id')
 
 // ===================================================================
 
@@ -155,7 +157,7 @@ class GenericSelect extends React.Component {
           })
         }
       }
-      if (isArray(ids)) {
+      if (Array.isArray(ids)) {
         ids.forEach(addIfMissing)
       } else {
         addIfMissing(ids)
@@ -172,10 +174,7 @@ class GenericSelect extends React.Component {
     }
   )
 
-  _getObjectsById = createSelector(
-    this._getObjects,
-    getObjectsById
-  )
+  _getObjectsById = createSelector(this._getObjects, getObjectsById)
 
   _getOptions = createSelector(
     () => this.props.xoContainers,
@@ -188,7 +187,7 @@ class GenericSelect extends React.Component {
 
       let options
       if (containers === undefined) {
-        if (__DEV__ && !isArray(objects)) {
+        if (__DEV__ && !Array.isArray(objects)) {
           throw new Error(
             `${name}: without xoContainers, xoObjects must be an array`
           )
@@ -199,7 +198,7 @@ class GenericSelect extends React.Component {
           : objects
         ).map(getOption)
       } else {
-        if (__DEV__ && isArray(objects)) {
+        if (__DEV__ && Array.isArray(objects)) {
           throw new Error(
             `${name}: with xoContainers, xoObjects must be an object`
           )
@@ -249,7 +248,7 @@ class GenericSelect extends React.Component {
       this._getObjectsById,
       value => value,
       (objectsById, value) =>
-        isArray(value)
+        Array.isArray(value)
           ? map(value, value => objectsById[value.value])
           : objectsById[value.value]
     )
@@ -327,7 +326,10 @@ const makeStoreSelect = (createSelectors, defaultProps) =>
     ))
   )
 
-const makeSubscriptionSelect = (subscribe, props) =>
+const makeSubscriptionSelect = (
+  subscribe,
+  { placeholder, placeholderMulti = placeholder, ...props } = {}
+) =>
   uncontrollableInput(options)(
     class extends React.PureComponent {
       state = {}
@@ -367,6 +369,7 @@ const makeSubscriptionSelect = (subscribe, props) =>
           <GenericSelect
             {...props}
             {...this.props}
+            placeholder={this.props.multi ? placeholderMulti : placeholder}
             xoObjects={this._getFilteredXoObjects()}
             xoContainers={
               this.state.xoContainers && this._getFilteredXoContainers()
@@ -394,10 +397,7 @@ export const SelectHost = makeStoreSelect(
 
     const getPools = createGetObjectsOfType('pool')
       .pick(
-        createSelector(
-          getHostsByPool,
-          hostsByPool => Object.keys(hostsByPool)
-        )
+        createSelector(getHostsByPool, hostsByPool => Object.keys(hostsByPool))
       )
       .sort()
 
@@ -413,9 +413,7 @@ export const SelectHost = makeStoreSelect(
 
 export const SelectPool = makeStoreSelect(
   () => ({
-    xoObjects: createGetObjectsOfType('pool')
-      .filter(getPredicate)
-      .sort(),
+    xoObjects: createGetObjectsOfType('pool').filter(getPredicate).sort(),
   }),
   { placeholder: _('selectPools') }
 )
@@ -432,9 +430,8 @@ export const SelectSr = makeStoreSelect(
       .sort()
       .groupBy('$container')
 
-    const getContainerIds = createSelector(
-      getSrsByContainer,
-      srsByContainer => keys(srsByContainer)
+    const getContainerIds = createSelector(getSrsByContainer, srsByContainer =>
+      keys(srsByContainer)
     )
 
     const getContainers = createSelector(
@@ -460,22 +457,15 @@ export const SelectVm = makeStoreSelect(
       .sort()
       .groupBy('$container')
 
-    const getContainerIds = createSelector(
-      getVmsByContainer,
-      vmsByContainer => keys(vmsByContainer)
+    const getContainerIds = createSelector(getVmsByContainer, vmsByContainer =>
+      keys(vmsByContainer)
     )
 
-    const getPools = createGetObjectsOfType('pool')
-      .pick(getContainerIds)
-      .sort()
-    const getHosts = createGetObjectsOfType('host')
-      .pick(getContainerIds)
-      .sort()
+    const getPools = createGetObjectsOfType('pool').pick(getContainerIds).sort()
+    const getHosts = createGetObjectsOfType('host').pick(getContainerIds).sort()
 
-    const getContainers = createSelector(
-      getPools,
-      getHosts,
-      (pools, hosts) => pools.concat(hosts)
+    const getContainers = createSelector(getPools, getHosts, (pools, hosts) =>
+      pools.concat(hosts)
     )
 
     return {
@@ -496,12 +486,7 @@ export const SelectVmSnapshot = makeStoreSelect(
       .groupBy('$snapshot_of')
 
     const getVms = createGetObjectsOfType('VM')
-      .pick(
-        createSelector(
-          getSnapshotsByVms,
-          keys
-        )
-      )
+      .pick(createSelector(getSnapshotsByVms, keys))
       .sort()
 
     return {
@@ -516,17 +501,11 @@ export const SelectVmSnapshot = makeStoreSelect(
 
 export const SelectHostVm = makeStoreSelect(
   () => {
-    const getHosts = createGetObjectsOfType('host')
-      .filter(getPredicate)
-      .sort()
-    const getVms = createGetObjectsOfType('VM')
-      .filter(getPredicate)
-      .sort()
+    const getHosts = createGetObjectsOfType('host').filter(getPredicate).sort()
+    const getVms = createGetObjectsOfType('VM').filter(getPredicate).sort()
 
-    const getObjects = createSelector(
-      getHosts,
-      getVms,
-      (hosts, vms) => hosts.concat(vms)
+    const getObjects = createSelector(getHosts, getVms, (hosts, vms) =>
+      hosts.concat(vms)
     )
 
     return {
@@ -546,9 +525,8 @@ export const SelectVmTemplate = makeStoreSelect(
       .groupBy('$container')
     const getPools = createGetObjectsOfType('pool')
       .pick(
-        createSelector(
-          getVmTemplatesByPool,
-          vmTemplatesByPool => keys(vmTemplatesByPool)
+        createSelector(getVmTemplatesByPool, vmTemplatesByPool =>
+          keys(vmTemplatesByPool)
         )
       )
       .sort()
@@ -571,9 +549,8 @@ export const SelectNetwork = makeStoreSelect(
       .groupBy('$pool')
     const getPools = createGetObjectsOfType('pool')
       .pick(
-        createSelector(
-          getNetworksByPool,
-          networksByPool => keys(networksByPool)
+        createSelector(getNetworksByPool, networksByPool =>
+          keys(networksByPool)
         )
       )
       .sort()
@@ -596,10 +573,7 @@ export const SelectPif = makeStoreSelect(
       .groupBy('$host')
     const getHosts = createGetObjectsOfType('host')
       .pick(
-        createSelector(
-          getPifsByHost,
-          networksByPool => keys(networksByPool)
-        )
+        createSelector(getPifsByHost, networksByPool => keys(networksByPool))
       )
       .sort()
 
@@ -613,7 +587,7 @@ export const SelectPif = makeStoreSelect(
 
 // ===================================================================
 
-export const SelectTag = makeStoreSelect(
+const GenericSelectTag = makeStoreSelect(
   (_, props) => ({
     xoObjects: createSelector(
       createGetTags(
@@ -626,6 +600,66 @@ export const SelectTag = makeStoreSelect(
   }),
   { allowMissingObjects: true, placeholder: _('selectTags') }
 )
+
+export const SelectTag = decorate([
+  provideState({
+    initialState: () => ({
+      editing: false,
+    }),
+    effects: {
+      addTag: (effects, newTag) => ({ value }, { multi, onChange }) => {
+        if (newTag === value || (multi && includes(value, newTag))) {
+          return
+        }
+        const _newTag = { id: newTag, type: 'tag', value: newTag }
+        onChange(
+          multi
+            ? [
+                ...map(value, tag => ({ id: tag, type: 'tag', value: tag })),
+                _newTag,
+              ]
+            : _newTag
+        )
+      },
+      closeEdition: () => ({ editing: false }),
+      toggleState,
+    },
+    computed: {
+      value: createCollectionWrapper((_, { value }) => getIds(value)),
+    },
+  }),
+  injectState,
+  ({ state, effects, resetState, allowCustomTag, ...props }) => (
+    <span>
+      {allowCustomTag ? (
+        state.editing ? (
+          <EphemeralInput
+            closeEdition={effects.closeEdition}
+            onChange={effects.addTag}
+            type='text'
+          />
+        ) : (
+          <Tooltip content={_('customTag')}>
+            <Button name='editing' onClick={effects.toggleState} size='small'>
+              <Icon icon='edit' />
+            </Button>
+          </Tooltip>
+        )
+      ) : null}
+      <GenericSelectTag {...props} />
+    </span>
+  ),
+])
+
+SelectTag.propTypes = {
+  allowCustomTag: PropTypes.bool,
+}
+
+SelectTag.defaultProps = {
+  allowCustomTag: true,
+}
+
+// ===================================================================
 
 export const SelectHighLevelObject = makeStoreSelect(
   () => {
@@ -642,7 +676,7 @@ export const SelectHighLevelObject = makeStoreSelect(
       getSrs,
       getVms,
       (hosts, networks, pools, srs, vms) =>
-        sortBy(assign({}, hosts, networks, pools, srs, vms), [
+        sortBy(Object.assign({}, hosts, networks, pools, srs, vms), [
           'type',
           'name_label',
         ])
@@ -662,13 +696,10 @@ export const SelectVdi = makeStoreSelect(
     )
     const getVdis = createGetObjectsOfType('VDI')
       .filter(
-        createSelector(
-          getSrs,
-          getPredicate,
-          (srs, predicate) =>
-            predicate
-              ? vdi => srs[vdi.$SR] && predicate(vdi)
-              : vdi => srs[vdi.$SR]
+        createSelector(getSrs, getPredicate, (srs, predicate) =>
+          predicate
+            ? vdi => srs[vdi.$SR] && predicate(vdi)
+            : vdi => srs[vdi.$SR]
         )
       )
       .sort()
@@ -710,12 +741,7 @@ export const SelectVgpuType = makeStoreSelect(
     )
 
     const getGpuGroups = createGetObjectsOfType('gpuGroup')
-      .pick(
-        createSelector(
-          getVgpuTypes,
-          keys
-        )
-      )
+      .pick(createSelector(getVgpuTypes, keys))
       .sort()
 
     return {
@@ -808,6 +834,21 @@ export const SelectRemote = makeSubscriptionSelect(
     return unsubscribeRemotes
   },
   { placeholder: _('selectRemotes') }
+)
+
+// ===================================================================
+
+export const SelectProxy = makeSubscriptionSelect(
+  subscriber =>
+    subscribeProxies(proxies => {
+      subscriber({
+        xoObjects: sortBy(proxies, 'name').map(proxy => ({
+          ...proxy,
+          type: 'proxy',
+        })),
+      })
+    }),
+  { placeholderMulti: _('selectProxies'), placeholder: _('selectProxy') }
 )
 
 // ===================================================================
@@ -916,18 +957,13 @@ export class SelectResourceSetsVdi extends React.PureComponent {
     () => this.props.resourceSet,
     ({ objectsByType }) => {
       const { srPredicate } = this.props
-      const srs = objectsByType['SR']
+      const srs = objectsByType.SR
       return srPredicate ? filter(srs, srPredicate) : srs
     }
   )
 
-  _getVdis = createSelector(
-    this._getSrs,
-    srs =>
-      sortBy(
-        map(flatten(map(srs, sr => sr.VDIs)), this._getObject),
-        'name_label'
-      )
+  _getVdis = createSelector(this._getSrs, srs =>
+    sortBy(map(flatten(map(srs, sr => sr.VDIs)), this._getObject), 'name_label')
   )
 
   render() {

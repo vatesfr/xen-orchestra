@@ -1,49 +1,28 @@
-# ${pkg.name} [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# @xen-orchestra/mixin
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/mixin)](https://npmjs.org/package/@xen-orchestra/mixin) ![License](https://badgen.net/npm/license/@xen-orchestra/mixin) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/mixin)](https://bundlephobia.com/result?p=@xen-orchestra/mixin) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/mixin)](https://npmjs.org/package/@xen-orchestra/mixin)
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
+Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/mixin):
 
 ```
-> npm install --save ${pkg.name}
-```
-
-## Usage
-
-**TODO**
-
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
+> npm install --save @xen-orchestra/mixin
 ```
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

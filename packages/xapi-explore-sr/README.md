@@ -1,4 +1,8 @@
-# xapi-explore-sr [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xapi-explore-sr
+
+[![Package Version](https://badgen.net/npm/v/xapi-explore-sr)](https://npmjs.org/package/xapi-explore-sr) ![License](https://badgen.net/npm/license/xapi-explore-sr) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xapi-explore-sr)](https://bundlephobia.com/result?p=xapi-explore-sr) [![Node compatibility](https://badgen.net/npm/node/xapi-explore-sr)](https://npmjs.org/package/xapi-explore-sr)
 
 > Display the list of VDIs (unmanaged and snapshots included) of a SR
 
@@ -17,28 +21,9 @@ Installation of the [npm package](https://npmjs.org/package/xapi-explore-sr):
 Usage: xapi-explore-sr [--full] <SR UUID> <XenServer URL> <XenServer user> [<XenServer password>]
 ```
 
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -49,4 +34,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

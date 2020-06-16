@@ -180,6 +180,7 @@ export default class Users extends Component {
             collection={users}
             columns={USER_COLUMNS}
             data-groups={groups}
+            stateUrlParam='s'
           />
         )}
       </div>

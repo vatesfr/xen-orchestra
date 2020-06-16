@@ -2,37 +2,57 @@ import _ from 'intl'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
-import { compact, sum } from 'lodash'
+import { compact, sumBy } from 'lodash'
 
 import Tooltip from '../tooltip'
 
-const Usage = ({ total, children }) => {
+const Usage = ({ total, children, link }) => {
   const limit = total / 400
-  const othersValues = compact(
+  const othersProps = compact(
     React.Children.map(children, child => {
       const { value } = child.props
-      return value < limit && value
+      return value < limit && child.props
     })
   )
-  const othersTotal = sum(othersValues)
-  const nOthers = othersValues.length
+  const othersTotal = sumBy(othersProps, 'value')
+  const nOthers = othersProps.length
+  const getLink = typeof link === 'function' ? link : () => link
   return (
     <span className='usage'>
-      {React.Children.map(
-        children,
-        (child, index) =>
-          child.props.value > limit && cloneElement(child, { total })
+      {nOthers > 1 ? (
+        <span>
+          {React.Children.map(children, (child, index) => {
+            const { id, href, value } = child.props
+            return (
+              value > limit &&
+              cloneElement(child, {
+                href: href === undefined ? getLink(id) : href,
+                total,
+              })
+            )
+          })}
+          <Element
+            href={getLink(othersProps.map(_ => _.id))}
+            others
+            tooltip={_('others', { nOthers })}
+            total={total}
+            value={othersTotal}
+          />
+        </span>
+      ) : (
+        React.Children.map(children, (child, index) => {
+          const { id, href } = child.props
+          return cloneElement(child, {
+            href: href === undefined ? getLink(id) : href,
+            total,
+          })
+        })
       )}
-      <Element
-        others
-        tooltip={_('others', { nOthers })}
-        total={total}
-        value={othersTotal}
-      />
     </span>
   )
 }
 Usage.propTypes = {
+  link: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
   total: PropTypes.number.isRequired,
 }
 export { Usage as default }

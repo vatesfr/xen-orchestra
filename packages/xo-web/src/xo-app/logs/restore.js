@@ -174,6 +174,7 @@ export default decorate([
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           rowTransform={ROW_TRANSFORM}
+          stateUrlParam='s_logs'
         />
       </CardBlock>
     </Card>

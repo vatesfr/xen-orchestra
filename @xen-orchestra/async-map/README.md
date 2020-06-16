@@ -1,6 +1,10 @@
-# @xen-orchestra/async-map [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# @xen-orchestra/async-map
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/async-map)](https://npmjs.org/package/@xen-orchestra/async-map) ![License](https://badgen.net/npm/license/@xen-orchestra/async-map) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/async-map)](https://bundlephobia.com/result?p=@xen-orchestra/async-map) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/async-map)](https://npmjs.org/package/@xen-orchestra/async-map)
+
+> Similar to Promise.all + lodash.map but wait for all promises to be settled
 
 ## Install
 
@@ -12,30 +16,15 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/async
 
 ## Usage
 
-**TODO**
+```js
+import asyncMap from '@xen-orchestra/async-map'
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
+const array = await asyncMap(collection, iteratee)
 ```
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -46,4 +35,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

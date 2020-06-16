@@ -126,12 +126,14 @@ describe('the VM life cyle', () => {
       })
 
       expect(
-        (await rejectionOf(
-          xo.call('vm.restart', {
-            id: hvmWithoutToolsId,
-            force: false,
-          })
-        )).message
+        (
+          await rejectionOf(
+            xo.call('vm.restart', {
+              id: hvmWithoutToolsId,
+              force: false,
+            })
+          )
+        ).message
       ).toBe('VM lacks feature shutdown')
     })
 
@@ -196,12 +198,14 @@ describe('the VM life cyle', () => {
       })
 
       expect(
-        (await rejectionOf(
-          xo.call('vm.stop', {
-            id: hvmWithoutToolsId,
-            force: false,
-          })
-        )).message
+        (
+          await rejectionOf(
+            xo.call('vm.stop', {
+              id: hvmWithoutToolsId,
+              force: false,
+            })
+          )
+        ).message
       ).toBe('clean shutdown requires PV drivers')
     })
 

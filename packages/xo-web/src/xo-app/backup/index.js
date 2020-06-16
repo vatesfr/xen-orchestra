@@ -1,37 +1,45 @@
 import _ from 'intl'
+import addSubscriptions from 'add-subscriptions'
+import ButtonLink from 'button-link'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
-import Link from 'link'
-import Page from '../page'
 import React from 'react'
-import { adminOnly, routes } from 'utils'
+import Tooltip from 'tooltip'
+import { adminOnly, connectStore, routes } from 'utils'
+import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
+import { createGetLoneSnapshots } from 'selectors'
 import { NavLink, NavTabs } from 'nav'
+import { subscribeSchedules } from 'xo'
 
-import New from './new'
 import Edit from './edit'
+import FileRestore from './file-restore'
+import Health from './health'
+import NewVmBackup, { NewMetadataBackup } from './new'
 import Overview from './overview'
+import Restore, { RestoreMetadata } from './restore'
 
-const DeprecatedMsg = () => (
-  <div className='alert alert-warning'>
-    {_('backupDeprecatedMessage')}
-    <br />
-    <Link to='/backup-ng/new'>{_('backupNgNewPage')}</Link>
-  </div>
-)
+import Page from '../page'
 
-const DEVELOPMENT = process.env.NODE_ENV === 'development'
-
-const MovingRestoreMessage = () => (
-  <div className='alert alert-warning'>
-    <Link to='/backup-ng/restore'>{_('moveRestoreLegacyMessage')}</Link>
-  </div>
-)
-
-const MovingFileRestoreMessage = () => (
-  <div className='alert alert-warning'>
-    <Link to='/backup-ng/file-restore'>{_('moveRestoreLegacyMessage')}</Link>
-  </div>
-)
+const HealthNavTab = decorate([
+  addSubscriptions({
+    // used by createGetLoneSnapshots
+    schedules: subscribeSchedules,
+  }),
+  connectStore({
+    nLoneSnapshots: createGetLoneSnapshots.count(),
+  }),
+  ({ nLoneSnapshots }) => (
+    <NavLink to='/backup/health'>
+      <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
+      {nLoneSnapshots > 0 && (
+        <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
+          <span className='tag tag-pill tag-warning'>{nLoneSnapshots}</span>
+        </Tooltip>
+      )}
+    </NavLink>
+  ),
+])
 
 const HEADER = (
   <Container>
@@ -56,18 +64,43 @@ const HEADER = (
             <Icon icon='menu-backup-file-restore' />{' '}
             {_('backupFileRestorePage')}
           </NavLink>
+          <HealthNavTab />
         </NavTabs>
       </Col>
     </Row>
   </Container>
 )
 
-const Backup = routes('overview', {
+const ChooseBackupType = () => (
+  <Container>
+    <Row>
+      <Col>
+        <Card>
+          <CardHeader>{_('backupType')}</CardHeader>
+          <CardBlock className='text-md-center'>
+            <ButtonLink to='backup/new/vms'>
+              <Icon icon='backup' /> {_('backupVms')}
+            </ButtonLink>{' '}
+            <ButtonLink to='backup/new/metadata'>
+              <Icon icon='database' /> {_('backupMetadata')}
+            </ButtonLink>
+          </CardBlock>
+        </Card>
+      </Col>
+    </Row>
+  </Container>
+)
+
+export default routes('overview', {
   ':id/edit': Edit,
-  new: DEVELOPMENT ? New : DeprecatedMsg,
+  new: ChooseBackupType,
+  'new/vms': NewVmBackup,
+  'new/metadata': NewMetadataBackup,
   overview: Overview,
-  restore: MovingRestoreMessage,
-  'file-restore': MovingFileRestoreMessage,
+  restore: Restore,
+  'restore/metadata': RestoreMetadata,
+  'file-restore': FileRestore,
+  health: Health,
 })(
   adminOnly(({ children }) => (
     <Page header={HEADER} title='backupPage' formatTitle>
@@ -75,5 +108,3 @@ const Backup = routes('overview', {
     </Page>
   ))
 )
-
-export default Backup

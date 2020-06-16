@@ -1,5 +1,4 @@
 import _ from 'intl'
-import assign from 'lodash/assign'
 import Copiable from 'copiable'
 import Icon from 'icon'
 import PoolActionBar from './action-bar'
@@ -44,36 +43,20 @@ import TabPatches from './tab-patches'
 
   const getNetworks = createGetObjectsOfType('network')
     .filter(
-      createSelector(
-        getPool,
-        ({ id }) => network => network.$pool === id
-      )
+      createSelector(getPool, ({ id }) => network => network.$pool === id)
     )
     .sort()
 
   const getHosts = createGetObjectsOfType('host')
-    .filter(
-      createSelector(
-        getPool,
-        ({ id }) => obj => obj.$pool === id
-      )
-    )
+    .filter(createSelector(getPool, ({ id }) => obj => obj.$pool === id))
     .sort()
 
   const getPoolSrs = createGetObjectsOfType('SR')
-    .filter(
-      createSelector(
-        getPool,
-        ({ id }) => sr => sr.$pool === id
-      )
-    )
+    .filter(createSelector(getPool, ({ id }) => sr => sr.$pool === id))
     .sort()
 
   const getNumberOfVms = createGetObjectsOfType('VM').count(
-    createSelector(
-      getPool,
-      ({ id }) => obj => obj.$pool === id
-    )
+    createSelector(getPool, ({ id }) => obj => obj.$pool === id)
   )
 
   const getLogs = createGetObjectMessages(getPool)
@@ -163,7 +146,7 @@ export default class Pool extends Component {
     if (!pool) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = assign(
+    const childProps = Object.assign(
       pick(this.props, [
         'hosts',
         'logs',

@@ -139,7 +139,7 @@ describe('schedule', () => {
         () => {
           throw new Error('getSchedule() should have thrown')
         },
-        function(error) {
+        function (error) {
           expect(error.message).to.match(/no such object/)
         }
       )

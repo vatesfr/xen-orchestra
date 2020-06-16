@@ -138,6 +138,7 @@ export default decorate([
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           individualActions={INDIVIDUAL_ACTIONS}
+          stateUrlParam='s_logs'
         />
       </CardBlock>
     </Card>

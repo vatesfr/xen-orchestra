@@ -2,20 +2,23 @@
 
 This page recaps the actions you can perform if you have any problems with your XOA.
 
-## XOA deploy error
+:::warning
+If you have issues with XO installed from GitHub (not XOA), [please go to the dedicated section first!](community.md).
+:::
+
+## Deploy error
 
 > Auto deploy failed. - No SR specified and Pool default SR is null
 
 It means you don't have a default SR set on the pool you are importing XOA on. To set a default SR, you must first find the SR UUID you want, with `xe sr-list`. When you have the UUID, you can set the default SR with: `xe pool-param-set uuid=<pool-uuid> default-SR=<sr-uuid>`. For the pool UUID, just press tab after `xe pool-param-set uuid=` and it will autofill your pool UUID. When this is done, re-enter the deploy script command and it will work!
 
-## XOA unreachable after boot
+## Unreachable after boot
 
 XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
 
+## Recover web login password
 
-## Recover XOA Web-UI login password
-
-If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:  
+If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:
 
 `xo-server-recover-account youremail@here.com`
 
@@ -27,7 +30,7 @@ This happens when your antivirus or firewall is blocking the websocket protocol.
 
 The solution is to use **HTTPS**. When doing so, websockets will be encapsulated in the secured protocol, avoiding interception from your firewall or antivirus system.
 
-## XOA migration issues
+## Migration issues
 
 By default, XOA has a static max memory set to 16GiB. Sometimes you can have trouble migrating with this error message:
 
@@ -39,7 +42,7 @@ Internal error: Xenops_interface.Internal_error("Domain.Xenguest_failure(\"Error
 
 In this case, it means you need to reduce the static max memory field to a lower value, and try again.
 
-## XOA boot issues
+## Boot issues
 
 XOA is configured in HVM. It means you need hardware that supports HVM instructions (almost all hardware since 2011). If that's not the case, the symptom is this:
 
@@ -48,7 +51,33 @@ XOA is configured in HVM. It means you need hardware that supports HVM instructi
 
 Please check that you have enabled virtualization settings in your BIOS or upgrade your hardware.
 
-## XOA configuration
+## Logs
+
+This section will explain how to check the XOA logs, and use them to detect issues.
+
+### From the web interface
+
+Go into Settings/Logs view.
+
+### CLI
+
+All XOA logs are stored in `/var/log/syslog` (on the XO Appliance).
+
+To filter only what you need, you can use `journalctl`. Below is an example to filter only logs for `xo-server`:
+
+```
+$ journalctl -u xo-server -f -n 50
+```
+
+This will return the 50 last lines and tail the file. If you have an error message in your application, start this command and try to reproduce the issue. You'll see clearly what the problem is.
+
+You can also filter for the updater program:
+
+```
+$ journalctl -u xoa-updater -f -n 50
+```
+
+## Configuration
 
 XOA is a virtual appliance running Debian with Xen Orchestra installed. If you have any problems, the first thing to do is to use our check service by running the `xoa check` command in a terminal:
 
@@ -69,7 +98,7 @@ If you have something completely different than that, or error messages, lost pa
 
 You can see your current network configuration by running `ifconfig eth0`. If you have an external firewall, please check that you allow the XOA's IP.
 
-You can modify the IP configuration with `xoa network static` (for a static IP address) or ` xoa network dhcp` to use DHCP.
+You can modify the IP configuration with `xoa network static` (for a static IP address) or `xoa network dhcp` to use DHCP.
 
 ### Memory
 
@@ -91,15 +120,17 @@ FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memo
 1: node::Abort() [node]
 ```
 
-In that case, you need to increase the memory allocated to the
-XOA VM (from 2GB to 4 or 8 GB), and then update the service file
-(`/etc/systemd/system/xo-server.service`) to increase the allocated
-memory to xo-server itself:
+In that case, you need to increase the memory allocated to the XOA VM (from 2GB to 4GB or 8GB). Note that simply increasing the RAM for the VM is not enough. You must also edit the service file (`/etc/systemd/system/xo-server.service`) to increase the memory allocated to the xo-server process itself.
+
+:::tip
+You should leave ~512MB for the debian OS itself. Meaning if your VM has 4096MB total RAM, you should use `3584` for the memory value below.
 
 ```diff
 - ExecStart=/usr/local/bin/xo-server
-+ ExecStart=/usr/local/bin/node --max-old-space-size=8192 /usr/local/bin/xo-server
++ ExecStart=/usr/local/bin/node --max-old-space-size=3584 /usr/local/bin/xo-server
 ```
+
+:::
 
 The last step is to refresh and restart the service:
 
@@ -110,16 +141,18 @@ $ systemctl restart xo-server
 
 ### Behind a transparent proxy
 
-If your are behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
+If you're behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
 
-First, run the following commands:
+Run the following commands to allow the updater to work:
 
 ```
+$ sudo -s
 $ echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
 $ npm config -g set strict-ssl=false
+$ systemctl restart xoa-updater
 ```
 
-Then, restart the updater with `systemctl restart xoa-updater`.
+Now try running an update again.
 
 ### Updating SSL self-signed certificate
 
@@ -135,7 +168,7 @@ $ openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt -nodes -
 $ systemctl restart xo-server.service
 ```
 
-## XO Configuration
+### Logs
 
 The system logs are visible by using this command:
 
@@ -154,16 +187,18 @@ If you have ghost tasks accumulating in your Xen Orchestra you can try the follo
 1. restart the XenAPI Toolstack of the XenServer master
 1. restart xo-server
 
-### Redownload and rebuild all the packages
+### Redownload and rebuild
 
 If a package disappears due to a build problem or human error, you can redownload them using the updater:
 
 1. `rm /var/lib/xoa-updater/update.json`
 2. `xoa-updater --upgrade`
 
-> We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+:::tip
+We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+:::
 
-### Reset XO configuration
+### Reset configuration
 
 If you have problems with your `xo-server` configuration, you can reset the database. **This operation will delete all your configured users and servers, plus any backup jobs**:
 

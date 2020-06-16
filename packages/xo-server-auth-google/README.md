@@ -1,17 +1,15 @@
-# xo-server-auth-google [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xo-server-auth-google
 
 > Google authentication plugin for XO-Server
+
+## Usage
 
 This plugin allows Google users to authenticate to Xen-Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the
 same identifier.
-
-## Install
-
-For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
-
-## Usage
 
 > This plugin is based on [passport-google](https://google.com/jaredhanson/passport-google),
 > see [its documentation](https://google.com/jaredhanson/passport-google#configure-strategy)
@@ -38,28 +36,9 @@ Add OAuth 2.0 credentials:
 Like all other xo-server plugins, it can be configured directly via
 the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -70,4 +49,4 @@ You may:
 
 ## License
 
-AGPL3 © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

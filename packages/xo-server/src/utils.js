@@ -3,7 +3,6 @@ import forEach from 'lodash/forEach'
 import has from 'lodash/has'
 import highland from 'highland'
 import humanFormat from 'human-format'
-import isString from 'lodash/isString'
 import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
@@ -58,7 +57,7 @@ export function extractProperty(obj, prop) {
 // -------------------------------------------------------------------
 
 // Returns the first defined (non-undefined) value.
-export const firstDefined = function() {
+export const firstDefined = function () {
   const n = arguments.length
   for (let i = 0; i < n; ++i) {
     const arg = arguments[i]
@@ -108,7 +107,7 @@ export const generateToken = (randomBytes => {
 
 // -------------------------------------------------------------------
 
-export const formatXml = (function() {
+export const formatXml = (function () {
   const builder = new xml2js.Builder({
     headless: true,
   })
@@ -116,7 +115,7 @@ export const formatXml = (function() {
   return (...args) => builder.buildObject(...args)
 })()
 
-export const parseXml = (function() {
+export const parseXml = (function () {
   const opts = {
     mergeAttrs: true,
     explicitArray: false,
@@ -208,7 +207,7 @@ export {
 // -------------------------------------------------------------------
 
 export function parseSize(size) {
-  if (!isString(size)) {
+  if (typeof size !== 'string') {
     return size
   }
 
@@ -256,13 +255,9 @@ export const safeDateParse = utcParse('%Y%m%dT%H%M%SZ')
 //
 // Exports them from here to avoid direct dependencies on lodash/
 export { default as forEach } from 'lodash/forEach'
-export { default as isArray } from 'lodash/isArray'
-export { default as isBoolean } from 'lodash/isBoolean'
 export { default as isEmpty } from 'lodash/isEmpty'
-export { default as isFunction } from 'lodash/isFunction'
 export { default as isInteger } from 'lodash/isInteger'
 export { default as isObject } from 'lodash/isObject'
-export { default as isString } from 'lodash/isString'
 export { default as mapToArray } from 'lodash/map'
 
 // -------------------------------------------------------------------
@@ -364,12 +359,12 @@ export const thunkToArray = thunk => {
 // function foo (param = throwFn('param is required')()) {}
 // ```
 export const throwFn = error => () => {
-  throw isString(error) ? new Error(error) : error
+  throw typeof error === 'string' ? new Error(error) : error
 }
 
 // -------------------------------------------------------------------
 
-export const tmpDir = () => fromCallback(cb => tmp.dir(cb))
+export const tmpDir = () => fromCallback(tmp.dir)
 
 // -------------------------------------------------------------------
 

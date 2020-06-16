@@ -8,12 +8,13 @@ import React from 'react'
 import SelectFiles from 'select-files'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import { compareVersions, connectStore, getIscsiPaths } from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { forEach, map, noop, isEmpty } from 'lodash'
+import { forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
@@ -22,10 +23,13 @@ import {
   detachHost,
   disableHost,
   editHost,
+  enableAdvancedLiveTelemetry,
   enableHost,
   forgetHost,
-  isHyperThreadingEnabledHost,
   installSupplementalPack,
+  isHyperThreadingEnabledHost,
+  isNetDataInstalledOnHost,
+  getPlugin,
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
@@ -88,10 +92,7 @@ MultipathableSrs.propTypes = {
     .sort()
 
   const getPcis = createGetObjectsOfType('PCI').pick(
-    createSelector(
-      getPgpus,
-      pgpus => map(pgpus, 'pci')
-    )
+    createSelector(getPgpus, pgpus => map(pgpus, 'pci'))
   )
 
   return {
@@ -101,6 +102,17 @@ MultipathableSrs.propTypes = {
 })
 export default class extends Component {
   async componentDidMount() {
+    const plugin = await getPlugin('netdata')
+    const isNetDataPluginCorrectlySet = plugin !== undefined && plugin.loaded
+    this.setState({ isNetDataPluginCorrectlySet })
+    if (isNetDataPluginCorrectlySet) {
+      this.setState({
+        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
+          this.props.host
+        ),
+      })
+    }
+
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
     })
@@ -140,13 +152,60 @@ export default class extends Component {
 
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
+  _accessAdvancedLiveTelemetry = () =>
+    window.open(
+      `/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`
+    )
+
+  _enableAdvancedLiveTelemetry = async host => {
+    await enableAdvancedLiveTelemetry(host)
+    this.setState({
+      isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(host),
+    })
+  }
+
   render() {
     const { host, pcis, pgpus } = this.props
-    const { isHtEnabled } = this.state
+    const {
+      isHtEnabled,
+      isNetDataPluginInstalledOnHost,
+      isNetDataPluginCorrectlySet,
+    } = this.state
+
+    const _isXcpNgHost = host.productBrand === 'XCP-ng'
+
+    const telemetryButton = isNetDataPluginInstalledOnHost ? (
+      <TabButton
+        btnStyle='success'
+        handler={this._accessAdvancedLiveTelemetry}
+        handlerParam={host}
+        icon='telemetry'
+        labelId='advancedLiveTelemetry'
+      />
+    ) : (
+      <TabButton
+        btnStyle='success'
+        disabled={!_isXcpNgHost || !isNetDataPluginCorrectlySet}
+        handler={this._enableAdvancedLiveTelemetry}
+        handlerParam={host}
+        icon='telemetry'
+        labelId='enableAdvancedLiveTelemetry'
+      />
+    )
+
     return (
       <Container>
         <Row>
           <Col className='text-xs-right'>
+            {!isNetDataPluginCorrectlySet ? (
+              <Tooltip content={_('pluginNetDataIsNecessary')}>
+                {telemetryButton}
+              </Tooltip>
+            ) : !_isXcpNgHost ? (
+              <Tooltip content={_('xcpOnlyFeature')}>{telemetryButton}</Tooltip>
+            ) : (
+              telemetryButton
+            )}
             {host.power_state === 'Running' && (
               <TabButton
                 btnStyle='warning'

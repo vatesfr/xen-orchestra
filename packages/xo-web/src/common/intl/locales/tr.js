@@ -471,7 +471,7 @@ export default {
   srNotSharedType: 'Paylaşımsız {type}',
 
   // Original text: "All of them are selected"
-  sortedTableAllItemsSelected: 'Hepsi seçildi',
+  sortedTableAllItemsSelected: 'Hepsi seçildi ({nItems, number})',
 
   // Original text: "No items found"
   sortedTableNoItems: 'Hiç öğe bulunamadı',
@@ -1255,13 +1255,13 @@ export default {
   remoteNamePlaceHolder: 'hedef adı *',
 
   // Original text: "Name *"
-  remoteMyNamePlaceHolder: 'Ad *',
+  remoteMyNamePlaceHolder: 'Ad',
 
   // Original text: "/path/to/backup"
   remoteLocalPlaceHolderPath: '/yedek/için/yol',
 
   // Original text: "host *"
-  remoteNfsPlaceHolderHost: 'sunucu *',
+  remoteNfsPlaceHolderHost: 'sunucu',
 
   // Original text: 'Port'
   remoteNfsPlaceHolderPort: undefined,
@@ -1282,7 +1282,7 @@ export default {
   remoteSmbPlaceHolderDomain: 'Domain',
 
   // Original text: "<address>\\\\<share> *"
-  remoteSmbPlaceHolderAddressShare: '<paylaşım>\\\\<adresi> *',
+  remoteSmbPlaceHolderAddressShare: '<paylaşım>\\\\<adresi>',
 
   // Original text: "password(fill to edit)"
   remotePlaceHolderPassword: 'parola(düzenlemek için doldurun)',
@@ -2341,9 +2341,6 @@ export default {
   // Original text: "Destination SR:"
   vdiMigrateSelectSr: 'Hedef SR:',
 
-  // Original text: "Migrate all VDIs"
-  vdiMigrateAll: "Tüm VDI'ları taşı",
-
   // Original text: "No SR"
   vdiMigrateNoSr: 'SR yok',
 
@@ -2660,7 +2657,7 @@ export default {
   vmChooseCoresPerSocket: 'Varsayılan davranış',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmCoresPerSocket:
+  vmSocketsWithCoresPerSocket:
     '{nSockets, number} soket ve her sokette  {nCores, number} çekirdek',
 
   // Original text: "None"
@@ -3732,7 +3729,7 @@ export default {
   chooseSrForEachVdisModalSrLabel: 'SR*',
 
   // Original text: "* optional"
-  chooseSrForEachVdisModalOptionalEntry: '* opsiyonel',
+  optionalEntry: '* opsiyonel',
 
   // Original text: "Delete job{nJobs, plural, one {} other {s}}"
   deleteJobsModalTitle: 'İşi(leri) sil',
@@ -4864,10 +4861,10 @@ export default {
   xosanState_scanningSr: 'SR taranıyor...',
 
   // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin: 'Önce bulut eklentisini kurun',
+  xosanInstallCloudPlugin: 'Önce XOA eklentisini kurun',
 
   // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin: 'Önce bulut eklentisini yükleyin',
+  xosanLoadCloudPlugin: 'Önce XOA eklentisini yükleyin',
 
   // Original text: "Register your appliance first"
   xosanRegister: "Önce XOSAN'ın kaydını yapın",

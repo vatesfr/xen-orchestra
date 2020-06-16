@@ -1,10 +1,11 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors } from 'promise-toolbox'
+import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { parseDuration } from '@vates/parse-duration'
 
-import debounceWithKey from '../_pDebounceWithKey'
-import parseDuration from '../_parseDuration'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
+import { waitAll } from '../_waitAll'
 import { type Xapi } from '../xapi'
 import {
   safeDateFormat,
@@ -147,6 +148,7 @@ export default class metadataBackup {
     this._app = app
     this._logger = undefined
     this._runningMetadataRestores = new Set()
+    this._poolMetadataTimeout = parseDuration(backup.poolMetadataTimeout)
 
     const debounceDelay = parseDuration(backup.listingDebounce)
     this._listXoMetadataBackups = debounceWithKey(
@@ -154,7 +156,7 @@ export default class metadataBackup {
       debounceDelay,
       remoteId => remoteId
     )
-    this.__listPoolMetadataBackups = debounceWithKey(
+    this._listPoolMetadataBackups = debounceWithKey(
       this._listPoolMetadataBackups,
       debounceDelay,
       remoteId => remoteId
@@ -186,7 +188,7 @@ export default class metadataBackup {
       const scheduleDir = `${DIR_XO_CONFIG_BACKUPS}/${schedule.id}`
       const dir = `${scheduleDir}/${safeDateFormat(timestamp)}`
 
-      const data = JSON.stringify(await app.exportConfig(), null, 2)
+      const data = await app.exportConfig()
       const fileName = `${dir}/data.json`
 
       const metadata = JSON.stringify(
@@ -249,6 +251,8 @@ export default class metadataBackup {
               taskId: subTaskId,
             }
           )
+
+          this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
         } catch (error) {
           await handler.rmtree(dir).catch(error => {
             logger.warning(`unable to delete the folder ${dir}`, {
@@ -347,18 +351,21 @@ export default class metadataBackup {
 
         let outputStream
         try {
-          await Promise.all([
+          await waitAll([
             (async () => {
               outputStream = await handler.createOutputStream(fileName)
 
               // 'readable-stream/pipeline' not call the callback when an error throws
               // from the readable stream
               stream.pipe(outputStream)
-              return fromEvent(stream, 'end').catch(error => {
-                if (error.message !== 'aborted') {
-                  throw error
-                }
-              })
+              return timeout.call(
+                fromEvent(stream, 'end').catch(error => {
+                  if (error.message !== 'aborted') {
+                    throw error
+                  }
+                }),
+                this._poolMetadataTimeout
+              )
             })(),
             handler.outputFile(metaDataFileName, metadata),
           ])
@@ -391,6 +398,8 @@ export default class metadataBackup {
               taskId: subTaskId,
             }
           )
+
+          this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
         } catch (error) {
           if (outputStream !== undefined) {
             outputStream.destroy()
@@ -493,12 +502,14 @@ export default class metadataBackup {
             handlers[id] = handler
           },
           error => {
-            logger.warning(`unable to get the handler for the remote (${id})`, {
-              event: 'task.warning',
-              taskId: runJobId,
+            logInstantFailureTask(logger, {
               data: {
-                error,
+                type: 'remote',
+                id,
               },
+              error,
+              message: `unable to get the handler for the remote (${id})`,
+              parentId: runJobId,
             })
           }
         )
@@ -757,9 +768,7 @@ export default class metadataBackup {
       let result
       if (dir === DIR_XO_CONFIG_BACKUPS) {
         result = await app.importConfig(
-          JSON.parse(
-            String(await handler.readFile(`${metadataFolder}/data.json`))
-          )
+          await handler.readFile(`${metadataFolder}/data.json`)
         )
       } else {
         result = await app
@@ -805,6 +814,12 @@ export default class metadataBackup {
     const [remoteId, ...path] = id.split('/')
 
     const handler = await app.getRemoteHandler(remoteId)
-    return handler.rmtree(path.join('/'))
+    await handler.rmtree(path.join('/'))
+
+    if (path[0] === 'xo-config-backups') {
+      this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
+    } else {
+      this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
+    }
   }
 }

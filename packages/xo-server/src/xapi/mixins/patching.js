@@ -1,11 +1,11 @@
-import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
-import unzip from 'julien-f-unzip'
+import unzip from 'unzipper'
+import { decorateWith } from '@vates/decorate-with'
 import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
-import { debounce } from '../../decorators'
+import { debounceWithKey } from '../../_pDebounceWithKey'
 import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
 import { extractOpaqueRef, useUpdateSystem } from '../utils'
@@ -35,12 +35,30 @@ const log = createLogger('xo:xapi')
 
 const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 
+const LISTING_DEBOUNCE_TIME_MS = 60000
+
+async function _listMissingPatches(hostId) {
+  const host = this.getObject(hostId)
+  return _isXcp(host)
+    ? this._listXcpUpdates(host)
+    : // TODO: list paid patches of free hosts as well so the UI can show them
+      this._listInstallablePatches(host)
+}
+
+const listMissingPatches = debounceWithKey(
+  _listMissingPatches,
+  LISTING_DEBOUNCE_TIME_MS,
+  hostId => hostId
+)
+
 // =============================================================================
 
 export default {
   // raw { uuid: patch } map translated from updates.xensource.com/XenServer/updates.xml
   // FIXME: should be static
-  @debounce(24 * 60 * 60 * 1000)
+  @decorateWith(debounceWithKey, 24 * 60 * 60 * 1000, function () {
+    return this
+  })
   async _getXenUpdates() {
     const response = await this.xo.httpRequest(
       'http://updates.xensource.com/XenServer/updates.xml'
@@ -72,7 +90,7 @@ export default {
           patch => patch.requiredpatch.uuid
         ),
         paid: patch['update-stream'] === 'premium',
-        upgrade: /^XS\d{2,}$/.test(patch['name-label']),
+        upgrade: /^(XS|CH)\d{2,}$/.test(patch['name-label']),
         // TODO: what does it mean, should we handle it?
         // version: patch.version,
       }
@@ -84,7 +102,7 @@ export default {
       }
     })
 
-    const resolveVersionPatches = function(uuids) {
+    const resolveVersionPatches = function (uuids) {
       const versionPatches = { __proto__: null }
 
       forEach(ensureArray(uuids), ({ uuid }) => {
@@ -303,13 +321,7 @@ export default {
   },
 
   // high level
-  listMissingPatches(hostId) {
-    const host = this.getObject(hostId)
-    return _isXcp(host)
-      ? this._listXcpUpdates(host)
-      : // TODO: list paid patches of free hosts as well so the UI can show them
-        this._listInstallablePatches(host)
-  },
+  listMissingPatches,
 
   // convenient method to find which patches should be installed from a
   // list of patch names
@@ -325,7 +337,7 @@ export default {
 
   // INSTALL -------------------------------------------------------------------
 
-  _xcpUpdate(hosts) {
+  async _xcpUpdate(hosts) {
     if (hosts === undefined) {
       hosts = filter(this.objects.all, { $type: 'host' })
     } else {
@@ -335,7 +347,10 @@ export default {
       )
     }
 
-    return asyncMap(hosts, async host => {
+    // XCP-ng hosts need to be updated one at a time starting with the pool master
+    // https://github.com/vatesfr/xen-orchestra/issues/4468
+    hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
+    for (const host of hosts) {
       const update = await this.call(
         'host.call_plugin',
         host.$ref,
@@ -352,7 +367,7 @@ export default {
           String(Date.now() / 1000)
         )
       }
-    })
+    }
   },
 
   // Legacy XS patches: upload a patch on a pool before installing it
@@ -376,7 +391,7 @@ export default {
         .pipe(unzip.Parse())
         .on('entry', entry => {
           if (PATCH_RE.test(entry.path)) {
-            entry.length = entry.size
+            entry.length = entry.vars.uncompressedSize
             resolve(entry)
           } else {
             entry.autodrain()
@@ -407,7 +422,7 @@ export default {
       stream
         .pipe(unzip.Parse())
         .on('entry', entry => {
-          entry.length = entry.size
+          entry.length = entry.vars.uncompressedSize
           resolve(entry)
         })
         .on('error', reject)
@@ -429,7 +444,7 @@ export default {
     return vdi
   },
 
-  _poolWideInstall: deferrable(async function($defer, patches) {
+  _poolWideInstall: deferrable(async function ($defer, patches) {
     // Legacy XS patches
     if (!useUpdateSystem(this.pool.$master)) {
       // for each patch: pool_patch.pool_apply

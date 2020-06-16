@@ -1,3 +1,4 @@
+import assert from 'assert'
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
@@ -7,11 +8,9 @@ import map from 'lodash/map'
 import { tap, delay } from 'promise-toolbox'
 import { NULL_REF } from 'xen-api'
 import { invalidParameters } from 'xo-common/api-errors'
-import { v4 as generateUuid } from 'uuid'
 import { includes, remove, filter, find, range } from 'lodash'
 
 import ensureArray from '../_ensureArray'
-import { asInteger } from '../xapi/utils'
 import { parseXml } from '../utils'
 
 const log = createLogger('xo:xosan')
@@ -23,7 +22,7 @@ const HOST_FIRST_NUMBER = 1
 const GIGABYTE = 1024 * 1024 * 1024
 const XOSAN_VM_SYSTEM_DISK_SIZE = 10 * GIGABYTE
 const XOSAN_DATA_DISK_USEAGE_RATIO = 0.99
-const XOSAN_LICENSE_QUOTA = 50 * GIGABYTE
+const XOSAN_LICENSE_QUOTA = 200 * GIGABYTE
 
 const CURRENT_POOL_OPERATIONS = {}
 
@@ -85,7 +84,7 @@ async function rateLimitedRetry(action, shouldRetry, retryCount = 20) {
 function createVolumeInfoTypes() {
   function parseHeal(parsed) {
     const bricks = []
-    parsed['healInfo']['bricks']['brick'].forEach(brick => {
+    parsed.healInfo.bricks.brick.forEach(brick => {
       bricks.push(brick)
       if (brick.file) {
         brick.file = ensureArray(brick.file)
@@ -96,45 +95,45 @@ function createVolumeInfoTypes() {
 
   function parseStatus(parsed) {
     const brickDictByUuid = {}
-    const volume = parsed['volStatus']['volumes']['volume']
-    volume['node'].forEach(node => {
+    const volume = parsed.volStatus.volumes.volume
+    volume.node.forEach(node => {
       brickDictByUuid[node.peerid] = brickDictByUuid[node.peerid] || []
       brickDictByUuid[node.peerid].push(node)
     })
     return {
       commandStatus: true,
-      result: { nodes: brickDictByUuid, tasks: volume['tasks'] },
+      result: { nodes: brickDictByUuid, tasks: volume.tasks },
     }
   }
 
   async function parseInfo(parsed) {
-    const volume = parsed['volInfo']['volumes']['volume']
-    volume['bricks'] = volume['bricks']['brick']
-    volume['options'] = volume['options']['option']
+    const volume = parsed.volInfo.volumes.volume
+    volume.bricks = volume.bricks.brick
+    volume.options = volume.options.option
     return { commandStatus: true, result: volume }
   }
 
   const sshInfoType = (command, handler) => {
-    return async function(sr) {
+    return async function (sr) {
       const glusterEndpoint = this::_getGlusterEndpoint(sr)
       const cmdShouldRetry = result =>
-        !result['commandStatus'] &&
-        ((result.parsed && result.parsed['cliOutput']['opErrno'] === '30802') ||
+        !result.commandStatus &&
+        ((result.parsed && result.parsed.cliOutput.opErrno === '30802') ||
           result.stderr.match(/Another transaction is in progress/))
       const runCmd = async () =>
         glusterCmd(glusterEndpoint, 'volume ' + command, true)
       const commandResult = await rateLimitedRetry(runCmd, cmdShouldRetry, 30)
-      return commandResult['commandStatus']
-        ? this::handler(commandResult.parsed['cliOutput'], sr)
+      return commandResult.commandStatus
+        ? this::handler(commandResult.parsed.cliOutput, sr)
         : commandResult
     }
   }
 
   async function profileType(sr) {
     async function parseProfile(parsed) {
-      const volume = parsed['volProfile']
-      volume['bricks'] = ensureArray(volume['brick'])
-      delete volume['brick']
+      const volume = parsed.volProfile
+      volume.bricks = ensureArray(volume.brick)
+      delete volume.brick
       return { commandStatus: true, result: volume }
     }
 
@@ -143,9 +142,9 @@ function createVolumeInfoTypes() {
 
   async function profileTopType(sr) {
     async function parseTop(parsed) {
-      const volume = parsed['volTop']
-      volume['bricks'] = ensureArray(volume['brick'])
-      delete volume['brick']
+      const volume = parsed.volTop
+      volume.bricks = ensureArray(volume.brick)
+      delete volume.brick
       return { commandStatus: true, result: volume }
     }
 
@@ -326,7 +325,7 @@ async function remoteSsh(glusterEndpoint, cmd, ignoreError = false) {
       }
       messageArray.push(`${key}: ${result[key]}`)
     }
-    messageArray.push('command: ' + result['command'].join(' '))
+    messageArray.push('command: ' + result.command.join(' '))
     messageKeys.splice(messageKeys.indexOf('command'), 1)
     for (const key of messageKeys) {
       messageArray.push(`${key}: ${JSON.stringify(result[key])}`)
@@ -343,7 +342,7 @@ async function remoteSsh(glusterEndpoint, cmd, ignoreError = false) {
         })
         break
       } catch (exception) {
-        if (exception['code'] !== 'HOST_OFFLINE') {
+        if (exception.code !== 'HOST_OFFLINE') {
           throw exception
         }
       }
@@ -370,19 +369,17 @@ async function remoteSsh(glusterEndpoint, cmd, ignoreError = false) {
 }
 
 function findErrorMessage(commandResut) {
-  if (commandResut['exit'] === 0 && commandResut.parsed) {
-    const cliOut = commandResut.parsed['cliOutput']
-    if (cliOut['opErrstr'] && cliOut['opErrstr'].length) {
-      return cliOut['opErrstr']
+  if (commandResut.exit === 0 && commandResut.parsed) {
+    const cliOut = commandResut.parsed.cliOutput
+    if (cliOut.opErrstr && cliOut.opErrstr.length) {
+      return cliOut.opErrstr
     }
     // "peer probe" returns it's "already in peer" error in cliOutput/output
-    if (cliOut['output'] && cliOut['output'].length) {
-      return cliOut['output']
+    if (cliOut.output && cliOut.output.length) {
+      return cliOut.output
     }
   }
-  return commandResut['stderr'].length
-    ? commandResut['stderr']
-    : commandResut['stdout']
+  return commandResut.stderr.length ? commandResut.stderr : commandResut.stdout
 }
 
 async function glusterCmd(glusterEndpoint, cmd, ignoreError = false) {
@@ -392,15 +389,15 @@ async function glusterCmd(glusterEndpoint, cmd, ignoreError = false) {
     true
   )
   try {
-    result.parsed = parseXml(result['stdout'])
+    result.parsed = parseXml(result.stdout)
   } catch (e) {
     // pass, we never know if a message can be parsed or not, so we just try
   }
-  if (result['exit'] === 0) {
-    const cliOut = result.parsed['cliOutput']
+  if (result.exit === 0) {
+    const cliOut = result.parsed.cliOutput
     // we have found cases where opErrno is !=0 and opRet was 0, albeit the operation was an error.
     result.commandStatus =
-      cliOut['opRet'].trim() === '0' && cliOut['opErrno'].trim() === '0'
+      cliOut.opRet.trim() === '0' && cliOut.opErrno.trim() === '0'
     result.error = findErrorMessage(result)
   } else {
     result.commandStatus = false
@@ -415,7 +412,7 @@ async function glusterCmd(glusterEndpoint, cmd, ignoreError = false) {
   return result
 }
 
-const createNetworkAndInsertHosts = defer(async function(
+const createNetworkAndInsertHosts = defer(async function (
   $defer,
   xapi,
   pif,
@@ -486,7 +483,7 @@ async function getOrCreateSshKey(xapi) {
   return sshKey
 }
 
-const _probePoolAndWaitForPresence = defer(async function(
+const _probePoolAndWaitForPresence = defer(async function (
   $defer,
   glusterEndpoint,
   addresses
@@ -621,7 +618,7 @@ async function _removeQuota(glusterEndpoint) {
   await glusterCmd(glusterEndpoint, 'volume quota xosan disable', true)
 }
 
-export const createSR = defer(async function(
+export const createSR = defer(async function (
   $defer,
   {
     template,
@@ -672,11 +669,7 @@ export const createSR = defer(async function(
   $defer.onFailure(() => this.unbindXosanLicense({ srId: tmpBoundObjectId }))
 
   // '172.31.100.0' -> '172.31.100.'
-  const networkPrefix =
-    ipRange
-      .split('.')
-      .slice(0, 3)
-      .join('.') + '.'
+  const networkPrefix = ipRange.split('.').slice(0, 3).join('.') + '.'
   let vmIpLastNumber = VM_FIRST_NUMBER
 
   try {
@@ -793,7 +786,7 @@ export const createSR = defer(async function(
       host: param.host.$id,
       vm: { id: param.vm.$id, ip: param.address },
       underlyingSr: param.underlyingSr.$id,
-      arbiter: !!param['arbiter'],
+      arbiter: !!param.arbiter,
     }))
     await xapi.xo.setData(xosanSrRef, 'xosan_config', {
       version: 'beta2',
@@ -821,12 +814,14 @@ export const createSR = defer(async function(
 createSR.description = 'create gluster VM'
 createSR.permission = 'admin'
 createSR.params = {
+  brickSize: { type: 'number', optional: true },
   srs: {
     type: 'array',
     items: {
       type: 'string',
     },
   },
+  template: { type: 'object' },
   pif: {
     type: 'string',
   },
@@ -861,43 +856,37 @@ async function umountDisk(localEndpoint, diskMountPoint) {
   )
 }
 
-// this is mostly what the LVM SR driver does, but we are avoiding the 2To limit it imposes.
-async function createVDIOnLVMWithoutSizeLimit(xapi, lvmSr, diskSize) {
-  const VG_PREFIX = 'VG_XenStorage-'
-  const LV_PREFIX = 'LV-'
-  const { type, uuid: srUuid, $PBDs } = xapi.getObject(lvmSr)
-  if (type !== 'lvm') {
-    throw new Error('expecting a lvm sr type, got"' + type + '"')
-  }
-  const uuid = generateUuid()
-  const lvName = LV_PREFIX + uuid
-  const vgName = VG_PREFIX + srUuid
-  const host = $PBDs[0].$host
-  const sizeMb = Math.ceil(diskSize / 1024 / 1024)
-  const result = await callPlugin(xapi, host, 'run_lvcreate', {
-    sizeMb: asInteger(sizeMb),
-    lvName,
-    vgName,
-  })
-  if (result.exit !== 0) {
-    throw Error('Could not create volume ->' + result.stdout)
-  }
-  await xapi.callAsync('SR.scan', xapi.getObject(lvmSr).$ref)
-  const vdi = find(xapi.getObject(lvmSr).$VDIs, vdi => vdi.uuid === uuid)
-  if (vdi != null) {
-    await Promise.all([
-      vdi.set_name_description('Created by XO'),
-      vdi.set_name_label('xosan_data'),
-    ])
-    return vdi
-  }
-}
-
 async function createNewDisk(xapi, sr, vm, diskSize) {
-  const newDisk = await createVDIOnLVMWithoutSizeLimit(xapi, sr, diskSize)
+  // https://github.com/xapi-project/sm/blob/c9e959b70b43930b33f3a5abe5afe0a36dc95f06/drivers/vhdutil.py#L31
+  const vdiMax = 2040 * 1024 * 1024 * 1024
+  const createVdiSize = Math.min(vdiMax, diskSize)
+  const extensionSize = diskSize - createVdiSize
+  const newDisk = await xapi.createVdi(
+    {
+      name_label: 'xosan_data',
+      name_description: 'Created by XO',
+      size: createVdiSize,
+      sr: sr,
+      sm_config: { type: 'raw' },
+    },
+    { setSmConfig: true }
+  )
+  if (extensionSize > 0) {
+    const { type, uuid: srUuid, $PBDs } = xapi.getObject(sr)
+    const volume = `/dev/VG_XenStorage-${srUuid}/LV-${newDisk.uuid}`
+    assert.strictEqual(type, 'lvm')
+    const result = await callPlugin(xapi, $PBDs[0].$host, 'run_lvextend', {
+      sizeDiffMb: '+' + Math.floor(extensionSize / Math.pow(2, 20)),
+      volume,
+    })
+    if (result.exit !== 0) {
+      throw Error('Could not create volume ->' + result.stdout)
+    }
+    await xapi.callAsync('SR.scan', xapi.getObject(sr).$ref)
+  }
   await xapi.createVbd({ vdi: newDisk, vm })
-  let vbd = await xapi._waitObjectState(newDisk.$id, disk =>
-    Boolean(disk.$VBDs.length)
+  let vbd = (
+    await xapi._waitObjectState(newDisk.$id, disk => Boolean(disk.$VBDs.length))
   ).$VBDs[0]
   vbd = await xapi._waitObjectState(vbd.$id, vbd => Boolean(vbd.device.length))
   return '/dev/' + vbd.device
@@ -906,10 +895,9 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
 async function mountNewDisk(localEndpoint, hostname, newDeviceFiledeviceFile) {
   const brickRootCmd =
     'bash -c \'mkdir -p /bricks; for TESTVAR in {1..9}; do TESTDIR="/bricks/xosan$TESTVAR" ;if mkdir $TESTDIR; then echo $TESTDIR; exit 0; fi ; done ; exit 1\''
-  const newBrickRoot = (await remoteSsh(
-    localEndpoint,
-    brickRootCmd
-  )).stdout.trim()
+  const newBrickRoot = (
+    await remoteSsh(localEndpoint, brickRootCmd)
+  ).stdout.trim()
   const brickName = `${hostname}:${newBrickRoot}/xosandir`
   const mountBrickCmd = `mkfs.xfs -i size=512 ${newDeviceFiledeviceFile}; mkdir -p ${newBrickRoot}; echo "${newDeviceFiledeviceFile} ${newBrickRoot} xfs defaults 0 0" >> /etc/fstab; mount -a`
   await remoteSsh(localEndpoint, mountBrickCmd)
@@ -961,10 +949,12 @@ async function replaceBrickOnSameVM(
       .split('/')
       .slice(0, 3)
       .join('/')
-    const previousBrickDevice = (await remoteSsh(
-      localEndpoint,
-      `grep " ${previousBrickRoot} " /proc/mounts | cut -d ' ' -f 1 | sed 's_/dev/__'`
-    )).stdout.trim()
+    const previousBrickDevice = (
+      await remoteSsh(
+        localEndpoint,
+        `grep " ${previousBrickRoot} " /proc/mounts | cut -d ' ' -f 1 | sed 's_/dev/__'`
+      )
+    ).stdout.trim()
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 1 }
     const brickName = await mountNewDisk(
       localEndpoint,
@@ -1162,11 +1152,11 @@ async function _prepareGlusterVm(
 }
 
 async function _importGlusterVM(xapi, template, lvmsrId) {
-  const templateStream = await this.requestResource(
-    'xosan',
-    template.id,
-    template.version
-  )
+  const templateStream = await this.requestResource({
+    id: template.id,
+    namespace: 'xosan',
+    version: template.version,
+  })
   const newVM = await xapi.importVm(templateStream, {
     srId: lvmsrId,
     type: 'xva',
@@ -1180,7 +1170,10 @@ async function _importGlusterVM(xapi, template, lvmsrId) {
 }
 
 function _findAFreeIPAddress(nodes, networkPrefix) {
-  return _findIPAddressOutsideList(map(nodes, n => n.vm.ip), networkPrefix)
+  return _findIPAddressOutsideList(
+    map(nodes, n => n.vm.ip),
+    networkPrefix
+  )
 }
 
 function _findIPAddressOutsideList(
@@ -1202,7 +1195,7 @@ const _median = arr => {
   return arr[Math.floor(arr.length / 2)]
 }
 
-const insertNewGlusterVm = defer(async function(
+const insertNewGlusterVm = defer(async function (
   $defer,
   xapi,
   xosansr,
@@ -1252,7 +1245,7 @@ const insertNewGlusterVm = defer(async function(
   return { data, newVM, addressAndHost, glusterEndpoint }
 })
 
-export const addBricks = defer(async function(
+export const addBricks = defer(async function (
   $defer,
   { xosansr, lvmsrs, brickSize }
 ) {
@@ -1298,7 +1291,7 @@ export const addBricks = defer(async function(
         underlyingSr: newSr,
       })
     }
-    const arbiterNode = data.nodes.find(n => n['arbiter'])
+    const arbiterNode = data.nodes.find(n => n.arbiter)
     if (arbiterNode) {
       await glusterCmd(
         glusterEndpoint,
@@ -1348,7 +1341,7 @@ addBricks.resolve = {
   lvmsrs: ['sr', 'SR', 'administrate'],
 }
 
-export const removeBricks = defer(async function($defer, { xosansr, bricks }) {
+export const removeBricks = defer(async function ($defer, { xosansr, bricks }) {
   await this.checkXosanLicense({ srId: xosansr.uuid })
 
   const xapi = this.getXapi(xosansr)
@@ -1533,8 +1526,11 @@ export async function downloadAndInstallXosanPack({ id, version, pool }) {
   }
 
   const xapi = this.getXapi(pool.id)
-  const res = await this.requestResource('xosan', id, version)
-
+  const res = await this.requestResource({
+    id,
+    namespace: 'xosan',
+    version,
+  })
   await xapi.installSupplementalPackOnAllHosts(res)
   await xapi.pool.update_other_config(
     'xosan_pack_installation_time',

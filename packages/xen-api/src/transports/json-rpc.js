@@ -1,14 +1,16 @@
 import httpRequestPlus from 'http-request-plus'
 import { format, parse } from 'json-rpc-protocol'
 
+import XapiError from '../_XapiError'
+
 import UnsupportedTransport from './_UnsupportedTransport'
 
 // https://github.com/xenserver/xenadmin/blob/0df39a9d83cd82713f32d24704852a0fd57b8a64/XenModel/XenAPI/Session.cs#L403-L433
-export default ({ allowUnauthorized, url }) => {
+export default ({ secureOptions, url }) => {
   return (method, args) =>
     httpRequestPlus
       .post(url, {
-        rejectUnauthorized: !allowUnauthorized,
+        ...secureOptions,
         body: format.request(0, method, args),
         headers: {
           Accept: 'application/json',
@@ -30,7 +32,7 @@ export default ({ allowUnauthorized, url }) => {
             return response.result
           }
 
-          throw response.error
+          throw XapiError.wrap(response.error)
         },
         error => {
           if (error.response !== undefined) {

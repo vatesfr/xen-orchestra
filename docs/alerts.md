@@ -8,12 +8,12 @@ The administrator will configure alerts based on performance thresholds.
 
 The configurable metrics are:
 
-* CPU usage (VM, host)
-* RAM usage (VM, host)
-* network bandwidth (VM, host)
-* load average (host)
-* disk IO (VM)
-* total IO (SR, only for XenServer Dundee and higher)
+- CPU usage (VM, host)
+- RAM usage (VM, host)
+- network bandwidth (VM, host)
+- load average (host)
+- disk IO (VM)
+- total IO (SR, only for XenServer Dundee and higher)
 
 If any configured values exceed the threshold during a selected period of time, an alert will be sent.
 
@@ -31,5 +31,5 @@ You can choose to be notified only if it fails or even after each backup job.
 
 Current supported alerts system:
 
-* Email
-* XMPP
+- Email
+- XMPP

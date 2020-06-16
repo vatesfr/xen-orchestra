@@ -2,6 +2,7 @@
 
 import asyncMap from '@xen-orchestra/async-map'
 import { createSchedule } from '@xen-orchestra/cron'
+import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
@@ -76,7 +77,10 @@ export default class Scheduling {
         'schedules',
         () => db.get(),
         schedules =>
-          asyncMap(schedules, schedule => db.update(normalize(schedule))),
+          asyncMap(schedules, async schedule => {
+            await db.update(normalize(schedule))
+            this._start(schedule.id)
+          }),
         ['jobs']
       )
 
@@ -100,14 +104,16 @@ export default class Scheduling {
     timezone,
     userId,
   }: $Diff<Schedule, {| id: string |}>) {
-    const schedule = (await this._db.add({
-      cron,
-      enabled,
-      jobId,
-      name,
-      timezone,
-      userId,
-    })).properties
+    const schedule = (
+      await this._db.add({
+        cron,
+        enabled,
+        jobId,
+        name,
+        timezone,
+        userId,
+      })
+    ).properties
     this._start(schedule)
     return schedule
   }
@@ -155,7 +161,9 @@ export default class Scheduling {
       this._runs[id] = createSchedule(
         schedule.cron,
         schedule.timezone
-      ).startJob(() => this._app.runJobSequence([schedule.jobId], schedule))
+      ).startJob(() => {
+        ignoreErrors.call(this._app.runJobSequence([schedule.jobId], schedule))
+      })
     }
   }
 

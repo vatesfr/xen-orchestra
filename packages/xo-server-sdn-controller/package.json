@@ -1,5 +1,6 @@
 {
   "name": "xo-server-sdn-controller",
+  "description": "Creates pool-wide and cross-pool private networks",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-sdn-controller",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -15,22 +16,29 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
-  "version": "0.1.2",
+  "version": "0.4.2",
   "engines": {
-    "node": ">=6"
+    "node": ">=8.10"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.4.4",
     "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/preset-env": "^7.4.4",
-    "cross-env": "^5.2.0"
+    "cross-env": "^7.0.2"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.1.4",
+    "@xen-orchestra/log": "^0.2.0",
     "lodash": "^4.17.11",
-    "node-openssl-cert": "^0.0.84",
-    "promise-toolbox": "^0.13.0"
+    "node-openssl-cert": "^0.0.117",
+    "promise-toolbox": "^0.15.0",
+    "uuid": "^3.3.2"
   },
-  "private": true
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
 }

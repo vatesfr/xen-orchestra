@@ -2,11 +2,11 @@
 
 ![](http://i.imgur.com/tRffA5y.png)
 
-XO-Web is part of [Xen Orchestra](https://github.com/vatesfr/xo), a web interface for XenServer or XAPI enabled hosts.
+XO-Web is part of [Xen Orchestra](https://github.com/vatesfr/xen-orchestra), a web interface for XenServer or XAPI enabled hosts.
 
-It is a web client for [XO-Server](https://github.com/vatesfr/xo-server).
+It is a web client for [XO-Server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server).
 
-___
+---
 
 ## Installation
 
@@ -30,7 +30,7 @@ $ npm run dev
 
 #### `NODE_ENV`
 
-Set to *production* it disables many checks which result in increased
+Set to _production_ it disables many checks which result in increased
 performance.
 
 #### `XOA_PLAN`
@@ -53,9 +53,7 @@ if (process.env.XOA_PLAN > 3) {
 
 ## How to report a bug?
 
-If you are certain the bug is exclusively related to XO-Web, you may use the [bugtracker of this repository](https://github.com/vatesfr/xen-orchestra/issues).
-
-Otherwise, please consider using the [bugtracker of the general repository](https://github.com/vatesfr/xo/issues).
+Please consider using the [bugtracker](https://github.com/vatesfr/xen-orchestra/issues).
 
 ## Process for new release
 

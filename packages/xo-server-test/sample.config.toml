@@ -3,6 +3,9 @@
   email = ''
   password = ''
 
+[pools]
+  default = ''
+
 [servers]
   [servers.default]
     username = ''
@@ -11,12 +14,17 @@
 
 [vms]
   default = ''
+  withOsAndXenTools = ''
+  # vmToBackup = ''
 
 [templates]
   default = ''
+  templateWithoutDisks = ''
 
 [srs]
   default = ''
 
 [remotes]
   default = { name = '', url = '' }
+  remote1 = { name = '', url = '' }
+  # remote2 = { name = '', url = '' }

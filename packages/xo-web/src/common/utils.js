@@ -6,20 +6,14 @@ import { connect } from 'react-redux'
 import { FormattedDate } from 'react-intl'
 import {
   clone,
-  escapeRegExp,
   every,
   forEach,
-  isArray,
   isEmpty,
   isFunction,
   isPlainObject,
-  isString,
-  join,
-  keys,
   map,
   mapValues,
   pick,
-  replace,
   sample,
   some,
 } from 'lodash'
@@ -85,12 +79,12 @@ const _normalizeMapStateToProps = mapper => {
     return state => pick(state, mapper)
   }
 
-  if (isFunction(mapper)) {
+  if (typeof mapper === 'function') {
     const factoryOrMapper = (state, props) => {
       const result = mapper(state, props)
 
       // Properly handles factory pattern.
-      if (isFunction(result)) {
+      if (typeof result === 'function') {
         mapper = result
         return factoryOrMapper
       }
@@ -217,17 +211,29 @@ export const osFamily = invoke(
 
 // -------------------------------------------------------------------
 
+function safeHumanFormat(value, opts) {
+  try {
+    return humanFormat(value, opts)
+  } catch (error) {
+    console.error('humanFormat', value, opts, error)
+    return 'N/D'
+  }
+}
+
 export const formatSize = bytes =>
-  humanFormat(bytes, { scale: 'binary', unit: 'B' })
+  safeHumanFormat(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSizeShort = bytes =>
-  humanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
+  safeHumanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
 
 export const formatSizeRaw = bytes =>
   humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSpeed = (bytes, milliseconds) =>
-  humanFormat((bytes * 1e3) / milliseconds, { scale: 'binary', unit: 'B/s' })
+  safeHumanFormat((bytes * 1e3) / milliseconds, {
+    scale: 'binary',
+    unit: 'B/s',
+  })
 
 const timeScale = new humanFormat.Scale({
   ns: 1e-6,
@@ -240,7 +246,7 @@ const timeScale = new humanFormat.Scale({
   y: 2592000 * 1e3,
 })
 export const formatTime = milliseconds =>
-  humanFormat(milliseconds, { scale: timeScale, decimals: 0 })
+  safeHumanFormat(milliseconds, { scale: timeScale, decimals: 0 })
 
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
@@ -256,20 +262,20 @@ export const parseSize = size => {
 
 // -------------------------------------------------------------------
 
-const _NotFound = () => <h1>{_('errorPageNotFound')}</h1>
+const NotFound = () => <h1>{_('errorPageNotFound')}</h1>
 
 // Decorator to declare routes on a component.
 //
 // TODO: add support for function childRoutes (getChildRoutes).
 export const routes = (indexRoute, childRoutes) => target => {
-  if (isArray(indexRoute)) {
+  if (Array.isArray(indexRoute)) {
     childRoutes = indexRoute
     indexRoute = undefined
-  } else if (isFunction(indexRoute)) {
+  } else if (typeof indexRoute === 'function') {
     indexRoute = {
       component: indexRoute,
     }
-  } else if (isString(indexRoute)) {
+  } else if (typeof indexRoute === 'string') {
     indexRoute = {
       onEnter: invoke(indexRoute, pathname => (state, replace) => {
         const current = state.location.pathname
@@ -290,7 +296,7 @@ export const routes = (indexRoute, childRoutes) => target => {
   }
 
   if (childRoutes) {
-    childRoutes.push({ component: _NotFound, path: '*' })
+    childRoutes.push({ component: NotFound, path: '*' })
   }
 
   target.route = {
@@ -311,7 +317,7 @@ export const routes = (indexRoute, childRoutes) => target => {
 // function foo (param = throwFn('param is required')) {}
 // ```
 export const throwFn = error => () => {
-  throw isString(error) ? new Error(error) : error
+  throw typeof error === 'string' ? new Error(error) : error
 }
 
 // ===================================================================
@@ -355,33 +361,6 @@ export const resolveResourceSet = resourceSet => {
 export const resolveResourceSets = resourceSets =>
   map(resourceSets, resolveResourceSet)
 
-// -------------------------------------------------------------------
-
-// Creates a string replacer based on a pattern and a list of rules
-//
-// ```js
-// const myReplacer = buildTemplate('{name}_COPY_{name}_{id}_%', {
-//   '{name}': vm => vm.name_label,
-//   '{id}': vm => vm.id,
-//   '%': (_, i) => i
-// })
-//
-// const newString = myReplacer({
-//   name_label: 'foo',
-//   id: 42,
-// }, 32)
-//
-// newString === 'foo_COPY_foo_42_32'
-// ```
-export function buildTemplate(pattern, rules) {
-  const regExp = new RegExp(join(map(keys(rules), escapeRegExp), '|'), 'g')
-  return (...params) =>
-    replace(pattern, regExp, match => {
-      const rule = rules[match]
-      return isFunction(rule) ? rule(...params) : rule
-    })
-}
-
 // ===================================================================
 
 export const streamToString = getStream
@@ -403,7 +382,7 @@ export const htmlFileToStream = file => {
     stream.emit('error', error)
   }
 
-  stream._read = function(size) {
+  stream._read = function (size) {
     if (offset >= file.size) {
       stream.push(null)
     } else {
@@ -441,7 +420,7 @@ const OPs = {
 }
 
 const makeNiceCompare = compare =>
-  function() {
+  function () {
     const { length } = arguments
     if (length === 2) {
       return compare(arguments[0], arguments[1])
@@ -479,26 +458,6 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
 export const isXosanPack = ({ name }) => name.startsWith('XOSAN')
 
 // ===================================================================
-
-export const getCoresPerSocketPossibilities = (maxCoresPerSocket, vCPUs) => {
-  // According to : https://www.citrix.com/blogs/2014/03/11/citrix-xenserver-setting-more-than-one-vcpu-per-vm-to-improve-application-performance-and-server-consolidation-e-g-for-cad3-d-graphical-applications/
-  const maxVCPUs = 16
-
-  const options = []
-  if (maxCoresPerSocket !== undefined && vCPUs !== '') {
-    const ratio = vCPUs / maxVCPUs
-
-    for (
-      let coresPerSocket = maxCoresPerSocket;
-      coresPerSocket >= ratio;
-      coresPerSocket--
-    ) {
-      if (vCPUs % coresPerSocket === 0) options.push(coresPerSocket)
-    }
-  }
-
-  return options
-}
 
 // Generates a random human-readable string of length `length`
 // Useful to generate random default names intended for the UI user
@@ -588,10 +547,7 @@ export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) =>
 
 // ===================================================================
 
-export const generateRandomId = () =>
-  Math.random()
-    .toString(36)
-    .slice(2)
+export const generateRandomId = () => Math.random().toString(36).slice(2)
 
 // ===================================================================
 
@@ -603,15 +559,24 @@ export const getIscsiPaths = pbd => {
 
 // ===================================================================
 
-export const downloadLog = ({ log, date, type }) => {
-  const file = new window.Blob([log], {
+export const createBlobFromString = str =>
+  new window.Blob([str], {
     type: 'text/plain',
   })
+
+// ===================================================================
+
+// Format a date in ISO 8601 in a safe way to be used in filenames
+// (even on Windows).
+export const safeDateFormat = ms =>
+  new Date(ms).toISOString().replace(/:/g, '_')
+
+// ===================================================================
+
+export const downloadLog = ({ log, date, type }) => {
   const anchor = document.createElement('a')
-  anchor.href = window.URL.createObjectURL(file)
-  anchor.download = `${new Date(date)
-    .toISOString()
-    .replace(/:/g, '_')} - ${type}.log`
+  anchor.href = window.URL.createObjectURL(createBlobFromString(log))
+  anchor.download = `${safeDateFormat(date)} - ${type}.log`
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()
@@ -645,6 +610,11 @@ export const createCompare = criterias => (...items) => {
 
 // ===================================================================
 
+export const createCompareContainers = poolId =>
+  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
+
+// ===================================================================
+
 export const hasLicenseRestrictions = host => {
   const licenseType = host.license_params.sku_type
   return (
@@ -660,5 +630,15 @@ export const adminOnly = Component =>
   connectStore({
     _isAdmin: isAdmin,
   })(({ _isAdmin, ...props }) =>
-    _isAdmin ? <Component {...props} /> : <_NotFound />
+    _isAdmin ? <Component {...props} /> : <NotFound />
   )
+
+// ===================================================================
+
+export const TryXoa = ({ page }) => (
+  <a
+    href={`https://xen-orchestra.com/#/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=${page}`}
+  >
+    {_('tryXoa')}
+  </a>
+)

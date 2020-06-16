@@ -1,4 +1,8 @@
-# xo-collection [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xo-collection
+
+[![Package Version](https://badgen.net/npm/v/xo-collection)](https://npmjs.org/package/xo-collection) ![License](https://badgen.net/npm/license/xo-collection) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-collection)](https://bundlephobia.com/result?p=xo-collection) [![Node compatibility](https://badgen.net/npm/node/xo-collection)](https://npmjs.org/package/xo-collection)
 
 > Generic in-memory collection with events
 
@@ -153,7 +157,7 @@ var size = col.size
 **New items**
 
 ```javascript
-col.on('add', (added) => {
+col.on('add', added => {
   forEach(added, (value, key) => {
     console.log('+ %s: %j', key, value)
   })
@@ -163,7 +167,7 @@ col.on('add', (added) => {
 **Updated items**
 
 ```javascript
-col.on('update', (updated) => {
+col.on('update', updated => {
   forEach(updated, (value, key) => {
     console.log('± %s: %j', key, value)
   })
@@ -173,7 +177,7 @@ col.on('update', (updated) => {
 **Removed items**
 
 ```javascript
-col.on('remove', (removed) => {
+col.on('remove', removed => {
   // For consistency, `removed` is also a map but contrary to `added`
   // and `updated`, the values associated to the keys are not
   // significant since the items have already be removed.
@@ -224,34 +228,15 @@ const View = require('xo-collection/view')
 > can be briefly invalid.
 
 ```javascript
-const myView = new View(parentCollection, function predicate (value, key) {
+const myView = new View(parentCollection, function predicate(value, key) {
   // This function should return a boolean indicating whether the
   // current item should be in this view.
 })
 ```
 
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -262,4 +247,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

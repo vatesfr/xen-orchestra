@@ -1,5 +1,3 @@
-import assign from 'lodash/assign'
-
 const _combine = (vectors, n, cb) => {
   if (!n) {
     return
@@ -35,7 +33,7 @@ export const combine = vectors => cb => _combine(vectors, vectors.length, cb)
 // Merge the properties of an objects set in one object.
 //
 // Ex: mergeObjects([ { a: 1 }, { b: 2 } ]) => { a: 1, b: 2 }
-export const mergeObjects = objects => assign({}, ...objects)
+export const mergeObjects = objects => Object.assign({}, ...objects)
 
 // Compute a cross product between vectors.
 //

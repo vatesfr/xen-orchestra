@@ -42,30 +42,32 @@ list.params = {
   id: { type: 'string' },
 }
 
-export async function create({ name, url, options }) {
-  return this.createRemote({ name, url, options })
+export function create(props) {
+  return this.createRemote(props)
 }
 
 create.permission = 'admin'
 create.description = 'Creates a new fs remote point'
 create.params = {
   name: { type: 'string' },
-  url: { type: 'string' },
   options: { type: 'string', optional: true },
+  proxy: { type: 'string', optional: true },
+  url: { type: 'string' },
 }
 
-export async function set({ id, name, url, options, enabled }) {
-  await this.updateRemote(id, { name, url, options, enabled })
+export async function set({ id, ...props }) {
+  await this.updateRemote(id, props)
 }
 
 set.permission = 'admin'
 set.description = 'Modifies an existing fs remote point'
 set.params = {
+  enabled: { type: 'boolean', optional: true },
   id: { type: 'string' },
   name: { type: 'string', optional: true },
-  url: { type: 'string', optional: true },
   options: { type: ['string', 'null'], optional: true },
-  enabled: { type: 'boolean', optional: true },
+  proxy: { type: ['string', 'null'], optional: true },
+  url: { type: 'string', optional: true },
 }
 
 async function delete_({ id }) {

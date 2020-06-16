@@ -5,7 +5,7 @@ const { NULL_REF, Xapi } = require('xen-api')
 
 const pkg = require('./package.json')
 
-Xapi.prototype.getVmDisks = async function(vm) {
+Xapi.prototype.getVmDisks = async function (vm) {
   const disks = { __proto__: null }
   await Promise.all([
     ...vm.VBDs.map(async vbdRef => {

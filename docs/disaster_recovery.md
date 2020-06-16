@@ -26,7 +26,9 @@ Retention, or **depth**, applies to the VM name. **If you change the VM name for
 
 Also, by default, the DR VM will have a "Disaster Recovery" tag.
 
-> **Size warning**: A high retention number will lead to huge space occupation on your SR.
+:::warning
+A higher retention number will lead to huge space occupation on your SR.
+:::
 
 ## Network conflicts
 

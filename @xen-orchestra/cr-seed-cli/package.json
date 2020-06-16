@@ -1,4 +1,5 @@
 {
+  "private": false,
   "name": "@xen-orchestra/cr-seed-cli",
   "version": "0.2.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/cr-seed-cli",
@@ -14,11 +15,17 @@
   "bin": {
     "xo-cr-seed": "./index.js"
   },
+  "preferGlobal": true,
   "dependencies": {
     "golike-defer": "^0.4.1",
-    "xen-api": "^0.27.1"
+    "xen-api": "^0.28.5"
   },
   "scripts": {
     "postversion": "npm publish"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

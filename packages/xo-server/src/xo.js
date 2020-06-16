@@ -9,8 +9,6 @@ import {
   forEach,
   includes,
   isEmpty,
-  isFunction,
-  isString,
   iteratee,
   map as mapToArray,
   stubTrue,
@@ -73,7 +71,8 @@ export default class Xo extends EventEmitter {
 
     if (
       type != null &&
-      ((isString(type) && type !== obj.type) || !includes(type, obj.type)) // Array
+      ((typeof type === 'string' && type !== obj.type) ||
+        !includes(type, obj.type)) // Array
     ) {
       throw noSuchObject(key, type)
     }
@@ -146,7 +145,9 @@ export default class Xo extends EventEmitter {
     }).then(
       result => {
         if (result != null) {
-          if (typeof result.pipe === 'function') {
+          if (typeof result === 'string' || Buffer.isBuffer(result)) {
+            res.end(result)
+          } else if (typeof result.pipe === 'function') {
             result.pipe(res)
           } else {
             res.end(JSON.stringify(result))
@@ -158,28 +159,25 @@ export default class Xo extends EventEmitter {
 
         if (!res.headersSent) {
           res.writeHead(500)
+          res.write('unknown error')
         }
-        res.end('unknown error')
+        res.end()
       }
     )
   }
 
   async registerHttpRequest(fn, data, { suffix = '' } = {}) {
     const { _httpRequestWatchers: watchers } = this
+    let url
 
-    const url = await (function generateUniqueUrl() {
-      return generateToken().then(token => {
-        const url = `/api/${token}${suffix}`
-
-        return url in watchers ? generateUniqueUrl() : url
-      })
-    })()
+    do {
+      url = `/api/${await generateToken()}${suffix}`
+    } while (url in watchers)
 
     watchers[url] = {
       data,
       fn,
     }
-
     return url
   }
 
@@ -214,9 +212,9 @@ export default class Xo extends EventEmitter {
     }
 
     // For security, prevent from accessing `this`.
-    if (isFunction(value)) {
+    if (typeof value === 'function') {
       value = (value =>
-        function() {
+        function () {
           return value.apply(thisArg, arguments)
         })(value)
     }

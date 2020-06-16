@@ -2,10 +2,10 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
+import stringify from 'csv-stringify'
 import { createSchedule } from '@xen-orchestra/cron'
 import { minify } from 'html-minifier'
 import {
-  assign,
   concat,
   differenceBy,
   filter,
@@ -30,8 +30,6 @@ const GRANULARITY = 'days'
 
 const pReadFile = promisify(readFile)
 const pWriteFile = promisify(writeFile)
-
-const currDate = new Date().toISOString().slice(0, 10)
 
 const compareOperators = {
   '>': (l, r) => l > r,
@@ -112,7 +110,7 @@ const normaliseValue = value => (isFinite(value) ? round(value, 2) : '-')
 
 // ===================================================================
 
-Handlebars.registerHelper('compare', function(
+Handlebars.registerHelper('compare', function (
   lvalue,
   operator,
   rvalue,
@@ -133,7 +131,7 @@ Handlebars.registerHelper('compare', function(
     : options.inverse(this)
 })
 
-Handlebars.registerHelper('math', function(lvalue, operator, rvalue, options) {
+Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   if (arguments.length < 3) {
     throw new Error('Handlebars Helper "math" needs 2 parameters')
   }
@@ -418,7 +416,7 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
     }))
   )
 
-  return assign(
+  return Object.assign(
     computeMeans(vmsStats, [
       'cpu',
       'ram',
@@ -446,7 +444,7 @@ function computeGlobalHostsStats({ haltedHosts, hostsStats, xo }) {
     }))
   )
 
-  return assign(
+  return Object.assign(
     computeMeans(hostsStats, [
       'cpu',
       'ram',
@@ -616,7 +614,7 @@ async function computeEvolution({ storedStatsPath, ...newStats }) {
   }
 }
 
-async function dataBuilder({ xo, storedStatsPath, all }) {
+async function dataBuilder({ currDate, xo, storedStatsPath, all }) {
   const xoObjects = values(xo.getObjects())
   const runningVms = filter(xoObjects, { type: 'VM', power_state: 'Running' })
   const haltedVms = filter(xoObjects, { type: 'VM', power_state: 'Halted' })
@@ -706,6 +704,68 @@ const CRON_BY_PERIODICITY = {
   daily: '0 6 * * *',
 }
 
+// let field empty in case of "NaN" and "NONE"
+const CSV_CAST = {
+  number: value => (Number.isNaN(value) ? undefined : String(value)),
+  string: value => (value === 'NONE' ? undefined : value),
+}
+
+const CSV_COLUMNS = {
+  cpu: { key: 'cpu', header: 'CPU (%)' },
+  cpuEvolution: { key: 'evolution.cpu', header: 'CPU evolution (%)' },
+  diskRead: { key: 'diskRead', header: 'Disk read (MiB)' },
+  diskReadEvolution: {
+    key: 'evolution.diskRead',
+    header: 'Disk read evolution (%)',
+  },
+  diskWrite: { key: 'diskWrite', header: 'Disk write (MiB)' },
+  diskWriteEvolution: {
+    key: 'evolution.diskWrite',
+    header: 'Disk write evolution (%)',
+  },
+  iopsRead: { key: 'iopsRead', header: 'IOPS read' },
+  iopsReadEvolution: {
+    key: 'evolution.iopsRead',
+    header: 'IOPS read evolution (%)',
+  },
+  iopsTotal: { key: 'iopsTotal', header: 'IOPS total' },
+  iopsTotalEvolution: {
+    key: 'evolution.iopsTotal',
+    header: 'IOPS total evolution (%)',
+  },
+  iopsWrite: { key: 'iopsWrite', header: 'IOPS write' },
+  iopsWriteEvolution: {
+    key: 'evolution.iopsWrite',
+    header: 'IOPS write evolution (%)',
+  },
+  load: { key: 'load', header: 'Load average' },
+  loadEvolution: {
+    key: 'evolution.load',
+    header: 'Load average evolution (%)',
+  },
+  name: { key: 'name', header: 'Name' },
+  netReception: { key: 'netReception', header: 'Network RX (KiB)' },
+  netReceptionEvolution: {
+    key: 'evolution.netReception',
+    header: 'Network RX evolution (%)',
+  },
+  netTransmission: { key: 'netTransmission', header: 'Network TX (KiB)' },
+  netTransmissionEvolution: {
+    key: 'evolution.netTransmission',
+    header: 'Network TX evolution (%)',
+  },
+  ram: { key: 'ram', header: 'RAM (GiB)' },
+  ramEvolution: { key: 'evolution.ram', header: 'RAM evolution (%)' },
+  spaceFree: { key: 'freeSpace', header: 'Free space (GiB)' },
+  spaceTotal: { key: 'total', header: 'Total space (GiB)' },
+  spaceTotalEvolution: {
+    key: 'evolution.total',
+    header: 'Total space evolution (%)',
+  },
+  spaceUsed: { key: 'usedSpace', header: 'Used space (GiB)' },
+  uuid: { key: 'uuid', header: 'UUID' },
+}
+
 class UsageReportPlugin {
   constructor({ xo, getDataDir }) {
     this._xo = xo
@@ -767,11 +827,90 @@ class UsageReportPlugin {
       )
     }
 
+    const currDate = new Date().toISOString().slice(0, 10)
     const data = await dataBuilder({
+      currDate,
       xo,
       storedStatsPath: this._storedStatsPath,
       all: this._conf.all,
     })
+
+    const attachments = [
+      {
+        filename: `xoReport_${currDate}.html`,
+        content: template(data),
+      },
+    ]
+
+    if (data.allResources !== undefined) {
+      attachments.push(
+        {
+          filename: `xoReport_${currDate}_vms.csv`,
+          content: stringify(data.allResources.vms, {
+            cast: CSV_CAST,
+            header: true,
+            columns: [
+              CSV_COLUMNS.uuid,
+              CSV_COLUMNS.name,
+              CSV_COLUMNS.cpu,
+              CSV_COLUMNS.cpuEvolution,
+              CSV_COLUMNS.ram,
+              CSV_COLUMNS.ramEvolution,
+              CSV_COLUMNS.diskRead,
+              CSV_COLUMNS.diskReadEvolution,
+              CSV_COLUMNS.diskWrite,
+              CSV_COLUMNS.diskWriteEvolution,
+              CSV_COLUMNS.iopsRead,
+              CSV_COLUMNS.iopsReadEvolution,
+              CSV_COLUMNS.iopsWrite,
+              CSV_COLUMNS.iopsWriteEvolution,
+              CSV_COLUMNS.iopsTotal,
+              CSV_COLUMNS.iopsTotalEvolution,
+              CSV_COLUMNS.netReception,
+              CSV_COLUMNS.netReceptionEvolution,
+              CSV_COLUMNS.netTransmission,
+              CSV_COLUMNS.netTransmissionEvolution,
+            ],
+          }),
+        },
+        {
+          filename: `xoReport_${currDate}_hosts.csv`,
+          content: stringify(data.allResources.hosts, {
+            cast: CSV_CAST,
+            header: true,
+            columns: [
+              CSV_COLUMNS.uuid,
+              CSV_COLUMNS.name,
+              CSV_COLUMNS.cpu,
+              CSV_COLUMNS.cpuEvolution,
+              CSV_COLUMNS.ram,
+              CSV_COLUMNS.ramEvolution,
+              CSV_COLUMNS.load,
+              CSV_COLUMNS.loadEvolution,
+              CSV_COLUMNS.netReception,
+              CSV_COLUMNS.netReceptionEvolution,
+              CSV_COLUMNS.netTransmission,
+              CSV_COLUMNS.netTransmissionEvolution,
+            ],
+          }),
+        },
+        {
+          filename: `xoReport_${currDate}_srs.csv`,
+          content: stringify(data.allResources.srs, {
+            cast: CSV_CAST,
+            header: true,
+            columns: [
+              CSV_COLUMNS.uuid,
+              CSV_COLUMNS.name,
+              CSV_COLUMNS.spaceTotal,
+              CSV_COLUMNS.spaceTotalEvolution,
+              CSV_COLUMNS.spaceUsed,
+              CSV_COLUMNS.spaceFree,
+            ],
+          }),
+        }
+      )
+    }
 
     await Promise.all([
       xo.sendEmail({
@@ -783,12 +922,7 @@ class UsageReportPlugin {
   Please, find the attached report.
 
   best regards.`,
-        attachments: [
-          {
-            filename: `xoReport_${currDate}.html`,
-            content: template(data),
-          },
-        ],
+        attachments,
       }),
       storeData &&
         storeStats({

@@ -1,11 +1,12 @@
+# Updates
 
-# Updater
+All updates are pushed through the updater, which is the central piece that keeps your XO Appliance running the latest Xen Orchestra code.
 
-The updater is the central piece that keeps your XO Appliance running the latest Xen Orchestra code.
+It also allows you to change your current version into another (Free, Starter, Enterprise or Premium) **without downloading a new XOA**.
 
-It also allows you to change your current version into another (Trial, Starter, Enterprise or Premium) **without downloading a new XOA**.
-
-> By design, the updater is only available in XOA. If you are using XO from the sources, you'll have to use `git` commands and rebuild to keep up.
+:::tip
+By design, the updater is only available in XOA. If you are using XO from the sources, you'll have to use `git` commands and rebuild to keep up.
+:::
 
 ## Requirements
 
@@ -41,13 +42,30 @@ However, if you want to start a manual check, you can do it by clicking on the "
 
 ![](./assets/xo5updatebutton.png)
 
-#### Upgrade
+### Release channel
+
+In Xen Orchestra, you can make a choice between two different release channels.
+
+#### Stable ![](https://badgen.net/badge/channel/stable/green)
+
+The stable channel is intended to be a version of Xen Orchestra that is already **one month old** (and therefore will benefit from one month of community feedback and various fixes). This way, users more concerned with the stability of their appliance will have the option to stay on a slightly older (and tested) version of XO (still supported by our pro support).
+
+#### Latest ![](https://badgen.net/badge/channel/latest/yellow)
+
+The latest channel will include all the latest improvements available in Xen Orchestra. The version available in latest has already been QA'd by our team, but issues may still occur once deployed in vastly varying environments, such as our user base has.
+
+:::tip
+To select the release channel of your choice, go to the XOA > Updates view:
+![](./assets/release-channels.png)
+:::
+
+### Upgrade
 
 If a new version is found, you'll have an upgrade button and its tooltip displayed:
 
 ![](./assets/xo5updatetooltipneedupdate.png)
 
-#### Proxy configuration
+### Proxy configuration
 
 If you are behind a proxy, you can edit your proxy settings in this panel:
 
@@ -105,7 +123,7 @@ If your updater is down, you can restart it with `systemctl restart xoa-updater`
 
 If you can't fetch updates, perform a few checks from your XOA:
 
-* you should be able to successfully `ping xen-orchestra.com`
-* if not, check your `/etc/resolv.conf` file and modify it if necessary (give a correct DNS server)
-* use `ifconfig` to check your network configuration
-* check your firewall(s) and allow XOA to reach xen-orchestra.com (port 443)
+- you should be able to successfully `ping xen-orchestra.com`
+- if not, check your `/etc/resolv.conf` file and modify it if necessary (give a correct DNS server)
+- use `ifconfig` to check your network configuration
+- check your firewall(s) and allow XOA to reach xen-orchestra.com (port 443)

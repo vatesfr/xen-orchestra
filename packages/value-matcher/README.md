@@ -1,6 +1,8 @@
-# value-matcher [![Build Status](https://travis-ci.org/vatefr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatefr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# value-matcher
+
+[![Package Version](https://badgen.net/npm/v/value-matcher)](https://npmjs.org/package/value-matcher) ![License](https://badgen.net/npm/license/value-matcher) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/value-matcher)](https://bundlephobia.com/result?p=value-matcher) [![Node compatibility](https://badgen.net/npm/node/value-matcher)](https://npmjs.org/package/value-matcher)
 
 ## Install
 
@@ -15,44 +17,24 @@ Installation of the [npm package](https://npmjs.org/package/value-matcher):
 ```js
 import { createPredicate } from 'value-matcher'
 
-[
+;[
   { user: 'sam', age: 65, active: false },
   { user: 'barney', age: 36, active: true },
   { user: 'fred', age: 40, active: false },
-].filter(createPredicate({
-  __or: [
-    { user: 'sam' },
-    { active: true },
-  ],
-}))
+].filter(
+  createPredicate({
+    __or: [{ user: 'sam' }, { active: true }],
+  })
+)
 // [
 //   { user: 'sam', age: 65, active: false },
 //   { user: 'barney', age: 36, active: true },
 // ]
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -63,4 +45,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

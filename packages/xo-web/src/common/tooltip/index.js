@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import isString from 'lodash/isString'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -58,12 +57,6 @@ export class TooltipViewer extends Component {
 
 // ===================================================================
 
-// Wrap disabled HTML element before wrapping it with Tooltip
-// <Tooltip>
-//   <div>
-//     <MyComponent disabled />
-//   </div>
-// </Tooltip>
 export default class Tooltip extends Component {
   static propTypes = {
     children: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
@@ -96,9 +89,15 @@ export default class Tooltip extends Component {
   _addListeners() {
     const node = (this._node = ReactDOM.findDOMNode(this))
 
-    node.addEventListener('mouseenter', this._showTooltip)
-    node.addEventListener('mouseleave', this._hideTooltip)
-    node.addEventListener('mousemove', this._updateTooltip)
+    // 2020-06-15: Use pointer events instead of mouse events to workaround
+    // Chrome not firing any mouse event on disabled inputs. Pointer events
+    // should be correctly fired on most browsers and are similar to mouse
+    // events on mouse-controlled devices.
+    // https://github.com/reach/reach-ui/issues/564#issuecomment-620502842
+    // https://caniuse.com/#feat=mdn-api_pointerevent
+    node.addEventListener('pointerenter', this._showTooltip)
+    node.addEventListener('pointerleave', this._hideTooltip)
+    node.addEventListener('pointermove', this._updateTooltip)
   }
 
   _removeListeners() {
@@ -109,9 +108,9 @@ export default class Tooltip extends Component {
       return
     }
 
-    node.removeEventListener('mouseenter', this._showTooltip)
-    node.removeEventListener('mouseleave', this._hideTooltip)
-    node.removeEventListener('mousemove', this._updateTooltip)
+    node.removeEventListener('pointerenter', this._showTooltip)
+    node.removeEventListener('pointerleave', this._hideTooltip)
+    node.removeEventListener('pointermove', this._updateTooltip)
 
     this._node = null
   }
@@ -160,7 +159,7 @@ export default class Tooltip extends Component {
       return <span />
     }
 
-    if (isString(children)) {
+    if (typeof children === 'string') {
       return <span>{children}</span>
     }
 

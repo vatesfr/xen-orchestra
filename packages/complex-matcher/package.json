@@ -1,4 +1,5 @@
 {
+  "private": false,
   "name": "complex-matcher",
   "version": "0.6.0",
   "license": "ISC",
@@ -12,8 +13,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -35,8 +36,8 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "babel-plugin-lodash": "^3.3.2",
-    "cross-env": "^5.1.1",
-    "rimraf": "^2.6.2"
+    "cross-env": "^7.0.2",
+    "rimraf": "^3.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

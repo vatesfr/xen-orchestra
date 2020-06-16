@@ -60,13 +60,15 @@ describe('cd', () => {
       await getOrWaitCdVbdPosition(vmId)
 
       expect(
-        (await rejectionOf(
-          xo.call('vm.insertCd', {
-            id: vmId,
-            cd_id: config.ubuntuIsoId,
-            force: false,
-          })
-        )).message
+        (
+          await rejectionOf(
+            xo.call('vm.insertCd', {
+              id: vmId,
+              cd_id: config.ubuntuIsoId,
+              force: false,
+            })
+          )
+        ).message
       ).toBe('unknown error from the peer')
     })
 

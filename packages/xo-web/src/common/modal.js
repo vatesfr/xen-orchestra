@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component, cloneElement } from 'react'
 import { createSelector } from 'selectors'
-import { identity, isArray, isString, map } from 'lodash'
+import { identity, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Modal as ReactModal } from 'react-bootstrap-4/lib'
@@ -35,7 +35,7 @@ const modal = (content, onClose, props) => {
 }
 
 const _addRef = (component, ref) => {
-  if (isString(component) || isArray(component)) {
+  if (typeof component === 'string' || Array.isArray(component)) {
     return component
   }
 
@@ -299,13 +299,15 @@ export const form = ({
     formModalState.component = component
     formModalState.handler = handler
     formModalState.header = header
-    formModalState.opened = true
     formModalState.reject = reject
     formModalState.render = render
     formModalState.resolve = resolve
     formModalState.size = size
     formModalState.value = defaultValue
     disableShortcuts()
+
+    // the modal should be opened after its props have been set to avoid race conditions
+    formModalState.opened = true
   })
 
 const getInitialState = () => ({
@@ -368,7 +370,9 @@ export const FormModal = decorate([
   injectState,
   ({ state, effects }) => (
     <ReactModal
+      backdrop='static'
       bsSize={state.size}
+      keyboard={false}
       onExited={effects.reset}
       onHide={effects.onCancel}
       show={state.opened}

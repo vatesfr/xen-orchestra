@@ -1,16 +1,17 @@
-# XO-CLI
-[![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](http://travis-ci.org/vatesfr/xen-orchestra)
-[![Dependency Status](https://david-dm.org/vatesfr/xo-cli/status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli)
-[![devDependency Status](https://david-dm.org/vatesfr/xo-cli/dev-status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-cli#info=devDependencies)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xo-cli
+
+[![Package Version](https://badgen.net/npm/v/xo-cli)](https://npmjs.org/package/xo-cli) ![License](https://badgen.net/npm/license/xo-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-cli)](https://bundlephobia.com/result?p=xo-cli) [![Node compatibility](https://badgen.net/npm/node/xo-cli)](https://npmjs.org/package/xo-cli)
 
 > Basic CLI for Xen-Orchestra
 
 ## Install
 
-#### [npm](https://npmjs.org/package/xo-cli)
+Installation of the [npm package](https://npmjs.org/package/xo-cli):
 
 ```
-npm install -g xo-cli
+> npm install --global xo-cli
 ```
 
 ## Usage
@@ -85,8 +86,7 @@ Commands can be filtered using patterns:
 
 #### Execute a command
 
-The same syntax is used for all commands: `xo-cli <command> <param
-name>=<value>...`
+The same syntax is used for all commands: `xo-cli <command> <param name>=<value>...`
 
 E.g., adding a new server:
 
@@ -117,34 +117,21 @@ encoding by prefixing with `json:`:
 > xo-cli vm.export vm=a01667e0-8e29-49fc-a550-17be4226783c @=vm.xva
 ```
 
-##### VM import
+##### XVA VM import
 
- ```
+```
 > xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
 
-## Development
+> Note: `xo-cli` only supports the import of XVA files. It will not import OVA files.
 
-```
-# Install dependencies
-> yarn
+##### OVA VM import
 
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
+A separate utility, [`xo-upload-ova`](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/upload-ova/README.md), can be used to import `.ova` files.
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -155,5 +142,4 @@ You may:
 
 ## License
 
-XO-CLI is released under the [AGPL
-v3](http://www.gnu.org/licenses/agpl-3.0-standalone.html).
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

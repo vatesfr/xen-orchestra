@@ -8,7 +8,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
 import { alert } from 'modal'
-import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
+import { reportBug } from 'report-bug-button'
 import { filter, some } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
@@ -69,7 +69,6 @@ const COLUMNS = [
 
 const ACTIONS = [
   {
-    disabled: !CAN_REPORT_BUG,
     label: _('messageReply'),
     handler: notification =>
       reportBug({

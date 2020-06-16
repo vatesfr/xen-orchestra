@@ -8,5 +8,13 @@
     "directory": "packages/xo-server-test-plugin",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

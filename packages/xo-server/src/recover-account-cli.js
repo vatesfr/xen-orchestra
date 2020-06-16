@@ -1,5 +1,6 @@
 import appConf from 'app-conf'
 import pw from 'pw'
+import { join as joinPath } from 'path'
 
 import Xo from './xo'
 import { generateToken } from './utils'
@@ -26,6 +27,7 @@ xo-server-recover-account <user name or email>
 
   const xo = new Xo(
     await appConf.load('xo-server', {
+      appDir: joinPath(__dirname, '..'),
       ignoreUnknownFormats: true,
     })
   )

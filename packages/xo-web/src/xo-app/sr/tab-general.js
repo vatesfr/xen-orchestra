@@ -14,12 +14,14 @@ import {
   createSelector,
 } from 'selectors'
 import {
+  flattenDeep,
   flatMap,
   forEach,
   groupBy,
   keyBy,
   map,
   mapValues,
+  pick,
   sumBy,
   uniq,
 } from 'lodash'
@@ -41,12 +43,7 @@ const UsageTooltip = decorate([
     )
 
     const getVms = createGetObjectsOfType('VM').pick(
-      createCollectionWrapper(
-        createSelector(
-          getVbds,
-          vbds => map(vbds, 'VM')
-        )
-      )
+      createCollectionWrapper(createSelector(getVbds, vbds => map(vbds, 'VM')))
     )
 
     return {
@@ -243,6 +240,22 @@ export default class TabGeneral extends Component {
     }
   )
 
+  _getGenerateLink = createSelector(this._getDiskGroups, diskGroups => ids =>
+    `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
+      `id:|(${flattenDeep(
+        map(
+          pick(keyBy(diskGroups, 'id'), ids),
+          ({ id, baseCopies, vdis, snapshots, type }) =>
+            type === 'orphanedSnapshot'
+              ? id
+              : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
+        )
+      )
+        .sort()
+        .join(' ')})`
+    )}`
+  )
+
   render() {
     const { sr } = this.props
     return (
@@ -278,10 +291,11 @@ export default class TabGeneral extends Component {
         </Row>
         <Row>
           <Col smallOffset={1} mediumSize={10}>
-            <Usage total={sr.size} type='disk'>
+            <Usage total={sr.size} type='disk' link={this._getGenerateLink()}>
               {this._getDiskGroups().map(group => (
                 <UsageElement
                   highlight={group.type === 'orphanedSnapshot'}
+                  id={group.id}
                   key={group.id}
                   tooltip={<UsageTooltip group={group} />}
                   value={group.usage}

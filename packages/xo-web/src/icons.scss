@@ -11,6 +11,10 @@
     @extend .fa;
     @extend .fa-desktop;
   }
+  &-proxy {
+    @extend .fa;
+    @extend .fa-globe;
+  }
   &-remote {
     @extend .fa;
     @extend .fa-plug;
@@ -49,6 +53,15 @@
     @extend .fa-check;
     @extend .text-success;
   }
+  &-true {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-false {
+    @extend .fa;
+    @extend .fa-times;
+  }
   &-undo {
     @extend .fa;
     @extend .fa-undo;
@@ -81,6 +94,18 @@
   &-chevron-down {
     @extend .fa;
     @extend .fa-chevron-down;
+  }
+  &-hub-recipe {
+    @extend .fa;
+    @extend .fa-wpforms;
+  }
+  &-hub-template {
+    @extend .fa;
+    @extend .fa-cube;
+  }
+  &-audit {
+    @extend .fa;
+    @extend .fa-list-alt;
   }
 
   &-grab {
@@ -139,6 +164,14 @@
   &-run {
     @extend .fa;
     @extend .fa-play;
+  }
+  &-forget {
+    @extend .fa;
+    @extend .fa-ban;
+  }
+  &-destroy {
+    @extend .fa;
+    @extend .fa-trash;
   }
   &-force-restart {
     @extend .fa;
@@ -277,6 +310,19 @@
     @extend .fa;
     @extend .fa-thumbs-up;
   }
+  &-deploy {
+    @extend .fa;
+    @extend .fa-rocket;
+  }
+  &-telemetry {
+    @extend .fa;
+    @extend .fa-area-chart;
+  }
+  &-ticket {
+    @extend .fa;
+    @extend .fa-ticket;
+  }
+
 
   // Backups
   &-backup {
@@ -826,6 +872,10 @@
     @extend .fa;
     @extend .fa-bell;
   }
+  &-menu-support {
+    @extend .fa;
+    @extend .fa-support;
+  }
   &-menu-settings {
     @extend .fa;
     @extend .fa-cog;
@@ -885,6 +935,10 @@
   &-menu-xosan {
     @extend .fa;
     @extend .fa-database;
+  }
+  &-menu-hub {
+    @extend .fa;
+    @extend .fa-cubes;
   }
   // New VM
   &-new-vm {
@@ -1089,6 +1143,10 @@
   &-reply {
     @extend .fa;
     @extend .fa-share;
+  }
+  &-open-tunnel {
+    @extend .fa;
+    @extend .fa-arrows-h;
   }
 
   // XOSAN related

@@ -27,6 +27,7 @@ export default class {
       indexes: ['enabled'],
     })
     this._remotesInfo = {}
+    this._xo = xo
 
     xo.on('clean', () => this._remotes.rebuildIndexes())
     xo.on('start', async () => {
@@ -84,8 +85,13 @@ export default class {
   }
 
   async testRemote(remoteId) {
-    const handler = await this.getRemoteHandler(remoteId)
-    const { readRate, writeRate, ...answer } = await handler.test()
+    const remote = await this._getRemote(remoteId)
+    const { readRate, writeRate, ...answer } =
+      remote.proxy !== undefined
+        ? await this._xo.callProxyMethod(remote.proxy, 'remote.test', {
+            remote,
+          })
+        : await this.getRemoteHandler(remoteId).then(handler => handler.test())
 
     if (answer.success) {
       const benchmark = {
@@ -93,8 +99,6 @@ export default class {
         timestamp: Date.now(),
         writeRate,
       }
-      const remote = await this._getRemote(remoteId)
-
       await this._updateRemote(remoteId, {
         benchmarks:
           remote.benchmarks !== undefined
@@ -107,20 +111,31 @@ export default class {
   }
 
   async getAllRemotesInfo() {
-    const remotes = await this._remotes.get()
+    const remotesInfo = this._remotesInfo
+    await asyncMap(this._remotes.get(), async remote => {
+      if (!remote.enabled) {
+        return
+      }
 
-    await asyncMap(remotes, async remote => {
+      const promise =
+        remote.proxy !== undefined
+          ? this._xo.callProxyMethod(remote.proxy, 'remote.getInfo', {
+              remote,
+            })
+          : await this.getRemoteHandler(remote.id).then(handler =>
+              handler.getInfo()
+            )
+
       try {
-        const handler = await this.getRemoteHandler(remote.id)
         await timeout.call(
-          handler.getInfo().then(info => {
-            this._remotesInfo[remote.id] = info
+          promise.then(info => {
+            remotesInfo[remote.id] = info
           }),
           5e3
         )
       } catch (_) {}
     })
-    return this._remotesInfo
+    return remotesInfo
   }
 
   async getAllRemotes() {
@@ -135,16 +150,21 @@ export default class {
     return remote.properties
   }
 
+  getRemoteWithCredentials(id) {
+    return this._getRemote(id)
+  }
+
   getRemote(id) {
     return this._getRemote(id).then(obfuscateRemote)
   }
 
-  async createRemote({ name, url, options }) {
+  async createRemote({ name, options, proxy, url }) {
     const params = {
-      name,
-      url,
       enabled: false,
       error: '',
+      name,
+      proxy,
+      url,
     }
     if (options !== undefined) {
       params.options = options
@@ -153,7 +173,7 @@ export default class {
     return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
   }
 
-  updateRemote(id, { name, url, options, enabled }) {
+  updateRemote(id, { enabled, name, options, proxy, url }) {
     const handlers = this._handlers
     const handler = handlers[id]
     if (handler !== undefined) {
@@ -162,10 +182,11 @@ export default class {
     }
 
     return this._updateRemote(id, {
-      name,
-      url,
-      options,
       enabled,
+      name,
+      options,
+      proxy,
+      url,
     })
   }
 

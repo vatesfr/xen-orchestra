@@ -18,7 +18,13 @@ export default class Config extends Component {
   _importConfig = () => {
     this.setState({ importStatus: 'start' }, () =>
       importConfig(this.state.configFile).then(
-        () => this.setState({ configFile: undefined, importStatus: 'end' }),
+        imported => {
+          if (imported !== false) {
+            this.setState({ configFile: undefined, importStatus: 'end' })
+          } else {
+            this.setState({ importStatus: 'selectedFile' })
+          }
+        },
         () =>
           this.setState({ configFile: undefined, importStatus: 'importError' })
       )
@@ -58,46 +64,31 @@ export default class Config extends Component {
 
     return (
       <div>
-        {process.env.XOA_PLAN < 5 ? (
-          <div className='mb-1'>
-            <h2>
-              <Icon icon='import' /> {_('importConfig')}
-            </h2>
-            <form id='import-form'>
-              <Dropzone onDrop={this._handleDrop} message={_('importTip')} />
-              {this._renderImportStatus()}
-              <div className='form-group pull-right'>
-                <ActionButton
-                  btnStyle='primary'
-                  className='mr-1'
-                  disabled={!configFile}
-                  form='import-form'
-                  handler={this._importConfig}
-                  icon='import'
-                  type='submit'
-                >
-                  {_('importConfig')}
-                </ActionButton>
-                <Button onClick={this._unselectFile}>
-                  {_('importVmsCleanList')}
-                </Button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <div>
-            <h2 className='text-danger'>{_('noConfigImportCommunity')}</h2>
-            <p>
-              {_('considerSubscribe', {
-                link: (
-                  <a href='https://xen-orchestra.com'>
-                    https://xen-orchestra.com
-                  </a>
-                ),
-              })}
-            </p>
-          </div>
-        )}
+        <div className='mb-1'>
+          <h2>
+            <Icon icon='import' /> {_('importConfig')}
+          </h2>
+          <form id='import-form'>
+            <Dropzone onDrop={this._handleDrop} message={_('importTip')} />
+            {this._renderImportStatus()}
+            <div className='form-group pull-right'>
+              <ActionButton
+                btnStyle='primary'
+                className='mr-1'
+                disabled={!configFile}
+                form='import-form'
+                handler={this._importConfig}
+                icon='import'
+                type='submit'
+              >
+                {_('importConfig')}
+              </ActionButton>
+              <Button onClick={this._unselectFile}>
+                {_('importVmsCleanList')}
+              </Button>
+            </div>
+          </form>
+        </div>
         <br />
         <div className='mt-1'>
           <h2>

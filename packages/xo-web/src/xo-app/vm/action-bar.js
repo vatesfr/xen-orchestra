@@ -180,10 +180,7 @@ const VmActionBar = addSubscriptions(() => ({
 }))(
   connectStore(() => ({
     checkPermissions: getCheckPermissions,
-    userId: createSelector(
-      getUser,
-      user => user.id
-    ),
+    userId: createSelector(getUser, user => user.id),
   }))(({ checkPermissions, vm, userId, resourceSets }) => {
     // Is the user in the same resource set as the VM
     const _getIsSelfUser = createSelector(

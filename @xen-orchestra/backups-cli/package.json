@@ -1,0 +1,41 @@
+{
+  "private": false,
+  "bin": {
+    "xo-backups": "index.js"
+  },
+  "preferGlobal": true,
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "dependencies": {
+    "@xen-orchestra/backups": "^0.1.1",
+    "@xen-orchestra/fs": "^0.10.4",
+    "filenamify": "^4.1.0",
+    "getopts": "^2.2.5",
+    "lodash": "^4.17.15",
+    "promise-toolbox": "^0.15.0",
+    "proper-lockfile": "^4.1.1",
+    "vhd-lib": "^0.7.2"
+  },
+  "engines": {
+    "node": ">=7.10.1"
+  },
+  "files": [
+    "commands",
+    "*.js"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/backups-cli",
+  "name": "@xen-orchestra/backups-cli",
+  "repository": {
+    "directory": "@xen-orchestra/backups-cli",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  },
+  "version": "0.0.0",
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}

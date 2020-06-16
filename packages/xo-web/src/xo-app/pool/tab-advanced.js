@@ -64,8 +64,11 @@ class PoolMaster extends Component {
 })
 export default class TabAdvanced extends Component {
   _setRemoteSyslogHosts = () =>
-    setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(
-      () => this.setState({ editRemoteSyslog: false, syslogDestination: '' })
+    setRemoteSyslogHosts(
+      this.props.hosts,
+      this.state.syslogDestination
+    ).then(() =>
+      this.setState({ editRemoteSyslog: false, syslogDestination: '' })
     )
 
   render() {

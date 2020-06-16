@@ -11,6 +11,7 @@ import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
   signOut,
+  subscribeHostMissingPatches,
   subscribeNotifications,
   subscribePermissions,
   subscribeResourceSets,
@@ -25,26 +26,39 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, identity, isEmpty, map } from 'lodash'
+import {
+  every,
+  forEach,
+  identity,
+  isEmpty,
+  isEqual,
+  map,
+  pick,
+  some,
+} from 'lodash'
 
 import styles from './index.css'
 
 const returnTrue = () => true
 
 @connectStore(
-  () => ({
-    isAdmin,
-    isPoolAdmin: getIsPoolAdmin,
-    nHosts: createGetObjectsOfType('host').count(),
-    nTasks: createGetObjectsOfType('task').count([
-      task => task.status === 'pending',
-    ]),
-    pools: createGetObjectsOfType('pool'),
-    srs: createGetObjectsOfType('SR'),
-    status: getStatus,
-    user: getUser,
-    xoaState: getXoaState,
-  }),
+  () => {
+    const getHosts = createGetObjectsOfType('host')
+    return {
+      hosts: getHosts,
+      isAdmin,
+      isPoolAdmin: getIsPoolAdmin,
+      nHosts: getHosts.count(),
+      nTasks: createGetObjectsOfType('task').count([
+        task => task.status === 'pending',
+      ]),
+      pools: createGetObjectsOfType('pool'),
+      srs: createGetObjectsOfType('SR'),
+      status: getStatus,
+      user: getUser,
+      xoaState: getXoaState,
+    }
+  },
   {
     withRef: true,
   }
@@ -66,10 +80,24 @@ export default class Menu extends Component {
       window.removeEventListener('resize', updateCollapsed)
       this._removeListener = noop
     }
+
+    this._updateMissingPatchesSubscriptions()
   }
 
   componentWillUnmount() {
     this._removeListener()
+    this._unsubscribeMissingPatches()
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      !isEqual(
+        Object.keys(prevProps.hosts).sort(),
+        Object.keys(this.props.hosts).sort()
+      )
+    ) {
+      this._updateMissingPatchesSubscriptions()
+    }
   }
 
   _checkPermissions = createSelector(
@@ -86,10 +114,7 @@ export default class Menu extends Component {
     isEmpty
   )
 
-  _getNoResourceSets = createSelector(
-    () => this.props.resourceSets,
-    isEmpty
-  )
+  _getNoResourceSets = createSelector(() => this.props.resourceSets, isEmpty)
 
   _getNoNotifications = createSelector(
     () => this.props.notifications,
@@ -99,6 +124,11 @@ export default class Menu extends Component {
   get height() {
     return this.refs.content.offsetHeight
   }
+
+  _hasMissingPatches = createSelector(
+    () => this.state.missingPatches,
+    missingPatches => some(missingPatches, _ => _)
+  )
 
   _toggleCollapsed = event => {
     event.preventDefault()
@@ -114,6 +144,29 @@ export default class Menu extends Component {
   _signOut = event => {
     event.preventDefault()
     return signOut()
+  }
+
+  _updateMissingPatchesSubscriptions = () => {
+    this.setState(({ missingPatches }) => ({
+      missingPatches: pick(missingPatches, Object.keys(this.props.hosts)),
+    }))
+
+    const unsubs = map(this.props.hosts, host =>
+      subscribeHostMissingPatches(host, patches => {
+        this.setState(state => ({
+          missingPatches: {
+            ...state.missingPatches,
+            [host.id]: patches.length > 0,
+          },
+        }))
+      })
+    )
+
+    if (this._unsubscribeMissingPatches !== undefined) {
+      this._unsubscribeMissingPatches()
+    }
+
+    this._unsubscribeMissingPatches = () => forEach(unsubs, unsub => unsub())
   }
 
   render() {
@@ -132,12 +185,21 @@ export default class Menu extends Component {
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
 
+    const missingPatchesWarning = this._hasMissingPatches() ? (
+      <Tooltip content={_('homeMissingPatches')}>
+        <span className='text-warning'>
+          <Icon icon='alarm' />
+        </span>
+      </Tooltip>
+    ) : null
+
     /* eslint-disable object-property-newline */
     const items = [
       {
         to: '/home',
         icon: 'menu-home',
         label: 'homePage',
+        extra: [missingPatchesWarning],
         subMenu: [
           { to: '/home?t=VM', icon: 'vm', label: 'homeVmPage' },
           nHosts !== 0 && {
@@ -149,6 +211,7 @@ export default class Menu extends Component {
             to: '/home?t=pool',
             icon: 'pool',
             label: 'homePoolPage',
+            extra: [missingPatchesWarning],
           },
           isAdmin && {
             to: '/home?t=VM-template',
@@ -219,35 +282,8 @@ export default class Menu extends Component {
             icon: 'menu-backup-file-restore',
             label: 'backupFileRestorePage',
           },
-        ],
-      },
-      isAdmin && {
-        to: '/backup-ng/overview',
-        icon: 'menu-backup',
-        label: <span>Backup NG</span>,
-        subMenu: [
           {
-            to: '/backup-ng/overview',
-            icon: 'menu-backup-overview',
-            label: 'backupOverviewPage',
-          },
-          {
-            to: '/backup-ng/new',
-            icon: 'menu-backup-new',
-            label: 'backupNewPage',
-          },
-          {
-            to: '/backup-ng/restore',
-            icon: 'menu-backup-restore',
-            label: 'backupRestorePage',
-          },
-          {
-            to: '/backup-ng/file-restore',
-            icon: 'menu-backup-file-restore',
-            label: 'backupFileRestorePage',
-          },
-          {
-            to: '/backup-ng/health',
+            to: '/backup/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
           },
@@ -280,6 +316,11 @@ export default class Menu extends Component {
             icon: 'menu-notification',
             label: 'notificationsPage',
             extra: <NotificationTag />,
+          },
+          isAdmin && {
+            to: 'xoa/support',
+            icon: 'menu-support',
+            label: 'supportPage',
           },
         ],
       },
@@ -323,6 +364,11 @@ export default class Menu extends Component {
             icon: 'menu-settings-logs',
             label: 'settingsLogsPage',
           },
+          {
+            to: '/settings/audit',
+            icon: 'audit',
+            label: 'settingsAuditPage',
+          },
           { to: '/settings/ips', icon: 'ip', label: 'settingsIpsPage' },
           {
             to: '/settings/cloud-configs',
@@ -354,6 +400,28 @@ export default class Menu extends Component {
           },
         ],
       },
+      isAdmin && {
+        to: '/hub/templates',
+        icon: 'menu-hub',
+        label: 'hubPage',
+        subMenu: [
+          {
+            to: '/hub/templates',
+            icon: 'hub-template',
+            label: 'templatesLabel',
+          },
+          {
+            to: '/hub/recipes',
+            icon: 'hub-recipe',
+            label: 'recipesLabel',
+          },
+        ],
+      },
+      isAdmin && {
+        to: '/proxies',
+        icon: 'proxy',
+        label: 'proxies',
+      },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       !noOperatablePools && {
         to: '/tasks',
@@ -362,6 +430,23 @@ export default class Menu extends Component {
         pill: nTasks,
       },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
+      !noOperatablePools && {
+        to: '/import/vm',
+        icon: 'menu-new-import',
+        label: 'newImport',
+        subMenu: [
+          {
+            to: '/import/vm',
+            icon: 'vm',
+            label: 'labelVm',
+          },
+          {
+            to: '/import/disk',
+            icon: 'disk',
+            label: 'labelDisk',
+          },
+        ],
+      },
       !(noOperatablePools && noResourceSets) && {
         to: '/vms/new',
         icon: 'menu-new',
@@ -384,11 +469,6 @@ export default class Menu extends Component {
             to: '/settings/servers',
             icon: 'menu-settings-servers',
             label: 'newServerPage',
-          },
-          !noOperatablePools && {
-            to: '/vms/import',
-            icon: 'menu-new-import',
-            label: 'newImport',
           },
         ],
       },

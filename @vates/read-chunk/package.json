@@ -1,0 +1,33 @@
+{
+  "private": false,
+  "name": "@vates/read-chunk",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/read-chunk",
+  "description": "Read a chunk of a Node stream",
+  "license": "ISC",
+  "keywords": [
+    "async",
+    "chunk",
+    "data",
+    "node",
+    "promise",
+    "read",
+    "stream"
+  ],
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/read-chunk",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "version": "0.1.1",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}

@@ -50,8 +50,8 @@ function handleFetchFiles(
   res,
   { remote, disk, partition, paths, format: archiveFormat }
 ) {
-  this.fetchFilesInDiskBackup(remote, disk, partition, paths)
-    .then(files => {
+  return this.fetchFilesInDiskBackup(remote, disk, partition, paths).then(
+    files => {
       res.setHeader('content-disposition', 'attachment')
       res.setHeader('content-type', 'application/octet-stream')
 
@@ -75,12 +75,8 @@ function handleFetchFiles(
       archive.finalize()
 
       archive.pipe(res)
-    })
-    .catch(error => {
-      log.error(error)
-      res.writeHead(500)
-      res.end(format.error(0, error))
-    })
+    }
+  )
 }
 
 export async function fetchFiles({ format = 'zip', ...params }) {
@@ -93,7 +89,7 @@ export async function fetchFiles({ format = 'zip', ...params }) {
     handleFetchFiles,
     { ...params, format },
     {
-      suffix: encodeURI(`/${fileName}`),
+      suffix: '/' + encodeURIComponent(fileName),
     }
   ).then(url => ({ $getFrom: url }))
 }

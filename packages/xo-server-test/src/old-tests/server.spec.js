@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { assign, find, map } from 'lodash'
+import { find, map } from 'lodash'
 
 import { config, rejectionOf, xo } from './util'
 
@@ -60,14 +60,16 @@ describe('server', () => {
         autoConnect: false,
       })
       expect(
-        (await rejectionOf(
-          addServer({
-            host: 'xen1.example.org',
-            username: 'root',
-            password: 'password',
-            autoConnect: false,
-          })
-        )).message
+        (
+          await rejectionOf(
+            addServer({
+              host: 'xen1.example.org',
+              username: 'root',
+              password: 'password',
+              autoConnect: false,
+            })
+          )
+        ).message
       ).toBe('unknown error from the peer')
     })
 
@@ -151,7 +153,7 @@ describe('server', () => {
 
     it('connects to a Xen server', async () => {
       const serverId = await addServer(
-        assign({ autoConnect: false }, config.xenServer1)
+        Object.assign({ autoConnect: false }, config.xenServer1)
       )
 
       await xo.call('server.connect', {
@@ -184,7 +186,7 @@ describe('server', () => {
     let serverId
     beforeEach(async () => {
       serverId = await addServer(
-        assign({ autoConnect: false }, config.xenServer1)
+        Object.assign({ autoConnect: false }, config.xenServer1)
       )
       await xo.call('server.connect', {
         id: serverId,

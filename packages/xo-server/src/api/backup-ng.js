@@ -3,11 +3,12 @@ import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 
 import createNdJsonStream from '../_createNdJsonStream'
+import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { safeDateFormat } from '../utils'
 
 export function createJob({ schedules, ...job }) {
   job.userId = this.user.id
-  return this.createBackupNgJob(job, schedules)
+  return this.createBackupNgJob(job, schedules).then(({ id }) => id)
 }
 
 createJob.permission = 'admin'
@@ -20,6 +21,10 @@ createJob.params = {
     enum: ['full', 'delta'],
   },
   name: {
+    type: 'string',
+    optional: true,
+  },
+  proxy: {
     type: 'string',
     optional: true,
   },
@@ -82,6 +87,10 @@ editJob.params = {
   },
   name: {
     type: 'string',
+    optional: true,
+  },
+  proxy: {
+    type: ['string', 'null'],
     optional: true,
   },
   remotes: {
@@ -167,7 +176,7 @@ runJob.params = {
 async function handleGetAllLogs(req, res) {
   const logs = await this.getBackupNgLogs()
   res.set('Content-Type', 'application/json')
-  return fromCallback(cb => pipeline(createNdJsonStream(logs), res, cb))
+  return fromCallback(pipeline, createNdJsonStream(logs), res)
 }
 
 export function getAllLogs({ ndjson = false }) {
@@ -184,7 +193,20 @@ getAllLogs.params = {
   ndjson: { type: 'boolean', optional: true },
 }
 
-export function getLogs({ after, before, limit, ...filter }) {
+export function getLogs({
+  after,
+  before,
+  limit,
+
+  // TODO: it's a temporary work-around which should be removed
+  // when the consolidated logs will be stored in the DB
+  _forceRefresh = false,
+
+  ...filter
+}) {
+  if (_forceRefresh) {
+    this.getBackupNgLogs(REMOVE_CACHE_ENTRY)
+  }
   return this.getBackupNgLogsSorted({ after, before, limit, filter })
 }
 
@@ -211,13 +233,14 @@ deleteVmBackup.params = {
   },
 }
 
-export function listVmBackups({ remotes }) {
-  return this.listVmBackupsNg(remotes)
+export function listVmBackups({ remotes, _forceRefresh }) {
+  return this.listVmBackupsNg(remotes, _forceRefresh)
 }
 
 listVmBackups.permission = 'admin'
 
 listVmBackups.params = {
+  _forceRefresh: { type: 'boolean', optional: true },
   remotes: {
     type: 'array',
     items: {
@@ -302,7 +325,7 @@ export async function fetchFiles(params) {
   filename += '.zip'
 
   return this.registerHttpRequest(handleFetchFiles, params, {
-    suffix: encodeURI(`/${filename}`),
+    suffix: '/' + encodeURIComponent(filename),
   }).then(url => ({ $getFrom: url }))
 }
 

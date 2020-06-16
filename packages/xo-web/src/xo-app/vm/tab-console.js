@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import cookies from 'cookies-js'
 import debounce from 'lodash/debounce'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -13,7 +14,7 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { isVmRunning, resolveUrl } from 'xo'
 import { Col, Container, Row } from 'grid'
-import { confirm } from 'modal'
+import { confirm, form } from 'modal'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -61,7 +62,13 @@ export default class TabConsole extends Component {
       this._toggleMinimalLayout()
     }
   }
-  _sendCtrlAltDel = () => {
+
+  _sendCtrlAltDel = async () => {
+    await confirm({
+      icon: 'vm-keyboard',
+      title: _('ctrlAltDelButtonLabel'),
+      body: _('ctrlAltDelConfirmation'),
+    })
     this.refs.noVnc.sendCtrlAltDel()
   }
 
@@ -91,9 +98,40 @@ export default class TabConsole extends Component {
     this.setState({ minimalLayout: !this.state.minimalLayout })
   }
 
+  _openSsh = (username = 'root') => {
+    window.location = `ssh://${encodeURIComponent(username)}@${
+      this.props.vm.mainIpAddress
+    }`
+  }
+
+  _openSshMore = async () => {
+    const cookieKey = `${this.props.vm.uuid}/ssh-user-name`
+    const username = await form({
+      defaultValue: cookies.get(cookieKey) || 'root',
+      header: _('sshUsernameLabel'),
+      render: ({ value, onChange }) => (
+        <div>
+          <input
+            type='text'
+            className='form-control'
+            onChange={onChange}
+            value={value}
+          />
+        </div>
+      ),
+    })
+    if (username !== (cookies.get(cookieKey) || 'root')) {
+      // seems to be seconds
+      const expires = 31 * 3600 * 24
+      cookies.set(cookieKey, username, { expires })
+    }
+    this._openSsh(username)
+  }
+
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
+    const canSsh = vm.mainIpAddress !== undefined
 
     if (!isVmRunning(vm)) {
       return (
@@ -161,12 +199,42 @@ export default class TabConsole extends Component {
               </span>
             </div>
           </Col>
-          <Col mediumSize={2}>
-            <Button onClick={this._sendCtrlAltDel}>
-              <Icon icon='vm-keyboard' /> {_('ctrlAltDelButtonLabel')}
-            </Button>
+          <Col mediumSize={5} largeSize={3}>
+            <div className='btn-group'>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._openSsh}
+                  tooltip={
+                    canSsh ? _('sshRootTooltip') : _('sshNeedClientTools')
+                  }
+                  disabled={!canSsh}
+                  icon='remote'
+                >
+                  {_('sshRootLabel')}
+                </ActionButton>
+              </span>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._openSshMore}
+                  tooltip={
+                    canSsh ? _('sshUserTooltip') : _('sshNeedClientTools')
+                  }
+                  disabled={!canSsh}
+                  icon='remote'
+                >
+                  {_('sshUserLabel')}
+                </ActionButton>
+              </span>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._sendCtrlAltDel}
+                  tooltip={_('ctrlAltDelButtonLabel')}
+                  icon='vm-keyboard'
+                />
+              </span>
+            </div>
           </Col>
-          <Col mediumSize={3}>
+          <Col mediumSize={2} className='hidden-lg-down'>
             <input
               className='form-control'
               max={3}

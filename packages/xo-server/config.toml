@@ -17,9 +17,11 @@ createUserOnFirstSignin = true
 # their size just by looking at the beginning of the stream.
 #
 # But it is a guess, not a certainty, it depends on how the VHDs are formatted
-# by XenServer, therefore it's disabled for the moment but can be enabled
-# specifically for a user if necessary.
-guessVhdSizeOnImport = false
+# by XenServer.
+#
+# This has been tested for 5 months, therefore it's enabled by default but can
+# be disabled specifically for a user if necessary.
+guessVhdSizeOnImport = true
 
 # Whether API logs should contains the full request/response on
 # errors.
@@ -48,14 +50,32 @@ maxTokenValidity = '0.5 year'
 # https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Set-Cookie#Session_cookie
 #sessionCookieValidity = '10 hours'
 
+# This is the page where unauthenticated users will be redirected to.
+#
+# For instance, it can be changed to `/signin/saml` if that's the provider that
+# should be used by default.
+defaultSignInPage = '/signin'
+
 [backup]
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
+
+# This is a work-around.
+#
+# See https://github.com/vatesfr/xen-orchestra/pull/4674
+maxMergedDeltasPerRun = 2
 
 # Duration for which we can wait for the backup size before returning
 #
 # It should be short to avoid blocking the display of the available backups.
 vmBackupSizeTimeout = '2 seconds'
+
+poolMetadataTimeout = '10 minutes'
+
+# https://github.com/naugtur/blocked-at#params-and-return-value
+[blockedAtOptions]
+enabled = false
+threshold = 1000
 
 # Helmet handles HTTP security via headers
 #
@@ -92,3 +112,36 @@ timeout = 600e3
 
 # see https:#github.com/vatesfr/xen-orchestra/issues/3419
 # useSudo = false
+
+
+# https://github.com/facebook/jest/blob/master/packages/jest-worker/README.md#options-object-optional
+#
+#[workerOptions]
+#numWorkers = 2
+
+[xapiOptions]
+maxUncoalescedVdis = 1
+vdiExportConcurrency = 12
+vmExportConcurrency = 2
+vmSnapshotConcurrency = 2
+
+["xo-proxy"]
+callTimeout = '1 min'
+
+channel = 'xo-proxy-appliance'
+
+namespace = 'xoProxyAppliance'
+
+proxyName = 'Proxy {date}'
+
+licenseProductId = 'xo-proxy'
+
+vmName = 'XOA Proxy {date}'
+
+# The duration for which we can wait for the VM networks to be defined
+vmNetworksTimeout = '5 min'
+
+vmTag = 'XOA Proxy'
+
+# The duration for which we can wait for the XOA to be upgraded
+xoaUpgradeTimeout = '5 min'

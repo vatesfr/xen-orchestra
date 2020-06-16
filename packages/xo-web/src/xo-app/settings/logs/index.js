@@ -11,7 +11,8 @@ import styles from './index.css'
 import { addSubscriptions, downloadLog } from 'utils'
 import { alert } from 'modal'
 import { createSelector } from 'selectors'
-import { CAN_REPORT_BUG, reportBug } from 'report-bug-button'
+import { get } from '@xen-orchestra/defined'
+import { reportBug } from 'report-bug-button'
 import {
   deleteApiLog,
   deleteApiLogs,
@@ -33,6 +34,22 @@ const formatLog = log =>
     2
   )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
 
+const LogMessage = ({ item: log }) => {
+  const { error } = log.data
+  return (
+    <span>
+      <pre className={styles.widthLimit}>{get(() => error.message)}</pre>
+      {get(() => error.code) === 'LICENCE_RESTRICTION' ? (
+        <a href='https://xcp-ng.org/' rel='noopener noreferrer' target='_blank'>
+          {_('logSuggestXcpNg')}
+        </a>
+      ) : get(() => error.name) === 'XapiError' ? (
+        _('logXapiError')
+      ) : null}
+    </span>
+  )
+}
+
 const COLUMNS = [
   {
     name: _('logUser'),
@@ -50,22 +67,7 @@ const COLUMNS = [
   },
   {
     name: _('logMessage'),
-    itemRenderer: log => (
-      <span>
-        <pre className={styles.widthLimit}>
-          {log.data.error && log.data.error.message}
-        </pre>
-        {log.data.error && log.data.error.code === 'LICENCE_RESTRICTION' && (
-          <a
-            href='https://xcp-ng.org/'
-            rel='noopener noreferrer'
-            target='_blank'
-          >
-            {_('logSuggestXcpNg')}
-          </a>
-        )}
-      </span>
-    ),
+    component: LogMessage,
     sortCriteria: log => log.data.error && log.data.error.message,
   },
   {
@@ -116,7 +118,6 @@ const INDIVIDUAL_ACTIONS = [
     label: _('logDownload'),
   },
   {
-    disabled: !CAN_REPORT_BUG,
     handler: log =>
       reportBug({
         formatMessage,
@@ -156,6 +157,7 @@ export default class Logs extends BaseComponent {
             columns={COLUMNS}
             data-users={this.props.users}
             individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='s'
           />
         )}
       </NoObjects>

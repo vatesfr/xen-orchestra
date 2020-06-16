@@ -1865,9 +1865,6 @@ export default {
   // Original text: 'Destination SR:'
   vdiMigrateSelectSr: undefined,
 
-  // Original text: 'Migrate all VDIs'
-  vdiMigrateAll: undefined,
-
   // Original text: 'No SR'
   vdiMigrateNoSr: undefined,
 
@@ -2142,7 +2139,7 @@ export default {
   vmChooseCoresPerSocket: undefined,
 
   // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: undefined,
+  vmSocketsWithCoresPerSocket: undefined,
 
   // Original text: 'Incorrect cores per socket value'
   vmCoresPerSocketIncorrectValue: undefined,
@@ -2958,7 +2955,7 @@ export default {
   chooseSrForEachVdisModalSrLabel: undefined,
 
   // Original text: '* optional'
-  chooseSrForEachVdisModalOptionalEntry: undefined,
+  optionalEntry: undefined,
 
   // Original text: 'Delete VDI'
   deleteVdiModalTitle: undefined,

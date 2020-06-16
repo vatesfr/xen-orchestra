@@ -1,0 +1,47 @@
+{
+  "private": false,
+  "name": "@xen-orchestra/template",
+  "version": "0.1.0",
+  "license": "ISC",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/template",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/template",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "files": [
+    "dist/"
+  ],
+  "browserslist": [
+    ">2%"
+  ],
+  "engines": {
+    "node": ">=6"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "cross-env": "^7.0.2",
+    "rimraf": "^3.0.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "prebuild": "yarn run clean",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build",
+    "postversion": "npm publish --access public"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15"
+  }
+}

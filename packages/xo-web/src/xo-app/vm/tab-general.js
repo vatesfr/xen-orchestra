@@ -41,10 +41,7 @@ export default connectStore(() => {
   const getAttachedVgpu = createFinder(getVgpus, vgpu => vgpu.currentlyAttached)
 
   const getVgpuTypes = createGetObjectsOfType('vgpuType').pick(
-    createSelector(
-      getVgpus,
-      vgpus => map(vgpus, 'vgpuType')
-    )
+    createSelector(getVgpus, vgpus => map(vgpus, 'vgpuType'))
   )
 
   return {
@@ -72,10 +69,10 @@ export default connectStore(() => {
     vmTotalDiskSpace,
   }) => {
     const {
-      addresses,
       CPUs: cpus,
       id,
       installTime,
+      mainIpAddress,
       memory,
       os_version: osVersion,
       power_state: powerState,
@@ -183,8 +180,8 @@ export default connectStore(() => {
           </Col>
           <Col mediumSize={3}>
             <BlockLink to={`/vms/${id}/network`}>
-              {addresses && addresses['0/ip'] ? (
-                <Copiable tagName='p'>{addresses['0/ip']}</Copiable>
+              {mainIpAddress !== undefined ? (
+                <Copiable tagName='p'>{mainIpAddress}</Copiable>
               ) : (
                 <p>{_('noIpv4Record')}</p>
               )}

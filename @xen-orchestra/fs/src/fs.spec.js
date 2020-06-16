@@ -28,7 +28,7 @@ const unsecureRandomBytes = n => {
 
 const TEST_DATA_LEN = 1024
 const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
-const createTestDataStream = asyncIteratorToStream(function*() {
+const createTestDataStream = asyncIteratorToStream(function* () {
   yield TEST_DATA
 })
 
@@ -86,7 +86,7 @@ handlers.forEach(url => {
     describe('#createOutputStream()', () => {
       it('creates parent dir if missing', async () => {
         const stream = await handler.createOutputStream('dir/file')
-        await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
+        await fromCallback(pipeline, createTestDataStream(), stream)
         await expect(await handler.readFile('dir/file')).toEqual(TEST_DATA)
       })
     })
@@ -106,7 +106,7 @@ handlers.forEach(url => {
     describe('#createWriteStream()', () => {
       testWithFileDescriptor('file', 'wx', async ({ file, flags }) => {
         const stream = await handler.createWriteStream(file, { flags })
-        await fromCallback(cb => pipeline(createTestDataStream(), stream, cb))
+        await fromCallback(pipeline, createTestDataStream(), stream)
         await expect(await handler.readFile('file')).toEqual(TEST_DATA)
       })
 
@@ -219,6 +219,12 @@ handlers.forEach(url => {
         const error = await rejectionOf(handler.outputFile('file', ''))
         expect(error.code).toBe('EEXIST')
       })
+
+      it("shouldn't timeout in case of the respect of the parallel execution restriction", async () => {
+        const handler = getHandler({ url }, { maxParallelOperations: 1 })
+        await handler.sync()
+        await handler.outputFile(`xo-fs-tests-${Date.now()}/test`, '')
+      }, 40)
     })
 
     describe('#read()', () => {

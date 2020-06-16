@@ -86,8 +86,10 @@ const TaskError = ({ task }) => {
   let message
   if (
     !hasTaskFailed(task) ||
-    (message = defined(() => task.result.message, () => task.result.code)) ===
-      undefined
+    (message = defined(
+      () => task.result.message,
+      () => task.result.code
+    )) === undefined
   ) {
     return null
   }
@@ -122,12 +124,9 @@ const TaskError = ({ task }) => {
 const Warnings = ({ warnings }) =>
   warnings !== undefined ? (
     <div>
-      {warnings.map(({ message, data }) => (
-        <div className='text-warning'>
-          <Icon icon='alarm' />{' '}
-          {message === 'missingVms'
-            ? _('logsMissingVms', { vms: data.vms.join(', ') })
-            : message}
+      {warnings.map(({ message }, key) => (
+        <div className='text-warning' key={key}>
+          <Icon icon='alarm' /> {message}
         </div>
       ))}
     </div>

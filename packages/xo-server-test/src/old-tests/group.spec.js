@@ -77,7 +77,7 @@ describe('group', () => {
         () => {
           throw new Error('createGroup() should have thrown')
         },
-        function(error) {
+        function (error) {
           expect(error.message).to.match(/duplicate group/i)
         }
       )

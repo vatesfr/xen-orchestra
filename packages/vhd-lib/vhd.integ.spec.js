@@ -31,11 +31,11 @@ test('createFooter() does not crash', () => {
 test('ReadableRawVHDStream does not crash', async () => {
   const data = [
     {
-      offsetBytes: 100,
+      logicalAddressBytes: 100,
       data: Buffer.from('azerzaerazeraze', 'ascii'),
     },
     {
-      offsetBytes: 700,
+      logicalAddressBytes: 700,
       data: Buffer.from('gdfslkdfguer', 'ascii'),
     },
   ]
@@ -62,11 +62,11 @@ test('ReadableRawVHDStream does not crash', async () => {
 test('ReadableRawVHDStream detects when blocks are out of order', async () => {
   const data = [
     {
-      offsetBytes: 700,
+      logicalAddressBytes: 700,
       data: Buffer.from('azerzaerazeraze', 'ascii'),
     },
     {
-      offsetBytes: 100,
+      logicalAddressBytes: 100,
       data: Buffer.from('gdfslkdfguer', 'ascii'),
     },
   ]
@@ -97,11 +97,11 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   const blockSize = Math.pow(2, 16)
   const blocks = [
     {
-      offsetBytes: blockSize * 3,
+      logicalAddressBytes: blockSize * 3,
       data: Buffer.alloc(blockSize, 'azerzaerazeraze', 'ascii'),
     },
     {
-      offsetBytes: blockSize * 100,
+      logicalAddressBytes: blockSize * 100,
       data: Buffer.alloc(blockSize, 'gdfslkdfguer', 'ascii'),
     },
   ]
@@ -109,7 +109,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   const stream = await createReadableSparseStream(
     fileSize,
     blockSize,
-    blocks.map(b => b.offsetBytes),
+    blocks.map(b => b.logicalAddressBytes),
     blocks
   )
   expect(stream.length).toEqual(4197888)
@@ -128,7 +128,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   const out1 = await readFile(`${tempDir}/out1.raw`)
   const expected = Buffer.alloc(fileSize)
   blocks.forEach(b => {
-    b.data.copy(expected, b.offsetBytes)
+    b.data.copy(expected, b.logicalAddressBytes)
   })
   await expect(out1.slice(0, expected.length)).toEqual(expected)
 })

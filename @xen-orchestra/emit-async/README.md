@@ -1,6 +1,8 @@
-# @xen-orchestra/emit-async [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# @xen-orchestra/emit-async
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async) ![License](https://badgen.net/npm/license/@xen-orchestra/emit-async) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/emit-async)](https://bundlephobia.com/result?p=@xen-orchestra/emit-async) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async)
 
 ## Install
 
@@ -29,43 +31,27 @@ await ee.emitAsync('start')
 
 // by default, it will rejects as soon as one listener reject, you can customise
 // error handling though:
-await ee.emitAsync({
-  onError (error) {
-    console.warn(error)
-  }
-}, 'start')
-```
-
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
+await ee.emitAsync(
+  {
+    onError(error) {
+      console.warn(error)
+    },
+  },
+  'start'
+)
 ```
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

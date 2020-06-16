@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { isEmpty, isFunction, isString, map, pick } from 'lodash'
+import { isEmpty, map, pick } from 'lodash'
 
 import _ from '../intl'
 import Component from '../base-component'
@@ -15,6 +15,7 @@ import {
   SelectIp,
   SelectNetwork,
   SelectPool,
+  SelectProxy,
   SelectRemote,
   SelectResourceSetIp,
   SelectSr,
@@ -100,7 +101,7 @@ class Editable extends Component {
 
     return this.__save(
       () => this.state.previous,
-      isFunction(onUndo) ? onUndo : props.onChange
+      typeof onUndo === 'function' ? onUndo : props.onChange
     )
   }
 
@@ -132,7 +133,9 @@ class Editable extends Component {
     } catch (error) {
       this.setState({
         // `error` may be undefined if the action has been cancelled
-        error: error !== undefined && (isString(error) ? error : error.message),
+        error:
+          error !== undefined &&
+          (typeof error === 'string' ? error : error.message),
         saving: false,
       })
       logError(error)
@@ -428,6 +431,7 @@ const MAP_TYPE_SELECT = {
   ip: SelectIp,
   network: SelectNetwork,
   pool: SelectPool,
+  proxy: SelectProxy,
   remote: SelectRemote,
   resourceSetIp: SelectResourceSetIp,
   SR: SelectSr,
@@ -486,7 +490,8 @@ export class XoSelect extends Editable {
 
 export class Size extends Editable {
   static propTypes = {
-    value: PropTypes.number.isRequired,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])])
+      .isRequired,
   }
 
   get value() {
@@ -494,7 +499,15 @@ export class Size extends Editable {
   }
 
   _renderDisplay() {
-    return this.props.children || formatSize(this.props.value)
+    if (this.props.children !== undefined) {
+      return this.props.children
+    }
+
+    if (this.props.value != null) {
+      return formatSize(this.props.value)
+    }
+
+    return null
   }
 
   _saveIfUnfocused = () => {

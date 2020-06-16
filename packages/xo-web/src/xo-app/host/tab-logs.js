@@ -54,7 +54,11 @@ export default class TabLogs extends Component {
   constructor() {
     super()
 
-    this.getLogs = createPager(() => this.props.logs, () => this.state.page, 10)
+    this.getLogs = createPager(
+      () => this.props.logs,
+      () => this.state.page,
+      10
+    )
 
     this.state = {
       page: 1,
@@ -83,6 +87,7 @@ export default class TabLogs extends Component {
         actions={LOG_ACTIONS}
         collection={logs}
         columns={LOG_COLUMNS}
+        stateUrlParam='s_logs'
       />
     )
   }

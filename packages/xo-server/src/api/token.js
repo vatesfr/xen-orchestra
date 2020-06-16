@@ -1,10 +1,12 @@
 // TODO: Prevent token connections from creating tokens.
 // TODO: Token permission.
 export async function create({ expiresIn }) {
-  return (await this.createAuthenticationToken({
-    expiresIn,
-    userId: this.session.get('user_id'),
-  })).id
+  return (
+    await this.createAuthenticationToken({
+      expiresIn,
+      userId: this.session.get('user_id'),
+    })
+  ).id
 }
 
 create.description = 'create a new authentication token'

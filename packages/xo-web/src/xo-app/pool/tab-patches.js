@@ -24,7 +24,7 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchDescription'),
     itemRenderer: ({ description, documentationUrl }) => (
-      <a href={documentationUrl} target='_blank'>
+      <a href={documentationUrl} rel='noopener noreferrer' target='_blank'>
         {description}
       </a>
     ),
@@ -206,6 +206,7 @@ export default class TabPatches extends Component {
                   columns={MISSING_PATCH_COLUMNS_XCP}
                   collection={missingPatches}
                   individualActions={INDIVIDUAL_ACTIONS_XCP}
+                  stateUrlParam='s_missing'
                 />
               </Col>
             </Row>
@@ -219,6 +220,7 @@ export default class TabPatches extends Component {
                     collection={missingPatches}
                     columns={MISSING_PATCH_COLUMNS}
                     data-pool={pool}
+                    stateUrlParam='s_missing'
                   />
                 </Col>
               </Row>
@@ -228,6 +230,7 @@ export default class TabPatches extends Component {
                   <SortedTable
                     collection={hostPatches}
                     columns={INSTALLED_PATCH_COLUMNS}
+                    stateUrlParam='s_installed'
                   />
                 </Col>
               </Row>

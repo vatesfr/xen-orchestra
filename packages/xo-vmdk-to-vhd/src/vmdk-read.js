@@ -1,38 +1,15 @@
 // see https://github.com/babel/babel/issues/8450
 import 'core-js/features/symbol/async-iterator'
 
+import assert from 'assert'
 import zlib from 'zlib'
 
+import { compressionDeflate, parseHeader, parseU64b } from './definitions'
 import { VirtualBuffer } from './virtual-buffer'
 
 const SECTOR_SIZE = 512
 const HEADER_SIZE = 512
 const VERSION_OFFSET = 4
-const compressionDeflate = 'COMPRESSION_DEFLATE'
-const compressionNone = 'COMPRESSION_NONE'
-const compressionMap = [compressionNone, compressionDeflate]
-
-function parseS64b(buffer, offset, valueName) {
-  const low = buffer.readInt32LE(offset)
-  const high = buffer.readInt32LE(offset + 4)
-  // here there might be a surprise because we are reading 64 integers into double floats (53 bits mantissa)
-  const value = low | (high << 32)
-  if ((value & (Math.pow(2, 32) - 1)) !== low) {
-    throw new Error('Unsupported VMDK, ' + valueName + ' is too big')
-  }
-  return value
-}
-
-function parseU64b(buffer, offset, valueName) {
-  const low = buffer.readUInt32LE(offset)
-  const high = buffer.readUInt32LE(offset + 4)
-  // here there might be a surprise because we are reading 64 integers into double floats (53 bits mantissa)
-  const value = low | (high << 32)
-  if ((value & (Math.pow(2, 32) - 1)) !== low) {
-    throw new Error('Unsupported VMDK, ' + valueName + ' is too big')
-  }
-  return value
-}
 
 function parseDescriptor(descriptorSlice) {
   const descriptorText = descriptorSlice.toString('ascii').replace(/\x00+$/, '') // eslint-disable-line no-control-regex
@@ -60,74 +37,11 @@ function parseDescriptor(descriptorSlice) {
   return { descriptor: descriptorDict, extents: extentList }
 }
 
-function parseFlags(flagBuffer) {
-  const number = flagBuffer.readUInt32LE(0)
-  return {
-    newLineTest: !!(number & (1 << 0)),
-    useSecondaryGrain: !!(number & (1 << 1)),
-    useZeroedGrainTable: !!(number & (1 << 2)),
-    compressedGrains: !!(number & (1 << 16)),
-    hasMarkers: !!(number & (1 << 17)),
-  }
-}
-
-function parseHeader(buffer) {
-  const magicString = buffer.slice(0, 4).toString('ascii')
-  if (magicString !== 'KDMV') {
-    throw new Error('not a VMDK file')
-  }
-  const version = buffer.readUInt32LE(4)
-  if (version !== 1 && version !== 3) {
-    throw new Error(
-      'unsupported VMDK version ' +
-        version +
-        ', only version 1 and 3 are supported'
-    )
-  }
-  const flags = parseFlags(buffer.slice(8, 12))
-  const capacitySectors = parseU64b(buffer, 12, 'capacitySectors')
-  const grainSizeSectors = parseU64b(buffer, 20, 'grainSizeSectors')
-  const descriptorOffsetSectors = parseU64b(
-    buffer,
-    28,
-    'descriptorOffsetSectors'
-  )
-  const descriptorSizeSectors = parseU64b(buffer, 36, 'descriptorSizeSectors')
-  const numGTEsPerGT = buffer.readUInt32LE(44)
-  const rGrainDirectoryOffsetSectors = parseS64b(
-    buffer,
-    48,
-    'rGrainDirectoryOffsetSectors'
-  )
-  const grainDirectoryOffsetSectors = parseS64b(
-    buffer,
-    56,
-    'grainDirectoryOffsetSectors'
-  )
-  const overheadSectors = parseS64b(buffer, 64, 'overheadSectors')
-  const compressionMethod = compressionMap[buffer.readUInt16LE(77)]
-  const l1EntrySectors = numGTEsPerGT * grainSizeSectors
-  return {
-    flags,
-    compressionMethod,
-    grainSizeSectors,
-    overheadSectors,
-    capacitySectors,
-    descriptorOffsetSectors,
-    descriptorSizeSectors,
-    grainDirectoryOffsetSectors,
-    rGrainDirectoryOffsetSectors,
-    l1EntrySectors,
-    numGTEsPerGT,
-  }
-}
-async function readGrain(offsetSectors, buffer, compressed) {
+function readGrain(offsetSectors, buffer, compressed) {
   const offset = offsetSectors * SECTOR_SIZE
   const size = buffer.readUInt32LE(offset + 8)
   const grainBuffer = buffer.slice(offset + 12, offset + 12 + size)
-  const grainContent = compressed
-    ? await zlib.inflateSync(grainBuffer)
-    : grainBuffer
+  const grainContent = compressed ? zlib.inflateSync(grainBuffer) : grainBuffer
   const lba = parseU64b(buffer, offset, 'l2Lba')
   return {
     offsetSectors: offsetSectors,
@@ -141,7 +55,7 @@ async function readGrain(offsetSectors, buffer, compressed) {
   }
 }
 
-function tryToParseMarker(buffer) {
+function parseMarker(buffer) {
   const value = buffer.readUInt32LE(0)
   const size = buffer.readUInt32LE(8)
   const type = buffer.readUInt32LE(12)
@@ -153,7 +67,9 @@ function alignSectors(number) {
 }
 
 export default class VMDKDirectParser {
-  constructor(readStream) {
+  constructor(readStream, grainLogicalAddressList, grainFileOffsetList) {
+    this.grainLogicalAddressList = grainLogicalAddressList
+    this.grainFileOffsetList = grainFileOffsetList
     this.virtualBuffer = new VirtualBuffer(readStream)
     this.header = null
   }
@@ -262,41 +178,60 @@ export default class VMDKDirectParser {
     return this.header
   }
 
-  async *blockIterator() {
-    while (!this.virtualBuffer.isDepleted) {
-      const position = this.virtualBuffer.position
-      const sector = await this.virtualBuffer.readChunk(
-        SECTOR_SIZE,
-        'marker start ' + position
+  async parseMarkedGrain(expectedLogicalAddress) {
+    const position = this.virtualBuffer.position
+    const sector = await this.virtualBuffer.readChunk(
+      SECTOR_SIZE,
+      'marker start ' + position
+    )
+    const marker = parseMarker(sector)
+    if (marker.size === 0) {
+      throw new Error(`expected grain marker, received ${marker}`)
+    } else if (marker.size > 10) {
+      const grainDiskSize = marker.size + 12
+      const alignedGrainDiskSize = alignSectors(grainDiskSize)
+      const remainOfBufferSize = alignedGrainDiskSize - SECTOR_SIZE
+      const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(
+        remainOfBufferSize,
+        'grain remainder ' + this.virtualBuffer.position
       )
-      if (sector.length === 0) {
-        break
-      }
-      const marker = tryToParseMarker(sector)
-      if (marker.size === 0) {
-        if (marker.value !== 0) {
-          await this.virtualBuffer.readChunk(
-            marker.value * SECTOR_SIZE,
-            'other marker value ' + this.virtualBuffer.position
-          )
-        }
-      } else if (marker.size > 10) {
-        const grainDiskSize = marker.size + 12
-        const alignedGrainDiskSize = alignSectors(grainDiskSize)
-        const remainOfBufferSize = alignedGrainDiskSize - SECTOR_SIZE
-        const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(
-          remainOfBufferSize,
-          'grain remainder ' + this.virtualBuffer.position
+      const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
+      const grainObject = readGrain(
+        0,
+        grainBuffer,
+        this.header.compressionMethod === compressionDeflate &&
+          this.header.flags.compressedGrains
+      )
+      assert.strictEqual(grainObject.lba * SECTOR_SIZE, expectedLogicalAddress)
+      return grainObject.grain
+    }
+  }
+
+  async *blockIterator() {
+    for (
+      let tableIndex = 0;
+      tableIndex < this.grainFileOffsetList.length;
+      tableIndex++
+    ) {
+      const position = this.virtualBuffer.position
+      const grainPosition = this.grainFileOffsetList[tableIndex]
+      const grainSizeBytes = this.header.grainSizeSectors * 512
+      const lba = this.grainLogicalAddressList[tableIndex]
+      // console.log('VMDK before blank', position, grainPosition,'lba', lba, 'tableIndex', tableIndex, 'grainFileOffsetList.length', this.grainFileOffsetList.length)
+      await this.virtualBuffer.readChunk(
+        grainPosition - position,
+        'blank before ' + position
+      )
+      let grain
+      if (this.header.flags.hasMarkers) {
+        grain = await this.parseMarkedGrain(lba)
+      } else {
+        grain = await this.virtualBuffer.readChunk(
+          grainSizeBytes,
+          'grain ' + this.virtualBuffer.position
         )
-        const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
-        const grain = await readGrain(
-          0,
-          grainBuffer,
-          this.header.compressionMethod === compressionDeflate &&
-            this.header.flags.compressedGrains
-        )
-        yield { offsetBytes: grain.lbaBytes, data: grain.grain }
       }
+      yield { logicalAddressBytes: lba, data: grain }
     }
   }
 }

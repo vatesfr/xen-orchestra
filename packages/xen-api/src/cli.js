@@ -8,7 +8,7 @@ import execPromise from 'exec-promise'
 import minimist from 'minimist'
 import pw from 'pw'
 import { asCallback, fromCallback } from 'promise-toolbox'
-import { filter, find, isArray } from 'lodash'
+import { filter, find } from 'lodash'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
 
@@ -110,7 +110,7 @@ const main = async args => {
     asCallback.call(
       fromCallback(cb => {
         evaluate.call(repl, cmd, context, filename, cb)
-      }).then(value => (isArray(value) ? Promise.all(value) : value)),
+      }).then(value => (Array.isArray(value) ? Promise.all(value) : value)),
       cb
     )
   })(repl.eval)

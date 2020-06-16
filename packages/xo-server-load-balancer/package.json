@@ -1,7 +1,7 @@
 {
   "name": "xo-server-load-balancer",
   "version": "0.3.2",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "description": "Load balancer for XO-Server",
   "keywords": [
     "load",
@@ -18,8 +18,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -31,7 +31,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/cron": "^1.0.3",
+    "@xen-orchestra/cron": "^1.0.6",
     "lodash": "^4.16.2"
   },
   "devDependencies": {

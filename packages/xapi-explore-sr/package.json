@@ -1,4 +1,5 @@
 {
+  "private": false,
   "name": "xapi-explore-sr",
   "version": "0.2.1",
   "license": "ISC",
@@ -20,8 +21,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": true,
   "main": "dist/",
@@ -36,20 +37,20 @@
   },
   "dependencies": {
     "archy": "^1.0.0",
-    "chalk": "^2.3.2",
+    "chalk": "^3.0.0",
     "exec-promise": "^0.7.0",
     "human-format": "^0.10.0",
     "lodash": "^4.17.4",
     "pw": "^0.0.4",
-    "xen-api": "^0.27.1"
+    "xen-api": "^0.28.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",
     "@babel/core": "^7.1.5",
     "@babel/preset-env": "^7.1.5",
     "babel-plugin-lodash": "^3.2.11",
-    "cross-env": "^5.1.4",
-    "rimraf": "^2.6.1"
+    "cross-env": "^7.0.2",
+    "rimraf": "^3.0.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

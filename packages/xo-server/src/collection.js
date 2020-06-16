@@ -1,7 +1,7 @@
 import Model from './model'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
-import { isArray, isObject, map } from './utils'
+import { isObject, map } from './utils'
 
 // ===================================================================
 
@@ -30,7 +30,7 @@ export default class Collection extends EventEmitter {
   }
 
   async add(models, opts) {
-    const array = isArray(models)
+    const array = Array.isArray(models)
     if (!array) {
       models = [models]
     }
@@ -66,7 +66,7 @@ export default class Collection extends EventEmitter {
   }
 
   async remove(ids) {
-    if (!isArray(ids)) {
+    if (!Array.isArray(ids)) {
       ids = [ids]
     }
 
@@ -77,8 +77,8 @@ export default class Collection extends EventEmitter {
   }
 
   async update(models) {
-    const array = isArray(models)
-    if (!isArray(models)) {
+    const array = Array.isArray(models)
+    if (!array) {
       models = [models]
     }
 

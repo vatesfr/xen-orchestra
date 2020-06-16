@@ -1,6 +1,10 @@
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
 # xo-server-test
 
 > Test client for Xo-Server
+
+## Usage
 
 Tests are ran sequentially to avoid concurrency issues.
 
@@ -15,44 +19,61 @@ src
 |   |     └─ index.spec.js.snap
 |   └─ index.spec.js
 ├─ job
+|   └─ index.spec.js
+├─ issues
 ¦   └─ index.spec.js
-¦
 ¦
 ├─ _xoConnection.js
 └─ util.js
 ```
 
-The tests can describe xo methods or scenarios:
-```javascript
-import xo from "../_xoConnection";
+The tests can describe:
 
-describe("user", () => {
+- XO methods or scenarios:
 
+`src/user/index.js`
+
+```js
+import xo from '../_xoConnection'
+
+describe('user', () => {
   // testing a method
-  describe(".set()", () => {
-    it("sets an email", async () => {
+  describe('.set()', () => {
+    it('sets an email', async () => {
       // some tests using xo methods and helpers from _xoConnection.js
-      const id = await xo.createTempUser(SIMPLE_USER);
-      expect(await xo.call("user.set", params)).toBe(true);
+      const id = await xo.createTempUser(SIMPLE_USER)
+      expect(await xo.call('user.set', params)).toBe(true)
       expect(await xo.getUser(id)).toMatchSnapshot({
         id: expect.any(String),
-      });
-    });
-  });
+      })
+    })
+  })
 
   // testing a scenario
-  test("create two users, modify a user email to be the same with the other and fail trying to connect them", () => {
+  test('create two users, modify a user email to be the same with the other and fail trying to connect them', () => {
     /* some tests */
-  });
+  })
+})
+```
 
-});
+- issues
+
+`src/issues/index.js`
+
+```js
+describe('issue', () => {
+  test('5454', () => {
+    /* some tests */
+  })
+})
 ```
 
 ### Best practices
 
 - The test environment must remain the same before and after each test:
-  * each resource created must be deleted
-  * existing resources should not be altered
+
+  - each resource created must be deleted
+  - existing resources should not be altered
 
 - Make a sentence for the title of the test. It must be clear and consistent.
 
@@ -64,46 +85,52 @@ describe("user", () => {
 
 - `_xoConnection.js` contains helpers to create temporary resources and to interface with XO.
   You can use it if you need to create resources which will be automatically deleted after the test:
-  ```javascript
-  import xo from "../_xoConnection";
 
-  describe(".create()", () => {
-    it("creates a user without permission", async () => {
+  ```javascript
+  import xo from '../_xoConnection'
+
+  describe('.create()', () => {
+    it('creates a user without permission', async () => {
       // The user will be deleted automatically at the end of the test
       const userId = await xo.createTempUser({
-        email: "wayne1@vates.fr",
-        password: "batman1",
-      });
+        email: 'wayne1@vates.fr',
+        password: 'batman1',
+      })
       expect(await xo.getUser(userId)).toMatchSnapshot({
         id: expect.any(String),
-      });
-    });
-  });
+      })
+    })
+  })
   ```
 
   The available helpers:
-  * `createTempUser(params)`
-  * `getUser(id)`
-  * `createTempJob(params)`
-  * `createTempBackupNgJob(params)`
-  * `createTempVm(params)`
-  * `getSchedule(predicate)`
+
+  - `createTempUser(params)`
+  - `getUser(id)`
+  - `createTempJob(params)`
+  - `createTempBackupNgJob(params)`
+  - `createTempVm(params)`
+  - `getSchedule(predicate)`
 
 ## Usage
 
 - Before running the tests, you have to create a config file for xo-server-test.
+
   ```
   > cp sample.config.toml ~/.config/xo-server-test/config.toml
   ```
+
   And complete it.
 
 - To run the tests:
+
   ```
   > npm ci
   > yarn test
   ```
 
   You get all the test suites passed (`PASS`) or failed (`FAIL`).
+
   ```
   > yarn test
   yarn run v1.9.4
@@ -122,15 +149,16 @@ describe("user", () => {
 
 - You can run only tests related to changed files, and review the failed output by using: `> yarn test --watch`
 
-- ⚠ Warning: snapshots ⚠  
-After each run of the tests, check that snapshots are not inadvertently modified.
+- ⚠ Warning: snapshots ⚠
+  After each run of the tests, check that snapshots are not inadvertently modified.
 
-- ⚠ Jest known issue ⚠  
-If a test timeout is triggered the next async tests can fail, it is due to an inadvertently modified snapshots.
+- ⚠ Jest known issue ⚠
+  If a test timeout is triggered the next async tests can fail, it's due to an inadvertently modified snapshots.
+  As a workaround, you can clean your git working tree and re-run jest using a large timeout: `> yarn test --testTimeout=100000`
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -141,4 +169,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

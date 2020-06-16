@@ -22,16 +22,15 @@ All your scheduled backup are acccessible in the "Restore" view in backup sectio
 
 ![](https://xen-orchestra.com/blog/content/images/2015/11/restore.png)
 
-
 ### Backup compression
 
 By default, Backup are compressed (using GZIP, done in XenServer side). There is no absolute rule about using compression or not, but there is some rules.
 
 Gzip compression is:
 
-* slow
-* space efficient
-* consume less bandwidth (if your NFS share is far)
+- slow
+- space efficient
+- consume less bandwidth (if your NFS share is far)
 
 If you have compression on your NFS share (or destination file-system like ZFS), you can disable compression in Xen Orchestra.
 

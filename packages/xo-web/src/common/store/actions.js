@@ -9,7 +9,7 @@ const createAction = (() => {
             payload: payloadCreator(...args),
           })
         : (action =>
-            function() {
+            function () {
               if (arguments.length) {
                 throw new Error('this action expects no payload!')
               }
@@ -30,6 +30,7 @@ export const selectLang = createAction('SELECT_LANG', lang => lang)
 export const connected = createAction('CONNECTED')
 export const disconnected = createAction('DISCONNECTED')
 
+export const markObjectsFetched = createAction('OBJECTS_FETCHED')
 export const updateObjects = createAction('UPDATE_OBJECTS', updates => updates)
 export const updatePermissions = createAction(
   'UPDATE_PERMISSIONS',
@@ -57,3 +58,16 @@ export const setHomeVmIdsSelection = createAction(
   'SET_HOME_VM_IDS_SELECTION',
   homeVmIdsSelection => homeVmIdsSelection
 )
+export const markHubResourceAsInstalling = createAction(
+  'MARK_HUB_RESOURCE_AS_INSTALLING',
+  id => id
+)
+export const markHubResourceAsInstalled = createAction(
+  'MARK_HUB_RESOURCE_AS_INSTALLED',
+  id => id
+)
+export const markRecipeAsCreating = createAction(
+  'MARK_RECIPE_AS_CREATING',
+  id => id
+)
+export const markRecipeAsDone = createAction('MARK_RECIPE_AS_DONE', id => id)

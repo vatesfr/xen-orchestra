@@ -1,6 +1,5 @@
 import forEachRight from 'lodash/forEachRight'
 import forEach from 'lodash/forEach'
-import isArray from 'lodash/isArray'
 import isIp from 'is-ip'
 import some from 'lodash/some'
 
@@ -44,8 +43,9 @@ function* range(ip1, ip2) {
   }
 
   for (let i = hex; i <= hex2; i++) {
-    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${i &
-      0xff}`
+    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${
+      i & 0xff
+    }`
   }
 }
 
@@ -76,7 +76,7 @@ export const getNextIpV4 = ip => {
 }
 
 export const formatIps = ips => {
-  if (!isArray(ips)) {
+  if (!Array.isArray(ips)) {
     throw new Error('ips must be an array')
   }
   if (ips.length === 0) {

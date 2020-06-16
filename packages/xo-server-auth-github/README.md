@@ -1,17 +1,15 @@
-# xo-server-auth-github [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xo-server-auth-github
 
 > GitHub authentication plugin for XO-Server
+
+## Usage
 
 This plugin allows GitHub users to authenticate to Xen-Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the
 same identifier.
-
-## Install
-
-For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
-
-## Usage
 
 > This plugin is based on [passport-github](https://github.com/jaredhanson/passport-github),
 > see [its documentation](https://github.com/jaredhanson/passport-github#configure-strategy)
@@ -22,31 +20,9 @@ the web interface, see [the plugin documentation](https://xen-orchestra.com/docs
 
 ![Registering XO instance in GitHub](github.png)
 
-## Development
-
-### Installing dependencies
-
-```
-> npm install
-```
-
-### Compilation
-
-The sources files are watched and automatically recompiled on changes.
-
-```
-> npm run dev
-```
-
-### Tests
-
-```
-> npm run test-dev
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -57,4 +33,4 @@ You may:
 
 ## License
 
-AGPL3 © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

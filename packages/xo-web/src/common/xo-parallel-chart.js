@@ -210,10 +210,7 @@ export default class XoParallelChart extends Component {
     forEach(columnsIds, (columnId, index) => {
       const max = d3.max(dataSet, elem => elem.data[columnId])
 
-      y[columnId] = d3
-        .scaleLinear()
-        .domain([0, max])
-        .range([CHART_HEIGHT, 0])
+      y[columnId] = d3.scaleLinear().domain([0, max]).range([CHART_HEIGHT, 0])
     })
 
     // 3. Build columns.

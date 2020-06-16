@@ -88,7 +88,7 @@ const XOSAN_COLUMNS = [
         )
       }
 
-      return license !== undefined ? (
+      return license !== undefined && license.productId === 'xosan' ? (
         license.id.slice(-4)
       ) : (
         <SelectLicense
@@ -144,9 +144,7 @@ export default class Xosan extends Component {
   _getKnownXosans = createSelector(
     createSelector(
       () => this.props.xosanLicenses,
-      () => this.props.xosanTrialLicenses,
-      (licenses = [], trialLicenses = []) =>
-        filter(map(licenses.concat(trialLicenses), 'boundObjectId'))
+      (licenses = []) => filter(map(licenses, 'boundObjectId'))
     ),
     () => this.props.xosanSrs,
     (knownXosanIds, xosanSrs) =>
@@ -159,6 +157,7 @@ export default class Xosan extends Component {
         collection={this._getKnownXosans()}
         columns={XOSAN_COLUMNS}
         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
+        stateUrlParam='s_xosan'
         userData={{
           availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),

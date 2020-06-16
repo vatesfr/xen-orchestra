@@ -28,14 +28,11 @@ import styles from './index.css'
     )
   )
 
-  const getMissingPatches = createSelector(
-    getPoolHosts,
-    hosts => {
-      return Promise.all(map(hosts, host => getHostMissingPatches(host))).then(
-        patches => uniq(map(flatten(patches), 'name'))
-      )
-    }
-  )
+  const getMissingPatches = createSelector(getPoolHosts, hosts => {
+    return Promise.all(
+      map(hosts, host => getHostMissingPatches(host))
+    ).then(patches => uniq(map(flatten(patches), 'name')))
+  })
 
   const getHostMetrics = createGetHostMetrics(getPoolHosts)
 

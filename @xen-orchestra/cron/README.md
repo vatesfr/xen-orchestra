@@ -1,4 +1,8 @@
-# @xen-orchestra/cron [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# @xen-orchestra/cron
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/cron)](https://npmjs.org/package/@xen-orchestra/cron) ![License](https://badgen.net/npm/license/@xen-orchestra/cron) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/cron)](https://bundlephobia.com/result?p=@xen-orchestra/cron) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/cron)](https://npmjs.org/package/@xen-orchestra/cron)
 
 > Focused, well maintained, cron parser/scheduler
 
@@ -10,12 +14,13 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/cron)
 > npm install --save @xen-orchestra/cron
 ```
 
+## Usage
+
 ### Pattern syntax
 
 ```
 <minute> <hour> <day of month> <month> <day of week>
 ```
-
 
 Each entry can be:
 
@@ -29,12 +34,12 @@ A wildcard (`*`) can be used as a shortcut for the whole range
 Step values can be used in conjunctions with ranges. For instance,
 `1-7/2` is the same as `1,3,5,7`.
 
-| Field            | Allowed values |
-|------------------|----------------|
-| minute           | 0-59           |
-| hour             | 0-23           |
-| day of the month | 1-31 or 3-letter names (`jan`, `feb`, …) |
-| month            | 0-11           |
+| Field            | Allowed values                                                     |
+| ---------------- | ------------------------------------------------------------------ |
+| minute           | 0-59                                                               |
+| hour             | 0-23                                                               |
+| day of the month | 1-31 or 3-letter names (`jan`, `feb`, …)                           |
+| month            | 0-11                                                               |
 | day of week      | 0-7 (0 and 7 both mean Sunday) or 3-letter names (`mon`, `tue`, …) |
 
 > Note: the month range is 0-11 to be compatible with
@@ -110,28 +115,9 @@ job.start()
 job.stop()
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
@@ -142,4 +128,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

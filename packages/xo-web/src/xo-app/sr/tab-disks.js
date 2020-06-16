@@ -6,18 +6,30 @@ import Component from 'base-component'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import Link from 'link'
+import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
 import PropTypes from 'prop-types'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import { concat, groupBy, isEmpty, map, mapValues, pick, some } from 'lodash'
 import {
+  concat,
+  every,
+  groupBy,
+  isEmpty,
+  map,
+  mapValues,
+  pick,
+  some,
+} from 'lodash'
+import {
+  createCollectionWrapper,
   createGetObjectsOfType,
   createSelector,
   getCheckPermissions,
@@ -33,7 +45,10 @@ import {
   exportVdi,
   importVdi,
   isVmRunning,
+  isSrShared,
+  migrateVdi,
 } from 'xo'
+import { error } from 'notification'
 
 // ===================================================================
 
@@ -79,10 +94,7 @@ const COLUMNS = [
       const getVbds = createGetObjectsOfType('VBD')
         .pick((_, props) => props.item.$VBDs)
         .sort()
-      const getVmIds = createSelector(
-        getVbds,
-        vbds => map(vbds, 'VM')
-      )
+      const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
       const getVmControllers = createGetObjectsOfType('VM-controller').pick(
         getVmIds
@@ -316,11 +328,56 @@ export default class SrDisks extends Component {
   _getIsVdiAttached = createSelector(
     createSelector(
       () => this.props.vbds,
-      () => map(this.props.vdis, 'id'),
+      createCollectionWrapper(() => map(this.props.vdis, 'id')),
       (vbds, vdis) => pick(groupBy(vbds, 'VDI'), vdis)
     ),
     vbdsByVdi => mapValues(vbdsByVdi, vbds => some(vbds, 'attached'))
   )
+
+  // the warning will be displayed if the SR is local
+  // or the VDIs contain at least one VBD.
+  _getGenerateWarningBeforeMigrate = createSelector(
+    createCollectionWrapper(_ => _),
+    vdis => sr =>
+      sr === undefined ||
+      isSrShared(sr) ||
+      every(vdis, _ => isEmpty(_.$VBDs)) ? null : (
+        <span className='text-warning'>
+          <Icon icon='alarm' /> {_('migrateVdiMessage')}
+        </span>
+      )
+  )
+
+  _migrateVdis = vdis =>
+    confirm({
+      title: _('vdiMigrate'),
+      body: (
+        <MigrateVdiModalBody
+          pool={this.props.sr.$pool}
+          warningBeforeMigrate={this._getGenerateWarningBeforeMigrate(vdis)}
+        />
+      ),
+    }).then(({ sr }) => {
+      if (sr === undefined) {
+        return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
+      }
+
+      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
+    }, noop)
+
+  _actions = [
+    {
+      disabled: vdis =>
+        some(
+          vdis,
+          ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'
+        ),
+      handler: this._migrateVdis,
+      icon: 'vdi-migrate',
+      individualLabel: _('vdiMigrate'),
+      label: _('migrateSelectedVdis'),
+    },
+  ]
 
   render() {
     const vdis = this._getAllVdis()
@@ -352,6 +409,7 @@ export default class SrDisks extends Component {
           <Col>
             {!isEmpty(vdis) ? (
               <SortedTable
+                actions={this._actions}
                 collection={vdis}
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}

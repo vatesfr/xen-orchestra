@@ -1,6 +1,8 @@
-# @xen-orchestra/log [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# @xen-orchestra/log
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/log)](https://npmjs.org/package/@xen-orchestra/log) ![License](https://badgen.net/npm/license/@xen-orchestra/log) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/log)](https://bundlephobia.com/result?p=@xen-orchestra/log) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/log)](https://npmjs.org/package/@xen-orchestra/log)
 
 ## Install
 
@@ -15,7 +17,7 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/log):
 Everywhere something should be logged:
 
 ```js
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('my-module')
 
@@ -42,6 +44,7 @@ log.error('could not join server', {
 Then, at application level, configure the logs are handled:
 
 ```js
+import { createLogger } from '@xen-orchestra/log'
 import { configure, catchGlobalErrors } from '@xen-orchestra/log/configure'
 import transportConsole from '@xen-orchestra/log/transports/console'
 import transportEmail from '@xen-orchestra/log/transports/email'
@@ -50,13 +53,10 @@ const transport = transportEmail({
   service: 'gmail',
   auth: {
     user: 'jane.smith@gmail.com',
-    pass: 'H&NbECcpXF|pyXe#%ZEb'
+    pass: 'H&NbECcpXF|pyXe#%ZEb',
   },
   from: 'jane.smith@gmail.com',
-  to: [
-    'jane.smith@gmail.com',
-    'sam.doe@yahoo.com'
-  ]
+  to: ['jane.smith@gmail.com', 'sam.doe@yahoo.com'],
 })
 
 configure([
@@ -66,19 +66,19 @@ configure([
     // matched against the namespace of the logs
     filter: process.env.DEBUG,
 
-    transport: transportConsole()
+    transport: transportConsole(),
   },
   {
     // only levels >= warn
     level: 'warn',
 
-    transport
-  }
+    transport,
+  },
 ])
 
 // send all global errors (uncaught exceptions, warnings, unhandled rejections)
-// to this transport
-catchGlobalErrors(transport)
+// to this logger
+catchGlobalErrors(createLogger('app'))
 ```
 
 ### Transports
@@ -104,18 +104,17 @@ Configuration:
 ```js
 import transportEmail from '@xen-orchestra/log/transports/email'
 
-configure(transportEmail({
-  service: 'gmail',
-  auth: {
-    user: 'jane.smith@gmail.com',
-    pass: 'H&NbECcpXF|pyXe#%ZEb'
-  },
-  from: 'jane.smith@gmail.com',
-  to: [
-    'jane.smith@gmail.com',
-    'sam.doe@yahoo.com'
-  ]
-}))
+configure(
+  transportEmail({
+    service: 'gmail',
+    auth: {
+      user: 'jane.smith@gmail.com',
+      pass: 'H&NbECcpXF|pyXe#%ZEb',
+    },
+    from: 'jane.smith@gmail.com',
+    to: ['jane.smith@gmail.com', 'sam.doe@yahoo.com'],
+  })
+)
 ```
 
 #### Syslog
@@ -138,36 +137,17 @@ configure(transportSyslog())
 configure(transportSyslog('tcp://syslog.company.lan'))
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
 
-- report any [issue](https://github.com/vatesfr/xo-web/issues/)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

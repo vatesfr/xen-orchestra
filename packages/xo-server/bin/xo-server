@@ -10,7 +10,11 @@ if (process.env.NODE_ENV === undefined) {
 }
 
 // Better stack traces if possible.
-require('../better-stacks')
+try {
+  require('source-map-support').install({
+    handleUncaughtExceptions: false
+  });
+} catch (_) {}
 
 // Use Bluebird for all promises as it provides better performance and
 // less memory usage.

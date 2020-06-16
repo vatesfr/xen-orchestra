@@ -51,9 +51,13 @@ const DATA_RENDERERS = {
             createPicker(
               (vm, vbds, vdis) => vdis,
               createSelector(
-                createFilter(createPicker((vm, vbds) => vbds, vm => vm.$VBDs), [
-                  vbd => !vbd.is_cd_drive && vbd.attached,
-                ]),
+                createFilter(
+                  createPicker(
+                    (vm, vbds) => vbds,
+                    vm => vm.$VBDs
+                  ),
+                  [vbd => !vbd.is_cd_drive && vbd.attached]
+                ),
                 vbds => map(vbds, vbd => vbd.VDI)
               )
             )
