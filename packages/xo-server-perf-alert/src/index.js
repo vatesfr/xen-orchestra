@@ -31,12 +31,8 @@ const VM_FUNCTIONS = {
           })
         },
         getDisplayableValue,
-        shouldAlarm: () => {
-          const value = getDisplayableValue()
-          return (
-            value === undefined || COMPARATOR_FN[comparator](value, threshold)
-          )
-        },
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -60,12 +56,8 @@ const VM_FUNCTIONS = {
           )
         },
         getDisplayableValue,
-        shouldAlarm: () => {
-          const value = getDisplayableValue()
-          return (
-            value === undefined || COMPARATOR_FN[comparator](value, threshold)
-          )
-        },
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -94,12 +86,8 @@ const HOST_FUNCTIONS = {
           })
         },
         getDisplayableValue,
-        shouldAlarm: () => {
-          const value = getDisplayableValue()
-          return (
-            value === undefined || COMPARATOR_FN[comparator](value, threshold)
-          )
-        },
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -123,12 +111,8 @@ const HOST_FUNCTIONS = {
           )
         },
         getDisplayableValue,
-        shouldAlarm: () => {
-          const value = getDisplayableValue()
-          return (
-            value === undefined || COMPARATOR_FN[comparator](value, threshold)
-          )
-        },
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -145,12 +129,8 @@ const SR_FUNCTIONS = {
         (sr.physical_utilisation * 100) / sr.physical_size
       return {
         getDisplayableValue,
-        shouldAlarm: () => {
-          const value = getDisplayableValue()
-          return (
-            value === undefined || COMPARATOR_FN[comparator](value, threshold)
-          )
-        },
+        shouldAlarm: () =>
+          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
       }
     },
   },
@@ -336,6 +316,27 @@ const clearCurrentAlarms = () =>
     delete currentAlarms[k]
   })
 
+const raiseOrLowerAlarm = (
+  alarmId,
+  shouldRaise,
+  raiseCallback,
+  lowerCallback
+) => {
+  const current = currentAlarms[alarmId]
+  if (shouldRaise) {
+    if (!current) {
+      currentAlarms[alarmId] = true
+      raiseCallback(alarmId)
+    }
+  } else if (current) {
+    try {
+      lowerCallback(alarmId)
+    } finally {
+      delete currentAlarms[alarmId]
+    }
+  }
+}
+
 async function getServerTimestamp(xapi, host) {
   const serverLocalTime = await xapi.call('host.get_servertime', host.$ref)
   return Math.floor(
@@ -369,27 +370,6 @@ class PerfAlertXoPlugin {
 
   unload() {
     this._job.stop()
-  }
-
-  // sample XenCenter message:
-  // value: 1.242087 config: <variable> <name value="mem_usage"/> </variable>
-  _createAlarm(monitor, entry) {
-    const { object, value } = entry
-    return this._xo
-      .getXapi(object.uuid)
-      .call(
-        'message.create',
-        'ALARM',
-        3,
-        object.$type,
-        object.uuid,
-        `value: ${value.toFixed(1)} config: <variable> <name value="${
-          monitor.variableName
-        }"/> </variable>`
-      )
-      .catch(error => {
-        console.warn(`Error on creating an alarm for ${object.uuid}`, error)
-      })
   }
 
   _generateUrl(type, object) {
@@ -597,62 +577,70 @@ ${monitorBodies.join('\n')}`
     const monitors = this._getMonitors()
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
+      for (const entry of snapshot) {
+        raiseOrLowerAlarm(
+          `${monitor.alarmId}|${entry.uuid}|RRD`,
+          entry.value === undefined,
+          () => {
+            this._sendAlertEmail(
+              'Secondary Issue',
+              `
+## There was an issue when trying to check ${monitor.title}
+${entry.listItem}`
+            )
+          },
+          () => {}
+        )
 
-      const entriesWithIssue = []
-      const entriesWithAlarmOn = []
-      const entriesWithAlarmOff = []
-
-      snapshot.forEach(entry => {
-        const alarmId = `${monitor.alarmId}|${entry.uuid}`
-        const isAlarmOn = currentAlarms[alarmId]
-        if (entry.shouldAlarm) {
-          if (!isAlarmOn) {
-            currentAlarms[alarmId] = true
-            if (entry.value === undefined) {
-              return entriesWithIssue.push(entry)
-            }
-            entriesWithAlarmOn.push(entry)
-            this._createAlarm(monitor, entry)
-          }
-          return
+        if (entry.value === undefined) {
+          continue
         }
 
-        if (isAlarmOn) {
-          entriesWithAlarmOff.push(entry)
+        const raiseAlarm = alarmId => {
+          // sample XenCenter message:
+          // value: 1.242087 config: <variable> <name value="mem_usage"/> </variable>
+          this._xo
+            .getXapi(entry.object.uuid)
+            .call(
+              'message.create',
+              'ALARM',
+              3,
+              entry.object.$type,
+              entry.object.uuid,
+              `value: ${entry.value.toFixed(
+                1
+              )} config: <variable> <name value="${
+                monitor.variableName
+              }"/> </variable>`
+            )
+          this._sendAlertEmail(
+            '',
+            `
+## ALERT: ${monitor.title}
+${entry.listItem}
+### Description
+  ${monitor.vmFunction.description}`
+          )
         }
-      })
 
-      const isEmptyEntriesAlarmOn = entriesWithAlarmOn.length === 0
-      const isEmptyEntriesAlarmOff = entriesWithAlarmOff.length === 0
-      const isEmptyEntriesWithIssue = entriesWithIssue.length === 0
-      if (
-        isEmptyEntriesWithIssue &&
-        isEmptyEntriesAlarmOn &&
-        isEmptyEntriesAlarmOff
-      ) {
-        return
-      }
+        const lowerAlarm = alarmId => {
+          this._sendAlertEmail(
+            'END OF ALERT',
+            `
+## END OF ALERT: ${monitor.title}
+${entry.listItem}
+### Description
+  ${monitor.vmFunction.description}`
+          )
+        }
 
-      const report = [monitor.vmFunction.description]
-      if (!isEmptyEntriesAlarmOn) {
-        report.push(
-          `## Resources exceeded the threshold`,
-          ...entriesWithAlarmOn.map(entry => entry.listItem)
+        raiseOrLowerAlarm(
+          `${monitor.alarmId}|${entry.uuid}`,
+          entry.shouldAlarm,
+          raiseAlarm,
+          lowerAlarm
         )
       }
-      if (!isEmptyEntriesAlarmOff) {
-        report.push(
-          `## End of alter for resources`,
-          ...entriesWithAlarmOn.map(entry => entry.listItem)
-        )
-      }
-      if (!isEmptyEntriesWithIssue) {
-        report.push(
-          `## Resources with an issue`,
-          ...isEmptyEntriesWithIssue.map(entry => entry.listItem)
-        )
-      }
-      this._sendAlertEmail(monitor.title, report.join('\n'))
     }
   }
 
