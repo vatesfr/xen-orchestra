@@ -1,11 +1,11 @@
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'unzipper'
+import { decorateWith } from '@vates/decorate-with'
 import { filter, find, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
 import { debounceWithKey } from '../../_pDebounceWithKey'
-import { decorateWith } from '../../_decorateWith'
 import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
 import { extractOpaqueRef, useUpdateSystem } from '../utils'

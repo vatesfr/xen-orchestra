@@ -541,6 +541,9 @@ export default class TabNetwork extends BaseComponent {
   _getIpsByDevice = createSelector(
     () => this.props.vm.addresses,
     addresses => {
+      if (addresses === null) {
+        return {}
+      }
       // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
       // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
       // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
