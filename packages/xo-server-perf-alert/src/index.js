@@ -55,11 +55,9 @@ const VM_FUNCTIONS = {
       return {
         parseRow: data => {
           const memory = data.values[memoryBytesLegend.index]
-          const usedMemory =
-            memoryKBytesFreeLegend !== undefined
-              ? memory - 1024 * data.values[memoryKBytesFreeLegend.index]
-              : 0
-          usedMemoryRatio.push(usedMemory / memory)
+          usedMemoryRatio.push(
+            (memory - 1024 * data.values[memoryKBytesFreeLegend.index]) / memory
+          )
         },
         getDisplayableValue,
         shouldAlarm: () => {
