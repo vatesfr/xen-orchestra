@@ -1,5 +1,5 @@
 import _ from 'intl'
-import Component from 'base-component'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
@@ -13,7 +13,6 @@ import {
   filter,
   flatMap,
   forEach,
-  isEqual,
   keyBy,
   map,
   omit,
@@ -33,6 +32,7 @@ import {
   subscribeSchedules,
 } from 'xo'
 import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
+import { injectState, provideState } from 'reaclette'
 
 const DETACHED_BACKUP_COLUMNS = [
   {
@@ -136,123 +136,126 @@ const ACTIONS = [
   },
 ]
 
-@addSubscriptions({
-  // used by createGetLoneSnapshots
-  schedules: cb =>
-    subscribeSchedules(schedules => {
-      cb(keyBy(schedules, 'id'))
+const Health = decorate([
+  addSubscriptions({
+    // used by createGetLoneSnapshots
+    schedules: cb =>
+      subscribeSchedules(schedules => {
+        cb(keyBy(schedules, 'id'))
+      }),
+    jobs: cb =>
+      subscribeBackupNgJobs(jobs => {
+        cb(keyBy(jobs, 'id'))
+      }),
+    remotes: subscribeRemotes,
+  }),
+  connectStore({
+    loneSnapshots: createGetLoneSnapshots,
+    legacySnapshots: createGetObjectsOfType('VM-snapshot').filter([
+      (() => {
+        const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
+        return (
+          { name_label } // eslint-disable-line camelcase
+        ) => RE.test(name_label)
+      })(),
+    ]),
+    vms: createGetObjectsOfType('VM'),
+  }),
+  provideState({
+    initialState: () => ({
+      backupsAfterDelete: undefined,
     }),
-  jobs: cb =>
-    subscribeBackupNgJobs(jobs => {
-      cb(keyBy(jobs, 'id'))
-    }),
-  remotes: subscribeRemotes,
-})
-@connectStore({
-  loneSnapshots: createGetLoneSnapshots,
-  legacySnapshots: createGetObjectsOfType('VM-snapshot').filter([
-    (() => {
-      const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
-      return (
-        { name_label } // eslint-disable-line camelcase
-      ) => RE.test(name_label)
-    })(),
-  ]),
-  vms: createGetObjectsOfType('VM'),
-})
-export default class Health extends Component {
-  componentDidUpdate(prevProps) {
-    const { jobs, vms, remotes, schedules } = this.props
-    if (
-      !isEqual(
-        map(prevProps.remotes, 'id').sort(),
-        map(remotes, 'id').sort()
-      ) ||
-      !isEqual(map(prevProps.vms, 'id').sort(), map(vms, 'id').sort()) ||
-      !isEqual(map(prevProps.jobs, 'id').sort(), map(jobs, 'id').sort()) ||
-      !isEqual(
-        map(prevProps.schedules, 'id').sort(),
-        map(schedules, 'id').sort()
-      )
-    ) {
-      this._setDetachedBackups()
-    }
-  }
-
-  _deleteBackups = backups => {
-    const nBackups = backups.length
-    return confirm({
-      title: _('deleteBackups', { nBackups }),
-      body: _('deleteBackupsMessage', { nBackups }),
-      icon: 'delete',
-    })
-      .then(() => deleteBackups(backups), noop)
-      .then(this._setDetachedBackups)
-  }
-
-  _detachedBackupActions = [
-    {
-      handler: this._deleteBackups,
-      icon: 'delete',
-      label: backups => _('deleteBackups', { nBackups: backups.length }),
-      level: 'danger',
+    effects: {
+      async fetchBackupsAfterDelete() {
+        this.state.backupsAfterDelete = await listVmBackups(
+          toArray(this.props.remotes)
+        )
+      },
+      deleteBackups: ({ fetchBackupsAfterDelete }, backups) => {
+        const nBackups = backups.length
+        return confirm({
+          title: _('deleteBackups', { nBackups }),
+          body: _('deleteBackupsMessage', { nBackups }),
+          icon: 'delete',
+        })
+          .then(() => deleteBackups(backups))
+          .then(fetchBackupsAfterDelete, noop)
+      },
     },
-  ]
-
-  _getDetachedBackups = async () => {
-    const { jobs, vms, remotes, schedules } = this.props
-    const backupsByRemote = await listVmBackups(toArray(remotes))
-    const detachedBackups = []
-    forEach(backupsByRemote, backups => {
-      detachedBackups.push(
-        ...flatMap(backups, (vmBackups, vmId) => {
-          if (vms[vmId] === undefined) {
-            return map(vmBackups, backup => ({
-              ...backup,
-              vmId,
-              reason: _('missingVm'),
-            }))
-          }
-
-          return compact(
-            map(vmBackups, backup => {
-              const job = jobs[backup.jobId]
-              let reason
-              if (job === undefined) {
-                reason = _('missingJob')
-              } else if (schedules[backup.scheduleId] === undefined) {
-                reason = _('missingSchedule')
-              } else {
-                const filtredVmIds = filter(
-                  vms,
-                  createPredicate(omit(job.vms, 'power_state'))
-                ).map(_ => _.id)
-                if (filtredVmIds.length === 0 || !filtredVmIds.includes(vmId)) {
-                  reason = _('missingVmInJob')
-                }
-              }
-              return (
-                reason !== undefined && {
+    computed: {
+      _backupsByRemote: async (_, { remotes }) =>
+        await listVmBackups(toArray(remotes)),
+      backupsByRemote: ({ _backupsByRemote, backupsAfterDelete }) =>
+        backupsAfterDelete === undefined
+          ? _backupsByRemote
+          : backupsAfterDelete,
+      detachedBackups: ({ backupsByRemote }, { jobs, vms, schedules }) => {
+        const detachedBackups = []
+        forEach(backupsByRemote, backupsByVm => {
+          detachedBackups.push(
+            ...flatMap(backupsByVm, (vmBackups, vmId) => {
+              if (vms[vmId] === undefined) {
+                return map(vmBackups, backup => ({
                   ...backup,
                   vmId,
-                  reason,
-                }
+                  reason: _('missingVm'),
+                }))
+              }
+
+              return compact(
+                map(vmBackups, backup => {
+                  const job = jobs[backup.jobId]
+                  let reason
+                  if (job === undefined) {
+                    reason = _('missingJob')
+                  } else if (schedules[backup.scheduleId] === undefined) {
+                    reason = _('missingSchedule')
+                  } else {
+                    const filtredVmIds = filter(
+                      vms,
+                      createPredicate(omit(job.vms, 'power_state'))
+                    ).map(_ => _.id)
+                    if (
+                      filtredVmIds.length === 0 ||
+                      !filtredVmIds.includes(vmId)
+                    ) {
+                      reason = _('missingVmInJob')
+                    }
+                  }
+                  return (
+                    reason !== undefined && {
+                      ...backup,
+                      vmId,
+                      reason,
+                    }
+                  )
+                })
               )
             })
           )
         })
-      )
-    })
-    return detachedBackups
-  }
+        return detachedBackups
+      },
+    },
+  }),
+  injectState,
+  ({
+    effects,
+    jobs,
+    legacySnapshots,
+    loneSnapshots,
+    vms,
+    state: { detachedBackups },
+  }) => {
+    const detachedBackupActions = [
+      {
+        handler: effects.deleteBackups,
+        icon: 'delete',
+        label: backups => _('deleteBackups', { nBackups: backups.length }),
+        level: 'danger',
+      },
+    ]
 
-  _setDetachedBackups = () => {
-    this._getDetachedBackups().then(detachedBackups => {
-      this.setState({ detachedBackups })
-    })
-  }
-
-  render() {
     return (
       <Container>
         <Row className='detached-backups'>
@@ -263,12 +266,12 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  actions={this._detachedBackupActions}
-                  collection={this.state.detachedBackups}
+                  actions={detachedBackupActions}
+                  collection={detachedBackups}
                   columns={DETACHED_BACKUP_COLUMNS}
                   component={SortedTable}
-                  data-jobs={this.props.jobs}
-                  data-vms={this.props.vms}
+                  data-jobs={jobs}
+                  data-vms={vms}
                   emptyMessage={_('noDetachedBackups')}
                   shortcutsTarget='.detached-backups'
                   stateUrlParam='s_detached_backups'
@@ -286,10 +289,10 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   actions={ACTIONS}
-                  collection={this.props.loneSnapshots}
+                  collection={loneSnapshots}
                   columns={SNAPSHOT_COLUMNS}
                   component={SortedTable}
-                  data-vms={this.props.vms}
+                  data-vms={vms}
                   emptyMessage={_('noSnapshots')}
                   shortcutsTarget='.lone-snapshots'
                   stateUrlParam='s_vm_snapshots'
@@ -307,10 +310,10 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   actions={ACTIONS}
-                  collection={this.props.legacySnapshots}
+                  collection={legacySnapshots}
                   columns={SNAPSHOT_COLUMNS}
                   component={SortedTable}
-                  data-vms={this.props.vms}
+                  data-vms={vms}
                   emptyMessage={_('noSnapshots')}
                   shortcutsTarget='.legacy-snapshots'
                   stateUrlParam='s_legacy_vm_snapshots'
@@ -321,5 +324,7 @@ export default class Health extends Component {
         </Row>
       </Container>
     )
-  }
-}
+  },
+])
+
+export default Health
