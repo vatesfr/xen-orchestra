@@ -649,6 +649,7 @@ ${entry.listItem}
       raiseOrLowerAlarm(
         `${monitor.alarmId}|${entriesWithMissingStats
           .map(({ uuid }) => uuid)
+          .sort()
           .join('|')}|RRD`,
         entriesWithMissingStats.length !== 0,
         () => {
