@@ -182,18 +182,6 @@ export default class ActionButton extends Component {
       </Button>
     )
 
-    return tooltip ? (
-      <Tooltip content={tooltip}>
-        {props.disabled ? (
-          // tooltip not showing up on disabled button
-          // https://github.com/vatesfr/xen-orchestra/commit/b13f91ec8dce7d9cb056ce7e33b9f588fa07b994
-          <span>{button}</span>
-        ) : (
-          button
-        )}
-      </Tooltip>
-    ) : (
-      button
-    )
+    return tooltip ? <Tooltip content={tooltip}>{button}</Tooltip> : button
   }
 }
