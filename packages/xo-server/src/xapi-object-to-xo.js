@@ -58,7 +58,7 @@ function toTimestamp(date) {
   return ms === 0 ? null : Math.round(ms / 1000)
 }
 
-// https://github.com/xenserver/xenadmin/blob/093ab0bcd6c4b3dd69da7b1e63ef34bb807c1ddb/XenModel/XenAPI-Extensions/VM.cs#L773
+// https://github.com/xenserver/xenadmin/blob/093ab0bcd6c4b3dd69da7b1e63ef34bb807c1ddb/XenModel/XenAPI-Extensions/VM.cs#L773-L827
 const getVmGuestToolsProps = vm => {
   const { $metrics: metrics, $guest_metrics: guestMetrics } = vm
   if (!isVmRunning(vm) || metrics === undefined || guestMetrics === undefined) {
