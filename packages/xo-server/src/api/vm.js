@@ -668,6 +668,8 @@ set.params = {
   hvmBootFirmware: { type: ['string', 'null'], optional: true },
 
   virtualizationMode: { type: 'string', optional: true },
+
+  blockedOperations: { type: 'object', optional: true },
 }
 
 set.resolve = {
