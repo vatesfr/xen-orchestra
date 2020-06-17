@@ -56,19 +56,19 @@ const DEFAULT_BLOCKED_LIST = {
 
 const LAST_ID = 'lastId'
 
-// Db {
-//   lastId: String,
-//   [record ID]: {
-//     data?: Object,
-//     event: String,
-//     previousId: String,
+// interface Db {
+//   lastId: string
+//   [RecordId: string]: {
+//     data: object
+//     event: string
+//     id: strings
+//     previousId: string
 //     subject: {
-//       userId?: String,
-//       userIp?: String,
-//       userName?: String,
-//     },
-//     time: Number,
-//     id: string
+//       userId: string
+//       userIp: string
+//       userName: string
+//     }
+//     time: number
 //   }
 // }
 class Db extends Storage {
