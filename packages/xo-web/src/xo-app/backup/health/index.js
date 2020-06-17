@@ -244,8 +244,8 @@ const Health = decorate([
     jobs,
     legacySnapshots,
     loneSnapshots,
-    vms,
     state: { detachedBackups },
+    vms,
   }) => {
     const detachedBackupActions = [
       {
