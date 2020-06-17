@@ -77,6 +77,7 @@ const messages = {
   withMemory: 'With memory',
   offline: 'Offline',
   noLicenseAvailable: 'No license available',
+  emailPlaceholderExample: 'Email address, e.g.: it@company.net',
 
   // ----- Modals -----
   alertOk: 'OK',
