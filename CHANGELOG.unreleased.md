@@ -9,6 +9,7 @@
 
 - [VM/Network] Show IP addresses in front of their VIFs [#4882](https://github.com/vatesfr/xen-orchestra/issues/4882) (PR [#5003](https://github.com/vatesfr/xen-orchestra/pull/5003))
 - [VM] Ability to protect VM from accidental deletion [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
+- [Plugin] Disable test plugin action when the plugin is not loaded (PR [#5038](https://github.com/vatesfr/xen-orchestra/pull/5038))
 
 ### Bug fixes
 
