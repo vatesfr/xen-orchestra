@@ -67,7 +67,7 @@ const identity = value => value
 
 // save current stack trace and add it to any rejected error
 //
-// This is especially useful when the resolution is separate of the initial
+// This is especially useful when the resolution is separate from the initial
 // call, which is often the case with RPC libs.
 //
 // There is a perf impact and it should be avoided in production.
