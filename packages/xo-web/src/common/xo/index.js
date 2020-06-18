@@ -1140,47 +1140,33 @@ export const restartVms = (vms, force = false) =>
     noop
   )
 
-export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) =>
+export const cloneVm = (
+  { id, name_label: nameLabel },
+  fullCopy = false,
+  name
+) =>
   _call('vm.clone', {
     id,
-    name: `${nameLabel}_clone`,
+    name: name === undefined ? `${nameLabel}_clone` : name,
     full_copy: fullCopy,
   })::tap(subscribeResourceSets.forceRefresh)
 
-const _copyVm = ({ vm, sr, name, compress }) =>
-  _call('vm.copy', {
-    vm: resolveId(vm),
-    sr,
-    name: name || vm.name_label + '_COPY',
-    compress,
-  })
-
-import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
-export const copyVm = vm =>
-  confirm({
-    title: _('copyVm'),
-    body: <CopyVmModalBody vm={vm} />,
-  }).then(params => {
-    if (params.copyMode === 'fullCopy') {
-      if (!params.sr) {
-        error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
-        return
-      }
-      return _copyVm({ vm, ...params })
-    }
-    return cloneVm({ id: vm.id, name_label: params.name })
-  }, noop)
-
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
-export const copyVms = vms => {
+export const copyVms = (vms, type) => {
   const _vms = resolveIds(vms)
   return confirm({
-    title: _('copyVm'),
-    body: <CopyVmsModalBody vms={_vms} />,
-  }).then(({ compress, names, sr }) => {
+    title: type === 'VM-template' ? _('copyTemplate') : _('copyVm'),
+    body: <CopyVmsModalBody vms={_vms} type={type} />,
+  }).then(({ compress, copyMode, names, sr }) => {
+    if (copyMode === 'fastClone') {
+      return Promise.all(
+        _vms.map((vm, index) => cloneVm({ id: vm }, false, names[index]))
+      )
+    }
+
     if (sr !== undefined) {
       return Promise.all(
-        map(_vms, (vm, index) =>
+        _vms.map((vm, index) =>
           _call('vm.copy', { vm, sr, compress, name: names[index] })
         )
       )
@@ -1188,6 +1174,8 @@ export const copyVms = vms => {
     error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
   }, noop)
 }
+
+export const copyVm = vm => copyVms([vm])
 
 export const convertVmToTemplate = vm =>
   confirm({
