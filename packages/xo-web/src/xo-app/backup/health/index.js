@@ -188,7 +188,7 @@ const Health = decorate([
         forEach(backupsByRemote, backupsByVm => {
           forEach(backupsByVm, (vmBackups, vmId) => {
             const vm = vms[vmId]
-            forEach(vmBackups, backup => {
+            vmBackups.forEach(backup => {
               const reason =
                 vm === undefined
                   ? _('missingVm', { name: backup.vm.name_label })
