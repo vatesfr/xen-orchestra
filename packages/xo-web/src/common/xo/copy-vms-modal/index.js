@@ -55,11 +55,11 @@ class CopyVmsModalBody extends BaseComponent {
       ? map(
           resolvedVms,
           compileTemplate(namePattern, {
-            '{name}': (vm) => vm.name_label,
-            '{id}': (vm) => vm.id,
+            '{name}': vm => vm.name_label,
+            '{id}': vm => vm.id,
           })
         )
-      : map(resolvedVms, (vm) => vm.name_label)
+      : map(resolvedVms, vm => vm.name_label)
 
     return {
       compression: compression === 'zstd' ? 'zstd' : compression === 'native',
@@ -77,8 +77,8 @@ class CopyVmsModalBody extends BaseComponent {
     })
   }
 
-  _onChangeSr = (sr) => this.setState({ sr })
-  _onChangeNamePattern = (event) =>
+  _onChangeSr = sr => this.setState({ sr })
+  _onChangeNamePattern = event =>
     this.setState({ namePattern: event.target.value })
 
   render() {
