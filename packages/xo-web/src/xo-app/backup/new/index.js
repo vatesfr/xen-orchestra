@@ -104,8 +104,9 @@ const ReportRecipients = decorate([
       disabledAddButton: ({ recipient }) => recipient === '',
     },
   }),
+  injectIntl,
   injectState,
-  ({ effects, recipients, remove, state }) => (
+  ({ effects, intl: { formatMessage }, recipients, remove, state }) => (
     <div>
       <FormGroup>
         <label htmlFor={state.inputId}>
@@ -117,6 +118,8 @@ const ReportRecipients = decorate([
             name='recipient'
             onChange={effects.linkState}
             onKeyDown={effects.onKeyDown}
+            placeholder={formatMessage(messages.emailPlaceholderExample)}
+            type='email'
             value={state.recipient}
           />
           <span className='input-group-btn'>
