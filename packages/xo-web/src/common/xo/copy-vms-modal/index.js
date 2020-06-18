@@ -25,7 +25,7 @@ import {
     const getVms = createGetObjectsOfType((_, props) => props.type).pick(
       (_, props) => props.vms
     )
-    // To remove 'Zstd' posibility if it not supported when copying a VM.
+    // To remove 'Zstd' option if it's not supported when copying one VM.
     const getIsZstdSupported = createSelector(
       createGetObject(
         createSelector(getVms, (vms) =>
