@@ -3430,7 +3430,7 @@ export default {
   vmsToBackup: "Yedeklenecek VM'ler",
 
   // Original text: "Refresh backup list"
-  restoreResfreshList: 'Yedek listesini yenile',
+  refreshBackupList: 'Yedek listesini yenile',
 
   // Original text: "Restore"
   restoreVmBackups: 'Geri yükle',

@@ -4030,7 +4030,7 @@ export default {
   vmsToBackup: 'VMs per il backup',
 
   // Original text: 'Refresh backup list'
-  restoreResfreshList: "Aggiorna l'elenco di backup",
+  refreshBackupList: "Aggiorna l'elenco di backup",
 
   // Original text: 'Legacy restore'
   restoreLegacy: 'Ripristino legacy',

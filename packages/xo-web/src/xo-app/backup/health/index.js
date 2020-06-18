@@ -1,4 +1,6 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
+import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import Link from 'link'
@@ -8,20 +10,14 @@ import renderXoItem, { Vm } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
-import {
-  compact,
-  filter,
-  flatMap,
-  forEach,
-  keyBy,
-  map,
-  omit,
-  toArray,
-} from 'lodash'
 import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
 import { createPredicate } from 'value-matcher'
 import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
+import { forEach, keyBy, omit, toArray } from 'lodash'
+import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
+import { get } from '@xen-orchestra/defined'
+import { injectState, provideState } from 'reaclette'
 import {
   deleteBackups,
   deleteSnapshot,
@@ -31,8 +27,6 @@ import {
   subscribeRemotes,
   subscribeSchedules,
 } from 'xo'
-import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
-import { injectState, provideState } from 'reaclette'
 
 const DETACHED_BACKUP_COLUMNS = [
   {
@@ -54,28 +48,25 @@ const DETACHED_BACKUP_COLUMNS = [
   {
     name: _('vm'),
     itemRenderer: ({ vmId }) => <Vm id={vmId} link />,
-    sortCriteria: ({ vmId }, { vms }) => {
-      const vm = vms[vmId]
-      return vm !== undefined && vm.name_label
-    },
+    sortCriteria: ({ vmId }, { vms }) => get(() => vms[vmId].name_label),
   },
   {
     name: _('job'),
     itemRenderer: ({ jobId }, { jobs }) => {
       const job = jobs[jobId]
-      return job === undefined ? null : (
+      return job === undefined ? (
+        <Copiable data={jobId} tagName='p'>
+          {jobId.slice(4, 8)}
+        </Copiable>
+      ) : (
         <Link to={`/backup/overview?s=id:${jobId}`}>{job.name}</Link>
       )
     },
-    sortCriteria: ({ jobId }, { jobs }) => {
-      const job = jobs[jobId]
-      return job !== undefined && job.name
-    },
+    sortCriteria: ({ jobId }, { jobs }) => get(() => jobs[jobId].name),
   },
   {
     name: _('jobModes'),
-    itemRenderer: ({ mode }) => mode,
-    sortCriteria: 'mode',
+    valuePath: 'mode',
   },
   {
     name: _('reason'),
@@ -163,15 +154,15 @@ const Health = decorate([
   }),
   provideState({
     initialState: () => ({
-      backupsAfterDelete: undefined,
+      backupsListRefreshed: undefined,
     }),
     effects: {
-      async fetchBackupsAfterDelete() {
-        this.state.backupsAfterDelete = await listVmBackups(
+      async refreshBackupList() {
+        this.state.backupsListRefreshed = await listVmBackups(
           toArray(this.props.remotes)
         )
       },
-      deleteBackups: ({ fetchBackupsAfterDelete }, backups) => {
+      deleteBackups: ({ refreshBackupList }, backups) => {
         const nBackups = backups.length
         return confirm({
           title: _('deleteBackups', { nBackups }),
@@ -179,60 +170,45 @@ const Health = decorate([
           icon: 'delete',
         })
           .then(() => deleteBackups(backups))
-          .then(fetchBackupsAfterDelete, noop)
+          .then(refreshBackupList, noop)
       },
     },
     computed: {
-      _backupsByRemote: async (_, { remotes }) =>
+      backupsByRemote: ({ backupsList, backupsListRefreshed }) =>
+        backupsListRefreshed === undefined ? backupsList : backupsListRefreshed,
+      backupsList: async (_, { remotes }) =>
         await listVmBackups(toArray(remotes)),
-      backupsByRemote: ({ _backupsByRemote, backupsAfterDelete }) =>
-        backupsAfterDelete === undefined
-          ? _backupsByRemote
-          : backupsAfterDelete,
       detachedBackups: ({ backupsByRemote }, { jobs, vms, schedules }) => {
+        if (jobs === undefined || schedules === undefined) {
+          return []
+        }
+
         const detachedBackups = []
+        let job
         forEach(backupsByRemote, backupsByVm => {
-          detachedBackups.push(
-            ...flatMap(backupsByVm, (vmBackups, vmId) => {
-              if (vms[vmId] === undefined) {
-                return map(vmBackups, backup => ({
+          forEach(backupsByVm, (vmBackups, vmId) => {
+            const vm = vms[vmId]
+            forEach(vmBackups, backup => {
+              const reason =
+                vm === undefined
+                  ? _('missingVm', { name: backup.vm.name_label })
+                  : (job = jobs[backup.jobId]) === undefined
+                  ? _('missingJob')
+                  : schedules[backup.scheduleId] === undefined
+                  ? _('missingSchedule')
+                  : !createPredicate(omit(job.vms, 'power_state'))(vm)
+                  ? _('missingVmInJob')
+                  : undefined
+
+              if (reason !== undefined) {
+                detachedBackups.push({
                   ...backup,
                   vmId,
-                  reason: _('missingVm'),
-                }))
-              }
-
-              return compact(
-                map(vmBackups, backup => {
-                  const job = jobs[backup.jobId]
-                  let reason
-                  if (job === undefined) {
-                    reason = _('missingJob')
-                  } else if (schedules[backup.scheduleId] === undefined) {
-                    reason = _('missingSchedule')
-                  } else {
-                    const filtredVmIds = filter(
-                      vms,
-                      createPredicate(omit(job.vms, 'power_state'))
-                    ).map(_ => _.id)
-                    if (
-                      filtredVmIds.length === 0 ||
-                      !filtredVmIds.includes(vmId)
-                    ) {
-                      reason = _('missingVmInJob')
-                    }
-                  }
-                  return (
-                    reason !== undefined && {
-                      ...backup,
-                      vmId,
-                      reason,
-                    }
-                  )
+                  reason,
                 })
-              )
+              }
             })
-          )
+          })
         })
         return detachedBackups
       },
@@ -265,6 +241,15 @@ const Health = decorate([
                 <Icon icon='backup' /> {_('detachedBackups')}
               </CardHeader>
               <CardBlock>
+                <div className='mt-1 mb-1'>
+                  <ActionButton
+                    btnStyle='primary'
+                    handler={effects.refreshBackupList}
+                    icon='refresh'
+                  >
+                    {_('refreshBackupList')}
+                  </ActionButton>
+                </div>
                 <NoObjects
                   actions={detachedBackupActions}
                   collection={detachedBackups}
