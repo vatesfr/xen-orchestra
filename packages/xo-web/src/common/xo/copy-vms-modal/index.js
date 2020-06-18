@@ -28,11 +28,11 @@ import {
     // To remove 'Zstd' option if it's not supported when copying one VM.
     const getIsZstdSupported = createSelector(
       createGetObject(
-        createSelector(getVms, (vms) =>
+        createSelector(getVms, vms =>
           vms.length === 1 ? Object.values(vms)[0].$container : undefined
         )
       ),
-      (container) => container === undefined || container.zstdSupported
+      container => container === undefined || container.zstdSupported
     )
 
     return {
