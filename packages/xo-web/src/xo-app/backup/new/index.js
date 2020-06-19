@@ -1113,6 +1113,16 @@ export default decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
+                          <Tooltip content={_('clickForMoreInformation')}>
+                            <a
+                              className='text-info'
+                              href='https://xen-orchestra.com/docs/delta_backups.html#full-backup-interval'
+                              rel='noopener noreferrer'
+                              target='_blank'
+                            >
+                              <Icon icon='info' />
+                            </a>
+                          </Tooltip>
                           <Number
                             id={state.inputFullIntervalId}
                             onChange={effects.setFullInterval}
