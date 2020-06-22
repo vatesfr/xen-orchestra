@@ -67,7 +67,6 @@ const getVmGuestToolsProps = vm => {
 
   const { major, minor } = guestMetrics.PV_drivers_version
   const hasPvVersion = major !== undefined && minor !== undefined
-  const pvDriversVersion = hasPvVersion ? `${major}.${minor}` : undefined
 
   // "PV_drivers_detected" field doesn't exist on XS < 7
   const pvDriversDetected = guestMetrics.PV_drivers_detected ?? hasPvVersion
@@ -77,7 +76,7 @@ const getVmGuestToolsProps = vm => {
     managementAgentDetected:
       hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
     pvDriversDetected,
-    pvDriversVersion,
+    pvDriversVersion: hasPvVersion ? `${major}.${minor}` : undefined,
     pvDriversUpToDate: pvDriversDetected
       ? guestMetrics.PV_drivers_up_to_date
       : undefined,
