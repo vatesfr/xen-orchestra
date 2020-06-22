@@ -60,6 +60,7 @@ const GuestToolsDetection = ({ vm }) => {
 
   const version =
     get(() => vm.pvDriversVersion.split('.')[0]) > 0 ? vm.pvDriversVersion : ''
+
   if (!vm.pvDriversUpToDate) {
     return (
       <Row className='text-xs-center'>
