@@ -69,7 +69,7 @@ const getVmGuestToolsProps = vm => {
   const hasPvVersion = major !== undefined && minor !== undefined
   const pvDriversVersion = hasPvVersion ? +`${major}.${minor}` : undefined
 
-  // "PV_drivers_detected" field don't exists on XS < 7
+  // "PV_drivers_detected" field doesn't exist on XS < 7
   const pvDriversDetected = guestMetrics.PV_drivers_detected ?? hasPvVersion
 
   return {
