@@ -56,5 +56,9 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

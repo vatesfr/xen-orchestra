@@ -92,5 +92,9 @@
     "prepublishOnly": "yarn run build",
     "preuninstall": "./scripts/systemd-service-installer",
     "start": "./dist/index.js"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

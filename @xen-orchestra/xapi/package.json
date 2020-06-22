@@ -8,10 +8,6 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@vates.fr"
-  },
   "main": "dist/",
   "files": [
     "dist/"
@@ -49,5 +45,9 @@
     "promise-toolbox": "^0.15.0"
   },
   "private": false,
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
 }

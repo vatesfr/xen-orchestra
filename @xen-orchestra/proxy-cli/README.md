@@ -1,8 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/proxy-cli [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/proxy-cli
 
-[![Package Version](https://badgen.net/npm/v/@xen-orchestra/proxy-cli)](https://npmjs.org/package/@xen-orchestra/proxy-cli) ![License](https://badgen.net/npm/license/@xen-orchestra/proxy-cli) [![PackagePhobia](https://badgen.net/packagephobia/install/@xen-orchestra/proxy-cli)](https://packagephobia.now.sh/result?p=@xen-orchestra/proxy-cli)
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/proxy-cli)](https://npmjs.org/package/@xen-orchestra/proxy-cli) ![License](https://badgen.net/npm/license/@xen-orchestra/proxy-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/proxy-cli)](https://bundlephobia.com/result?p=@xen-orchestra/proxy-cli) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/proxy-cli)](https://npmjs.org/package/@xen-orchestra/proxy-cli)
 
 ## Install
 
