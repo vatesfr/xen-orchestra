@@ -929,11 +929,7 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('managementAgentVersion')}</th>
-                  <td>
-                    {vm.pvDriversVersion !== undefined
-                      ? String(vm.pvDriversVersion)
-                      : _('unknown')}
-                  </td>
+                  <td>{defined(vm.pvDriversVersion, _('unknown'))}</td>
                 </tr>
                 <tr>
                   <th>{_('osName')}</th>

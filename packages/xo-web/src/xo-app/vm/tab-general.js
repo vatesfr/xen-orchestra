@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Copiable from 'copiable'
-import defined from '@xen-orchestra/defined'
+import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -58,6 +58,8 @@ const GuestToolsDetection = ({ vm }) => {
     )
   }
 
+  const version =
+    get(() => vm.pvDriversVersion.split('.')[0]) > 0 ? vm.pvDriversVersion : ''
   if (!vm.pvDriversUpToDate) {
     return (
       <Row className='text-xs-center'>
@@ -65,8 +67,7 @@ const GuestToolsDetection = ({ vm }) => {
           <Icon color='text-warning' icon='alarm' />{' '}
           <em>
             {_('managementAgentOutOfDate', {
-              version:
-                vm.pvDriversVersion > 0 ? String(vm.pvDriversVersion) : '',
+              version,
             })}
           </em>
         </Col>
@@ -79,7 +80,7 @@ const GuestToolsDetection = ({ vm }) => {
       <Col>
         <em>
           {_('managementAgentDetected', {
-            version: vm.pvDriversVersion > 0 ? String(vm.pvDriversVersion) : '',
+            version,
           })}
         </em>
       </Col>
