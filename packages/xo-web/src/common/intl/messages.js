@@ -77,6 +77,7 @@ const messages = {
   withMemory: 'With memory',
   offline: 'Offline',
   noLicenseAvailable: 'No license available',
+  emailPlaceholderExample: 'Email address, e.g.: it@company.net',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -697,6 +698,7 @@ const messages = {
   pluginConfigurationPresetTitle: 'Predefined configuration',
   pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
   applyPluginPreset: 'Apply',
+  disabledTestPluginTootltip: 'This plugin is not loaded',
 
   // ----- User preferences -----
   saveNewUserFilterErrorTitle: 'Save filter error',
@@ -1191,6 +1193,7 @@ const messages = {
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
+  protectFromDeletion: 'Protect from accidental deletion',
   ha: 'HA',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
@@ -1785,7 +1788,6 @@ const messages = {
   // ----- Copy VM -----
   copyVm: 'Copy VM',
   copyVmName: 'Name',
-  copyVmNamePlaceholder: 'If empty: name of the copied VM',
   copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
@@ -1795,6 +1797,7 @@ const messages = {
   notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
+  copyTemplate: 'Copy template',
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',
