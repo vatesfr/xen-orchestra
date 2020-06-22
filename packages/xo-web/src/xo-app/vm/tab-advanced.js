@@ -737,6 +737,19 @@ export default class TabAdvanced extends Component {
                   </td>
                 </tr>
                 <tr>
+                  <th>{_('protectFromDeletion')}</th>
+                  <td>
+                    <Toggle
+                      value={'destroy' in vm.blockedOperations}
+                      onChange={blockDeletion =>
+                        editVm(vm, {
+                          blockedOperations: { destroy: blockDeletion },
+                        })
+                      }
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('windowsUpdateTools')}</th>
                   <td>
                     <Toggle

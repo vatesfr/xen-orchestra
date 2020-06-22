@@ -239,6 +239,11 @@ const OPTIONS = {
     filters: homeFilters.vmTemplate,
     mainActions: [
       {
+        handler: vms => copyVms(vms, 'VM-template'),
+        icon: 'vm-copy',
+        tooltip: _('copyVmLabel'),
+      },
+      {
         handler: deleteTemplates,
         icon: 'delete',
         tooltip: _('templateDelete'),
