@@ -70,7 +70,7 @@ export class OvsdbClient {
   ) {
     if (
       this._adding.find(
-        elem => elem.id === network.uuid && elem.addr === remoteAddress
+        (elem) => elem.id === network.uuid && elem.addr === remoteAddress
       ) !== undefined
     ) {
       return
@@ -82,7 +82,7 @@ export class OvsdbClient {
       socket = await this._connect()
     } catch (error) {
       this._adding = this._adding.filter(
-        elem => elem.id !== network.uuid || elem.addr !== remoteAddress
+        (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
       )
       return
     }
@@ -91,7 +91,7 @@ export class OvsdbClient {
     if (bridge.uuid === undefined) {
       socket.destroy()
       this._adding = this._adding.filter(
-        elem => elem.id !== network.uuid || elem.addr !== remoteAddress
+        (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
       )
       return
     }
@@ -105,7 +105,7 @@ export class OvsdbClient {
       if (password === undefined) {
         socket.destroy()
         this._adding = this._adding.filter(
-          elem => elem.id !== network.uuid || elem.addr !== remoteAddress
+          (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
         )
         return bridge.name
       }
@@ -116,7 +116,7 @@ export class OvsdbClient {
       } catch (error) {
         socket.destroy()
         this._adding = this._adding.filter(
-          elem => elem.id !== network.uuid || elem.addr !== remoteAddress
+          (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
         )
         log.error('Error while deleting port for encrypted password update', {
           error,
@@ -173,7 +173,7 @@ export class OvsdbClient {
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
 
     this._adding = this._adding.filter(
-      elem => elem.id !== network.uuid || elem.addr !== remoteAddress
+      (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
     )
     if (jsonObjects === undefined) {
       socket.destroy()
@@ -247,7 +247,7 @@ export class OvsdbClient {
         continue
       }
 
-      forOwn(selectResult.other_config[1], config => {
+      forOwn(selectResult.other_config[1], (config) => {
         // 2019-09-03
         // Compatibility code, to be removed in 1 year.
         const oldShouldDelete =
@@ -295,7 +295,7 @@ export class OvsdbClient {
       'uuid-name': 'new_controller',
     })
 
-    const networks = this.host.$PIFs.map(pif => pif.$network)
+    const networks = this.host.$PIFs.map((pif) => pif.$network)
     for (const network of networks) {
       const bridge = await this._getBridgeForNetwork(network, socket)
       if (bridge.uuid === undefined) {
@@ -328,7 +328,7 @@ export class OvsdbClient {
         host: this.host.name_label,
       })
     } else {
-      this._controller = jsonObjects[0].result[0].uuid[1]
+      this._controllerUuid = jsonObjects[0].result[0].uuid[1]
       log.info('Controller set', { host: this.host.name_label })
     }
 
@@ -404,7 +404,7 @@ export class OvsdbClient {
       ['name', 'ofport'],
       where,
       socket,
-      false
+      true // multiResult
     )
     if (selectResult === undefined) {
       log.error('No of port found for VIF', {
@@ -497,11 +497,11 @@ export class OvsdbClient {
   // ---------------------------------------------------------------------------
 
   async _bridgeAlreadyControlled(bridge, socket) {
-    let where = [['_uuid', '==', ['uuid', bridge.uuid]]]
+    const where = [['_uuid', '==', ['uuid', bridge.uuid]]]
     let result = await this._select('Bridge', ['controller'], where, socket)
     const controllers = setFromSelect(result.controller)
     for (const controller of controllers) {
-      where = [['_uuid', '==', controller]]
+      const where = [['_uuid', '==', controller]]
       result = await this._select('Controller', ['target'], where, socket)
       if (result.target === TARGET) {
         return true
@@ -609,7 +609,7 @@ export class OvsdbClient {
 
   // ---------------------------------------------------------------------------
 
-  async _select(table, columns, where, socket, onlyOne = true) {
+  async _select(table, columns, where, socket, multiResult = false) {
     const selectOperation = {
       op: 'select',
       table,
@@ -645,7 +645,7 @@ export class OvsdbClient {
       return
     }
 
-    if (!onlyOne) {
+    if (multiResult) {
       return jsonResult.rows
     }
 
