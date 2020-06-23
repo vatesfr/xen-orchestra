@@ -76,9 +76,7 @@ const COLUMNS = [
   },
   {
     name: _('labelSr'),
-    itemRenderer: ({ data: { srId } }) => (
-      <Sr id={srId} link newTab showAllocationStrategy={false} />
-    ),
+    itemRenderer: ({ data: { srId } }) => <Sr id={srId} link newTab />,
     sortCriteria: ({ data: { srId } }, { srs }) =>
       get(() => srs[srId].name_label),
   },

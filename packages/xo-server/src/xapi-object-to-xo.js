@@ -1,5 +1,3 @@
-import { findKey } from 'lodash'
-
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
@@ -21,20 +19,24 @@ import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
 
-const TYPES_BY_ALLOCATION = {
-  thin: ['ext', 'file', 'nfs', 'shm', 'smb', 'xosan', 'zfs'],
-  thick: [
-    'hba',
-    'lvhd',
-    'lvhdofcoe',
-    'lvhdohba',
-    'lvhdoiscsi',
-    'ocfs',
-    'ocfsohba',
-    'ocfsoiscsi',
-    'rawhba',
-    'rawiscsi',
-  ],
+const ALLOCATIONS_BY_TYPE = {
+  ext: 'thin',
+  file: 'thin',
+  hba: 'thick',
+  lvhd: 'thick',
+  lvhdofcoe: 'thick',
+  lvhdohba: 'thick',
+  lvhdoiscsi: 'thick',
+  nfs: 'thin',
+  ocfs: 'thick',
+  ocfsohba: 'thick',
+  ocfsoiscsi: 'thick',
+  rawhba: 'thick',
+  rawiscsi: 'thick',
+  shm: 'thin',
+  smb: 'thin',
+  xosan: 'thin',
+  zfs: 'thin',
 }
 
 // ===================================================================
@@ -484,9 +486,7 @@ const TRANSFORMS = {
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
 
-      allocationStrategy: findKey(TYPES_BY_ALLOCATION, types =>
-        types.includes(srType)
-      ),
+      allocationStrategy: ALLOCATIONS_BY_TYPE[srType],
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,

@@ -96,7 +96,7 @@ class VdiSr extends Component {
           value={sr}
           xoType='SR'
         >
-          <Sr id={sr.id} link showAllocationStrategy={false} />
+          <Sr id={sr.id} link />
         </XoSelect>
       )
     )

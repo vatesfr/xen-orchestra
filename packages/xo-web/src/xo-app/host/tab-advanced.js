@@ -66,13 +66,7 @@ const MultipathableSrs = decorate([
           return (
             <Row key={pbd.id}>
               <Col>
-                <Sr
-                  container={false}
-                  id={pbd.SR}
-                  link
-                  newTab
-                  showAllocationStrategy={false}
-                />{' '}
+                <Sr id={pbd.SR} link newTab container={false} />{' '}
                 {nActives !== undefined &&
                   nPaths !== undefined &&
                   _('hostMultipathingPaths', {
