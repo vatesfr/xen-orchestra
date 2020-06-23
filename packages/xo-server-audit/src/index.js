@@ -261,13 +261,13 @@ class AuditXoPlugin {
     })
 
     if (!integrityCheckSuccess || error !== undefined) {
-      return xo.audit.startNewChain({
+      await xo.audit.startNewChain({
         oldest,
         newest,
       })
+    } else {
+      await xo.audit.extendLastChain({ oldest, newest })
     }
-
-    await xo.audit.extendLastChain({ oldest, newest })
   }
 
   async _checkIntegrity(props) {
