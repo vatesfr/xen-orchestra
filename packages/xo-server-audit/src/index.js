@@ -149,7 +149,7 @@ class AuditXoPlugin {
 
     this._backupLastFingerprintJob.start()
     cleaners.push(
-      this._backupLastFingerprintJob.stop,
+      () => this._backupLastFingerprintJob.stop(),
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
