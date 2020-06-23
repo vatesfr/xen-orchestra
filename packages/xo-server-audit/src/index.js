@@ -248,7 +248,7 @@ class AuditXoPlugin {
     const integrityCheckSuccess = await Promise.all(
       hashes.map((oldest, key) =>
         oldest !== lastHash
-          ? this.checkIntegrity(oldest, hashes[key + 1])
+          ? this._checkIntegrity(oldest, hashes[key + 1])
           : true
       )
     ).then(
