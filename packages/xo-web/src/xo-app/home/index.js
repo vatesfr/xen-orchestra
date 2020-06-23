@@ -21,7 +21,7 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
   debounce,
-  difference,
+  differenceBy,
   escapeRegExp,
   filter,
   find,
@@ -703,34 +703,32 @@ export default class Home extends Component {
     return event => setFilter(event.target.value)
   })
 
-  __getFilteredItems = createSort(
-    createFilter(() => this.props.items, this._getFilterFunction),
+  _getFilteredItems = createSort(
+    createSelector(
+      createFilter(() => this.props.items, this._getFilterFunction),
+      () => this.props.location.query.backup,
+      () => this.props.jobs,
+      (filteredItems, backup, jobs) => {
+        if (backup === undefined) {
+          return filteredItems
+        }
+
+        const backedUpVms = uniq(
+          flatMap(jobs, job =>
+            filter(filteredItems, createPredicate(omit(job.vms, 'power_state')))
+          )
+        )
+
+        return backup === 'true'
+          ? backedUpVms
+          : differenceBy(map(filteredItems), backedUpVms, 'id')
+      }
+    ),
     createSelector(
       () => this.state.sortBy,
       sortBy => [sortBy, 'name_label']
     ),
     () => this.state.sortOrder
-  )
-
-  _getFilteredItems = createSelector(
-    this.__getFilteredItems,
-    () => this.props.location.query.backup,
-    () => this.props.jobs,
-    (filteredItems, backup, jobs) => {
-      if (backup === undefined) {
-        return filteredItems
-      }
-
-      const backedUpVms = uniq(
-        flatMap(jobs, job =>
-          filter(filteredItems, createPredicate(omit(job.vms, 'power_state')))
-        )
-      )
-
-      return backup === 'true'
-        ? backedUpVms
-        : difference(filteredItems, backedUpVms)
-    }
   )
 
   _getVisibleItems = createPager(
