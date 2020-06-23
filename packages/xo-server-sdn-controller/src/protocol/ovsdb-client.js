@@ -348,7 +348,7 @@ export class OvsdbClient {
 
       this._controllerUuid = selectResult._uuid[1]
     }
-    assert(this._controllerUuid !== undefined)
+    assert.notStrictEqual(this._controllerUuid, undefined)
 
     const bridge = await this._getBridgeForNetwork(network, socket)
     if (bridge.uuid === undefined) {
