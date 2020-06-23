@@ -87,7 +87,6 @@ class Db extends Storage {
   }
 }
 
-const DAILY_CRON = '0 6 * * *'
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
   constructor({ staticConfig, xo }) {
@@ -97,9 +96,9 @@ class AuditXoPlugin {
     }
     this._cleaners = []
     this._xo = xo
-    this._storeLastFingerprintJob = createSchedule(DAILY_CRON).createJob(() =>
-      this._storeLastFingerprintInCustomerDb().catch(log.error)
-    )
+    this._backupLastFingerprintJob = createSchedule(
+      staticConfig.fingerprintBackupCron
+    ).createJob(() => this._backupLastFingerprint().catch(log.error))
 
     this._auditCore = undefined
     this._storage = undefined
@@ -147,9 +146,9 @@ class AuditXoPlugin {
       oldest: { type: 'string', optional: true },
     }
 
-    this._storeLastFingerprintJob.start()
+    this._backupLastFingerprintJob.start()
     cleaners.push(
-      this._storeLastFingerprintJob.stop,
+      this._backupLastFingerprintJob.stop,
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
@@ -239,7 +238,7 @@ class AuditXoPlugin {
       }))
   }
 
-  async _storeLastFingerprintInCustomerDb() {
+  async _backupLastFingerprint() {
     const xo = this._xo
     const hashes = await xo.audit.getLastChain()
     const lastHash = hashes[hashes.length - 1]
@@ -267,7 +266,7 @@ class AuditXoPlugin {
       })
     }
 
-    await xo.audit.extendLastChain(oldest, newest)
+    await xo.audit.extendLastChain({ oldest, newest })
   }
 
   async _checkIntegrity(props) {
