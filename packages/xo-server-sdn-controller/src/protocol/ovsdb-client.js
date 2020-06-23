@@ -70,7 +70,7 @@ export class OvsdbClient {
   ) {
     if (
       this._adding.find(
-        (elem) => elem.id === network.uuid && elem.addr === remoteAddress
+        elem => elem.id === network.uuid && elem.addr === remoteAddress
       ) !== undefined
     ) {
       return
@@ -82,7 +82,7 @@ export class OvsdbClient {
       socket = await this._connect()
     } catch (error) {
       this._adding = this._adding.filter(
-        (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
+        elem => elem.id !== network.uuid || elem.addr !== remoteAddress
       )
       return
     }
@@ -91,7 +91,7 @@ export class OvsdbClient {
     if (bridge.uuid === undefined) {
       socket.destroy()
       this._adding = this._adding.filter(
-        (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
+        elem => elem.id !== network.uuid || elem.addr !== remoteAddress
       )
       return
     }
@@ -105,7 +105,7 @@ export class OvsdbClient {
       if (password === undefined) {
         socket.destroy()
         this._adding = this._adding.filter(
-          (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
+          elem => elem.id !== network.uuid || elem.addr !== remoteAddress
         )
         return bridge.name
       }
@@ -116,7 +116,7 @@ export class OvsdbClient {
       } catch (error) {
         socket.destroy()
         this._adding = this._adding.filter(
-          (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
+          elem => elem.id !== network.uuid || elem.addr !== remoteAddress
         )
         log.error('Error while deleting port for encrypted password update', {
           error,
@@ -173,7 +173,7 @@ export class OvsdbClient {
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
 
     this._adding = this._adding.filter(
-      (elem) => elem.id !== network.uuid || elem.addr !== remoteAddress
+      elem => elem.id !== network.uuid || elem.addr !== remoteAddress
     )
     if (jsonObjects === undefined) {
       socket.destroy()
@@ -247,7 +247,7 @@ export class OvsdbClient {
         continue
       }
 
-      forOwn(selectResult.other_config[1], (config) => {
+      forOwn(selectResult.other_config[1], config => {
         // 2019-09-03
         // Compatibility code, to be removed in 1 year.
         const oldShouldDelete =
@@ -295,7 +295,7 @@ export class OvsdbClient {
       'uuid-name': 'new_controller',
     })
 
-    const networks = this.host.$PIFs.map((pif) => pif.$network)
+    const networks = this.host.$PIFs.map(pif => pif.$network)
     for (const network of networks) {
       const bridge = await this._getBridgeForNetwork(network, socket)
       if (bridge.uuid === undefined) {
