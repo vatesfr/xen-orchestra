@@ -746,6 +746,7 @@ const messages = {
 
   // ----- SR advanced tab -----
 
+  provisioning: 'Provisioning',
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
