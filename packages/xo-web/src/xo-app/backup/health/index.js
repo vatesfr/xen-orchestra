@@ -14,12 +14,6 @@ import { confirm } from 'modal'
 import { createPredicate } from 'value-matcher'
 import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
 import { forEach, keyBy, omit, toArray } from 'lodash'
-import {
-  FormattedDate,
-  FormattedRelative,
-  FormattedTime,
-  injectIntl,
-} from 'react-intl'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import {
@@ -31,6 +25,12 @@ import {
   subscribeBackupNgJobs,
   subscribeSchedules,
 } from 'xo'
+import {
+  FormattedDate,
+  FormattedRelative,
+  FormattedTime,
+  injectIntl,
+} from 'react-intl'
 
 const DETACHED_BACKUP_COLUMNS = [
   {
@@ -214,7 +214,7 @@ const Health = decorate([
   ({
     effects,
     jobs,
-    intl,
+    intl: { formatMessage },
     legacySnapshots,
     loneSnapshots,
     state: { detachedBackups },
@@ -252,7 +252,7 @@ const Health = decorate([
                   collection={detachedBackups}
                   columns={DETACHED_BACKUP_COLUMNS}
                   component={SortedTable}
-                  data-formatMessage={intl.formatMessage}
+                  data-formatMessage={formatMessage}
                   data-jobs={jobs}
                   data-vms={vms}
                   emptyMessage={_('noDetachedBackups')}
