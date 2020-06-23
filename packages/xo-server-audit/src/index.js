@@ -50,6 +50,7 @@ const DEFAULT_BLOCKED_LIST = {
   'user.getAll': true,
   'vm.stats': true,
   'xo.getAllObjects': true,
+  'xoa.getApplianceInfo': true,
   'xoa.supportTunnel.getState': true,
   'xosan.checkSrCurrentState': true,
   'xosan.getVolumeInfo': true,
