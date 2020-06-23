@@ -1,12 +1,11 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
-import renderXoItem, { Vm } from 'render-xo-item'
+import renderXoItem, { BackupJob, Vm } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
@@ -15,16 +14,21 @@ import { confirm } from 'modal'
 import { createPredicate } from 'value-matcher'
 import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
 import { forEach, keyBy, omit, toArray } from 'lodash'
-import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
+import {
+  FormattedDate,
+  FormattedRelative,
+  FormattedTime,
+  injectIntl,
+} from 'react-intl'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import {
   deleteBackups,
   deleteSnapshot,
   deleteSnapshots,
+  getRemotes,
   listVmBackups,
   subscribeBackupNgJobs,
-  subscribeRemotes,
   subscribeSchedules,
 } from 'xo'
 
@@ -47,21 +51,12 @@ const DETACHED_BACKUP_COLUMNS = [
   },
   {
     name: _('vm'),
-    itemRenderer: ({ vmId }) => <Vm id={vmId} link />,
+    itemRenderer: ({ vm, vmId }) => <Vm id={vmId} link name={vm.name_label} />,
     sortCriteria: ({ vmId }, { vms }) => get(() => vms[vmId].name_label),
   },
   {
     name: _('job'),
-    itemRenderer: ({ jobId }, { jobs }) => {
-      const job = jobs[jobId]
-      return job === undefined ? (
-        <Copiable data={jobId} tagName='p'>
-          {jobId.slice(4, 8)}
-        </Copiable>
-      ) : (
-        <Link to={`/backup/overview?s=id:${jobId}`}>{job.name}</Link>
-      )
-    },
+    itemRenderer: ({ jobId }) => <BackupJob id={jobId} link />,
     sortCriteria: ({ jobId }, { jobs }) => get(() => jobs[jobId].name),
   },
   {
@@ -70,7 +65,9 @@ const DETACHED_BACKUP_COLUMNS = [
   },
   {
     name: _('reason'),
-    itemRenderer: backup => backup.reason,
+    itemRenderer: ({ reason }, { formatMessage }) =>
+      formatMessage(messages[reason]),
+    sortCriteria: 'reason',
   },
 ]
 
@@ -128,6 +125,7 @@ const ACTIONS = [
 ]
 
 const Health = decorate([
+  injectIntl,
   addSubscriptions({
     // used by createGetLoneSnapshots
     schedules: cb =>
@@ -138,7 +136,6 @@ const Health = decorate([
       subscribeBackupNgJobs(jobs => {
         cb(keyBy(jobs, 'id'))
       }),
-    remotes: subscribeRemotes,
   }),
   connectStore({
     loneSnapshots: createGetLoneSnapshots,
@@ -154,15 +151,18 @@ const Health = decorate([
   }),
   provideState({
     initialState: () => ({
-      backupsListRefreshed: undefined,
+      backupsByRemote: undefined,
     }),
     effects: {
-      async refreshBackupList() {
-        this.state.backupsListRefreshed = await listVmBackups(
-          toArray(this.props.remotes)
+      initialize({ fetchBackupList }) {
+        return fetchBackupList()
+      },
+      async fetchBackupList() {
+        this.state.backupsByRemote = await listVmBackups(
+          toArray(await getRemotes())
         )
       },
-      deleteBackups: ({ refreshBackupList }, backups) => {
+      deleteBackups: ({ fetchBackupList }, backups) => {
         const nBackups = backups.length
         return confirm({
           title: _('deleteBackups', { nBackups }),
@@ -170,14 +170,10 @@ const Health = decorate([
           icon: 'delete',
         })
           .then(() => deleteBackups(backups))
-          .then(refreshBackupList, noop)
+          .then(fetchBackupList, noop)
       },
     },
     computed: {
-      backupsByRemote: ({ backupsList, backupsListRefreshed }) =>
-        backupsListRefreshed === undefined ? backupsList : backupsListRefreshed,
-      backupsList: async (_, { remotes }) =>
-        await listVmBackups(toArray(remotes)),
       detachedBackups: ({ backupsByRemote }, { jobs, vms, schedules }) => {
         if (jobs === undefined || schedules === undefined) {
           return []
@@ -191,13 +187,13 @@ const Health = decorate([
             vmBackups.forEach(backup => {
               const reason =
                 vm === undefined
-                  ? _('missingVm', { name: backup.vm.name_label })
+                  ? 'missingVm'
                   : (job = jobs[backup.jobId]) === undefined
-                  ? _('missingJob')
+                  ? 'missingJob'
                   : schedules[backup.scheduleId] === undefined
-                  ? _('missingSchedule')
+                  ? 'missingSchedule'
                   : !createPredicate(omit(job.vms, 'power_state'))(vm)
-                  ? _('missingVmInJob')
+                  ? 'missingVmInJob'
                   : undefined
 
               if (reason !== undefined) {
@@ -218,6 +214,7 @@ const Health = decorate([
   ({
     effects,
     jobs,
+    intl,
     legacySnapshots,
     loneSnapshots,
     state: { detachedBackups },
@@ -244,7 +241,7 @@ const Health = decorate([
                 <div className='mt-1 mb-1'>
                   <ActionButton
                     btnStyle='primary'
-                    handler={effects.refreshBackupList}
+                    handler={effects.fetchBackupList}
                     icon='refresh'
                   >
                     {_('refreshBackupList')}
@@ -255,6 +252,7 @@ const Health = decorate([
                   collection={detachedBackups}
                   columns={DETACHED_BACKUP_COLUMNS}
                   component={SortedTable}
+                  data-formatMessage={intl.formatMessage}
                   data-jobs={jobs}
                   data-vms={vms}
                   emptyMessage={_('noDetachedBackups')}

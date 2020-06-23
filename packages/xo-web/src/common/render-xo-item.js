@@ -14,6 +14,7 @@ import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
 import {
   isSrWritable,
+  subscribeBackupNgJobs,
   subscribeProxies,
   subscribeRemotes,
   subscribeUsers,
@@ -21,11 +22,11 @@ import {
 
 // ===================================================================
 
-const unknowItem = (uuid, type) => (
+const unknowItem = (uuid, type, name) => (
   <Tooltip content={_('copyUuid', { uuid })}>
     <CopyToClipboard text={uuid}>
       <span className='text-muted' style={{ cursor: 'pointer' }}>
-        {_('errorUnknownItem', { type })}
+        {name === undefined ? _('errorUnknownItem', { type }) : name}
       </span>
     </CopyToClipboard>
   </Tooltip>
@@ -142,9 +143,9 @@ export const Vm = decorate([
       ),
     }
   }),
-  ({ id, vm, container, link, newTab }) => {
+  ({ id, vm, container, link, newTab, name }) => {
     if (vm === undefined) {
-      return unknowItem(id, 'VM')
+      return unknowItem(id, 'VM', name)
     }
 
     return (
@@ -416,6 +417,41 @@ Proxy.propTypes = {
 }
 
 Proxy.defaultProps = {
+  link: false,
+  newTab: false,
+}
+
+// ===================================================================
+
+export const BackupJob = decorate([
+  addSubscriptions(({ id }) => ({
+    job: cb =>
+      subscribeBackupNgJobs(jobs => cb(jobs.find(job => job.id === id))),
+  })),
+  ({ id, job, link, newTab }) => {
+    if (job === undefined) {
+      return unknowItem(id, 'job')
+    }
+
+    return (
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={`/backup/overview?s=id:${id}`}
+      >
+        {job.name}
+      </LinkWrapper>
+    )
+  },
+])
+
+BackupJob.propTypes = {
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+BackupJob.defaultProps = {
   link: false,
   newTab: false,
 }

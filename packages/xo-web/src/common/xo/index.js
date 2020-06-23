@@ -2320,6 +2320,8 @@ export const getResourceSet = id =>
 
 // Remote ------------------------------------------------------------
 
+export const getRemotes = () => _call('remote.getAll')
+
 export const getRemote = remote =>
   _call('remote.get', resolveIds({ id: remote }))::tap(null, err =>
     error(_('getRemote'), err.message || String(err))
