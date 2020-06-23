@@ -19,7 +19,7 @@ import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
 
-const ALLOCATIONS_BY_TYPE = {
+const ALLOCATION_BY_TYPE = {
   ext: 'thin',
   file: 'thin',
   hba: 'thick',
@@ -486,7 +486,7 @@ const TRANSFORMS = {
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
 
-      allocationStrategy: ALLOCATIONS_BY_TYPE[srType],
+      allocationStrategy: ALLOCATION_BY_TYPE[srType],
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
