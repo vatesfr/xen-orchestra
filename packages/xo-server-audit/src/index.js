@@ -260,7 +260,7 @@ class AuditXoPlugin {
       oldest: lastHash,
     })
 
-    if (!integrityCheckSuccess || error !== undefined) {
+    if (hashes.length === 0 || !integrityCheckSuccess || error !== undefined) {
       await xo.audit.startNewChain({
         oldest,
         newest,
