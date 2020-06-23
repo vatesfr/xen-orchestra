@@ -248,7 +248,7 @@ class AuditXoPlugin {
     const integrityCheckSuccess = await Promise.all(
       hashes.map((oldest, key) =>
         oldest !== lastHash
-          ? this._checkIntegrity(oldest, hashes[key + 1])
+          ? this._checkIntegrity({ oldest, newest: hashes[key + 1] })
           : true
       )
     ).then(
@@ -256,8 +256,9 @@ class AuditXoPlugin {
       () => false
     )
 
+    // generate a valid fingerprint of all stored records in case of a failure integrity check
     const { oldest, newest, error } = await this._generateFingerprint({
-      oldest: lastHash,
+      oldest: integrityCheckSuccess ? lastHash : undefined,
     })
 
     if (hashes.length === 0 || !integrityCheckSuccess || error !== undefined) {
@@ -299,7 +300,7 @@ class AuditXoPlugin {
           fingerprint: `${error.data.id}|${newest}`,
           newest,
           nValid: error.data.nValid,
-          oldest,
+          oldest: error.data.id,
         }
       }
       throw error
