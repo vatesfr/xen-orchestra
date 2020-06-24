@@ -462,7 +462,11 @@ module.exports = class Vm {
         nameLabel
       ).then(extractOpaqueRef)
     } while (false)
-    await this.setField('VM', ref, 'is_a_template', false)
+
+    // Don't set `is_a_template = false` like done in xo-server, it does not
+    // appear necessary and can trigger license issues, see
+    // https://bugs.xenserver.org/browse/XSO-766
+
     return ref
   }
 }
