@@ -411,7 +411,7 @@ export default {
   srNotSharedType: '{type} non partagé',
 
   // Original text: 'All of them are selected'
-  sortedTableAllItemsSelected: 'Toutes sont sélectionnées',
+  sortedTableAllItemsSelected: 'Toutes sont sélectionnées ({nItems, number})',
 
   // Original text: '{nFiltered, number} of {nTotal, number} items'
   sortedTableNumberOfFilteredItems:

@@ -14,19 +14,32 @@ export default class ConfigManagement {
     this._managers = { __proto__: null }
   }
 
-  addConfigManager(id, exporter, importer, dependencies) {
+  addConfigManager(id, exporter, importer, dependencies = []) {
     const managers = this._managers
     if (id in managers) {
       throw new Error(`${id} is already taken`)
     }
 
     this._depTree.add(id, dependencies)
-    this._managers[id] = { exporter, importer }
+    this._managers[id] = { dependencies, exporter, importer }
   }
 
-  async exportConfig({ passphrase } = {}) {
+  async exportConfig({ entries, passphrase } = {}) {
+    let managers = this._managers
+    if (entries !== undefined) {
+      const subset = { __proto__: null }
+      entries.forEach(function addEntry(entry) {
+        if (!(entry in subset)) {
+          const manager = managers[entry]
+          subset[entry] = manager
+          manager.dependencies.forEach(addEntry)
+        }
+      })
+      managers = subset
+    }
+
     let config = JSON.stringify(
-      await mapValues(this._managers, ({ exporter }, key) => exporter())::pAll()
+      await mapValues(managers, ({ exporter }, key) => exporter())::pAll()
     )
 
     if (passphrase !== undefined) {

@@ -471,7 +471,7 @@ export default {
   srNotSharedType: 'Paylaşımsız {type}',
 
   // Original text: "All of them are selected"
-  sortedTableAllItemsSelected: 'Hepsi seçildi',
+  sortedTableAllItemsSelected: 'Hepsi seçildi ({nItems, number})',
 
   // Original text: "No items found"
   sortedTableNoItems: 'Hiç öğe bulunamadı',

@@ -42,7 +42,7 @@ export addSubscriptions from './add-subscriptions'
 
 export const getVirtualizationModeLabel = vm => {
   const virtualizationMode =
-    vm.virtualizationMode === 'hvm' && Boolean(vm.xenTools)
+    vm.virtualizationMode === 'hvm' && vm.pvDriversDetected
       ? 'pvhvm'
       : vm.virtualizationMode
 
