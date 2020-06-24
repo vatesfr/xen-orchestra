@@ -2334,6 +2334,7 @@ const messages = {
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
   bindXoaLicense: 'Activate license',
+  rebindXoaLicense: 'Move license to this XOA',
   bindXoaLicenseConfirm:
     'Are you sure you want to activate this license on your XOA? This action is not reversible!',
   bindXoaLicenseConfirmText: 'activate {licenseType} license',
