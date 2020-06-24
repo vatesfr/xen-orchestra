@@ -99,6 +99,9 @@ ${name} v${version}
   group != null && process.setgid(group)
   user != null && process.setuid(user)
 
+  // The default value of 10 appears to be too small for interesting traces in xo-proxy.
+  Error.stackTraceLimit = 20
+
   require('source-map-support/register')
 
   httpServer = require('stoppable')(httpServer)
