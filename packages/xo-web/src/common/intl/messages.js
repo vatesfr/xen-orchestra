@@ -78,6 +78,7 @@ const messages = {
   offline: 'Offline',
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
+  unknown: 'Unknown',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1009,6 +1010,9 @@ const messages = {
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
+  managementAgentDetected: 'Management agent {version} detected',
+  managementAgentOutOfDate: 'Management agent {version} out of date',
+  managementAgentNotDetected: 'Management agent not detected',
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
@@ -1188,8 +1192,7 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools version',
-  xenToolsNotInstalled: 'Not installed',
+  managementAgentVersion: 'Management agent version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
