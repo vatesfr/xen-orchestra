@@ -171,3 +171,8 @@ port = 80
 # Each configuration is passed to the dedicated plugin instance
 #
 # Syntax: [plugins.<pluginName>]
+#
+# [plugins.audit]
+#
+# Default: '0 6 * * *'
+#fingerprintBackupCron = '0 6 * * *'

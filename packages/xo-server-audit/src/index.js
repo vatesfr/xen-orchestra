@@ -88,6 +88,7 @@ class Db extends Storage {
   }
 }
 
+const FINGERPRINT_BACKUP_CRON = '0 6 * * '
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
   constructor({ staticConfig, xo }) {
@@ -98,7 +99,7 @@ class AuditXoPlugin {
     this._cleaners = []
     this._xo = xo
     this._backupLastFingerprintJob = createSchedule(
-      staticConfig.fingerprintBackupCron
+      staticConfig.fingerprintBackupCron ?? FINGERPRINT_BACKUP_CRON
     ).createJob(() => this._backupLastFingerprint().catch(log.error))
 
     this._auditCore = undefined
