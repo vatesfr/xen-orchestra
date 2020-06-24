@@ -2115,6 +2115,8 @@ const messages = {
   downloadConfig: 'Download current config',
 
   // ----- SR -----
+  disabledVdiMigrateTooltip:
+    "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
   srDisconnectAllModalTitle: 'Disconnect all hosts',
