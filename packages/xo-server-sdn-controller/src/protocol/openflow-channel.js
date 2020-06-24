@@ -1,8 +1,9 @@
 import createLogger from '@xen-orchestra/log'
 import ipaddr from 'ipaddr.js'
 import openflow from '@xen-orchestra/openflow'
+import parse from '@xen-orchestra/openflow/parse-socket'
 import util from 'util'
-import Stream from '@xen-orchestra/openflow/stream'
+
 import { EventEmitter } from 'events'
 import { fromEvent } from 'promise-toolbox'
 
@@ -77,7 +78,6 @@ export class OpenFlowChannel extends EventEmitter {
 
     this.host = host
     this._tlsHelper = tlsHelper
-    this._stream = new Stream()
 
     log.debug('New OpenFlow channel', {
       host: this.host.name_label,
@@ -365,19 +365,17 @@ export class OpenFlowChannel extends EventEmitter {
       this.host.address,
       OPENFLOW_PORT
     )
-    this._socket.on('data', data => {
-      const msgs = this._stream.process(data)
-      msgs.forEach(msg => {
-        if (msg.header !== undefined) {
-          this._processMessage(msg)
-        } else {
-          log.error('Error: Message is unparseable', { msg })
-        }
-      })
-    })
+    for await (const msg of parse(this._socket)) {
+      if (msg.header !== undefined) {
+        this._processMessage(msg)
+      } else {
+        log.error('Error: Message is unparseable', { msg })
+      }
+    }
 
-    this._socket.on('error', () => delete this._socket)
-    this._socket.on('end', () => delete this._socket)
+    const deleteSocket = () => delete this._socket
+    this._socket.on('error', deleteSocket)
+    this._socket.on('end', deleteSocket)
 
     await fromEvent(this, 'ofConnected')
   }
