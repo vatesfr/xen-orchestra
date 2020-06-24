@@ -377,7 +377,7 @@ export default class SrDisks extends Component {
       individualLabel: vdis => {
         const { type } = vdis[0]
         return type === 'VDI-unmanaged' || type === 'VDI-snapshot'
-          ? _('disabledVdiMigrateTootltip')
+          ? _('disabledVdiMigrateTooltip')
           : _('vdiMigrate')
       },
       label: vdis => {
@@ -385,7 +385,7 @@ export default class SrDisks extends Component {
           vdis,
           ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'
         )
-          ? _('disabledVdiMigrateTootltip')
+          ? _('disabledVdiMigrateTooltip')
           : _('migrateSelectedVdis')
       },
     },
