@@ -1006,5 +1006,5 @@ class SortedTable extends Component {
   }
 }
 
-// withRouter is used to force the render when the route is changed inside the sorted table
+// withRouter is used to force the render on route change
 export default withRouter(SortedTable, { withRef: true })
