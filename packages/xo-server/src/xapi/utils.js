@@ -85,6 +85,25 @@ export const getVmDisks = vm => {
 
 // -------------------------------------------------------------------
 
+// Format a date (pseudo ISO 8601) from one XenServer get by
+// xapi.call('host.get_servertime', host.$ref) for example
+export const formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
+
+const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
+
+export function parseDateTime(str, defaultValue) {
+  const date = parseDateTimeHelper(str)
+  if (date === null) {
+    if (arguments.length > 1) {
+      return defaultValue
+    }
+    throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(str)}`)
+  }
+  return date.getTime()
+}
+
+// -------------------------------------------------------------------
+
 export const isHostRunning = host => {
   const { $metrics } = host
 

@@ -12,9 +12,6 @@ import { type Readable, PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
-import { formatDateTime } from '@xen-orchestra/xapi'
-import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
 import {
@@ -60,7 +57,7 @@ import {
   type Xapi,
   TAG_COPY_SRC,
 } from '../../xapi'
-import { getVmDisks } from '../../xapi/utils'
+import { formatDateTime, getVmDisks } from '../../xapi/utils'
 import {
   resolveRelativeFromFile,
   safeDateFormat,
@@ -143,6 +140,14 @@ const compareReplicatedVmDatetime = (a: Vm, b: Vm): number =>
 
 const compareTimestamp = (a: Metadata, b: Metadata): number =>
   a.timestamp - b.timestamp
+
+// returns all entries but the last retention-th
+const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
+  entries === undefined
+    ? []
+    : retention > 0
+    ? entries.slice(0, -retention)
+    : entries
 
 const defaultSettings: Settings = {
   bypassVdiChainsCheck: false,
@@ -410,6 +415,35 @@ const wrapTaskFn = <T>(
       throw result
     }
   }
+
+const extractIdsFromSimplePattern = (pattern: mixed) => {
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
+
+  let keys = Object.keys(pattern)
+  if (keys.length !== 1 || keys[0] !== 'id') {
+    return
+  }
+
+  pattern = pattern.id
+  if (typeof pattern === 'string') {
+    return [pattern]
+  }
+  if (pattern === null || typeof pattern !== 'object') {
+    return
+  }
+
+  keys = Object.keys(pattern)
+  if (
+    keys.length === 1 &&
+    keys[0] === '__or' &&
+    Array.isArray((pattern = pattern.__or)) &&
+    pattern.every(_ => typeof _ === 'string')
+  ) {
+    return pattern
+  }
+}
 
 const disableVmHighAvailability = async (xapi: Xapi, vm: Vm) => {
   if (vm.ha_restart_priority === '') {
