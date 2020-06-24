@@ -2,10 +2,10 @@
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { parseDuration } from '@vates/parse-duration'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { waitAll } from '../_waitAll'
-import parseDuration from '../_parseDuration'
 import { type Xapi } from '../xapi'
 import {
   safeDateFormat,

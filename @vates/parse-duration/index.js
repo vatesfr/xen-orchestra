@@ -1,6 +1,6 @@
-import ms from 'ms'
+const ms = require('ms')
 
-export default value => {
+exports.parseDuration = value => {
   if (typeof value === 'number') {
     return value
   }

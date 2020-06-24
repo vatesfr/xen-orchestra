@@ -77,6 +77,8 @@ const messages = {
   withMemory: 'With memory',
   offline: 'Offline',
   noLicenseAvailable: 'No license available',
+  emailPlaceholderExample: 'Email address, e.g.: it@company.net',
+  unknown: 'Unknown',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -260,7 +262,6 @@ const messages = {
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
-  description: 'Description',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -697,6 +698,7 @@ const messages = {
   pluginConfigurationPresetTitle: 'Predefined configuration',
   pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
   applyPluginPreset: 'Apply',
+  disabledTestPluginTootltip: 'This plugin is not loaded',
 
   // ----- User preferences -----
   saveNewUserFilterErrorTitle: 'Save filter error',
@@ -1008,6 +1010,9 @@ const messages = {
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
+  managementAgentDetected: 'Management agent {version} detected',
+  managementAgentOutOfDate: 'Management agent {version} out of date',
+  managementAgentNotDetected: 'Management agent not detected',
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
@@ -1187,11 +1192,11 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools version',
-  xenToolsNotInstalled: 'Not installed',
+  managementAgentVersion: 'Management agent version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
+  protectFromDeletion: 'Protect from accidental deletion',
   ha: 'HA',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
@@ -1786,7 +1791,6 @@ const messages = {
   // ----- Copy VM -----
   copyVm: 'Copy VM',
   copyVmName: 'Name',
-  copyVmNamePlaceholder: 'If empty: name of the copied VM',
   copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
@@ -1796,6 +1800,7 @@ const messages = {
   notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
+  copyTemplate: 'Copy template',
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',
@@ -2111,6 +2116,8 @@ const messages = {
   downloadConfig: 'Download current config',
 
   // ----- SR -----
+  disabledVdiMigrateTooltip:
+    "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
   srDisconnectAllModalTitle: 'Disconnect all hosts',

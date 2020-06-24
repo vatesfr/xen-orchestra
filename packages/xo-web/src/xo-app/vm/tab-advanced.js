@@ -737,6 +737,19 @@ export default class TabAdvanced extends Component {
                   </td>
                 </tr>
                 <tr>
+                  <th>{_('protectFromDeletion')}</th>
+                  <td>
+                    <Toggle
+                      value={'destroy' in vm.blockedOperations}
+                      onChange={blockDeletion =>
+                        editVm(vm, {
+                          blockedOperations: { destroy: blockDeletion },
+                        })
+                      }
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('windowsUpdateTools')}</th>
                   <td>
                     <Toggle
@@ -915,12 +928,8 @@ export default class TabAdvanced extends Component {
             <table className='table table-hover'>
               <tbody>
                 <tr>
-                  <th>{_('xenToolsStatus')}</th>
-                  <td>
-                    {vm.xenTools
-                      ? `${vm.xenTools.major}.${vm.xenTools.minor}`
-                      : _('xenToolsNotInstalled')}
-                  </td>
+                  <th>{_('managementAgentVersion')}</th>
+                  <td>{defined(vm.pvDriversVersion, _('unknown'))}</td>
                 </tr>
                 <tr>
                   <th>{_('osName')}</th>

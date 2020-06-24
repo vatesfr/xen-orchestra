@@ -6,7 +6,11 @@ The most current situation in which you might wish to use a XO proxy are:
 - To handle backup data stream in large infrastructure to avoid saturation of the main appliance and split the workload
 - To handle backup data stream in remote infrastructure to avoid useless back and forth from the main XOA to the remote location
 
-![](https://xen-orchestra.com/blog/content/images/2019/04/Paper.Vates.2019.04.13-2-1-1.png)
+## Architecture
+
+![](./assets/withoutproxy.png)
+
+![](./assets/withproxy.png)
 
 ## Deployment
 

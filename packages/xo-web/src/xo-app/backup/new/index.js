@@ -104,8 +104,9 @@ const ReportRecipients = decorate([
       disabledAddButton: ({ recipient }) => recipient === '',
     },
   }),
+  injectIntl,
   injectState,
-  ({ effects, recipients, remove, state }) => (
+  ({ effects, intl: { formatMessage }, recipients, remove, state }) => (
     <div>
       <FormGroup>
         <label htmlFor={state.inputId}>
@@ -117,6 +118,8 @@ const ReportRecipients = decorate([
             name='recipient'
             onChange={effects.linkState}
             onKeyDown={effects.onKeyDown}
+            placeholder={formatMessage(messages.emailPlaceholderExample)}
+            type='email'
             value={state.recipient}
           />
           <span className='input-group-btn'>
@@ -1110,6 +1113,16 @@ export default decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
+                          <Tooltip content={_('clickForMoreInformation')}>
+                            <a
+                              className='text-info'
+                              href='https://xen-orchestra.com/docs/delta_backups.html#full-backup-interval'
+                              rel='noopener noreferrer'
+                              target='_blank'
+                            >
+                              <Icon icon='info' />
+                            </a>
+                          </Tooltip>
                           <Number
                             id={state.inputFullIntervalId}
                             onChange={effects.setFullInterval}
