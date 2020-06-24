@@ -19,6 +19,28 @@ import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
 
+const ALLOCATION_BY_TYPE = {
+  ext: 'thin',
+  file: 'thin',
+  hba: 'thick',
+  lvhd: 'thick',
+  lvhdofcoe: 'thick',
+  lvhdohba: 'thick',
+  lvhdoiscsi: 'thick',
+  nfs: 'thin',
+  ocfs: 'thick',
+  ocfsohba: 'thick',
+  ocfsoiscsi: 'thick',
+  rawhba: 'thick',
+  rawiscsi: 'thick',
+  shm: 'thin',
+  smb: 'thin',
+  xosan: 'thin',
+  zfs: 'thin',
+}
+
+// ===================================================================
+
 const { defineProperties, freeze } = Object
 
 function link(obj, prop, idField = '$id') {
@@ -487,6 +509,7 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   sr(obj) {
+    const srType = obj.type
     return {
       type: 'SR',
 
@@ -495,11 +518,12 @@ const TRANSFORMS = {
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
 
+      allocationStrategy: ALLOCATION_BY_TYPE[srType],
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
       shared: Boolean(obj.shared),
-      SR_type: obj.type,
+      SR_type: srType,
       tags: obj.tags,
       usage: +obj.virtual_allocation,
       VDIs: link(obj, 'VDIs'),
