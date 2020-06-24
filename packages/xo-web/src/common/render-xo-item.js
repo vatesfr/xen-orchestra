@@ -160,6 +160,7 @@ export const Vm = decorate([
 Vm.propTypes = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
+  name: PropTypes.string,
   newTab: PropTypes.bool,
 }
 

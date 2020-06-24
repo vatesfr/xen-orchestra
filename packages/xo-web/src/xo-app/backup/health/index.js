@@ -1,4 +1,4 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
@@ -14,6 +14,7 @@ import { confirm } from 'modal'
 import { createPredicate } from 'value-matcher'
 import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
 import { forEach, keyBy, omit, toArray } from 'lodash'
+import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import {
@@ -25,12 +26,6 @@ import {
   subscribeBackupNgJobs,
   subscribeSchedules,
 } from 'xo'
-import {
-  FormattedDate,
-  FormattedRelative,
-  FormattedTime,
-  injectIntl,
-} from 'react-intl'
 
 const DETACHED_BACKUP_COLUMNS = [
   {
@@ -65,9 +60,26 @@ const DETACHED_BACKUP_COLUMNS = [
   },
   {
     name: _('reason'),
-    itemRenderer: ({ reason }, { formatMessage }) =>
-      formatMessage(messages[reason]),
+    itemRenderer: ({ reason }) => _(reason),
     sortCriteria: 'reason',
+  },
+]
+
+const DETACHED_BACKUP_ACTIONS = [
+  {
+    handler: (backups, { fetchBackupList }) => {
+      const nBackups = backups.length
+      return confirm({
+        title: _('deleteBackups', { nBackups }),
+        body: _('deleteBackupsMessage', { nBackups }),
+        icon: 'delete',
+      })
+        .then(() => deleteBackups(backups))
+        .then(fetchBackupList, noop)
+    },
+    icon: 'delete',
+    label: backups => _('deleteBackups', { nBackups: backups.length }),
+    level: 'danger',
   },
 ]
 
@@ -125,7 +137,6 @@ const ACTIONS = [
 ]
 
 const Health = decorate([
-  injectIntl,
   addSubscriptions({
     // used by createGetLoneSnapshots
     schedules: cb =>
@@ -161,16 +172,6 @@ const Health = decorate([
         this.state.backupsByRemote = await listVmBackups(
           toArray(await getRemotes())
         )
-      },
-      deleteBackups: ({ fetchBackupList }, backups) => {
-        const nBackups = backups.length
-        return confirm({
-          title: _('deleteBackups', { nBackups }),
-          body: _('deleteBackupsMessage', { nBackups }),
-          icon: 'delete',
-        })
-          .then(() => deleteBackups(backups))
-          .then(fetchBackupList, noop)
       },
     },
     computed: {
@@ -212,102 +213,90 @@ const Health = decorate([
   }),
   injectState,
   ({
-    effects,
+    effects: { fetchBackupList },
     jobs,
-    intl: { formatMessage },
     legacySnapshots,
     loneSnapshots,
     state: { detachedBackups },
     vms,
-  }) => {
-    const detachedBackupActions = [
-      {
-        handler: effects.deleteBackups,
-        icon: 'delete',
-        label: backups => _('deleteBackups', { nBackups: backups.length }),
-        level: 'danger',
-      },
-    ]
-
-    return (
-      <Container>
-        <Row className='detached-backups'>
-          <Col>
-            <Card>
-              <CardHeader>
-                <Icon icon='backup' /> {_('detachedBackups')}
-              </CardHeader>
-              <CardBlock>
-                <div className='mt-1 mb-1'>
-                  <ActionButton
-                    btnStyle='primary'
-                    handler={effects.fetchBackupList}
-                    icon='refresh'
-                  >
-                    {_('refreshBackupList')}
-                  </ActionButton>
-                </div>
-                <NoObjects
-                  actions={detachedBackupActions}
-                  collection={detachedBackups}
-                  columns={DETACHED_BACKUP_COLUMNS}
-                  component={SortedTable}
-                  data-formatMessage={formatMessage}
-                  data-jobs={jobs}
-                  data-vms={vms}
-                  emptyMessage={_('noDetachedBackups')}
-                  shortcutsTarget='.detached-backups'
-                  stateUrlParam='s_detached_backups'
-                />
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
-        <Row className='lone-snapshots'>
-          <Col>
-            <Card>
-              <CardHeader>
-                <Icon icon='vm' /> {_('vmSnapshotsRelatedToNonExistentBackups')}
-              </CardHeader>
-              <CardBlock>
-                <NoObjects
-                  actions={ACTIONS}
-                  collection={loneSnapshots}
-                  columns={SNAPSHOT_COLUMNS}
-                  component={SortedTable}
-                  data-vms={vms}
-                  emptyMessage={_('noSnapshots')}
-                  shortcutsTarget='.lone-snapshots'
-                  stateUrlParam='s_vm_snapshots'
-                />
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
-        <Row className='legacy-snapshots'>
-          <Col>
-            <Card>
-              <CardHeader>
-                <Icon icon='vm' /> {_('legacySnapshots')}
-              </CardHeader>
-              <CardBlock>
-                <NoObjects
-                  actions={ACTIONS}
-                  collection={legacySnapshots}
-                  columns={SNAPSHOT_COLUMNS}
-                  component={SortedTable}
-                  data-vms={vms}
-                  emptyMessage={_('noSnapshots')}
-                  shortcutsTarget='.legacy-snapshots'
-                  stateUrlParam='s_legacy_vm_snapshots'
-                />
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-    )
-  },
+  }) => (
+    <Container>
+      <Row className='detached-backups'>
+        <Col>
+          <Card>
+            <CardHeader>
+              <Icon icon='backup' /> {_('detachedBackups')}
+            </CardHeader>
+            <CardBlock>
+              <div className='mt-1 mb-1'>
+                <ActionButton
+                  btnStyle='primary'
+                  handler={fetchBackupList}
+                  icon='refresh'
+                >
+                  {_('refreshBackupList')}
+                </ActionButton>
+              </div>
+              <NoObjects
+                actions={DETACHED_BACKUP_ACTIONS}
+                collection={detachedBackups}
+                columns={DETACHED_BACKUP_COLUMNS}
+                component={SortedTable}
+                data-fetchBackupList={fetchBackupList}
+                data-jobs={jobs}
+                data-vms={vms}
+                emptyMessage={_('noDetachedBackups')}
+                shortcutsTarget='.detached-backups'
+                stateUrlParam='s_detached_backups'
+              />
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+      <Row className='lone-snapshots'>
+        <Col>
+          <Card>
+            <CardHeader>
+              <Icon icon='vm' /> {_('vmSnapshotsRelatedToNonExistentBackups')}
+            </CardHeader>
+            <CardBlock>
+              <NoObjects
+                actions={ACTIONS}
+                collection={loneSnapshots}
+                columns={SNAPSHOT_COLUMNS}
+                component={SortedTable}
+                data-vms={vms}
+                emptyMessage={_('noSnapshots')}
+                shortcutsTarget='.lone-snapshots'
+                stateUrlParam='s_vm_snapshots'
+              />
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+      <Row className='legacy-snapshots'>
+        <Col>
+          <Card>
+            <CardHeader>
+              <Icon icon='vm' /> {_('legacySnapshots')}
+            </CardHeader>
+            <CardBlock>
+              <NoObjects
+                actions={ACTIONS}
+                collection={legacySnapshots}
+                columns={SNAPSHOT_COLUMNS}
+                component={SortedTable}
+                data-vms={vms}
+                emptyMessage={_('noSnapshots')}
+                shortcutsTarget='.legacy-snapshots'
+                stateUrlParam='s_legacy_vm_snapshots'
+              />
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  ),
 ])
 
 export default Health
