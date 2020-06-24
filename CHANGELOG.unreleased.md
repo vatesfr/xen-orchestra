@@ -7,10 +7,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Ability to protect VM from accidental deletion [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should

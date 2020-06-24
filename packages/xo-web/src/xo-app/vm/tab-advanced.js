@@ -750,6 +750,19 @@ export default class TabAdvanced extends Component {
                   </td>
                 </tr>
                 <tr>
+                  <th>{_('protectFromShutdown')}</th>
+                  <td>
+                    <Toggle
+                      value={'shutdown' in vm.blockedOperations}
+                      onChange={blockShutdown =>
+                        editVm(vm, {
+                          blockedOperations: { shutdown: blockShutdown },
+                        })
+                      }
+                    />
+                  </td>
+                </tr>
+                <tr>
                   <th>{_('windowsUpdateTools')}</th>
                   <td>
                     <Toggle
