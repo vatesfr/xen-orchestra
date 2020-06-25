@@ -287,7 +287,6 @@ export default decorate([
         this.state._records = await fetchAuditRecords()
       },
       handleRef(_, ref) {
-        // ref can be null when the component unmount
         if (ref !== null) {
           const component = ref.getWrappedInstance()
           this.state.goTo = component.goTo.bind(component)
