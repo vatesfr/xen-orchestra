@@ -24,7 +24,7 @@ const version = openflow.versions.openFlow11
 const ofProtocol = openflow.protocols[version]
 
 function parseOpenFlowMessages(socket) {
-  for await (const msg from parse(socket)) {
+  for await (const msg of parse(socket)) {
     if (msg.header !== undefined) {
       const ofType = msg.header.type
       switch (ofType) {
