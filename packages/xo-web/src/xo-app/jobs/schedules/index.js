@@ -1,13 +1,14 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
+import Component from 'base-component'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import moment from 'moment-timezone'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import React, { Component } from 'react'
+import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
@@ -79,6 +80,7 @@ export default class Schedules extends Component {
       action: undefined,
       actions: undefined,
       cronPattern: DEFAULT_CRON_PATTERN,
+      enabled: true,
       job: undefined,
       jobs: undefined,
       timezone: DEFAULT_TIMEZONE,
@@ -130,19 +132,20 @@ export default class Schedules extends Component {
   }
 
   _handleSubmit = () => {
-    const { name, job, enabled } = this.refs
-    const { cronPattern, schedule, timezone } = this.state
+    const { name, job } = this.refs
+    const { cronPattern, enabled, schedule, timezone } = this.state
     let save
     if (schedule) {
       schedule.jobId = job.value.id
       schedule.cron = cronPattern
+      schedule.enabled = enabled
       schedule.name = name.value
       schedule.timezone = timezone
       save = editSchedule(schedule)
     } else {
       save = createSchedule(job.value.id, {
         cron: cronPattern,
-        enabled: enabled.value,
+        enabled,
         name: name.value,
         timezone,
       })
@@ -168,6 +171,7 @@ export default class Schedules extends Component {
     job.value = jobs[schedule.jobId]
     this.setState({
       cronPattern: schedule.cron,
+      enabled: schedule.enabled,
       schedule,
       timezone: schedule.timezone,
     })
@@ -177,13 +181,13 @@ export default class Schedules extends Component {
     this.setState(
       {
         cronPattern: DEFAULT_CRON_PATTERN,
+        enabled: true,
         schedule: undefined,
         timezone: DEFAULT_TIMEZONE,
       },
       () => {
-        const { name, job, enabled } = this.refs
+        const { name, job } = this.refs
         name.value = ''
-        enabled.value = false
         job.value = undefined
       }
     )
@@ -209,7 +213,14 @@ export default class Schedules extends Component {
   ]
 
   render() {
-    const { cronPattern, jobs, schedule, schedules, timezone } = this.state
+    const {
+      cronPattern,
+      enabled,
+      jobs,
+      schedule,
+      schedules,
+      timezone,
+    } = this.state
     const userData = { jobs }
     return (
       <div>
@@ -237,12 +248,10 @@ export default class Schedules extends Component {
               )}
             />
           </div>
-          {!schedule && (
-            <div className='form-group'>
-              <label>{_('scheduleEnableAfterCreation')}</label>{' '}
-              <Toggle ref='enabled' />
-            </div>
-          )}
+          <div className='form-group'>
+            <label>{_('enableImmediately')}</label>{' '}
+            <Toggle onChange={this.toggleState('enabled')} value={enabled} />
+          </div>
         </form>
         <fieldset>
           <Scheduler
