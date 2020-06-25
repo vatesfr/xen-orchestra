@@ -113,7 +113,8 @@ export class OpenFlowChannel extends EventEmitter {
     const { dlType, nwProto } = dlAndNwProtocolFromString(protocol)
     const mac = vif.MAC
 
-    await this._connect()
+    this._connect()
+    await fromEvent(this, 'ofConnected')
     if (direction.includes('from')) {
       this._addFlow(
         {
@@ -173,6 +174,7 @@ export class OpenFlowChannel extends EventEmitter {
         instructions
       )
     }
+    this._socket.close()
   }
 
   async deleteRule(vif, protocol, port, ipRange, direction, ofport) {
@@ -187,7 +189,8 @@ export class OpenFlowChannel extends EventEmitter {
     const { dlType, nwProto } = dlAndNwProtocolFromString(protocol)
     const mac = vif.MAC
 
-    await this._connect()
+    this._connect()
+    await fromEvent(this, 'ofConnected')
     if (direction.includes('from')) {
       this._removeFlows({
         type: ofProtocol.matchType.standard,
@@ -232,6 +235,7 @@ export class OpenFlowChannel extends EventEmitter {
         tp_src: port,
       })
     }
+    this._socket.close()
   }
 
   // ===========================================================================
@@ -365,6 +369,11 @@ export class OpenFlowChannel extends EventEmitter {
       this.host.address,
       OPENFLOW_PORT
     )
+
+    const deleteSocket = () => delete this._socket
+    this._socket.on('error', deleteSocket)
+    this._socket.on('end', deleteSocket)
+
     for await (const msg of parse(this._socket)) {
       if (msg.header !== undefined) {
         this._processMessage(msg)
@@ -372,11 +381,5 @@ export class OpenFlowChannel extends EventEmitter {
         log.error('Error: Message is unparseable', { msg })
       }
     }
-
-    const deleteSocket = () => delete this._socket
-    this._socket.on('error', deleteSocket)
-    this._socket.on('end', deleteSocket)
-
-    await fromEvent(this, 'ofConnected')
   }
 }
