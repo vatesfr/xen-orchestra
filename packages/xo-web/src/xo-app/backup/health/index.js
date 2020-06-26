@@ -228,7 +228,7 @@ const Health = decorate([
               <Icon icon='backup' /> {_('detachedBackups')}
             </CardHeader>
             <CardBlock>
-              <div className='mt-1 mb-1'>
+              <div className='mb-1'>
                 <ActionButton
                   btnStyle='primary'
                   handler={fetchBackupList}
