@@ -199,12 +199,10 @@ export default class extends Component {
           <Col className='text-xs-right'>
             {!isNetDataPluginCorrectlySet ? (
               <Tooltip content={_('pluginNetDataIsNecessary')}>
-                <span>{telemetryButton}</span>
+                {telemetryButton}
               </Tooltip>
             ) : !_isXcpNgHost ? (
-              <Tooltip content={_('xcpOnlyFeature')}>
-                <span>{telemetryButton}</span>
-              </Tooltip>
+              <Tooltip content={_('xcpOnlyFeature')}>{telemetryButton}</Tooltip>
             ) : (
               telemetryButton
             )}

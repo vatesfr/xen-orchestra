@@ -239,9 +239,12 @@ export const Sr = decorate([
       <LinkWrapper link={link} newTab={newTab} to={`/srs/${sr.id}`}>
         <Icon icon='sr' /> {sr.name_label}
         {!self && spaceLeft && isSrWritable(sr) && (
-          <span className={!link && 'text-muted'}>{` (${formatSize(
-            sr.size - sr.physical_usage
-          )} free)`}</span>
+          <span className={!link && 'text-muted'}>
+            {` (${formatSize(sr.size - sr.physical_usage)} free`}
+            {sr.allocationStrategy !== undefined &&
+              ` - ${sr.allocationStrategy}`}
+            )
+          </span>
         )}
         {!self && container !== undefined && (
           <span className={!link && 'text-muted'}>

@@ -374,8 +374,20 @@ export default class SrDisks extends Component {
         ),
       handler: this._migrateVdis,
       icon: 'vdi-migrate',
-      individualLabel: _('vdiMigrate'),
-      label: _('migrateSelectedVdis'),
+      individualLabel: vdis => {
+        const { type } = vdis[0]
+        return type === 'VDI-unmanaged' || type === 'VDI-snapshot'
+          ? _('disabledVdiMigrateTooltip')
+          : _('vdiMigrate')
+      },
+      label: vdis => {
+        return some(
+          vdis,
+          ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'
+        )
+          ? _('disabledVdiMigrateTooltip')
+          : _('migrateSelectedVdis')
+      },
     },
   ]
 
