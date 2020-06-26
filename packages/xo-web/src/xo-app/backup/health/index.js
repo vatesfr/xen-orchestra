@@ -74,7 +74,7 @@ const DETACHED_BACKUP_ACTIONS = [
         body: _('deleteBackupsMessage', { nBackups }),
         icon: 'delete',
       })
-        .then(() => deleteBackups(backups))
+        .then(() => deleteBackups(backups), noop)
         .then(fetchBackupList)
     },
     icon: 'delete',
