@@ -17,6 +17,7 @@
 - [SR/Disks] Add tooltip for disabled migration (PR [#4884](https://github.com/vatesfr/xen-orchestra/pull/4884))
 - [SR/Advanced, SR selector] Show thin/thick provisioning [#2208](https://github.com/vatesfr/xen-orchestra/issues/2208) (PR [#5081](https://github.com/vatesfr/xen-orchestra/pull/5081))
 - [Licenses] Ability to move a license from another XOA to the current XOA (PR [#5110](https://github.com/vatesfr/xen-orchestra/pull/5110))
+- [Backup/health] Show VM backups with missing jobs, schedules and VMs [#4716](https://github.com/vatesfr/xen-orchestra/issues/4716) (PR [#5062](https://github.com/vatesfr/xen-orchestra/pull/5062))
 
 ### Bug fixes
 
