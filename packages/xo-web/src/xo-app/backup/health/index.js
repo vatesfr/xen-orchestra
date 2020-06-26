@@ -1,13 +1,14 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
+import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
 import renderXoItem, { BackupJob, Vm } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore, noop } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
@@ -15,7 +16,6 @@ import { createPredicate } from 'value-matcher'
 import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
 import { forEach, keyBy, omit, toArray } from 'lodash'
 import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
-import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import {
   deleteBackups,
@@ -47,7 +47,7 @@ const DETACHED_BACKUP_COLUMNS = [
   {
     name: _('vm'),
     itemRenderer: ({ vm, vmId }) => <Vm id={vmId} link name={vm.name_label} />,
-    sortCriteria: ({ vmId }, { vms }) => get(() => vms[vmId].name_label),
+    sortCriteria: ({ vm, vmId }, { vms }) => defined(vms[vmId], vm).name_label,
   },
   {
     name: _('job'),
@@ -75,7 +75,7 @@ const DETACHED_BACKUP_ACTIONS = [
         icon: 'delete',
       })
         .then(() => deleteBackups(backups))
-        .then(fetchBackupList, noop)
+        .then(fetchBackupList)
     },
     icon: 'delete',
     label: backups => _('deleteBackups', { nBackups: backups.length }),

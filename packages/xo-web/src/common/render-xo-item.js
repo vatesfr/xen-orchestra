@@ -22,11 +22,13 @@ import {
 
 // ===================================================================
 
-const unknowItem = (uuid, type, name) => (
+const unknowItem = (uuid, type, placeholder) => (
   <Tooltip content={_('copyUuid', { uuid })}>
     <CopyToClipboard text={uuid}>
       <span className='text-muted' style={{ cursor: 'pointer' }}>
-        {name === undefined ? _('errorUnknownItem', { type }) : name}
+        {placeholder === undefined
+          ? _('errorUnknownItem', { type })
+          : placeholder}
       </span>
     </CopyToClipboard>
   </Tooltip>
