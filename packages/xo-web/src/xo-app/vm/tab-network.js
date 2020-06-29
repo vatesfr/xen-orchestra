@@ -385,7 +385,6 @@ class NewAclRuleForm extends BaseComponent {
                   <Col size={6}>
                     <input
                       className='form-control w-100'
-                      key='key'
                       onChange={this.linkState('ipRange')}
                       type='text'
                       value={ipRange}
@@ -431,7 +430,7 @@ class AclRuleRow extends Component {
 
     return (
       <tr>
-        <td>{ruleObj.allow ? 'Enable' : 'Disable'}</td>
+        <td>{ruleObj.allow ? _('stateEnabled') : _('stateDisabled')}</td>
         <td>{ruleObj.protocol}</td>
         <td>{ruleObj.port}</td>
         <td>{ruleObj.ipRange}</td>
@@ -523,21 +522,18 @@ class AclRulesRows extends BaseComponent {
           <table className='table'>
             <thead className='thead-default'>
               <tr>
-                <th>{_('aclRuleAllow')}</th>
-                <th>{_('aclRuleProtocol')}</th>
-                <th>{_('aclRulePort')}</th>
-                <th>{_('aclRuleIpRange')}</th>
-                <th>{_('aclRuleDirection')}</th>
+                <th>{_('aclRuleAllowField')}</th>
+                <th>{_('aclRuleProtocolField')}</th>
+                <th>{_('aclRulePortField')}</th>
+                <th>{_('aclRuleIpRangeField')}</th>
+                <th>{_('aclRuleDirectionField')}</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {map(
-                rules,
-                rule =>
-                  rule !== undefined && <AclRuleRow rule={rule} vif={vif} />
-              )}
-              {this.getRules}
+              {map(rules, rule => (
+                <AclRuleRow rule={rule} vif={vif} />
+              ))}
             </tbody>
           </table>
         )}
