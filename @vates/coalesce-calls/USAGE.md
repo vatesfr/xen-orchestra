@@ -1,5 +1,5 @@
 ```js
-import { coalesceCalls } from 'coalesce-calls'
+import { coalesceCalls } from '@vates/coalesce-calls'
 
 const connect = coalesceCalls(async function () {
   // async operation
