@@ -78,6 +78,7 @@ const messages = {
   offline: 'Offline',
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
+  unknown: 'Unknown',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -261,7 +262,6 @@ const messages = {
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
-  description: 'Description',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -748,6 +748,7 @@ const messages = {
 
   // ----- SR advanced tab -----
 
+  provisioning: 'Provisioning',
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
@@ -1009,6 +1010,9 @@ const messages = {
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
+  managementAgentDetected: 'Management agent {version} detected',
+  managementAgentOutOfDate: 'Management agent {version} out of date',
+  managementAgentNotDetected: 'Management agent not detected',
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
@@ -1188,8 +1192,7 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools version',
-  xenToolsNotInstalled: 'Not installed',
+  managementAgentVersion: 'Management agent version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
@@ -1321,6 +1324,16 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
+  deleteBackupsMessage:
+    'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
+  detachedBackups: 'Detached backups',
+  missingJob: 'Missing job',
+  missingVm: 'Missing VM',
+  missingVmInJob: 'This VM does not belong to this job',
+  missingSchedule: 'Missing schedule',
+  noDetachedBackups: 'No backups',
+  reason: 'Reason',
   orphanedVdis: 'Orphaned snapshot VDIs',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
@@ -1539,7 +1552,7 @@ const messages = {
   importBackupTitle: 'Import VM',
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
-  restoreResfreshList: 'Refresh backup list',
+  refreshBackupList: 'Refresh backup list',
   restoreLegacy: 'Legacy restore',
   restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
@@ -2113,6 +2126,8 @@ const messages = {
   downloadConfig: 'Download current config',
 
   // ----- SR -----
+  disabledVdiMigrateTooltip:
+    "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
   srDisconnectAllModalTitle: 'Disconnect all hosts',
@@ -2329,6 +2344,7 @@ const messages = {
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
   bindXoaLicense: 'Activate license',
+  rebindXoaLicense: 'Move license to this XOA',
   bindXoaLicenseConfirm:
     'Are you sure you want to activate this license on your XOA? This action is not reversible!',
   bindXoaLicenseConfirmText: 'activate {licenseType} license',

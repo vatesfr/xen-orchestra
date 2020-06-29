@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Copiable from 'copiable'
+import defined from '@xen-orchestra/defined'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
@@ -47,6 +48,7 @@ const UnhealthyVdiChains = flowRight(
 )(({ chains, vdis }) =>
   isEmpty(vdis) ? null : (
     <div>
+      <hr />
       <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
       <SortedTable
         collection={vdis}
@@ -69,6 +71,18 @@ export default ({ sr }) => (
           icon='sr-remove'
           labelId='srRemoveButton'
         />
+      </Col>
+    </Row>
+    <Row>
+      <Col>
+        <table className='table'>
+          <tbody>
+            <tr>
+              <th>{_('provisioning')}</th>
+              <td>{defined(sr.allocationStrategy, _('noValue'))}</td>
+            </tr>
+          </tbody>
+        </table>
       </Col>
     </Row>
     <Row>
