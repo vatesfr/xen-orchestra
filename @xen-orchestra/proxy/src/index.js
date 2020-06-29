@@ -103,7 +103,7 @@ ${name} v${version}
     // The default value of 10 appears to be too small for interesting traces in xo-proxy.
     Error.stackTraceLimit = 20
 
-    require('source-map-support/registers')
+    require('source-map-support/register')
   } catch (error) {
     warn(error)
   }
