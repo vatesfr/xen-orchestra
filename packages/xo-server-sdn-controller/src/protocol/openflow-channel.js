@@ -2,8 +2,8 @@ import createLogger from '@xen-orchestra/log'
 import ipaddr from 'ipaddr.js'
 import openflow from '@xen-orchestra/openflow'
 import parse from '@xen-orchestra/openflow/parse-socket'
-import util from 'util'
 
+import { coalesceCalls } from '@vates/coalesce-calls'
 import { EventEmitter } from 'events'
 import { fromEvent } from 'promise-toolbox'
 
@@ -29,6 +29,7 @@ const parseIp = ipAddress => {
     const maskOctets = ipaddr.IPv4.subnetMaskFromPrefixLength(ip[1]).octets
     mask = ipaddr.fromByteArray(maskOctets.map(i => 255 - i)).toString() // Use wildcarded mask
   } else {
+    // TODO: return ipAddress directly?
     const ip = ipaddr.parse(ipAddress)
     addr = ip.toString()
   }
@@ -78,6 +79,7 @@ export class OpenFlowChannel extends EventEmitter {
 
     this.host = host
     this._tlsHelper = tlsHelper
+    this._coalesceConnect = coalesceCalls(this._connect)
 
     log.debug('New OpenFlow channel', {
       host: this.host.name_label,
@@ -113,8 +115,7 @@ export class OpenFlowChannel extends EventEmitter {
     const { dlType, nwProto } = dlAndNwProtocolFromString(protocol)
     const mac = vif.MAC
 
-    this._connect()
-    await fromEvent(this, 'ofConnected')
+    await this._coalesceConnect()
     if (direction.includes('from')) {
       this._addFlow(
         {
@@ -189,8 +190,7 @@ export class OpenFlowChannel extends EventEmitter {
     const { dlType, nwProto } = dlAndNwProtocolFromString(protocol)
     const mac = vif.MAC
 
-    this._connect()
-    await fromEvent(this, 'ofConnected')
+    await this._coalesceConnect()
     if (direction.includes('from')) {
       this._removeFlows({
         type: ofProtocol.matchType.standard,
@@ -243,7 +243,7 @@ export class OpenFlowChannel extends EventEmitter {
   _processMessage(message) {
     if (message.header === undefined) {
       log.error('Failed to get header while processing message', {
-        message: util.inspect(message),
+        message,
       })
       return
     }
@@ -346,7 +346,7 @@ export class OpenFlowChannel extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async _sendPacket(packet) {
+  _sendPacket(packet) {
     const buf = openflow.pack(packet)
     try {
       this._socket.write(buf)
@@ -359,6 +359,16 @@ export class OpenFlowChannel extends EventEmitter {
   }
 
   // ---------------------------------------------------------------------------
+
+  async _parseMessages() {
+    for await (const msg of parse(this._socket)) {
+      if (msg.header !== undefined) {
+        this._processMessage(msg)
+      } else {
+        log.error('Error: Message is unparseable', { msg })
+      }
+    }
+  }
 
   async _connect() {
     if (this._socket !== undefined) {
@@ -374,12 +384,10 @@ export class OpenFlowChannel extends EventEmitter {
     this._socket.on('error', deleteSocket)
     this._socket.on('end', deleteSocket)
 
-    for await (const msg of parse(this._socket)) {
-      if (msg.header !== undefined) {
-        this._processMessage(msg)
-      } else {
-        log.error('Error: Message is unparseable', { msg })
-      }
-    }
+    this._parseMessages().catch(error => {
+      log.error('Error while parsing OF messages', error)
+    })
+
+    await fromEvent(this, 'ofConnected')
   }
 }
