@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Audit] Fix integrity check feedback not displayed (PR [#5106](https://github.com/vatesfr/xen-orchestra/pull/5106))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -27,3 +29,5 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- xo-web minor
