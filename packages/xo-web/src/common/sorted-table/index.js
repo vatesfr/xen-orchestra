@@ -1006,5 +1006,5 @@ class SortedTable extends Component {
   }
 }
 
-// withRouter is used to force the render on route change by injecting the route properties in props
+// withRouter is needed to trigger a render on filtering/sorting items
 export default withRouter(SortedTable, { withRef: true })
