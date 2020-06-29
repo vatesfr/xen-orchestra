@@ -478,7 +478,7 @@ class AclRulesRows extends BaseComponent {
         direction,
         vif,
       })
-    })
+    }, noop)
   }
 
   _getRules = createSelector(
