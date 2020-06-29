@@ -326,6 +326,18 @@ const BACKUP_FILTERS = [
   { value: 'notBackedUpVms', label: _('notBackedUpVms') },
 ]
 
+const POWER_STATE_HOST = [
+  { value: 'halted', label: _('powerStateHalted') },
+  { value: 'running', label: _('powerStateRunning') },
+]
+
+const POWER_STATE_VM = [
+  { value: 'halted', label: _('powerStateHalted') },
+  { value: 'paused', label: _('powerStatePaused') },
+  { value: 'running', label: _('powerStateRunning') },
+  { value: 'suspended', label: _('powerStateSuspended') },
+]
+
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -653,6 +665,7 @@ export default class Home extends Component {
     this.setState({
       selectedHosts: properties.$container,
       selectedPools: properties.$pool,
+      selectedPowerState: get(() => properties['power_state'][0]),
       selectedTags: properties.tags,
       selectedResourceSets: properties.resourceSet,
       ...sort,
@@ -763,6 +776,21 @@ export default class Home extends Component {
       {label}
     </MenuItem>
   ))
+
+  _updateSelectedPowerState = powerState => {
+    const filter = this._getParsedFilter()
+
+    this._setFilter(
+      powerState == null
+        ? ComplexMatcher.setPropertyClause(filter, 'power_state', undefined)
+        : ComplexMatcher.setPropertyClause(
+            filter,
+            'power_state',
+            new ComplexMatcher.StringNode(powerState)
+          )
+    )
+  }
+
   _updateSelectedPools = pools => {
     const filter = this._getParsedFilter()
 
@@ -946,6 +974,7 @@ export default class Home extends Component {
       homeItemsPerPage,
       selectedHosts,
       selectedPools,
+      selectedPowerState,
       selectedResourceSets,
       selectedTags,
       sortBy,
@@ -1106,6 +1135,52 @@ export default class Home extends Component {
               </div>
             ) : (
               <div>
+                {(type === 'VM' || type === 'host') && (
+                  <Tooltip
+                    content={
+                      selectedPowerState == null
+                        ? undefined
+                        : _('powerStateTooltip', {
+                            powerState: selectedPowerState,
+                            type,
+                          })
+                    }
+                  >
+                    <OverlayTrigger
+                      trigger='click'
+                      rootClose
+                      placement='bottom'
+                      overlay={
+                        <Popover
+                          className={styles.selectObject}
+                          id='powerStatePopover'
+                        >
+                          <Select
+                            autoFocus
+                            onChange={this._updateSelectedPowerState}
+                            openOnFocus
+                            options={
+                              type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST
+                            }
+                            simpleValue
+                            value={selectedPowerState}
+                          />
+                        </Popover>
+                      }
+                    >
+                      <Button btnStyle='link'>
+                        <Icon
+                          icon={
+                            selectedPowerState == null
+                              ? 'unknown'
+                              : selectedPowerState
+                          }
+                        />{' '}
+                        {_('powerState')}
+                      </Button>
+                    </OverlayTrigger>
+                  </Tooltip>
+                )}
                 {type === 'VM' && (
                   <OverlayTrigger
                     trigger='click'
