@@ -318,7 +318,7 @@ class NewAclRuleForm extends BaseComponent {
     protocol: undefined,
     port: undefined,
     ipRange: '',
-    direction: { label: 'from/to', value: 'from/to' },
+    direction: 'from/to',
   }
 
   get value() {
@@ -334,8 +334,7 @@ class NewAclRuleForm extends BaseComponent {
   render() {
     const { protocol, allow, port, ipRange, direction } = this.state
     const showIpRange = protocol != null
-    const showPort =
-      showIpRange && USABLE_PORT_PROTOCOL.includes(protocol.value)
+    const showPort = showIpRange && USABLE_PORT_PROTOCOL.includes(protocol)
 
     return (
       <form id='newAclForm'>
@@ -348,7 +347,7 @@ class NewAclRuleForm extends BaseComponent {
                   <Toggle onChange={this.toggleState('allow')} value={allow} />
                 </Col>
               </SingleLineRow>
-              <SingleLineRow>
+              <SingleLineRow className='mt-1'>
                 <Col size={6}>{_('aclRuleProtocol')}</Col>
                 <Col size={6}>
                   <Select
@@ -361,16 +360,17 @@ class NewAclRuleForm extends BaseComponent {
                       { label: 'ICMP', value: 'ICMP' },
                       { label: 'ARP', value: 'ARP' },
                     ]}
+                    simpleValue
                     value={protocol}
                   />
                 </Col>
               </SingleLineRow>
               {showPort && (
-                <SingleLineRow>
+                <SingleLineRow className='mt-1'>
                   <Col size={6}>{_('aclRulePort')}</Col>
                   <Col size={6}>
                     <input
-                      className='form-control'
+                      className='form-control w-100'
                       min='1'
                       onChange={this.linkState('port')}
                       type='number'
@@ -380,11 +380,11 @@ class NewAclRuleForm extends BaseComponent {
                 </SingleLineRow>
               )}
               {showIpRange && (
-                <SingleLineRow>
+                <SingleLineRow className='mt-1'>
                   <Col size={6}>{_('aclRuleIpRange')}</Col>
                   <Col size={6}>
                     <input
-                      className='form-control'
+                      className='form-control w-100'
                       key='key'
                       onChange={this.linkState('ipRange')}
                       type='text'
@@ -393,7 +393,7 @@ class NewAclRuleForm extends BaseComponent {
                   </Col>
                 </SingleLineRow>
               )}
-              <SingleLineRow>
+              <SingleLineRow className='mt-1'>
                 <Col size={6}>{_('aclRuleDirection')}</Col>
                 <Col size={6}>
                   <Select
@@ -405,6 +405,7 @@ class NewAclRuleForm extends BaseComponent {
                       { label: 'from/to', value: 'from/to' },
                     ]}
                     required
+                    simpleValue
                     value={direction}
                   />
                 </Col>
@@ -467,15 +468,15 @@ class AclRulesRows extends BaseComponent {
       const hasProtocol = protocol != null
       const usePort =
         hasProtocol &&
-        USABLE_PORT_PROTOCOL.includes(protocol.value) &&
+        USABLE_PORT_PROTOCOL.includes(protocol) &&
         port !== undefined
 
       return addAclRule({
         allow,
-        protocol: hasProtocol ? protocol.value : undefined,
+        protocol: hasProtocol ? protocol : undefined,
         port: usePort ? +port : undefined,
         ipRange: hasProtocol ? ipRange : '',
-        direction: direction.value,
+        direction,
         vif,
       })
     })
