@@ -278,7 +278,7 @@ afterAll(async () => {
   await xo.close()
   xo = null
 })
-afterEach(() => xo.deleteTempResources())
+afterEach(() => xo.deleteTempResources(), 30e3)
 
 export { xo as default }
 
