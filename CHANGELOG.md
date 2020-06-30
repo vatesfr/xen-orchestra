@@ -36,7 +36,7 @@
 - xo-server-audit 0.5.0
 - xo-server-sdn-controller 0.4.3
 - xo-server-load-balancer 0.3.3
-- xo-server 5.61.0
+- xo-server 5.61.1
 - xo-web 5.61.1
 
 ## **5.47.1** (2020-06-02)
