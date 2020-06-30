@@ -51,31 +51,46 @@ ${name} v${version}
         : undefined,
   })
 
-  const { readFileSync, outputFileSync } = require('fs-extra')
+  const { readFileSync, outputFileSync, unlinkSync } = require('fs-extra')
+  const retry = require('promise-toolbox/retry')
 
   require('lodash/forOwn')(
     config.http.listen,
     async ({ autoCert, cert, key, ...opts }) => {
       try {
-        if (cert !== undefined && key !== undefined) {
-          try {
-            opts.cert = readFileSync(cert)
-            opts.key = readFileSync(key)
-          } catch (error) {
-            if (!(autoCert && error.code === 'ENOENT')) {
-              throw error
+        const niceAddress = await retry(
+          async () => {
+            if (cert !== undefined && key !== undefined) {
+              try {
+                opts.cert = readFileSync(cert)
+                opts.key = readFileSync(key)
+              } catch (error) {
+                if (!(autoCert && error.code === 'ENOENT')) {
+                  throw error
+                }
+
+                const pems = await require('@xen-orchestra/self-signed').genSelfSignedCert()
+                outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
+                outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
+                info('new certificate generated', { cert, key })
+                opts.cert = pems.cert
+                opts.key = pems.key
+              }
             }
 
-            const pems = await require('@xen-orchestra/self-signed').genSelfSignedCert()
-            outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
-            outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
-            info('new certificate generated', { cert, key })
-            opts.cert = pems.cert
-            opts.key = pems.key
+            return httpServer.listen(opts)
+          },
+          {
+            tries: 2,
+            when: e => autoCert && e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
+            onRetry: () => {
+              warn('deleting invalid certificate')
+              unlinkSync(cert)
+              unlinkSync(key)
+            },
           }
-        }
+        )
 
-        const niceAddress = await httpServer.listen(opts)
         info(`Web server listening on ${niceAddress}`)
       } catch (error) {
         if (error.niceAddress !== undefined) {
