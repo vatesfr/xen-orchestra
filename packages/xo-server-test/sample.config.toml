@@ -1,3 +1,5 @@
+#deleteTempResourcesTimeout = ''
+
 [xoConnection]
   url = ''
   email = ''
