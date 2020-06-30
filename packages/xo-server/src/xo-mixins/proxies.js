@@ -358,7 +358,7 @@ export default class Proxy {
       await this.updateProxy(id, { authenticationToken })
     }
 
-    const lines = pumpify(response, split2())
+    const lines = pumpify.obj(response, split2())
     const firstLine = await readChunk(lines)
 
     const { result, error } = parse(String(firstLine))
