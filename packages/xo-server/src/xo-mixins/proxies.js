@@ -317,7 +317,7 @@ export default class Proxy {
     await this.callProxyMethod(id, 'system.getServerVersion')
   }
 
-  async callProxyMethod(id, method, params, expectStream = false) {
+  async callProxyMethod(id, method, params, { expectStream = false } = {}) {
     const proxy = await this._getProxy(id)
 
     let ipAddress
