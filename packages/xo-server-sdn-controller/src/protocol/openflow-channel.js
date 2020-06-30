@@ -80,6 +80,7 @@ export class OpenFlowChannel extends EventEmitter {
     this.host = host
     this._tlsHelper = tlsHelper
     this._coalesceConnect = coalesceCalls(this._connect)
+    this._socket = undefined
 
     log.debug('New OpenFlow channel', {
       host: this.host.name_label,
