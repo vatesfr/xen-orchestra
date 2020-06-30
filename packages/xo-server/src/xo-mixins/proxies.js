@@ -25,6 +25,16 @@ const synchronizedWrite = synchronized()
 
 const log = createLogger('xo:proxy')
 
+const assertProxyAddress = (proxy, address) => {
+  if (address !== undefined) {
+    return address
+  }
+
+  const error = new Error('cannot get the proxy address')
+  error.proxy = omit(proxy, 'authenticationToken')
+  throw error
+}
+
 export default class Proxy {
   constructor(app, conf) {
     this._app = app
@@ -320,21 +330,7 @@ export default class Proxy {
   async callProxyMethod(id, method, params, { expectStream = false } = {}) {
     const proxy = await this._getProxy(id)
 
-    let ipAddress
-    if (proxy.vmUuid !== undefined) {
-      const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
-      ipAddress = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
-    } else {
-      ipAddress = proxy.address
-    }
-
-    if (ipAddress === undefined) {
-      const error = new Error('cannot get the proxy IP')
-      error.proxy = omit(proxy, 'authenticationToken')
-      throw error
-    }
-
-    const response = await this._app.httpRequest({
+    const request = {
       body: format.request(0, method, params),
       headers: {
         'Content-Type': 'application/json',
@@ -343,13 +339,27 @@ export default class Proxy {
           proxy.authenticationToken
         ),
       },
-      hostname: ipAddress,
       method: 'POST',
       pathname: '/api/v1',
       protocol: 'https:',
       rejectUnauthorized: false,
       timeout: parseDuration(this._xoProxyConf.callTimeout),
-    })
+    }
+
+    if (proxy.vmUuid !== undefined) {
+      const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
+
+      // use hostname field to avoid issues with IPv6 addresses
+      request.hostname = assertProxyAddress(
+        proxy,
+        extractIpFromVmNetworks(vm.$guest_metrics?.networks)
+      )
+    } else {
+      // use host field so that ports can be passed
+      request.host = assertProxyAddress(proxy, proxy.address)
+    }
+
+    const response = await this._app.httpRequest(request)
 
     const authenticationToken = parseSetCookie(response, {
       map: true,
