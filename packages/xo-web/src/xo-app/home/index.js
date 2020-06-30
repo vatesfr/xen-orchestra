@@ -326,7 +326,7 @@ const BACKUP_FILTERS = [
   { value: 'notBackedUpVms', label: _('notBackedUpVms') },
 ]
 
-const POWER_STATE_HOST = [
+const POWER_STATE = [
   { value: 'halted', label: _('powerStateHalted') },
   { value: 'running', label: _('powerStateRunning') },
 ]
@@ -661,13 +661,20 @@ export default class Home extends Component {
     }
 
     const sort = this._getDefaultSort(props)
+    const {
+      $container: selectedHosts,
+      $pool: selectedPools,
+      power_state: powerState,
+      resourceSet: selectedResourceSets,
+      tags: selectedTags,
+    } = properties
 
     this.setState({
-      selectedHosts: properties.$container,
-      selectedPools: properties.$pool,
-      selectedPowerState: get(() => properties['power_state'][0]),
-      selectedTags: properties.tags,
-      selectedResourceSets: properties.resourceSet,
+      selectedHosts,
+      selectedPools,
+      selectedPowerState: powerState === undefined ? undefined : powerState[0],
+      selectedResourceSets,
+      selectedTags,
       ...sort,
     })
 
@@ -1140,10 +1147,7 @@ export default class Home extends Component {
                     content={
                       selectedPowerState == null
                         ? undefined
-                        : _('powerStateTooltip', {
-                            powerState: selectedPowerState,
-                            type,
-                          })
+                        : _(`${selectedPowerState}Item`, { type: `${type}s` })
                     }
                   >
                     <OverlayTrigger
@@ -1160,7 +1164,7 @@ export default class Home extends Component {
                             onChange={this._updateSelectedPowerState}
                             openOnFocus
                             options={
-                              type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST
+                              type === 'VM' ? POWER_STATE_VM : POWER_STATE
                             }
                             simpleValue
                             value={selectedPowerState}

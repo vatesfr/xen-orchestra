@@ -256,9 +256,12 @@ const messages = {
   homeMissingPatches: 'Missing patches',
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
+  haltedItem: 'Halted {type}',
   highAvailability: 'High Availability',
+  pausedItem: 'Paused {type}',
   powerState: 'Power state',
-  powerStateTooltip: '{powerState} {type}s',
+  runningItem: 'Running {type}',
+  suspendedItem: 'Suspended {type}',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
