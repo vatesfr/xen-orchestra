@@ -361,10 +361,7 @@ export default class Proxy {
     const lines = pumpify.obj(response, split2(JSON.parse))
     const firstLine = await readChunk(lines)
 
-    const { result, error } = parse(firstLine)
-    if (error !== undefined) {
-      throw error
-    }
+    const result = parse.result(firstLine)
     const isStream = result.$responseType === 'ndjson'
     if (isStream !== expectStream) {
       lines.destroy()
