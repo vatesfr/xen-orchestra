@@ -380,7 +380,9 @@ export class OpenFlowChannel extends EventEmitter {
       OPENFLOW_PORT
     )
 
-    const deleteSocket = () => delete this._socket
+    const deleteSocket = () => {
+      this._socket = undefined
+    }
     this._socket.on('error', deleteSocket)
     this._socket.on('end', deleteSocket)
 
