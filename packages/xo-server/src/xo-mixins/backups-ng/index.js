@@ -666,7 +666,7 @@ export default class BackupNg {
             }),
           ])
 
-          return app.callProxyMethod(job.proxy, 'backup.run', {
+          const params = {
             job: {
               ...job,
 
@@ -677,8 +677,59 @@ export default class BackupNg {
             recordToXapi,
             remotes,
             schedule,
+            streamLogs: true,
             xapis,
-          })
+          }
+
+          try {
+            const logsStream = await app.callProxyMethod(
+              job.proxy,
+              'backup.run',
+              params,
+              {
+                expectStream: true,
+              }
+            )
+
+            const localTaskIds = { __proto__: null }
+            for await (const log of logsStream) {
+              const { event, message, taskId } = log
+
+              const common = {
+                data: log.data,
+                event: 'task.' + event,
+                result: log.result,
+                status: log.status,
+              }
+
+              if (event === 'start') {
+                const { parentId } = log
+                if (parentId === undefined) {
+                  // ignore root task (already handled by runJob)
+                  localTaskIds[taskId] = runJobId
+                } else {
+                  common.parentId = localTaskIds[parentId]
+                  localTaskIds[taskId] = logger.notice(message, common)
+                }
+              } else {
+                const localTaskId = localTaskIds[taskId]
+                if (localTaskId === runJobId) {
+                  // ignore root task (already handled by runJob)
+                } else {
+                  common.taskId = localTaskId
+                  logger.notice(message, common)
+                }
+              }
+            }
+            return
+          } catch (error) {
+            // XO API invalid parameters error
+            if (error.code === 10) {
+              delete params.streamLogs
+              return app.callProxyMethod(job.proxy, 'backup.run', params)
+            }
+            throw error
+          }
         }
 
         const srs = srIds.map(id => app.getXapiObject(id, 'SR'))
