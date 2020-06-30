@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Audit] Fix integrity check feedback not displayed (PR [#5106](https://github.com/vatesfr/xen-orchestra/pull/5106))
+- [Perf alert] Regroup items with missing stats in one email [#3137](https://github.com/vatesfr/xen-orchestra/issues/3137) (PR [#4413](https://github.com/vatesfr/xen-orchestra/pull/4413))
 
 ### Packages to release
 
@@ -30,4 +30,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-perf-alert patch
 - xo-web minor
