@@ -122,9 +122,7 @@ export default class {
           ? this._xo.callProxyMethod(remote.proxy, 'remote.getInfo', {
               remote,
             })
-          : await this.getRemoteHandler(remote.id).then(handler =>
-              handler.getInfo()
-            )
+          : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
       try {
         await timeout.call(

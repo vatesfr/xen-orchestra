@@ -317,7 +317,7 @@ export default class Proxy {
     await this.callProxyMethod(id, 'system.getServerVersion')
   }
 
-  async callProxyMethod(id, method, params, expectStream = false) {
+  async callProxyMethod(id, method, params, { expectStream = false } = {}) {
     const proxy = await this._getProxy(id)
 
     let ipAddress
@@ -358,15 +358,13 @@ export default class Proxy {
       await this.updateProxy(id, { authenticationToken })
     }
 
-    const lines = pumpify(response, split2())
+    const lines = pumpify.obj(response, split2(JSON.parse))
     const firstLine = await readChunk(lines)
 
-    const { result, error } = parse(String(firstLine))
-    if (error !== undefined) {
-      throw error
-    }
+    const result = parse.result(firstLine)
     const isStream = result.$responseType === 'ndjson'
     if (isStream !== expectStream) {
+      lines.destroy()
       throw new Error(
         `expect the result ${expectStream ? '' : 'not'} to be a stream`
       )

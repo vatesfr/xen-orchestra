@@ -943,6 +943,13 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
+"@babel/runtime@^7.3.4":
+  version "7.10.3"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.10.3.tgz#670d002655a7c366540c67f6fd3342cd09500364"
+  integrity sha512-RzGO0RLSdokm9Ipe/YD+7ww8X2Ro79qiXZF3HU9ljrM+qnJmH1Vqth+hbiQZy761LnMJTMitHDuKVYTk3k4dLw==
+  dependencies:
+    regenerator-runtime "^0.13.4"
+
 "@babel/template@^7.10.1", "@babel/template@^7.3.3", "@babel/template@^7.4.0":
   version "7.10.1"
   resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.10.1.tgz#e167154a94cb5f14b28dc58f5356d2162f539811"
@@ -11019,13 +11026,22 @@ json-rpc-peer@^0.13.1:
     lodash "^4.17.4"
     readable-stream "^2.2.9"
 
-json-rpc-peer@^0.15.0, json-rpc-peer@^0.15.3:
+json-rpc-peer@^0.15.0:
   version "0.15.5"
   resolved "https://registry.yarnpkg.com/json-rpc-peer/-/json-rpc-peer-0.15.5.tgz#51bc04cd4ff1c71694d9d903ce3c250d34f2d97e"
   integrity sha512-jZUNbRmcMXTpAnp1WGY9o85IfdGLKp75lBFYOIgpKOT9ZwKDHQOc3UmxOJUUg1bBfI7D1dltR3FSA6D0ZpPMpw==
   dependencies:
     "@babel/runtime" "7.0.0-rc.1"
     json-rpc-protocol "^0.12.0"
+    lodash "^4.17.4"
+
+json-rpc-peer@^0.16.0:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/json-rpc-peer/-/json-rpc-peer-0.16.0.tgz#44ce9924cab354c3f263b315b8feb9ed644a06c2"
+  integrity sha512-7T112z5S5xKpWBk1MRmYao6PDPXPFct9cWJbZBVGyg4Zle8EOdvd6y09n+dWFZNdh5qZShHlYQModXU+gHyWcQ==
+  dependencies:
+    "@babel/runtime" "^7.3.4"
+    json-rpc-protocol "^0.13.1"
     lodash "^4.17.4"
 
 json-rpc-protocol@^0.11.3:

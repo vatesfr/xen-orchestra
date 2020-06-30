@@ -230,7 +230,7 @@ export default class Restore extends Component {
               handler={this._refreshBackupList}
               icon='refresh'
             >
-              {_('restoreResfreshList')}
+              {_('refreshBackupList')}
             </ActionButton>
           </div>
           <em>
