@@ -27,6 +27,8 @@ import {
   subscribeSchedules,
 } from 'xo'
 
+import { noop } from '../../../common/utils'
+
 const DETACHED_BACKUP_COLUMNS = [
   {
     name: _('date'),
