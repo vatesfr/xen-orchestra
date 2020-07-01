@@ -118,7 +118,7 @@ export default class Backups {
 
                 vmRef = await importDeltaVm(
                   await adapter.readDeltaVmBackup(metadata),
-                  srRef
+                  await xapi.getRecord('SR', srRef)
                 )
               }
 
