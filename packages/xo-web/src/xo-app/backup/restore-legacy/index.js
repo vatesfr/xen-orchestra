@@ -239,7 +239,10 @@ class _ModalBody extends Component {
 const ImportModalBody = injectIntl(_ModalBody, { withRef: true })
 
 @addSubscriptions({
-  rawRemotes: subscribeRemotes,
+  rawRemotes: cb =>
+    subscribeRemotes(remotes => {
+      cb(remotes.filter(({ proxy }) => proxy === undefined))
+    }),
 })
 export default class Restore extends Component {
   componentWillReceiveProps({ rawRemotes }) {
