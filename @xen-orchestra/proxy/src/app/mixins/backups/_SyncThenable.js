@@ -44,5 +44,6 @@ export class SyncThenable {
 
   constructor(rejected, value) {
     this.then = rejected ? rejectedThen : fulfilledThen
+    this.value = value
   }
 }
