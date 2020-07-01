@@ -4,6 +4,17 @@ const logAfterEnd = () => {
   throw new Error('task has already ended')
 }
 
+// Create a serializable object from an error.
+//
+// Otherwise some fields might be non-enumerable and missing from logs.
+export const serializeError = error => ({
+  ...error, // Copy enumerable properties.
+  code: error.code,
+  message: error.message,
+  name: error.name,
+  stack: error.stack,
+})
+
 export class TaskLogger {
   constructor(logFn, parentId) {
     this._log = logFn
@@ -75,7 +86,7 @@ export class TaskLogger {
             return SyncThenable.resolve(
               log({
                 event: 'end',
-                result: error,
+                result: serializeError(error),
                 status: 'failure',
                 taskId: this.taskId,
               })
