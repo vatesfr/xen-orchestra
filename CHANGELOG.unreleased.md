@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup/health] Show VM snapshots with missing jobs, schedules and VMs [#5086](https://github.com/vatesfr/xen-orchestra/issues/5086) (PR [#5125](https://github.com/vatesfr/xen-orchestra/pull/5125))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
