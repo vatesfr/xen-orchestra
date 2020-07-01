@@ -7,13 +7,16 @@ const logAfterEnd = () => {
 // Create a serializable object from an error.
 //
 // Otherwise some fields might be non-enumerable and missing from logs.
-export const serializeError = error => ({
-  ...error, // Copy enumerable properties.
-  code: error.code,
-  message: error.message,
-  name: error.name,
-  stack: error.stack,
-})
+export const serializeError = error =>
+  error instanceof Error
+    ? {
+        ...error, // Copy enumerable properties.
+        code: error.code,
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      }
+    : error
 
 export class TaskLogger {
   constructor(logFn, parentId) {
