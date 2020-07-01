@@ -31,6 +31,10 @@ module.exports = function globMatcher(patterns, opts) {
   const nAny = anyMustMatch.length
 
   return function (string) {
+    if (typeof string !== 'string') {
+      return false
+    }
+
     let i
 
     for (i = 0; i < nNone; ++i) {
