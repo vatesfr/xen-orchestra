@@ -36,6 +36,7 @@ import {
   deleteSchedule,
   editBackupNgJob,
   editSchedule,
+  getSuggestedExcludedTags,
   isSrWritable,
   subscribeRemotes,
 } from 'xo'
@@ -235,9 +236,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
     smartMode: false,
     snapshotMode: false,
     srs: [],
-    tags: {
-      notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
-    },
+    tags: {},
     vms: preSelectedVmIds,
   }
 }
@@ -301,6 +300,9 @@ export default decorate([
   provideState({
     initialState: getInitialState,
     effects: {
+      initialize: async function () {
+        this.state.tags.notValues = await getSuggestedExcludedTags()
+      },
       createJob: () => async state => {
         if (state.isJobInvalid) {
           return {
