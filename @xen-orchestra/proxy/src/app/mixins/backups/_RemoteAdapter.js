@@ -118,6 +118,9 @@ export class RemoteAdapter {
           try {
             const metadata = await this.readVmBackupMetadata(file)
             if (predicate === undefined || predicate(metadata)) {
+              // inject an id usable by importVmBackupNg()
+              metadata.id = metadata._filename
+
               backups.push(metadata)
             }
           } catch (error) {
