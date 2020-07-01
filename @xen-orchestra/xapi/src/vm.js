@@ -65,7 +65,15 @@ module.exports = class Vm {
     if (parentUuid !== undefined) {
       let parent = cache[parentUuid]
       if (parent === undefined) {
-        parent = await this.getRecordByUuid('VDI', parentUuid)
+        try {
+          parent = await this.getRecordByUuid('VDI', parentUuid)
+        } catch (error) {
+          if (error.code === 'UUID_INVALID') {
+            // cannot find this VDI, ignore it
+            return
+          }
+          throw error
+        }
         cache[parent.$ref] = parent
         cache[parentUuid] = parent
       }
