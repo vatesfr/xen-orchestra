@@ -276,11 +276,11 @@ class AuditXoPlugin {
 
     if (hashes.length === 0 || !integrityCheckSuccess || error !== undefined) {
       await xo.audit.startNewChain({
-        oldest,
-        newest,
+        firstHash: oldest,
+        secondHash: newest,
       })
     } else {
-      await xo.audit.extendLastChain({ oldest, newest })
+      await xo.audit.extendLastChain({ previousHash: oldest, newHash: newest })
     }
   }
 
