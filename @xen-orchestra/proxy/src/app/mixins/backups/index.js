@@ -92,7 +92,7 @@ export default class Backups {
           defer(
             async ($defer, { backupId, remote, srUuid, xapi: xapiOpts }) => {
               const adapter = new RemoteAdapter(
-                (async () => {
+                await (async () => {
                   const handler = getHandler(remote)
                   await handler.sync()
                   $defer.call(handler, 'forget')
