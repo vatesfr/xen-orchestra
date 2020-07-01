@@ -12,9 +12,8 @@ import { addSubscriptions, connectStore, noop } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
-import { createPredicate } from 'value-matcher'
-import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
-import { forEach, keyBy, omit, toArray } from 'lodash'
+import { createGetObjectsOfType, getLoneSnapshots } from 'selectors'
+import { flatMapDepth, keyBy, map, toArray } from 'lodash'
 import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import {
@@ -26,6 +25,8 @@ import {
   subscribeBackupNgJobs,
   subscribeSchedules,
 } from 'xo'
+
+import { getDetachedBackupsOrSnapshots, noop } from '../../../common/utils'
 
 const DETACHED_BACKUP_COLUMNS = [
   {
@@ -123,6 +124,11 @@ const SNAPSHOT_COLUMNS = [
       return vm && vm.name_label
     },
   },
+  {
+    name: _('reason'),
+    itemRenderer: ({ reason }) => _(reason),
+    sortCriteria: 'reason',
+  },
 ]
 
 const ACTIONS = [
@@ -138,7 +144,7 @@ const ACTIONS = [
 
 const Health = decorate([
   addSubscriptions({
-    // used by createGetLoneSnapshots
+    // used by getLoneSnapshots
     schedules: cb =>
       subscribeSchedules(schedules => {
         cb(keyBy(schedules, 'id'))
@@ -149,7 +155,7 @@ const Health = decorate([
       }),
   }),
   connectStore({
-    loneSnapshots: createGetLoneSnapshots,
+    loneSnapshots: getLoneSnapshots,
     legacySnapshots: createGetObjectsOfType('VM-snapshot').filter([
       (() => {
         const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
@@ -180,34 +186,17 @@ const Health = decorate([
           return []
         }
 
-        const detachedBackups = []
-        let job
-        forEach(backupsByRemote, backupsByVm => {
-          forEach(backupsByVm, (vmBackups, vmId) => {
-            const vm = vms[vmId]
-            vmBackups.forEach(backup => {
-              const reason =
-                vm === undefined
-                  ? 'missingVm'
-                  : (job = jobs[backup.jobId]) === undefined
-                  ? 'missingJob'
-                  : schedules[backup.scheduleId] === undefined
-                  ? 'missingSchedule'
-                  : !createPredicate(omit(job.vms, 'power_state'))(vm)
-                  ? 'missingVmInJob'
-                  : undefined
-
-              if (reason !== undefined) {
-                detachedBackups.push({
-                  ...backup,
-                  vmId,
-                  reason,
-                })
-              }
-            })
-          })
-        })
-        return detachedBackups
+        return getDetachedBackupsOrSnapshots(
+          flatMapDepth(
+            backupsByRemote,
+            backupsByVm =>
+              map(backupsByVm, (vmBackups, vmId) =>
+                vmBackups.map(backup => ({ ...backup, vmId }))
+              ),
+            2
+          ),
+          { jobs, schedules, vms }
+        )
       },
     },
   }),
@@ -257,7 +246,7 @@ const Health = decorate([
         <Col>
           <Card>
             <CardHeader>
-              <Icon icon='vm' /> {_('vmSnapshotsRelatedToNonExistentBackups')}
+              <Icon icon='vm' /> {_('detachedVmSnapshots')}
             </CardHeader>
             <CardBlock>
               <NoObjects

@@ -1327,6 +1327,7 @@ const messages = {
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
   detachedBackups: 'Detached backups',
+  detachedVmSnapshots: 'Detached VM snapshots',
   missingJob: 'Missing job',
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
@@ -1342,8 +1343,6 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
-  vmSnapshotsRelatedToNonExistentBackups:
-    'VM snapshots related to non-existent backups',
   snapshotOf: 'Snapshot of',
   legacySnapshots: 'Legacy backups snapshots',
   alarmMessage: 'Alarms',

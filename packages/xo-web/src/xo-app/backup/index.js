@@ -8,9 +8,9 @@ import Tooltip from 'tooltip'
 import { adminOnly, connectStore, routes } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
-import { createGetLoneSnapshots } from 'selectors'
+import { getLoneSnapshots } from 'selectors'
 import { NavLink, NavTabs } from 'nav'
-import { subscribeSchedules } from 'xo'
+import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
 
 import Edit from './edit'
 import FileRestore from './file-restore'
@@ -23,22 +23,26 @@ import Page from '../page'
 
 const HealthNavTab = decorate([
   addSubscriptions({
-    // used by createGetLoneSnapshots
+    // used by getLoneSnapshots
     schedules: subscribeSchedules,
+    jobs: subscribeBackupNgJobs,
   }),
   connectStore({
-    nLoneSnapshots: createGetLoneSnapshots.count(),
+    loneSnapshots: getLoneSnapshots,
   }),
-  ({ nLoneSnapshots }) => (
-    <NavLink to='/backup/health'>
-      <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
-      {nLoneSnapshots > 0 && (
-        <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
-          <span className='tag tag-pill tag-warning'>{nLoneSnapshots}</span>
-        </Tooltip>
-      )}
-    </NavLink>
-  ),
+  ({ loneSnapshots }) => {
+    const nLoneSnapshots = loneSnapshots.length
+    return (
+      <NavLink to='/backup/health'>
+        <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
+        {nLoneSnapshots > 0 && (
+          <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
+            <span className='tag tag-pill tag-warning'>{nLoneSnapshots}</span>
+          </Tooltip>
+        )}
+      </NavLink>
+    )
+  },
 ])
 
 const HEADER = (

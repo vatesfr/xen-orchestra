@@ -10,6 +10,7 @@ import {
   identity,
   isArrayLike,
   isEmpty,
+  keyBy,
   keys,
   map,
   orderBy,
@@ -22,7 +23,11 @@ import {
 
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
-import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils'
+import {
+  EMPTY_ARRAY,
+  EMPTY_OBJECT,
+  getDetachedBackupsOrSnapshots,
+} from './utils'
 
 // ===================================================================
 
@@ -550,23 +555,6 @@ export const createGetVmDisks = vmSelector =>
     )
   )
 
-export const createGetLoneSnapshots = createGetObjectsOfType(
-  'VM-snapshot'
-).filter(
-  create(
-    _createCollectionWrapper(
-      (_, props) => props.schedules !== undefined && map(props.schedules, 'id')
-    ),
-    scheduleIds =>
-      scheduleIds
-        ? _ => {
-            const scheduleId = _.other['xo:backup:schedule']
-            return scheduleId !== undefined && !scheduleIds.includes(scheduleId)
-          }
-        : false
-  )
-)
-
 export const getIsPoolAdmin = create(
   create(createGetObjectsOfType('pool'), _createCollectionWrapper(Object.keys)),
   getCheckPermissions,
@@ -601,4 +589,36 @@ export const getResolvedResourceSets = create(
         objectsByType,
       }
     })
+)
+
+export const getLoneSnapshots = create(
+  create(
+    createGetObjectsOfType('VM-snapshot'),
+    _createCollectionWrapper(snapshots => {
+      const _snapshots = []
+      forEach(snapshots, snapshot => {
+        const other = snapshot.other
+        if (other['xo:backup:job'] === undefined) {
+          return
+        }
+        _snapshots.push({
+          ...snapshot,
+          jobId: other['xo:backup:job'],
+          vmId: other['xo:backup:vm'],
+          scheduleId: other['xo:backup:schedule'],
+        })
+      })
+      return _snapshots
+    })
+  ),
+  _createCollectionWrapper(
+    (_, { jobs }) => jobs !== undefined && keyBy(jobs, 'id')
+  ),
+  _createCollectionWrapper(
+    (_, { schedules }) => schedules !== undefined && keyBy(schedules, 'id')
+  ),
+  createGetObjectsOfType('VM'),
+  _createCollectionWrapper((snapshots, jobs, schedules, vms) =>
+    getDetachedBackupsOrSnapshots(snapshots, { jobs, schedules, vms })
+  )
 )
