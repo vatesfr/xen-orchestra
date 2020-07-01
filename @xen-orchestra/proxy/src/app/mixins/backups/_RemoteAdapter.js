@@ -96,9 +96,9 @@ export class RemoteAdapter {
 
     const backups = { __proto__: null }
     await Promise.all(
-      (await handler.list(BACKUP_DIR, { prependDir: true })).map(async dir => {
-        const vmBackups = await this.listVmBackups(dir)
-        backups[vmBackups[0].vm.uuid] = vmBackups
+      (await handler.list(BACKUP_DIR)).map(async vmUuid => {
+        const vmBackups = await this.listVmBackups(vmUuid)
+        backups[vmUuid] = vmBackups
       })
     )
     return backups
