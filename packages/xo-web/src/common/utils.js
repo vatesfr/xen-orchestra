@@ -651,7 +651,7 @@ export const getDetachedBackupsOrSnapshots = (
   items,
   { jobs, schedules, vms }
 ) => {
-  if (!jobs || !schedules) {
+  if (jobs === undefined || schedules === undefined) {
     return []
   }
 

@@ -8,7 +8,6 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import renderXoItem, { BackupJob, Vm } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore, noop } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
@@ -16,6 +15,12 @@ import { createGetObjectsOfType, getLoneSnapshots } from 'selectors'
 import { flatMapDepth, keyBy, map, toArray } from 'lodash'
 import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import {
+  addSubscriptions,
+  connectStore,
+  getDetachedBackupsOrSnapshots,
+  noop,
+} from 'utils'
 import {
   deleteBackups,
   deleteSnapshot,
@@ -25,8 +30,6 @@ import {
   subscribeBackupNgJobs,
   subscribeSchedules,
 } from 'xo'
-
-import { getDetachedBackupsOrSnapshots, noop } from '../../../common/utils'
 
 const DETACHED_BACKUP_COLUMNS = [
   {

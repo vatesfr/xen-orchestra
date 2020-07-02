@@ -561,6 +561,38 @@ export const getIsPoolAdmin = create(
   (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
 )
 
+export const getLoneSnapshots = create(
+  create(
+    createGetObjectsOfType('VM-snapshot'),
+    _createCollectionWrapper(snapshots => {
+      const snapshotsFromBackup = []
+      let jobId
+      forEach(snapshots, snapshot => {
+        const other = snapshot.other
+        if ((jobId = other['xo:backup:job']) !== undefined) {
+          snapshotsFromBackup.push({
+            ...snapshot,
+            jobId,
+            vmId: other['xo:backup:vm'],
+            scheduleId: other['xo:backup:schedule'],
+          })
+        }
+      })
+      return snapshotsFromBackup
+    })
+  ),
+  _createCollectionWrapper((_, { jobs }) =>
+    jobs === undefined ? undefined : keyBy(jobs, 'id')
+  ),
+  _createCollectionWrapper((_, { schedules }) =>
+    schedules === undefined ? undefined : keyBy(schedules, 'id')
+  ),
+  createGetObjectsOfType('VM'),
+  _createCollectionWrapper((snapshots, jobs, schedules, vms) =>
+    getDetachedBackupsOrSnapshots(snapshots, { jobs, schedules, vms })
+  )
+)
+
 export const getResolvedResourceSets = create(
   (_, props) => props.resourceSets,
   createGetObjectsOfType('network'),
@@ -589,36 +621,4 @@ export const getResolvedResourceSets = create(
         objectsByType,
       }
     })
-)
-
-export const getLoneSnapshots = create(
-  create(
-    createGetObjectsOfType('VM-snapshot'),
-    _createCollectionWrapper(snapshots => {
-      const _snapshots = []
-      forEach(snapshots, snapshot => {
-        const other = snapshot.other
-        if (other['xo:backup:job'] === undefined) {
-          return
-        }
-        _snapshots.push({
-          ...snapshot,
-          jobId: other['xo:backup:job'],
-          vmId: other['xo:backup:vm'],
-          scheduleId: other['xo:backup:schedule'],
-        })
-      })
-      return _snapshots
-    })
-  ),
-  _createCollectionWrapper(
-    (_, { jobs }) => jobs !== undefined && keyBy(jobs, 'id')
-  ),
-  _createCollectionWrapper(
-    (_, { schedules }) => schedules !== undefined && keyBy(schedules, 'id')
-  ),
-  createGetObjectsOfType('VM'),
-  _createCollectionWrapper((snapshots, jobs, schedules, vms) =>
-    getDetachedBackupsOrSnapshots(snapshots, { jobs, schedules, vms })
-  )
 )
