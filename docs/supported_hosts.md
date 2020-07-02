@@ -16,7 +16,7 @@ Xen Orchestra should be fully functional with any version of these two virtualiz
 ## XCP-ng
 
 :::tip
-Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://vates.fr)). That's why you are sure to have the best compatibility with both XCP-ng and XO!
+Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://vates.fr)). That's why you are sure to have the best compatibility with both XCP-ng and XO! Also, we  strongly suggest people to keep using the latest XCP-ng version as far as possible (or N-1).
 :::
 
 - XCP-ng 8.1 ✅ 🚀
@@ -25,14 +25,9 @@ Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://
 - XCP-ng 7.5 ✅ ❗
 - XCP-ng 7.4 ✅ ❗
 
-:::tip
-We strongly suggest people to keep using the latest XCP-ng version as far as possible (or N-1).
-:::
-
 ## Citrix Hypervisor (formerly XenServer)
 
-Backup restore for large VM disks (>1TiB usage) is [broken on old XenServer versions](https://bugs.xenserver.org/browse/XSO-868) (except 7.1 LTS up-to-date and superior to 7.6).
-
+- Citrix Hypervisor 8.2 LTS ✅
 - Citrix Hypervisor 8.1 ✅
 - Citrix Hypervisor 8.0 ✅
 - XenServer 7.6 ✅ ❗
@@ -49,6 +44,10 @@ Backup restore for large VM disks (>1TiB usage) is [broken on old XenServer vers
   - No Delta backup and CR support
 - XenServer 5.x ❎ ❗
   - Basic administration features only
+
+:::warning
+Backup restore for large VM disks (>1TiB usage) is [broken on old XenServer versions](https://bugs.xenserver.org/browse/XSO-868) (except 7.1 LTS up-to-date and superior to 7.6).
+:::
 
 ## Others
 
