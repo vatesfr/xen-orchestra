@@ -2101,6 +2101,9 @@ export const subscribeMetadataBackupJobs = createSubscription(() =>
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
+export const getSuggestedExcludedTags = () =>
+  _call('backupNg.getSuggestedExcludedTags')
+
 export const deleteBackupJobs = async ({
   backupIds = [],
   metadataBackupIds = [],
