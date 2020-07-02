@@ -301,7 +301,7 @@ export default decorate([
     initialState: getInitialState,
     effects: {
       initialize: async function () {
-        this.state.tags.notValues = await getSuggestedExcludedTags()
+        this.state.tags = { notValues: await getSuggestedExcludedTags() }
       },
       createJob: () => async state => {
         if (state.isJobInvalid) {
