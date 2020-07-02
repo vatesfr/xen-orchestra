@@ -254,7 +254,7 @@ class AuditXoPlugin {
 
   async _backupLastFingerprint() {
     const xo = this._xo
-    const hashes = await xo.audit.getLastChain()
+    const { hashes } = await xo.audit.getLastChain()
     const lastHash = hashes[hashes.length - 1]
 
     // check the integrity of all stored hashes
