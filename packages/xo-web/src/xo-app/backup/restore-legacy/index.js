@@ -259,8 +259,8 @@ export default class Restore extends Component {
     const remotes = filter(rawRemotes, 'enabled')
     const remotesInfo = await Promise.all(
       map(remotes, async remote => ({
-        files: await listRemote(remote.id),
-        backupsInfo: await listRemoteBackups(remote.id),
+        files: await listRemote(remote),
+        backupsInfo: await listRemoteBackups(remote),
       }))
     )
 
