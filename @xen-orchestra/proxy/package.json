@@ -39,7 +39,7 @@
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/self-signed": "^0.1.0",
     "@xen-orchestra/template": "^0.1.0",
-    "@xen-orchestra/xapi": "^0.1.0",
+    "@xen-orchestra/xapi": "^0.1.1",
     "ajv": "^6.10.0",
     "app-conf": "^0.7.0",
     "async-iterator-to-stream": "^1.1.0",
