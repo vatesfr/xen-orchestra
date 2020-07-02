@@ -8,7 +8,7 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import renderXoItem, { BackupJob, Vm } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore } from 'utils'
+import { addSubscriptions, connectStore, noop } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
@@ -26,8 +26,6 @@ import {
   subscribeBackupNgJobs,
   subscribeSchedules,
 } from 'xo'
-
-import { noop } from '../../../common/utils'
 
 const DETACHED_BACKUP_COLUMNS = [
   {
