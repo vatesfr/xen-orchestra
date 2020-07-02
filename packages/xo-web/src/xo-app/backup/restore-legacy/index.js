@@ -239,10 +239,7 @@ class _ModalBody extends Component {
 const ImportModalBody = injectIntl(_ModalBody, { withRef: true })
 
 @addSubscriptions({
-  rawRemotes: cb =>
-    subscribeRemotes(remotes => {
-      cb(remotes.filter(({ proxy }) => proxy === undefined))
-    }),
+  rawRemotes: subscribeRemotes,
 })
 export default class Restore extends Component {
   componentWillReceiveProps({ rawRemotes }) {
@@ -262,8 +259,8 @@ export default class Restore extends Component {
     const remotes = filter(rawRemotes, 'enabled')
     const remotesInfo = await Promise.all(
       map(remotes, async remote => ({
-        files: await listRemote(remote.id),
-        backupsInfo: await listRemoteBackups(remote.id),
+        files: await listRemote(remote),
+        backupsInfo: await listRemoteBackups(remote),
       }))
     )
 
