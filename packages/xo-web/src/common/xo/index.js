@@ -2376,7 +2376,7 @@ export const listRemote = async remote =>
 
 export const listRemoteBackups = async remote =>
   remote.proxy === undefined
-    ? _call('backup.list', resolveIds({ remote }))::tap(null, err =>
+    ? _call('backup.list', { remote: remote.id })::tap(null, err =>
         error(_('listRemote'), err.message || String(err))
       )
     : []
