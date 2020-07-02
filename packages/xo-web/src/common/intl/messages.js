@@ -236,7 +236,6 @@ const messages = {
   homeFilterNonRunningVms: 'Non running VMs',
   homeFilterPendingVms: 'Pending VMs',
   homeFilterHvmGuests: 'HVM guests',
-  homeFilterTags: 'Tags',
   homeSortBy: 'Sort by',
   homeSortByCpus: 'CPUs',
   homeSortByStartTime: 'Start time',
