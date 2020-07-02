@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Home] Remove 'tags' filter from the filter selector (PR [#5121](https://github.com/vatesfr/xen-orchestra/pull/5121))
+- [Home] Remove 'tags' filter from the filter selector since tags have their own selector (PR [#5121](https://github.com/vatesfr/xen-orchestra/pull/5121))
 
 ### Bug fixes
 
