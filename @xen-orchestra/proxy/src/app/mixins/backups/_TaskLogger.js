@@ -113,7 +113,12 @@ export class TaskLogger {
   wrapFn(fn, message, data) {
     const logger = this
     return function () {
-      return logger.run(message, data, () => fn.apply(this, arguments))
+      const evaluate = v =>
+        typeof v === 'function' ? v.apply(this, arguments) : v
+
+      return logger.run(evaluate(message), evaluate(data), () =>
+        fn.apply(this, arguments)
+      )
     }
   }
 }

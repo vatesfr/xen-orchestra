@@ -22,8 +22,11 @@ export class Backup {
     schedule,
   }) {
     this.run = taskLogger.wrapFn(this.run, 'backup run', {
+      jobId: job.id,
+      jobName: job.name,
       mode: job.mode,
       reportWhen: job.settings['']?.reportWhen,
+      scheduleId: schedule.id,
     })
 
     this._config = config

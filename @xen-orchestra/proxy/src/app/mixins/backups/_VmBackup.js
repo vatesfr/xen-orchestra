@@ -222,8 +222,6 @@ export class VmBackup {
       speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,
       size,
     })
-
-    return size
   }
 
   async _copyFull() {
@@ -304,8 +302,6 @@ export class VmBackup {
       speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,
       size,
     })
-
-    return size
   }
 
   async _fetchJobSnapshots() {
@@ -400,11 +396,7 @@ export class VmBackup {
         ignoreErrors.call(vm.$callAsync('start', false, false))
       }
 
-      return {
-        transferredSize: await (this._isDelta
-          ? this._copyDelta()
-          : this._copyFull()),
-      }
+      await (this._isDelta ? this._copyDelta() : this._copyFull())
     } finally {
       if (startAfter) {
         ignoreErrors.call(vm.$callAsync('start', false, false))

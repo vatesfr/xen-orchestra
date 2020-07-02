@@ -11,13 +11,22 @@ import { packUuid } from './_packUuid'
 import { RemoteAdapter } from './_RemoteAdapter'
 
 export class DeltaBackupWriter {
-  constructor(backup, remoteId, settings) {
+  constructor(backup, remoteId, settings, taskLogger) {
     this._backup = backup
     this._remoteId = remoteId
     this._settings = settings
+    this._task = taskLogger
+
+    this.run = taskLogger.wrapFn(this.run, 'export', ({ deltaExport }) => ({
+      id: remoteId,
+      isFull: Object.values(deltaExport.vdis).some(
+        vdi => vdi.other_config['xo:base_delta'] === undefined
+      ),
+      type: 'remote',
+    }))
   }
 
-  async run({ timestamp, deltaExport }) {
+  async run({ timestamp, deltaExport, sizeContainers }) {
     const backup = this._backup
     const remoteId = this._remoteId
     const settings = this._settings
@@ -53,7 +62,10 @@ export class DeltaBackupWriter {
       oldBackups.length = maxMergedDeltasPerRun
     }
 
-    const deleteOldBackups = () => adapter.deleteDeltaVmBackups(oldBackups)
+    const deleteOldBackups = () =>
+      this._task.fork().run('merge', async () => ({
+        size: await adapter.deleteDeltaVmBackups(oldBackups),
+      }))
 
     const basename = formatFilenameDate(timestamp)
     const vhds = mapValues(
@@ -88,48 +100,56 @@ export class DeltaBackupWriter {
       await deleteOldBackups()
     }
 
-    await Promise.all(
-      map(deltaExport.vdis, async (vdi, id) => {
-        const path = `${backupDir}/${vhds[id]}`
+    await this._task.fork().run('transfer', async () => {
+      await Promise.all(
+        map(deltaExport.vdis, async (vdi, id) => {
+          const path = `${backupDir}/${vhds[id]}`
 
-        const isDelta = vdi.other_config['xo:base_delta'] !== undefined
-        let parentPath
-        if (isDelta) {
-          const vdiDir = dirname(path)
-          parentPath = (
-            await handler.list(vdiDir, {
-              filter: filename =>
-                filename[0] !== '.' && filename.endsWith('.vhd'),
-              prependDir: true,
-            })
-          )
-            .sort()
-            .pop()
-            .slice(1) // remove leading slash
+          const isDelta = vdi.other_config['xo:base_delta'] !== undefined
+          let parentPath
+          if (isDelta) {
+            const vdiDir = dirname(path)
+            parentPath = (
+              await handler.list(vdiDir, {
+                filter: filename =>
+                  filename[0] !== '.' && filename.endsWith('.vhd'),
+                prependDir: true,
+              })
+            )
+              .sort()
+              .pop()
+              .slice(1) // remove leading slash
 
-          // TODO remove when this has been done before the export
-          await checkVhd(handler, parentPath)
-        }
+            // TODO remove when this has been done before the export
+            await checkVhd(handler, parentPath)
+          }
 
-        await adapter.outputStream(deltaExport.streams[`${id}.vhd`], path, {
-          // no checksum for VHDs, because they will be invalidated by
-          // merges and chainings
-          checksum: false,
-          validator: tmpPath => checkVhd(handler, tmpPath),
+          await adapter.outputStream(deltaExport.streams[`${id}.vhd`], path, {
+            // no checksum for VHDs, because they will be invalidated by
+            // merges and chainings
+            checksum: false,
+            validator: tmpPath => checkVhd(handler, tmpPath),
+          })
+
+          if (isDelta) {
+            await chainVhd(handler, parentPath, handler, path)
+          }
+
+          // set the correct UUID in the VHD
+          const vhd = new Vhd(handler, path)
+          await vhd.readHeaderAndFooter()
+          vhd.footer.uuid = packUuid(vdi.uuid)
+          await vhd.readBlockAllocationTable() // required by writeFooter()
+          await vhd.writeFooter()
         })
-
-        if (isDelta) {
-          await chainVhd(handler, parentPath, handler, path)
-        }
-
-        // set the correct UUID in the VHD
-        const vhd = new Vhd(handler, path)
-        await vhd.readHeaderAndFooter()
-        vhd.footer.uuid = packUuid(vdi.uuid)
-        await vhd.readBlockAllocationTable() // required by writeFooter()
-        await vhd.writeFooter()
-      })
-    )
+      )
+      return {
+        size: Object.values(sizeContainers).reduce(
+          (sum, { size }) => sum + size,
+          0
+        ),
+      }
+    })
     await handler.outputFile(metadataFilename, metadataContent)
 
     if (!deleteFirst) {

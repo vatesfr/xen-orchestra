@@ -8,13 +8,22 @@ import { importDeltaVm } from './_deltaVm'
 import { listReplicatedVms } from './_listReplicatedVms'
 
 export class ContinuousReplicationWriter {
-  constructor(backup, sr, settings) {
+  constructor(backup, sr, settings, taskLogger) {
     this._backup = backup
     this._settings = settings
     this._sr = sr
+    this._task = taskLogger
+
+    this.run = taskLogger.wrapFn(this.run, 'export', ({ deltaExport }) => ({
+      id: sr.uuid,
+      isFull: Object.values(deltaExport.vdis).some(
+        vdi => vdi.other_config['xo:base_delta'] === undefined
+      ),
+      type: 'SR',
+    }))
   }
 
-  async run({ timestamp, deltaExport }) {
+  async run({ timestamp, deltaExport, sizeContainers }) {
     const sr = this._sr
     const settings = this._settings
     const { job, scheduleId, vm } = this._backup
@@ -39,10 +48,19 @@ export class ContinuousReplicationWriter {
     if (deleteFirst) {
       await deleteOldBackups()
     }
-    const targetVm = await xapi.getRecord(
-      'VM',
-      await importDeltaVm(deltaExport, sr)
-    )
+
+    let targetVmRef
+    await this._task.fork().run('transfer', async () => {
+      targetVmRef = await importDeltaVm(deltaExport, sr)
+      return {
+        size: Object.values(sizeContainers).reduce(
+          (sum, { size }) => sum + size,
+          0
+        ),
+      }
+    })
+
+    const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
       targetVm.add_tags('Disaster Recovery'),

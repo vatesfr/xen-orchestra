@@ -63,22 +63,27 @@ export class RemoteAdapter {
       await handler.rename(path, childPath)
       return mergedDataSize
     } catch (error) {
-      handler.unlink(path)
+      handler.unlink(path).catch(warn)
+      throw error
     }
   }
 
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
+    let mergedDataSize = 0
     await asyncMap(backups, ({ _filename, vhds }) =>
       Promise.all([
         handler.unlink(_filename),
         Promise.all(
-          Object.values(vhds).map(_ =>
-            this._deleteVhd(resolveRelativeFromFile(_filename, _))
-          )
+          Object.values(vhds).map(async _ => {
+            mergedDataSize += await this._deleteVhd(
+              resolveRelativeFromFile(_filename, _)
+            )
+          })
         ),
       ])
     )
+    return mergedDataSize
   }
 
   async deleteFullVmBackups(backups) {

@@ -6,10 +6,19 @@ import { getVmBackupDir } from './_getVmBackupDir'
 import { RemoteAdapter } from './_RemoteAdapter'
 
 export class FullBackupWriter {
-  constructor(backup, remoteId, settings) {
+  constructor(backup, remoteId, settings, taskLogger) {
     this._backup = backup
     this._remoteId = remoteId
     this._settings = settings
+    this._task = taskLogger
+
+    this.run = taskLogger.wrapFn(this.run, 'export', {
+      id: remoteId,
+      type: 'remote',
+
+      // necessary?
+      isFull: true,
+    })
   }
 
   async run({ timestamp, sizeContainer, stream }) {
@@ -56,12 +65,15 @@ export class FullBackupWriter {
       await deleteOldBackups()
     }
 
-    await adapter.outputStream(stream, dataFilename, {
-      validator: tmpPath => {
-        if (handler._getFilePath !== undefined) {
-          return isValidXva(handler._getFilePath('/' + tmpPath))
-        }
-      },
+    await this._task.fork().run('transfer', async () => {
+      await adapter.outputStream(stream, dataFilename, {
+        validator: tmpPath => {
+          if (handler._getFilePath !== undefined) {
+            return isValidXva(handler._getFilePath('/' + tmpPath))
+          }
+        },
+      })
+      return { size: sizeContainer.size }
     })
     metadata.size = sizeContainer.size
     await handler.outputFile(metadataFilename, JSON.stringify(metadata))

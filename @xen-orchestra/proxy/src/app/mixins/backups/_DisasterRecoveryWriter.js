@@ -7,13 +7,21 @@ import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 import { listReplicatedVms } from './_listReplicatedVms'
 
 export class DisasterRecoveryWriter {
-  constructor(backup, sr, settings) {
+  constructor(backup, sr, settings, taskLogger) {
     this._backup = backup
     this._settings = settings
     this._sr = sr
+
+    this.run = taskLogger.wrapFn(this.run, 'export', {
+      id: sr.uuid,
+      type: 'SR',
+
+      // necessary?
+      isFull: true,
+    })
   }
 
-  async run({ timestamp, stream }) {
+  async run({ timestamp, sizeContainer, stream }) {
     const sr = this._sr
     const settings = this._settings
     const { job, scheduleId, vm } = this._backup
@@ -38,10 +46,14 @@ export class DisasterRecoveryWriter {
     if (deleteFirst) {
       await deleteOldBackups()
     }
-    const targetVm = await xapi.getRecord(
-      'VM',
-      await xapi.VM_import(stream, sr.$ref)
-    )
+
+    let targetVmRef
+    await this._task.fork().run('transfer', async () => {
+      targetVmRef = await xapi.VM_import(stream, sr.$ref)
+      return { size: sizeContainer.size }
+    })
+
+    const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
       targetVm.add_tags('Disaster Recovery'),
