@@ -69,6 +69,11 @@ export class Backup {
         await handler.sync()
         remoteHandlers[id] = handler
       })
+
+      const vmIds = extractIdsFromSimplePattern(job.vms)
+
+      this._task.info('vms', { vms: vmIds })
+
       const handleVm = async vmUuid => {
         const subtask = await this._task.fork()
         try {
@@ -93,7 +98,7 @@ export class Backup {
       }
       const { concurrency } = scheduleSettings
       await asyncMap(
-        extractIdsFromSimplePattern(job.vms),
+        vmIds,
         concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm)
       )
     } finally {
