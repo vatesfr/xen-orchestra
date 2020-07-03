@@ -342,7 +342,8 @@ class JobsTable extends React.Component {
         icon: 'preview',
       },
       {
-        handler: (job, { goToNewTab }) => goToNewTab(`/backup/${job.id}/edit`),
+        handler: (job, { goTo, goToNewTab, main }) =>
+          (main ? goTo : goToNewTab)(`/backup/${job.id}/edit`),
         label: _('formEdit'),
         icon: 'edit',
         level: 'primary',
