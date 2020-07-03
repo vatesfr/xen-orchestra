@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Restore legacy, File restore legacy] Fix mount error in case of existing proxy remotes (PR [#5124](https://github.com/vatesfr/xen-orchestra/pull/5124))
+- [Import/OVA] Fix import of bigger OVA files (>8GB .vmdk disk) (PR [#5129](https://github.com/vatesfr/xen-orchestra/pull/5129))
 
 ### Packages to release
 
@@ -33,5 +34,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-vmdk-to-vhd patch
 - xo-server minor
 - xo-web minor
