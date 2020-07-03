@@ -280,9 +280,7 @@ afterAll(async () => {
   xo = null
 })
 afterEach(async () => {
-  jest.setTimeout(
-    parseDuration(config.deleteTempResourcesTimeout ?? '30 seconds')
-  )
+  jest.setTimeout(parseDuration(config.deleteTempResourcesTimeout))
 
   await xo.deleteTempResources()
 })

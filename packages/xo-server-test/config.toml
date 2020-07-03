@@ -1,0 +1,8 @@
+# Vendor config: DO NOT TOUCH!
+#
+# See sample.config.toml to override.
+
+# after some executions we saw that `deleteTempResources` takes around 21ms
+# then we chose a large timeout to be sure that all resources created by `xo-server-test`
+# will be deleted
+deleteTempResourcesTimeout = '2 minutes'
