@@ -4,9 +4,10 @@ import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
 import { debounceWithKey } from '../_pDebounceWithKey'
 
 const isSkippedError = error =>
-  error.message === 'no disks found' ||
-  error.message === 'no VMs match this pattern' ||
-  error.message === 'unhealthy VDI chain'
+  error != null &&
+  (error.message === 'no disks found' ||
+    error.message === 'no VMs match this pattern' ||
+    error.message === 'unhealthy VDI chain')
 
 const getStatus = (
   error,
