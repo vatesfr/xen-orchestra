@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.48.1** (2020-07-03)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
@@ -21,8 +23,6 @@
 - xo-web 5.62.0
 
 ## **5.48.0** (2020-06-30)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Highlights
 
