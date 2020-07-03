@@ -67,10 +67,18 @@ function parseTarHeader(header, stringDeserializer) {
   if (fileName.length === 0) {
     return null
   }
-  const fileSize = parseInt(
-    stringDeserializer(header.slice(124, 124 + 11), 'ascii'),
-    8
-  )
+  const sizeBuffer = header.slice(124, 124 + 12)
+  // size encoding: https://codeistry.wordpress.com/2014/08/14/how-to-parse-a-tar-file/
+  let fileSize = 0
+  if (new Uint8Array(sizeBuffer)[0] === 128) {
+    for (const byte of new Uint8Array(sizeBuffer.slice(1))) {
+      fileSize *= 256
+      fileSize += byte
+    }
+  } else {
+    fileSize = parseInt(stringDeserializer(sizeBuffer.slice(0, 11), 'ascii'), 8)
+  }
+
   return { fileName, fileSize }
 }
 
