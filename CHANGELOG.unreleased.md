@@ -9,7 +9,7 @@
 
 - [Home] Remove 'tags' filter from the filter selector since tags have their own selector (PR [#5121](https://github.com/vatesfr/xen-orchestra/pull/5121))
 - [Backup/New] Add "XOA Proxy" to the excluded tags by default (PR [#5128](https://github.com/vatesfr/xen-orchestra/pull/5128))
-- [Backup/overview] Do not open a new window to edit a backup (PR [#5130](https://github.com/vatesfr/xen-orchestra/pull/5130))
+- [Backup/overview] Don't edit backup job in new window (PR [#5130](https://github.com/vatesfr/xen-orchestra/pull/5130))
 
 ### Bug fixes
 
