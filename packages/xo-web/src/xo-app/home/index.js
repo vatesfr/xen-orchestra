@@ -924,13 +924,13 @@ export default class Home extends Component {
 
   _setBackupFilter = backupFilter => {
     const { pathname, query } = this.props.location
-    const isAll = backupFilter === 'all'
     this.context.router.push({
       pathname,
       query: {
         ...query,
-        backup: isAll ? undefined : backupFilter === 'backedUpVms',
-        p: isAll ? 1 : undefined,
+        backup:
+          backupFilter === 'all' ? undefined : backupFilter === 'backedUpVms',
+        p: 1,
         s_backup: undefined,
       },
     })

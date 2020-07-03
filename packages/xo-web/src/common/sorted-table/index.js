@@ -1001,4 +1001,5 @@ class SortedTable extends Component {
   }
 }
 
-export default withRouter(SortedTable)
+// withRouter is needed to trigger a render on filtering/sorting items
+export default withRouter(SortedTable, { withRef: true })
