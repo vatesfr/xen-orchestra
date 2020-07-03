@@ -131,6 +131,7 @@ declare namespace backup {
     schedule: Schedule
     xapis: { [id: string]: Xapi }
     recordToXapi: { [recordUuid: string]: string }
+    streamLogs: boolean = false
   }): string
 }
 
