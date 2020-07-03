@@ -145,7 +145,7 @@
     "xo-common": "^0.5.0",
     "xo-lib": "^0.8.0",
     "xo-remote-parser": "^0.5.0",
-    "xo-vmdk-to-vhd": "^1.2.0"
+    "xo-vmdk-to-vhd": "^1.2.1"
   },
   "scripts": {
     "build": "NODE_ENV=production gulp build",
