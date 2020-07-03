@@ -67,10 +67,21 @@ function parseTarHeader(header, stringDeserializer) {
   if (fileName.length === 0) {
     return null
   }
-  const fileSize = parseInt(
-    stringDeserializer(header.slice(124, 124 + 11), 'ascii'),
-    8
-  )
+  const sizeBuffer = header.slice(124, 124 + 12)
+  // size encoding: https://codeistry.wordpress.com/2014/08/14/how-to-parse-a-tar-file/
+  let fileSize = 0
+  // If the leading byte is 0x80 (128), the non-leading bytes of the field are concatenated in big-endian order, with the result being a positive number expressed in binary form.
+  //
+  // Source: https://www.gnu.org/software/tar/manual/html_node/Extensions.html
+  if (new Uint8Array(sizeBuffer)[0] === 128) {
+    for (const byte of new Uint8Array(sizeBuffer.slice(1))) {
+      fileSize *= 256
+      fileSize += byte
+    }
+  } else {
+    fileSize = parseInt(stringDeserializer(sizeBuffer.slice(0, 11), 'ascii'), 8)
+  }
+
   return { fileName, fileSize }
 }
 
