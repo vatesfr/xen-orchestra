@@ -48,4 +48,64 @@ describe('issue', () => {
 
     await xo.call('network.delete', { id })
   })
+
+  describe('4980', () => {
+    const bootOrder = 'cd'
+    const virtualizationMode = 'hvm'
+
+    let template
+    beforeAll(async () => {
+      template = await xo.cloneTempVm(config.templates.default)
+      await xo.call('vm.set', {
+        id: template.id,
+        virtualizationMode,
+      })
+      await xo.call('vm.setBootOrder', { vm: template.id, order: bootOrder })
+      await xo.waitObjectState(template.id, {
+        virtualizationMode,
+        boot: {
+          order: bootOrder,
+        },
+      })
+    })
+
+    test('create vm with disks should keep the template boot order', async () => {
+      const vm = await xo.createTempVm({
+        template: template.id,
+        VDIs: [
+          {
+            size: 1,
+            SR: config.srs.default,
+            type: 'user',
+          },
+        ],
+      })
+      expect(vm.boot.order).toBe(bootOrder)
+    })
+
+    test('create vm without disks should make network boot the first option', async () => {
+      const vm = await xo.createTempVm({
+        template: template.id,
+      })
+      expect(vm.boot.order).toBe('n' + bootOrder)
+    })
+
+    test('create vm with disks with network installation should make network boot the first option', async () => {
+      const vm = await xo.createTempVm({
+        template: template.id,
+        installation: {
+          method: 'network',
+          repository: 'pxe',
+        },
+        VDIs: [
+          {
+            size: 1,
+            SR: config.srs.default,
+            type: 'user',
+          },
+        ],
+      })
+      expect(vm.boot.order).toBe('n' + bootOrder)
+    })
+  })
 })

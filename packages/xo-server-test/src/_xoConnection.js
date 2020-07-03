@@ -2,7 +2,7 @@
 import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import { defaultsDeep, find, forOwn, pick } from 'lodash'
+import { defaultsDeep, find, forOwn, iteratee, pick } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 
@@ -86,7 +86,14 @@ class XoConnection extends Xo {
     let obj = this._objects.all[id]
     while (true) {
       try {
-        await predicate(obj)
+        if (typeof predicate === 'function') {
+          await predicate(obj)
+        } else {
+          if (!iteratee(predicate)(obj)) {
+            throw new Error('retry')
+          }
+        }
+
         return obj
       } catch (_) {}
       // If failed, wait for next object state/update and retry.
@@ -152,6 +159,20 @@ class XoConnection extends Xo {
     this._tempResourceDisposers.push('vm.delete', { id })
     return this.waitObjectState(id, vm => {
       if (vm.type !== 'VM') throw new Error('retry')
+    })
+  }
+
+  async cloneTempVm(id) {
+    const clonedVmId = await this.call('vm.clone', {
+      full_copy: false,
+      id,
+      name: getDefaultName(),
+    })
+    this._tempResourceDisposers.push('vm.delete', { id: clonedVmId })
+    return this.waitObjectState(id, vm => {
+      if (vm === undefined) {
+        throw new Error('retry')
+      }
     })
   }
 
