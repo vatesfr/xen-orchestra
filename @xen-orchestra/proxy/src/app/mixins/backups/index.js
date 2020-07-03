@@ -34,7 +34,7 @@ export default class Backups {
         },
       })
 
-    const run = async ({ xapis: xapisOptions, ...rest }, onLog = noop) => {
+    let run = async ({ xapis: xapisOptions, ...rest }, onLog = noop) => {
       const xapis = []
       async function createConnectedXapi(id) {
         const xapi = createXapi(xapisOptions[id])
@@ -72,6 +72,24 @@ export default class Backups {
         ignoreErrors.call(disconnectAllXapis())
       }
     }
+    run = (run => {
+      const runningJobs = { __proto__: null }
+      return async params => {
+        const jobId = params.job.id
+        if (jobId === undefined) {
+          return run.apply(this, arguments)
+        }
+        if (jobId in runningJobs) {
+          throw new Error('job is already runnin')
+        }
+        runningJobs[jobId] = true
+        try {
+          return await run.apply(this, arguments)
+        } finally {
+          delete runningJobs[jobId]
+        }
+      }
+    })(run)
 
     const runWithLogs = args =>
       new Readable({
