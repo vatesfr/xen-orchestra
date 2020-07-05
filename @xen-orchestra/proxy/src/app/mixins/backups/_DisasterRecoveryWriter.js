@@ -5,20 +5,25 @@ import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 
 import { listReplicatedVms } from './_listReplicatedVms'
+import { Task } from './_Task'
 
 export class DisasterRecoveryWriter {
-  constructor(backup, sr, settings, taskLogger) {
+  constructor(backup, sr, settings) {
     this._backup = backup
     this._settings = settings
     this._sr = sr
 
-    this.run = taskLogger.wrapFn(this.run, 'export', {
-      id: sr.uuid,
-      type: 'SR',
+    this.run = Task.wrapFn(
+      { name: 'export' },
+      {
+        id: sr.uuid,
+        type: 'SR',
 
-      // necessary?
-      isFull: true,
-    })
+        // necessary?
+        isFull: true,
+      },
+      this.run
+    )
   }
 
   async run({ timestamp, sizeContainer, stream }) {
@@ -48,7 +53,7 @@ export class DisasterRecoveryWriter {
     }
 
     let targetVmRef
-    await this._task.fork().run('transfer', async () => {
+    await Task.run({ name: 'transfer' }, async () => {
       targetVmRef = await xapi.VM_import(stream, sr.$ref)
       return { size: sizeContainer.size }
     })

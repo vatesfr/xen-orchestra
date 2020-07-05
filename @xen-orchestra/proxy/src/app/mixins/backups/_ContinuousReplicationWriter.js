@@ -6,21 +6,27 @@ import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 
 import { importDeltaVm } from './_deltaVm'
 import { listReplicatedVms } from './_listReplicatedVms'
+import { Task } from './_Task'
 
 export class ContinuousReplicationWriter {
-  constructor(backup, sr, settings, taskLogger) {
+  constructor(backup, sr, settings) {
     this._backup = backup
     this._settings = settings
     this._sr = sr
-    this._task = taskLogger
 
-    this.run = taskLogger.wrapFn(this.run, 'export', ({ deltaExport }) => ({
-      id: sr.uuid,
-      isFull: Object.values(deltaExport.vdis).some(
-        vdi => vdi.other_config['xo:base_delta'] === undefined
-      ),
-      type: 'SR',
-    }))
+    this.run = Task.wrapFn(
+      {
+        name: 'export',
+        data: ({ deltaExport }) => ({
+          id: sr.uuid,
+          isFull: Object.values(deltaExport.vdis).some(
+            vdi => vdi.other_config['xo:base_delta'] === undefined
+          ),
+          type: 'SR',
+        }),
+      },
+      this.run
+    )
   }
 
   async run({ timestamp, deltaExport, sizeContainers }) {
@@ -50,7 +56,7 @@ export class ContinuousReplicationWriter {
     }
 
     let targetVmRef
-    await this._task.fork().run('transfer', async () => {
+    await Task.run({ name: 'transfer' }, async () => {
       targetVmRef = await importDeltaVm(deltaExport, sr)
       return {
         size: Object.values(sizeContainers).reduce(

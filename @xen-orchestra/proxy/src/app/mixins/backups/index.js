@@ -9,7 +9,7 @@ import { Xapi } from '@xen-orchestra/xapi'
 import { Backup } from './_Backup'
 import { importDeltaVm } from './_deltaVm'
 import { RemoteAdapter } from './_RemoteAdapter'
-import { TaskLogger } from './_TaskLogger'
+import { Task } from './_Task'
 import { Readable } from 'stream'
 
 const noop = Function.prototype
@@ -34,7 +34,7 @@ export default class Backups {
         },
       })
 
-    let run = async ({ xapis: xapisOptions, ...rest }, taskLogger) => {
+    let run = async ({ xapis: xapisOptions, ...rest }) => {
       const xapis = []
       async function createConnectedXapi(id) {
         const xapi = createXapi(xapisOptions[id])
@@ -65,7 +65,6 @@ export default class Backups {
           ...rest,
           config,
           getConnectedXapi,
-          taskLogger,
         }).run()
       } finally {
         app.hooks.removeListener('stop', disconnectAllXapis)
@@ -94,23 +93,24 @@ export default class Backups {
     })(run)
     run = (run => async (params, onLog) => {
       if (onLog === undefined) {
-        const task = new TaskLogger(noop)
-        return task.run('backup run', () => run(params, task))
+        return run(params)
       }
 
       const { job, schedule } = params
-      const task = new TaskLogger(onLog)
       try {
-        await task.run(
-          'backup run',
+        await Task.run(
           {
-            jobId: job.id,
-            jobName: job.name,
-            mode: job.mode,
-            reportWhen: job.settings['']?.reportWhen,
-            scheduleId: schedule.id,
+            name: 'backup run',
+            data: {
+              jobId: job.id,
+              jobName: job.name,
+              mode: job.mode,
+              reportWhen: job.settings['']?.reportWhen,
+              scheduleId: schedule.id,
+            },
+            onLog,
           },
-          () => run(params, task)
+          () => run(params)
         )
       } catch (error) {
         // do not rethrow, everything is handled via logging

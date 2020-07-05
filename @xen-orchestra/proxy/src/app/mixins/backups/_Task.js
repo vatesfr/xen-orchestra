@@ -1,3 +1,4 @@
+import Zone from 'node-zone'
 import { SyncThenable } from './_SyncThenable'
 
 const logAfterEnd = () => {
@@ -18,7 +19,7 @@ export const serializeError = error =>
       }
     : error
 
-export class TaskLogger {
+class TaskLogger {
   constructor(logFn, parentId) {
     this._log = logFn
     this._parentId = parentId
@@ -121,4 +122,52 @@ export class TaskLogger {
       )
     }
   }
+}
+
+const $$task = Symbol('current task logger')
+
+const getCurrent = () => Zone.current.data[$$task]
+
+export const Task = {
+  info(message, data) {
+    const task = getCurrent()
+    if (task !== undefined) {
+      return task.info(message, data)
+    }
+  },
+
+  run({ name, data, onLog }, fn) {
+    let parentId
+    if (onLog === undefined) {
+      const parent = getCurrent()
+      if (parent === undefined) {
+        return fn()
+      }
+      onLog = parent._log
+      parentId = parent.taskId
+    }
+
+    const task = new TaskLogger(onLog, parentId)
+    const zone = Zone.current.fork('task')
+    zone.data[$$task] = task
+    return task.run(name, data, zone.wrap(fn))
+  },
+
+  warning(message, data) {
+    const task = getCurrent()
+    if (task !== undefined) {
+      return task.warning(message, data)
+    }
+  },
+
+  wrapFn({ name, data, onLog }, fn) {
+    return function () {
+      const evaluate = v =>
+        typeof v === 'function' ? v.apply(this, arguments) : v
+      return Task.run(
+        { name: evaluate(name), data: evaluate(data), onLog },
+        () => fn.apply(this, arguments)
+      )
+    }
+  },
 }

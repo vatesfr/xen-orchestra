@@ -9,21 +9,27 @@ import { checkVhd } from './_checkVhd'
 import { getVmBackupDir } from './_getVmBackupDir'
 import { packUuid } from './_packUuid'
 import { RemoteAdapter } from './_RemoteAdapter'
+import { Task } from './_Task'
 
 export class DeltaBackupWriter {
-  constructor(backup, remoteId, settings, taskLogger) {
+  constructor(backup, remoteId, settings) {
     this._backup = backup
     this._remoteId = remoteId
     this._settings = settings
-    this._task = taskLogger
 
-    this.run = taskLogger.wrapFn(this.run, 'export', ({ deltaExport }) => ({
-      id: remoteId,
-      isFull: Object.values(deltaExport.vdis).some(
-        vdi => vdi.other_config['xo:base_delta'] === undefined
-      ),
-      type: 'remote',
-    }))
+    this.run = Task.wrapFn(
+      {
+        name: 'export',
+        data: ({ deltaExport }) => ({
+          id: remoteId,
+          isFull: Object.values(deltaExport.vdis).some(
+            vdi => vdi.other_config['xo:base_delta'] === undefined
+          ),
+          type: 'remote',
+        }),
+      },
+      this.run
+    )
   }
 
   async run({ timestamp, deltaExport, sizeContainers }) {
@@ -63,7 +69,7 @@ export class DeltaBackupWriter {
     }
 
     const deleteOldBackups = () =>
-      this._task.fork().run('merge', async () => ({
+      Task.run({ name: 'merge' }, async () => ({
         size: await adapter.deleteDeltaVmBackups(oldBackups),
       }))
 
@@ -100,7 +106,7 @@ export class DeltaBackupWriter {
       await deleteOldBackups()
     }
 
-    await this._task.fork().run('transfer', async () => {
+    await Task.run({ name: 'transfer' }, async () => {
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
           const path = `${backupDir}/${vhds[id]}`

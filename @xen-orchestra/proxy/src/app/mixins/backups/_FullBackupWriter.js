@@ -4,15 +4,15 @@ import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 
 import { getVmBackupDir } from './_getVmBackupDir'
 import { RemoteAdapter } from './_RemoteAdapter'
+import { Task } from './_Task'
 
 export class FullBackupWriter {
-  constructor(backup, remoteId, settings, taskLogger) {
+  constructor(backup, remoteId, settings) {
     this._backup = backup
     this._remoteId = remoteId
     this._settings = settings
-    this._task = taskLogger
 
-    this.run = taskLogger.wrapFn(this.run, 'export', {
+    this.run = Task.wrapFn(this.run, 'export', {
       id: remoteId,
       type: 'remote',
 
@@ -65,7 +65,7 @@ export class FullBackupWriter {
       await deleteOldBackups()
     }
 
-    await this._task.fork().run('transfer', async () => {
+    await Task.run({ name: 'transfer' }, async () => {
       await adapter.outputStream(stream, dataFilename, {
         validator: tmpPath => {
           if (handler._getFilePath !== undefined) {

@@ -5,6 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
 import { getHandler } from '@xen-orchestra/fs'
 
+import { Task } from './_Task'
 import { VmBackup } from './_VmBackup'
 
 const { warn } = createLogger('xo:proxy:backups:Backup')
@@ -16,7 +17,7 @@ export class Backup {
     config,
     getConnectedXapi,
     job,
-    taskLogger,
+
     recordToXapi,
     remotes,
     schedule,
@@ -24,7 +25,6 @@ export class Backup {
     this._config = config
     this._getConnectedXapi = getConnectedXapi
     this._job = job
-    this._task = taskLogger
     this._recordToXapi = recordToXapi
     this._remotes = remotes
     this._schedule = schedule
@@ -64,10 +64,9 @@ export class Backup {
 
       const vmIds = extractIdsFromSimplePattern(job.vms)
 
-      this._task.info('vms', { vms: vmIds })
+      Task.info('vms', { vms: vmIds })
 
       const handleVm = async vmUuid => {
-        const subtask = await this._task.fork()
         try {
           const vm = await this._getRecord('VM', vmUuid)
           return await new VmBackup({
@@ -78,7 +77,6 @@ export class Backup {
             schedule,
             settings: { ...scheduleSettings, ...settings[vmUuid] },
             srs,
-            taskLogger: subtask,
             vm,
           }).run()
         } catch (error) {

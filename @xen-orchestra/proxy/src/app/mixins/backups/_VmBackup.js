@@ -13,6 +13,7 @@ import { DeltaBackupWriter } from './_DeltaBackupWriter'
 import { DisasterRecoveryWriter } from './_DisasterRecoveryWriter'
 import { exportDeltaVm } from './_deltaVm'
 import { FullBackupWriter } from './_FullBackupWriter'
+import { Task } from './_Task'
 
 const { debug, warn } = createLogger('xo:proxy:backups:VmBackup')
 
@@ -50,7 +51,6 @@ export class VmBackup {
     schedule,
     settings,
     srs,
-    taskLogger,
     vm,
   }) {
     this.job = job
@@ -66,11 +66,16 @@ export class VmBackup {
     // VM (snapshot) that is really exported
     this.exportedVm = undefined
 
-    this.run = taskLogger.wrapFn(this.run, 'backup VM', {
-      type: 'VM',
-      id: vm.uuid,
-    })
-    this._task = taskLogger
+    this.run = Task.wrapFn(
+      {
+        name: 'backup VM',
+        data: {
+          type: 'VM',
+          id: vm.uuid,
+        },
+      },
+      this.run
+    )
 
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isDelta = job.mode === 'delta'
@@ -112,7 +117,7 @@ export class VmBackup {
       vm.power_state === 'Running' ||
       settings.snapshotRetention !== 0
     if (doSnapshot) {
-      await this._task.fork().run('snapshot', async () => {
+      await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
@@ -148,14 +153,7 @@ export class VmBackup {
         ...allSettings[remoteId],
       }
       if (targetSettings.exportRetention !== 0) {
-        writers.push(
-          new DeltaBackupWriter(
-            this,
-            remoteId,
-            targetSettings,
-            this._task.fork()
-          )
-        )
+        writers.push(new DeltaBackupWriter(this, remoteId, targetSettings))
       }
     })
     this.srs.forEach(sr => {
@@ -164,14 +162,7 @@ export class VmBackup {
         ...allSettings[sr.uuid],
       }
       if (targetSettings.copyRetention !== 0) {
-        writers.push(
-          new ContinuousReplicationWriter(
-            this,
-            sr,
-            targetSettings,
-            this._task.fork()
-          )
-        )
+        writers.push(new ContinuousReplicationWriter(this, sr, targetSettings))
       }
     })
 
@@ -235,14 +226,7 @@ export class VmBackup {
         ...allSettings[remoteId],
       }
       if (targetSettings.exportRetention !== 0) {
-        writers.push(
-          new FullBackupWriter(
-            this,
-            remoteId,
-            targetSettings,
-            this._task.fork()
-          )
-        )
+        writers.push(new FullBackupWriter(this, remoteId, targetSettings))
       }
     })
     this.srs.forEach(sr => {
@@ -251,14 +235,7 @@ export class VmBackup {
         ...allSettings[sr.uuid],
       }
       if (targetSettings.copyRetention !== 0) {
-        writers.push(
-          new DisasterRecoveryWriter(
-            this,
-            sr,
-            targetSettings,
-            this._task.fork()
-          )
-        )
+        writers.push(new DisasterRecoveryWriter(this, sr, targetSettings))
       }
     })
 
