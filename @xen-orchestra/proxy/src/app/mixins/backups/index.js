@@ -34,7 +34,7 @@ export default class Backups {
         },
       })
 
-    let run = async ({ xapis: xapisOptions, ...rest }, onLog = noop) => {
+    let run = async ({ xapis: xapisOptions, ...rest }, taskLogger) => {
       const xapis = []
       async function createConnectedXapi(id) {
         const xapi = createXapi(xapisOptions[id])
@@ -65,7 +65,7 @@ export default class Backups {
           ...rest,
           config,
           getConnectedXapi,
-          taskLogger: new TaskLogger(onLog),
+          taskLogger,
         }).run()
       } finally {
         app.hooks.removeListener('stop', disconnectAllXapis)
@@ -74,13 +74,15 @@ export default class Backups {
     }
     run = (run => {
       const runningJobs = { __proto__: null }
-      return async params => {
+      return async function (params) {
         const jobId = params.job.id
         if (jobId === undefined) {
           return run.apply(this, arguments)
         }
         if (jobId in runningJobs) {
-          throw new Error('job is already runnin')
+          const error = new Error('job is already running')
+          error.jobId = jobId
+          throw error
         }
         runningJobs[jobId] = true
         try {
@@ -88,6 +90,30 @@ export default class Backups {
         } finally {
           delete runningJobs[jobId]
         }
+      }
+    })(run)
+    run = (run => async (params, onLog) => {
+      if (onLog === undefined) {
+        const task = new TaskLogger(noop)
+        return task.run('backup run', () => run(params, task))
+      }
+
+      const { job, schedule } = params
+      const task = new TaskLogger(onLog)
+      try {
+        await task.run(
+          'backup run',
+          {
+            jobId: job.id,
+            jobName: job.name,
+            mode: job.mode,
+            reportWhen: job.settings['']?.reportWhen,
+            scheduleId: schedule.id,
+          },
+          () => run(params, task)
+        )
+      } catch (error) {
+        // do not rethrow, everything is handled via logging
       }
     })(run)
 
