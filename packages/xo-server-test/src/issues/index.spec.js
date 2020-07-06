@@ -1,5 +1,7 @@
 /* eslint-env jest */
 
+import { parseDuration } from '@vates/parse-duration'
+
 import config from '../_config'
 import xo from '../_xoConnection'
 
@@ -55,7 +57,11 @@ describe('issue', () => {
 
     let template
     beforeAll(async () => {
+      jest.setTimeout(parseDuration(config.cloneTempVmTimeout))
       template = await xo.cloneTempVm(config.templates.default)
+    })
+
+    beforeAll(async () => {
       await Promise.all([
         xo.call('vm.set', {
           id: template.id,
