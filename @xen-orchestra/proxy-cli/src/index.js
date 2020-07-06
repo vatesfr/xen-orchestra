@@ -27,7 +27,6 @@ async function main(argv) {
     alias: { help: 'h' },
     boolean: ['help', 'raw'],
     default: {
-      host: `${hostname}:${port}`,
       token: config.authenticationToken,
     },
     stopEarly: true,
@@ -70,20 +69,24 @@ ${pkg.name} v${pkg.version}`
     }
   }
 
-  const lines = pumpify.obj(
-    await hrp.post({
-      body: format.request(0, method, params),
-      headers: {
-        'content-type': 'application/json',
-        cookie: `authenticationToken=${token}`,
-      },
-      host,
-      pathname: '/api/v1',
-      protocol: 'https:',
-      rejectUnauthorized: false,
-    }),
-    split2()
-  )
+  const request = {
+    body: format.request(0, method, params),
+    headers: {
+      'content-type': 'application/json',
+      cookie: `authenticationToken=${token}`,
+    },
+    pathname: '/api/v1',
+    protocol: 'https:',
+    rejectUnauthorized: false,
+  }
+  if (host !== '') {
+    request.host = host
+  } else {
+    request.hostname = hostname
+    request.port = port
+  }
+
+  const lines = pumpify.obj(await hrp.post(request), split2())
 
   const firstLine = await readChunk(lines)
 
