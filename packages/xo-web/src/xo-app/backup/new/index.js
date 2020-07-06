@@ -1272,16 +1272,11 @@ export default decorate([
     remotes: subscribeRemotes,
   }),
   provideState({
-    initialState: () => ({ suggestedExcludedTags: undefined }),
-    effects: {
-      initialize: async function () {
-        this.state.suggestedExcludedTags = await getSuggestedExcludedTags()
-      },
-    },
     computed: {
       loading: (state, props) =>
         state.suggestedExcludedTags === undefined ||
         props.remotes === undefined,
+      suggestedExcludedTags: () => getSuggestedExcludedTags(),
     },
   }),
   injectState,
