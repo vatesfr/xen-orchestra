@@ -1,5 +1,6 @@
 import cookie from 'cookie'
 import defer from 'golike-defer'
+import hrp from 'http-request-plus'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
@@ -359,7 +360,7 @@ export default class Proxy {
       request.host = assertProxyAddress(proxy, proxy.address)
     }
 
-    const response = await this._app.httpRequest(request)
+    const response = await hrp(request)
 
     const authenticationToken = parseSetCookie(response, {
       map: true,
