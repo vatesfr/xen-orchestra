@@ -56,11 +56,13 @@ describe('issue', () => {
     let template
     beforeAll(async () => {
       template = await xo.cloneTempVm(config.templates.default)
-      await xo.call('vm.set', {
-        id: template.id,
-        virtualizationMode,
-      })
-      await xo.call('vm.setBootOrder', { vm: template.id, order: bootOrder })
+      await Promise.all([
+        xo.call('vm.set', {
+          id: template.id,
+          virtualizationMode,
+        }),
+        xo.call('vm.setBootOrder', { vm: template.id, order: bootOrder }),
+      ])
       await xo.waitObjectState(template.id, {
         virtualizationMode,
         boot: {
