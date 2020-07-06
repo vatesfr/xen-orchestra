@@ -1,13 +1,13 @@
-import cancelable from 'promise-toolbox/cancelable'
 import compareVersions from 'compare-versions'
 import defer from 'golike-defer'
 import find from 'lodash/find'
 import groupBy from 'lodash/groupBy'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import map from 'lodash/map'
 import omit from 'lodash/omit'
-
 import { createVhdStreamWithLength } from 'vhd-lib'
+
+import { cancelableMap } from './_cancelableMap'
+import { CancelToken } from 'promise-toolbox'
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 const TAG_COPY_SRC = 'xo:copy_of'
@@ -15,12 +15,12 @@ const TAG_COPY_SRC = 'xo:copy_of'
 const ensureArray = value =>
   value === undefined ? [] : Array.isArray(value) ? value : [value]
 
-export const exportDeltaVm = cancelable(async function (
-  $cancelToken,
+export const exportDeltaVm = async function (
   vm,
   baseVm,
   {
     bypassVdiChainsCheck = false,
+    cancelToken = CancelToken.none,
 
     // Contains a vdi.$id set of vmId.
     fullVdisRequired = [],
@@ -46,57 +46,52 @@ export const exportDeltaVm = cancelable(async function (
   const streams = {}
   const vdis = {}
   const vbds = {}
-  await Promise.all(
-    vm.$VBDs.map(async vbd => {
-      let vdi
-      if (vbd.type !== 'Disk' || !(vdi = vbd.$VDI)) {
-        // Ignore this VBD.
-        return
-      }
+  await cancelableMap(cancelToken, vm.$VBDs, async (cancelToken, vbd) => {
+    let vdi
+    if (vbd.type !== 'Disk' || !(vdi = vbd.$VDI)) {
+      // Ignore this VBD.
+      return
+    }
 
-      // If the VDI name start with `[NOBAK]`, do not export it.
-      if (vdi.name_label.startsWith('[NOBAK]')) {
-        // FIXME: find a way to not create the VDI snapshot in the
-        // first time.
-        //
-        // The snapshot must not exist otherwise it could break the
-        // next export.
-        ignoreErrors.call(vdi.$destroy())
-        return
-      }
+    // If the VDI name start with `[NOBAK]`, do not export it.
+    if (vdi.name_label.startsWith('[NOBAK]')) {
+      // FIXME: find a way to not create the VDI snapshot in the
+      // first time.
+      //
+      // The snapshot must not exist otherwise it could break the
+      // next export.
+      ignoreErrors.call(vdi.$destroy())
+      return
+    }
 
-      vbds[vbd.$ref] = vbd
+    vbds[vbd.$ref] = vbd
 
-      const vdiRef = vdi.$ref
-      if (vdiRef in vdis) {
-        // This VDI has already been managed.
-        return
-      }
+    const vdiRef = vdi.$ref
+    if (vdiRef in vdis) {
+      // This VDI has already been managed.
+      return
+    }
 
-      // Look for a snapshot of this vdi in the base VM.
-      const baseVdi = baseVdis[vdi.snapshot_of]
+    // Look for a snapshot of this vdi in the base VM.
+    const baseVdi = baseVdis[vdi.snapshot_of]
 
-      vdis[vdiRef] = {
-        ...vdi,
-        other_config: {
-          ...vdi.other_config,
-          [TAG_BASE_DELTA]:
-            baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
-        },
-        $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
-        $SR$uuid: vdi.$SR.uuid,
-      }
+    vdis[vdiRef] = {
+      ...vdi,
+      other_config: {
+        ...vdi.other_config,
+        [TAG_BASE_DELTA]:
+          baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+      },
+      $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
+      $SR$uuid: vdi.$SR.uuid,
+    }
 
-      streams[`${vdiRef}.vhd`] = await vdi.$xapi.VDI_exportContent(
-        $cancelToken,
-        vdi.$ref,
-        {
-          baseRef: baseVdi?.$ref,
-          format: 'vhd',
-        }
-      )
+    streams[`${vdiRef}.vhd`] = await vdi.$xapi.VDI_exportContent(vdi.$ref, {
+      baseRef: baseVdi?.$ref,
+      cancelToken,
+      format: 'vhd',
     })
-  )
+  })
 
   const vifs = {}
   vm.$VIFs.forEach(vif => {
@@ -133,10 +128,15 @@ export const exportDeltaVm = cancelable(async function (
       writable: true,
     }
   )
-})
+}
 
 export const importDeltaVm = defer(
-  async ($defer, deltaVm, sr, { detectBase = true, mapVdisSrs = {} } = {}) => {
+  async (
+    $defer,
+    deltaVm,
+    sr,
+    { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {} } = {}
+  ) => {
     const { version } = deltaVm
     if (compareVersions(version, '1.0.0') < 0) {
       throw new Error(`Unsupported delta backup version: ${version}`)
@@ -271,8 +271,10 @@ export const importDeltaVm = defer(
 
     await Promise.all([
       // Import VDI contents.
-      Promise.all(
-        map(newVdis, async (vdi, id) => {
+      cancelableMap(
+        cancelToken,
+        Object.entries(newVdis),
+        async (cancelToken, [id, vdi]) => {
           for (let stream of ensureArray(streams[`${id}.vhd`])) {
             if (typeof stream === 'function') {
               stream = await stream()
@@ -280,9 +282,9 @@ export const importDeltaVm = defer(
             if (stream.length === undefined) {
               stream = await createVhdStreamWithLength(stream)
             }
-            await vdi.$importContent(stream, { format: 'vhd' })
+            await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
           }
-        })
+        }
       ),
 
       // Wait for VDI export tasks (if any) termination.

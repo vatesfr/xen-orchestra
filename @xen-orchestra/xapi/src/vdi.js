@@ -1,4 +1,4 @@
-const cancelable = require('promise-toolbox/cancelable')
+const CancelToken = require('promise-toolbox/CancelToken')
 
 const extractOpaqueRef = require('./_extractOpaqueRef')
 
@@ -48,8 +48,10 @@ module.exports = class Vdi {
     })
   }
 
-  @cancelable
-  async exportContent($cancelToken, ref, { baseRef, format }) {
+  async exportContent(
+    ref,
+    { baseRef, cancelToken = CancelToken.none, format }
+  ) {
     const query = {
       format,
       vdi: ref,
@@ -58,7 +60,7 @@ module.exports = class Vdi {
       query.base = baseRef
     }
     try {
-      return await this.getResource($cancelToken, '/export_raw_vdi/', {
+      return await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
         task: await this.task_create(
           `Exporting content of VDI ${await this.getField(
@@ -81,14 +83,14 @@ module.exports = class Vdi {
     }
   }
 
-  async importContent(ref, stream, { format }) {
+  async importContent(ref, stream, { cancelToken = CancelToken.none, format }) {
     if (stream.length === undefined) {
       throw new Error(
         'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
       )
     }
     try {
-      await this.putResource(stream, '/import_raw_vdi/', {
+      await this.putResource(cancelToken, stream, '/import_raw_vdi/', {
         query: {
           format,
           vdi: ref,
