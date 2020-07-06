@@ -697,7 +697,7 @@ export class Xapi extends EventEmitter {
         error.message === 'Invalid XML-RPC message'
       ) {
         error.message =
-          'Unexpected response, are you sure the address is correct?'
+          'Unexpected response, are you sure that the address is correct?'
       }
 
       debug(
