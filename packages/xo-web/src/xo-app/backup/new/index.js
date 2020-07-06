@@ -1278,14 +1278,17 @@ export default decorate([
         this.state.suggestedExcludedTags = await getSuggestedExcludedTags()
       },
     },
+    computed: {
+      loading: (state, props) =>
+        state.suggestedExcludedTags === undefined ||
+        props.remotes === undefined,
+    },
   }),
   injectState,
-  ({ state, ...props }) =>
-    state.suggestedExcludedTags === undefined ||
-    props.remotes === undefined ||
-    (props.job !== undefined && props.schedules === undefined) ? (
+  ({ state: { loading, suggestedExcludedTags }, ...props }) =>
+    loading ? (
       _('statusLoading')
     ) : (
-      <New suggestedExcludedTags={state.suggestedExcludedTags} {...props} />
+      <New suggestedExcludedTags={suggestedExcludedTags} {...props} />
     ),
 ])
