@@ -9,6 +9,9 @@ authenticationToken = ''
 
 datadir = '/var/lib/xo-proxy/data'
 
+[api]
+keepAliveInterval = 10e3
+
 [backups]
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 

@@ -27,7 +27,15 @@ const ndJsonStream = asyncIteratorToStream(async function* (
 })
 
 export default class Api {
-  constructor(app, { httpServer }) {
+  constructor(
+    app,
+    {
+      config: {
+        api: { keepAliveInterval },
+      },
+      httpServer,
+    }
+  ) {
     this._ajv = new Ajv({ allErrors: true })
     this._methods = { __proto__: null }
 
@@ -71,7 +79,18 @@ export default class Api {
         (typeof result[Symbol.iterator] === 'function' ||
           typeof result[Symbol.asyncIterator] === 'function')
       if (isAsyncIterable) {
-        ctx.body = ndJsonStream(body.id, result)
+        const stream = ndJsonStream(body.id, result)
+        ctx.body = stream
+
+        if (keepAliveInterval !== 0) {
+          // In the wild, long term HTTP requests with period of inactivity often
+          // breaks, send some data every 10s to keep it opened.
+          const stopTimer = clearInterval.bind(
+            undefined,
+            setInterval(() => stream.push(' '), keepAliveInterval)
+          )
+          stream.on('end', stopTimer).on('error', stopTimer)
+        }
       } else {
         ctx.body = format.response(
           body.id,
