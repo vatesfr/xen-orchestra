@@ -821,6 +821,9 @@ export const getHostMissingPatches = async host => {
       ? patches
       : filter(patches, { paid: false })
   }
+  if (host.power_state !== 'Running') {
+    return []
+  }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
