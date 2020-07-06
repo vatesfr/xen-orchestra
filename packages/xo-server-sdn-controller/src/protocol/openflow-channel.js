@@ -80,6 +80,7 @@ export class OpenFlowChannel extends EventEmitter {
     this.host = host
     this._tlsHelper = tlsHelper
     this._coalesceConnect = coalesceCalls(this._connect)
+    this._socket = undefined
 
     log.debug('New OpenFlow channel', {
       host: this.host.name_label,
@@ -380,7 +381,9 @@ export class OpenFlowChannel extends EventEmitter {
       OPENFLOW_PORT
     )
 
-    const deleteSocket = () => delete this._socket
+    const deleteSocket = () => {
+      this._socket = undefined
+    }
     this._socket.on('error', deleteSocket)
     this._socket.on('end', deleteSocket)
 
