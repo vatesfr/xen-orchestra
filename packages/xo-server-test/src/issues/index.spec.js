@@ -52,15 +52,14 @@ describe('issue', () => {
   })
 
   describe('4980', () => {
-    const bootOrder = 'cd'
-    const virtualizationMode = 'hvm'
-
     let template
     beforeAll(async () => {
       jest.setTimeout(parseDuration(config.cloneTempVmTimeout))
       template = await xo.cloneTempVm(config.templates.default)
     })
 
+    const bootOrder = 'cd'
+    const virtualizationMode = 'hvm'
     beforeAll(async () => {
       await Promise.all([
         xo.call('vm.set', {
