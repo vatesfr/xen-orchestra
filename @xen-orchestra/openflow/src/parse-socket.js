@@ -1,8 +1,8 @@
 import assert from 'assert'
 
 import of from './index'
-import readChunk from './util/read-stream-chunk'
 import scheme from './default-header-scheme'
+import { readChunk } from '@vates/read-chunk'
 
 // =============================================================================
 
@@ -21,9 +21,11 @@ export default async function* parse(socket) {
     }
 
     // Read the rest of the openflow message
-    data = await readChunk(socket, msgSize - scheme.size)
-    assert.notStrictEqual(data, null)
-    data.copy(buffer, scheme.size, 0, msgSize - scheme.size)
+    if (msgSize > scheme.size) {
+      data = await readChunk(socket, msgSize - scheme.size)
+      assert.notStrictEqual(data, null)
+      data.copy(buffer, scheme.size, 0, msgSize - scheme.size)
+    }
 
     yield of.unpack(buffer)
   }
