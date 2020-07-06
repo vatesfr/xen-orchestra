@@ -72,8 +72,8 @@ export default class Backups {
         ignoreErrors.call(disconnectAllXapis())
       }
     }
+    const runningJobs = { __proto__: null }
     run = (run => {
-      const runningJobs = { __proto__: null }
       return async function (params) {
         const jobId = params.job.id
         if (jobId === undefined) {
@@ -220,6 +220,12 @@ export default class Backups {
                 additionalProperties: { type: 'object' },
               },
             },
+          },
+        ],
+        listRunningJobs: [
+          () => Object.keys(runningJobs),
+          {
+            description: 'returns a list of running jobs',
           },
         ],
         run: [
