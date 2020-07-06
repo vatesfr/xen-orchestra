@@ -57,7 +57,6 @@ export class VmBackup {
     this.remoteHandlers = remoteHandlers
     this.remotes = remotes
     this.scheduleId = schedule.id
-    this.srs = srs
     this.timestamp = undefined
 
     // VM currently backed up
@@ -88,6 +87,37 @@ export class VmBackup {
 
     // Settings for this specific run (job, schedule, VM)
     this._settings = settings
+
+    // Create writers
+    {
+      const writers = []
+      this._writers = writers
+
+      const [BackupWriter, ReplicationWriter] = this._isDelta
+        ? [DeltaBackupWriter, ContinuousReplicationWriter]
+        : [FullBackupWriter, DisasterRecoveryWriter]
+
+      const allSettings = job.settings
+
+      Object.keys(remoteHandlers).forEach(remoteId => {
+        const targetSettings = {
+          ...settings,
+          ...allSettings[remoteId],
+        }
+        if (targetSettings.exportRetention !== 0) {
+          writers.push(new BackupWriter(this, remoteId, targetSettings))
+        }
+      })
+      srs.forEach(sr => {
+        const targetSettings = {
+          ...settings,
+          ...allSettings[sr.uuid],
+        }
+        if (targetSettings.copyRetention !== 0) {
+          writers.push(new ReplicationWriter(this, sr, targetSettings))
+        }
+      })
+    }
   }
 
   // ensure the VM itself does not have any backup metadata which would be
@@ -143,42 +173,15 @@ export class VmBackup {
   }
 
   async _copyDelta() {
-    const { _settings: settings, job, vm } = this
-    const allSettings = job.settings
-
-    const writers = []
-    Object.keys(this.remoteHandlers).forEach(remoteId => {
-      const targetSettings = {
-        ...settings,
-        ...allSettings[remoteId],
-      }
-      if (targetSettings.exportRetention !== 0) {
-        writers.push(new DeltaBackupWriter(this, remoteId, targetSettings))
-      }
-    })
-    this.srs.forEach(sr => {
-      const targetSettings = {
-        ...settings,
-        ...allSettings[sr.uuid],
-      }
-      if (targetSettings.copyRetention !== 0) {
-        writers.push(new ContinuousReplicationWriter(this, sr, targetSettings))
-      }
-    })
-
-    if (writers.length === 0) {
-      return
-    }
-
-    const baseVm = this._baseVm
     const { exportedVm } = this
-    const deltaExport = await exportDeltaVm(exportedVm, baseVm)
+
+    const deltaExport = await exportDeltaVm(exportedVm, this._baseVm)
     const sizeContainers = mapValues(deltaExport.streams, watchStreamSize)
 
     const timestamp = Date.now()
 
     await Promise.all(
-      writers.map(async writer => {
+      this._writers.map(async writer => {
         try {
           await writer.run({
             deltaExport: forkDeltaExport(deltaExport),
@@ -189,7 +192,7 @@ export class VmBackup {
           warn('copy failure', {
             error,
             target: writer.target,
-            vm,
+            vm: this.vm,
           })
         }
       })
@@ -216,35 +219,8 @@ export class VmBackup {
   }
 
   async _copyFull() {
-    const { _settings: settings, _xapi: xapi, job, vm } = this
-    const allSettings = job.settings
-
-    const writers = []
-    Object.keys(this.remoteHandlers).forEach(remoteId => {
-      const targetSettings = {
-        ...settings,
-        ...allSettings[remoteId],
-      }
-      if (targetSettings.exportRetention !== 0) {
-        writers.push(new FullBackupWriter(this, remoteId, targetSettings))
-      }
-    })
-    this.srs.forEach(sr => {
-      const targetSettings = {
-        ...settings,
-        ...allSettings[sr.uuid],
-      }
-      if (targetSettings.copyRetention !== 0) {
-        writers.push(new DisasterRecoveryWriter(this, sr, targetSettings))
-      }
-    })
-
-    if (writers.length === 0) {
-      return
-    }
-
-    const { compression } = job
-    const stream = await xapi.VM_export(this.exportedVm.$ref, {
+    const { compression } = this.job
+    const stream = await this._xapi.VM_export(this.exportedVm.$ref, {
       compress:
         Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
       useSnapshot: false,
@@ -254,7 +230,7 @@ export class VmBackup {
     const timestamp = Date.now()
 
     await Promise.all(
-      writers.map(async writer => {
+      this._writers.map(async writer => {
         try {
           await writer.run({
             sizeContainer,
@@ -265,7 +241,7 @@ export class VmBackup {
           warn('copy failure', {
             error,
             target: writer.target,
-            vm,
+            vm: this.vm,
           })
         }
       })
@@ -373,7 +349,9 @@ export class VmBackup {
         ignoreErrors.call(vm.$callAsync('start', false, false))
       }
 
-      await (this._isDelta ? this._copyDelta() : this._copyFull())
+      if (this._writers.length !== 0) {
+        await (this._isDelta ? this._copyDelta() : this._copyFull())
+      }
     } finally {
       if (startAfter) {
         ignoreErrors.call(vm.$callAsync('start', false, false))
