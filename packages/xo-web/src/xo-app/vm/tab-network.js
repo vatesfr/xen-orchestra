@@ -5,11 +5,13 @@ import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
-import React from 'react'
+import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
+import SingleLineRow from 'single-line-row'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
+import { confirm } from 'modal'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
@@ -27,6 +29,7 @@ import {
   SelectResourceSetIp,
   SelectResourceSetsNetwork,
 } from 'select-objects'
+import { Select, Toggle } from 'form'
 import {
   concat,
   every,
@@ -35,6 +38,7 @@ import {
   isEmpty,
   keys,
   map,
+  pick,
   remove,
   some,
 } from 'lodash'
@@ -48,14 +52,17 @@ import {
 } from 'selectors'
 
 import {
+  addAclRule,
   connectVif,
   createVmInterface,
+  deleteAclRule,
   deleteVif,
   deleteVifs,
   disconnectVif,
   isVmRunning,
   setVif,
   subscribeIpPools,
+  subscribePlugins,
   subscribeResourceSets,
 } from 'xo'
 
@@ -302,6 +309,241 @@ class VifStatus extends BaseComponent {
   }
 }
 
+// -----------------------------------------------------------------------------
+
+const USABLE_PORT_PROTOCOL = ['TCP', 'ICMP', 'UDP']
+class NewAclRuleForm extends BaseComponent {
+  state = {
+    allow: true,
+    protocol: undefined,
+    port: undefined,
+    ipRange: '',
+    direction: 'from/to',
+  }
+
+  get value() {
+    return pick(this.state, [
+      'allow',
+      'protocol',
+      'port',
+      'ipRange',
+      'direction',
+    ])
+  }
+
+  render() {
+    const { protocol, allow, port, ipRange, direction } = this.state
+    const showIpRange = protocol != null
+    const showPort = showIpRange && USABLE_PORT_PROTOCOL.includes(protocol)
+
+    return (
+      <form id='newAclForm'>
+        <fieldset className='form-inline'>
+          <div>
+            <Container>
+              <SingleLineRow>
+                <Col size={6}>{_('aclRuleAllow')}</Col>
+                <Col size={6}>
+                  <Toggle onChange={this.toggleState('allow')} value={allow} />
+                </Col>
+              </SingleLineRow>
+              <SingleLineRow className='mt-1'>
+                <Col size={6}>{_('aclRuleProtocol')}</Col>
+                <Col size={6}>
+                  <Select
+                    name='protocol'
+                    onChange={this.linkState('protocol')}
+                    options={[
+                      { label: 'IP', value: 'IP' },
+                      { label: 'TCP', value: 'TCP' },
+                      { label: 'UDP', value: 'UDP' },
+                      { label: 'ICMP', value: 'ICMP' },
+                      { label: 'ARP', value: 'ARP' },
+                    ]}
+                    simpleValue
+                    value={protocol}
+                  />
+                </Col>
+              </SingleLineRow>
+              {showPort && (
+                <SingleLineRow className='mt-1'>
+                  <Col size={6}>{_('aclRulePort')}</Col>
+                  <Col size={6}>
+                    <input
+                      className='form-control w-100'
+                      min='1'
+                      onChange={this.linkState('port')}
+                      type='number'
+                      value={port}
+                    />
+                  </Col>
+                </SingleLineRow>
+              )}
+              {showIpRange && (
+                <SingleLineRow className='mt-1'>
+                  <Col size={6}>{_('aclRuleIpRange')}</Col>
+                  <Col size={6}>
+                    <input
+                      className='form-control w-100'
+                      onChange={this.linkState('ipRange')}
+                      type='text'
+                      value={ipRange}
+                    />
+                  </Col>
+                </SingleLineRow>
+              )}
+              <SingleLineRow className='mt-1'>
+                <Col size={6}>{_('aclRuleDirection')}</Col>
+                <Col size={6}>
+                  <Select
+                    name='direction'
+                    onChange={this.linkState('direction')}
+                    options={[
+                      { label: 'from', value: 'from' },
+                      { label: 'to', value: 'to' },
+                      { label: 'from/to', value: 'from/to' },
+                    ]}
+                    required
+                    simpleValue
+                    value={direction}
+                  />
+                </Col>
+              </SingleLineRow>
+            </Container>
+          </div>
+        </fieldset>
+      </form>
+    )
+  }
+}
+
+@addSubscriptions({
+  plugins: subscribePlugins,
+})
+class AclRuleRow extends Component {
+  render() {
+    const { rule, vif, plugins } = this.props
+    const ruleObj = JSON.parse(rule)
+    const sdnControllerLoaded = plugins.some(
+      plugin => plugin.name === 'sdn-controller' && plugin.loaded
+    )
+
+    return (
+      <tr>
+        <td>{ruleObj.allow ? _('stateEnabled') : _('stateDisabled')}</td>
+        <td>{ruleObj.protocol}</td>
+        <td>{ruleObj.port}</td>
+        <td>{ruleObj.ipRange}</td>
+        <td>{ruleObj.direction}</td>
+        <td className='text-xs-right'>
+          <ActionRowButton
+            disabled={!sdnControllerLoaded}
+            handler={deleteAclRule}
+            handlerParam={{ ...ruleObj, vif }}
+            icon='delete'
+            level='danger'
+            tooltip={
+              sdnControllerLoaded
+                ? _('deleteRule')
+                : _('sdnControllerNotLoaded')
+            }
+          />
+        </td>
+      </tr>
+    )
+  }
+}
+
+@addSubscriptions({
+  plugins: subscribePlugins,
+})
+class AclRulesRows extends BaseComponent {
+  _newAclRule(vif) {
+    return confirm({
+      icon: 'add',
+      title: _('addRule'),
+      body: <NewAclRuleForm />,
+    }).then(({ allow, protocol, port, ipRange, direction }) => {
+      const hasProtocol = protocol != null
+      const usePort =
+        hasProtocol &&
+        USABLE_PORT_PROTOCOL.includes(protocol) &&
+        port !== undefined
+
+      return addAclRule({
+        allow,
+        protocol: hasProtocol ? protocol : undefined,
+        port: usePort ? +port : undefined,
+        ipRange: hasProtocol ? ipRange : '',
+        direction,
+        vif,
+      })
+    }, noop)
+  }
+
+  _getRules = createSelector(
+    () => this.props.vif.other_config['xo:sdn-controller:of-rules'],
+    json => (json !== undefined ? JSON.parse(json) : undefined)
+  )
+
+  render() {
+    const { vif, plugins } = this.props
+    const { showRules } = this.state
+    const sdnControllerLoaded = plugins.some(
+      plugin => plugin.name === 'sdn-controller' && plugin.loaded
+    )
+    const rules = this._getRules()
+    const rulesToSee = rules !== undefined
+
+    return (
+      <div>
+        {rulesToSee && (
+          <ActionButton
+            className='mb-1 pull-right'
+            handler={this.toggleState('showRules')}
+            icon={showRules ? 'hidden' : 'shown'}
+            size='small'
+            tooltip={showRules ? _('hideRules') : _('showRules')}
+          />
+        )}
+        <ActionButton
+          btnStyle='success'
+          className='mb-1 pull-right'
+          disabled={!sdnControllerLoaded}
+          handler={this._newAclRule}
+          handlerParam={vif}
+          icon='add'
+          size='small'
+          tooltip={
+            sdnControllerLoaded ? _('addRule') : _('sdnControllerNotLoaded')
+          }
+        />
+        {showRules && rulesToSee && (
+          <table className='table'>
+            <thead className='thead-default'>
+              <tr>
+                <th>{_('aclRuleAllowField')}</th>
+                <th>{_('aclRuleProtocolField')}</th>
+                <th>{_('aclRulePortField')}</th>
+                <th>{_('aclRuleIpRangeField')}</th>
+                <th>{_('aclRuleDirectionField')}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {map(rules, rule => (
+                <AclRuleRow rule={rule} vif={vif} />
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 const COLUMNS = [
   {
     itemRenderer: vif => `VIF #${vif.device}`,
@@ -356,6 +598,10 @@ const COLUMNS = [
   {
     component: VifAllowedIps,
     name: _('vifAllowedIps'),
+  },
+  {
+    itemRenderer: vif => <AclRulesRows vif={vif} />,
+    name: _('vifAclRules'),
   },
   {
     itemRenderer: (vif, userData) => (

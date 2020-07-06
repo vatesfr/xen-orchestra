@@ -646,6 +646,7 @@ const TRANSFORMS = {
       device: obj.device, // TODO: should it be cast to a number?
       MAC: obj.MAC,
       MTU: +obj.MTU,
+      other_config: obj.other_config,
 
       // in kB/s
       rateLimit: (() => {
