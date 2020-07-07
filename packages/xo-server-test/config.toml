@@ -2,7 +2,7 @@
 #
 # See sample.config.toml to override.
 
-# After some executions we saw that `deleteTempResources` takes around `21ms`.
+# After some executions we saw that `deleteTempResources` takes around `21s`.
 # Then, we chose a large timeout to be sure that all resources created by `xo-server-test`
 # will be deleted
 deleteTempResourcesTimeout = '2 minutes'
