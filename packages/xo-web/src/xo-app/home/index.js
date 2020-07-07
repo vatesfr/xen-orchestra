@@ -1173,7 +1173,9 @@ export default class Home extends Component {
                       </Popover>
                     }
                   >
-                    <Button btnStyle='link'>{_('powerState')}</Button>
+                    <Button btnStyle='link'>
+                      <Icon icon='powerState' /> {_('powerState')}
+                    </Button>
                   </OverlayTrigger>
                 )}
                 {type === 'VM' && (
