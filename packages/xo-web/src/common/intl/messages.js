@@ -1771,7 +1771,7 @@ const messages = {
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',
   enableServerErrorMessage:
-    'Unexpected response. Please check your server address',
+    'Unexpected response. Please check your server address.',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
