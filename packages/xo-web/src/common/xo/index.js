@@ -1,14 +1,12 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
-import pFinally from 'promise-toolbox/finally'
 import React from 'react'
-import reflect from 'promise-toolbox/reflect'
-import tap from 'promise-toolbox/tap'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import {
   filter,
@@ -565,7 +563,7 @@ export const editServer = (server, props) =>
 
 export const enableServer = server =>
   _call('server.enable', { id: resolveId(server) })
-    ::tap(null, error => {
+    ::tapCatch(error => {
       if (error.message === 'Invalid XML-RPC message') {
         return error(_('enableServerErrorTitle'), _('enableServerErrorMessage'))
       }
