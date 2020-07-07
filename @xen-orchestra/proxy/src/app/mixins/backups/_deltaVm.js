@@ -21,8 +21,8 @@ export const exportDeltaVm = async function (
   {
     cancelToken = CancelToken.none,
 
-    // Contains a vdi.$id set of vmId.
-    fullVdisRequired = [],
+    // Sets of UUIDs of VDIs that must be exported as full.
+    fullVdisRequired = new Set(),
 
     disableBaseTags = false,
   } = {}
@@ -35,7 +35,7 @@ export const exportDeltaVm = async function (
       if (
         (vdi = vbd.$VDI) &&
         (snapshotOf = vdi.$snapshot_of) &&
-        !find(fullVdisRequired, id => snapshotOf.$id === id)
+        !fullVdisRequired.has(snapshotOf.uuid)
       ) {
         baseVdis[vdi.snapshot_of] = vdi
       }
