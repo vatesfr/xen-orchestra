@@ -19,14 +19,12 @@ export const exportDeltaVm = async function (
   vm,
   baseVm,
   {
-    bypassVdiChainsCheck = false,
     cancelToken = CancelToken.none,
 
     // Contains a vdi.$id set of vmId.
     fullVdisRequired = [],
 
     disableBaseTags = false,
-    snapshotNameLabel = undefined,
   } = {}
 ) {
   // refs of VM's VDIs → base's VDIs.
