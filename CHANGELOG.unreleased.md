@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Better resolution of the "last run log" quick access
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
