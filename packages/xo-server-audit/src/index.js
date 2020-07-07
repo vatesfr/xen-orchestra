@@ -252,29 +252,35 @@ class AuditXoPlugin {
       }))
   }
 
+  // See www-xo#344
   async _backupLastFingerprint() {
     const xo = this._xo
-    const { hashes } = await xo.audit.getLastChain()
-    const lastHash = hashes[hashes.length - 1]
+    const chain = await xo.audit.getLastChain()
 
-    // check the integrity of all stored hashes
-    const integrityCheckSuccess = await Promise.all(
-      hashes.map((oldest, key) =>
-        oldest !== lastHash
-          ? this._checkIntegrity({ oldest, newest: hashes[key + 1] })
-          : true
+    let lastHash, integrityCheckSuccess
+    if (chain !== null) {
+      const hashes = chain.hashes
+      lastHash = hashes[hashes.length - 1]
+
+      // check the integrity of all stored hashes
+      integrityCheckSuccess = await Promise.all(
+        hashes.map((oldest, key) =>
+          oldest !== lastHash
+            ? this._checkIntegrity({ oldest, newest: hashes[key + 1] })
+            : true
+        )
+      ).then(
+        () => true,
+        () => false
       )
-    ).then(
-      () => true,
-      () => false
-    )
+    }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
     const { oldest, newest, error } = await this._generateFingerprint({
       oldest: integrityCheckSuccess ? lastHash : undefined,
     })
 
-    if (hashes.length === 0 || !integrityCheckSuccess || error !== undefined) {
+    if (chain === null || !integrityCheckSuccess || error !== undefined) {
       await xo.audit.startNewChain({
         oldest,
         newest,
