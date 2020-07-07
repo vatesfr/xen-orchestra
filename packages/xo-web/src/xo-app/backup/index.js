@@ -8,7 +8,7 @@ import Tooltip from 'tooltip'
 import { adminOnly, connectStore, routes } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
-import { getLoneSnapshots } from 'selectors'
+import { createCounter, getLoneSnapshots } from 'selectors'
 import { NavLink, NavTabs } from 'nav'
 import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
 
@@ -28,21 +28,18 @@ const HealthNavTab = decorate([
     jobs: subscribeBackupNgJobs,
   }),
   connectStore({
-    loneSnapshots: getLoneSnapshots,
+    nLoneSnapshots: createCounter(getLoneSnapshots),
   }),
-  ({ loneSnapshots }) => {
-    const nLoneSnapshots = loneSnapshots.length
-    return (
-      <NavLink to='/backup/health'>
-        <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
-        {nLoneSnapshots > 0 && (
-          <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
-            <span className='tag tag-pill tag-warning'>{nLoneSnapshots}</span>
-          </Tooltip>
-        )}
-      </NavLink>
-    )
-  },
+  ({ nLoneSnapshots }) => (
+    <NavLink to='/backup/health'>
+      <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}{' '}
+      {nLoneSnapshots > 0 && (
+        <Tooltip content={_('loneSnapshotsMessages', { nLoneSnapshots })}>
+          <span className='tag tag-pill tag-warning'>{nLoneSnapshots}</span>
+        </Tooltip>
+      )}
+    </NavLink>
+  ),
 ])
 
 const HEADER = (

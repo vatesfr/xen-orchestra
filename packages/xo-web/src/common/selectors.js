@@ -566,10 +566,10 @@ export const getLoneSnapshots = create(
     createGetObjectsOfType('VM-snapshot'),
     _createCollectionWrapper(snapshots => {
       const snapshotsFromBackup = []
-      let jobId
       forEach(snapshots, snapshot => {
         const other = snapshot.other
-        if ((jobId = other['xo:backup:job']) !== undefined) {
+        const jobId = other['xo:backup:job']
+        if (jobId !== undefined) {
           snapshotsFromBackup.push({
             ...snapshot,
             jobId,

@@ -656,14 +656,14 @@ export const getDetachedBackupsOrSnapshots = (
   }
 
   const detachedItems = []
-  let job
   forEach(items, item => {
     const { vmId, jobId, scheduleId } = item
     const vm = vms[vmId]
+    const job = jobs[jobId]
     const reason =
       vm === undefined
         ? 'missingVm'
-        : (job = jobs[jobId]) === undefined
+        : job === undefined
         ? 'missingJob'
         : schedules[scheduleId] === undefined
         ? 'missingSchedule'
