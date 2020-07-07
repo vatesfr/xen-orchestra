@@ -230,7 +230,7 @@ export const importDeltaVm = defer(
                 [TAG_BASE_DELTA]: undefined,
                 [TAG_COPY_SRC]: vdi.uuid,
               },
-              sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+              SR: mapVdisSrs[vdi.uuid] ?? sr.$ref,
             })
           )
           $defer.onFailure(() => newVdi.$destroy())
