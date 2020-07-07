@@ -850,8 +850,12 @@ export const emergencyShutdownHosts = hosts => {
   )
 }
 
-export const isHostTimeConsistentWithXoaTime = host =>
-  _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+export const isHostTimeConsistentWithXoaTime = host => {
+  if (host.power_state !== 'Running') {
+    return true
+  }
+  return _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+}
 
 export const isHyperThreadingEnabledHost = host =>
   _call('host.isHyperThreadingEnabled', {

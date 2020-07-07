@@ -260,7 +260,7 @@ export default class Host extends Component {
                 </Tooltip>
               )}
               &nbsp;
-              <InconsistentHostTimeWarning hostId={host.id} />
+              <InconsistentHostTimeWarning host={host} />
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}
