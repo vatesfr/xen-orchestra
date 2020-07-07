@@ -117,15 +117,16 @@ const SchedulePreviewBody = decorate([
         let lastRunLog
         for (const runId in logs) {
           const log = logs[runId]
-          if (
-            log.scheduleId === schedule.id &&
-            (log.status === 'pending' ||
-              lastRunLog === undefined ||
-              (lastRunLog.end || lastRunLog.start) < (log.end || log.start))
-          ) {
-            lastRunLog = log
+          if (log.scheduleId === schedule.id) {
             if (log.status === 'pending') {
+              lastRunLog = log
               break
+            }
+            if (
+              lastRunLog === undefined ||
+              (lastRunLog.end || lastRunLog.start) < (log.end || log.start)
+            ) {
+              lastRunLog = log
             }
           }
         }
