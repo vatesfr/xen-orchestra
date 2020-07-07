@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Better resolution of the "last run log" quick access (PR [#5141](https://github.com/vatesfr/xen-orchestra/pull/5141))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,4 +34,4 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server patch
-- xo-web patch
+- xo-web minor
