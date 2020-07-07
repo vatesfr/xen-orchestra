@@ -682,22 +682,13 @@ export class Xapi extends EventEmitter {
       // values?
       const params = args[0] === this._sessionId ? args.slice(1) : args
 
-      const isLoginWithPasswordMethod = method === 'session.login_with_password'
       error.call = {
         method,
         params:
           // it pass server's credentials as param
-          isLoginWithPasswordMethod
+          method === 'session.login_with_password'
             ? '* obfuscated *'
             : replaceSensitiveValues(params, '* obfuscated *'),
-      }
-
-      if (
-        isLoginWithPasswordMethod &&
-        error.message === 'Invalid XML-RPC message'
-      ) {
-        error.message =
-          'Unexpected response, are you sure that the address is correct?'
       }
 
       debug(

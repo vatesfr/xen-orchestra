@@ -564,9 +564,14 @@ export const editServer = (server, props) =>
   )
 
 export const enableServer = server =>
-  _call('server.enable', { id: resolveId(server) })::pFinally(
-    subscribeServers.forceRefresh
-  )
+  _call('server.enable', { id: resolveId(server) })
+    ::tap(null, error => {
+      if (error.message === 'Invalid XML-RPC message') {
+        return error(_('enableServerErrorTitle'), _('enableServerErrorMessage'))
+      }
+      throw error
+    })
+    ::pFinally(subscribeServers.forceRefresh)
 
 export const disableServer = server =>
   _call('server.disable', { id: resolveId(server) })::tap(

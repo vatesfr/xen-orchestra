@@ -1769,6 +1769,9 @@ const messages = {
   optionalEntry: '* optional',
 
   // ----- Servers -----
+  enableServerErrorTitle: 'Enable server',
+  enableServerErrorMessage:
+    'Unexpected response. Please check your server address',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
