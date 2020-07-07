@@ -1,5 +1,21 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Backup] Better resolution of the "last run log" quick access (PR [#5141](https://github.com/vatesfr/xen-orchestra/pull/5141))
+- [Patches] Don't check patches on halted XCP-ng hosts (PR [#5140](https://github.com/vatesfr/xen-orchestra/pull/5140))
+- [XO] Don't check time consistency on halted hosts (PR [#5140](https://github.com/vatesfr/xen-orchestra/pull/5140))
+
+### Bug fixes
+
+- [Smart backup/edit] Fix "Excluded VMs tags" being reset to the default ones (PR [#5136](https://github.com/vatesfr/xen-orchestra/pull/5136))
+
+### Released packages
+
+- xo-web 5.63.0
+
 ## **5.48.1** (2020-07-03)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
