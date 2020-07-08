@@ -81,6 +81,7 @@ const DEFAULT_SCHEDULE = {
   cron: '0 0 * * *',
   timezone: moment.tz.guess(),
 }
+const RETENTION_LIMIT = 50
 
 const ReportRecipients = decorate([
   provideState({
@@ -204,6 +205,15 @@ const destructVmsPattern = pattern =>
     : {
         vms: destructPattern(pattern),
       }
+
+const checkRetentionLimit = (settings, retention) => {
+  const fullInterval = get(() => settings.getIn(['', 'fullInterval']))
+  return (
+    (retention === undefined || fullInterval === undefined
+      ? defined(fullInterval, retention)
+      : Math.min(fullInterval, retention)) > RETENTION_LIMIT
+  )
+}
 
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
@@ -527,7 +537,7 @@ const New = decorate([
         { saveSchedule },
         storedSchedule = DEFAULT_SCHEDULE
       ) => async (
-        { copyMode, exportMode, snapshotMode },
+        { isDelta, copyMode, exportMode, settings, snapshotMode },
         { intl: { formatMessage } }
       ) => {
         const modes = { copyMode, exportMode, snapshotMode }
@@ -535,6 +545,10 @@ const New = decorate([
           defaultValue: storedSchedule,
           render: props => (
             <NewSchedule
+              isRetentionLimit={
+                isDelta &&
+                checkRetentionLimit(settings, props.value.exportRetention)
+              }
               missingRetentions={!checkRetentions(props.value, modes)}
               modes={modes}
               {...props}
@@ -722,6 +736,11 @@ const New = decorate([
         state.missingExportRetention ||
         state.missingCopyRetention ||
         state.missingSnapshotRetention,
+      isRetentionLimit: ({
+        isDelta,
+        schedules: { exportRetention },
+        settings,
+      }) => isDelta && checkRetentionLimit(settings, exportRetention),
       missingName: state => state.name.trim() === '',
       missingVms: state => isEmpty(state.vms) && !state.smartMode,
       missingBackupMode: state =>
@@ -1111,6 +1130,11 @@ const New = decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
+                          {state.isRetentionLimit && (
+                            <Tooltip content={_('retentionLimitWarning')}>
+                              <Icon icon='error' />
+                            </Tooltip>
+                          )}{' '}
                           <Tooltip content={_('clickForMoreInformation')}>
                             <a
                               className='text-info'
