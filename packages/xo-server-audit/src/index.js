@@ -22,7 +22,7 @@ export const configurationSchema = {
     automaticIntegrityCheck: {
       description:
         'Enable/Disable the automatic integrity check of the stored records',
-      name: 'Automatic integrity check',
+      title: 'Automatic integrity check',
       type: 'boolean',
     },
   },
