@@ -15,6 +15,19 @@ import {
 
 const log = createLogger('xo:xo-server-audit')
 
+export const configurationSchema = {
+  type: 'object',
+
+  properties: {
+    automaticIntegrityCheck: {
+      description:
+        'Enable/Disable the automatic integrity check of the stored records',
+      name: 'Automatic integrity check',
+      type: 'boolean',
+    },
+  },
+}
+
 const DEFAULT_BLOCKED_LIST = {
   'acl.get': true,
   'acl.getCurrentPermissions': true,
@@ -110,11 +123,17 @@ class AuditXoPlugin {
     this._cleaners = []
     this._xo = xo
     this._automaticIntegrityCheckJob = createSchedule(
-      staticConfig.automaticIntegrityCheckCron ?? '0 6 * * *'
+      staticConfig.automaticIntegrityCheckCron ?? '0 6 * * *',
+      staticConfig.automaticIntegrityCheckTimezone
     ).createJob(() => this._automaticIntegrityCheck().catch(log.error))
 
     this._auditCore = undefined
+    this._configuration = undefined
     this._storage = undefined
+  }
+
+  configure(configuration) {
+    this._configuration = configuration
   }
 
   async load() {
@@ -159,9 +178,12 @@ class AuditXoPlugin {
       oldest: { type: 'string', optional: true },
     }
 
-    this._automaticIntegrityCheckJob.start()
+    if (this._configuration.automaticIntegrityCheck) {
+      this._automaticIntegrityCheckJob.start()
+      cleaners.push(() => this._automaticIntegrityCheckJob.stop())
+    }
+
     cleaners.push(
-      () => this._automaticIntegrityCheckJob.stop(),
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
@@ -280,10 +302,7 @@ class AuditXoPlugin {
     })
 
     if (chain === null || !integrityCheckSuccess || error !== undefined) {
-      await xo.audit.startNewChain({
-        oldest,
-        newest,
-      })
+      await xo.audit.startNewChain({ oldest, newest })
     } else {
       await xo.audit.extendLastChain({ oldest, newest })
     }
