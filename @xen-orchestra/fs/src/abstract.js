@@ -5,15 +5,20 @@ import getStream from 'get-stream'
 
 import asyncMap from '@xen-orchestra/async-map'
 import limit from 'limit-concurrency-decorator'
-import path from 'path'
+import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
-import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import {
+  fromCallback,
+  ignoreErrors,
+  timeout,
+  pFromEvent,
+} from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
 
 import normalizePath from './_normalizePath'
-import { createChecksumStream, validChecksumOfReadStream } from './checksum'
+import { createChecksumStream } from './checksum'
 
 const { dirname } = path.posix
 
@@ -160,80 +165,26 @@ export default class RemoteHandlerAbstract {
     return checksumStream
   }
 
-  createReadStream(
-    file: File,
-    { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
-  ): Promise<LaxReadable> {
-    if (typeof file === 'string') {
-      file = normalizePath(file)
+  // write a stream to a file using a temporary file
+  async outputStream(
+    input: Readable | Promise<Readable>,
+    path: string,
+    { checksum = true }: { checksum?: boolean } = {}
+  ): Promise<void> {
+    input = await input
+    const tmpPath = `${dirname(path)}/.${basename(path)}`
+    const output = await this.createOutputStream(tmpPath, { checksum })
+    try {
+      input.pipe(output)
+      await pFromEvent(output, 'finish')
+      await output.checksumWritten
+      // $FlowFixMe
+      await input.task
+      await this.rename(tmpPath, path, { checksum })
+    } catch (error) {
+      await this.unlink(tmpPath, { checksum })
+      throw error
     }
-    const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout
-      .call(this._createReadStream(file, options), this._timeout)
-      .then(stream => {
-        // detect early errors
-        let promise = fromEvent(stream, 'readable')
-
-        // try to add the length prop if missing and not a range stream
-        if (
-          stream.length === undefined &&
-          options.end === undefined &&
-          options.start === undefined
-        ) {
-          promise = Promise.all([
-            promise,
-            ignoreErrors.call(
-              this._getSize(file).then(size => {
-                stream.length = size
-              })
-            ),
-          ])
-        }
-
-        return promise.then(() => stream)
-      })
-
-    if (!checksum) {
-      return streamP
-    }
-
-    // avoid a unhandled rejection warning
-    ignoreErrors.call(streamP)
-
-    return this._readFile(checksumFile(path), { flags: 'r' }).then(
-      checksum =>
-        streamP.then(stream => {
-          const { length } = stream
-          stream = (validChecksumOfReadStream(
-            stream,
-            String(checksum).trim()
-          ): LaxReadable)
-          stream.length = length
-
-          return stream
-        }),
-      error => {
-        if (ignoreMissingChecksum && error && error.code === 'ENOENT') {
-          return streamP
-        }
-        throw error
-      }
-    )
-  }
-
-  createWriteStream(
-    file: File,
-    options: { end?: number, flags?: string, start?: number } = {}
-  ): Promise<LaxWritable> {
-    return timeout.call(
-      this._createWriteStream(
-        typeof file === 'string' ? normalizePath(file) : file,
-        {
-          flags: 'wx',
-          ...options,
-        }
-      )
-    )
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
@@ -319,18 +270,6 @@ export default class RemoteHandlerAbstract {
     { flags = 'r' }: { flags?: string } = {}
   ): Promise<Buffer> {
     return this._readFile(normalizePath(file), { flags })
-  }
-
-  async refreshChecksum(path: string): Promise<void> {
-    path = normalizePath(path)
-
-    const stream = (await this._createReadStream(path, { flags: 'r' })).pipe(
-      createChecksumStream()
-    )
-    stream.resume() // start reading the whole file
-    await this._outputFile(checksumFile(path), await stream.checksum, {
-      flags: 'wx',
-    })
   }
 
   async rename(
