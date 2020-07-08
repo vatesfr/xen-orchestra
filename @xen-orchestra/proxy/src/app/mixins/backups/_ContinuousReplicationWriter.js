@@ -69,7 +69,7 @@ export class ContinuousReplicationWriter {
     const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
-      targetVm.add_tags('Disaster Recovery'),
+      targetVm.add_tags('Continuous Replication'),
       targetVm.ha_restart_priority !== '' &&
         Promise.all([
           targetVm.set_ha_restart_priority(''),
