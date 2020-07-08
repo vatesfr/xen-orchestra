@@ -132,8 +132,13 @@ class AuditXoPlugin {
     this._storage = undefined
   }
 
-  configure(configuration) {
+  configure(configuration, state) {
     this._configuration = configuration
+    if (state.loaded) {
+      this._automaticIntegrityCheckJob[
+        configuration.automaticIntegrityCheck ? 'start' : 'stop'
+      ]()
+    }
   }
 
   async load() {
