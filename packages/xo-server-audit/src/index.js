@@ -185,10 +185,9 @@ class AuditXoPlugin {
 
     if (this._configuration.automaticIntegrityCheck) {
       this._automaticIntegrityCheckJob.start()
-      cleaners.push(() => this._automaticIntegrityCheckJob.stop())
     }
-
     cleaners.push(
+      () => this._automaticIntegrityCheckJob.stop(),
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
