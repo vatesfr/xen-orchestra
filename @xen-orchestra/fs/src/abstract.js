@@ -587,7 +587,7 @@ function createPrefixWrapperMethods() {
       return
     }
 
-    descriptor.value = function() {
+    descriptor.value = function () {
       let path
       if (arguments.length !== 0 && typeof (path = arguments[0]) === 'string') {
         arguments[0] = this._resolve(path)

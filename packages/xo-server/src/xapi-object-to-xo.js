@@ -19,6 +19,28 @@ import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
 
+const ALLOCATION_BY_TYPE = {
+  ext: 'thin',
+  file: 'thin',
+  hba: 'thick',
+  lvhd: 'thick',
+  lvhdofcoe: 'thick',
+  lvhdohba: 'thick',
+  lvhdoiscsi: 'thick',
+  nfs: 'thin',
+  ocfs: 'thick',
+  ocfsohba: 'thick',
+  ocfsoiscsi: 'thick',
+  rawhba: 'thick',
+  rawiscsi: 'thick',
+  shm: 'thin',
+  smb: 'thin',
+  xosan: 'thin',
+  zfs: 'thin',
+}
+
+// ===================================================================
+
 const { defineProperties, freeze } = Object
 
 function link(obj, prop, idField = '$id') {
@@ -56,6 +78,31 @@ function toTimestamp(date) {
   const ms = parseDateTime(date, 0)
 
   return ms === 0 ? null : Math.round(ms / 1000)
+}
+
+// https://github.com/xenserver/xenadmin/blob/093ab0bcd6c4b3dd69da7b1e63ef34bb807c1ddb/XenModel/XenAPI-Extensions/VM.cs#L773-L827
+const getVmGuestToolsProps = vm => {
+  const { $metrics: metrics, $guest_metrics: guestMetrics } = vm
+  if (!isVmRunning(vm) || metrics === undefined || guestMetrics === undefined) {
+    return {}
+  }
+
+  const { major, minor } = guestMetrics.PV_drivers_version
+  const hasPvVersion = major !== undefined && minor !== undefined
+
+  // "PV_drivers_detected" field doesn't exist on XS < 7
+  const pvDriversDetected = guestMetrics.PV_drivers_detected ?? hasPvVersion
+
+  return {
+    // Linux VMs don't have the flag "feature-static-ip-setting"
+    managementAgentDetected:
+      hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
+    pvDriversDetected,
+    pvDriversVersion: hasPvVersion ? `${major}.${minor}` : undefined,
+    pvDriversUpToDate: pvDriversDetected
+      ? guestMetrics.PV_drivers_up_to_date
+      : undefined,
+  }
 }
 
 // ===================================================================
@@ -151,7 +198,7 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      memory: (function() {
+      memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free
           const total = +metrics.memory_total
@@ -280,15 +327,26 @@ const TRANSFORMS = {
       }
     })
 
+    const networks = guestMetrics?.networks ?? {}
+
+    // Merge old ipv4 protocol with the new protocol
+    // See: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
+    const addresses = {}
+    for (const key in networks) {
+      const [, i] = /^(\d+)\/ip$/.exec(key) ?? []
+      addresses[i !== undefined ? `${i}/ipv4/0` : key] = networks[key]
+    }
+
     const vm = {
       // type is redefined after for controllers/, templates &
       // snapshots.
       type: 'VM',
 
-      addresses: (guestMetrics && guestMetrics.networks) || null,
+      addresses,
       affinityHost: link(obj, 'affinity'),
       auto_poweron: otherConfig.auto_poweron === 'true',
       bios_strings: obj.bios_strings,
+      blockedOperations: obj.blocked_operations,
       boot: obj.HVM_boot_params,
       CPUs: {
         max: +obj.VCPUs_max,
@@ -298,7 +356,7 @@ const TRANSFORMS = {
             : +obj.VCPUs_at_startup,
       },
       current_operations: currentOperations,
-      docker: (function() {
+      docker: (function () {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
           return
@@ -328,7 +386,7 @@ const TRANSFORMS = {
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
 
-      memory: (function() {
+      memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min
         const dynamicMax = +obj.memory_dynamic_max
         const staticMin = +obj.memory_static_min
@@ -369,13 +427,9 @@ const TRANSFORMS = {
       VIFs: link(obj, 'VIFs'),
       virtualizationMode: domainType,
 
-      // <=> Are the Xen Server tools installed?
-      //
-      // - undefined: unknown status
-      // - false: not optimized
-      // - 'out of date': optimized but drivers should be updated
-      // - 'up to date': optimized
+      // deprecated, use pvDriversVersion instead
       xenTools,
+      ...getVmGuestToolsProps(obj),
 
       // TODO: handle local VMs (`VM.get_possible_hosts()`).
       $container: isRunning ? link(obj, 'resident_on') : link(obj, 'pool'),
@@ -413,7 +467,7 @@ const TRANSFORMS = {
       vm.CPUs.number = +obj.VCPUs_at_startup
       vm.template_info = {
         arch: otherConfig['install-arch'],
-        disks: (function() {
+        disks: (function () {
           const { disks: xml } = otherConfig
           let data
           if (!xml || !(data = parseXml(xml)).provision) {
@@ -429,7 +483,7 @@ const TRANSFORMS = {
 
           return disks
         })(),
-        install_methods: (function() {
+        install_methods: (function () {
           const methods = otherConfig['install-methods']
 
           return methods ? methods.split(',') : []
@@ -455,6 +509,7 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   sr(obj) {
+    const srType = obj.type
     return {
       type: 'SR',
 
@@ -463,11 +518,12 @@ const TRANSFORMS = {
       // TODO: Should it replace usage?
       physical_usage: +obj.physical_utilisation,
 
+      allocationStrategy: ALLOCATION_BY_TYPE[srType],
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
       shared: Boolean(obj.shared),
-      SR_type: obj.type,
+      SR_type: srType,
       tags: obj.tags,
       usage: +obj.virtual_allocation,
       VDIs: link(obj, 'VDIs'),

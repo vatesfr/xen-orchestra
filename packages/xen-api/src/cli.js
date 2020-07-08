@@ -87,6 +87,7 @@ const main = async args => {
     auth,
     debounce: opts.debounce != null ? +opts.debounce : null,
     readOnly: opts.ro,
+    syncStackTraces: true,
   })
   await xapi.connect()
 

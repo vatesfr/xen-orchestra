@@ -37,8 +37,6 @@ import {
   map,
   remove,
   some,
-  uniq,
-  values,
 } from 'lodash'
 
 import {
@@ -343,6 +341,19 @@ const COLUMNS = [
     sortCriteria: 'rateLimit',
   },
   {
+    itemRenderer: ({ device }, { ipsByDevice }) => {
+      const ips = ipsByDevice[device]
+      return isEmpty(ips)
+        ? _('noIpRecord')
+        : map(ips, ip => (
+            <span key={ip} className='tag tag-info tag-ip'>
+              {ip}
+            </span>
+          ))
+    },
+    name: _('vifIpAddresses'),
+  },
+  {
     component: VifAllowedIps,
     name: _('vifAllowedIps'),
   },
@@ -527,12 +538,22 @@ export default class TabNetwork extends BaseComponent {
       newVif: !this.state.newVif,
     })
 
-  _getIpAddresses = createSelector(
+  _getIpsByDevice = createSelector(
     () => this.props.vm.addresses,
-    // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
-    // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
-    // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
-    addresses => uniq(values(addresses))
+    addresses => {
+      // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
+      // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
+      // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
+      const ipsByDevice = {}
+      Object.entries(addresses).forEach(([key, address]) => {
+        const device = key.split('/')[0]
+        if (ipsByDevice[device] === undefined) {
+          ipsByDevice[device] = []
+        }
+        ipsByDevice[device].push(address)
+      })
+      return ipsByDevice
+    }
   )
 
   render() {
@@ -562,24 +583,13 @@ export default class TabNetwork extends BaseComponent {
             <SortedTable
               collection={vifs}
               columns={COLUMNS}
+              data-ipsByDevice={this._getIpsByDevice()}
+              data-networks={networks}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
               stateUrlParam='s'
-              userData={{ networks }}
             />
-            {!isEmpty(vm.addresses) ? (
-              <span>
-                <h4>{_('vifIpAddresses')}</h4>
-                {map(this._getIpAddresses(), address => (
-                  <span key={address} className='tag tag-info tag-ip'>
-                    {address}
-                  </span>
-                ))}
-              </span>
-            ) : (
-              _('noIpRecord')
-            )}
           </Col>
         </Row>
       </Container>

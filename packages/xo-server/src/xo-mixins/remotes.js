@@ -60,6 +60,10 @@ export default class {
       remote = await this._getRemote(remote)
     }
 
+    if (remote.proxy !== undefined) {
+      throw new Error('cannot get handler to proxy remote')
+    }
+
     if (!remote.enabled) {
       throw new Error('remote is disabled')
     }
@@ -122,9 +126,7 @@ export default class {
           ? this._xo.callProxyMethod(remote.proxy, 'remote.getInfo', {
               remote,
             })
-          : await this.getRemoteHandler(remote.id).then(handler =>
-              handler.getInfo()
-            )
+          : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
       try {
         await timeout.call(

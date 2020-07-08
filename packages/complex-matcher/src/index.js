@@ -221,13 +221,7 @@ export class GlobPattern extends Node {
     Object.defineProperty(this, 'match', {
       value: this.match.bind(
         this,
-        new RegExp(
-          value
-            .split('*')
-            .map(escapeRegExp)
-            .join('.*'),
-          'i'
-        )
+        new RegExp(value.split('*').map(escapeRegExp).join('.*'), 'i')
       ),
     })
   }

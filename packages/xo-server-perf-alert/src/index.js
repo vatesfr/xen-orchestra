@@ -592,22 +592,11 @@ ${monitorBodies.join('\n')}`
     const monitors = this._getMonitors()
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
-      for (const entry of snapshot) {
-        raiseOrLowerAlarm(
-          `${monitor.alarmId}|${entry.uuid}|RRD`,
-          entry.value === undefined,
-          () => {
-            this._sendAlertEmail(
-              'Secondary Issue',
-              `
-## There was an issue when trying to check ${monitor.title}
-${entry.listItem}`
-            )
-          },
-          () => {}
-        )
 
+      const entriesWithMissingStats = []
+      for (const entry of snapshot) {
         if (entry.value === undefined) {
+          entriesWithMissingStats.push(entry)
           continue
         }
 
@@ -656,6 +645,23 @@ ${entry.listItem}
           lowerAlarm
         )
       }
+
+      raiseOrLowerAlarm(
+        `${monitor.alarmId}|${entriesWithMissingStats
+          .map(({ uuid }) => uuid)
+          .sort()
+          .join('|')}|RRD`,
+        entriesWithMissingStats.length !== 0,
+        () => {
+          this._sendAlertEmail(
+            'Secondary Issue',
+            `
+## There was an issue when trying to check ${monitor.title}
+${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
+          )
+        },
+        () => {}
+      )
     }
   }
 
@@ -704,7 +710,7 @@ ${entry.listItem}
   }
 }
 
-exports.default = function({ xo }) {
+exports.default = function ({ xo }) {
   return new PerfAlertXoPlugin(xo)
 }
 

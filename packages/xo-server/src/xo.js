@@ -214,7 +214,7 @@ export default class Xo extends EventEmitter {
     // For security, prevent from accessing `this`.
     if (typeof value === 'function') {
       value = (value =>
-        function() {
+        function () {
           return value.apply(thisArg, arguments)
         })(value)
     }

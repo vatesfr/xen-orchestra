@@ -2,11 +2,11 @@ import defer from 'golike-defer'
 import execa from 'execa'
 import splitLines from 'split-lines'
 import { createParser as createPairsParser } from 'parse-pairs'
+import { decorateWith } from '@vates/decorate-with'
 import { normalize } from 'path'
 import { readdir, rmdir, stat } from 'fs-extra'
 import { ZipFile } from 'yazl'
 
-import { decorateWith } from '../_decorateWith'
 import { dedupeUnmount } from '../_dedupeUnmount'
 import { lvs, pvs } from '../lvm'
 import { resolveSubpath, tmpDir } from '../utils'
@@ -366,7 +366,7 @@ export default class BackupNgFileRestore {
         ).lv_path
       )
       unmountQueue.push(partition.unmount)
-      return { ...partition, unmount }
+      return { __proto__: partition, unmount }
     }
 
     return mountPartition(

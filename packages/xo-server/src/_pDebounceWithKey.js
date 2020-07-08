@@ -30,7 +30,7 @@ export const REMOVE_CACHE_ENTRY = {}
 export const debounceWithKey = (fn, delay, keyFn = defaultKeyFn) => {
   const cache = new MultiKeyMap()
   const delayFn = typeof delay === 'number' ? () => delay : delay
-  return function(arg) {
+  return function (arg) {
     if (arg === REMOVE_CACHE_ENTRY) {
       return removeCacheEntry(
         cache,

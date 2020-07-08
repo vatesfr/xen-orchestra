@@ -17,7 +17,7 @@ import {
 } from 'selectors'
 import {
   addTag,
-  editPool,
+  editSr,
   isSrShared,
   reconnectAllHostsSr,
   removeTag,
@@ -69,10 +69,7 @@ import styles from './index.css'
 export default class SrItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _removeTag = tag => removeTag(this.props.item.id, tag)
-  _setNameDescription = nameDescription =>
-    editPool(this.props.item, { name_description: nameDescription })
-  _setNameLabel = nameLabel =>
-    editPool(this.props.item, { name_label: nameLabel })
+  _setNameLabel = nameLabel => editSr(this.props.item, { nameLabel })
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 

@@ -21,7 +21,7 @@ import emitAsync from '@xen-orchestra/emit-async'
 const ee = new EE()
 ee.emitAsync = emitAsync
 
-ee.on('start', async function() {
+ee.on('start', async function () {
   // whatever
 })
 

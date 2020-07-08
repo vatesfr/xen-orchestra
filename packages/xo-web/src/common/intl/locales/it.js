@@ -705,7 +705,7 @@ export default {
   snapshotVmsDescription: 'Descrizione',
 
   // Original text: 'All of them are selected'
-  sortedTableAllItemsSelected: 'Tutti sono selezionati',
+  sortedTableAllItemsSelected: 'Tutti sono selezionati ({nItems, number})',
 
   // Original text: 'No items found'
   sortedTableNoItems: 'Nessun elemento trovato',
@@ -4030,7 +4030,7 @@ export default {
   vmsToBackup: 'VMs per il backup',
 
   // Original text: 'Refresh backup list'
-  restoreResfreshList: "Aggiorna l'elenco di backup",
+  refreshBackupList: "Aggiorna l'elenco di backup",
 
   // Original text: 'Legacy restore'
   restoreLegacy: 'Ripristino legacy',

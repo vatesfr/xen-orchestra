@@ -1,6 +1,6 @@
 {
   "name": "xo-server-perf-alert",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "AGPL-3.0-or-later",
   "description": "Sends alerts based on performance criteria",
   "keywords": [],
@@ -32,7 +32,7 @@
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-flow": "^7.0.0",
     "babel-plugin-lodash": "^3.3.2",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {

@@ -20,6 +20,7 @@ import WebSocket from 'ws'
 import xdg from 'xdg-basedir'
 import { forOwn, map, merge, once } from 'lodash'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
+import { parseDuration } from '@vates/parse-duration'
 import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
@@ -33,7 +34,6 @@ import { invalidCredentials } from 'xo-common/api-errors'
 import { ensureDir, outputFile, readdir, readFile } from 'fs-extra'
 
 import ensureArray from './_ensureArray'
-import parseDuration from './_parseDuration'
 import Xo from './xo'
 
 import bodyParser from 'body-parser'
@@ -390,7 +390,7 @@ async function registerPluginsInPath(path, prefix) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    [`${__dirname}/../node_modules`, `${__dirname}/../node_modules`].map(path =>
+    [`${__dirname}/../node_modules`, '/usr/local/lib/node_modules'].map(path =>
       Promise.all([
         registerPluginsInPath.call(xo, path, 'xo-server-'),
         registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),

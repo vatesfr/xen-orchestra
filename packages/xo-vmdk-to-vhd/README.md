@@ -35,7 +35,7 @@ var vmdkToVhd = require('xo-vmdk-to-vhd').vmdkToVhd
 var createReadStream = require('fs').createReadStream
 var createWriteStream = require('fs').createWriteStream
 
-vmdkToVhd(fs.createReadStream(vmdkFileName)).then(function(stream) {
+vmdkToVhd(fs.createReadStream(vmdkFileName)).then(function (stream) {
   stream.pipe(fs.createWriteStream(vhdFileName))
 })
 ```

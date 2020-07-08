@@ -6,7 +6,7 @@ module.exports = function globMatcher(patterns, opts) {
   if (!Array.isArray(patterns)) {
     if (patterns[0] === '!') {
       const m = matcher(patterns.slice(1), opts)
-      return function(string) {
+      return function (string) {
         return !m(string)
       }
     } else {
@@ -30,7 +30,11 @@ module.exports = function globMatcher(patterns, opts) {
   const nNone = noneMustMatch.length
   const nAny = anyMustMatch.length
 
-  return function(string) {
+  return function (string) {
+    if (typeof string !== 'string') {
+      return false
+    }
+
     let i
 
     for (i = 0; i < nNone; ++i) {

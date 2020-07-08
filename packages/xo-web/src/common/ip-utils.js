@@ -43,8 +43,9 @@ function* range(ip1, ip2) {
   }
 
   for (let i = hex; i <= hex2; i++) {
-    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${i &
-      0xff}`
+    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${
+      i & 0xff
+    }`
   }
 }
 

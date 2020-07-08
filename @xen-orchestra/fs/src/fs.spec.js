@@ -28,7 +28,7 @@ const unsecureRandomBytes = n => {
 
 const TEST_DATA_LEN = 1024
 const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
-const createTestDataStream = asyncIteratorToStream(function*() {
+const createTestDataStream = asyncIteratorToStream(function* () {
   yield TEST_DATA
 })
 

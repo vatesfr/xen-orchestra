@@ -1,0 +1,30 @@
+{
+  "private": false,
+  "name": "@vates/decorate-with",
+  "description": "Creates a decorator from a function wrapper",
+  "keywords": [
+    "apply",
+    "decorator",
+    "factory",
+    "wrapper"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/decorate-with",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/decorate-with",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}

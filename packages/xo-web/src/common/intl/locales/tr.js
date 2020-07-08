@@ -471,7 +471,7 @@ export default {
   srNotSharedType: 'Paylaşımsız {type}',
 
   // Original text: "All of them are selected"
-  sortedTableAllItemsSelected: 'Hepsi seçildi',
+  sortedTableAllItemsSelected: 'Hepsi seçildi ({nItems, number})',
 
   // Original text: "No items found"
   sortedTableNoItems: 'Hiç öğe bulunamadı',
@@ -3430,7 +3430,7 @@ export default {
   vmsToBackup: "Yedeklenecek VM'ler",
 
   // Original text: "Refresh backup list"
-  restoreResfreshList: 'Yedek listesini yenile',
+  refreshBackupList: 'Yedek listesini yenile',
 
   // Original text: "Restore"
   restoreVmBackups: 'Geri yükle',

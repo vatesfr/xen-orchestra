@@ -20,21 +20,28 @@ const DEFAULT_BLOCKED_LIST = {
   'audit.checkIntegrity': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
+  'backup.list': true,
   'backupNg.getAllJobs': true,
   'backupNg.getAllLogs': true,
+  'backupNg.listVmBackups': true,
   'cloud.getResourceCatalog': true,
   'cloudConfig.getAll': true,
   'group.getAll': true,
+  'host.isHostServerTimeConsistent': true,
+  'host.isHyperThreadingEnabled': true,
   'host.stats': true,
   'ipPool.getAll': true,
   'job.getAll': true,
   'log.get': true,
   'metadataBackup.getAllJobs': true,
+  'network.getBondModes': true,
+  'pif.getIpv4ConfigurationModes': true,
   'plugin.get': true,
   'pool.listMissingPatches': true,
   'proxy.getAll': true,
   'remote.getAll': true,
   'remote.getAllInfo': true,
+  'remote.list': true,
   'resourceSet.getAll': true,
   'role.getAll': true,
   'schedule.getAll': true,
@@ -47,14 +54,36 @@ const DEFAULT_BLOCKED_LIST = {
   'system.getServerTimezone': true,
   'system.getServerVersion': true,
   'user.getAll': true,
+  'vm.getHaValues': true,
   'vm.stats': true,
   'xo.getAllObjects': true,
+  'xoa.getApplianceInfo': true,
+  'xoa.licenses.get': true,
+  'xoa.licenses.getAll': true,
+  'xoa.licenses.getSelf': true,
   'xoa.supportTunnel.getState': true,
   'xosan.checkSrCurrentState': true,
+  'xosan.computeXosanPossibleOptions': true,
   'xosan.getVolumeInfo': true,
 }
 
 const LAST_ID = 'lastId'
+
+// interface Db {
+//   lastId: string
+//   [RecordId: string]: {
+//     data: object
+//     event: string
+//     id: strings
+//     previousId: string
+//     subject: {
+//       userId: string
+//       userIp: string
+//       userName: string
+//     }
+//     time: number
+//   }
+// }
 class Db extends Storage {
   constructor(db) {
     super()
@@ -266,7 +295,7 @@ class AuditXoPlugin {
 }
 
 AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(
-  async function*(id) {
+  async function* (id) {
     for await (const record of this._auditCore.getFrom(id)) {
       yield JSON.stringify(record)
       yield '\n'

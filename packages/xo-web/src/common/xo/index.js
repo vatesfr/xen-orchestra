@@ -372,7 +372,8 @@ const setNotificationCookie = (id, changes) => {
   })
   cookies.set(
     `notifications:${store.getState().user.id}`,
-    JSON.stringify(notifications)
+    JSON.stringify(notifications),
+    { expires: Infinity }
   )
 }
 
@@ -820,6 +821,9 @@ export const getHostMissingPatches = async host => {
       ? patches
       : filter(patches, { paid: false })
   }
+  if (host.power_state !== 'Running') {
+    return []
+  }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
@@ -846,8 +850,12 @@ export const emergencyShutdownHosts = hosts => {
   )
 }
 
-export const isHostTimeConsistentWithXoaTime = host =>
-  _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+export const isHostTimeConsistentWithXoaTime = host => {
+  if (host.power_state !== 'Running') {
+    return true
+  }
+  return _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+}
 
 export const isHyperThreadingEnabledHost = host =>
   _call('host.isHyperThreadingEnabled', {
@@ -1139,47 +1147,33 @@ export const restartVms = (vms, force = false) =>
     noop
   )
 
-export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) =>
+export const cloneVm = (
+  { id, name_label: nameLabel },
+  fullCopy = false,
+  name
+) =>
   _call('vm.clone', {
     id,
-    name: `${nameLabel}_clone`,
+    name: name === undefined ? `${nameLabel}_clone` : name,
     full_copy: fullCopy,
   })::tap(subscribeResourceSets.forceRefresh)
 
-const _copyVm = ({ vm, sr, name, compress }) =>
-  _call('vm.copy', {
-    vm: resolveId(vm),
-    sr,
-    name: name || vm.name_label + '_COPY',
-    compress,
-  })
-
-import CopyVmModalBody from './copy-vm-modal' // eslint-disable-line import/first
-export const copyVm = vm =>
-  confirm({
-    title: _('copyVm'),
-    body: <CopyVmModalBody vm={vm} />,
-  }).then(params => {
-    if (params.copyMode === 'fullCopy') {
-      if (!params.sr) {
-        error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
-        return
-      }
-      return _copyVm({ vm, ...params })
-    }
-    return cloneVm({ id: vm.id, name_label: params.name })
-  }, noop)
-
 import CopyVmsModalBody from './copy-vms-modal' // eslint-disable-line import/first
-export const copyVms = vms => {
+export const copyVms = (vms, type) => {
   const _vms = resolveIds(vms)
   return confirm({
-    title: _('copyVm'),
-    body: <CopyVmsModalBody vms={_vms} />,
-  }).then(({ compress, names, sr }) => {
+    title: type === 'VM-template' ? _('copyTemplate') : _('copyVm'),
+    body: <CopyVmsModalBody vms={_vms} type={type} />,
+  }).then(({ compress, copyMode, names, sr }) => {
+    if (copyMode === 'fastClone') {
+      return Promise.all(
+        _vms.map((vm, index) => cloneVm({ id: vm }, false, names[index]))
+      )
+    }
+
     if (sr !== undefined) {
       return Promise.all(
-        map(_vms, (vm, index) =>
+        _vms.map((vm, index) =>
           _call('vm.copy', { vm, sr, compress, name: names[index] })
         )
       )
@@ -1187,6 +1181,8 @@ export const copyVms = vms => {
     error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
   }, noop)
 }
+
+export const copyVm = vm => copyVms([vm])
 
 export const convertVmToTemplate = vm =>
   confirm({
@@ -1798,13 +1794,11 @@ export const getBondModes = () => _call('network.getBondModes')
 export const createNetwork = params => _call('network.create', params)
 export const createBondedNetwork = params =>
   _call('network.createBonded', params)
-export const createPrivateNetwork = params =>
+export const createPrivateNetwork = ({ preferredCenter, ...params }) =>
   _call('sdnController.createPrivateNetwork', {
     ...params,
     preferredCenterId:
-      params.preferredCenter !== null
-        ? resolveId(params.preferredCenter)
-        : undefined,
+      preferredCenter !== null ? resolveId(preferredCenter) : undefined,
   })
 
 export const deleteNetwork = network =>
@@ -2114,6 +2108,9 @@ export const subscribeMetadataBackupJobs = createSubscription(() =>
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
+export const getSuggestedExcludedTags = () =>
+  _call('backupNg.getSuggestedExcludedTags')
+
 export const deleteBackupJobs = async ({
   backupIds = [],
   metadataBackupIds = [],
@@ -2320,6 +2317,8 @@ export const getResourceSet = id =>
 
 // Remote ------------------------------------------------------------
 
+export const getRemotes = () => _call('remote.getAll')
+
 export const getRemote = remote =>
   _call('remote.get', resolveIds({ id: remote }))::tap(null, err =>
     error(_('getRemote'), err.message || String(err))
@@ -2376,18 +2375,21 @@ export const editRemote = (remote, { name, options, proxy, url }) =>
     testRemote(remote).catch(noop)
   })
 
-export const listRemote = remote =>
-  _call(
-    'remote.list',
-    resolveIds({ id: remote })
-  )::tap(subscribeRemotes.forceRefresh, err =>
-    error(_('listRemote'), err.message || String(err))
-  )
+export const listRemote = async remote =>
+  remote.proxy === undefined
+    ? _call('remote.list', {
+        id: remote.id,
+      })::tap(subscribeRemotes.forceRefresh, err =>
+        error(_('listRemote'), err.message || String(err))
+      )
+    : []
 
-export const listRemoteBackups = remote =>
-  _call('backup.list', resolveIds({ remote }))::tap(null, err =>
-    error(_('listRemote'), err.message || String(err))
-  )
+export const listRemoteBackups = async remote =>
+  remote.proxy === undefined
+    ? _call('backup.list', { remote: remote.id })::tap(null, err =>
+        error(_('listRemote'), err.message || String(err))
+      )
+    : []
 
 export const testRemote = remote =>
   _call('remote.test', resolveIds({ id: remote }))
@@ -3085,7 +3087,7 @@ export const getLicense = (productId, boundObjectId) =>
 export const unlockXosan = (licenseId, srId) =>
   _call('xosan.unlock', { licenseId, sr: srId })
 
-export const selfBindLicense = ({ id, plan }) =>
+export const selfBindLicense = ({ id, plan, oldXoaId }) =>
   confirm({
     title: _('bindXoaLicense'),
     body: _('bindXoaLicenseConfirm'),
@@ -3095,7 +3097,10 @@ export const selfBindLicense = ({ id, plan }) =>
     },
     icon: 'unlock',
   })
-    .then(() => _call('xoa.licenses.bindToSelf', { licenseId: id }), noop)
+    .then(
+      () => _call('xoa.licenses.bindToSelf', { licenseId: id, oldXoaId }),
+      noop
+    )
     ::tap(subscribeSelfLicenses.forceRefresh)
 
 export const subscribeSelfLicenses = createSubscription(() =>

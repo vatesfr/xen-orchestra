@@ -110,7 +110,7 @@ const normaliseValue = value => (isFinite(value) ? round(value, 2) : '-')
 
 // ===================================================================
 
-Handlebars.registerHelper('compare', function(
+Handlebars.registerHelper('compare', function (
   lvalue,
   operator,
   rvalue,
@@ -131,7 +131,7 @@ Handlebars.registerHelper('compare', function(
     : options.inverse(this)
 })
 
-Handlebars.registerHelper('math', function(lvalue, operator, rvalue, options) {
+Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   if (arguments.length < 3) {
     throw new Error('Handlebars Helper "math" needs 2 parameters')
   }

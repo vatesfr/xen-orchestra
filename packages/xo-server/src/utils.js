@@ -57,7 +57,7 @@ export function extractProperty(obj, prop) {
 // -------------------------------------------------------------------
 
 // Returns the first defined (non-undefined) value.
-export const firstDefined = function() {
+export const firstDefined = function () {
   const n = arguments.length
   for (let i = 0; i < n; ++i) {
     const arg = arguments[i]
@@ -107,7 +107,7 @@ export const generateToken = (randomBytes => {
 
 // -------------------------------------------------------------------
 
-export const formatXml = (function() {
+export const formatXml = (function () {
   const builder = new xml2js.Builder({
     headless: true,
   })
@@ -115,7 +115,7 @@ export const formatXml = (function() {
   return (...args) => builder.buildObject(...args)
 })()
 
-export const parseXml = (function() {
+export const parseXml = (function () {
   const opts = {
     mergeAttrs: true,
     explicitArray: false,

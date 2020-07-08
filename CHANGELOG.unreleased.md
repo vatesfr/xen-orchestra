@@ -13,7 +13,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-### Released packages
+- [Proxy] Don't use configured HTTP proxy to connect to XO proxy
+
+### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
 > be listed by inverse order of dependency.

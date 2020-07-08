@@ -1,5 +1,5 @@
 import deferrable from 'golike-defer'
-import { find, gte, includes, isEmpty, lte, noop } from 'lodash'
+import { find, gte, includes, isEmpty, lte, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
 import { NULL_REF } from 'xen-api'
 
@@ -172,16 +172,17 @@ export default {
             if (!vbd) {
               return
             }
-            const vdi = vbd.$VDI
+            let vdi = vbd.$VDI
             await this._setObjectProperties(vdi, properties)
+
+            // if another SR is set, move it there
+            if (srId) {
+              vdi = await this.moveVdi(vdi.$id, srId)
+            }
 
             // if the disk is bigger
             if (size != null && size > vdi.virtual_size) {
               await this.resizeVdi(vdi.$id, size)
-            }
-            // if another SR is set, move it there
-            if (srId) {
-              await this.moveVdi(vdi.$id, srId)
             }
           }
         )
@@ -287,6 +288,14 @@ export default {
           vm.update_other_config('auto_poweron', value ? 'true' : null),
           value && vm.$pool.update_other_config('auto_poweron', 'true'),
         ])
+      },
+    },
+
+    blockedOperations: {
+      set(operations, vm) {
+        return vm.update_blocked_operations(
+          mapValues(operations, value => (value ? 'true' : null))
+        )
       },
     },
 

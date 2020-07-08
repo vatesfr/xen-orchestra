@@ -155,7 +155,7 @@ export const makeEditObject = specs => {
 
     if (set === true) {
       const prop = camelToSnakeCase(name)
-      return function(value, obj) {
+      return function (value, obj) {
         return this.setField(obj.$type, obj.$ref, prop, value)
       }
     }
@@ -164,7 +164,7 @@ export const makeEditObject = specs => {
       const index = set.indexOf('.')
       if (index === -1) {
         const prop = camelToSnakeCase(set)
-        return function(value, obj) {
+        return function (value, obj) {
           return this.setField(obj.$type, obj.$ref, prop, value)
         }
       }
@@ -172,7 +172,7 @@ export const makeEditObject = specs => {
       const field = set.slice(0, index)
       const entry = set.slice(index + 1)
 
-      return function(value, object) {
+      return function (value, object) {
         return this.setFieldEntry(
           object.$type,
           object.$ref,
@@ -198,7 +198,7 @@ export const makeEditObject = specs => {
       return set[0]
     }
 
-    return function(value, object) {
+    return function (value, object) {
       return Promise.all(mapToArray(set, set => set.call(this, value, object)))
     }
   }

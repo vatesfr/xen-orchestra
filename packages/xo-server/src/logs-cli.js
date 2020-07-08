@@ -13,7 +13,7 @@ import globMatcher from './glob-matcher'
 
 // ===================================================================
 
-async function printLogs(db, args) {
+const getLogs = (db, args) => {
   let stream = highland(db.createReadStream({ reverse: true }))
 
   if (args.since) {
@@ -30,7 +30,7 @@ async function printLogs(db, args) {
     stream = stream.filter(({ value }) => {
       for (const field of fields) {
         const fieldValue = get(value, field)
-        if (fieldValue === undefined || !args.matchers[field](fieldValue)) {
+        if (!args.matchers[field](fieldValue)) {
           return false
         }
       }
@@ -39,7 +39,84 @@ async function printLogs(db, args) {
     })
   }
 
-  stream = stream.take(args.limit)
+  return stream.take(args.limit)
+}
+
+// ===================================================================
+
+const deleteLogs = (db, args) =>
+  new Promise(resolve => {
+    let count = 1
+    const cb = () => {
+      if (--count === 0) {
+        resolve()
+      }
+    }
+
+    const deleteEntry = key => {
+      ++count
+      db.del(key, cb)
+    }
+
+    getLogs(db, args)
+      .each(({ key }) => {
+        deleteEntry(key)
+      })
+      .done(cb)
+  })
+
+const GC_KEEP = 2e4
+
+const gc = (db, args) =>
+  new Promise((resolve, reject) => {
+    let keep = GC_KEEP
+
+    let count = 1
+    const cb = () => {
+      if (--count === 0) {
+        resolve()
+      }
+    }
+    const stream = db.createKeyStream({
+      reverse: true,
+    })
+
+    const deleteEntry = key => {
+      ++count
+      db.del(key, cb)
+    }
+
+    let onData =
+      keep !== 0
+        ? () => {
+            if (--keep === 0) {
+              stream.removeListener('data', onData)
+              onData = deleteEntry
+              stream.on('data', onData)
+            }
+          }
+        : deleteEntry
+    const onEnd = () => {
+      console.log('end')
+      removeListeners()
+      cb()
+    }
+    const onError = error => {
+      console.log('error')
+      removeListeners()
+      reject(error)
+    }
+    const removeListeners = () => {
+      stream
+        .removeListener('data', onData)
+        .removeListener('end', onEnd)
+        .removeListener('error', onError)
+    }
+    stream.on('data', onData).on('end', onEnd).on('error', onError)
+  })
+
+async function printLogs(db, args) {
+  let stream = getLogs(db, args)
 
   if (args.json) {
     stream = highland(stream.pipe(ndjson.serialize())).each(value => {
@@ -84,7 +161,17 @@ xo-server-logs [--json] [--limit=<limit>] [--since=<date>] [--until=<date>] [<pa
     <pattern>
       Patterns can be used to filter the entries.
 
-      Patterns have the following format \`<field>=<value>\`/\`<field>\`.
+      Patterns have the following format \`<field>=<value>\`, \`<field>\` or \`!<field>\`.
+
+xo-server-logs --gc
+
+    Remove all but the ${GC_KEEP}th most recent log entries.
+
+xo-server-logs --delete <predicate>...
+
+    Delete all logs matching the passed predicates.
+
+    For more information on predicates, see the print usage.
 
 xo-server-logs --repair
 
@@ -100,7 +187,7 @@ function getArgs() {
   const stringArgs = ['since', 'until', 'limit']
   const args = parseArgs(process.argv.slice(2), {
     string: stringArgs,
-    boolean: ['help', 'json', 'repair'],
+    boolean: ['delete', 'help', 'json', 'gc', 'repair'],
     default: {
       limit: 100,
       json: false,
@@ -123,20 +210,41 @@ function getArgs() {
       const field = value.slice(0, i)
       const pattern = value.slice(i + 1)
 
-      patterns[pattern]
-        ? patterns[field].push(pattern)
-        : (patterns[field] = [pattern])
-    } else if (!patterns[value]) {
-      patterns[value] = null
+      const fieldPatterns = patterns[field]
+      if (fieldPatterns === undefined) {
+        patterns[field] = [pattern]
+      } else if (Array.isArray(fieldPatterns)) {
+        fieldPatterns.push(pattern)
+      } else {
+        throw new Error('cannot mix existence with equality patterns')
+      }
+    } else {
+      const negate = value[0] === '!'
+      if (negate) {
+        value = value.slice(1)
+      }
+
+      if (patterns[value]) {
+        throw new Error('cannot mix existence with equality patterns')
+      }
+
+      patterns[value] = !negate
     }
   }
 
-  const trueFunction = () => true
+  const mustExists = value => value !== undefined
+  const mustNotExists = value => value === undefined
+
   args.matchers = {}
 
   for (const field in patterns) {
     const values = patterns[field]
-    args.matchers[field] = values === null ? trueFunction : globMatcher(values)
+    args.matchers[field] =
+      values === true
+        ? mustExists
+        : values === false
+        ? mustNotExists
+        : globMatcher(values)
   }
 
   // Warning: minimist makes one array of values if the same option is used many times.
@@ -204,5 +312,9 @@ export default async function main() {
     }
   )
 
-  return printLogs(db, args)
+  return args.delete
+    ? deleteLogs(db, args)
+    : args.gc
+    ? gc(db)
+    : printLogs(db, args)
 }

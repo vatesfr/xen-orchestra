@@ -14,7 +14,7 @@ clean.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function exportConfig({ passphrase }) {
+export async function exportConfig({ entries, passphrase }) {
   let suffix = '/config.json'
   if (passphrase !== undefined) {
     suffix += '.enc'
@@ -28,7 +28,7 @@ export async function exportConfig({ passphrase }) {
           'content-type': 'application/json',
         })
 
-        return this.exportConfig({ passphrase })
+        return this.exportConfig({ entries, passphrase })
       },
       undefined,
       { suffix }
@@ -39,6 +39,7 @@ export async function exportConfig({ passphrase }) {
 exportConfig.permission = 'admin'
 
 exportConfig.params = {
+  entries: { type: 'array', items: { type: 'string' }, optional: true },
   passphrase: { type: 'string', optional: true },
 }
 

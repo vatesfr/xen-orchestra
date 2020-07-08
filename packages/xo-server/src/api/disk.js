@@ -1,10 +1,10 @@
-import convertVmdkToVhdStream from 'xo-vmdk-to-vhd'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import pump from 'pump'
 import { format } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { peekFooterFromVhdStream } from 'vhd-lib'
+import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD } from '../xapi'
 
@@ -12,7 +12,7 @@ const log = createLogger('xo:disk')
 
 // ===================================================================
 
-export const create = defer(async function(
+export const create = defer(async function (
   $defer,
   { name, size, sr, vm, bootable, position, mode }
 ) {
@@ -164,7 +164,7 @@ async function handleImport(
   req.length = req.headers['content-length']
   let vhdStream, size
   if (type === 'vmdk') {
-    vhdStream = await convertVmdkToVhdStream(
+    vhdStream = await vmdkToVhd(
       req,
       vmdkData.grainLogicalAddressList,
       vmdkData.grainFileOffsetList

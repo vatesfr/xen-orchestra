@@ -42,7 +42,7 @@ export addSubscriptions from './add-subscriptions'
 
 export const getVirtualizationModeLabel = vm => {
   const virtualizationMode =
-    vm.virtualizationMode === 'hvm' && Boolean(vm.xenTools)
+    vm.virtualizationMode === 'hvm' && vm.pvDriversDetected
       ? 'pvhvm'
       : vm.virtualizationMode
 
@@ -382,7 +382,7 @@ export const htmlFileToStream = file => {
     stream.emit('error', error)
   }
 
-  stream._read = function(size) {
+  stream._read = function (size) {
     if (offset >= file.size) {
       stream.push(null)
     } else {
@@ -420,7 +420,7 @@ const OPs = {
 }
 
 const makeNiceCompare = compare =>
-  function() {
+  function () {
     const { length } = arguments
     if (length === 2) {
       return compare(arguments[0], arguments[1])
@@ -547,10 +547,7 @@ export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) =>
 
 // ===================================================================
 
-export const generateRandomId = () =>
-  Math.random()
-    .toString(36)
-    .slice(2)
+export const generateRandomId = () => Math.random().toString(36).slice(2)
 
 // ===================================================================
 

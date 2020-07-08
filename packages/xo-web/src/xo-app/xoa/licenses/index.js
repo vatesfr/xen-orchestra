@@ -93,7 +93,22 @@ const LicenseManager = ({ item, userData }) => {
       )
     }
 
-    return <span>{_('licenseBoundToOtherXoa')}</span>
+    return (
+      <span>
+        {_('licenseBoundToOtherXoa')}
+        <br />
+        <ActionButton
+          btnStyle='danger'
+          data-id={item.id}
+          data-plan={item.product}
+          data-oldXoaId={item.xoaId}
+          handler={selfBindLicense}
+          icon='unlock'
+        >
+          {_('rebindXoaLicense')}
+        </ActionButton>
+      </span>
+    )
   }
 
   if (type === 'proxy') {

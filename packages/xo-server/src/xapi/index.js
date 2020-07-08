@@ -1834,18 +1834,20 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     if (vdi.SR === sr.$ref) {
-      return // nothing to do
+      return vdi
     }
 
     log.debug(
       `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`
     )
     try {
-      await pRetry(
-        () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
-        {
-          when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
-        }
+      return this.barrier(
+        await pRetry(
+          () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
+          {
+            when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+          }
+        ).then(extractOpaqueRef)
       )
     } catch (error) {
       const { code } = error
@@ -1869,6 +1871,8 @@ export default class Xapi extends XapiBase {
         })
       })
       await this._deleteVdi(vdi.$ref)
+
+      return newVdi
     }
   }
 
