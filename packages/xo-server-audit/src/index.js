@@ -164,7 +164,6 @@ class AuditXoPlugin {
       () => this._automaticIntegrityCheckJob.stop(),
       this._xo.addApiMethods({
         audit: {
-          test: this._automaticIntegrityCheck.bind(this),
           checkIntegrity,
           exportRecords,
           generateFingerprint,
