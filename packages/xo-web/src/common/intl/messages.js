@@ -341,7 +341,6 @@ const messages = {
 
   // --- Dates/Scheduler ---
 
-  enableImmediately: 'Enable immediately',
   schedulingMonth: 'Month',
   schedulingDay: 'Day',
   schedulingSetWeekDayMode: 'Switch to week days',
@@ -416,6 +415,7 @@ const messages = {
   deleteBackupScheduleQuestion:
     'Are you sure you want to delete this backup job?',
   deleteSelectedJobs: 'Delete selected jobs',
+  scheduleEnableAfterCreation: 'Enable immediately after creation',
   scheduleEditMessage:
     'You are editing schedule {name} ({id}). Saving will override previous schedule state.',
   jobEditMessage:

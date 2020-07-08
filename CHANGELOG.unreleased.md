@@ -7,6 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Schedule/edit] Ability to enable/disable the schedule [#5026](https://github.com/vatesfr/xen-orchestra/issues/5026) (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
+- [New Schedule] the 'Enable immediately after creation' is on by default (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
