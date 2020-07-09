@@ -821,6 +821,9 @@ export const getHostMissingPatches = async host => {
       ? patches
       : filter(patches, { paid: false })
   }
+  if (host.power_state !== 'Running') {
+    return []
+  }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
@@ -847,8 +850,12 @@ export const emergencyShutdownHosts = hosts => {
   )
 }
 
-export const isHostTimeConsistentWithXoaTime = host =>
-  _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+export const isHostTimeConsistentWithXoaTime = host => {
+  if (host.power_state !== 'Running') {
+    return true
+  }
+  return _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+}
 
 export const isHyperThreadingEnabledHost = host =>
   _call('host.isHyperThreadingEnabled', {
@@ -2101,6 +2108,9 @@ export const subscribeMetadataBackupJobs = createSubscription(() =>
 export const createBackupNgJob = props =>
   _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
+export const getSuggestedExcludedTags = () =>
+  _call('backupNg.getSuggestedExcludedTags')
+
 export const deleteBackupJobs = async ({
   backupIds = [],
   metadataBackupIds = [],
@@ -2365,18 +2375,21 @@ export const editRemote = (remote, { name, options, proxy, url }) =>
     testRemote(remote).catch(noop)
   })
 
-export const listRemote = remote =>
-  _call(
-    'remote.list',
-    resolveIds({ id: remote })
-  )::tap(subscribeRemotes.forceRefresh, err =>
-    error(_('listRemote'), err.message || String(err))
-  )
+export const listRemote = async remote =>
+  remote.proxy === undefined
+    ? _call('remote.list', {
+        id: remote.id,
+      })::tap(subscribeRemotes.forceRefresh, err =>
+        error(_('listRemote'), err.message || String(err))
+      )
+    : []
 
-export const listRemoteBackups = remote =>
-  _call('backup.list', resolveIds({ remote }))::tap(null, err =>
-    error(_('listRemote'), err.message || String(err))
-  )
+export const listRemoteBackups = async remote =>
+  remote.proxy === undefined
+    ? _call('backup.list', { remote: remote.id })::tap(null, err =>
+        error(_('listRemote'), err.message || String(err))
+      )
+    : []
 
 export const testRemote = remote =>
   _call('remote.test', resolveIds({ id: remote }))

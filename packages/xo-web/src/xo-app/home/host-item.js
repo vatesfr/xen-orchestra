@@ -133,7 +133,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                <InconsistentHostTimeWarning hostId={host.id} />
+                <InconsistentHostTimeWarning host={host} />
                 &nbsp;
                 {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>

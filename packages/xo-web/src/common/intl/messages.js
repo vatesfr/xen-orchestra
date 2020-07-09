@@ -236,7 +236,6 @@ const messages = {
   homeFilterNonRunningVms: 'Non running VMs',
   homeFilterPendingVms: 'Pending VMs',
   homeFilterHvmGuests: 'HVM guests',
-  homeFilterTags: 'Tags',
   homeSortBy: 'Sort by',
   homeSortByCpus: 'CPUs',
   homeSortByStartTime: 'Start time',
@@ -540,6 +539,7 @@ const messages = {
   deleteOldBackupsFirstMessage:
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
+  editJobNotFound: "The job you're trying to edit wasn't found",
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
