@@ -13,6 +13,7 @@
 
 - [Proxy] Don't use configured HTTP proxy to connect to XO proxy
 - [Backup with proxy] Correctly log job-level errors
+- [Proxy / deploy] Ability to set HTTP proxy configuration (PR [#5145](https://github.com/vatesfr/xen-orchestra/pull/5145))
 
 ### Packages to release
 
@@ -31,4 +32,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server patch
+- xo-web minor
+- xo-server minor
