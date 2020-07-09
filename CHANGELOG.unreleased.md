@@ -13,6 +13,7 @@
 
 - [Proxy] Don't use configured HTTP proxy to connect to XO proxy
 - [Backup with proxy] Correctly log job-level errors
+- [XO] Fix a few broken documentation links (PR [#5146](https://github.com/vatesfr/xen-orchestra/pull/5146))
 
 ### Packages to release
 
@@ -31,4 +32,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-web patch
 - xo-server patch
