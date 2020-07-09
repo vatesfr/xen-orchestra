@@ -96,16 +96,19 @@ update.params = {
   },
 }
 
-export function deploy({ license, network, networkConfiguration, proxy, sr }) {
+export function deploy({ license, network, proxy, sr, ...props }) {
   return this.deployProxy(sr._xapiId, license, {
-    networkConfiguration,
     networkId: network?._xapiId,
     proxyId: proxy,
+    ...props,
   })
 }
 
 deploy.permission = 'admin'
 deploy.params = {
+  httpProxy: {
+    type: 'string',
+  },
   license: {
     type: 'string',
   },

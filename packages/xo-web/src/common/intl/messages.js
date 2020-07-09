@@ -2377,6 +2377,9 @@ const messages = {
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
   proxySrPredicateInfo:
     'The select only contains SRs connected to at least one HVM-capable host',
+  httpProxy: 'HTTP proxy',
+  httpProxyPlaceholder: 'protocol://username:password@address:port',
+  httpProxyTooltip: 'Use XOA configuration',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

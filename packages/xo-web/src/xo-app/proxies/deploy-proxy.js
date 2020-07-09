@@ -1,10 +1,13 @@
 import _, { messages } from 'intl'
+import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import noop from 'lodash/noop'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
+import url from 'url'
+import xoaUpdater from 'xoa-updater'
 import { alert, chooseAction, form } from 'modal'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
@@ -73,10 +76,32 @@ const Modal = decorate([
           [name]: value,
         })
       },
+      async useXoaProxyCfg() {
+        const {
+          proxyHost,
+          proxyPassword = '',
+          proxyPort,
+          proxyProtocol = '',
+          proxyUser,
+        } = await xoaUpdater.getConfiguration()
+        this.props.onChange({
+          ...this.props.value,
+          httpProxy: url.format({
+            auth:
+              proxyPassword !== ''
+                ? `${proxyUser}:${proxyPassword}`
+                : proxyUser,
+            hostname: proxyHost,
+            port: proxyPort,
+            protocol: proxyProtocol !== '' ? proxyProtocol : 'http',
+          }),
+        })
+      },
     },
     computed: {
       idDnsInput: generateId,
       idGatewayInput: generateId,
+      idHttpProxyInput: generateId,
       idIpInput: generateId,
       idNetmaskInput: generateId,
       idSelectNetwork: generateId,
@@ -127,6 +152,28 @@ const Modal = decorate([
             onChange={effects.onNetworkChange}
             predicate={state.networkPredicate}
             value={value.network}
+          />
+        </Col>
+      </SingleLineRow>
+      <SingleLineRow className='mt-1'>
+        <Col mediumSize={4}>
+          <Label htmlFor={state.idHttpProxyInput}>{_('httpProxy')}</Label>{' '}
+          <ActionButton
+            btnStyle='success'
+            handler={effects.useXoaProxyCfg}
+            icon='refresh'
+            tooltip={_('httpProxyTooltip')}
+            size='small'
+          />
+        </Col>
+        <Col mediumSize={8}>
+          <input
+            className='form-control'
+            id={state.idHttpProxyInput}
+            placeholder={formatMessage(messages.httpProxyPlaceholder)}
+            name='httpProxy'
+            onChange={effects.onInputChange}
+            value={value.httpProxy}
           />
         </Col>
       </SingleLineRow>
@@ -295,6 +342,7 @@ const deployProxy = async ({ proxy } = {}) => {
     defaultValue: {
       dns: '',
       gateway: '',
+      httpProxy: '',
       ip: '',
       netmask: '',
       networkMode: 'dhcp',
@@ -305,21 +353,24 @@ const deployProxy = async ({ proxy } = {}) => {
         <Icon icon='proxy' /> {title}
       </span>
     ),
-  }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
-    deployProxyAppliance(license, sr, {
-      network: network === null ? undefined : network,
-      networkConfiguration:
-        networkMode === 'static'
-          ? {
-              dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
-              gateway,
-              ip,
-              netmask:
-                (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
-            }
-          : undefined,
-      proxy,
-    })
+  }).then(
+    ({ httpProxy, sr, network, networkMode, ip, netmask, gateway, dns }) =>
+      deployProxyAppliance(license, sr, {
+        httpProxy:
+          (httpProxy = httpProxy.trim()) !== '' ? httpProxy : undefined,
+        network: network === null ? undefined : network,
+        networkConfiguration:
+          networkMode === 'static'
+            ? {
+                dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
+                gateway,
+                ip,
+                netmask:
+                  (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
+              }
+            : undefined,
+        proxy,
+      })
   )
 }
 
