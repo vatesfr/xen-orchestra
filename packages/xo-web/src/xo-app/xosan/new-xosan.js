@@ -495,8 +495,8 @@ export default class NewXosan extends Component {
                         <div className='alert alert-danger'>
                           {_('xosanDisperseWarning', {
                             link: (
-                              <a href='https://xen-orchestra.com/docs/xosan_types.html'>
-                                xen-orchestra.com/docs/xosan_types.html
+                              <a href='https://xen-orchestra.com/docs/xosan.html#xosan-types'>
+                                https://xen-orchestra.com/docs/xosan.html#xosan-types
                               </a>
                             ),
                           })}

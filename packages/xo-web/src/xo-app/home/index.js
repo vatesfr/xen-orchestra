@@ -1016,7 +1016,7 @@ export default class Home extends Component {
               <Tooltip content={_('filterSyntaxLinkTooltip')}>
                 <a
                   className='input-group-addon'
-                  href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+                  href='https://xen-orchestra.com/docs/manage_infrastructure.html#filter-syntax'
                   rel='noopener noreferrer'
                   target='_blank'
                 >
