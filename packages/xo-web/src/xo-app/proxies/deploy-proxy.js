@@ -162,7 +162,7 @@ const Modal = decorate([
             btnStyle='success'
             handler={effects.useXoaProxyCfg}
             icon='refresh'
-            tooltip={_('httpProxyTooltip')}
+            tooltip={_('httpProxyUseXoaCfg')}
             size='small'
           />
         </Col>
