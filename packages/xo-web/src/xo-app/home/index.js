@@ -674,12 +674,7 @@ export default class Home extends Component {
       selectedHosts,
       selectedPools,
       selectedPowerStates:
-        powerStates === undefined
-          ? []
-          : (props.type === 'VM'
-              ? POWER_STATE_VM
-              : POWER_STATE_HOST
-            ).filter(option => powerStates.includes(option.value)),
+        powerStates === undefined ? '' : powerStates.join(','),
       selectedResourceSets,
       selectedTags,
       ...sort,
@@ -796,12 +791,10 @@ export default class Home extends Component {
       ComplexMatcher.setPropertyClause(
         this._getParsedFilter(),
         'power_state',
-        powerStates.length === 0
+        powerStates === ''
           ? undefined
           : new ComplexMatcher.Or(
-              powerStates.map(
-                powerState => new ComplexMatcher.String(powerState.value)
-              )
+              powerStates.split(',').map(_ => new ComplexMatcher.String(_))
             )
       )
     )
@@ -1168,7 +1161,9 @@ export default class Home extends Component {
                           options={
                             type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST
                           }
+                          simpleValue
                           value={selectedPowerStates}
+                          valueKey='value'
                         />
                       </Popover>
                     }
