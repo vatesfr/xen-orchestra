@@ -2,6 +2,7 @@ const asyncMap = require('@xen-orchestra/async-map').default
 const cancelable = require('promise-toolbox/cancelable')
 const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
+const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pRetry = require('promise-toolbox/retry')
 const { NULL_REF } = require('xen-api')
@@ -10,6 +11,34 @@ const AttachedVdiError = require('./_AttachedVdiError')
 const extractOpaqueRef = require('./_extractOpaqueRef')
 const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
+
+const BIOS_STRINGS_KEYS = new Set([
+  'baseboard-asset-tag',
+  'baseboard-location-in-chassis',
+  'baseboard-manufacturer',
+  'baseboard-product-name',
+  'baseboard-serial-number',
+  'baseboard-version',
+  'bios-vendor',
+  'bios-version',
+  'enclosure-asset-tag',
+  'system-manufacturer',
+  'system-product-name',
+  'system-serial-number',
+  'system-version',
+])
+const cleanBiosStrings = biosStrings => {
+  if (biosStrings !== undefined) {
+    biosStrings = pickBy(
+      biosStrings,
+      (value, key) => value !== '' && BIOS_STRINGS_KEYS.hash(key)
+    )
+
+    if (Object.keys(biosStrings).length !== 0) {
+      return biosStrings
+    }
+  }
+}
 
 async function safeGetRecord(xapi, type, ref) {
   try {
@@ -113,7 +142,9 @@ module.exports = class Vm {
   //   }
   // }
 
-  create(
+  @defer
+  async create(
+    $defer,
     {
       actions_after_crash = 'reboot',
       actions_after_reboot = 'reboot',
@@ -166,6 +197,9 @@ module.exports = class Vm {
       memory_dynamic_min = memory_static_min,
     },
     {
+      // not supported by `VM.create`, therefore it should be passed explicitly
+      bios_strings,
+
       // if set, will create the VM in Suspended power_state with this VDI
       //
       // it's a separate param because it's not supported for all versions of
@@ -173,7 +207,7 @@ module.exports = class Vm {
       suspend_VDI,
     } = {}
   ) {
-    return this.call('VM.create', {
+    const ref = await this.call('VM.create', {
       actions_after_crash,
       actions_after_reboot,
       actions_after_shutdown,
@@ -228,6 +262,14 @@ module.exports = class Vm {
       power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
       suspend_VDI,
     })
+    $defer.onFailure.call(this, 'VM.destroy', ref)
+
+    bios_strings = cleanBiosStrings(bios_strings)
+    if (bios_strings !== undefined) {
+      await this.call('VM.set_bios_strings', ref, bios_strings)
+    }
+
+    return ref
   }
 
   async destroy(
