@@ -565,9 +565,8 @@ export const enableServer = server =>
   _call('server.enable', { id: resolveId(server) })
     ::tapCatch(error => {
       if (error.message === 'Invalid XML-RPC message') {
-        return error(_('enableServerErrorTitle'), _('enableServerErrorMessage'))
+        error(_('enableServerErrorTitle'), _('enableServerErrorMessage'))
       }
-      throw error
     })
     ::pFinally(subscribeServers.forceRefresh)
 
