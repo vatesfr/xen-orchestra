@@ -8,7 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Schedule/edit] Ability to enable/disable the normal job schedule [#5026](https://github.com/vatesfr/xen-orchestra/issues/5026) (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
-- [New schedule] The 'Enable immediately after creation' is on by default (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
+- [New schedule] Enable 'Enable immediately after creation' by default (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
 
 ### Bug fixes
 
