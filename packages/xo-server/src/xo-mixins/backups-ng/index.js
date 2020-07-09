@@ -683,7 +683,12 @@ export default class BackupNg {
               } else {
                 const localTaskId = localTaskIds[taskId]
                 if (localTaskId === runJobId) {
-                  // ignore root task (already handled by runJob)
+                  if (event === 'end') {
+                    if (log.status === 'failure') {
+                      throw log.result
+                    }
+                    return log.result
+                  }
                 } else {
                   common.taskId = localTaskId
                   logger.notice(message, common)
