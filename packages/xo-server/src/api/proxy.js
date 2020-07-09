@@ -108,6 +108,7 @@ deploy.permission = 'admin'
 deploy.params = {
   httpProxy: {
     type: 'string',
+    optional: true,
   },
   license: {
     type: 'string',
