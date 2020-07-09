@@ -1,13 +1,10 @@
 import _, { messages } from 'intl'
-import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import noop from 'lodash/noop'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
-import url from 'url'
-import xoaUpdater from 'xoa-updater'
 import { alert, chooseAction, form } from 'modal'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
@@ -76,27 +73,6 @@ const Modal = decorate([
           [name]: value,
         })
       },
-      async useXoaProxyCfg() {
-        const {
-          proxyHost,
-          proxyPassword = '',
-          proxyPort,
-          proxyProtocol = '',
-          proxyUser,
-        } = await xoaUpdater.getConfiguration()
-        this.props.onChange({
-          ...this.props.value,
-          httpProxy: url.format({
-            auth:
-              proxyPassword !== ''
-                ? `${proxyUser}:${proxyPassword}`
-                : proxyUser,
-            hostname: proxyHost,
-            port: proxyPort,
-            protocol: proxyProtocol !== '' ? proxyProtocol : 'http',
-          }),
-        })
-      },
     },
     computed: {
       idDnsInput: generateId,
@@ -157,14 +133,7 @@ const Modal = decorate([
       </SingleLineRow>
       <SingleLineRow className='mt-1'>
         <Col mediumSize={4}>
-          <Label htmlFor={state.idHttpProxyInput}>{_('httpProxy')}</Label>{' '}
-          <ActionButton
-            btnStyle='success'
-            handler={effects.useXoaProxyCfg}
-            icon='refresh'
-            tooltip={_('httpProxyUseXoaCfg')}
-            size='small'
-          />
+          <Label htmlFor={state.idHttpProxyInput}>{_('httpProxy')}</Label>
         </Col>
         <Col mediumSize={8}>
           <input
