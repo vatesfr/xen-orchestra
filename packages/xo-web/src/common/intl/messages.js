@@ -436,7 +436,7 @@ const messages = {
     'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
-  retentionLimitWarning:
+  retentionWarning:
     'This value is too large! Check the advanced full backup interval setting or the backup retention.',
   retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',

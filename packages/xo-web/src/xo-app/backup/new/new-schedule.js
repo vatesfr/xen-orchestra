@@ -59,9 +59,9 @@ const New = decorate([
   injectState,
   ({
     effects,
-    isRetentionLimit,
     missingRetentions,
     modes,
+    showRetentionWarning,
     state,
     value: schedule,
   }) => (
@@ -87,8 +87,8 @@ const New = decorate([
             <label>
               <strong>{_('scheduleExportRetention')}</strong>
             </label>{' '}
-            {isRetentionLimit && (
-              <Tooltip content={_('retentionLimitWarning')}>
+            {showRetentionWarning && (
+              <Tooltip content={_('retentionWarning')}>
                 <Icon icon='error' />
               </Tooltip>
             )}

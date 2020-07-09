@@ -545,12 +545,12 @@ const New = decorate([
           defaultValue: storedSchedule,
           render: props => (
             <NewSchedule
-              isRetentionLimit={
+              missingRetentions={!checkRetentions(props.value, modes)}
+              modes={modes}
+              showRetentionWarning={
                 isDelta &&
                 checkRetentionLimit(settings, props.value.exportRetention)
               }
-              missingRetentions={!checkRetentions(props.value, modes)}
-              modes={modes}
               {...props}
             />
           ),
@@ -736,11 +736,6 @@ const New = decorate([
         state.missingExportRetention ||
         state.missingCopyRetention ||
         state.missingSnapshotRetention,
-      isRetentionLimit: ({
-        isDelta,
-        schedules: { exportRetention },
-        settings,
-      }) => isDelta && checkRetentionLimit(settings, exportRetention),
       missingName: state => state.name.trim() === '',
       missingVms: state => isEmpty(state.vms) && !state.smartMode,
       missingBackupMode: state =>
@@ -778,6 +773,11 @@ const New = decorate([
             get(() => hostsById[poolsById[$container].master].version)
         ),
       selectedVmIds: state => resolveIds(state.vms),
+      showRetentionWarning: ({
+        isDelta,
+        schedules: { exportRetention },
+        settings,
+      }) => isDelta && checkRetentionLimit(settings, exportRetention),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ proxyId, remotes }) => remote => {
         if (proxyId === null) {
@@ -1130,8 +1130,8 @@ const New = decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
-                          {state.isRetentionLimit && (
-                            <Tooltip content={_('retentionLimitWarning')}>
+                          {state.showRetentionWarning && (
+                            <Tooltip content={_('retentionWarning')}>
                               <Icon icon='error' />
                             </Tooltip>
                           )}{' '}
