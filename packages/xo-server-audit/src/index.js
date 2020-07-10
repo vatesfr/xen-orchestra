@@ -229,10 +229,10 @@ class AuditXoPlugin {
     })
   }
 
-  _handleEvent(event, { userId, userIp, userName, ...data }) {
+  async _handleEvent(event, { userId, userIp, userName, ...data }) {
     try {
       if (event !== 'apiCall' || !this._blockedList[data.method]) {
-        return this._auditCore.add(
+        return await this._auditCore.add(
           {
             userId,
             userIp,
