@@ -2301,7 +2301,7 @@ const messages = {
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
-  auditLogUserActionsDisabled: 'The log of the user actions is disabled',
+  auditInactiveUserActionsRecord: 'The record of the user actions is inactive',
 
   // Licenses
   xosanUnregisteredDisclaimer:

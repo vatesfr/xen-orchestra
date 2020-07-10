@@ -340,7 +340,7 @@ export default decorate([
               },
             ]
           : _records,
-      isLogUserActionsDisabled: async () => {
+      isUserActionsRecordInactive: async () => {
         const { configuration: { active } = {} } = await getPlugin('audit')
 
         return !active
@@ -378,8 +378,9 @@ export default decorate([
             {_('auditCheckIntegrity')}
           </ActionButton>
         </div>
-        {state.isLogUserActionsDisabled && (
+        {state.isUserActionsRecordInactive && (
           <Link
+            className='text-warning'
             to={{
               pathname: '/settings/plugins',
               query: {
@@ -387,9 +388,7 @@ export default decorate([
               },
             }}
           >
-            <span className='text-warning'>
-              <Icon icon='alarm' /> {_('auditLogUserActionsDisabled')}
-            </span>
+            <Icon icon='alarm' /> {_('auditInactiveUserActionsRecord')}
           </Link>
         )}
         <NoObjects
