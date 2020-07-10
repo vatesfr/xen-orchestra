@@ -115,6 +115,16 @@ class Db extends Storage {
   }
 }
 
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    active: {
+      description: 'Whether to save user actions in the audit log',
+      type: 'boolean',
+    },
+  },
+}
+
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
   constructor({ staticConfig, xo }) {
@@ -127,6 +137,19 @@ class AuditXoPlugin {
 
     this._auditCore = undefined
     this._storage = undefined
+
+    this._listeners = {
+      'xo:audit': this._handleEvent.bind(this, 'audit'),
+      'xo:postCall': this._handleEvent.bind(this, 'postCall'),
+    }
+  }
+
+  configure({ active = false }, { loaded }) {
+    this._active = active
+
+    if (loaded) {
+      this._addListeners()
+    }
   }
 
   async load() {
@@ -139,8 +162,7 @@ class AuditXoPlugin {
       this._storage = undefined
     })
 
-    this._addListener('xo:postCall', this._handleEvent.bind(this, 'apiCall'))
-    this._addListener('xo:audit', this._handleEvent.bind(this))
+    this._addListeners()
 
     const exportRecords = this._exportRecords.bind(this)
     exportRecords.permission = 'admin'
@@ -184,34 +206,44 @@ class AuditXoPlugin {
   }
 
   unload() {
+    this._removeListeners()
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners.length = 0
   }
 
   _addListener(event, listener_) {
-    const listener = async (...args) => {
-      try {
-        await listener_(...args)
-      } catch (error) {
-        log.error(error)
-      }
+    this._removeListeners()
+
+    if (!this._active) {
+      const listeners = this._listeners
+      Object.keys(listeners).forEach(event => {
+        this._xo.addListener(event, listeners[event])
+      })
     }
-    const xo = this._xo
-    xo.on(event, listener)
-    this._cleaners.push(() => xo.removeListener(event, listener))
+  }
+
+  _removeListeners() {
+    const listeners = this._listeners
+    Object.keys(listeners).forEach(event => {
+      this._xo.removeListener(event, listeners[event])
+    })
   }
 
   _handleEvent(event, { userId, userIp, userName, ...data }) {
-    if (event !== 'apiCall' || !this._blockedList[data.method]) {
-      return this._auditCore.add(
-        {
-          userId,
-          userIp,
-          userName,
-        },
-        event,
-        data
-      )
+    try {
+      if (event !== 'apiCall' || !this._blockedList[data.method]) {
+        return this._auditCore.add(
+          {
+            userId,
+            userIp,
+            userName,
+          },
+          event,
+          data
+        )
+      }
+    } catch (error) {
+      log.error(error)
     }
   }
 
