@@ -46,7 +46,7 @@ export const parse = string => {
     object.host = parsed.host
     object.path = parsed.pathname
     object.username = parsed.username
-    object.password = parsed.password
+    object.password = decodeURIComponent(parsed.password)
   }
   return object
 }
@@ -69,7 +69,7 @@ export const format = ({
     string += `${username}:${password}@${domain}\\\\${host}`
   }
   if (type === 's3') {
-    string += `${username}:${password}@${host}`
+    string += `${username}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {

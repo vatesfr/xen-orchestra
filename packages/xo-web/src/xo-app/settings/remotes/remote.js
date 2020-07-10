@@ -96,6 +96,8 @@ export default decorate([
           path,
           port,
           proxyId,
+          bucket,
+          directory,
           type = 'nfs',
           username,
         } = state
@@ -105,6 +107,9 @@ export default decorate([
           path,
           port,
           type,
+        }
+        if (type === 's3') {
+          urlParams.path = bucket + '/' + directory
         }
         username && (urlParams.username = username)
         password && (urlParams.password = password)
@@ -374,7 +379,7 @@ export default decorate([
               <div className='input-group form-group'>
                 <input
                   className='form-control'
-                  name='Directory'
+                  name='directory'
                   onChange={effects.linkState}
                   pattern='^(([^/]+)+(/[^/]+)*)?$'
                   placeholder={formatMessage(
