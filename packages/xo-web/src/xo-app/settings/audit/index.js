@@ -5,6 +5,7 @@ import Copiable from 'copiable'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
+import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
@@ -23,6 +24,7 @@ import {
   exportAuditRecords,
   fetchAuditRecords,
   generateAuditFingerprint,
+  getPlugin,
 } from 'xo'
 
 const getIntegrityErrorRender = ({ nValid, error }) => (
@@ -338,6 +340,11 @@ export default decorate([
               },
             ]
           : _records,
+      showDisabledRecordWarning: async () => {
+        const { configuration: { active } = {} } = await getPlugin('audit')
+
+        return !active
+      },
     },
   }),
   injectState,
@@ -371,6 +378,20 @@ export default decorate([
             {_('auditCheckIntegrity')}
           </ActionButton>
         </div>
+        {state.showDisabledRecordWarning && (
+          <Link
+            to={{
+              pathname: '/settings/plugins',
+              query: {
+                s: 'audit',
+              },
+            }}
+          >
+            <span className='text-warning'>
+              <Icon icon='alarm' /> {_('auditLogRecordDisabled')}
+            </span>
+          </Link>
+        )}
         <NoObjects
           collection={state.records}
           columns={COLUMNS}
