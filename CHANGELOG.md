@@ -1,5 +1,25 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Audit] Logging user actions is now opt-in (PR [#5151](https://github.com/vatesfr/xen-orchestra/pull/5151))
+- [Settings/Audit] Warn if logging is inactive (PR [#5152](https://github.com/vatesfr/xen-orchestra/pull/5152))
+
+### Bug fixes
+
+- [Proxy] Don't use configured HTTP proxy to connect to XO proxy
+- [Backup with proxy] Correctly log job-level errors
+- [XO] Fix a few broken documentation links (PR [#5146](https://github.com/vatesfr/xen-orchestra/pull/5146))
+- [Patches] Don't log errors related to missing patches listing (PR [#5149](https://github.com/vatesfr/xen-orchestra/pull/5149))
+
+### Released packages
+
+- xo-server-audit 0.6.0
+- xo-web 5.64.0
+- xo-server 5.62.1
+
 ## **5.48.2** (2020-07-07)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
