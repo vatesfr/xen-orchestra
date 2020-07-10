@@ -383,7 +383,7 @@ export default decorate([
             to={{
               pathname: '/settings/plugins',
               query: {
-                s: 'audit',
+                s: 'id%3A%2F^audit%24%2F',
               },
             }}
           >
