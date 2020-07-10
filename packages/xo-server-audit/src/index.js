@@ -139,8 +139,8 @@ class AuditXoPlugin {
     this._storage = undefined
 
     this._listeners = {
-      'xo:audit': this._handleEvent.bind(this, 'audit'),
-      'xo:postCall': this._handleEvent.bind(this, 'postCall'),
+      'xo:audit': this._handleEvent.bind(this),
+      'xo:postCall': this._handleEvent.bind(this, 'apiCall'),
     }
   }
 
@@ -214,7 +214,7 @@ class AuditXoPlugin {
   _addListener(event, listener_) {
     this._removeListeners()
 
-    if (!this._active) {
+    if (this._active) {
       const listeners = this._listeners
       Object.keys(listeners).forEach(event => {
         this._xo.addListener(event, listeners[event])
