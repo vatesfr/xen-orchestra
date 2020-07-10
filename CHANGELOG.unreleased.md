@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Audit] Logging user actions is now opt-in (PR [#5151](https://github.com/vatesfr/xen-orchestra/pull/5151))
+- [Audit] Show warning in case of disabled user actions logging (PR [#5152](https://github.com/vatesfr/xen-orchestra/pull/5152))
 
 ### Bug fixes
 
@@ -36,5 +37,5 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-audit minor
-- xo-web patch
+- xo-web minor
 - xo-server patch
