@@ -119,7 +119,7 @@ class Db extends Storage {
     const db = this._db
 
     // delete first so that a new chain can be constructed even if anything else fails
-    await db.del('lastId')
+    await db.del(LAST_ID)
 
     return new Promise(resolve => {
       let count = 1
