@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Audit] Logging user actions is now opt-in (PR [#5151](https://github.com/vatesfr/xen-orchestra/pull/5151))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-audit minor
 - xo-web patch
 - xo-server patch
