@@ -396,7 +396,7 @@
 
 - [Backup NG] Make report recipients configurable in the backup settings [#4581](https://github.com/vatesfr/xen-orchestra/issues/4581) (PR [#4646](https://github.com/vatesfr/xen-orchestra/pull/4646))
 - [Host] Advanced Live Telemetry (PR [#4680](https://github.com/vatesfr/xen-orchestra/pull/4680))
-- [Plugin][web hooks](https://xen-orchestra.com/docs/web-hooks.html) [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
+- [Plugin][web hooks](https://xen-orchestra.com/docs/advanced.html#web-hooks) [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
 
 ### Enhancements
 
