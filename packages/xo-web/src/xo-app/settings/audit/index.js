@@ -379,17 +379,19 @@ export default decorate([
           </ActionButton>
         </div>
         {state.isUserActionsRecordInactive && (
-          <Link
-            className='text-warning'
-            to={{
-              pathname: '/settings/plugins',
-              query: {
-                s: 'id:/^audit$/',
-              },
-            }}
-          >
-            <Icon icon='alarm' /> {_('auditInactiveUserActionsRecord')}
-          </Link>
+          <p>
+            <Link
+              className='text-warning'
+              to={{
+                pathname: '/settings/plugins',
+                query: {
+                  s: 'id:/^audit$/',
+                },
+              }}
+            >
+              <Icon icon='alarm' /> {_('auditInactiveUserActionsRecord')}
+            </Link>
+          </p>
         )}
         <NoObjects
           collection={state.records}
