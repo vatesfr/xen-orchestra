@@ -388,7 +388,7 @@ export default decorate([
             }}
           >
             <span className='text-warning'>
-              <Icon icon='alarm' /> {_('auditLogRecordDisabled')}
+              <Icon icon='alarm' /> {_('auditLogsRecordDisabled')}
             </span>
           </Link>
         )}
