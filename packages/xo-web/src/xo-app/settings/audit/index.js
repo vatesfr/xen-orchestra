@@ -384,7 +384,7 @@ export default decorate([
             to={{
               pathname: '/settings/plugins',
               query: {
-                s: 'id%3A%2F^audit%24%2F',
+                s: 'id:/^audit$/',
               },
             }}
           >
