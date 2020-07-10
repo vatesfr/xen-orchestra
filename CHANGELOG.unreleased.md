@@ -14,6 +14,7 @@
 - [Proxy] Don't use configured HTTP proxy to connect to XO proxy
 - [Backup with proxy] Correctly log job-level errors
 - [XO] Fix a few broken documentation links (PR [#5146](https://github.com/vatesfr/xen-orchestra/pull/5146))
+- [Patches] Don't log errors related to missing patches listing (PR [#5149](https://github.com/vatesfr/xen-orchestra/pull/5149))
 
 ### Packages to release
 
