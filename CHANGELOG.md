@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.48.3** (2020-07-10)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
@@ -21,8 +23,6 @@
 - xo-server 5.62.1
 
 ## **5.48.2** (2020-07-07)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
