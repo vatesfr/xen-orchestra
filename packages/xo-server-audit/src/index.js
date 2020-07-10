@@ -211,7 +211,7 @@ class AuditXoPlugin {
     this._cleaners.length = 0
   }
 
-  _addListener(event, listener_) {
+  _addListeners(event, listener_) {
     this._removeListeners()
 
     if (this._active) {
