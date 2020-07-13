@@ -310,10 +310,7 @@ export default class Jobs {
           true
         )
 
-        app.emit('job:terminated', runJobId, {
-          type: job.type,
-          status,
-        })
+        app.emit('job:terminated', { job, runJobId, schedule, status })
       } finally {
         this.updateJob({ id, runId: null })::ignoreErrors()
         delete runningJobs[id]
@@ -332,9 +329,7 @@ export default class Jobs {
         },
         true
       )
-      app.emit('job:terminated', runJobId, {
-        type: job.type,
-      })
+      app.emit('job:terminated', { job, runJobId, schedule })
       throw error
     }
   }

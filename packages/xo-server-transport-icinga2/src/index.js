@@ -1,5 +1,13 @@
-import assert from 'assert'
+import assert, { match } from 'assert'
 import { URL } from 'url'
+
+const RE = /(\\*)\{([^}]+)\}/
+const evalTemplate = (template, fn) =>
+  template.replace(RE, ([, escape, key]) => {
+    const n = escape.length
+    const escaped = n % 2 !== 0
+    return escaped ? match.slice(n - 1 / 2) : escaped.slice(n / 2) + fn(key)
+  })
 
 // =============================================================================
 
@@ -83,7 +91,14 @@ class XoServerIcinga2 {
     this._url = serverUrl.href
 
     this._filter =
-      configuration.filter !== undefined ? configuration.filter : ''
+      configuration.filter !== undefined
+        ? compileTemplate(configuration.filter, {
+            jobId: _ => _.job.id,
+            jobName: _ => _.job.name,
+            scheduleId: _ => _.schedule.id,
+            scheduleName: _ => _.schedule.name,
+          })
+        : ''
     this._acceptUnauthorized = configuration.acceptUnauthorized
   }
 

@@ -272,7 +272,7 @@ class BackupReportsXoPlugin {
     }
   }
 
-  async _metadataHandler(log, { name: jobName }, schedule, force) {
+  async _metadataHandler(log, job, schedule, force) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -290,7 +290,7 @@ class BackupReportsXoPlugin {
       `##  Global status: ${log.status}`,
       '',
       `- **Job ID**: ${log.jobId}`,
-      `- **Job name**: ${jobName}`,
+      `- **Job name**: ${job.name}`,
       `- **Run ID**: ${log.id}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
       n !== 0 && `- **Successes**: ${nSuccesses} / ${n}`,
@@ -349,10 +349,12 @@ class BackupReportsXoPlugin {
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
 
     return this._sendReport({
+      job,
       subject: `[Xen Orchestra] ${log.status} − Metadata backup report for ${
         log.jobName
       } ${STATUS_ICON[log.status]}`,
       markdown: toMarkdown(markdown),
+      schedule,
       success: log.status === 'success',
       nagiosMarkdown:
         log.status === 'success'
@@ -363,10 +365,10 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _ngVmHandler(log, { name: jobName, settings }, schedule, force) {
+  async _ngVmHandler(log, job, schedule, force) {
     const xo = this._xo
 
-    const mailReceivers = get(() => settings[''].reportRecipients)
+    const mailReceivers = get(() => job.settings[''].reportRecipients)
     const { reportWhen, mode } = log.data || {}
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -385,12 +387,17 @@ class BackupReportsXoPlugin {
         '',
         `*${pkg.name} v${pkg.version}*`,
       ]
+
+      const jobName = job.name
+
       return this._sendReport({
         subject: `[Xen Orchestra] ${
           log.status
         } − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
+        job,
         mailReceivers,
         markdown: toMarkdown(markdown),
+        schedule,
         success: false,
         nagiosMarkdown: `[Xen Orchestra] [${
           log.status
@@ -649,8 +656,10 @@ class BackupReportsXoPlugin {
 
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
     return this._sendReport({
+      job,
       mailReceivers,
       markdown: toMarkdown(markdown),
+      schedule,
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${
         STATUS_ICON[log.status]
       }`,
@@ -724,7 +733,9 @@ class BackupReportsXoPlugin {
       markdown = markdown.join('\n')
       return this._sendReport({
         subject: `[Xen Orchestra] ${globalStatus} ${icon}`,
+        job,
         markdown,
+        schedule,
         success: false,
         nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Error : ${error.message}`,
       })
@@ -913,6 +924,7 @@ class BackupReportsXoPlugin {
     markdown = markdown.join('\n')
 
     return this._sendReport({
+      job,
       markdown,
       subject: `[Xen Orchestra] ${globalStatus} − Backup report for ${tag} ${
         globalSuccess
@@ -921,6 +933,7 @@ class BackupReportsXoPlugin {
           ? ICON_FAILURE
           : ICON_SKIPPED
       }`,
+      schedule,
       success: globalSuccess,
       nagiosMarkdown: globalSuccess
         ? `[Xen Orchestra] [Success] Backup report for ${tag}`
