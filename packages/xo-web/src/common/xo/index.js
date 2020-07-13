@@ -204,6 +204,9 @@ const createSubscription = cb => {
     timeout = setTimeout(clearCache, clearCacheDelay)
   }
 
+  // will loop if n > 0 at the end
+  //
+  // will not do anything if already running
   const run = () => {
     clearTimeout(timeout)
 
