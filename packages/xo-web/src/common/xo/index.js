@@ -204,7 +204,7 @@ const createSubscription = cb => {
     timeout = setTimeout(clearCache, clearCacheDelay)
   }
 
-  const loop = () => {
+  const run = () => {
     clearTimeout(timeout)
 
     if (running) {
@@ -222,7 +222,7 @@ const createSubscription = cb => {
             return uninstall()
           }
 
-          timeout = setTimeout(loop, delay)
+          timeout = setTimeout(run, delay)
 
           if (!isEqual(result, cache)) {
             cache = result
@@ -258,7 +258,7 @@ const createSubscription = cb => {
     }
 
     if (n++ === 0) {
-      loop()
+      run()
     }
 
     return once(() => {
@@ -272,7 +272,7 @@ const createSubscription = cb => {
 
   subscribe.forceRefresh = () => {
     if (n) {
-      loop()
+      run()
     }
   }
 
