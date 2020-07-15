@@ -89,7 +89,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     const prefix = [this._dir, dir].join('/')
     const splitPrefix = splitPath(prefix)
     const request = this._s3.listObjectsV2({
-      Bucket: 'xen-orchestra-test',
+      Bucket: this._bucket,
       Prefix: splitPrefix.join('/'),
     })
     const result = await request.promise()
@@ -207,9 +207,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
           suffixOffset += complementSize
           suffixSize -= complementSize
           hasSuffix = suffixSize > 0
-          const prefixRange = `bytes=${complementOffset}-${complementOffset +
-            complementSize -
-            1}`
+          const prefixRange = `bytes=${complementOffset}-${
+            complementOffset + complementSize - 1
+          }`
           const downloadParams = { ...uploadParams, Range: prefixRange }
           const complementBuffer = (
             await this._s3.getObject(downloadParams).promise()
