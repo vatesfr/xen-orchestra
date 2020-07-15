@@ -2,7 +2,6 @@
 
 import 'dotenv/config'
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import getStream from 'get-stream'
 import { forOwn, random } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
