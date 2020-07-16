@@ -7,14 +7,13 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-[Remotes] Add AWS S3 as a backup storage
+- [Remotes] Add AWS S3 as a backup storage
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Proxy] Don't use configured HTTP proxy to connect to XO proxy
-- [Backup with proxy] Correctly log job-level errors
+- [Backup/Restore] Fixes `an error has occurred` when all backups for a specific VM have been deleted (PR [#5156](https://github.com/vatesfr/xen-orchestra/pull/5156))
 
 ### Packages to release
 
@@ -33,6 +32,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-@xen-orchestra/fs minor
-xo-remote-parser minor
-xo-server minor
+- @xen-orchestra/fs minor
+- xo-remote-parser minor
+- xo-web minor
+- xo-server minor
