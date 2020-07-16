@@ -106,7 +106,7 @@ class TableFilter extends Component {
         <Tooltip content={_('filterSyntaxLinkTooltip')}>
           <a
             className='input-group-addon'
-            href='https://xen-orchestra.com/docs/manage_infrastructure.html#filter-syntax'
+            href='https://xen-orchestra.com/docs/manage_infrastructure.html#live-filter-search'
             rel='noopener noreferrer'
             target='_blank'
           >
