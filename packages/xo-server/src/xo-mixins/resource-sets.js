@@ -370,6 +370,8 @@ export default class {
             let set
             if (
               object.$type !== 'VM' ||
+              (object.is_a_snapshot &&
+                !this._xo._config.selfService?.enableSnapshotConsumption) ||
               object.other_config['xo:backup:job'] !== undefined ||
               // No set for this VM.
               !(id = xapi.xo.getData(object, 'resourceSet')) ||

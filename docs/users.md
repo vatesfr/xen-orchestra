@@ -237,7 +237,11 @@ Then, you can define quotas on this set:
 - max disk usage
 
 :::tip
-Snapshotting a VM within a self-service will _not_ use the quota from the resource set. The same rule applies for backups and replication.
+Replicated VMs and snapshots created by a backup job don't use quotas.
+:::
+
+:::tip
+A snapshot of a Self Service VM will use as much resources as a VM would. You can disable this by setting `enableSnapshotConsumption` to `false` in the `selfService` section of `xo-server`'s config.
 :::
 
 When you click on create, you can see the resource set and remove or edit it:

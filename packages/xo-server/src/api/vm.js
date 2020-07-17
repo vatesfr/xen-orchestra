@@ -387,7 +387,9 @@ const delete_ = defer(async function (
   // Update resource sets
   let resourceSet
   if (
-    (vm.type === 'VM' || vm.type === 'VM-snapshot') &&
+    (vm.type === 'VM' ||
+      (vm.type === 'VM-snapshot' &&
+        this._config.selfService?.enableSnapshotConsumption)) &&
     (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
     await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
@@ -823,7 +825,10 @@ export const snapshot = defer(async function (
     await checkPermissionOnSrs.call(this, vm)
   }
 
-  if (vm.resourceSet !== undefined) {
+  if (
+    vm.resourceSet !== undefined &&
+    this._config.selfService?.enableSnapshotConsumption
+  ) {
     const usage = await this.computeVmResourcesUsage(vm)
     await this.allocateLimitsInResourceSet(
       usage,
