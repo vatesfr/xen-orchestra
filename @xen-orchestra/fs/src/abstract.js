@@ -9,16 +9,16 @@ import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
 import {
   fromCallback,
+  fromEvent,
   ignoreErrors,
   timeout,
-  pFromEvent,
 } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
 
 import normalizePath from './_normalizePath'
-import { createChecksumStream } from './checksum'
+import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
 const { dirname } = path.posix
 
@@ -165,6 +165,67 @@ export default class RemoteHandlerAbstract {
     return checksumStream
   }
 
+  createReadStream(
+    file: File,
+    { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
+  ): Promise<LaxReadable> {
+    if (typeof file === 'string') {
+      file = normalizePath(file)
+    }
+    const path = typeof file === 'string' ? file : file.path
+    const streamP = timeout
+      .call(this._createReadStream(file, options), this._timeout)
+      .then(stream => {
+        // detect early errors
+        let promise = fromEvent(stream, 'readable')
+
+        // try to add the length prop if missing and not a range stream
+        if (
+          stream.length === undefined &&
+          options.end === undefined &&
+          options.start === undefined
+        ) {
+          promise = Promise.all([
+            promise,
+            ignoreErrors.call(
+              this._getSize(file).then(size => {
+                stream.length = size
+              })
+            ),
+          ])
+        }
+
+        return promise.then(() => stream)
+      })
+
+    if (!checksum) {
+      return streamP
+    }
+
+    // avoid a unhandled rejection warning
+    ignoreErrors.call(streamP)
+
+    return this._readFile(checksumFile(path), { flags: 'r' }).then(
+      checksum =>
+        streamP.then(stream => {
+          const { length } = stream
+          stream = (validChecksumOfReadStream(
+            stream,
+            String(checksum).trim()
+          ): LaxReadable)
+          stream.length = length
+
+          return stream
+        }),
+      error => {
+        if (ignoreMissingChecksum && error && error.code === 'ENOENT') {
+          return streamP
+        }
+        throw error
+      }
+    )
+  }
+
   // write a stream to a file using a temporary file
   async outputStream(
     input: Readable | Promise<Readable>,
@@ -176,7 +237,7 @@ export default class RemoteHandlerAbstract {
     const output = await this.createOutputStream(tmpPath, { checksum })
     try {
       input.pipe(output)
-      await pFromEvent(output, 'finish')
+      await fromEvent(output, 'finish')
       await output.checksumWritten
       // $FlowFixMe
       await input.task
