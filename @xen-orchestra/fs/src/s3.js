@@ -41,7 +41,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       const forwardError = error => {
         checksumStream.emit('error', error)
       }
-      checksumStream.pipe(input)
+      input.pipe(checksumStream)
       input.on('error', forwardError)
       inputStream = checksumStream
     }
@@ -56,8 +56,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ...this._createParams(normalizePath(path + '.checksum')),
         Body: checksum,
       }
-      const upload = this._s3.upload(params)
-      await upload.promise()
+      await this._s3.upload(params).promise()
     }
     await input.task
   }
