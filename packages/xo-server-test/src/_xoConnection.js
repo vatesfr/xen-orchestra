@@ -168,12 +168,8 @@ class XoConnection extends Xo {
       id,
       name: getDefaultName(),
     })
-    this._tempResourceDisposers.push('vm.delete', { id: clonedVmId })
-    return this.waitObjectState(id, vm => {
-      if (vm === undefined) {
-        throw new Error('retry')
-      }
-    })
+    this._durableResourceDisposers.push('vm.delete', { id: clonedVmId })
+    return this.getOrWaitObject(clonedVmId)
   }
 
   async startTempVm(id, params, withXenTools = false) {
