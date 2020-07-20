@@ -136,6 +136,10 @@ export default class Restore extends Component {
     forEach(backupsByRemote, (backups, remoteId) => {
       const remote = remotes[remoteId]
       forEach(backups, (vmBackups, vmId) => {
+        if (vmBackups.length === 0) {
+          return
+        }
+
         if (backupDataByVm[vmId] === undefined) {
           backupDataByVm[vmId] = { backups: [] }
         }
