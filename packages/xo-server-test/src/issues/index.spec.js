@@ -97,7 +97,7 @@ describe('issue', () => {
       expect(vm.boot.order).toBe('n' + bootOrder)
     })
 
-    test('create vm with disks with network installation should make network boot the first option', async () => {
+    test('create vm with disks and network installation should make network boot the first option', async () => {
       const vm = await xo.createTempVm({
         template: template.id,
         installation: {
