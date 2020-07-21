@@ -202,7 +202,10 @@ const createSubscription = cb => {
     timeout = setTimeout(clearCache, clearCacheDelay)
   }
 
-  const loop = () => {
+  // will loop if n > 0 at the end
+  //
+  // will not do anything if already running
+  const run = () => {
     clearTimeout(timeout)
 
     if (running) {
@@ -220,7 +223,7 @@ const createSubscription = cb => {
             return uninstall()
           }
 
-          timeout = setTimeout(loop, delay)
+          timeout = setTimeout(run, delay)
 
           if (!isEqual(result, cache)) {
             cache = result
@@ -256,7 +259,7 @@ const createSubscription = cb => {
     }
 
     if (n++ === 0) {
-      loop()
+      run()
     }
 
     return once(() => {
@@ -270,7 +273,7 @@ const createSubscription = cb => {
 
   subscribe.forceRefresh = () => {
     if (n) {
-      loop()
+      run()
     }
   }
 
@@ -823,6 +826,9 @@ export const getHostMissingPatches = async host => {
       ? patches
       : filter(patches, { paid: false })
   }
+  if (host.power_state !== 'Running') {
+    return []
+  }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
   } catch (_) {
@@ -849,8 +855,12 @@ export const emergencyShutdownHosts = hosts => {
   )
 }
 
-export const isHostTimeConsistentWithXoaTime = host =>
-  _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+export const isHostTimeConsistentWithXoaTime = host => {
+  if (host.power_state !== 'Running') {
+    return true
+  }
+  return _call('host.isHostServerTimeConsistent', { host: resolveId(host) })
+}
 
 export const isHyperThreadingEnabledHost = host =>
   _call('host.isHyperThreadingEnabled', {

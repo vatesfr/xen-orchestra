@@ -13,7 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Proxy] Don't use configured HTTP proxy to connect to XO proxy
+- [Backup/Restore] Fixes `an error has occurred` when all backups for a specific VM have been deleted (PR [#5156](https://github.com/vatesfr/xen-orchestra/pull/5156))
 
 ### Packages to release
 
@@ -32,5 +32,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server patch
 - xo-web patch
