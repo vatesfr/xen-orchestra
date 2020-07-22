@@ -153,14 +153,39 @@ export default class Proxy {
     return this._db.update(proxy).then(extractProperties).then(omitToken)
   }
 
-  async upgradeProxyAppliance(id) {
+  async updateProxyAppliance(id, { httpProxy, upgrade = false }) {
+    const xenstoreData = {}
+    if (httpProxy !== undefined) {
+      xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
+    }
+    if (upgrade) {
+      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(
+        this._xoProxyConf.channel
+      )
+    }
+
     const { vmUuid } = await this._getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
-    await xapi.getObject(vmUuid).update_xenstore_data({
-      'vm-data/xoa-updater-channel': JSON.stringify(this._xoProxyConf.channel),
-    })
+    await xapi.getObject(vmUuid).update_xenstore_data(xenstoreData)
 
-    return xapi.rebootVm(vmUuid)
+    try {
+      await xapi.rebootVm(vmUuid)
+    } catch (error) {
+      if (error.code !== 'VM_BAD_POWER_STATE') {
+        throw error
+      }
+
+      await xapi.startVm(vmUuid)
+    }
+
+    await xapi._waitObjectState(
+      vmUuid,
+      vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined
+    )
+  }
+
+  getProxyApplianceState(id) {
+    return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
   @defer
@@ -322,6 +347,8 @@ export default class Proxy {
     )
 
     await this.checkProxyHealth(proxyId)
+
+    return proxyId
   }
 
   async checkProxyHealth(id) {

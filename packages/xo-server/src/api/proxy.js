@@ -145,11 +145,22 @@ deploy.resolve = {
 }
 
 export function upgradeAppliance({ id }) {
-  return this.upgradeProxyAppliance(id)
+  return this.updateProxyAppliance(id, { upgrade: true })
 }
 
 upgradeAppliance.permission = 'admin'
 upgradeAppliance.params = {
+  id: {
+    type: 'string',
+  },
+}
+
+export function getApplianceState({ id }) {
+  return this.getProxyApplianceState(id)
+}
+
+getApplianceState.permission = 'admin'
+getApplianceState.params = {
   id: {
     type: 'string',
   },
