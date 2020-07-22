@@ -133,10 +133,10 @@ const COLUMNS = [
         return (
           <div>
             {upgrade}{' '}
-            <span className='text-warning'>
+            <p className='text-warning'>
               <Icon icon='alarm' />
               &nbsp;{_('upgradeAvailable')}
-            </span>
+            </p>
           </div>
         )
       }
@@ -150,10 +150,10 @@ const COLUMNS = [
         return (
           <div>
             {upgrade}{' '}
-            <span className='text-success'>
+            <p className='text-success'>
               <Icon icon='success' />
               &nbsp;{_('proxyUpToDate')}
-            </span>
+            </p>
           </div>
         )
       }
@@ -161,10 +161,10 @@ const COLUMNS = [
       return (
         <div>
           {upgrade}{' '}
-          <span className='text-danger'>
+          <p className='text-danger'>
             <Icon icon='alarm' />
             &nbsp;{globalState.message}
-          </span>
+          </p>
         </div>
       )
     },
@@ -181,16 +181,14 @@ const Proxies = decorate([
       initialize({ fetchProxyStates }) {
         return fetchProxyStates(this.props.proxies.map(({ id }) => id))
       },
-      async fetchProxyStates(_, proxies) {
+      async fetchProxyStates(effects, proxies) {
         const stateByProxy = { ...this.state.stateByProxy }
         await Promise.all(
           proxies.map(async id => {
-            stateByProxy[id] = await getProxyApplianceState(id).catch(
-              error => ({
-                state: 'error',
-                message: error.message,
-              })
-            )
+            stateByProxy[id] = await getProxyApplianceState(id).catch(e => ({
+              state: 'error',
+              message: _('cannotGetProxyState'),
+            }))
           })
         )
         this.state.stateByProxy = stateByProxy
