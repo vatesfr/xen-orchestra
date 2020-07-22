@@ -227,10 +227,6 @@ export default class Schedules extends Component {
         <h2>{_('newSchedule')}</h2>
         <form id='newScheduleForm'>
           <div className='form-group'>
-            <label>{_('scheduleEnableAfterCreation')}</label>{' '}
-            <Toggle onChange={this.toggleState('enabled')} value={enabled} />
-          </div>
-          <div className='form-group'>
             <input
               type='text'
               ref='name'
@@ -251,6 +247,10 @@ export default class Schedules extends Component {
                 messages.jobScheduleJobPlaceHolder
               )}
             />
+          </div>
+          <div className='form-group'>
+            <Toggle onChange={this.toggleState('enabled')} value={enabled} />{' '}
+            <label>{_('scheduleEnableAfterCreation')}</label>
           </div>
         </form>
         <fieldset>
