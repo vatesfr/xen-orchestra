@@ -648,16 +648,16 @@ export const TryXoa = ({ page }) => (
 // ===================================================================
 
 export const getDetachedBackupsOrSnapshots = (
-  items,
+  backupsOrSnapshots,
   { jobs, schedules, vms }
 ) => {
   if (jobs === undefined || schedules === undefined) {
     return []
   }
 
-  const detachedItems = []
-  forEach(items, item => {
-    const { vmId, jobId, scheduleId } = item
+  const detachedBackupsOrSnapshots = []
+  forEach(backupsOrSnapshots, backupOrSnapshot => {
+    const { vmId, jobId, scheduleId } = backupOrSnapshot
     const vm = vms[vmId]
     const job = jobs[jobId]
     const reason =
@@ -672,12 +672,12 @@ export const getDetachedBackupsOrSnapshots = (
         : undefined
 
     if (reason !== undefined) {
-      detachedItems.push({
-        ...item,
+      detachedBackupsOrSnapshots.push({
+        ...backupOrSnapshot,
         reason,
       })
     }
   })
 
-  return detachedItems
+  return detachedBackupsOrSnapshots
 }
