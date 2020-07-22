@@ -167,7 +167,15 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
     await xapi.getObject(vmUuid).update_xenstore_data(xenstoreData)
-    return xapi.rebootVm(vmUuid)
+
+    try {
+      await xapi.rebootVm(vmUuid)
+    } catch (error) {
+      if (error.code === 'VM_BAD_POWER_STATE') {
+        return xapi.startVm(vmUuid)
+      }
+      throw error
+    }
   }
 
   @defer
