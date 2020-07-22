@@ -140,10 +140,10 @@ const COLUMNS_VM_PV = [
     sortCriteria: ({ vdiSr }) => vdiSr !== undefined && vdiSr.name_label,
   },
   {
+    default: true,
     itemRenderer: vbd => <span>{vbd.device}</span>,
     name: _('vbdDevice'),
     sortCriteria: vbd => +vbd.position,
-    default: true,
   },
   {
     itemRenderer: vbd => (
