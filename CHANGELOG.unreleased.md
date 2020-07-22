@@ -13,6 +13,7 @@
 - [New schedule] Enable 'Enable immediately after creation' by default (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
 - [Self Service] Ability to globally ignore snapshots in resource set quotas (PR [#5164](https://github.com/vatesfr/xen-orchestra/pull/5164))
 - [Home/VM, host] Ability to filter by power state (PR [#5118](https://github.com/vatesfr/xen-orchestra/pull/5118))
+- [Proxy] Display updates state (PR [#5167](https://github.com/vatesfr/xen-orchestra/pull/5167))
 
 ### Bug fixes
 

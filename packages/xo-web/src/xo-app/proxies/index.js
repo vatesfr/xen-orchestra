@@ -132,7 +132,7 @@ const COLUMNS = [
       if (state.endsWith('-upgrade-needed')) {
         return (
           <div>
-            {upgrade}{' '}
+            {upgrade}
             <p className='text-warning'>
               <Icon icon='alarm' />
               &nbsp;{_('upgradeAvailable')}
@@ -149,7 +149,7 @@ const COLUMNS = [
       ) {
         return (
           <div>
-            {upgrade}{' '}
+            {upgrade}
             <p className='text-success'>
               <Icon icon='success' />
               &nbsp;{_('proxyUpToDate')}
@@ -160,7 +160,7 @@ const COLUMNS = [
 
       return (
         <div>
-          {upgrade}{' '}
+          {upgrade}
           <p className='text-danger'>
             <Icon icon='alarm' />
             &nbsp;{globalState.message}
