@@ -661,16 +661,26 @@ export default class Home extends Component {
     }
 
     const sort = this._getDefaultSort(props)
+    const {
+      $container: selectedHosts,
+      $pool: selectedPools,
+      power_state: powerStates,
+      resourceSet,
+      tags,
+    } = properties
 
     this.setState({
-      selectedHosts: properties.$container,
-      selectedPools: properties.$pool,
+      selectedHosts,
+      selectedPools,
       selectedPowerStates:
-        properties.power_state === undefined
-          ? ''
-          : properties.power_state.join(','),
-      selectedResourceSets: properties.resourceSet,
-      selectedTags: properties.tags,
+        powerStates === undefined
+          ? []
+          : (props.type === 'VM'
+              ? POWER_STATE_VM
+              : POWER_STATE_HOST
+            ).filter(option => powerStates.includes(option.value)),
+      selectedResourceSets: resourceSet,
+      selectedTags: tags,
       ...sort,
     })
 
@@ -785,10 +795,10 @@ export default class Home extends Component {
       ComplexMatcher.setPropertyClause(
         this._getParsedFilter(),
         'power_state',
-        powerStates === ''
+        powerStates.length === 0
           ? undefined
           : new ComplexMatcher.Or(
-              powerStates.split(',').map(_ => new ComplexMatcher.String(_))
+              powerStates.map(_ => new ComplexMatcher.String(_.value))
             )
       )
     )
@@ -1155,9 +1165,7 @@ export default class Home extends Component {
                           options={
                             type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST
                           }
-                          simpleValue
                           value={selectedPowerStates}
-                          valueKey='value'
                         />
                       </Popover>
                     }
