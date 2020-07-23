@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM] Ability to protect VM from accidental deletion [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -28,4 +29,8 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-xo-server-sdn-controller patch
+- xo-server-audit minor
+- xo-server-sdn-controller patch
+- xo-server-load-balancer patch
+- xo-server minor
+- xo-web minor
