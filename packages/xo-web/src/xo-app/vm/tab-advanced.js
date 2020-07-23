@@ -754,9 +754,17 @@ export default class TabAdvanced extends Component {
                   <td>
                     <Toggle
                       value={'shutdown' in vm.blockedOperations}
-                      onChange={blockShutdown =>
+                      onChange={blockStop =>
                         editVm(vm, {
-                          blockedOperations: { shutdown: blockShutdown },
+                          blockedOperations: {
+                            shutdown: blockStop,
+                            pause: blockStop,
+                            clean_reboot: blockStop,
+                            clean_shutdown: blockStop,
+                            hard_shutdown: blockStop,
+                            hard_reboot: blockStop,
+                            suspend: blockStop,
+                          },
                         })
                       }
                     />
