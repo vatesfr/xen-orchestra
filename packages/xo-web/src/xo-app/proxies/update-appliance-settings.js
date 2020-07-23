@@ -3,7 +3,6 @@ import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
-import Tooltip from 'tooltip'
 import { Col, Container } from 'grid'
 import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
@@ -20,13 +19,9 @@ const Modal = decorate([
           httpProxy: value,
         })
       },
-      toggleUpdateHttpProxy() {
-        const { onChange, value } = this.props
-        onChange({
-          ...value,
-          updateHttpProxy: !value.updateHttpProxy,
-        })
-      },
+    },
+    computed: {
+      idHttpProxyInput: generateId,
     },
   }),
   injectIntl,
@@ -35,21 +30,14 @@ const Modal = decorate([
     <Container>
       <SingleLineRow>
         <Col mediumSize={4}>
-          <label style={{ cursor: 'pointer' }}>
-            <Tooltip content={_('updateSetting')}>
-              <input
-                checked={value.updateHttpProxy}
-                onChange={effects.toggleUpdateHttpProxy}
-                type='checkbox'
-              />
-            </Tooltip>{' '}
+          <label htmlFor={state.idHttpProxyInput} style={{ cursor: 'pointer' }}>
             <strong>{_('httpProxy')}</strong>
           </label>
         </Col>
         <Col mediumSize={8}>
           <input
             className='form-control'
-            disabled={!value.updateHttpProxy}
+            id={state.idHttpProxyInput}
             onChange={effects.onHttpProxyChange}
             placeholder={formatMessage(messages.httpProxyPlaceholder)}
             value={value.httpProxy}
@@ -57,8 +45,8 @@ const Modal = decorate([
         </Col>
       </SingleLineRow>
       <SingleLineRow className='mt-1'>
-        <Col className='text-muted'>
-          <Icon icon='info' /> {_('httpProxyRemoveCfgInfo')}
+        <Col className='text-info'>
+          <Icon icon='info' /> {_('httpProxyWarning')}
         </Col>
       </SingleLineRow>
     </Container>
@@ -66,10 +54,9 @@ const Modal = decorate([
 ])
 
 const updateApplianceSettings = async proxy => {
-  let { httpProxy, updateHttpProxy } = await form({
+  let { httpProxy } = await form({
     defaultValue: {
       httpProxy: '',
-      updateHttpProxy: false,
     },
     render: props => <Modal {...props} />,
     header: (
@@ -79,15 +66,9 @@ const updateApplianceSettings = async proxy => {
     ),
   })
 
-  if (updateHttpProxy) {
-    await updateProxyAppliance(proxy, {
-      httpProxy: updateHttpProxy
-        ? (httpProxy = httpProxy.trim()) !== ''
-          ? httpProxy
-          : null
-        : undefined,
-    })
-  }
+  await updateProxyAppliance(proxy, {
+    httpProxy: (httpProxy = httpProxy.trim()) !== '' ? httpProxy : null,
+  })
 }
 
 export { updateApplianceSettings as default }

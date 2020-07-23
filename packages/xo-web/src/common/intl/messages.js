@@ -2383,8 +2383,8 @@ const messages = {
     'The select only contains SRs connected to at least one HVM-capable host',
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
-  httpProxyRemoveCfgInfo:
-    'Check the box and leave the field empty to remove the existing configuration',
+  httpProxyWarning:
+    'Leave the field empty and click on OK to remove the existing configuration',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
