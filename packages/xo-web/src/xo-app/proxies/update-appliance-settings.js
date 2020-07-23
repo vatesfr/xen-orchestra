@@ -20,16 +20,13 @@ const Modal = decorate([
           httpProxy: value,
         })
       },
-      toggleRemoveHttpProxyCfg() {
+      toggleUpdateHttpProxy() {
         const { onChange, value } = this.props
         onChange({
           ...value,
-          removeHttpProxyCfg: !value.removeHttpProxyCfg,
+          updateHttpProxy: !value.updateHttpProxy,
         })
       },
-    },
-    computed: {
-      idHttpProxyInput: generateId,
     },
   }),
   injectIntl,
@@ -37,29 +34,31 @@ const Modal = decorate([
   ({ intl: { formatMessage }, effects, state, value }) => (
     <Container>
       <SingleLineRow>
-        <Col mediumSize={3}>
-          <label htmlFor={state.idHttpProxyInput} style={{ cursor: 'pointer' }}>
+        <Col mediumSize={4}>
+          <label style={{ cursor: 'pointer' }}>
+            <Tooltip content={_('updateSetting')}>
+              <input
+                checked={value.updateHttpProxy}
+                onChange={effects.toggleUpdateHttpProxy}
+                type='checkbox'
+              />
+            </Tooltip>{' '}
             <strong>{_('httpProxy')}</strong>
           </label>
         </Col>
         <Col mediumSize={8}>
           <input
             className='form-control'
-            disabled={value.removeHttpProxyCfg}
-            id={state.idHttpProxyInput}
+            disabled={!value.updateHttpProxy}
             onChange={effects.onHttpProxyChange}
             placeholder={formatMessage(messages.httpProxyPlaceholder)}
             value={value.httpProxy}
           />
         </Col>
-        <Col mediumSize={1}>
-          <Tooltip content={_('removeExistingConfiguration')}>
-            <input
-              checked={value.removeHttpProxyCfg}
-              onChange={effects.toggleRemoveHttpProxyCfg}
-              type='checkbox'
-            />
-          </Tooltip>
+      </SingleLineRow>
+      <SingleLineRow className='mt-1'>
+        <Col className='text-muted'>
+          <Icon icon='info' /> {_('httpProxyRemoveCfgInfo')}
         </Col>
       </SingleLineRow>
     </Container>
@@ -67,10 +66,10 @@ const Modal = decorate([
 ])
 
 const updateApplianceSettings = async proxy => {
-  let { httpProxy, removeHttpProxyCfg } = await form({
+  let { httpProxy, updateHttpProxy } = await form({
     defaultValue: {
       httpProxy: '',
-      removeHttpProxyCfg: false,
+      updateHttpProxy: false,
     },
     render: props => <Modal {...props} />,
     header: (
@@ -80,14 +79,15 @@ const updateApplianceSettings = async proxy => {
     ),
   })
 
-  httpProxy = httpProxy.trim()
-  await updateProxyAppliance(proxy, {
-    httpProxy: removeHttpProxyCfg
-      ? null
-      : httpProxy !== ''
-      ? httpProxy
-      : undefined,
-  })
+  if (updateHttpProxy) {
+    await updateProxyAppliance(proxy, {
+      httpProxy: updateHttpProxy
+        ? (httpProxy = httpProxy.trim()) !== ''
+          ? httpProxy
+          : null
+        : undefined,
+    })
+  }
 }
 
 export { updateApplianceSettings as default }

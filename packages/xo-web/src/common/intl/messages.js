@@ -79,7 +79,7 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
-  removeExistingConfiguration: 'Remove existing configuration',
+  updateSetting: 'Update setting',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2383,6 +2383,8 @@ const messages = {
     'The select only contains SRs connected to at least one HVM-capable host',
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
+  httpProxyRemoveCfgInfo:
+    'Check the box and leave the field empty to remove the existing configuration',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
