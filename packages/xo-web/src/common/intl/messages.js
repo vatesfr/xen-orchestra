@@ -79,7 +79,6 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
-  updateSetting: 'Update setting',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2383,7 +2382,7 @@ const messages = {
     'The select only contains SRs connected to at least one HVM-capable host',
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
-  httpProxyWarning:
+  proxyApplianceSettingsInfo:
     'Leave the field empty and click on OK to remove the existing configuration',
 
   // ----- Utils -----

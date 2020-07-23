@@ -46,7 +46,7 @@ const Modal = decorate([
       </SingleLineRow>
       <SingleLineRow className='mt-1'>
         <Col className='text-info'>
-          <Icon icon='info' /> {_('httpProxyWarning')}
+          <Icon icon='info' /> {_('proxyApplianceSettingsInfo')}
         </Col>
       </SingleLineRow>
     </Container>
