@@ -661,26 +661,13 @@ export default class Home extends Component {
     }
 
     const sort = this._getDefaultSort(props)
-    const {
-      $container: selectedHosts,
-      $pool: selectedPools,
-      power_state: powerStates,
-      resourceSet,
-      tags,
-    } = properties
 
     this.setState({
-      selectedHosts,
-      selectedPools,
-      selectedPowerStates:
-        powerStates === undefined
-          ? []
-          : (props.type === 'VM'
-              ? POWER_STATE_VM
-              : POWER_STATE_HOST
-            ).filter(option => powerStates.includes(option.value)),
-      selectedResourceSets: resourceSet,
-      selectedTags: tags,
+      selectedHosts: properties.$container,
+      selectedPools: properties.$pool,
+      selectedPowerStates: properties.power_state,
+      selectedResourceSets: properties.resourceSet,
+      selectedTags: properties.tags,
       ...sort,
     })
 
