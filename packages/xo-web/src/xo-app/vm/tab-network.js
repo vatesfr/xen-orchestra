@@ -313,7 +313,12 @@ class VifStatus extends BaseComponent {
     }
     return (
       <Tooltip content={_('vifUnLockedNetwork')}>
-        <StackedIcons icons={['unlock', 'circle']} />
+        <StackedIcons
+          icons={[
+            { icon: 'unlock', size: 1 },
+            { icon: 'circle', size: 2 },
+          ]}
+        />
       </Tooltip>
     )
   }

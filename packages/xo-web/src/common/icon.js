@@ -26,12 +26,17 @@ export { Icon as default }
 
 export const StackedIcons = ({ icons, ...props }) => (
   <span className='fa-stack'>
-    {icons.map((icon, index) => (
-      <Icon key={icon} icon={icon} size={`stack-${index + 1}x`} {...props} />
+    {icons.map(({ icon, size }) => (
+      <Icon key={icon} icon={icon} size={`stack-${size}x`} {...props} />
     ))}
   </span>
 )
 
 StackedIcons.propTypes = {
-  icons: PropTypes.arrayOf(PropTypes.string).isRequired,
+  icons: PropTypes.arrayOf(
+    PropTypes.shape({
+      icon: PropTypes.string.isRequired,
+      size: PropTypes.number.isRequired,
+    })
+  ).isRequired,
 }
