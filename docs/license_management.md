@@ -17,7 +17,7 @@ This section will cover the license management system for commercial editions of
 ## Rebind XO license
 
 :::warning
-A license can only be bind to a single appliance at the same time, rebind your license will unbind the license from any other appliance.:::
+A license can only be bind to a single appliance at the same time, rebind your license will unbind the license from any other appliance. :::
 
 To rebind your Xen Orchestra appliance, you simply need to connect on the **appliance on which you want to bind the license** and click on the rebind option (Move license to this XOA button) in the license section
 
