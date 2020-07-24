@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
-import Icon from 'icon'
+import Icon, { StackedIcons } from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
@@ -175,6 +175,15 @@ class VifAllowedIps extends BaseComponent {
     if (!vif) {
       return null
     }
+
+    const { lockingMode } = vif
+    const warningMessage =
+      lockingMode === 'locked' && isEmpty(this._getIps())
+        ? _('vifLockedNetworkNoIps')
+        : lockingMode !== 'locked' && !isEmpty(this._getIps())
+        ? _('vifNotLockedNetworkWithIps')
+        : undefined
+
     return (
       <Container>
         {isEmpty(this._getIps()) ? (
@@ -236,6 +245,11 @@ class VifAllowedIps extends BaseComponent {
                 handler={this._toggleNewIp}
                 icon='add'
               />
+            )}{' '}
+            {warningMessage !== undefined && (
+              <Tooltip content={warningMessage}>
+                <Icon icon='error' />
+              </Tooltip>
             )}
           </Col>
         </Row>
@@ -252,14 +266,36 @@ class VifStatus extends BaseComponent {
   )
 
   _getNetworkStatus = () => {
-    if (!isEmpty(this._getIps())) {
+    const {
+      network,
+      vif: { lockingMode },
+    } = this.props
+
+    if (lockingMode === 'disabled') {
+      return (
+        <Tooltip content={_('vifDisabledNetwork')}>
+          <Icon icon='vif-disable' />
+        </Tooltip>
+      )
+    }
+
+    if (lockingMode === 'unlocked') {
+      return (
+        <Tooltip content={_('vifUnLockedNetwork')}>
+          <Icon icon='unlock' />
+        </Tooltip>
+      )
+    }
+
+    if (lockingMode === 'locked') {
       return (
         <Tooltip content={_('vifLockedNetwork')}>
           <Icon icon='lock' />
         </Tooltip>
       )
     }
-    const { network } = this.props
+
+    // lockingMode is network_default
     if (!network) {
       return (
         <Tooltip content={_('vifUnknownNetwork')}>
@@ -269,14 +305,14 @@ class VifStatus extends BaseComponent {
     }
     if (network.defaultIsLocked) {
       return (
-        <Tooltip content={_('vifLockedNetworkNoIps')}>
-          <Icon icon='error' />
+        <Tooltip content={_('vifLockedNetwork')}>
+          <Icon icon='disable' />
         </Tooltip>
       )
     }
     return (
       <Tooltip content={_('vifUnLockedNetwork')}>
-        <Icon icon='unlock' />
+        <StackedIcons icons={['unlock', 'circle']} />
       </Tooltip>
     )
   }

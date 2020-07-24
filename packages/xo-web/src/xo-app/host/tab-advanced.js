@@ -220,7 +220,7 @@ export default class extends Component {
                 btnStyle='warning'
                 handler={disableHost}
                 handlerParam={host}
-                icon='host-disable'
+                icon='disable'
                 labelId='disableHostLabel'
               />
             ) : (
