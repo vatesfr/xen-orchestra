@@ -177,16 +177,17 @@ class VifAllowedIps extends BaseComponent {
     }
 
     const { lockingMode } = vif
+    const noIps = isEmpty(this._getIps())
     const warningMessage =
-      lockingMode === 'locked' && isEmpty(this._getIps())
+      lockingMode === 'locked' && noIps
         ? _('vifLockedNetworkNoIps')
-        : lockingMode !== 'locked' && !isEmpty(this._getIps())
+        : lockingMode !== 'locked' && !noIps
         ? _('vifNotLockedNetworkWithIps')
         : undefined
 
     return (
       <Container>
-        {isEmpty(this._getIps()) ? (
+        {noIps ? (
           <Row>
             <Col>
               <em>{_('vifNoIps')}</em>
