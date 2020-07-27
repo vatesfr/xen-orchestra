@@ -825,7 +825,7 @@ export const snapshot = defer(async function (
 
   if (vm.resourceSet !== undefined) {
     // Compute the resource usage of the VM as if it was used by the snapshot
-    const usage = await this.computeSnapshotResourcesUsage(vm)
+    const usage = await this.computeVmSnapshotResourcesUsage(vm)
     await this.allocateLimitsInResourceSet(
       usage,
       vm.resourceSet,

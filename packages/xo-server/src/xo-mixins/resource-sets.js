@@ -134,7 +134,7 @@ export default class {
     )
   }
 
-  async computeSnapshotResourcesUsage(snapshot) {
+  async computeVmSnapshotResourcesUsage(snapshot) {
     if (!this._xo._config.selfService?.enableSnapshotConsumption) {
       return {}
     }
@@ -143,7 +143,7 @@ export default class {
 
   computeResourcesUsage(vm) {
     return vm.type === 'VM-snapshot'
-      ? this.computeSnapshotResourcesUsage(vm)
+      ? this.computeVmSnapshotResourcesUsage(vm)
       : this.computeVmResourcesUsage(vm)
   }
 
