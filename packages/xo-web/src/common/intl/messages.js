@@ -230,10 +230,7 @@ const messages = {
   homeAllResourceSets: 'Resource sets',
   homeNewVm: 'New VM',
   homeFilterNone: 'None',
-  homeFilterRunningHosts: 'Running hosts',
   homeFilterDisabledHosts: 'Disabled hosts',
-  homeFilterRunningVms: 'Running VMs',
-  homeFilterNonRunningVms: 'Non running VMs',
   homeFilterPendingVms: 'Pending VMs',
   homeFilterHvmGuests: 'HVM guests',
   homeSortBy: 'Sort by',
@@ -257,6 +254,7 @@ const messages = {
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
+  powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
@@ -1770,6 +1768,9 @@ const messages = {
   optionalEntry: '* optional',
 
   // ----- Servers -----
+  enableServerErrorTitle: 'Enable server',
+  enableServerErrorMessage:
+    'Unexpected response. Please check your server address.',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
