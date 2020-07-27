@@ -1770,6 +1770,9 @@ const messages = {
   optionalEntry: '* optional',
 
   // ----- Servers -----
+  enableServerErrorTitle: 'Enable server',
+  enableServerErrorMessage:
+    'Unexpected response. Please check your server address.',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -2301,6 +2304,8 @@ const messages = {
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
+  auditInactiveUserActionsRecord:
+    'User actions recording is currently inactive',
 
   // Licenses
   xosanUnregisteredDisclaimer:
