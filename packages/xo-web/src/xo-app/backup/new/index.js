@@ -47,6 +47,7 @@ import {
   keyBy,
   map,
   mapValues,
+  max,
   omit,
   some,
 } from 'lodash'
@@ -206,14 +207,9 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
-const checkRetentionLimit = (settings, retention) => {
-  const fullInterval = get(() => settings.getIn(['', 'fullInterval']))
-  return (
-    (retention === undefined || fullInterval === undefined
-      ? defined(fullInterval, retention)
-      : Math.min(fullInterval, retention)) > RETENTION_LIMIT
-  )
-}
+const isRetentionHigh = (settings, retention) =>
+  settings.getIn(['', 'fullInterval']) > RETENTION_LIMIT ||
+  retention > RETENTION_LIMIT
 
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
@@ -537,7 +533,14 @@ const New = decorate([
         { saveSchedule },
         storedSchedule = DEFAULT_SCHEDULE
       ) => async (
-        { isDelta, copyMode, exportMode, settings, snapshotMode },
+        {
+          copyMode,
+          exportMode,
+          deltaMode,
+          propSettings,
+          settings = propSettings,
+          snapshotMode,
+        },
         { intl: { formatMessage } }
       ) => {
         const modes = { copyMode, exportMode, snapshotMode }
@@ -548,8 +551,8 @@ const New = decorate([
               missingRetentions={!checkRetentions(props.value, modes)}
               modes={modes}
               showRetentionWarning={
-                isDelta &&
-                checkRetentionLimit(settings, props.value.exportRetention)
+                deltaMode &&
+                isRetentionHigh(settings, props.value.exportRetention)
               }
               {...props}
             />
@@ -774,10 +777,20 @@ const New = decorate([
         ),
       selectedVmIds: state => resolveIds(state.vms),
       showRetentionWarning: ({
-        isDelta,
-        schedules: { exportRetention },
-        settings,
-      }) => isDelta && checkRetentionLimit(settings, exportRetention),
+        deltaMode,
+        propSettings,
+        settings = propSettings,
+        schedules,
+      }) =>
+        deltaMode &&
+        isRetentionHigh(
+          settings,
+          max(
+            Object.keys(schedules).map(key =>
+              settings.getIn([key, 'exportRetention'])
+            )
+          )
+        ),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ proxyId, remotes }) => remote => {
         if (proxyId === null) {
@@ -1131,7 +1144,7 @@ const New = decorate([
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
                           {state.showRetentionWarning && (
-                            <Tooltip content={_('retentionWarning')}>
+                            <Tooltip content={_('deltaChainRetentionWarning')}>
                               <Icon icon='error' />
                             </Tooltip>
                           )}{' '}

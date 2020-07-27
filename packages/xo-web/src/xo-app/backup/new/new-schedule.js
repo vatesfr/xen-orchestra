@@ -88,7 +88,7 @@ const New = decorate([
               <strong>{_('scheduleExportRetention')}</strong>
             </label>{' '}
             {showRetentionWarning && (
-              <Tooltip content={_('retentionWarning')}>
+              <Tooltip content={_('deltaChainRetentionWarning')}>
                 <Icon icon='error' />
               </Tooltip>
             )}
