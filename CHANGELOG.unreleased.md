@@ -7,6 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- Log the `Invalid XML-RPC message` error as an unexpected response (PR [#5138](https://github.com/vatesfr/xen-orchestra/pull/5138))
+- [VM/disks] By default, sort disks by their device position instead of their name [#5163](https://github.com/vatesfr/xen-orchestra/issues/5163) (PR [#5165](https://github.com/vatesfr/xen-orchestra/pull/5165))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,5 +35,5 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-vmdk-to-vhd patch
-- xo-web patch
 - xo-server patch
+- xo-web minor
