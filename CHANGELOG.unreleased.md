@@ -9,6 +9,8 @@
 
 - Log the `Invalid XML-RPC message` error as an unexpected response (PR [#5138](https://github.com/vatesfr/xen-orchestra/pull/5138))
 - [VM/disks] By default, sort disks by their device position instead of their name [#5163](https://github.com/vatesfr/xen-orchestra/issues/5163) (PR [#5165](https://github.com/vatesfr/xen-orchestra/pull/5165))
+- [Schedule/edit] Ability to enable/disable an ordinary job's schedule [#5026](https://github.com/vatesfr/xen-orchestra/issues/5026) (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
+- [New schedule] Enable 'Enable immediately after creation' by default (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
 
 ### Bug fixes
 
