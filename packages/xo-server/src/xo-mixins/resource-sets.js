@@ -134,6 +134,19 @@ export default class {
     )
   }
 
+  async computeSnapshotResourcesUsage(snapshot) {
+    if (!this._xo._config.selfService?.enableSnapshotConsumption) {
+      return {}
+    }
+    return this.computeVmResourcesUsage(snapshot)
+  }
+
+  async computeResourcesUsage(vm) {
+    return vm.type === 'VM-snapshot'
+      ? this.computeSnapshotResourcesUsage(vm)
+      : this.computeVmResourcesUsage(vm)
+  }
+
   async createResourceSet(
     name,
     subjects = undefined,
@@ -370,8 +383,6 @@ export default class {
             let set
             if (
               object.$type !== 'VM' ||
-              (object.is_a_snapshot &&
-                !this._xo._config.selfService?.enableSnapshotConsumption) ||
               object.other_config['xo:backup:job'] !== undefined ||
               // No set for this VM.
               !(id = xapi.xo.getData(object, 'resourceSet')) ||
@@ -383,9 +394,7 @@ export default class {
 
             const { limits } = set
             forEach(
-              await this.computeVmResourcesUsage(
-                this._xo.getObject(object.$id)
-              ),
+              await this.computeResourcesUsage(this._xo.getObject(object.$id)),
               (usage, resource) => {
                 const limit = limits[resource]
                 if (limit) {
@@ -413,7 +422,7 @@ export default class {
       return
     }
 
-    const resourcesUsage = await this.computeVmResourcesUsage(
+    const resourcesUsage = await this.computeResourcesUsage(
       this._xo.getObject(vmId)
     )
 
