@@ -84,16 +84,18 @@ class XoConnection extends Xo {
 
   async waitObjectState(id, predicate) {
     let obj = this._objects.all[id]
+    if (typeof predicate !== 'function') {
+      const fn = iteratee(predicate)
+      predicate = () => {
+        if (!fn(obj)) {
+          throw new Error('retry')
+        }
+      }
+    }
+
     while (true) {
       try {
-        if (typeof predicate === 'function') {
-          await predicate(obj)
-        } else {
-          if (!iteratee(predicate)(obj)) {
-            throw new Error('retry')
-          }
-        }
-
+        await predicate(obj)
         return obj
       } catch (_) {}
       // If failed, wait for next object state/update and retry.
