@@ -11,6 +11,7 @@
 - [VM/disks] By default, sort disks by their device position instead of their name [#5163](https://github.com/vatesfr/xen-orchestra/issues/5163) (PR [#5165](https://github.com/vatesfr/xen-orchestra/pull/5165))
 - [Schedule/edit] Ability to enable/disable an ordinary job's schedule [#5026](https://github.com/vatesfr/xen-orchestra/issues/5026) (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
 - [New schedule] Enable 'Enable immediately after creation' by default (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
+- [Self Service] Ability to globally ignore snapshots in resource set quotas (PR [#5164](https://github.com/vatesfr/xen-orchestra/pull/5164))
 
 ### Bug fixes
 
@@ -37,5 +38,5 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-vmdk-to-vhd patch
-- xo-server patch
+- xo-server minor
 - xo-web minor
