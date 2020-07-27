@@ -326,6 +326,18 @@ const BACKUP_FILTERS = [
   { value: 'notBackedUpVms', label: _('notBackedUpVms') },
 ]
 
+const POWER_STATE_HOST = [
+  { value: 'halted', label: _('powerStateHalted') },
+  { value: 'running', label: _('powerStateRunning') },
+]
+
+const POWER_STATE_VM = [
+  { value: 'halted', label: _('powerStateHalted') },
+  { value: 'paused', label: _('powerStatePaused') },
+  { value: 'running', label: _('powerStateRunning') },
+  { value: 'suspended', label: _('powerStateSuspended') },
+]
+
 @connectStore(() => {
   const noServersConnected = invoke(
     createGetObjectsOfType('host'),
@@ -653,8 +665,9 @@ export default class Home extends Component {
     this.setState({
       selectedHosts: properties.$container,
       selectedPools: properties.$pool,
-      selectedTags: properties.tags,
+      selectedPowerStates: properties.power_state,
       selectedResourceSets: properties.resourceSet,
+      selectedTags: properties.tags,
       ...sort,
     })
 
@@ -763,6 +776,20 @@ export default class Home extends Component {
       {label}
     </MenuItem>
   ))
+
+  _updateSelectedPowerStates = powerStates =>
+    this._setFilter(
+      ComplexMatcher.setPropertyClause(
+        this._getParsedFilter(),
+        'power_state',
+        powerStates.length === 0
+          ? undefined
+          : new ComplexMatcher.Or(
+              powerStates.map(_ => new ComplexMatcher.String(_.value))
+            )
+      )
+    )
+
   _updateSelectedPools = pools => {
     const filter = this._getParsedFilter()
 
@@ -946,6 +973,7 @@ export default class Home extends Component {
       homeItemsPerPage,
       selectedHosts,
       selectedPools,
+      selectedPowerStates,
       selectedResourceSets,
       selectedTags,
       sortBy,
@@ -1106,6 +1134,34 @@ export default class Home extends Component {
               </div>
             ) : (
               <div>
+                {(type === 'VM' || type === 'host') && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover
+                        className={styles.selectObject}
+                        id='powerStatePopover'
+                      >
+                        <Select
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedPowerStates}
+                          openOnFocus
+                          options={
+                            type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST
+                          }
+                          value={selectedPowerStates}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='powerState' /> {_('powerState')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
                 {type === 'VM' && (
                   <OverlayTrigger
                     trigger='click'
