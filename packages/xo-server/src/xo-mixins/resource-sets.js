@@ -141,7 +141,7 @@ export default class {
     return this.computeVmResourcesUsage(snapshot)
   }
 
-  async computeResourcesUsage(vm) {
+  computeResourcesUsage(vm) {
     return vm.type === 'VM-snapshot'
       ? this.computeSnapshotResourcesUsage(vm)
       : this.computeVmResourcesUsage(vm)
