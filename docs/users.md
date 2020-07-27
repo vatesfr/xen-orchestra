@@ -241,7 +241,7 @@ Replicated VMs and snapshots created by a backup job don't use quotas.
 :::
 
 :::tip
-A snapshot of a Self Service VM will use as much resources as a VM would. You can disable this by setting `enableSnapshotConsumption` to `false` in the `selfService` section of `xo-server`'s config.
+A snapshot of a Self Service VM will use as much resources as a VM would. You can disable this by setting `ignoreVmSnapshotResources` to `true` in the `selfService` section of `xo-server`'s config.
 :::
 
 When you click on create, you can see the resource set and remove or edit it:

@@ -123,7 +123,7 @@ timeout = 600e3
 
 # If true, a snapshot of a Self Service VM will consume as much resources as a
 # normal VM would
-enableSnapshotConsumption = true
+ignoreVmSnapshotResources = false
 
 [xapiOptions]
 maxUncoalescedVdis = 1

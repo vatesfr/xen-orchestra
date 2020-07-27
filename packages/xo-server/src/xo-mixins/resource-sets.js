@@ -135,7 +135,7 @@ export default class {
   }
 
   async computeVmSnapshotResourcesUsage(snapshot) {
-    if (!this._xo._config.selfService?.enableSnapshotConsumption) {
+    if (this._xo._config.selfService?.ignoreVmSnapshotResources) {
       return {}
     }
     return this.computeVmResourcesUsage(snapshot)
