@@ -446,21 +446,21 @@ class SDNController extends EventEmitter {
     addRule.description = 'Add an ACL rule to a VIF'
     addRule.params = {
       allow: { type: 'boolean' },
-      vifId: { type: 'string' },
-      protocol: { type: 'string', optional: true },
-      port: { type: 'integer', optional: true },
-      ipRange: { type: 'string', optional: true },
       direction: { type: 'string' },
+      ipRange: { type: 'string', optional: true },
+      port: { type: 'integer', optional: true },
+      protocol: { type: 'string', optional: true },
+      vifId: { type: 'string' },
     }
 
     const deleteRule = params => this._deleteRule(params)
     deleteRule.description = 'Delete an ACL rule from a VIF'
     deleteRule.params = {
-      vifId: { type: 'string' },
-      protocol: { type: 'string', optional: true },
-      port: { type: 'integer', optional: true },
-      ipRange: { type: 'string', optional: true },
       direction: { type: 'string' },
+      ipRange: { type: 'string', optional: true },
+      port: { type: 'integer', optional: true },
+      protocol: { type: 'string', optional: true },
+      vifId: { type: 'string' },
     }
 
     // -------------------------------------------------------------------------
@@ -690,14 +690,7 @@ class SDNController extends EventEmitter {
 
   // ===========================================================================
 
-  async _addRule({
-    allow,
-    vifId,
-    protocol = undefined,
-    port = undefined,
-    ipRange = '',
-    direction,
-  }) {
+  async _addRule({ allow, direction, ipRange = '', port, protocol, vifId }) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       assert(vif.currently_attached, 'VIF needs to be plugged to add rule')
@@ -746,7 +739,7 @@ class SDNController extends EventEmitter {
   }
 
   async _deleteRule(
-    { vifId, protocol = undefined, port = undefined, ipRange = '', direction },
+    { direction, ipRange = '', port, protocol, vifId },
     updateOtherConfig = true
   ) {
     let vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
