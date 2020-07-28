@@ -562,22 +562,21 @@ export const getIsPoolAdmin = create(
 )
 
 export const getLoneSnapshots = create(
-  create(createGetObjectsOfType('VM-snapshot'), snapshots => {
-    const backupSnapshots = []
-    forEach(snapshots, snapshot => {
-      const other = snapshot.other
-      const jobId = other['xo:backup:job']
-      if (jobId !== undefined) {
-        backupSnapshots.push({
+  create(
+    createFilter(createGetObjectsOfType('VM-snapshot'), () => ({ other }) =>
+      other['xo:backup:job'] !== undefined
+    ),
+    backupSnapshots =>
+      map(backupSnapshots, snapshot => {
+        const other = snapshot.other
+        return {
           ...snapshot,
-          jobId,
+          jobId: other['xo:backup:job'],
           vmId: other['xo:backup:vm'],
           scheduleId: other['xo:backup:schedule'],
-        })
-      }
-    })
-    return backupSnapshots
-  }),
+        }
+      })
+  ),
   _createCollectionWrapper((_, { jobs }) =>
     jobs === undefined ? undefined : keyBy(jobs, 'id')
   ),
