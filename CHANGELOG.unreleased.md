@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [@xen-orchestra/openflow] Pack and unpack OpenFlow messages (PR [#5010](https://github.com/vatesfr/xen-orchestra/pull/5010))
+- [SDN Controller] Add/Remove netork traffic rules for a VM's VIFs (PR [#5135](https://github.com/vatesfr/xen-orchestra/pull/5135))
 
 ### Bug fixes
 
