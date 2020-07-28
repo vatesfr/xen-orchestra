@@ -79,6 +79,7 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
+  upgradesAvailable: 'Upgrades available',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2371,7 +2372,6 @@ const messages = {
   redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
-  upgradeProxyAppliance: 'upgrade the appliance',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyLinkedRemotes: 'Click to see linked remotes',
@@ -2382,6 +2382,7 @@ const messages = {
     'The select only contains SRs connected to at least one HVM-capable host',
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
+  proxyUpgradesError: 'Unable to check upgrades availability',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

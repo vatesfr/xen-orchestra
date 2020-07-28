@@ -7,6 +7,7 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
+import { provideState, injectState } from 'reaclette'
 import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
@@ -15,6 +16,7 @@ import {
   destroyProxyAppliances,
   editProxyAppliance,
   forgetProxyAppliances,
+  getProxyApplianceUpdaterState,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -49,7 +51,7 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: proxy =>
+    handler: (proxy, { deployProxy }) =>
       deployProxy({
         proxy,
       }),
@@ -61,13 +63,6 @@ const INDIVIDUAL_ACTIONS = [
     handler: checkProxyHealth,
     icon: 'diagnosis',
     label: _('checkProxyHealth'),
-    level: 'primary',
-  },
-  {
-    disabled: ({ vmUuid }) => vmUuid === undefined,
-    handler: upgradeProxyAppliance,
-    icon: 'vm',
-    label: _('upgradeProxyAppliance'),
     level: 'primary',
   },
   {
@@ -114,21 +109,116 @@ const COLUMNS = [
     itemRenderer: proxy => <Vm id={proxy.vmUuid} link />,
     name: _('vm'),
   },
+  {
+    itemRenderer: (proxy, { upgradesByProxy, upgradeAppliance }) => {
+      const globalState = upgradesByProxy[proxy.id]
+      if (globalState === undefined) {
+        return
+      }
+
+      const { state } = globalState
+      if (state.endsWith('-upgrade-needed')) {
+        return (
+          <div>
+            <ActionButton
+              btnStyle='success'
+              disabled={proxy.vmUuid === undefined}
+              handler={upgradeAppliance}
+              handlerParam={proxy.id}
+              icon='upgrade'
+            >
+              {_('upgrade')}
+            </ActionButton>
+            <p className='text-warning'>
+              <Icon icon='alarm' />
+              &nbsp;{_('upgradesAvailable')}
+            </p>
+          </div>
+        )
+      }
+
+      if (
+        state === 'xoa-up-to-date' ||
+        state === 'xoa-upgraded' ||
+        state === 'updater-upgraded' ||
+        state === 'installer-upgraded'
+      ) {
+        return (
+          <ActionButton
+            btnStyle='primary'
+            disabled={proxy.vmUuid === undefined}
+            handler={upgradeAppliance}
+            handlerParam={proxy.id}
+            icon='upgrade'
+          >
+            {_('upgrade')}
+          </ActionButton>
+        )
+      }
+
+      return (
+        <div>
+          <ActionButton
+            btnStyle='success'
+            disabled={proxy.vmUuid === undefined}
+            handler={upgradeAppliance}
+            handlerParam={proxy.id}
+            icon='upgrade'
+          >
+            {_('upgrade')}
+          </ActionButton>
+          <p className='text-danger'>
+            <Icon icon='alarm' />
+            &nbsp;{globalState.message}
+          </p>
+        </div>
+      )
+    },
+    name: _('upgrade'),
+  },
 ]
 
-export default decorate([
-  adminOnly,
-  withRouter,
-  addSubscriptions({
-    proxies: subscribeProxies,
+const Proxies = decorate([
+  provideState({
+    initialState: () => ({
+      upgradesByProxy: {},
+    }),
+    effects: {
+      initialize({ fetchProxyUpgrades }) {
+        return fetchProxyUpgrades(this.props.proxies.map(({ id }) => id))
+      },
+      async fetchProxyUpgrades(effects, proxies) {
+        const upgradesByProxy = { ...this.state.upgradesByProxy }
+        await Promise.all(
+          proxies.map(async id => {
+            upgradesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(
+              e => ({
+                state: 'error',
+                message: _('proxyUpgradesError'),
+              })
+            )
+          })
+        )
+        this.state.upgradesByProxy = upgradesByProxy
+      },
+      async deployProxy({ fetchProxyUpgrades }, proxy) {
+        return fetchProxyUpgrades([await deployProxy(proxy)])
+      },
+      async upgradeAppliance({ fetchProxyUpgrades }, id) {
+        await upgradeProxyAppliance(id)
+        return fetchProxyUpgrades([id])
+      },
+    },
   }),
-  ({ proxies, router }) => (
+  withRouter,
+  injectState,
+  ({ effects, proxies, router, state }) => (
     <Page header={HEADER} title='proxies' formatTitle>
       <div>
         <div className='mt-1 mb-1'>
           <ActionButton
             btnStyle='success'
-            handler={deployProxy}
+            handler={effects.deployProxy}
             icon='proxy'
             size='large'
           >
@@ -140,7 +230,10 @@ export default decorate([
           collection={proxies}
           columns={COLUMNS}
           component={SortedTable}
+          data-deployProxy={effects.deployProxy}
           data-router={router}
+          data-upgradesByProxy={state.upgradesByProxy}
+          data-upgradeAppliance={effects.upgradeAppliance}
           emptyMessage={
             <span className='text-muted'>
               <Icon icon='alarm' />
@@ -154,4 +247,13 @@ export default decorate([
       </div>
     </Page>
   ),
+])
+
+export default decorate([
+  adminOnly,
+  addSubscriptions({
+    proxies: subscribeProxies,
+  }),
+  ({ proxies }) =>
+    proxies === undefined ? _('statusLoading') : <Proxies proxies={proxies} />,
 ])
