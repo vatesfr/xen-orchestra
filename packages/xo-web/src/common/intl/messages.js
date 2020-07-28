@@ -2380,6 +2380,8 @@ const messages = {
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
   proxySrPredicateInfo:
     'The select only contains SRs connected to at least one HVM-capable host',
+  httpProxy: 'HTTP proxy',
+  httpProxyPlaceholder: 'protocol://username:password@address:port',
   proxyUpToDate: 'Up to date',
   cannotGetProxyUpdates: 'Cannot get proxy updates',
 
