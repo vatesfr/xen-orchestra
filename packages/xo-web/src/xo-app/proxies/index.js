@@ -188,7 +188,7 @@ const Proxies = decorate([
             updatesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(
               e => ({
                 state: 'error',
-                message: _('cannotGetProxyUpdates'),
+                message: _('cannotGetUpdatesState'),
               })
             )
           })

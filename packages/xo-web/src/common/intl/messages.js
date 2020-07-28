@@ -2383,7 +2383,7 @@ const messages = {
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
   proxyUpToDate: 'Up to date',
-  cannotGetProxyUpdates: 'Cannot get proxy updates',
+  cannotGetUpdatesState: 'Cannot get updates state',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
