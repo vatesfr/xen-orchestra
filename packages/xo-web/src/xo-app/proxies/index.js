@@ -110,8 +110,8 @@ const COLUMNS = [
     name: _('vm'),
   },
   {
-    itemRenderer: (proxy, { stateByProxy, upgradeAppliance }) => {
-      const globalState = stateByProxy[proxy.id]
+    itemRenderer: (proxy, { updatesByProxy, upgradeAppliance }) => {
+      const globalState = updatesByProxy[proxy.id]
       if (globalState === undefined) {
         return
       }
@@ -175,23 +175,25 @@ const COLUMNS = [
 const Proxies = decorate([
   provideState({
     initialState: () => ({
-      stateByProxy: {},
+      updatesByProxy: {},
     }),
     effects: {
       initialize({ fetchProxyUpdates }) {
         return fetchProxyUpdates(this.props.proxies.map(({ id }) => id))
       },
       async fetchProxyUpdates(effects, proxies) {
-        const stateByProxy = { ...this.state.stateByProxy }
+        const updatesByProxy = { ...this.state.updatesByProxy }
         await Promise.all(
           proxies.map(async id => {
-            stateByProxy[id] = await getProxyApplianceUpdates(id).catch(e => ({
-              state: 'error',
-              message: _('cannotGetProxyState'),
-            }))
+            updatesByProxy[id] = await getProxyApplianceUpdates(id).catch(
+              e => ({
+                state: 'error',
+                message: _('cannotGetProxyState'),
+              })
+            )
           })
         )
-        this.state.stateByProxy = stateByProxy
+        this.state.updatesByProxy = updatesByProxy
       },
       async deployProxy({ fetchProxyUpdates }, proxy) {
         return fetchProxyUpdates([await deployProxy(proxy)])
@@ -224,7 +226,7 @@ const Proxies = decorate([
           component={SortedTable}
           data-deployProxy={effects.deployProxy}
           data-router={router}
-          data-stateByProxy={state.stateByProxy}
+          data-updatesByProxy={state.updatesByProxy}
           data-upgradeAppliance={effects.upgradeAppliance}
           emptyMessage={
             <span className='text-muted'>
