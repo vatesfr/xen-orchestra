@@ -75,6 +75,32 @@ Encryption is not available prior to XCP-ng 8.0.
 
 ## OpenFlow rules
 
+Please see the [devblog about OpenFlow rules](https://xen-orchestra.com/blog/vms-vif-network-traffic-control/).
+
+This feature requires the OpenFlow port to be opened
+
+In the VM network tab a new column has been added: _Network rules_.
+
+- The _Add rule_ button display a form to add a new rule choosing to:
+  - enable/disable the matching traffic
+  - for a specific protocol (optionnal)
+  - on a specific port (optionnal)
+  - matching a specific IP or IP range (optionnal)
+  - coming from the VIF / going to the VIF / both
+- The _Show rules_ button allow to display all rules for a VIF.
+- When the rules are display a button to delete a rule is available.
+
+![](./assets/add-rule.png)
+![](./assets/show-rules.png)
+
 :::tip
-This feature is about to be released soon. Stay tuned!
-:::
+
+- This feature requires the OpenFlow port (TCP 6653) to be opened. (See [the requirements](#openflow))
+  :::
+
+### Requirements
+
+### Openflow
+
+- On XCP-ng prior to 8.2:
+  - To be able to use `OpenFlow`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `OpenFlow` is wanted: `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m tcp --dport 6653 -j ACCEPT`
