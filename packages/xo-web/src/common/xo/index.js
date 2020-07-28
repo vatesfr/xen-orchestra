@@ -1187,7 +1187,7 @@ export const copyVms = (vms, type) => {
   }, noop)
 }
 
-export const copyVm = vm => copyVms([vm])
+export const copyVm = vm => copyVms([vm], vm.type)
 
 export const convertVmToTemplate = vm =>
   confirm({
