@@ -23,6 +23,7 @@ export async function signIn(credentials) {
 }
 
 signIn.description = 'sign in'
+signIn.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
@@ -35,6 +36,7 @@ signInWithPassword.params = {
   email: { type: 'string' },
   password: { type: 'string' },
 }
+signInWithPassword.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
@@ -43,6 +45,7 @@ export const signInWithToken = deprecate(signIn, 'use session.signIn() instead')
 signInWithToken.params = {
   token: { type: 'string' },
 }
+signInWithToken.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
@@ -51,9 +54,6 @@ export function signOut() {
 }
 
 signOut.description = 'sign out the user from the current session'
-
-// This method requires the user to be signed in.
-signOut.permission = ''
 
 // -------------------------------------------------------------------
 
@@ -66,3 +66,4 @@ export async function getUser() {
 }
 
 getUser.description = 'return the currently connected user'
+getUser.permission = null // user does not need to be authenticated

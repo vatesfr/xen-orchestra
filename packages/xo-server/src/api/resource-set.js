@@ -98,7 +98,6 @@ export function get({ id }) {
   return this.getResourceSet(id)
 }
 
-get.permission = ''
 get.params = {
   id: {
     type: 'string',
@@ -111,7 +110,6 @@ export async function getAll() {
   return this.getAllResourceSets(this.user.id)
 }
 
-getAll.permission = ''
 getAll.description = 'Get the list of all existing resource set'
 
 // -------------------------------------------------------------------
