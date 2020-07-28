@@ -1,14 +1,11 @@
 import asyncMap from '@xen-orchestra/async-map'
 import limitConcurrency from 'limit-concurrency-decorator'
 import { compileTemplate } from '@xen-orchestra/template'
-import { createLogger } from '@xen-orchestra/log'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
 import { getHandler } from '@xen-orchestra/fs'
 
 import { Task } from './_Task'
 import { VmBackup } from './_VmBackup'
-
-const { warn } = createLogger('xo:proxy:backups:Backup')
 
 const noop = Function.prototype
 
@@ -66,26 +63,21 @@ export class Backup {
 
       Task.info('vms', { vms: vmIds })
 
-      const handleVm = async vmUuid => {
-        try {
-          const vm = await this._getRecord('VM', vmUuid)
-          return await new VmBackup({
-            getSnapshotNameLabel,
-            job,
-            // remotes,
-            remoteHandlers,
-            schedule,
-            settings: { ...scheduleSettings, ...settings[vmUuid] },
-            srs,
-            vm,
-          }).run()
-        } catch (error) {
-          warn('VM backup failure', {
-            error,
-            vmUuid,
-          })
-        }
-      }
+      const handleVm = vmUuid =>
+        Task.run(
+          { name: 'backup VM', data: { type: 'VM', id: vmUuid } },
+          async () =>
+            new VmBackup({
+              getSnapshotNameLabel,
+              job,
+              // remotes,
+              remoteHandlers,
+              schedule,
+              settings: { ...scheduleSettings, ...settings[vmUuid] },
+              srs,
+              vm: await this._getRecord('VM', vmUuid),
+            }).run()
+        ).catch(noop) // errors are handled by logs
       const { concurrency } = scheduleSettings
       await asyncMap(
         vmIds,

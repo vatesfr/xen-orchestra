@@ -69,17 +69,6 @@ export class VmBackup {
     // VM (snapshot) that is really exported
     this.exportedVm = undefined
 
-    this.run = Task.wrapFn(
-      {
-        name: 'backup VM',
-        data: {
-          type: 'VM',
-          id: vm.uuid,
-        },
-      },
-      this.run
-    )
-
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isDelta = job.mode === 'delta'
     this._jobId = job.id
