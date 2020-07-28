@@ -144,17 +144,15 @@ const COLUMNS = [
         state === 'installer-upgraded'
       ) {
         return (
-          <div>
-            <ActionButton
-              btnStyle='primary'
-              disabled={proxy.vmUuid === undefined}
-              handler={upgradeAppliance}
-              handlerParam={proxy.id}
-              icon='upgrade'
-            >
-              {_('upgrade')}
-            </ActionButton>
-          </div>
+          <ActionButton
+            btnStyle='primary'
+            disabled={proxy.vmUuid === undefined}
+            handler={upgradeAppliance}
+            handlerParam={proxy.id}
+            icon='upgrade'
+          >
+            {_('upgrade')}
+          </ActionButton>
         )
       }
 
