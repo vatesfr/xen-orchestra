@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.60.0",
+  "version": "5.62.1",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -83,7 +83,7 @@
     "iterable-backoff": "^0.1.0",
     "jest-worker": "^24.0.0",
     "js-yaml": "^3.10.0",
-    "json-rpc-peer": "^0.15.3",
+    "json-rpc-peer": "^0.16.0",
     "json5": "^2.0.1",
     "kindof": "^2.0.0",
     "level-party": "^4.0.0",
@@ -133,13 +133,13 @@
     "vhd-lib": "^0.7.2",
     "ws": "^7.1.2",
     "xdg-basedir": "^4.0.0",
-    "xen-api": "^0.28.5",
+    "xen-api": "^0.29.0",
     "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.4.1",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.5.0",
     "xo-remote-parser": "^0.5.0",
-    "xo-vmdk-to-vhd": "^1.2.0",
+    "xo-vmdk-to-vhd": "^1.2.1",
     "yazl": "^2.4.3"
   },
   "devDependencies": {

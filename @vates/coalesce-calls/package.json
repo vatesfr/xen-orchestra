@@ -1,0 +1,38 @@
+{
+  "private": false,
+  "name": "@vates/coalesce-calls",
+  "description": "Wraps an async function so that concurrent calls will be coalesced",
+  "keywords": [
+    "async",
+    "calls",
+    "coalesce",
+    "decorate",
+    "decorator",
+    "merge",
+    "promise",
+    "wrap",
+    "wrapper"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/coalesce-calls",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/coalesce-calls",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "files": [
+    "index.js"
+  ],
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}

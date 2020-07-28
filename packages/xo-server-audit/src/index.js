@@ -20,21 +20,28 @@ const DEFAULT_BLOCKED_LIST = {
   'audit.checkIntegrity': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
+  'backup.list': true,
   'backupNg.getAllJobs': true,
   'backupNg.getAllLogs': true,
+  'backupNg.listVmBackups': true,
   'cloud.getResourceCatalog': true,
   'cloudConfig.getAll': true,
   'group.getAll': true,
+  'host.isHostServerTimeConsistent': true,
+  'host.isHyperThreadingEnabled': true,
   'host.stats': true,
   'ipPool.getAll': true,
   'job.getAll': true,
   'log.get': true,
   'metadataBackup.getAllJobs': true,
+  'network.getBondModes': true,
+  'pif.getIpv4ConfigurationModes': true,
   'plugin.get': true,
   'pool.listMissingPatches': true,
   'proxy.getAll': true,
   'remote.getAll': true,
   'remote.getAllInfo': true,
+  'remote.list': true,
   'resourceSet.getAll': true,
   'role.getAll': true,
   'schedule.getAll': true,
@@ -47,14 +54,36 @@ const DEFAULT_BLOCKED_LIST = {
   'system.getServerTimezone': true,
   'system.getServerVersion': true,
   'user.getAll': true,
+  'vm.getHaValues': true,
   'vm.stats': true,
   'xo.getAllObjects': true,
+  'xoa.getApplianceInfo': true,
+  'xoa.licenses.get': true,
+  'xoa.licenses.getAll': true,
+  'xoa.licenses.getSelf': true,
   'xoa.supportTunnel.getState': true,
   'xosan.checkSrCurrentState': true,
+  'xosan.computeXosanPossibleOptions': true,
   'xosan.getVolumeInfo': true,
 }
 
 const LAST_ID = 'lastId'
+
+// interface Db {
+//   lastId: string
+//   [RecordId: string]: {
+//     data: object
+//     event: string
+//     id: strings
+//     previousId: string
+//     subject: {
+//       userId: string
+//       userIp: string
+//       userName: string
+//     }
+//     time: number
+//   }
+// }
 class Db extends Storage {
   constructor(db) {
     super()
@@ -86,6 +115,16 @@ class Db extends Storage {
   }
 }
 
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    active: {
+      description: 'Whether to save user actions in the audit log',
+      type: 'boolean',
+    },
+  },
+}
+
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
   constructor({ staticConfig, xo }) {
@@ -98,6 +137,19 @@ class AuditXoPlugin {
 
     this._auditCore = undefined
     this._storage = undefined
+
+    this._listeners = {
+      'xo:audit': this._handleEvent.bind(this),
+      'xo:postCall': this._handleEvent.bind(this, 'apiCall'),
+    }
+  }
+
+  configure({ active = false }, { loaded }) {
+    this._active = active
+
+    if (loaded) {
+      this._addListeners()
+    }
   }
 
   async load() {
@@ -110,8 +162,7 @@ class AuditXoPlugin {
       this._storage = undefined
     })
 
-    this._addListener('xo:postCall', this._handleEvent.bind(this, 'apiCall'))
-    this._addListener('xo:audit', this._handleEvent.bind(this))
+    this._addListeners()
 
     const exportRecords = this._exportRecords.bind(this)
     exportRecords.permission = 'admin'
@@ -155,34 +206,44 @@ class AuditXoPlugin {
   }
 
   unload() {
+    this._removeListeners()
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners.length = 0
   }
 
-  _addListener(event, listener_) {
-    const listener = async (...args) => {
-      try {
-        await listener_(...args)
-      } catch (error) {
-        log.error(error)
-      }
+  _addListeners(event, listener_) {
+    this._removeListeners()
+
+    if (this._active) {
+      const listeners = this._listeners
+      Object.keys(listeners).forEach(event => {
+        this._xo.addListener(event, listeners[event])
+      })
     }
-    const xo = this._xo
-    xo.on(event, listener)
-    this._cleaners.push(() => xo.removeListener(event, listener))
   }
 
-  _handleEvent(event, { userId, userIp, userName, ...data }) {
-    if (event !== 'apiCall' || !this._blockedList[data.method]) {
-      return this._auditCore.add(
-        {
-          userId,
-          userIp,
-          userName,
-        },
-        event,
-        data
-      )
+  _removeListeners() {
+    const listeners = this._listeners
+    Object.keys(listeners).forEach(event => {
+      this._xo.removeListener(event, listeners[event])
+    })
+  }
+
+  async _handleEvent(event, { userId, userIp, userName, ...data }) {
+    try {
+      if (event !== 'apiCall' || !this._blockedList[data.method]) {
+        return await this._auditCore.add(
+          {
+            userId,
+            userIp,
+            userName,
+          },
+          event,
+          data
+        )
+      }
+    } catch (error) {
+      log.error(error)
     }
   }
 

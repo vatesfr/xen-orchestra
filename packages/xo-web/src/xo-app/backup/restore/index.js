@@ -136,6 +136,10 @@ export default class Restore extends Component {
     forEach(backupsByRemote, (backups, remoteId) => {
       const remote = remotes[remoteId]
       forEach(backups, (vmBackups, vmId) => {
+        if (vmBackups.length === 0) {
+          return
+        }
+
         if (backupDataByVm[vmId] === undefined) {
           backupDataByVm[vmId] = { backups: [] }
         }
@@ -280,7 +284,7 @@ export default class Restore extends Component {
               handler={this._refreshBackupList}
               icon='refresh'
             >
-              {_('restoreResfreshList')}
+              {_('refreshBackupList')}
             </ActionButton>{' '}
             <ButtonLink to='backup/restore/metadata'>
               <Icon icon='database' /> {_('metadata')}

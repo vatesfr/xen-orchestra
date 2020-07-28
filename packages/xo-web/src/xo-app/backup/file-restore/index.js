@@ -110,7 +110,10 @@ export default class Restore extends Component {
     _remotes = this.props.remotes,
     jobs = this.props.jobs
   ) => {
-    const remotes = keyBy(filter(_remotes, { enabled: true }), 'id')
+    const remotes = keyBy(
+      filter(_remotes, ({ enabled, proxy }) => enabled && proxy === undefined),
+      'id'
+    )
     const backupsByRemote = await listVmBackups(toArray(remotes))
 
     const backupDataByVm = {}
@@ -230,7 +233,7 @@ export default class Restore extends Component {
               handler={this._refreshBackupList}
               icon='refresh'
             >
-              {_('restoreResfreshList')}
+              {_('refreshBackupList')}
             </ActionButton>
           </div>
           <em>

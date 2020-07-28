@@ -21,9 +21,11 @@ import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
   debounce,
+  differenceBy,
   escapeRegExp,
   filter,
   find,
+  flatMap,
   forEach,
   identity,
   includes,
@@ -31,10 +33,12 @@ import {
   keys,
   map,
   mapValues,
+  omit,
   pick,
   pickBy,
   size,
   some,
+  uniq,
 } from 'lodash'
 import {
   addCustomFilter,
@@ -56,11 +60,13 @@ import {
   startVms,
   stopHosts,
   stopVms,
+  subscribeBackupNgJobs,
   subscribeResourceSets,
   subscribeServers,
   suspendVms,
 } from 'xo'
 import { Container, Row, Col } from 'grid'
+import { createPredicate } from 'value-matcher'
 import {
   SelectHost,
   SelectPool,
@@ -89,7 +95,6 @@ import {
 import { Select } from 'form'
 
 import styles from './index.css'
-import BackedUpVms from './backed-up-vms'
 import HostItem from './host-item'
 import PoolItem from './pool-item'
 import VmItem from './vm-item'
@@ -239,6 +244,11 @@ const OPTIONS = {
     filters: homeFilters.vmTemplate,
     mainActions: [
       {
+        handler: vms => copyVms(vms, 'VM-template'),
+        icon: 'vm-copy',
+        tooltip: _('copyVmLabel'),
+      },
+      {
         handler: deleteTemplates,
         icon: 'delete',
         tooltip: _('templateDelete'),
@@ -314,6 +324,18 @@ const BACKUP_FILTERS = [
   { value: 'all', label: _('allVms') },
   { value: 'backedUpVms', label: _('backedUpVms') },
   { value: 'notBackedUpVms', label: _('notBackedUpVms') },
+]
+
+const POWER_STATE_HOST = [
+  { value: 'halted', label: _('powerStateHalted') },
+  { value: 'running', label: _('powerStateRunning') },
+]
+
+const POWER_STATE_VM = [
+  { value: 'halted', label: _('powerStateHalted') },
+  { value: 'paused', label: _('powerStatePaused') },
+  { value: 'running', label: _('powerStateRunning') },
+  { value: 'suspended', label: _('powerStateSuspended') },
 ]
 
 @connectStore(() => {
@@ -454,6 +476,7 @@ const NoObjects = props =>
   )
 
 @addSubscriptions({
+  jobs: subscribeBackupNgJobs,
   noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
 })
 @connectStore(() => {
@@ -642,8 +665,9 @@ export default class Home extends Component {
     this.setState({
       selectedHosts: properties.$container,
       selectedPools: properties.$pool,
-      selectedTags: properties.tags,
+      selectedPowerStates: properties.power_state,
       selectedResourceSets: properties.resourceSet,
+      selectedTags: properties.tags,
       ...sort,
     })
 
@@ -698,7 +722,26 @@ export default class Home extends Component {
   })
 
   _getFilteredItems = createSort(
-    createFilter(() => this.props.items, this._getFilterFunction),
+    createSelector(
+      createFilter(() => this.props.items, this._getFilterFunction),
+      () => this.props.location.query.backup,
+      () => this.props.jobs,
+      (filteredItems, backup, jobs) => {
+        if (backup === undefined) {
+          return filteredItems
+        }
+
+        const backedUpVms = uniq(
+          flatMap(jobs, job =>
+            filter(filteredItems, createPredicate(omit(job.vms, 'power_state')))
+          )
+        )
+
+        return backup === 'true'
+          ? backedUpVms
+          : differenceBy(map(filteredItems), backedUpVms, 'id')
+      }
+    ),
     createSelector(
       () => this.state.sortBy,
       sortBy => [sortBy, 'name_label']
@@ -733,6 +776,20 @@ export default class Home extends Component {
       {label}
     </MenuItem>
   ))
+
+  _updateSelectedPowerStates = powerStates =>
+    this._setFilter(
+      ComplexMatcher.setPropertyClause(
+        this._getParsedFilter(),
+        'power_state',
+        powerStates.length === 0
+          ? undefined
+          : new ComplexMatcher.Or(
+              powerStates.map(_ => new ComplexMatcher.String(_.value))
+            )
+      )
+    )
+
   _updateSelectedPools = pools => {
     const filter = this._getParsedFilter()
 
@@ -894,13 +951,13 @@ export default class Home extends Component {
 
   _setBackupFilter = backupFilter => {
     const { pathname, query } = this.props.location
-    const isAll = backupFilter === 'all'
     this.context.router.push({
       pathname,
       query: {
         ...query,
-        backup: isAll ? undefined : backupFilter === 'backedUpVms',
-        p: isAll ? 1 : undefined,
+        backup:
+          backupFilter === 'all' ? undefined : backupFilter === 'backedUpVms',
+        p: 1,
         s_backup: undefined,
       },
     })
@@ -910,19 +967,13 @@ export default class Home extends Component {
     const customFilters = this._getCustomFilters()
     const filteredItems = this._getFilteredItems()
     const nItems = this._getNumberOfItems()
-    const {
-      isAdmin,
-      isPoolAdmin,
-      items,
-      location,
-      noResourceSets,
-      type,
-    } = this.props
+    const { isAdmin, isPoolAdmin, items, noResourceSets, type } = this.props
 
     const {
       homeItemsPerPage,
       selectedHosts,
       selectedPools,
+      selectedPowerStates,
       selectedResourceSets,
       selectedTags,
       sortBy,
@@ -937,10 +988,6 @@ export default class Home extends Component {
       showPoolsSelector,
       showResourceSetsSelector,
     } = options
-
-    // Disable all the features that are already handled by the SortedTable
-    // or irrelevant with the SortedTable.
-    const disableHomeFeatures = location.query.backup !== undefined
 
     return (
       <Container>
@@ -997,7 +1044,7 @@ export default class Home extends Component {
               <Tooltip content={_('filterSyntaxLinkTooltip')}>
                 <a
                   className='input-group-addon'
-                  href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+                  href='https://xen-orchestra.com/docs/manage_infrastructure.html#live-filter-search'
                   rel='noopener noreferrer'
                   target='_blank'
                 >
@@ -1023,29 +1070,27 @@ export default class Home extends Component {
         </Row>
         <Row className={classNames(styles.itemRowHeader, 'mt-1')}>
           <Col smallSize={6} mediumSize={2}>
-            {!disableHomeFeatures && (
-              <span>
-                <input
-                  checked={this._getIsAllSelected()}
-                  onChange={this._toggleMaster}
-                  ref='masterCheckbox'
-                  type='checkbox'
-                />{' '}
-                <span className='text-muted'>
-                  {this._getNumberOfSelectedItems()
-                    ? _('homeSelectedItems', {
-                        icon: <Icon icon={type.toLowerCase()} />,
-                        selected: this._getNumberOfSelectedItems(),
-                        total: nItems,
-                      })
-                    : _('homeDisplayedItems', {
-                        displayed: filteredItems.length,
-                        icon: <Icon icon={type.toLowerCase()} />,
-                        total: nItems,
-                      })}
-                </span>
+            <span>
+              <input
+                checked={this._getIsAllSelected()}
+                onChange={this._toggleMaster}
+                ref='masterCheckbox'
+                type='checkbox'
+              />{' '}
+              <span className='text-muted'>
+                {this._getNumberOfSelectedItems()
+                  ? _('homeSelectedItems', {
+                      icon: <Icon icon={type.toLowerCase()} />,
+                      selected: this._getNumberOfSelectedItems(),
+                      total: nItems,
+                    })
+                  : _('homeDisplayedItems', {
+                      displayed: filteredItems.length,
+                      icon: <Icon icon={type.toLowerCase()} />,
+                      total: nItems,
+                    })}
               </span>
-            )}
+            </span>
           </Col>
           <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
             {this._getNumberOfSelectedItems() ? (
@@ -1089,6 +1134,34 @@ export default class Home extends Component {
               </div>
             ) : (
               <div>
+                {(type === 'VM' || type === 'host') && (
+                  <OverlayTrigger
+                    trigger='click'
+                    rootClose
+                    placement='bottom'
+                    overlay={
+                      <Popover
+                        className={styles.selectObject}
+                        id='powerStatePopover'
+                      >
+                        <Select
+                          autoFocus
+                          multi
+                          onChange={this._updateSelectedPowerStates}
+                          openOnFocus
+                          options={
+                            type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST
+                          }
+                          value={selectedPowerStates}
+                        />
+                      </Popover>
+                    }
+                  >
+                    <Button btnStyle='link'>
+                      <Icon icon='powerState' /> {_('powerState')}
+                    </Button>
+                  </OverlayTrigger>
+                )}
                 {type === 'VM' && (
                   <OverlayTrigger
                     trigger='click'
@@ -1205,7 +1278,6 @@ export default class Home extends Component {
                 )}
                 <DropdownButton
                   bsStyle='link'
-                  disabled={disableHomeFeatures}
                   id='sort'
                   title={_('homeSortBy')}
                 >
@@ -1232,11 +1304,9 @@ export default class Home extends Component {
             )}
           </Col>
           <Col smallSize={6} mediumSize={2} className='text-xs-right'>
-            {!disableHomeFeatures && (
-              <Button onClick={this._expandAll}>
-                <Icon icon='nav' />
-              </Button>
-            )}{' '}
+            <Button onClick={this._expandAll}>
+              <Icon icon='nav' />
+            </Button>{' '}
             <DropdownButton bsStyle='info' title={homeItemsPerPage}>
               {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
                 <MenuItem
@@ -1313,55 +1383,52 @@ export default class Home extends Component {
           name='Home'
           targetNodeSelector='body'
         />
-        {backup === undefined ? (
-          <div>
-            <div className={styles.itemContainer}>
-              {isEmpty(filteredItems) ? (
-                <p className='text-xs-center mt-1'>
-                  <a className='btn btn-link' onClick={this._clearFilter}>
-                    <Icon icon='info' /> {_('homeNoMatches')}
-                  </a>
-                </p>
-              ) : (
-                map(visibleItems, (item, index) => (
-                  <div
+        <div>
+          {backup !== undefined && (
+            <h5>
+              {backup === 'true' ? _('backedUpVms') : _('notBackedUpVms')}
+            </h5>
+          )}
+          <div className={styles.itemContainer}>
+            {isEmpty(filteredItems) ? (
+              <p className='text-xs-center mt-1'>
+                <a className='btn btn-link' onClick={this._clearFilter}>
+                  <Icon icon='info' /> {_('homeNoMatches')}
+                </a>
+              </p>
+            ) : (
+              map(visibleItems, (item, index) => (
+                <div
+                  key={item.id}
+                  className={
+                    highlighted === index ? styles.highlight : undefined
+                  }
+                >
+                  <Item
+                    expandAll={expandAll}
+                    item={item}
                     key={item.id}
-                    className={
-                      highlighted === index ? styles.highlight : undefined
-                    }
-                  >
-                    <Item
-                      expandAll={expandAll}
-                      item={item}
-                      key={item.id}
-                      onSelect={this.toggleState(`selectedItems.${item.id}`)}
-                      selected={Boolean(selectedItems[item.id])}
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-            {filteredItems.length > homeItemsPerPage && (
-              <Row>
-                <div style={{ display: 'flex', width: '100%' }}>
-                  <div style={{ margin: 'auto' }}>
-                    <Pagination
-                      onChange={this._onPageSelection}
-                      pages={ceil(filteredItems.length / homeItemsPerPage)}
-                      value={this._getPage()}
-                    />
-                  </div>
+                    onSelect={this.toggleState(`selectedItems.${item.id}`)}
+                    selected={Boolean(selectedItems[item.id])}
+                  />
                 </div>
-              </Row>
+              ))
             )}
           </div>
-        ) : (
-          <BackedUpVms
-            itemsPerPage={homeItemsPerPage}
-            showBackedUpVms={backup === 'true'}
-            vms={filteredItems}
-          />
-        )}
+          {filteredItems.length > homeItemsPerPage && (
+            <Row>
+              <div style={{ display: 'flex', width: '100%' }}>
+                <div style={{ margin: 'auto' }}>
+                  <Pagination
+                    onChange={this._onPageSelection}
+                    pages={ceil(filteredItems.length / homeItemsPerPage)}
+                    value={this._getPage()}
+                  />
+                </div>
+              </div>
+            </Row>
+          )}
+        </div>
       </Page>
     )
   }

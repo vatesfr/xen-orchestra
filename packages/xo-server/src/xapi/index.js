@@ -1835,7 +1835,7 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     if (vdi.SR === sr.$ref) {
-      return // nothing to do
+      return vdi
     }
 
     log.debug(

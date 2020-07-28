@@ -77,6 +77,8 @@ const messages = {
   withMemory: 'With memory',
   offline: 'Offline',
   noLicenseAvailable: 'No license available',
+  emailPlaceholderExample: 'Email address, e.g.: it@company.net',
+  unknown: 'Unknown',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -228,13 +230,9 @@ const messages = {
   homeAllResourceSets: 'Resource sets',
   homeNewVm: 'New VM',
   homeFilterNone: 'None',
-  homeFilterRunningHosts: 'Running hosts',
   homeFilterDisabledHosts: 'Disabled hosts',
-  homeFilterRunningVms: 'Running VMs',
-  homeFilterNonRunningVms: 'Non running VMs',
   homeFilterPendingVms: 'Pending VMs',
   homeFilterHvmGuests: 'HVM guests',
-  homeFilterTags: 'Tags',
   homeSortBy: 'Sort by',
   homeSortByCpus: 'CPUs',
   homeSortByStartTime: 'Start time',
@@ -256,11 +254,11 @@ const messages = {
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
+  powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
-  description: 'Description',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -539,6 +537,7 @@ const messages = {
   deleteOldBackupsFirstMessage:
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
+  editJobNotFound: "The job you're trying to edit wasn't found",
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -697,6 +696,7 @@ const messages = {
   pluginConfigurationPresetTitle: 'Predefined configuration',
   pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
   applyPluginPreset: 'Apply',
+  disabledTestPluginTootltip: 'This plugin is not loaded',
 
   // ----- User preferences -----
   saveNewUserFilterErrorTitle: 'Save filter error',
@@ -746,6 +746,7 @@ const messages = {
 
   // ----- SR advanced tab -----
 
+  provisioning: 'Provisioning',
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
@@ -1007,6 +1008,9 @@ const messages = {
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
+  managementAgentDetected: 'Management agent {version} detected',
+  managementAgentOutOfDate: 'Management agent {version} out of date',
+  managementAgentNotDetected: 'Management agent not detected',
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
@@ -1186,11 +1190,11 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools version',
-  xenToolsNotInstalled: 'Not installed',
+  managementAgentVersion: 'Management agent version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
+  protectFromDeletion: 'Protect from accidental deletion',
   ha: 'HA',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
@@ -1318,6 +1322,16 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
+  deleteBackupsMessage:
+    'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
+  detachedBackups: 'Detached backups',
+  missingJob: 'Missing job',
+  missingVm: 'Missing VM',
+  missingVmInJob: 'This VM does not belong to this job',
+  missingSchedule: 'Missing schedule',
+  noDetachedBackups: 'No backups',
+  reason: 'Reason',
   orphanedVdis: 'Orphaned snapshot VDIs',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
@@ -1536,7 +1550,7 @@ const messages = {
   importBackupTitle: 'Import VM',
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
-  restoreResfreshList: 'Refresh backup list',
+  refreshBackupList: 'Refresh backup list',
   restoreLegacy: 'Legacy restore',
   restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
@@ -1754,6 +1768,9 @@ const messages = {
   optionalEntry: '* optional',
 
   // ----- Servers -----
+  enableServerErrorTitle: 'Enable server',
+  enableServerErrorMessage:
+    'Unexpected response. Please check your server address.',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -1785,7 +1802,6 @@ const messages = {
   // ----- Copy VM -----
   copyVm: 'Copy VM',
   copyVmName: 'Name',
-  copyVmNamePlaceholder: 'If empty: name of the copied VM',
   copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
@@ -1795,6 +1811,7 @@ const messages = {
   notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
+  copyTemplate: 'Copy template',
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',
@@ -2110,6 +2127,8 @@ const messages = {
   downloadConfig: 'Download current config',
 
   // ----- SR -----
+  disabledVdiMigrateTooltip:
+    "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
   srDisconnectAllModalTitle: 'Disconnect all hosts',
@@ -2283,6 +2302,8 @@ const messages = {
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
+  auditInactiveUserActionsRecord:
+    'User actions recording is currently inactive',
 
   // Licenses
   xosanUnregisteredDisclaimer:
@@ -2326,6 +2347,7 @@ const messages = {
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
   bindXoaLicense: 'Activate license',
+  rebindXoaLicense: 'Move license to this XOA',
   bindXoaLicenseConfirm:
     'Are you sure you want to activate this license on your XOA? This action is not reversible!',
   bindXoaLicenseConfirmText: 'activate {licenseType} license',

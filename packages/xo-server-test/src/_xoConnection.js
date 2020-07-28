@@ -4,6 +4,7 @@ import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
 import { defaultsDeep, find, forOwn, pick } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
+import { parseDuration } from '@vates/parse-duration'
 
 import config from './_config'
 import { getDefaultName } from './_defaultValues'
@@ -278,7 +279,11 @@ afterAll(async () => {
   await xo.close()
   xo = null
 })
-afterEach(() => xo.deleteTempResources())
+afterEach(async () => {
+  jest.setTimeout(parseDuration(config.deleteTempResourcesTimeout))
+
+  await xo.deleteTempResources()
+})
 
 export { xo as default }
 

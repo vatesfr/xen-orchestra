@@ -117,11 +117,17 @@ const SchedulePreviewBody = decorate([
         let lastRunLog
         for (const runId in logs) {
           const log = logs[runId]
-          if (
-            log.scheduleId === schedule.id &&
-            (lastRunLog === undefined || lastRunLog.start < log.start)
-          ) {
-            lastRunLog = log
+          if (log.scheduleId === schedule.id) {
+            if (log.status === 'pending') {
+              lastRunLog = log
+              break
+            }
+            if (
+              lastRunLog === undefined ||
+              (lastRunLog.end || lastRunLog.start) < (log.end || log.start)
+            ) {
+              lastRunLog = log
+            }
           }
         }
         cb(lastRunLog)
@@ -160,20 +166,18 @@ const SchedulePreviewBody = decorate([
         />
         {job.runId !== undefined ? (
           <Tooltip content={_('temporarilyDisabled')}>
-            <span>
-              <ActionButton
-                btnStyle='danger'
-                // 2020-01-29 Job cancellation will be disabled until we find a way to make it work.
-                // See https://github.com/vatesfr/xen-orchestra/issues/4657
-                disabled
-                handler={cancelJob}
-                handlerParam={job}
-                icon='cancel'
-                key='cancel'
-                size='small'
-                tooltip={_('formCancel')}
-              />
-            </span>
+            <ActionButton
+              btnStyle='danger'
+              // 2020-01-29 Job cancellation will be disabled until we find a way to make it work.
+              // See https://github.com/vatesfr/xen-orchestra/issues/4657
+              disabled
+              handler={cancelJob}
+              handlerParam={job}
+              icon='cancel'
+              key='cancel'
+              size='small'
+              tooltip={_('formCancel')}
+            />
           </Tooltip>
         ) : (
           <ActionButton
@@ -344,7 +348,8 @@ class JobsTable extends React.Component {
         icon: 'preview',
       },
       {
-        handler: (job, { goToNewTab }) => goToNewTab(`/backup/${job.id}/edit`),
+        handler: (job, { goTo, goToNewTab, main }) =>
+          (main ? goTo : goToNewTab)(`/backup/${job.id}/edit`),
         label: _('formEdit'),
         icon: 'edit',
         level: 'primary',

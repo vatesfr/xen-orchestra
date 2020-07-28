@@ -41,6 +41,7 @@ const RESOURCE_TYPE_TO_HANDLER = {
   '17': (
     { disks },
     {
+      Address: address,
       AddressOnParent: position,
       Description: description = 'No description',
       ElementName: name,
@@ -51,6 +52,27 @@ const RESOURCE_TYPE_TO_HANDLER = {
   ) => {
     const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
     const disk = diskId && disks[diskId[1]]
+    if (position === undefined && address !== undefined) {
+      // remove blanks
+      let parsed = address.replace(/\s+/g, '')
+      // expecting "{type=drive,bus=0,controller=0,target=0,unit=0}"
+      if (parsed[0] === '{' && parsed[parsed.length - 1] === '}') {
+        parsed = parsed.substring(1, parsed.length - 1)
+        // "type=drive,bus=0,controller=0,target=0,unit=0"
+        parsed = parsed.split(',')
+        // ["type=drive", "bus=0", "controller=0", "target=0", "unit=0"]
+        parsed = Object.fromEntries(parsed.map(couple => couple.split('=')))
+        // {type:"drive", bus:"0", controller:"0", target:"0",unit:"0"]
+        // 'target' seems to be the field we want
+        // https://www.ibm.com/support/knowledgecenter/linuxonibm/com.ibm.linux.z.ldva/ldva_r_XML_addressHostdev.html
+        if ('target' in parsed) {
+          position = +parsed.target
+        }
+      }
+    }
+    if (position === undefined) {
+      position = 0
+    }
     if (disk) {
       disk.descriptionLabel = description
       disk.nameLabel = caption
@@ -69,10 +91,21 @@ function parseTarHeader(header, stringDeserializer) {
   if (fileName.length === 0) {
     return null
   }
-  const fileSize = parseInt(
-    stringDeserializer(header.slice(124, 124 + 11), 'ascii'),
-    8
-  )
+  const sizeBuffer = header.slice(124, 124 + 12)
+  // size encoding: https://codeistry.wordpress.com/2014/08/14/how-to-parse-a-tar-file/
+  let fileSize = 0
+  // If the leading byte is 0x80 (128), the non-leading bytes of the field are concatenated in big-endian order, with the result being a positive number expressed in binary form.
+  //
+  // Source: https://www.gnu.org/software/tar/manual/html_node/Extensions.html
+  if (new Uint8Array(sizeBuffer)[0] === 128) {
+    for (const byte of new Uint8Array(sizeBuffer.slice(1))) {
+      fileSize *= 256
+      fileSize += byte
+    }
+  } else {
+    fileSize = parseInt(stringDeserializer(sizeBuffer.slice(0, 11), 'ascii'), 8)
+  }
+
   return { fileName, fileSize }
 }
 
@@ -277,17 +310,25 @@ export async function parseOVAFile(
     if (header === null) {
       break
     }
-    if (header.fileName.toLowerCase().endsWith('.ovf')) {
-      const res = await parseOVF(
-        parsableFile.slice(offset, offset + header.fileSize),
-        stringDeserializer
+    if (
+      !(
+        header.fileName.startsWith('PaxHeader/') ||
+        header.fileName.startsWith('.')
       )
-      data = { ...data, ...res }
-    }
-    if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk')) {
-      const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
-      const readFile = async (start, end) => fileSlice.slice(start, end).read()
-      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+    ) {
+      if (header.fileName.toLowerCase().endsWith('.ovf')) {
+        const res = await parseOVF(
+          parsableFile.slice(offset, offset + header.fileSize),
+          stringDeserializer
+        )
+        data = { ...data, ...res }
+      }
+      if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk')) {
+        const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
+        const readFile = async (start, end) =>
+          fileSlice.slice(start, end).read()
+        data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+      }
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
       const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
