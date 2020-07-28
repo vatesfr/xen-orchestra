@@ -176,7 +176,7 @@ export default class Proxy {
     )
   }
 
-  getProxyApplianceUpdates(id) {
+  getProxyApplianceUpdaterState(id) {
     return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 

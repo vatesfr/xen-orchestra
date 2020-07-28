@@ -155,12 +155,12 @@ upgradeAppliance.params = {
   },
 }
 
-export function getApplianceUpdates({ id }) {
-  return this.getProxyApplianceUpdates(id)
+export function getApplianceUpdaterState({ id }) {
+  return this.getProxyApplianceUpdaterState(id)
 }
 
-getApplianceUpdates.permission = 'admin'
-getApplianceUpdates.params = {
+getApplianceUpdaterState.permission = 'admin'
+getApplianceUpdaterState.params = {
   id: {
     type: 'string',
   },

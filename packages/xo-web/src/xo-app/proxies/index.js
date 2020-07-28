@@ -16,7 +16,7 @@ import {
   destroyProxyAppliances,
   editProxyAppliance,
   forgetProxyAppliances,
-  getProxyApplianceUpdates,
+  getProxyApplianceUpdaterState,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -185,7 +185,7 @@ const Proxies = decorate([
         const updatesByProxy = { ...this.state.updatesByProxy }
         await Promise.all(
           proxies.map(async id => {
-            updatesByProxy[id] = await getProxyApplianceUpdates(id).catch(
+            updatesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(
               e => ({
                 state: 'error',
                 message: _('cannotGetProxyUpdates'),
