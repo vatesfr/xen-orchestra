@@ -44,6 +44,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-sdn-controller major
 - @xen-orchestra/openflow patch
 - xo-vmdk-to-vhd minor
 - xo-server minor
