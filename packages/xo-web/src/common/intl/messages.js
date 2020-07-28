@@ -79,7 +79,7 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
-  upgradeAvailable: 'Upgrade available',
+  upgradesAvailable: 'Upgrades available',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2382,8 +2382,7 @@ const messages = {
     'The select only contains SRs connected to at least one HVM-capable host',
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
-  proxyUpToDate: 'Up to date',
-  proxyUpdatesError: 'Unable to check updates availability',
+  proxyUpgradesError: 'Unable to check upgrades availability',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

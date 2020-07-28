@@ -110,32 +110,28 @@ const COLUMNS = [
     name: _('vm'),
   },
   {
-    itemRenderer: (proxy, { updatesByProxy, upgradeAppliance }) => {
-      const globalState = updatesByProxy[proxy.id]
+    itemRenderer: (proxy, { upgradesByProxy, upgradeAppliance }) => {
+      const globalState = upgradesByProxy[proxy.id]
       if (globalState === undefined) {
         return
       }
 
       const { state } = globalState
-      const upgrade = (
-        <ActionButton
-          btnStyle='success'
-          disabled={proxy.vmUuid === undefined}
-          handler={upgradeAppliance}
-          handlerParam={proxy.id}
-          icon='upgrade'
-        >
-          {_('upgrade')}
-        </ActionButton>
-      )
-
       if (state.endsWith('-upgrade-needed')) {
         return (
           <div>
-            {upgrade}
+            <ActionButton
+              btnStyle='success'
+              disabled={proxy.vmUuid === undefined}
+              handler={upgradeAppliance}
+              handlerParam={proxy.id}
+              icon='upgrade'
+            >
+              {_('upgrade')}
+            </ActionButton>
             <p className='text-warning'>
               <Icon icon='alarm' />
-              &nbsp;{_('upgradeAvailable')}
+              &nbsp;{_('upgradesAvailable')}
             </p>
           </div>
         )
@@ -149,18 +145,30 @@ const COLUMNS = [
       ) {
         return (
           <div>
-            {upgrade}
-            <p className='text-success'>
-              <Icon icon='success' />
-              &nbsp;{_('proxyUpToDate')}
-            </p>
+            <ActionButton
+              btnStyle='primary'
+              disabled={proxy.vmUuid === undefined}
+              handler={upgradeAppliance}
+              handlerParam={proxy.id}
+              icon='upgrade'
+            >
+              {_('upgrade')}
+            </ActionButton>
           </div>
         )
       }
 
       return (
         <div>
-          {upgrade}
+          <ActionButton
+            btnStyle='success'
+            disabled={proxy.vmUuid === undefined}
+            handler={upgradeAppliance}
+            handlerParam={proxy.id}
+            icon='upgrade'
+          >
+            {_('upgrade')}
+          </ActionButton>
           <p className='text-danger'>
             <Icon icon='alarm' />
             &nbsp;{globalState.message}
@@ -175,32 +183,32 @@ const COLUMNS = [
 const Proxies = decorate([
   provideState({
     initialState: () => ({
-      updatesByProxy: {},
+      upgradesByProxy: {},
     }),
     effects: {
-      initialize({ fetchProxyUpdates }) {
-        return fetchProxyUpdates(this.props.proxies.map(({ id }) => id))
+      initialize({ fetchProxyUpgrades }) {
+        return fetchProxyUpgrades(this.props.proxies.map(({ id }) => id))
       },
-      async fetchProxyUpdates(effects, proxies) {
-        const updatesByProxy = { ...this.state.updatesByProxy }
+      async fetchProxyUpgrades(effects, proxies) {
+        const upgradesByProxy = { ...this.state.upgradesByProxy }
         await Promise.all(
           proxies.map(async id => {
-            updatesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(
+            upgradesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(
               e => ({
                 state: 'error',
-                message: _('proxyUpdatesError'),
+                message: _('proxyUpgradesError'),
               })
             )
           })
         )
-        this.state.updatesByProxy = updatesByProxy
+        this.state.upgradesByProxy = upgradesByProxy
       },
-      async deployProxy({ fetchProxyUpdates }, proxy) {
-        return fetchProxyUpdates([await deployProxy(proxy)])
+      async deployProxy({ fetchProxyUpgrades }, proxy) {
+        return fetchProxyUpgrades([await deployProxy(proxy)])
       },
-      async upgradeAppliance({ fetchProxyUpdates }, id) {
+      async upgradeAppliance({ fetchProxyUpgrades }, id) {
         await upgradeProxyAppliance(id)
-        return fetchProxyUpdates([id])
+        return fetchProxyUpgrades([id])
       },
     },
   }),
@@ -226,7 +234,7 @@ const Proxies = decorate([
           component={SortedTable}
           data-deployProxy={effects.deployProxy}
           data-router={router}
-          data-updatesByProxy={state.updatesByProxy}
+          data-upgradesByProxy={state.upgradesByProxy}
           data-upgradeAppliance={effects.upgradeAppliance}
           emptyMessage={
             <span className='text-muted'>
