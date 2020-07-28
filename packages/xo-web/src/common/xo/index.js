@@ -3186,7 +3186,7 @@ export const upgradeProxyAppliance = proxy =>
   _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
 
 export const getProxyApplianceUpdates = proxy =>
-  _call('proxy.getProxyApplianceUpdates', { id: resolveId(proxy) })
+  _call('proxy.getApplianceUpdates', { id: resolveId(proxy) })
 
 export const checkProxyHealth = proxy =>
   _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>
