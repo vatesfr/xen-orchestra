@@ -16,6 +16,13 @@ import * as errors from 'xo-common/api-errors'
 
 const log = createLogger('xo:api')
 
+const ALLOWED_METHOD_PROPS = {
+  description: true,
+  params: true,
+  permission: true,
+  resolve: true,
+}
+
 const PERMISSIONS = {
   none: 0,
   read: 1,
@@ -166,6 +173,12 @@ export default class Api {
     if (name in methods) {
       throw new Error(`API method ${name} already exists`)
     }
+
+    Object.keys(method).forEach(prop => {
+      if (!(prop in ALLOWED_METHOD_PROPS)) {
+        throw new Error(`invalid prop ${prop} for API method ${name}`)
+      }
+    })
 
     methods[name] = method
 
