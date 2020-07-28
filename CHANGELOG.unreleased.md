@@ -16,6 +16,7 @@
 - [Import/OVA] Allow for VMDK disks inside .ova files to be gzipped (PR [#5085](https://github.com/vatesfr/xen-orchestra/pull/5085))
 - [Proxy] Show pending upgrades (PR [#5167](https://github.com/vatesfr/xen-orchestra/pull/5167))
 - [@xen-orchestra/openflow] Pack and unpack OpenFlow messages (PR [#5010](https://github.com/vatesfr/xen-orchestra/pull/5010))
+- [SDN Controller] Add/Remove netork traffic rules for a VM's VIFs (PR [#5135](https://github.com/vatesfr/xen-orchestra/pull/5135))
 
 ### Bug fixes
 
