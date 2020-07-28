@@ -145,7 +145,7 @@ deploy.resolve = {
 }
 
 export function upgradeAppliance({ id }) {
-  return this.updateProxyAppliance(id, { upgrade: true })
+  return this.upgradeProxyAppliance(id)
 }
 
 upgradeAppliance.permission = 'admin'
@@ -155,12 +155,12 @@ upgradeAppliance.params = {
   },
 }
 
-export function getApplianceState({ id }) {
-  return this.getProxyApplianceState(id)
+export function getApplianceUpdates({ id }) {
+  return this.getProxyApplianceUpdates(id)
 }
 
-getApplianceState.permission = 'admin'
-getApplianceState.params = {
+getApplianceUpdates.permission = 'admin'
+getApplianceUpdates.params = {
   id: {
     type: 'string',
   },

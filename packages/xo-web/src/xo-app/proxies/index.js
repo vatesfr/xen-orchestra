@@ -16,7 +16,7 @@ import {
   destroyProxyAppliances,
   editProxyAppliance,
   forgetProxyAppliances,
-  getProxyApplianceState,
+  getProxyApplianceUpdates,
   subscribeProxies,
   upgradeProxyAppliance,
 } from 'xo'
@@ -178,14 +178,14 @@ const Proxies = decorate([
       stateByProxy: {},
     }),
     effects: {
-      initialize({ fetchProxyStates }) {
-        return fetchProxyStates(this.props.proxies.map(({ id }) => id))
+      initialize({ fetchProxyUpdates }) {
+        return fetchProxyUpdates(this.props.proxies.map(({ id }) => id))
       },
-      async fetchProxyStates(effects, proxies) {
+      async fetchProxyUpdates(effects, proxies) {
         const stateByProxy = { ...this.state.stateByProxy }
         await Promise.all(
           proxies.map(async id => {
-            stateByProxy[id] = await getProxyApplianceState(id).catch(e => ({
+            stateByProxy[id] = await getProxyApplianceUpdates(id).catch(e => ({
               state: 'error',
               message: _('cannotGetProxyState'),
             }))
@@ -193,12 +193,12 @@ const Proxies = decorate([
         )
         this.state.stateByProxy = stateByProxy
       },
-      async deployProxy({ fetchProxyStates }, proxy) {
-        return fetchProxyStates([await deployProxy(proxy)])
+      async deployProxy({ fetchProxyUpdates }, proxy) {
+        return fetchProxyUpdates([await deployProxy(proxy)])
       },
-      async upgradeAppliance({ fetchProxyStates }, id) {
+      async upgradeAppliance({ fetchProxyUpdates }, id) {
         await upgradeProxyAppliance(id)
-        return fetchProxyStates([id])
+        return fetchProxyUpdates([id])
       },
     },
   }),
