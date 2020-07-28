@@ -452,7 +452,7 @@ class SDNController extends EventEmitter {
       protocol: { type: 'string', optional: true },
       vifId: { type: 'string' },
     }
-    addRule.permissions = 'admin'
+    addRule.permission = 'admin'
 
     const deleteRule = params => this._deleteRule(params)
     deleteRule.description = 'Delete an ACL rule from a VIF'
@@ -463,7 +463,7 @@ class SDNController extends EventEmitter {
       protocol: { type: 'string', optional: true },
       vifId: { type: 'string' },
     }
-    deleteRule.permissions = 'admin'
+    deleteRule.permission = 'admin'
 
     // -------------------------------------------------------------------------
 
