@@ -176,7 +176,6 @@ export class OpenFlowChannel extends EventEmitter {
         instructions
       )
     }
-    this._socket.close()
   }
 
   async deleteRule(vif, protocol, port, ipRange, direction, ofport) {
@@ -236,7 +235,6 @@ export class OpenFlowChannel extends EventEmitter {
         tp_src: port,
       })
     }
-    this._socket.close()
   }
 
   // ===========================================================================
