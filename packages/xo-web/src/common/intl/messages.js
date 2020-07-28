@@ -2381,7 +2381,7 @@ const messages = {
   proxySrPredicateInfo:
     'The select only contains SRs connected to at least one HVM-capable host',
   proxyUpToDate: 'Up to date',
-  cannotGetProxyState: 'Cannot get proxy state',
+  cannotGetProxyUpdates: 'Cannot get proxy updates',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
