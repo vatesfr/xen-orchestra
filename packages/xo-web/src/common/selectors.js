@@ -563,9 +563,9 @@ export const getIsPoolAdmin = create(
 
 export const getLoneSnapshots = create(
   create(
-    createFilter(createGetObjectsOfType('VM-snapshot'), () => ({ other }) =>
-      other['xo:backup:job'] !== undefined
-    ),
+    createFilter(createGetObjectsOfType('VM-snapshot'), [
+      ({ other }) => other['xo:backup:job'] !== undefined,
+    ]),
     backupSnapshots =>
       map(backupSnapshots, snapshot => {
         const other = snapshot.other
