@@ -68,9 +68,9 @@ const INDIVIDUAL_ACTIONS = [
   },
   {
     disabled: ({ vmUuid }) => vmUuid === undefined,
-    handler: upgradeProxyAppliance,
-    icon: 'vm',
-    label: _('upgradeProxyAppliance'),
+    handler: proxy => updateApplianceSettings(proxy),
+    icon: 'settings',
+    label: _('updateProxyApplianceSettings'),
     level: 'primary',
   },
   {
