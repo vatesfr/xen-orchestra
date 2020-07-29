@@ -47,6 +47,7 @@ import {
   keyBy,
   map,
   mapValues,
+  max,
   omit,
   some,
 } from 'lodash'
@@ -81,6 +82,7 @@ const DEFAULT_SCHEDULE = {
   cron: '0 0 * * *',
   timezone: moment.tz.guess(),
 }
+const RETENTION_LIMIT = 50
 
 const ReportRecipients = decorate([
   provideState({
@@ -204,6 +206,11 @@ const destructVmsPattern = pattern =>
     : {
         vms: destructPattern(pattern),
       }
+
+// isRetentionLow returns the expected result when the 'fullInterval' is undefined.
+const isRetentionLow = (settings, retention) =>
+  retention < RETENTION_LIMIT ||
+  settings.getIn(['', 'fullInterval']) < RETENTION_LIMIT
 
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
@@ -527,7 +534,14 @@ const New = decorate([
         { saveSchedule },
         storedSchedule = DEFAULT_SCHEDULE
       ) => async (
-        { copyMode, exportMode, snapshotMode },
+        {
+          copyMode,
+          exportMode,
+          deltaMode,
+          propSettings,
+          settings = propSettings,
+          snapshotMode,
+        },
         { intl: { formatMessage } }
       ) => {
         const modes = { copyMode, exportMode, snapshotMode }
@@ -537,6 +551,10 @@ const New = decorate([
             <NewSchedule
               missingRetentions={!checkRetentions(props.value, modes)}
               modes={modes}
+              showRetentionWarning={
+                deltaMode &&
+                !isRetentionLow(settings, props.value.exportRetention)
+              }
               {...props}
             />
           ),
@@ -759,6 +777,24 @@ const New = decorate([
             get(() => hostsById[poolsById[$container].master].version)
         ),
       selectedVmIds: state => resolveIds(state.vms),
+      showRetentionWarning: ({
+        deltaMode,
+        propSettings,
+        settings = propSettings,
+        schedules,
+      }) =>
+        deltaMode &&
+        !isRetentionLow(
+          settings,
+          defined(
+            max(
+              Object.keys(schedules).map(key =>
+                settings.getIn([key, 'exportRetention'])
+              )
+            ),
+            0
+          )
+        ),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ proxyId, remotes }) => remote => {
         if (proxyId === null) {
@@ -1111,6 +1147,11 @@ const New = decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
+                          {state.showRetentionWarning && (
+                            <Tooltip content={_('deltaChainRetentionWarning')}>
+                              <Icon icon='error' />
+                            </Tooltip>
+                          )}{' '}
                           <Tooltip content={_('clickForMoreInformation')}>
                             <a
                               className='text-info'

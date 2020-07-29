@@ -1187,7 +1187,7 @@ export const copyVms = (vms, type) => {
   }, noop)
 }
 
-export const copyVm = vm => copyVms([vm])
+export const copyVm = vm => copyVms([vm], vm.type)
 
 export const convertVmToTemplate = vm =>
   confirm({
@@ -1796,6 +1796,38 @@ export const setVif = (
     network: resolveId(network),
     rateLimit,
     txChecksumming,
+  })
+
+export const addAclRule = ({
+  allow,
+  protocol = undefined,
+  port = undefined,
+  ipRange = '',
+  direction,
+  vif,
+}) =>
+  _call('sdnController.addRule', {
+    allow,
+    protocol,
+    port,
+    ipRange,
+    direction,
+    vifId: resolveId(vif),
+  })
+
+export const deleteAclRule = ({
+  protocol = undefined,
+  port = undefined,
+  ipRange = '',
+  direction,
+  vif,
+}) =>
+  _call('sdnController.deleteRule', {
+    protocol,
+    port,
+    ipRange,
+    direction,
+    vifId: resolveId(vif),
   })
 
 // Network -----------------------------------------------------------
@@ -3192,6 +3224,9 @@ export const destroyProxyAppliances = proxies =>
 
 export const upgradeProxyAppliance = proxy =>
   _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
+
+export const getProxyApplianceUpdaterState = id =>
+  _call('proxy.getApplianceUpdaterState', { id })
 
 export const checkProxyHealth = proxy =>
   _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>

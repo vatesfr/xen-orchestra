@@ -4,6 +4,7 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
+import Tooltip from 'tooltip'
 import { Card, CardBlock } from 'card'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
@@ -56,7 +57,14 @@ const New = decorate([
     },
   }),
   injectState,
-  ({ effects, missingRetentions, modes, state, value: schedule }) => (
+  ({
+    effects,
+    missingRetentions,
+    modes,
+    showRetentionWarning,
+    state,
+    value: schedule,
+  }) => (
     <Card>
       <CardBlock>
         {missingRetentions && (
@@ -78,7 +86,12 @@ const New = decorate([
           <FormGroup>
             <label>
               <strong>{_('scheduleExportRetention')}</strong>
-            </label>
+            </label>{' '}
+            {showRetentionWarning && (
+              <Tooltip content={_('deltaChainRetentionWarning')}>
+                <Icon icon='error' />
+              </Tooltip>
+            )}
             <Number
               min='0'
               onChange={effects.setExportRetention}

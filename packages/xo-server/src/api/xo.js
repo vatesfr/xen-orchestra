@@ -60,7 +60,6 @@ export function getAllObjects({ filter, limit, ndjson = false }) {
     : this.getObjects({ filter, limit })
 }
 
-getAllObjects.permission = ''
 getAllObjects.description = 'Returns all XO objects'
 
 getAllObjects.params = {
