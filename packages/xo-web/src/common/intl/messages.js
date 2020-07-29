@@ -435,6 +435,8 @@ const messages = {
     'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
+  deltaChainRetentionWarning:
+    'Either the full backup interval or the backup retention should be lower than 50.',
   retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
   createRemoteMessage:

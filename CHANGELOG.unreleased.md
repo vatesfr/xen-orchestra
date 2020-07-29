@@ -18,6 +18,7 @@
 - [SDN Controller] Add/Remove netork traffic rules for a VM's VIFs (PR [#5135](https://github.com/vatesfr/xen-orchestra/pull/5135))
 - [Backup/health] Show VM snapshots with missing jobs, schedules or VMs [#5086](https://github.com/vatesfr/xen-orchestra/issues/5086) (PR [#5125](https://github.com/vatesfr/xen-orchestra/pull/5125))
 - [Self] Ability to cancel a resource set edition without saving it (PR [#5174](https://github.com/vatesfr/xen-orchestra/pull/5174))
+- [New delta backup] Show a warning icon when the advanced full backup interval setting and the backup retention are higher than 50 (PR (https://github.com/vatesfr/xen-orchestra/pull/5144))
 
 ### Bug fixes
 
