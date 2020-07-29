@@ -207,7 +207,7 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
-// isRetentionLow returns the expected result when 'fullInterval' is undefined.
+// isRetentionLow returns the expected result when the 'fullInterval' is undefined.
 const isRetentionLow = (settings, retention) =>
   retention < RETENTION_LIMIT ||
   settings.getIn(['', 'fullInterval']) < RETENTION_LIMIT
