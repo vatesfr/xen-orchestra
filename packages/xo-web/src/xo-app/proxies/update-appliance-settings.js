@@ -8,7 +8,7 @@ import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
-import { updateProxyAppliance } from 'xo'
+import { updateProxyApplianceSettings } from 'xo'
 
 const UpdateApplianceSettingsModal = decorate([
   provideState({
@@ -66,7 +66,7 @@ const updateApplianceSettings = async proxy => {
     ),
   })
 
-  await updateProxyAppliance(proxy.id, {
+  await updateProxyApplianceSettings(proxy.id, {
     httpProxy: (httpProxy = httpProxy.trim()) !== '' ? httpProxy : null,
   })
 }
