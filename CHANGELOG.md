@@ -33,7 +33,7 @@
 - @xen-orchestra/openflow 0.1.1
 - xo-server-sdn-controller 1.0.0
 - xo-vmdk-to-vhd 1.3.0
-- xo-server 5.65.0
+- xo-server 5.63.0
 - xo-web 5.65.0
 
 ## **5.48.3** (2020-07-10)
