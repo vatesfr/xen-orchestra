@@ -3,17 +3,21 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
+import decorate from 'apply-decorators'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { isIp, isIpV4 } from 'ip-utils'
 import { Container, Row, Col } from 'grid'
+import { form } from 'modal'
 import { injectIntl } from 'react-intl'
+import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
+import { provideState, injectState } from 'reaclette'
 import {
   addSubscriptions,
   connectStore,
@@ -302,6 +306,53 @@ class VifStatus extends BaseComponent {
   }
 }
 
+const AdvancedSettingsModal = decorate([
+  provideState({
+    effects: {
+      toggleTxChecksumming() {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          txChecksumming: !value.txChecksumming,
+        })
+      },
+    },
+  }),
+  injectState,
+  ({ effects, state, value }) => (
+    <Container>
+      <SingleLineRow>
+        <Col mediumSize={4}>
+          <strong>{_('txChecksumming')}</strong>
+        </Col>
+        <Col mediumSize={8}>
+          <StateButton
+            disabledLabel={_('off')}
+            enabledLabel={_('on')}
+            handler={effects.toggleTxChecksumming}
+            state={value.txChecksumming}
+          />
+        </Col>
+      </SingleLineRow>
+    </Container>
+  ),
+])
+
+const openAdvancedSettingsModal = async vif => {
+  const { txChecksumming } = await form({
+    defaultValue: {
+      txChecksumming: vif.txChecksumming,
+    },
+    header: (
+      <div>
+        <Icon icon='settings' /> {_('advancedSettings')}
+      </div>
+    ),
+    render: props => <AdvancedSettingsModal {...props} />,
+  })
+  await setVif(vif, { txChecksumming })
+}
+
 const COLUMNS = [
   {
     itemRenderer: vif => `VIF #${vif.device}`,
@@ -378,6 +429,12 @@ const INDIVIDUAL_ACTIONS = [
     handler: vif => copy(vif.uuid),
     icon: 'clipboard',
     label: vif => _('copyUuid', { uuid: vif.uuid }),
+  },
+  {
+    handler: openAdvancedSettingsModal,
+    icon: 'settings',
+    label: _('advancedSettings'),
+    level: 'primary',
   },
   {
     disabled: vif => vif.attached,

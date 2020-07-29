@@ -58,13 +58,14 @@ connect.resolve = {
 // -------------------------------------------------------------------
 
 export async function set({
-  vif,
-  network,
-  mac,
   allowedIpv4Addresses,
   allowedIpv6Addresses,
   attached,
+  mac,
+  network,
   rateLimit,
+  txChecksumming,
+  vif,
 }) {
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(
     vif.allowedIpv6Addresses
@@ -95,6 +96,10 @@ export async function set({
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
       qos_algorithm_params:
         rateLimit != null ? { kbps: String(rateLimit) } : undefined,
+      other_config: {
+        'ethtool-tx':
+          txChecksumming !== undefined ? String(txChecksumming) : undefined,
+      },
     })
 
     await this.allocIpAddresses(newVif.$id, newIpAddresses)
@@ -112,6 +117,7 @@ export async function set({
     ipv4Allowed: allowedIpv4Addresses,
     ipv6Allowed: allowedIpv6Addresses,
     rateLimit,
+    txChecksumming,
   })
 }
 
@@ -138,6 +144,10 @@ set.params = {
     description: 'in kilobytes per seconds',
     optional: true,
     type: ['number', 'null'],
+  },
+  txChecksumming: {
+    type: 'boolean',
+    optional: true,
   },
 }
 

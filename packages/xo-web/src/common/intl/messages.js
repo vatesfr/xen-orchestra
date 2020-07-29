@@ -79,6 +79,10 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
+  advancedSettings: 'Advanced settings',
+  txChecksumming: 'TX checksumming',
+  on: 'ON',
+  off: 'OFF',
 
   // ----- Modals -----
   alertOk: 'OK',

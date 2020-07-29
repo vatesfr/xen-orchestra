@@ -637,6 +637,7 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   vif(obj) {
+    const txChecksumming = obj.other_config['ethtool-tx']
     return {
       type: 'VIF',
 
@@ -646,6 +647,7 @@ const TRANSFORMS = {
       device: obj.device, // TODO: should it be cast to a number?
       MAC: obj.MAC,
       MTU: +obj.MTU,
+      txChecksumming: txChecksumming === 'true' || txChecksumming === 'on',
 
       // in kB/s
       rateLimit: (() => {

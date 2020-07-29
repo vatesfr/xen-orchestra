@@ -84,5 +84,9 @@ export default {
           ),
         ]),
     },
+
+    txChecksumming: {
+      set: (value, vif) => vif.update_other_config('ethtool-tx', String(value)),
+    },
   }),
 }
