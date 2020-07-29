@@ -85,8 +85,8 @@ function checkPermission(method) {
 
   const { permission } = method
 
-  // No requirement.
-  if (permission === undefined) {
+  // User does not need to be authenticated.
+  if (permission === null) {
     return
   }
 
@@ -95,8 +95,7 @@ function checkPermission(method) {
     throw errors.unauthorized(permission)
   }
 
-  // The only requirement is login.
-  if (!permission) {
+  if (permission === undefined) {
     return
   }
 
