@@ -160,7 +160,24 @@ export default class Proxy {
       'vm-data/xoa-updater-channel': JSON.stringify(this._xoProxyConf.channel),
     })
 
-    return xapi.rebootVm(vmUuid)
+    try {
+      await xapi.rebootVm(vmUuid)
+    } catch (error) {
+      if (error.code !== 'VM_BAD_POWER_STATE') {
+        throw error
+      }
+
+      await xapi.startVm(vmUuid)
+    }
+
+    await xapi._waitObjectState(
+      vmUuid,
+      vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined
+    )
+  }
+
+  getProxyApplianceUpdaterState(id) {
+    return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
   @defer
@@ -168,7 +185,7 @@ export default class Proxy {
     $defer,
     srId,
     licenseId,
-    { networkId, networkConfiguration }
+    { httpProxy, networkId, networkConfiguration }
   ) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
@@ -217,6 +234,9 @@ export default class Proxy {
       }),
       'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
     }
+    if (httpProxy !== undefined) {
+      xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
+    }
     if (networkConfiguration !== undefined) {
       xenstoreData['vm-data/ip'] = networkConfiguration.ip
       xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
@@ -242,7 +262,7 @@ export default class Proxy {
   async deployProxy(
     srId,
     licenseId,
-    { networkConfiguration, networkId, proxyId } = {}
+    { httpProxy, networkConfiguration, networkId, proxyId } = {}
   ) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
@@ -272,8 +292,9 @@ export default class Proxy {
       vm,
       xenstoreData,
     } = await this._createProxyVm(srId, licenseId, {
-      networkId,
+      httpProxy,
       networkConfiguration,
+      networkId,
     })
 
     if (redeploy) {
@@ -322,6 +343,8 @@ export default class Proxy {
     )
 
     await this.checkProxyHealth(proxyId)
+
+    return proxyId
   }
 
   async checkProxyHealth(id) {

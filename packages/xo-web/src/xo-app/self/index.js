@@ -130,7 +130,8 @@ Hosts.propTypes = {
 })
 export class Edit extends Component {
   static propTypes = {
-    onSave: PropTypes.func,
+    onCancel: PropTypes.func.isRequired,
+    onSave: PropTypes.func.isRequired,
     resourceSet: PropTypes.object,
   }
 
@@ -353,7 +354,7 @@ export class Edit extends Component {
 
   render() {
     const { state } = this
-    const { resourceSet } = this.props
+    const { onCancel, resourceSet } = this.props
 
     return (
       <div>
@@ -569,6 +570,9 @@ export class Edit extends Component {
             >
               {_('saveResourceSet')}
             </ActionButton>
+            <ActionButton icon='cancel' handler={onCancel}>
+              {_('formCancel')}
+            </ActionButton>
             <ActionButton icon='reset' handler={this._reset}>
               {_('resetResourceSet')}
             </ActionButton>
@@ -678,6 +682,7 @@ class ResourceSet extends Component {
             {this.state.editionMode ? (
               <Edit
                 resourceSet={this.props.resourceSet}
+                onCancel={this.toggleState('editionMode')}
                 onSave={this.toggleState('editionMode')}
               />
             ) : (
@@ -740,6 +745,7 @@ export default class Self extends Component {
             {this.state.showNewResourceSetForm && [
               <Edit
                 key={0}
+                onCancel={this.toggleState('showNewResourceSetForm')}
                 onSave={this.toggleState('showNewResourceSetForm')}
               />,
               <hr key={1} />,
