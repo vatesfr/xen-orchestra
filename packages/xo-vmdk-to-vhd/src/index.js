@@ -11,12 +11,14 @@ export {
 async function vmdkToVhd(
   vmdkReadStream,
   grainLogicalAddressList,
-  grainFileOffsetList
+  grainFileOffsetList,
+  gzipped = false
 ) {
   const parser = new VMDKDirectParser(
     vmdkReadStream,
     grainLogicalAddressList,
-    grainFileOffsetList
+    grainFileOffsetList,
+    gzipped
   )
   const header = await parser.readHeader()
   return createReadableSparseStream(
