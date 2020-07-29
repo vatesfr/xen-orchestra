@@ -96,16 +96,20 @@ update.params = {
   },
 }
 
-export function deploy({ license, network, networkConfiguration, proxy, sr }) {
+export function deploy({ license, network, proxy, sr, ...props }) {
   return this.deployProxy(sr._xapiId, license, {
-    networkConfiguration,
     networkId: network?._xapiId,
     proxyId: proxy,
+    ...props,
   })
 }
 
 deploy.permission = 'admin'
 deploy.params = {
+  httpProxy: {
+    type: 'string',
+    optional: true,
+  },
   license: {
     type: 'string',
   },
@@ -150,6 +154,17 @@ export function upgradeAppliance({ id }) {
 
 upgradeAppliance.permission = 'admin'
 upgradeAppliance.params = {
+  id: {
+    type: 'string',
+  },
+}
+
+export function getApplianceUpdaterState({ id }) {
+  return this.getProxyApplianceUpdaterState(id)
+}
+
+getApplianceUpdaterState.permission = 'admin'
+getApplianceUpdaterState.params = {
   id: {
     type: 'string',
   },

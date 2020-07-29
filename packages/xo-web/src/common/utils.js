@@ -3,6 +3,7 @@ import humanFormat from 'human-format'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import { connect } from 'react-redux'
+import { createPredicate } from 'value-matcher'
 import { FormattedDate } from 'react-intl'
 import {
   clone,
@@ -13,6 +14,7 @@ import {
   isPlainObject,
   map,
   mapValues,
+  omit,
   pick,
   sample,
   some,
@@ -642,3 +644,40 @@ export const TryXoa = ({ page }) => (
     {_('tryXoa')}
   </a>
 )
+
+// ===================================================================
+
+export const getDetachedBackupsOrSnapshots = (
+  backupsOrSnapshots,
+  { jobs, schedules, vms }
+) => {
+  if (jobs === undefined || schedules === undefined) {
+    return []
+  }
+
+  const detachedBackupsOrSnapshots = []
+  forEach(backupsOrSnapshots, backupOrSnapshot => {
+    const { vmId, jobId, scheduleId } = backupOrSnapshot
+    const vm = vms[vmId]
+    const job = jobs[jobId]
+    const reason =
+      vm === undefined
+        ? 'missingVm'
+        : job === undefined
+        ? 'missingJob'
+        : schedules[scheduleId] === undefined
+        ? 'missingSchedule'
+        : !createPredicate(omit(job.vms, 'power_state'))(vm)
+        ? 'missingVmInJob'
+        : undefined
+
+    if (reason !== undefined) {
+      detachedBackupsOrSnapshots.push({
+        ...backupOrSnapshot,
+        reason,
+      })
+    }
+  })
+
+  return detachedBackupsOrSnapshots
+}
