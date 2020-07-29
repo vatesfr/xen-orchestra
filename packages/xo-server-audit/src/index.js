@@ -285,7 +285,7 @@ class AuditXoPlugin {
         {
           suffix: `/audit-records-${new Date()
             .toISOString()
-            .replace(/:/g, '_')}.ndjson.gz`,
+            .replace(/:/g, '_')}.gz`,
         }
       )
       .then($getFrom => ({
