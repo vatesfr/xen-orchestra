@@ -207,6 +207,7 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
+// isRetentionLow returns the expected result when 'fullInterval' is undefined.
 const isRetentionLow = (settings, retention) =>
   retention < RETENTION_LIMIT ||
   settings.getIn(['', 'fullInterval']) < RETENTION_LIMIT
@@ -785,10 +786,13 @@ const New = decorate([
         deltaMode &&
         !isRetentionLow(
           settings,
-          max(
-            Object.keys(schedules).map(key =>
-              settings.getIn([key, 'exportRetention'])
-            )
+          defined(
+            max(
+              Object.keys(schedules).map(key =>
+                settings.getIn([key, 'exportRetention'])
+              )
+            ),
+            0
           )
         ),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
