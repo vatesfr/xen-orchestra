@@ -66,7 +66,7 @@ const updateApplianceSettings = async proxy => {
     ),
   })
 
-  await updateProxyAppliance(proxy, {
+  await updateProxyAppliance(proxy.id, {
     httpProxy: (httpProxy = httpProxy.trim()) !== '' ? httpProxy : null,
   })
 }
