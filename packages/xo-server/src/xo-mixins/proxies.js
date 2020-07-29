@@ -160,7 +160,24 @@ export default class Proxy {
       'vm-data/xoa-updater-channel': JSON.stringify(this._xoProxyConf.channel),
     })
 
-    return xapi.rebootVm(vmUuid)
+    try {
+      await xapi.rebootVm(vmUuid)
+    } catch (error) {
+      if (error.code !== 'VM_BAD_POWER_STATE') {
+        throw error
+      }
+
+      await xapi.startVm(vmUuid)
+    }
+
+    await xapi._waitObjectState(
+      vmUuid,
+      vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined
+    )
+  }
+
+  getProxyApplianceUpdaterState(id) {
+    return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
   @defer
@@ -326,6 +343,8 @@ export default class Proxy {
     )
 
     await this.checkProxyHealth(proxyId)
+
+    return proxyId
   }
 
   async checkProxyHealth(id) {

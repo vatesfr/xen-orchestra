@@ -42,8 +42,6 @@ export async function setDefaultSr({ sr }) {
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
 }
 
-setDefaultSr.permission = '' // signed in
-
 setDefaultSr.params = {
   sr: {
     type: 'string',

@@ -159,6 +159,17 @@ upgradeAppliance.params = {
   },
 }
 
+export function getApplianceUpdaterState({ id }) {
+  return this.getProxyApplianceUpdaterState(id)
+}
+
+getApplianceUpdaterState.permission = 'admin'
+getApplianceUpdaterState.params = {
+  id: {
+    type: 'string',
+  },
+}
+
 export function checkHealth({ id }) {
   return this.checkProxyHealth(id)
 }

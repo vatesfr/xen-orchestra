@@ -79,6 +79,7 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
+  upgradesAvailable: 'Upgrades available',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1113,6 +1114,23 @@ const messages = {
     "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
+
+  aclRuleAllow: 'Allow the traffic',
+  aclRuleProtocol: 'Select a protocol',
+  aclRulePort: 'Select a port',
+  aclRuleIpRange: 'Select an IP or an IP range (CIDR format)',
+  aclRuleDirection: 'Select a direction',
+  aclRuleAllowField: 'Traffic Enabled/Disabled',
+  aclRuleProtocolField: 'Protocol',
+  aclRulePortField: 'Port',
+  aclRuleIpRangeField: 'IP range (CIDR format)',
+  aclRuleDirectionField: 'Direction',
+  addRule: 'Add rule',
+  deleteRule: 'Delete rule',
+  hideRules: 'Hide rules',
+  sdnControllerNotLoaded: 'SDN Controller must be loaded',
+  showRules: 'Show rules',
+  vifAclRules: 'Traffic rules',
   vifCreateDeviceButton: 'New device',
   vifDeviceLabel: 'Device',
   vifMacLabel: 'MAC address',
@@ -1326,6 +1344,7 @@ const messages = {
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
   detachedBackups: 'Detached backups',
+  detachedVmSnapshots: 'Detached VM snapshots',
   missingJob: 'Missing job',
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
@@ -1341,8 +1360,6 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
-  vmSnapshotsRelatedToNonExistentBackups:
-    'VM snapshots related to non-existent backups',
   snapshotOf: 'Snapshot of',
   legacySnapshots: 'Legacy backups snapshots',
   alarmMessage: 'Alarms',
@@ -2371,7 +2388,6 @@ const messages = {
   redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
-  upgradeProxyAppliance: 'upgrade the appliance',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyLinkedRemotes: 'Click to see linked remotes',
@@ -2382,6 +2398,7 @@ const messages = {
     'The select only contains SRs connected to at least one HVM-capable host',
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
+  proxyUpgradesError: 'Unable to check upgrades availability',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

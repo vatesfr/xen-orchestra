@@ -10,6 +10,7 @@ import {
   identity,
   isArrayLike,
   isEmpty,
+  keyBy,
   keys,
   map,
   orderBy,
@@ -22,7 +23,11 @@ import {
 
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
-import { EMPTY_ARRAY, EMPTY_OBJECT } from './utils'
+import {
+  EMPTY_ARRAY,
+  EMPTY_OBJECT,
+  getDetachedBackupsOrSnapshots,
+} from './utils'
 
 // ===================================================================
 
@@ -550,27 +555,38 @@ export const createGetVmDisks = vmSelector =>
     )
   )
 
-export const createGetLoneSnapshots = createGetObjectsOfType(
-  'VM-snapshot'
-).filter(
-  create(
-    _createCollectionWrapper(
-      (_, props) => props.schedules !== undefined && map(props.schedules, 'id')
-    ),
-    scheduleIds =>
-      scheduleIds
-        ? _ => {
-            const scheduleId = _.other['xo:backup:schedule']
-            return scheduleId !== undefined && !scheduleIds.includes(scheduleId)
-          }
-        : false
-  )
-)
-
 export const getIsPoolAdmin = create(
   create(createGetObjectsOfType('pool'), _createCollectionWrapper(Object.keys)),
   getCheckPermissions,
   (poolsIds, check) => some(poolsIds, poolId => check(poolId, 'administrate'))
+)
+
+export const getLoneSnapshots = create(
+  create(
+    createFilter(createGetObjectsOfType('VM-snapshot'), [
+      ({ other }) => other['xo:backup:job'] !== undefined,
+    ]),
+    backupSnapshots =>
+      map(backupSnapshots, snapshot => {
+        const other = snapshot.other
+        return {
+          ...snapshot,
+          jobId: other['xo:backup:job'],
+          vmId: other['xo:backup:vm'],
+          scheduleId: other['xo:backup:schedule'],
+        }
+      })
+  ),
+  _createCollectionWrapper((_, { jobs }) =>
+    jobs === undefined ? undefined : keyBy(jobs, 'id')
+  ),
+  _createCollectionWrapper((_, { schedules }) =>
+    schedules === undefined ? undefined : keyBy(schedules, 'id')
+  ),
+  createGetObjectsOfType('VM'),
+  _createCollectionWrapper((snapshots, jobs, schedules, vms) =>
+    getDetachedBackupsOrSnapshots(snapshots, { jobs, schedules, vms })
+  )
 )
 
 export const getResolvedResourceSets = create(
