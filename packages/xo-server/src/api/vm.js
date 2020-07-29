@@ -1569,7 +1569,7 @@ setBootOrder.params = {
 }
 
 setBootOrder.resolve = {
-  vm: ['vm', 'VM', 'operate'],
+  vm: ['vm', ['VM', 'VM-template'], 'operate'],
 }
 
 // -------------------------------------------------------------------
