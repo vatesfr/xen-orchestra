@@ -182,7 +182,7 @@ class VifAllowedIps extends BaseComponent {
       lockingMode === 'locked' && noIps
         ? _('vifLockedNetworkNoIps')
         : lockingMode !== 'locked' && !noIps
-        ? _('vifNotLockedNetworkWithIps')
+        ? _('vifUnlockedNetworkWithIps')
         : undefined
 
     return (
