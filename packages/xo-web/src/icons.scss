@@ -322,6 +322,10 @@
     @extend .fa;
     @extend .fa-ticket;
   }
+  &-circle {
+    @extend .fa;
+    @extend .fa-circle-thin;
+  }
 
 
   // Backups
@@ -625,6 +629,14 @@
       @extend .fa-download;
     }
   }
+
+  &-vif {
+    &-disable {
+      @extend .fa;
+      @extend .fa-times;
+    }
+  }
+
 
   // Host and VM actions
   &-host,
