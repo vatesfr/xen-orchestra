@@ -1150,9 +1150,12 @@ const messages = {
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
   vifNoIps: 'No IPs',
+  vifDisabledNetwork: 'Network disabled',
   vifLockedNetwork: 'Network locked',
   vifLockedNetworkNoIps:
     'Network locked and no IPs are allowed for this interface',
+  vifUnlockedNetworkWithIps:
+    'Network not locked: some IPs are unnecessarily set as allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
