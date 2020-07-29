@@ -510,6 +510,11 @@
     @extend .xo-status-disabled;
   }
 
+  &-powerState {
+    @extend .fa;
+    @extend .fa-power-off;
+  }
+
   &-all-connected {
     @extend .fa;
     @extend .fa-circle;

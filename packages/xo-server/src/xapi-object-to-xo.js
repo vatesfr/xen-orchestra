@@ -647,6 +647,7 @@ const TRANSFORMS = {
       lockingMode: obj.locking_mode,
       MAC: obj.MAC,
       MTU: +obj.MTU,
+      other_config: obj.other_config,
 
       // in kB/s
       rateLimit: (() => {

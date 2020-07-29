@@ -824,7 +824,8 @@ export const snapshot = defer(async function (
   }
 
   if (vm.resourceSet !== undefined) {
-    const usage = await this.computeVmResourcesUsage(vm)
+    // Compute the resource usage of the VM as if it was used by the snapshot
+    const usage = await this.computeVmSnapshotResourcesUsage(vm)
     await this.allocateLimitsInResourceSet(
       usage,
       vm.resourceSet,
@@ -1234,6 +1235,8 @@ export const revert = defer(async function ($defer, { snapshot }) {
       )
     )
 
+    // Compute the resource usage of the snapshot that's being reverted as if it
+    // was used by the VM
     const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
     await this.allocateLimitsInResourceSet(
       snapshotUsage,
@@ -1566,7 +1569,7 @@ setBootOrder.params = {
 }
 
 setBootOrder.resolve = {
-  vm: ['vm', 'VM', 'operate'],
+  vm: ['vm', ['VM', 'VM-template'], 'operate'],
 }
 
 // -------------------------------------------------------------------

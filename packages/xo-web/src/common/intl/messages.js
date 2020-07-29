@@ -79,6 +79,7 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
+  upgradesAvailable: 'Upgrades available',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -230,10 +231,7 @@ const messages = {
   homeAllResourceSets: 'Resource sets',
   homeNewVm: 'New VM',
   homeFilterNone: 'None',
-  homeFilterRunningHosts: 'Running hosts',
   homeFilterDisabledHosts: 'Disabled hosts',
-  homeFilterRunningVms: 'Running VMs',
-  homeFilterNonRunningVms: 'Non running VMs',
   homeFilterPendingVms: 'Pending VMs',
   homeFilterHvmGuests: 'HVM guests',
   homeSortBy: 'Sort by',
@@ -257,6 +255,7 @@ const messages = {
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
+  powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
@@ -436,6 +435,8 @@ const messages = {
     'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
+  deltaChainRetentionWarning:
+    'Either the full backup interval or the backup retention should be lower than 50.',
   retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
   createRemoteMessage:
@@ -1115,6 +1116,23 @@ const messages = {
     "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
+
+  aclRuleAllow: 'Allow the traffic',
+  aclRuleProtocol: 'Select a protocol',
+  aclRulePort: 'Select a port',
+  aclRuleIpRange: 'Select an IP or an IP range (CIDR format)',
+  aclRuleDirection: 'Select a direction',
+  aclRuleAllowField: 'Traffic Enabled/Disabled',
+  aclRuleProtocolField: 'Protocol',
+  aclRulePortField: 'Port',
+  aclRuleIpRangeField: 'IP range (CIDR format)',
+  aclRuleDirectionField: 'Direction',
+  addRule: 'Add rule',
+  deleteRule: 'Delete rule',
+  hideRules: 'Hide rules',
+  sdnControllerNotLoaded: 'SDN Controller must be loaded',
+  showRules: 'Show rules',
+  vifAclRules: 'Traffic rules',
   vifCreateDeviceButton: 'New device',
   vifDeviceLabel: 'Device',
   vifMacLabel: 'MAC address',
@@ -1331,6 +1349,7 @@ const messages = {
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
   detachedBackups: 'Detached backups',
+  detachedVmSnapshots: 'Detached VM snapshots',
   missingJob: 'Missing job',
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
@@ -1346,8 +1365,6 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
-  vmSnapshotsRelatedToNonExistentBackups:
-    'VM snapshots related to non-existent backups',
   snapshotOf: 'Snapshot of',
   legacySnapshots: 'Legacy backups snapshots',
   alarmMessage: 'Alarms',
@@ -2376,7 +2393,6 @@ const messages = {
   redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
-  upgradeProxyAppliance: 'upgrade the appliance',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyLinkedRemotes: 'Click to see linked remotes',
@@ -2385,6 +2401,9 @@ const messages = {
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
   proxySrPredicateInfo:
     'The select only contains SRs connected to at least one HVM-capable host',
+  httpProxy: 'HTTP proxy',
+  httpProxyPlaceholder: 'protocol://username:password@address:port',
+  proxyUpgradesError: 'Unable to check upgrades availability',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
