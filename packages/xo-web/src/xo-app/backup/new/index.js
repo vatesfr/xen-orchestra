@@ -208,7 +208,7 @@ const destructVmsPattern = pattern =>
       }
 
 const isRetentionHigh = (settings, retention) =>
-  settings.getIn(['', 'fullInterval']) > RETENTION_LIMIT ||
+  settings.getIn(['', 'fullInterval']) > RETENTION_LIMIT &&
   retention > RETENTION_LIMIT
 
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
