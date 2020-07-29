@@ -309,7 +309,7 @@ class VifStatus extends BaseComponent {
         <Tooltip content={_('vifLockedNetwork')}>
           <StackedIcons
             icons={[
-              { icon: 'false', size: 1 },
+              { icon: 'vif-disable', size: 1 },
               { icon: 'circle', size: 2 },
             ]}
           />
