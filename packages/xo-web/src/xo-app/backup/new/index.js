@@ -207,9 +207,9 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
-const isRetentionHigh = (settings, retention) =>
-  settings.getIn(['', 'fullInterval']) > RETENTION_LIMIT &&
-  retention > RETENTION_LIMIT
+const isRetentionLow = (settings, retention) =>
+  retention < RETENTION_LIMIT ||
+  settings.getIn(['', 'fullInterval']) < RETENTION_LIMIT
 
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
@@ -552,7 +552,7 @@ const New = decorate([
               modes={modes}
               showRetentionWarning={
                 deltaMode &&
-                isRetentionHigh(settings, props.value.exportRetention)
+                !isRetentionLow(settings, props.value.exportRetention)
               }
               {...props}
             />
@@ -783,7 +783,7 @@ const New = decorate([
         schedules,
       }) =>
         deltaMode &&
-        isRetentionHigh(
+        !isRetentionLow(
           settings,
           max(
             Object.keys(schedules).map(key =>
