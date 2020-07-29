@@ -134,6 +134,19 @@ export default class {
     )
   }
 
+  async computeVmSnapshotResourcesUsage(snapshot) {
+    if (this._xo._config.selfService?.ignoreVmSnapshotResources) {
+      return {}
+    }
+    return this.computeVmResourcesUsage(snapshot)
+  }
+
+  computeResourcesUsage(vm) {
+    return vm.type === 'VM-snapshot'
+      ? this.computeVmSnapshotResourcesUsage(vm)
+      : this.computeVmResourcesUsage(vm)
+  }
+
   async createResourceSet(
     name,
     subjects = undefined,
@@ -381,9 +394,7 @@ export default class {
 
             const { limits } = set
             forEach(
-              await this.computeVmResourcesUsage(
-                this._xo.getObject(object.$id)
-              ),
+              await this.computeResourcesUsage(this._xo.getObject(object.$id)),
               (usage, resource) => {
                 const limit = limits[resource]
                 if (limit) {
@@ -411,7 +422,7 @@ export default class {
       return
     }
 
-    const resourcesUsage = await this.computeVmResourcesUsage(
+    const resourcesUsage = await this.computeResourcesUsage(
       this._xo.getObject(vmId)
     )
 

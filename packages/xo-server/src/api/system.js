@@ -22,6 +22,7 @@ export function getMethodsInfo() {
 }
 getMethodsInfo.description =
   'returns the signatures of all available API methods'
+getMethodsInfo.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
@@ -32,11 +33,13 @@ getServerTimezone.description = 'return the timezone server'
 
 export const getServerVersion = () => xoServerVersion
 getServerVersion.description = 'return the version of xo-server'
+getServerVersion.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
 export const getVersion = () => '0.1'
 getVersion.description = 'API version (unstable)'
+getVersion.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
@@ -44,6 +47,7 @@ export function listMethods() {
   return getKeys(this.apiMethods)
 }
 listMethods.description = 'returns the name of all available API methods'
+listMethods.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
@@ -66,3 +70,4 @@ export function methodSignature({ method: name }) {
   ]
 }
 methodSignature.description = 'returns the signature of an API method'
+methodSignature.permission = null // user does not need to be authenticated

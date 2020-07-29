@@ -41,9 +41,10 @@ Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://
 - XenServer 6.5 ✅ ❗
   - Random Delta backup issues
 - XenServer 6.1 and 6.2 ❎ ❗
-  - No Delta backup and CR support
+  - **No official support** due to missing JSON-RPC (only XML, too CPU intensive)
+  - Not compatible with Delta backup and CR
 - XenServer 5.x ❎ ❗
-  - Basic administration features only
+  - Basic administration features only, **no official support**
 
 :::warning
 Backup restore for large VM disks (>1TiB usage) is [broken on old XenServer versions](https://bugs.xenserver.org/browse/XSO-868) (except 7.1 LTS up-to-date and superior to 7.6).
