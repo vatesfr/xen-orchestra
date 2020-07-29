@@ -10,7 +10,7 @@ import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
 import { updateProxyAppliance } from 'xo'
 
-const Modal = decorate([
+const UpdateApplianceSettingsModal = decorate([
   provideState({
     effects: {
       onHttpProxyChange(_, { target: { value } }) {
@@ -58,7 +58,7 @@ const updateApplianceSettings = async proxy => {
     defaultValue: {
       httpProxy: '',
     },
-    render: props => <Modal {...props} />,
+    render: props => <UpdateApplianceSettingsModal {...props} />,
     header: (
       <span>
         <Icon icon='settings' /> {_('settings')}

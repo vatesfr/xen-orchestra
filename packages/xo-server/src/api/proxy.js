@@ -180,12 +180,12 @@ checkHealth.params = {
   },
 }
 
-export function updateAppliance({ id, ...props }) {
+export function updateApplianceSettings({ id, ...props }) {
   return this.updateProxyAppliance(id, props)
 }
 
-updateAppliance.permission = 'admin'
-updateAppliance.params = {
+updateApplianceSettings.permission = 'admin'
+updateApplianceSettings.params = {
   id: {
     type: 'string',
   },
