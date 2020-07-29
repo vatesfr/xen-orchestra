@@ -307,7 +307,12 @@ class VifStatus extends BaseComponent {
     if (network.defaultIsLocked) {
       return (
         <Tooltip content={_('vifLockedNetwork')}>
-          <Icon icon='disable' />
+          <StackedIcons
+            icons={[
+              { icon: 'false', size: 1 },
+              { icon: 'circle', size: 2 },
+            ]}
+          />
         </Tooltip>
       )
     }

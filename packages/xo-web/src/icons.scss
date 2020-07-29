@@ -241,10 +241,6 @@
     @extend .fa-chain-broken;
   }
 
-  &-disable {
-    @extend .fa;
-    @extend .fa-times-circle;
-  }
   &-lock {
     @extend .fa;
     @extend .fa-lock;
@@ -327,8 +323,8 @@
     @extend .fa-ticket;
   }
   &-circle {
-        @extend .fa;
-        @extend .fa-circle-thin;
+    @extend .fa;
+    @extend .fa-circle-thin;
   }
 
 
@@ -610,6 +606,10 @@
     &-enable {
       @extend .fa;
       @extend .fa-check-circle;
+    }
+    &-disable {
+      @extend .fa;
+      @extend .fa-times-circle;
     }
     &-restart-agent {
       @extend .fa;
