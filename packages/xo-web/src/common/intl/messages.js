@@ -437,7 +437,7 @@ const messages = {
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
   deltaChainRetentionWarning:
-    'This value should be lower than 50. Check the advanced full backup interval setting or the backup retention.',
+    'Either the full backup interval or the backup retention should be lower than 50.',
   retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
   createRemoteMessage:
