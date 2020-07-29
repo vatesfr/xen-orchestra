@@ -130,7 +130,8 @@ Hosts.propTypes = {
 })
 export class Edit extends Component {
   static propTypes = {
-    onSave: PropTypes.func,
+    onCancel: PropTypes.func.isRequired,
+    onSave: PropTypes.func.isRequired,
     resourceSet: PropTypes.object,
   }
 
@@ -744,6 +745,7 @@ export default class Self extends Component {
             {this.state.showNewResourceSetForm && [
               <Edit
                 key={0}
+                onCancel={this.toggleState('showNewResourceSetForm')}
                 onSave={this.toggleState('showNewResourceSetForm')}
               />,
               <hr key={1} />,
