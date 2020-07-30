@@ -15,6 +15,7 @@ import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
@@ -285,7 +286,7 @@ class VifStatus extends BaseComponent {
 
   _getLockingModeValue = createSelector(
     () => this.props.vif.lockingMode,
-    () => this.props.network.defaultIsLocked,
+    () => get(() => this.props.network.defaultIsLocked),
     (vifLockingMode, networkDefaultIsLocked) =>
       vifLockingMode === 'network_default' && networkDefaultIsLocked
         ? 'network_default: disabled'
@@ -356,6 +357,9 @@ class VifStatus extends BaseComponent {
     )
   }
 
+  _onBlurEditLockingMode = () =>
+    this.setState({ editLockingMode: !this.state.editLockingMode })
+
   _onChangeVif = event => {
     const { network, vif } = this.props
     const value = getEventValue(event)
@@ -390,6 +394,7 @@ class VifStatus extends BaseComponent {
         {editLockingMode ? (
           <select
             className='form-control'
+            onBlur={this._onBlurEditLockingMode}
             onChange={this._onChangeVif}
             value={this._getLockingModeValue()}
           >
@@ -405,6 +410,7 @@ class VifStatus extends BaseComponent {
             icon='edit'
             handler={this.toggleState('editLockingMode')}
             size='small'
+            tooltip={_('editVifLockingModeTooltip')}
           />
         )}
       </div>

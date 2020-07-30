@@ -136,8 +136,8 @@ export async function set({
   })
 
   if (
-    network !== undefined &&
     lockingMode === 'network_default' &&
+    network !== undefined &&
     networkDefaultIsLocked !== undefined
   ) {
     await network.set_default_locking_mode(
