@@ -27,6 +27,7 @@ export class TlsHelper {
       port,
       rejectUnauthorized: false,
       requestCert: false,
+      ciphers: 'DEFAULT:!DH',
     }
     const socket = connect(options)
     try {
