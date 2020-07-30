@@ -7,12 +7,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
-import {
-  fromCallback,
-  fromEvent,
-  ignoreErrors,
-  timeout,
-} from 'promise-toolbox'
+import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
 import { type Readable, type Writable } from 'stream'
