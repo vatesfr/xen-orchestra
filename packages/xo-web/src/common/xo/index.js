@@ -1,14 +1,12 @@
 import asap from 'asap'
 import cookies from 'cookies-js'
 import fpSortBy from 'lodash/fp/sortBy'
-import pFinally from 'promise-toolbox/finally'
 import React from 'react'
-import reflect from 'promise-toolbox/reflect'
-import tap from 'promise-toolbox/tap'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import {
   filter,
@@ -567,9 +565,13 @@ export const editServer = (server, props) =>
   )
 
 export const enableServer = server =>
-  _call('server.enable', { id: resolveId(server) })::pFinally(
-    subscribeServers.forceRefresh
-  )
+  _call('server.enable', { id: resolveId(server) })
+    ::tapCatch(error => {
+      if (error.message === 'Invalid XML-RPC message') {
+        error(_('enableServerErrorTitle'), _('enableServerErrorMessage'))
+      }
+    })
+    ::pFinally(subscribeServers.forceRefresh)
 
 export const disableServer = server =>
   _call('server.disable', { id: resolveId(server) })::tap(
@@ -1185,7 +1187,7 @@ export const copyVms = (vms, type) => {
   }, noop)
 }
 
-export const copyVm = vm => copyVms([vm])
+export const copyVm = vm => copyVms([vm], vm.type)
 
 export const convertVmToTemplate = vm =>
   confirm({
@@ -1786,6 +1788,38 @@ export const setVif = (
     mac,
     network: resolveId(network),
     rateLimit,
+  })
+
+export const addAclRule = ({
+  allow,
+  protocol = undefined,
+  port = undefined,
+  ipRange = '',
+  direction,
+  vif,
+}) =>
+  _call('sdnController.addRule', {
+    allow,
+    protocol,
+    port,
+    ipRange,
+    direction,
+    vifId: resolveId(vif),
+  })
+
+export const deleteAclRule = ({
+  protocol = undefined,
+  port = undefined,
+  ipRange = '',
+  direction,
+  vif,
+}) =>
+  _call('sdnController.deleteRule', {
+    protocol,
+    port,
+    ipRange,
+    direction,
+    vifId: resolveId(vif),
   })
 
 // Network -----------------------------------------------------------
@@ -3182,6 +3216,9 @@ export const destroyProxyAppliances = proxies =>
 
 export const upgradeProxyAppliance = proxy =>
   _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
+
+export const getProxyApplianceUpdaterState = id =>
+  _call('proxy.getApplianceUpdaterState', { id })
 
 export const checkProxyHealth = proxy =>
   _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>

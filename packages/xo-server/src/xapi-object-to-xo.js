@@ -644,8 +644,10 @@ const TRANSFORMS = {
       allowedIpv6Addresses: obj.ipv6_allowed,
       attached: Boolean(obj.currently_attached),
       device: obj.device, // TODO: should it be cast to a number?
+      lockingMode: obj.locking_mode,
       MAC: obj.MAC,
       MTU: +obj.MTU,
+      other_config: obj.other_config,
 
       // in kB/s
       rateLimit: (() => {

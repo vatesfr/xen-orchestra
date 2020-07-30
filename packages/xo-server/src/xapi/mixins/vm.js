@@ -125,7 +125,10 @@ export default {
       const isHvm = isVmHvm(vm)
 
       if (isHvm) {
-        if (!isEmpty(vdis) || installMethod === 'network') {
+        if (
+          (isEmpty(vdis) && isEmpty(existingVdis)) ||
+          installMethod === 'network'
+        ) {
           const { order } = vm.HVM_boot_params
 
           vm.update_HVM_boot_params(

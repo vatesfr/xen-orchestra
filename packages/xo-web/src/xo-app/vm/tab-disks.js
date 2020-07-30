@@ -113,7 +113,6 @@ const COLUMNS_VM_PV = [
     ),
     name: _('vdiNameLabel'),
     sortCriteria: 'vdi.name_label',
-    default: true,
   },
   {
     itemRenderer: ({ vdi }) => (
@@ -141,9 +140,10 @@ const COLUMNS_VM_PV = [
     sortCriteria: ({ vdiSr }) => vdiSr !== undefined && vdiSr.name_label,
   },
   {
+    default: true,
     itemRenderer: vbd => <span>{vbd.device}</span>,
     name: _('vbdDevice'),
-    sortCriteria: 'device',
+    sortCriteria: vbd => +vbd.position,
   },
   {
     itemRenderer: vbd => (

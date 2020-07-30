@@ -13,7 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup/Restore] Fixes `an error has occurred` when all backups for a specific VM have been deleted (PR [#5156](https://github.com/vatesfr/xen-orchestra/pull/5156))
+- [SDN Controller] Fixes TLS error `dh key too small` [#5074](https://github.com/vatesfr/xen-orchestra/issues/5074) (PR [#5187](https://github.com/vatesfr/xen-orchestra/pull/5187))
 
 ### Packages to release
 
@@ -32,6 +32,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-sdn-controller patch
 - xo-remote-parser minor
 - @xen-orchestra/fs minor
 - xo-web minor

@@ -272,7 +272,7 @@ class AuditXoPlugin {
         (req, res) => {
           res.set({
             'content-disposition': 'attachment',
-            'content-type': 'application/json',
+            'content-type': 'application/x-gzip',
           })
           return fromCallback(
             pipeline,
@@ -285,7 +285,7 @@ class AuditXoPlugin {
         {
           suffix: `/audit-records-${new Date()
             .toISOString()
-            .replace(/:/g, '_')}.gz`,
+            .replace(/:/g, '_')}.ndjson.gz`,
         }
       )
       .then($getFrom => ({
