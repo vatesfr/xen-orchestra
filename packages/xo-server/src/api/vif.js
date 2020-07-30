@@ -136,7 +136,7 @@ export async function set({
   })
 
   if (
-    lockingMode === 'network_default' &&
+    vif.lockingMode === 'network_default' &&
     network !== undefined &&
     networkDefaultIsLocked !== undefined
   ) {
