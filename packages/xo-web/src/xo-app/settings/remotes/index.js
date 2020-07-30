@@ -498,7 +498,7 @@ export default decorate([
 
       {!isEmpty(state.remoteWithInfo.s3) && (
         <div>
-          <h2>{_('remoteTypeS3')} (about S3 permissions)</h2>
+          <h2>{_('remoteTypeS3')}</h2>
           <SortedTable
             collection={state.remoteWithInfo.s3}
             columns={COLUMNS_S3_REMOTE}
