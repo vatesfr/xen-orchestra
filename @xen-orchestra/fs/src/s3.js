@@ -2,7 +2,6 @@ import AWS from 'aws-sdk'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
-import normalizePath from './_normalizePath'
 import { createChecksumStream } from './checksum'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
@@ -34,8 +33,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async outputStream(input, path, { checksum = true } = {}) {
-    input = await input
+  async _outputStream(input, path, { checksum }) {
     let inputStream = input
     if (checksum) {
       const checksumStream = createChecksumStream()
@@ -47,14 +45,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
       inputStream = checksumStream
     }
     const upload = this._s3.upload({
-      ...this._createParams(normalizePath(path)),
+      ...this._createParams(path),
       Body: inputStream,
     })
     await upload.promise()
     if (checksum) {
       const checksum = await inputStream.checksum
       const params = {
-        ...this._createParams(normalizePath(path + '.checksum')),
+        ...this._createParams(path + '.checksum'),
         Body: checksum,
       }
       await this._s3.upload(params).promise()

@@ -230,19 +230,7 @@ export default class RemoteHandlerAbstract {
   ): Promise<void> {
     path = normalizePath(path)
     input = await input
-    const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = await this.createOutputStream(tmpPath, { checksum })
-    try {
-      input.pipe(output)
-      await fromEvent(output, 'finish')
-      await output.checksumWritten
-      // $FlowFixMe
-      await input.task
-      await this.rename(tmpPath, path, { checksum })
-    } catch (error) {
-      await this.unlink(tmpPath, { checksum })
-      throw error
-    }
+    return this._outputStream(await input, normalizePath(path), { checksum })
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
@@ -543,6 +531,22 @@ export default class RemoteHandlerAbstract {
 
     await this._mktree(dirname(file))
     return this._outputFile(file, data, options)
+  }
+
+  async _outputStream(input, path, { checksum }) {
+    const tmpPath = `${dirname(path)}/.${basename(path)}`
+    const output = await this.createOutputStream(tmpPath, { checksum })
+    try {
+      input.pipe(output)
+      await fromEvent(output, 'finish')
+      await output.checksumWritten
+      // $FlowFixMe
+      await input.task
+      await this.rename(tmpPath, path, { checksum })
+    } catch (error) {
+      await this.unlink(tmpPath, { checksum })
+      throw error
+    }
   }
 
   _read(
