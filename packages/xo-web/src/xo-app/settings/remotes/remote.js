@@ -183,7 +183,9 @@ export default decorate([
               <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
             )}
             {type === 's3' && (
-              <em className='text-warning'>About S3 bucket permissions</em>
+              <em className='text-warning'>
+                Backup to Amazon S3 is a BETA feature
+              </em>
             )}
           </div>
           <div className='form-group'>
