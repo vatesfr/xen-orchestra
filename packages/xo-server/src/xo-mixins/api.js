@@ -81,8 +81,6 @@ function checkParams(method, params) {
 }
 
 function checkPermission(method) {
-  /* jshint validthis: true */
-
   const { permission } = method
 
   // User does not need to be authenticated.
