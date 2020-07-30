@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Proxy] Improve health check errors [#5161](https://github.com/vatesfr/xen-orchestra/issues/5161) (PR [#5191](https://github.com/vatesfr/xen-orchestra/pull/5191))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +32,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-xo-web patch
+xo-server minor
+xo-web minor
 xo-server-sdn-controller patch
