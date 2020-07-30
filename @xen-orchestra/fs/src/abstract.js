@@ -121,6 +121,7 @@ export default class RemoteHandlerAbstract {
     await this.__closeFile(fd)
   }
 
+  // TODO: remove method
   async createOutputStream(
     file: File,
     { checksum = false, ...options }: Object = {}
