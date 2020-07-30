@@ -60,11 +60,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
     await input.task
   }
 
-  async _createOutputStream(file, options) {
-    // we have overriden createOutputStream()
-    throw new Error('Not implemented')
-  }
-
   async _writeFile(file, data, options) {
     return this._s3
       .putObject({ ...this._createParams(file), Body: data })
