@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Remotes] Add AWS S3 as a backup storage
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +32,8 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-xo-web patch
-xo-server-sdn-controller patch
+- xo-server-sdn-controller patch
+- xo-remote-parser minor
+- @xen-orchestra/fs minor
+- xo-web minor
+- xo-server minor
