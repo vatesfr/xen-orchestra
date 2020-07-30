@@ -227,6 +227,7 @@ export default class RemoteHandlerAbstract {
     path: string,
     { checksum = true }: { checksum?: boolean } = {}
   ): Promise<void> {
+    path = normalizePath(path)
     input = await input
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, { checksum })
