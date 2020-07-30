@@ -546,7 +546,7 @@ const messages = {
   remoteTypeLocal: 'Local',
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
-  remoteTypeS3: 'Amazon Web Services S3',
+  remoteTypeS3: 'Amazon Web Services S3 (beta)',
   remoteType: 'Type',
   remoteSmbWarningMessage:
     'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
