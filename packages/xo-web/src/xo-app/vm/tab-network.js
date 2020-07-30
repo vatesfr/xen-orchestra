@@ -4,6 +4,7 @@ import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
 import decorate from 'apply-decorators'
+import getEventValue from 'get-event-value'
 import Icon, { StackedIcons } from 'icon'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
@@ -61,6 +62,7 @@ import {
   deleteVif,
   deleteVifs,
   disconnectVif,
+  getLockingModeValues,
   isVmRunning,
   setVif,
   subscribeIpPools,
@@ -269,10 +271,27 @@ class VifAllowedIps extends BaseComponent {
 }
 
 class VifStatus extends BaseComponent {
+  componentDidMount() {
+    getLockingModeValues().then(lockingModeValues =>
+      this.setState({ lockingModeValues })
+    )
+  }
+
   _getIps = createSelector(
     () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
     () => this.props.vif.allowedIpv6Addresses || EMPTY_ARRAY,
     concat
+  )
+
+  _getLockingModeValue = createSelector(
+    () => this.props.vif.lockingMode,
+    () => this.props.network.defaultIsLocked,
+    (vifLockingMode, networkDefaultIsLocked) =>
+      vifLockingMode === 'network_default' && networkDefaultIsLocked
+        ? 'network_default: disabled'
+        : vifLockingMode === 'network_default'
+        ? 'network_default: unlocked'
+        : vifLockingMode
   )
 
   _getNetworkStatus = () => {
@@ -337,8 +356,23 @@ class VifStatus extends BaseComponent {
     )
   }
 
+  _onChangeVif = event => {
+    const { network, vif } = this.props
+    const value = getEventValue(event)
+    const isNetworkDefault = value.startsWith('network_default')
+
+    setVif(vif, {
+      lockingMode: isNetworkDefault ? 'network_default' : value,
+      network,
+      networkDefaultIsLocked: isNetworkDefault
+        ? value === 'network_default: disabled'
+        : undefined,
+    })
+  }
+
   render() {
     const { vif } = this.props
+    const { editLockingMode } = this.state
 
     return (
       <div>
@@ -352,7 +386,27 @@ class VifStatus extends BaseComponent {
           handlerParam={vif}
           state={vif.attached}
         />{' '}
-        {this._getNetworkStatus()}
+        {this._getNetworkStatus()}{' '}
+        {editLockingMode ? (
+          <select
+            className='form-control'
+            onChange={this._onChangeVif}
+            value={this._getLockingModeValue()}
+          >
+            {map(this.state.lockingModeValues, lockingMode => (
+              <option key={lockingMode} value={lockingMode}>
+                {lockingMode}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <ActionButton
+            btnStyle='primary'
+            icon='edit'
+            handler={this.toggleState('editLockingMode')}
+            size='small'
+          />
+        )}
       </div>
     )
   }

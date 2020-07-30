@@ -4,6 +4,18 @@ import { diffItems } from '../utils'
 
 // ===================================================================
 
+export function getLockingModeValues() {
+  return [
+    'disabled',
+    'locked',
+    'network_default: disabled',
+    'network_default: unlocked',
+    'unlocked',
+  ]
+}
+
+// -------------------------------------------------------------------
+
 // TODO: move into vm and rename to removeInterface
 async function delete_({ vif }) {
   this.allocIpAddresses(
@@ -63,6 +75,7 @@ export async function set({
   allowedIpv4Addresses,
   allowedIpv6Addresses,
   attached,
+  lockingMode,
   mac,
   network,
   rateLimit,
@@ -114,12 +127,23 @@ export async function set({
   )
   await this.allocIpAddresses(vif.id, addAddresses, removeAddresses)
 
-  return this.getXapi(vif).editVif(vif._xapiId, {
+  await this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
     ipv6Allowed: allowedIpv6Addresses,
+    lockingMode,
     rateLimit,
     txChecksumming,
   })
+
+  if (
+    network !== undefined &&
+    lockingMode === 'network_default' &&
+    networkDefaultIsLocked !== undefined
+  ) {
+    await network.set_default_locking_mode(
+      networkDefaultIsLocked ? 'disabled' : 'unlocked'
+    )
+  }
 }
 
 set.params = {
@@ -141,6 +165,8 @@ set.params = {
     optional: true,
   },
   attached: { type: 'boolean', optional: true },
+  lockingMode: { type: 'string', optional: true },
+  networkDefaultIsLocked: { type: 'boolean', optional: true },
   rateLimit: {
     description: 'in kilobytes per seconds',
     optional: true,
