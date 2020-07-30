@@ -13,11 +13,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
     const { host, path, username, password } = parse(remote.url)
 
     // https://www.zenko.io/blog/first-things-first-getting-started-scality-s3-server/
-    AWS.config.update({ accessKeyId: username, secretAccessKey: password })
     this._s3 = new AWS.S3({
+      accessKeyId: username,
       apiVersion: '2006-03-01',
-      s3ForcePathStyle: true,
       endpoint: host,
+      s3ForcePathStyle: true,
+      secretAccessKey: password,
       signatureVersion: 'v4',
     })
     const splitPath = path.split('/').filter(s => s.length)
