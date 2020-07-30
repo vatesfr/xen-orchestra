@@ -23,6 +23,9 @@ const configs = {
 
       shippedProposals: true,
       targets: (() => {
+        if (!__PROD__) {
+          return { firefox: '80', chrome: '84', node: 'current' }
+        }
         let node = (pkg.engines || {}).node
         if (node !== undefined) {
           const trimChars = '^=>~'
