@@ -22,12 +22,12 @@ export class TlsHelper {
     const options = {
       ca: this._caCert,
       cert: this._clientCert,
+      ciphers: 'DEFAULT:!DH',
       host: address,
       key: this._clientKey,
       port,
       rejectUnauthorized: false,
       requestCert: false,
-      ciphers: 'DEFAULT:!DH',
     }
     const socket = connect(options)
     try {
