@@ -348,7 +348,17 @@ export default class Proxy {
   }
 
   async checkProxyHealth(id) {
-    await this.callProxyMethod(id, 'system.getServerVersion')
+    try {
+      await this.callProxyMethod(id, 'system.getServerVersion')
+      return {
+        success: true,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error,
+      }
+    }
   }
 
   async callProxyMethod(id, method, params, { expectStream = false } = {}) {

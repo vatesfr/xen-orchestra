@@ -2395,6 +2395,8 @@ const messages = {
   checkProxyHealth: 'Test your proxy',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyTestFailed: 'Test failed for {name}',
+  proxyTestFailedMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
