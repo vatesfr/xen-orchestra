@@ -649,6 +649,8 @@ const TRANSFORMS = {
       MAC: obj.MAC,
       MTU: +obj.MTU,
       other_config: obj.other_config,
+
+      // See: https://xapi-project.github.io/xen-api/networking.html
       txChecksumming: txChecksumming === 'true' || txChecksumming === 'on',
 
       // in kB/s
