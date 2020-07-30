@@ -12,13 +12,19 @@ export class FullBackupWriter {
     this._remoteId = remoteId
     this._settings = settings
 
-    this.run = Task.wrapFn(this.run, 'export', {
-      id: remoteId,
-      type: 'remote',
+    this.run = Task.wrapFn(
+      {
+        name: 'export',
+        data: {
+          id: remoteId,
+          type: 'remote',
 
-      // necessary?
-      isFull: true,
-    })
+          // necessary?
+          isFull: true,
+        },
+      },
+      this.run
+    )
   }
 
   async run({ timestamp, sizeContainer, stream }) {

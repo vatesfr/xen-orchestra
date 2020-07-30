@@ -14,13 +14,15 @@ export class DisasterRecoveryWriter {
     this._sr = sr
 
     this.run = Task.wrapFn(
-      { name: 'export' },
       {
-        id: sr.uuid,
-        type: 'SR',
+        name: 'export',
+        data: {
+          id: sr.uuid,
+          type: 'SR',
 
-        // necessary?
-        isFull: true,
+          // necessary?
+          isFull: true,
+        },
       },
       this.run
     )
