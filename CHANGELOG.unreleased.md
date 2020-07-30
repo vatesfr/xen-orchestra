@@ -10,6 +10,7 @@
 - [VM] Ability to protect VM from accidental shutdown [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
 - [VM/Network] Ability to set VIF TX checksumming [#5095](https://github.com/vatesfr/xen-orchestra/issues/5095) (PR [#5182](https://github.com/vatesfr/xen-orchestra/pull/5182))
 - [Proxy] Improve health check error messages [#5161](https://github.com/vatesfr/xen-orchestra/issues/5161) (PR [#5191](https://github.com/vatesfr/xen-orchestra/pull/5191))
+- [VM/network] Ability to change a VIF's locking mode [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5188](https://github.com/vatesfr/xen-orchestra/pull/5188))
 
 ### Bug fixes
 
