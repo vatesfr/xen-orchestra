@@ -1,3 +1,4 @@
+import assert from 'assert'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import Vhd, { chainVhd } from 'vhd-lib'
@@ -124,7 +125,14 @@ export class DeltaBackupWriter {
             )
               .sort()
               .pop()
-              .slice(1) // remove leading slash
+
+            assert.notStrictEqual(
+              parentPath,
+              undefined,
+              `missing parent of ${id}`
+            )
+
+            parentPath = parentPath.slice(1) // remove leading slash
 
             // TODO remove when this has been done before the export
             await checkVhd(handler, parentPath)
