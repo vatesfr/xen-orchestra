@@ -32,7 +32,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @xen-orchestra/fs minor
 - xo-remote-parser minor
+- @xen-orchestra/fs minor
 - xo-web minor
 - xo-server minor
