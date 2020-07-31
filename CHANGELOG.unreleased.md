@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Proxy/deploy] Fix `no such proxy ok` error on a failure start trial (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
+- [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
 
 ### Packages to release
 
