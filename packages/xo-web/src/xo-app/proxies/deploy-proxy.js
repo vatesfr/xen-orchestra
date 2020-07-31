@@ -305,7 +305,7 @@ const deployProxy = async ({ proxy } = {}) => {
         </span>
       )
 
-      // This error will be handled and ignored by the ActionButton
+      // throw undefined to interrupt the deployment process and to let the ActionButton properly ignore this error
       throw undefined
     }
   }
