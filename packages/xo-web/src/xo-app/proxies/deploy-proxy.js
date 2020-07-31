@@ -304,6 +304,8 @@ const deployProxy = async ({ proxy } = {}) => {
           <Icon icon='alarm' /> {error.message}
         </span>
       )
+
+      // This error will be handled and ignored by the ActionButton
       throw undefined
     }
   }
