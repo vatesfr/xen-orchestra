@@ -18,6 +18,8 @@
 - [Self] Ability to cancel a resource set edition without saving it (PR [#5174](https://github.com/vatesfr/xen-orchestra/pull/5174))
 - [New delta backup] Show a warning icon when the advanced full backup interval setting and the backup retention are higher than 50 (PR (https://github.com/vatesfr/xen-orchestra/pull/5144))
 - [VM/network] Improve the network locking mode feedback [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5170](https://github.com/vatesfr/xen-orchestra/pull/5170))
+- [Remotes] Add AWS S3 as a backup storage
+- [VIF] Ability to click an IP address to copy it to the clipboard [#5185](https://github.com/vatesfr/xen-orchestra/issues/5185) (PR [#5186](https://github.com/vatesfr/xen-orchestra/pull/5186))
 
 ### Bug fixes
 
@@ -26,15 +28,18 @@
 - [Fast clone] Fix bug where the name of the created VM would be "undefined_clone" (PR [#5173](https://github.com/vatesfr/xen-orchestra/pull/5173))
 - [Audit] Fix unreadable exported records format (PR [#5179](https://github.com/vatesfr/xen-orchestra/pull/5179))
 - [New VM] Only make network boot option first when the VM has no disks or when the network installation is chosen [#4980](https://github.com/vatesfr/xen-orchestra/issues/4980) (PR [#5119](https://github.com/vatesfr/xen-orchestra/pull/5119))
+- [SDN Controller] Fixes TLS error `dh key too small` [#5074](https://github.com/vatesfr/xen-orchestra/issues/5074) (PR [#5187](https://github.com/vatesfr/xen-orchestra/pull/5187))
 
 ### Released packages
 
 - xo-server-audit 0.6.1
 - @xen-orchestra/openflow 0.1.1
-- xo-server-sdn-controller 1.0.0
+- xo-server-sdn-controller 1.0.1
 - xo-vmdk-to-vhd 1.3.0
-- xo-server 5.63.0
-- xo-web 5.65.0
+- xo-remote-parser 0.6.0
+- @xen-orchestra/fs 0.11.0
+- xo-server 5.64.0
+- xo-web 5.66.0
 
 ## **5.48.3** (2020-07-10)
 
