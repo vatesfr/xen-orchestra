@@ -18,6 +18,7 @@ const remoteTypes = {
   file: 'remoteTypeLocal',
   nfs: 'remoteTypeNfs',
   smb: 'remoteTypeSmb',
+  s3: 'remoteTypeS3',
 }
 
 export default decorate([
@@ -36,6 +37,8 @@ export default decorate([
       proxyId: undefined,
       type: undefined,
       username: undefined,
+      directory: undefined,
+      bucket: undefined,
     }),
     effects: {
       linkState,
@@ -93,6 +96,8 @@ export default decorate([
           path,
           port,
           proxyId,
+          bucket,
+          directory,
           type = 'nfs',
           username,
         } = state
@@ -102,6 +107,9 @@ export default decorate([
           path,
           port,
           type,
+        }
+        if (type === 's3') {
+          urlParams.path = bucket + '/' + directory
         }
         username && (urlParams.username = username)
         password && (urlParams.password = password)
@@ -142,6 +150,10 @@ export default decorate([
       password = remote.password || '',
       parsedPath,
       path = parsedPath || '',
+      parsedBucket = parsedPath && parsedPath.split('/')[0],
+      bucket = parsedBucket || '',
+      parsedDirectory,
+      directory = parsedDirectory || '',
       port = remote.port,
       proxyId = remote.proxy,
       type = remote.type || 'nfs',
@@ -169,6 +181,11 @@ export default decorate([
             </select>
             {type === 'smb' && (
               <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
+            )}
+            {type === 's3' && (
+              <em className='text-warning'>
+                Backup to Amazon S3 is a BETA feature
+              </em>
             )}
           </div>
           <div className='form-group'>
@@ -328,6 +345,73 @@ export default decorate([
                   )}
                   type='text'
                   value={options}
+                />
+              </div>
+            </fieldset>
+          )}
+          {type === 's3' && (
+            <fieldset className='form-group form-group'>
+              <div className='input-group '>
+                <input
+                  className='form-control'
+                  name='host'
+                  onChange={effects.linkState}
+                  // pattern='^[^\\/]+\\[^\\/]+$'
+                  placeholder='AWS S3 endpoint (ex: s3.us-east-2.amazonaws.com)'
+                  required
+                  type='text'
+                  value={host}
+                />
+              </div>
+              <div className='input-group '>
+                <input
+                  className='form-control'
+                  name='bucket'
+                  onChange={effects.linkState}
+                  // https://stackoverflow.com/a/58248645/72637
+                  pattern='(?!^(\d{1,3}\.){3}\d{1,3}$)(^[a-z0-9]([a-z0-9-]*(\.[a-z0-9])?)*$)'
+                  placeholder={formatMessage(
+                    messages.remoteS3PlaceHolderBucket
+                  )}
+                  required
+                  type='text'
+                  value={bucket}
+                />
+              </div>
+              <div className='input-group form-group'>
+                <input
+                  className='form-control'
+                  name='directory'
+                  onChange={effects.linkState}
+                  pattern='^(([^/]+)+(/[^/]+)*)?$'
+                  placeholder={formatMessage(
+                    messages.remoteS3PlaceHolderDirectory
+                  )}
+                  required
+                  type='text'
+                  value={directory}
+                />
+              </div>
+              <div className='input-group'>
+                <input
+                  className='form-control'
+                  name='username'
+                  onChange={effects.linkState}
+                  placeholder='Access key ID'
+                  required
+                  type='text'
+                  value={username}
+                />
+              </div>
+              <div className='input-group'>
+                <input
+                  className='form-control'
+                  name='password'
+                  onChange={effects.linkState}
+                  placeholder='Secret access key'
+                  required
+                  type='text'
+                  value={password}
                 />
               </div>
             </fieldset>

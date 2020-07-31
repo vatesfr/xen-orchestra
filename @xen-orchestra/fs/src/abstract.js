@@ -5,7 +5,7 @@ import getStream from 'get-stream'
 
 import asyncMap from '@xen-orchestra/async-map'
 import limit from 'limit-concurrency-decorator'
-import path from 'path'
+import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
@@ -121,6 +121,7 @@ export default class RemoteHandlerAbstract {
     await this.__closeFile(fd)
   }
 
+  // TODO: remove method
   async createOutputStream(
     file: File,
     { checksum = false, ...options }: Object = {}
@@ -221,19 +222,15 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  createWriteStream(
-    file: File,
-    options: { end?: number, flags?: string, start?: number } = {}
-  ): Promise<LaxWritable> {
-    return timeout.call(
-      this._createWriteStream(
-        typeof file === 'string' ? normalizePath(file) : file,
-        {
-          flags: 'wx',
-          ...options,
-        }
-      )
-    )
+  // write a stream to a file using a temporary file
+  async outputStream(
+    input: Readable | Promise<Readable>,
+    path: string,
+    { checksum = true }: { checksum?: boolean } = {}
+  ): Promise<void> {
+    path = normalizePath(path)
+    input = await input
+    return this._outputStream(await input, normalizePath(path), { checksum })
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
@@ -319,18 +316,6 @@ export default class RemoteHandlerAbstract {
     { flags = 'r' }: { flags?: string } = {}
   ): Promise<Buffer> {
     return this._readFile(normalizePath(file), { flags })
-  }
-
-  async refreshChecksum(path: string): Promise<void> {
-    path = normalizePath(path)
-
-    const stream = (await this._createReadStream(path, { flags: 'r' })).pipe(
-      createChecksumStream()
-    )
-    stream.resume() // start reading the whole file
-    await this._outputFile(checksumFile(path), await stream.checksum, {
-      flags: 'wx',
-    })
   }
 
   async rename(
@@ -546,6 +531,22 @@ export default class RemoteHandlerAbstract {
 
     await this._mktree(dirname(file))
     return this._outputFile(file, data, options)
+  }
+
+  async _outputStream(input, path, { checksum }) {
+    const tmpPath = `${dirname(path)}/.${basename(path)}`
+    const output = await this.createOutputStream(tmpPath, { checksum })
+    try {
+      input.pipe(output)
+      await fromEvent(output, 'finish')
+      await output.checksumWritten
+      // $FlowFixMe
+      await input.task
+      await this.rename(tmpPath, path, { checksum })
+    } catch (error) {
+      await this.unlink(tmpPath, { checksum })
+      throw error
+    }
   }
 
   _read(

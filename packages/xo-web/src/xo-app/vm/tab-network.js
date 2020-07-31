@@ -534,7 +534,7 @@ class AclRulesRows extends BaseComponent {
   )
 
   render() {
-    const { vif, plugins } = this.props
+    const { vif, plugins = [] } = this.props
     const { showRules } = this.state
     const sdnControllerLoaded = plugins.some(
       plugin => plugin.name === 'sdn-controller' && plugin.loaded

@@ -7,11 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Remotes] Add AWS S3 as a backup storage
 - [VIF] Ability to click an IP address to copy it to the clipboard [#5185](https://github.com/vatesfr/xen-orchestra/issues/5185) (PR [#5186](https://github.com/vatesfr/xen-orchestra/pull/5186))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [SDN Controller] Fixes TLS error `dh key too small` [#5074](https://github.com/vatesfr/xen-orchestra/issues/5074) (PR [#5187](https://github.com/vatesfr/xen-orchestra/pull/5187))
 
 ### Packages to release
 
@@ -30,4 +33,8 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-sdn-controller patch
+- xo-remote-parser minor
+- @xen-orchestra/fs minor
 - xo-web minor
+- xo-server minor
