@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.63.0",
+  "version": "5.64.0",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -38,7 +38,7 @@
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.0",
     "@xen-orchestra/emit-async": "^0.0.0",
-    "@xen-orchestra/fs": "^0.10.4",
+    "@xen-orchestra/fs": "^0.11.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/mixin": "^0.0.0",
     "@xen-orchestra/self-signed": "^0.1.0",
@@ -138,7 +138,7 @@
     "xo-acl-resolver": "^0.4.1",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.5.0",
-    "xo-remote-parser": "^0.5.0",
+    "xo-remote-parser": "^0.6.0",
     "xo-vmdk-to-vhd": "^1.3.0",
     "yazl": "^2.4.3"
   },
