@@ -304,7 +304,7 @@ const deployProxy = async ({ proxy } = {}) => {
           <Icon icon='alarm' /> {error.message}
         </span>
       )
-      throw error.message
+      throw error
     }
   }
 
