@@ -16,7 +16,7 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "node": ">=8.10"
   },
