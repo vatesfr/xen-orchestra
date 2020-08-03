@@ -1,5 +1,6 @@
 import cookie from 'cookie'
 import defer from 'golike-defer'
+import hrp from 'http-request-plus'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
 import split2 from 'split2'
@@ -24,6 +25,16 @@ const omitToken = proxy => omit(proxy, 'authenticationToken')
 const synchronizedWrite = synchronized()
 
 const log = createLogger('xo:proxy')
+
+const assertProxyAddress = (proxy, address) => {
+  if (address !== undefined) {
+    return address
+  }
+
+  const error = new Error('cannot get the proxy address')
+  error.proxy = omit(proxy, 'authenticationToken')
+  throw error
+}
 
 export default class Proxy {
   constructor(app, conf) {
@@ -149,7 +160,24 @@ export default class Proxy {
       'vm-data/xoa-updater-channel': JSON.stringify(this._xoProxyConf.channel),
     })
 
-    return xapi.rebootVm(vmUuid)
+    try {
+      await xapi.rebootVm(vmUuid)
+    } catch (error) {
+      if (error.code !== 'VM_BAD_POWER_STATE') {
+        throw error
+      }
+
+      await xapi.startVm(vmUuid)
+    }
+
+    await xapi._waitObjectState(
+      vmUuid,
+      vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined
+    )
+  }
+
+  getProxyApplianceUpdaterState(id) {
+    return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
   @defer
@@ -157,7 +185,7 @@ export default class Proxy {
     $defer,
     srId,
     licenseId,
-    { networkId, networkConfiguration }
+    { httpProxy, networkId, networkConfiguration }
   ) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
@@ -206,6 +234,9 @@ export default class Proxy {
       }),
       'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
     }
+    if (httpProxy !== undefined) {
+      xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
+    }
     if (networkConfiguration !== undefined) {
       xenstoreData['vm-data/ip'] = networkConfiguration.ip
       xenstoreData['vm-data/gateway'] = networkConfiguration.gateway
@@ -231,7 +262,7 @@ export default class Proxy {
   async deployProxy(
     srId,
     licenseId,
-    { networkConfiguration, networkId, proxyId } = {}
+    { httpProxy, networkConfiguration, networkId, proxyId } = {}
   ) {
     const app = this._app
     const xoProxyConf = this._xoProxyConf
@@ -261,8 +292,9 @@ export default class Proxy {
       vm,
       xenstoreData,
     } = await this._createProxyVm(srId, licenseId, {
-      networkId,
+      httpProxy,
       networkConfiguration,
+      networkId,
     })
 
     if (redeploy) {
@@ -311,30 +343,18 @@ export default class Proxy {
     )
 
     await this.checkProxyHealth(proxyId)
+
+    return proxyId
   }
 
   async checkProxyHealth(id) {
     await this.callProxyMethod(id, 'system.getServerVersion')
   }
 
-  async callProxyMethod(id, method, params, expectStream = false) {
+  async callProxyMethod(id, method, params, { expectStream = false } = {}) {
     const proxy = await this._getProxy(id)
 
-    let ipAddress
-    if (proxy.vmUuid !== undefined) {
-      const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
-      ipAddress = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
-    } else {
-      ipAddress = proxy.address
-    }
-
-    if (ipAddress === undefined) {
-      const error = new Error('cannot get the proxy IP')
-      error.proxy = omit(proxy, 'authenticationToken')
-      throw error
-    }
-
-    const response = await this._app.httpRequest({
+    const request = {
       body: format.request(0, method, params),
       headers: {
         'Content-Type': 'application/json',
@@ -343,13 +363,27 @@ export default class Proxy {
           proxy.authenticationToken
         ),
       },
-      hostname: ipAddress,
       method: 'POST',
       pathname: '/api/v1',
       protocol: 'https:',
       rejectUnauthorized: false,
       timeout: parseDuration(this._xoProxyConf.callTimeout),
-    })
+    }
+
+    if (proxy.vmUuid !== undefined) {
+      const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
+
+      // use hostname field to avoid issues with IPv6 addresses
+      request.hostname = assertProxyAddress(
+        proxy,
+        extractIpFromVmNetworks(vm.$guest_metrics?.networks)
+      )
+    } else {
+      // use host field so that ports can be passed
+      request.host = assertProxyAddress(proxy, proxy.address)
+    }
+
+    const response = await hrp(request)
 
     const authenticationToken = parseSetCookie(response, {
       map: true,
@@ -358,15 +392,13 @@ export default class Proxy {
       await this.updateProxy(id, { authenticationToken })
     }
 
-    const lines = pumpify(response, split2())
+    const lines = pumpify.obj(response, split2(JSON.parse))
     const firstLine = await readChunk(lines)
 
-    const { result, error } = parse(String(firstLine))
-    if (error !== undefined) {
-      throw error
-    }
+    const result = parse.result(firstLine)
     const isStream = result.$responseType === 'ndjson'
     if (isStream !== expectStream) {
+      lines.destroy()
       throw new Error(
         `expect the result ${expectStream ? '' : 'not'} to be a stream`
       )

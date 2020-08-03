@@ -8,7 +8,7 @@ import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import safeTimeout from 'strict-timeout/safe'
 import { type Pattern, createPredicate } from 'value-matcher'
-import { type Readable, PassThrough } from 'stream'
+import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
@@ -29,13 +29,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import {
-  CancelToken,
-  ignoreErrors,
-  pFinally,
-  pFromEvent,
-  timeout,
-} from 'promise-toolbox'
+import { CancelToken, ignoreErrors, pFinally, timeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   checkVhdChain,
@@ -323,31 +317,6 @@ const parseVmBackupId = (id: string) => {
   return {
     metadataFilename: id.slice(i + 1),
     remoteId: id.slice(0, i),
-  }
-}
-
-// write a stream to a file using a temporary file
-//
-// TODO: merge into RemoteHandlerAbstract
-const writeStream = async (
-  input: Readable | Promise<Readable>,
-  handler: RemoteHandler,
-  path: string,
-  { checksum = true }: { checksum?: boolean } = {}
-): Promise<void> => {
-  input = await input
-  const tmpPath = `${dirname(path)}/.${basename(path)}`
-  const output = await handler.createOutputStream(tmpPath, { checksum })
-  try {
-    input.pipe(output)
-    await pFromEvent(output, 'finish')
-    await output.checksumWritten
-    // $FlowFixMe
-    await input.task
-    await handler.rename(tmpPath, path, { checksum })
-  } catch (error) {
-    await handler.unlink(tmpPath, { checksum })
-    throw error
   }
 }
 
@@ -666,7 +635,7 @@ export default class BackupNg {
             }),
           ])
 
-          return app.callProxyMethod(job.proxy, 'backup.run', {
+          const params = {
             job: {
               ...job,
 
@@ -677,8 +646,64 @@ export default class BackupNg {
             recordToXapi,
             remotes,
             schedule,
+            streamLogs: true,
             xapis,
-          })
+          }
+
+          try {
+            const logsStream = await app.callProxyMethod(
+              job.proxy,
+              'backup.run',
+              params,
+              {
+                expectStream: true,
+              }
+            )
+
+            const localTaskIds = { __proto__: null }
+            for await (const log of logsStream) {
+              const { event, message, taskId } = log
+
+              const common = {
+                data: log.data,
+                event: 'task.' + event,
+                result: log.result,
+                status: log.status,
+              }
+
+              if (event === 'start') {
+                const { parentId } = log
+                if (parentId === undefined) {
+                  // ignore root task (already handled by runJob)
+                  localTaskIds[taskId] = runJobId
+                } else {
+                  common.parentId = localTaskIds[parentId]
+                  localTaskIds[taskId] = logger.notice(message, common)
+                }
+              } else {
+                const localTaskId = localTaskIds[taskId]
+                if (localTaskId === runJobId) {
+                  if (event === 'end') {
+                    if (log.status === 'failure') {
+                      throw log.result
+                    }
+                    return log.result
+                  }
+                } else {
+                  common.taskId = localTaskId
+                  logger.notice(message, common)
+                }
+              }
+            }
+            return
+          } catch (error) {
+            // XO API invalid parameters error
+            if (error.code === 10) {
+              delete params.streamLogs
+              return app.callProxyMethod(job.proxy, 'backup.run', params)
+            }
+            throw error
+          }
         }
 
         const srs = srIds.map(id => app.getXapiObject(id, 'SR'))
@@ -1451,7 +1476,7 @@ export default class BackupNg {
                   parentId: taskId,
                   result: () => ({ size: xva.size }),
                 },
-                writeStream(fork, handler, dataFilename)
+                handler.outputStream(fork, dataFilename)
               )
 
               if (handler._getFilePath !== undefined) {
@@ -1820,9 +1845,8 @@ export default class BackupNg {
                     }
 
                     // FIXME: should only be renamed after the metadata file has been written
-                    await writeStream(
+                    await handler.outputStream(
                       fork.streams[`${id}.vhd`](),
-                      handler,
                       path,
                       {
                         // no checksum for VHDs, because they will be invalidated by

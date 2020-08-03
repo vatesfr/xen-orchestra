@@ -22,6 +22,10 @@ export default class Http {
     this.setHttpProxy(httpProxy)
   }
 
+  // TODO: find a way to decide for which addresses the proxy should be used
+  //
+  // For the moment, use this method only to access external resources (e.g.
+  // patches, upgrades, support tunnel)
   httpRequest(...args) {
     return hrp(
       {

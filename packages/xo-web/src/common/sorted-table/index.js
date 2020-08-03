@@ -106,7 +106,7 @@ class TableFilter extends Component {
         <Tooltip content={_('filterSyntaxLinkTooltip')}>
           <a
             className='input-group-addon'
-            href='https://xen-orchestra.com/docs/search.html#filter-syntax'
+            href='https://xen-orchestra.com/docs/manage_infrastructure.html#live-filter-search'
             rel='noopener noreferrer'
             target='_blank'
           >
@@ -1001,4 +1001,5 @@ class SortedTable extends Component {
   }
 }
 
-export default withRouter(SortedTable)
+// withRouter is needed to trigger a render on filtering/sorting items
+export default withRouter(SortedTable, { withRef: true })

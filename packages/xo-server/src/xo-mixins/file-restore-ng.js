@@ -366,7 +366,7 @@ export default class BackupNgFileRestore {
         ).lv_path
       )
       unmountQueue.push(partition.unmount)
-      return { ...partition, unmount }
+      return { __proto__: partition, unmount }
     }
 
     return mountPartition(

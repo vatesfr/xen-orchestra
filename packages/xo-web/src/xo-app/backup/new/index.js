@@ -36,6 +36,7 @@ import {
   deleteSchedule,
   editBackupNgJob,
   editSchedule,
+  getSuggestedExcludedTags,
   isSrWritable,
   subscribeRemotes,
 } from 'xo'
@@ -46,6 +47,7 @@ import {
   keyBy,
   map,
   mapValues,
+  max,
   omit,
   some,
 } from 'lodash'
@@ -80,6 +82,7 @@ const DEFAULT_SCHEDULE = {
   cron: '0 0 * * *',
   timezone: moment.tz.guess(),
 }
+const RETENTION_LIMIT = 50
 
 const ReportRecipients = decorate([
   provideState({
@@ -152,9 +155,9 @@ const ReportRecipients = decorate([
 ])
 
 const SR_BACKEND_FAILURE_LINK =
-  'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
+  'https://xen-orchestra.com/docs/backup_troubleshooting.html#sr-backend-failure-44'
 
-const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backups.html'
+const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backup.html'
 
 const ThinProvisionedTip = ({ label }) => (
   <Tooltip content={_(label)}>
@@ -204,6 +207,11 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
+// isRetentionLow returns the expected result when the 'fullInterval' is undefined.
+const isRetentionLow = (settings, retention) =>
+  retention < RETENTION_LIMIT ||
+  settings.getIn(['', 'fullInterval']) < RETENTION_LIMIT
+
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
   (copyMode && schedule.copyRetention > 0) ||
@@ -215,7 +223,11 @@ const createDoesRetentionExist = name => {
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
-const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
+const getInitialState = ({
+  preSelectedVmIds,
+  setHomeVmIdsSelection,
+  suggestedExcludedTags,
+}) => {
   setHomeVmIdsSelection([]) // Clear preselected vmIds
   return {
     _displayAdvancedSettings: undefined,
@@ -227,7 +239,6 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
     deltaMode: false,
     drMode: false,
     name: '',
-    paramsUpdated: false,
     remotes: [],
     schedules: {},
     settings: undefined,
@@ -235,9 +246,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
     smartMode: false,
     snapshotMode: false,
     srs: [],
-    tags: {
-      notValues: ['Continuous Replication', 'Disaster Recovery', 'XOSAN'],
-    },
+    tags: { notValues: suggestedExcludedTags },
     vms: preSelectedVmIds,
   }
 }
@@ -282,15 +291,12 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   </ActionButton>
 )
 
-export default decorate([
+const New = decorate([
   New => props => (
     <Upgrade place='newBackup' required={2}>
       <New {...props} />
     </Upgrade>
   ),
-  addSubscriptions({
-    remotes: subscribeRemotes,
-  }),
   connectStore(() => ({
     hostsById: createGetObjectsOfType('host'),
     poolsById: createGetObjectsOfType('pool'),
@@ -301,6 +307,11 @@ export default decorate([
   provideState({
     initialState: getInitialState,
     effects: {
+      initialize: function ({ updateParams }) {
+        if (this.state.edition) {
+          updateParams()
+        }
+      },
       createJob: () => async state => {
         if (state.isJobInvalid) {
           return {
@@ -504,7 +515,6 @@ export default decorate([
 
         return {
           name: job.name,
-          paramsUpdated: true,
           smartMode: job.vms.id === undefined,
           snapshotMode: some(
             job.settings,
@@ -524,7 +534,14 @@ export default decorate([
         { saveSchedule },
         storedSchedule = DEFAULT_SCHEDULE
       ) => async (
-        { copyMode, exportMode, snapshotMode },
+        {
+          copyMode,
+          exportMode,
+          deltaMode,
+          propSettings,
+          settings = propSettings,
+          snapshotMode,
+        },
         { intl: { formatMessage } }
       ) => {
         const modes = { copyMode, exportMode, snapshotMode }
@@ -534,6 +551,10 @@ export default decorate([
             <NewSchedule
               missingRetentions={!checkRetentions(props.value, modes)}
               modes={modes}
+              showRetentionWarning={
+                deltaMode &&
+                !isRetentionLow(settings, props.value.exportRetention)
+              }
               {...props}
             />
           ),
@@ -708,8 +729,7 @@ export default decorate([
             type: 'VM',
           }
         ),
-      needUpdateParams: (state, { job, schedules }) =>
-        job !== undefined && schedules !== undefined && !state.paramsUpdated,
+      edition: (_, { job }) => job !== undefined,
       isJobInvalid: state =>
         state.missingName ||
         state.missingVms ||
@@ -757,6 +777,24 @@ export default decorate([
             get(() => hostsById[poolsById[$container].master].version)
         ),
       selectedVmIds: state => resolveIds(state.vms),
+      showRetentionWarning: ({
+        deltaMode,
+        propSettings,
+        settings = propSettings,
+        schedules,
+      }) =>
+        deltaMode &&
+        !isRetentionLow(
+          settings,
+          defined(
+            max(
+              Object.keys(schedules).map(key =>
+                settings.getIn([key, 'exportRetention'])
+              )
+            ),
+            0
+          )
+        ),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ proxyId, remotes }) => remote => {
         if (proxyId === null) {
@@ -817,10 +855,6 @@ export default decorate([
       reportWhen = 'failure',
       timeout,
     } = settings.get('') || {}
-
-    if (state.needUpdateParams) {
-      effects.updateParams()
-    }
 
     return (
       <form id={state.formId}>
@@ -1113,6 +1147,11 @@ export default decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
+                          {state.showRetentionWarning && (
+                            <Tooltip content={_('deltaChainRetentionWarning')}>
+                              <Icon icon='error' />
+                            </Tooltip>
+                          )}{' '}
                           <Tooltip content={_('clickForMoreInformation')}>
                             <a
                               className='text-info'
@@ -1225,7 +1264,7 @@ export default decorate([
           <Row>
             <Card>
               <CardBlock>
-                {state.paramsUpdated ? (
+                {state.edition ? (
                   <ActionButton
                     btnStyle='primary'
                     form={state.formId}
@@ -1267,4 +1306,25 @@ export default decorate([
       </form>
     )
   },
+])
+
+export default decorate([
+  addSubscriptions({
+    remotes: subscribeRemotes,
+  }),
+  provideState({
+    computed: {
+      loading: (state, props) =>
+        state.suggestedExcludedTags === undefined ||
+        props.remotes === undefined,
+      suggestedExcludedTags: () => getSuggestedExcludedTags(),
+    },
+  }),
+  injectState,
+  ({ state: { loading, suggestedExcludedTags }, ...props }) =>
+    loading ? (
+      _('statusLoading')
+    ) : (
+      <New suggestedExcludedTags={suggestedExcludedTags} {...props} />
+    ),
 ])
