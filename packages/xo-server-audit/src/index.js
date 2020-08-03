@@ -1,5 +1,6 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
+import defaults from 'lodash/defaults'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
 import { createSchedule } from '@xen-orchestra/cron'
@@ -128,27 +129,25 @@ export const configurationSchema = {
 
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
-  constructor({
-    staticConfig: {
-      automaticIntegrityCheckCron = '0 6 * * *',
-      automaticIntegrityCheckOn = true,
-      automaticIntegrityCheckTimezone,
-      blockedList,
-    },
-    xo,
-  }) {
+  constructor({ staticConfig, xo }) {
     this._blockedList = {
       ...DEFAULT_BLOCKED_LIST,
-      ...blockedList,
+      ...staticConfig.blockedList,
     }
     this._cleaners = []
     this._xo = xo
 
-    if (automaticIntegrityCheckOn) {
+    const { enabled, schedule } = defaults(staticConfig.lastHashUpload, {
+      enabled: true,
+      schedule: {
+        cron: '0 6 * * *',
+      },
+    })
+    if (enabled) {
       this._automaticIntegrityCheckJob = createSchedule(
-        automaticIntegrityCheckCron,
-        automaticIntegrityCheckTimezone
-      ).createJob(() => this._automaticIntegrityCheck().catch(log.error))
+        schedule.cron,
+        schedule.timezone
+      ).createJob(() => this._uploadLastHash().catch(log.error))
     }
 
     this._auditCore = undefined
@@ -316,7 +315,7 @@ class AuditXoPlugin {
   }
 
   // See www-xo#344
-  async _automaticIntegrityCheck() {
+  async _uploadLastHash() {
     const xo = this._xo
     const chain = await xo.audit.getLastChain()
 
