@@ -15,19 +15,6 @@ import {
 
 const log = createLogger('xo:xo-server-audit')
 
-export const configurationSchema = {
-  type: 'object',
-
-  properties: {
-    automaticIntegrityCheck: {
-      description:
-        'Enable/Disable the automatic integrity check of the stored records',
-      title: 'Automatic integrity check',
-      type: 'boolean',
-    },
-  },
-}
-
 const DEFAULT_BLOCKED_LIST = {
   'acl.get': true,
   'acl.getCurrentPermissions': true,
@@ -115,30 +102,31 @@ class Db extends Storage {
 
 const NAMESPACE = 'audit'
 class AuditXoPlugin {
-  constructor({ staticConfig, xo }) {
+  constructor({
+    staticConfig: {
+      automaticIntegrityCheckCron = '0 6 * * *',
+      automaticIntegrityCheckOn = true,
+      automaticIntegrityCheckTimezone,
+      blockedList,
+    },
+    xo,
+  }) {
     this._blockedList = {
       ...DEFAULT_BLOCKED_LIST,
-      ...staticConfig.blockedList,
+      ...blockedList,
     }
     this._cleaners = []
     this._xo = xo
-    this._automaticIntegrityCheckJob = createSchedule(
-      staticConfig.automaticIntegrityCheckCron ?? '0 6 * * *',
-      staticConfig.automaticIntegrityCheckTimezone
-    ).createJob(() => this._automaticIntegrityCheck().catch(log.error))
+
+    if (automaticIntegrityCheckOn) {
+      this._automaticIntegrityCheckJob = createSchedule(
+        automaticIntegrityCheckCron,
+        automaticIntegrityCheckTimezone
+      ).createJob(() => this._automaticIntegrityCheck().catch(log.error))
+    }
 
     this._auditCore = undefined
-    this._configuration = undefined
     this._storage = undefined
-  }
-
-  configure(configuration, state) {
-    this._configuration = configuration
-    if (state.loaded) {
-      this._automaticIntegrityCheckJob[
-        configuration.automaticIntegrityCheck ? 'start' : 'stop'
-      ]()
-    }
   }
 
   async load() {
@@ -183,11 +171,13 @@ class AuditXoPlugin {
       oldest: { type: 'string', optional: true },
     }
 
-    if (this._configuration.automaticIntegrityCheck) {
-      this._automaticIntegrityCheckJob.start()
+    const automaticIntegrityCheckJob = this._automaticIntegrityCheckJob
+    if (automaticIntegrityCheckJob) {
+      automaticIntegrityCheckJob.start()
+      cleaners.push(() => automaticIntegrityCheckJob.stop())
     }
+
     cleaners.push(
-      () => this._automaticIntegrityCheckJob.stop(),
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
