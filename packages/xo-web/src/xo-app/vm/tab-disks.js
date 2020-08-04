@@ -475,9 +475,9 @@ class AttachDisk extends Component {
 })
 @connectStore(() => {
   return (state, props) => ({
+    allVbds: createGetObjectsOfType('VBD'),
     checkPermissions: getCheckPermissions(state, props),
     isAdmin: isAdmin(state, props),
-    allVbds: createGetObjectsOfType('VBD'),
     resolvedResourceSets: getResolvedResourceSets(
       state,
       props,
