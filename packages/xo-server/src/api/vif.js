@@ -73,6 +73,7 @@ export async function set({
   mac,
   network,
   rateLimit,
+  resourceSet,
   txChecksumming,
 }) {
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(
@@ -86,11 +87,22 @@ export async function set({
   }
 
   if (network || mac) {
+    const networkId = network?.id
+    if (networkId !== undefined && this.user.permission !== 'admin') {
+      if (resourceSet !== undefined) {
+        await this.checkResourceSetConstraints(resourceSet, this.user.id, [
+          networkId,
+        ])
+      } else {
+        await this.checkPermissions(this.user.id, [[networkId, 'operate']])
+      }
+    }
+
     const xapi = this.getXapi(vif)
 
     const vm = xapi.getObject(vif.$VM)
     mac == null && (mac = vif.MAC)
-    network = xapi.getObject((network && network.id) || vif.$network)
+    network = xapi.getObject(networkId ?? vif.$network)
     attached == null && (attached = vif.attached)
 
     await this.allocIpAddresses(vif.id, null, oldIpAddresses)
@@ -156,6 +168,7 @@ set.params = {
     optional: true,
     type: ['number', 'null'],
   },
+  resourceSet: { type: 'string', optional: true },
   txChecksumming: {
     type: 'boolean',
     optional: true,
@@ -164,5 +177,5 @@ set.params = {
 
 set.resolve = {
   vif: ['id', 'VIF', 'operate'],
-  network: ['network', 'network', 'operate'],
+  network: ['network', 'network', false],
 }

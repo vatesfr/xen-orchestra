@@ -16,6 +16,7 @@ import Tooltip from 'tooltip'
 import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
+import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
@@ -52,6 +53,7 @@ import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
 
@@ -71,22 +73,42 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
+@addSubscriptions(props => ({
+  resourceSet: cb =>
+    subscribeResourceSets(resourceSets =>
+      cb(find(resourceSets, { id: props.resourceSet }))
+    ),
+}))
+@connectStore((state, props) => ({
+  isAdmin: isAdmin(state, props),
+  resolvedResourceSet: getResolvedResourceSet(
+    state,
+    props,
+    props.resourceSet !== undefined // to get objects as a self user
+  ),
+}))
 class VifNetwork extends BaseComponent {
   _getNetworkPredicate = createSelector(
     () => this.props.vif.$pool,
     vifPoolId => network => network.$pool === vifPoolId
   )
 
-  render() {
-    const { network } = this.props
+  _onChangeNetwork = network => {
+    const { resourceSet, vif } = this.props
+    return setVif(vif, { network, resourceSet: get(() => resourceSet.id) })
+  }
 
+  render() {
+    const { isAdmin, network, resolvedResourceSet } = this.props
+    const self = !isAdmin && resolvedResourceSet !== undefined
     return (
       network !== undefined && (
         <XoSelect
-          onChange={network => setVif(this.props.vif, { network })}
+          onChange={this._onChangeNetwork}
           predicate={this._getNetworkPredicate()}
+          resourceSet={self ? resolvedResourceSet : undefined}
           value={network}
-          xoType='network'
+          xoType={self ? 'resourceSetNetwork' : 'network'}
         >
           {network.name_label}
         </XoSelect>
@@ -697,8 +719,12 @@ const COLUMNS = [
     sortCriteria: 'MTU',
   },
   {
-    itemRenderer: (vif, userData) => (
-      <VifNetwork vif={vif} network={userData.networks[vif.$network]} />
+    itemRenderer: (vif, { networks, resourceSet }) => (
+      <VifNetwork
+        vif={vif}
+        network={networks[vif.$network]}
+        resourceSet={resourceSet}
+      />
     ),
     name: _('vifNetworkLabel'),
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
@@ -922,7 +948,11 @@ class NewVif extends BaseComponent {
 
   return (state, props) => ({
     vifs: getVifs(state, props),
-    networks: getNetworks(state, props),
+    networks: getNetworks(
+      state,
+      props,
+      props.vm.resourceSet !== undefined // to get networks as a self user
+    ),
   })
 })
 export default class TabNetwork extends BaseComponent {
@@ -978,6 +1008,7 @@ export default class TabNetwork extends BaseComponent {
               columns={COLUMNS}
               data-ipsByDevice={this._getIpsByDevice()}
               data-networks={networks}
+              data-resourceSet={vm.resourceSet}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
