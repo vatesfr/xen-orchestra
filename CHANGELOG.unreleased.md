@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Self/VDI migration] Ability to migrate VDIs to other SRs within the resource sets [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5201](https://github.com/vatesfr/xen-orchestra/pull/5201))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
