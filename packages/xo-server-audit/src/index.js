@@ -144,7 +144,7 @@ class AuditXoPlugin {
       },
     })
     if (enabled) {
-      this._automaticIntegrityCheckJob = createSchedule(
+      this._uploadLastHashJob = createSchedule(
         schedule.cron,
         schedule.timezone
       ).createJob(() => this._uploadLastHash().catch(log.error))
@@ -208,10 +208,10 @@ class AuditXoPlugin {
       oldest: { type: 'string', optional: true },
     }
 
-    const automaticIntegrityCheckJob = this._automaticIntegrityCheckJob
-    if (automaticIntegrityCheckJob) {
-      automaticIntegrityCheckJob.start()
-      cleaners.push(() => automaticIntegrityCheckJob.stop())
+    const uploadLastHashJob = this._uploadLastHashJob
+    if (uploadLastHashJob !== undefined) {
+      uploadLastHashJob.start()
+      cleaners.push(() => uploadLastHashJob.stop())
     }
 
     cleaners.push(
