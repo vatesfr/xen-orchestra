@@ -6,7 +6,7 @@ import SingleLineRow from 'single-line-row'
 import { Container, Col } from 'grid'
 import { createCompare, createCompareContainers } from 'utils'
 import { createSelector } from 'selectors'
-import { SelectSr } from 'select-objects'
+import { SelectResourceSetsSr, SelectSr } from 'select-objects'
 
 import { isSrShared, isSrWritable } from '../'
 
@@ -15,6 +15,7 @@ const compareSrs = createCompare([isSrShared])
 export default class MigrateVdiModalBody extends Component {
   static propTypes = {
     pool: PropTypes.string.isRequired,
+    resourceSet: PropTypes.Object,
     warningBeforeMigrate: PropTypes.func.isRequired,
   }
 
@@ -39,19 +40,31 @@ export default class MigrateVdiModalBody extends Component {
   )
 
   render() {
+    const { resourceSet } = this.props
     const warningBeforeMigrate = this._getWarningBeforeMigrate()
     return (
       <Container>
         <SingleLineRow>
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
-            <SelectSr
-              compareContainers={this._getCompareContainers()}
-              compareOptions={compareSrs}
-              onChange={this.linkState('sr')}
-              predicate={this._getSrPredicate()}
-              required
-            />
+            {resourceSet === undefined ? (
+              <SelectSr
+                compareContainers={this._getCompareContainers()}
+                compareOptions={compareSrs}
+                onChange={this.linkState('sr')}
+                predicate={this._getSrPredicate()}
+                required
+                value={this.state.sr}
+              />
+            ) : (
+              <SelectResourceSetsSr
+                onChange={this.linkState('sr')}
+                predicate={this._getSrPredicate()}
+                required
+                resourceSet={resourceSet}
+                value={this.state.sr}
+              />
+            )}
           </Col>
         </SingleLineRow>
         {warningBeforeMigrate !== null && (

@@ -19,6 +19,7 @@ import {
   createSelector,
   createFinder,
   getCheckPermissions,
+  getResolvedResourceSets,
   isAdmin,
 } from 'selectors'
 import { injectIntl } from 'react-intl'
@@ -468,11 +469,22 @@ class AttachDisk extends Component {
   }
 }
 
-@connectStore(() => ({
-  checkPermissions: getCheckPermissions,
-  isAdmin,
-  allVbds: createGetObjectsOfType('VBD'),
-}))
+@addSubscriptions({
+  // used by getResolvedResourceSets
+  resourceSets: subscribeResourceSets,
+})
+@connectStore(() => {
+  return (state, props) => ({
+    checkPermissions: getCheckPermissions(state, props),
+    isAdmin: isAdmin(state, props),
+    allVbds: createGetObjectsOfType('VBD'),
+    resolvedResourceSets: getResolvedResourceSets(
+      state,
+      props,
+      props.vm.resourceSet !== undefined // to get objects as a self user
+    ),
+  })
+})
 export default class TabDisks extends Component {
   constructor(props) {
     super(props)
@@ -481,6 +493,17 @@ export default class TabDisks extends Component {
       newDisk: false,
     }
   }
+
+  _getResolvedResourceSet = createFinder(
+    () => this.props.resolvedResourceSets,
+    createSelector(
+      () => this.props.vm.resourceSet,
+      resourceSetId =>
+        resourceSetId !== undefined
+          ? resolvedResourceSet => resolvedResourceSet.id === resourceSetId
+          : false
+    )
+  )
 
   _getVdiSrs = createSelector(
     () => this.props.vdis,
@@ -526,6 +549,7 @@ export default class TabDisks extends Component {
       body: (
         <MigrateVdiModalBody
           pool={this.props.vm.$pool}
+          resourceSet={this._getResolvedResourceSet()}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
