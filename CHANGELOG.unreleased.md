@@ -12,6 +12,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -29,8 +30,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-audit minor
-- xo-server-sdn-controller patch
-- xo-server-load-balancer patch
-- xo-server minor
-- xo-web minor
+xo-server-sdn-controller patch
