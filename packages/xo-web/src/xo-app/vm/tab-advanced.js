@@ -757,12 +757,12 @@ export default class TabAdvanced extends Component {
                       onChange={blockStop =>
                         editVm(vm, {
                           blockedOperations: {
-                            shutdown: blockStop,
-                            pause: blockStop,
                             clean_reboot: blockStop,
                             clean_shutdown: blockStop,
-                            hard_shutdown: blockStop,
                             hard_reboot: blockStop,
+                            hard_shutdown: blockStop,
+                            pause: blockStop,
+                            shutdown: blockStop,
                             suspend: blockStop,
                           },
                         })
