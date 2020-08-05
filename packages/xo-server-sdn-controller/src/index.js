@@ -439,6 +439,7 @@ class SDNController extends EventEmitter {
       mtu: { type: 'integer', optional: true },
       preferredCenterId: { type: 'string', optional: true },
     }
+    createPrivateNetwork.permission = 'admin'
 
     // ---------------- OpenFlow rules method ----------------------------------
 
