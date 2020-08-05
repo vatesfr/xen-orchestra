@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Patches] Don't log errors related to missing patches listing (Previous fix in 5.48.3 was not working)
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
