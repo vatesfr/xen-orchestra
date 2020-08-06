@@ -42,29 +42,24 @@ export default class MigrateVdiModalBody extends Component {
   render() {
     const { resourceSet } = this.props
     const warningBeforeMigrate = this._getWarningBeforeMigrate()
+    const self = resourceSet !== undefined
+    const Select = self ? SelectResourceSetsSr : SelectSr
     return (
       <Container>
         <SingleLineRow>
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
-            {resourceSet === undefined ? (
-              <SelectSr
-                compareContainers={this._getCompareContainers()}
-                compareOptions={compareSrs}
-                onChange={this.linkState('sr')}
-                predicate={this._getSrPredicate()}
-                required
-                value={this.state.sr}
-              />
-            ) : (
-              <SelectResourceSetsSr
-                onChange={this.linkState('sr')}
-                predicate={this._getSrPredicate()}
-                required
-                resourceSet={resourceSet}
-                value={this.state.sr}
-              />
-            )}
+            <Select
+              compareContainers={
+                self ? undefined : this._getCompareContainers()
+              }
+              compareOptions={self ? undefined : compareSrs}
+              onChange={this.linkState('sr')}
+              predicate={this._getSrPredicate()}
+              required
+              resourceSet={resourceSet}
+              value={this.state.sr}
+            />
           </Col>
         </SingleLineRow>
         {warningBeforeMigrate !== null && (

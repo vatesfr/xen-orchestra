@@ -41,6 +41,7 @@ import {
   compact,
   every,
   filter,
+  find,
   forEach,
   get,
   map,
@@ -84,20 +85,25 @@ class VdiSr extends Component {
   _onChangeSr = sr => migrateVdi(this.props.item.vdi, sr)
 
   render() {
-    const sr = this.props.item.vdiSr
+    const {
+      item: { vdiSr },
+      userData: { resourceSet },
+    } = this.props
+    const self = resourceSet !== undefined
     return (
-      sr !== undefined && (
+      vdiSr !== undefined && (
         <XoSelect
-          compareContainers={this._getCompareContainers()}
-          compareOptions={compareSrs}
+          compareContainers={self ? undefined : this._getCompareContainers()}
+          compareOptions={self ? undefined : compareSrs}
           labelProp='name_label'
           onChange={this._onChangeSr}
           predicate={this._getSrPredicate()}
+          resourceSet={resourceSet}
           useLongClick
-          value={sr}
-          xoType='SR'
+          value={vdiSr}
+          xoType={self ? 'SR-resourceSet' : 'SR'}
         >
-          <Sr id={sr.id} link />
+          <Sr id={vdiSr.id} link={!self} self={self} />
         </XoSelect>
       )
     )
@@ -469,21 +475,27 @@ class AttachDisk extends Component {
   }
 }
 
-@addSubscriptions({
-  // used by getResolvedResourceSets
-  resourceSets: subscribeResourceSets,
-})
-@connectStore(() => {
-  return (state, props) => ({
-    allVbds: createGetObjectsOfType('VBD'),
-    checkPermissions: getCheckPermissions(state, props),
-    isAdmin: isAdmin(state, props),
-    resolvedResourceSets: getResolvedResourceSets(
-      state,
-      props,
-      props.vm.resourceSet !== undefined // to get objects as a self user
+@addSubscriptions(props => ({
+  resourceSet: cb =>
+    subscribeResourceSets(resourceSets =>
+      cb(find(resourceSets, { id: props.vm.resourceSet }))
     ),
-  })
+}))
+@connectStore(() => {
+  return (state, props) => {
+    const { resourceSet } = props
+    const self = resourceSet !== undefined
+    return {
+      allVbds: createGetObjectsOfType('VBD')(state, props),
+      checkPermissions: getCheckPermissions(state, props),
+      isAdmin: isAdmin(state, props),
+      resolvedResourceSets: getResolvedResourceSets(
+        state,
+        { ...props, resourceSets: self ? [resourceSet] : undefined },
+        self // to get objects as a self user
+      ),
+    }
+  }
 })
 export default class TabDisks extends Component {
   constructor(props) {
@@ -493,17 +505,6 @@ export default class TabDisks extends Component {
       newDisk: false,
     }
   }
-
-  _getResolvedResourceSet = createFinder(
-    () => this.props.resolvedResourceSets,
-    createSelector(
-      () => this.props.vm.resourceSet,
-      resourceSetId =>
-        resourceSetId !== undefined
-          ? resolvedResourceSet => resolvedResourceSet.id === resourceSetId
-          : false
-    )
-  )
 
   _getVdiSrs = createSelector(
     () => this.props.vdis,
@@ -549,7 +550,7 @@ export default class TabDisks extends Component {
       body: (
         <MigrateVdiModalBody
           pool={this.props.vm.$pool}
-          resourceSet={this._getResolvedResourceSet()}
+          resourceSet={this.props.resolvedResourceSets[0]}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
@@ -608,14 +609,22 @@ export default class TabDisks extends Component {
     () => this.props.vbds,
     () => this.props.vdis,
     () => this.props.srs,
-    (vbds, vdis, srs) =>
+    () => this.props.resolvedResourceSets[0],
+    (vbds, vdis, srs, resourceSet) =>
       compact(
         map(vbds, vbd => {
           let vdi
           return (
             !vbd.is_cd_drive &&
             ((vdi = vdis[vbd.VDI]),
-            vdi !== undefined && { ...vbd, vdi, vdiSr: srs[vdi.$SR] })
+            vdi !== undefined && {
+              ...vbd,
+              vdi,
+              vdiSr:
+                resourceSet === undefined
+                  ? srs[vdi.$SR]
+                  : find(resourceSet.objectsByType.SR, { id: vdi.$SR }),
+            })
           )
         })
       )
@@ -661,7 +670,7 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { allVbds, vm } = this.props
+    const { allVbds, resolvedResourceSets, vm } = this.props
 
     const { attachDisk, newDisk } = this.state
 
@@ -724,6 +733,7 @@ export default class TabDisks extends Component {
               collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
               data-vm={vm}
+              data-resourceSet={resolvedResourceSets[0]}
               individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'
               stateUrlParam='s'

@@ -119,6 +119,23 @@ set.resolve = {
 export async function migrate({ vdi, sr }) {
   const xapi = this.getXapi(vdi)
 
+  if (this.user.permission !== 'admin') {
+    const resourceSetId = reduce(
+      vdi.$VBDs,
+      (resourceSetId, vbd) =>
+        resourceSetId ||
+        this.getObject(this.getObject(vbd, 'VBD').VM).resourceSet,
+      undefined
+    )
+    if (resourceSetId !== undefined) {
+      await this.checkResourceSetConstraints(resourceSetId, this.user.id, [
+        sr.id,
+      ])
+    } else {
+      await this.checkPermissions(this.user.id, [[sr.id, 'administrate']])
+    }
+  }
+
   await xapi.moveVdi(vdi._xapiRef, sr._xapiRef)
 
   return true
@@ -131,5 +148,5 @@ migrate.params = {
 
 migrate.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
-  sr: ['sr_id', 'SR', 'administrate'],
+  sr: ['sr_id', 'SR', false],
 }
