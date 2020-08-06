@@ -1,10 +1,12 @@
 import _, { FormattedDuration } from 'intl'
+import * as CM from 'complex-matcher'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
+import SearchBar from 'search-bar'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
@@ -322,8 +324,12 @@ export default decorate([
   provideState({
     initialState: () => ({
       filter: undefined,
+      globalFilter: '',
     }),
     effects: {
+      onGlobalFilterChange(_, filter) {
+        this.state.globalFilter = filter
+      },
       setFilter: (_, filter) => () => ({
         filter,
       }),
@@ -368,22 +374,24 @@ export default decorate([
 
         return defined(newLog, log)
       },
+      preFilteredTasksLogs: ({ log, globalFilter }) =>
+        log.tasks.filter(CM.parse(globalFilter).createPredicate()),
       filteredTaskLogs: ({
         defaultFilter,
         filter: value = defaultFilter,
-        log,
+        preFilteredTasksLogs,
       }) =>
         value === 'all'
-          ? log.tasks
-          : filter(log.tasks, ({ status }) => status === value),
+          ? preFilteredTasksLogs
+          : filter(preFilteredTasksLogs, ({ status }) => status === value),
       optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
           {_(label)} ({countByStatus[value] || 0})
         </span>
       ),
-      countByStatus: ({ log }) => ({
-        all: get(() => log.tasks.length),
-        ...countBy(log.tasks, 'status'),
+      countByStatus: ({ preFilteredTasksLogs }) => ({
+        all: get(() => preFilteredTasksLogs.length),
+        ...countBy(preFilteredTasksLogs, 'status'),
       }),
       options: ({ countByStatus }) => [
         { label: 'allTasks', value: 'all' },
@@ -440,6 +448,11 @@ export default decorate([
       </div>
     ) : (
       <div>
+        <SearchBar
+          className='mb-1'
+          onChange={effects.onGlobalFilterChange}
+          value={state.globalFilter}
+        />
         <Select
           labelKey='label'
           onChange={effects.setFilter}

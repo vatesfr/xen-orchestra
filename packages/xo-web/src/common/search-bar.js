@@ -1,4 +1,5 @@
 import _ from 'intl'
+import classNames from 'classnames'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import PropTypes from 'prop-types'
@@ -39,7 +40,7 @@ export default class SearchBar extends Component {
     const { props } = this
 
     return (
-      <div className='input-group'>
+      <div className={classNames('input-group', props.className)}>
         {isEmpty(props.filters) ? (
           <span className='input-group-addon'>
             <Icon icon='search' />
