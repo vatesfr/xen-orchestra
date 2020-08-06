@@ -31,4 +31,3 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-audit minor
-  xo-server-sdn-controller patch
