@@ -3,14 +3,15 @@ import * as CM from 'complex-matcher'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
-import defined, { get } from '@xen-orchestra/defined'
+import defined, { get, ifDef } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import SearchBar from 'search-bar'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
-import { addSubscriptions, formatSize, formatSpeed } from 'utils'
+import { addSubscriptions, connectStore, formatSize, formatSpeed } from 'utils'
 import { countBy, cloneDeep, filter, keyBy, map } from 'lodash'
+import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
@@ -310,6 +311,12 @@ const TaskLi = ({ className, task, ...props }) => {
   )
 }
 
+const SEARCH_BAR_FILTERS = {
+  name: 'name:',
+  remotesNames: 'remotes:|()',
+  srsNames: 'srs:|()',
+}
+
 export default decorate([
   addSubscriptions(({ id }) => ({
     remotes: cb =>
@@ -321,6 +328,11 @@ export default decorate([
         cb(logs[id])
       }),
   })),
+  connectStore({
+    pools: createGetObjectsOfType('pool'),
+    srs: createGetObjectsOfType('SR'),
+    vms: createGetObjectsOfType('VM'),
+  }),
   provideState({
     initialState: () => ({
       filter: undefined,
@@ -346,7 +358,7 @@ export default decorate([
       },
     },
     computed: {
-      log: (_, { log }) => {
+      log: (_, { log, pools, remotes, srs, vms }) => {
         if (log === undefined) {
           return {}
         }
@@ -355,24 +367,46 @@ export default decorate([
           return log
         }
 
-        let newLog
+        const newLog = cloneDeep(log)
         log.tasks.forEach((task, key) => {
-          if (task.tasks === undefined || get(() => task.data.type) !== 'VM') {
+          const type = get(() => task.data.type)
+          if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
             return
           }
 
-          const subTaskWithIsFull = task.tasks.find(
-            ({ data = {} }) => data.isFull !== undefined
-          )
-          if (subTaskWithIsFull !== undefined) {
-            if (newLog === undefined) {
-              newLog = cloneDeep(log)
-            }
-            newLog.tasks[key].isFull = subTaskWithIsFull.data.isFull
+          const newTask = newLog.tasks[key]
+          newTask.name =
+            type === 'VM'
+              ? get(() => vms[task.data.id].name_label)
+              : type === 'pool'
+              ? get(() => pools[task.data.id].name_label)
+              : 'xo'
+
+          if (task.tasks === undefined) {
+            return
           }
+
+          newTask.remotes = []
+          newTask.srs = []
+          task.tasks.forEach(({ data = {} }) => {
+            if (data.type !== 'remote' && data.type !== 'SR') {
+              return
+            }
+
+            newTask.isFull = data.isFull
+
+            if (data.type === 'remote') {
+              ifDef(remotes[data.id], remote =>
+                newTask.remotes.push(remote.name)
+              )
+              return
+            }
+
+            ifDef(srs[data.id], sr => newTask.srs.push(sr.name_label))
+          })
         })
 
-        return defined(newLog, log)
+        return newLog
       },
       preFilteredTasksLogs: ({ log, globalFilter }) =>
         log.tasks.filter(CM.parse(globalFilter).createPredicate()),
@@ -450,6 +484,7 @@ export default decorate([
       <div>
         <SearchBar
           className='mb-1'
+          filters={SEARCH_BAR_FILTERS}
           onChange={effects.onGlobalFilterChange}
           value={state.globalFilter}
         />

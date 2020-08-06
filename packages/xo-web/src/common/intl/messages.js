@@ -80,6 +80,8 @@ const messages = {
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
+  remotesNames: 'Remotes names',
+  srsNames: 'SRs names',
 
   // ----- Modals -----
   alertOk: 'OK',
