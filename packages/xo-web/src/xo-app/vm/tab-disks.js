@@ -489,11 +489,11 @@ class AttachDisk extends Component {
       allVbds: createGetObjectsOfType('VBD')(state, props),
       checkPermissions: getCheckPermissions(state, props),
       isAdmin: isAdmin(state, props),
-      resolvedResourceSets: getResolvedResourceSets(
+      resolvedResourceSet: getResolvedResourceSets(
         state,
         { ...props, resourceSets: self ? [resourceSet] : undefined },
         self // to get objects as a self user
-      ),
+      )[0],
     }
   }
 })
@@ -550,7 +550,7 @@ export default class TabDisks extends Component {
       body: (
         <MigrateVdiModalBody
           pool={this.props.vm.$pool}
-          resourceSet={this.props.resolvedResourceSets[0]}
+          resourceSet={this.props.resolvedResourceSet}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
@@ -609,7 +609,7 @@ export default class TabDisks extends Component {
     () => this.props.vbds,
     () => this.props.vdis,
     () => this.props.srs,
-    () => this.props.resolvedResourceSets[0],
+    () => this.props.resolvedResourceSet,
     (vbds, vdis, srs, resourceSet) =>
       compact(
         map(vbds, vbd => {
@@ -670,7 +670,7 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { allVbds, resolvedResourceSets, vm } = this.props
+    const { allVbds, resolvedResourceSet, vm } = this.props
 
     const { attachDisk, newDisk } = this.state
 
@@ -733,7 +733,7 @@ export default class TabDisks extends Component {
               collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
               data-vm={vm}
-              data-resourceSet={resolvedResourceSets[0]}
+              data-resourceSet={resolvedResourceSet}
               individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'
               stateUrlParam='s'
