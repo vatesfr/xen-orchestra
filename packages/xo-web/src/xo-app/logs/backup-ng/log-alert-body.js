@@ -4,11 +4,12 @@ import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
+import Pagination from 'pagination'
 import React from 'react'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
-import { countBy, cloneDeep, filter, keyBy, map } from 'lodash'
+import { ceil, countBy, cloneDeep, filter, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
@@ -308,6 +309,7 @@ const TaskLi = ({ className, task, ...props }) => {
   )
 }
 
+const ITEMS_PER_PAGE = 5
 export default decorate([
   addSubscriptions(({ id }) => ({
     remotes: cb =>
@@ -322,8 +324,12 @@ export default decorate([
   provideState({
     initialState: () => ({
       filter: undefined,
+      page: 1,
     }),
     effects: {
+      onPageChange(_, page) {
+        this.state.page = page
+      },
       setFilter: (_, filter) => () => ({
         filter,
       }),
@@ -372,10 +378,14 @@ export default decorate([
         defaultFilter,
         filter: value = defaultFilter,
         log,
-      }) =>
-        value === 'all'
-          ? log.tasks
-          : filter(log.tasks, ({ status }) => status === value),
+        page,
+      }) => {
+        const start = (page - 1) * ITEMS_PER_PAGE
+        const tasks = log.tasks.slice(start, start + ITEMS_PER_PAGE)
+        return value === 'all'
+          ? tasks
+          : filter(tasks, ({ status }) => status === value)
+      },
       optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
           {_(label)} ({countByStatus[value] || 0})
@@ -428,6 +438,7 @@ export default decorate([
 
         return 'all'
       },
+      nPages: (_, { log }) => ceil(log.tasks.length / ITEMS_PER_PAGE),
     },
   }),
   injectState,
@@ -476,6 +487,15 @@ export default decorate([
             )
           })}
         </ul>
+        {tasks.length > ITEMS_PER_PAGE && (
+          <div className='text-xs-center'>
+            <Pagination
+              onChange={effects.onPageChange}
+              pages={state.nPages}
+              value={state.page}
+            />
+          </div>
+        )}
       </div>
     )
   },
