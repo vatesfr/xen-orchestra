@@ -357,9 +357,6 @@ class VifStatus extends BaseComponent {
     )
   }
 
-  _closeLockingModeEdition = () =>
-    this.setState({ isLockingModeEdition: !this.state.isLockingModeEdition })
-
   _onChangeVif = event => {
     const { network, vif } = this.props
     const value = getEventValue(event)
@@ -394,7 +391,7 @@ class VifStatus extends BaseComponent {
         {isLockingModeEdition ? (
           <select
             className='form-control'
-            onBlur={this._closeLockingModeEdition}
+            onBlur={this.toggleState('isLockingModeEdition')}
             onChange={this._onChangeVif}
             value={this._getLockingModeValue()}
           >
