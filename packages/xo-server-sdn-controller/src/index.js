@@ -241,12 +241,27 @@ async function createTunnel(host, network) {
     return
   }
 
+  const encapsulation = otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
   try {
-    const tunnelRef = await host.$xapi.call(
-      'tunnel.create',
-      hostPif.$ref,
-      network.$ref
-    )
+    let tunnelRef
+    try {
+      tunnelRef = await host.$xapi.call(
+        'tunnel.create',
+        hostPif.$ref,
+        network.$ref,
+        encapsulation
+      )
+    } catch (error) {
+      if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+        tunnelRef = await host.$xapi.call(
+          'tunnel.create',
+          hostPif.$ref,
+          network.$ref
+        )
+      } else {
+        throw error
+      }
+    }
     const tunnel = await host.$xapi._getOrWaitObject(tunnelRef)
     await tunnel.$xapi._waitObjectState(
       tunnel.access_PIF,
