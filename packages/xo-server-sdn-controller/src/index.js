@@ -253,6 +253,7 @@ async function createTunnel(host, network) {
       )
     } catch (error) {
       if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+        // Before 8.2, protocol field did not exist, let's try without it!
         tunnelRef = await host.$xapi.call(
           'tunnel.create',
           hostPif.$ref,
