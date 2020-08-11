@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/snapshots] Fix redirection when creating a VM from the snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
