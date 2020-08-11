@@ -49,11 +49,13 @@ async function safeGetRecord(xapi, type, ref) {
 }
 
 module.exports = class Vm {
-  async _assertHealthyVdiChain(vdiRef, cache, tolerance) {
-    let vdi = cache[vdiRef]
+  async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
+    let vdi = cache[vdiRefOrUuid]
     if (vdi === undefined) {
-      vdi = await this.getRecord('VDI', vdiRef)
-      cache[vdiRef] = vdi
+      vdi = await this[
+        vdiRefOrUuid.startsWith('OpaqueRef:') ? 'getRecord' : 'getRecordByUuid'
+      ]('VDI', vdiRefOrUuid)
+      cache[vdi.$ref] = vdi
       cache[vdi.uuid] = vdi
     }
 
@@ -92,21 +94,7 @@ module.exports = class Vm {
 
     const parentUuid = vdi.sm_config['vhd-parent']
     if (parentUuid !== undefined) {
-      let parent = cache[parentUuid]
-      if (parent === undefined) {
-        try {
-          parent = await this.getRecordByUuid('VDI', parentUuid)
-        } catch (error) {
-          if (error.code === 'UUID_INVALID') {
-            // cannot find this VDI, ignore it
-            return
-          }
-          throw error
-        }
-        cache[parent.$ref] = parent
-        cache[parentUuid] = parent
-      }
-      return this._assertHealthyVdiChain(parent.$ref, cache, tolerance)
+      return this._assertHealthyVdiChain(parentUuid, cache, tolerance)
     }
   }
 
