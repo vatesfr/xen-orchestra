@@ -55,9 +55,16 @@ module.exports = class Vm {
   async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
     let vdi = cache[vdiRefOrUuid]
     if (vdi === undefined) {
-      vdi = await this[
-        vdiRefOrUuid.startsWith('OpaqueRef:') ? 'getRecord' : 'getRecordByUuid'
-      ]('VDI', vdiRefOrUuid)
+      try {
+        vdi = await this[
+          vdiRefOrUuid.startsWith('OpaqueRef:')
+            ? 'getRecord'
+            : 'getRecordByUuid'
+        ]('VDI', vdiRefOrUuid)
+      } catch (error) {
+        warn(error)
+        return
+      }
       cache[vdi.$ref] = vdi
       cache[vdi.uuid] = vdi
     }
