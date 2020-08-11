@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/Network] Ability to set VIF TX checksumming (PR [#5182](https://github.com/vatesfr/xen-orchestra/pull/5182))
+- [VM/Network] Ability to set VIF TX checksumming [#5095](https://github.com/vatesfr/xen-orchestra/issues/5095) (PR [#5182](https://github.com/vatesfr/xen-orchestra/pull/5182))
 
 ### Bug fixes
 
