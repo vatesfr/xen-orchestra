@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@xen-orchestra/async-map": "^0.0.0",
+    "@xen-orchestra/log": "^0.2.0",
     "d3-time-format": "^2.2.3",
     "golike-defer": "^0.4.1",
     "lodash": "^4.17.15",

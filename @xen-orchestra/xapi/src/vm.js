@@ -5,12 +5,15 @@ const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pRetry = require('promise-toolbox/retry')
+const { createLogger } = require('@xen-orchestra/log')
 const { NULL_REF } = require('xen-api')
 
 const AttachedVdiError = require('./_AttachedVdiError')
 const extractOpaqueRef = require('./_extractOpaqueRef')
 const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
+
+const { warn } = createLogger('xo:xapi:vm')
 
 const BIOS_STRINGS_KEYS = new Set([
   'baseboard-asset-tag',
@@ -65,17 +68,24 @@ module.exports = class Vm {
       if (childrenMap === undefined) {
         const vdiRefs = await this.getField('SR', srRef, 'VDIs')
         childrenMap = groupBy(
-          await Promise.all(
-            vdiRefs.map(async vdiRef => {
-              let vdi = cache[vdiRef]
-              if (vdi === undefined) {
-                vdi = await this.getRecord('VDI', vdiRef)
-                cache[vdiRef] = vdi
-                cache[vdi.uuid] = vdi
-              }
-              return vdi
-            })
-          ),
+          (
+            await Promise.all(
+              vdiRefs.map(async vdiRef => {
+                let vdi = cache[vdiRef]
+                if (vdi === undefined) {
+                  try {
+                    vdi = await this.getRecord('VDI', vdiRef)
+                  } catch (error) {
+                    warn(error)
+                    return
+                  }
+                  cache[vdiRef] = vdi
+                  cache[vdi.uuid] = vdi
+                }
+                return vdi
+              })
+            )
+          ).filter(_ => _ !== undefined),
           vdi => vdi.sm_config['vhd-parent']
         )
       }
