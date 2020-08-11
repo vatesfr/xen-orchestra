@@ -374,13 +374,14 @@ const AdvancedSettingsModal = decorate([
   ({ effects, state, value }) => (
     <Container>
       <SingleLineRow>
-        <Col mediumSize={4}>
+        <Col mediumSize={6}>
           <strong>{_('txChecksumming')}</strong>
         </Col>
-        <Col mediumSize={8}>
+        <Col mediumSize={6}>
           <StateButton
-            disabledLabel={_('off')}
-            enabledLabel={_('on')}
+            className='pull-right'
+            disabledLabel={_('stateDisabled')}
+            enabledLabel={_('stateEnabled')}
             handler={effects.toggleTxChecksumming}
             state={value.txChecksumming}
           />

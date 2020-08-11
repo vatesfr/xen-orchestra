@@ -82,8 +82,6 @@ const messages = {
   upgradesAvailable: 'Upgrades available',
   advancedSettings: 'Advanced settings',
   txChecksumming: 'TX checksumming',
-  on: 'ON',
-  off: 'OFF',
 
   // ----- Modals -----
   alertOk: 'OK',
