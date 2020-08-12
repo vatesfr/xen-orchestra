@@ -14,6 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
+- [New/sr] Fix `Cannot read property 'trim' of undefined` error on SR creation (PR [#5212](https://github.com/vatesfr/xen-orchestra/pull/5212))
 
 ### Packages to release
 
@@ -32,4 +33,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+xo-server patch
 xo-web minor
