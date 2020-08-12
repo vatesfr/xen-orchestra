@@ -89,7 +89,8 @@ const INDIVIDUAL_ACTIONS = [
     handler: snapshot => copyVm(snapshot),
     icon: 'vm-copy',
     label: _('copySnapshot'),
-    redirectOnSuccess: vm => vm && `/vms/${vm}/general`,
+    redirectOnSuccess: vm =>
+      vm !== undefined ? `/vms/${vm}/general` : undefined,
   },
   {
     handler: exportVm,

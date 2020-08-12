@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/snapshots] No redirection if the VM creation failed or canceled
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
