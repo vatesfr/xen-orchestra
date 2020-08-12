@@ -346,7 +346,7 @@ export default class Api {
       // 2020-07-10: Work-around: many kinds of error can be triggered by this
       // method, which can generates a lot of logs due to the fact that xo-web
       // uses 5s active subscriptions to call it
-      if (method !== 'pool.listMissingPatches') {
+      if (name !== 'pool.listMissingPatches') {
         this._logger.error(message, {
           ...data,
           duration: Date.now() - startTime,
