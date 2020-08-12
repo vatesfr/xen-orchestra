@@ -94,6 +94,16 @@ const LEVELS = {
   viewer: 'success',
 }
 
+const STOP_OPERATIONS = [
+  'clean_reboot',
+  'clean_shutdown',
+  'hard_reboot',
+  'hard_shutdown',
+  'pause',
+  'shutdown',
+  'suspend',
+]
+
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
 const fullCopy = vm => cloneVm(vm, true)
@@ -497,6 +507,19 @@ export default class TabAdvanced extends Component {
         : undefined
   )
 
+  _getIsStopBlocked = createSelector(
+    () => this.props.vm && this.props.vm.blockedOperations,
+    blockedOperations => STOP_OPERATIONS.every(op => op in blockedOperations)
+  )
+
+  _onChangeBlockStop = block =>
+    editVm(this.props.vm, {
+      blockedOperations: Object.assign.apply(
+        null,
+        STOP_OPERATIONS.map(op => ({ [op]: block }))
+      ),
+    })
+
   _onChangeCpuMask = cpuMask =>
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
@@ -746,6 +769,15 @@ export default class TabAdvanced extends Component {
                           blockedOperations: { destroy: blockDeletion },
                         })
                       }
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('protectFromShutdown')}</th>
+                  <td>
+                    <Toggle
+                      value={this._getIsStopBlocked()}
+                      onChange={this._onChangeBlockStop}
                     />
                   </td>
                 </tr>
