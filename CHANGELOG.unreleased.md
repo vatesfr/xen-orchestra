@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/snapshots] No redirection if the VM creation failed or canceled
+- [VM/snapshots] No redirection if the VM creation from a snapshot failed or canceled [#5215](https://github.com/vatesfr/xen-orchestra/pull/5215)
 
 ### Packages to release
 
