@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM] Ability to protect VM from accidental deletion [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
+- [VM] Ability to protect VM from accidental shutdown [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
 
 ### Bug fixes
 
