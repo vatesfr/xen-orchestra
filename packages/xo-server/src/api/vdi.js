@@ -120,18 +120,20 @@ export async function migrate({ vdi, sr }) {
   const xapi = this.getXapi(vdi)
 
   if (this.user.permission !== 'admin') {
-    const resourceSetId = reduce(
-      vdi.$VBDs,
-      (resourceSetId, vbd) =>
-        resourceSetId ||
-        this.getObject(this.getObject(vbd, 'VBD').VM).resourceSet,
-      undefined
-    )
-    if (resourceSetId !== undefined) {
-      await this.checkResourceSetConstraints(resourceSetId, this.user.id, [
-        sr.id,
-      ])
-    } else {
+    const vbds = vdi.$VBDs
+    let resourceSetId
+    for (const id in vbds) {
+      resourceSetId = this.getObject(this.getObject(vbds[id], 'VBD').VM)
+        .resourceSet
+      if (resourceSetId !== undefined) {
+        await this.checkResourceSetConstraints(resourceSetId, this.user.id, [
+          sr.id,
+        ])
+        break
+      }
+    }
+
+    if (resourceSetId === undefined) {
       await this.checkPermissions(this.user.id, [[sr.id, 'administrate']])
     }
   }
