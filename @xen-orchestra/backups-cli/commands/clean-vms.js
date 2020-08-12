@@ -10,7 +10,7 @@ const flatten = require('lodash/flatten')
 const getopts = require('getopts')
 const lockfile = require('proper-lockfile')
 const pipe = require('promise-toolbox/pipe')
-const { default: Vhd } = require('vhd-lib')
+const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
 const { isValidXva } = require('@xen-orchestra/backups/isValidXva')
@@ -29,7 +29,7 @@ const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
 async function mergeVhdChain(chain) {
   assert(chain.length >= 2)
 
-  const child = chain[0]
+  let child = chain[0]
   const parent = chain[chain.length - 1]
   const children = chain.slice(0, -1).reverse()
 
@@ -46,15 +46,21 @@ async function mergeVhdChain(chain) {
     // `mergeVhd` does not work with a stream, either
     // - make it accept a stream
     // - or create synthetic VHD which is not a stream
-    return console.warn('TODO: implement merge')
-    // await mergeVhd(
-    //   handler,
-    //   parent,
-    //   handler,
-    //   children.length === 1
-    //     ? child
-    //     : await createSyntheticStream(handler, children)
-    // )
+    if (children.length !== 1) {
+      console.warn('TODO: implement merging multiple children')
+      children.length = 1
+      child = children[0]
+    }
+
+    await mergeVhd(
+      handler,
+      parent,
+      handler,
+      child
+      // children.length === 1
+      //   ? child
+      //   : await createSyntheticStream(handler, children)
+    )
   }
 
   await Promise.all([
