@@ -15,6 +15,7 @@ import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { error } from 'notification'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { isIp, isIpV4 } from 'ip-utils'
@@ -284,17 +285,6 @@ class VifStatus extends BaseComponent {
     concat
   )
 
-  _getLockingModeValue = createSelector(
-    () => this.props.vif.lockingMode,
-    () => get(() => this.props.network.defaultIsLocked),
-    (vifLockingMode, networkDefaultIsLocked) =>
-      vifLockingMode !== 'network_default'
-        ? vifLockingMode
-        : networkDefaultIsLocked
-        ? 'network_default: disabled'
-        : 'network_default: unlocked'
-  )
-
   _getNetworkStatus = () => {
     const {
       network,
@@ -357,19 +347,10 @@ class VifStatus extends BaseComponent {
     )
   }
 
-  _onChangeVif = event => {
-    const { network, vif } = this.props
-    const value = getEventValue(event)
-    const isNetworkDefault = value.startsWith('network_default')
-
-    setVif(vif, {
-      lockingMode: isNetworkDefault ? 'network_default' : value,
-      network,
-      networkDefaultIsLocked: isNetworkDefault
-        ? value === 'network_default: disabled'
-        : undefined,
-    })
-  }
+  _onChangeVif = event =>
+    setVif(this.props.vif, { lockingMode: getEventValue(event) }).catch(err =>
+      error(_('editVifLockingMode'), err.message || String(err))
+    )
 
   render() {
     const { vif } = this.props
@@ -393,7 +374,7 @@ class VifStatus extends BaseComponent {
             className='form-control'
             onBlur={this.toggleState('isLockingModeEdition')}
             onChange={this._onChangeVif}
-            value={this._getLockingModeValue()}
+            value={vif.lockingMode}
           >
             {map(this.state.lockingModeValues, lockingMode => (
               <option key={lockingMode} value={lockingMode}>
@@ -407,7 +388,7 @@ class VifStatus extends BaseComponent {
             icon='edit'
             handler={this.toggleState('isLockingModeEdition')}
             size='small'
-            tooltip={_('editVifLockingModeTooltip')}
+            tooltip={_('editVifLockingMode')}
           />
         )}
       </div>

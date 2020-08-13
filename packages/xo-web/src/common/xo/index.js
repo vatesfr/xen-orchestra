@@ -1789,7 +1789,6 @@ export const setVif = (
     lockingMode,
     mac,
     network,
-    networkDefaultIsLocked,
     rateLimit,
     txChecksumming,
   }
@@ -1801,7 +1800,6 @@ export const setVif = (
     lockingMode,
     mac,
     network: resolveId(network),
-    networkDefaultIsLocked,
     rateLimit,
     txChecksumming,
   })

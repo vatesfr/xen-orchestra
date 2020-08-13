@@ -5,13 +5,7 @@ import { diffItems } from '../utils'
 // ===================================================================
 
 export function getLockingModeValues() {
-  return [
-    'disabled',
-    'locked',
-    'network_default: disabled',
-    'network_default: unlocked',
-    'unlocked',
-  ]
+  return ['disabled', 'locked', 'network_default', 'unlocked']
 }
 
 // -------------------------------------------------------------------
@@ -119,16 +113,6 @@ export async function set({
 
     await this.allocIpAddresses(newVif.$id, newIpAddresses)
 
-    if (
-      lockingMode === 'network_default' &&
-      network !== undefined &&
-      networkDefaultIsLocked !== undefined
-    ) {
-      await network.set_default_locking_mode(
-        networkDefaultIsLocked ? 'disabled' : 'unlocked'
-      )
-    }
-
     return
   }
 
@@ -167,7 +151,6 @@ set.params = {
   },
   attached: { type: 'boolean', optional: true },
   lockingMode: { type: 'string', optional: true },
-  networkDefaultIsLocked: { type: 'boolean', optional: true },
   rateLimit: {
     description: 'in kilobytes per seconds',
     optional: true,
