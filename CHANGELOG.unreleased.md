@@ -14,6 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
+- [VM/snapshots] Fix redirection when creating a VM from a snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
 
 ### Packages to release
 
