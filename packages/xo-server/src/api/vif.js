@@ -58,6 +58,8 @@ connect.resolve = {
 // -------------------------------------------------------------------
 
 export async function set({
+  vif,
+
   allowedIpv4Addresses,
   allowedIpv6Addresses,
   attached,
@@ -65,7 +67,6 @@ export async function set({
   network,
   rateLimit,
   txChecksumming,
-  vif,
 }) {
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(
     vif.allowedIpv6Addresses
