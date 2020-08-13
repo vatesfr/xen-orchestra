@@ -15,7 +15,7 @@
 
 - [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
 - [VM/snapshots] Fix redirection when creating a VM from a snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
-- [SDN Controller] Error at network creation `Cannot read property '$network' of undefined` (PR [#5217](https://github.com/vatesfr/xen-orchestra/pull/5217))
+- [SDN Controller] Fix `Cannot read property '$network' of undefined` error at the network creation (PR [#5217](https://github.com/vatesfr/xen-orchestra/pull/5217))
 
 ### Packages to release
 
