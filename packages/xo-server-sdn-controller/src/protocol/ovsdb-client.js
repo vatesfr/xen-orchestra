@@ -295,8 +295,12 @@ export class OvsdbClient {
       'uuid-name': 'new_controller',
     })
 
-    const networks = this.host.$PIFs.map(pif => pif.$network)
+    const networks = this.host.$PIFs.map(pif => pif?.$network)
     for (const network of networks) {
+      if (network === undefined) {
+        continue
+      }
+
       const bridge = await this._getBridgeForNetwork(network, socket)
       if (bridge.uuid === undefined) {
         continue
