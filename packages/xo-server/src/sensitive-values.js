@@ -28,6 +28,7 @@ export const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 
 const SENSITIVE_PARAMS = {
   __proto__: null,
+  chapPassword: true,
   cifspassword: true,
   newPassword: true,
   oldPassword: true,
