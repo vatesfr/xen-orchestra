@@ -102,5 +102,5 @@ In the VM network tab a new column has been added: _Network rules_.
 
 ### Openflow
 
-- On XCP-ng prior to 8.2:
+- On XCP-ng prior to 8.0:
   - To be able to use `OpenFlow`, the following line needs to be added, if not already present, in `/etc/sysconfig/iptables` of all the hosts where `OpenFlow` is wanted: `-A xapi-INPUT -p udp -m conntrack --ctstate NEW -m tcp --dport 6653 -j ACCEPT`

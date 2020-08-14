@@ -298,12 +298,15 @@ const deployProxy = async ({ proxy } = {}) => {
     try {
       license = await createProxyTrialLicense()
     } catch (error) {
-      return alert(
+      await alert(
         _('trialStartButton'),
         <span className='text-danger'>
           <Icon icon='alarm' /> {error.message}
         </span>
       )
+
+      // throw undefined to interrupt the deployment process and let the ActionButton properly ignore this error
+      throw undefined
     }
   }
 

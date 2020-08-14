@@ -7,13 +7,16 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Ability to protect VM from accidental shutdown [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
+- [VM/Network] Ability to set VIF TX checksumming [#5095](https://github.com/vatesfr/xen-orchestra/issues/5095) (PR [#5182](https://github.com/vatesfr/xen-orchestra/pull/5182))
 - [Proxy] Improve health check error messages [#5161](https://github.com/vatesfr/xen-orchestra/issues/5161) (PR [#5191](https://github.com/vatesfr/xen-orchestra/pull/5191))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [SDN Controller] Fixes TLS error `dh key too small` [#5074](https://github.com/vatesfr/xen-orchestra/issues/5074) (PR [#5187](https://github.com/vatesfr/xen-orchestra/pull/5187))
+- [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
+- [VM/snapshots] Fix redirection when creating a VM from a snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
 
 ### Packages to release
 
@@ -32,6 +35,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-xo-server minor
-xo-web minor
-xo-server-sdn-controller patch
+- xo-server-sdn-controller patch
+- xo-server minor
+- xo-web minor

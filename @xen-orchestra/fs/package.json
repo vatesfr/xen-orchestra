@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "0.10.4",
+  "version": "0.11.0",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
   "keywords": [],
@@ -25,6 +25,7 @@
     "@marsaud/smb2": "^0.15.0",
     "@sindresorhus/df": "^3.1.1",
     "@xen-orchestra/async-map": "^0.0.0",
+    "aws-sdk": "^2.686.0",
     "decorator-synchronized": "^0.5.0",
     "execa": "^4.0.2",
     "fs-extra": "^9.0.0",
@@ -35,7 +36,7 @@
     "readable-stream": "^3.0.6",
     "through2": "^3.0.0",
     "tmp": "^0.1.0",
-    "xo-remote-parser": "^0.5.0"
+    "xo-remote-parser": "^0.6.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
@@ -58,7 +59,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
-    "prepare": "yarn run build",
+    "prepublishOnly": "yarn run build",
     "postversion": "npm publish"
   },
   "author": {

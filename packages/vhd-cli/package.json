@@ -28,7 +28,7 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^0.10.4",
+    "@xen-orchestra/fs": "^0.11.0",
     "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
@@ -52,7 +52,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/ && index-modules --cjs-lazy src/commands",
     "predev": "yarn run prebuild",
-    "prepare": "yarn run build",
+    "prepublishOnly": "yarn run build",
     "postversion": "npm publish"
   }
 }
