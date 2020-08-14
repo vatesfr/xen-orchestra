@@ -255,7 +255,7 @@ export default class Api {
         .slice(2),
       userId,
       userName,
-      userIp: session.get('user_ip'),
+      userIp: session.get('user_ip', undefined),
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
       timestamp: Date.now(),

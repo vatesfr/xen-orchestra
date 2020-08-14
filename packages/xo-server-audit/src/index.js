@@ -3,6 +3,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
 import path from 'path'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
+import { createGzip } from 'zlib'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 import {
@@ -87,6 +88,9 @@ class AuditXoPlugin {
     this._addListener('xo:postCall', this._handleEvent.bind(this, 'apiCall'))
     this._addListener('xo:audit', this._handleEvent.bind(this))
 
+    const exportRecords = this._exportRecords.bind(this)
+    exportRecords.permission = 'admin'
+
     const getRecords = this._getRecords.bind(this)
     getRecords.description = 'Get records from a passed record ID'
     getRecords.permission = 'admin'
@@ -117,6 +121,7 @@ class AuditXoPlugin {
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
+          exportRecords,
           generateFingerprint,
           getRecords,
         },
@@ -156,24 +161,13 @@ class AuditXoPlugin {
     }
   }
 
-  _handleGetRecords(req, res, id) {
-    res.set('Content-Type', 'application/json')
-    return fromCallback(
-      pipeline,
-      asyncIteratorToStream(async function*(asyncIterator) {
-        for await (const record of asyncIterator) {
-          yield JSON.stringify(record)
-          yield '\n'
-        }
-      })(this._auditCore.getFrom(id)),
-      res
-    )
-  }
-
   async _getRecords({ id, ndjson = false }) {
     if (ndjson) {
       return this._xo
-        .registerHttpRequest(this._handleGetRecords.bind(this), id)
+        .registerHttpRequest((req, res) => {
+          res.set('Content-Type', 'application/json')
+          return fromCallback(pipeline, this._getRecordsStream(id), res)
+        })
         .then($getFrom => ({
           $getFrom,
         }))
@@ -184,6 +178,33 @@ class AuditXoPlugin {
       records.push(record)
     }
     return records
+  }
+
+  _exportRecords() {
+    return this._xo
+      .registerHttpRequest(
+        (req, res) => {
+          res.writeHead(200, {
+            'content-disposition': 'attachment',
+            'content-type': 'application/json',
+          })
+          return fromCallback(
+            pipeline,
+            this._getRecordsStream(),
+            createGzip(),
+            res
+          )
+        },
+        undefined,
+        {
+          suffix: `/audit-records-${new Date()
+            .toISOString()
+            .replace(/:/g, '_')}.gz`,
+        }
+      )
+      .then($getFrom => ({
+        $getFrom,
+      }))
   }
 
   async _checkIntegrity(props) {
@@ -218,5 +239,14 @@ class AuditXoPlugin {
     }
   }
 }
+
+AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(
+  async function*(id) {
+    for await (const record of this._auditCore.getFrom(id)) {
+      yield JSON.stringify(record)
+      yield '\n'
+    }
+  }
+)
 
 export default opts => new AuditXoPlugin(opts)

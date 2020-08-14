@@ -57,7 +57,7 @@ function convertNanToNull(value) {
 
 async function getServerTimestamp(xapi, hostRef) {
   const serverLocalTime = await xapi.call('host.get_servertime', hostRef)
-  return Math.floor(parseDateTime(serverLocalTime).getTime() / 1e3)
+  return Math.floor(parseDateTime(serverLocalTime) / 1e3)
 }
 
 // -------------------------------------------------------------------
