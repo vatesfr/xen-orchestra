@@ -79,7 +79,7 @@ export default ({ sr }) => (
           <tbody>
             <tr>
               <th>{_('provisioning')}</th>
-              <td>{defined(sr.allocationStrategy, _('noValue'))}</td>
+              <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
             </tr>
           </tbody>
         </table>

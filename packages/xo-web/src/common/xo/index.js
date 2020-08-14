@@ -6,6 +6,7 @@ import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import {
@@ -1187,7 +1188,10 @@ export const copyVms = (vms, type) => {
   }, noop)
 }
 
-export const copyVm = vm => copyVms([vm], vm.type)
+export const copyVm = async vm => {
+  const result = await copyVms([vm], vm.type)
+  return getDefined(() => result[0])
+}
 
 export const convertVmToTemplate = vm =>
   confirm({

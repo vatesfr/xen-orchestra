@@ -42,18 +42,6 @@ describe('createOutputStream()', () => {
   })
 })
 
-describe('createReadStream()', () => {
-  it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      createReadStream: () => new Promise(() => {}),
-    })
-
-    const promise = testHandler.createReadStream('file')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
-  })
-})
-
 describe('getInfo()', () => {
   it('throws in case of timeout', async () => {
     const testHandler = new TestHandler({

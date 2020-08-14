@@ -2,6 +2,7 @@ import filter from 'lodash/filter'
 import map from 'lodash/map'
 import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
+import Url from 'url-parse'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0]+)(?:\0(.*))?$/
@@ -39,6 +40,13 @@ export const parse = string => {
     object.domain = domain
     object.username = username
     object.password = password
+  } else if (type === 's3') {
+    const parsed = new Url(string)
+    object.type = 's3'
+    object.host = parsed.host
+    object.path = parsed.pathname
+    object.username = parsed.username
+    object.password = decodeURIComponent(parsed.password)
   }
   return object
 }
@@ -59,6 +67,9 @@ export const format = ({
   }
   if (type === 'smb') {
     string += `${username}:${password}@${domain}\\\\${host}`
+  }
+  if (type === 's3') {
+    string += `${username}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {
