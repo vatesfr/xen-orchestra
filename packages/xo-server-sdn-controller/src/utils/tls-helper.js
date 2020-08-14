@@ -22,6 +22,7 @@ export class TlsHelper {
     const options = {
       ca: this._caCert,
       cert: this._clientCert,
+      ciphers: 'DEFAULT:!DH',
       host: address,
       key: this._clientKey,
       port,

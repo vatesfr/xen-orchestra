@@ -7,11 +7,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Ability to protect VM from accidental shutdown [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
 - [Proxy] Ability to update HTTP proxy configuration (PR [#5148](https://github.com/vatesfr/xen-orchestra/pull/5148))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
+- [VM/snapshots] Fix redirection when creating a VM from a snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
 
 ### Packages to release
 
@@ -31,4 +35,5 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server minor
+- xo-server-sdn-controller patch
 - xo-web minor

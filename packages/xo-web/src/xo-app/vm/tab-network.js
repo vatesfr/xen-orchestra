@@ -534,7 +534,7 @@ class AclRulesRows extends BaseComponent {
   )
 
   render() {
-    const { vif, plugins } = this.props
+    const { vif, plugins = [] } = this.props
     const { showRules } = this.state
     const sdnControllerLoaded = plugins.some(
       plugin => plugin.name === 'sdn-controller' && plugin.loaded
@@ -635,9 +635,16 @@ const COLUMNS = [
       return isEmpty(ips)
         ? _('noIpRecord')
         : map(ips, ip => (
-            <span key={ip} className='tag tag-info tag-ip'>
-              {ip}
-            </span>
+            <Tooltip content={_('copyToClipboard')}>
+              <span
+                className='tag tag-info tag-ip'
+                key={ip}
+                onClick={() => copy(ip)}
+                style={{ cursor: 'pointer' }}
+              >
+                {ip}
+              </span>
+            </Tooltip>
           ))
     },
     name: _('vifIpAddresses'),
