@@ -356,7 +356,10 @@ export default class Proxy {
     } catch (error) {
       return {
         success: false,
-        error,
+        error: {
+          code: error.code,
+          message: error.message,
+        },
       }
     }
   }
