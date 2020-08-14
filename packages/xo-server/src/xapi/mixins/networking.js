@@ -87,7 +87,8 @@ export default {
 
     txChecksumming: {
       // we supposed that removing `ethtool-tx` from the `other_config` will disable the functionality
-      set: (value, vif) => vif.update_other_config('ethtool-tx', value || null),
+      set: (value, vif) =>
+        vif.update_other_config('ethtool-tx', value ? String(value) : null),
     },
   }),
 }
