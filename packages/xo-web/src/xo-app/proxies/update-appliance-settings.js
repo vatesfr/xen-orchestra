@@ -30,7 +30,7 @@ const UpdateApplianceSettingsModal = decorate([
     <Container>
       <SingleLineRow>
         <Col mediumSize={4}>
-          <label htmlFor={state.idHttpProxyInput} style={{ cursor: 'pointer' }}>
+          <label htmlFor={state.idHttpProxyInput}>
             <strong>{_('httpProxy')}</strong>
           </label>
         </Col>
