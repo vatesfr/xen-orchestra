@@ -1,5 +1,7 @@
 import mapValues from 'lodash/mapValues'
 
+import globMatcher from './glob-matcher'
+
 // this random value is used to obfuscate real data
 const OBFUSCATED_VALUE = 'q3oi6d9X8uenGvdLnHk2'
 
@@ -26,19 +28,13 @@ export const merge = (newValue, oldValue) => {
 
 export const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 
-const SENSITIVE_PARAMS = {
-  __proto__: null,
-  chapPassword: true,
-  cifspassword: true,
-  newPassword: true,
-  oldPassword: true,
-  password: true,
-  token: true,
-}
+const sensitiveParamsMatcher = globMatcher(['token', '*password*'], {
+  nocase: true,
+})
 
 export function replace(value, replacement) {
   function helper(value, name) {
-    if (typeof value === 'string' && name in SENSITIVE_PARAMS) {
+    if (typeof value === 'string' && sensitiveParamsMatcher(name)) {
       return replacement
     }
 
