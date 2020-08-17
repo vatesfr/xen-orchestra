@@ -9,7 +9,7 @@
 
 - [VM] Ability to protect VM from accidental shutdown [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
 - [VM/Network] Ability to set VIF TX checksumming [#5095](https://github.com/vatesfr/xen-orchestra/issues/5095) (PR [#5182](https://github.com/vatesfr/xen-orchestra/pull/5182))
-- [[Audit] Back up fingerprints](https://xen-orchestra.com/blog/xo-audit/) [#4844](https://github.com/vatesfr/xen-orchestra/issues/4844) (PR [#5077](https://github.com/vatesfr/xen-orchestra/pull/5077))
+- [[Audit] Regularly save fingerprints on remote server for better tempering detection](https://xen-orchestra.com/blog/xo-audit/) [#4844](https://github.com/vatesfr/xen-orchestra/issues/4844) (PR [#5077](https://github.com/vatesfr/xen-orchestra/pull/5077))
 
 ### Bug fixes
 
