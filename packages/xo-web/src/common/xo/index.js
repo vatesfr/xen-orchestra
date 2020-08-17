@@ -1,5 +1,5 @@
 import asap from 'asap'
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
 import updater from 'xoa-updater'
@@ -72,7 +72,7 @@ export const signOut = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
-  cookies.expire('token')
+  cookies.remove('token')
   window.location.reload(true)
 }
 
@@ -375,7 +375,7 @@ const setNotificationCookie = (id, changes) => {
   cookies.set(
     `notifications:${store.getState().user.id}`,
     JSON.stringify(notifications),
-    { expires: Infinity }
+    { expires: 9999 }
   )
 }
 
