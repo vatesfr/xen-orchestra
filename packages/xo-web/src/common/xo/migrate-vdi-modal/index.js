@@ -25,7 +25,13 @@ export default class MigrateVdiModalBody extends Component {
 
   _getCompareContainers = createSelector(
     () => this.props.pool,
-    createCompareContainers
+    () => this.props.resourceSet !== undefined,
+    (pool, self) => (self ? undefined : createCompareContainers(pool))
+  )
+
+  _getCompareOptions = createSelector(
+    () => this.props.resourceSet !== undefined,
+    self => (self ? undefined : compareSrs)
   )
 
   _getWarningBeforeMigrate = createSelector(
@@ -50,10 +56,8 @@ export default class MigrateVdiModalBody extends Component {
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
             <Select
-              compareContainers={
-                self ? undefined : this._getCompareContainers()
-              }
-              compareOptions={self ? undefined : compareSrs}
+              compareContainers={this._getCompareContainers()}
+              compareOptions={this._getCompareOptions()}
               onChange={this.linkState('sr')}
               predicate={this._getSrPredicate()}
               required

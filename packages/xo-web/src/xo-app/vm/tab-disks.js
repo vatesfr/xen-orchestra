@@ -71,10 +71,14 @@ import {
 
 const compareSrs = createCompare([isSrShared])
 
+@connectStore({
+  isAdmin,
+})
 class VdiSr extends Component {
   _getCompareContainers = createSelector(
     () => this.props.userData.vm.$pool,
-    poolId => createCompareContainers(poolId)
+    () => this.props.isAdmin,
+    (poolId, isAdmin) => (isAdmin ? createCompareContainers(poolId) : undefined)
   )
 
   _getSrPredicate = createSelector(
@@ -82,28 +86,29 @@ class VdiSr extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  _onChangeSr = sr => migrateVdi(this.props.item.vdi, sr)
+  _onChangeSr = sr =>
+    migrateVdi(this.props.item.vdi, sr, this.props.userData.resourceSet)
 
   render() {
     const {
+      isAdmin,
       item: { vdiSr },
       userData: { resourceSet },
     } = this.props
-    const self = resourceSet !== undefined
     return (
       vdiSr !== undefined && (
         <XoSelect
-          compareContainers={self ? undefined : this._getCompareContainers()}
-          compareOptions={self ? undefined : compareSrs}
+          compareContainers={this._getCompareContainers()}
+          compareOptions={isAdmin ? compareSrs : undefined}
           labelProp='name_label'
           onChange={this._onChangeSr}
           predicate={this._getSrPredicate()}
-          resourceSet={resourceSet}
+          resourceSet={isAdmin ? undefined : resourceSet}
           useLongClick
           value={vdiSr}
-          xoType={self ? 'SR-resourceSet' : 'SR'}
+          xoType={isAdmin ? 'SR' : 'resourceSetSr'}
         >
-          <Sr id={vdiSr.id} link={!self} self={self} />
+          <Sr id={vdiSr.id} link={isAdmin} self={resourceSet !== undefined} />
         </XoSelect>
       )
     )
@@ -482,20 +487,22 @@ class AttachDisk extends Component {
     ),
 }))
 @connectStore(() => {
-  return (state, props) => {
-    const { resourceSet } = props
-    const self = resourceSet !== undefined
-    return {
-      allVbds: createGetObjectsOfType('VBD')(state, props),
-      checkPermissions: getCheckPermissions(state, props),
-      isAdmin: isAdmin(state, props),
-      resolvedResourceSet: getResolvedResourceSets(
-        state,
-        { ...props, resourceSets: self ? [resourceSet] : undefined },
-        self // to get objects as a self user
-      )[0],
-    }
+  const getResolvedResourceSet = (state, props) => {
+    const { isAdmin, resourceSet } = props
+    const self = !isAdmin && resourceSet !== undefined
+    return getResolvedResourceSets(
+      state,
+      { ...props, resourceSets: self ? [resourceSet] : undefined },
+      self // to get objects as a self user
+    )[0]
   }
+
+  return (state, props) => ({
+    allVbds: createGetObjectsOfType('VBD')(state, props),
+    checkPermissions: getCheckPermissions(state, props),
+    isAdmin: isAdmin(state, props),
+    resolvedResourceSet: getResolvedResourceSet(state, props),
+  })
 })
 export default class TabDisks extends Component {
   constructor(props) {
@@ -606,11 +613,12 @@ export default class TabDisks extends Component {
   )
 
   _getVbds = createSelector(
+    () => this.props.isAdmin,
     () => this.props.vbds,
     () => this.props.vdis,
     () => this.props.srs,
     () => this.props.resolvedResourceSet,
-    (vbds, vdis, srs, resourceSet) =>
+    (isAdmin, vbds, vdis, srs, resourceSet) =>
       compact(
         map(vbds, vbd => {
           let vdi
@@ -621,7 +629,7 @@ export default class TabDisks extends Component {
               ...vbd,
               vdi,
               vdiSr:
-                resourceSet === undefined
+                isAdmin || resourceSet === undefined
                   ? srs[vdi.$SR]
                   : find(resourceSet.objectsByType.SR, { id: vdi.$SR }),
             })
