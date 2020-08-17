@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Self/VDI migration] Ability to migrate VDIs to other SRs within the resource sets [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5201](https://github.com/vatesfr/xen-orchestra/pull/5201))
+- [Self/VDI migration] Ability to migrate VDIs to other SRs within a resource set [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5201](https://github.com/vatesfr/xen-orchestra/pull/5201))
 
 ### Bug fixes
 
