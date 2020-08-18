@@ -72,7 +72,7 @@ Now if you do this:
 
 It means any VMs on "Lab Pool" with the "prod" tag will be backed up.
 
-## RAM Enabled bakcup
+## RAM Enabled backup
 
 :::tip
 This feature is **only compatible** with XCP-ng 8.0 or more recent. Citrix Hypervisor didn't yet merge our changes, despite we contributed to their code directly.
