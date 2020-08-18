@@ -123,6 +123,7 @@ async function createExpressApp(config) {
   const MemoryStore = memoryStoreFactory(expressSession)
   app.use(
     expressSession({
+      cookie: config.http.cookies,
       resave: false,
       saveUninitialized: false,
       secret: sessionSecret,
@@ -146,7 +147,11 @@ async function createExpressApp(config) {
   return app
 }
 
-async function setUpPassport(express, xo, { authentication: authCfg }) {
+async function setUpPassport(
+  express,
+  xo,
+  { authentication: authCfg, http: { cookies: cookieCfg } }
+) {
   const strategies = { __proto__: null }
   xo.registerPassportStrategy = (
     strategy,
@@ -177,7 +182,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
   })
 
   express.get('/signout', (req, res) => {
-    res.clearCookie('token')
+    res.clearCookie('token', cookieCfg)
     res.redirect('/')
   })
 
@@ -222,13 +227,13 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       userId: user.id,
     })
 
-    res.cookie(
-      'token',
-      token.id,
+    res.cookie('token', token.id, {
+      ...cookieCfg,
+
       // a session (non-permanent) cookie must not have an expiration date
       // because it must not survive browser restart
-      isPersistent ? { expires: new Date(token.expiration) } : undefined
-    )
+      ...(isPersistent ? { expires: new Date(token.expiration) } : undefined),
+    })
 
     delete req.session.isPersistent
     delete req.session.user

@@ -80,6 +80,8 @@ const messages = {
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
+  advancedSettings: 'Advanced settings',
+  txChecksumming: 'TX checksumming',
 
   // ----- Modals -----
   alertOk: 'OK',

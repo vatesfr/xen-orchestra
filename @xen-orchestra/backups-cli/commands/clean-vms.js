@@ -52,15 +52,30 @@ async function mergeVhdChain(chain) {
       child = children[0]
     }
 
+    let done, total
+    const handle = setInterval(() => {
+      if (done !== undefined) {
+        console.log('merging %s: %s/%s', child, done, total)
+      }
+    }, 10e3)
+
     await mergeVhd(
       handler,
       parent,
       handler,
-      child
+      child,
       // children.length === 1
       //   ? child
-      //   : await createSyntheticStream(handler, children)
+      //   : await createSyntheticStream(handler, children),
+      {
+        onProgress({ done: d, total: t }) {
+          done = d
+          total = t
+        },
+      }
     )
+
+    clearInterval(handle)
   }
 
   await Promise.all([

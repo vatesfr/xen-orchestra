@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM] Ability to protect VM from accidental shutdown [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
+- [VM/Network] Ability to set VIF TX checksumming [#5095](https://github.com/vatesfr/xen-orchestra/issues/5095) (PR [#5182](https://github.com/vatesfr/xen-orchestra/pull/5182))
 
 ### Bug fixes
 
@@ -35,5 +36,5 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-sdn-controller patch
-- xo-server patch
+- xo-server minor
 - xo-web minor
