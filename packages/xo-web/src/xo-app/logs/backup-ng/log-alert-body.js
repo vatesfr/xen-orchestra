@@ -335,16 +335,16 @@ export default decorate([
   }),
   provideState({
     initialState: () => ({
-      filter: undefined,
-      globalFilter: '',
+      _status: undefined,
+      filter: '',
     }),
     effects: {
-      onGlobalFilterChange(_, filter) {
-        this.state.globalFilter = filter
+      onFilterChange(_, filter) {
+        this.state.filter = filter
       },
-      setFilter: (_, filter) => () => ({
-        filter,
-      }),
+      onStatusChange(_, status) {
+        this.state._status = status
+      },
       restartVmJob: (_, params) => async (
         _,
         { log: { scheduleId, jobId } }
@@ -408,16 +408,12 @@ export default decorate([
 
         return newLog
       },
-      preFilteredTasksLogs: ({ log, globalFilter }) =>
-        log.tasks.filter(CM.parse(globalFilter).createPredicate()),
-      filteredTaskLogs: ({
-        defaultFilter,
-        filter: value = defaultFilter,
-        preFilteredTasksLogs,
-      }) =>
-        value === 'all'
+      preFilteredTasksLogs: ({ log, filter }) =>
+        log.tasks.filter(CM.parse(filter).createPredicate()),
+      filteredTaskLogs: ({ preFilteredTasksLogs, status }) =>
+        status === 'all'
           ? preFilteredTasksLogs
-          : filter(preFilteredTasksLogs, ({ status }) => status === value),
+          : filter(preFilteredTasksLogs, task => task.status === status),
       optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
           {_(label)} ({countByStatus[value] || 0})
@@ -455,21 +451,22 @@ export default decorate([
           value: 'success',
         },
       ],
-      defaultFilter: ({ countByStatus }) => {
-        if (countByStatus.pending > 0) {
-          return 'pending'
-        }
+      status: ({ _status, countByStatus }) =>
+        defined(_status, () => {
+          if (countByStatus.pending > 0) {
+            return 'pending'
+          }
 
-        if (countByStatus.failure > 0) {
-          return 'failure'
-        }
+          if (countByStatus.failure > 0) {
+            return 'failure'
+          }
 
-        if (countByStatus.interrupted > 0) {
-          return 'interrupted'
-        }
+          if (countByStatus.interrupted > 0) {
+            return 'interrupted'
+          }
 
-        return 'all'
-      },
+          return 'all'
+        }),
     },
   }),
   injectState,
@@ -485,17 +482,17 @@ export default decorate([
         <SearchBar
           className='mb-1'
           filters={SEARCH_BAR_FILTERS}
-          onChange={effects.onGlobalFilterChange}
-          value={state.globalFilter}
+          onChange={effects.onFilterChange}
+          value={state.filter}
         />
         <Select
           labelKey='label'
-          onChange={effects.setFilter}
+          onChange={effects.onStatusChange}
           optionRenderer={state.optionRenderer}
           options={state.options}
           required
           simpleValue
-          value={state.filter || state.defaultFilter}
+          value={state.status}
           valueKey='value'
         />
         <Warnings warnings={warnings} />
