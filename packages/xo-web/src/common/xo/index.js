@@ -1714,7 +1714,7 @@ export const deleteOrphanedVdis = vdis =>
 export const migrateVdi = (vdi, sr, resourceSet) =>
   _call('vdi.migrate', {
     id: resolveId(vdi),
-    resourceSet: resolveId(resourceSet),
+    resourceSet,
     sr_id: resolveId(sr),
   })
 

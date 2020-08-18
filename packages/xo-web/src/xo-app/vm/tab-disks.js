@@ -2,7 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
-import defined from '@xen-orchestra/defined'
+import defined, { get as getDefined } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
 import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
@@ -71,14 +71,21 @@ import {
 
 const compareSrs = createCompare([isSrShared])
 
-@connectStore({
+@connectStore(() => ({
+  checkPermissions: getCheckPermissions,
   isAdmin,
-})
+}))
 class VdiSr extends Component {
+  _getIsSrAdmin = createSelector(
+    () => this.props.checkPermissions,
+    () => getDefined(() => this.props.vdiSr.id),
+    (check, sr) => check(sr, 'administrate')
+  )
+
   _getCompareContainers = createSelector(
-    () => this.props.userData.vm.$pool,
     () => this.props.isAdmin,
-    (poolId, isAdmin) => (isAdmin ? createCompareContainers(poolId) : undefined)
+    () => this.props.userData.vm.$pool,
+    (isAdmin, poolId) => (isAdmin ? createCompareContainers(poolId) : undefined)
   )
 
   _getSrPredicate = createSelector(
@@ -87,28 +94,37 @@ class VdiSr extends Component {
   )
 
   _onChangeSr = sr =>
-    migrateVdi(this.props.item.vdi, sr, this.props.userData.resourceSet)
+    migrateVdi(
+      this.props.item.vdi,
+      sr,
+      getDefined(() => this.props.userData.resourceSet.id)
+    )
 
   render() {
     const {
-      isAdmin,
       item: { vdiSr },
       userData: { resourceSet },
     } = this.props
+    const isSrAdmin = this._getIsSrAdmin()
+
     return (
       vdiSr !== undefined && (
         <XoSelect
           compareContainers={this._getCompareContainers()}
-          compareOptions={isAdmin ? compareSrs : undefined}
+          compareOptions={compareSrs}
           labelProp='name_label'
           onChange={this._onChangeSr}
           predicate={this._getSrPredicate()}
-          resourceSet={isAdmin ? undefined : resourceSet}
+          resourceSet={isSrAdmin ? undefined : resourceSet}
           useLongClick
           value={vdiSr}
-          xoType={isAdmin ? 'SR' : 'resourceSetSr'}
+          xoType={isSrAdmin ? 'SR' : 'resourceSetSr'}
         >
-          <Sr id={vdiSr.id} link={isAdmin} self={resourceSet !== undefined} />
+          <Sr
+            id={vdiSr.id}
+            link={isSrAdmin}
+            self={!isSrAdmin && resourceSet !== undefined}
+          />
         </XoSelect>
       )
     )
@@ -613,12 +629,11 @@ export default class TabDisks extends Component {
   )
 
   _getVbds = createSelector(
-    () => this.props.isAdmin,
     () => this.props.vbds,
     () => this.props.vdis,
     () => this.props.srs,
     () => this.props.resolvedResourceSet,
-    (isAdmin, vbds, vdis, srs, resourceSet) =>
+    (vbds, vdis, srs, resourceSet) =>
       compact(
         map(vbds, vbd => {
           let vdi
@@ -628,10 +643,13 @@ export default class TabDisks extends Component {
             vdi !== undefined && {
               ...vbd,
               vdi,
-              vdiSr:
-                isAdmin || resourceSet === undefined
-                  ? srs[vdi.$SR]
-                  : find(resourceSet.objectsByType.SR, { id: vdi.$SR }),
+              vdiSr: defined(
+                srs[vdi.$SR],
+                find(
+                  get(() => resourceSet.objectsByType.SR),
+                  { id: vdi.$SR }
+                )
+              ),
             })
           )
         })
