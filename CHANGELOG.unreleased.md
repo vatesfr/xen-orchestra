@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup logs] Ability to filter by VM/pool name, srs names and remotes names [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5208](https://github.com/vatesfr/xen-orchestra/pull/5208))
+- [Backup logs] Ability to filter by VM/pool name, SRs names and remotes names [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5208](https://github.com/vatesfr/xen-orchestra/pull/5208))
 
 ### Bug fixes
 
