@@ -93,12 +93,17 @@ class VdiSr extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  _onChangeSr = sr =>
-    migrateVdi(
-      this.props.item.vdi,
+  _onChangeSr = sr => {
+    const {
+      item: { vdi },
+      userData: { resourceSet },
+    } = this.props
+    return migrateVdi(
+      vdi,
       sr,
-      getDefined(() => this.props.userData.resourceSet.id)
+      getDefined(() => resourceSet.id)
     )
+  }
 
   render() {
     const {
@@ -106,7 +111,6 @@ class VdiSr extends Component {
       userData: { resourceSet },
     } = this.props
     const isSrAdmin = this._getIsSrAdmin()
-
     return (
       vdiSr !== undefined && (
         <XoSelect
@@ -646,7 +650,7 @@ export default class TabDisks extends Component {
               vdiSr: defined(
                 srs[vdi.$SR],
                 find(
-                  get(() => resourceSet.objectsByType.SR),
+                  getDefined(() => resourceSet.objectsByType.SR),
                   { id: vdi.$SR }
                 )
               ),
