@@ -342,7 +342,10 @@ export default class Proxy {
       xoaUpgradeTimeout
     )
 
-    await this.checkProxyHealth(proxyId)
+    const { success, error } = await this.checkProxyHealth(proxyId)
+    if (!success) {
+      throw new Error(error.message)
+    }
 
     return proxyId
   }
