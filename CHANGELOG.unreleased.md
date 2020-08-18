@@ -15,7 +15,7 @@
 
 - [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
 - [VM/snapshots] Fix redirection when creating a VM from a snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
-- [Audit] Obfuscate `user.changePassword` sensitive data [#5219](https://github.com/vatesfr/xen-orchestra/issues/5219) (PR [#5220](https://github.com/vatesfr/xen-orchestra/pull/5220))
+- [Audit] Obfuscate sensitive data in `user.changePassword` action's records [#5219](https://github.com/vatesfr/xen-orchestra/issues/5219) (PR [#5220](https://github.com/vatesfr/xen-orchestra/pull/5220))
 
 ### Packages to release
 
