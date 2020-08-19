@@ -719,7 +719,7 @@ export async function probeIscsiLuns({
       id: lun.LUNid.trim(),
       vendor: lun.vendor.trim(),
       serial: lun.serial.trim(),
-      size: lun.size !== undefined ? lun.size.trim() : '',
+      size: lun.size?.trim(),
       scsiId: lun.SCSIid.trim(),
     })
   })
