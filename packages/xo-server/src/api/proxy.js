@@ -170,8 +170,13 @@ getApplianceUpdaterState.params = {
   },
 }
 
-export function checkHealth({ id }) {
-  return this.checkProxyHealth(id)
+export async function checkHealth({ id }) {
+  const result = await this.checkProxyHealth(id)
+  result.error = {
+    message: result.error.message,
+    code: result.error.code,
+  }
+  return result
 }
 checkHealth.permission = 'admin'
 checkHealth.params = {

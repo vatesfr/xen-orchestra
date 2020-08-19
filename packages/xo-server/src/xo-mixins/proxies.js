@@ -344,7 +344,7 @@ export default class Proxy {
 
     const { success, error } = await this.checkProxyHealth(proxyId)
     if (!success) {
-      throw new Error(error.message)
+      throw error
     }
 
     return proxyId
@@ -359,10 +359,7 @@ export default class Proxy {
     } catch (error) {
       return {
         success: false,
-        error: {
-          code: error.code,
-          message: error.message,
-        },
+        error,
       }
     }
   }
