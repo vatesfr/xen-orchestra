@@ -72,7 +72,6 @@ import {
 const compareSrs = createCompare([isSrShared])
 
 @connectStore(() => ({
-  checkPermissions: getCheckPermissions,
   isAdmin,
 }))
 class VdiSr extends Component {
