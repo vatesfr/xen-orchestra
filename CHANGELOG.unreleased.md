@@ -17,6 +17,7 @@
 - [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
 - [VM/snapshots] Fix redirection when creating a VM from a snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
 - [User] Fix `Incorrect password` error when changing password [#5218](https://github.com/vatesfr/xen-orchestra/issues/5218) (PR [#5221](https://github.com/vatesfr/xen-orchestra/pull/5221))
+- [Audit] Obfuscate sensitive data in `user.changePassword` action's records [#5219](https://github.com/vatesfr/xen-orchestra/issues/5219) (PR [#5220](https://github.com/vatesfr/xen-orchestra/pull/5220))
 
 ### Packages to release
 
@@ -35,6 +36,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server patch
 - xo-server-sdn-controller patch
 - xo-server minor
 - xo-web minor
