@@ -153,12 +153,13 @@ class SelectLun extends Component {
 
   _getOptions = createSelector(
     () => this.props.options,
-    options =>
+    () => this.props.intl.formatMessage,
+    (options, formatMessage) =>
       map(options, (lun, index) => ({
         label: `LUN ${lun.id}: ${lun.serial} - ${
           lun.size !== undefined
             ? formatSize(+lun.size)
-            : this.props.intl.formatMessage(messages.unknown)
+            : formatMessage(messages.unknown)
         } - (${lun.vendor})`,
         value: index,
       }))
