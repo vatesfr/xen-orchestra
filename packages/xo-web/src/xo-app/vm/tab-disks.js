@@ -76,12 +76,6 @@ const compareSrs = createCompare([isSrShared])
   isAdmin,
 }))
 class VdiSr extends Component {
-  _getIsSrAdmin = createSelector(
-    () => this.props.checkPermissions,
-    () => getDefined(() => this.props.vdiSr.id),
-    (check, sr) => check(sr, 'administrate')
-  )
-
   _getCompareContainers = createSelector(
     () => this.props.isAdmin,
     () => this.props.userData.vm.$pool,
@@ -107,10 +101,11 @@ class VdiSr extends Component {
 
   render() {
     const {
+      isAdmin,
       item: { vdiSr },
       userData: { resourceSet },
     } = this.props
-    const isSrAdmin = this._getIsSrAdmin()
+    const self = !isAdmin && resourceSet !== undefined
     return (
       vdiSr !== undefined && (
         <XoSelect
@@ -119,16 +114,12 @@ class VdiSr extends Component {
           labelProp='name_label'
           onChange={this._onChangeSr}
           predicate={this._getSrPredicate()}
-          resourceSet={isSrAdmin ? undefined : resourceSet}
+          resourceSet={self ? resourceSet : undefined}
           useLongClick
           value={vdiSr}
-          xoType={isSrAdmin ? 'SR' : 'resourceSetSr'}
+          xoType={self ? 'resourceSetSr' : 'SR'}
         >
-          <Sr
-            id={vdiSr.id}
-            link={isSrAdmin}
-            self={!isSrAdmin && resourceSet !== undefined}
-          />
+          <Sr id={vdiSr.id} link={!self} self={self} />
         </XoSelect>
       )
     )
