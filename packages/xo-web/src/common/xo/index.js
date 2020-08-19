@@ -3257,7 +3257,7 @@ export const checkProxyHealth = async proxy => {
         </span>,
         <span>
           {PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE.has(result.error.code)
-            ? _('proxyTestFailedMessage')
+            ? _('proxyTestFailedConnectionIssueMessage')
             : result.error.message}
         </span>
       )
