@@ -68,9 +68,7 @@ const GoToJob = decorate([
   injectState,
   ({ effects, children }) => (
     <Tooltip content={_('goToThisJob')}>
-      <p onClick={effects.goTo} style={{ cursor: 'pointer' }}>
-        {children}
-      </p>
+      <p onClick={effects.goTo}>{children}</p>
     </Tooltip>
   ),
 ])
