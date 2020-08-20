@@ -80,6 +80,8 @@ const messages = {
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
+  advancedSettings: 'Advanced settings',
+  txChecksumming: 'TX checksumming',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2399,6 +2401,8 @@ const messages = {
   checkProxyHealth: 'Test your proxy',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyTestFailed: 'Test failed for {name}',
+  proxyTestFailedConnectionIssueMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
