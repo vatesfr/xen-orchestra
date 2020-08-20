@@ -297,6 +297,8 @@ export class OvsdbClient {
 
     const networks = this.host.$PIFs.map(pif => pif?.$network)
     for (const network of networks) {
+      // network can be undefined so we can't set its controller
+      // It can happen if there's a ref problem within XAPI
       if (network === undefined) {
         continue
       }
