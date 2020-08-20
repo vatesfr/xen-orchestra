@@ -136,18 +136,13 @@ class AuditXoPlugin {
     this._cleaners = []
     this._xo = xo
 
-    const {
-      enabled = true,
-      schedule = {
-        cron: '0 6 * * *',
-      },
-    } = staticConfig.lastHashUpload ?? {}
+    const { enabled = true, schedule: { cron = '0 6 * * *', timezone } = {} } =
+      staticConfig.lastHashUpload ?? {}
 
     if (enabled) {
-      this._uploadLastHashJob = createSchedule(
-        schedule.cron,
-        schedule.timezone
-      ).createJob(() => this._uploadLastHash().catch(log.error))
+      this._uploadLastHashJob = createSchedule(cron, timezone).createJob(() =>
+        this._uploadLastHash().catch(log.error)
+      )
     }
 
     this._auditCore = undefined
