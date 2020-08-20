@@ -1,6 +1,5 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
-import defaults from 'lodash/defaults'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
 import { createSchedule } from '@xen-orchestra/cron'
@@ -137,12 +136,13 @@ class AuditXoPlugin {
     this._cleaners = []
     this._xo = xo
 
-    const { enabled, schedule } = defaults(staticConfig.lastHashUpload, {
-      enabled: true,
-      schedule: {
+    const {
+      enabled = true,
+      schedule = {
         cron: '0 6 * * *',
       },
-    })
+    } = staticConfig.lastHashUpload ?? {}
+
     if (enabled) {
       this._uploadLastHashJob = createSchedule(
         schedule.cron,
