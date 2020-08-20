@@ -311,12 +311,6 @@ const TaskLi = ({ className, task, ...props }) => {
   )
 }
 
-const SEARCH_BAR_FILTERS = {
-  name: 'name:',
-  remotesNames: 'remotes:|()',
-  srsNames: 'srs:|()',
-}
-
 export default decorate([
   addSubscriptions(({ id }) => ({
     remotes: cb =>
@@ -467,6 +461,29 @@ export default decorate([
 
           return 'all'
         }),
+      searchBarFilters: ({ log }) => {
+        const { srs = [], remotes = [] } = log.tasks.find(
+          ({ data = {} }) =>
+            data.type === 'VM' || data.type === 'xo' || data.type === 'pool'
+        )
+
+        const filter = { name: 'name:' }
+        if (remotes.length !== 0) {
+          filter.remotesNames = new CM.Property(
+            'remotes',
+            new CM.Or(remotes.map(remote => new CM.String(remote)))
+          ).toString()
+        }
+
+        if (srs.length !== 0) {
+          filter.srsNames = new CM.Property(
+            'srs',
+            new CM.Or(srs.map(sr => new CM.String(sr)))
+          ).toString()
+        }
+
+        return filter
+      },
     },
   }),
   injectState,
@@ -481,7 +498,7 @@ export default decorate([
       <div>
         <SearchBar
           className='mb-1'
-          filters={SEARCH_BAR_FILTERS}
+          filters={state.searchBarFilters}
           onChange={effects.onFilterChange}
           value={state.filter}
         />
