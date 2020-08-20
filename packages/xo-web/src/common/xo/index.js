@@ -1,5 +1,5 @@
 import asap from 'asap'
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
 import updater from 'xoa-updater'
@@ -72,7 +72,7 @@ export const signOut = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
-  cookies.expire('token')
+  cookies.remove('token')
   window.location.reload(true)
 }
 
@@ -375,7 +375,7 @@ const setNotificationCookie = (id, changes) => {
   cookies.set(
     `notifications:${store.getState().user.id}`,
     JSON.stringify(notifications),
-    { expires: Infinity }
+    { expires: 9999 }
   )
 }
 
@@ -1786,6 +1786,7 @@ export const setVif = (
   {
     allowedIpv4Addresses,
     allowedIpv6Addresses,
+    lockingMode,
     mac,
     network,
     rateLimit,
@@ -1796,11 +1797,14 @@ export const setVif = (
     allowedIpv4Addresses,
     allowedIpv6Addresses,
     id: resolveId(vif),
+    lockingMode,
     mac,
     network: resolveId(network),
     rateLimit,
     txChecksumming,
   })
+
+export const getLockingModeValues = () => _call('vif.getLockingModeValues')
 
 export const addAclRule = ({
   allow,
@@ -3232,15 +3236,36 @@ export const upgradeProxyAppliance = proxy =>
 export const getProxyApplianceUpdaterState = id =>
   _call('proxy.getApplianceUpdaterState', { id })
 
-export const checkProxyHealth = proxy =>
-  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>
-    success(
-      <span>
-        <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
-      </span>,
-      _('proxyTestSuccessMessage')
-    )
-  )
+const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EHOSTUNREACH',
+  'ENOTFOUND',
+  'ETIMEDOUT',
+])
+
+export const checkProxyHealth = async proxy => {
+  const result = await _call('proxy.checkHealth', {
+    id: resolveId(proxy),
+  })
+  return result.success
+    ? success(
+        <span>
+          <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
+        </span>,
+        _('proxyTestSuccessMessage')
+      )
+    : error(
+        <span>
+          <Icon icon='error' /> {_('proxyTestFailed', { name: proxy.name })}
+        </span>,
+        <span>
+          {PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE.has(result.error.code)
+            ? _('proxyTestFailedConnectionIssueMessage')
+            : result.error.message}
+        </span>
+      )
+}
 
 // Audit plugin ---------------------------------------------------------
 

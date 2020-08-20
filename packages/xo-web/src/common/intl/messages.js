@@ -1122,6 +1122,7 @@ const messages = {
 
   // ----- VM network tab -----
 
+  editVifLockingMode: 'Edit locking mode',
   aclRuleAllow: 'Allow the traffic',
   aclRuleProtocol: 'Select a protocol',
   aclRulePort: 'Select a port',
@@ -2401,6 +2402,8 @@ const messages = {
   checkProxyHealth: 'Test your proxy',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyTestFailed: 'Test failed for {name}',
+  proxyTestFailedConnectionIssueMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
