@@ -4,6 +4,7 @@ import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
 import decorate from 'apply-decorators'
+import getEventValue from 'get-event-value'
 import Icon, { StackedIcons } from 'icon'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
@@ -14,6 +15,8 @@ import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { error } from 'notification'
+import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
@@ -61,6 +64,7 @@ import {
   deleteVif,
   deleteVifs,
   disconnectVif,
+  getLockingModeValues,
   isVmRunning,
   setVif,
   subscribeIpPools,
@@ -269,6 +273,12 @@ class VifAllowedIps extends BaseComponent {
 }
 
 class VifStatus extends BaseComponent {
+  componentDidMount() {
+    getLockingModeValues().then(lockingModeValues =>
+      this.setState({ lockingModeValues })
+    )
+  }
+
   _getIps = createSelector(
     () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
     () => this.props.vif.allowedIpv6Addresses || EMPTY_ARRAY,
@@ -337,8 +347,14 @@ class VifStatus extends BaseComponent {
     )
   }
 
+  _onChangeVif = event =>
+    setVif(this.props.vif, { lockingMode: getEventValue(event) }).catch(err =>
+      error(_('editVifLockingMode'), err.message || String(err))
+    )
+
   render() {
     const { vif } = this.props
+    const { isLockingModeEdition } = this.state
 
     return (
       <div>
@@ -352,7 +368,29 @@ class VifStatus extends BaseComponent {
           handlerParam={vif}
           state={vif.attached}
         />{' '}
-        {this._getNetworkStatus()}
+        {this._getNetworkStatus()}{' '}
+        {isLockingModeEdition ? (
+          <select
+            className='form-control'
+            onBlur={this.toggleState('isLockingModeEdition')}
+            onChange={this._onChangeVif}
+            value={vif.lockingMode}
+          >
+            {map(this.state.lockingModeValues, lockingMode => (
+              <option key={lockingMode} value={lockingMode}>
+                {lockingMode}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <ActionButton
+            btnStyle='primary'
+            icon='edit'
+            handler={this.toggleState('isLockingModeEdition')}
+            size='small'
+            tooltip={_('editVifLockingMode')}
+          />
+        )}
       </div>
     )
   }

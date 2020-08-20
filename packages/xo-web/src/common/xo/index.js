@@ -1786,6 +1786,7 @@ export const setVif = (
   {
     allowedIpv4Addresses,
     allowedIpv6Addresses,
+    lockingMode,
     mac,
     network,
     rateLimit,
@@ -1796,11 +1797,14 @@ export const setVif = (
     allowedIpv4Addresses,
     allowedIpv6Addresses,
     id: resolveId(vif),
+    lockingMode,
     mac,
     network: resolveId(network),
     rateLimit,
     txChecksumming,
   })
+
+export const getLockingModeValues = () => _call('vif.getLockingModeValues')
 
 export const addAclRule = ({
   allow,
