@@ -40,6 +40,44 @@ export default async function readVmdkGrainTable(fileAccessor) {
   return (await readCapacityAndGrainTable(fileAccessor)).tablePromise
 }
 
+/**
+ * reading a big chunk of the file to memory before parsing is useful when the vmdk is gzipped and random access is costly
+ */
+async function grabTables(
+  grainDirectoryEntries,
+  grainDir,
+  grainTablePhysicalSize,
+  fileAccessor
+) {
+  const cachedGrainTables = []
+  let grainTableAddresMin = Infinity
+  let grainTableAddressMax = -Infinity
+  for (let i = 0; i < grainDirectoryEntries; i++) {
+    const grainTableAddr = grainDir[i] * SECTOR_SIZE
+    if (grainTableAddr !== 0) {
+      grainTableAddresMin = Math.min(grainTableAddresMin, grainTableAddr)
+      grainTableAddressMax = Math.max(
+        grainTableAddressMax,
+        grainTableAddr + grainTablePhysicalSize
+      )
+    }
+  }
+  const grainTableBuffer = await fileAccessor(
+    grainTableAddresMin,
+    grainTableAddressMax
+  )
+  for (let i = 0; i < grainDirectoryEntries; i++) {
+    const grainTableAddr = grainDir[i] * SECTOR_SIZE
+    if (grainTableAddr !== 0) {
+      const addr = grainTableAddr - grainTableAddresMin
+      cachedGrainTables[i] = new Uint32Array(
+        grainTableBuffer.slice(addr, addr + grainTablePhysicalSize)
+      )
+    }
+  }
+  return cachedGrainTables
+}
+
 /***
  *
  * @param fileAccessor: (start, end) => ArrayBuffer
@@ -84,18 +122,12 @@ export async function readCapacityAndGrainTable(fileAccessor) {
         grainDirPosBytes + grainDirectoryPhysicalSize
       )
     )
-    const cachedGrainTables = []
-    for (let i = 0; i < grainDirectoryEntries; i++) {
-      const grainTableAddr = grainDir[i] * SECTOR_SIZE
-      if (grainTableAddr !== 0) {
-        cachedGrainTables[i] = new Uint32Array(
-          await fileAccessor(
-            grainTableAddr,
-            grainTableAddr + grainTablePhysicalSize
-          )
-        )
-      }
-    }
+    const cachedGrainTables = await grabTables(
+      grainDirectoryEntries,
+      grainDir,
+      grainTablePhysicalSize,
+      fileAccessor
+    )
     const extractedGrainTable = []
     for (let i = 0; i < grainCount; i++) {
       const directoryEntry = Math.floor(i / numGTEsPerGT)

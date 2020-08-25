@@ -58,6 +58,9 @@ export default {
         },
       ],
     },
+    lockingMode: {
+      set: (value, vif) => vif.set_locking_mode(value),
+    },
 
     // in kB/s
     rateLimit: {
@@ -83,6 +86,12 @@ export default {
             value === null ? null : String(value)
           ),
         ]),
+    },
+
+    txChecksumming: {
+      // we supposed that removing `ethtool-tx` from the `other_config` will disable the functionality
+      set: (value, vif) =>
+        vif.update_other_config('ethtool-tx', value ? 'true' : null),
     },
   }),
 }

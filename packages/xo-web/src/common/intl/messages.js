@@ -79,6 +79,9 @@ const messages = {
   noLicenseAvailable: 'No license available',
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
+  upgradesAvailable: 'Upgrades available',
+  advancedSettings: 'Advanced settings',
+  txChecksumming: 'TX checksumming',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -230,10 +233,7 @@ const messages = {
   homeAllResourceSets: 'Resource sets',
   homeNewVm: 'New VM',
   homeFilterNone: 'None',
-  homeFilterRunningHosts: 'Running hosts',
   homeFilterDisabledHosts: 'Disabled hosts',
-  homeFilterRunningVms: 'Running VMs',
-  homeFilterNonRunningVms: 'Non running VMs',
   homeFilterPendingVms: 'Pending VMs',
   homeFilterHvmGuests: 'HVM guests',
   homeSortBy: 'Sort by',
@@ -257,6 +257,7 @@ const messages = {
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
+  powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
@@ -436,6 +437,8 @@ const messages = {
     'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
+  deltaChainRetentionWarning:
+    'Either the full backup interval or the backup retention should be lower than 50.',
   retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
   createRemoteMessage:
@@ -546,6 +549,7 @@ const messages = {
   remoteTypeLocal: 'Local',
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
+  remoteTypeS3: 'Amazon Web Services S3 (beta)',
   remoteType: 'Type',
   remoteSmbWarningMessage:
     'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
@@ -592,6 +596,8 @@ const messages = {
   remoteSmbPlaceHolderDomain: 'Domain',
   remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
+  remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
+  remoteS3PlaceHolderDirectory: 'directory',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----
@@ -1115,6 +1121,24 @@ const messages = {
     "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
+
+  editVifLockingMode: 'Edit locking mode',
+  aclRuleAllow: 'Allow the traffic',
+  aclRuleProtocol: 'Select a protocol',
+  aclRulePort: 'Select a port',
+  aclRuleIpRange: 'Select an IP or an IP range (CIDR format)',
+  aclRuleDirection: 'Select a direction',
+  aclRuleAllowField: 'Traffic Enabled/Disabled',
+  aclRuleProtocolField: 'Protocol',
+  aclRulePortField: 'Port',
+  aclRuleIpRangeField: 'IP range (CIDR format)',
+  aclRuleDirectionField: 'Direction',
+  addRule: 'Add rule',
+  deleteRule: 'Delete rule',
+  hideRules: 'Hide rules',
+  sdnControllerNotLoaded: 'SDN Controller must be loaded',
+  showRules: 'Show rules',
+  vifAclRules: 'Traffic rules',
   vifCreateDeviceButton: 'New device',
   vifDeviceLabel: 'Device',
   vifMacLabel: 'MAC address',
@@ -1132,9 +1156,12 @@ const messages = {
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
   vifNoIps: 'No IPs',
+  vifDisabledNetwork: 'Network disabled',
   vifLockedNetwork: 'Network locked',
   vifLockedNetworkNoIps:
     'Network locked and no IPs are allowed for this interface',
+  vifUnlockedNetworkWithIps:
+    'Network not locked: some IPs are unnecessarily set as allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
@@ -1197,6 +1224,7 @@ const messages = {
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
   protectFromDeletion: 'Protect from accidental deletion',
+  protectFromShutdown: 'Protect from accidental shutdown',
   ha: 'HA',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
@@ -1328,13 +1356,15 @@ const messages = {
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
   detachedBackups: 'Detached backups',
+  detachedVmSnapshots: 'Detached VM snapshots',
   missingJob: 'Missing job',
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
   missingSchedule: 'Missing schedule',
   noDetachedBackups: 'No backups',
   reason: 'Reason',
-  orphanedVdis: 'Orphaned snapshot VDIs',
+  orphanedVdis: 'Orphan VDIs',
+  orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
   deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
@@ -1343,8 +1373,6 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
-  vmSnapshotsRelatedToNonExistentBackups:
-    'VM snapshots related to non-existent backups',
   snapshotOf: 'Snapshot of',
   legacySnapshots: 'Legacy backups snapshots',
   alarmMessage: 'Alarms',
@@ -1770,6 +1798,9 @@ const messages = {
   optionalEntry: '* optional',
 
   // ----- Servers -----
+  enableServerErrorTitle: 'Enable server',
+  enableServerErrorMessage:
+    'Unexpected response. Please check your server address.',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -2301,6 +2332,8 @@ const messages = {
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
+  auditInactiveUserActionsRecord:
+    'User actions recording is currently inactive',
 
   // Licenses
   xosanUnregisteredDisclaimer:
@@ -2368,15 +2401,19 @@ const messages = {
   redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
-  upgradeProxyAppliance: 'upgrade the appliance',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyTestFailed: 'Test failed for {name}',
+  proxyTestFailedConnectionIssueMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
   proxySrPredicateInfo:
     'The select only contains SRs connected to at least one HVM-capable host',
+  httpProxy: 'HTTP proxy',
+  httpProxyPlaceholder: 'protocol://username:password@address:port',
+  proxyUpgradesError: 'Unable to check upgrades availability',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

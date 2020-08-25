@@ -7,12 +7,11 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Health/Orphan VDIs] Improve heuristic and list both VDI snapshots and normal VDIs (PR [#5228](https://github.com/vatesfr/xen-orchestra/pull/5228))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Proxy] Don't use configured HTTP proxy to connect to XO proxy
-- [Backup with proxy] Correctly log job-level errors
 
 ### Packages to release
 
@@ -31,4 +30,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server patch
+- xo-web minor

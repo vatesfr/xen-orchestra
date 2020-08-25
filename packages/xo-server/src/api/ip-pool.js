@@ -25,7 +25,6 @@ export function getAll(params) {
   )
 }
 
-getAll.permission = ''
 getAll.description = 'List all ipPools'
 
 // -------------------------------------------------------------------

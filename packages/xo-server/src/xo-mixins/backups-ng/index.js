@@ -8,7 +8,7 @@ import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import safeTimeout from 'strict-timeout/safe'
 import { type Pattern, createPredicate } from 'value-matcher'
-import { type Readable, PassThrough } from 'stream'
+import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
@@ -29,13 +29,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import {
-  CancelToken,
-  ignoreErrors,
-  pFinally,
-  pFromEvent,
-  timeout,
-} from 'promise-toolbox'
+import { CancelToken, ignoreErrors, pFinally, timeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   checkVhdChain,
@@ -323,31 +317,6 @@ const parseVmBackupId = (id: string) => {
   return {
     metadataFilename: id.slice(i + 1),
     remoteId: id.slice(0, i),
-  }
-}
-
-// write a stream to a file using a temporary file
-//
-// TODO: merge into RemoteHandlerAbstract
-const writeStream = async (
-  input: Readable | Promise<Readable>,
-  handler: RemoteHandler,
-  path: string,
-  { checksum = true }: { checksum?: boolean } = {}
-): Promise<void> => {
-  input = await input
-  const tmpPath = `${dirname(path)}/.${basename(path)}`
-  const output = await handler.createOutputStream(tmpPath, { checksum })
-  try {
-    input.pipe(output)
-    await pFromEvent(output, 'finish')
-    await output.checksumWritten
-    // $FlowFixMe
-    await input.task
-    await handler.rename(tmpPath, path, { checksum })
-  } catch (error) {
-    await handler.unlink(tmpPath, { checksum })
-    throw error
   }
 }
 
@@ -1507,7 +1476,7 @@ export default class BackupNg {
                   parentId: taskId,
                   result: () => ({ size: xva.size }),
                 },
-                writeStream(fork, handler, dataFilename)
+                handler.outputStream(fork, dataFilename)
               )
 
               if (handler._getFilePath !== undefined) {
@@ -1876,9 +1845,8 @@ export default class BackupNg {
                     }
 
                     // FIXME: should only be renamed after the metadata file has been written
-                    await writeStream(
+                    await handler.outputStream(
                       fork.streams[`${id}.vhd`](),
-                      handler,
                       path,
                       {
                         // no checksum for VHDs, because they will be invalidated by

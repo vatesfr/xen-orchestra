@@ -6,7 +6,7 @@
     "babel-eslint": "^10.0.1",
     "babel-jest": "^26.0.1",
     "benchmark": "^2.1.4",
-    "eslint": "^6.0.1",
+    "eslint": "^7.6.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-config-standard": "^14.1.0",
     "eslint-config-standard-jsx": "^8.1.0",
@@ -17,7 +17,7 @@
     "eslint-plugin-react": "^7.6.1",
     "eslint-plugin-standard": "^4.0.0",
     "exec-promise": "^0.7.0",
-    "flow-bin": "^0.126.0",
+    "flow-bin": "^0.131.0",
     "globby": "^11.0.1",
     "handlebars": "^4.7.6",
     "husky": "^4.2.5",
@@ -39,6 +39,15 @@
   },
   "jest": {
     "collectCoverage": true,
+    "moduleNameMapper": {
+      "^@xen-orchestra/async-map": "@xen-orchestra/async-map/src",
+      "^@xen-orchestra/fs": "@xen-orchestra/fs/src",
+      "^xo-remote-parser": "xo-remote-parser/src",
+      "^vhd-lib": "vhd-lib/src",
+      "^vhd-cli": "vhd-cli/src",
+      "^xo-vmdk-to-vhd": "xo-vmdk-to-vhd/src",
+      "^value-matcher": "value-matcher/src"
+    },
     "projects": [
       "<rootDir>"
     ],
@@ -66,7 +75,6 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "posttest": "scripts/run-script test",
-    "prepare": "scripts/run-script prepare",
     "pretest": "eslint --ignore-path .gitignore .",
     "prettify": "prettier --ignore-path .gitignore --write '**/*.{js,jsx,md,mjs,ts,tsx}'",
     "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
