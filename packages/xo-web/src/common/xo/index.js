@@ -1907,6 +1907,8 @@ export const getIpv4ConfigModes = () => _call('pif.getIpv4ConfigurationModes')
 export const editPif = (pif, { vlan }) =>
   _call('pif.editPif', { pif: resolveId(pif), vlan })
 
+export const scanHostPifs = hostId => _call('host.scanPifs', { host: hostId })
+
 // SR ----------------------------------------------------------------
 
 export const deleteSr = sr =>
