@@ -600,6 +600,7 @@ const TRANSFORMS = {
     const vdi = {
       type: 'VDI',
 
+      missing: obj.missing,
       name_description: obj.name_description,
       name_label: obj.name_label,
       parent: obj.sm_config['vhd-parent'],
