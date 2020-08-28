@@ -658,7 +658,7 @@ const TRANSFORMS = {
       other_config: obj.other_config,
 
       // See: https://xapi-project.github.io/xen-api/networking.html
-      txChecksumming: txChecksumming === 'true' || txChecksumming === 'on',
+      txChecksumming: !(txChecksumming === 'false' || txChecksumming === 'off'),
 
       // in kB/s
       rateLimit: (() => {
