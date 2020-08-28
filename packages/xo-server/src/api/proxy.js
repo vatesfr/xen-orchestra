@@ -96,16 +96,23 @@ update.params = {
   },
 }
 
-export function deploy({ network, networkConfiguration, proxy, sr }) {
-  return this.deployProxy(sr._xapiId, {
-    networkConfiguration,
+export function deploy({ license, network, proxy, sr, ...props }) {
+  return this.deployProxy(sr._xapiId, license, {
     networkId: network?._xapiId,
     proxyId: proxy,
+    ...props,
   })
 }
 
 deploy.permission = 'admin'
 deploy.params = {
+  httpProxy: {
+    type: 'string',
+    optional: true,
+  },
+  license: {
+    type: 'string',
+  },
   sr: {
     type: 'string',
   },
@@ -152,8 +159,32 @@ upgradeAppliance.params = {
   },
 }
 
-export function checkHealth({ id }) {
-  return this.checkProxyHealth(id)
+export function getApplianceUpdaterState({ id }) {
+  return this.getProxyApplianceUpdaterState(id)
+}
+
+getApplianceUpdaterState.permission = 'admin'
+getApplianceUpdaterState.params = {
+  id: {
+    type: 'string',
+  },
+}
+
+export async function checkHealth({ id }) {
+  try {
+    await this.callProxyMethod(id, 'system.getServerVersion')
+    return {
+      success: true,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: error.code,
+        message: error.message,
+      },
+    }
+  }
 }
 checkHealth.permission = 'admin'
 checkHealth.params = {

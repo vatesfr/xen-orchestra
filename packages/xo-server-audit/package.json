@@ -1,7 +1,7 @@
 {
   "name": "xo-server-audit",
-  "version": "0.1.2",
-  "license": "AGPL-3.0",
+  "version": "0.7.0",
+  "license": "AGPL-3.0-or-later",
   "description": "Audit plugin for XO-Server",
   "keywords": [
     "audit",
@@ -21,14 +21,13 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
   "bin": {},
   "files": [
-    "config.toml",
     "dist/"
   ],
   "engines": {
@@ -37,8 +36,9 @@
   "devDependencies": {
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.0.0",
     "@babel/preset-env": "^7.7.1",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {
@@ -49,14 +49,14 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "@iarna/toml": "^2.2.3",
-    "@xen-orchestra/audit-core": "^0.1.0",
+    "@xen-orchestra/audit-core": "^0.1.1",
+    "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.2.0",
-    "app-conf": "^0.7.1",
     "async-iterator-to-stream": "^1.1.0",
+    "lodash": "^4.17.19",
     "promise-toolbox": "^0.15.0",
     "readable-stream": "^3.5.0",
-    "xo-common": "^0.4.0"
+    "xo-common": "^0.5.0"
   },
   "private": true
 }

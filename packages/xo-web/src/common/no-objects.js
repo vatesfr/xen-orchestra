@@ -23,11 +23,11 @@ const NoObjects = props => {
     return <p>{props.emptyMessage}</p>
   }
 
-  const { children, component: Component, ...otherProps } = props
+  const { children, component: Component, componentRef, ...otherProps } = props
   return children !== undefined ? (
     children(otherProps)
   ) : (
-    <Component {...otherProps} />
+    <Component ref={componentRef} {...otherProps} />
   )
 }
 
@@ -35,6 +35,7 @@ NoObjects.propTypes = {
   children: PropTypes.func,
   collection: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
   component: PropTypes.func,
+  componentRef: PropTypes.func,
   emptyMessage: PropTypes.node.isRequired,
 }
 export { NoObjects as default }

@@ -1,5 +1,5 @@
 import Component from 'base-component'
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import DocumentTitle from 'react-document-title'
 import Icon from 'icon'
 import Link from 'link'
@@ -123,6 +123,10 @@ export default class XoApp extends Component {
   }
   getChildContext = () => ({ shortcuts: shortcutManager })
 
+  state = {
+    dismissedSourceBanner: Boolean(cookies.get('dismissedSourceBanner')),
+  }
+
   displayOpenSourceDisclaimer() {
     const previousDisclaimer = cookies.get('previousDisclaimer')
     const now = Math.floor(Date.now() / 1e3)
@@ -145,7 +149,10 @@ export default class XoApp extends Component {
     }
   }
 
-  dismissSourceBanner = () => this.setState({ dismissedSourceBanner: true })
+  dismissSourceBanner = () => {
+    cookies.set('dismissedSourceBanner', true, { expires: 1 }) // 1 day
+    this.setState({ dismissedSourceBanner: true })
+  }
 
   componentDidMount() {
     this.refs.bodyWrapper.style.minHeight =
@@ -217,7 +224,11 @@ export default class XoApp extends Component {
 
   render() {
     const { signedUp, trial, registerNeeded } = this.props
-    const blocked = signedUp && blockXoaAccess(trial) // If we are under expired or unstable trial (signed up only)
+    // If we are under expired or unstable trial (signed up only)
+    const blocked =
+      signedUp &&
+      blockXoaAccess(trial) &&
+      !this.context.router.location.pathname.startsWith('/xoa/')
     const plan = getXoaPlan()
 
     return (
@@ -248,6 +259,13 @@ export default class XoApp extends Component {
                     target='_blank'
                   >
                     {_('disclaimerText3')}
+                  </a>{' '}
+                  <a
+                    href='https://xen-orchestra.com/docs/installation.html#banner-and-warnings'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    {_('disclaimerText4')}
                   </a>
                   <button className='close' onClick={this.dismissSourceBanner}>
                     &times;

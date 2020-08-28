@@ -4,6 +4,12 @@ import { diffItems } from '../utils'
 
 // ===================================================================
 
+export function getLockingModeValues() {
+  return ['disabled', 'locked', 'network_default', 'unlocked']
+}
+
+// -------------------------------------------------------------------
+
 // TODO: move into vm and rename to removeInterface
 async function delete_({ vif }) {
   this.allocIpAddresses(
@@ -59,12 +65,15 @@ connect.resolve = {
 
 export async function set({
   vif,
-  network,
-  mac,
+
   allowedIpv4Addresses,
   allowedIpv6Addresses,
   attached,
+  lockingMode,
+  mac,
+  network,
   rateLimit,
+  txChecksumming,
 }) {
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(
     vif.allowedIpv6Addresses
@@ -92,9 +101,14 @@ export async function set({
       mac,
       currently_attached: attached,
       ipv4_allowed: newIpAddresses,
+      locking_mode: lockingMode,
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
       qos_algorithm_params:
         rateLimit != null ? { kbps: String(rateLimit) } : undefined,
+      other_config: {
+        'ethtool-tx':
+          txChecksumming !== undefined ? String(txChecksumming) : undefined,
+      },
     })
 
     await this.allocIpAddresses(newVif.$id, newIpAddresses)
@@ -111,7 +125,9 @@ export async function set({
   return this.getXapi(vif).editVif(vif._xapiId, {
     ipv4Allowed: allowedIpv4Addresses,
     ipv6Allowed: allowedIpv6Addresses,
+    lockingMode,
     rateLimit,
+    txChecksumming,
   })
 }
 
@@ -134,10 +150,15 @@ set.params = {
     optional: true,
   },
   attached: { type: 'boolean', optional: true },
+  lockingMode: { type: 'string', optional: true },
   rateLimit: {
     description: 'in kilobytes per seconds',
     optional: true,
     type: ['number', 'null'],
+  },
+  txChecksumming: {
+    type: 'boolean',
+    optional: true,
   },
 }
 

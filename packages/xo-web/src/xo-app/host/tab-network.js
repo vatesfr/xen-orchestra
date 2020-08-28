@@ -27,6 +27,7 @@ import {
   editPif,
   getIpv4ConfigModes,
   reconfigurePifIp,
+  scanHostPifs,
 } from 'xo'
 
 const EDIT_BUTTON_STYLE = { color: '#999', cursor: 'pointer' }
@@ -372,7 +373,17 @@ export default ({ host, networks, pifs, privateNetworks }) => (
   <Container>
     <Row>
       <Col>
-        <h1>{_('poolNetworkPif')}</h1>
+        <h1>
+          {_('poolNetworkPif')}
+          <ActionButton
+            className='ml-1'
+            handler={scanHostPifs}
+            handlerParam={host.id}
+            icon='refresh'
+          >
+            {_('refresh')}
+          </ActionButton>
+        </h1>
         <SortedTable
           collection={pifs}
           columns={PIF_COLUMNS}

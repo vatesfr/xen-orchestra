@@ -9,7 +9,7 @@ import mixin from '@xen-orchestra/mixin'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
-import vmdkToVhd from 'xo-vmdk-to-vhd'
+import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import {
   cancelable,
   defer,
@@ -28,6 +28,7 @@ import {
   flatMap,
   flatten,
   groupBy,
+  identity,
   includes,
   isEmpty,
   noop,
@@ -502,51 +503,63 @@ export default class Xapi extends XapiBase {
   }
 
   // Low level create VM.
-  _createVmRecord({
-    actions_after_crash,
-    actions_after_reboot,
-    actions_after_shutdown,
-    affinity,
-    // appliance,
-    blocked_operations,
-    generation_id,
-    ha_always_run,
-    ha_restart_priority,
-    has_vendor_device = false, // Avoid issue with some Dundee builds.
-    hardware_platform_version,
-    HVM_boot_params,
-    HVM_boot_policy,
-    HVM_shadow_multiplier,
-    is_a_template,
-    memory_dynamic_max,
-    memory_dynamic_min,
-    memory_static_max,
-    memory_static_min,
-    name_description,
-    name_label,
-    order,
-    other_config,
-    PCI_bus,
-    platform,
-    protection_policy,
-    PV_args,
-    PV_bootloader,
-    PV_bootloader_args,
-    PV_kernel,
-    PV_legacy_args,
-    PV_ramdisk,
-    recommendations,
-    shutdown_delay,
-    start_delay,
-    // suspend_SR,
-    tags,
-    user_version,
-    VCPUs_at_startup,
-    VCPUs_max,
-    VCPUs_params,
-    version,
-    xenstore_data,
-  }) {
+  _createVmRecord(
+    {
+      actions_after_crash,
+      actions_after_reboot,
+      actions_after_shutdown,
+      affinity,
+      // appliance,
+      blocked_operations,
+      domain_type, // Used when the VM is created Suspended
+      generation_id,
+      ha_always_run,
+      ha_restart_priority,
+      has_vendor_device = false, // Avoid issue with some Dundee builds.
+      hardware_platform_version,
+      HVM_boot_params,
+      HVM_boot_policy,
+      HVM_shadow_multiplier,
+      is_a_template,
+      last_boot_CPU_flags, // Used when the VM is created Suspended
+      last_booted_record, // Used when the VM is created Suspended
+      memory_dynamic_max,
+      memory_dynamic_min,
+      memory_static_max,
+      memory_static_min,
+      name_description,
+      name_label,
+      order,
+      other_config,
+      PCI_bus,
+      platform,
+      protection_policy,
+      PV_args,
+      PV_bootloader,
+      PV_bootloader_args,
+      PV_kernel,
+      PV_legacy_args,
+      PV_ramdisk,
+      recommendations,
+      shutdown_delay,
+      start_delay,
+      // suspend_SR,
+      tags,
+      user_version,
+      VCPUs_at_startup,
+      VCPUs_max,
+      VCPUs_params,
+      version,
+      xenstore_data,
+    },
+    {
+      // if set, will create the VM in Suspended power_state with this VDI
+      //
+      // it's a separate param because it's not supported for all versions of
+      // XCP-ng/XenServer and should be passed explicitly
+      suspend_VDI,
+    } = {}
+  ) {
     log.debug(`Creating VM ${name_label}`)
 
     return this.call(
@@ -598,6 +611,13 @@ export default class Xapi extends XapiBase {
         tags,
         version: asInteger(version),
         xenstore_data,
+
+        // VM created Suspended
+        power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
+        suspend_VDI,
+        domain_type,
+        last_boot_CPU_flags,
+        last_booted_record,
       })
     )
   }
@@ -894,6 +914,17 @@ export default class Xapi extends XapiBase {
         this._exportVdi($cancelToken, vdi, baseVdi, VDI_FORMAT_VHD)
     })
 
+    const suspendVdi = vm.$suspend_VDI
+    if (suspendVdi !== undefined) {
+      const vdiRef = suspendVdi.$ref
+      vdis[vdiRef] = {
+        ...suspendVdi,
+        $SR$uuid: suspendVdi.$SR.uuid,
+      }
+      streams[`${vdiRef}.vhd`] = () =>
+        this._exportVdi($cancelToken, suspendVdi, undefined, VDI_FORMAT_VHD)
+    }
+
     const vifs = {}
     forEach(vm.$VIFs, vif => {
       const network = vif.$network
@@ -980,23 +1011,42 @@ export default class Xapi extends XapiBase {
         }
       })
 
+    // 0. Create suspend_VDI
+    let suspendVdi
+    if (delta.vm.power_state === 'Suspended') {
+      const vdi = delta.vdis[delta.vm.suspend_VDI]
+      suspendVdi = await this.createVdi({
+        ...vdi,
+        other_config: {
+          ...vdi.other_config,
+          [TAG_BASE_DELTA]: undefined,
+          [TAG_COPY_SRC]: vdi.uuid,
+        },
+        sr: mapVdisSrs[vdi.uuid] || srId,
+      })
+      $defer.onFailure.call(this, '_deleteVdi', suspendVdi.$ref)
+    }
+
     // 1. Create the VMs.
     const vm = await this._getOrWaitObject(
-      await this._createVmRecord({
-        ...delta.vm,
-        affinity: null,
-        blocked_operations: {
-          ...delta.vm.blocked_operations,
-          start: 'Importing…',
+      await this._createVmRecord(
+        {
+          ...delta.vm,
+          affinity: null,
+          blocked_operations: {
+            ...delta.vm.blocked_operations,
+            start: 'Importing…',
+          },
+          ha_always_run: false,
+          is_a_template: false,
+          name_label: `[Importing…] ${name_label}`,
+          other_config: {
+            ...delta.vm.other_config,
+            [TAG_COPY_SRC]: delta.vm.uuid,
+          },
         },
-        ha_always_run: false,
-        is_a_template: false,
-        name_label: `[Importing…] ${name_label}`,
-        other_config: {
-          ...delta.vm.other_config,
-          [TAG_COPY_SRC]: delta.vm.uuid,
-        },
-      })
+        { suspend_VDI: suspendVdi?.$ref }
+      )
     )
     $defer.onFailure(() => this._deleteVm(vm))
 
@@ -1004,8 +1054,10 @@ export default class Xapi extends XapiBase {
     await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
 
     // 3. Create VDIs & VBDs.
+    //
+    // TODO: move all VDIs creation before the VM and simplify the code
     const vbds = groupBy(delta.vbds, 'VDI')
-    const newVdis = await map(delta.vdis, async (vdi, vdiId) => {
+    const newVdis = await map(delta.vdis, async (vdi, vdiRef) => {
       let newVdi
 
       const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
@@ -1022,6 +1074,9 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
 
         await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
+      } else if (vdiRef === delta.vm.suspend_VDI) {
+        // suspend VDI has been already created
+        newVdi = suspendVdi
       } else {
         newVdi = await this.createVdi({
           ...vdi,
@@ -1035,7 +1090,7 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
 
-      await asyncMap(vbds[vdiId], vbd =>
+      await asyncMap(vbds[vdiRef], vbd =>
         this.createVbd({
           ...vbd,
           vdi: newVdi,
@@ -1358,6 +1413,7 @@ export default class Xapi extends XapiBase {
 
     // 2. Create VDIs & Vifs.
     const vdis = {}
+    const compression = {}
     const vifDevices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
     await Promise.all(
       map(disks, async disk => {
@@ -1368,7 +1424,7 @@ export default class Xapi extends XapiBase {
           sr: sr.$ref,
         }))
         $defer.onFailure(() => this._deleteVdi(vdi.$ref))
-
+        compression[disk.path] = disk.compression
         return this.createVbd({
           userdevice: String(disk.position),
           vdi,
@@ -1399,18 +1455,22 @@ export default class Xapi extends XapiBase {
           stream.resume()
           return
         }
-
         const table = tables[entry.name]
         const vhdStream = await vmdkToVhd(
           stream,
           table.grainLogicalAddressList,
-          table.grainFileOffsetList
+          table.grainFileOffsetList,
+          compression[entry.name] === 'gzip'
         )
-        await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
-
-        // See: https://github.com/mafintosh/tar-stream#extracting
-        // No import parallelization.
-        cb()
+        try {
+          await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+          // See: https://github.com/mafintosh/tar-stream#extracting
+          // No import parallelization.
+        } catch (e) {
+          reject(e)
+        } finally {
+          cb()
+        }
       })
       stream.pipe(extract)
     })
@@ -1653,6 +1713,8 @@ export default class Xapi extends XapiBase {
 
   async createVbd({
     bootable = false,
+    currently_attached = false,
+    device = '',
     other_config = {},
     qos_algorithm_params = {},
     qos_algorithm_type = '',
@@ -1693,9 +1755,13 @@ export default class Xapi extends XapiBase {
       }
     }
 
+    const ifVmSuspended = vm.power_state === 'Suspended' ? identity : noop
+
     // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
       bootable: Boolean(bootable),
+      currently_attached: ifVmSuspended(currently_attached),
+      device: ifVmSuspended(device),
       empty: Boolean(empty),
       mode,
       other_config,
@@ -1769,18 +1835,20 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     if (vdi.SR === sr.$ref) {
-      return // nothing to do
+      return vdi
     }
 
     log.debug(
       `Moving VDI ${vdi.name_label} from ${vdi.$SR.name_label} to ${sr.name_label}`
     )
     try {
-      await pRetry(
-        () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
-        {
-          when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
-        }
+      return this.barrier(
+        await pRetry(
+          () => this.callAsync('VDI.pool_migrate', vdi.$ref, sr.$ref, {}),
+          {
+            when: { code: 'TOO_MANY_STORAGE_MIGRATES' },
+          }
+        ).then(extractOpaqueRef)
       )
     } catch (error) {
       const { code } = error
@@ -1804,6 +1872,8 @@ export default class Xapi extends XapiBase {
         })
       })
       await this._deleteVdi(vdi.$ref)
+
+      return newVdi
     }
   }
 
@@ -2045,6 +2115,8 @@ export default class Xapi extends XapiBase {
     const vifRef = await this.call(
       'VIF.create',
       filterUndefineds({
+        currently_attached:
+          vm.power_state === 'Suspended' ? currently_attached : undefined,
         device,
         ipv4_allowed,
         ipv6_allowed,

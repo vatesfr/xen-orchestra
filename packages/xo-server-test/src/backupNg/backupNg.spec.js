@@ -198,7 +198,7 @@ describe('backupNg', () => {
     it('fails trying to run a backup job with non-existent vm', async () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
-      const { id: jobId } = await xo.createTempBackupNgJob({
+      const jobInput = {
         schedules: {
           [scheduleTempId]: getDefaultSchedule(),
         },
@@ -208,16 +208,39 @@ describe('backupNg', () => {
         vms: {
           id: 'non-existent-id',
         },
-      })
+      }
+      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
 
       const schedule = await xo.getSchedule({ jobId })
       expect(typeof schedule).toBe('object')
 
       await xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })
-      const [log] = await xo.getBackupLogs({
+      const [
+        {
+          tasks: [vmTask],
+          ...log
+        },
+      ] = await xo.getBackupLogs({
         scheduleId: schedule.id,
       })
-      expect(log.warnings).toMatchSnapshot()
+
+      validateRootTask(log, {
+        data: {
+          mode: jobInput.mode,
+          reportWhen: jobInput.settings[''].reportWhen,
+        },
+        jobId,
+        jobName: jobInput.name,
+        scheduleId: schedule.id,
+        status: 'failure',
+      })
+
+      validateVmTask(vmTask, jobInput.vms.id, {
+        status: 'failure',
+        result: expect.any(Object),
+      })
+
+      expect(noSuchObject.is(vmTask.result)).toBe(true)
     })
 
     it('fails trying to run a backup job with a VM without disks', async () => {

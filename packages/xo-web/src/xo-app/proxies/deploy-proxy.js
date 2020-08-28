@@ -1,20 +1,26 @@
 import _, { messages } from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
+import noop from 'lodash/noop'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
+import { alert, chooseAction, form } from 'modal'
 import { Col, Container } from 'grid'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { deployProxyAppliance, isSrWritable } from 'xo'
-import { form } from 'modal'
 import { generateId } from 'reaclette-utils'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
 import { Select } from 'form'
 import { SelectNetwork, SelectSr } from 'select-objects'
+import {
+  createProxyTrialLicense,
+  deployProxyAppliance,
+  getLicenses,
+  isSrWritable,
+} from 'xo'
 
 const Label = ({ children, ...props }) => (
   <label {...props} style={{ cursor: 'pointer' }}>
@@ -71,6 +77,7 @@ const Modal = decorate([
     computed: {
       idDnsInput: generateId,
       idGatewayInput: generateId,
+      idHttpProxyInput: generateId,
       idIpInput: generateId,
       idNetmaskInput: generateId,
       idSelectNetwork: generateId,
@@ -121,6 +128,21 @@ const Modal = decorate([
             onChange={effects.onNetworkChange}
             predicate={state.networkPredicate}
             value={value.network}
+          />
+        </Col>
+      </SingleLineRow>
+      <SingleLineRow className='mt-1'>
+        <Col mediumSize={4}>
+          <Label htmlFor={state.idHttpProxyInput}>{_('httpProxy')}</Label>
+        </Col>
+        <Col mediumSize={8}>
+          <input
+            className='form-control'
+            id={state.idHttpProxyInput}
+            placeholder={formatMessage(messages.httpProxyPlaceholder)}
+            name='httpProxy'
+            onChange={effects.onInputChange}
+            value={value.httpProxy}
           />
         </Col>
       </SingleLineRow>
@@ -228,12 +250,71 @@ const Modal = decorate([
   ),
 ])
 
-const deployProxy = proxy => {
+const deployProxy = async ({ proxy } = {}) => {
+  const licenses = await getLicenses({ productType: 'xoproxy' })
   const isRedeployMode = proxy !== undefined
+
+  let license
+  if (isRedeployMode) {
+    license = licenses.find(
+      license =>
+        !(license.expires < Date.now()) &&
+        license.boundObjectId === proxy.vmUuid
+    )
+  }
+
+  // in case of deploying a proxy or when the associated proxy VM doesn't have a license
+  if (license === undefined) {
+    license = licenses.find(
+      license =>
+        !(license.expires < Date.now()) && license.boundObjectId === undefined
+    )
+  }
+
+  const title = isRedeployMode ? _('redeployProxy') : _('deployProxy')
+  if (license === undefined) {
+    const value = 'trial'
+    const choice = await chooseAction({
+      body: (
+        <div className='text-muted'>
+          <Icon icon='info' /> {_('noLicenseAvailable')}
+        </div>
+      ),
+      buttons: [
+        {
+          btnStyle: 'success',
+          icon: 'trial',
+          label: _('trialStartButton'),
+          value,
+        },
+      ],
+      icon: 'proxy',
+      title,
+    }).catch(noop)
+    if (choice !== value) {
+      return
+    }
+
+    try {
+      license = await createProxyTrialLicense()
+    } catch (error) {
+      await alert(
+        _('trialStartButton'),
+        <span className='text-danger'>
+          <Icon icon='alarm' /> {error.message}
+        </span>
+      )
+
+      // throw undefined to interrupt the deployment process and let the ActionButton properly ignore this error
+      throw undefined
+    }
+  }
+
   return form({
     defaultValue: {
       dns: '',
       gateway: '',
+      httpProxy: '',
       ip: '',
       netmask: '',
       networkMode: 'dhcp',
@@ -241,25 +322,27 @@ const deployProxy = proxy => {
     render: props => <Modal {...props} redeploy={isRedeployMode} />,
     header: (
       <span>
-        <Icon icon='proxy' />{' '}
-        {isRedeployMode ? _('redeployProxy') : _('deployProxy')}
+        <Icon icon='proxy' /> {title}
       </span>
     ),
-  }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
-    deployProxyAppliance(sr, {
-      network: network === null ? undefined : network,
-      networkConfiguration:
-        networkMode === 'static'
-          ? {
-              dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
-              gateway,
-              ip,
-              netmask:
-                (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
-            }
-          : undefined,
-      proxy,
-    })
+  }).then(
+    ({ httpProxy, sr, network, networkMode, ip, netmask, gateway, dns }) =>
+      deployProxyAppliance(license, sr, {
+        httpProxy:
+          (httpProxy = httpProxy.trim()) !== '' ? httpProxy : undefined,
+        network: network === null ? undefined : network,
+        networkConfiguration:
+          networkMode === 'static'
+            ? {
+                dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
+                gateway,
+                ip,
+                netmask:
+                  (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
+              }
+            : undefined,
+        proxy,
+      })
   )
 }
 

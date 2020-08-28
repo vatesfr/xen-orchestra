@@ -357,14 +357,12 @@ export default class SrDisks extends Component {
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate(vdis)}
         />
       ),
-    }).then(({ sr, migrateAll }) => {
+    }).then(({ sr }) => {
       if (sr === undefined) {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
 
-      return Promise.all(
-        map(migrateAll ? this.props.vdis : vdis, vdi => migrateVdi(vdi, sr))
-      )
+      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
     }, noop)
 
   _actions = [
@@ -376,8 +374,20 @@ export default class SrDisks extends Component {
         ),
       handler: this._migrateVdis,
       icon: 'vdi-migrate',
-      individualLabel: _('vdiMigrate'),
-      label: _('migrateSelectedVdis'),
+      individualLabel: vdis => {
+        const { type } = vdis[0]
+        return type === 'VDI-unmanaged' || type === 'VDI-snapshot'
+          ? _('disabledVdiMigrateTooltip')
+          : _('vdiMigrate')
+      },
+      label: vdis => {
+        return some(
+          vdis,
+          ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'
+        )
+          ? _('disabledVdiMigrateTooltip')
+          : _('migrateSelectedVdis')
+      },
     },
   ]
 

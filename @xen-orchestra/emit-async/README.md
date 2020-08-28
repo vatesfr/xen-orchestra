@@ -1,6 +1,8 @@
-# @xen-orchestra/emit-async [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# @xen-orchestra/emit-async
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async) ![License](https://badgen.net/npm/license/@xen-orchestra/emit-async) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/emit-async)](https://bundlephobia.com/result?p=@xen-orchestra/emit-async) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async)
 
 ## Install
 
@@ -19,7 +21,7 @@ import emitAsync from '@xen-orchestra/emit-async'
 const ee = new EE()
 ee.emitAsync = emitAsync
 
-ee.on('start', async function() {
+ee.on('start', async function () {
   // whatever
 })
 
@@ -39,25 +41,6 @@ await ee.emitAsync(
 )
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -71,4 +54,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

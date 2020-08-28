@@ -1,6 +1,8 @@
-# complex-matcher [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# complex-matcher
+
+[![Package Version](https://badgen.net/npm/v/complex-matcher)](https://npmjs.org/package/complex-matcher) ![License](https://badgen.net/npm/license/complex-matcher) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/complex-matcher)](https://bundlephobia.com/result?p=complex-matcher) [![Node compatibility](https://badgen.net/npm/node/complex-matcher)](https://npmjs.org/package/complex-matcher)
 
 ## Install
 
@@ -31,25 +33,6 @@ characters.filter(predicate)
 new CM.String('foo').createPredicate()
 ```
 
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -63,4 +46,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

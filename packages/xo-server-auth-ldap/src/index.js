@@ -102,6 +102,10 @@ Or something like this if you also want to filter by group:
       type: 'string',
       default: DEFAULTS.filter,
     },
+    startTls: {
+      title: 'Use StartTLS',
+      type: 'boolean',
+    },
   },
   required: ['uri', 'base'],
 }
@@ -124,7 +128,8 @@ export const testSchema = {
 // ===================================================================
 
 class AuthLdap {
-  constructor(xo) {
+  constructor({ logger = noop, xo }) {
+    this._logger = logger
     this._xo = xo
 
     this._authenticate = this._authenticate.bind(this)
@@ -134,22 +139,15 @@ class AuthLdap {
     const clientOpts = (this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
-      tlsOptions: {},
     })
 
     {
       const {
-        bind,
         checkCertificate = DEFAULTS.checkCertificate,
         certificateAuthorities,
       } = conf
 
-      if (bind) {
-        clientOpts.bindDN = bind.dn
-        clientOpts.bindCredentials = bind.password
-      }
-
-      const { tlsOptions } = clientOpts
+      const tlsOptions = (this._tlsOptions = {})
 
       tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
@@ -157,17 +155,23 @@ class AuthLdap {
           certificateAuthorities.map(path => fromCallback(readFile, path))
         )
       }
+
+      if (clientOpts.url.startsWith('ldaps:')) {
+        clientOpts.tlsOptions = tlsOptions
+      }
     }
 
     const {
       bind: credentials,
       base: searchBase,
       filter: searchFilter = DEFAULTS.filter,
+      startTls = false,
     } = conf
 
     this._credentials = credentials
     this._searchBase = searchBase
     this._searchFilter = searchFilter
+    this._startTls = startTls
   }
 
   load() {
@@ -189,7 +193,9 @@ class AuthLdap {
     })
   }
 
-  async _authenticate({ username, password }, logger = noop) {
+  async _authenticate({ username, password }) {
+    const logger = this._logger
+
     if (username === undefined || password === undefined) {
       logger('require `username` and `password` to authenticate!')
 
@@ -199,6 +205,10 @@ class AuthLdap {
     const client = new Client(this._clientOpts)
 
     try {
+      if (this._startTls) {
+        await client.startTLS(this._tlsOptions)
+      }
+
       // Bind if necessary.
       {
         const { _credentials: credentials } = this
@@ -244,4 +254,4 @@ class AuthLdap {
 
 // ===================================================================
 
-export default ({ xo }) => new AuthLdap(xo)
+export default opts => new AuthLdap(opts)

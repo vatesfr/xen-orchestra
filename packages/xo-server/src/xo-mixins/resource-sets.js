@@ -2,6 +2,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
 import synchronized from 'decorator-synchronized'
 import {
+  difference,
   every,
   forEach,
   isObject,
@@ -10,7 +11,11 @@ import {
   remove,
   some,
 } from 'lodash'
-import { noSuchObject, unauthorized } from 'xo-common/api-errors'
+import {
+  noSuchObject,
+  notEnoughResources,
+  unauthorized,
+} from 'xo-common/api-errors'
 
 import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils'
 
@@ -129,6 +134,19 @@ export default class {
     )
   }
 
+  async computeVmSnapshotResourcesUsage(snapshot) {
+    if (this._xo._config.selfService?.ignoreVmSnapshotResources) {
+      return {}
+    }
+    return this.computeVmResourcesUsage(snapshot)
+  }
+
+  computeResourcesUsage(vm) {
+    return vm.type === 'VM-snapshot'
+      ? this.computeVmSnapshotResourcesUsage(vm)
+      : this.computeVmResourcesUsage(vm)
+  }
+
   async createResourceSet(
     name,
     subjects = undefined,
@@ -159,7 +177,9 @@ export default class {
     throw noSuchObject(id, 'resourceSet')
   }
 
+  @deferrable
   async updateResourceSet(
+    $defer,
     id,
     {
       name = undefined,
@@ -174,6 +194,30 @@ export default class {
       set.name = name
     }
     if (subjects) {
+      await Promise.all(
+        difference(set.subjects, subjects).map(async subjectId =>
+          Promise.all(
+            (await this._xo.getAclsForSubject(subjectId)).map(async acl => {
+              try {
+                const object = this._xo.getObject(acl.object)
+                if (
+                  (object.type === 'VM' || object.type === 'VM-snapshot') &&
+                  object.resourceSet === id
+                ) {
+                  await this._xo.removeAcl(subjectId, acl.object, acl.action)
+                  $defer.onFailure(() =>
+                    this._xo.addAcl(subjectId, acl.object, acl.action)
+                  )
+                }
+              } catch (error) {
+                if (!noSuchObject.is(error)) {
+                  throw error
+                }
+              }
+            })
+          )
+        )
+      )
       set.subjects = subjects
     }
     if (objects) {
@@ -291,7 +335,14 @@ export default class {
       }
 
       if ((limit.available -= quantity) < 0 && !force) {
-        throw new Error(`not enough ${id} available in the set ${setId}`)
+        throw notEnoughResources([
+          {
+            resourceSet: setId,
+            resourceType: id,
+            available: limit.available + quantity,
+            requested: quantity,
+          },
+        ])
       }
     })
     await this._save(set)
@@ -332,10 +383,7 @@ export default class {
             let set
             if (
               object.$type !== 'VM' ||
-              object.is_a_snapshot ||
-              ('start' in object.blocked_operations &&
-                (object.tags.includes('Disaster Recovery') ||
-                  object.tags.includes('Continuous Replication'))) ||
+              object.other_config['xo:backup:job'] !== undefined ||
               // No set for this VM.
               !(id = xapi.xo.getData(object, 'resourceSet')) ||
               // Not our set.
@@ -346,9 +394,7 @@ export default class {
 
             const { limits } = set
             forEach(
-              await this.computeVmResourcesUsage(
-                this._xo.getObject(object.$id)
-              ),
+              await this.computeResourcesUsage(this._xo.getObject(object.$id)),
               (usage, resource) => {
                 const limit = limits[resource]
                 if (limit) {
@@ -365,7 +411,7 @@ export default class {
   }
 
   @deferrable
-  async setVmResourceSet($defer, vmId, resourceSetId) {
+  async setVmResourceSet($defer, vmId, resourceSetId, force = false) {
     const xapi = this._xo.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
@@ -376,12 +422,16 @@ export default class {
       return
     }
 
-    const resourcesUsage = await this.computeVmResourcesUsage(
+    const resourcesUsage = await this.computeResourcesUsage(
       this._xo.getObject(vmId)
     )
 
     if (resourceSetId != null) {
-      await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId)
+      await this.allocateLimitsInResourceSet(
+        resourcesUsage,
+        resourceSetId,
+        force
+      )
       $defer.onFailure(() =>
         this.releaseLimitsInResourceSet(resourcesUsage, resourceSetId)
       )
@@ -396,7 +446,11 @@ export default class {
         previousResourceSetId
       )
       $defer.onFailure(() =>
-        this.allocateLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+        this.allocateLimitsInResourceSet(
+          resourcesUsage,
+          previousResourceSetId,
+          true
+        )
       )
     }
 

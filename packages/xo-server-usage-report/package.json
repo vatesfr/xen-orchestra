@@ -1,7 +1,7 @@
 {
   "name": "xo-server-usage-report",
-  "version": "0.7.5",
-  "license": "AGPL-3.0",
+  "version": "0.8.0",
+  "license": "AGPL-3.0-or-later",
   "description": "Report resources usage with their evolution",
   "keywords": [
     "orchestra",
@@ -20,8 +20,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@vates.fr"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -38,6 +38,7 @@
     "@xen-orchestra/async-map": "^0.0.0",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.2.0",
+    "csv-stringify": "^5.5.0",
     "handlebars": "^4.0.6",
     "html-minifier": "^4.0.0",
     "human-format": "^0.10.0",
@@ -49,7 +50,7 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "babel-plugin-lodash": "^3.3.2",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {

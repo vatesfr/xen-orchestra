@@ -2,8 +2,9 @@
 import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import { defaultsDeep, find, forOwn, pick } from 'lodash'
+import { defaultsDeep, find, forOwn, iteratee, pick } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
+import { parseDuration } from '@vates/parse-duration'
 
 import config from './_config'
 import { getDefaultName } from './_defaultValues'
@@ -83,6 +84,15 @@ class XoConnection extends Xo {
 
   async waitObjectState(id, predicate) {
     let obj = this._objects.all[id]
+    if (typeof predicate !== 'function') {
+      const fn = iteratee(predicate)
+      predicate = () => {
+        if (!fn(obj)) {
+          throw new Error('retry')
+        }
+      }
+    }
+
     while (true) {
       try {
         await predicate(obj)
@@ -152,6 +162,16 @@ class XoConnection extends Xo {
     return this.waitObjectState(id, vm => {
       if (vm.type !== 'VM') throw new Error('retry')
     })
+  }
+
+  async cloneTempVm(id) {
+    const clonedVmId = await this.call('vm.clone', {
+      full_copy: false,
+      id,
+      name: getDefaultName(),
+    })
+    this._durableResourceDisposers.push('vm.delete', { id: clonedVmId })
+    return this.getOrWaitObject(clonedVmId)
   }
 
   async startTempVm(id, params, withXenTools = false) {
@@ -278,7 +298,11 @@ afterAll(async () => {
   await xo.close()
   xo = null
 })
-afterEach(() => xo.deleteTempResources())
+afterEach(async () => {
+  jest.setTimeout(parseDuration(config.deleteTempResourcesTimeout))
+
+  await xo.deleteTempResources()
+})
 
 export { xo as default }
 

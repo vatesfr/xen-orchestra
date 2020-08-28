@@ -1,7 +1,5 @@
 # Continuous Replication
 
-> WARNING: it works only with XenServer 6.5 or later
-
 This feature is a continuous replication system for your XenServer VMs **without any storage vendor lock-in**. You can replicate a VM every _X_ minutes/hours to any storage repository. It could be to a distant XenServer host or just another local storage target.
 
 This feature covers multiple objectives:
@@ -18,7 +16,9 @@ If you lose your main pool, you can start the copy on the other side, with very 
 
 ![](https://xen-orchestra.com/blog/content/images/2016/01/replication.png)
 
-> Warning: it is normal that you can't boot the copied VM directly: we protect it. The normal workflow is to make a clone and then work on it.
+:::warning
+It is normal that you can't boot the copied VM directly: we protect it. The normal workflow is to make a clone and then work on it.
+:::
 
 ## Configure it
 
@@ -38,7 +38,9 @@ To protect the replication, we removed the possibility to boot your copied VM di
 
 **If you can't transfer the first backup through your network because it's too large**, you can make a seed locally. In order to do this, follow this procedure (until we make it accessible directly in XO).
 
-> This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**. These instructions are for Backup-NG jobs, and will not work to seed a legacy backup job. Please migrate any legacy jobs to Backup-NG!
+:::tip
+This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**. These instructions are for Backup-NG jobs, and will not work to seed a legacy backup job. Please migrate any legacy jobs to Backup-NG!
+:::
 
 ### Job creation
 
@@ -56,7 +58,9 @@ Manually create a snapshot on the VM being backed up, then copy this snapshot UU
 
 ![](./assets/cr-seed-3.png)
 
-> DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
+:::warning
+DO NOT ever delete or alter this snapshot, feel free to rename it to make that clear.
+:::
 
 ### Seed copy
 
@@ -66,7 +70,9 @@ We need to copy the UUID of this newly created VM as well, `targetVmUuid`:
 
 ![](./assets/cr-seed-4.png)
 
-> DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
+:::warning
+DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
+:::
 
 ### Set up metadata
 
@@ -101,6 +107,8 @@ Your backup job should now be working correctly! Manually run the job the first 
 
 In the situation where you need to failover to your destination host, you simply need to start all your VMs on the destination host.
 
-> Note: If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VMs.
+:::tip
+If you want to start a VM on your destination host without breaking the CR jobs on the other side, you will need to make a copy of the VM and start the copy. Otherwise, you will be asked if you would like to force start the VMs.
+:::
 
 ![](./assets/force-start.jpg)

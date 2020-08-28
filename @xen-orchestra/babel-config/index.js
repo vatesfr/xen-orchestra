@@ -32,7 +32,6 @@ const configs = {
         }
         return { browsers: pkg.browserslist, node }
       })(),
-      useBuiltIns: '@babel/polyfill' in (pkg.dependencies || {}) && 'usage',
     }
   },
 }
@@ -52,7 +51,7 @@ const pluginsOrder = [
   '@babel/plugin-proposal-class-properties',
 ]
 
-module.exports = function(pkg, plugins, presets) {
+module.exports = function (pkg, plugins, presets) {
   plugins === undefined && (plugins = {})
   presets === undefined && (presets = {})
 

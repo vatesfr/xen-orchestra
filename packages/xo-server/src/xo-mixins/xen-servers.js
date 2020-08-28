@@ -3,10 +3,10 @@ import { BaseError } from 'make-error'
 import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
+import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import * as XenStore from '../_XenStore'
-import parseDuration from '../_parseDuration'
 import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
@@ -423,12 +423,17 @@ export default class {
             return value && JSON.parse(value)
           },
           setData: async (id, key, value) => {
-            await xapi
-              .getObject(id)
-              .update_other_config(
-                `xo:${camelToSnakeCase(key)}`,
-                value !== null ? JSON.stringify(value) : value
-              )
+            key = `xo:${camelToSnakeCase(key)}`
+            value = value !== null ? JSON.stringify(value) : value
+
+            const object = await xapi.getObject(id)
+            if (
+              object.other_config[key] === (value === null ? undefined : value)
+            ) {
+              return
+            }
+
+            await object.update_other_config(key, value)
 
             // Register the updated object.
             addObject(await xapi._waitObject(id))

@@ -1,37 +1,13 @@
-# xo-server-load-balancer [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-XO-Server plugin that allows load balancing.
+# xo-server-load-balancer
 
-## Install
-
-For installing XO and the plugins from the sources, please take a look at [the documentation](https://xen-orchestra.com/docs/from_the_sources.html).
+> Load balancer for XO-Server
 
 ## Usage
 
 Like all other xo-server plugins, it can be configured directly via
 the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
-
-## Development
-
-### Installing dependencies
-
-```
-> npm install
-```
-
-### Compilation
-
-The sources files are watched and automatically recompiled on changes.
-
-```
-> npm run dev
-```
-
-### Tests
-
-```
-> npm run test-dev
-```
 
 ## Contributions
 
@@ -46,4 +22,4 @@ You may:
 
 ## License
 
-AGPL3 © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

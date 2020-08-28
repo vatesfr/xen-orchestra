@@ -83,6 +83,8 @@ import {
   isAdmin,
 } from 'selectors'
 
+import BootOrder from './boot-order'
+
 // Button's height = react-select's height(36 px) + react-select's border-width(1 px) * 2
 // https://github.com/JedWatson/react-select/blob/916ab0e62fc7394be8e24f22251c399a68de8b1c/less/select.less#L21, L22
 const SHARE_BUTTON_STYLE = { height: '38px' }
@@ -91,6 +93,16 @@ const LEVELS = {
   operator: 'primary',
   viewer: 'success',
 }
+
+const STOP_OPERATIONS = [
+  'clean_reboot',
+  'clean_shutdown',
+  'hard_reboot',
+  'hard_shutdown',
+  'pause',
+  'shutdown',
+  'suspend',
+]
 
 const forceReboot = vm => restartVm(vm, true)
 const forceShutdown = vm => stopVm(vm, true)
@@ -495,6 +507,19 @@ export default class TabAdvanced extends Component {
         : undefined
   )
 
+  _getIsStopBlocked = createSelector(
+    () => this.props.vm && this.props.vm.blockedOperations,
+    blockedOperations => STOP_OPERATIONS.every(op => op in blockedOperations)
+  )
+
+  _onChangeBlockStop = block =>
+    editVm(this.props.vm, {
+      blockedOperations: Object.assign.apply(
+        null,
+        STOP_OPERATIONS.map(op => ({ [op]: block }))
+      ),
+    })
+
   _onChangeCpuMask = cpuMask =>
     editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
@@ -629,6 +654,14 @@ export default class TabAdvanced extends Component {
             />
           </Col>
         </Row>
+        {vm.virtualizationMode !== 'pv' && (
+          <Row>
+            <Col>
+              <h3>{_('vdiBootOrder')}</h3>
+              <BootOrder vm={vm} />
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <h3>{_('xenSettingsLabel')}</h3>
@@ -723,6 +756,28 @@ export default class TabAdvanced extends Component {
                     <Toggle
                       value={Boolean(vm.auto_poweron)}
                       onChange={value => editVm(vm, { auto_poweron: value })}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('protectFromDeletion')}</th>
+                  <td>
+                    <Toggle
+                      value={'destroy' in vm.blockedOperations}
+                      onChange={blockDeletion =>
+                        editVm(vm, {
+                          blockedOperations: { destroy: blockDeletion },
+                        })
+                      }
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('protectFromShutdown')}</th>
+                  <td>
+                    <Toggle
+                      value={this._getIsStopBlocked()}
+                      onChange={this._onChangeBlockStop}
                     />
                   </td>
                 </tr>
@@ -905,12 +960,8 @@ export default class TabAdvanced extends Component {
             <table className='table table-hover'>
               <tbody>
                 <tr>
-                  <th>{_('xenToolsStatus')}</th>
-                  <td>
-                    {vm.xenTools
-                      ? `${vm.xenTools.major}.${vm.xenTools.minor}`
-                      : _('xenToolsNotInstalled')}
-                  </td>
+                  <th>{_('managementAgentVersion')}</th>
+                  <td>{defined(vm.pvDriversVersion, _('unknown'))}</td>
                 </tr>
                 <tr>
                   <th>{_('osName')}</th>

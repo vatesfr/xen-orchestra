@@ -1,19 +1,17 @@
-# xo-lib [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> Library to connect to XO-Server.
+# xo-lib
+
+[![Package Version](https://badgen.net/npm/v/xo-lib)](https://npmjs.org/package/xo-lib) ![License](https://badgen.net/npm/license/xo-lib) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-lib)](https://bundlephobia.com/result?p=xo-lib) [![Node compatibility](https://badgen.net/npm/node/xo-lib)](https://npmjs.org/package/xo-lib)
+
+> Library to connect to XO-Server
 
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/xo-lib):
 
 ```
-npm install --save xo-lib
-```
-
-Then require the package:
-
-```javascript
-import Xo from 'xo-lib'
+> npm install --save xo-lib
 ```
 
 ## Usage
@@ -22,6 +20,8 @@ import Xo from 'xo-lib'
 > browser, the location of the current page will be used.
 
 ```javascript
+import Xo from 'xo-lib'
+
 // Connect to XO.
 const xo = new Xo({ url: 'https://xo.company.tld' })
 
@@ -118,7 +118,7 @@ xo.on('closed', () => {
 ```
 
 ```javascript
-xo.on('notification', function(notif) {
+xo.on('notification', function (notif) {
   console.log('notification:', notif.method, notif.params)
 })
 ```
@@ -131,25 +131,6 @@ xo.on('authenticated', () => {
 xo.on('authenticationFailure', () => {
   console.log('failed to authenticate')
 })
-```
-
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
 ```
 
 ## Contributions
@@ -165,4 +146,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](http://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

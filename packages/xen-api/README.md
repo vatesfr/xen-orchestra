@@ -1,6 +1,20 @@
-# xen-api [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xen-api
+
+[![Package Version](https://badgen.net/npm/v/xen-api)](https://npmjs.org/package/xen-api) ![License](https://badgen.net/npm/license/xen-api) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xen-api)](https://bundlephobia.com/result?p=xen-api) [![Node compatibility](https://badgen.net/npm/node/xen-api)](https://npmjs.org/package/xen-api)
 
 > Connector to the Xen API
+
+## Install
+
+Installation of the [npm package](https://npmjs.org/package/xen-api):
+
+```
+> npm install --save xen-api
+```
+
+## Usage
 
 Tested with:
 
@@ -14,16 +28,6 @@ Tested with:
 - XenServer 6.5
 - XenServer 6.2
 - XenServer 5.6
-
-## Install
-
-Installation of the [npm package](https://npmjs.org/package/xen-api):
-
-```
-> npm install --save xen-api
-```
-
-## Usage
 
 ### Library
 
@@ -108,25 +112,6 @@ root@xen1.company.net> findAll({ $type: 'VM' }).length
 183
 ```
 
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
-```
-
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
@@ -134,10 +119,10 @@ the code.
 
 You may:
 
-- report any [issue](https://github.com/xen-api/issues)
+- report any [issue](https://github.com/vatesfr/xen-orchestra/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-ISC © [Julien Fontanet](https://github.com/julien-f)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

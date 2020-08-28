@@ -2,7 +2,6 @@
 
 import 'dotenv/config'
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import getStream from 'get-stream'
 import { forOwn, random } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
@@ -28,7 +27,7 @@ const unsecureRandomBytes = n => {
 
 const TEST_DATA_LEN = 1024
 const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
-const createTestDataStream = asyncIteratorToStream(function*() {
+const createTestDataStream = asyncIteratorToStream(function* () {
   yield TEST_DATA
 })
 
@@ -88,31 +87,6 @@ handlers.forEach(url => {
         const stream = await handler.createOutputStream('dir/file')
         await fromCallback(pipeline, createTestDataStream(), stream)
         await expect(await handler.readFile('dir/file')).toEqual(TEST_DATA)
-      })
-    })
-
-    describe('#createReadStream()', () => {
-      beforeEach(() => handler.outputFile('file', TEST_DATA))
-
-      testWithFileDescriptor('file', 'r', async ({ file, flags }) => {
-        await expect(
-          await getStream.buffer(
-            await handler.createReadStream(file, { flags })
-          )
-        ).toEqual(TEST_DATA)
-      })
-    })
-
-    describe('#createWriteStream()', () => {
-      testWithFileDescriptor('file', 'wx', async ({ file, flags }) => {
-        const stream = await handler.createWriteStream(file, { flags })
-        await fromCallback(pipeline, createTestDataStream(), stream)
-        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
-      })
-
-      it('fails if parent dir is missing', async () => {
-        const error = await rejectionOf(handler.createWriteStream('dir/file'))
-        expect(error.code).toBe('ENOENT')
       })
     })
 

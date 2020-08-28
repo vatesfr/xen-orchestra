@@ -1,0 +1,24 @@
+{
+  "private": false,
+  "name": "@xen-orchestra/self-signed",
+  "description": "Minimalist wrapper around openssl to generate a self signed certificate",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/self-signed",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/self-signed",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  },
+  "license": "ISC",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}

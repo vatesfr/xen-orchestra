@@ -1,6 +1,8 @@
-# @xen-orchestra/mixin [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-> ${pkg.description}
+# @xen-orchestra/mixin
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/mixin)](https://npmjs.org/package/@xen-orchestra/mixin) ![License](https://badgen.net/npm/license/@xen-orchestra/mixin) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/mixin)](https://bundlephobia.com/result?p=@xen-orchestra/mixin) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/mixin)](https://npmjs.org/package/@xen-orchestra/mixin)
 
 ## Install
 
@@ -8,29 +10,6 @@ Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/mixin
 
 ```
 > npm install --save @xen-orchestra/mixin
-```
-
-## Usage
-
-**TODO**
-
-## Development
-
-```
-# Install dependencies
-> yarn
-
-# Run the tests
-> yarn test
-
-# Continuously compile
-> yarn dev
-
-# Continuously run the tests
-> yarn dev-test
-
-# Build for production (automatically called by npm install)
-> yarn build
 ```
 
 ## Contributions
@@ -46,4 +25,4 @@ You may:
 
 ## License
 
-ISC © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

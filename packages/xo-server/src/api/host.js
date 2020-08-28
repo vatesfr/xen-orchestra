@@ -1,4 +1,4 @@
-import { format, JsonRpcError } from 'json-rpc-peer'
+import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
@@ -261,14 +261,8 @@ async function handleInstallSupplementalPack(req, res, { hostId }) {
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   req.length = req.headers['content-length']
-
-  try {
-    await xapi.installSupplementalPack(req, { hostId })
-    res.end(format.response(0))
-  } catch (e) {
-    res.writeHead(500)
-    res.end(format.error(0, new JsonRpcError(e.message)))
-  }
+  await xapi.installSupplementalPack(req, { hostId })
+  res.end(format.response(0))
 }
 
 export async function installSupplementalPack({ host }) {
@@ -302,5 +296,21 @@ isHyperThreadingEnabled.params = {
 }
 
 isHyperThreadingEnabled.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export async function scanPifs({ host }) {
+  await this.getXapi(host).callAsync('PIF.scan', host._xapiRef)
+}
+
+scanPifs.description = 'Refresh the list of physical interfaces for this host'
+
+scanPifs.params = {
+  id: { type: 'string' },
+}
+
+scanPifs.resolve = {
   host: ['id', 'host', 'administrate'],
 }

@@ -1,10 +1,10 @@
-import convertVmdkToVhdStream from 'xo-vmdk-to-vhd'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import pump from 'pump'
-import { format, JsonRpcError } from 'json-rpc-peer'
+import { format } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { peekFooterFromVhdStream } from 'vhd-lib'
+import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD } from '../xapi'
 
@@ -12,7 +12,7 @@ const log = createLogger('xo:disk')
 
 // ===================================================================
 
-export const create = defer(async function(
+export const create = defer(async function (
   $defer,
   { name, size, sr, vm, bootable, position, mode }
 ) {
@@ -131,15 +131,9 @@ async function handleImportContent(req, res, { xapi, id }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
-
-  try {
-    req.length = +req.headers['content-length']
-    await xapi.importVdiContent(id, req)
-    res.end(format.response(0, true))
-  } catch (e) {
-    res.writeHead(500)
-    res.end(format.error(0, new JsonRpcError(e.message)))
-  }
+  req.length = +req.headers['content-length']
+  await xapi.importVdiContent(id, req)
+  res.end(format.response(0, true))
 }
 
 export async function importContent({ vdi }) {
@@ -167,41 +161,34 @@ async function handleImport(
   { type, name, description, vmdkData, srId, xapi }
 ) {
   req.setTimeout(43200000) // 12 hours
+  req.length = req.headers['content-length']
+  let vhdStream, size
+  if (type === 'vmdk') {
+    vhdStream = await vmdkToVhd(
+      req,
+      vmdkData.grainLogicalAddressList,
+      vmdkData.grainFileOffsetList
+    )
+    size = vmdkData.capacity
+  } else if (type === 'vhd') {
+    vhdStream = req
+    const footer = await peekFooterFromVhdStream(req)
+    size = footer.currentSize
+  } else {
+    throw new Error(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)
+  }
+  const vdi = await xapi.createVdi({
+    name_description: description,
+    name_label: name,
+    size,
+    sr: srId,
+  })
   try {
-    req.length = req.headers['content-length']
-    let vhdStream, size
-    if (type === 'vmdk') {
-      vhdStream = await convertVmdkToVhdStream(
-        req,
-        vmdkData.grainLogicalAddressList,
-        vmdkData.grainFileOffsetList
-      )
-      size = vmdkData.capacity
-    } else if (type === 'vhd') {
-      vhdStream = req
-      const footer = await peekFooterFromVhdStream(req)
-      size = footer.currentSize
-    } else {
-      throw new Error(
-        `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
-      )
-    }
-    const vdi = await xapi.createVdi({
-      name_description: description,
-      name_label: name,
-      size,
-      sr: srId,
-    })
-    try {
-      await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
-      res.end(format.response(0, vdi.$id))
-    } catch (e) {
-      await xapi.deleteVdi(vdi)
-      throw e
-    }
+    await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+    res.end(format.response(0, vdi.$id))
   } catch (e) {
-    res.writeHead(500)
-    res.end(format.error(0, new JsonRpcError(e.message)))
+    await xapi.deleteVdi(vdi)
+    throw e
   }
 }
 

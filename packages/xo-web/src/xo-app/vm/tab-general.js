@@ -1,6 +1,6 @@
 import _ from 'intl'
 import Copiable from 'copiable'
-import defined from '@xen-orchestra/defined'
+import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -32,6 +32,62 @@ import {
   NetworkSparkLines,
   XvdSparkLines,
 } from 'xo-sparklines'
+
+const GuestToolsDetection = ({ vm }) => {
+  if (vm.power_state !== 'Running' || vm.pvDriversDetected === undefined) {
+    return null
+  }
+
+  if (!vm.pvDriversDetected) {
+    return (
+      <Row className='text-xs-center'>
+        <Col>
+          <Icon icon='error' /> <em>{_('noToolsDetected')}</em>
+        </Col>
+      </Row>
+    )
+  }
+
+  if (!vm.managementAgentDetected) {
+    return (
+      <Row className='text-xs-center'>
+        <Col>
+          <Icon icon='error' /> <em>{_('managementAgentNotDetected')}</em>
+        </Col>
+      </Row>
+    )
+  }
+
+  const version =
+    get(() => vm.pvDriversVersion.split('.')[0]) > 0 ? vm.pvDriversVersion : ''
+
+  if (!vm.pvDriversUpToDate) {
+    return (
+      <Row className='text-xs-center'>
+        <Col>
+          <Icon color='text-warning' icon='alarm' />{' '}
+          <em>
+            {_('managementAgentOutOfDate', {
+              version,
+            })}
+          </em>
+        </Col>
+      </Row>
+    )
+  }
+
+  return (
+    <Row className='text-xs-center'>
+      <Col>
+        <em>
+          {_('managementAgentDetected', {
+            version,
+          })}
+        </em>
+      </Col>
+    </Row>
+  )
+}
 
 export default connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu')
@@ -69,17 +125,16 @@ export default connectStore(() => {
     vmTotalDiskSpace,
   }) => {
     const {
-      addresses,
       CPUs: cpus,
       id,
       installTime,
+      mainIpAddress,
       memory,
       os_version: osVersion,
       power_state: powerState,
       startTime,
       tags,
       VIFs: vifs,
-      xenTools,
     } = vm
     return (
       <Container>
@@ -180,8 +235,8 @@ export default connectStore(() => {
           </Col>
           <Col mediumSize={3}>
             <BlockLink to={`/vms/${id}/network`}>
-              {addresses && addresses['0/ip'] ? (
-                <Copiable tagName='p'>{addresses['0/ip']}</Copiable>
+              {mainIpAddress !== undefined ? (
+                <Copiable tagName='p'>{mainIpAddress}</Copiable>
               ) : (
                 <p>{_('noIpv4Record')}</p>
               )}
@@ -206,14 +261,7 @@ export default connectStore(() => {
             </BlockLink>
           </Col>
         </Row>
-        {!xenTools && powerState === 'Running' && (
-          <Row className='text-xs-center'>
-            <Col>
-              <Icon icon='error' />
-              <em> {_('noToolsDetected')}.</em>
-            </Col>
-          </Row>
-        )}
+        <GuestToolsDetection vm={vm} />
         {/* TODO: use CSS style */}
         <br />
         <Row>

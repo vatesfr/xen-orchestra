@@ -3,6 +3,12 @@ import { createSchedule } from '@xen-orchestra/cron'
 import { forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
+const XAPI_TO_XENCENTER = {
+  cpuUsage: 'cpu_usage',
+  memoryUsage: 'mem_usage',
+  storageUsage: 'physical_utilisation',
+}
+
 const COMPARATOR_FN = {
   '>': (a, b) => a > b,
   '<': (a, b) => a < b,
@@ -33,6 +39,7 @@ const VM_FUNCTIONS = {
         getDisplayableValue,
         shouldAlarm: () =>
           COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        threshold,
       }
     },
   },
@@ -58,6 +65,7 @@ const VM_FUNCTIONS = {
         getDisplayableValue,
         shouldAlarm: () =>
           COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        threshold,
       }
     },
   },
@@ -88,6 +96,7 @@ const HOST_FUNCTIONS = {
         getDisplayableValue,
         shouldAlarm: () =>
           COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        threshold,
       }
     },
   },
@@ -113,6 +122,7 @@ const HOST_FUNCTIONS = {
         getDisplayableValue,
         shouldAlarm: () =>
           COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        threshold,
       }
     },
   },
@@ -131,6 +141,7 @@ const SR_FUNCTIONS = {
         getDisplayableValue,
         shouldAlarm: () =>
           COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        threshold,
       }
     },
   },
@@ -487,6 +498,8 @@ ${monitorBodies.join('\n')}`
                     data,
                     value: data.getDisplayableValue(),
                     shouldAlarm: data.shouldAlarm(),
+                    threshold: data.threshold,
+                    observationPeriod,
                   })
                 }
               } else {
@@ -499,6 +512,8 @@ ${monitorBodies.join('\n')}`
                 Object.assign(result, {
                   value: data.getDisplayableValue(),
                   shouldAlarm: data.shouldAlarm(),
+                  threshold: data.threshold,
+                  observationPeriod,
                 })
               }
 
@@ -577,42 +592,31 @@ ${monitorBodies.join('\n')}`
     const monitors = this._getMonitors()
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
-      for (const entry of snapshot) {
-        raiseOrLowerAlarm(
-          `${monitor.alarmId}|${entry.uuid}|RRD`,
-          entry.value === undefined,
-          () => {
-            this._sendAlertEmail(
-              'Secondary Issue',
-              `
-## There was an issue when trying to check ${monitor.title}
-${entry.listItem}`
-            )
-          },
-          () => {}
-        )
 
+      const entriesWithMissingStats = []
+      for (const entry of snapshot) {
         if (entry.value === undefined) {
+          entriesWithMissingStats.push(entry)
           continue
         }
 
-        const raiseAlarm = alarmId => {
-          // sample XenCenter message:
-          // value: 1.242087 config: <variable> <name value="mem_usage"/> </variable>
-          this._xo
-            .getXapi(entry.object.uuid)
-            .call(
-              'message.create',
-              'ALARM',
-              3,
-              entry.object.$type,
-              entry.object.uuid,
-              `value: ${entry.value.toFixed(
-                1
-              )} config: <variable> <name value="${
-                monitor.variableName
-              }"/> </variable>`
-            )
+        const raiseAlarm = _alarmId => {
+          // sample XenCenter message (linebreaks are meaningful):
+          // value: 1.242087\n config: <variable>\n <name value="mem_usage"/>\n<alarm_trigger_level value="0.5"/>\n <alarm_trigger_period value ="60"/>\n</variable>
+          this._xo.getXapi(entry.object.uuid).call(
+            'message.create',
+            'ALARM',
+            3,
+            entry.object.$type,
+            entry.object.uuid,
+            `value: ${(entry.value / 100).toFixed(1)}
+config:
+<variable>
+<name value="${XAPI_TO_XENCENTER[monitor.variableName]}"/>
+<alarm_trigger_level value="${entry.threshold / 100}"/>
+<alarm_trigger_period value ="${entry.observationPeriod}"/>
+</variable>`
+          )
           this._sendAlertEmail(
             '',
             `
@@ -623,7 +627,7 @@ ${entry.listItem}
           )
         }
 
-        const lowerAlarm = alarmId => {
+        const lowerAlarm = _alarmId => {
           this._sendAlertEmail(
             'END OF ALERT',
             `
@@ -641,6 +645,23 @@ ${entry.listItem}
           lowerAlarm
         )
       }
+
+      raiseOrLowerAlarm(
+        `${monitor.alarmId}|${entriesWithMissingStats
+          .map(({ uuid }) => uuid)
+          .sort()
+          .join('|')}|RRD`,
+        entriesWithMissingStats.length !== 0,
+        () => {
+          this._sendAlertEmail(
+            'Secondary Issue',
+            `
+## There was an issue when trying to check ${monitor.title}
+${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
+          )
+        },
+        () => {}
+      )
     }
   }
 
@@ -689,7 +710,7 @@ ${entry.listItem}
   }
 }
 
-exports.default = function({ xo }) {
+exports.default = function ({ xo }) {
   return new PerfAlertXoPlugin(xo)
 }
 

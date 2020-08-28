@@ -23,6 +23,7 @@ const messages = {
   messageReply: 'Reply',
   sr: 'SR',
   tryXoa: 'Try XOA for free and deploy it here.',
+  notInstalled: 'Not installed',
 
   editableLongClickPlaceholder: 'Long click to edit',
   editableClickPlaceholder: 'Click to edit',
@@ -67,6 +68,20 @@ const messages = {
   user: 'User',
   deletedUser: 'deleted ({ name })',
   networkConfiguration: 'Network configuration',
+  integrity: 'Integrity',
+  altered: 'Altered',
+  missing: 'Missing',
+  verified: 'Verified',
+  snapshotMode: 'Snapshot mode',
+  normal: 'Normal',
+  withMemory: 'With memory',
+  offline: 'Offline',
+  noLicenseAvailable: 'No license available',
+  emailPlaceholderExample: 'Email address, e.g.: it@company.net',
+  unknown: 'Unknown',
+  upgradesAvailable: 'Upgrades available',
+  advancedSettings: 'Advanced settings',
+  txChecksumming: 'TX checksumming',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -184,6 +199,9 @@ const messages = {
   editUserProfile: 'Edit my settings {username}',
 
   // ----- Home view ------
+  allVms: 'All VMs',
+  backedUpVms: 'Backed up VMs',
+  notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XenServer hosts or pools',
@@ -215,13 +233,9 @@ const messages = {
   homeAllResourceSets: 'Resource sets',
   homeNewVm: 'New VM',
   homeFilterNone: 'None',
-  homeFilterRunningHosts: 'Running hosts',
   homeFilterDisabledHosts: 'Disabled hosts',
-  homeFilterRunningVms: 'Running VMs',
-  homeFilterNonRunningVms: 'Non running VMs',
   homeFilterPendingVms: 'Pending VMs',
   homeFilterHvmGuests: 'HVM guests',
-  homeFilterTags: 'Tags',
   homeSortBy: 'Sort by',
   homeSortByCpus: 'CPUs',
   homeSortByStartTime: 'Start time',
@@ -243,6 +257,7 @@ const messages = {
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
   highAvailability: 'High Availability',
+  powerState: 'Power state',
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip:
     'Host time and XOA time are not consistent with each other',
@@ -253,7 +268,7 @@ const messages = {
   snapshotVmsDescription: 'Description',
 
   // ----- Common components -----
-  sortedTableAllItemsSelected: 'All of them are selected',
+  sortedTableAllItemsSelected: 'All of them are selected ({nItems, number})',
   sortedTableNoItems: 'No items found',
   sortedTableNumberOfFilteredItems:
     '{nFiltered, number} of {nTotal, number} items',
@@ -422,6 +437,8 @@ const messages = {
     'The CR mode and The DR mode require replication retention to be higher than 0!',
   missingSnapshotRetention:
     'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
+  deltaChainRetentionWarning:
+    'Either the full backup interval or the backup retention should be lower than 50.',
   retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
   createRemoteMessage:
@@ -455,6 +472,8 @@ const messages = {
   migrateBackupScheduleMessage:
     'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
+  runBackupJobWarningNVms:
+    'This job will backup {nVms, number} VM{nVms, plural, one {} other {s}}.',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
@@ -474,8 +493,8 @@ const messages = {
   smartBackup: 'Smart backup',
   snapshotRetention: 'Snapshot retention',
   backupName: 'Name',
+  checkpointSnapshot: 'Checkpoint snapshot',
   offlineSnapshot: 'Offline snapshot',
-  offlineSnapshotInfo: 'Shutdown VMs before snapshotting them',
   offlineBackup: 'Offline backup',
   offlineBackupInfo:
     'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
@@ -523,12 +542,14 @@ const messages = {
   deleteOldBackupsFirstMessage:
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
+  editJobNotFound: "The job you're trying to edit wasn't found",
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
   remoteTypeLocal: 'Local',
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
+  remoteTypeS3: 'Amazon Web Services S3 (beta)',
   remoteType: 'Type',
   remoteSmbWarningMessage:
     'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
@@ -575,6 +596,8 @@ const messages = {
   remoteSmbPlaceHolderDomain: 'Domain',
   remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
+  remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
+  remoteS3PlaceHolderDirectory: 'directory',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----
@@ -681,6 +704,7 @@ const messages = {
   pluginConfigurationPresetTitle: 'Predefined configuration',
   pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
   applyPluginPreset: 'Apply',
+  disabledTestPluginTootltip: 'This plugin is not loaded',
 
   // ----- User preferences -----
   saveNewUserFilterErrorTitle: 'Save filter error',
@@ -730,6 +754,7 @@ const messages = {
 
   // ----- SR advanced tab -----
 
+  provisioning: 'Provisioning',
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
@@ -991,6 +1016,9 @@ const messages = {
 
   // ----- VM general tab -----
   noToolsDetected: 'No Xen tools detected',
+  managementAgentDetected: 'Management agent {version} detected',
+  managementAgentOutOfDate: 'Management agent {version} out of date',
+  managementAgentNotDetected: 'Management agent not detected',
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
@@ -1057,7 +1085,6 @@ const messages = {
   vdiVms: 'VMs',
   vdiMigrate: 'Migrate VDI',
   vdiMigrateSelectSr: 'Destination SR:',
-  vdiMigrateAll: 'Migrate all VDIs',
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
   vdiForget: 'Forget',
@@ -1094,6 +1121,24 @@ const messages = {
     "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
+
+  editVifLockingMode: 'Edit locking mode',
+  aclRuleAllow: 'Allow the traffic',
+  aclRuleProtocol: 'Select a protocol',
+  aclRulePort: 'Select a port',
+  aclRuleIpRange: 'Select an IP or an IP range (CIDR format)',
+  aclRuleDirection: 'Select a direction',
+  aclRuleAllowField: 'Traffic Enabled/Disabled',
+  aclRuleProtocolField: 'Protocol',
+  aclRulePortField: 'Port',
+  aclRuleIpRangeField: 'IP range (CIDR format)',
+  aclRuleDirectionField: 'Direction',
+  addRule: 'Add rule',
+  deleteRule: 'Delete rule',
+  hideRules: 'Hide rules',
+  sdnControllerNotLoaded: 'SDN Controller must be loaded',
+  showRules: 'Show rules',
+  vifAclRules: 'Traffic rules',
   vifCreateDeviceButton: 'New device',
   vifDeviceLabel: 'Device',
   vifMacLabel: 'MAC address',
@@ -1111,9 +1156,12 @@ const messages = {
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
   vifNoIps: 'No IPs',
+  vifDisabledNetwork: 'Network disabled',
   vifLockedNetwork: 'Network locked',
   vifLockedNetworkNoIps:
     'Network locked and no IPs are allowed for this interface',
+  vifUnlockedNetworkWithIps:
+    'Network not locked: some IPs are unnecessarily set as allowed for this interface',
   vifUnLockedNetwork: 'Network not locked',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
@@ -1121,6 +1169,8 @@ const messages = {
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
   newSnapshotWithMemory: 'New snapshot with memory',
+  newSnapshotWithMemoryConfirm:
+    'Are you sure you want to create a snapshot with memory? This could take a while and the VM will be unusable during that time.',
   snapshotMemorySaved: 'Memory saved',
   snapshotCreateButton: 'New snapshot',
   tipCreateSnapshotLabel: 'Just click on the snapshot button to create one!',
@@ -1135,6 +1185,11 @@ const messages = {
   snapshotQuiesce: 'Quiesced snapshot',
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
+
+  // ----- VM backup tab -----
+  goToBackupPage: 'Go to the backup page.',
+  vmInLegacyBackup:
+    'This VM may be backed up by the legacy backup system. See legacy jobs.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
@@ -1164,11 +1219,12 @@ const messages = {
   cpuCapLabel: 'CPU cap',
   defaultCpuCap: 'Default ({value, number})',
   pvArgsLabel: 'PV args',
-  xenToolsStatus: 'Xen tools version',
-  xenToolsNotInstalled: 'Not installed',
+  managementAgentVersion: 'Management agent version',
   osName: 'OS name',
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
+  protectFromDeletion: 'Protect from accidental deletion',
+  protectFromShutdown: 'Protect from accidental shutdown',
   ha: 'HA',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
@@ -1296,7 +1352,19 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
-  orphanedVdis: 'Orphaned snapshot VDIs',
+  deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
+  deleteBackupsMessage:
+    'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
+  detachedBackups: 'Detached backups',
+  detachedVmSnapshots: 'Detached VM snapshots',
+  missingJob: 'Missing job',
+  missingVm: 'Missing VM',
+  missingVmInJob: 'This VM does not belong to this job',
+  missingSchedule: 'Missing schedule',
+  noDetachedBackups: 'No backups',
+  reason: 'Reason',
+  orphanedVdis: 'Orphan VDIs',
+  orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
   deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
@@ -1305,8 +1373,6 @@ const messages = {
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',
   vmContainer: 'Resident on',
-  vmSnapshotsRelatedToNonExistentBackups:
-    'VM snapshots related to non-existent backups',
   snapshotOf: 'Snapshot of',
   legacySnapshots: 'Legacy backups snapshots',
   alarmMessage: 'Alarms',
@@ -1514,7 +1580,7 @@ const messages = {
   importBackupTitle: 'Import VM',
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
-  restoreResfreshList: 'Refresh backup list',
+  refreshBackupList: 'Refresh backup list',
   restoreLegacy: 'Legacy restore',
   restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
@@ -1732,6 +1798,9 @@ const messages = {
   optionalEntry: '* optional',
 
   // ----- Servers -----
+  enableServerErrorTitle: 'Enable server',
+  enableServerErrorMessage:
+    'Unexpected response. Please check your server address.',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -1763,7 +1832,6 @@ const messages = {
   // ----- Copy VM -----
   copyVm: 'Copy VM',
   copyVmName: 'Name',
-  copyVmNamePlaceholder: 'If empty: name of the copied VM',
   copyVmNamePatternPlaceholder: 'e.g.: "\\{name\\}_COPY"',
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
@@ -1773,6 +1841,7 @@ const messages = {
   notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
+  copyTemplate: 'Copy template',
 
   // ----- Detach host -----
   detachHostModalTitle: 'Detach host',
@@ -1812,10 +1881,12 @@ const messages = {
   newNetworkBondMode: 'Bond mode',
   newNetworkInfo: 'Info',
   newNetworkType: 'Type',
+  newNetworkPreferredCenter: 'Preferred center (optional)',
   newNetworkEncapsulation: 'Encapsulation',
   newNetworkEncrypted: 'Encrypted',
   encryptionWarning:
     'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
+  preferredCenterTip: 'The host to try first to elect as center of the network',
   newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
   deleteNetworkConfirm: 'Are you sure you want to delete this network?',
@@ -1918,6 +1989,7 @@ const messages = {
     "If you are a company, it's better to use it with our appliance + pro support included:",
   disclaimerText3:
     'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText4: 'Why do I see this message?',
   notRegisteredDisclaimerInfo:
     'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',
@@ -2075,12 +2147,18 @@ const messages = {
     'Try dropping a config file here or click to select a config file to upload.',
   config: 'Config',
   importConfig: 'Import',
+  importConfigEnterPassphrase:
+    'If the config is encrypted, please enter the passphrase:',
   importConfigSuccess: 'Config file successfully imported',
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
+  exportConfigEnterPassphrase:
+    'If you want to encrypt the exported config, please enter a passphrase:',
   downloadConfig: 'Download current config',
 
   // ----- SR -----
+  disabledVdiMigrateTooltip:
+    "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
   srDisconnectAllModalTitle: 'Disconnect all hosts',
@@ -2157,6 +2235,8 @@ const messages = {
   xosanState_configuringGluster: 'Configuring gluster…',
   xosanState_creatingSr: 'Creating SR…',
   xosanState_scanningSr: 'Scanning SR…',
+  xosanXcpngWarning:
+    'XOSAN cannot be installed on XCP-ng yet. Incoming XOSANv2 will be compatible with XCP-ng: {link}.',
   // Pack download modal
   xosanInstallCloudPlugin: 'Install XOA plugin first',
   xosanLoadCloudPlugin: 'Load XOA plugin first',
@@ -2252,6 +2332,8 @@ const messages = {
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
+  auditInactiveUserActionsRecord:
+    'User actions recording is currently inactive',
 
   // Licenses
   xosanUnregisteredDisclaimer:
@@ -2262,18 +2344,17 @@ const messages = {
   licensesUnregisteredDisclaimer:
     'You need to register your appliance to manage your licenses.',
   licenseProduct: 'Product',
-  licenseBoundObject: 'Attached to',
   licensePurchaser: 'Purchaser',
   licenseExpires: 'Expires',
   licensePurchaserYou: 'You',
   productSupport: 'Support',
   licenseNotBoundXosan: 'No XOSAN attached',
+  licenseNotBoundProxy: 'No proxy attached',
   licenseBoundUnknownXosan: 'License attached to an unknown XOSAN',
+  licenseBoundUnknownProxy: 'License attached to an unknown proxy',
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
-  xoaLicenseNotShown:
-    'XOA license management is not supported yet (current license: {plan})',
   xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
   xosanAdminNoLicenseDisclaimer:
     'You need a license on this SR to manage the XOSAN.',
@@ -2281,7 +2362,9 @@ const messages = {
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
   xosanGetLicensesError: 'Could not fetch licenses',
-  xosanLicenseHasExpired: 'License has expired.',
+  licenseHasExpired: 'License has expired.',
+  licenseBoundToOtherXoa: 'License bound to another XOA',
+  licenseBoundToThisXoa: 'This license is active on this XOA',
   xosanLicenseExpiresDate: 'License expires on {date}.',
   xosanUpdateLicenseMessage: 'Update the license now!',
   xosanUnknownSr: 'Unknown XOSAN SR.',
@@ -2293,6 +2376,15 @@ const messages = {
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
+  bindXoaLicense: 'Activate license',
+  rebindXoaLicense: 'Move license to this XOA',
+  bindXoaLicenseConfirm:
+    'Are you sure you want to activate this license on your XOA? This action is not reversible!',
+  bindXoaLicenseConfirmText: 'activate {licenseType} license',
+  updateNeeded: 'Update needed',
+  starterLicense: 'Starter license',
+  enterpriseLicense: 'Enterprise license',
+  premiumLicense: 'Premium license',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
@@ -2309,22 +2401,26 @@ const messages = {
   redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
-  upgradeProxyAppliance: 'upgrade the appliance',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyTestFailed: 'Test failed for {name}',
+  proxyTestFailedConnectionIssueMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
   proxySrPredicateInfo:
     'The select only contains SRs connected to at least one HVM-capable host',
+  httpProxy: 'HTTP proxy',
+  httpProxyPlaceholder: 'protocol://username:password@address:port',
+  proxyUpgradesError: 'Unable to check upgrades availability',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
   durationFormat:
     '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
-forEach(messages, function(message, id) {
+forEach(messages, function (message, id) {
   if (typeof message === 'string') {
     messages[id] = {
       id,

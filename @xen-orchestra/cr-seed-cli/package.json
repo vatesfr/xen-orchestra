@@ -15,11 +15,17 @@
   "bin": {
     "xo-cr-seed": "./index.js"
   },
+  "preferGlobal": true,
   "dependencies": {
     "golike-defer": "^0.4.1",
-    "xen-api": "^0.28.3"
+    "xen-api": "^0.29.0"
   },
   "scripts": {
     "postversion": "npm publish"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   }
 }

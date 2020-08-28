@@ -27,6 +27,7 @@ const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
 const pw = require('pw')
 const Xo = require('xo-lib').default
+const { PassThrough } = require('stream')
 
 // -------------------------------------------------------------------
 
@@ -50,6 +51,17 @@ async function connect() {
   return xo
 }
 
+function createOutputStream(path) {
+  if (path !== undefined && path !== '-') {
+    return createWriteStream(path)
+  }
+
+  // introduce a through stream because stdout is not a normal stream!
+  const stream = new PassThrough()
+  stream.pipe(process.stdout)
+  return stream
+}
+
 const FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
 function extractFlags(args) {
   const flags = {}
@@ -71,7 +83,7 @@ function extractFlags(args) {
 const PARAM_RE = /^([^=]+)=([^]*)$/
 function parseParameters(args) {
   const params = {}
-  forEach(args, function(arg) {
+  forEach(args, function (arg) {
     let matches
     if (!(matches = arg.match(PARAM_RE))) {
       throw new Error('invalid arg: ' + arg)
@@ -132,7 +144,7 @@ function wrap(val) {
 // ===================================================================
 
 const help = wrap(
-  (function(pkg) {
+  (function (pkg) {
     return require('strip-indent')(
       `
     Usage:
@@ -166,7 +178,7 @@ const help = wrap(
 
     $name v$version
   `
-    ).replace(/<([^>]+)>|\$(\w+)/g, function(_, arg, key) {
+    ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
         return '<' + chalk.yellow(arg) + '>'
       }
@@ -187,7 +199,7 @@ function main(args) {
     return help()
   }
 
-  const fnName = args[0].replace(/^--|-\w/g, function(match) {
+  const fnName = args[0].replace(/^--|-\w/g, function (match) {
     if (match === '--') {
       return ''
     }
@@ -227,7 +239,7 @@ async function register(args) {
   const [
     url,
     email,
-    password = await new Promise(function(resolve) {
+    password = await new Promise(function (resolve) {
       process.stdout.write('Password: ')
       pw(resolve)
     }),
@@ -256,7 +268,7 @@ async function listCommands(args) {
 
   let json = false
   const patterns = []
-  forEach(args, function(arg) {
+  forEach(args, function (arg) {
     if (arg === '--json') {
       json = true
     } else {
@@ -273,7 +285,7 @@ async function listCommands(args) {
   }
 
   methods = pairs(methods)
-  methods.sort(function(a, b) {
+  methods.sort(function (a, b) {
     a = a[0]
     b = b[0]
     if (a < b) {
@@ -283,11 +295,11 @@ async function listCommands(args) {
   })
 
   const str = []
-  forEach(methods, function(method) {
+  forEach(methods, function (method) {
     const name = method[0]
     const info = method[1]
     str.push(chalk.bold.blue(name))
-    forEach(info.params || [], function(info, name) {
+    forEach(info.params || [], function (info, name) {
       str.push(' ')
       if (info.optional) {
         str.push('[')
@@ -321,7 +333,7 @@ exports.listCommands = listCommands
 async function listObjects(args) {
   const properties = getKeys(extractFlags(args))
   const filterProperties = properties.length
-    ? function(object) {
+    ? function (object) {
         return pick(object, properties)
       }
     : identity
@@ -375,7 +387,7 @@ async function call(args) {
     if (key === '$getFrom') {
       ensurePathParam(method, file)
       url = resolveUrl(baseUrl, result[key])
-      const output = createWriteStream(file)
+      const output = createOutputStream(file)
       const response = await hrp(url)
 
       const progress = progressStream(

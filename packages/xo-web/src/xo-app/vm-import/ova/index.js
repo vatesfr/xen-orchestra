@@ -1,229 +1,31 @@
-import find from 'lodash/find'
-import forEach from 'lodash/forEach'
 import fromEvent from 'promise-toolbox/fromEvent'
-import xml2js, { processors } from 'xml2js'
-import { ensureArray } from 'utils'
-import { readVmdkGrainTable } from 'xo-vmdk-to-vhd'
+import { parseOVAFile, ParsableFile } from 'xo-vmdk-to-vhd'
 
-// ===================================================================
-
-// See: http://opennodecloud.com/howto/2013/12/25/howto-ON-ovf-reference.html
-// See: http://www.dmtf.org/sites/default/files/standards/documents/DSP0243_1.0.0.pdf
-// See: http://www.dmtf.org/sites/default/files/standards/documents/DSP0243_2.1.0.pdf
-
-// ===================================================================
-
-const MEMORY_UNIT_TO_FACTOR = {
-  k: 1024,
-  m: 1048576,
-  g: 1073741824,
-  t: 1099511627776,
-}
-
-const RESOURCE_TYPE_TO_HANDLER = {
-  // CPU.
-  '3': (data, { VirtualQuantity: nCpus }) => {
-    data.nCpus = +nCpus
-  },
-  // RAM.
-  '4': (data, { AllocationUnits: unit, VirtualQuantity: quantity }) => {
-    data.memory = quantity * allocationUnitsToFactor(unit)
-  },
-  // Network.
-  '10': ({ networks }, { AutomaticAllocation: enabled, Connection: name }) => {
-    if (enabled) {
-      networks.push(name)
-    }
-  },
-  // Disk.
-  '17': (
-    { disks },
-    {
-      AddressOnParent: position,
-      Description: description = 'No description',
-      ElementName: name,
-      HostResource: resource,
-    }
-  ) => {
-    const diskId = resource.match(/^(?:ovf:)?\/disk\/(.+)$/)
-    const disk = diskId && disks[diskId[1]]
-
-    if (disk) {
-      disk.descriptionLabel = description
-      disk.nameLabel = name
-      disk.position = +position
-    } else {
-      // TODO: Log error in U.I.
-      console.error(`No disk found: '${diskId}'.`)
-    }
-  },
-}
-
-const allocationUnitsToFactor = unit => {
-  const intValue = unit.match(/\^([0-9]+)$/)
-  return intValue != null
-    ? Math.pow(2, intValue[1])
-    : MEMORY_UNIT_TO_FACTOR[unit.charAt(0).toLowerCase()]
-}
-
-const filterDisks = disks => {
-  for (const diskId in disks) {
-    if (disks[diskId].position == null) {
-      // TODO: Log error in U.I.
-      console.error(`No position specified for '${diskId}'.`)
-      delete disks[diskId]
-    }
-  }
-}
-
-// ===================================================================
 /* global FileReader */
 
-async function readFileFragment(file, start = 0, end) {
-  const reader = new FileReader()
-  reader.readAsArrayBuffer(file.slice(start, end))
-  return (await fromEvent(reader, 'loadend')).target.result
-}
-
-function parseTarHeader(header) {
-  const fileName = Buffer.from(header.slice(0, 100))
-    .toString('ascii')
-    .split('\0')[0]
-  if (fileName.length === 0) {
-    return null
+class BrowserParsableFile extends ParsableFile {
+  constructor(file) {
+    super()
+    this._file = file
   }
-  // https://stackoverflow.com/a/2511526/72637
-  const sizeBuffer = Buffer.from(header.slice(124, 124 + 12))
-  let fileSize = 0
-  if (sizeBuffer[0] === 0x80) {
-    // https://github.com/chrisdickinson/tar-parse/blob/master/header.js#L271
-    // remove the head byte and go in decreasing power order.
-    for (let i = 1; i < sizeBuffer.length; i++) {
-      fileSize = fileSize * 256 + sizeBuffer[i]
-    }
-  } else fileSize = parseInt(sizeBuffer.slice(0, -1).toString('ascii'), 8)
-  console.log(
-    'fileSize',
-    fileName,
-    fileSize,
-    'B',
-    fileSize / Math.pow(1024, 3),
-    'GB'
-  )
-  // normal files are either the char '0' (charcode 48) or the char null (charcode zero)
-  const typeSlice = new Uint8Array(header.slice(156, 156 + 1))[0]
-  const fileType = typeSlice === 0 ? '0' : String.fromCharCode(typeSlice)
-  return { fileName, fileSize, fileType }
+
+  slice(start, end) {
+    return new BrowserParsableFile(this._file.slice(start, end))
+  }
+
+  async read() {
+    const reader = new FileReader()
+    reader.readAsArrayBuffer(this._file)
+    return (await fromEvent(reader, 'loadend')).target.result
+  }
 }
 
-async function parseOVF(fileFragment) {
-  const xmlString = Buffer.from(await readFileFragment(fileFragment)).toString()
-  return new Promise((resolve, reject) =>
-    xml2js.parseString(
-      xmlString,
-      {
-        mergeAttrs: true,
-        explicitArray: false,
-        tagNameProcessors: [processors.stripPrefix],
-        attrNameProcessors: [processors.stripPrefix],
-      },
-      (err, res) => {
-        if (err) {
-          reject(err)
-          return
-        }
-
-        const {
-          Envelope: {
-            DiskSection: { Disk: disks },
-            References: { File: files },
-            VirtualSystem: system,
-          },
-        } = res
-
-        const data = {
-          disks: {},
-          networks: [],
-        }
-        const hardware = system.VirtualHardwareSection
-
-        // Get VM name/description.
-        data.nameLabel = hardware.System.VirtualSystemIdentifier
-        data.descriptionLabel =
-          (system.AnnotationSection && system.AnnotationSection.Annotation) ||
-          (system.OperatingSystemSection &&
-            system.OperatingSystemSection.Description)
-
-        // Get disks.
-        forEach(ensureArray(disks), disk => {
-          const file = find(
-            ensureArray(files),
-            file => file.id === disk.fileRef
-          )
-          const unit = disk.capacityAllocationUnits
-
-          data.disks[disk.diskId] = {
-            capacity:
-              disk.capacity * ((unit && allocationUnitsToFactor(unit)) || 1),
-            path: file && file.href,
-          }
-        })
-
-        // Get hardware info: CPU, RAM, disks, networks...
-        forEach(ensureArray(hardware.Item), item => {
-          const handler = RESOURCE_TYPE_TO_HANDLER[item.ResourceType]
-          if (!handler) {
-            return
-          }
-          handler(data, item)
-        })
-
-        // Remove disks which not have a position.
-        // (i.e. no info in hardware.Item section.)
-        filterDisks(data.disks)
-        resolve(data)
-      }
-    )
-  )
-}
-
-// tar spec: https://www.gnu.org/software/tar/manual/html_node/Standard.html
 async function parseTarFile(file) {
   document.body.style.cursor = 'wait'
   try {
-    let offset = 0
-    const HEADER_SIZE = 512
-    let data = { tables: {} }
-    while (offset + HEADER_SIZE <= file.size) {
-      const header = parseTarHeader(
-        await readFileFragment(file, offset, offset + HEADER_SIZE)
-      )
-      offset += HEADER_SIZE
-      if (header === null) {
-        break
-      }
-      // remove mac os X forks https://stackoverflow.com/questions/8766730/tar-command-in-mac-os-x-adding-hidden-files-why
-      if (
-        header.fileType === '0' &&
-        !header.fileName.toLowerCase().startsWith('./._')
-      ) {
-        if (header.fileName.toLowerCase().endsWith('.ovf')) {
-          const res = await parseOVF(
-            file.slice(offset, offset + header.fileSize)
-          )
-          data = { ...data, ...res }
-        }
-        if (header.fileName.toLowerCase().endsWith('.vmdk')) {
-          const fileSlice = file.slice(offset, offset + header.fileSize)
-          const readFile = async (start, end) =>
-            readFileFragment(fileSlice, start, end)
-          // storing the promise, not the value
-          data.tables[header.fileName] = readVmdkGrainTable(readFile)
-        }
-      }
-      offset += Math.ceil(header.fileSize / 512) * 512
-    }
-    return data
+    return parseOVAFile(new BrowserParsableFile(file), (buffer, encoding) =>
+      new TextDecoder(encoding).decode(buffer)
+    )
   } finally {
     document.body.style.cursor = null
   }

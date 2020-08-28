@@ -1,7 +1,7 @@
 {
   "name": "xo-server-auth-github",
-  "version": "0.2.1",
-  "license": "AGPL-3.0",
+  "version": "0.2.2",
+  "license": "AGPL-3.0-or-later",
   "description": "GitHub authentication plugin for XO-Server",
   "keywords": [
     "xo-server",
@@ -17,8 +17,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",

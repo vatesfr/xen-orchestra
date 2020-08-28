@@ -3,7 +3,7 @@ const getopts = require('getopts')
 const { version } = require('./package.json')
 
 module.exports = commands =>
-  async function(args, prefix) {
+  async function (args, prefix) {
     const opts = getopts(args, {
       alias: {
         help: 'h',

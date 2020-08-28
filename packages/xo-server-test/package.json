@@ -2,7 +2,7 @@
   "private": true,
   "name": "xo-server-test",
   "version": "0.0.0",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "description": "Test client for Xo-Server",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-test",
@@ -13,8 +13,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -31,6 +31,7 @@
     "@babel/plugin-proposal-decorators": "^7.4.0",
     "@babel/preset-env": "^7.1.6",
     "@iarna/toml": "^2.2.1",
+    "@vates/parse-duration": "^0.1.0",
     "app-conf": "^0.7.0",
     "babel-plugin-lodash": "^3.2.11",
     "golike-defer": "^0.4.1",
@@ -38,7 +39,7 @@
     "lodash": "^4.17.11",
     "promise-toolbox": "^0.15.0",
     "xo-collection": "^0.4.1",
-    "xo-common": "^0.4.0",
+    "xo-common": "^0.5.0",
     "xo-lib": "^0.9.0"
   },
   "scripts": {

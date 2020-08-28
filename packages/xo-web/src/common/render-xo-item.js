@@ -14,6 +14,7 @@ import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
 import {
   isSrWritable,
+  subscribeBackupNgJobs,
   subscribeProxies,
   subscribeRemotes,
   subscribeUsers,
@@ -21,11 +22,13 @@ import {
 
 // ===================================================================
 
-const unknowItem = (uuid, type) => (
+const unknowItem = (uuid, type, placeholder) => (
   <Tooltip content={_('copyUuid', { uuid })}>
     <CopyToClipboard text={uuid}>
       <span className='text-muted' style={{ cursor: 'pointer' }}>
-        {_('errorUnknownItem', { type })}
+        {placeholder === undefined
+          ? _('errorUnknownItem', { type })
+          : placeholder}
       </span>
     </CopyToClipboard>
   </Tooltip>
@@ -142,9 +145,9 @@ export const Vm = decorate([
       ),
     }
   }),
-  ({ id, vm, container, link, newTab }) => {
+  ({ id, vm, container, link, newTab, name }) => {
     if (vm === undefined) {
-      return unknowItem(id, 'VM')
+      return unknowItem(id, 'VM', name)
     }
 
     return (
@@ -159,6 +162,7 @@ export const Vm = decorate([
 Vm.propTypes = {
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
+  name: PropTypes.string,
   newTab: PropTypes.bool,
 }
 
@@ -235,9 +239,12 @@ export const Sr = decorate([
       <LinkWrapper link={link} newTab={newTab} to={`/srs/${sr.id}`}>
         <Icon icon='sr' /> {sr.name_label}
         {!self && spaceLeft && isSrWritable(sr) && (
-          <span className={!link && 'text-muted'}>{` (${formatSize(
-            sr.size - sr.physical_usage
-          )} free)`}</span>
+          <span className={!link && 'text-muted'}>
+            {` (${formatSize(sr.size - sr.physical_usage)} free`}
+            {sr.allocationStrategy !== undefined &&
+              ` - ${sr.allocationStrategy}`}
+            )
+          </span>
         )}
         {!self && container !== undefined && (
           <span className={!link && 'text-muted'}>
@@ -318,12 +325,17 @@ Vdi.defaultProps = {
 export const Network = decorate([
   connectStore(() => {
     const getObject = createGetObject()
+    const getPool = createGetObject(
+      createSelector(getObject, network => get(() => network.$pool))
+    )
+
     // FIXME: props.self ugly workaround to get object as a self user
     return (state, props) => ({
       network: getObject(state, props, props.self),
+      pool: getPool(state, props),
     })
   }),
-  ({ id, network }) => {
+  ({ id, network, pool }) => {
     if (network === undefined) {
       return unknowItem(id, 'network')
     }
@@ -331,6 +343,9 @@ export const Network = decorate([
     return (
       <span>
         <Icon icon='network' /> {network.name_label}
+        {pool !== undefined && (
+          <span className='text-muted'>{` - ${pool.name_label}`}</span>
+        )}
       </span>
     )
   },
@@ -382,11 +397,20 @@ export const Proxy = decorate([
     proxy: cb =>
       subscribeProxies(proxies => cb(proxies.find(proxy => proxy.id === id))),
   })),
-  ({ id, proxy }) =>
+  ({ id, proxy, link, newTab }) =>
     proxy !== undefined ? (
-      <span>
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={{
+          pathname: '/proxies',
+          query: {
+            s: `id:${id}`,
+          },
+        }}
+      >
         <Icon icon='proxy' /> {proxy.name || proxy.address}
-      </span>
+      </LinkWrapper>
     ) : (
       unknowItem(id, 'proxy')
     ),
@@ -394,6 +418,48 @@ export const Proxy = decorate([
 
 Proxy.propTypes = {
   id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+Proxy.defaultProps = {
+  link: false,
+  newTab: false,
+}
+
+// ===================================================================
+
+export const BackupJob = decorate([
+  addSubscriptions(({ id }) => ({
+    job: cb =>
+      subscribeBackupNgJobs(jobs => cb(jobs.find(job => job.id === id))),
+  })),
+  ({ id, job, link, newTab }) => {
+    if (job === undefined) {
+      return unknowItem(id, 'job')
+    }
+
+    return (
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={`/backup/overview?s=id:${id}`}
+      >
+        {job.name}
+      </LinkWrapper>
+    )
+  },
+])
+
+BackupJob.propTypes = {
+  id: PropTypes.string.isRequired,
+  link: PropTypes.bool,
+  newTab: PropTypes.bool,
+}
+
+BackupJob.defaultProps = {
+  link: false,
+  newTab: false,
 }
 
 // ===================================================================

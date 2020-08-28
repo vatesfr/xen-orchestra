@@ -1,5 +1,7 @@
+import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
-import { format, JsonRpcError } from 'json-rpc-peer'
+import { createLogger } from '@xen-orchestra/log'
+import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import { assignWith, concat } from 'lodash'
 import {
@@ -11,6 +13,8 @@ import {
 } from 'xo-common/api-errors'
 
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils'
+
+const log = createLogger('xo:vm')
 
 // ===================================================================
 
@@ -45,7 +49,7 @@ const extract = (obj, prop) => {
 }
 
 // TODO: Implement ACLs
-export const create = defer(async function($defer, params) {
+export const create = defer(async function ($defer, params) {
   const { user } = this
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
@@ -341,7 +345,7 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-const delete_ = defer(async function(
+const delete_ = defer(async function (
   $defer,
   {
     delete_disks, // eslint-disable-line camelcase
@@ -383,14 +387,22 @@ const delete_ = defer(async function(
   // Update resource sets
   let resourceSet
   if (
-    vm.type === 'VM' && // only regular VMs
+    (vm.type === 'VM' || vm.type === 'VM-snapshot') &&
     (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
     await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
     $defer.onFailure(() =>
-      this.setVmResourceSet(vm._xapiId, resourceSet)::ignoreErrors()
+      this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors()
     )
   }
+
+  await asyncMap(vm.snapshots, async id => {
+    const { resourceSet } = this.getObject(id)
+    if (resourceSet !== undefined) {
+      await this.setVmResourceSet(id, null)
+      $defer.onFailure(() => this.setVmResourceSet(id, resourceSet, true))
+    }
+  })
 
   return xapi.deleteVm(
     vm._xapiId,
@@ -541,7 +553,7 @@ migrate.resolve = {
 
 // -------------------------------------------------------------------
 
-export const set = defer(async function($defer, params) {
+export const set = defer(async function ($defer, params) {
   const VM = extract(params, 'VM')
   const xapi = this.getXapi(VM)
   const vmId = VM._xapiId
@@ -552,7 +564,7 @@ export const set = defer(async function($defer, params) {
       throw unauthorized()
     }
 
-    await this.setVmResourceSet(vmId, resourceSetId)
+    await this.setVmResourceSet(vmId, resourceSetId, true)
   }
 
   const share = extract(params, 'share')
@@ -656,6 +668,8 @@ set.params = {
   hvmBootFirmware: { type: ['string', 'null'], optional: true },
 
   virtualizationMode: { type: 'string', optional: true },
+
+  blockedOperations: { type: 'object', optional: true },
 }
 
 set.resolve = {
@@ -679,7 +693,7 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export const clone = defer(async function(
+export const clone = defer(async function (
   $defer,
   { vm, name, full_copy: fullCopy }
 ) {
@@ -715,7 +729,7 @@ clone.params = {
 }
 
 clone.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot'], 'administrate'],
+  vm: ['id', ['VM', 'VM-snapshot', 'VM-template'], 'administrate'],
 }
 
 // -------------------------------------------------------------------
@@ -756,7 +770,7 @@ copy.params = {
 }
 
 copy.resolve = {
-  vm: ['vm', ['VM', 'VM-snapshot'], 'administrate'],
+  vm: ['vm', ['VM', 'VM-snapshot', 'VM-template'], 'administrate'],
   sr: ['sr', 'SR', 'operate'],
 }
 
@@ -782,8 +796,7 @@ export { convertToTemplate as convert }
 
 // -------------------------------------------------------------------
 
-// TODO: implement resource sets
-export const snapshot = defer(async function(
+export const snapshot = defer(async function (
   $defer,
   {
     vm,
@@ -792,7 +805,36 @@ export const snapshot = defer(async function(
     description,
   }
 ) {
-  await checkPermissionOnSrs.call(this, vm)
+  const { user } = this
+  let resourceSet
+  try {
+    if (vm.resourceSet !== undefined) {
+      resourceSet = await this.getResourceSet(vm.resourceSet)
+    }
+  } catch (error) {
+    if (noSuchObject.is(error)) {
+      log.warn('cannot find resource set', { resourceSet: vm.resourceSet })
+    } else {
+      throw error
+    }
+  }
+
+  if (resourceSet === undefined || !resourceSet.subjects.includes(user.id)) {
+    await checkPermissionOnSrs.call(this, vm)
+  }
+
+  if (vm.resourceSet !== undefined) {
+    // Compute the resource usage of the VM as if it was used by the snapshot
+    const usage = await this.computeVmSnapshotResourcesUsage(vm)
+    await this.allocateLimitsInResourceSet(
+      usage,
+      vm.resourceSet,
+      user.permission === 'admin'
+    )
+    $defer.onFailure(() =>
+      this.releaseLimitsInResourceSet(usage, vm.resourceSet)
+    )
+  }
 
   const xapi = this.getXapi(vm)
   const { $id: snapshotId } = await (saveMemory
@@ -804,7 +846,6 @@ export const snapshot = defer(async function(
     await xapi.editVm(snapshotId, { name_description: description })
   }
 
-  const { user } = this
   if (user.permission !== 'admin') {
     await this.addAcl(user.id, snapshotId, 'admin')
   }
@@ -1159,21 +1200,87 @@ resume.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function revert({ snapshot, snapshotBefore }) {
-  const { id: userId, permission } = this.user
-  await this.checkPermissions(userId, [[snapshot.$snapshot_of, 'operate']])
-  const newSnapshot = await this.getXapi(snapshot).revertVm(
-    snapshot._xapiId,
-    snapshotBefore
-  )
-  if (snapshotBefore && permission !== 'admin') {
-    await this.addAcl(userId, newSnapshot.$id, 'admin')
+export const revert = defer(async function ($defer, { snapshot }) {
+  await this.checkPermissions(this.user.id, [
+    [snapshot.$snapshot_of, 'operate'],
+  ])
+  const vm = this.getObject(snapshot.$snapshot_of)
+  const { resourceSet } = vm
+  if (resourceSet !== undefined) {
+    const vmUsage = await this.computeVmResourcesUsage(vm)
+    await this.releaseLimitsInResourceSet(vmUsage, resourceSet)
+    $defer.onFailure(() =>
+      this.allocateLimitsInResourceSet(vmUsage, resourceSet, true)
+    )
+
+    // Deallocate IP addresses
+    const vmIpsByVif = {}
+    vm.VIFs.forEach(vifId => {
+      const vif = this.getObject(vifId)
+      vmIpsByVif[vifId] = [
+        ...vif.allowedIpv4Addresses,
+        ...vif.allowedIpv6Addresses,
+      ]
+    })
+    await Promise.all(
+      Object.entries(vmIpsByVif).map(([vifId, ips]) =>
+        this.allocIpAddresses(vifId, null, ips)
+      )
+    )
+    $defer.onFailure(() =>
+      Promise.all(
+        Object.entries(vmIpsByVif).map(([vifId, ips]) =>
+          this.allocIpAddresses(vifId, ips)
+        )
+      )
+    )
+
+    // Compute the resource usage of the snapshot that's being reverted as if it
+    // was used by the VM
+    const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
+    await this.allocateLimitsInResourceSet(
+      snapshotUsage,
+      resourceSet,
+      this.user.permission === 'admin'
+    )
+    $defer.onFailure(() =>
+      this.releaseLimitsInResourceSet(snapshotUsage, resourceSet)
+    )
+
+    // Reallocate the snapshot's IP addresses
+    const snapshotIpsByVif = {}
+    snapshot.VIFs.forEach(vifId => {
+      const vif = this.getObject(vifId)
+      snapshotIpsByVif[vifId] = [
+        ...vif.allowedIpv4Addresses,
+        ...vif.allowedIpv6Addresses,
+      ]
+    })
+    await Promise.all(
+      Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
+        this.allocIpAddresses(vifId, ips)
+      )
+    )
+    $defer.onFailure(() =>
+      Promise.all(
+        Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
+          this.allocIpAddresses(vifId, null, ips)
+        )
+      )
+    )
   }
-}
+  await this.getXapi(snapshot).revertVm(snapshot._xapiId)
+
+  // Reverting a snapshot must not set the VM back to the old resource set
+  await this.getXapi(vm).xo.setData(
+    vm._xapiId,
+    'resourceSet',
+    resourceSet === undefined ? null : resourceSet
+  )
+})
 
 revert.params = {
   snapshot: { type: 'string' },
-  snapshotBefore: { type: 'boolean', optional: true },
 }
 
 revert.resolve = {
@@ -1238,14 +1345,8 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
-
-  try {
-    const vm = await xapi.importVm(req, { data, srId, type })
-    res.end(format.response(0, vm.$id))
-  } catch (e) {
-    res.writeHead(500)
-    res.end(format.error(0, new JsonRpcError(e.message)))
-  }
+  const vm = await xapi.importVm(req, { data, srId, type })
+  res.end(format.response(0, vm.$id))
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR
@@ -1468,7 +1569,7 @@ setBootOrder.params = {
 }
 
 setBootOrder.resolve = {
-  vm: ['vm', 'VM', 'operate'],
+  vm: ['vm', ['VM', 'VM-template'], 'operate'],
 }
 
 // -------------------------------------------------------------------

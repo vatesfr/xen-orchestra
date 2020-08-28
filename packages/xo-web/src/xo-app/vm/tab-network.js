@@ -3,17 +3,24 @@ import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import BaseComponent from 'base-component'
 import copy from 'copy-to-clipboard'
-import Icon from 'icon'
+import decorate from 'apply-decorators'
+import getEventValue from 'get-event-value'
+import Icon, { StackedIcons } from 'icon'
 import PropTypes from 'prop-types'
-import React from 'react'
+import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
+import SingleLineRow from 'single-line-row'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
-import { isIp, isIpV4 } from 'ip-utils'
+import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { error } from 'notification'
+import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
+import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
+import { provideState, injectState } from 'reaclette'
 import {
   addSubscriptions,
   connectStore,
@@ -27,6 +34,7 @@ import {
   SelectResourceSetIp,
   SelectResourceSetsNetwork,
 } from 'select-objects'
+import { Select, Toggle } from 'form'
 import {
   concat,
   every,
@@ -35,10 +43,9 @@ import {
   isEmpty,
   keys,
   map,
+  pick,
   remove,
   some,
-  uniq,
-  values,
 } from 'lodash'
 
 import {
@@ -50,14 +57,18 @@ import {
 } from 'selectors'
 
 import {
+  addAclRule,
   connectVif,
   createVmInterface,
+  deleteAclRule,
   deleteVif,
   deleteVifs,
   disconnectVif,
+  getLockingModeValues,
   isVmRunning,
   setVif,
   subscribeIpPools,
+  subscribePlugins,
   subscribeResourceSets,
 } from 'xo'
 
@@ -177,9 +188,19 @@ class VifAllowedIps extends BaseComponent {
     if (!vif) {
       return null
     }
+
+    const { lockingMode } = vif
+    const noIps = isEmpty(this._getIps())
+    const warningMessage =
+      lockingMode === 'locked' && noIps
+        ? _('vifLockedNetworkNoIps')
+        : lockingMode !== 'locked' && !noIps
+        ? _('vifUnlockedNetworkWithIps')
+        : undefined
+
     return (
       <Container>
-        {isEmpty(this._getIps()) ? (
+        {noIps ? (
           <Row>
             <Col>
               <em>{_('vifNoIps')}</em>
@@ -238,6 +259,11 @@ class VifAllowedIps extends BaseComponent {
                 handler={this._toggleNewIp}
                 icon='add'
               />
+            )}{' '}
+            {warningMessage !== undefined && (
+              <Tooltip content={warningMessage}>
+                <Icon icon='error' />
+              </Tooltip>
             )}
           </Col>
         </Row>
@@ -247,6 +273,12 @@ class VifAllowedIps extends BaseComponent {
 }
 
 class VifStatus extends BaseComponent {
+  componentDidMount() {
+    getLockingModeValues().then(lockingModeValues =>
+      this.setState({ lockingModeValues })
+    )
+  }
+
   _getIps = createSelector(
     () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
     () => this.props.vif.allowedIpv6Addresses || EMPTY_ARRAY,
@@ -254,14 +286,36 @@ class VifStatus extends BaseComponent {
   )
 
   _getNetworkStatus = () => {
-    if (!isEmpty(this._getIps())) {
+    const {
+      network,
+      vif: { lockingMode },
+    } = this.props
+
+    if (lockingMode === 'disabled') {
+      return (
+        <Tooltip content={_('vifDisabledNetwork')}>
+          <Icon icon='vif-disable' />
+        </Tooltip>
+      )
+    }
+
+    if (lockingMode === 'unlocked') {
+      return (
+        <Tooltip content={_('vifUnLockedNetwork')}>
+          <Icon icon='unlock' />
+        </Tooltip>
+      )
+    }
+
+    if (lockingMode === 'locked') {
       return (
         <Tooltip content={_('vifLockedNetwork')}>
           <Icon icon='lock' />
         </Tooltip>
       )
     }
-    const { network } = this.props
+
+    // lockingMode is network_default
     if (!network) {
       return (
         <Tooltip content={_('vifUnknownNetwork')}>
@@ -271,20 +325,36 @@ class VifStatus extends BaseComponent {
     }
     if (network.defaultIsLocked) {
       return (
-        <Tooltip content={_('vifLockedNetworkNoIps')}>
-          <Icon icon='error' />
+        <Tooltip content={_('vifLockedNetwork')}>
+          <StackedIcons
+            icons={[
+              { icon: 'vif-disable', size: 1 },
+              { icon: 'circle', size: 2 },
+            ]}
+          />
         </Tooltip>
       )
     }
     return (
       <Tooltip content={_('vifUnLockedNetwork')}>
-        <Icon icon='unlock' />
+        <StackedIcons
+          icons={[
+            { icon: 'unlock', size: 1 },
+            { icon: 'circle', size: 2 },
+          ]}
+        />
       </Tooltip>
     )
   }
 
+  _onChangeVif = event =>
+    setVif(this.props.vif, { lockingMode: getEventValue(event) }).catch(err =>
+      error(_('editVifLockingMode'), err.message || String(err))
+    )
+
   render() {
     const { vif } = this.props
+    const { isLockingModeEdition } = this.state
 
     return (
       <div>
@@ -298,11 +368,316 @@ class VifStatus extends BaseComponent {
           handlerParam={vif}
           state={vif.attached}
         />{' '}
-        {this._getNetworkStatus()}
+        {this._getNetworkStatus()}{' '}
+        {isLockingModeEdition ? (
+          <select
+            className='form-control'
+            onBlur={this.toggleState('isLockingModeEdition')}
+            onChange={this._onChangeVif}
+            value={vif.lockingMode}
+          >
+            {map(this.state.lockingModeValues, lockingMode => (
+              <option key={lockingMode} value={lockingMode}>
+                {lockingMode}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <ActionButton
+            btnStyle='primary'
+            icon='edit'
+            handler={this.toggleState('isLockingModeEdition')}
+            size='small'
+            tooltip={_('editVifLockingMode')}
+          />
+        )}
       </div>
     )
   }
 }
+
+const AdvancedSettingsModal = decorate([
+  provideState({
+    effects: {
+      toggleTxChecksumming() {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          txChecksumming: !value.txChecksumming,
+        })
+      },
+    },
+  }),
+  injectState,
+  ({ effects, state, value }) => (
+    <Container>
+      <SingleLineRow>
+        <Col mediumSize={6}>
+          <strong>{_('txChecksumming')}</strong>
+        </Col>
+        <Col mediumSize={6}>
+          <StateButton
+            className='pull-right'
+            disabledLabel={_('stateDisabled')}
+            enabledLabel={_('stateEnabled')}
+            handler={effects.toggleTxChecksumming}
+            state={value.txChecksumming}
+          />
+        </Col>
+      </SingleLineRow>
+    </Container>
+  ),
+])
+
+const openAdvancedSettingsModal = async vif => {
+  const { txChecksumming } = await form({
+    defaultValue: {
+      txChecksumming: vif.txChecksumming,
+    },
+    header: (
+      <div>
+        <Icon icon='settings' /> {_('advancedSettings')}
+      </div>
+    ),
+    render: props => <AdvancedSettingsModal {...props} />,
+  })
+  await setVif(vif, { txChecksumming })
+}
+
+// -----------------------------------------------------------------------------
+
+const USABLE_PORT_PROTOCOL = ['TCP', 'ICMP', 'UDP']
+class NewAclRuleForm extends BaseComponent {
+  state = {
+    allow: true,
+    protocol: undefined,
+    port: undefined,
+    ipRange: '',
+    direction: 'from/to',
+  }
+
+  get value() {
+    return pick(this.state, [
+      'allow',
+      'protocol',
+      'port',
+      'ipRange',
+      'direction',
+    ])
+  }
+
+  render() {
+    const { protocol, allow, port, ipRange, direction } = this.state
+    const showIpRange = protocol != null
+    const showPort = showIpRange && USABLE_PORT_PROTOCOL.includes(protocol)
+
+    return (
+      <form id='newAclForm'>
+        <fieldset className='form-inline'>
+          <div>
+            <Container>
+              <SingleLineRow>
+                <Col size={6}>{_('aclRuleAllow')}</Col>
+                <Col size={6}>
+                  <Toggle onChange={this.toggleState('allow')} value={allow} />
+                </Col>
+              </SingleLineRow>
+              <SingleLineRow className='mt-1'>
+                <Col size={6}>{_('aclRuleProtocol')}</Col>
+                <Col size={6}>
+                  <Select
+                    name='protocol'
+                    onChange={this.linkState('protocol')}
+                    options={[
+                      { label: 'IP', value: 'IP' },
+                      { label: 'TCP', value: 'TCP' },
+                      { label: 'UDP', value: 'UDP' },
+                      { label: 'ICMP', value: 'ICMP' },
+                      { label: 'ARP', value: 'ARP' },
+                    ]}
+                    simpleValue
+                    value={protocol}
+                  />
+                </Col>
+              </SingleLineRow>
+              {showPort && (
+                <SingleLineRow className='mt-1'>
+                  <Col size={6}>{_('aclRulePort')}</Col>
+                  <Col size={6}>
+                    <input
+                      className='form-control w-100'
+                      min='1'
+                      onChange={this.linkState('port')}
+                      type='number'
+                      value={port}
+                    />
+                  </Col>
+                </SingleLineRow>
+              )}
+              {showIpRange && (
+                <SingleLineRow className='mt-1'>
+                  <Col size={6}>{_('aclRuleIpRange')}</Col>
+                  <Col size={6}>
+                    <input
+                      className='form-control w-100'
+                      onChange={this.linkState('ipRange')}
+                      type='text'
+                      value={ipRange}
+                    />
+                  </Col>
+                </SingleLineRow>
+              )}
+              <SingleLineRow className='mt-1'>
+                <Col size={6}>{_('aclRuleDirection')}</Col>
+                <Col size={6}>
+                  <Select
+                    name='direction'
+                    onChange={this.linkState('direction')}
+                    options={[
+                      { label: 'from', value: 'from' },
+                      { label: 'to', value: 'to' },
+                      { label: 'from/to', value: 'from/to' },
+                    ]}
+                    required
+                    simpleValue
+                    value={direction}
+                  />
+                </Col>
+              </SingleLineRow>
+            </Container>
+          </div>
+        </fieldset>
+      </form>
+    )
+  }
+}
+
+@addSubscriptions({
+  plugins: subscribePlugins,
+})
+class AclRuleRow extends Component {
+  render() {
+    const { rule, vif, plugins } = this.props
+    const ruleObj = JSON.parse(rule)
+    const sdnControllerLoaded = plugins.some(
+      plugin => plugin.name === 'sdn-controller' && plugin.loaded
+    )
+
+    return (
+      <tr>
+        <td>{ruleObj.allow ? _('stateEnabled') : _('stateDisabled')}</td>
+        <td>{ruleObj.protocol}</td>
+        <td>{ruleObj.port}</td>
+        <td>{ruleObj.ipRange}</td>
+        <td>{ruleObj.direction}</td>
+        <td className='text-xs-right'>
+          <ActionRowButton
+            disabled={!sdnControllerLoaded}
+            handler={deleteAclRule}
+            handlerParam={{ ...ruleObj, vif }}
+            icon='delete'
+            level='danger'
+            tooltip={
+              sdnControllerLoaded
+                ? _('deleteRule')
+                : _('sdnControllerNotLoaded')
+            }
+          />
+        </td>
+      </tr>
+    )
+  }
+}
+
+@addSubscriptions({
+  plugins: subscribePlugins,
+})
+class AclRulesRows extends BaseComponent {
+  _newAclRule(vif) {
+    return confirm({
+      icon: 'add',
+      title: _('addRule'),
+      body: <NewAclRuleForm />,
+    }).then(({ allow, protocol, port, ipRange, direction }) => {
+      const hasProtocol = protocol != null
+      const usePort =
+        hasProtocol &&
+        USABLE_PORT_PROTOCOL.includes(protocol) &&
+        port !== undefined
+
+      return addAclRule({
+        allow,
+        protocol: hasProtocol ? protocol : undefined,
+        port: usePort ? +port : undefined,
+        ipRange: hasProtocol ? ipRange : '',
+        direction,
+        vif,
+      })
+    }, noop)
+  }
+
+  _getRules = createSelector(
+    () => this.props.vif.other_config['xo:sdn-controller:of-rules'],
+    json => (json !== undefined ? JSON.parse(json) : undefined)
+  )
+
+  render() {
+    const { vif, plugins = [] } = this.props
+    const { showRules } = this.state
+    const sdnControllerLoaded = plugins.some(
+      plugin => plugin.name === 'sdn-controller' && plugin.loaded
+    )
+    const rules = this._getRules()
+    const rulesToSee = rules !== undefined
+
+    return (
+      <div>
+        {rulesToSee && (
+          <ActionButton
+            className='mb-1 pull-right'
+            handler={this.toggleState('showRules')}
+            icon={showRules ? 'hidden' : 'shown'}
+            size='small'
+            tooltip={showRules ? _('hideRules') : _('showRules')}
+          />
+        )}
+        <ActionButton
+          btnStyle='success'
+          className='mb-1 pull-right'
+          disabled={!sdnControllerLoaded}
+          handler={this._newAclRule}
+          handlerParam={vif}
+          icon='add'
+          size='small'
+          tooltip={
+            sdnControllerLoaded ? _('addRule') : _('sdnControllerNotLoaded')
+          }
+        />
+        {showRules && rulesToSee && (
+          <table className='table'>
+            <thead className='thead-default'>
+              <tr>
+                <th>{_('aclRuleAllowField')}</th>
+                <th>{_('aclRuleProtocolField')}</th>
+                <th>{_('aclRulePortField')}</th>
+                <th>{_('aclRuleIpRangeField')}</th>
+                <th>{_('aclRuleDirectionField')}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {map(rules, rule => (
+                <AclRuleRow rule={rule} vif={vif} />
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    )
+  }
+}
+
+// -----------------------------------------------------------------------------
 
 const COLUMNS = [
   {
@@ -343,8 +718,32 @@ const COLUMNS = [
     sortCriteria: 'rateLimit',
   },
   {
+    itemRenderer: ({ device }, { ipsByDevice }) => {
+      const ips = ipsByDevice[device]
+      return isEmpty(ips)
+        ? _('noIpRecord')
+        : map(ips, ip => (
+            <Tooltip content={_('copyToClipboard')}>
+              <span
+                className='tag tag-info tag-ip'
+                key={ip}
+                onClick={() => copy(ip)}
+                style={{ cursor: 'pointer' }}
+              >
+                {ip}
+              </span>
+            </Tooltip>
+          ))
+    },
+    name: _('vifIpAddresses'),
+  },
+  {
     component: VifAllowedIps,
     name: _('vifAllowedIps'),
+  },
+  {
+    itemRenderer: vif => <AclRulesRows vif={vif} />,
+    name: _('vifAclRules'),
   },
   {
     itemRenderer: (vif, userData) => (
@@ -367,6 +766,12 @@ const INDIVIDUAL_ACTIONS = [
     handler: vif => copy(vif.uuid),
     icon: 'clipboard',
     label: vif => _('copyUuid', { uuid: vif.uuid }),
+  },
+  {
+    handler: openAdvancedSettingsModal,
+    icon: 'settings',
+    label: _('advancedSettings'),
+    level: 'primary',
   },
   {
     disabled: vif => vif.attached,
@@ -527,12 +932,22 @@ export default class TabNetwork extends BaseComponent {
       newVif: !this.state.newVif,
     })
 
-  _getIpAddresses = createSelector(
+  _getIpsByDevice = createSelector(
     () => this.props.vm.addresses,
-    // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
-    // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
-    // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
-    addresses => uniq(values(addresses))
+    addresses => {
+      // VM_guest_metrics.networks seems to always have 3 fields (ip, ipv4 and ipv6) for each interface
+      // http://xenbits.xenproject.org/docs/4.12-testing/misc/xenstore-paths.html#attrvifdevidipv4index-ipv4_address-w
+      // https://github.com/xapi-project/xen-api/blob/d650621ba7b64a82aeb77deca787acb059636eaf/ocaml/xapi/xapi_guest_agent.ml#L76-L79
+      const ipsByDevice = {}
+      Object.entries(addresses).forEach(([key, address]) => {
+        const device = key.split('/')[0]
+        if (ipsByDevice[device] === undefined) {
+          ipsByDevice[device] = []
+        }
+        ipsByDevice[device].push(address)
+      })
+      return ipsByDevice
+    }
   )
 
   render() {
@@ -562,24 +977,13 @@ export default class TabNetwork extends BaseComponent {
             <SortedTable
               collection={vifs}
               columns={COLUMNS}
+              data-ipsByDevice={this._getIpsByDevice()}
+              data-networks={networks}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}
               stateUrlParam='s'
-              userData={{ networks }}
             />
-            {!isEmpty(vm.addresses) ? (
-              <span>
-                <h4>{_('vifIpAddresses')}</h4>
-                {map(this._getIpAddresses(), address => (
-                  <span key={address} className='tag tag-info tag-ip'>
-                    {address}
-                  </span>
-                ))}
-              </span>
-            ) : (
-              _('noIpRecord')
-            )}
           </Col>
         </Row>
       </Container>

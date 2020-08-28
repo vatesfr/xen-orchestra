@@ -145,7 +145,9 @@ export default class Xo extends EventEmitter {
     }).then(
       result => {
         if (result != null) {
-          if (typeof result.pipe === 'function') {
+          if (typeof result === 'string' || Buffer.isBuffer(result)) {
+            res.end(result)
+          } else if (typeof result.pipe === 'function') {
             result.pipe(res)
           } else {
             res.end(JSON.stringify(result))
@@ -157,8 +159,9 @@ export default class Xo extends EventEmitter {
 
         if (!res.headersSent) {
           res.writeHead(500)
+          res.write('unknown error')
         }
-        res.end('unknown error')
+        res.end()
       }
     )
   }
@@ -211,7 +214,7 @@ export default class Xo extends EventEmitter {
     // For security, prevent from accessing `this`.
     if (typeof value === 'function') {
       value = (value =>
-        function() {
+        function () {
           return value.apply(thisArg, arguments)
         })(value)
     }

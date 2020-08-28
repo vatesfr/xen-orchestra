@@ -1,4 +1,8 @@
-# xo-common [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+<!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
+
+# xo-common
+
+[![Package Version](https://badgen.net/npm/v/xo-common)](https://npmjs.org/package/xo-common) ![License](https://badgen.net/npm/license/xo-common) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-common)](https://bundlephobia.com/result?p=xo-common) [![Node compatibility](https://badgen.net/npm/node/xo-common)](https://npmjs.org/package/xo-common)
 
 > Code shared between [XO](https://xen-orchestra.com) server and clients
 
@@ -8,29 +12,6 @@ Installation of the [npm package](https://npmjs.org/package/xo-common):
 
 ```
 > npm install --save xo-common
-```
-
-## Usage
-
-**TODO**
-
-## Development
-
-```
-# Install dependencies
-> npm install
-
-# Run the tests
-> npm test
-
-# Continuously compile
-> npm run dev
-
-# Continuously run the tests
-> npm run dev-test
-
-# Build for production (automatically called by npm install)
-> npm run build
 ```
 
 ## Contributions
@@ -46,4 +27,4 @@ You may:
 
 ## License
 
-AGPL3 © [Vates SAS](https://vates.fr)
+[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)

@@ -4,14 +4,12 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { Container, Col } from 'grid'
-import { createCompare } from 'utils'
+import { createCompare, createCompareContainers } from 'utils'
 import { createSelector } from 'selectors'
 import { SelectSr } from 'select-objects'
 
-import { isSrShared } from '../'
+import { isSrShared, isSrWritable } from '../'
 
-const createCompareContainers = poolId =>
-  createCompare([_ => _.$pool === poolId, _ => _.type === 'pool'])
 const compareSrs = createCompare([isSrShared])
 
 export default class MigrateVdiModalBody extends Component {
@@ -35,6 +33,11 @@ export default class MigrateVdiModalBody extends Component {
     (warningBeforeMigrate, sr) => warningBeforeMigrate(sr)
   )
 
+  _getSrPredicate = createSelector(
+    () => this.props.pool,
+    pool => sr => isSrWritable(sr) && sr.$pool === pool
+  )
+
   render() {
     const warningBeforeMigrate = this._getWarningBeforeMigrate()
     return (
@@ -46,16 +49,9 @@ export default class MigrateVdiModalBody extends Component {
               compareContainers={this._getCompareContainers()}
               compareOptions={compareSrs}
               onChange={this.linkState('sr')}
+              predicate={this._getSrPredicate()}
               required
             />
-          </Col>
-        </SingleLineRow>
-        <SingleLineRow className='mt-1'>
-          <Col>
-            <label>
-              <input type='checkbox' onChange={this.linkState('migrateAll')} />{' '}
-              {_('vdiMigrateAll')}
-            </label>
           </Col>
         </SingleLineRow>
         {warningBeforeMigrate !== null && (

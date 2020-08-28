@@ -8,10 +8,12 @@ import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import safeTimeout from 'strict-timeout/safe'
 import { type Pattern, createPredicate } from 'value-matcher'
-import { type Readable, PassThrough } from 'stream'
+import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
+import { decorateWith } from '@vates/decorate-with'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
+import { parseDuration } from '@vates/parse-duration'
 import {
   countBy,
   findLast,
@@ -27,13 +29,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import {
-  CancelToken,
-  ignoreErrors,
-  pFinally,
-  pFromEvent,
-  timeout,
-} from 'promise-toolbox'
+import { CancelToken, ignoreErrors, pFinally, timeout } from 'promise-toolbox'
 import Vhd, {
   chainVhd,
   checkVhdChain,
@@ -45,7 +41,6 @@ import { type CallJob, type Executor, type Job } from '../jobs'
 import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
-import parseDuration from '../../_parseDuration'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
 import { waitAll } from '../../_waitAll'
 import {
@@ -74,6 +69,7 @@ export type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
   bypassVdiChainsCheck?: boolean,
+  checkpointSnapshot?: boolean,
   concurrency?: number,
   deleteFirst?: boolean,
   copyRetention?: number,
@@ -149,6 +145,7 @@ const getOldEntries = <T>(retention: number, entries?: T[]): T[] =>
 
 const defaultSettings: Settings = {
   bypassVdiChainsCheck: false,
+  checkpointSnapshot: false,
   concurrency: 0,
   deleteFirst: false,
   exportRetention: 0,
@@ -323,31 +320,6 @@ const parseVmBackupId = (id: string) => {
   }
 }
 
-// write a stream to a file using a temporary file
-//
-// TODO: merge into RemoteHandlerAbstract
-const writeStream = async (
-  input: Readable | Promise<Readable>,
-  handler: RemoteHandler,
-  path: string,
-  { checksum = true }: { checksum?: boolean } = {}
-): Promise<void> => {
-  input = await input
-  const tmpPath = `${dirname(path)}/.${basename(path)}`
-  const output = await handler.createOutputStream(tmpPath, { checksum })
-  try {
-    input.pipe(output)
-    await pFromEvent(output, 'finish')
-    await output.checksumWritten
-    // $FlowFixMe
-    await input.task
-    await handler.rename(tmpPath, path, { checksum })
-  } catch (error) {
-    await handler.unlink(tmpPath, { checksum })
-    throw error
-  }
-}
-
 const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
   const { data, logger, message, parentId, result } = opts
 
@@ -383,7 +355,7 @@ const wrapTaskFn = <T>(
   opts: any,
   task: (...any) => Promise<T>
 ): ((taskId: string, ...any) => Promise<T>) =>
-  async function() {
+  async function () {
     const { data, logger, message, parentId, result } =
       typeof opts === 'function' ? opts.apply(this, arguments) : opts
 
@@ -619,7 +591,8 @@ export default class BackupNg {
         const remoteIds = unboxIdsFromPattern(job.remotes)
         const srIds = unboxIdsFromPattern(job.srs)
 
-        if (job.proxy !== undefined) {
+        const proxyId = job.proxy
+        if (proxyId !== undefined) {
           const vmIds = Object.keys(vms)
 
           const recordToXapi = {}
@@ -636,7 +609,14 @@ export default class BackupNg {
           const xapis = {}
           await waitAll([
             asyncMap(remoteIds, async id => {
-              remotes[id] = await app.getRemoteWithCredentials(id)
+              const remote = await app.getRemoteWithCredentials(id)
+              if (remote.proxy !== proxyId) {
+                throw new Error(
+                  `The remote ${remote.name} must be linked to the proxy ${proxyId}`
+                )
+              }
+
+              remotes[id] = remote
             }),
             asyncMap([...servers], async id => {
               const {
@@ -656,7 +636,7 @@ export default class BackupNg {
             }),
           ])
 
-          return app.callProxyMethod(job.proxy, 'backup.run', {
+          const params = {
             job: {
               ...job,
 
@@ -667,22 +647,81 @@ export default class BackupNg {
             recordToXapi,
             remotes,
             schedule,
+            streamLogs: true,
             xapis,
-          })
+          }
+
+          try {
+            const logsStream = await app.callProxyMethod(
+              proxyId,
+              'backup.run',
+              params,
+              {
+                expectStream: true,
+              }
+            )
+
+            const localTaskIds = { __proto__: null }
+            for await (const log of logsStream) {
+              const { event, message, taskId } = log
+
+              const common = {
+                data: log.data,
+                event: 'task.' + event,
+                result: log.result,
+                status: log.status,
+              }
+
+              if (event === 'start') {
+                const { parentId } = log
+                if (parentId === undefined) {
+                  // ignore root task (already handled by runJob)
+                  localTaskIds[taskId] = runJobId
+                } else {
+                  common.parentId = localTaskIds[parentId]
+                  localTaskIds[taskId] = logger.notice(message, common)
+                }
+              } else {
+                const localTaskId = localTaskIds[taskId]
+                if (localTaskId === runJobId) {
+                  if (event === 'end') {
+                    if (log.status === 'failure') {
+                      throw log.result
+                    }
+                    return log.result
+                  }
+                } else {
+                  common.taskId = localTaskId
+                  logger.notice(message, common)
+                }
+              }
+            }
+            return
+          } catch (error) {
+            // XO API invalid parameters error
+            if (error.code === 10) {
+              delete params.streamLogs
+              return app.callProxyMethod(proxyId, 'backup.run', params)
+            }
+            throw error
+          }
         }
 
-        const srs = srIds.map(id => {
-          const xapi = app.getXapi(id)
-          return {
-            __proto__: xapi.getObject(id),
-            xapi,
-          }
-        })
+        const srs = srIds.map(id => app.getXapiObject(id, 'SR'))
         const remotes = await Promise.all(
-          remoteIds.map(async id => ({
-            id,
-            handler: await app.getRemoteHandler(id),
-          }))
+          remoteIds.map(async id => {
+            const remote = await app.getRemote(id)
+            if (remote.proxy !== undefined) {
+              throw new Error(
+                `The remote ${remote.name} must not be linked to a proxy`
+              )
+            }
+
+            return {
+              id,
+              handler: await app.getRemoteHandler(remote),
+            }
+          })
         )
 
         const settings = merge(job.settings, data?.settings)
@@ -915,9 +954,15 @@ export default class BackupNg {
     )()
   }
 
-  @debounceWithKey.decorate(10e3, function keyFn(remoteId) {
-    return [this, remoteId]
-  })
+  @decorateWith(
+    debounceWithKey,
+    function () {
+      return parseDuration(this._backupOptions.listingDebounce)
+    },
+    function keyFn(remoteId) {
+      return [this, remoteId]
+    }
+  )
   async _listVmBackupsOnRemote(remoteId: string) {
     const app = this._app
     const backupsByVm = {}
@@ -968,25 +1013,31 @@ export default class BackupNg {
             return
           }
 
-          // inject an id usable by importVmBackupNg()
-          backups.forEach(backup => {
-            backup.id = `${remoteId}/${backup._filename}`
-
-            const { vdis, vhds } = backup
-            backup.disks =
-              vhds === undefined
+          backupsByVm[vmUuid] = backups.map(backup => ({
+            disks:
+              backup.vhds === undefined
                 ? []
-                : Object.keys(vhds).map(vdiId => {
-                    const vdi = vdis[vdiId]
+                : Object.keys(backup.vhds).map(vdiId => {
+                    const vdi = backup.vdis[vdiId]
                     return {
-                      id: `${dirname(backup._filename)}/${vhds[vdiId]}`,
+                      id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
                       name: vdi.name_label,
                       uuid: vdi.uuid,
                     }
-                  })
-          })
+                  }),
 
-          backupsByVm[vmUuid] = backups
+            // inject an id usable by importVmBackupNg()
+            id: `${remoteId}/${backup._filename}`,
+            jobId: backup.jobId,
+            mode: backup.mode,
+            scheduleId: backup.scheduleId,
+            size: backup.size,
+            timestamp: backup.timestamp,
+            vm: {
+              name_description: backup.vm.name_description,
+              name_label: backup.vm.name_label,
+            },
+          }))
         })
       )
     } catch (error) {
@@ -1208,6 +1259,9 @@ export default class BackupNg {
         )
       }
 
+      const checkpointSnapshot =
+        !offlineSnapshot &&
+        getSetting(settings, 'checkpointSnapshot', [vmUuid, ''])
       exported = (await wrapTask(
         {
           logger,
@@ -1215,11 +1269,17 @@ export default class BackupNg {
           parentId: taskId,
           result: _ => _.uuid,
         },
-        xapi._snapshotVm(
-          $cancelToken,
-          vm,
-          `[XO Backup ${job.name}] ${vm.name_label}`
-        )
+        checkpointSnapshot
+          ? xapi.checkpointVm(
+              $cancelToken,
+              vm.$id,
+              `[XO Backup ${job.name}] ${vm.name_label}`
+            )
+          : xapi._snapshotVm(
+              $cancelToken,
+              vm,
+              `[XO Backup ${job.name}] ${vm.name_label}`
+            )
       ): any)
 
       if (startAfterSnapshot) {
@@ -1417,11 +1477,11 @@ export default class BackupNg {
                   parentId: taskId,
                   result: () => ({ size: xva.size }),
                 },
-                writeStream(fork, handler, dataFilename)
+                handler.outputStream(fork, dataFilename)
               )
 
               if (handler._getFilePath !== undefined) {
-                await isValidXva(handler._getFilePath(dataFilename))
+                await isValidXva(handler._getFilePath('/' + dataFilename))
               }
 
               await handler.outputFile(metadataFilename, jsonMetadata)
@@ -1443,7 +1503,7 @@ export default class BackupNg {
             async (taskId, sr) => {
               const fork = forkExport()
 
-              const { uuid: srUuid, xapi } = sr
+              const { uuid: srUuid, $xapi: xapi } = sr
 
               // delete previous interrupted copies
               ignoreErrors.call(
@@ -1553,7 +1613,7 @@ export default class BackupNg {
           }
         })
 
-        for (const { uuid: srUuid, xapi } of srs) {
+        for (const { uuid: srUuid, $xapi: xapi } of srs) {
           const replicatedVm = listReplicatedVms(
             xapi,
             jobId,
@@ -1641,7 +1701,12 @@ export default class BackupNg {
           deltaExport.vdis,
           vdi =>
             `vdis/${jobId}/${
-              (xapi.getObject(vdi.snapshot_of): Object).uuid
+              (vdi.type === 'suspend'
+                ? // doesn't make sense to group by parent for memory because we
+                  // don't do delta for it
+                  vdi
+                : (xapi.getObject(vdi.snapshot_of): Object)
+              ).uuid
             }/${basename}.vhd`
         ),
         vm,
@@ -1781,9 +1846,8 @@ export default class BackupNg {
                     }
 
                     // FIXME: should only be renamed after the metadata file has been written
-                    await writeStream(
+                    await handler.outputStream(
                       fork.streams[`${id}.vhd`](),
-                      handler,
                       path,
                       {
                         // no checksum for VHDs, because they will be invalidated by
@@ -1827,7 +1891,7 @@ export default class BackupNg {
             async (taskId, sr) => {
               const fork = forkExport()
 
-              const { uuid: srUuid, xapi } = sr
+              const { uuid: srUuid, $xapi: xapi } = sr
 
               // delete previous interrupted copies
               ignoreErrors.call(

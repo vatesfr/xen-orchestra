@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import debounce from 'lodash/debounce'
 import getEventValue from 'get-event-value'
 import Icon from 'icon'
@@ -100,7 +100,7 @@ export default class TabConsole extends Component {
 
   _openSsh = (username = 'root') => {
     window.location = `ssh://${encodeURIComponent(username)}@${
-      this.props.vm.addresses['0/ip']
+      this.props.vm.mainIpAddress
     }`
   }
 
@@ -121,9 +121,7 @@ export default class TabConsole extends Component {
       ),
     })
     if (username !== (cookies.get(cookieKey) || 'root')) {
-      // seems to be seconds
-      const expires = 31 * 3600 * 24
-      cookies.set(cookieKey, username, { expires })
+      cookies.set(cookieKey, username, { expires: 31 }) // 31 days
     }
     this._openSsh(username)
   }
@@ -131,7 +129,7 @@ export default class TabConsole extends Component {
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
-    const canSsh = vm.addresses && vm.addresses['0/ip']
+    const canSsh = vm.mainIpAddress !== undefined
 
     if (!isVmRunning(vm)) {
       return (

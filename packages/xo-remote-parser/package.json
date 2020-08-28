@@ -1,8 +1,8 @@
 {
   "private": false,
   "name": "xo-remote-parser",
-  "version": "0.5.0",
-  "license": "AGPL-3.0",
+  "version": "0.6.0",
+  "license": "AGPL-3.0-or-later",
   "description": "",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-remote-parser",
@@ -13,8 +13,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Fabrice Marsaud",
-    "email": "fabrice.marsaud@vates.fr"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -26,14 +26,15 @@
     "node": ">=6"
   },
   "dependencies": {
-    "lodash": "^4.13.1"
+    "lodash": "^4.13.1",
+    "url-parse": "^1.4.7"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "babel-plugin-lodash": "^3.3.2",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "deep-freeze": "^0.0.1",
     "rimraf": "^3.0.0"
   },
@@ -42,7 +43,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "rimraf dist/",
     "predev": "yarn run prebuild",
-    "prepare": "yarn run build",
+    "prepublishOnly": "yarn run build",
     "postversion": "npm publish"
   }
 }

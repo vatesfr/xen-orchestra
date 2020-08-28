@@ -1,7 +1,7 @@
 {
   "name": "xo-server-transport-slack",
   "version": "0.0.0",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "description": "xo-server plugin to send messages to Slack/Mattermost",
   "keywords": [
     "mattermost",
@@ -20,8 +20,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Badr Azizbi",
-    "email": "badr.azizbi@vates.fr"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -40,7 +40,7 @@
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {

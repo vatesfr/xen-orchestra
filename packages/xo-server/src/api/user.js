@@ -74,8 +74,6 @@ export async function set({ id, email, password, permission, preferences }) {
 
 set.description = 'changes the properties of an existing user'
 
-set.permission = ''
-
 set.params = {
   id: { type: 'string' },
   email: { type: 'string', optional: true },
@@ -93,8 +91,6 @@ export async function changePassword({ oldPassword, newPassword }) {
 
 changePassword.description =
   'change password after checking old password (user function)'
-
-changePassword.permission = ''
 
 changePassword.params = {
   oldPassword: { type: 'string' },

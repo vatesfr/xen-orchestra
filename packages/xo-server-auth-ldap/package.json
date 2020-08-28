@@ -1,7 +1,7 @@
 {
   "name": "xo-server-auth-ldap",
-  "version": "0.7.0",
-  "license": "AGPL-3.0",
+  "version": "0.8.1",
+  "license": "AGPL-3.0-or-later",
   "description": "LDAP authentication plugin for XO-Server",
   "keywords": [
     "ldap",
@@ -19,8 +19,8 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@vates.fr"
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
@@ -31,19 +31,19 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   },
   "dependencies": {
     "exec-promise": "^0.7.0",
     "inquirer": "^7.0.0",
-    "ldapts": "1.10.0",
+    "ldapts": "^2.2.1",
     "promise-toolbox": "^0.15.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {

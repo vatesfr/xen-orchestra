@@ -2,7 +2,7 @@
   "private": false,
   "name": "xo-cli",
   "version": "0.11.0",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-or-later",
   "description": "Basic CLI for Xen-Orchestra",
   "keywords": [
     "xo",
@@ -17,7 +17,10 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
   "preferGlobal": true,
   "main": "dist/",
   "bin": {
@@ -30,7 +33,6 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
     "bluebird": "^3.5.1",
     "chalk": "^3.0.0",
     "exec-promise": "^0.7.0",
@@ -57,7 +59,7 @@
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-flow": "^7.0.0",
     "babel-plugin-lodash": "^3.3.2",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {

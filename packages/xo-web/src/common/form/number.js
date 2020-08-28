@@ -7,9 +7,14 @@ import decorate from '../apply-decorators'
 // it provide `data-*` to add params to the `onChange`
 const Number_ = decorate([
   provideState({
+    initialState: () => ({
+      displayedValue: '',
+    }),
     effects: {
-      onChange: (_, { target: { value } }) => (state, props) => {
-        value = value.trim()
+      onChange(_, { target: { value } }) {
+        const { state, props } = this
+        state.displayedValue = value = value.trim()
+
         if (value === '') {
           value = undefined
         } else {
@@ -31,6 +36,18 @@ const Number_ = decorate([
         props.onChange(value, empty ? undefined : params)
       },
     },
+    computed: {
+      value: ({ displayedValue }, { value }) => {
+        const numericValue = +displayedValue
+        if (
+          displayedValue === '' ||
+          (!Number.isNaN(numericValue) && numericValue !== value)
+        ) {
+          return value === undefined ? '' : String(value)
+        }
+        return displayedValue
+      },
+    },
   }),
   injectState,
   ({ state, effects, value, className = 'form-control', ...props }) => (
@@ -39,14 +56,14 @@ const Number_ = decorate([
       className={className}
       onChange={effects.onChange}
       type='number'
-      value={value === undefined ? '' : String(value)}
+      value={state.value}
     />
   ),
 ])
 
 Number_.propTypes = {
   onChange: PropTypes.func.isRequired,
-  value: PropTypes.number.isRequired,
+  value: PropTypes.number,
 }
 
 export default Number_

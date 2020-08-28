@@ -14,10 +14,14 @@ const createPassword = () =>
 // =============================================================================
 
 export class PrivateNetwork {
-  constructor(controller, uuid) {
+  constructor(controller, uuid, preferredCenter) {
+    this._preferredCenter = preferredCenter
+
     this.controller = controller
     this.uuid = uuid
     this.networks = {}
+
+    this.controller.registerPrivateNetwork(this)
   }
 
   // ---------------------------------------------------------------------------
@@ -123,18 +127,13 @@ export class PrivateNetwork {
   async electNewCenter() {
     delete this.center
 
-    // TODO: make it random
-    const hosts = this._getHosts()
-    for (const host of hosts) {
-      const pif = host.$PIFs.find(
-        _ => _.network === this.networks[host.$pool.uuid].$ref
+    if (this._preferredCenter !== undefined) {
+      this._preferredCenter = await this._preferredCenter.$xapi.barrier(
+        this._preferredCenter.$ref
       )
-      if (pif?.currently_attached && host.$metrics.live) {
-        this.center = host
-        break
-      }
     }
 
+    this.center = this._findBestCenter()
     if (this.center === undefined) {
       log.error('No available host to elect new star-center', {
         privateNetwork: this.uuid,
@@ -145,8 +144,7 @@ export class PrivateNetwork {
     await this._reset()
 
     // Recreate star topology
-    await Promise.all(hosts.map(host => this.addHost(host)))
-
+    await Promise.all(this._getHosts().map(host => this.addHost(host)))
     log.info('New star-center elected', {
       center: this.center.name_label,
       privateNetwork: this.uuid,
@@ -198,5 +196,28 @@ export class PrivateNetwork {
       hosts.push(...filter(network.$pool.$xapi.objects.all, { $type: 'host' }))
     })
     return hosts
+  }
+
+  _hostCanBeCenter(host) {
+    const pif = host.$PIFs.find(
+      _ => _.network === this.networks[host.$pool.uuid].$ref
+    )
+    return pif?.currently_attached && host.$metrics.live
+  }
+
+  _findBestCenter() {
+    if (
+      this._preferredCenter !== undefined &&
+      this._hostCanBeCenter(this._preferredCenter)
+    ) {
+      return this._preferredCenter
+    }
+
+    // TODO: make it random
+    for (const host of this._getHosts()) {
+      if (this._hostCanBeCenter(host)) {
+        return host
+      }
+    }
   }
 }

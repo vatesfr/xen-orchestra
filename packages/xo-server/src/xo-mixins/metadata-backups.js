@@ -2,10 +2,10 @@
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { parseDuration } from '@vates/parse-duration'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { waitAll } from '../_waitAll'
-import parseDuration from '../_parseDuration'
 import { type Xapi } from '../xapi'
 import {
   safeDateFormat,
@@ -188,7 +188,7 @@ export default class metadataBackup {
       const scheduleDir = `${DIR_XO_CONFIG_BACKUPS}/${schedule.id}`
       const dir = `${scheduleDir}/${safeDateFormat(timestamp)}`
 
-      const data = JSON.stringify(await app.exportConfig(), null, 2)
+      const data = await app.exportConfig()
       const fileName = `${dir}/data.json`
 
       const metadata = JSON.stringify(
@@ -768,9 +768,7 @@ export default class metadataBackup {
       let result
       if (dir === DIR_XO_CONFIG_BACKUPS) {
         result = await app.importConfig(
-          JSON.parse(
-            String(await handler.readFile(`${metadataFolder}/data.json`))
-          )
+          await handler.readFile(`${metadataFolder}/data.json`)
         )
       } else {
         result = await app

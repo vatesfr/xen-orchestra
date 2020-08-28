@@ -24,6 +24,9 @@ export default function proxyConsole(ws, vmConsole, sessionId) {
       host: hostname,
       port: url.port || 443,
       rejectUnauthorized: false,
+
+      // Support XS <= 6.5 with Node => 12
+      minVersion: 'TLSv1',
     },
     () => {
       // Write headers.

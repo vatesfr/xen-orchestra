@@ -6,6 +6,7 @@ import splitLines from 'split-lines'
 import { CancelToken, fromEvent, ignoreErrors } from 'promise-toolbox'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
+import { decorateWith } from '@vates/decorate-with'
 import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import { basename, dirname } from 'path'
@@ -301,7 +302,7 @@ export default class {
     this._xo = xo
   }
 
-  @debounceWithKey.decorate(DEBOUNCE_DELAY, function keyFn(remoteId) {
+  @decorateWith(debounceWithKey, DEBOUNCE_DELAY, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async listRemoteBackups(remoteId) {
@@ -330,7 +331,7 @@ export default class {
     return backups
   }
 
-  @debounceWithKey.decorate(DEBOUNCE_DELAY, function keyFn(remoteId) {
+  @decorateWith(debounceWithKey, DEBOUNCE_DELAY, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async listVmBackups(remoteId) {

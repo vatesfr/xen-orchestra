@@ -9,6 +9,7 @@ import crypto from 'crypto'
 import has from 'lodash/has'
 import helmet from 'helmet'
 import includes from 'lodash/includes'
+import memoryStoreFactory from 'memorystore'
 import ms from 'ms'
 import proxyConsole from './proxy-console'
 import pw from 'pw'
@@ -16,7 +17,10 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
-import { forOwn, map, once } from 'lodash'
+import xdg from 'xdg-basedir'
+import { forOwn, map, merge, once } from 'lodash'
+import { genSelfSignedCert } from '@xen-orchestra/self-signed'
+import { parseDuration } from '@vates/parse-duration'
 import { URL } from 'url'
 
 import { compile as compilePug } from 'pug'
@@ -27,10 +31,9 @@ import { join as joinPath } from 'path'
 
 import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
-import { ensureDir, readdir, readFile } from 'fs-extra'
+import { ensureDir, outputFile, readdir, readFile } from 'fs-extra'
 
 import ensureArray from './_ensureArray'
-import parseDuration from './_parseDuration'
 import Xo from './xo'
 
 import bodyParser from 'body-parser'
@@ -43,6 +46,7 @@ import { Strategy as LocalStrategy } from 'passport-local'
 
 import transportConsole from '@xen-orchestra/log/transports/console'
 import { configure } from '@xen-orchestra/log/configure'
+import { generateToken } from './utils'
 
 // ===================================================================
 
@@ -63,10 +67,12 @@ const log = createLogger('xo:main')
 
 // ===================================================================
 
+const APP_NAME = 'xo-server'
+
 const DEPRECATED_ENTRIES = ['users', 'servers']
 
 async function loadConfiguration() {
-  const config = await appConf.load('xo-server', {
+  const config = await appConf.load(APP_NAME, {
     appDir: joinPath(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
@@ -83,25 +89,47 @@ async function loadConfiguration() {
   return config
 }
 
+const LOCAL_CONFIG_FILE = `${xdg.config}/${APP_NAME}/config.z-auto.json`
+async function updateLocalConfig(diff) {
+  // TODO lock file
+  const localConfig = await readFile(LOCAL_CONFIG_FILE).then(
+    JSON.parse,
+    () => ({})
+  )
+  merge(localConfig, diff)
+  await outputFile(LOCAL_CONFIG_FILE, JSON.stringify(localConfig), {
+    mode: 0o600,
+  })
+}
+
 // ===================================================================
 
-function createExpressApp(config) {
+async function createExpressApp(config) {
   const app = createExpress()
 
   app.use(helmet(config.http.helmet))
 
   app.use(compression())
 
+  let { sessionSecret } = config.http
+  if (sessionSecret === undefined) {
+    sessionSecret = await generateToken()
+    await updateLocalConfig({ http: { sessionSecret } })
+  }
+
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
-  app.use(cookieParser(null, config.http.cookies))
+  app.use(cookieParser(sessionSecret, config.http.cookies))
+  const MemoryStore = memoryStoreFactory(expressSession)
   app.use(
     expressSession({
+      cookie: config.http.cookies,
       resave: false,
       saveUninitialized: false,
-
-      // TODO: should be in the config file.
-      secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS',
+      secret: sessionSecret,
+      store: new MemoryStore({
+        checkPeriod: 24 * 3600 * 1e3,
+      }),
     })
   )
 
@@ -119,7 +147,11 @@ function createExpressApp(config) {
   return app
 }
 
-async function setUpPassport(express, xo, { authentication: authCfg }) {
+async function setUpPassport(
+  express,
+  xo,
+  { authentication: authCfg, http: { cookies: cookieCfg } }
+) {
   const strategies = { __proto__: null }
   xo.registerPassportStrategy = (
     strategy,
@@ -150,7 +182,7 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
   })
 
   express.get('/signout', (req, res) => {
-    res.clearCookie('token')
+    res.clearCookie('token', cookieCfg)
     res.redirect('/')
   })
 
@@ -195,13 +227,13 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
       userId: user.id,
     })
 
-    res.cookie(
-      'token',
-      token.id,
+    res.cookie('token', token.id, {
+      ...cookieCfg,
+
       // a session (non-permanent) cookie must not have an expiration date
       // because it must not survive browser restart
-      isPersistent ? { expires: new Date(token.expiration) } : undefined
-    )
+      ...(isPersistent ? { expires: new Date(token.expiration) } : undefined),
+    })
 
     delete req.session.isPersistent
     delete req.session.user
@@ -251,14 +283,20 @@ async function setUpPassport(express, xo, { authentication: authCfg }) {
 
   // Install the local strategy.
   xo.registerPassportStrategy(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const { user } = await xo.authenticateUser({ username, password })
-        done(null, user)
-      } catch (error) {
-        done(null, false, { message: error.message })
+    new LocalStrategy(
+      { passReqToCallback: true },
+      async (req, username, password, done) => {
+        try {
+          const { user } = await xo.authenticateUser(
+            { username, password },
+            { ip: req.ip }
+          )
+          done(null, user)
+        } catch (error) {
+          done(null, false, { message: error.message })
+        }
       }
-    })
+    )
   )
 }
 
@@ -283,12 +321,14 @@ async function registerPlugin(pluginPath, pluginName) {
   } = plugin
   let instance
 
+  const config = this._config
   const handleFactory = factory =>
     typeof factory === 'function'
       ? factory({
+          staticConfig: config.plugins?.[pluginName] ?? {},
           xo: this,
           getDataDir: () => {
-            const dir = `${this._config.datadir}/${pluginName}`
+            const dir = `${config.datadir}/${pluginName}`
             return ensureDir(dir).then(() => dir)
           },
         })
@@ -332,10 +372,7 @@ function registerPluginWrapper(pluginPath, pluginName) {
   )
 }
 
-const PLUGIN_PREFIX = 'xo-server-'
-const PLUGIN_PREFIX_LENGTH = PLUGIN_PREFIX.length
-
-async function registerPluginsInPath(path) {
+async function registerPluginsInPath(path, prefix) {
   const files = await readdir(path).catch(error => {
     if (error.code === 'ENOENT') {
       return []
@@ -345,11 +382,11 @@ async function registerPluginsInPath(path) {
 
   await Promise.all(
     files.map(name => {
-      if (name.startsWith(PLUGIN_PREFIX)) {
+      if (name.startsWith(prefix)) {
         return registerPluginWrapper.call(
           this,
           `${path}/${name}`,
-          name.slice(PLUGIN_PREFIX_LENGTH)
+          name.slice(prefix.length)
         )
       }
     })
@@ -358,9 +395,11 @@ async function registerPluginsInPath(path) {
 
 async function registerPlugins(xo) {
   await Promise.all(
-    [`${__dirname}/../node_modules/`, '/usr/local/lib/node_modules/'].map(
-      registerPluginsInPath,
-      xo
+    [`${__dirname}/../node_modules`, '/usr/local/lib/node_modules'].map(path =>
+      Promise.all([
+        registerPluginsInPath.call(xo, path, 'xo-server-'),
+        registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),
+      ])
     )
   )
 }
@@ -370,6 +409,8 @@ async function registerPlugins(xo) {
 async function makeWebServerListen(
   webServer,
   {
+    autoCert = true,
+
     certificate,
 
     // The properties was called `certificate` before.
@@ -379,18 +420,37 @@ async function makeWebServerListen(
     ...opts
   }
 ) {
-  if (cert && key) {
-    ;[opts.cert, opts.key] = await Promise.all([readFile(cert), readFile(key)])
-    if (opts.key.includes('ENCRYPTED')) {
-      opts.passphrase = await new Promise(resolve => {
-        // eslint-disable-next-line no-console
-        console.log('Encrypted key %s', key)
-        process.stdout.write(`Enter pass phrase: `)
-        pw(resolve)
-      })
-    }
-  }
   try {
+    if (cert && key) {
+      try {
+        ;[opts.cert, opts.key] = await Promise.all([
+          readFile(cert),
+          readFile(key),
+        ])
+        if (opts.key.includes('ENCRYPTED')) {
+          opts.passphrase = await new Promise(resolve => {
+            // eslint-disable-next-line no-console
+            console.log('Encrypted key %s', key)
+            process.stdout.write(`Enter pass phrase: `)
+            pw(resolve)
+          })
+        }
+      } catch (error) {
+        if (!(autoCert && error.code === 'ENOENT')) {
+          throw error
+        }
+
+        const pems = await genSelfSignedCert()
+        await Promise.all([
+          outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
+          outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
+        ])
+        log.info('new certificate generated', { cert, key })
+        opts.cert = pems.cert
+        opts.key = pems.key
+      }
+    }
+
     const niceAddress = await webServer.listen(opts)
     log.info(`Web server listening on ${niceAddress}`)
   } catch (error) {
@@ -716,7 +776,7 @@ export default async function main(args) {
   await xo.clean()
 
   // Express is used to manage non WebSocket connections.
-  const express = createExpressApp(config)
+  const express = await createExpressApp(config)
 
   if (config.http.redirectToHttps) {
     let port

@@ -268,7 +268,10 @@ const SshKeys = addSubscriptions({
 })(({ user }) => {
   const sshKeys = user && user.preferences && user.preferences.sshKeys
 
-  const sshKeysWithIds = map(sshKeys, sshKey => ({ ...sshKey, id: sshKey.key }))
+  const sshKeysWithIds = map(sshKeys, sshKey => ({
+    ...sshKey,
+    id: sshKey.key,
+  }))
 
   return (
     <div>
@@ -428,14 +431,15 @@ export default class User extends Component {
                 style={{ width: '10em' }}
               >
                 <option value='en'>English</option>
+                <option value='es'>Español</option>
                 <option value='fr'>Français</option>
-                <option value='he'>עברי</option>
+                <option value='hu'>Magyar</option>
+                <option value='it'>Italiano</option>
                 <option value='pl'>Polski</option>
                 <option value='pt'>Português</option>
-                <option value='es'>Español</option>
-                <option value='zh'>简体中文</option>
-                <option value='hu'>Magyar</option>
                 <option value='tr'>Türkçe</option>
+                <option value='he'>עברי</option>
+                <option value='zh'>简体中文</option>
               </select>
             </Col>
           </Row>

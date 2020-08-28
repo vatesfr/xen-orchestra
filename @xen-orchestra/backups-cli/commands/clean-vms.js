@@ -8,12 +8,12 @@ let force
 const assert = require('assert')
 const flatten = require('lodash/flatten')
 const getopts = require('getopts')
-const isValidXva = require('@xen-orchestra/backups/isValidXva')
 const lockfile = require('proper-lockfile')
 const pipe = require('promise-toolbox/pipe')
-const { default: Vhd } = require('vhd-lib')
+const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
+const { isValidXva } = require('@xen-orchestra/backups/isValidXva')
 
 const asyncMap = require('../_asyncMap')
 const fs = require('../_fs')
@@ -29,7 +29,7 @@ const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
 async function mergeVhdChain(chain) {
   assert(chain.length >= 2)
 
-  const child = chain[0]
+  let child = chain[0]
   const parent = chain[chain.length - 1]
   const children = chain.slice(0, -1).reverse()
 
@@ -46,15 +46,36 @@ async function mergeVhdChain(chain) {
     // `mergeVhd` does not work with a stream, either
     // - make it accept a stream
     // - or create synthetic VHD which is not a stream
-    return console.warn('TODO: implement merge')
-    // await mergeVhd(
-    //   handler,
-    //   parent,
-    //   handler,
-    //   children.length === 1
-    //     ? child
-    //     : await createSyntheticStream(handler, children)
-    // )
+    if (children.length !== 1) {
+      console.warn('TODO: implement merging multiple children')
+      children.length = 1
+      child = children[0]
+    }
+
+    let done, total
+    const handle = setInterval(() => {
+      if (done !== undefined) {
+        console.log('merging %s: %s/%s', child, done, total)
+      }
+    }, 10e3)
+
+    await mergeVhd(
+      handler,
+      parent,
+      handler,
+      child,
+      // children.length === 1
+      //   ? child
+      //   : await createSyntheticStream(handler, children),
+      {
+        onProgress({ done: d, total: t }) {
+          done = d
+          total = t
+        },
+      }
+    )
+
+    clearInterval(handle)
   }
 
   await Promise.all([
@@ -152,11 +173,12 @@ async function handleVm(vmDir) {
     await Promise.all(deletions)
   }
 
-  const [jsons, xvas] = await fs
+  const [jsons, xvas, xvaSums] = await fs
     .readdir2(vmDir)
     .then(entries => [
       entries.filter(_ => _.endsWith('.json')),
       new Set(entries.filter(_ => _.endsWith('.xva'))),
+      entries.filter(_ => _.endsWith('.xva.cheksum')),
     ])
 
   await asyncMap(xvas, async path => {
@@ -273,6 +295,15 @@ async function handleVm(vmDir) {
       force && console.warn('  deleting…')
       console.warn('')
       return force && handler.unlink(path)
+    }),
+    asyncMap(xvaSums, path => {
+      // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
+      if (!xvas.has(path.slice(0, -'.checksum'.length))) {
+        console.warn('Unused XVA checksum', path)
+        force && console.warn('  deleting…')
+        console.warn('')
+        return force && handler.unlink(path)
+      }
     }),
   ])
 }

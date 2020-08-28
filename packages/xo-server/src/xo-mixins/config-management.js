@@ -1,5 +1,7 @@
+import * as openpgp from 'openpgp'
 import createLogger from '@xen-orchestra/log'
 import DepTree from 'deptree'
+
 import { mapValues } from 'lodash'
 import { pAll } from 'promise-toolbox'
 
@@ -12,21 +14,62 @@ export default class ConfigManagement {
     this._managers = { __proto__: null }
   }
 
-  addConfigManager(id, exporter, importer, dependencies) {
+  addConfigManager(id, exporter, importer, dependencies = []) {
     const managers = this._managers
     if (id in managers) {
       throw new Error(`${id} is already taken`)
     }
 
     this._depTree.add(id, dependencies)
-    this._managers[id] = { exporter, importer }
+    this._managers[id] = { dependencies, exporter, importer }
   }
 
-  exportConfig() {
-    return mapValues(this._managers, ({ exporter }, key) => exporter())::pAll()
+  async exportConfig({ entries, passphrase } = {}) {
+    let managers = this._managers
+    if (entries !== undefined) {
+      const subset = { __proto__: null }
+      entries.forEach(function addEntry(entry) {
+        if (!(entry in subset)) {
+          const manager = managers[entry]
+          subset[entry] = manager
+          manager.dependencies.forEach(addEntry)
+        }
+      })
+      managers = subset
+    }
+
+    let config = JSON.stringify(
+      await mapValues(managers, ({ exporter }, key) => exporter())::pAll()
+    )
+
+    if (passphrase !== undefined) {
+      config = Buffer.from(
+        (
+          await openpgp.encrypt({
+            armor: false,
+            message: openpgp.message.fromText(config),
+            passwords: passphrase,
+          })
+        ).message.packets.write()
+      )
+    }
+
+    return config
   }
 
-  async importConfig(config) {
+  async importConfig(config, { passphrase } = {}) {
+    if (passphrase !== undefined) {
+      config = (
+        await openpgp.decrypt({
+          format: 'utf8',
+          message: await openpgp.message.read(config),
+          passwords: passphrase,
+        })
+      ).data
+    }
+
+    config = JSON.parse(config)
+
     const managers = this._managers
     for (const key of this._depTree.resolve()) {
       const manager = managers[key]

@@ -3,6 +3,7 @@ import humanFormat from 'human-format'
 import React from 'react'
 import ReadableStream from 'readable-stream'
 import { connect } from 'react-redux'
+import { createPredicate } from 'value-matcher'
 import { FormattedDate } from 'react-intl'
 import {
   clone,
@@ -13,6 +14,7 @@ import {
   isPlainObject,
   map,
   mapValues,
+  omit,
   pick,
   sample,
   some,
@@ -42,7 +44,7 @@ export addSubscriptions from './add-subscriptions'
 
 export const getVirtualizationModeLabel = vm => {
   const virtualizationMode =
-    vm.virtualizationMode === 'hvm' && Boolean(vm.xenTools)
+    vm.virtualizationMode === 'hvm' && vm.pvDriversDetected
       ? 'pvhvm'
       : vm.virtualizationMode
 
@@ -211,17 +213,29 @@ export const osFamily = invoke(
 
 // -------------------------------------------------------------------
 
+function safeHumanFormat(value, opts) {
+  try {
+    return humanFormat(value, opts)
+  } catch (error) {
+    console.error('humanFormat', value, opts, error)
+    return 'N/D'
+  }
+}
+
 export const formatSize = bytes =>
-  humanFormat(bytes, { scale: 'binary', unit: 'B' })
+  safeHumanFormat(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSizeShort = bytes =>
-  humanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
+  safeHumanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
 
 export const formatSizeRaw = bytes =>
   humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSpeed = (bytes, milliseconds) =>
-  humanFormat((bytes * 1e3) / milliseconds, { scale: 'binary', unit: 'B/s' })
+  safeHumanFormat((bytes * 1e3) / milliseconds, {
+    scale: 'binary',
+    unit: 'B/s',
+  })
 
 const timeScale = new humanFormat.Scale({
   ns: 1e-6,
@@ -234,7 +248,7 @@ const timeScale = new humanFormat.Scale({
   y: 2592000 * 1e3,
 })
 export const formatTime = milliseconds =>
-  humanFormat(milliseconds, { scale: timeScale, decimals: 0 })
+  safeHumanFormat(milliseconds, { scale: timeScale, decimals: 0 })
 
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
@@ -370,7 +384,7 @@ export const htmlFileToStream = file => {
     stream.emit('error', error)
   }
 
-  stream._read = function(size) {
+  stream._read = function (size) {
     if (offset >= file.size) {
       stream.push(null)
     } else {
@@ -408,7 +422,7 @@ const OPs = {
 }
 
 const makeNiceCompare = compare =>
-  function() {
+  function () {
     const { length } = arguments
     if (length === 2) {
       return compare(arguments[0], arguments[1])
@@ -535,10 +549,7 @@ export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) =>
 
 // ===================================================================
 
-export const generateRandomId = () =>
-  Math.random()
-    .toString(36)
-    .slice(2)
+export const generateRandomId = () => Math.random().toString(36).slice(2)
 
 // ===================================================================
 
@@ -601,6 +612,11 @@ export const createCompare = criterias => (...items) => {
 
 // ===================================================================
 
+export const createCompareContainers = poolId =>
+  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
+
+// ===================================================================
+
 export const hasLicenseRestrictions = host => {
   const licenseType = host.license_params.sku_type
   return (
@@ -628,3 +644,40 @@ export const TryXoa = ({ page }) => (
     {_('tryXoa')}
   </a>
 )
+
+// ===================================================================
+
+export const getDetachedBackupsOrSnapshots = (
+  backupsOrSnapshots,
+  { jobs, schedules, vms }
+) => {
+  if (jobs === undefined || schedules === undefined) {
+    return []
+  }
+
+  const detachedBackupsOrSnapshots = []
+  forEach(backupsOrSnapshots, backupOrSnapshot => {
+    const { vmId, jobId, scheduleId } = backupOrSnapshot
+    const vm = vms[vmId]
+    const job = jobs[jobId]
+    const reason =
+      vm === undefined
+        ? 'missingVm'
+        : job === undefined
+        ? 'missingJob'
+        : schedules[scheduleId] === undefined
+        ? 'missingSchedule'
+        : !createPredicate(omit(job.vms, 'power_state'))(vm)
+        ? 'missingVmInJob'
+        : undefined
+
+    if (reason !== undefined) {
+      detachedBackupsOrSnapshots.push({
+        ...backupOrSnapshot,
+        reason,
+      })
+    }
+  })
+
+  return detachedBackupsOrSnapshots
+}

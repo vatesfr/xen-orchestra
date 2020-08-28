@@ -95,7 +95,7 @@ describe('vif', () => {
         () => {
           throw new Error('vif.delete() should have thrown')
         },
-        function(error) {
+        function (error) {
           expect(error.message).to.be.equal('unknown error from the peer')
         }
       )

@@ -69,10 +69,7 @@ const STATUS_ICON = {
 const DATE_FORMAT = 'dddd, MMMM Do YYYY, h:mm:ss a'
 const createDateFormatter = timezone =>
   timezone !== undefined
-    ? timestamp =>
-        moment(timestamp)
-          .tz(timezone)
-          .format(DATE_FORMAT)
+    ? timestamp => moment(timestamp).tz(timezone).format(DATE_FORMAT)
     : timestamp => moment(timestamp).format(DATE_FORMAT)
 
 const formatDuration = milliseconds => moment.duration(milliseconds).humanize()
@@ -667,13 +664,11 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport({
-    mailReceivers = this._mailsReceivers,
-    markdown,
-    nagiosMarkdown,
-    subject,
-    success,
-  }) {
+  _sendReport({ mailReceivers, markdown, nagiosMarkdown, subject, success }) {
+    if (mailReceivers === undefined || mailReceivers.length === 0) {
+      mailReceivers = this._mailsReceivers
+    }
+
     const xo = this._xo
     return Promise.all([
       xo.sendEmail !== undefined &&

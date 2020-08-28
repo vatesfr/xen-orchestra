@@ -13,10 +13,7 @@ export const evalTemplate = (tpl, data) => {
 // -------------------------------------------------------------------
 
 const compileGlobPatternFragment = pattern =>
-  pattern
-    .split('*')
-    .map(escapeRegExp)
-    .join('.*')
+  pattern.split('*').map(escapeRegExp).join('.*')
 
 export const compileGlobPattern = pattern => {
   const no = []

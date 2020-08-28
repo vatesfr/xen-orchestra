@@ -119,6 +119,12 @@ timeout = 600e3
 #[workerOptions]
 #numWorkers = 2
 
+[selfService]
+
+# If true, a snapshot of a Self Service VM will consume as much resources as a
+# normal VM would
+ignoreVmSnapshotResources = false
+
 [xapiOptions]
 maxUncoalescedVdis = 1
 vdiExportConcurrency = 12
@@ -133,6 +139,8 @@ channel = 'xo-proxy-appliance'
 namespace = 'xoProxyAppliance'
 
 proxyName = 'Proxy {date}'
+
+licenseProductId = 'xo-proxy'
 
 vmName = 'XOA Proxy {date}'
 

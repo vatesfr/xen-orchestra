@@ -1,6 +1,6 @@
 import deferrable from 'golike-defer'
-import { find, gte, includes, isEmpty, lte, noop } from 'lodash'
-import { ignoreErrors, pCatch } from 'promise-toolbox'
+import { find, gte, includes, isEmpty, lte, mapValues, noop } from 'lodash'
+import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
 import { NULL_REF } from 'xen-api'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
@@ -18,10 +18,12 @@ const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
 export default {
   // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
-  async checkpointVm(vmId, nameLabel) {
+  @cancelable
+  async checkpointVm($cancelToken, vmId, nameLabel) {
     const vm = this.getObject(vmId)
     try {
       const ref = await this.callAsync(
+        $cancelToken,
         'VM.checkpoint',
         vm.$ref,
         nameLabel != null ? nameLabel : vm.name_label
@@ -29,7 +31,7 @@ export default {
       return this.barrier(ref)
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
-        return this._snapshotVm(vm, nameLabel)
+        return this._snapshotVm($cancelToken, vm, nameLabel)
       }
       throw error
     }
@@ -123,7 +125,10 @@ export default {
       const isHvm = isVmHvm(vm)
 
       if (isHvm) {
-        if (!isEmpty(vdis) || installMethod === 'network') {
+        if (
+          (isEmpty(vdis) && isEmpty(existingVdis)) ||
+          installMethod === 'network'
+        ) {
           const { order } = vm.HVM_boot_params
 
           vm.update_HVM_boot_params(
@@ -170,16 +175,17 @@ export default {
             if (!vbd) {
               return
             }
-            const vdi = vbd.$VDI
+            let vdi = vbd.$VDI
             await this._setObjectProperties(vdi, properties)
+
+            // if another SR is set, move it there
+            if (srId) {
+              vdi = await this.moveVdi(vdi.$id, srId)
+            }
 
             // if the disk is bigger
             if (size != null && size > vdi.virtual_size) {
               await this.resizeVdi(vdi.$id, size)
-            }
-            // if another SR is set, move it there
-            if (srId) {
-              await this.moveVdi(vdi.$id, srId)
             }
           }
         )
@@ -285,6 +291,14 @@ export default {
           vm.update_other_config('auto_poweron', value ? 'true' : null),
           value && vm.$pool.update_other_config('auto_poweron', 'true'),
         ])
+      },
+    },
+
+    blockedOperations: {
+      set(operations, vm) {
+        return vm.update_blocked_operations(
+          mapValues(operations, value => (value ? 'true' : null))
+        )
       },
     },
 
@@ -480,12 +494,8 @@ export default {
     return /* await */ this._editVm(this.getObject(id), props, checkLimits)
   },
 
-  async revertVm(snapshotId, snapshotBefore = true) {
+  async revertVm(snapshotId) {
     const snapshot = this.getObject(snapshotId)
-    let newSnapshot
-    if (snapshotBefore) {
-      newSnapshot = await this._snapshotVm(snapshot.$snapshot_of)
-    }
     await this.callAsync('VM.revert', snapshot.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
       const vm = await this.barrier(snapshot.snapshot_of)
@@ -495,7 +505,6 @@ export default {
         this.resumeVm(vm.$id)::ignoreErrors()
       }
     }
-    return newSnapshot
   },
 
   async resumeVm(vmId) {

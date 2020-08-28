@@ -8,7 +8,7 @@ import tmp from 'tmp'
 
 import { createReadStream, createWriteStream, stat } from 'fs-extra'
 import { pFromCallback } from 'promise-toolbox'
-import convertFromVMDK, { readVmdkGrainTable } from '.'
+import { vmdkToVhd, readVmdkGrainTable } from '.'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -66,7 +66,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     )
     const result = await readVmdkGrainTable(createFileAccessor(vmdkFileName))
     const pipe = (
-      await convertFromVMDK(
+      await vmdkToVhd(
         createReadStream(vmdkFileName),
         result.grainLogicalAddressList,
         result.grainFileOffsetList
