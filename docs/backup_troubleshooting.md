@@ -86,4 +86,4 @@ Edit your job and try to see matching VMs or check if your pool is connected to 
 
 ## Error: SR_OPERATION_NOT_SUPPORTED
 
-This error could be caused by leaving any removeable device (such as USB storage) attached to the VM that you are doing backup/snapshot, detach the device and retry.
+This error can be caused by leaving any removable device (such as USB storage) attached to the VM that you are backing up or snapshotting, detach the device and retry. This can also be caused if you created a VM disk using the [RAW format](https://xcp-ng.org/docs/storage.html#using-raw-format).
