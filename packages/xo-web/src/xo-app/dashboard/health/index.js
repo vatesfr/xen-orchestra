@@ -343,6 +343,31 @@ const VM_ACTIONS = [
   },
 ]
 
+const TOO_MANY_SNAPSHOT_COLUMNS = [
+  {
+    name: _('vmNameLabel'),
+    itemRenderer: vm => (
+      <Link to={`vms/${vm.id}/snapshots`}>{vm.name_label}</Link>
+    ),
+    sortCriteria: vm => vm.name_label,
+  },
+  {
+    name: _('vmNameDescription'),
+    itemRenderer: vm => vm.name_description,
+    sortCriteria: vm => vm.name_description,
+  },
+  {
+    name: _('vmContainer'),
+    itemRenderer: vm => <VmColContainer id={vm.$container} />,
+  },
+  {
+    default: true,
+    name: _('numberOfSnapshots'),
+    itemRenderer: vm => vm.snapshots.length,
+    sortOrder: 'desc',
+  },
+]
+
 const ALARM_COLUMNS = [
   {
     name: _('alarmDate'),
@@ -434,6 +459,13 @@ const ALARM_ACTIONS = [
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
+  const MAX_HEALTHY_SNAPSHOT_COUNT = 5 // TODO: What is a good number???
+  // TODO: Do we want some way to opt out
+  // of the check for some VMs? Tags?
+  // Ignore replicas?
+  const getTooManySnapshotsVms = createGetObjectsOfType('VM')
+    .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT])
+    .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([
     message => message.name === 'ALARM',
@@ -444,6 +476,7 @@ const ALARM_ACTIONS = [
     areObjectsFetched,
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
+    tooManySnapshotsVms: getTooManySnapshotsVms,
     userSrs: getUserSrs,
   }
 })
@@ -511,6 +544,11 @@ export default class Health extends Component {
 
   _getOrphanVmSnapshots = createFilter(
     () => this.props.orphanVmSnapshots,
+    this._getPoolPredicate
+  )
+
+  _getTooManySnapshotsVms = createFilter(
+    () => this.props.tooManySnapshotsVms,
     this._getPoolPredicate
   )
 
@@ -624,6 +662,39 @@ export default class Health extends Component {
                   emptyMessage={_('noOrphanedObject')}
                   shortcutsTarget='.orphaned-vms'
                   stateUrlParam='s_orphan_vms'
+                />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row className='too-many-snapshots-vms'>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='vm' /> {_('tooManySnapshots')}
+              </CardHeader>
+              <CardBlock>
+                <p>
+                  <Icon icon='info' /> <em>{_('tooManySnapshotsTip')}</em>
+                </p>
+                <NoObjects
+                  actions={
+                    [] /* TODO: What to put here? Own version of VM_ACTIONS? */
+                  }
+                  collection={
+                    props.areObjectsFetched
+                      ? this._getTooManySnapshotsVms()
+                      : null
+                  }
+                  columns={TOO_MANY_SNAPSHOT_COLUMNS}
+                  component={SortedTable}
+                  emptyMessage={
+                    _(
+                      'noTooManySnapshotsObject'
+                    ) /* What are the things bellow? */
+                  }
+                  shortcutsTarget='.too-many-snapshots-vms'
+                  stateUrlParam='s_too_many_snapshots_vms'
                 />
               </CardBlock>
             </Card>
