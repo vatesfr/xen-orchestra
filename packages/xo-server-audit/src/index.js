@@ -312,6 +312,12 @@ class AuditXoPlugin {
   // See www-xo#344
   async _uploadLastHash() {
     const xo = this._xo
+
+    // In case of non-existent XOA plugin
+    if (xo.audit === undefined) {
+      return
+    }
+
     const chain = await xo.audit.getLastChain()
 
     let lastHash, integrityCheckSuccess
