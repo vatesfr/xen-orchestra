@@ -403,7 +403,7 @@ export default decorate([
         try {
           return log.tasks.filter(CM.parse(filter).createPredicate())
         } catch (_) {
-          return log.tasks
+          return []
         }
       },
       filteredTaskLogs: ({ preFilteredTasksLogs, status }) =>
