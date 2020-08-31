@@ -295,8 +295,14 @@ export class OvsdbClient {
       'uuid-name': 'new_controller',
     })
 
-    const networks = this.host.$PIFs.map(pif => pif.$network)
+    const networks = this.host.$PIFs.map(pif => pif?.$network)
     for (const network of networks) {
+      // network can be undefined so we can't set its controller
+      // It can happen if there's a ref problem within XAPI
+      if (network === undefined) {
+        continue
+      }
+
       const bridge = await this._getBridgeForNetwork(network, socket)
       if (bridge.uuid === undefined) {
         continue

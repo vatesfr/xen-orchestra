@@ -35,6 +35,7 @@ import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  createSort,
 } from 'selectors'
 
 const SrColContainer = connectStore(() => ({
@@ -128,32 +129,49 @@ const SR_COLUMNS = [
 
 const ORPHANED_VDI_COLUMNS = [
   {
-    name: _('snapshotDate'),
+    name: _('vdiNameLabel'),
     itemRenderer: vdi => (
       <span>
-        <FormattedTime
-          day='numeric'
-          hour='numeric'
-          minute='numeric'
-          month='long'
-          value={vdi.snapshot_time * 1000}
-          year='numeric'
-        />{' '}
-        (<FormattedRelative value={vdi.snapshot_time * 1000} />)
+        {vdi.name_label}
+        {vdi.type === 'VDI-snapshot' && (
+          <span className='tag tag-info ml-1'>
+            <Icon icon='vm-snapshot' />
+          </span>
+        )}
       </span>
     ),
-    sortCriteria: vdi => vdi.snapshot_time,
-    sortOrder: 'desc',
-  },
-  {
-    name: _('vdiNameLabel'),
-    itemRenderer: vdi => vdi.name_label,
     sortCriteria: vdi => vdi.name_label,
+    default: true,
   },
   {
     name: _('vdiNameDescription'),
     itemRenderer: vdi => vdi.name_description,
     sortCriteria: vdi => vdi.name_description,
+  },
+  {
+    name: _('snapshotDate'),
+    itemRenderer: vdi => {
+      if (vdi.type === 'VDI') {
+        // Normal VDIs don't have a creation date
+        return null
+      }
+
+      return (
+        <span>
+          <FormattedTime
+            day='numeric'
+            hour='numeric'
+            minute='numeric'
+            month='long'
+            value={vdi.snapshot_time * 1000}
+            year='numeric'
+          />{' '}
+          (<FormattedRelative value={vdi.snapshot_time * 1000} />)
+        </span>
+      )
+    },
+    sortCriteria: vdi => vdi.snapshot_time,
+    sortOrder: 'desc',
   },
   {
     name: _('vdiSize'),
@@ -165,6 +183,11 @@ const ORPHANED_VDI_COLUMNS = [
     itemRenderer: vdi => <Sr id={vdi.$SR} link spaceLeft={false} />,
   },
 ]
+
+const ORPHAN_VDI_FILTERS = {
+  filterOnlySnapshots: 'type:VDI-snapshot',
+  filterOnlyRegular: 'type:/^VDI$/',
+}
 
 const ORPHANED_VDI_ACTIONS = [
   {
@@ -385,27 +408,43 @@ const ALARM_ACTIONS = [
 ]
 
 @connectStore(() => {
-  const getOrphanVdiSnapshots = createGetObjectsOfType('VDI-snapshot')
-    .filter([_ => !_.$snapshot_of && _.$VBDs.length === 0])
-    .sort()
+  const getSrs = createGetObjectsOfType('SR')
+  const getOrphanVdis = createSort(
+    createFilter(
+      createSelector(
+        createGetObjectsOfType('VDI'),
+        createGetObjectsOfType('VDI-snapshot'),
+        (vdis, snapshotVdis) => Object.assign({}, vdis, snapshotVdis)
+      ),
+      createSelector(getSrs, srs => vdi => {
+        if (vdi.$VBDs.length !== 0) {
+          return false
+        }
+
+        const sr = srs[vdi.$SR]
+        return (
+          sr !== undefined &&
+          // Condition copied from iso-device.js
+          sr.SR_type !== 'iso' &&
+          (sr.SR_type !== 'udev' || !sr.size)
+        )
+      })
+    )
+  )
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
-  const getUserSrs = createGetObjectsOfType('SR').filter([isSrWritable])
-  const getVdiSrs = createGetObjectsOfType('SR').pick(
-    createSelector(getOrphanVdiSnapshots, snapshots => map(snapshots, '$SR'))
-  )
+  const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([
     message => message.name === 'ALARM',
   ])
 
   return {
-    areObjectsFetched,
     alertMessages: getAlertMessages,
+    areObjectsFetched,
+    orphanVdis: getOrphanVdis,
+    orphanVmSnapshots: getOrphanVmSnapshots,
     userSrs: getUserSrs,
-    vdiOrphaned: getOrphanVdiSnapshots,
-    vdiSr: getVdiSrs,
-    vmOrphaned: getOrphanVmSnapshots,
   }
 })
 export default class Health extends Component {
@@ -465,13 +504,13 @@ export default class Health extends Component {
 
   _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
 
-  _getVdiOrphaned = createFilter(
-    () => this.props.vdiOrphaned,
+  _getOrphanVdis = createFilter(
+    () => this.props.orphanVdis,
     this._getPoolPredicate
   )
 
-  _getVmOrphaned = createFilter(
-    () => this.props.vmOrphaned,
+  _getOrphanVmSnapshots = createFilter(
+    () => this.props.orphanVmSnapshots,
     this._getPoolPredicate
   )
 
@@ -486,7 +525,7 @@ export default class Health extends Component {
     const { props, state } = this
 
     const userSrs = this._getUserSrs()
-    const vdiOrphaned = this._getVdiOrphaned()
+    const orphanVdis = this._getOrphanVdis()
 
     return process.env.XOA_PLAN > 3 ? (
       <Container>
@@ -533,15 +572,19 @@ export default class Health extends Component {
                 <Icon icon='disk' /> {_('orphanedVdis')}
               </CardHeader>
               <CardBlock>
+                <p>
+                  <Icon icon='info' /> <em>{_('orphanVdisTip')}</em>
+                </p>
                 <NoObjects
-                  collection={props.areObjectsFetched ? vdiOrphaned : null}
+                  collection={props.areObjectsFetched ? orphanVdis : null}
                   emptyMessage={_('noOrphanedObject')}
                 >
                   {() => (
                     <SortedTable
                       actions={ORPHANED_VDI_ACTIONS}
-                      collection={vdiOrphaned}
+                      collection={orphanVdis}
                       columns={ORPHANED_VDI_COLUMNS}
+                      filters={ORPHAN_VDI_FILTERS}
                       stateUrlParam='s_vdis'
                     />
                   )}
@@ -572,7 +615,9 @@ export default class Health extends Component {
                 <NoObjects
                   actions={VM_ACTIONS}
                   collection={
-                    props.areObjectsFetched ? this._getVmOrphaned() : null
+                    props.areObjectsFetched
+                      ? this._getOrphanVmSnapshots()
+                      : null
                   }
                   columns={VM_COLUMNS}
                   component={SortedTable}

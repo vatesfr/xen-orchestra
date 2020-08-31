@@ -18,6 +18,8 @@ import {
   createSelector,
 } from './selectors'
 
+const vdiPredicate = vdi => !vdi.missing
+
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
 })
@@ -45,7 +47,7 @@ export default class IsoDevice extends Component {
     vm: PropTypes.object.isRequired,
   }
 
-  _getPredicate = createSelector(
+  _getSrPredicate = createSelector(
     () => this.props.vm.$pool,
     () => this.props.vm.$container,
     (vmPool, vmContainer) => sr => {
@@ -96,8 +98,9 @@ export default class IsoDevice extends Component {
       <div className='input-group'>
         <SelectVdi_
           onChange={this._handleInsert}
+          predicate={vdiPredicate}
           resourceSet={useResourceSet ? resourceSet : undefined}
-          srPredicate={this._getPredicate()}
+          srPredicate={this._getSrPredicate()}
           value={mountedIso}
         />
         <span className='input-group-btn'>
