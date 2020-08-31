@@ -399,8 +399,13 @@ export default decorate([
 
         return newLog
       },
-      preFilteredTasksLogs: ({ log, filter }) =>
-        log.tasks.filter(CM.parse(filter).createPredicate()),
+      preFilteredTasksLogs: ({ log, filter }) => {
+        try {
+          return log.tasks.filter(CM.parse(filter).createPredicate())
+        } catch (_) {
+          return log.tasks
+        }
+      },
       filteredTaskLogs: ({ preFilteredTasksLogs, status }) =>
         status === 'all'
           ? preFilteredTasksLogs
