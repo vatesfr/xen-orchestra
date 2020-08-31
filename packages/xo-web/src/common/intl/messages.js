@@ -82,6 +82,7 @@ const messages = {
   upgradesAvailable: 'Upgrades available',
   advancedSettings: 'Advanced settings',
   txChecksumming: 'TX checksumming',
+  unknownSize: 'Unknown size',
 
   // ----- Modals -----
   alertOk: 'OK',

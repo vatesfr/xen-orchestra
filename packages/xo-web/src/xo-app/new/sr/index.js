@@ -159,7 +159,7 @@ class SelectLun extends Component {
         label: `LUN ${lun.id}: ${lun.serial} - ${
           lun.size !== undefined
             ? formatSize(+lun.size)
-            : formatMessage(messages.unknown)
+            : formatMessage(messages.unknownSize)
         } - (${lun.vendor})`,
         value: index,
       }))
@@ -996,7 +996,7 @@ export default class New extends Component {
                       <dd>
                         {lun.size !== undefined
                           ? formatSize(+lun.size)
-                          : _('unknown')}
+                          : _('unknownSize')}
                       </dd>
                     </dl>
                   )}
