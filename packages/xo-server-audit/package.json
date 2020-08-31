@@ -1,6 +1,6 @@
 {
   "name": "xo-server-audit",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "license": "AGPL-3.0-or-later",
   "description": "Audit plugin for XO-Server",
   "keywords": [
@@ -36,6 +36,7 @@
   "devDependencies": {
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.0.0",
     "@babel/preset-env": "^7.7.1",
     "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
@@ -49,8 +50,10 @@
   },
   "dependencies": {
     "@xen-orchestra/audit-core": "^0.1.1",
+    "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.2.0",
     "async-iterator-to-stream": "^1.1.0",
+    "lodash": "^4.17.19",
     "promise-toolbox": "^0.15.0",
     "readable-stream": "^3.5.0",
     "xo-common": "^0.5.0"

@@ -1,5 +1,5 @@
 import Component from 'base-component'
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import DocumentTitle from 'react-document-title'
 import Icon from 'icon'
 import Link from 'link'
@@ -150,7 +150,7 @@ export default class XoApp extends Component {
   }
 
   dismissSourceBanner = () => {
-    cookies.set('dismissedSourceBanner', true, { expires: 24 * 60 * 60 }) // 1 day
+    cookies.set('dismissedSourceBanner', true, { expires: 1 }) // 1 day
     this.setState({ dismissedSourceBanner: true })
   }
 

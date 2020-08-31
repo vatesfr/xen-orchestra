@@ -1,11 +1,12 @@
 import asap from 'asap'
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import {
@@ -71,7 +72,7 @@ export const signOut = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
-  cookies.expire('token')
+  cookies.remove('token')
   window.location.reload(true)
 }
 
@@ -374,7 +375,7 @@ const setNotificationCookie = (id, changes) => {
   cookies.set(
     `notifications:${store.getState().user.id}`,
     JSON.stringify(notifications),
-    { expires: Infinity }
+    { expires: 9999 }
   )
 }
 
@@ -1187,7 +1188,10 @@ export const copyVms = (vms, type) => {
   }, noop)
 }
 
-export const copyVm = vm => copyVms([vm], vm.type)
+export const copyVm = async vm => {
+  const result = await copyVms([vm], vm.type)
+  return getDefined(() => result[0])
+}
 
 export const convertVmToTemplate = vm =>
   confirm({
@@ -1779,16 +1783,28 @@ export const deleteVifs = vifs =>
 
 export const setVif = (
   vif,
-  { allowedIpv4Addresses, allowedIpv6Addresses, mac, network, rateLimit }
+  {
+    allowedIpv4Addresses,
+    allowedIpv6Addresses,
+    lockingMode,
+    mac,
+    network,
+    rateLimit,
+    txChecksumming,
+  }
 ) =>
   _call('vif.set', {
     allowedIpv4Addresses,
     allowedIpv6Addresses,
     id: resolveId(vif),
+    lockingMode,
     mac,
     network: resolveId(network),
     rateLimit,
+    txChecksumming,
   })
+
+export const getLockingModeValues = () => _call('vif.getLockingModeValues')
 
 export const addAclRule = ({
   allow,
@@ -1890,6 +1906,8 @@ export const getIpv4ConfigModes = () => _call('pif.getIpv4ConfigurationModes')
 
 export const editPif = (pif, { vlan }) =>
   _call('pif.editPif', { pif: resolveId(pif), vlan })
+
+export const scanHostPifs = hostId => _call('host.scanPifs', { host: hostId })
 
 // SR ----------------------------------------------------------------
 
@@ -3220,15 +3238,36 @@ export const upgradeProxyAppliance = proxy =>
 export const getProxyApplianceUpdaterState = id =>
   _call('proxy.getApplianceUpdaterState', { id })
 
-export const checkProxyHealth = proxy =>
-  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>
-    success(
-      <span>
-        <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
-      </span>,
-      _('proxyTestSuccessMessage')
-    )
-  )
+const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EHOSTUNREACH',
+  'ENOTFOUND',
+  'ETIMEDOUT',
+])
+
+export const checkProxyHealth = async proxy => {
+  const result = await _call('proxy.checkHealth', {
+    id: resolveId(proxy),
+  })
+  return result.success
+    ? success(
+        <span>
+          <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
+        </span>,
+        _('proxyTestSuccessMessage')
+      )
+    : error(
+        <span>
+          <Icon icon='error' /> {_('proxyTestFailed', { name: proxy.name })}
+        </span>,
+        <span>
+          {PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE.has(result.error.code)
+            ? _('proxyTestFailedConnectionIssueMessage')
+            : result.error.message}
+        </span>
+      )
+}
 
 // Audit plugin ---------------------------------------------------------
 

@@ -591,7 +591,8 @@ export default class BackupNg {
         const remoteIds = unboxIdsFromPattern(job.remotes)
         const srIds = unboxIdsFromPattern(job.srs)
 
-        if (job.proxy !== undefined) {
+        const proxyId = job.proxy
+        if (proxyId !== undefined) {
           const vmIds = Object.keys(vms)
 
           const recordToXapi = {}
@@ -609,9 +610,9 @@ export default class BackupNg {
           await waitAll([
             asyncMap(remoteIds, async id => {
               const remote = await app.getRemoteWithCredentials(id)
-              if (remote.proxy !== job.proxy) {
+              if (remote.proxy !== proxyId) {
                 throw new Error(
-                  `The remote ${remote.name} must be linked to the proxy ${job.proxy}`
+                  `The remote ${remote.name} must be linked to the proxy ${proxyId}`
                 )
               }
 
@@ -652,7 +653,7 @@ export default class BackupNg {
 
           try {
             const logsStream = await app.callProxyMethod(
-              job.proxy,
+              proxyId,
               'backup.run',
               params,
               {
@@ -700,7 +701,7 @@ export default class BackupNg {
             // XO API invalid parameters error
             if (error.code === 10) {
               delete params.streamLogs
-              return app.callProxyMethod(job.proxy, 'backup.run', params)
+              return app.callProxyMethod(proxyId, 'backup.run', params)
             }
             throw error
           }
