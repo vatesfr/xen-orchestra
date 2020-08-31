@@ -362,14 +362,13 @@ export default decorate([
         }
 
         const newLog = cloneDeep(log)
-        log.tasks.forEach((task, key) => {
+        newLog.tasks.forEach((task, key) => {
           const type = get(() => task.data.type)
           if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
             return
           }
 
-          const newTask = newLog.tasks[key]
-          newTask.name =
+          task.name =
             type === 'VM'
               ? get(() => vms[task.data.id].name_label)
               : type === 'pool'
@@ -380,23 +379,21 @@ export default decorate([
             return
           }
 
-          newTask.remotes = []
-          newTask.srs = []
+          task.remotes = []
+          task.srs = []
           task.tasks.forEach(({ data = {} }) => {
             if (data.type !== 'remote' && data.type !== 'SR') {
               return
             }
 
-            newTask.isFull = data.isFull
+            task.isFull = data.isFull
 
             if (data.type === 'remote') {
-              ifDef(remotes[data.id], remote =>
-                newTask.remotes.push(remote.name)
-              )
+              ifDef(remotes[data.id], remote => task.remotes.push(remote.name))
               return
             }
 
-            ifDef(srs[data.id], sr => newTask.srs.push(sr.name_label))
+            ifDef(srs[data.id], sr => task.srs.push(sr.name_label))
           })
         })
 
