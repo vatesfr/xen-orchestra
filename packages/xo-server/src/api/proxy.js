@@ -170,8 +170,21 @@ getApplianceUpdaterState.params = {
   },
 }
 
-export function checkHealth({ id }) {
-  return this.checkProxyHealth(id)
+export async function checkHealth({ id }) {
+  try {
+    await this.callProxyMethod(id, 'system.getServerVersion')
+    return {
+      success: true,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: error.code,
+        message: error.message,
+      },
+    }
+  }
 }
 checkHealth.permission = 'admin'
 checkHealth.params = {

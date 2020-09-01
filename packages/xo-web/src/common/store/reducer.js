@@ -1,4 +1,4 @@
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import { omit } from 'lodash'
 
 import invoke from '../invoke'
