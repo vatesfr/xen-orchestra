@@ -417,7 +417,7 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
         tag => tag === 'Disaster Recovery' || tag === 'Continuous Replication'
       )
 
-    // Ignore replicated VMs it can be added then deleted by the backup due to its retention
+    // Ignore replicated VMs because they can be added then deleted by the backup due to its retention
     if (!isReplication) {
       allVms.push({
         uuid: vm.uuid,
