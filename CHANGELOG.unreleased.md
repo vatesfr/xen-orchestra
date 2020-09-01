@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Usage report] Ignore replicated VMs [#4778](https://github.com/vatesfr/xen-orchestra/issues/4778) (PR [#5241](https://github.com/vatesfr/xen-orchestra/pull/5241))
+- [Usage report] Exclude replicated VMs from the VMs evolution [#4778](https://github.com/vatesfr/xen-orchestra/issues/4778) (PR [#5241](https://github.com/vatesfr/xen-orchestra/pull/5241))
 
 ### Bug fixes
 
