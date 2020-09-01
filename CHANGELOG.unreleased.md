@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Dashboard/Health] Too many snapshots for VM [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”

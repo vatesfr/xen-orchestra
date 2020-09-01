@@ -459,10 +459,7 @@ const ALARM_ACTIONS = [
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
-  const MAX_HEALTHY_SNAPSHOT_COUNT = 5 // TODO: What is a good number???
-  // TODO: Do we want some way to opt out
-  // of the check for some VMs? Tags?
-  // Ignore replicas?
+  const MAX_HEALTHY_SNAPSHOT_COUNT = 5
   const getTooManySnapshotsVms = createGetObjectsOfType('VM')
     .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT])
     .sort()
@@ -678,9 +675,6 @@ export default class Health extends Component {
                   <Icon icon='info' /> <em>{_('tooManySnapshotsTip')}</em>
                 </p>
                 <NoObjects
-                  actions={
-                    [] /* TODO: What to put here? Own version of VM_ACTIONS? */
-                  }
                   collection={
                     props.areObjectsFetched
                       ? this._getTooManySnapshotsVms()
@@ -688,11 +682,7 @@ export default class Health extends Component {
                   }
                   columns={TOO_MANY_SNAPSHOT_COLUMNS}
                   component={SortedTable}
-                  emptyMessage={
-                    _(
-                      'noTooManySnapshotsObject'
-                    ) /* What are the things bellow? */
-                  }
+                  emptyMessage={_('noTooManySnapshotsObject')}
                   shortcutsTarget='.too-many-snapshots-vms'
                   stateUrlParam='s_too_many_snapshots_vms'
                 />
