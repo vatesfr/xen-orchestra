@@ -24,7 +24,7 @@ import {
 import Page from '../page'
 
 import deployProxy from './deploy-proxy'
-import updateApplianceSettings from './update-appliance-settings'
+import { updateApplianceSettings } from './update-appliance-settings'
 
 const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })

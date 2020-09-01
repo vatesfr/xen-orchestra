@@ -71,4 +71,4 @@ const updateApplianceSettings = async proxy => {
   })
 }
 
-export { updateApplianceSettings as default }
+export { updateApplianceSettings }
