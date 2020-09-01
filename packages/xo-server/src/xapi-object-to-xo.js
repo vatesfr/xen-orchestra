@@ -23,10 +23,15 @@ const ALLOCATION_BY_TYPE = {
   ext: 'thin',
   file: 'thin',
   hba: 'thick',
+  iscsi: 'thick',
   lvhd: 'thick',
   lvhdofcoe: 'thick',
   lvhdohba: 'thick',
   lvhdoiscsi: 'thick',
+  lvm: 'thick',
+  lvmofcoe: 'thick',
+  lvmohba: 'thick',
+  lvmoiscsi: 'thick',
   nfs: 'thin',
   ocfs: 'thick',
   ocfsohba: 'thick',
@@ -35,6 +40,7 @@ const ALLOCATION_BY_TYPE = {
   rawiscsi: 'thick',
   shm: 'thin',
   smb: 'thin',
+  udev: 'thick',
   xosan: 'thin',
   zfs: 'thin',
 }
@@ -594,6 +600,7 @@ const TRANSFORMS = {
     const vdi = {
       type: 'VDI',
 
+      missing: obj.missing,
       name_description: obj.name_description,
       name_label: obj.name_label,
       parent: obj.sm_config['vhd-parent'],
@@ -637,6 +644,7 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   vif(obj) {
+    const txChecksumming = obj.other_config['ethtool-tx']
     return {
       type: 'VIF',
 
@@ -648,6 +656,9 @@ const TRANSFORMS = {
       MAC: obj.MAC,
       MTU: +obj.MTU,
       other_config: obj.other_config,
+
+      // See: https://xapi-project.github.io/xen-api/networking.html
+      txChecksumming: !(txChecksumming === 'false' || txChecksumming === 'off'),
 
       // in kB/s
       rateLimit: (() => {
