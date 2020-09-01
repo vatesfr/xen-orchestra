@@ -405,16 +405,25 @@ async function getSrsStats({ xo, xoObjects }) {
 }
 
 function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
-  const allVms = concat(
-    map(vmsStats, vm => ({
-      uuid: vm.uuid,
-      name: vm.name,
-    })),
-    map(haltedVms, vm => ({
-      uuid: vm.uuid,
-      name: vm.name_label,
-    }))
-  )
+  const allVms = vmsStats.map(vm => ({
+    uuid: vm.uuid,
+    name: vm.name,
+  }))
+
+  haltedVms.forEach(vm => {
+    const isReplication =
+      'start' in vm.blockedOperations &&
+      vm.tags.some(
+        tag => tag === 'Disaster Recovery' || tag === 'Continuous Replication'
+      )
+
+    if (!isReplication) {
+      allVms.push({
+        uuid: vm.uuid,
+        name: vm.name_label,
+      })
+    }
+  })
 
   return Object.assign(
     computeMeans(vmsStats, [
@@ -426,7 +435,7 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
       'netTransmission',
     ]),
     {
-      number: allVms.length,
+      number: vmsStats.length + haltedVms.length,
       allVms,
     }
   )
