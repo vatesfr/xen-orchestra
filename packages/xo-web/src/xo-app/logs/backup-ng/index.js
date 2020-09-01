@@ -4,6 +4,7 @@ import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
@@ -72,6 +73,11 @@ const GoToJob = decorate([
     </Tooltip>
   ),
 ])
+
+GoToJob.propTypes = {
+  jobId: PropTypes.string.isRequired,
+  scrollIntoJobs: PropTypes.func.isRequired,
+}
 
 const COLUMNS = [
   {
