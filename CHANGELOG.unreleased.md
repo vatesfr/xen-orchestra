@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Usage report] Ignore replicated VMs [#4778](https://github.com/vatesfr/xen-orchestra/issues/4778) (PR [#5241](https://github.com/vatesfr/xen-orchestra/pull/5241))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,4 +32,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-usage-report minor
 - xo-server patch
