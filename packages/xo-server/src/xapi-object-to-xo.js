@@ -466,7 +466,7 @@ const TRANSFORMS = {
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
 
-      // used to avoid race condition on `$snapshot_of`
+      // useful in order to avoid race condition on `$snapshot_of` between the snapshot and its VM
       vm.isOrphanSnapshot =
         vm.snapshot_of === NULL_REF || !isOpaqueRef(vm.snapshot_of)
     } else if (obj.is_a_template) {
