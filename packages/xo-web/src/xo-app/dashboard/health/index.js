@@ -432,7 +432,7 @@ const ALARM_ACTIONS = [
     )
   )
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
-    .filter([snapshot => !snapshot.$snapshot_of])
+    .filter([snapshot => snapshot.isOrphanSnapshot])
     .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([

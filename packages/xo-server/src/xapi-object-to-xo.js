@@ -1,3 +1,5 @@
+import { isOpaqueRef, NULL_REF } from 'xen-api'
+
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
@@ -463,6 +465,8 @@ const TRANSFORMS = {
 
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
+      vm.isOrphanSnapshot =
+        vm.snapshot_of === NULL_REF || !isOpaqueRef(vm.snapshot_of)
     } else if (obj.is_a_template) {
       vm.type += '-template'
 
