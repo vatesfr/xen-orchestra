@@ -468,7 +468,7 @@ const TRANSFORMS = {
 
       // useful in order to avoid race condition on `$snapshot_of` between the snapshot and its VM
       vm.isOrphanSnapshot =
-        vm.snapshot_of === NULL_REF || !isOpaqueRef(vm.snapshot_of)
+        obj.snapshot_of === NULL_REF || !isOpaqueRef(obj.snapshot_of)
     } else if (obj.is_a_template) {
       vm.type += '-template'
 
