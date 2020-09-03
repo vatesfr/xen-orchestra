@@ -6,6 +6,12 @@ import { createChecksumStream } from './checksum'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
+// limits: https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
+const MIN_PART_SIZE = 1024 * 1024 * 5 // 5MB
+const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
+const MAX_PARTS_COUNT = 10000
+const MAX_OBJECT_SIZE = 1024 * 1024 * 1024 * 1024 * 5 // 5TB
+const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the smallest fragment size that still allows a 5TB upload in 10000 fragments, about 524MB
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
@@ -34,8 +40,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _outputStream(input, path, { checksum }) {
-    const MAX_OBJECT_SIZE = 5 * 1024 * 1024 * 1024 * 1024
-    const FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / 10000)
     let inputStream = input
     if (checksum) {
       const checksumStream = createChecksumStream()
@@ -51,7 +55,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ...this._createParams(path),
         Body: inputStream,
       },
-      { partSize: FRAGMENT_SIZE }
+      { partSize: IDEAL_FRAGMENT_SIZE }
     )
     await upload.promise()
     if (checksum) {
@@ -130,15 +134,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _write(file, buffer, position) {
-    const MIN_FRAGMENT_SIZE = 1024 * 1024 * 5 // 5Mo
-    const MAX_FRAGMENT_SIZE = 1024 * 1024 * 1024 * 5 // 5Go
     if (typeof file !== 'string') {
       file = file.fd
     }
     const uploadParams = this._createParams(file)
     const fileSize = +(await this._s3.headObject(uploadParams).promise())
       .ContentLength
-    if (fileSize < MIN_FRAGMENT_SIZE) {
+    if (fileSize < MIN_PART_SIZE) {
       const resultBuffer = Buffer.alloc(
         Math.max(fileSize, position + buffer.length)
       )
@@ -170,7 +172,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         let editBuffer = buffer
         let editBufferOffset = position
         let partNumber = 1
-        if (prefixSize < MIN_FRAGMENT_SIZE) {
+        if (prefixSize < MIN_PART_SIZE) {
           const downloadParams = {
             ...uploadParams,
             Range: `bytes=0-${prefixSize - 1}`,
@@ -182,7 +184,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
           editBuffer = Buffer.concat([prefixBuffer, buffer])
           editBufferOffset = 0
         } else {
-          const fragmentsCount = Math.ceil(prefixSize / MAX_FRAGMENT_SIZE)
+          const fragmentsCount = Math.ceil(prefixSize / MAX_PART_SIZE)
           const prefixFragmentSize = Math.ceil(prefixSize / fragmentsCount)
           const lastFragmentSize =
             prefixFragmentSize * fragmentsCount - prefixSize
@@ -208,12 +210,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
           if (lastFragmentSize) {
           }
         }
-        if (hasSuffix && editBuffer.length < MIN_FRAGMENT_SIZE) {
+        if (hasSuffix && editBuffer.length < MIN_PART_SIZE) {
           // the edit fragment is too short and is not the last fragment
           // let's steal from the suffix fragment to reach the minimum size
           // the suffix might be too short and itself entirely absorbed in the edit fragment, making it the last one.
           const complementSize = Math.min(
-            MIN_FRAGMENT_SIZE - editBuffer.length,
+            MIN_PART_SIZE - editBuffer.length,
             suffixSize
           )
           const complementOffset = editBufferOffset + editBuffer.length
@@ -237,7 +239,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         const editPart = await this._s3.uploadPart(editParams).promise()
         parts.push({ ETag: editPart.ETag, PartNumber: editParams.PartNumber })
         if (hasSuffix) {
-          const suffixFragments = Math.ceil(suffixSize / MAX_FRAGMENT_SIZE)
+          const suffixFragments = Math.ceil(suffixSize / MAX_PART_SIZE)
           const suffixFragmentsSize = Math.ceil(suffixSize / suffixFragments)
           let suffixFragmentOffset = suffixOffset
           for (let i = 0; i < suffixFragments; i++) {
