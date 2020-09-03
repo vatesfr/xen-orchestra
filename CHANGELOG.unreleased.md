@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
+- [Dashboard/Health] Fix snapshots linked to existent VMs considered as orphans [#5243](https://github.com/vatesfr/xen-orchestra/issues/5243) (PR [#5244](https://github.com/vatesfr/xen-orchestra/pull/5244))
 
 ### Packages to release
 
@@ -30,4 +31,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-web patch
 - xo-server patch
