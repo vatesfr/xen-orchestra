@@ -34,6 +34,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _outputStream(input, path, { checksum }) {
+    const MAX_OBJECT_SIZE = 5 * 1024 * 1024 * 1024 * 1024
+    const FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / 10000)
     let inputStream = input
     if (checksum) {
       const checksumStream = createChecksumStream()
@@ -44,10 +46,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
       input.on('error', forwardError)
       inputStream = checksumStream
     }
-    const upload = this._s3.upload({
-      ...this._createParams(path),
-      Body: inputStream,
-    })
+    const upload = this._s3.upload(
+      {
+        ...this._createParams(path),
+        Body: inputStream,
+      },
+      { partSize: FRAGMENT_SIZE }
+    )
     await upload.promise()
     if (checksum) {
       const checksum = await inputStream.checksum
@@ -126,6 +131,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   async _write(file, buffer, position) {
     const MIN_FRAGMENT_SIZE = 1024 * 1024 * 5 // 5Mo
+    const MAX_FRAGMENT_SIZE = 1024 * 1024 * 1024 * 5 // 5Go
     if (typeof file !== 'string') {
       file = file.fd
     }
@@ -146,7 +152,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       return { buffer, bytesWritten: buffer.length }
     } else {
       // using this trick: https://stackoverflow.com/a/38089437/72637
-      // multipart fragments have a minimum size of 5Mo unless they are last
+      // multipart fragments have a minimum size of 5Mo and a max of 5Go unless they are last
       // splitting the file in 3 parts: [prefix, edit, suffix]
       // if `prefix` is bigger than 5Mo, it will be sourced from uploadPartCopy()
       // otherwise otherwise it will be downloaded, concatenated to `edit`
@@ -164,9 +170,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
         let editBuffer = buffer
         let editBufferOffset = position
         let partNumber = 1
-        const prefixRange = `bytes=0-${prefixSize - 1}`
         if (prefixSize < MIN_FRAGMENT_SIZE) {
-          const downloadParams = { ...uploadParams, Range: prefixRange }
+          const downloadParams = {
+            ...uploadParams,
+            Range: `bytes=0-${prefixSize - 1}`,
+          }
           const prefixBuffer =
             prefixSize > 0
               ? (await this._s3.getObject(downloadParams).promise()).Body
@@ -174,19 +182,31 @@ export default class S3Handler extends RemoteHandlerAbstract {
           editBuffer = Buffer.concat([prefixBuffer, buffer])
           editBufferOffset = 0
         } else {
-          const copyPrefixParams = {
-            ...multipartParams,
-            PartNumber: partNumber++,
-            CopySource: `/${this._bucket}/${this._dir + file}`,
-            CopySourceRange: prefixRange,
+          const fragmentsCount = Math.ceil(prefixSize / MAX_FRAGMENT_SIZE)
+          const prefixFragmentSize = Math.ceil(prefixSize / fragmentsCount)
+          const lastFragmentSize =
+            prefixFragmentSize * fragmentsCount - prefixSize
+          let prefixPosition = 0
+          for (let i = 0; i < fragmentsCount; i++) {
+            const copyPrefixParams = {
+              ...multipartParams,
+              PartNumber: partNumber++,
+              CopySource: `/${this._bucket}/${this._dir + file}`,
+              CopySourceRange: `bytes=${prefixPosition}-${
+                prefixPosition + prefixFragmentSize - 1
+              }`,
+            }
+            const prefixPart = (
+              await this._s3.uploadPartCopy(copyPrefixParams).promise()
+            ).CopyPartResult
+            parts.push({
+              ETag: prefixPart.ETag,
+              PartNumber: copyPrefixParams.PartNumber,
+            })
+            prefixPosition += prefixFragmentSize
           }
-          const prefixPart = (
-            await this._s3.uploadPartCopy(copyPrefixParams).promise()
-          ).CopyPartResult
-          parts.push({
-            ETag: prefixPart.ETag,
-            PartNumber: copyPrefixParams.PartNumber,
-          })
+          if (lastFragmentSize) {
+          }
         }
         if (hasSuffix && editBuffer.length < MIN_FRAGMENT_SIZE) {
           // the edit fragment is too short and is not the last fragment
@@ -217,20 +237,29 @@ export default class S3Handler extends RemoteHandlerAbstract {
         const editPart = await this._s3.uploadPart(editParams).promise()
         parts.push({ ETag: editPart.ETag, PartNumber: editParams.PartNumber })
         if (hasSuffix) {
-          const suffixRange = `bytes=${suffixOffset}-${fileSize - 1}`
-          const copySuffixParams = {
-            ...multipartParams,
-            PartNumber: partNumber++,
-            CopySource: `/${this._bucket}/${this._dir + file}`,
-            CopySourceRange: suffixRange,
+          const suffixFragments = Math.ceil(suffixSize / MAX_FRAGMENT_SIZE)
+          const suffixFragmentsSize = Math.ceil(suffixSize / suffixFragments)
+          let suffixFragmentOffset = suffixOffset
+          for (let i = 0; i < suffixFragments; i++) {
+            const fragmentEnd = suffixFragmentOffset + suffixFragmentsSize
+            const suffixRange = `bytes=${suffixFragmentOffset}-${
+              Math.min(fileSize, fragmentEnd) - 1
+            }`
+            const copySuffixParams = {
+              ...multipartParams,
+              PartNumber: partNumber++,
+              CopySource: `/${this._bucket}/${this._dir + file}`,
+              CopySourceRange: suffixRange,
+            }
+            const suffixPart = (
+              await this._s3.uploadPartCopy(copySuffixParams).promise()
+            ).CopyPartResult
+            parts.push({
+              ETag: suffixPart.ETag,
+              PartNumber: copySuffixParams.PartNumber,
+            })
+            suffixFragmentOffset = fragmentEnd
           }
-          const suffixPart = (
-            await this._s3.uploadPartCopy(copySuffixParams).promise()
-          ).CopyPartResult
-          parts.push({
-            ETag: suffixPart.ETag,
-            PartNumber: copySuffixParams.PartNumber,
-          })
         }
         await this._s3
           .completeMultipartUpload({
