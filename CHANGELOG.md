@@ -1,5 +1,16 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
+
+### Packages to release
+
+- xo-server-audit 0.7.1
+- xo-server 5.66.1
+
 ## **5.50.0** (2020-08-27)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
