@@ -13,8 +13,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
-
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
