@@ -11,7 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
 - [Remotes/S3] Fix S3 backup of 50GB+ files [#5197](https://github.com/vatesfr/xen-orchestra/issues/5197) (PR[ #5242](https://github.com/vatesfr/xen-orchestra/pull/5242) )
 
 ### Packages to release
