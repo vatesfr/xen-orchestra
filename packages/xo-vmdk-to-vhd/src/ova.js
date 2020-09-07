@@ -24,21 +24,21 @@ const MEMORY_UNIT_TO_FACTOR = {
 }
 const RESOURCE_TYPE_TO_HANDLER = {
   // CPU.
-  '3': (data, { VirtualQuantity: nCpus }) => {
+  3: (data, { VirtualQuantity: nCpus }) => {
     data.nCpus = +nCpus
   },
   // RAM.
-  '4': (data, { AllocationUnits: unit, VirtualQuantity: quantity }) => {
+  4: (data, { AllocationUnits: unit, VirtualQuantity: quantity }) => {
     data.memory = quantity * allocationUnitsToFactor(unit)
   },
   // Network.
-  '10': ({ networks }, { AutomaticAllocation: enabled, Connection: name }) => {
+  10: ({ networks }, { AutomaticAllocation: enabled, Connection: name }) => {
     if (enabled) {
       networks.push(name)
     }
   },
   // Disk.
-  '17': (
+  17: (
     { disks },
     {
       Address: address,
