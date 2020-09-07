@@ -16,7 +16,6 @@ Installation of the [npm package](https://npmjs.org/package/value-matcher):
 
 ```js
 import { createPredicate } from 'value-matcher'
-
 ;[
   { user: 'sam', age: 65, active: false },
   { user: 'barney', age: 36, active: true },
