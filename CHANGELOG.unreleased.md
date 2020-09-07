@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Dashboard/Health] Fix suspended VDIs considered as orphans [#5248](https://github.com/vatesfr/xen-orchestra/issues/5248) (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+- [Dashboard/Health] Fix suspended VDIs considered as orphans [#5248](https://github.com/vatesfr/xen-orchestra/issues/5248) (PR [#5249](https://github.com/vatesfr/xen-orchestra/pull/5249))
 
 ### Packages to release
 
