@@ -318,12 +318,21 @@ class AuditXoPlugin {
       return
     }
 
+    const lastRecordId = await this._storage.getLastId()
+    if (lastRecordId === undefined) {
+      return
+    }
+
     const chain = await xo.audit.getLastChain()
 
     let lastHash, integrityCheckSuccess
     if (chain !== null) {
       const hashes = chain.hashes
       lastHash = hashes[hashes.length - 1]
+
+      if (lastHash === lastRecordId) {
+        return
+      }
 
       // check the integrity of all stored hashes
       integrityCheckSuccess = await Promise.all(
@@ -336,13 +345,6 @@ class AuditXoPlugin {
         () => true,
         () => false
       )
-    }
-
-    if (
-      integrityCheckSuccess &&
-      lastHash === (await this._storage.getLastId())
-    ) {
-      return
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
