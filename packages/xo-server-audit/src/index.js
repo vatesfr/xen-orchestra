@@ -344,6 +344,7 @@ class AuditXoPlugin {
       oldest: lastHash,
     })
 
+    // lastHash is defined only when the integrity check succeed
     if (lastHash === undefined || error !== undefined) {
       await xo.audit.startNewChain({ oldest, newest })
     } else {
