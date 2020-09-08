@@ -335,7 +335,7 @@ class AuditXoPlugin {
         }
 
         lastHash = hashes[hashes.length - 1]
-      } catch {}
+      } catch (_) {}
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
