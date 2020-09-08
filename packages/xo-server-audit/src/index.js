@@ -325,9 +325,10 @@ class AuditXoPlugin {
 
     const chain = await xo.audit.getLastChain()
 
-    let lastHash
+    let lastHash, integrityCheckSuccess
     if (chain !== null) {
       const hashes = chain.hashes
+      lastHash = hashes[hashes.length - 1]
 
       if (lastHash === lastRecordId) {
         return
@@ -343,17 +344,18 @@ class AuditXoPlugin {
           })
         }
 
-        lastHash = hashes[hashes.length - 1]
-      } catch (_) {}
+        integrityCheckSuccess = true
+      } catch (_) {
+        integrityCheckSuccess = false
+      }
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
     const { oldest, newest, error } = await this._generateFingerprint({
-      oldest: lastHash,
+      oldest: integrityCheckSuccess ? lastHash : undefined,
     })
 
-    // lastHash is defined only when the integrity check succeed
-    if (lastHash === undefined || error !== undefined) {
+    if (chain === null || !integrityCheckSuccess || error !== undefined) {
       await xo.audit.startNewChain({ oldest, newest })
     } else {
       await xo.audit.extendLastChain({ oldest, newest })
