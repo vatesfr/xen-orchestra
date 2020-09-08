@@ -606,9 +606,9 @@ const TRANSFORMS = {
       parent: obj.sm_config['vhd-parent'],
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
-      suspended: obj.type === 'suspend',
       tags: obj.tags,
       usage: +obj.physical_utilisation,
+      vdi_type: obj.type,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),

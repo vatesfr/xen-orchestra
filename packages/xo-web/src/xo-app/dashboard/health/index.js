@@ -407,6 +407,8 @@ const ALARM_ACTIONS = [
   },
 ]
 
+const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
+
 @connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
   const getOrphanVdis = createSort(
@@ -417,8 +419,7 @@ const ALARM_ACTIONS = [
         (vdis, snapshotVdis) => Object.assign({}, vdis, snapshotVdis)
       ),
       createSelector(getSrs, srs => vdi => {
-        // suspended VDIs will be removed by XS/XCP-NG on the VM/VM-snapshot deletion
-        if (vdi.$VBDs.length !== 0 || vdi.suspended) {
+        if (vdi.$VBDs.length !== 0 || !HANDLED_VDI_TYPES.has(vdi.vdi_type)) {
           return false
         }
 
