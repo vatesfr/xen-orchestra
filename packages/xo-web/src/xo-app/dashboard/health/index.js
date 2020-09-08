@@ -417,8 +417,8 @@ const ALARM_ACTIONS = [
         (vdis, snapshotVdis) => Object.assign({}, vdis, snapshotVdis)
       ),
       createSelector(getSrs, srs => vdi => {
-        // VDIs of type suspend are automatically removed by XS/XCP-NG on the VM/VM-snapshot deletion
-        if (vdi.$VBDs.length !== 0 || vdi.type === 'suspend') {
+        // suspended VDIs will be removed by XS/XCP-NG on the VM/VM-snapshot deletion
+        if (vdi.$VBDs.length !== 0 || vdi.suspended) {
           return false
         }
 
