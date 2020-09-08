@@ -338,6 +338,13 @@ class AuditXoPlugin {
       )
     }
 
+    if (
+      integrityCheckSuccess &&
+      lastHash === (await this._storage.getLastId())
+    ) {
+      return
+    }
+
     // generate a valid fingerprint of all stored records in case of a failure integrity check
     const { oldest, newest, error } = await this._generateFingerprint({
       oldest: integrityCheckSuccess ? lastHash : undefined,
