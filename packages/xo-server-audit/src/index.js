@@ -212,6 +212,7 @@ class AuditXoPlugin {
     cleaners.push(
       this._xo.addApiMethods({
         audit: {
+          test: this._uploadLastHash.bind(this),
           checkIntegrity,
           exportRecords,
           generateFingerprint,
@@ -320,15 +321,12 @@ class AuditXoPlugin {
 
     const chain = await xo.audit.getLastChain()
 
-    let lastHash, integrityCheckSuccess
+    let lastHash
     if (chain !== null) {
       const hashes = chain.hashes
-      lastHash = hashes[hashes.length - 1]
 
       // check the integrity of all stored hashes
       try {
-        integrityCheckSuccess = true
-
         // don't check the integrity of the chain portions in parallel to not impact the XOA perf
         for (let i = 0; i < hashes.length - 1; ++i) {
           await this._checkIntegrity({
@@ -336,17 +334,17 @@ class AuditXoPlugin {
             newest: hashes[i + 1],
           })
         }
-      } catch {
-        integrityCheckSuccess = false
-      }
+
+        lastHash = hashes[hashes.length - 1]
+      } catch {}
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
     const { oldest, newest, error } = await this._generateFingerprint({
-      oldest: integrityCheckSuccess ? lastHash : undefined,
+      oldest: lastHash,
     })
 
-    if (chain === null || !integrityCheckSuccess || error !== undefined) {
+    if (lastHash === undefined || error !== undefined) {
       await xo.audit.startNewChain({ oldest, newest })
     } else {
       await xo.audit.extendLastChain({ oldest, newest })
