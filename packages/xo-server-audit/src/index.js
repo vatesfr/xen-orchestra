@@ -212,7 +212,6 @@ class AuditXoPlugin {
     cleaners.push(
       this._xo.addApiMethods({
         audit: {
-          test: this._uploadLastHash.bind(this),
           checkIntegrity,
           exportRecords,
           generateFingerprint,
