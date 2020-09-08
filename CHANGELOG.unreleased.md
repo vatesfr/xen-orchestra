@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Audit] Improve the regularly save of fingerprints on remote server performance (PR [#5250](https://github.com/vatesfr/xen-orchestra/pull/5250))
+- [Audit] Improve the regular save of fingerprints on remote server performance (PR [#5250](https://github.com/vatesfr/xen-orchestra/pull/5250))
 
 ### Bug fixes
 
