@@ -336,7 +336,6 @@ class AuditXoPlugin {
 
       // check the integrity of all stored hashes
       try {
-        // don't check the integrity of the chain portions in parallel to not impact the XOA perf
         for (let i = 0; i < hashes.length - 1; ++i) {
           await this._checkIntegrity({
             oldest: hashes[i],
