@@ -7,8 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Audit] Improve the regular save of fingerprints on remote server performance (PR [#5250](https://github.com/vatesfr/xen-orchestra/pull/5250))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,4 +28,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-audit minor
+- xo-server-audit patch
