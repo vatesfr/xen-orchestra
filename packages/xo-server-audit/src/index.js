@@ -326,16 +326,19 @@ class AuditXoPlugin {
       lastHash = hashes[hashes.length - 1]
 
       // check the integrity of all stored hashes
-      integrityCheckSuccess = await Promise.all(
-        hashes.map((oldest, key) =>
-          oldest !== lastHash
-            ? this._checkIntegrity({ oldest, newest: hashes[key + 1] })
-            : true
-        )
-      ).then(
-        () => true,
-        () => false
-      )
+      try {
+        integrityCheckSuccess = true
+
+        // don't check the integrity of the chain portions in parallel to not impact the XOA perf
+        for (let i = 0; i < hashes.length - 1; ++i) {
+          await this._checkIntegrity({
+            oldest: hashes[i],
+            newest: hashes[i + 1],
+          })
+        }
+      } catch {
+        integrityCheckSuccess = false
+      }
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
