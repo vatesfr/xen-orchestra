@@ -293,7 +293,7 @@ class VifStatus extends BaseComponent {
 
     if (lockingMode === 'disabled') {
       return (
-        <Tooltip content={_('vifDisabledNetwork')}>
+        <Tooltip content={_('vifLockingModeDisabled')}>
           <Icon icon='vif-disable' />
         </Tooltip>
       )
@@ -301,7 +301,7 @@ class VifStatus extends BaseComponent {
 
     if (lockingMode === 'unlocked') {
       return (
-        <Tooltip content={_('vifUnLockedNetwork')}>
+        <Tooltip content={_('vifLockingModeUnlocked')}>
           <Icon icon='unlock' />
         </Tooltip>
       )
@@ -309,7 +309,7 @@ class VifStatus extends BaseComponent {
 
     if (lockingMode === 'locked') {
       return (
-        <Tooltip content={_('vifLockedNetwork')}>
+        <Tooltip content={_('vifLockingModeLocked')}>
           <Icon icon='lock' />
         </Tooltip>
       )
@@ -325,7 +325,7 @@ class VifStatus extends BaseComponent {
     }
     if (network.defaultIsLocked) {
       return (
-        <Tooltip content={_('vifLockedNetwork')}>
+        <Tooltip content={_('networkDefaultLockingModeDisabled')}>
           <StackedIcons
             icons={[
               { icon: 'vif-disable', size: 1 },
@@ -336,7 +336,7 @@ class VifStatus extends BaseComponent {
       )
     }
     return (
-      <Tooltip content={_('vifUnLockedNetwork')}>
+      <Tooltip content={_('networkDefaultLockingModeUnlocked')}>
         <StackedIcons
           icons={[
             { icon: 'unlock', size: 1 },
