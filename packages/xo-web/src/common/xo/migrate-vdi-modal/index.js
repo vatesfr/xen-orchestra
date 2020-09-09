@@ -6,7 +6,7 @@ import SingleLineRow from 'single-line-row'
 import { Container, Col } from 'grid'
 import { createCompare, createCompareContainers } from 'utils'
 import { createSelector } from 'selectors'
-import { SelectResourceSetsSr, SelectSr } from 'select-objects'
+import { SelectResourceSetsSr, SelectSr as SelectAnySr } from 'select-objects'
 
 import { isSrShared, isSrWritable } from '../'
 
@@ -43,13 +43,14 @@ export default class MigrateVdiModalBody extends Component {
   render() {
     const { resourceSet } = this.props
     const warningBeforeMigrate = this._getWarningBeforeMigrate()
-    const Select = resourceSet !== undefined ? SelectResourceSetsSr : SelectSr
+    const SelectSr =
+      resourceSet !== undefined ? SelectResourceSetsSr : SelectAnySr
     return (
       <Container>
         <SingleLineRow>
           <Col size={6}>{_('vdiMigrateSelectSr')}</Col>
           <Col size={6}>
-            <Select
+            <SelectSr
               compareContainers={this._getCompareContainers()}
               compareOptions={compareSrs}
               onChange={this.linkState('sr')}
