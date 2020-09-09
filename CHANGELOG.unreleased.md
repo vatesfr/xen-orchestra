@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [New SR] Fix `Cannot read property 'trim' of undefined` error (PR [#5212](https://github.com/vatesfr/xen-orchestra/pull/5212))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -31,3 +33,4 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-web minor
+- xo-server patch
