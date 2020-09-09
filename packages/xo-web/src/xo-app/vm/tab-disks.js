@@ -76,9 +76,8 @@ const compareSrs = createCompare([isSrShared])
 }))
 class VdiSr extends Component {
   _getCompareContainers = createSelector(
-    () => this.props.isAdmin,
     () => this.props.userData.vm.$pool,
-    (isAdmin, poolId) => (isAdmin ? createCompareContainers(poolId) : undefined)
+    poolId => createCompareContainers(poolId)
   )
 
   _getSrPredicate = createSelector(
@@ -491,27 +490,25 @@ class AttachDisk extends Component {
 }
 
 @addSubscriptions(props => ({
-  resourceSet: cb =>
-    subscribeResourceSets(resourceSets =>
-      cb(find(resourceSets, { id: props.vm.resourceSet }))
-    ),
+  // used by getResolvedResourceSets
+  resourceSets: cb =>
+    subscribeResourceSets(resourceSets => {
+      const resourceSet = find(resourceSets, { id: props.vm.resourceSet })
+      return cb(resourceSet !== undefined ? [resourceSet] : undefined)
+    }),
 }))
 @connectStore(() => {
-  const getResolvedResourceSet = (state, props) => {
-    const { isAdmin, resourceSet } = props
-    const self = !isAdmin && resourceSet !== undefined
-    return getResolvedResourceSets(
-      state,
-      { ...props, resourceSets: self ? [resourceSet] : undefined },
-      self // to get objects as a self user
-    )[0]
-  }
+  const getAllVbds = createGetObjectsOfType('VBD')
 
   return (state, props) => ({
-    allVbds: createGetObjectsOfType('VBD')(state, props),
+    allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
     isAdmin: isAdmin(state, props),
-    resolvedResourceSet: getResolvedResourceSet(state, props),
+    resolvedResourceSet: getResolvedResourceSets(
+      state,
+      props,
+      !props.isAdmin && props.resourceSet !== undefined
+    )[0],
   })
 })
 export default class TabDisks extends Component {
