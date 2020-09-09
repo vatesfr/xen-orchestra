@@ -1,8 +1,24 @@
 # ChangeLog
 
-## **5.50.0** (2020-08-27)
+## **5.50.1** (2020-09-04)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
+- [Usage report] Exclude replicated VMs from the VMs evolution [#4778](https://github.com/vatesfr/xen-orchestra/issues/4778) (PR [#5241](https://github.com/vatesfr/xen-orchestra/pull/5241))
+
+### Bug fixes
+
+- [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
+
+### Packages to release
+
+- xo-server-usage-report 0.9.0
+- xo-server-audit 0.7.1
+- xo-server 5.66.1
+
+## **5.50.0** (2020-08-27)
 
 ### Highlights
 
