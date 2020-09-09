@@ -507,7 +507,7 @@ class AttachDisk extends Component {
     resolvedResourceSet: getResolvedResourceSets(
       state,
       props,
-      !props.isAdmin && props.resourceSet !== undefined
+      !props.isAdmin && props.resourceSets !== undefined
     )[0],
   })
 })

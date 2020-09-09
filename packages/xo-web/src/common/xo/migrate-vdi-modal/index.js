@@ -25,8 +25,7 @@ export default class MigrateVdiModalBody extends Component {
 
   _getCompareContainers = createSelector(
     () => this.props.pool,
-    () => this.props.resourceSet !== undefined,
-    (pool, self) => (self ? undefined : createCompareContainers(pool))
+    createCompareContainers
   )
 
   _getWarningBeforeMigrate = createSelector(
