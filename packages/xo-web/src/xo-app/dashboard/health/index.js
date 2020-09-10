@@ -419,7 +419,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
         (vdis, snapshotVdis) => Object.assign({}, vdis, snapshotVdis)
       ),
       createSelector(getSrs, srs => vdi => {
-        if (vdi.$VBDs.length !== 0 || !HANDLED_VDI_TYPES.has(vdi.vdi_type)) {
+        if (vdi.$VBDs.length !== 0 || !HANDLED_VDI_TYPES.has(vdi.VDI_type)) {
           return false
         }
 

@@ -608,7 +608,7 @@ const TRANSFORMS = {
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
       usage: +obj.physical_utilisation,
-      vdi_type: obj.type,
+      VDI_type: obj.type,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
