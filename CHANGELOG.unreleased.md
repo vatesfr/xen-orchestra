@@ -7,13 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM/network] VIF's locking mode: improve tooltip messages [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5227](https://github.com/vatesfr/xen-orchestra/pull/5227))
 - [Backup logs] Ability to filter by VM/pool name, SRs names and remotes names [#4406](https://github.com/vatesfr/xen-orchestra/issues/4406) (PR [#5208](https://github.com/vatesfr/xen-orchestra/pull/5208))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
+- [New SR] Fix `Cannot read property 'trim' of undefined` error (PR [#5212](https://github.com/vatesfr/xen-orchestra/pull/5212))
 
 ### Packages to release
 
