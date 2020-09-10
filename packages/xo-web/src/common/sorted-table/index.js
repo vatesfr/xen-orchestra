@@ -206,7 +206,6 @@ const actionsShape = PropTypes.arrayOf(
   PropTypes.shape({
     // groupedActions: the function will be called with an array of the selected items in parameters
     // individualActions: the function will be called with the related item in parameters
-
     collapsed: PropTypes.bool,
     disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
     handler: PropTypes.func.isRequired,
@@ -358,7 +357,6 @@ class SortedTable extends Component {
     actions: PropTypes.arrayOf(
       PropTypes.shape({
         // regroup individual actions and grouped actions
-
         collapsed: PropTypes.bool,
         disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
         handler: PropTypes.func.isRequired,
