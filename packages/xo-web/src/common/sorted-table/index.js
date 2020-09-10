@@ -207,8 +207,7 @@ const actionsShape = PropTypes.arrayOf(
     // groupedActions: the function will be called with an array of the selected items in parameters
     // individualActions: the function will be called with the related item in parameters
 
-    // advanced actions are collapsed in a dropdown
-    advanced: PropTypes.bool,
+    collapsed: PropTypes.bool,
     disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
     handler: PropTypes.func.isRequired,
     icon: PropTypes.string.isRequired,
@@ -251,7 +250,7 @@ const Action = decorate([
 const handleFnProps = (prop, items, userData) =>
   typeof prop === 'function' ? prop(items, userData) : prop
 
-const AdvancedActions = decorate([
+const CollapsedActions = decorate([
   withRouter,
   provideState({
     effects: {
@@ -313,7 +312,7 @@ const AdvancedActions = decorate([
   ),
 ])
 
-AdvancedActions.propTypes = {
+CollapsedActions.propTypes = {
   actions: PropTypes.shape({
     ...actionsShape,
     grouped: PropTypes.bool,
@@ -360,8 +359,7 @@ class SortedTable extends Component {
       PropTypes.shape({
         // regroup individual actions and grouped actions
 
-        // advanced actions are collapsed in a dropdown
-        advanced: PropTypes.bool,
+        collapsed: PropTypes.bool,
         disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
         handler: PropTypes.func.isRequired,
         icon: PropTypes.string.isRequired,
@@ -791,7 +789,7 @@ class SortedTable extends Component {
             : groupedActions || actions,
           action => LEVELS.indexOf(action.level)
         ),
-        action => (action.advanced ? 'advanced' : 'normal')
+        action => (action.collapsed ? 'secondary' : 'primary')
       )
   )
 
@@ -800,7 +798,7 @@ class SortedTable extends Component {
     () => this.props.actions,
     (individualActions, actions) => {
       const normalizedActions = map(actions, a => ({
-        advanced: a.advanced,
+        collapsed: a.collapsed,
         disabled:
           a.individualDisabled !== undefined
             ? a.individualDisabled
@@ -821,7 +819,7 @@ class SortedTable extends Component {
             : individualActions || normalizedActions,
           action => LEVELS.indexOf(action.level)
         ),
-        item => (item.advanced ? 'advanced' : 'normal')
+        item => (item.collapsed ? 'secondary' : 'primary')
       )
     }
   )
@@ -865,17 +863,17 @@ class SortedTable extends Component {
 
     let actionsColumn
     if (hasIndividualActions) {
-      const { advanced, normal } = this._getIndividualActions()
+      const { primary, secondary } = this._getIndividualActions()
       actionsColumn = (
         <td>
           <div className='pull-right'>
             <ButtonGroup>
-              {map(normal, (props, key) => (
+              {map(primary, (props, key) => (
                 <Action {...props} items={item} key={key} userData={userData} />
               ))}
-              {advanced !== undefined && (
-                <AdvancedActions
-                  actions={advanced}
+              {secondary !== undefined && (
+                <CollapsedActions
+                  actions={secondary}
                   items={item}
                   userData={userData}
                 />
@@ -1013,7 +1011,7 @@ class SortedTable extends Component {
                 {(nSelectedItems !== 0 || all) && (
                   <div className='pull-right'>
                     <ButtonGroup>
-                      {map(groupedActions.normal, (props, key) => (
+                      {map(groupedActions.primary, (props, key) => (
                         <Action
                           {...props}
                           key={key}
@@ -1021,9 +1019,9 @@ class SortedTable extends Component {
                           userData={userData}
                         />
                       ))}
-                      {groupedActions.advanced !== undefined && (
-                        <AdvancedActions
-                          actions={groupedActions.advanced}
+                      {groupedActions.secondary !== undefined && (
+                        <CollapsedActions
+                          actions={groupedActions.secondary}
                           items={this._getSelectedItems()}
                           userData={userData}
                         />

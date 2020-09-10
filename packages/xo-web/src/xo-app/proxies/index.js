@@ -67,7 +67,7 @@ const INDIVIDUAL_ACTIONS = [
     level: 'primary',
   },
   {
-    advanced: true,
+    collapsed: true,
     disabled: ({ vmUuid }) => vmUuid === undefined,
     handler: proxy => updateApplianceSettings(proxy),
     icon: 'settings',
