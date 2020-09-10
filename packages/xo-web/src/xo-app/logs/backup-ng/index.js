@@ -52,6 +52,7 @@ export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
   )
 }
 
+const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
 const GoToJob = decorate([
   withRouter,
   provideState({
@@ -69,7 +70,9 @@ const GoToJob = decorate([
   injectState,
   ({ effects, children }) => (
     <Tooltip content={_('goToThisJob')}>
-      <p onClick={effects.goTo}>{children}</p>
+      <p onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
+        {children}
+      </p>
     </Tooltip>
   ),
 ])
