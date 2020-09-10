@@ -2092,6 +2092,7 @@ const messages = {
   backupRestartFailedVms: "Restart failed VMs' backup",
   backupForceRestartFailedVms: "Force restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
+  goToThisJob: 'Click to go to this job',
 
   // ----- IPs ------
   ipPoolName: 'Name',
