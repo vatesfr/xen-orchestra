@@ -73,11 +73,11 @@
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "posttest": "scripts/run-script test",
-    "pretest": "eslint --ignore-path .gitignore .",
     "prettify": "prettier --ignore-path .gitignore --write '**/*.{js,jsx,md,mjs,ts,tsx}'",
-    "test": "jest \"^(?!.*\\.integ\\.spec\\.js$)\"",
+    "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
+    "test-lint": "eslint --ignore-path .gitignore .",
+    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script test",
     "travis-tests": "scripts/travis-tests"
   },
   "workspaces": [
