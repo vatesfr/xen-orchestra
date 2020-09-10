@@ -42,6 +42,7 @@
     "moduleNameMapper": {
       "^@xen-orchestra/async-map": "@xen-orchestra/async-map/src",
       "^@xen-orchestra/fs": "@xen-orchestra/fs/src",
+      "^@xen-orchestra/log": "@xen-orchestra/log/src",
       "^xo-remote-parser": "xo-remote-parser/src",
       "^vhd-lib": "vhd-lib/src",
       "^vhd-cli": "vhd-cli/src",
