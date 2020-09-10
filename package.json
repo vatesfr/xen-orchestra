@@ -40,13 +40,12 @@
   "jest": {
     "collectCoverage": true,
     "moduleNameMapper": {
-      "^@xen-orchestra/async-map": "@xen-orchestra/async-map/src",
-      "^@xen-orchestra/fs": "@xen-orchestra/fs/src",
-      "^xo-remote-parser": "xo-remote-parser/src",
-      "^vhd-lib": "vhd-lib/src",
-      "^vhd-cli": "vhd-cli/src",
-      "^xo-vmdk-to-vhd": "xo-vmdk-to-vhd/src",
-      "^value-matcher": "value-matcher/src"
+      "^(@vates/[^/]+)": "$1/src",
+      "^(@xen-orchestra/[^/]+)": "$1/src",
+      "^(value-matcher)": "$1/src",
+      "^(vhd-cli)": "$1/src",
+      "^(vhd-lib)": "$1/src",
+      "^(xo-[^/]+)": "$1/src"
     },
     "projects": [
       "<rootDir>"
