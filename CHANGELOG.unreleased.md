@@ -7,15 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/network] VIF's locking mode: improve tooltip messages [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5227](https://github.com/vatesfr/xen-orchestra/pull/5227))
-- [Backup/overview] Link log entry to its job [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5202](https://github.com/vatesfr/xen-orchestra/pull/5202))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [New SR] Fix `Cannot read property 'trim' of undefined` error (PR [#5212](https://github.com/vatesfr/xen-orchestra/pull/5212))
-- [Dashboard/Health] Fix suspended VDIs considered as orphans [#5248](https://github.com/vatesfr/xen-orchestra/issues/5248) (PR [#5249](https://github.com/vatesfr/xen-orchestra/pull/5249))
 
 ### Packages to release
 
@@ -33,6 +27,3 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-
-- xo-web minor
-- xo-server patch
