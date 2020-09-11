@@ -220,7 +220,7 @@ const GoToLogs = decorate([
   }),
   injectState,
   ({ effects, children }) => (
-    <Tooltip content={_('goToDedicatedLogs')}>
+    <Tooltip content={_('goToCorrespondingLogs')}>
       <span onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
         {children}
       </span>

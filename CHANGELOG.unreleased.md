@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM Import] Make the `Description` field optional (PR [#5258](https://github.com/vatesfr/xen-orchestra/pull/5258))
+- [Backup/overview] Link backup jobs to their logs [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5260](https://github.com/vatesfr/xen-orchestra/pull/5260))
 
 ### Bug fixes
 
@@ -30,4 +31,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-web patch
+- xo-web minor
