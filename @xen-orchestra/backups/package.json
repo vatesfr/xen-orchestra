@@ -16,7 +16,7 @@
     "postversion": "npm publish --access public"
   },
   "dependencies": {
-    "d3-time-format": "^2.2.3",
+    "d3-time-format": "^3.0.0",
     "fs-extra": "^9.0.0"
   },
   "license": "AGPL-3.0-or-later",

@@ -7,6 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM Import] Make the `Description` field optional (PR [#5258](https://github.com/vatesfr/xen-orchestra/pull/5258))
 - [Proxy] Ability to update HTTP proxy configuration (PR [#5148](https://github.com/vatesfr/xen-orchestra/pull/5148))
 
 ### Bug fixes

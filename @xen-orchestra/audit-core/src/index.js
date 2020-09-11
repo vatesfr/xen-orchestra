@@ -25,7 +25,7 @@ export class Storage {
 //
 // http://man7.org/linux/man-pages/man3/crypt.3.html#NOTES
 const ID_TO_ALGORITHM = {
-  '5': 'sha256',
+  5: 'sha256',
 }
 
 export class AlteredRecordError extends Error {

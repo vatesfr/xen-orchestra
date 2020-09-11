@@ -41,7 +41,7 @@
     "end-of-stream": "^1.1.0",
     "exec-promise": "^0.7.0",
     "highland": "^2.10.1",
-    "through2": "^3.0.0",
+    "through2": "^4.0.2",
     "xo-lib": "^0.9.0"
   },
   "devDependencies": {
