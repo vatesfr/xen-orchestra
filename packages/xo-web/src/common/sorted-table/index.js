@@ -817,7 +817,7 @@ class SortedTable extends Component {
             : individualActions || normalizedActions,
           action => LEVELS.indexOf(action.level)
         ),
-        item => (item.collapsed ? 'secondary' : 'primary')
+        action => (action.collapsed ? 'secondary' : 'primary')
       )
     }
   )
