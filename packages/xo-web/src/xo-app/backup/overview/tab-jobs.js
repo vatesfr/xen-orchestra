@@ -18,7 +18,9 @@ import { createFilter, createGetObjectsOfType, createSelector } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
 import { groupBy, isEmpty, map, some } from 'lodash'
+import { injectState, provideState } from 'reaclette'
 import { Proxy } from 'render-xo-item'
+import { withRouter } from 'react-router'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -201,6 +203,36 @@ const SchedulePreviewBody = decorate([
   ),
 ])
 
+const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
+const GoToLogs = decorate([
+  withRouter,
+  provideState({
+    effects: {
+      goTo() {
+        const { jobId, location, router, scrollIntoLogs } = this.props
+        router.replace({
+          ...location,
+          query: { ...location.query, s_logs: `jobId:${jobId}` },
+        })
+        scrollIntoLogs()
+      },
+    },
+  }),
+  injectState,
+  ({ effects, children }) => (
+    <Tooltip content={_('goToDedicatedLogs')}>
+      <span onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
+        {children}
+      </span>
+    </Tooltip>
+  ),
+])
+
+GoToLogs.propTypes = {
+  jobId: PropTypes.string.isRequired,
+  scrollIntoLogs: PropTypes.func.isRequired,
+}
+
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
   metadataJobs: subscribeMetadataBackupJobs,
@@ -226,9 +258,11 @@ class JobsTable extends React.Component {
   static tableProps = {
     columns: [
       {
-        itemRenderer: ({ id }) => (
+        itemRenderer: ({ id }, { scrollIntoLogs }) => (
           <Copiable data={id} tagName='p'>
-            {id.slice(4, 8)}
+            <GoToLogs jobId={id} scrollIntoLogs={scrollIntoLogs}>
+              {id.slice(4, 8)}
+            </GoToLogs>
           </Copiable>
         ),
         name: _('jobId'),
@@ -399,6 +433,7 @@ class JobsTable extends React.Component {
         data-goToNewTab={this._goToNewTab}
         data-main={this.props.main}
         data-schedulesByJob={this.props.schedulesByJob}
+        data-scrollIntoLogs={this.props.scrollIntoLogs}
         stateUrlParam='s'
       />
     )
