@@ -223,6 +223,8 @@ class Vif extends BaseComponent {
 
 // =============================================================================
 
+const isVdiPresent = vdi => !vdi.missing
+
 @addSubscriptions({
   resourceSets: subscribeResourceSets,
   user: subscribeCurrentUser,
@@ -1315,6 +1317,7 @@ export default class NewVm extends BaseComponent {
                     <SelectVdi
                       disabled={installMethod !== 'ISO'}
                       onChange={this._linkState('installIso')}
+                      predicate={isVdiPresent}
                       srPredicate={this._getIsoPredicate()}
                       value={installIso}
                     />
@@ -1322,6 +1325,7 @@ export default class NewVm extends BaseComponent {
                     <SelectResourceSetsVdi
                       disabled={installMethod !== 'ISO'}
                       onChange={this._linkState('installIso')}
+                      predicate={isVdiPresent}
                       resourceSet={this._getResolvedResourceSet()}
                       srPredicate={this._getIsoPredicate()}
                       value={installIso}
