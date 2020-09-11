@@ -140,12 +140,14 @@ const SchedulePreviewBody = decorate([
       .filter(createSelector((_, props) => props.job.vms, createPredicate))
       .count(),
   })),
-  ({ job, schedule, lastRunLog, nVms }) => (
+  ({ job, schedule, scrollIntoLogs, lastRunLog, nVms }) => (
     <Ul>
       <Li>
-        {schedule.name
-          ? _.keyValue(_('scheduleName'), schedule.name)
-          : _.keyValue(_('scheduleCron'), schedule.cron)}{' '}
+        <GoToLogs scheduleId={schedule.id} scrollIntoLogs={scrollIntoLogs}>
+          {schedule.name
+            ? _.keyValue(_('scheduleName'), schedule.name)
+            : _.keyValue(_('scheduleCron'), schedule.cron)}
+        </GoToLogs>{' '}
         <Tooltip content={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}>
           <CopyToClipboard text={schedule.id}>
             <Button size='small'>
@@ -209,10 +211,22 @@ const GoToLogs = decorate([
   provideState({
     effects: {
       goTo() {
-        const { jobId, location, router, scrollIntoLogs } = this.props
+        const {
+          jobId,
+          location,
+          router,
+          scheduleId,
+          scrollIntoLogs,
+        } = this.props
         router.replace({
           ...location,
-          query: { ...location.query, s_logs: `jobId:${jobId}` },
+          query: {
+            ...location.query,
+            s_logs:
+              jobId !== undefined
+                ? `jobId:${jobId}`
+                : `scheduleId:${scheduleId}`,
+          },
         })
         scrollIntoLogs()
       },
@@ -229,7 +243,8 @@ const GoToLogs = decorate([
 ])
 
 GoToLogs.propTypes = {
-  jobId: PropTypes.string.isRequired,
+  jobId: PropTypes.string,
+  scheduleId: PropTypes.string,
   scrollIntoLogs: PropTypes.func.isRequired,
 }
 
@@ -284,7 +299,7 @@ class JobsTable extends React.Component {
         name: _('jobModes'),
       },
       {
-        itemRenderer: (job, { schedulesByJob }) =>
+        itemRenderer: (job, { schedulesByJob, scrollIntoLogs }) =>
           map(
             get(() => schedulesByJob[job.id]),
             schedule => (
@@ -292,6 +307,7 @@ class JobsTable extends React.Component {
                 job={job}
                 key={schedule.id}
                 schedule={schedule}
+                scrollIntoLogs={scrollIntoLogs}
               />
             )
           ),
