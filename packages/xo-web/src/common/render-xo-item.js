@@ -560,24 +560,26 @@ const xoItemToRender = {
   },
 
   // XO objects.
-  pool: ({ id }) => <Pool id={id} />,
+  pool: ({ id, link = false }) => <Pool id={id} link />,
 
-  VDI: ({ id }) => <Vdi id={id} showSr />,
+  VDI: ({ id, link = false }) => <Vdi id={id} link showSr />,
   'VDI-resourceSet': ({ id }) => <Vdi id={id} self showSr />,
 
   // Pool objects.
   'VM-template': ({ id }) => <VmTemplate id={id} />,
   'VM-template-resourceSet': ({ id }) => <VmTemplate id={id} self />,
-  host: ({ id, memoryFree }) => <Host id={id} memoryFree={memoryFree} />,
-  network: ({ id }) => <Network id={id} />,
+  host: ({ id, link = false, memoryFree }) => (
+    <Host id={id} link memoryFree={memoryFree} />
+  ),
+  network: ({ id, link = false }) => <Network id={id} link />,
   'network-resourceSet': ({ id }) => <Network id={id} self />,
 
   // SR.
-  SR: ({ id }) => <Sr id={id} />,
+  SR: ({ id, link = false }) => <Sr id={id} link />,
   'SR-resourceSet': ({ id }) => <Sr id={id} self />,
 
   // VM.
-  VM: ({ id }) => <Vm id={id} />,
+  VM: ({ id, link = false }) => <Vm id={id} link />,
   'VM-snapshot': ({ id }) => <Vm id={id} />,
   'VM-controller': ({ id }) => (
     <span>

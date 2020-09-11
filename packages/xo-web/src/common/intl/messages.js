@@ -1551,6 +1551,7 @@ const messages = {
   progress: 'Progress',
   previousTasks: 'Previous tasks',
   taskLastSeen: 'Last seen',
+  usedBy: 'Used by',
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',

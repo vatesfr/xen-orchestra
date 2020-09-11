@@ -4,6 +4,7 @@ import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
+import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
@@ -13,13 +14,18 @@ import {
   differenceBy,
   flatMap,
   flatten,
+  forEach,
+  groupBy,
   isEmpty,
+  keyBy,
   keys,
+  map,
+  pick,
   some,
   toArray,
 } from 'lodash'
-import { Pool } from 'render-xo-item'
 import {
+  createCollectionWrapper,
   createFilter,
   createGetObject,
   createGetObjectsOfType,
@@ -51,7 +57,6 @@ const TASK_ITEM_STYLE = {
 export class TaskItem extends Component {
   render() {
     const { host, item: task } = this.props
-
     return (
       <div>
         {task.name_label} (
@@ -86,6 +91,11 @@ const COLUMNS = [
     sortCriteria: 'name_label',
   },
   {
+    itemRenderer: ({ linkedObjects }) =>
+      map(linkedObjects, item => <p>{renderXoItem(item, { link: true })}</p>),
+    name: _('usedBy'),
+  },
+  {
     itemRenderer: task => (
       <progress
         style={TASK_ITEM_STYLE}
@@ -107,6 +117,11 @@ const FINISHED_TASKS_COLUMNS = [
   {
     component: TaskItem,
     name: _('task'),
+  },
+  {
+    itemRenderer: ({ linkedObjects }) =>
+      map(linkedObjects, item => <p>{renderXoItem(item, { link: true })}</p>),
+    name: _('usedBy'),
   },
   {
     default: true,
@@ -168,7 +183,54 @@ const GROUPED_ACTIONS = [
 
   const getNPendingTasks = getPendingTasks.count()
 
-  const getPendingTasksByPool = getPendingTasks.sort().groupBy('$pool')
+  const getPendingTasksById = createSelector(
+    getPendingTasks,
+    createCollectionWrapper(_ => keyBy(_, 'id'))
+  )
+
+  const predicate = createSelector(
+    getPendingTasksById,
+    createSelector(getPendingTasks, tasks =>
+      flatMap(tasks, task => Object.keys(task.current_operations))
+    ),
+    (tasksById, linkedObjectIds) => obj =>
+      linkedObjectIds.includes(obj.id) ||
+      !isEmpty(pick(tasksById, Object.keys(obj.current_operations)))
+  )
+
+  const getLinkedObjectsByTask = createSelector(
+    createGetObjectsOfType('pool').filter(predicate),
+    createGetObjectsOfType('host').filter(predicate),
+    createGetObjectsOfType('SR').filter(predicate),
+    createGetObjectsOfType('VDI').filter(predicate),
+    createGetObjectsOfType('VM').filter(predicate),
+    createGetObjectsOfType('network').filter(predicate),
+    (pools, hosts, vdis, vms, networks) => {
+      const linkedObjectsByTask = {}
+      forEach({ ...pools, ...hosts, ...vdis, ...vms, ...networks }, obj => {
+        Object.keys(obj.current_operations).forEach(taskId => {
+          if (linkedObjectsByTask[taskId] === undefined) {
+            linkedObjectsByTask[taskId] = []
+          }
+          linkedObjectsByTask[taskId].push(obj)
+        })
+      })
+      return linkedObjectsByTask
+    }
+  )
+
+  const getPendingTasksByPool = createSelector(
+    getPendingTasks,
+    getLinkedObjectsByTask,
+    (tasks, linkedObjectsByTask) =>
+      groupBy(
+        map(tasks, task => ({
+          ...task,
+          linkedObjects: linkedObjectsByTask[task.id],
+        })),
+        '$pool'
+      )
+  )
 
   const getPools = createGetObjectsOfType('pool').pick(
     createSelector(getPendingTasksByPool, keys)
@@ -192,10 +254,14 @@ export default class Tasks extends Component {
       flatten(toArray(props.pendingTasksByPool)),
       'id'
     )
+
     if (!isEmpty(finishedTasks)) {
       this.setState({
         finishedTasks: finishedTasks
-          .map(task => ({ ...task, disappeared: Date.now() }))
+          .map(task => ({
+            ...task,
+            disappeared: Date.now(),
+          }))
           .concat(this.state.finishedTasks),
       })
     }
@@ -243,11 +309,11 @@ export default class Tasks extends Component {
               <SortedTable
                 collection={this._getTasks()}
                 columns={COLUMNS}
+                data-pools={pools}
                 filterContainer={() => this.state.container}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'
-                userData={{ pools }}
               />
             </Col>
           </Row>
