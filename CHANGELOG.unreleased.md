@@ -14,6 +14,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [New network] Remove the possibility of creating a network on a bond member interface (PR [#5262](https://github.com/vatesfr/xen-orchestra/pull/5262))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
