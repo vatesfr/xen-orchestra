@@ -668,7 +668,7 @@ export default class Health extends Component {
           <Col>
             <Card>
               <CardHeader>
-                <Icon icon='vm' /> {_('tooManySnapshots')}
+                <Icon icon='vm-snapshot' /> {_('tooManySnapshots')}
               </CardHeader>
               <CardBlock>
                 <p>

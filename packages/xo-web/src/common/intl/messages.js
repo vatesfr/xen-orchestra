@@ -1369,7 +1369,7 @@ const messages = {
   noOrphanedObject: 'No orphans',
   tooManySnapshots: 'Too many snapshots',
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
-  noTooManySnapshotsObject: 'No VM with too many snapshots',
+  noTooManySnapshotsObject: 'No VMs with too many snapshots',
   numberOfSnapshots: 'Number of snapshots',
   deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
   deleteSelectedOrphanedVdis: 'Delete selected orphaned snapshot VDIs',
