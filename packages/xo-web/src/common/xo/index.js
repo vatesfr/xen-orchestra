@@ -2732,6 +2732,20 @@ export const deleteGroup = group =>
     noop
   )
 
+export const deleteGroups = groups =>
+  confirm({
+    title: _('deleteGroupsModalTitle', { nGroups: groups.length }),
+    body: <p>{_('deleteGroupsModalMessage', { nGroups: groups.length })}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        map(resolveIds(groups), id => _call('group.delete', { id }))
+      )::tap(subscribeGroups.forceRefresh, err =>
+        error(_('deleteGroup'), err.message || String(err))
+      ),
+    noop
+  )
+
 export const removeUserFromGroup = (user, group) =>
   _call(
     'group.removeUser',

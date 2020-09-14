@@ -656,6 +656,10 @@ const messages = {
   createGroupButton: 'Create',
   deleteGroup: 'Delete group',
   deleteGroupConfirm: 'Are you sure you want to delete this group?',
+  deleteSelectedGroups: 'Delete selected groups',
+  deleteGroupsModalTitle: 'Delete group{nGroups, plural, one {} other {s}}',
+  deleteGroupsModalMessage:
+    'Are you sure you want to delete {nGroups, number} group{nGroups, plural, one {} other {s}}?',
   removeUserFromGroup: 'Remove user from group',
   deleteUserConfirm: 'Are you sure you want to delete this user?',
   deleteUser: 'Delete user',
