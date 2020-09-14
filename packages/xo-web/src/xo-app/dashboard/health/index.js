@@ -432,6 +432,8 @@ const ALARM_ACTIONS = [
   },
 ]
 
+const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
+
 @connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
   const getOrphanVdis = createSort(
@@ -442,7 +444,7 @@ const ALARM_ACTIONS = [
         (vdis, snapshotVdis) => Object.assign({}, vdis, snapshotVdis)
       ),
       createSelector(getSrs, srs => vdi => {
-        if (vdi.$VBDs.length !== 0) {
+        if (vdi.$VBDs.length !== 0 || !HANDLED_VDI_TYPES.has(vdi.VDI_type)) {
           return false
         }
 

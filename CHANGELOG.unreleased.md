@@ -7,13 +7,13 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM Import] Make the `Description` field optional (PR [#5258](https://github.com/vatesfr/xen-orchestra/pull/5258))
+- [New VM] Hide missing ISOs in selector [#5222](https://github.com/vatesfr/xen-orchestra/issues/5222)
 - [Dashboard/Health] Show VMs that have too many snapshots [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
 
 ### Packages to release
 
@@ -32,4 +32,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server patch
+- xo-web minor
