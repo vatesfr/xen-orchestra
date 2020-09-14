@@ -132,8 +132,8 @@ const Warnings = ({ warnings }) =>
     </div>
   ) : null
 
-const VmTask = ({ children, restartVmJob, task }) => (
-  <div>
+const VmTask = ({ children, className, restartVmJob, task }) => (
+  <li className={className}>
     <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
       <ButtonGroup>
@@ -186,11 +186,11 @@ const VmTask = ({ children, restartVmJob, task }) => (
     )}
     {task.isFull !== undefined &&
       _.keyValue(_('exportType'), task.isFull ? 'full' : 'delta')}
-  </div>
+  </li>
 )
 
-const PoolTask = ({ children, task }) => (
-  <div>
+const PoolTask = ({ children, className, task }) => (
+  <li className={className}>
     <Pool id={task.data.id} link newTab />{' '}
     <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
@@ -199,11 +199,11 @@ const PoolTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const XoTask = ({ children, task }) => (
-  <div>
+const XoTask = ({ children, className, task }) => (
+  <li className={className}>
     <Icon icon='menu-xoa' /> XO <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     {children}
@@ -211,22 +211,22 @@ const XoTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const SnapshotTask = ({ task }) => (
-  <div>
+const SnapshotTask = ({ className, task }) => (
+  <li className={className}>
     <Icon icon='task' /> {_('snapshotVmLabel')}{' '}
     <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     <TaskStart task={task} />
     <TaskEnd task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const RemoteTask = ({ children, task }) => (
-  <div>
+const RemoteTask = ({ children, className, task }) => (
+  <li className={className}>
     <Remote id={task.data.id} link newTab />{' '}
     <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
@@ -235,11 +235,11 @@ const RemoteTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const SrTask = ({ children, task }) => (
-  <div>
+const SrTask = ({ children, className, task }) => (
+  <li className={className}>
     <Sr id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     {children}
@@ -247,13 +247,17 @@ const SrTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const TransferMergeTask = ({ task }) => {
-  const size = get(() => task.result.size)
+const TransferMergeTask = ({ className, task }) => {
+  const size = defined(() => task.result.size, 0)
+  if (task.status === 'success' && size === 0) {
+    return null
+  }
+
   return (
-    <div>
+    <li className={className}>
       <Icon icon='task' /> {task.message}{' '}
       <TaskStateInfos status={task.status} />
       <Warnings warnings={task.warnings} />
@@ -271,7 +275,7 @@ const TransferMergeTask = ({ task }) => {
           )}
         </div>
       )}
-    </div>
+    </li>
   )
 }
 
@@ -289,7 +293,7 @@ const COMPONENT_BY_MESSAGE = {
   transfer: TransferMergeTask,
 }
 
-const TaskLi = ({ className, task, ...props }) => {
+const TaskLi = ({ task, ...props }) => {
   let Component
   if (
     (Component = defined(
@@ -301,11 +305,7 @@ const TaskLi = ({ className, task, ...props }) => {
   ) {
     return null
   }
-  return (
-    <li className={className}>
-      <Component task={task} {...props} />
-    </li>
-  )
+  return <Component task={task} {...props} />
 }
 
 export default decorate([
