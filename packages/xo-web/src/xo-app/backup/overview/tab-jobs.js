@@ -112,6 +112,49 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
       : runMetadataBackupJob({ id, schedule })
   )
 
+const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
+const GoToLogs = decorate([
+  withRouter,
+  provideState({
+    effects: {
+      goTo() {
+        const {
+          jobId,
+          location,
+          router,
+          scheduleId,
+          scrollIntoLogs,
+        } = this.props
+        router.replace({
+          ...location,
+          query: {
+            ...location.query,
+            s_logs:
+              jobId !== undefined
+                ? `jobId:${jobId}`
+                : `scheduleId:${scheduleId}`,
+          },
+        })
+        scrollIntoLogs()
+      },
+    },
+  }),
+  injectState,
+  ({ effects, children }) => (
+    <Tooltip content={_('goToCorrespondingLogs')}>
+      <span onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
+        {children}
+      </span>
+    </Tooltip>
+  ),
+])
+
+GoToLogs.propTypes = {
+  jobId: PropTypes.string,
+  scheduleId: PropTypes.string,
+  scrollIntoLogs: PropTypes.func.isRequired,
+}
+
 const SchedulePreviewBody = decorate([
   addSubscriptions(({ schedule }) => ({
     lastRunLog: cb =>
@@ -204,49 +247,6 @@ const SchedulePreviewBody = decorate([
     </Ul>
   ),
 ])
-
-const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
-const GoToLogs = decorate([
-  withRouter,
-  provideState({
-    effects: {
-      goTo() {
-        const {
-          jobId,
-          location,
-          router,
-          scheduleId,
-          scrollIntoLogs,
-        } = this.props
-        router.replace({
-          ...location,
-          query: {
-            ...location.query,
-            s_logs:
-              jobId !== undefined
-                ? `jobId:${jobId}`
-                : `scheduleId:${scheduleId}`,
-          },
-        })
-        scrollIntoLogs()
-      },
-    },
-  }),
-  injectState,
-  ({ effects, children }) => (
-    <Tooltip content={_('goToCorrespondingLogs')}>
-      <span onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
-        {children}
-      </span>
-    </Tooltip>
-  ),
-])
-
-GoToLogs.propTypes = {
-  jobId: PropTypes.string,
-  scheduleId: PropTypes.string,
-  scrollIntoLogs: PropTypes.func.isRequired,
-}
 
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
