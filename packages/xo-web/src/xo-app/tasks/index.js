@@ -183,18 +183,12 @@ const GROUPED_ACTIONS = [
 
   const getNPendingTasks = getPendingTasks.count()
 
-  const getPendingTasksById = createSelector(
-    getPendingTasks,
-    createCollectionWrapper(_ => keyBy(_, 'id'))
-  )
-
   const predicate = createSelector(
-    getPendingTasksById,
-    createSelector(getPendingTasks, tasks =>
-      flatMap(tasks, task => Object.keys(task.current_operations))
+    createSelector(
+      getPendingTasks,
+      createCollectionWrapper(_ => keyBy(_, 'id'))
     ),
-    (tasksById, linkedObjectIds) => obj =>
-      linkedObjectIds.includes(obj.id) ||
+    tasksById => obj =>
       !isEmpty(pick(tasksById, Object.keys(obj.current_operations)))
   )
 

@@ -718,7 +718,7 @@ const TRANSFORMS = {
     return {
       allowedOperations: obj.allowed_operations,
       created: toTimestamp(obj.created),
-      current_operations: getCurrentOperationsById(obj),
+      current_operations: obj.current_operations,
       finished: toTimestamp(obj.finished),
       name_description: obj.name_description,
       name_label: obj.name_label,
