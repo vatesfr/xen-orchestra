@@ -186,9 +186,14 @@ const createSubscription = cb => {
   const delay = 5e3 // 5s
   const clearCacheDelay = 6e5 // 10m
 
+  // contains active and lazy subscribers
   const subscribers = Object.create(null)
+  const hasSubscribers = () => Object.keys(subscribers).length !== 0
+
+  // only counts active subscribers
+  let nActiveSubscribers = 0
+
   let cache
-  let n = 0
   let nextId = 0
   let timeout
 
@@ -220,7 +225,7 @@ const createSubscription = cb => {
         result => {
           running = false
 
-          if (n === 0) {
+          if (nActiveSubscribers === 0) {
             return uninstall()
           }
 
@@ -242,7 +247,7 @@ const createSubscription = cb => {
         error => {
           running = false
 
-          if (n === 0) {
+          if (nActiveSubscribers === 0) {
             return uninstall()
           }
 
@@ -259,23 +264,46 @@ const createSubscription = cb => {
       asap(() => cb(cache))
     }
 
-    if (n++ === 0) {
+    if (nActiveSubscribers++ === 0) {
       run()
     }
 
     return once(() => {
       delete subscribers[id]
 
-      if (--n === 0) {
+      if (--nActiveSubscribers === 0) {
         uninstall()
       }
     })
   }
 
   subscribe.forceRefresh = () => {
-    if (n) {
+    if (hasSubscribers()) {
       run()
     }
+  }
+
+  subscribe.lazy = cb => {
+    const id = nextId++
+    subscribers[id] = cb
+
+    if (cache !== undefined) {
+      asap(() => cb(cache))
+    }
+
+    // trigger an initial run if necessary
+    if (nActiveSubscribers === 0) {
+      run()
+    }
+
+    return once(() => {
+      delete subscribers[id]
+
+      // schedule cache deletion if necessary
+      if (nActiveSubscribers === 0) {
+        uninstall()
+      }
+    })
   }
 
   return subscribe
