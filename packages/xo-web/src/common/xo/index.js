@@ -2739,7 +2739,7 @@ export const deleteGroups = groups =>
   }).then(
     () =>
       Promise.all(
-        map(resolveIds(groups), id => _call('group.delete', { id }))
+        map(groups, ({ id }) => _call('group.delete', { id }))
       )::tap(subscribeGroups.forceRefresh, err =>
         error(_('deleteGroup'), err.message || String(err))
       ),
