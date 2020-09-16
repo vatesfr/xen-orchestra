@@ -10,6 +10,7 @@
 - [VM Import] Make the `Description` field optional (PR [#5258](https://github.com/vatesfr/xen-orchestra/pull/5258))
 - [New VM] Hide missing ISOs in selector [#5222](https://github.com/vatesfr/xen-orchestra/issues/5222)
 - [Dashboard/Health] Show VMs that have too many snapshots [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
+- [Groups] Delete multiple groups at once (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
 
 ### Bug fixes
 
