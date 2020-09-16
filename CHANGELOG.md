@@ -1,8 +1,155 @@
 # ChangeLog
 
-## **5.48.2** (2020-07-07)
+## **5.50.2** (2020-09-10)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Enhancements
+
+- [VM/network] VIF's locking mode: improve tooltip messages [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5227](https://github.com/vatesfr/xen-orchestra/pull/5227))
+- [Backup/overview] Link log entry to its job [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5202](https://github.com/vatesfr/xen-orchestra/pull/5202))
+
+### Bug fixes
+
+- [New SR] Fix `Cannot read property 'trim' of undefined` error (PR [#5212](https://github.com/vatesfr/xen-orchestra/pull/5212))
+- [Dashboard/Health] Fix suspended VDIs considered as orphans [#5248](https://github.com/vatesfr/xen-orchestra/issues/5248) (PR [#5249](https://github.com/vatesfr/xen-orchestra/pull/5249))
+
+### Packages to release
+
+- xo-server-audit 0.7.2
+- xo-web 5.70.0
+- xo-server 5.66.2
+
+## **5.50.1** (2020-09-04)
+
+### Enhancements
+
+- [Usage report] Exclude replicated VMs from the VMs evolution [#4778](https://github.com/vatesfr/xen-orchestra/issues/4778) (PR [#5241](https://github.com/vatesfr/xen-orchestra/pull/5241))
+
+### Bug fixes
+
+- [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
+
+### Packages to release
+
+- xo-server-usage-report 0.9.0
+- xo-server-audit 0.7.1
+- xo-server 5.66.1
+
+## **5.50.0** (2020-08-27)
+
+### Highlights
+
+- [Health/Orphan VDIs] Improve heuristic and list both VDI snapshots and normal VDIs (PR [#5228](https://github.com/vatesfr/xen-orchestra/pull/5228))
+- [[Audit] Regularly save fingerprints on remote server for better tempering detection](https://xen-orchestra.com/blog/xo-audit/) [#4844](https://github.com/vatesfr/xen-orchestra/issues/4844) (PR [#5077](https://github.com/vatesfr/xen-orchestra/pull/5077))
+- [VM/Network] Ability to change a VIF's locking mode [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5188](https://github.com/vatesfr/xen-orchestra/pull/5188))
+- [VM/Network] Ability to set VIF TX checksumming [#5095](https://github.com/vatesfr/xen-orchestra/issues/5095) (PR [#5182](https://github.com/vatesfr/xen-orchestra/pull/5182))
+- [Host/Network] Button to refresh the list of physical interfaces [#5230](https://github.com/vatesfr/xen-orchestra/issues/5230)
+- [VM] Ability to protect VM from accidental shutdown [#4773](https://github.com/vatesfr/xen-orchestra/issues/4773)
+
+### Enhancements
+
+- [Proxy] Improve health check error messages [#5161](https://github.com/vatesfr/xen-orchestra/issues/5161) (PR [#5191](https://github.com/vatesfr/xen-orchestra/pull/5191))
+- [VM/Console] Hide missing ISOs in selector [#5222](https://github.com/vatesfr/xen-orchestra/issues/5222)
+
+### Bug fixes
+
+- [Proxy/deploy] Fix `no such proxy ok` error on a failure trial start (PR [#5196](https://github.com/vatesfr/xen-orchestra/pull/5196))
+- [VM/snapshots] Fix redirection when creating a VM from a snapshot (PR [#5213](https://github.com/vatesfr/xen-orchestra/pull/5213))
+- [User] Fix `Incorrect password` error when changing password [#5218](https://github.com/vatesfr/xen-orchestra/issues/5218) (PR [#5221](https://github.com/vatesfr/xen-orchestra/pull/5221))
+- [Audit] Obfuscate sensitive data in `user.changePassword` action's records [#5219](https://github.com/vatesfr/xen-orchestra/issues/5219) (PR [#5220](https://github.com/vatesfr/xen-orchestra/pull/5220))
+- [SDN Controller] Fix `Cannot read property '$network' of undefined` error at the network creation (PR [#5217](https://github.com/vatesfr/xen-orchestra/pull/5217))
+
+### Packages to release
+
+- xo-server-audit 0.7.0
+- xo-server-sdn-controller 1.0.3
+- xo-server 5.66.0
+- xo-web 5.69.0
+
+## **5.49.1** (2020-08-05)
+
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
+
+### Enhancements
+
+- [SR/advanced] Show thin/thick provisioning for missing SR types (PR [#5204](https://github.com/vatesfr/xen-orchestra/pull/5204))
+
+### Bug fixes
+
+- [Patches] Don't log errors related to missing patches listing (Previous fix in 5.48.3 was not working)
+
+### Packages to release
+
+- xo-server 5.64.1
+- xo-server-sdn-controller 1.0.2
+- xo-web 5.67.0
+
+## **5.49.0** (2020-07-31)
+
+### Highlights
+
+- [Home/VM, host] Ability to filter by power state (PR [#5118](https://github.com/vatesfr/xen-orchestra/pull/5118))
+- [Proxy/deploy] Ability to set HTTP proxy configuration (PR [#5145](https://github.com/vatesfr/xen-orchestra/pull/5145))
+- [Import/OVA] Allow for VMDK disks inside .ova files to be gzipped (PR [#5085](https://github.com/vatesfr/xen-orchestra/pull/5085))
+- [Proxy] Show pending upgrades (PR [#5167](https://github.com/vatesfr/xen-orchestra/pull/5167))
+- [SDN Controller] Add/Remove netork traffic rules for a VM's VIFs (PR [#5135](https://github.com/vatesfr/xen-orchestra/pull/5135))
+- [Backup/health] Show VM snapshots with missing jobs, schedules or VMs [#5086](https://github.com/vatesfr/xen-orchestra/issues/5086) (PR [#5125](https://github.com/vatesfr/xen-orchestra/pull/5125))
+- [New delta backup] Show a warning icon when the advanced full backup interval setting and the backup retention are higher than 50 (PR (https://github.com/vatesfr/xen-orchestra/pull/5144))
+- [VM/network] Improve the network locking mode feedback [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5170](https://github.com/vatesfr/xen-orchestra/pull/5170))
+- [Remotes] Add AWS S3 as a backup storage
+- [New VM] Only make network boot option first when the VM has no disks or when the network installation is chosen [#4980](https://github.com/vatesfr/xen-orchestra/issues/4980) (PR [#5119](https://github.com/vatesfr/xen-orchestra/pull/5119))
+
+### Enhancements
+
+- Log the `Invalid XML-RPC message` error as an unexpected response (PR [#5138](https://github.com/vatesfr/xen-orchestra/pull/5138))
+- [VM/disks] By default, sort disks by their device position instead of their name [#5163](https://github.com/vatesfr/xen-orchestra/issues/5163) (PR [#5165](https://github.com/vatesfr/xen-orchestra/pull/5165))
+- [Schedule/edit] Ability to enable/disable an ordinary job's schedule [#5026](https://github.com/vatesfr/xen-orchestra/issues/5026) (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
+- [New schedule] Enable 'Enable immediately after creation' by default (PR [#5111](https://github.com/vatesfr/xen-orchestra/pull/5111))
+- [Self Service] Ability to globally ignore snapshots in resource set quotas (PR [#5164](https://github.com/vatesfr/xen-orchestra/pull/5164))
+- [Self] Ability to cancel a resource set edition without saving it (PR [#5174](https://github.com/vatesfr/xen-orchestra/pull/5174))
+- [VIF] Ability to click an IP address to copy it to the clipboard [#5185](https://github.com/vatesfr/xen-orchestra/issues/5185) (PR [#5186](https://github.com/vatesfr/xen-orchestra/pull/5186))
+
+### Bug fixes
+
+- [Backup/Restore] Fixes `an error has occurred` when all backups for a specific VM have been deleted (PR [#5156](https://github.com/vatesfr/xen-orchestra/pull/5156))
+- [OVA Import] Fix import of Red Hat generated .ova files (PR [#5159](https://github.com/vatesfr/xen-orchestra/pull/5159))
+- [Fast clone] Fix bug where the name of the created VM would be "undefined_clone" (PR [#5173](https://github.com/vatesfr/xen-orchestra/pull/5173))
+- [Audit] Fix unreadable exported records format (PR [#5179](https://github.com/vatesfr/xen-orchestra/pull/5179))
+- [SDN Controller] Fixes TLS error `dh key too small` [#5074](https://github.com/vatesfr/xen-orchestra/issues/5074) (PR [#5187](https://github.com/vatesfr/xen-orchestra/pull/5187))
+
+### Released packages
+
+- xo-server-audit 0.6.1
+- @xen-orchestra/openflow 0.1.1
+- xo-server-sdn-controller 1.0.1
+- xo-vmdk-to-vhd 1.3.0
+- xo-remote-parser 0.6.0
+- @xen-orchestra/fs 0.11.0
+- xo-server 5.64.0
+- xo-web 5.66.0
+
+## **5.48.3** (2020-07-10)
+
+### Enhancements
+
+- [Audit] Logging user actions is now opt-in (PR [#5151](https://github.com/vatesfr/xen-orchestra/pull/5151))
+- [Settings/Audit] Warn if logging is inactive (PR [#5152](https://github.com/vatesfr/xen-orchestra/pull/5152))
+
+### Bug fixes
+
+- [Proxy] Don't use configured HTTP proxy to connect to XO proxy
+- [Backup with proxy] Correctly log job-level errors
+- [XO] Fix a few broken documentation links (PR [#5146](https://github.com/vatesfr/xen-orchestra/pull/5146))
+- [Patches] Don't log errors related to missing patches listing (PR [#5149](https://github.com/vatesfr/xen-orchestra/pull/5149))
+
+### Released packages
+
+- xo-server-audit 0.6.0
+- xo-web 5.64.0
+- xo-server 5.62.1
+
+## **5.48.2** (2020-07-07)
 
 ### Enhancements
 
@@ -81,8 +228,6 @@
 - xo-web 5.61.1
 
 ## **5.47.1** (2020-06-02)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Bug fixes
 

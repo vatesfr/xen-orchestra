@@ -258,6 +258,7 @@ export default class Jobs {
       userId: job.userId,
       jobId: id,
       jobName: job.name,
+      proxyId: job.proxy,
       scheduleId: schedule?.id,
       // $FlowFixMe only defined for CallJob
       key: job.key,

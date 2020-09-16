@@ -60,6 +60,7 @@ class VmData extends Component {
         descriptionLabel: PropTypes.string.isRequired,
         nameLabel: PropTypes.string.isRequired,
         path: PropTypes.string.isRequired,
+        compression: PropTypes.string,
       })
     ),
     memory: PropTypes.number,
@@ -73,13 +74,17 @@ class VmData extends Component {
     const { props, refs } = this
     return {
       descriptionLabel: refs.descriptionLabel.value,
-      disks: map(props.disks, ({ capacity, path, position }, diskId) => ({
-        capacity,
-        descriptionLabel: refs[`disk-description-${diskId}`].value,
-        nameLabel: refs[`disk-name-${diskId}`].value,
-        path,
-        position,
-      })),
+      disks: map(
+        props.disks,
+        ({ capacity, path, compression, position }, diskId) => ({
+          capacity,
+          descriptionLabel: refs[`disk-description-${diskId}`].value,
+          nameLabel: refs[`disk-name-${diskId}`].value,
+          path,
+          position,
+          compression,
+        })
+      ),
       memory: +refs.memory.value,
       nameLabel: refs.nameLabel.value,
       networks: map(props.networks, (_, networkId) => {
@@ -128,7 +133,6 @@ class VmData extends Component {
                 ref='descriptionLabel'
                 defaultValue={descriptionLabel}
                 type='text'
-                required
               />
             </div>
           </Col>

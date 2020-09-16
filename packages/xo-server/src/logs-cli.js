@@ -119,7 +119,7 @@ async function printLogs(db, args) {
   let stream = getLogs(db, args)
 
   if (args.json) {
-    stream = highland(stream.pipe(ndjson.serialize())).each(value => {
+    stream = highland(stream.pipe(ndjson.stringify())).each(value => {
       process.stdout.write(value)
     })
   } else {

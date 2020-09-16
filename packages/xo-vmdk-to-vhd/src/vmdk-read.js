@@ -67,7 +67,17 @@ function alignSectors(number) {
 }
 
 export default class VMDKDirectParser {
-  constructor(readStream, grainLogicalAddressList, grainFileOffsetList) {
+  constructor(
+    readStream,
+    grainLogicalAddressList,
+    grainFileOffsetList,
+    gzipped = false
+  ) {
+    if (gzipped) {
+      const unzipStream = zlib.createGunzip()
+      readStream.pipe(unzipStream)
+      readStream = unzipStream
+    }
     this.grainLogicalAddressList = grainLogicalAddressList
     this.grainFileOffsetList = grainFileOffsetList
     this.virtualBuffer = new VirtualBuffer(readStream)

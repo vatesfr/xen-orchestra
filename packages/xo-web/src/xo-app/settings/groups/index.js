@@ -18,6 +18,7 @@ import {
   addUserToGroup,
   createGroup,
   deleteGroup,
+  deleteGroups,
   removeUserFromGroup,
   setGroupName,
   subscribeGroups,
@@ -125,16 +126,16 @@ const GROUP_COLUMNS = [
       />
     ),
   },
+]
+
+const ACTIONS = [
   {
-    name: '',
-    itemRenderer: group => (
-      <ActionButton
-        icon='delete'
-        handler={deleteGroup}
-        handlerParam={group}
-        btnStyle='danger'
-      />
-    ),
+    handler: deleteGroups,
+    icon: 'delete',
+    individualHandler: deleteGroup,
+    individualLabel: _('deleteGroup'),
+    label: _('deleteSelectedGroups'),
+    level: 'danger',
   },
 ]
 
@@ -185,6 +186,7 @@ export default class Groups extends Component {
           </p>
         ) : (
           <SortedTable
+            actions={ACTIONS}
             collection={groups}
             columns={GROUP_COLUMNS}
             stateUrlParam='s'

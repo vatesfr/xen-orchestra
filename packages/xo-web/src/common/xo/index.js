@@ -1,14 +1,13 @@
 import asap from 'asap'
-import cookies from 'cookies-js'
+import cookies from 'js-cookie'
 import fpSortBy from 'lodash/fp/sortBy'
-import pFinally from 'promise-toolbox/finally'
 import React from 'react'
-import reflect from 'promise-toolbox/reflect'
-import tap from 'promise-toolbox/tap'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { get as getDefined } from '@xen-orchestra/defined'
+import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import {
   filter,
@@ -73,7 +72,7 @@ export const signOut = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
-  cookies.expire('token')
+  cookies.remove('token')
   window.location.reload(true)
 }
 
@@ -187,9 +186,14 @@ const createSubscription = cb => {
   const delay = 5e3 // 5s
   const clearCacheDelay = 6e5 // 10m
 
+  // contains active and lazy subscribers
   const subscribers = Object.create(null)
+  const hasSubscribers = () => Object.keys(subscribers).length !== 0
+
+  // only counts active subscribers
+  let nActiveSubscribers = 0
+
   let cache
-  let n = 0
   let nextId = 0
   let timeout
 
@@ -204,7 +208,10 @@ const createSubscription = cb => {
     timeout = setTimeout(clearCache, clearCacheDelay)
   }
 
-  const loop = () => {
+  // will loop if n > 0 at the end
+  //
+  // will not do anything if already running
+  const run = () => {
     clearTimeout(timeout)
 
     if (running) {
@@ -218,11 +225,11 @@ const createSubscription = cb => {
         result => {
           running = false
 
-          if (n === 0) {
+          if (nActiveSubscribers === 0) {
             return uninstall()
           }
 
-          timeout = setTimeout(loop, delay)
+          timeout = setTimeout(run, delay)
 
           if (!isEqual(result, cache)) {
             cache = result
@@ -240,7 +247,7 @@ const createSubscription = cb => {
         error => {
           running = false
 
-          if (n === 0) {
+          if (nActiveSubscribers === 0) {
             return uninstall()
           }
 
@@ -257,23 +264,46 @@ const createSubscription = cb => {
       asap(() => cb(cache))
     }
 
-    if (n++ === 0) {
-      loop()
+    if (nActiveSubscribers++ === 0) {
+      run()
     }
 
     return once(() => {
       delete subscribers[id]
 
-      if (--n === 0) {
+      if (--nActiveSubscribers === 0) {
         uninstall()
       }
     })
   }
 
   subscribe.forceRefresh = () => {
-    if (n) {
-      loop()
+    if (hasSubscribers()) {
+      run()
     }
+  }
+
+  subscribe.lazy = cb => {
+    const id = nextId++
+    subscribers[id] = cb
+
+    if (cache !== undefined) {
+      asap(() => cb(cache))
+    }
+
+    // trigger an initial run if necessary
+    if (nActiveSubscribers === 0) {
+      run()
+    }
+
+    return once(() => {
+      delete subscribers[id]
+
+      // schedule cache deletion if necessary
+      if (nActiveSubscribers === 0) {
+        uninstall()
+      }
+    })
   }
 
   return subscribe
@@ -373,7 +403,7 @@ const setNotificationCookie = (id, changes) => {
   cookies.set(
     `notifications:${store.getState().user.id}`,
     JSON.stringify(notifications),
-    { expires: Infinity }
+    { expires: 9999 }
   )
 }
 
@@ -564,9 +594,13 @@ export const editServer = (server, props) =>
   )
 
 export const enableServer = server =>
-  _call('server.enable', { id: resolveId(server) })::pFinally(
-    subscribeServers.forceRefresh
-  )
+  _call('server.enable', { id: resolveId(server) })
+    ::tapCatch(error => {
+      if (error.message === 'Invalid XML-RPC message') {
+        error(_('enableServerErrorTitle'), _('enableServerErrorMessage'))
+      }
+    })
+    ::pFinally(subscribeServers.forceRefresh)
 
 export const disableServer = server =>
   _call('server.disable', { id: resolveId(server) })::tap(
@@ -1182,7 +1216,10 @@ export const copyVms = (vms, type) => {
   }, noop)
 }
 
-export const copyVm = vm => copyVms([vm])
+export const copyVm = async vm => {
+  const result = await copyVms([vm], vm.type)
+  return getDefined(() => result[0])
+}
 
 export const convertVmToTemplate = vm =>
   confirm({
@@ -1774,15 +1811,59 @@ export const deleteVifs = vifs =>
 
 export const setVif = (
   vif,
-  { allowedIpv4Addresses, allowedIpv6Addresses, mac, network, rateLimit }
+  {
+    allowedIpv4Addresses,
+    allowedIpv6Addresses,
+    lockingMode,
+    mac,
+    network,
+    rateLimit,
+    txChecksumming,
+  }
 ) =>
   _call('vif.set', {
     allowedIpv4Addresses,
     allowedIpv6Addresses,
     id: resolveId(vif),
+    lockingMode,
     mac,
     network: resolveId(network),
     rateLimit,
+    txChecksumming,
+  })
+
+export const getLockingModeValues = () => _call('vif.getLockingModeValues')
+
+export const addAclRule = ({
+  allow,
+  protocol = undefined,
+  port = undefined,
+  ipRange = '',
+  direction,
+  vif,
+}) =>
+  _call('sdnController.addRule', {
+    allow,
+    protocol,
+    port,
+    ipRange,
+    direction,
+    vifId: resolveId(vif),
+  })
+
+export const deleteAclRule = ({
+  protocol = undefined,
+  port = undefined,
+  ipRange = '',
+  direction,
+  vif,
+}) =>
+  _call('sdnController.deleteRule', {
+    protocol,
+    port,
+    ipRange,
+    direction,
+    vifId: resolveId(vif),
   })
 
 // Network -----------------------------------------------------------
@@ -1853,6 +1934,8 @@ export const getIpv4ConfigModes = () => _call('pif.getIpv4ConfigurationModes')
 
 export const editPif = (pif, { vlan }) =>
   _call('pif.editPif', { pif: resolveId(pif), vlan })
+
+export const scanHostPifs = hostId => _call('host.scanPifs', { host: hostId })
 
 // SR ----------------------------------------------------------------
 
@@ -2677,6 +2760,20 @@ export const deleteGroup = group =>
     noop
   )
 
+export const deleteGroups = groups =>
+  confirm({
+    title: _('deleteGroupsModalTitle', { nGroups: groups.length }),
+    body: <p>{_('deleteGroupsModalMessage', { nGroups: groups.length })}</p>,
+  }).then(
+    () =>
+      Promise.all(
+        groups.map(({ id }) => _call('group.delete', { id }))
+      )::tap(subscribeGroups.forceRefresh, err =>
+        error(_('deleteGroup'), err.message || String(err))
+      ),
+    noop
+  )
+
 export const removeUserFromGroup = (user, group) =>
   _call(
     'group.removeUser',
@@ -3180,15 +3277,39 @@ export const destroyProxyAppliances = proxies =>
 export const upgradeProxyAppliance = proxy =>
   _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
 
-export const checkProxyHealth = proxy =>
-  _call('proxy.checkHealth', { id: resolveId(proxy) }).then(() =>
-    success(
-      <span>
-        <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
-      </span>,
-      _('proxyTestSuccessMessage')
-    )
-  )
+export const getProxyApplianceUpdaterState = id =>
+  _call('proxy.getApplianceUpdaterState', { id })
+
+const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EHOSTUNREACH',
+  'ENOTFOUND',
+  'ETIMEDOUT',
+])
+
+export const checkProxyHealth = async proxy => {
+  const result = await _call('proxy.checkHealth', {
+    id: resolveId(proxy),
+  })
+  return result.success
+    ? success(
+        <span>
+          <Icon icon='success' /> {_('proxyTestSuccess', { name: proxy.name })}
+        </span>,
+        _('proxyTestSuccessMessage')
+      )
+    : error(
+        <span>
+          <Icon icon='error' /> {_('proxyTestFailed', { name: proxy.name })}
+        </span>,
+        <span>
+          {PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE.has(result.error.code)
+            ? _('proxyTestFailedConnectionIssueMessage')
+            : result.error.message}
+        </span>
+      )
+}
 
 // Audit plugin ---------------------------------------------------------
 

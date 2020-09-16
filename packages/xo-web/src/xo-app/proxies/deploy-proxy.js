@@ -77,6 +77,7 @@ const Modal = decorate([
     computed: {
       idDnsInput: generateId,
       idGatewayInput: generateId,
+      idHttpProxyInput: generateId,
       idIpInput: generateId,
       idNetmaskInput: generateId,
       idSelectNetwork: generateId,
@@ -127,6 +128,21 @@ const Modal = decorate([
             onChange={effects.onNetworkChange}
             predicate={state.networkPredicate}
             value={value.network}
+          />
+        </Col>
+      </SingleLineRow>
+      <SingleLineRow className='mt-1'>
+        <Col mediumSize={4}>
+          <Label htmlFor={state.idHttpProxyInput}>{_('httpProxy')}</Label>
+        </Col>
+        <Col mediumSize={8}>
+          <input
+            className='form-control'
+            id={state.idHttpProxyInput}
+            placeholder={formatMessage(messages.httpProxyPlaceholder)}
+            name='httpProxy'
+            onChange={effects.onInputChange}
+            value={value.httpProxy}
           />
         </Col>
       </SingleLineRow>
@@ -282,12 +298,15 @@ const deployProxy = async ({ proxy } = {}) => {
     try {
       license = await createProxyTrialLicense()
     } catch (error) {
-      return alert(
+      await alert(
         _('trialStartButton'),
         <span className='text-danger'>
           <Icon icon='alarm' /> {error.message}
         </span>
       )
+
+      // throw undefined to interrupt the deployment process and let the ActionButton properly ignore this error
+      throw undefined
     }
   }
 
@@ -295,6 +314,7 @@ const deployProxy = async ({ proxy } = {}) => {
     defaultValue: {
       dns: '',
       gateway: '',
+      httpProxy: '',
       ip: '',
       netmask: '',
       networkMode: 'dhcp',
@@ -305,21 +325,24 @@ const deployProxy = async ({ proxy } = {}) => {
         <Icon icon='proxy' /> {title}
       </span>
     ),
-  }).then(({ sr, network, networkMode, ip, netmask, gateway, dns }) =>
-    deployProxyAppliance(license, sr, {
-      network: network === null ? undefined : network,
-      networkConfiguration:
-        networkMode === 'static'
-          ? {
-              dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
-              gateway,
-              ip,
-              netmask:
-                (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
-            }
-          : undefined,
-      proxy,
-    })
+  }).then(
+    ({ httpProxy, sr, network, networkMode, ip, netmask, gateway, dns }) =>
+      deployProxyAppliance(license, sr, {
+        httpProxy:
+          (httpProxy = httpProxy.trim()) !== '' ? httpProxy : undefined,
+        network: network === null ? undefined : network,
+        networkConfiguration:
+          networkMode === 'static'
+            ? {
+                dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
+                gateway,
+                ip,
+                netmask:
+                  (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
+              }
+            : undefined,
+        proxy,
+      })
   )
 }
 
