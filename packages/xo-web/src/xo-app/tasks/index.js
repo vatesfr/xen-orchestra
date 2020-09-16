@@ -254,14 +254,10 @@ export default class Tasks extends Component {
       flatten(toArray(props.pendingTasksByPool)),
       'id'
     )
-
     if (!isEmpty(finishedTasks)) {
       this.setState({
         finishedTasks: finishedTasks
-          .map(task => ({
-            ...task,
-            disappeared: Date.now(),
-          }))
+          .map(task => ({ ...task, disappeared: Date.now() }))
           .concat(this.state.finishedTasks),
       })
     }
@@ -309,11 +305,11 @@ export default class Tasks extends Component {
               <SortedTable
                 collection={this._getTasks()}
                 columns={COLUMNS}
-                data-pools={pools}
                 filterContainer={() => this.state.container}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'
+                userData={{ pools }}
               />
             </Col>
           </Row>
