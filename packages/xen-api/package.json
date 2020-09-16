@@ -40,7 +40,7 @@
     "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
     "http-request-plus": "^0.8.0",
-    "jest-diff": "^24.0.0",
+    "jest-diff": "^26.4.2",
     "json-rpc-protocol": "^0.13.1",
     "kindof": "^2.0.0",
     "lodash": "^4.17.4",
