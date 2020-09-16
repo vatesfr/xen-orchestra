@@ -13,7 +13,7 @@
 
 ### Bug fixes
 
-> Users must be able to say: “I had this issue, happy to know it's fixed”
+- [Resource Set] Fix issue that caused the `resourceSet.removeSubject` rpc call to fail
 
 ### Packages to release
 
@@ -33,3 +33,4 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-web minor
+- xo-server patch
