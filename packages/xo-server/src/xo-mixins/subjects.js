@@ -1,5 +1,5 @@
 import createLogger from '@xen-orchestra/log'
-import { filter, includes } from 'lodash'
+import { filter } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
@@ -14,7 +14,7 @@ import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
 const log = createLogger('xo:xo-mixins:subjects')
 
 const addToArraySet = (set, value) =>
-  set ? (includes(set, value) ? set : set.concat(value)) : [value]
+  set !== undefined ? (set.includes(value) ? set : set.concat(value)) : [value]
 const removeFromArraySet = (set, value) =>
   set && filter(set, current => current !== value)
 
