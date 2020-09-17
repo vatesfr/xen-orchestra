@@ -38,4 +38,5 @@
 
 - xo-server-audit patch
 - xo-vmdk-to-vhd patch
+- xo-server minor
 - xo-web minor
