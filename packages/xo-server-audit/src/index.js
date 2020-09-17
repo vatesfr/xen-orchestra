@@ -342,8 +342,6 @@ class AuditXoPlugin {
             newest: hashes[i + 1],
           })
         }
-
-        integrityCheckSuccess = true
       } catch (error) {
         if (!missingAuditRecord.is(error) && !alteredAuditRecord.is(error)) {
           throw error
