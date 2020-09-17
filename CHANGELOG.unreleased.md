@@ -12,6 +12,7 @@
 - [Dashboard/Health] Show VMs that have too many snapshots [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
 - [Groups] Ability to delete multiple groups at once (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
 - [Tasks] Show objects that used by the tasks [#4275](https://github.com/vatesfr/xen-orchestra/issues/4275) (PR [#5267](https://github.com/vatesfr/xen-orchestra/pull/5267))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
