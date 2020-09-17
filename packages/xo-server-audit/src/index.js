@@ -19,6 +19,7 @@ const DEFAULT_BLOCKED_LIST = {
   'acl.get': true,
   'acl.getCurrentPermissions': true,
   'audit.checkIntegrity': true,
+  'audit.clean': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
   'backup.list': true,
@@ -113,6 +114,30 @@ class Db extends Storage {
 
   getLastId() {
     return this.get(LAST_ID)
+  }
+
+  async clean() {
+    const db = this._db
+
+    // delete first so that a new chain can be constructed even if anything else fails
+    await db.del(LAST_ID)
+
+    return new Promise((resolve, reject) => {
+      let count = 1
+      const cb = () => {
+        if (--count === 0) {
+          resolve()
+        }
+      }
+      const deleteEntry = key => {
+        ++count
+        db.del(key, cb)
+      }
+      db.createKeyStream()
+        .on('data', deleteEntry)
+        .on('end', cb)
+        .on('error', reject)
+    })
   }
 }
 
@@ -209,10 +234,15 @@ class AuditXoPlugin {
       cleaners.push(() => uploadLastHashJob.stop())
     }
 
+    const clean = this._storage.clean.bind(this._storage)
+    clean.permission = 'admin'
+    clean.description = 'Clean audit database'
+
     cleaners.push(
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
+          clean,
           exportRecords,
           generateFingerprint,
           getRecords,
