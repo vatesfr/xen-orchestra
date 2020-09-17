@@ -78,6 +78,18 @@ export class TaskItem extends Component {
 const taskObjectsRenderer = ({ objects }) =>
   map(objects, obj => <p>{renderXoItem(obj, { link: true })}</p>)
 
+const COMMON = [
+  {
+    component: TaskItem,
+    name: _('task'),
+    sortCriteria: 'name_label',
+  },
+  {
+    itemRenderer: taskObjectsRenderer,
+    name: _('objects'),
+  },
+]
+
 const COLUMNS = [
   {
     default: true,
@@ -88,15 +100,7 @@ const COLUMNS = [
       return pool !== undefined && pool.name_label
     },
   },
-  {
-    component: TaskItem,
-    name: _('task'),
-    sortCriteria: 'name_label',
-  },
-  {
-    itemRenderer: taskObjectsRenderer,
-    name: _('objects'),
-  },
+  ...COMMON,
   {
     itemRenderer: task => (
       <progress
@@ -116,14 +120,7 @@ const FINISHED_TASKS_COLUMNS = [
     itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
   },
-  {
-    component: TaskItem,
-    name: _('task'),
-  },
-  {
-    itemRenderer: taskObjectsRenderer,
-    name: _('objects'),
-  },
+  ...COMMON,
   {
     default: true,
     itemRenderer: task => (
