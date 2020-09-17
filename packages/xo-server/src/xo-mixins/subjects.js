@@ -14,7 +14,7 @@ import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
 const log = createLogger('xo:xo-mixins:subjects')
 
 const addToArraySet = (set, value) =>
-  set && !includes(set, value) ? set.concat(value) : [value]
+  set ? (includes(set, value) ? set : set.concat(value)) : [value]
 const removeFromArraySet = (set, value) =>
   set && filter(set, current => current !== value)
 
