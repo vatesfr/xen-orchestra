@@ -1,14 +1,14 @@
 # ChangeLog
 
-## **next**
+## **5.50.3** (2020-09-17)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Packages to release
 
 - xo-server-audit 0.8.0
 
 ## **5.50.2** (2020-09-10)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
