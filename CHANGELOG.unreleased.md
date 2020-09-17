@@ -13,6 +13,8 @@
 
 ### Bug fixes
 
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
 - [Resource Set] Fix `this.removeSubjectFromResourceSet is not a function` error on calling `resourceSet.removeSubject` via `xo-cli` [#5265](https://github.com/vatesfr/xen-orchestra/issues/5265) (PR [#5266](https://github.com/vatesfr/xen-orchestra/pull/5266))
 
 ### Packages to release

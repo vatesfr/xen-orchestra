@@ -124,18 +124,14 @@ describe('issue', () => {
           'three',
     ]
     test('resourceSet.removeSubject call', async () => {
-      const rs = await xo.call('resourceSet.create', {
+      const id = await xo.createTempResourceSet({
         name: rsName,
         subjects: subjects,
       })
 
       await xo.call('resourceSet.removeSubject', {
-        id: rs.id,
+        id,
         subject: subjects[0]
-      })
-
-      await xo.call('resourceSet.delete', {
-        id: rs.id,
       })
     })
   })
