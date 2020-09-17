@@ -115,4 +115,28 @@ describe('issue', () => {
       expect(vm.boot.order).toBe('n' + bootOrder)
     })
   })
+
+  describe('5265',  () => {
+    const rsName = "xo-server-test resource set"
+    const subjects = [
+          'one',
+          'two',
+          'three',
+    ]
+    test('resourceSet.removeSubject call', async () => {
+      const rs = await xo.call('resourceSet.create', {
+        name: rsName,
+        subjects: subjects,
+      })
+
+      await xo.call('resourceSet.removeSubject', {
+        id: rs.id,
+        subject: subjects[0]
+      })
+
+      await xo.call('resourceSet.delete', {
+        id: rs.id,
+      })
+    })
+  })
 })
