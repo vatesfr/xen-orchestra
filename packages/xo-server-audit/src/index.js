@@ -335,16 +335,18 @@ class AuditXoPlugin {
       }
 
       // check the integrity of all stored hashes
-      integrityCheckSuccess = await Promise.all(
-        hashes.map((oldest, key) =>
-          oldest !== lastHash
-            ? this._checkIntegrity({ oldest, newest: hashes[key + 1] })
-            : true
-        )
-      ).then(
-        () => true,
-        () => false
-      )
+      try {
+        for (let i = 0; i < hashes.length - 1; ++i) {
+          await this._checkIntegrity({
+            oldest: hashes[i],
+            newest: hashes[i + 1],
+          })
+        }
+
+        integrityCheckSuccess = true
+      } catch (_) {
+        integrityCheckSuccess = false
+      }
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
