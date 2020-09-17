@@ -25,13 +25,23 @@ const Overview = decorate([
     legacyJobs: subscribeJobs,
   }),
   provideState({
+    initialState: () => ({
+      scrollIntoJobs: undefined,
+    }),
+    effects: {
+      handleJobsRef(_, ref) {
+        if (ref !== null) {
+          this.state.scrollIntoJobs = ref.scrollIntoView.bind(ref)
+        }
+      },
+    },
     computed: {
       haveLegacyBackups: (_, { legacyJobs }) =>
         some(legacyJobs, job => legacyJobKey.includes(job.key)),
     },
   }),
   injectState,
-  ({ state: { haveLegacyBackups } }) => (
+  ({ effects, state: { haveLegacyBackups, scrollIntoJobs } }) => (
     <div>
       {haveLegacyBackups && <LegacyOverview />}
       <div className='mt-2 mb-1'>
@@ -41,10 +51,12 @@ const Overview = decorate([
             <Icon icon='backup' /> {_('backupJobs')}
           </CardHeader>
           <CardBlock>
-            <JobsTable />
+            <div ref={effects.handleJobsRef}>
+              <JobsTable />
+            </div>
           </CardBlock>
         </Card>
-        <LogsTable />
+        <LogsTable scrollIntoJobs={scrollIntoJobs} />
       </div>
     </div>
   ),

@@ -82,6 +82,7 @@ const messages = {
   upgradesAvailable: 'Upgrades available',
   advancedSettings: 'Advanced settings',
   txChecksumming: 'TX checksumming',
+  unknownSize: 'Unknown size',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -655,6 +656,10 @@ const messages = {
   createGroupButton: 'Create',
   deleteGroup: 'Delete group',
   deleteGroupConfirm: 'Are you sure you want to delete this group?',
+  deleteSelectedGroups: 'Delete selected groups',
+  deleteGroupsModalTitle: 'Delete group{nGroups, plural, one {} other {s}}',
+  deleteGroupsModalMessage:
+    'Are you sure you want to delete {nGroups, number} group{nGroups, plural, one {} other {s}}?',
   removeUserFromGroup: 'Remove user from group',
   deleteUserConfirm: 'Are you sure you want to delete this user?',
   deleteUser: 'Delete user',
@@ -1156,13 +1161,15 @@ const messages = {
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
   vifNoIps: 'No IPs',
-  vifDisabledNetwork: 'Network disabled',
-  vifLockedNetwork: 'Network locked',
+  vifLockingModeDisabled: 'VIF locking mode is disabled',
+  vifLockingModeUnlocked: 'VIF locking mode is unlocked',
+  vifLockingModeLocked: 'VIF locking mode is locked',
+  networkDefaultLockingModeDisabled: 'Network default locking mode is disabled',
+  networkDefaultLockingModeUnlocked: 'Network default locking mode is unlocked',
   vifLockedNetworkNoIps:
     'Network locked and no IPs are allowed for this interface',
   vifUnlockedNetworkWithIps:
-    'Network not locked: some IPs are unnecessarily set as allowed for this interface',
-  vifUnLockedNetwork: 'Network not locked',
+    'Some IPs are unnecessarily set as allowed for this interface',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
 
@@ -1367,6 +1374,10 @@ const messages = {
   orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
+  tooManySnapshots: 'Too many snapshots',
+  tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
+  noTooManySnapshotsObject: 'No VMs with too many snapshots',
+  numberOfSnapshots: 'Number of snapshots',
   deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
   deleteSelectedOrphanedVdis: 'Delete selected orphaned snapshot VDIs',
   vdisOnControlDomain: 'VDIs attached to Control Domain',
@@ -2089,6 +2100,7 @@ const messages = {
   backupRestartFailedVms: "Restart failed VMs' backup",
   backupForceRestartFailedVms: "Force restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
+  goToThisJob: 'Click to go to this job',
 
   // ----- IPs ------
   ipPoolName: 'Name',

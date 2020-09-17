@@ -4,8 +4,10 @@ import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize } from 'utils'
@@ -13,6 +15,7 @@ import { createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, filter, map, keyBy } from 'lodash'
+import { withRouter } from 'react-router'
 import {
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
@@ -49,10 +52,44 @@ export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
   )
 }
 
+const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
+const GoToJob = decorate([
+  withRouter,
+  provideState({
+    effects: {
+      goTo() {
+        const { jobId, location, router, scrollIntoJobs } = this.props
+        router.replace({
+          ...location,
+          query: { ...location.query, s: `id:${jobId}` },
+        })
+        scrollIntoJobs()
+      },
+    },
+  }),
+  injectState,
+  ({ effects, children }) => (
+    <Tooltip content={_('goToThisJob')}>
+      <p onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
+        {children}
+      </p>
+    </Tooltip>
+  ),
+])
+
+GoToJob.propTypes = {
+  jobId: PropTypes.string.isRequired,
+  scrollIntoJobs: PropTypes.func.isRequired,
+}
+
 const COLUMNS = [
   {
     name: _('jobId'),
-    itemRenderer: log => log.jobId.slice(4, 8),
+    itemRenderer: (log, { scrollIntoJobs }) => (
+      <GoToJob jobId={log.jobId} scrollIntoJobs={scrollIntoJobs}>
+        {log.jobId.slice(4, 8)}
+      </GoToJob>
+    ),
     sortCriteria: log => log.jobId,
   },
   {
@@ -177,7 +214,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ state, jobs }) => (
+  ({ state, scrollIntoJobs, jobs }) => (
     <Card>
       <CardHeader>
         <Icon icon='logs' /> {_('logTitle')}
@@ -188,6 +225,7 @@ export default decorate([
           columns={COLUMNS}
           component={SortedTable}
           data-jobs={state.jobs}
+          data-scrollIntoJobs={scrollIntoJobs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           stateUrlParam='s_logs'
