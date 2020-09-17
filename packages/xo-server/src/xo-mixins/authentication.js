@@ -113,7 +113,7 @@ export default class {
 
         if (typeof result === 'string') {
           return {
-            user: await this._getUser(result),
+            user: await this._xo.getUser(result),
           }
         }
 
