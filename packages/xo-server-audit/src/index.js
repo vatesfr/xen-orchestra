@@ -122,7 +122,7 @@ class Db extends Storage {
     // delete first so that a new chain can be constructed even if anything else fails
     await db.del(LAST_ID)
 
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       let count = 1
       const cb = () => {
         if (--count === 0) {
@@ -133,7 +133,10 @@ class Db extends Storage {
         ++count
         db.del(key, cb)
       }
-      db.createKeyStream().on('data', deleteEntry).on('end', cb)
+      db.createKeyStream()
+        .on('data', deleteEntry)
+        .on('end', cb)
+        .on('error', reject)
     })
   }
 }
