@@ -75,6 +75,9 @@ export class TaskItem extends Component {
   }
 }
 
+const taskObjectsRenderer = ({ objects }) =>
+  map(objects, obj => <p>{renderXoItem(obj, { link: true })}</p>)
+
 const COLUMNS = [
   {
     default: true,
@@ -91,9 +94,8 @@ const COLUMNS = [
     sortCriteria: 'name_label',
   },
   {
-    itemRenderer: ({ linkedObjects }) =>
-      map(linkedObjects, item => <p>{renderXoItem(item, { link: true })}</p>),
-    name: _('usedBy'),
+    itemRenderer: taskObjectsRenderer,
+    name: _('objects'),
   },
   {
     itemRenderer: task => (
@@ -119,9 +121,8 @@ const FINISHED_TASKS_COLUMNS = [
     name: _('task'),
   },
   {
-    itemRenderer: ({ linkedObjects }) =>
-      map(linkedObjects, item => <p>{renderXoItem(item, { link: true })}</p>),
-    name: _('usedBy'),
+    itemRenderer: taskObjectsRenderer,
+    name: _('objects'),
   },
   {
     default: true,
@@ -199,16 +200,19 @@ const GROUPED_ACTIONS = [
     createGetObjectsOfType('VDI').filter(predicate),
     createGetObjectsOfType('VM').filter(predicate),
     createGetObjectsOfType('network').filter(predicate),
-    (pools, hosts, vdis, vms, networks) => {
+    (pools, hosts, srs, vdis, vms, networks) => {
       const linkedObjectsByTask = {}
-      forEach({ ...pools, ...hosts, ...vdis, ...vms, ...networks }, obj => {
-        Object.keys(obj.current_operations).forEach(taskId => {
-          if (linkedObjectsByTask[taskId] === undefined) {
-            linkedObjectsByTask[taskId] = []
-          }
-          linkedObjectsByTask[taskId].push(obj)
-        })
-      })
+      forEach(
+        { ...pools, ...hosts, ...srs, ...vdis, ...vms, ...networks },
+        obj => {
+          Object.keys(obj.current_operations).forEach(taskId => {
+            if (linkedObjectsByTask[taskId] === undefined) {
+              linkedObjectsByTask[taskId] = []
+            }
+            linkedObjectsByTask[taskId].push(obj)
+          })
+        }
+      )
       return linkedObjectsByTask
     }
   )
@@ -220,7 +224,7 @@ const GROUPED_ACTIONS = [
       groupBy(
         map(tasks, task => ({
           ...task,
-          linkedObjects: linkedObjectsByTask[task.id],
+          objects: linkedObjectsByTask[task.id],
         })),
         '$pool'
       )
