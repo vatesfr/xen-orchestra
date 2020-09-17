@@ -344,7 +344,11 @@ class AuditXoPlugin {
         }
 
         integrityCheckSuccess = true
-      } catch (_) {
+      } catch (error) {
+        if (!missingAuditRecord.is(error) && !alteredAuditRecord.is(error)) {
+          throw error
+        }
+
         integrityCheckSuccess = false
       }
     }
