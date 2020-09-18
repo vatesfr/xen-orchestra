@@ -330,9 +330,10 @@ export default decorate([
       onPageChange(_, page) {
         this.state.page = page
       },
-      setFilter: (_, filter) => () => ({
-        filter,
-      }),
+      setFilter(_, filter) {
+        this.state.filter = filter
+        this.state.page = 1
+      },
       restartVmJob: (_, params) => async (
         _,
         { log: { scheduleId, jobId } }
@@ -374,17 +375,17 @@ export default decorate([
 
         return defined(newLog, log)
       },
-      filteredTaskLogs: ({
+      tasksFilteredByStatus: ({
         defaultFilter,
         filter: value = defaultFilter,
         log,
-        page,
-      }) => {
+      }) =>
+        value === 'all'
+          ? log.tasks
+          : filter(log.tasks, ({ status }) => status === value),
+      displayedTasks: ({ tasksFilteredByStatus, page }) => {
         const start = (page - 1) * ITEMS_PER_PAGE
-        const tasks = log.tasks.slice(start, start + ITEMS_PER_PAGE)
-        return value === 'all'
-          ? tasks
-          : filter(tasks, ({ status }) => status === value)
+        return tasksFilteredByStatus.slice(start, start + ITEMS_PER_PAGE)
       },
       optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
@@ -438,7 +439,8 @@ export default decorate([
 
         return 'all'
       },
-      nPages: (_, { log }) => ceil(log.tasks.length / ITEMS_PER_PAGE),
+      nPages: ({ tasksFilteredByStatus }) =>
+        ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
     },
   }),
   injectState,
@@ -464,7 +466,7 @@ export default decorate([
         <Warnings warnings={warnings} />
         <br />
         <ul className='list-group'>
-          {map(state.filteredTaskLogs, taskLog => {
+          {map(state.displayedTasks, taskLog => {
             return (
               <TaskLi
                 className='list-group-item'
@@ -487,7 +489,7 @@ export default decorate([
             )
           })}
         </ul>
-        {tasks.length > ITEMS_PER_PAGE && (
+        {state.tasksFilteredByStatus.length > ITEMS_PER_PAGE && (
           <div className='text-xs-center'>
             <Pagination
               onChange={effects.onPageChange}
