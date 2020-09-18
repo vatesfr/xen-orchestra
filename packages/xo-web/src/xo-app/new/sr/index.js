@@ -144,6 +144,7 @@ class SelectIqn extends Component {
   }
 }
 
+@injectIntl
 class SelectLun extends Component {
   static propTypes = {
     onChange: PropTypes.func.isRequired,
@@ -152,11 +153,14 @@ class SelectLun extends Component {
 
   _getOptions = createSelector(
     () => this.props.options,
-    options =>
+    () => this.props.intl.formatMessage,
+    (options, formatMessage) =>
       map(options, (lun, index) => ({
-        label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${
-          lun.vendor
-        })`,
+        label: `LUN ${lun.id}: ${lun.serial} - ${
+          lun.size !== undefined
+            ? formatSize(+lun.size)
+            : formatMessage(messages.unknownSize)
+        } - (${lun.vendor})`,
         value: index,
       }))
   )
@@ -989,7 +993,11 @@ export default class New extends Component {
                   {type === 'iscsi' && (
                     <dl className='dl-horizontal'>
                       <dt>{_('newSrSize')}</dt>
-                      <dd>{formatSize(+lun.size)}</dd>
+                      <dd>
+                        {lun.size !== undefined
+                          ? formatSize(+lun.size)
+                          : _('unknownSize')}
+                      </dd>
                     </dl>
                   )}
                   {includes(['nfs', 'hba'], type) && (

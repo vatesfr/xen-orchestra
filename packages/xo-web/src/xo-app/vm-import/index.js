@@ -133,7 +133,6 @@ class VmData extends Component {
                 ref='descriptionLabel'
                 defaultValue={descriptionLabel}
                 type='text'
-                required
               />
             </div>
           </Col>

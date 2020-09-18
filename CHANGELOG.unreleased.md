@@ -7,11 +7,17 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM Import] Make the `Description` field optional (PR [#5258](https://github.com/vatesfr/xen-orchestra/pull/5258))
+- [New VM] Hide missing ISOs in selector [#5222](https://github.com/vatesfr/xen-orchestra/issues/5222)
+- [Dashboard/Health] Show VMs that have too many snapshots [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
+- [Groups] Ability to delete multiple groups at once (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
 - [Backup/logs] Log's tasks pagination [#4406](https://github.com/vatesfr/xen-orchestra/issues/4406) (PR [#5209](https://github.com/vatesfr/xen-orchestra/pull/5209))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Import VMDK] Fix `No position specified for vmdisk1` error (PR [#5255](https://github.com/vatesfr/xen-orchestra/pull/5255))
 
 ### Packages to release
 
@@ -30,4 +36,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-vmdk-to-vhd patch
 - xo-web minor
