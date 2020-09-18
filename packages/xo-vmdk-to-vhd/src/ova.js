@@ -217,41 +217,6 @@ async function parseOVF(fileFragment, stringDeserializer) {
 
 const GZIP_CHUNK_SIZE = 4 * 1024 * 1024
 
-async function parseGzipFromStart(start, end, fileSlice) {
-  let currentDeflatedPos = 0
-  let currentInflatedPos = 0
-  const inflate = new pako.Inflate()
-  const chunks = []
-  while (currentInflatedPos < end) {
-    const slice = fileSlice.slice(
-      currentDeflatedPos,
-      currentDeflatedPos + GZIP_CHUNK_SIZE
-    )
-    const compressed = await slice.read()
-    inflate.push(compressed, pako.Z_SYNC_FLUSH)
-    let chunk = inflate.result
-    const inflatedChunkEnd = currentInflatedPos + chunk.length
-    if (inflatedChunkEnd > start) {
-      if (currentInflatedPos < start) {
-        chunk = chunk.slice(start - currentInflatedPos)
-      }
-      if (inflatedChunkEnd > end) {
-        chunk = chunk.slice(0, -(inflatedChunkEnd - end))
-      }
-      chunks.push(chunk)
-    }
-    currentInflatedPos = inflatedChunkEnd
-    currentDeflatedPos += GZIP_CHUNK_SIZE
-  }
-  const resultBuffer = new Uint8Array(sum(chunks.map(c => c.length)))
-  let index = 0
-  chunks.forEach(c => {
-    resultBuffer.set(c, index)
-    index += c.length
-  })
-  return resultBuffer.buffer
-}
-
 // start and end are negative numbers
 // used with streamOptimized format where only the footer has the directory address filled
 async function parseGzipFromEnd(start, end, fileSlice, header) {
@@ -332,7 +297,70 @@ export async function parseOVAFile(
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
       const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
+      let forwardsInflater = new pako.Inflate()
+      let currentForwardsDeflatedPos = 0
+      let currentForwardsInflatedPos = 0
+      // left over from the last unzipped chunk
+      let lastChunk = new Uint8Array(0)
+      let previousEnd = 0
+
       const readFile = async (start, end) => {
+        async function parseGzipFromStart(start, end, fileSlice) {
+          const chunks = []
+          if (start < previousEnd) {
+            // the next block we are reading is before the previous one, reset the stream
+            forwardsInflater = new pako.Inflate()
+            currentForwardsDeflatedPos = 0
+            currentForwardsInflatedPos = 0
+            lastChunk = new Uint8Array(0)
+          } else {
+            // the next block we are reading is located after the previous one, lets move the stream forwards
+            if (start < currentForwardsInflatedPos) {
+              // the read start in the buffer left over from the previous read
+              const endLimit = Math.min(
+                lastChunk.length,
+                lastChunk.length - (currentForwardsInflatedPos - end)
+              )
+              // get a negative number from the subtraction to start at the end
+              chunks.push(
+                lastChunk.slice(start - currentForwardsInflatedPos, endLimit)
+              )
+              // set the lastChunk since we might never enter the hereunder while loop if `end` is also in the lastChunk
+              lastChunk = lastChunk.slice(endLimit)
+            }
+          }
+          while (currentForwardsInflatedPos < end) {
+            const slice = fileSlice.slice(
+              currentForwardsDeflatedPos,
+              currentForwardsDeflatedPos + GZIP_CHUNK_SIZE
+            )
+            const compressed = await slice.read()
+            forwardsInflater.push(compressed, pako.Z_SYNC_FLUSH)
+            let chunk = forwardsInflater.result
+            const inflatedChunkEnd = currentForwardsInflatedPos + chunk.length
+            if (inflatedChunkEnd > start) {
+              if (currentForwardsInflatedPos < start) {
+                chunk = chunk.slice(start - currentForwardsInflatedPos)
+              }
+              if (inflatedChunkEnd > end) {
+                lastChunk = chunk.slice(-(inflatedChunkEnd - end))
+                chunk = chunk.slice(0, -(inflatedChunkEnd - end))
+              }
+              chunks.push(chunk)
+            }
+            currentForwardsInflatedPos = inflatedChunkEnd
+            currentForwardsDeflatedPos += GZIP_CHUNK_SIZE
+          }
+          const resultBuffer = new Uint8Array(sum(chunks.map(c => c.length)))
+          let index = 0
+          chunks.forEach(c => {
+            resultBuffer.set(c, index)
+            index += c.length
+          })
+          previousEnd = end
+          return resultBuffer.buffer
+        }
+
         if (start === end) {
           return new Uint8Array(0)
         }
