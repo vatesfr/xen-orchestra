@@ -9,7 +9,7 @@ import React from 'react'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, formatSize, formatSpeed } from 'utils'
-import { ceil, countBy, cloneDeep, filter, keyBy, map } from 'lodash'
+import { countBy, cloneDeep, filter, keyBy, map } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
@@ -440,7 +440,7 @@ export default decorate([
         return 'all'
       },
       nPages: ({ tasksFilteredByStatus }) =>
-        ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
+        Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
     },
   }),
   injectState,
