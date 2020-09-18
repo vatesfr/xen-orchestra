@@ -342,7 +342,7 @@ export async function parseOVAFile(
           return parseGzipFromEnd(start, end, fileSlice, header)
         }
       }
-      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+      data.tables[header.fileName] = readVmdkGrainTable(readFile)
     }
     offset += Math.ceil(header.fileSize / 512) * 512
   }
