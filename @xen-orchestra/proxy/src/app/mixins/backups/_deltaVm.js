@@ -84,7 +84,7 @@ export const exportDeltaVm = async function (
       $SR$uuid: vdi.$SR.uuid,
     }
 
-    streams[`${vdiRef}.vhd`] = await vdi.$xapi.VDI_exportContent(vdi.$ref, {
+    streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
       baseRef: baseVdi?.$ref,
       cancelToken,
       format: 'vhd',
