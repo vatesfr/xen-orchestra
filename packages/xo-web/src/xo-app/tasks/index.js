@@ -14,18 +14,15 @@ import {
   differenceBy,
   flatMap,
   flatten,
-  forEach,
+  forOwn,
   groupBy,
   isEmpty,
-  keyBy,
   keys,
   map,
-  pick,
   some,
   toArray,
 } from 'lodash'
 import {
-  createCollectionWrapper,
   createFilter,
   createGetObject,
   createGetObjectsOfType,
@@ -57,6 +54,7 @@ const TASK_ITEM_STYLE = {
 export class TaskItem extends Component {
   render() {
     const { host, item: task } = this.props
+
     return (
       <div>
         {task.name_label} (
@@ -75,8 +73,13 @@ export class TaskItem extends Component {
   }
 }
 
-const taskObjectsRenderer = ({ objects }) =>
-  map(objects, obj => <p>{renderXoItem(obj, { link: true })}</p>)
+const taskObjectsRenderer = ({ objects }) => (
+  <div>
+    {map(objects, obj => (
+      <li>{renderXoItem(obj, { link: true })}0</li>
+    ))}
+  </div>
+)
 
 const COMMON = [
   {
@@ -181,14 +184,7 @@ const GROUPED_ACTIONS = [
 
   const getNPendingTasks = getPendingTasks.count()
 
-  const predicate = createSelector(
-    createSelector(
-      getPendingTasks,
-      createCollectionWrapper(_ => keyBy(_, 'id'))
-    ),
-    tasksById => obj =>
-      !isEmpty(pick(tasksById, Object.keys(obj.current_operations)))
-  )
+  const predicate = _ => obj => !isEmpty(obj.current_operations)
 
   const getLinkedObjectsByTask = createSelector(
     createGetObjectsOfType('pool').filter(predicate),
@@ -199,17 +195,22 @@ const GROUPED_ACTIONS = [
     createGetObjectsOfType('network').filter(predicate),
     (pools, hosts, srs, vdis, vms, networks) => {
       const linkedObjectsByTask = {}
-      forEach(
-        { ...pools, ...hosts, ...srs, ...vdis, ...vms, ...networks },
-        obj => {
-          Object.keys(obj.current_operations).forEach(taskId => {
-            if (linkedObjectsByTask[taskId] === undefined) {
-              linkedObjectsByTask[taskId] = []
-            }
-            linkedObjectsByTask[taskId].push(obj)
-          })
-        }
-      )
+      const resolveLinkedObjects = obj => {
+        Object.keys(obj.current_operations).forEach(taskId => {
+          if (linkedObjectsByTask[taskId] === undefined) {
+            linkedObjectsByTask[taskId] = []
+          }
+          linkedObjectsByTask[taskId].push(obj)
+        })
+      }
+
+      forOwn(pools, resolveLinkedObjects)
+      forOwn(hosts, resolveLinkedObjects)
+      forOwn(srs, resolveLinkedObjects)
+      forOwn(vdis, resolveLinkedObjects)
+      forOwn(vms, resolveLinkedObjects)
+      forOwn(networks, resolveLinkedObjects)
+
       return linkedObjectsByTask
     }
   )
@@ -280,7 +281,6 @@ export default class Tasks extends Component {
     const { props } = this
     const { intl, nTasks, pools } = props
     const { formatMessage } = intl
-
     return (
       <Page
         header={HEADER}
