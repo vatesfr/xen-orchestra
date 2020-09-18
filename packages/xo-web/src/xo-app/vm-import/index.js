@@ -259,32 +259,27 @@ export default class Import extends Component {
     this.setState({
       vms: [],
     })
-    document.body.style.cursor = 'wait'
-    try {
-      const vms = await Promise.all(
-        mapPlus(files, (file, push) => {
-          const { name } = file
-          const extIndex = name.lastIndexOf('.')
+    const vms = await Promise.all(
+      mapPlus(files, (file, push) => {
+        const { name } = file
+        const extIndex = name.lastIndexOf('.')
 
-          let func
-          let type
+        let func
+        let type
 
-          if (
-            extIndex >= 0 &&
-            (type = name.slice(extIndex + 1)) &&
-            (func = FORMAT_TO_HANDLER[type])
-          ) {
-            push(parseFile(file, type, func))
-          }
-        })
-      )
-
-      this.setState({
-        vms: orderBy(vms, vm => [vm.error != null, vm.type, vm.file.name]),
+        if (
+          extIndex >= 0 &&
+          (type = name.slice(extIndex + 1)) &&
+          (func = FORMAT_TO_HANDLER[type])
+        ) {
+          push(parseFile(file, type, func))
+        }
       })
-    } finally {
-      document.body.style.cursor = null
-    }
+    )
+
+    this.setState({
+      vms: orderBy(vms, vm => [vm.error != null, vm.type, vm.file.name]),
+    })
   }
 
   _handleCleanSelectedVms = () => {
