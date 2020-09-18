@@ -17,6 +17,7 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 
 [backups.defaultSettings]
 bypassVdiChainsCheck = false
+checkpointSnapshot = false
 concurrency = 2
 deleteFirst = false
 exportRetention = 0

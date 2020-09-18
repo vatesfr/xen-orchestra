@@ -130,22 +130,25 @@ module.exports = class Vm {
     }
   }
 
-  // @cancelable
-  // async checkpoint($cancelToken, vmRef, nameLabel) {
-  //   try {
-  //     return await this.callAsync(
-  //       $cancelToken,
-  //       'VM.checkpoint',
-  //       vmRef,
-  //       await this.getField('VM', vmRef, 'name_label')
-  //     ).then(extractOpaqueRef)
-  //   } catch (error) {
-  //     if (error == null || error.code !== 'VM_BAD_POWER_STATE') {
-  //       return this.VM_snapshot(vmRef, nameLabel)
-  //     }
-  //     throw error
-  //   }
-  // }
+  @cancelable
+  async checkpoint($cancelToken, vmRef, nameLabel) {
+    if (nameLabel === undefined) {
+      nameLabel = await this.getField('VM', vmRef, 'name_label')
+    }
+    try {
+      return await this.callAsync(
+        $cancelToken,
+        'VM.checkpoint',
+        vmRef,
+        nameLabel
+      ).then(extractOpaqueRef)
+    } catch (error) {
+      if (error.code === 'VM_BAD_POWER_STATE') {
+        return this.VM_snapshot($cancelToken, vmRef, nameLabel)
+      }
+      throw error
+    }
+  }
 
   @defer
   async create(

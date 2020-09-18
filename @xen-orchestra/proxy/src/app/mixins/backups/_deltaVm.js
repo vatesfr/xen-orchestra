@@ -91,6 +91,19 @@ export const exportDeltaVm = async function (
     })
   })
 
+  const suspendVdi = vm.$suspend_VDI
+  if (suspendVdi !== undefined) {
+    const vdiRef = suspendVdi.$ref
+    vdis[vdiRef] = {
+      ...suspendVdi,
+      $SR$uuid: suspendVdi.$SR.uuid,
+    }
+    streams[`${vdiRef}.vhd`] = await suspendVdi.$exportContent({
+      cancelToken,
+      format: 'vhd',
+    })
+  }
+
   const vifs = {}
   vm.$VIFs.forEach(vif => {
     const network = vif.$network
@@ -169,22 +182,45 @@ export const importDeltaVm = defer(
           baseVdis[vbd.VDI] = vbd.$VDI
         }
       })
+    const vdiRecords = deltaVm.vdis
 
-    const vmRef = await xapi.VM_create({
-      ...vmRecord,
-      affinity: undefined,
-      blocked_operations: {
-        ...vmRecord.blocked_operations,
-        start: 'Importing…',
+    // 0. Create suspend_VDI
+    let suspendVdi
+    if (vmRecord.power_state === 'Suspended') {
+      const vdi = vdiRecords[vmRecord.suspend_VDI]
+      suspendVdi = await this.createVdi({
+        ...vdi,
+        other_config: {
+          ...vdi.other_config,
+          [TAG_BASE_DELTA]: undefined,
+          [TAG_COPY_SRC]: vdi.uuid,
+        },
+        sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+      })
+      $defer.onFailure.call(this, '_deleteVdi', suspendVdi.$ref)
+    }
+
+    // 1. Create the VM.
+    const vmRef = await xapi.VM_create(
+      {
+        ...vmRecord,
+        affinity: undefined,
+        blocked_operations: {
+          ...vmRecord.blocked_operations,
+          start: 'Importing…',
+        },
+        ha_always_run: false,
+        is_a_template: false,
+        name_label: '[Importing…] ' + vmRecord.name_label,
+        other_config: {
+          ...vmRecord.other_config,
+          [TAG_COPY_SRC]: vmRecord.uuid,
+        },
       },
-      ha_always_run: false,
-      is_a_template: false,
-      name_label: '[Importing…] ' + vmRecord.name_label,
-      other_config: {
-        ...vmRecord.other_config,
-        [TAG_COPY_SRC]: vmRecord.uuid,
-      },
-    })
+      {
+        suspend_VDI: suspendVdi?.ref,
+      }
+    )
     $defer.onFailure.call(xapi, 'VM_destroy', vmRef)
 
     // 2. Delete all VBDs which may have been created by the import.
@@ -196,12 +232,11 @@ export const importDeltaVm = defer(
 
     // 3. Create VDIs & VBDs.
     const vbdRecords = deltaVm.vbds
-    const vdiRecords = deltaVm.vdis
     const vbds = groupBy(vbdRecords, 'VDI')
     const newVdis = {}
     await Promise.all(
-      Object.keys(vdiRecords).map(async vdiId => {
-        const vdi = vdiRecords[vdiId]
+      Object.keys(vdiRecords).map(async vdiRef => {
+        const vdi = vdiRecords[vdiRef]
         let newVdi
 
         const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
@@ -218,6 +253,9 @@ export const importDeltaVm = defer(
           $defer.onFailure(() => newVdi.$destroy())
 
           await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
+        } else if (vdiRef === vmRecord.suspend_VDI) {
+          // suspendVDI has already created
+          newVdi = suspendVdi
         } else {
           newVdi = await xapi.getRecord(
             'VDI',
@@ -235,7 +273,7 @@ export const importDeltaVm = defer(
         }
 
         await Promise.all(
-          Object.values(vbds[vdiId]).map(vbd =>
+          Object.values(vbds[vdiRef]).map(vbd =>
             xapi.VBD_create({
               ...vbd,
               VDI: newVdi.$ref,
@@ -244,7 +282,7 @@ export const importDeltaVm = defer(
           )
         )
 
-        newVdis[vdiId] = newVdi
+        newVdis[vdiRef] = newVdi
       })
     )
 

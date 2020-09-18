@@ -145,7 +145,9 @@ export class VmBackup {
           await vm.$assertHealthyVdiChains()
         }
 
-        const snapshotRef = await vm.$snapshot(this._getSnapshotNameLabel(vm))
+        const snapshotRef = await vm[
+          settings.checkpointSnapshot ? '$checkpoint' : '$snapshot'
+        ](this._getSnapshotNameLabel(vm))
         this.timestamp = Date.now()
 
         await xapi.setFieldEntries('VM', snapshotRef, 'other_config', {
