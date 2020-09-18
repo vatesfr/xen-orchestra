@@ -17,6 +17,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Import VMDK] Fix `No position specified for vmdisk1` error (PR [#5255](https://github.com/vatesfr/xen-orchestra/pull/5255))
+- [Import OVA] Fix frozen UI when dropping a big OVA on the page (PR [#5274](https://github.com/vatesfr/xen-orchestra/pull/5274))
 
 ### Packages to release
 
