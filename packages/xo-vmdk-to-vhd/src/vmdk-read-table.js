@@ -37,7 +37,10 @@ const getLongLong = (buffer, offset, name) => {
  * THIS CODE RUNS ON THE BROWSER
  */
 export default async function readVmdkGrainTable(fileAccessor) {
-  return (await readCapacityAndGrainTable(fileAccessor)).tablePromise
+  const tablePromise = (await readCapacityAndGrainTable(fileAccessor))
+    .tablePromise
+  tablePromise.catch(Function.prototype)
+  return tablePromise
 }
 
 /**

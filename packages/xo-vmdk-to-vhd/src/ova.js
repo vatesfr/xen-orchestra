@@ -327,7 +327,7 @@ export async function parseOVAFile(
         const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
         const readFile = async (start, end) =>
           fileSlice.slice(start, end).read()
-        data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+        data.tables[header.fileName] = readVmdkGrainTable(readFile)
       }
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
