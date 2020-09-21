@@ -298,6 +298,10 @@ export async function parseOVAFile(
   stringDeserializer,
   skipVmdk = false
 ) {
+  const suppressUnhandledPromise = p => {
+    p.catch(Function.prototype)
+    return p
+  }
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }
@@ -327,7 +331,9 @@ export async function parseOVAFile(
         const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
         const readFile = async (start, end) =>
           fileSlice.slice(start, end).read()
-        data.tables[header.fileName] = readVmdkGrainTable(readFile)
+        data.tables[header.fileName] = suppressUnhandledPromise(
+          readVmdkGrainTable(readFile)
+        )
       }
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
@@ -342,7 +348,9 @@ export async function parseOVAFile(
           return parseGzipFromEnd(start, end, fileSlice, header)
         }
       }
-      data.tables[header.fileName] = readVmdkGrainTable(readFile)
+      data.tables[header.fileName] = suppressUnhandledPromise(
+        readVmdkGrainTable(readFile)
+      )
     }
     offset += Math.ceil(header.fileSize / 512) * 512
   }

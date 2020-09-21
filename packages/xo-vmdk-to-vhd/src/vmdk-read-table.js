@@ -37,10 +37,7 @@ const getLongLong = (buffer, offset, name) => {
  * THIS CODE RUNS ON THE BROWSER
  */
 export default async function readVmdkGrainTable(fileAccessor) {
-  const tablePromise = (await readCapacityAndGrainTable(fileAccessor))
-    .tablePromise
-  tablePromise.catch(Function.prototype)
-  return tablePromise
+  return (await readCapacityAndGrainTable(fileAccessor)).tablePromise
 }
 
 /**
@@ -141,5 +138,8 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     return { grainLogicalAddressList: fragmentAddressList, grainFileOffsetList }
   }
 
-  return { tablePromise: readTable(), capacityBytes: capacity }
+  const tablePromise = readTable()
+  // avoid unhandled promise rejection
+  tablePromise.catch(Function.prototype)
+  return { tablePromise, capacityBytes: capacity }
 }
