@@ -56,12 +56,18 @@ export default decorate([
           name,
           options = remote.options || '',
           password = remote.password,
-          path = remote.path,
           port = remote.port,
           proxyId = remote.proxy,
           type = remote.type,
           username = remote.username,
+          parsedPath,
+          bucket = parsedPath && parsedPath.split('/')[0],
+          directory = parsedPath && parsedPath.split('/')[1],
         } = state
+        let { path = remote.path } = state
+        if (type === 's3') {
+          path = bucket + '/' + directory
+        }
         return editRemote(remote, {
           name,
           url: format({
@@ -152,7 +158,7 @@ export default decorate([
       path = parsedPath || '',
       parsedBucket = parsedPath && parsedPath.split('/')[0],
       bucket = parsedBucket || '',
-      parsedDirectory,
+      parsedDirectory = parsedPath && parsedPath.split('/')[1],
       directory = parsedDirectory || '',
       port = remote.port,
       proxyId = remote.proxy,
