@@ -17,6 +17,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Import VMDK] Fix `No position specified for vmdisk1` error (PR [#5255](https://github.com/vatesfr/xen-orchestra/pull/5255))
+- [API] Fix `this.removeSubjectFromResourceSet is not a function` error on calling `resourceSet.removeSubject` via `xo-cli` [#5265](https://github.com/vatesfr/xen-orchestra/issues/5265) (PR [#5266](https://github.com/vatesfr/xen-orchestra/pull/5266))
 
 ### Packages to release
 
@@ -37,3 +38,4 @@
 
 - xo-vmdk-to-vhd patch
 - xo-web minor
+- xo-server patch
