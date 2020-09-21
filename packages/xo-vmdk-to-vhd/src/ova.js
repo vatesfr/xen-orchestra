@@ -298,7 +298,7 @@ export async function parseOVAFile(
   stringDeserializer,
   skipVmdk = false
 ) {
-  const suppressUnhandledPromise = p => {
+  const suppressUnhandledRejection = p => {
     p.catch(Function.prototype)
     return p
   }
@@ -331,7 +331,7 @@ export async function parseOVAFile(
         const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
         const readFile = async (start, end) =>
           fileSlice.slice(start, end).read()
-        data.tables[header.fileName] = suppressUnhandledPromise(
+        data.tables[header.fileName] = suppressUnhandledRejection(
           readVmdkGrainTable(readFile)
         )
       }
@@ -348,7 +348,7 @@ export async function parseOVAFile(
           return parseGzipFromEnd(start, end, fileSlice, header)
         }
       }
-      data.tables[header.fileName] = suppressUnhandledPromise(
+      data.tables[header.fileName] = suppressUnhandledRejection(
         readVmdkGrainTable(readFile)
       )
     }

@@ -29,6 +29,11 @@ const getLongLong = (buffer, offset, name) => {
   return res + highBits * Math.pow(2, 32)
 }
 
+const suppressUnhandledRejection = p => {
+  p.catch(Function.prototype)
+  return p
+}
+
 /**
  * the grain table is an object { grainLogicalAddressList: [number], grainFileOffsetList: [number] }
  * grainLogicalAddressList contains the logical addresses of the grains in the file, in the order they are stored in the VMDK
@@ -138,8 +143,8 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     return { grainLogicalAddressList: fragmentAddressList, grainFileOffsetList }
   }
 
-  const tablePromise = readTable()
-  // avoid unhandled promise rejection
-  tablePromise.catch(Function.prototype)
-  return { tablePromise, capacityBytes: capacity }
+  return {
+    tablePromise: suppressUnhandledRejection(readTable()),
+    capacityBytes: capacity,
+  }
 }
