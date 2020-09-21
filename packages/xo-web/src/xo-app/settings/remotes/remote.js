@@ -61,8 +61,8 @@ export default decorate([
           type = remote.type,
           username = remote.username,
           parsedPath,
-          bucket = parsedPath && parsedPath.split('/')[0],
-          directory = parsedPath && parsedPath.split('/')[1],
+          bucket = parsedPath != null && parsedPath.split('/')[0],
+          directory = parsedPath != null && parsedPath.split('/')[1],
         } = state
         let { path = remote.path } = state
         if (type === 's3') {
@@ -156,9 +156,9 @@ export default decorate([
       password = remote.password || '',
       parsedPath,
       path = parsedPath || '',
-      parsedBucket = parsedPath && parsedPath.split('/')[0],
+      parsedBucket = parsedPath != null && parsedPath.split('/')[0],
       bucket = parsedBucket || '',
-      parsedDirectory = parsedPath && parsedPath.split('/')[1],
+      parsedDirectory = parsedPath != null && parsedPath.split('/')[1],
       directory = parsedDirectory || '',
       port = remote.port,
       proxyId = remote.proxy,
