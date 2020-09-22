@@ -139,6 +139,7 @@ export default class {
       password,
       permission,
       preferences,
+      authProviders,
     }
   ) {
     const user = await this.getUser(id)
@@ -162,6 +163,18 @@ export default class {
       }
     })
     user.preferences = isEmpty(newPreferences) ? undefined : newPreferences
+
+    const newAuthProviders = { ...user.authProviders }
+    forEach(authProviders, (value, name) => {
+      if (value == null) {
+        delete newAuthProviders[name]
+      } else {
+        newAuthProviders[name] = value
+      }
+    })
+    user.authProviders = isEmpty(newAuthProviders)
+      ? undefined
+      : newAuthProviders
 
     // TODO: remove
     user.email = user.name
@@ -254,9 +267,10 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createGroup({ name }) {
+  async createGroup({ name, provider, providerGroupId }) {
     // TODO: use plain objects.
-    const group = (await this._groups.create(name)).properties
+    const group = (await this._groups.create(name, provider, providerGroupId))
+      .properties
 
     return group
   }

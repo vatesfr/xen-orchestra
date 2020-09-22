@@ -77,7 +77,7 @@ export const getUserPublicProperties = user =>
     'groups',
     'permission',
     'preferences',
-    'provider'
+    'authProviders'
   )
 
 // -------------------------------------------------------------------

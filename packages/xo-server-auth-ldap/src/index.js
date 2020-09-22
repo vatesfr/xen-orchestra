@@ -10,6 +10,12 @@ import { readFile } from 'fs'
 const DEFAULTS = {
   checkCertificate: true,
   filter: '(uid={{name}})',
+  users: {
+    merge: false,
+  },
+  groups: {
+    synchronize: false,
+  },
 }
 
 const { escape } = Filter.prototype
@@ -32,10 +38,12 @@ export const configurationSchema = {
   type: 'object',
   properties: {
     uri: {
+      title: 'URI',
       description: 'URI of the LDAP server.',
       type: 'string',
     },
     certificateAuthorities: {
+      title: 'Certificate Authorities',
       description: `
 Paths to CA certificates to use when connecting to SSL-secured LDAP servers.
 
@@ -47,12 +55,24 @@ If not specified, it will use a default set of well-known CAs.
       },
     },
     checkCertificate: {
+      title: 'Check certificate',
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
       defaults: DEFAULTS.checkCertificate,
     },
+    startTls: {
+      title: 'Use StartTLS',
+      type: 'boolean',
+    },
+    base: {
+      title: 'Base',
+      description:
+        'The base is the part of the description tree where the users and groups are looked for.',
+      type: 'string',
+    },
     bind: {
+      title: 'Credentials',
       description: 'Credentials to use before looking for the user record.',
       type: 'object',
       properties: {
@@ -74,12 +94,8 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
       },
       required: ['dn', 'password'],
     },
-    base: {
-      description:
-        'The base is the part of the description tree where the users are looked for.',
-      type: 'string',
-    },
     filter: {
+      title: 'User filter',
       description: `
 Filter used to find the user.
 
@@ -102,9 +118,72 @@ Or something like this if you also want to filter by group:
       type: 'string',
       default: DEFAULTS.filter,
     },
-    startTls: {
-      title: 'Use StartTLS',
-      type: 'boolean',
+    users: {
+      title: 'Users',
+      description: 'Configure how LDAP users are added to XO',
+      type: 'object',
+      properties: {
+        idAttribute: {
+          title: 'ID attribute',
+          description:
+            'Attribute used to identify a user. Must be unique. e.g.: `uid`',
+          type: 'string',
+        },
+        merge: {
+          title: 'Merge users',
+          description:
+            'If a LDAP user has the same username as a XO user, it will be considered as the same user.',
+          type: 'boolean',
+        },
+      },
+    },
+    groups: {
+      title: 'Synchronize groups',
+      description: 'Import groups from LDAP directory',
+      type: 'object',
+      properties: {
+        synchronize: {
+          title: 'Enable',
+          description:
+            "Import (or update) LDAP groups automatically every time a user logs into XO. If you don't enable this, you can still synchronize the LDAP groups manually from the Settings > Groups page.",
+          type: 'boolean',
+        },
+        base: {
+          title: 'Base',
+          description: 'Where to look for the groups.',
+          type: 'string',
+        },
+        filter: {
+          title: 'Filter',
+          description:
+            'Filter used to find the groups. e.g.: `(objectClass=groupOfNames)`',
+          type: 'string',
+        },
+        idAttribute: {
+          title: 'ID attribute',
+          description:
+            'Attribute used to identify a group. Must be unique. e.g.: `gid`',
+          type: 'string',
+        },
+        displayNameAttribute: {
+          title: 'Display name attribute',
+          description:
+            "Attribute used to determine the group's name in XO. e.g.: `cn`",
+          type: 'string',
+        },
+        displayNamePrefix: {
+          title: 'Display name prefix',
+          description:
+            'Optionally set a prefix for group names in XO imported from the LDAP directory. e.g.: `LDAP-`',
+          type: 'string',
+        },
+        membersAttribute: {
+          title: 'Members attribute',
+          description:
+            'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
+          type: 'string',
+        },
+      },
     },
   },
   required: ['uri', 'base'],
@@ -166,12 +245,16 @@ class AuthLdap {
       base: searchBase,
       filter: searchFilter = DEFAULTS.filter,
       startTls = false,
+      groups,
+      users,
     } = conf
 
     this._credentials = credentials
     this._searchBase = searchBase
     this._searchFilter = searchFilter
     this._startTls = startTls
+    this._groupsConfig = groups
+    this._usersConfig = users
   }
 
   load() {
@@ -238,6 +321,13 @@ class AuthLdap {
             `successfully bound as ${entry.dn} => ${username} authenticated`
           )
           logger(JSON.stringify(entry, null, 2))
+
+          await this._synchronizeUser(username, entry)
+
+          if (this._groupsConfig.synchronize) {
+            await this._synchronizeGroups()
+          }
+
           return { username }
         } catch (error) {
           logger(`failed to bind as ${entry.dn}: ${error.message}`)
@@ -249,6 +339,161 @@ class AuthLdap {
     } finally {
       await client.unbind()
     }
+  }
+
+  async _synchronizeGroups() {
+    const logger = this._logger
+    const client = new Client(this._clientOpts)
+
+    try {
+      if (this._startTls) {
+        await client.startTLS(this._tlsOptions)
+      }
+
+      // Bind if necessary.
+      {
+        const { _credentials: credentials } = this
+        if (credentials) {
+          logger(`attempting to bind with as ${credentials.dn}...`)
+          await client.bind(credentials.dn, credentials.password)
+          logger(`successfully bound as ${credentials.dn}`)
+        }
+      }
+      logger('syncing groups...')
+      const {
+        base,
+        displayNameAttribute,
+        displayNamePrefix,
+        filter,
+        idAttribute,
+        membersAttribute,
+      } = this._groupsConfig
+      const { searchEntries: ldapGroups } = await client.search(base, {
+        scope: 'sub',
+        filter: filter || '', // may be undefined
+      })
+
+      const xoUsers = (await this._xo.getAllUsers()).filter(
+        user => user.authProviders !== undefined && 'ldap' in user.authProviders
+      )
+      const xoGroups = await this._xo.getAllGroups()
+
+      const groups = await Promise.all(
+        ldapGroups.map(async ldapGroup => {
+          const ldapName = ldapGroup[displayNameAttribute]
+          const ldapId = ldapGroup[idAttribute]
+          const name = `${displayNamePrefix}${ldapName}`
+
+          let xoGroup
+          const xoGroupIndex = xoGroups.findIndex(
+            group =>
+              group.provider === 'ldap' && group.providerGroupId === ldapId
+          )
+
+          if (xoGroupIndex === -1) {
+            if (xoGroups.find(group => group.name === name) !== undefined) {
+              logger(`A group called ${name} already exists`)
+              return
+            }
+            xoGroup = await this._xo.createGroup({
+              name,
+              provider: 'ldap',
+              providerGroupId: ldapId,
+            })
+          } else {
+            // Remove it from xoGroups as we will then delete all the remaining
+            // LDAP-provided groups
+            ;[xoGroup] = xoGroups.splice(xoGroupIndex, 1)
+            await this._xo.updateGroup(xoGroup.id, { name })
+          }
+          xoGroup = await this._xo.getGroup(xoGroup.id)
+
+          let ldapGroupMembers = ldapGroup[membersAttribute]
+          ldapGroupMembers = Array.isArray(ldapGroupMembers)
+            ? ldapGroupMembers
+            : [ldapGroupMembers]
+
+          const xoGroupMembers = xoGroup.users.slice(0)
+
+          const actions = []
+          ldapGroupMembers.forEach(ldapId => {
+            const xoUser = xoUsers.find(
+              user => user.authProviders.ldap.id === ldapId
+            )
+            if (xoUser === undefined) {
+              return
+            }
+            // If the user exists in XO, should be a member of the LDAP-provided
+            // group but isn't: add it
+            const userIdIndex = xoGroupMembers.findIndex(id => id === xoUser.id)
+            if (userIdIndex !== -1) {
+              xoGroupMembers.splice(userIdIndex, 1)
+              return
+            }
+
+            actions.push(() => this._xo.addUserToGroup(xoUser.id, xoGroup.id))
+          })
+
+          // All the remaining users of that group can be removed from it since
+          // they're not in the LDAP group
+          actions.push(
+            ...xoGroupMembers.map(userId => () =>
+              this._xo.removeUserFromGroup(userId, xoGroup.id)
+            )
+          )
+          // One by one to avoid race conditions
+          for (const action of actions) {
+            await action()
+          }
+        })
+      )
+
+      // All the remaining groups provided by LDAP can be removed from XO since
+      // they don't exist in the LDAP directory any more
+      await Promise.all(
+        xoGroups
+          .filter(group => group.provider === 'ldap')
+          .map(group => this._xo.deleteGroup(group.id))
+      )
+
+      return groups
+    } finally {
+      await client.unbind()
+    }
+  }
+
+  async _synchronizeUser(ldapUsername, ldapUser) {
+    const { merge, idAttribute } = this._usersConfig
+
+    const ldapId = ldapUser[idAttribute]
+    const xoUsers = await this._xo.getAllUsers()
+    let xoUser = xoUsers.find(
+      xoUser => xoUser.authProviders?.ldap?.id === ldapId
+    )
+    const conflictingXoUser = xoUsers.find(
+      user => user.email === ldapUsername && user.id !== xoUser?.id
+    )
+
+    if (conflictingXoUser !== undefined) {
+      if (xoUser === undefined || merge) {
+        xoUser = conflictingXoUser
+      } else {
+        throw new Error('XO user with same username already exists')
+      }
+    }
+
+    if (xoUser === undefined) {
+      return this._xo.createUser({
+        name: ldapUsername,
+        authProviders: { ldap: { id: ldapId } },
+      })
+    }
+
+    await this._xo.updateUser(xoUser.id, {
+      name: ldapUsername,
+      authProviders: { ...xoUser.authProviders, ldap: { id: ldapId } },
+    })
+    return this._xo.getUser(xoUser.id)
   }
 }
 
