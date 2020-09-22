@@ -1,18 +1,15 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import keyBy from 'lodash/keyBy'
-import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
-import size from 'lodash/size'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
+import { createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SelectSubject } from 'select-objects'
 import { Text } from 'editable'
+import { includes, isEmpty, keyBy, map, size, some } from 'lodash'
 
 import {
   addUserToGroup,
@@ -22,7 +19,9 @@ import {
   removeUserFromGroup,
   setGroupName,
   subscribeGroups,
+  subscribePlugins,
   subscribeUsers,
+  synchronizeLdapGroups,
 } from 'xo'
 
 @addSubscriptions({
@@ -141,6 +140,7 @@ const ACTIONS = [
 
 @addSubscriptions({
   groups: subscribeGroups,
+  plugins: subscribePlugins,
 })
 @injectIntl
 export default class Groups extends Component {
@@ -153,11 +153,29 @@ export default class Groups extends Component {
     }
   }
 
+  _isLdapLoaded = createSelector(
+    () => this.props.plugins,
+    plugins =>
+      some(plugins, plugin => plugin.name === 'auth-ldap' && plugin.loaded)
+  )
+
   render() {
     const { groups, intl } = this.props
 
     return (
       <div>
+        {this._isLdapLoaded() && (
+          <div>
+            <ActionButton
+              icon='refresh'
+              btnStyle='primary'
+              className='mr-1 mb-1'
+              handler={synchronizeLdapGroups}
+            >
+              {_('syncLdapGroups')}
+            </ActionButton>
+          </div>
+        )}
         <form id='newGroupForm' className='form-inline'>
           <div className='form-group'>
             <input

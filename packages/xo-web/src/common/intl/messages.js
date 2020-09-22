@@ -666,6 +666,9 @@ const messages = {
   aclCreate: 'Create',
   newGroupName: 'New group name',
   createGroup: 'Create group',
+  syncLdapGroups: 'Synchronize LDAP groups',
+  syncLdapGroupsWarning:
+    'Are you sure you want to synchronize LDAP groups with XO? This may delete XO groups and users and their ACLs.',
   createGroupButton: 'Create',
   deleteGroup: 'Delete group',
   deleteGroupConfirm: 'Are you sure you want to delete this group?',
