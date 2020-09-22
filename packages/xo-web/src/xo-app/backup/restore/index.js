@@ -146,7 +146,7 @@ export default class Restore extends Component {
     return backupDataByVm
   }
 
-  __refreshBackupList = async (remote, jobs) => {
+  _refreshBackupListOnRemote = async (remote, jobs) => {
     const remoteId = remote.id
     const backupsByRemote = await listVmBackups([remoteId])
     const { backupDataByVm } = this.state
@@ -186,7 +186,12 @@ export default class Restore extends Component {
   ) =>
     Promise.all(
       map(filter(_remotes, { enabled: true }), remote =>
-        this.__refreshBackupList(remote, jobs)
+        this._refreshBackupListOnRemote(remote, jobs).catch(() =>
+          error(
+            _('remoteLoadBacupsFailure'),
+            _('remoteLoadBacupsFailureMessage', { name: remote.name })
+          )
+        )
       )
     )
 
