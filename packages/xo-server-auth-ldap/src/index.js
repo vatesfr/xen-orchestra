@@ -475,10 +475,14 @@ class AuthLdap {
     )
 
     if (conflictingXoUser !== undefined) {
-      if (xoUser === undefined || merge) {
-        xoUser = conflictingXoUser
+      if (!merge) {
+        throw new Error(`XO user with username ${ldapUsername} already exists`)
+      }
+      if (xoUser !== undefined) {
+        // TODO: merge conflictingXoUser into xoUser and delete
+        // conflictingXoUser. For now: keep the 2 users.
       } else {
-        throw new Error('XO user with same username already exists')
+        xoUser = conflictingXoUser
       }
     }
 
@@ -489,8 +493,16 @@ class AuthLdap {
       })
     }
 
+    // If the user has other auth providers than LDAP: don't update the username
+    // If a conflicting user was found, don't update the username until the user
+    // merge is implemented (we don't want 2 users with the same username)
     await this._xo.updateUser(xoUser.id, {
-      name: ldapUsername,
+      name:
+        (xoUser.authProviders === undefined ||
+          Object.keys(xoUser.authProviders).length < 2) &&
+        conflictingXoUser === undefined
+          ? ldapUsername
+          : undefined,
       authProviders: { ...xoUser.authProviders, ldap: { id: ldapId } },
     })
     return this._xo.getUser(xoUser.id)
