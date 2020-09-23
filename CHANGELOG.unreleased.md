@@ -11,6 +11,7 @@
 - [New VM] Hide missing ISOs in selector [#5222](https://github.com/vatesfr/xen-orchestra/issues/5222)
 - [Dashboard/Health] Show VMs that have too many snapshots [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
 - [Groups] Ability to delete multiple groups at once (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
+- [New backup] Enable by default created schedules (PR [#5280](https://github.com/vatesfr/xen-orchestra/pull/5280))
 
 ### Bug fixes
 
