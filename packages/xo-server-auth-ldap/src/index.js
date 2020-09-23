@@ -467,22 +467,32 @@ class AuthLdap {
 
     const ldapId = ldapUser[idAttribute]
     const xoUsers = await this._xo.getAllUsers()
+
+    // Get the XO user bound to the LDAP user
     let xoUser = xoUsers.find(
       xoUser => xoUser.authProviders?.ldap?.id === ldapId
     )
-    const conflictingXoUser = xoUsers.find(
-      user => user.email === ldapUsername && user.id !== xoUser?.id
-    )
 
-    if (conflictingXoUser !== undefined) {
-      if (!merge) {
-        throw new Error(`XO user with username ${ldapUsername} already exists`)
-      }
-      if (xoUser !== undefined) {
-        // TODO: merge conflictingXoUser into xoUser and delete
-        // conflictingXoUser. For now: keep the 2 users.
-      } else {
-        xoUser = conflictingXoUser
+    // If that XO user doesn't exist or doesn't have the correct username, there
+    // is a chance that there is another XO user that already has that username
+    let conflictingXoUser
+    if (xoUser?.email !== ldapUsername) {
+      conflictingXoUser = xoUsers.find(user => user.email === ldapUsername)
+
+      if (conflictingXoUser !== undefined) {
+        if (!merge) {
+          throw new Error(
+            `XO user with username ${ldapUsername} already exists`
+          )
+        }
+        if (xoUser !== undefined) {
+          // TODO: merge `conflictingXoUser` into `xoUser` and delete
+          // `conflictingXoUser`. For now: keep the 2 users. Once implemented:
+          // remove the `conflictingXoUser === undefined` condition on
+          // `updateUser`.
+        } else {
+          xoUser = conflictingXoUser
+        }
       }
     }
 
@@ -494,13 +504,11 @@ class AuthLdap {
     }
 
     // If the user has other auth providers than LDAP: don't update the username
-    // If a conflicting user was found, don't update the username until the user
-    // merge is implemented (we don't want 2 users with the same username)
     await this._xo.updateUser(xoUser.id, {
       name:
         (xoUser.authProviders === undefined ||
           Object.keys(xoUser.authProviders).length < 2) &&
-        conflictingXoUser === undefined
+        conflictingXoUser === undefined // cf: TODO above
           ? ldapUsername
           : undefined,
       authProviders: { ...xoUser.authProviders, ldap: { id: ldapId } },
