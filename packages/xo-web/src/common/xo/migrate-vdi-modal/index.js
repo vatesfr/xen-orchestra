@@ -15,7 +15,7 @@ const compareSrs = createCompare([isSrShared])
 export default class MigrateVdiModalBody extends Component {
   static propTypes = {
     pool: PropTypes.string.isRequired,
-    resourceSet: PropTypes.Object,
+    resourceSet: PropTypes.object,
     warningBeforeMigrate: PropTypes.func.isRequired,
   }
 
