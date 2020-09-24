@@ -445,8 +445,8 @@ class AuthLdap {
           // LDAP-provided groups
           ;[xoGroup] = xoGroups.splice(xoGroupIndex, 1)
           await this._xo.updateGroup(xoGroup.id, { name: groupLdapName })
+          xoGroup = await this._xo.getGroup(xoGroup.id)
         }
-        xoGroup = await this._xo.getGroup(xoGroup.id)
 
         // If a user was passed, only add that user to the group and don't
         // delete any groups (ie return immediately)
@@ -455,7 +455,8 @@ class AuthLdap {
           continue
         }
 
-        const xoGroupMembers = xoGroup.users.slice(0)
+        const xoGroupMembers =
+          xoGroup.users === undefined ? [] : xoGroup.users.slice(0)
 
         for (const ldapId of ldapGroupMembers) {
           const xoUser = xoUsers.find(
