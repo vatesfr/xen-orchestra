@@ -589,42 +589,39 @@ export const getLoneSnapshots = create(
   )
 )
 
-const _getResolvedResourceSets = (resourceSets, networks, srs, vms) =>
-  map(resourceSets, resourceSet => {
-    const { objects, ...attrs } = resourceSet
-    const objectsByType = {}
-    const objectsFound = []
+const _getResolvedResourceSet = (resourceSet, networks, srs, vms) => {
+  if (resourceSet === undefined) {
+    return
+  }
 
-    const resolve = (type, _objects) => {
-      const resolvedObjects = pick(_objects, objects)
-      if (!isEmpty(resolvedObjects)) {
-        objectsFound.push(...Object.keys(resolvedObjects))
-        objectsByType[type] = Object.values(resolvedObjects)
-      }
-    }
-    resolve('VM-template', vms)
-    resolve('SR', srs)
-    resolve('network', networks)
+  const { objects, ...attrs } = resourceSet
+  const objectsByType = {}
+  const objectsFound = []
 
-    return {
-      ...attrs,
-      missingObjects: difference(objectsFound, objects),
-      objectsByType,
+  const resolve = (type, _objects) => {
+    const resolvedObjects = pick(_objects, objects)
+    if (!isEmpty(resolvedObjects)) {
+      objectsFound.push(...Object.keys(resolvedObjects))
+      objectsByType[type] = Object.values(resolvedObjects)
     }
-  })
+  }
+  resolve('VM-template', vms)
+  resolve('SR', srs)
+  resolve('network', networks)
+
+  return {
+    ...attrs,
+    missingObjects: difference(objectsFound, objects),
+    objectsByType,
+  }
+}
 
 export const getResolvedResourceSet = create(
-  create(
-    (_, props) => props.resourceSet,
-    _createCollectionWrapper(resourceSet =>
-      resourceSet === undefined ? undefined : [resourceSet]
-    )
-  ),
+  (_, props) => props.resourceSet,
   createGetObjectsOfType('network'),
   createGetObjectsOfType('SR'),
   createGetObjectsOfType('VM-template'),
-  (resourceSets, networks, srs, vms) =>
-    _getResolvedResourceSets(resourceSets, networks, srs, vms)[0]
+  _getResolvedResourceSet
 )
 
 export const getResolvedResourceSets = create(
@@ -632,5 +629,8 @@ export const getResolvedResourceSets = create(
   createGetObjectsOfType('network'),
   createGetObjectsOfType('SR'),
   createGetObjectsOfType('VM-template'),
-  _getResolvedResourceSets
+  (resourceSets, networks, srs, vms) =>
+    map(resourceSets, resourceSet =>
+      _getResolvedResourceSet(resourceSet, networks, srs, vms)
+    )
 )
