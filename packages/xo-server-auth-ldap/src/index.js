@@ -527,6 +527,8 @@ class AuthLdap {
           xoUser = conflictingXoUser
         }
       }
+    } else {
+      return xoUser
     }
 
     if (xoUser === undefined) {
