@@ -448,8 +448,8 @@ class AuditXoPlugin {
       const record = await storage.get(id, true)
       await storage.del(id)
 
-      const auditCore = this._auditCore
       const lastId = await storage.getLastId()
+      const auditCore = this._auditCore
       const recentRecords = []
       for await (const record of auditCore.getFrom(lastId)) {
         if (record.id === id) {
