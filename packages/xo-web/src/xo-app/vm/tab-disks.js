@@ -19,7 +19,7 @@ import {
   createSelector,
   createFinder,
   getCheckPermissions,
-  getResolvedResourceSets,
+  getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
 import { injectIntl } from 'react-intl'
@@ -490,12 +490,11 @@ class AttachDisk extends Component {
 }
 
 @addSubscriptions(props => ({
-  // used by getResolvedResourceSets
-  resourceSets: cb =>
-    subscribeResourceSets(resourceSets => {
-      const resourceSet = find(resourceSets, { id: props.vm.resourceSet })
-      return cb(resourceSet !== undefined ? [resourceSet] : undefined)
-    }),
+  // used by getResolvedResourceSet
+  resourceSet: cb =>
+    subscribeResourceSets(resourceSets =>
+      cb(find(resourceSets, { id: props.vm.resourceSet }))
+    ),
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
@@ -504,11 +503,11 @@ class AttachDisk extends Component {
     allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
     isAdmin: isAdmin(state, props),
-    resolvedResourceSet: getResolvedResourceSets(
+    resolvedResourceSet: getResolvedResourceSet(
       state,
       props,
-      !props.isAdmin && props.resourceSets !== undefined
-    )[0],
+      !props.isAdmin && props.resourceSet !== undefined
+    ),
   })
 })
 export default class TabDisks extends Component {

@@ -589,32 +589,48 @@ export const getLoneSnapshots = create(
   )
 )
 
+const _getResolvedResourceSets = (resourceSets, networks, srs, vms) =>
+  map(resourceSets, resourceSet => {
+    const { objects, ...attrs } = resourceSet
+    const objectsByType = {}
+    const objectsFound = []
+
+    const resolve = (type, _objects) => {
+      const resolvedObjects = pick(_objects, objects)
+      if (!isEmpty(resolvedObjects)) {
+        objectsFound.push(...Object.keys(resolvedObjects))
+        objectsByType[type] = Object.values(resolvedObjects)
+      }
+    }
+    resolve('VM-template', vms)
+    resolve('SR', srs)
+    resolve('network', networks)
+
+    return {
+      ...attrs,
+      missingObjects: difference(objectsFound, objects),
+      objectsByType,
+    }
+  })
+
+export const getResolvedResourceSet = create(
+  create(
+    (_, props) => props.resourceSet,
+    _createCollectionWrapper(resourceSet =>
+      resourceSet === undefined ? EMPTY_ARRAY : [resourceSet]
+    )
+  ),
+  createGetObjectsOfType('network'),
+  createGetObjectsOfType('SR'),
+  createGetObjectsOfType('VM-template'),
+  (resourceSets, networks, srs, vms) =>
+    _getResolvedResourceSets(resourceSets, networks, srs, vms)[0]
+)
+
 export const getResolvedResourceSets = create(
   (_, props) => props.resourceSets,
   createGetObjectsOfType('network'),
   createGetObjectsOfType('SR'),
   createGetObjectsOfType('VM-template'),
-  (resourceSets, networks, srs, vms) =>
-    map(resourceSets, resourceSet => {
-      const { objects, ...attrs } = resourceSet
-      const objectsByType = {}
-      const objectsFound = []
-
-      const resolve = (type, _objects) => {
-        const resolvedObjects = pick(_objects, objects)
-        if (!isEmpty(resolvedObjects)) {
-          objectsFound.push(...Object.keys(resolvedObjects))
-          objectsByType[type] = Object.values(resolvedObjects)
-        }
-      }
-      resolve('VM-template', vms)
-      resolve('SR', srs)
-      resolve('network', networks)
-
-      return {
-        ...attrs,
-        missingObjects: difference(objectsFound, objects),
-        objectsByType,
-      }
-    })
+  _getResolvedResourceSets
 )
