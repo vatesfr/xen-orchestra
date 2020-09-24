@@ -457,6 +457,7 @@ class AuditXoPlugin {
 
         recentRecords.push(record)
       }
+
       await storage.del(id)
 
       await storage.setLastId(record.previousId)
