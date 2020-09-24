@@ -471,7 +471,7 @@ class AuditXoPlugin {
       }
 
       if (this._uploadLastHashJob !== undefined) {
-        this._uploadLastHash()
+        await this._uploadLastHash()
       }
     } finally {
       this._addListeners()
