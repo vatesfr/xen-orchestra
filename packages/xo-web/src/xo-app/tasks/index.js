@@ -76,7 +76,7 @@ export class TaskItem extends Component {
 const taskObjectsRenderer = ({ objects }) => (
   <div>
     {map(objects, obj => (
-      <li>{renderXoItem(obj, { link: true })}0</li>
+      <li>{renderXoItem(obj, { link: true })}</li>
     ))}
   </div>
 )
@@ -281,6 +281,7 @@ export default class Tasks extends Component {
     const { props } = this
     const { intl, nTasks, pools } = props
     const { formatMessage } = intl
+
     return (
       <Page
         header={HEADER}
