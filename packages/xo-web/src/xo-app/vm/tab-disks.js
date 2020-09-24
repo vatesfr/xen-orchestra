@@ -748,8 +748,8 @@ export default class TabDisks extends Component {
               actions={this.actions}
               collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
-              data-vm={vm}
               data-resourceSet={resolvedResourceSet}
+              data-vm={vm}
               individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'
               stateUrlParam='s'
