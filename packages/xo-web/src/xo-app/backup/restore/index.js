@@ -10,7 +10,16 @@ import { addSubscriptions, formatSize, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
-import { filter, find, flatMap, forEach, map, reduce, orderBy } from 'lodash'
+import {
+  cloneDeep,
+  filter,
+  find,
+  flatMap,
+  forEach,
+  map,
+  reduce,
+  orderBy,
+} from 'lodash'
 import {
   deleteBackups,
   listVmBackups,
@@ -158,7 +167,7 @@ export default class Restore extends Component {
 
       const backupData = backupDataByVm[vmId]
       remoteBackupDataByVm[vmId] =
-        backupData === undefined ? { backups: [] } : backupData
+        backupData === undefined ? { backups: [] } : cloneDeep(backupData)
 
       remoteBackupDataByVm[vmId].backups.push(
         ...map(vmBackups, bkp => {
