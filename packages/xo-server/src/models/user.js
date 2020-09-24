@@ -31,7 +31,7 @@ const serialize = user => {
 
 const deserialize = user => ({
   ...user,
-  authProviders: parseProp('user', user, 'authProviders', {}),
+  authProviders: parseProp('user', user, 'authProviders', undefined),
   groups: parseProp('user', user, 'groups', []),
   preferences: parseProp('user', user, 'preferences', {}),
 })

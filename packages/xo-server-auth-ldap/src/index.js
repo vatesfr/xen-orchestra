@@ -3,6 +3,7 @@
 import fromCallback from 'promise-toolbox/fromCallback'
 import { Client } from 'ldapts'
 import { Filter } from 'ldapts/filters/Filter'
+import { URL } from 'url'
 import { readFile } from 'fs'
 
 // ===================================================================
@@ -246,10 +247,12 @@ class AuthLdap {
       filter: searchFilter = DEFAULTS.filter,
       startTls = false,
       groups,
+      uri,
       users,
     } = conf
 
     this._credentials = credentials
+    this._serverUri = uri
     this._searchBase = searchBase
     this._searchFilter = searchFilter
     this._startTls = startTls
@@ -274,6 +277,10 @@ class AuthLdap {
         throw new Error('could not authenticate user')
       }
     })
+  }
+
+  _getDirectoryUri() {
+    return new URL(encodeURIComponent(this._searchBase), this._serverUri).href
   }
 
   async _authenticate({ username, password }) {
@@ -346,6 +353,7 @@ class AuthLdap {
   async _synchronizeGroups(user) {
     const logger = this._logger
     const client = new Client(this._clientOpts)
+    const directoryUri = this._getDirectoryUri()
 
     try {
       if (this._startTls) {
@@ -379,7 +387,8 @@ class AuthLdap {
         user !== undefined &&
         (await this._xo.getAllUsers()).filter(
           user =>
-            user.authProviders !== undefined && 'ldap' in user.authProviders
+            user.authProviders !== undefined &&
+            directoryUri in user.authProviders
         )
       const xoGroups = await this._xo.getAllGroups()
 
@@ -406,7 +415,7 @@ class AuthLdap {
         // If a user was passed, only update the user's groups
         if (
           user !== undefined &&
-          !ldapGroupMembers.includes(user.authProviders.ldap.id)
+          !ldapGroupMembers.includes(user.authProviders[directoryUri].id)
         ) {
           continue
         }
@@ -414,7 +423,8 @@ class AuthLdap {
         let xoGroup
         const xoGroupIndex = xoGroups.findIndex(
           group =>
-            group.provider === 'ldap' && group.providerGroupId === groupLdapId
+            group.provider === directoryUri &&
+            group.providerGroupId === groupLdapId
         )
 
         if (xoGroupIndex === -1) {
@@ -427,7 +437,7 @@ class AuthLdap {
           }
           xoGroup = await this._xo.createGroup({
             name: groupLdapName,
-            provider: 'ldap',
+            provider: directoryUri,
             providerGroupId: groupLdapId,
           })
         } else {
@@ -449,7 +459,7 @@ class AuthLdap {
 
         for (const ldapId of ldapGroupMembers) {
           const xoUser = xoUsers.find(
-            user => user.authProviders.ldap.id === ldapId
+            user => user.authProviders[directoryUri].id === ldapId
           )
           if (xoUser === undefined) {
             continue
@@ -477,7 +487,7 @@ class AuthLdap {
         // they don't exist in the LDAP directory any more
         await Promise.all(
           xoGroups
-            .filter(group => group.provider === 'ldap')
+            .filter(group => group.provider === directoryUri)
             .map(group => this._xo.deleteGroup(group.id))
         )
       }
@@ -488,10 +498,11 @@ class AuthLdap {
 
   async _synchronizeUser(ldapId, ldapUsername) {
     const xoUsers = await this._xo.getAllUsers()
+    const directoryUri = this._getDirectoryUri()
 
     // Get the XO user bound to the LDAP user
     let xoUser = xoUsers.find(
-      xoUser => xoUser.authProviders?.ldap?.id === ldapId
+      xoUser => xoUser.authProviders?.[directoryUri]?.id === ldapId
     )
 
     // If that XO user doesn't exist or doesn't have the correct username, there
@@ -518,22 +529,26 @@ class AuthLdap {
     }
 
     if (xoUser === undefined) {
-      return this._xo.createUser({
+      xoUser = await this._xo.createUser({
         name: ldapUsername,
-        authProviders: { ldap: { id: ldapId } },
+        authProviders: { [directoryUri]: { id: ldapId } },
+      })
+    } else {
+      // If the user has other auth providers than LDAP: don't update the username
+      await this._xo.updateUser(xoUser.id, {
+        name:
+          (xoUser.authProviders === undefined ||
+            Object.keys(xoUser.authProviders).length < 2) &&
+          conflictingXoUser === undefined // cf: TODO above
+            ? ldapUsername
+            : undefined,
+        authProviders: {
+          ...xoUser.authProviders,
+          [directoryUri]: { id: ldapId },
+        },
       })
     }
 
-    // If the user has other auth providers than LDAP: don't update the username
-    await this._xo.updateUser(xoUser.id, {
-      name:
-        (xoUser.authProviders === undefined ||
-          Object.keys(xoUser.authProviders).length < 2) &&
-        conflictingXoUser === undefined // cf: TODO above
-          ? ldapUsername
-          : undefined,
-      authProviders: { ...xoUser.authProviders, ldap: { id: ldapId } },
-    })
     return this._xo.getUser(xoUser.id)
   }
 }
