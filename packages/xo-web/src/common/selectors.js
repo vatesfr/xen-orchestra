@@ -617,7 +617,7 @@ export const getResolvedResourceSet = create(
   create(
     (_, props) => props.resourceSet,
     _createCollectionWrapper(resourceSet =>
-      resourceSet === undefined ? EMPTY_ARRAY : [resourceSet]
+      resourceSet === undefined ? undefined : [resourceSet]
     )
   ),
   createGetObjectsOfType('network'),
