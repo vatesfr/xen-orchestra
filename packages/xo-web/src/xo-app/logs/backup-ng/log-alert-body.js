@@ -11,11 +11,11 @@ import SearchBar from 'search-bar'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, formatSize, formatSpeed } from 'utils'
-import { countBy, cloneDeep, filter, keyBy, map } from 'lodash'
+import { countBy, cloneDeep, filter, map } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
+import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 import { Vm, Sr, Remote, Pool } from 'render-xo-item'
 
 const hasTaskFailed = ({ status }) =>
@@ -317,10 +317,6 @@ const SEARCH_BAR_FILTERS = { name: 'name:' }
 const ITEMS_PER_PAGE = 5
 export default decorate([
   addSubscriptions(({ id }) => ({
-    remotes: cb =>
-      subscribeRemotes(remotes => {
-        cb(keyBy(remotes, 'id'))
-      }),
     log: cb =>
       subscribeBackupNgLogs(logs => {
         cb(logs[id])
@@ -328,7 +324,6 @@ export default decorate([
   })),
   connectStore({
     pools: createGetObjectsOfType('pool'),
-    srs: createGetObjectsOfType('SR'),
     vms: createGetObjectsOfType('VM'),
   }),
   provideState({
@@ -362,7 +357,7 @@ export default decorate([
       },
     },
     computed: {
-      log: (_, { log, pools, remotes = {}, srs, vms }) => {
+      log: (_, { log, pools, vms }) => {
         if (log === undefined) {
           return {}
         }
@@ -465,7 +460,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ remotes, state, effects }) => {
+  ({ state, effects }) => {
     const { scheduleId, warnings, tasks = [] } = state.log
     return tasks.length === 0 ? (
       <div>
