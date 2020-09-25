@@ -360,7 +360,7 @@ export default decorate([
       },
     },
     computed: {
-      log: (_, { log, pools, remotes, srs, vms }) => {
+      log: (_, { log, pools, remotes = {}, srs, vms }) => {
         if (log === undefined) {
           return {}
         }
@@ -477,8 +477,11 @@ export default decorate([
         }),
       searchBarFilters: ({ log }) => {
         const { srs = [], remotes = [] } = log.tasks.find(
-          ({ data = {} }) =>
-            data.type === 'VM' || data.type === 'xo' || data.type === 'pool'
+          ({ tasks, data = {} }) =>
+            (data.type === 'VM' ||
+              data.type === 'xo' ||
+              data.type === 'pool') &&
+            tasks !== undefined
         )
 
         const filters = { name: 'name:' }
