@@ -135,11 +135,11 @@ export default class {
       // TODO: remove
       email,
 
+      authProviders,
       name = email,
       password,
       permission,
       preferences,
-      authProviders,
     }
   ) {
     const user = await this.getUser(id)

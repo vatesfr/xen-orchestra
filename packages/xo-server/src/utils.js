@@ -72,12 +72,12 @@ export const firstDefined = function () {
 export const getUserPublicProperties = user =>
   pick(
     user.properties || user,
+    'authProviders',
     'id',
     'email',
     'groups',
     'permission',
-    'preferences',
-    'authProviders'
+    'preferences'
   )
 
 // -------------------------------------------------------------------
