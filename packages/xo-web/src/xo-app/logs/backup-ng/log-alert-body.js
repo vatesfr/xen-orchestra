@@ -414,11 +414,8 @@ export default decorate([
           return []
         }
       },
-      tasksFilteredByStatus: ({
-        preFilteredTasksLogs
-        status,
-      }) =>
-         status === 'all'
+      tasksFilteredByStatus: ({ preFilteredTasksLogs, status }) =>
+        status === 'all'
           ? preFilteredTasksLogs
           : filter(preFilteredTasksLogs, task => task.status === status),
       displayedTasks: ({ tasksFilteredByStatus, page }) => {
@@ -484,22 +481,22 @@ export default decorate([
             data.type === 'VM' || data.type === 'xo' || data.type === 'pool'
         )
 
-        const filter = { name: 'name:' }
+        const filters = { name: 'name:' }
         if (remotes.length !== 0) {
-          filter.remotesNames = new CM.Property(
+          filters.remotesNames = new CM.Property(
             'remotes',
             new CM.Or(remotes.map(remote => new CM.String(remote)))
           ).toString()
         }
 
         if (srs.length !== 0) {
-          filter.srsNames = new CM.Property(
+          filters.srsNames = new CM.Property(
             'srs',
             new CM.Or(srs.map(sr => new CM.String(sr)))
           ).toString()
         }
 
-        return filter
+        return filters
       },
       nPages: ({ tasksFilteredByStatus }) =>
         Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
