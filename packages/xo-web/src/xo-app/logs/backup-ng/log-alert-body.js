@@ -477,7 +477,7 @@ export default decorate([
         }),
       searchBarFilters: ({ log }) => {
         const { srs = [], remotes = [] } = log.tasks.find(
-          ({ tasks, data = {} }) =>
+          ({ data = {}, tasks }) =>
             (data.type === 'VM' ||
               data.type === 'xo' ||
               data.type === 'pool') &&
