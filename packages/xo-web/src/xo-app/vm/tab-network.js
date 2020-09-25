@@ -53,6 +53,7 @@ import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  getCheckPermissions,
   getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
@@ -293,12 +294,21 @@ class VifAllowedIps extends BaseComponent {
   }
 }
 
+@connectStore(() => ({
+  checkPermissions: getCheckPermissions,
+}))
 class VifStatus extends BaseComponent {
   componentDidMount() {
     getLockingModeValues().then(lockingModeValues =>
       this.setState({ lockingModeValues })
     )
   }
+
+  _getCanEditVifLockingMode = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.vif.$network,
+    (checkPermissions, networkId) => checkPermissions(networkId, 'operate')
+  )
 
   _getIps = createSelector(
     () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
@@ -390,28 +400,29 @@ class VifStatus extends BaseComponent {
           state={vif.attached}
         />{' '}
         {this._getNetworkStatus()}{' '}
-        {isLockingModeEdition ? (
-          <select
-            className='form-control'
-            onBlur={this.toggleState('isLockingModeEdition')}
-            onChange={this._onChangeVif}
-            value={vif.lockingMode}
-          >
-            {map(this.state.lockingModeValues, lockingMode => (
-              <option key={lockingMode} value={lockingMode}>
-                {lockingMode}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <ActionButton
-            btnStyle='primary'
-            icon='edit'
-            handler={this.toggleState('isLockingModeEdition')}
-            size='small'
-            tooltip={_('editVifLockingMode')}
-          />
-        )}
+        {this._getCanEditVifLockingMode() &&
+          (isLockingModeEdition ? (
+            <select
+              className='form-control'
+              onBlur={this.toggleState('isLockingModeEdition')}
+              onChange={this._onChangeVif}
+              value={vif.lockingMode}
+            >
+              {map(this.state.lockingModeValues, lockingMode => (
+                <option key={lockingMode} value={lockingMode}>
+                  {lockingMode}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <ActionButton
+              btnStyle='primary'
+              icon='edit'
+              handler={this.toggleState('isLockingModeEdition')}
+              size='small'
+              tooltip={_('editVifLockingMode')}
+            />
+          ))}
       </div>
     )
   }

@@ -86,6 +86,12 @@ export async function set({
     push.apply(newIpAddresses, allowedIpv6Addresses || vif.allowedIpv6Addresses)
   }
 
+  if (lockingMode !== undefined) {
+    await this.checkPermissions(this.user.id, [
+      [network?.id ?? vif.$network, 'operate'],
+    ])
+  }
+
   if (network || mac) {
     const networkId = network?.id
     if (networkId !== undefined && this.user.permission !== 'admin') {
