@@ -3,7 +3,7 @@ import * as CM from 'complex-matcher'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
-import defined, { get, ifDef } from '@xen-orchestra/defined'
+import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Pagination from 'pagination'
 import React from 'react'
@@ -11,11 +11,11 @@ import SearchBar from 'search-bar'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, formatSize, formatSpeed } from 'utils'
-import { countBy, cloneDeep, filter, map } from 'lodash'
+import { countBy, cloneDeep, filter, keyBy, map } from 'lodash'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
+import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
 import { Vm, Sr, Remote, Pool } from 'render-xo-item'
 
 const hasTaskFailed = ({ status }) =>
@@ -317,6 +317,10 @@ const SEARCH_BAR_FILTERS = { name: 'name:' }
 const ITEMS_PER_PAGE = 5
 export default decorate([
   addSubscriptions(({ id }) => ({
+    remotes: cb =>
+      subscribeRemotes(remotes => {
+        cb(keyBy(remotes, 'id'))
+      }),
     log: cb =>
       subscribeBackupNgLogs(logs => {
         cb(logs[id])
