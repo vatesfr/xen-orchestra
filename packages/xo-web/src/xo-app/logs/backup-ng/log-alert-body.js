@@ -385,26 +385,9 @@ export default decorate([
               ? get(() => pools[task.data.id].name_label)
               : 'xo'
 
-          if (task.tasks === undefined) {
-            return
-          }
-
-          task.remotes = []
-          task.srs = []
-          task.tasks.forEach(({ data = {} }) => {
-            if (data.type !== 'remote' && data.type !== 'SR') {
-              return
-            }
-
-            task.isFull = data.isFull
-
-            if (data.type === 'remote') {
-              ifDef(remotes[data.id], remote => task.remotes.push(remote.name))
-              return
-            }
-
-            ifDef(srs[data.id], sr => task.srs.push(sr.name_label))
-          })
+          task.isFull =
+            task.tasks !== undefined &&
+            task.tasks.some(({ data = {} }) => data.isFull !== undefined)
         })
 
         return newLog
