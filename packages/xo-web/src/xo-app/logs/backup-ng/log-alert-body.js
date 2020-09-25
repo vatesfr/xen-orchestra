@@ -1,4 +1,5 @@
 import _, { FormattedDuration } from 'intl'
+import * as CM from 'complex-matcher'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
@@ -6,10 +7,12 @@ import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Pagination from 'pagination'
 import React from 'react'
+import SearchBar from 'search-bar'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
-import { addSubscriptions, formatSize, formatSpeed } from 'utils'
+import { addSubscriptions, connectStore, formatSize, formatSpeed } from 'utils'
 import { countBy, cloneDeep, filter, keyBy, map } from 'lodash'
+import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
@@ -309,6 +312,8 @@ const TaskLi = ({ className, task, ...props }) => {
   )
 }
 
+const SEARCH_BAR_FILTERS = { name: 'name:' }
+
 const ITEMS_PER_PAGE = 5
 export default decorate([
   addSubscriptions(({ id }) => ({
@@ -321,17 +326,26 @@ export default decorate([
         cb(logs[id])
       }),
   })),
+  connectStore({
+    pools: createGetObjectsOfType('pool'),
+    vms: createGetObjectsOfType('VM'),
+  }),
   provideState({
     initialState: () => ({
-      filter: undefined,
+      _status: undefined,
+      filter: '',
       page: 1,
     }),
     effects: {
       onPageChange(_, page) {
         this.state.page = page
       },
-      setFilter(_, filter) {
+      onFilterChange(_, filter) {
         this.state.filter = filter
+        this.state.page = 1
+      },
+      onStatusChange(_, status) {
+        this.state._status = status
         this.state.page = 1
       },
       restartVmJob: (_, params) => async (
@@ -347,7 +361,7 @@ export default decorate([
       },
     },
     computed: {
-      log: (_, { log }) => {
+      log: (_, { log, pools, vms }) => {
         if (log === undefined) {
           return {}
         }
@@ -356,33 +370,41 @@ export default decorate([
           return log
         }
 
-        let newLog
-        log.tasks.forEach((task, key) => {
-          if (task.tasks === undefined || get(() => task.data.type) !== 'VM') {
+        const newLog = cloneDeep(log)
+        newLog.tasks.forEach(task => {
+          const type = get(() => task.data.type)
+          if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
             return
           }
 
-          const subTaskWithIsFull = task.tasks.find(
-            ({ data = {} }) => data.isFull !== undefined
-          )
-          if (subTaskWithIsFull !== undefined) {
-            if (newLog === undefined) {
-              newLog = cloneDeep(log)
-            }
-            newLog.tasks[key].isFull = subTaskWithIsFull.data.isFull
+          task.name =
+            type === 'VM'
+              ? get(() => vms[task.data.id].name_label)
+              : type === 'pool'
+              ? get(() => pools[task.data.id].name_label)
+              : 'xo'
+
+          if (task.tasks !== undefined) {
+            const subTaskWithIsFull = task.tasks.find(
+              ({ data = {} }) => data.isFull !== undefined
+            )
+            task.isFull = get(() => subTaskWithIsFull.data.isFull)
           }
         })
 
-        return defined(newLog, log)
+        return newLog
       },
-      tasksFilteredByStatus: ({
-        defaultFilter,
-        filter: value = defaultFilter,
-        log,
-      }) =>
-        value === 'all'
-          ? log.tasks
-          : filter(log.tasks, ({ status }) => status === value),
+      preFilteredTasksLogs: ({ log, filter }) => {
+        try {
+          return log.tasks.filter(CM.parse(filter).createPredicate())
+        } catch (_) {
+          return []
+        }
+      },
+      tasksFilteredByStatus: ({ preFilteredTasksLogs, status }) =>
+        status === 'all'
+          ? preFilteredTasksLogs
+          : filter(preFilteredTasksLogs, task => task.status === status),
       displayedTasks: ({ tasksFilteredByStatus, page }) => {
         const start = (page - 1) * ITEMS_PER_PAGE
         return tasksFilteredByStatus.slice(start, start + ITEMS_PER_PAGE)
@@ -392,9 +414,9 @@ export default decorate([
           {_(label)} ({countByStatus[value] || 0})
         </span>
       ),
-      countByStatus: ({ log }) => ({
-        all: get(() => log.tasks.length),
-        ...countBy(log.tasks, 'status'),
+      countByStatus: ({ preFilteredTasksLogs }) => ({
+        all: get(() => preFilteredTasksLogs.length),
+        ...countBy(preFilteredTasksLogs, 'status'),
       }),
       options: ({ countByStatus }) => [
         { label: 'allTasks', value: 'all' },
@@ -424,21 +446,22 @@ export default decorate([
           value: 'success',
         },
       ],
-      defaultFilter: ({ countByStatus }) => {
-        if (countByStatus.pending > 0) {
-          return 'pending'
-        }
+      status: ({ _status, countByStatus }) =>
+        defined(_status, () => {
+          if (countByStatus.pending > 0) {
+            return 'pending'
+          }
 
-        if (countByStatus.failure > 0) {
-          return 'failure'
-        }
+          if (countByStatus.failure > 0) {
+            return 'failure'
+          }
 
-        if (countByStatus.interrupted > 0) {
-          return 'interrupted'
-        }
+          if (countByStatus.interrupted > 0) {
+            return 'interrupted'
+          }
 
-        return 'all'
-      },
+          return 'all'
+        }),
       nPages: ({ tasksFilteredByStatus }) =>
         Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
     },
@@ -453,14 +476,20 @@ export default decorate([
       </div>
     ) : (
       <div>
+        <SearchBar
+          className='mb-1'
+          filters={SEARCH_BAR_FILTERS}
+          onChange={effects.onFilterChange}
+          value={state.filter}
+        />
         <Select
           labelKey='label'
-          onChange={effects.setFilter}
+          onChange={effects.onStatusChange}
           optionRenderer={state.optionRenderer}
           options={state.options}
           required
           simpleValue
-          value={state.filter || state.defaultFilter}
+          value={state.status}
           valueKey='value'
         />
         <Warnings warnings={warnings} />
