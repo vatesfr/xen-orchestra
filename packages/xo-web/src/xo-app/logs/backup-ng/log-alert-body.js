@@ -371,7 +371,7 @@ export default decorate([
         }
 
         const newLog = cloneDeep(log)
-        newLog.tasks.forEach((task, key) => {
+        newLog.tasks.forEach(task => {
           const type = get(() => task.data.type)
           if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
             return
