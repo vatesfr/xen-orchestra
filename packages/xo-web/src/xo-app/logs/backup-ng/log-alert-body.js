@@ -4,6 +4,7 @@ import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
+import Pagination from 'pagination'
 import React from 'react'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
@@ -308,6 +309,7 @@ const TaskLi = ({ className, task, ...props }) => {
   )
 }
 
+const ITEMS_PER_PAGE = 5
 export default decorate([
   addSubscriptions(({ id }) => ({
     remotes: cb =>
@@ -322,11 +324,16 @@ export default decorate([
   provideState({
     initialState: () => ({
       filter: undefined,
+      page: 1,
     }),
     effects: {
-      setFilter: (_, filter) => () => ({
-        filter,
-      }),
+      onPageChange(_, page) {
+        this.state.page = page
+      },
+      setFilter(_, filter) {
+        this.state.filter = filter
+        this.state.page = 1
+      },
       restartVmJob: (_, params) => async (
         _,
         { log: { scheduleId, jobId } }
@@ -368,7 +375,7 @@ export default decorate([
 
         return defined(newLog, log)
       },
-      filteredTaskLogs: ({
+      tasksFilteredByStatus: ({
         defaultFilter,
         filter: value = defaultFilter,
         log,
@@ -376,6 +383,10 @@ export default decorate([
         value === 'all'
           ? log.tasks
           : filter(log.tasks, ({ status }) => status === value),
+      displayedTasks: ({ tasksFilteredByStatus, page }) => {
+        const start = (page - 1) * ITEMS_PER_PAGE
+        return tasksFilteredByStatus.slice(start, start + ITEMS_PER_PAGE)
+      },
       optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
           {_(label)} ({countByStatus[value] || 0})
@@ -428,6 +439,8 @@ export default decorate([
 
         return 'all'
       },
+      nPages: ({ tasksFilteredByStatus }) =>
+        Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
     },
   }),
   injectState,
@@ -453,7 +466,7 @@ export default decorate([
         <Warnings warnings={warnings} />
         <br />
         <ul className='list-group'>
-          {map(state.filteredTaskLogs, taskLog => {
+          {map(state.displayedTasks, taskLog => {
             return (
               <TaskLi
                 className='list-group-item'
@@ -476,6 +489,15 @@ export default decorate([
             )
           })}
         </ul>
+        {state.tasksFilteredByStatus.length > ITEMS_PER_PAGE && (
+          <div className='text-xs-center'>
+            <Pagination
+              onChange={effects.onPageChange}
+              pages={state.nPages}
+              value={state.page}
+            />
+          </div>
+        )}
       </div>
     )
   },
