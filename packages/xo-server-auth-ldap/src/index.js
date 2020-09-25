@@ -11,9 +11,6 @@ import { readFile } from 'fs'
 const DEFAULTS = {
   checkCertificate: true,
   filter: '(uid={{name}})',
-  users: {
-    merge: false,
-  },
   groups: {
     synchronize: false,
   },
@@ -129,12 +126,6 @@ Or something like this if you also want to filter by group:
           description:
             'Attribute used to identify a user. Must be unique. e.g.: `uid`',
           type: 'string',
-        },
-        merge: {
-          title: 'Merge users',
-          description:
-            'If a LDAP user has the same username as a XO user, it will be considered as the same user.',
-          type: 'boolean',
         },
       },
     },
@@ -293,6 +284,7 @@ class AuthLdap {
     }
 
     const client = new Client(this._clientOpts)
+    const directoryUri = this._getDirectoryUri()
 
     try {
       if (this._startTls) {
@@ -330,7 +322,9 @@ class AuthLdap {
           logger(JSON.stringify(entry, null, 2))
 
           const ldapId = entry[this._usersConfig.idAttribute]
-          const user = await this._synchronizeUser(ldapId, username)
+          const user = await this._xo.registerUser2(directoryUri, {
+            user: { id: ldapId, name: username },
+          })
 
           if (this._groupsConfig.synchronize) {
             await this._synchronizeGroups(user)
@@ -495,64 +489,6 @@ class AuthLdap {
     } finally {
       await client.unbind()
     }
-  }
-
-  async _synchronizeUser(ldapId, ldapUsername) {
-    const xoUsers = await this._xo.getAllUsers()
-    const directoryUri = this._getDirectoryUri()
-
-    // Get the XO user bound to the LDAP user
-    let xoUser = xoUsers.find(
-      xoUser => xoUser.authProviders?.[directoryUri]?.id === ldapId
-    )
-
-    // If that XO user doesn't exist or doesn't have the correct username, there
-    // is a chance that there is another XO user that already has that username
-    let conflictingXoUser
-    if (xoUser?.email !== ldapUsername) {
-      conflictingXoUser = xoUsers.find(user => user.email === ldapUsername)
-
-      if (conflictingXoUser !== undefined) {
-        if (!this._usersConfig.merge) {
-          throw new Error(
-            `XO user with username ${ldapUsername} already exists`
-          )
-        }
-        if (xoUser !== undefined) {
-          // TODO: merge `conflictingXoUser` into `xoUser` and delete
-          // `conflictingXoUser`. For now: keep the 2 users. Once implemented:
-          // remove the `conflictingXoUser === undefined` condition on
-          // `updateUser`.
-        } else {
-          xoUser = conflictingXoUser
-        }
-      }
-    } else {
-      return xoUser
-    }
-
-    if (xoUser === undefined) {
-      xoUser = await this._xo.createUser({
-        name: ldapUsername,
-        authProviders: { [directoryUri]: { id: ldapId } },
-      })
-    } else {
-      // If the user has other auth providers than LDAP: don't update the username
-      await this._xo.updateUser(xoUser.id, {
-        name:
-          (xoUser.authProviders === undefined ||
-            Object.keys(xoUser.authProviders).length < 2) &&
-          conflictingXoUser === undefined // cf: TODO above
-            ? ldapUsername
-            : undefined,
-        authProviders: {
-          ...xoUser.authProviders,
-          [directoryUri]: { id: ldapId },
-        },
-      })
-    }
-
-    return this._xo.getUser(xoUser.id)
   }
 }
 

@@ -244,6 +244,68 @@ export default class {
     })
   }
 
+  async registerUser2(providerId, { user: { id, name }, data }) {
+    const users = await this.getAllUsers()
+
+    // Get the XO user bound to the provider's user
+    let user = users.find(user => user.authProviders?.[providerId]?.id === id)
+
+    // If that XO user doesn't exist or doesn't have the correct username, there
+    // is a chance that there is another XO user that already has that username
+    let conflictingUser
+    if (user?.email !== name) {
+      conflictingUser = users.find(user => user.email === name)
+
+      if (conflictingUser !== undefined) {
+        if (!this._xo._config.authentication.mergeProvidersUsers) {
+          throw new Error(`User with username ${name} already exists`)
+        }
+        if (user !== undefined) {
+          // TODO: merge `conflictingUser` into `user` and delete
+          // `conflictingUser`. For now: keep the 2 users. Once implemented:
+          // remove the `conflictingUser === undefined` condition on
+          // `updateUser`.
+        } else {
+          user = conflictingUser
+        }
+      }
+    } else if (user !== undefined) {
+      // The user exists and is up to date
+      return user
+    }
+
+    if (user === undefined) {
+      if (!this._xo._config.createUserOnFirstSignin) {
+        throw new Error(`registering ${name} user is forbidden`)
+      }
+      user = await this.createUser({
+        name,
+        authProviders: { [providerId]: { id, data } },
+      })
+    } else {
+      // If the user has more than 1 auth provider: don't update the username to
+      // avoid conflicts
+      await this.updateUser(user.id, {
+        name:
+          (user.authProviders === undefined ||
+            Object.keys(user.authProviders).length < 2) &&
+          conflictingUser === undefined // cf: TODO above
+            ? name
+            : undefined,
+        authProviders: {
+          ...user.authProviders,
+          [providerId]: {
+            id,
+            data:
+              data !== undefined ? data : user.authProviders?.[providerId]?.data,
+          },
+        },
+      })
+    }
+
+    return this.getUser(user.id)
+  }
+
   async changeUserPassword(userId, oldPassword, newPassword) {
     if (!(await this.checkUserPassword(userId, oldPassword, false))) {
       throw invalidCredentials()
