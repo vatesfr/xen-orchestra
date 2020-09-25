@@ -467,7 +467,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ state, effects }) => {
+  ({ remotes, state, effects }) => {
     const { scheduleId, warnings, tasks = [] } = state.log
     return tasks.length === 0 ? (
       <div>
