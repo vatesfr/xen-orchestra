@@ -312,6 +312,8 @@ const TaskLi = ({ className, task, ...props }) => {
   )
 }
 
+const SEARCH_BAR_FILTERS = { name: 'name:' }
+
 const ITEMS_PER_PAGE = 5
 export default decorate([
   addSubscriptions(({ id }) => ({
@@ -475,32 +477,6 @@ export default decorate([
 
           return 'all'
         }),
-      searchBarFilters: ({ log }) => {
-        const { srs = [], remotes = [] } = log.tasks.find(
-          ({ data = {}, tasks }) =>
-            (data.type === 'VM' ||
-              data.type === 'xo' ||
-              data.type === 'pool') &&
-            tasks !== undefined
-        )
-
-        const filters = { name: 'name:' }
-        if (remotes.length !== 0) {
-          filters.remotesNames = new CM.Property(
-            'remotes',
-            new CM.Or(remotes.map(remote => new CM.String(remote)))
-          ).toString()
-        }
-
-        if (srs.length !== 0) {
-          filters.srsNames = new CM.Property(
-            'srs',
-            new CM.Or(srs.map(sr => new CM.String(sr)))
-          ).toString()
-        }
-
-        return filters
-      },
       nPages: ({ tasksFilteredByStatus }) =>
         Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
     },
@@ -517,7 +493,7 @@ export default decorate([
       <div>
         <SearchBar
           className='mb-1'
-          filters={state.searchBarFilters}
+          filters={SEARCH_BAR_FILTERS}
           onChange={effects.onFilterChange}
           value={state.filter}
         />
