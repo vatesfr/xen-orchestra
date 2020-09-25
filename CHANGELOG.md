@@ -1,8 +1,32 @@
 # ChangeLog
 
-## **5.50.1** (2020-09-04)
+## **5.50.3** (2020-09-17)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Packages to release
+
+- xo-server-audit 0.8.0
+
+## **5.50.2** (2020-09-10)
+
+### Enhancements
+
+- [VM/network] VIF's locking mode: improve tooltip messages [#4713](https://github.com/vatesfr/xen-orchestra/issues/4713) (PR [#5227](https://github.com/vatesfr/xen-orchestra/pull/5227))
+- [Backup/overview] Link log entry to its job [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5202](https://github.com/vatesfr/xen-orchestra/pull/5202))
+
+### Bug fixes
+
+- [New SR] Fix `Cannot read property 'trim' of undefined` error (PR [#5212](https://github.com/vatesfr/xen-orchestra/pull/5212))
+- [Dashboard/Health] Fix suspended VDIs considered as orphans [#5248](https://github.com/vatesfr/xen-orchestra/issues/5248) (PR [#5249](https://github.com/vatesfr/xen-orchestra/pull/5249))
+
+### Packages to release
+
+- xo-server-audit 0.7.2
+- xo-web 5.70.0
+- xo-server 5.66.2
+
+## **5.50.1** (2020-09-04)
 
 ### Enhancements
 

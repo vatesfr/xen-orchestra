@@ -50,28 +50,14 @@ async function grabTables(
   fileAccessor
 ) {
   const cachedGrainTables = []
-  let grainTableAddresMin = Infinity
-  let grainTableAddressMax = -Infinity
   for (let i = 0; i < grainDirectoryEntries; i++) {
     const grainTableAddr = grainDir[i] * SECTOR_SIZE
     if (grainTableAddr !== 0) {
-      grainTableAddresMin = Math.min(grainTableAddresMin, grainTableAddr)
-      grainTableAddressMax = Math.max(
-        grainTableAddressMax,
-        grainTableAddr + grainTablePhysicalSize
-      )
-    }
-  }
-  const grainTableBuffer = await fileAccessor(
-    grainTableAddresMin,
-    grainTableAddressMax
-  )
-  for (let i = 0; i < grainDirectoryEntries; i++) {
-    const grainTableAddr = grainDir[i] * SECTOR_SIZE
-    if (grainTableAddr !== 0) {
-      const addr = grainTableAddr - grainTableAddresMin
       cachedGrainTables[i] = new Uint32Array(
-        grainTableBuffer.slice(addr, addr + grainTablePhysicalSize)
+        await fileAccessor(
+          grainTableAddr,
+          grainTableAddr + grainTablePhysicalSize
+        )
       )
     }
   }
