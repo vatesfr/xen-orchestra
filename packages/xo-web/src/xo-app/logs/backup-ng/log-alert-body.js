@@ -384,9 +384,12 @@ export default decorate([
               ? get(() => pools[task.data.id].name_label)
               : 'xo'
 
-          task.isFull =
-            task.tasks !== undefined &&
-            task.tasks.some(({ data = {} }) => data.isFull !== undefined)
+          if (task.tasks !== undefined) {
+            const subTaskWithIsFull = task.tasks.find(
+              ({ data = {} }) => data.isFull !== undefined
+            )
+            task.isFull = get(() => subTaskWithIsFull.data.isFull)
+          }
         })
 
         return newLog
