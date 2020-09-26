@@ -307,7 +307,7 @@ export default class {
     await this._save(set)
   }
 
-  async removeSubjectToResourceSet(subjectId, setId) {
+  async removeSubjectFromResourceSet(subjectId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.subjects, id => id === subjectId)
     await this._save(set)
