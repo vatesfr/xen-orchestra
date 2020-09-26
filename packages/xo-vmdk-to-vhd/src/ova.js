@@ -1,3 +1,4 @@
+import assert from 'assert'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import pako from 'pako'
@@ -94,7 +95,8 @@ function parseTarHeader(header, stringDeserializer) {
   const sizeBuffer = header.slice(124, 124 + 12)
   // size encoding: https://codeistry.wordpress.com/2014/08/14/how-to-parse-a-tar-file/
   let fileSize = 0
-  // If the leading byte is 0x80 (128), the non-leading bytes of the field are concatenated in big-endian order, with the result being a positive number expressed in binary form.
+  // If the leading byte is 0x80 (128), the non-leading bytes of the field are concatenated in big-endian order,
+  // with the result being a positive number expressed in binary form.
   //
   // Source: https://www.gnu.org/software/tar/manual/html_node/Extensions.html
   if (new Uint8Array(sizeBuffer)[0] === 128) {
@@ -298,58 +300,44 @@ export async function parseOVAFile(
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
       const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
       let forwardsInflater = new pako.Inflate()
-      let currentForwardsDeflatedPos = 0
-      let currentForwardsInflatedPos = 0
-      // left over from the last unzipped chunk
-      let lastChunk = new Uint8Array(0)
-      let previousEnd = 0
 
       const readFile = async (start, end) => {
+        // if next read is further down the stream than previous read, re-uses the previous zstream
         async function parseGzipFromStart(start, end, fileSlice) {
           const chunks = []
-          if (start < previousEnd) {
-            // the next block we are reading is before the previous one, reset the stream
+          if (
+            forwardsInflater.result != null &&
+            start <
+              forwardsInflater.strm.total_out - forwardsInflater.result.length
+          ) {
+            // the block we are reading starts before the last decompressed chunk, reset stream
             forwardsInflater = new pako.Inflate()
-            currentForwardsDeflatedPos = 0
-            currentForwardsInflatedPos = 0
-            lastChunk = new Uint8Array(0)
-          } else {
-            // the next block we are reading is located after the previous one, lets move the stream forwards
-            if (start < currentForwardsInflatedPos) {
-              // the read start in the buffer left over from the previous read
-              const endLimit = Math.min(
-                lastChunk.length,
-                lastChunk.length - (currentForwardsInflatedPos - end)
-              )
-              // get a negative number from the subtraction to start at the end
-              chunks.push(
-                lastChunk.slice(start - currentForwardsInflatedPos, endLimit)
-              )
-              // set the lastChunk since we might never enter the hereunder while loop if `end` is also in the lastChunk
-              lastChunk = lastChunk.slice(endLimit)
-            }
           }
-          while (currentForwardsInflatedPos < end) {
-            const slice = fileSlice.slice(
-              currentForwardsDeflatedPos,
-              currentForwardsDeflatedPos + GZIP_CHUNK_SIZE
-            )
-            const compressed = await slice.read()
-            forwardsInflater.push(compressed, pako.Z_SYNC_FLUSH)
-            let chunk = forwardsInflater.result
-            const inflatedChunkEnd = currentForwardsInflatedPos + chunk.length
-            if (inflatedChunkEnd > start) {
-              if (currentForwardsInflatedPos < start) {
-                chunk = chunk.slice(start - currentForwardsInflatedPos)
+          let isLast = false
+          while (true) {
+            if (forwardsInflater.strm.total_out > start) {
+              const inflatedChunkStart =
+                forwardsInflater.strm.total_out - forwardsInflater.result.length
+              let chunk = forwardsInflater.result
+              if (inflatedChunkStart < start) {
+                chunk = chunk.slice(start - inflatedChunkStart)
               }
-              if (inflatedChunkEnd > end) {
-                lastChunk = chunk.slice(-(inflatedChunkEnd - end))
-                chunk = chunk.slice(0, -(inflatedChunkEnd - end))
+              if (forwardsInflater.strm.total_out > end) {
+                chunk = chunk.slice(0, -(forwardsInflater.strm.total_out - end))
+                isLast = true
               }
               chunks.push(chunk)
             }
-            currentForwardsInflatedPos = inflatedChunkEnd
-            currentForwardsDeflatedPos += GZIP_CHUNK_SIZE
+            if (isLast) {
+              // don't move the stream forwards if we took our last chunk
+              // gives the next read operation an opportunity to read from the same position
+              break
+            }
+            const slice = fileSlice.slice(
+              forwardsInflater.strm.total_in,
+              forwardsInflater.strm.total_in + GZIP_CHUNK_SIZE
+            )
+            forwardsInflater.push(await slice.read(), pako.Z_SYNC_FLUSH)
           }
           const resultBuffer = new Uint8Array(sum(chunks.map(c => c.length)))
           let index = 0
@@ -357,7 +345,7 @@ export async function parseOVAFile(
             resultBuffer.set(c, index)
             index += c.length
           })
-          previousEnd = end
+          assert.strictEqual(resultBuffer.buffer.byteLength, end - start)
           return resultBuffer.buffer
         }
 
