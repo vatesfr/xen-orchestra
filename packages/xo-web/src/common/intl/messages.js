@@ -83,6 +83,8 @@ const messages = {
   advancedSettings: 'Advanced settings',
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
+  remotesNames: 'Remotes names',
+  srsNames: 'SRs names',
 
   // ----- Modals -----
   alertOk: 'OK',

@@ -109,6 +109,12 @@ class XoConnection extends Xo {
     return id
   }
 
+  async createTempResourceSet(params) {
+    const { id } = await xo.call('resourceSet.create', params)
+    this._tempResourceDisposers.push('resourceSet.delete', { id })
+    return id
+  }
+
   async getUser(id) {
     return find(await super.call('user.getAll'), { id })
   }
