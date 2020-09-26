@@ -65,8 +65,8 @@ export default decorate([
         if (type === 's3') {
           const {
             parsedPath,
-            bucket = parsedPath != null && parsedPath.split('/')[0],
-            directory = parsedPath != null && parsedPath.split('/')[1],
+            bucket = parsedPath.split('/')[0],
+            directory = parsedPath.split('/')[1],
           } = state
           path = bucket + '/' + directory
         }
