@@ -20,6 +20,7 @@
 
 - [Import VMDK] Fix `No position specified for vmdisk1` error (PR [#5255](https://github.com/vatesfr/xen-orchestra/pull/5255))
 - [API] Fix `this.removeSubjectFromResourceSet is not a function` error on calling `resourceSet.removeSubject` via `xo-cli` [#5265](https://github.com/vatesfr/xen-orchestra/issues/5265) (PR [#5266](https://github.com/vatesfr/xen-orchestra/pull/5266))
+- [Import OVA] Improve import speed of embedded gzipped vmdk disks (PR [#5275](https://github.com/vatesfr/xen-orchestra/pull/5275))
 
 ### Packages to release
 
