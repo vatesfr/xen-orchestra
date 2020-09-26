@@ -305,22 +305,18 @@ export async function parseOVAFile(
         // if next read is further down the stream than previous read, re-uses the previous zstream
         async function parseGzipFromStart(start, end, fileSlice) {
           const chunks = []
-          if (
-            forwardsInflater.result != null &&
-            start <
-              forwardsInflater.strm.total_out - forwardsInflater.result.length
-          ) {
+          const resultStart = () =>
+            forwardsInflater.strm.total_out - forwardsInflater.result.length
+          if (forwardsInflater.result != null && start < resultStart()) {
             // the block we are reading starts before the last decompressed chunk, reset stream
             forwardsInflater = new pako.Inflate()
           }
           let isLast = false
           while (true) {
             if (forwardsInflater.strm.total_out > start) {
-              const inflatedChunkStart =
-                forwardsInflater.strm.total_out - forwardsInflater.result.length
               let chunk = forwardsInflater.result
-              if (inflatedChunkStart < start) {
-                chunk = chunk.slice(start - inflatedChunkStart)
+              if (resultStart() < start) {
+                chunk = chunk.slice(start - resultStart())
               }
               if (forwardsInflater.strm.total_out > end) {
                 chunk = chunk.slice(0, -(forwardsInflater.strm.total_out - end))
