@@ -5,6 +5,7 @@ import sum from 'lodash/sum'
 import xml2js, { processors } from 'xml2js'
 
 import { readVmdkGrainTable } from '.'
+import { suppressUnhandledRejection } from './util'
 
 /********
  *
@@ -298,10 +299,6 @@ export async function parseOVAFile(
   stringDeserializer,
   skipVmdk = false
 ) {
-  const suppressUnhandledRejection = p => {
-    p.catch(Function.prototype)
-    return p
-  }
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }

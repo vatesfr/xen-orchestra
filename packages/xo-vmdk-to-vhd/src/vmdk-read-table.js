@@ -1,3 +1,5 @@
+import { suppressUnhandledRejection } from './util'
+
 const SECTOR_SIZE = 512
 const HEADER_SIZE = 512
 const FOOTER_POSITION = -1024
@@ -27,11 +29,6 @@ const getLongLong = (buffer, offset, name) => {
 
   const res = dataView.getUint32(offset, true)
   return res + highBits * Math.pow(2, 32)
-}
-
-const suppressUnhandledRejection = p => {
-  p.catch(Function.prototype)
-  return p
 }
 
 /**
