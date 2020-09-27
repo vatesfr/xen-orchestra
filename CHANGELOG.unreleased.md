@@ -12,6 +12,7 @@
 - [Dashboard/Health] Show VMs that have too many snapshots [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
 - [Groups] Ability to delete multiple groups at once (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
 - [Backup/logs] Log's tasks pagination [#4406](https://github.com/vatesfr/xen-orchestra/issues/4406) (PR [#5209](https://github.com/vatesfr/xen-orchestra/pull/5209))
+- [Backup logs] Ability to filter by VM/pool name, SRs names and remotes names [#4406](https://github.com/vatesfr/xen-orchestra/issues/4406) (PR [#5208](https://github.com/vatesfr/xen-orchestra/pull/5208))
 - [LDAP] Ability to import LDAP groups to XO [#1884](https://github.com/vatesfr/xen-orchestra/issues/1884)
 
 ### Bug fixes
@@ -20,6 +21,7 @@
 
 - [Import VMDK] Fix `No position specified for vmdisk1` error (PR [#5255](https://github.com/vatesfr/xen-orchestra/pull/5255))
 - [API] Fix `this.removeSubjectFromResourceSet is not a function` error on calling `resourceSet.removeSubject` via `xo-cli` [#5265](https://github.com/vatesfr/xen-orchestra/issues/5265) (PR [#5266](https://github.com/vatesfr/xen-orchestra/pull/5266))
+- [Import OVA] Fix frozen UI when dropping a big OVA on the page (PR [#5274](https://github.com/vatesfr/xen-orchestra/pull/5274))
 
 ### Packages to release
 
