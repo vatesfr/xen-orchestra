@@ -79,6 +79,9 @@ test('An ova file is parsed correctly', async () => {
       return Buffer.from(buffer).toString(encoder)
     }
   )
+  for (const fileName in data.tables) {
+    data.tables[fileName] = await data.tables[fileName]
+  }
   expect(data).toEqual(expectedResult)
 })
 

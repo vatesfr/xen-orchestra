@@ -5,6 +5,7 @@ import sum from 'lodash/sum'
 import xml2js, { processors } from 'xml2js'
 
 import { readVmdkGrainTable } from '.'
+import { suppressUnhandledRejection } from './util'
 
 /********
  *
@@ -327,7 +328,9 @@ export async function parseOVAFile(
         const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
         const readFile = async (start, end) =>
           fileSlice.slice(start, end).read()
-        data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+        data.tables[header.fileName] = suppressUnhandledRejection(
+          readVmdkGrainTable(readFile)
+        )
       }
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
@@ -342,7 +345,9 @@ export async function parseOVAFile(
           return parseGzipFromEnd(start, end, fileSlice, header)
         }
       }
-      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+      data.tables[header.fileName] = suppressUnhandledRejection(
+        readVmdkGrainTable(readFile)
+      )
     }
     offset += Math.ceil(header.fileSize / 512) * 512
   }
