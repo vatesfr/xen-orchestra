@@ -32,10 +32,12 @@ export const configurationSchema = {
   type: 'object',
   properties: {
     uri: {
+      title: 'URI',
       description: 'URI of the LDAP server.',
       type: 'string',
     },
     certificateAuthorities: {
+      title: 'Certificate Authorities',
       description: `
 Paths to CA certificates to use when connecting to SSL-secured LDAP servers.
 
@@ -47,12 +49,24 @@ If not specified, it will use a default set of well-known CAs.
       },
     },
     checkCertificate: {
+      title: 'Check certificate',
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
       defaults: DEFAULTS.checkCertificate,
     },
+    startTls: {
+      title: 'Use StartTLS',
+      type: 'boolean',
+    },
+    base: {
+      title: 'Base',
+      description:
+        'The base is the part of the description tree where the users and groups are looked for.',
+      type: 'string',
+    },
     bind: {
+      title: 'Credentials',
       description: 'Credentials to use before looking for the user record.',
       type: 'object',
       properties: {
@@ -74,12 +88,8 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
       },
       required: ['dn', 'password'],
     },
-    base: {
-      description:
-        'The base is the part of the description tree where the users are looked for.',
-      type: 'string',
-    },
     filter: {
+      title: 'User filter',
       description: `
 Filter used to find the user.
 
@@ -101,10 +111,6 @@ Or something like this if you also want to filter by group:
 `.trim(),
       type: 'string',
       default: DEFAULTS.filter,
-    },
-    startTls: {
-      title: 'Use StartTLS',
-      type: 'boolean',
     },
   },
   required: ['uri', 'base'],
