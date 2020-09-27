@@ -1,3 +1,5 @@
+import { suppressUnhandledRejection } from './util'
+
 const SECTOR_SIZE = 512
 const HEADER_SIZE = 512
 const FOOTER_POSITION = -1024
@@ -138,5 +140,8 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     return { grainLogicalAddressList: fragmentAddressList, grainFileOffsetList }
   }
 
-  return { tablePromise: readTable(), capacityBytes: capacity }
+  return {
+    tablePromise: suppressUnhandledRejection(readTable()),
+    capacityBytes: capacity,
+  }
 }

@@ -3,6 +3,17 @@ const { dirname } = require('path')
 const fs = require('promise-toolbox/promisifyAll')(require('fs'))
 module.exports = fs
 
+fs.getSize = path =>
+  fs.stat(path).then(
+    _ => _.size,
+    error => {
+      if (error.code === 'ENOENT') {
+        return 0
+      }
+      throw error
+    }
+  )
+
 fs.mktree = async function mkdirp(path) {
   try {
     await fs.mkdir(path)
