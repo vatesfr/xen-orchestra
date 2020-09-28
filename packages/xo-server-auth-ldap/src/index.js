@@ -322,7 +322,7 @@ class AuthLdap {
           logger(JSON.stringify(entry, null, 2))
 
           const ldapId = entry[this._usersConfig.idAttribute]
-          const user = await this._xo.registerUser2(directoryUri, {
+          const user = await this._xo.registerUser(directoryUri, {
             user: { id: ldapId, name: username },
           })
 

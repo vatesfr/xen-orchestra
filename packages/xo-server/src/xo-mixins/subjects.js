@@ -225,6 +225,10 @@ export default class {
 
   // Get or create a user associated with an auth provider.
   async registerUser(provider, name) {
+    if (typeof name === 'object') {
+      return this.registerUser2(provider, name)
+    }
+
     const user = await this.getUserByName(name, true)
     if (user) {
       if (user._provider !== provider) {
@@ -244,6 +248,12 @@ export default class {
     })
   }
 
+  // New implementation of registerUser that:
+  //   - allows multiple providers per XO user
+  //   - binds a XO user to the provider's user with a unique ID
+  // - id: the ID that the provider uses to identify the user
+  // - name: the name of the user according to the provider
+  // - data: additional data about the user that the provider may want to store
   async registerUser2(providerId, { user: { id, name }, data }) {
     const users = await this.getAllUsers()
 
