@@ -223,12 +223,9 @@ export default class {
     throw noSuchObject(username, 'user')
   }
 
+  // Deprecated: use registerUser2 instead
   // Get or create a user associated with an auth provider.
   async registerUser(provider, name) {
-    if (typeof name === 'object') {
-      return this.registerUser2(provider, name)
-    }
-
     const user = await this.getUserByName(name, true)
     if (user) {
       if (user._provider !== provider) {

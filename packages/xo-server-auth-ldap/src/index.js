@@ -3,7 +3,6 @@
 import fromCallback from 'promise-toolbox/fromCallback'
 import { Client } from 'ldapts'
 import { Filter } from 'ldapts/filters/Filter'
-import { URL } from 'url'
 import { readFile } from 'fs'
 
 // ===================================================================
@@ -14,6 +13,9 @@ const DEFAULTS = {
   groups: {
     synchronize: false,
   },
+  users: {
+    idAttribute: 'dn',
+  }
 }
 
 const { escape } = Filter.prototype
@@ -126,6 +128,7 @@ Or something like this if you also want to filter by group:
           description:
             'Attribute used to identify a user. Must be unique. e.g.: `uid`',
           type: 'string',
+          default: DEFAULTS.users.idAttribute,
         },
       },
     },
@@ -139,6 +142,7 @@ Or something like this if you also want to filter by group:
           description:
             "Import (or update) LDAP groups automatically every time a user logs into XO. If you don't enable this, you can still synchronize the LDAP groups manually from the Settings > Groups page.",
           type: 'boolean',
+          default: DEFAULTS.groups.synchronize,
         },
         base: {
           title: 'Base',
@@ -270,10 +274,6 @@ class AuthLdap {
     })
   }
 
-  _getDirectoryUri() {
-    return new URL(encodeURIComponent(this._searchBase), this._serverUri).href
-  }
-
   async _authenticate({ username, password }) {
     const logger = this._logger
 
@@ -284,7 +284,6 @@ class AuthLdap {
     }
 
     const client = new Client(this._clientOpts)
-    const directoryUri = this._getDirectoryUri()
 
     try {
       if (this._startTls) {
@@ -321,13 +320,19 @@ class AuthLdap {
           )
           logger(JSON.stringify(entry, null, 2))
 
-          const ldapId = entry[this._usersConfig.idAttribute]
-          const user = await this._xo.registerUser(directoryUri, {
-            user: { id: ldapId, name: username },
-          })
+          const idAttribute = this._usersConfig?.idAttribute
+          if (idAttribute === undefined) {
+            // Support legacy config
+            await this._xo.registerUser(undefined, username)
+          } else {
+            const ldapId = entry[idAttribute]
+            const user = await this._xo.registerUser2('ldap', {
+              user: { id: ldapId, name: username },
+            })
 
-          if (this._groupsConfig.synchronize) {
-            await this._synchronizeGroups(user)
+            if (this._groupsConfig?.synchronize) {
+              await this._synchronizeGroups(user)
+            }
           }
 
           return { username }
@@ -347,7 +352,6 @@ class AuthLdap {
   async _synchronizeGroups(user) {
     const logger = this._logger
     const client = new Client(this._clientOpts)
-    const directoryUri = this._getDirectoryUri()
 
     try {
       if (this._startTls) {
@@ -382,7 +386,7 @@ class AuthLdap {
         (await this._xo.getAllUsers()).filter(
           user =>
             user.authProviders !== undefined &&
-            directoryUri in user.authProviders
+            'ldap' in user.authProviders
         )
       const xoGroups = await this._xo.getAllGroups()
 
@@ -409,7 +413,7 @@ class AuthLdap {
         // If a user was passed, only update the user's groups
         if (
           user !== undefined &&
-          !ldapGroupMembers.includes(user.authProviders[directoryUri].id)
+          !ldapGroupMembers.includes(user.authProviders.ldap.id)
         ) {
           continue
         }
@@ -417,7 +421,7 @@ class AuthLdap {
         let xoGroup
         const xoGroupIndex = xoGroups.findIndex(
           group =>
-            group.provider === directoryUri &&
+            group.provider === 'ldap' &&
             group.providerGroupId === groupLdapId
         )
 
@@ -431,7 +435,7 @@ class AuthLdap {
           }
           xoGroup = await this._xo.createGroup({
             name: groupLdapName,
-            provider: directoryUri,
+            provider: 'ldap',
             providerGroupId: groupLdapId,
           })
         } else {
@@ -454,7 +458,7 @@ class AuthLdap {
 
         for (const ldapId of ldapGroupMembers) {
           const xoUser = xoUsers.find(
-            user => user.authProviders[directoryUri].id === ldapId
+            user => user.authProviders.ldap.id === ldapId
           )
           if (xoUser === undefined) {
             continue
@@ -482,7 +486,7 @@ class AuthLdap {
         // they don't exist in the LDAP directory any more
         await Promise.all(
           xoGroups
-            .filter(group => group.provider === directoryUri)
+            .filter(group => group.provider === 'ldap')
             .map(group => this._xo.deleteGroup(group.id))
         )
       }
