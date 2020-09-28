@@ -111,27 +111,13 @@ const getVmGuestToolsProps = vm => {
   }
 }
 
-// Build a { id → operation } map instead of forwarding the
-// { ref → operation } map directly
-const getCurrentOperationsByTaskId = obj => {
-  const currentOperations = {}
-  const { $xapi } = obj
-  forEach(obj.current_operations, (operation, ref) => {
-    const task = $xapi.getObjectByRef(ref, undefined)
-    if (task !== undefined) {
-      currentOperations[task.$id] = operation
-    }
-  })
-  return currentOperations
-}
-
 // ===================================================================
 
 const TRANSFORMS = {
   pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
-      current_operations: getCurrentOperationsByTaskId(obj),
+      current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
       master: link(obj, 'master'),
@@ -209,7 +195,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
-      current_operations: getCurrentOperationsByTaskId(obj),
+      current_operations: obj.current_operations,
       hostname: obj.hostname,
       iscsiIqn: obj.iscsi_iqn ?? otherConfig.iscsi_iqn ?? '',
       zstdSupported: obj.license_params.restrict_zstd_export === 'false',
@@ -337,6 +323,17 @@ const TRANSFORMS = {
       }
     }
 
+    // Build a { taskId → operation } map instead of forwarding the
+    // { taskRef → operation } map directly
+    const currentOperations = {}
+    const { $xapi } = obj
+    forEach(obj.current_operations, (operation, ref) => {
+      const task = $xapi.getObjectByRef(ref, undefined)
+      if (task !== undefined) {
+        currentOperations[task.$id] = operation
+      }
+    })
+
     const networks = guestMetrics?.networks ?? {}
 
     // Merge old ipv4 protocol with the new protocol
@@ -365,7 +362,7 @@ const TRANSFORMS = {
             ? +metrics.VCPUs_number
             : +obj.VCPUs_at_startup,
       },
-      current_operations: getCurrentOperationsByTaskId(obj),
+      current_operations: currentOperations,
       docker: (function () {
         const monitor = otherConfig['xscontainer-monitor']
         if (!monitor) {
@@ -529,7 +526,7 @@ const TRANSFORMS = {
       physical_usage: +obj.physical_utilisation,
 
       allocationStrategy: ALLOCATION_BY_TYPE[srType],
-      current_operations: getCurrentOperationsByTaskId(obj),
+      current_operations: obj.current_operations,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
@@ -614,7 +611,7 @@ const TRANSFORMS = {
       tags: obj.tags,
       usage: +obj.physical_utilisation,
       VDI_type: obj.type,
-      current_operations: getCurrentOperationsByTaskId(obj),
+      current_operations: obj.current_operations,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
@@ -688,7 +685,7 @@ const TRANSFORMS = {
     return {
       automatic: obj.other_config?.automatic === 'true',
       bridge: obj.bridge,
-      current_operations: getCurrentOperationsByTaskId(obj),
+      current_operations: obj.current_operations,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
       name_description: obj.name_description,
@@ -725,6 +722,7 @@ const TRANSFORMS = {
       progress: +obj.progress,
       result: obj.result,
       status: obj.status,
+      xapiRef: obj.$ref,
 
       $host: link(obj, 'resident_on'),
     }

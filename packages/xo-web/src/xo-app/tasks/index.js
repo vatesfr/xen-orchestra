@@ -1,6 +1,7 @@
 import _, { messages } from 'intl'
 import Collapse from 'collapse'
 import Component from 'base-component'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
@@ -44,6 +45,16 @@ const HEADER = (
   </Container>
 )
 
+const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
+const Li = props => (
+  <li
+    {...props}
+    style={{
+      whiteSpace: 'nowrap',
+    }}
+  />
+)
+
 const TASK_ITEM_STYLE = {
   // Remove all margin, otherwise it breaks vertical alignment.
   margin: 0,
@@ -74,11 +85,18 @@ export class TaskItem extends Component {
 }
 
 const taskObjectsRenderer = ({ objects }) => (
-  <div>
-    {map(objects, obj => (
-      <li>{renderXoItem(obj, { link: true })}</li>
-    ))}
-  </div>
+  <Ul>
+    {map(objects, obj => {
+      const { id, type } = obj
+      return type === 'VDI' || type === 'network' ? (
+        <Li key={id}>{renderXoItem(obj)}</Li>
+      ) : (
+        <Li key={id}>
+          <Link to={`/${type}s/${id}`}>{renderXoItem(obj)}</Link>
+        </Li>
+      )
+    })}
+  </Ul>
 )
 
 const COMMON = [
@@ -186,7 +204,7 @@ const GROUPED_ACTIONS = [
 
   const predicate = _ => obj => !isEmpty(obj.current_operations)
 
-  const getLinkedObjectsByTask = createSelector(
+  const getLinkedObjectsByTaskRefOrId = createSelector(
     createGetObjectsOfType('pool').filter(predicate),
     createGetObjectsOfType('host').filter(predicate),
     createGetObjectsOfType('SR').filter(predicate),
@@ -194,13 +212,13 @@ const GROUPED_ACTIONS = [
     createGetObjectsOfType('VM').filter(predicate),
     createGetObjectsOfType('network').filter(predicate),
     (pools, hosts, srs, vdis, vms, networks) => {
-      const linkedObjectsByTask = {}
+      const linkedObjectsByTaskRefOrId = {}
       const resolveLinkedObjects = obj => {
-        Object.keys(obj.current_operations).forEach(taskId => {
-          if (linkedObjectsByTask[taskId] === undefined) {
-            linkedObjectsByTask[taskId] = []
+        Object.keys(obj.current_operations).forEach(task => {
+          if (linkedObjectsByTaskRefOrId[task] === undefined) {
+            linkedObjectsByTaskRefOrId[task] = []
           }
-          linkedObjectsByTask[taskId].push(obj)
+          linkedObjectsByTaskRefOrId[task].push(obj)
         })
       }
 
@@ -211,18 +229,21 @@ const GROUPED_ACTIONS = [
       forOwn(vms, resolveLinkedObjects)
       forOwn(networks, resolveLinkedObjects)
 
-      return linkedObjectsByTask
+      return linkedObjectsByTaskRefOrId
     }
   )
 
   const getPendingTasksByPool = createSelector(
     getPendingTasks,
-    getLinkedObjectsByTask,
-    (tasks, linkedObjectsByTask) =>
+    getLinkedObjectsByTaskRefOrId,
+    (tasks, linkedObjectsByTaskRefOrId) =>
       groupBy(
         map(tasks, task => ({
           ...task,
-          objects: linkedObjectsByTask[task.id],
+          objects: [
+            ...defined(linkedObjectsByTaskRefOrId[task.xapiRef], []),
+            ...defined(linkedObjectsByTaskRefOrId[task.id], []),
+          ],
         })),
         '$pool'
       )
