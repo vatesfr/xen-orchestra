@@ -22,6 +22,7 @@
 - [API] Fix `this.removeSubjectFromResourceSet is not a function` error on calling `resourceSet.removeSubject` via `xo-cli` [#5265](https://github.com/vatesfr/xen-orchestra/issues/5265) (PR [#5266](https://github.com/vatesfr/xen-orchestra/pull/5266))
 - [Import OVA] Fix frozen UI when dropping a big OVA on the page (PR [#5274](https://github.com/vatesfr/xen-orchestra/pull/5274))
 - [Remotes/S3] Fix S3 backup of 50GB+ files [#5197](https://github.com/vatesfr/xen-orchestra/issues/5197) (PR[ #5242](https://github.com/vatesfr/xen-orchestra/pull/5242) )
+- [Remotes] Fix editing bucket and directory for S3 remotes [#5233](https://github.com/vatesfr/xen-orchestra/issues/5233) (PR [5276](https://github.com/vatesfr/xen-orchestra/pull/5276))
 
 ### Packages to release
 
