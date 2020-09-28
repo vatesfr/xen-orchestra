@@ -147,7 +147,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host(obj) {
+  host(obj, dependents) {
+    dependents[obj.metrics] = obj.$id
+
     const {
       $metrics: metrics,
       other_config: otherConfig,

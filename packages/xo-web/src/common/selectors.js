@@ -618,3 +618,18 @@ export const getResolvedResourceSets = create(
       }
     })
 )
+
+export const createGetHostState = getHost =>
+  create(
+    (state, props) => getHost(state, props).power_state,
+    (state, props) => getHost(state, props).enabled,
+    (state, props) => getHost(state, props).current_operations,
+    (powerState, enabled, operations) =>
+      powerState !== 'Running'
+        ? powerState
+        : !isEmpty(operations)
+        ? 'Busy'
+        : !enabled
+        ? 'Disabled'
+        : 'Running'
+  )
