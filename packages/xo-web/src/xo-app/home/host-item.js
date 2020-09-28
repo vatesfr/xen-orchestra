@@ -70,11 +70,13 @@ export default class HostItem extends Component {
     () => this.props.item.enabled,
     () => this.props.item.current_operations,
     (powerState, enabled, operations) =>
-      !isEmpty(operations)
+      powerState !== 'Running'
+        ? powerState
+        : !isEmpty(operations)
         ? 'Busy'
-        : powerState === 'Running' && !enabled
+        : !enabled
         ? 'Disabled'
-        : powerState
+        : 'Running'
   )
 
   render() {
