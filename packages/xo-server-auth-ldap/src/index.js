@@ -126,7 +126,7 @@ Or something like this if you also want to filter by group:
         idAttribute: {
           title: 'ID attribute',
           description:
-            'Attribute used to identify a user. Must be unique. e.g.: `uid`',
+            'Attribute used to identify a user. Must be unique. e.g.: `dn`',
           type: 'string',
           default: DEFAULTS.users.idAttribute,
         },
