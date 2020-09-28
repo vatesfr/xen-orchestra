@@ -1162,7 +1162,7 @@ export default class Home extends Component {
                     </Button>
                   </OverlayTrigger>
                 )}
-                {type === 'VM' && (
+                {isAdmin && type === 'VM' && (
                   <OverlayTrigger
                     trigger='click'
                     rootClose
