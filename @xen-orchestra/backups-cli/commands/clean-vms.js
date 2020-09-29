@@ -8,6 +8,7 @@ let force
 const assert = require('assert')
 const flatten = require('lodash/flatten')
 const getopts = require('getopts')
+const limitConcurrency = require('limit-concurrency-decorator')
 const lockfile = require('proper-lockfile')
 const pipe = require('promise-toolbox/pipe')
 const { default: Vhd, mergeVhd } = require('vhd-lib')
@@ -26,7 +27,7 @@ const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
 //
 // the whole chain will be merged into parent, parent will be renamed to child
 // and all the others will deleted
-async function mergeVhdChain(chain) {
+const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain) {
   assert(chain.length >= 2)
 
   let child = chain[0]
@@ -87,7 +88,7 @@ async function mergeVhdChain(chain) {
       return force && handler.unlink(child)
     }),
   ])
-}
+})
 
 const listVhds = pipe([
   vmDir => vmDir + '/vdis',
