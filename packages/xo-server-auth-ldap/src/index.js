@@ -15,7 +15,7 @@ const DEFAULTS = {
   },
   users: {
     idAttribute: 'dn',
-  }
+  },
 }
 
 const { escape } = Filter.prototype
@@ -173,11 +173,23 @@ Or something like this if you also want to filter by group:
             'Optionally set a prefix for group names in XO imported from the LDAP directory. e.g.: `LDAP-`',
           type: 'string',
         },
-        membersAttribute: {
-          title: 'Members attribute',
-          description:
-            'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
-          type: 'string',
+        membersMapping: {
+          title: 'Group members',
+          type: 'object',
+          properties: {
+            groupAttribute: {
+              title: 'Members attribute',
+              description:
+                'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
+              type: 'string',
+            },
+            userAttribute: {
+              title: 'User attribute',
+              description:
+                'User attribute used to match group members to the users. e.g.: `uidNumber`',
+              type: 'string',
+            },
+          },
         },
       },
     },
@@ -321,18 +333,21 @@ class AuthLdap {
           logger(JSON.stringify(entry, null, 2))
 
           const idAttribute = this._usersConfig?.idAttribute
+          const memberAttribute = this._groupsConfig?.membersMapping
+            ?.userAttribute
           let user
-          if (idAttribute === undefined) {
+          if (idAttribute === undefined || memberAttribute === undefined) {
             // Support legacy config
             user = await this._xo.registerUser(undefined, username)
           } else {
             const ldapId = entry[idAttribute]
+            const memberId = entry[memberAttribute]
             user = await this._xo.registerUser2('ldap', {
               user: { id: ldapId, name: username },
             })
 
             if (this._groupsConfig?.synchronize) {
-              await this._synchronizeGroups(user)
+              await this._synchronizeGroups(user, memberId)
             }
           }
 
@@ -350,7 +365,7 @@ class AuthLdap {
   }
 
   // Synchronize user's groups OR all groups if no user is passed
-  async _synchronizeGroups(user) {
+  async _synchronizeGroups(user, memberId) {
     const logger = this._logger
     const client = new Client(this._clientOpts)
 
@@ -375,7 +390,7 @@ class AuthLdap {
         displayNamePrefix = '',
         filter,
         idAttribute,
-        membersAttribute,
+        membersMapping,
       } = this._groupsConfig
       const { searchEntries: ldapGroups } = await client.search(base, {
         scope: 'sub',
@@ -386,8 +401,7 @@ class AuthLdap {
         user !== undefined &&
         (await this._xo.getAllUsers()).filter(
           user =>
-            user.authProviders !== undefined &&
-            'ldap' in user.authProviders
+            user.authProviders !== undefined && 'ldap' in user.authProviders
         )
       const xoGroups = await this._xo.getAllGroups()
 
@@ -406,24 +420,20 @@ class AuthLdap {
           continue
         }
 
-        let ldapGroupMembers = ldapGroup[membersAttribute]
+        let ldapGroupMembers = ldapGroup[membersMapping.groupAttribute]
         ldapGroupMembers = Array.isArray(ldapGroupMembers)
           ? ldapGroupMembers
           : [ldapGroupMembers]
 
         // If a user was passed, only update the user's groups
-        if (
-          user !== undefined &&
-          !ldapGroupMembers.includes(user.authProviders.ldap.id)
-        ) {
+        if (user !== undefined && !ldapGroupMembers.includes(memberId)) {
           continue
         }
 
         let xoGroup
         const xoGroupIndex = xoGroups.findIndex(
           group =>
-            group.provider === 'ldap' &&
-            group.providerGroupId === groupLdapId
+            group.provider === 'ldap' && group.providerGroupId === groupLdapId
         )
 
         if (xoGroupIndex === -1) {
