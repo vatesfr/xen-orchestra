@@ -2,15 +2,11 @@ import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
 import defined, { ifDef } from '@xen-orchestra/defined'
-import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
-import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
-import { Input as DebouncedInput } from 'debounce-input-decorator'
 import { Portal } from 'react-overlays'
 import { Set } from 'immutable'
-import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
 import { injectState, provideState } from 'reaclette'
 import { withRouter } from 'react-router'
 import {
@@ -34,7 +30,7 @@ import Icon from '../icon'
 import logError from '../log-error'
 import Pagination from '../pagination'
 import SingleLineRow from '../single-line-row'
-import Tooltip from '../tooltip'
+import TableFilter from '../search-bar'
 import UserError from '../user-error'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
@@ -50,83 +46,6 @@ import {
 } from '../selectors'
 
 import styles from './index.css'
-
-// ===================================================================
-
-class TableFilter extends Component {
-  static propTypes = {
-    filters: PropTypes.object,
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.string.isRequired,
-  }
-
-  _cleanFilter = () => this._setFilter('')
-
-  _setFilter = filterValue => {
-    const filter = this.refs.filter.getWrappedInstance()
-    filter.value = filterValue
-    filter.focus()
-    this.props.onChange(filterValue)
-  }
-
-  _onChange = event => {
-    this.props.onChange(event.target.value)
-  }
-
-  focus() {
-    this.refs.filter.getWrappedInstance().focus()
-  }
-
-  render() {
-    const { props } = this
-
-    return (
-      <div className='input-group'>
-        {isEmpty(props.filters) ? (
-          <span className='input-group-addon'>
-            <Icon icon='search' />
-          </span>
-        ) : (
-          <span className='input-group-btn'>
-            <Dropdown id='filter'>
-              <DropdownToggle bsStyle='info'>
-                <Icon icon='search' />
-              </DropdownToggle>
-              <DropdownMenu>
-                {map(props.filters, (filter, label) => (
-                  <MenuItem key={label} onClick={() => this._setFilter(filter)}>
-                    {_(label)}
-                  </MenuItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-          </span>
-        )}
-        <DebouncedInput
-          className='form-control'
-          onChange={this._onChange}
-          ref='filter'
-          value={props.value}
-        />
-        <Tooltip content={_('filterSyntaxLinkTooltip')}>
-          <a
-            className='input-group-addon'
-            href='https://xen-orchestra.com/docs/manage_infrastructure.html#live-filter-search'
-            rel='noopener noreferrer'
-            target='_blank'
-          >
-            <Icon icon='info' />
-          </a>
-        </Tooltip>
-        <span className='input-group-btn'>
-          <Button onClick={this._cleanFilter}>
-            <Icon icon='clear-search' />
-          </Button>
-        </span>
-      </div>
-    )
-  }
-}
 
 // ===================================================================
 

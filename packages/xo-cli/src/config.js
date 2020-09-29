@@ -8,7 +8,7 @@ const readFile = promisify(require('fs').readFile)
 const writeFile = promisify(require('fs').writeFile)
 
 const l33t = require('l33teral')
-const mkdirp = promisify(require('mkdirp'))
+const mkdirp = require('mkdirp')
 const xdgBasedir = require('xdg-basedir')
 
 // ===================================================================
