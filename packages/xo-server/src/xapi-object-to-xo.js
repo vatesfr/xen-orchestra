@@ -117,6 +117,7 @@ const TRANSFORMS = {
   pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
+      current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
       master: link(obj, 'master'),
@@ -525,6 +526,7 @@ const TRANSFORMS = {
       physical_usage: +obj.physical_utilisation,
 
       allocationStrategy: ALLOCATION_BY_TYPE[srType],
+      current_operations: obj.current_operations,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
@@ -600,6 +602,7 @@ const TRANSFORMS = {
     const vdi = {
       type: 'VDI',
 
+      missing: obj.missing,
       name_description: obj.name_description,
       name_label: obj.name_label,
       parent: obj.sm_config['vhd-parent'],
@@ -607,6 +610,8 @@ const TRANSFORMS = {
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
       usage: +obj.physical_utilisation,
+      VDI_type: obj.type,
+      current_operations: obj.current_operations,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
@@ -643,6 +648,7 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   vif(obj) {
+    const txChecksumming = obj.other_config['ethtool-tx']
     return {
       type: 'VIF',
 
@@ -654,6 +660,9 @@ const TRANSFORMS = {
       MAC: obj.MAC,
       MTU: +obj.MTU,
       other_config: obj.other_config,
+
+      // See: https://xapi-project.github.io/xen-api/networking.html
+      txChecksumming: !(txChecksumming === 'false' || txChecksumming === 'off'),
 
       // in kB/s
       rateLimit: (() => {
@@ -676,6 +685,7 @@ const TRANSFORMS = {
     return {
       automatic: obj.other_config?.automatic === 'true',
       bridge: obj.bridge,
+      current_operations: obj.current_operations,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
       name_description: obj.name_description,
@@ -712,6 +722,7 @@ const TRANSFORMS = {
       progress: +obj.progress,
       result: obj.result,
       status: obj.status,
+      xapiRef: obj.$ref,
 
       $host: link(obj, 'resident_on'),
     }

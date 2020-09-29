@@ -298,3 +298,19 @@ isHyperThreadingEnabled.params = {
 isHyperThreadingEnabled.resolve = {
   host: ['id', 'host', 'administrate'],
 }
+
+// -------------------------------------------------------------------
+
+export async function scanPifs({ host }) {
+  await this.getXapi(host).callAsync('PIF.scan', host._xapiRef)
+}
+
+scanPifs.description = 'Refresh the list of physical interfaces for this host'
+
+scanPifs.params = {
+  id: { type: 'string' },
+}
+
+scanPifs.resolve = {
+  host: ['id', 'host', 'administrate'],
+}

@@ -18,8 +18,8 @@ export class Groups extends Collection {
     return Group
   }
 
-  create(name) {
-    return this.add(new Group({ name }))
+  create(name, provider, providerGroupId) {
+    return this.add(new Group({ name, provider, providerGroupId }))
   }
 
   async save(group) {

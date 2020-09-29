@@ -80,6 +80,9 @@ const messages = {
   emailPlaceholderExample: 'Email address, e.g.: it@company.net',
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
+  advancedSettings: 'Advanced settings',
+  txChecksumming: 'TX checksumming',
+  unknownSize: 'Unknown size',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -653,6 +656,10 @@ const messages = {
   createGroupButton: 'Create',
   deleteGroup: 'Delete group',
   deleteGroupConfirm: 'Are you sure you want to delete this group?',
+  deleteSelectedGroups: 'Delete selected groups',
+  deleteGroupsModalTitle: 'Delete group{nGroups, plural, one {} other {s}}',
+  deleteGroupsModalMessage:
+    'Are you sure you want to delete {nGroups, number} group{nGroups, plural, one {} other {s}}?',
   removeUserFromGroup: 'Remove user from group',
   deleteUserConfirm: 'Are you sure you want to delete this user?',
   deleteUser: 'Delete user',
@@ -1120,6 +1127,7 @@ const messages = {
 
   // ----- VM network tab -----
 
+  editVifLockingMode: 'Edit locking mode',
   aclRuleAllow: 'Allow the traffic',
   aclRuleProtocol: 'Select a protocol',
   aclRulePort: 'Select a port',
@@ -1153,13 +1161,15 @@ const messages = {
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
   vifNoIps: 'No IPs',
-  vifDisabledNetwork: 'Network disabled',
-  vifLockedNetwork: 'Network locked',
+  vifLockingModeDisabled: 'VIF locking mode is disabled',
+  vifLockingModeUnlocked: 'VIF locking mode is unlocked',
+  vifLockingModeLocked: 'VIF locking mode is locked',
+  networkDefaultLockingModeDisabled: 'Network default locking mode is disabled',
+  networkDefaultLockingModeUnlocked: 'Network default locking mode is unlocked',
   vifLockedNetworkNoIps:
     'Network locked and no IPs are allowed for this interface',
   vifUnlockedNetworkWithIps:
-    'Network not locked: some IPs are unnecessarily set as allowed for this interface',
-  vifUnLockedNetwork: 'Network not locked',
+    'Some IPs are unnecessarily set as allowed for this interface',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
 
@@ -1221,6 +1231,7 @@ const messages = {
   osKernel: 'OS kernel',
   autoPowerOn: 'Auto power on',
   protectFromDeletion: 'Protect from accidental deletion',
+  protectFromShutdown: 'Protect from accidental shutdown',
   ha: 'HA',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
@@ -1359,9 +1370,14 @@ const messages = {
   missingSchedule: 'Missing schedule',
   noDetachedBackups: 'No backups',
   reason: 'Reason',
-  orphanedVdis: 'Orphaned snapshot VDIs',
+  orphanedVdis: 'Orphan VDIs',
+  orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
+  tooManySnapshots: 'Too many snapshots',
+  tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
+  noTooManySnapshotsObject: 'No VMs with too many snapshots',
+  numberOfSnapshots: 'Number of snapshots',
   deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
   deleteSelectedOrphanedVdis: 'Delete selected orphaned snapshot VDIs',
   vdisOnControlDomain: 'VDIs attached to Control Domain',
@@ -1530,6 +1546,7 @@ const messages = {
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selected tasks',
   destroyTasks: 'Destroy selected tasks',
+  objects: 'Objects',
   pool: 'Pool',
   task: 'Task',
   progress: 'Progress',
@@ -2084,6 +2101,7 @@ const messages = {
   backupRestartFailedVms: "Restart failed VMs' backup",
   backupForceRestartFailedVms: "Force restart failed VMs' backup",
   clickForMoreInformation: 'Click for more information',
+  goToThisJob: 'Click to go to this job',
 
   // ----- IPs ------
   ipPoolName: 'Name',
@@ -2398,6 +2416,8 @@ const messages = {
   checkProxyHealth: 'Test your proxy',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
+  proxyTestFailed: 'Test failed for {name}',
+  proxyTestFailedConnectionIssueMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',

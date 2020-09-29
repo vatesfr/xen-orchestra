@@ -145,7 +145,6 @@ const COLUMNS = [
       ) {
         return (
           <ActionButton
-            btnStyle='primary'
             disabled={proxy.vmUuid === undefined}
             handler={upgradeAppliance}
             handlerParam={proxy.id}

@@ -34,6 +34,7 @@
     "node": ">=10"
   },
   "dependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.11.0",
     "exec-promise": "^0.7.0",
     "inquirer": "^7.0.0",
     "ldapts": "^2.2.1",

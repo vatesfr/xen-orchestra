@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 import { parseDuration } from '@vates/parse-duration'
@@ -96,7 +97,6 @@ export default class {
       try {
         // A provider can return:
         // - `undefined`/`null` if the user could not be authenticated
-        // - the identifier of the authenticated user
         // - an object containing:
         //   - `userId`
         //   - optionally `expiration` to indicate when the session is no longer
@@ -108,12 +108,6 @@ export default class {
         // No match.
         if (result == null) {
           continue
-        }
-
-        if (typeof result === 'string') {
-          return {
-            user: await this._getUser(result),
-          }
         }
 
         const { userId, username, expiration } = result
