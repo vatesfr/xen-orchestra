@@ -10,6 +10,7 @@
     "@xen-orchestra/fs": "^0.11.0",
     "filenamify": "^4.1.0",
     "getopts": "^2.2.5",
+    "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.15",
     "promise-toolbox": "^0.15.0",
     "proper-lockfile": "^4.1.1",
