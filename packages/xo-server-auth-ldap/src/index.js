@@ -333,21 +333,23 @@ class AuthLdap {
           logger(JSON.stringify(entry, null, 2))
 
           const idAttribute = this._usersConfig?.idAttribute
-          const memberAttribute = this._groupsConfig?.membersMapping
-            ?.userAttribute
           let user
-          if (idAttribute === undefined || memberAttribute === undefined) {
+          if (idAttribute === undefined) {
             // Support legacy config
             user = await this._xo.registerUser(undefined, username)
           } else {
             const ldapId = entry[idAttribute]
-            const memberId = entry[memberAttribute]
             user = await this._xo.registerUser2('ldap', {
               user: { id: ldapId, name: username },
             })
 
-            if (this._groupsConfig?.synchronize) {
-              await this._synchronizeGroups(user, memberId)
+            const memberAttribute = this._groupsConfig?.membersMapping
+              ?.userAttribute
+            if (
+              this._groupsConfig?.synchronize &&
+              memberAttribute !== undefined
+            ) {
+              await this._synchronizeGroups(user, entry[memberAttribute])
             }
           }
 
