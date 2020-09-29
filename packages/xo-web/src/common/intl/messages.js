@@ -1546,6 +1546,7 @@ const messages = {
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selected tasks',
   destroyTasks: 'Destroy selected tasks',
+  objects: 'Objects',
   pool: 'Pool',
   task: 'Task',
   progress: 'Progress',
