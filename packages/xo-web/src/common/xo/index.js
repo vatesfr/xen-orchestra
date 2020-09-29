@@ -1743,8 +1743,12 @@ export const deleteOrphanedVdis = vdis =>
     noop
   )
 
-export const migrateVdi = (vdi, sr) =>
-  _call('vdi.migrate', { id: resolveId(vdi), sr_id: resolveId(sr) })
+export const migrateVdi = (vdi, sr, resourceSet) =>
+  _call('vdi.migrate', {
+    id: resolveId(vdi),
+    resourceSet,
+    sr_id: resolveId(sr),
+  })
 
 // VBD ---------------------------------------------------------------
 

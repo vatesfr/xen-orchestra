@@ -15,6 +15,7 @@
 - [Backup logs] Ability to filter by VM/pool name [#4406](https://github.com/vatesfr/xen-orchestra/issues/4406) (PR [#5208](https://github.com/vatesfr/xen-orchestra/pull/5208))
 - [Tasks] Show XO objects linked to pending/finished tasks [#4275](https://github.com/vatesfr/xen-orchestra/issues/4275) (PR [#5267](https://github.com/vatesfr/xen-orchestra/pull/5267))
 - [LDAP] Ability to import LDAP groups to XO [#1884](https://github.com/vatesfr/xen-orchestra/issues/1884) (PR [#5279](https://github.com/vatesfr/xen-orchestra/pull/5279))
+- [Self/VDI migration] Ability to migrate VDIs to other SRs within a resource set [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5201](https://github.com/vatesfr/xen-orchestra/pull/5201))
 
 ### Bug fixes
 
