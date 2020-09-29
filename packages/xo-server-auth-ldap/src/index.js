@@ -112,18 +112,11 @@ Or something like this if you also want to filter by group:
       type: 'string',
       default: DEFAULTS.filter,
     },
-    users: {
-      title: 'Users',
-      description: 'Configure how LDAP users are added to XO',
-      type: 'object',
-      properties: {
-        idAttribute: {
-          title: 'ID attribute',
-          description:
-            'Attribute used to identify a user. Must be unique. e.g.: `dn`',
-          type: 'string',
-        },
-      },
+    userIdAttribute: {
+      title: 'ID attribute',
+      description:
+        'Attribute used to map LDAP user to XO user. Must be unique. e.g.: `dn`',
+      type: 'string',
     },
     groups: {
       title: 'Synchronize groups',
@@ -144,7 +137,7 @@ Or something like this if you also want to filter by group:
         idAttribute: {
           title: 'ID attribute',
           description:
-            'Attribute used to identify a group. Must be unique. e.g.: `gid`',
+            'Attribute used to map LDAP group to XO group. Must be unique. e.g.: `gid`',
           type: 'string',
         },
         displayNameAttribute: {
@@ -154,11 +147,11 @@ Or something like this if you also want to filter by group:
           type: 'string',
         },
         membersMapping: {
-          title: 'Group members',
+          title: 'Members mapping',
           type: 'object',
           properties: {
             groupAttribute: {
-              title: 'Members attribute',
+              title: 'Group attribute',
               description:
                 'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
               type: 'string',
@@ -243,7 +236,7 @@ class AuthLdap {
       startTls = false,
       groups,
       uri,
-      users,
+      userIdAttribute,
     } = conf
 
     this._credentials = credentials
@@ -252,7 +245,7 @@ class AuthLdap {
     this._searchFilter = searchFilter
     this._startTls = startTls
     this._groupsConfig = groups
-    this._usersConfig = users
+    this._userIdAttribute = userIdAttribute
   }
 
   load() {
@@ -320,13 +313,12 @@ class AuthLdap {
           )
           logger(JSON.stringify(entry, null, 2))
 
-          const idAttribute = this._usersConfig?.idAttribute
           let user
-          if (idAttribute === undefined) {
+          if (this._userIdAttribute === undefined) {
             // Support legacy config
             user = await this._xo.registerUser(undefined, username)
           } else {
-            const ldapId = entry[idAttribute]
+            const ldapId = entry[this._userIdAttribute]
             user = await this._xo.registerUser2('ldap', {
               user: { id: ldapId, name: username },
             })
