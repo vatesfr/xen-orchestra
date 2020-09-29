@@ -202,15 +202,15 @@ const GROUPED_ACTIONS = [
 
   const getNPendingTasks = getPendingTasks.count()
 
-  const predicate = _ => obj => !isEmpty(obj.current_operations)
+  const predicate = obj => !isEmpty(obj.current_operations)
 
   const getLinkedObjectsByTaskRefOrId = createSelector(
-    createGetObjectsOfType('pool').filter(predicate),
-    createGetObjectsOfType('host').filter(predicate),
-    createGetObjectsOfType('SR').filter(predicate),
-    createGetObjectsOfType('VDI').filter(predicate),
-    createGetObjectsOfType('VM').filter(predicate),
-    createGetObjectsOfType('network').filter(predicate),
+    createGetObjectsOfType('pool').filter([predicate]),
+    createGetObjectsOfType('host').filter([predicate]),
+    createGetObjectsOfType('SR').filter([predicate]),
+    createGetObjectsOfType('VDI').filter([predicate]),
+    createGetObjectsOfType('VM').filter([predicate]),
+    createGetObjectsOfType('network').filter([predicate]),
     (pools, hosts, srs, vdis, vms, networks) => {
       const linkedObjectsByTaskRefOrId = {}
       const resolveLinkedObjects = obj => {
