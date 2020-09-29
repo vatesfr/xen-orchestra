@@ -242,6 +242,8 @@ const GROUPED_ACTIONS = [
           ...task,
           objects: [
             ...defined(linkedObjectsByTaskRefOrId[task.xapiRef], []),
+            // for VMs, the current_operations prop is
+            // {taskId → operation } map instead of { taskRef → operation } map
             ...defined(linkedObjectsByTaskRefOrId[task.id], []),
           ],
         })),
