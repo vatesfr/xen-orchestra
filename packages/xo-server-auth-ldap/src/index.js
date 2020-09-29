@@ -321,12 +321,13 @@ class AuthLdap {
           logger(JSON.stringify(entry, null, 2))
 
           const idAttribute = this._usersConfig?.idAttribute
+          let user
           if (idAttribute === undefined) {
             // Support legacy config
-            await this._xo.registerUser(undefined, username)
+            user = await this._xo.registerUser(undefined, username)
           } else {
             const ldapId = entry[idAttribute]
-            const user = await this._xo.registerUser2('ldap', {
+            user = await this._xo.registerUser2('ldap', {
               user: { id: ldapId, name: username },
             })
 
@@ -335,7 +336,7 @@ class AuthLdap {
             }
           }
 
-          return { username }
+          return { userId: user.id }
         } catch (error) {
           logger(`failed to bind as ${entry.dn}: ${error.message}`)
         }
