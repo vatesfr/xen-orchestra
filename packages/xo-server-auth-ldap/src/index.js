@@ -112,6 +112,68 @@ Or something like this if you also want to filter by group:
       type: 'string',
       default: DEFAULTS.filter,
     },
+    userIdAttribute: {
+      title: 'ID attribute',
+      description:
+        'Attribute used to map LDAP user to XO user. Must be unique. e.g.: `dn`',
+      type: 'string',
+    },
+    groups: {
+      title: 'Synchronize groups',
+      description: 'Import groups from LDAP directory',
+      type: 'object',
+      properties: {
+        base: {
+          title: 'Base',
+          description: 'Where to look for the groups.',
+          type: 'string',
+        },
+        filter: {
+          title: 'Filter',
+          description:
+            'Filter used to find the groups. e.g.: `(objectClass=groupOfNames)`',
+          type: 'string',
+        },
+        idAttribute: {
+          title: 'ID attribute',
+          description:
+            'Attribute used to map LDAP group to XO group. Must be unique. e.g.: `gid`',
+          type: 'string',
+        },
+        displayNameAttribute: {
+          title: 'Display name attribute',
+          description:
+            "Attribute used to determine the group's name in XO. e.g.: `cn`",
+          type: 'string',
+        },
+        membersMapping: {
+          title: 'Members mapping',
+          type: 'object',
+          properties: {
+            groupAttribute: {
+              title: 'Group attribute',
+              description:
+                'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
+              type: 'string',
+            },
+            userAttribute: {
+              title: 'User attribute',
+              description:
+                'User attribute used to match group members to the users. e.g.: `uidNumber`',
+              type: 'string',
+            },
+          },
+          required: ['groupAttribute', 'userAttribute'],
+        },
+      },
+      required: [
+        'base',
+        'filter',
+        'idAttribute',
+        'displayNameAttribute',
+        'membersMapping',
+      ],
+    },
   },
   required: ['uri', 'base'],
 }
@@ -172,12 +234,18 @@ class AuthLdap {
       base: searchBase,
       filter: searchFilter = DEFAULTS.filter,
       startTls = false,
+      groups,
+      uri,
+      userIdAttribute,
     } = conf
 
     this._credentials = credentials
+    this._serverUri = uri
     this._searchBase = searchBase
     this._searchFilter = searchFilter
     this._startTls = startTls
+    this._groupsConfig = groups
+    this._userIdAttribute = userIdAttribute
   }
 
   load() {
@@ -244,7 +312,31 @@ class AuthLdap {
             `successfully bound as ${entry.dn} => ${username} authenticated`
           )
           logger(JSON.stringify(entry, null, 2))
-          return { username }
+
+          let user
+          if (this._userIdAttribute === undefined) {
+            // Support legacy config
+            user = await this._xo.registerUser(undefined, username)
+          } else {
+            const ldapId = entry[this._userIdAttribute]
+            user = await this._xo.registerUser2('ldap', {
+              user: { id: ldapId, name: username },
+            })
+
+            const groupsConfig = this._groupsConfig
+            if (groupsConfig !== undefined) {
+              try {
+                await this._synchronizeGroups(
+                  user,
+                  entry[groupsConfig.membersMapping.userAttribute]
+                )
+              } catch(error) {
+                logger(`failed to synchronize groups: ${error.message}`)
+              }
+            }
+          }
+
+          return { userId: user.id }
         } catch (error) {
           logger(`failed to bind as ${entry.dn}: ${error.message}`)
         }
@@ -252,6 +344,146 @@ class AuthLdap {
 
       logger(`could not authenticate ${username}`)
       return null
+    } finally {
+      await client.unbind()
+    }
+  }
+
+  // Synchronize user's groups OR all groups if no user is passed
+  async _synchronizeGroups(user, memberId) {
+    const logger = this._logger
+    const client = new Client(this._clientOpts)
+
+    try {
+      if (this._startTls) {
+        await client.startTLS(this._tlsOptions)
+      }
+
+      // Bind if necessary.
+      {
+        const { _credentials: credentials } = this
+        if (credentials) {
+          logger(`attempting to bind with as ${credentials.dn}...`)
+          await client.bind(credentials.dn, credentials.password)
+          logger(`successfully bound as ${credentials.dn}`)
+        }
+      }
+      logger('syncing groups...')
+      const {
+        base,
+        displayNameAttribute,
+        filter,
+        idAttribute,
+        membersMapping,
+      } = this._groupsConfig
+      const { searchEntries: ldapGroups } = await client.search(base, {
+        scope: 'sub',
+        filter: filter || '', // may be undefined
+      })
+
+      const xoUsers =
+        user !== undefined &&
+        (await this._xo.getAllUsers()).filter(
+          user =>
+            user.authProviders !== undefined && 'ldap' in user.authProviders
+        )
+      const xoGroups = await this._xo.getAllGroups()
+
+      // For each LDAP group:
+      // - create/update/delete the corresponding XO group
+      // - add/remove the LDAP-provided users
+      // One by one to avoid race conditions
+      for (const ldapGroup of ldapGroups) {
+        const groupLdapId = ldapGroup[idAttribute]
+        const groupLdapName = ldapGroup[displayNameAttribute]
+
+        // Empty or undefined names/IDs are invalid
+        if (!groupLdapId || !groupLdapName) {
+          logger(`Invalid group ID (${groupLdapId}) or name (${groupLdapName})`)
+          continue
+        }
+
+        let ldapGroupMembers = ldapGroup[membersMapping.groupAttribute]
+        ldapGroupMembers = Array.isArray(ldapGroupMembers)
+          ? ldapGroupMembers
+          : [ldapGroupMembers]
+
+        // If a user was passed, only update the user's groups
+        if (user !== undefined && !ldapGroupMembers.includes(memberId)) {
+          continue
+        }
+
+        let xoGroup
+        const xoGroupIndex = xoGroups.findIndex(
+          group =>
+            group.provider === 'ldap' && group.providerGroupId === groupLdapId
+        )
+
+        if (xoGroupIndex === -1) {
+          if (
+            xoGroups.find(group => group.name === groupLdapName) !== undefined
+          ) {
+            // TODO: check against LDAP groups that are being created as well
+            logger(`A group called ${groupLdapName} already exists`)
+            continue
+          }
+          xoGroup = await this._xo.createGroup({
+            name: groupLdapName,
+            provider: 'ldap',
+            providerGroupId: groupLdapId,
+          })
+        } else {
+          // Remove it from xoGroups as we will then delete all the remaining
+          // LDAP-provided groups
+          ;[xoGroup] = xoGroups.splice(xoGroupIndex, 1)
+          await this._xo.updateGroup(xoGroup.id, { name: groupLdapName })
+          xoGroup = await this._xo.getGroup(xoGroup.id)
+        }
+
+        // If a user was passed, only add that user to the group and don't
+        // delete any groups (ie return immediately)
+        if (user !== undefined) {
+          await this._xo.addUserToGroup(user.id, xoGroup.id)
+          continue
+        }
+
+        const xoGroupMembers =
+          xoGroup.users === undefined ? [] : xoGroup.users.slice(0)
+
+        for (const ldapId of ldapGroupMembers) {
+          const xoUser = xoUsers.find(
+            user => user.authProviders.ldap.id === ldapId
+          )
+          if (xoUser === undefined) {
+            continue
+          }
+          // If the user exists in XO, should be a member of the LDAP-provided
+          // group but isn't: add it
+          const userIdIndex = xoGroupMembers.findIndex(id => id === xoUser.id)
+          if (userIdIndex !== -1) {
+            xoGroupMembers.splice(userIdIndex, 1)
+            continue
+          }
+
+          await this._xo.addUserToGroup(xoUser.id, xoGroup.id)
+        }
+
+        // All the remaining users of that group can be removed from it since
+        // they're not in the LDAP group
+        for (const userId of xoGroupMembers) {
+          await this._xo.removeUserFromGroup(userId, xoGroup.id)
+        }
+      }
+
+      if (user === undefined) {
+        // All the remaining groups provided by LDAP can be removed from XO since
+        // they don't exist in the LDAP directory any more
+        await Promise.all(
+          xoGroups
+            .filter(group => group.provider === 'ldap')
+            .map(group => this._xo.deleteGroup(group.id))
+        )
+      }
     } finally {
       await client.unbind()
     }
