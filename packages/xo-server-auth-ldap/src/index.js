@@ -10,12 +10,6 @@ import { readFile } from 'fs'
 const DEFAULTS = {
   checkCertificate: true,
   filter: '(uid={{name}})',
-  groups: {
-    synchronize: false,
-  },
-  users: {
-    idAttribute: 'dn',
-  },
 }
 
 const { escape } = Filter.prototype
@@ -128,7 +122,6 @@ Or something like this if you also want to filter by group:
           description:
             'Attribute used to identify a user. Must be unique. e.g.: `dn`',
           type: 'string',
-          default: DEFAULTS.users.idAttribute,
         },
       },
     },
@@ -137,13 +130,6 @@ Or something like this if you also want to filter by group:
       description: 'Import groups from LDAP directory',
       type: 'object',
       properties: {
-        synchronize: {
-          title: 'Enable',
-          description:
-            "Import (or update) LDAP groups automatically every time a user logs into XO. If you don't enable this, you can still synchronize the LDAP groups manually from the Settings > Groups page.",
-          type: 'boolean',
-          default: DEFAULTS.groups.synchronize,
-        },
         base: {
           title: 'Base',
           description: 'Where to look for the groups.',
@@ -167,12 +153,6 @@ Or something like this if you also want to filter by group:
             "Attribute used to determine the group's name in XO. e.g.: `cn`",
           type: 'string',
         },
-        displayNamePrefix: {
-          title: 'Display name prefix',
-          description:
-            'Optionally set a prefix for group names in XO imported from the LDAP directory. e.g.: `LDAP-`',
-          type: 'string',
-        },
         membersMapping: {
           title: 'Group members',
           type: 'object',
@@ -190,8 +170,16 @@ Or something like this if you also want to filter by group:
               type: 'string',
             },
           },
+          required: ['groupAttribute', 'userAttribute'],
         },
       },
+      required: [
+        'base',
+        'filter',
+        'idAttribute',
+        'displayNameAttribute',
+        'membersMapping',
+      ],
     },
   },
   required: ['uri', 'base'],
@@ -343,13 +331,12 @@ class AuthLdap {
               user: { id: ldapId, name: username },
             })
 
-            const memberAttribute = this._groupsConfig?.membersMapping
-              ?.userAttribute
-            if (
-              this._groupsConfig?.synchronize &&
-              memberAttribute !== undefined
-            ) {
-              await this._synchronizeGroups(user, entry[memberAttribute])
+            const groupsConfig = this._groupsConfig
+            if (groupsConfig !== undefined) {
+              await this._synchronizeGroups(
+                user,
+                entry[groupsConfig.membersMapping.userAttribute]
+              )
             }
           }
 
@@ -389,7 +376,6 @@ class AuthLdap {
       const {
         base,
         displayNameAttribute,
-        displayNamePrefix = '',
         filter,
         idAttribute,
         membersMapping,
@@ -413,8 +399,7 @@ class AuthLdap {
       // One by one to avoid race conditions
       for (const ldapGroup of ldapGroups) {
         const groupLdapId = ldapGroup[idAttribute]
-        const groupLdapName =
-          displayNamePrefix + ldapGroup[displayNameAttribute]
+        const groupLdapName = ldapGroup[displayNameAttribute]
 
         // Empty or undefined names/IDs are invalid
         if (!groupLdapId || !groupLdapName) {
