@@ -325,10 +325,14 @@ class AuthLdap {
 
             const groupsConfig = this._groupsConfig
             if (groupsConfig !== undefined) {
-              await this._synchronizeGroups(
-                user,
-                entry[groupsConfig.membersMapping.userAttribute]
-              )
+              try {
+                await this._synchronizeGroups(
+                  user,
+                  entry[groupsConfig.membersMapping.userAttribute]
+                )
+              } catch(error) {
+                logger(`failed to synchronize groups: ${error.message}`)
+              }
             }
           }
 
