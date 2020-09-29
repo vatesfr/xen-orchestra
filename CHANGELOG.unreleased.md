@@ -24,6 +24,7 @@
 - [Remotes/S3] Fix S3 backup of 50GB+ files [#5197](https://github.com/vatesfr/xen-orchestra/issues/5197) (PR[ #5242](https://github.com/vatesfr/xen-orchestra/pull/5242) )
 - [Import OVA] Improve import speed of embedded gzipped VMDK disks (PR [#5275](https://github.com/vatesfr/xen-orchestra/pull/5275))
 - [Remotes] Fix editing bucket and directory for S3 remotes [#5233](https://github.com/vatesfr/xen-orchestra/issues/5233) (PR [5276](https://github.com/vatesfr/xen-orchestra/pull/5276))
+- [Host] Fix status stuck on busy on power off [#4919](https://github.com/vatesfr/xen-orchestra/issues/4919) (PR [#5288](https://github.com/vatesfr/xen-orchestra/pull/5288))
 
 ### Packages to release
 
