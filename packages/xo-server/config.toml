@@ -42,6 +42,11 @@ perMessageDeflate = { threshold = 524288 } # 512kiB
 defaultTokenValidity = '30 days'
 maxTokenValidity = '0.5 year'
 
+# 2020-09-29
+# Helpful to smoothly transition from old to new LDAP plugin implementation
+# See https://github.com/vatesfr/xen-orchestra/pull/5279
+# This will be removed in 1 year
+#
 # When a user logs in using an authentication provider, but another user with the
 # same username is found in XO:
 # - if true: the 2 users will be merged
