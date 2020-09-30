@@ -906,6 +906,7 @@ const messages = {
   hostLicenseSocket: 'Socket',
   hostLicenseExpiry: 'Expiry',
   hostRemoteSyslog: 'Remote syslog',
+  hostIommu: 'Iommu',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',

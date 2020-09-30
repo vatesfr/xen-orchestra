@@ -205,6 +205,9 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
+      chipset_info: {
+        iommu: JSON.parse(obj.chipset_info.iommu),
+      },
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free

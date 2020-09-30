@@ -267,6 +267,16 @@ export default class extends Component {
                       : _('hostStatusDisabled')}
                   </td>
                 </tr>
+                {host.chipset_info.iommu !== undefined && (
+                  <tr>
+                    <th>{_('hostIommu')}</th>
+                    <td>
+                      {host.chipset_info.iommu
+                        ? _('stateEnabled')
+                        : _('stateDisabled')}
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('hostPowerOnMode')}</th>
                   <td>
