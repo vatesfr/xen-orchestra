@@ -240,11 +240,13 @@ class AuditXoPlugin {
     clean.permission = 'admin'
     clean.description = 'Clean audit database'
 
-    const removeRecord = concurrency(1)(this._removeRecord.bind(this))
-    removeRecord.description = 'Remove a record and rewrite the records chain'
-    removeRecord.permission = 'admin'
-    removeRecord.params = {
-      id: { type: 'string' },
+    const deleteRangeAndRewrite = this._deleteRangeAndRewrite.bind(this)
+    deleteRangeAndRewrite.description =
+      'Delete a range of records and rewrite the records chain'
+    deleteRangeAndRewrite.permission = 'admin'
+    deleteRangeAndRewrite.params = {
+      newest: { type: 'string' },
+      oldest: { type: 'string', optional: true },
     }
 
     cleaners.push(
@@ -252,10 +254,10 @@ class AuditXoPlugin {
         audit: {
           checkIntegrity,
           clean,
+          deleteRangeAndRewrite,
           exportRecords,
           generateFingerprint,
           getRecords,
-          removeRecord,
         },
       })
     )
@@ -439,43 +441,10 @@ class AuditXoPlugin {
     }
   }
 
-  async _removeRecord({ id }) {
-    this._removeListeners()
-    this._uploadLastHashJob?.stop()
-
-    try {
-      const storage = this._storage
-      const record = await storage.get(id, true)
-
-      const lastId = await storage.getLastId()
-      const auditCore = this._auditCore
-      const recentRecords = []
-      for await (const record of auditCore.getFrom(lastId)) {
-        if (record.id === id) {
-          break
-        }
-
-        recentRecords.push(record)
-      }
-
-      await storage.del(id)
-
-      await storage.setLastId(record.previousId)
-      for (const record of recentRecords) {
-        try {
-          await auditCore.add(record.subject, record.event, record.data)
-          await storage.del(record.id)
-        } catch (error) {
-          log.error(error)
-        }
-      }
-
-      if (this._uploadLastHashJob !== undefined) {
-        await this._uploadLastHash()
-      }
-    } finally {
-      this._addListeners()
-      this._uploadLastHashJob?.start()
+  async _deleteRangeAndRewrite({ newest, oldest = newest }) {
+    await this._auditCore.deleteRangeAndRewrite(newest, oldest)
+    if (this._uploadLastHashJob !== undefined) {
+      await this._uploadLastHash()
     }
   }
 }
