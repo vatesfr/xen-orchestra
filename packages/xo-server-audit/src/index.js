@@ -20,9 +20,9 @@ const DEFAULT_BLOCKED_LIST = {
   'acl.getCurrentPermissions': true,
   'audit.checkIntegrity': true,
   'audit.clean': true,
+  'audit.deleteRange': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
-  'audit.removeRecord': true,
   'backup.list': true,
   'backupNg.getAllJobs': true,
   'backupNg.getAllLogs': true,
@@ -239,11 +239,11 @@ class AuditXoPlugin {
     clean.permission = 'admin'
     clean.description = 'Clean audit database'
 
-    const deleteRangeAndRewrite = this._deleteRangeAndRewrite.bind(this)
-    deleteRangeAndRewrite.description =
+    const deleteRange = this._deleteRangeAndRewrite.bind(this)
+    deleteRange.description =
       'Delete a range of records and rewrite the records chain'
-    deleteRangeAndRewrite.permission = 'admin'
-    deleteRangeAndRewrite.params = {
+    deleteRange.permission = 'admin'
+    deleteRange.params = {
       newest: { type: 'string' },
       oldest: { type: 'string', optional: true },
     }
@@ -253,7 +253,7 @@ class AuditXoPlugin {
         audit: {
           checkIntegrity,
           clean,
-          deleteRangeAndRewrite,
+          deleteRange,
           exportRecords,
           generateFingerprint,
           getRecords,
