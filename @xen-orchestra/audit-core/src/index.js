@@ -177,7 +177,7 @@ export class AuditCore {
 
     for (const record of recentRecords) {
       try {
-        await this.add(record.subject, record.event, record.data)
+        await this.add(record.subject, record.event, record.data, true)
         await storage.del(record.id)
       } catch (error) {
         log.error(error)
