@@ -172,6 +172,9 @@ class UserFilters extends Component {
                 if (!labelId) {
                   return
                 }
+                if (labelId === 'homeTypeVmTemplate') {
+                  type = 'VM-template'
+                }
 
                 const customFilters =
                   customFiltersByType && customFiltersByType[type]
