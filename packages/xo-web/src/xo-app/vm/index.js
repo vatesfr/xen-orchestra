@@ -81,7 +81,8 @@ import VmActionBar from './action-bar'
       pool: getPool(state, props),
       srs: getSrs(state, props),
       vbds: getVbds(state, props),
-      vdis: getVdis(state, props),
+      // Workaround to get VDIs as a self user
+      vdis: getVdis(state, props, vm.resourceSet !== undefined),
       vm,
       vmTotalDiskSpace: getVmTotalDiskSpace(state, props),
     }
