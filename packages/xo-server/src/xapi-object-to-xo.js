@@ -190,6 +190,12 @@ const TRANSFORMS = {
       address: obj.address,
       bios_strings: obj.bios_strings,
       build: softwareVersion.build_number,
+      chipset_info: {
+        iommu:
+          obj.chipset_info.iommu !== undefined
+            ? obj.chipset_info.iommu === 'true'
+            : undefined,
+      },
       enabled: Boolean(obj.enabled),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
@@ -205,9 +211,6 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      chipset_info: {
-        iommu: JSON.parse(obj.chipset_info.iommu),
-      },
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free

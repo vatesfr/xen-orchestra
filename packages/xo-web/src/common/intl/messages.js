@@ -882,6 +882,7 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiIqn: 'iSCSI IQN',
+  hostIommuTooltip: 'PCI passthrough capable',
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:

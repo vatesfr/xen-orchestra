@@ -269,7 +269,11 @@ export default class extends Component {
                 </tr>
                 {host.chipset_info.iommu !== undefined && (
                   <tr>
-                    <th>{_('hostIommu')}</th>
+                    <th>
+                      <Tooltip content={_('hostIommuTooltip')}>
+                        {_('hostIommu')}
+                      </Tooltip>
+                    </th>
                     <td>
                       {host.chipset_info.iommu
                         ? _('stateEnabled')

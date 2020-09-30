@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host] Add the field `Iommu` on advanced tab, if he is defined
+- [Host/Advanced] Add the field `IOMMU` if it is defined
 
 ### Bug fixes
 
@@ -30,5 +30,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-xo-server minor
-xo-web minor
+- xo-server minor
+- xo-web minor
