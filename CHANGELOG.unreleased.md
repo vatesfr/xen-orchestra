@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- Fix 'not enough permissions' error when accessing to some pages as a self user (PR [#5303](https://github.com/vatesfr/xen-orchestra/pull/5303))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
