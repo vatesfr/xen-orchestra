@@ -1,5 +1,5 @@
 import * as FormGrid from 'form-grid'
-import * as homeFilters from 'home-filters'
+import homeFilters from 'home-filters'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
@@ -52,7 +52,7 @@ const FILTER_TYPE_TO_LABEL_ID = {
   host: 'homeTypeHost',
   pool: 'homeTypePool',
   VM: 'homeTypeVm',
-  vmTemplate: 'homeTypeVmTemplate',
+  'VM-template': 'homeTypeVmTemplate',
 }
 
 const SSH_KEY_STYLE = { wordWrap: 'break-word' }
@@ -171,9 +171,6 @@ class UserFilters extends Component {
                 const labelId = FILTER_TYPE_TO_LABEL_ID[type]
                 if (!labelId) {
                   return
-                }
-                if (labelId === 'homeTypeVmTemplate') {
-                  type = 'VM-template'
                 }
 
                 const customFilters =

@@ -1,5 +1,5 @@
 import * as ComplexMatcher from 'complex-matcher'
-import * as homeFilters from 'home-filters'
+import homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
@@ -241,7 +241,7 @@ const OPTIONS = {
   },
   'VM-template': {
     defaultFilter: '',
-    filters: homeFilters.vmTemplate,
+    filters: homeFilters['VM-template'],
     mainActions: [
       {
         handler: vms => copyVms(vms, 'VM-template'),
