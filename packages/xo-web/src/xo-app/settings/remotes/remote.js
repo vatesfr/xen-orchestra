@@ -419,6 +419,7 @@ export default decorate([
                   name='password'
                   onChange={effects.setSecretKey}
                   placeholder='Paste secret here to change it'
+                  autoComplete='off'
                   required
                   type='text'
                 />
