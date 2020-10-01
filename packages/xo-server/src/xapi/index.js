@@ -1204,12 +1204,18 @@ export default class Xapi extends XapiBase {
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
-        vdis[vdi.$ref] =
-          mapVdisSrs && mapVdisSrs[vdi.$id]
-            ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-            : sr !== undefined
-            ? hostXapi.getObject(sr).$ref
-            : defaultSr.$ref // Will error if there are no default SR.
+        if (mapVdisSrs?.[vdi.$id] !== undefined) {
+          vdis[vdi.$ref] = hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
+        } else if (sr !== undefined) {
+          vdis[vdi.$ref] = hostXapi.getObject(sr).$ref
+        } else {
+          if (defaultSr === undefined) {
+            throw new Error(
+              `This operation requires a default SR to be set on the pool ${host.$pool.name_label}`
+            )
+          }
+          vdis[vdi.$ref] = defaultSr.$ref
+        }
       }
     }
 
