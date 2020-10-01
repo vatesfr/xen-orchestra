@@ -139,6 +139,9 @@ export default decorate([
           .then(reset)
           .catch(err => error('Create Remote', err.message || String(err)))
       },
+      setSecretKey(_, { target: { value } }) {
+        this.state.password = value
+      },
     },
     computed: {
       formId: generateId,
@@ -414,11 +417,10 @@ export default decorate([
                 <input
                   className='form-control'
                   name='password'
-                  onChange={effects.linkState}
-                  placeholder='Secret access key'
+                  onChange={effects.setSecretKey}
+                  placeholder='Paste secret here to change it'
                   required
                   type='text'
-                  value={password}
                 />
               </div>
             </fieldset>
