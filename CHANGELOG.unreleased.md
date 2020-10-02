@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Home/VMs/Migrate] Better sort of bulk VM Migrate selector [#4462](https://github.com/vatesfr/xen-orchestra/issues/4462)
+- [Home/VMs/Migrate] Better sort of bulk VM Migrate selector [#4462](https://github.com/vatesfr/xen-orchestra/issues/4462) (PR [#5308](https://github.com/vatesfr/xen-orchestra/pull/5308))
 
 ### Bug fixes
 
