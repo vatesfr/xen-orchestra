@@ -1,5 +1,4 @@
 import * as ComplexMatcher from 'complex-matcher'
-import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
@@ -8,6 +7,7 @@ import classNames from 'classnames'
 import Component from 'base-component'
 import cookies from 'js-cookie'
 import defined, { get } from '@xen-orchestra/defined'
+import homeFilters from 'home-filters'
 import Icon from 'icon'
 import invoke from 'invoke'
 import Link from 'link'
@@ -241,7 +241,7 @@ const OPTIONS = {
   },
   'VM-template': {
     defaultFilter: '',
-    filters: homeFilters.vmTemplate,
+    filters: homeFilters['VM-template'],
     mainActions: [
       {
         handler: vms => copyVms(vms, 'VM-template'),
