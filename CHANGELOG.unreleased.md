@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup/S3] Fix secret key edit form [#5233](https://github.com/vatesfr/xen-orchestra/issues/5233) (PR[#5305](https://github.com/vatesfr/xen-orchestra/pull/5305))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
