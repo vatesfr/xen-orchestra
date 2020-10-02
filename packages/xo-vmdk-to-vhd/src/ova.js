@@ -1,3 +1,4 @@
+import assert from 'assert'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import pako from 'pako'
@@ -5,6 +6,7 @@ import sum from 'lodash/sum'
 import xml2js, { processors } from 'xml2js'
 
 import { readVmdkGrainTable } from '.'
+import { suppressUnhandledRejection } from './util'
 
 /********
  *
@@ -94,7 +96,8 @@ function parseTarHeader(header, stringDeserializer) {
   const sizeBuffer = header.slice(124, 124 + 12)
   // size encoding: https://codeistry.wordpress.com/2014/08/14/how-to-parse-a-tar-file/
   let fileSize = 0
-  // If the leading byte is 0x80 (128), the non-leading bytes of the field are concatenated in big-endian order, with the result being a positive number expressed in binary form.
+  // If the leading byte is 0x80 (128), the non-leading bytes of the field are concatenated in big-endian order,
+  // with the result being a positive number expressed in binary form.
   //
   // Source: https://www.gnu.org/software/tar/manual/html_node/Extensions.html
   if (new Uint8Array(sizeBuffer)[0] === 128) {
@@ -217,41 +220,6 @@ async function parseOVF(fileFragment, stringDeserializer) {
 
 const GZIP_CHUNK_SIZE = 4 * 1024 * 1024
 
-async function parseGzipFromStart(start, end, fileSlice) {
-  let currentDeflatedPos = 0
-  let currentInflatedPos = 0
-  const inflate = new pako.Inflate()
-  const chunks = []
-  while (currentInflatedPos < end) {
-    const slice = fileSlice.slice(
-      currentDeflatedPos,
-      currentDeflatedPos + GZIP_CHUNK_SIZE
-    )
-    const compressed = await slice.read()
-    inflate.push(compressed, pako.Z_SYNC_FLUSH)
-    let chunk = inflate.result
-    const inflatedChunkEnd = currentInflatedPos + chunk.length
-    if (inflatedChunkEnd > start) {
-      if (currentInflatedPos < start) {
-        chunk = chunk.slice(start - currentInflatedPos)
-      }
-      if (inflatedChunkEnd > end) {
-        chunk = chunk.slice(0, -(inflatedChunkEnd - end))
-      }
-      chunks.push(chunk)
-    }
-    currentInflatedPos = inflatedChunkEnd
-    currentDeflatedPos += GZIP_CHUNK_SIZE
-  }
-  const resultBuffer = new Uint8Array(sum(chunks.map(c => c.length)))
-  let index = 0
-  chunks.forEach(c => {
-    resultBuffer.set(c, index)
-    index += c.length
-  })
-  return resultBuffer.buffer
-}
-
 // start and end are negative numbers
 // used with streamOptimized format where only the footer has the directory address filled
 async function parseGzipFromEnd(start, end, fileSlice, header) {
@@ -327,12 +295,59 @@ export async function parseOVAFile(
         const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
         const readFile = async (start, end) =>
           fileSlice.slice(start, end).read()
-        data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+        data.tables[header.fileName] = suppressUnhandledRejection(
+          readVmdkGrainTable(readFile)
+        )
       }
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
       const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
+      let forwardsInflater = new pako.Inflate()
+
       const readFile = async (start, end) => {
+        // if next read is further down the stream than previous read, re-uses the previous zstream
+        async function parseGzipFromStart(start, end, fileSlice) {
+          const chunks = []
+          const resultStart = () =>
+            forwardsInflater.strm.total_out - forwardsInflater.result.length
+          if (forwardsInflater.result != null && start < resultStart()) {
+            // the block we are reading starts before the last decompressed chunk, reset stream
+            forwardsInflater = new pako.Inflate()
+          }
+          let isLast = false
+          while (true) {
+            if (forwardsInflater.strm.total_out > start) {
+              let chunk = forwardsInflater.result
+              if (resultStart() < start) {
+                chunk = chunk.slice(start - resultStart())
+              }
+              if (forwardsInflater.strm.total_out > end) {
+                chunk = chunk.slice(0, -(forwardsInflater.strm.total_out - end))
+                isLast = true
+              }
+              chunks.push(chunk)
+            }
+            if (isLast) {
+              // don't move the stream forwards if we took our last chunk
+              // gives the next read operation an opportunity to read from the same position
+              break
+            }
+            const slice = fileSlice.slice(
+              forwardsInflater.strm.total_in,
+              forwardsInflater.strm.total_in + GZIP_CHUNK_SIZE
+            )
+            forwardsInflater.push(await slice.read(), pako.Z_SYNC_FLUSH)
+          }
+          const resultBuffer = new Uint8Array(sum(chunks.map(c => c.length)))
+          let index = 0
+          chunks.forEach(c => {
+            resultBuffer.set(c, index)
+            index += c.length
+          })
+          assert.strictEqual(resultBuffer.buffer.byteLength, end - start)
+          return resultBuffer.buffer
+        }
+
         if (start === end) {
           return new Uint8Array(0)
         }
@@ -342,7 +357,9 @@ export async function parseOVAFile(
           return parseGzipFromEnd(start, end, fileSlice, header)
         }
       }
-      data.tables[header.fileName] = await readVmdkGrainTable(readFile)
+      data.tables[header.fileName] = suppressUnhandledRejection(
+        readVmdkGrainTable(readFile)
+      )
     }
     offset += Math.ceil(header.fileSize / 512) * 512
   }
