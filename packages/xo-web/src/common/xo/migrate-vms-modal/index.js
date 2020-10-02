@@ -251,6 +251,16 @@ export default class MigrateVmsModalBody extends BaseComponent {
       srId: defaultSrConnectedToHost ? defaultSrId : undefined,
     })
   }
+
+  compareContainers = (pool1, pool2) => {
+    let comparePoolsId = null
+    forEach(this.props.vms, vm => {
+      comparePoolsId =
+        pool1.id === vm.$poolId ? -1 : pool2.id === vm.$poolId ? 1 : 0
+    })
+    return comparePoolsId
+  }
+
   _selectMigrationNetwork = migrationNetwork =>
     this.setState({ migrationNetworkId: migrationNetwork.id })
   _selectNetwork = network => this.setState({ networkId: network.id })
@@ -277,6 +287,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             <Col size={6}>{_('migrateVmSelectHost')}</Col>
             <Col size={6}>
               <SelectHost
+                compareContainers={this.compareContainers}
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 value={host}
