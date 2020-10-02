@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [User/Customize filter] Fix the custom filter of the `template` field (PR [#5298](https://github.com/vatesfr/xen-orchestra/pull/5298))
+- [User] Fix custom filters not showing up when selecting a default filter for templates (PR [#5298](https://github.com/vatesfr/xen-orchestra/pull/5298))
 
 ### Packages to release
 
