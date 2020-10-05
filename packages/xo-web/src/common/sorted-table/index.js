@@ -2,9 +2,12 @@ import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
 import defined, { ifDef } from '@xen-orchestra/defined'
+import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
+import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
+import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
 import { Set } from 'immutable'
 import { injectState, provideState } from 'reaclette'
