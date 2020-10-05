@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Self/ VDI migration] Fix hidden VDI after migration (PR [#5296](https://github.com/vatesfr/xen-orchestra/pull/5296))
+- [Self/VDI migration] Fix hidden VDI after migration (PR [#5296](https://github.com/vatesfr/xen-orchestra/pull/5296))
 
 ### Packages to release
 
