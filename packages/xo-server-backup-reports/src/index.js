@@ -513,6 +513,8 @@ class BackupReportsXoPlugin {
             } else {
               globalTransferSize += size
             }
+          } else if (operationLog.status === 'success') {
+            return
           }
 
           const operationText = [
