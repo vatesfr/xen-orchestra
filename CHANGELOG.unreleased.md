@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Self/ VDI migration] Fix `not enough permissions` error (PR [#5299](https://github.com/vatesfr/xen-orchestra/pull/5199))
+- [Self/VDI migration] Fix `not enough permissions` error (PR [#5299](https://github.com/vatesfr/xen-orchestra/pull/5299))
 
 ### Packages to release
 
