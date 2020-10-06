@@ -2385,14 +2385,25 @@ export const editResourceSet = (
   })::tap(subscribeResourceSets.forceRefresh)
 
 export const deleteResourceSet = async id => {
+  const vms = await getAllObjects({ resourceSet: resolveId(id) })
   await confirm({
     title: _('deleteResourceSetWarning'),
     body: _('deleteResourceSetQuestion'),
   })
-  await _call('resourceSet.delete', { id: resolveId(id) })
-
-  subscribeResourceSets.forceRefresh()
+  _call('resourceSet.delete', { id: resolveId(id) })::tap(() => {
+    forEach(vms, vm => {
+      _call('vm.set', { resourceSet: null, id: vm.id })
+    })
+    subscribeResourceSets.forceRefresh()
+  })
 }
+
+export const getAllObjects = (objectsFilter, objectsLimit, objectsNdjson) =>
+  _call('xo.getAllObjects', {
+    filter: objectsFilter,
+    limit: objectsLimit,
+    ndjson: objectsNdjson,
+  })
 
 export const recomputeResourceSetsLimits = () =>
   _call('resourceSet.recomputeAllLimits')::tap(
