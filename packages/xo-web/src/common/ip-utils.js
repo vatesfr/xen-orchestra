@@ -99,24 +99,8 @@ export const formatIps = ips => {
       (splitIp1[0] - splitIp2[0]) * 256 * 256 * 256
     )
   })
-  const range = { first: '', last: '' }
-  const formattedIps = []
-  let index = 0
-  forEach(sortedIps, ip => {
-    if (ip !== getNextIpV4(range.last)) {
-      if (range.first) {
-        formattedIps[index] =
-          range.first === range.last ? range.first : { ...range }
-        index++
-      }
-      range.first = range.last = ip
-    } else {
-      range.last = ip
-    }
-  })
-  formattedIps[index] = range.first === range.last ? range.first : range
 
-  return formattedIps
+  return [{ first: sortedIps[0], last: sortedIps[sortedIps.length - 1] }]
 }
 
 export const parseIpPattern = pattern => {
