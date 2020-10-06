@@ -190,6 +190,12 @@ const TRANSFORMS = {
       address: obj.address,
       bios_strings: obj.bios_strings,
       build: softwareVersion.build_number,
+      chipset_info: {
+        iommu:
+          obj.chipset_info.iommu !== undefined
+            ? obj.chipset_info.iommu === 'true'
+            : undefined,
+      },
       enabled: Boolean(obj.enabled),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,

@@ -163,7 +163,9 @@ const NewNetwork = decorate([
           ({ pool }) => pool !== undefined && pool.id === host.$pool
         ),
       pifPredicate: (_, { pool }) => pif =>
-        pif.vlan === -1 && pif.$host === (pool && pool.master),
+        !pif.isBondSlave &&
+        pif.vlan === -1 &&
+        pif.$host === (pool && pool.master),
       pifPredicateSdnController: (_, { pool }) => pif =>
         canSupportPrivateNetwork(pool, pif),
       networkPifPredicate: ({ networks }) => (pif, key) =>

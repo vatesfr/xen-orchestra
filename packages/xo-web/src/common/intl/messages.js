@@ -882,6 +882,7 @@ const messages = {
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiIqn: 'iSCSI IQN',
+  hostIommuTooltip: 'PCI passthrough capable',
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
   hostMultipathingPaths:
@@ -906,6 +907,7 @@ const messages = {
   hostLicenseSocket: 'Socket',
   hostLicenseExpiry: 'Expiry',
   hostRemoteSyslog: 'Remote syslog',
+  hostIommu: 'IOMMU',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',
