@@ -254,13 +254,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
 
   compareContainers = createSelector(
     () => this.props.vms,
-    vms => {
-      const selectedVms = []
-      forEach(vms, vm => selectedVms.push(vm))
-      return createCompare([
-        pool => selectedVms.some(vm => vm.$pool === pool.id),
-      ])
-    }
+    vms => createCompare([pool => some(vms, vm => vm.$pool === pool.id)])
   )
 
   _selectMigrationNetwork = migrationNetwork =>
