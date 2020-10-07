@@ -252,7 +252,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
     })
   }
 
-  compareContainers = createSelector(
+  getCompareContainers = createSelector(
     () => this.props.vms,
     vms => createCompare([pool => some(vms, vm => vm.$pool === pool.id)])
   )
@@ -283,7 +283,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             <Col size={6}>{_('migrateVmSelectHost')}</Col>
             <Col size={6}>
               <SelectHost
-                compareContainers={this.compareContainers()}
+                compareContainers={this.getCompareContainers()}
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 value={host}
