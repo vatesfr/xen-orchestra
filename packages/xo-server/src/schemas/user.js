@@ -40,6 +40,9 @@ export default {
       },
       description: 'various user preferences',
     },
+    authProviders: {
+      type: 'object',
+    },
   },
   required: ['id', 'email'],
 }

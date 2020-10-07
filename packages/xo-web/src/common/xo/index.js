@@ -424,7 +424,10 @@ export const subscribeNotifications = createSubscription(async () => {
 
   let notifications
   try {
-    notifications = await updater._call('getMessages')
+    const now = Date.now()
+    notifications = (await updater._call('getMessages')).filter(
+      ({ expires }) => expires == null || expires > now
+    )
   } catch (err) {
     return []
   }
@@ -1743,8 +1746,12 @@ export const deleteOrphanedVdis = vdis =>
     noop
   )
 
-export const migrateVdi = (vdi, sr) =>
-  _call('vdi.migrate', { id: resolveId(vdi), sr_id: resolveId(sr) })
+export const migrateVdi = (vdi, sr, resourceSet) =>
+  _call('vdi.migrate', {
+    id: resolveId(vdi),
+    resourceSet,
+    sr_id: resolveId(sr),
+  })
 
 // VBD ---------------------------------------------------------------
 
