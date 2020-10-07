@@ -13,6 +13,12 @@ require('./_composeCommands')({
     },
     usage: 'xo-vm-backups <field path>',
   },
+  info: {
+    get main() {
+      return require('./commands/info')
+    },
+    usage: 'xo-vm-backups/*',
+  },
 })(process.argv.slice(2), 'xo-backups').catch(error => {
   console.error('main', error)
   process.exitCode = 1
