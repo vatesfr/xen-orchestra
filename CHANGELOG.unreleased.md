@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Self/Delete] When remove one `resource set`, VM's of this one are now detached. `ACLs` of these VM's too [#4797](https://github.com/vatesfr/xen-orchestra/issues/4797) (PR [#5312](https://github.com/vatesfr/xen-orchestra/pull/5312))
+- [Self/Delete] Detach VMs and remove their ACLs on removing a resource set [#4797](https://github.com/vatesfr/xen-orchestra/issues/4797) (PR [#5312](https://github.com/vatesfr/xen-orchestra/pull/5312))
 
 ### Packages to release
 

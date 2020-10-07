@@ -171,6 +171,20 @@ export default class {
     const store = this._store
 
     if (await store.has(id)) {
+      await Promise.all(
+        mapToArray(this._xo.getAllXapis(), xapi =>
+          Promise.all(
+            mapToArray(xapi.objects.all, async object => {
+              if (
+                object.$type === 'VM' &&
+                object.other_config['xo:resource_set'] === `"${id}"`
+              ) {
+                await this.setVmResourceSet(object.uuid, null, true)
+              }
+            })
+          )
+        )
+      )
       return store.del(id)
     }
 
