@@ -552,9 +552,8 @@ class NewAclRuleForm extends BaseComponent {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRuleRow extends Component {
   render() {
     const { rule, vif, plugins } = this.props
@@ -589,9 +588,8 @@ class AclRuleRow extends Component {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRulesRows extends BaseComponent {
   _newAclRule(vif) {
     return confirm({

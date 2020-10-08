@@ -329,12 +329,7 @@ export const subscribePermissions = createSubscription(() =>
   _call('acl.getCurrentPermissions')
 )
 
-export const subscribePlugins = createSubscription(() => {
-  const { user } = store.getState()
-  if (user != null && user.permission === 'admin') {
-    return _call('plugin.get')
-  }
-})
+export const subscribePlugins = createSubscription(() => _call('plugin.get'))
 
 export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 
@@ -2177,12 +2172,9 @@ export const getSchedule = id => _call('schedule.get', { id })
 
 // Backup NG ---------------------------------------------------------
 
-export const subscribeBackupNgJobs = createSubscription(() => {
-  const { user } = store.getState()
-  if (user != null && user.permission === 'admin') {
-    return _call('backupNg.getAllJobs')
-  }
-})
+export const subscribeBackupNgJobs = createSubscription(() =>
+  _call('backupNg.getAllJobs')
+)
 
 export const subscribeBackupNgLogs = createSubscription(async () => {
   const { $getFrom } = await _call('backupNg.getAllLogs', { ndjson: true })
@@ -2354,8 +2346,10 @@ export const configurePlugin = (id, configuration) =>
   )
 
 export const getPlugin = async id => {
-  const plugins = await _call('plugin.get')
-  return plugins.find(plugin => plugin.id === id)
+  const { user } = store.getState()
+  if (user != null && user.permission === 'admin') {
+    return (await _call('plugin.get')).find(plugin => plugin.id === id)
+  }
 }
 
 export const purgePluginConfiguration = async id => {
