@@ -10,6 +10,7 @@
 - [Host/Advanced] Add the field `IOMMU` if it is defined (PR [#5294](https://github.com/vatesfr/xen-orchestra/pull/5294))
 - [Backup logs/report] Hide merge task when no merge is done (PR [#5263](https://github.com/vatesfr/xen-orchestra/pull/5263))
 - [New backup] Enable created schedules by default (PR [#5280](https://github.com/vatesfr/xen-orchestra/pull/5280))
+- [VM] Hide backup page for non-admin users [#5309](https://github.com/vatesfr/xen-orchestra/issues/5309)
 
 ### Bug fixes
 
