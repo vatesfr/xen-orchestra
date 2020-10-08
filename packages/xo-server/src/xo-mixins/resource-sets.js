@@ -169,14 +169,15 @@ export default class {
 
   async deleteResourceSet(id) {
     const store = this._store
-    const filter = { resourceSet: id }
-    const limit = Infinity
 
     if (await store.has(id)) {
       await Promise.all(
-        mapToArray(this._xo.getObjects({ filter, limit }), async vm => {
-          await this.setVmResourceSet(vm.id, null, true)
-        })
+        mapToArray(
+          this._xo.getObjects({ filter: { resourceSet: id } }),
+          async vm => {
+            await this.setVmResourceSet(vm.id, null, true)
+          }
+        )
       )
       return store.del(id)
     }
