@@ -595,6 +595,7 @@ const New = decorate([
         {
           copyRetention,
           cron,
+          enabled = true,
           exportRetention,
           id,
           name,
@@ -607,6 +608,7 @@ const New = decorate([
           [id]: {
             ...schedules[id],
             cron,
+            enabled,
             id,
             name,
             timezone,
