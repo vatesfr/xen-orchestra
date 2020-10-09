@@ -452,6 +452,44 @@ export default class extends Component {
                 <Upgrade place='supplementalPacks' available={2} />
               </Container>,
             ]}
+            {host.certificates !== undefined && (
+              <div>
+                <h3>{_('installedCertificates')}</h3>
+                {host.certificates.length > 0 ? (
+                  <ul className='list-group'>
+                    {host.certificates.map(({ fingerprint, expiry }, key) => (
+                      <li className='list-group-item' key={key}>
+                        <Container>
+                          <Row>
+                            <Col mediumSize={2}>
+                              <strong>{_('fingerprint')}</strong>
+                            </Col>
+                            <Col mediumSize={10}>
+                              <Copiable tagName='pre'>{fingerprint}</Copiable>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col mediumSize={2}>
+                              <strong>{_('expiry')}</strong>
+                            </Col>
+                            <Col mediumSize={10}>
+                              <FormattedTime
+                                value={expiry * 1e3}
+                                day='numeric'
+                                month='long'
+                                year='numeric'
+                              />
+                            </Col>
+                          </Row>
+                        </Container>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span>{_('noCertificateInstalled')}</span>
+                )}
+              </div>
+            )}
           </Col>
         </Row>
       </Container>

@@ -83,6 +83,10 @@ const messages = {
   advancedSettings: 'Advanced settings',
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
+  installedCertificates: 'Installed certificates',
+  noCertificateInstalled: 'No certificate installed on this host',
+  expiry: 'Expiry',
+  fingerprint: 'Fingerprint',
 
   // ----- Modals -----
   alertOk: 'OK',
