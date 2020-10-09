@@ -8,7 +8,7 @@ let force
 const assert = require('assert')
 const flatten = require('lodash/flatten')
 const getopts = require('getopts')
-const limitConcurrency = require('limit-concurrency-decorator')
+const limitConcurrency = require('limit-concurrency-decorator').default
 const lockfile = require('proper-lockfile')
 const pipe = require('promise-toolbox/pipe')
 const { default: Vhd, mergeVhd } = require('vhd-lib')
