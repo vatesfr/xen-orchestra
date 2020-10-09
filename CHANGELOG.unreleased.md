@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Settings/IPs] Fix the range formatting [#3170](https://github.com/vatesfr/xen-orchestra/issues/3170) (PR [#5314](https://github.com/vatesfr/xen-orchestra/pull/5314))
+- [Settings/IP Pools] Fix some IP ranges being split into multiple ranges in the UI [#3170](https://github.com/vatesfr/xen-orchestra/issues/3170) (PR [#5314](https://github.com/vatesfr/xen-orchestra/pull/5314))
 
 ### Packages to release
 
