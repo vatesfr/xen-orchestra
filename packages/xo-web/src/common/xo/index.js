@@ -3009,6 +3009,7 @@ export const setDefaultHomeFilter = (type, name) => {
   const { user } = xo
   const { preferences } = user
   const defaultFilters = (preferences && preferences.defaultHomeFilters) || {}
+  name = name === null ? 'homeFilterNone' : name
 
   return _setUserPreferences({
     defaultHomeFilters: {

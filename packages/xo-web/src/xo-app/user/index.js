@@ -136,7 +136,7 @@ class DefaultFilterPicker extends Component {
               <Select
                 onChange={this._handleDefaultFilter}
                 options={this.state.options}
-                value={this.props.defaultFilter || 'homeFilterNone'}
+                value={this.props.defaultFilter}
               />
             </FormGrid.InputCol>
           </FormGrid.Row>
