@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [User] If default filter aren't defined, the default filter become `None` (PR [#5321](https://github.com/vatesfr/xen-orchestra/pull/5321))
+- [User] When detaching a default filter select, reset the default filter as default (PR [#5321](https://github.com/vatesfr/xen-orchestra/pull/5321))
 
 ### Packages to release
 
