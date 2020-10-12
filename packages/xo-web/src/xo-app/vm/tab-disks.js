@@ -557,13 +557,14 @@ export default class TabDisks extends Component {
       newDisk: false,
     })
 
-  _migrateVdis = vdis =>
-    confirm({
+  _migrateVdis = vdis => {
+    const { resolvedResourceSet, vm } = this.props
+    return confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          pool={this.props.vm.$pool}
-          resourceSet={this.props.resolvedResourceSet}
+          pool={vm.$pool}
+          resourceSet={resolvedResourceSet}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
@@ -572,8 +573,17 @@ export default class TabDisks extends Component {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
 
-      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
+      return Promise.all(
+        map(vdis, vdi =>
+          migrateVdi(
+            vdi,
+            sr,
+            getDefined(() => resolvedResourceSet.id)
+          )
+        )
+      )
     }, noop)
+  }
 
   _getIsVmAdmin = createSelector(
     () => this.props.checkPermissions,
