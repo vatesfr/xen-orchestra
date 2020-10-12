@@ -879,6 +879,7 @@ const messages = {
   hyperThreadingNotAvailable:
     'HT detection is only available on XCP-ng 7.6 and higher',
   hostAddress: 'Address',
+  hostSchedulerGranularity: 'Scheduler granularity',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
   hostIscsiIqn: 'iSCSI IQN',

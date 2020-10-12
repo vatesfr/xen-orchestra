@@ -18,7 +18,7 @@ import { forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
-import { Toggle } from 'form'
+import { Toggle, Select } from 'form'
 import {
   detachHost,
   disableHost,
@@ -33,9 +33,25 @@ import {
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
+  getSchedulerGranularity,
 } from 'xo'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
+
+const SCHED_GRAN_TYPE_OPTIONS = [
+  {
+    label: 'CPU',
+    value: 'cpu',
+  },
+  {
+    label: 'Core',
+    value: 'core',
+  },
+  {
+    label: 'Socket',
+    value: 'socket',
+  },
+]
 
 const forceReboot = host => restartHost(host, true)
 
@@ -104,7 +120,10 @@ export default class extends Component {
   async componentDidMount() {
     const plugin = await getPlugin('netdata')
     const isNetDataPluginCorrectlySet = plugin !== undefined && plugin.loaded
-    this.setState({ isNetDataPluginCorrectlySet })
+    this.setState({
+      isNetDataPluginCorrectlySet,
+      schedGran: await getSchedulerGranularity(this.props.host),
+    })
     if (isNetDataPluginCorrectlySet) {
       this.setState({
         isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
@@ -117,7 +136,6 @@ export default class extends Component {
       isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
     })
   }
-
   _getPacks = createSelector(
     () => this.props.host.supplementalPacks,
     packs => {
@@ -332,6 +350,19 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
+                {this.state.schedGran !== 'MESSAGE_METHOD_UNKNOWN' && (
+                  <tr>
+                    <th>{_('hostSchedulerGranularity')}</th>
+                    <td>
+                      <Select
+                        options={SCHED_GRAN_TYPE_OPTIONS}
+                        required
+                        simpleValue
+                        value={this.state.schedGran}
+                      />
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
                   <td>

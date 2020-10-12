@@ -2,6 +2,29 @@ import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
+export async function getSchedulerGranularity({ host }) {
+  let schedGran
+  try {
+    schedGran = await this.getXapi(host).getField('host', host.id, 'sched_gran')
+  } catch (e) {
+    schedGran = e.code
+  } finally {
+    return schedGran
+  }
+}
+
+getSchedulerGranularity.description = 'get the scheduler granularity of an host'
+
+getSchedulerGranularity.params = {
+  host: { type: 'object' },
+}
+
+getSchedulerGranularity.resolve = {
+  host: ['id', 'host', 'view'],
+}
+
+// ===================================================================
+
 export async function set({
   host,
 

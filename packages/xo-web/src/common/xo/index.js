@@ -733,6 +733,9 @@ export const setPoolMaster = host =>
 
 // Host --------------------------------------------------------------
 
+export const getSchedulerGranularity = host =>
+  _call('host.getSchedulerGranularity', { host })
+
 export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })
 
