@@ -28,6 +28,7 @@
 - [Backup/S3] Fix request signature error [#5253](https://github.com/vatesfr/xen-orchestra/issues/5253) (PR[#5315](https://github.com/vatesfr/xen-orchestra/pull/5315))
 - [SDN Controller] Fix tunnel traffic going on the wrong NIC: see https://xcp-ng.org/forum/topic/3544/mtu-problems-with-vxlan. (PR [#5281](https://github.com/vatesfr/xen-orchestra/pull/5281))
 - [Settings/IP Pools] Fix some IP ranges being split into multiple ranges in the UI [#3170](https://github.com/vatesfr/xen-orchestra/issues/3170) (PR [#5314](https://github.com/vatesfr/xen-orchestra/pull/5314))
+- [Self/Delete] Detach VMs and remove their ACLs on removing a resource set [#4797](https://github.com/vatesfr/xen-orchestra/issues/4797) (PR [#5312](https://github.com/vatesfr/xen-orchestra/pull/5312))
 
 ### Packages to release
 
