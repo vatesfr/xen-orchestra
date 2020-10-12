@@ -34,6 +34,7 @@ import {
   setHostsMultipathing,
   setRemoteSyslogHost,
   getSchedulerGranularity,
+  setSchedulerGranularity,
 } from 'xo'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
@@ -153,6 +154,9 @@ export default class extends Component {
       return uniqPacks
     }
   )
+
+  _setSchedulerGranularity = value =>
+    setSchedulerGranularity(this.props.host, value)
 
   _setHostIscsiIqn = iscsiIqn =>
     confirm({
@@ -359,6 +363,7 @@ export default class extends Component {
                         required
                         simpleValue
                         value={this.state.schedGran}
+                        onChange={this._setSchedulerGranularity}
                       />
                     </td>
                   </tr>
