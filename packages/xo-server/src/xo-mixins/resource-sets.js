@@ -172,11 +172,8 @@ export default class {
 
     if (await store.has(id)) {
       await Promise.all(
-        mapToArray(
-          this._xo.getObjects({ filter: { resourceSet: id } }),
-          async vm => {
-            await this.setVmResourceSet(vm.id, null, true)
-          }
+        mapToArray(this._xo.getObjects({ filter: { resourceSet: id } }), vm =>
+          this.setVmResourceSet(vm.id, null, true)
         )
       )
       return store.del(id)
