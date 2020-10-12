@@ -12,6 +12,7 @@
 - [New backup] Enable created schedules by default (PR [#5280](https://github.com/vatesfr/xen-orchestra/pull/5280))
 - [Backup/overview] Link backup jobs/schedules to their corresponding logs [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5260](https://github.com/vatesfr/xen-orchestra/pull/5260))
 - [VM] Hide backup tab for non-admin users [#5309](https://github.com/vatesfr/xen-orchestra/issues/5309) (PR [#5317](https://github.com/vatesfr/xen-orchestra/pull/5317))
+- [VM/Bulk migrate] Sort hosts in the select so that the hosts on the same pool are shown first [#4462](https://github.com/vatesfr/xen-orchestra/issues/4462) (PR [#5308](https://github.com/vatesfr/xen-orchestra/pull/5308))
 
 ### Bug fixes
 
