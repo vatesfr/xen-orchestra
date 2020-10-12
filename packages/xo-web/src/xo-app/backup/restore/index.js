@@ -190,19 +190,22 @@ export default class Restore extends Component {
   }
 
   _refreshBackupList = (
-    _remotes = this.props.remotes,
+    remotes = this.props.remotes,
     jobs = this.props.jobs
-  ) =>
-    Promise.all(
-      map(filter(_remotes, { enabled: true }), remote =>
-        this._refreshBackupListOnRemote(remote, jobs).catch(() =>
-          error(
-            _('remoteLoadBacupsFailure'),
-            _('remoteLoadBacupsFailureMessage', { name: remote.name })
+  ) => {
+    this.setState({ backupDataByVm: {} }, () =>
+      Promise.all(
+        map(filter(remotes, { enabled: true }), remote =>
+          this._refreshBackupListOnRemote(remote, jobs).catch(() =>
+            error(
+              _('remoteLoadBackupsFailure'),
+              _('remoteLoadBackupsFailureMessage', { name: remote.name })
+            )
           )
         )
       )
     )
+  }
 
   // Actions -------------------------------------------------------------------
 
