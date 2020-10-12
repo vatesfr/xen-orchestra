@@ -10,6 +10,7 @@
 - [Host/Advanced] Add the field `IOMMU` if it is defined (PR [#5294](https://github.com/vatesfr/xen-orchestra/pull/5294))
 - [Backup logs/report] Hide merge task when no merge is done (PR [#5263](https://github.com/vatesfr/xen-orchestra/pull/5263))
 - [New backup] Enable created schedules by default (PR [#5280](https://github.com/vatesfr/xen-orchestra/pull/5280))
+- [Backup/overview] Link backup jobs/schedules to their corresponding logs [#4564](https://github.com/vatesfr/xen-orchestra/issues/4564) (PR [#5260](https://github.com/vatesfr/xen-orchestra/pull/5260))
 - [VM] Hide backup tab for non-admin users [#5309](https://github.com/vatesfr/xen-orchestra/issues/5309) (PR [#5317](https://github.com/vatesfr/xen-orchestra/pull/5317))
 
 ### Bug fixes
@@ -25,6 +26,7 @@
 - [Home] Hide backup filter for non-admin users [#5285](https://github.com/vatesfr/xen-orchestra/issues/5285) (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
 - [Backup/S3] Fix request signature error [#5253](https://github.com/vatesfr/xen-orchestra/issues/5253) (PR[#5315](https://github.com/vatesfr/xen-orchestra/pull/5315))
 - [SDN Controller] Fix tunnel traffic going on the wrong NIC: see https://xcp-ng.org/forum/topic/3544/mtu-problems-with-vxlan. (PR [#5281](https://github.com/vatesfr/xen-orchestra/pull/5281))
+- [Settings/IP Pools] Fix some IP ranges being split into multiple ranges in the UI [#3170](https://github.com/vatesfr/xen-orchestra/issues/3170) (PR [#5314](https://github.com/vatesfr/xen-orchestra/pull/5314))
 
 ### Packages to release
 
