@@ -1,3 +1,4 @@
+import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
 import { filter, forOwn, sample } from 'lodash'
 
@@ -61,13 +62,39 @@ export class PrivateNetwork {
       otherConfig['xo:sdn-controller:encrypted'] === 'true'
         ? createPassword()
         : undefined
+    const pifDevice = otherConfig['xo:sdn-controller:pif-device']
+    const pifVlan = +otherConfig['xo:sdn-controller:vlan']
+    const hostPif = hostClient.host.$PIFs.find(
+      pif =>
+        pif?.device === pifDevice &&
+        pif.VLAN === pifVlan &&
+        pif.ip_configuration_mode !== 'None'
+    )
+    const centerPif = centerClient.host.$PIFs.find(
+      pif =>
+        pif?.device === pifDevice &&
+        pif.VLAN === pifVlan &&
+        pif.ip_configuration_mode !== 'None'
+    )
+    assert(hostPif !== undefined, 'No PIF found', {
+      privateNetwork: this.uuid,
+      pifDevice,
+      pifVlan,
+      host: host.name_label,
+    })
+    assert(centerPif !== undefined, 'No PIF found in center', {
+      privateNetwork: this.uuid,
+      pifDevice,
+      pifVlan,
+      host: this.center.name_label,
+    })
 
     let bridgeName
     try {
       ;[bridgeName] = await Promise.all([
         hostClient.addInterfaceAndPort(
           network,
-          centerClient.host.address,
+          centerPif.IP,
           encapsulation,
           vni,
           password,
@@ -75,7 +102,7 @@ export class PrivateNetwork {
         ),
         centerClient.addInterfaceAndPort(
           centerNetwork,
-          hostClient.host.address,
+          hostPif.IP,
           encapsulation,
           vni,
           password,

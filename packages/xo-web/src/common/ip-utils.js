@@ -65,7 +65,7 @@ export const getNextIpV4 = ip => {
       index = i
       return false
     }
-    splitIp[i] = 1
+    splitIp[i] = 0
   })
   if (index === 0 && +splitIp[0] === 255) {
     return 0
