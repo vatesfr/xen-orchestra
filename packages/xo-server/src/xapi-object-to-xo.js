@@ -149,7 +149,7 @@ const TRANSFORMS = {
   // -----------------------------------------------------------------
 
   host(obj, dependents) {
-    // Only exists on  XCP-ng/XenServer >= 8.2
+    // Only exists on XCP-ng/XenServer >= 8.2
     if (obj.certificates !== undefined) {
       dependents[obj.certificates] = obj.$id
     }
