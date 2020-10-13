@@ -180,20 +180,19 @@ const SchedulePreviewBody = decorate([
             />
           </Tooltip>
         ) : (
-          <Tooltip content={_('runBackupJob')}>
-            <ActionButton
-              btnStyle='primary'
-              data-id={job.id}
-              data-name={job.name}
-              data-nVms={nVms}
-              data-schedule={schedule.id}
-              data-type={job.type}
-              handler={_runBackupJob}
-              icon='run-schedule'
-              key='run'
-              size='small'
-            />
-          </Tooltip>
+          <ActionButton
+            tooltip={_('runBackupJob')}
+            btnStyle='primary'
+            data-id={job.id}
+            data-name={job.name}
+            data-nVms={nVms}
+            data-schedule={schedule.id}
+            data-type={job.type}
+            handler={_runBackupJob}
+            icon='run-schedule'
+            key='run'
+            size='small'
+          />
         )}
         {lastRunLog !== undefined && (
           <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />

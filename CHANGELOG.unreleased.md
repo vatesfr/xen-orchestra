@@ -23,7 +23,7 @@
 - [Home] Hide backup filter for non-admin users [#5285](https://github.com/vatesfr/xen-orchestra/issues/5285) (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
 - [Backup/S3] Fix request signature error [#5253](https://github.com/vatesfr/xen-orchestra/issues/5253) (PR[#5315](https://github.com/vatesfr/xen-orchestra/pull/5315))
 - [SDN Controller] Fix tunnel traffic going on the wrong NIC: see https://xcp-ng.org/forum/topic/3544/mtu-problems-with-vxlan. (PR [#5281](https://github.com/vatesfr/xen-orchestra/pull/5281))
-- [Backup/overview] Add tooltips on the running backup job button (PR [#5325](https://github.com/vatesfr/xen-orchestra/pull/5325))
+- [Backup/overview] Add tooltip on the running backup job button (PR [#5325 ](https://github.com/vatesfr/xen-orchestra/pull/5325))
 
 ### Packages to release
 
