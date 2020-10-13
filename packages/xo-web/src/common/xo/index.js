@@ -1328,13 +1328,17 @@ export const snapshotVms = vms =>
     icon: 'memory',
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: <SnapshotVmModalBody vms={vms} />,
-  }).then(
-    ({ names, saveMemory, descriptions }) =>
-      Promise.all(
-        map(vms, vm => snapshotVm(vm, names[vm], saveMemory, descriptions[vm]))
-      ),
-    noop
-  )
+  })
+    .then(
+      ({ names, saveMemory, descriptions }) =>
+        Promise.all(
+          map(vms, vm =>
+            snapshotVm(vm, names[vm], saveMemory, descriptions[vm])
+          )
+        ),
+      noop
+    )
+    .catch(e => error(_('snapshotError'), e.message))
 
 export const deleteSnapshot = vm =>
   confirm({
