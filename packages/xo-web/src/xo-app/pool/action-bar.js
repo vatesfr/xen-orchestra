@@ -2,17 +2,21 @@ import _ from 'intl'
 import ActionBar, { Action } from 'action-bar'
 import Component from 'base-component'
 import React from 'react'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { find } from 'lodash'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import { addHostsToPool, disconnectServer, subscribeServers } from 'xo'
 
 @connectStore({
   hosts: createGetObjectsOfType('host'),
+  isAdmin,
 })
-@addSubscriptions({
-  servers: subscribeServers,
-})
+@addSubscriptions(
+  ({ isAdmin }) =>
+    isAdmin && {
+      servers: subscribeServers,
+    }
+)
 export default class PoolActionBar extends Component {
   _getMasterAddress = createSelector(
     () => this.props.pool && this.props.pool.master,

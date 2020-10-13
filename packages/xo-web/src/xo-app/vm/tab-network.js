@@ -16,7 +16,6 @@ import Tooltip from 'tooltip'
 import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
-import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
@@ -552,9 +551,8 @@ class NewAclRuleForm extends BaseComponent {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRuleRow extends Component {
   render() {
     const { rule, vif, plugins } = this.props
@@ -589,9 +587,8 @@ class AclRuleRow extends Component {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRulesRows extends BaseComponent {
   _newAclRule(vif) {
     return confirm({

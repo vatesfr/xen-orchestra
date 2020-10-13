@@ -81,7 +81,11 @@ import VmActionBar from './action-bar'
       pool: getPool(state, props),
       srs: getSrs(state, props),
       vbds: getVbds(state, props),
-      vdis: getVdis(state, props),
+      // Workaround to get the VDI object when the permissions cache isn't up to date:
+      // when a VDI is created on a VM, the user permissions might be checked on the
+      // VBD *before* it's attached to the VM so the permissions cache will store that
+      // the user doesn't have permissions on the VDI even after it's been attached
+      vdis: getVdis(state, props, true),
       vm,
       vmTotalDiskSpace: getVmTotalDiskSpace(state, props),
     }
@@ -174,7 +178,7 @@ export default class Vm extends BaseComponent {
   )
 
   header() {
-    const { vm, container, pool } = this.props
+    const { isAdmin, vm, container, pool } = this.props
     if (!vm) {
       return <Icon icon='loading' />
     }
@@ -269,7 +273,9 @@ export default class Vm extends BaseComponent {
                   )}
                 </NavLink>
               )}
-              <NavLink to={`/vms/${vm.id}/backups`}>{_('backup')}</NavLink>
+              {isAdmin && (
+                <NavLink to={`/vms/${vm.id}/backups`}>{_('backup')}</NavLink>
+              )}
               <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
               {vm.docker && (
                 <NavLink to={`/vms/${vm.id}/containers`}>

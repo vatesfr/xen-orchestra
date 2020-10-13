@@ -1,10 +1,13 @@
 import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
-import defined from '@xen-orchestra/defined'
+import defined, { ifDef } from '@xen-orchestra/defined'
+import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
+import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
+import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
 import { Set } from 'immutable'
 import { injectState, provideState } from 'reaclette'
@@ -15,6 +18,7 @@ import {
   findIndex,
   forEach,
   get as getProperty,
+  groupBy,
   isEmpty,
   map,
   sortBy,
@@ -26,11 +30,15 @@ import ButtonGroup from '../button-group'
 import Component from '../base-component'
 import decorate from '../apply-decorators'
 import Icon from '../icon'
+import logError from '../log-error'
 import Pagination from '../pagination'
 import SingleLineRow from '../single-line-row'
 import TableFilter from '../search-bar'
+import UserError from '../user-error'
 import { BlockLink } from '../link'
 import { Container, Col } from '../grid'
+import { error as _error } from '../notification'
+import { generateId } from '../reaclette-utils'
 import {
   createCollectionWrapper,
   createCounter,
@@ -120,6 +128,7 @@ const actionsShape = PropTypes.arrayOf(
   PropTypes.shape({
     // groupedActions: the function will be called with an array of the selected items in parameters
     // individualActions: the function will be called with the related item in parameters
+    collapsed: PropTypes.bool,
     disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
     handler: PropTypes.func.isRequired,
     icon: PropTypes.string.isRequired,
@@ -159,6 +168,80 @@ const Action = decorate([
   ),
 ])
 
+const handleFnProps = (prop, items, userData) =>
+  typeof prop === 'function' ? prop(items, userData) : prop
+
+const CollapsedActions = decorate([
+  withRouter,
+  provideState({
+    effects: {
+      async execute(state, { handler, label, redirectOnSuccess }) {
+        try {
+          await handler()
+          ifDef(redirectOnSuccess, this.props.router.push)
+        } catch (error) {
+          // ignore when undefined because it usually means that the action has been canceled
+          if (error !== undefined) {
+            if (error instanceof UserError) {
+              _error(error.title, error.body)
+            } else {
+              logError(error)
+              _error(label, defined(error.message, String(error)))
+            }
+          }
+        }
+      },
+    },
+    computed: {
+      dropdownId: generateId,
+      actions: (_, { actions, items, userData }) =>
+        actions.map(
+          ({ disabled, grouped, handler, icon, label, redirectOnSuccess }) => {
+            const actionItems =
+              Array.isArray(items) || !grouped ? items : [items]
+            return {
+              disabled: handleFnProps(disabled, actionItems, userData),
+              handler: () => handler(actionItems, userData),
+              icon: handleFnProps(icon, actionItems, userData),
+              label: handleFnProps(label, actionItems, userData),
+              redirectOnSuccess: handleFnProps(
+                redirectOnSuccess,
+                actionItems,
+                userData
+              ),
+            }
+          }
+        ),
+    },
+  }),
+  injectState,
+  ({ state, effects }) => (
+    <Dropdown id={state.dropdownId}>
+      <DropdownToggle bsSize='small' bsStyle='secondary' />
+      <DropdownMenu className='dropdown-menu-right'>
+        {state.actions.map((action, key) => (
+          <MenuItem
+            disabled={action.disabled}
+            key={key}
+            onClick={() => effects.execute(action)}
+          >
+            <Icon icon={action.icon} /> {action.label}
+          </MenuItem>
+        ))}
+      </DropdownMenu>
+    </Dropdown>
+  ),
+])
+
+CollapsedActions.propTypes = {
+  actions: PropTypes.shape({
+    ...actionsShape,
+    grouped: PropTypes.bool,
+  }),
+  items: PropTypes.any,
+  userData: PropTypes.any,
+}
+
 const LEVELS = [undefined, 'primary', 'warning', 'danger']
 // page number and sort info are optional for backward compatibility
 const URL_STATE_RE = /^(?:(\d+)(?:_(\d+)(?:_(desc|asc))?)?-)?(.*)$/
@@ -196,6 +279,7 @@ class SortedTable extends Component {
     actions: PropTypes.arrayOf(
       PropTypes.shape({
         // regroup individual actions and grouped actions
+        collapsed: PropTypes.bool,
         disabled: PropTypes.oneOfType([PropTypes.bool, PropTypes.func]),
         handler: PropTypes.func.isRequired,
         icon: PropTypes.string.isRequired,
@@ -618,11 +702,14 @@ class SortedTable extends Component {
     () => this.props.groupedActions,
     () => this.props.actions,
     (groupedActions, actions) =>
-      sortBy(
-        groupedActions !== undefined && actions !== undefined
-          ? groupedActions.concat(actions)
-          : groupedActions || actions,
-        action => LEVELS.indexOf(action.level)
+      groupBy(
+        sortBy(
+          groupedActions !== undefined && actions !== undefined
+            ? groupedActions.concat(actions)
+            : groupedActions || actions,
+          action => LEVELS.indexOf(action.level)
+        ),
+        action => (action.collapsed ? 'secondary' : 'primary')
       )
   )
 
@@ -631,6 +718,7 @@ class SortedTable extends Component {
     () => this.props.actions,
     (individualActions, actions) => {
       const normalizedActions = map(actions, a => ({
+        collapsed: a.collapsed,
         disabled:
           a.individualDisabled !== undefined
             ? a.individualDisabled
@@ -644,11 +732,14 @@ class SortedTable extends Component {
         redirectOnSuccess: a.redirectOnSuccess,
       }))
 
-      return sortBy(
-        individualActions !== undefined && actions !== undefined
-          ? individualActions.concat(normalizedActions)
-          : individualActions || normalizedActions,
-        action => LEVELS.indexOf(action.level)
+      return groupBy(
+        sortBy(
+          individualActions !== undefined && actions !== undefined
+            ? individualActions.concat(normalizedActions)
+            : individualActions || normalizedActions,
+          action => LEVELS.indexOf(action.level)
+        ),
+        action => (action.collapsed ? 'secondary' : 'primary')
       )
     }
   )
@@ -689,17 +780,29 @@ class SortedTable extends Component {
         />
       </td>
     )
-    const actionsColumn = hasIndividualActions && (
-      <td>
-        <div className='pull-right'>
-          <ButtonGroup>
-            {map(this._getIndividualActions(), (props, key) => (
-              <Action {...props} items={item} key={key} userData={userData} />
-            ))}
-          </ButtonGroup>
-        </div>
-      </td>
-    )
+
+    let actionsColumn
+    if (hasIndividualActions) {
+      const { primary, secondary } = this._getIndividualActions()
+      actionsColumn = (
+        <td>
+          <div className='pull-right'>
+            <ButtonGroup>
+              {map(primary, (props, key) => (
+                <Action {...props} items={item} key={key} userData={userData} />
+              ))}
+              {secondary !== undefined && (
+                <CollapsedActions
+                  actions={secondary}
+                  items={item}
+                  userData={userData}
+                />
+              )}
+            </ButtonGroup>
+          </div>
+        </td>
+      )
+    }
 
     return rowLink != null ? (
       <BlockLink
@@ -828,7 +931,7 @@ class SortedTable extends Component {
                 {(nSelectedItems !== 0 || all) && (
                   <div className='pull-right'>
                     <ButtonGroup>
-                      {map(groupedActions, (props, key) => (
+                      {map(groupedActions.primary, (props, key) => (
                         <Action
                           {...props}
                           key={key}
@@ -836,6 +939,13 @@ class SortedTable extends Component {
                           userData={userData}
                         />
                       ))}
+                      {groupedActions.secondary !== undefined && (
+                        <CollapsedActions
+                          actions={groupedActions.secondary}
+                          items={this._getSelectedItems()}
+                          userData={userData}
+                        />
+                      )}
                     </ButtonGroup>
                   </div>
                 )}
