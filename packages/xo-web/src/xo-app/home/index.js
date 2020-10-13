@@ -475,10 +475,6 @@ const NoObjects = props =>
     <NoObjectsWithoutServers {...props} />
   )
 
-@addSubscriptions({
-  jobs: subscribeBackupNgJobs,
-  noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
-})
 @connectStore(() => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
 
@@ -502,6 +498,15 @@ const NoObjects = props =>
     type,
     user: getUser,
   }
+})
+@addSubscriptions(({ isAdmin }) => {
+  const noResourceSets = cb => subscribeResourceSets(data => cb(isEmpty(data)))
+  return isAdmin
+    ? {
+        jobs: subscribeBackupNgJobs,
+        noResourceSets,
+      }
+    : { noResourceSets }
 })
 export default class Home extends Component {
   static contextTypes = {
