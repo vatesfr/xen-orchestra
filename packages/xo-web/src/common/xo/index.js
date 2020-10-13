@@ -424,7 +424,10 @@ export const subscribeNotifications = createSubscription(async () => {
 
   let notifications
   try {
-    notifications = await updater._call('getMessages')
+    const now = Date.now()
+    notifications = (await updater._call('getMessages')).filter(
+      ({ expires }) => expires == null || expires > now
+    )
   } catch (err) {
     return []
   }
