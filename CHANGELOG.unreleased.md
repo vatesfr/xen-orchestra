@@ -14,7 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XOA/Notifications] Don't show expired notifications (PR [#5304](https://github.com/vatesfr/xen-orchestra/pull/5304))
-- [VM] Improve the VM migration error due to a not set default SR on the destination pool [#5282](https://github.com/vatesfr/xen-orchestra/issues/5282) (PR [#5306](https://github.com/vatesfr/xen-orchestra/pull/5306))
+- [VM] Explicit error when VM migration failed due to unset default SR on destination pool [#5282](https://github.com/vatesfr/xen-orchestra/issues/5282) (PR [#5306](https://github.com/vatesfr/xen-orchestra/pull/5306))
 
 ### Packages to release
 
