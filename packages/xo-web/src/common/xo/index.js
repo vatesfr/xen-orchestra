@@ -3289,6 +3289,9 @@ export const upgradeProxyAppliance = proxy =>
 export const getProxyApplianceUpdaterState = id =>
   _call('proxy.getApplianceUpdaterState', { id })
 
+export const updateProxyApplianceSettings = (id, props) =>
+  _call('proxy.updateApplianceSettings', { id, ...props })
+
 const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
   'ECONNREFUSED',
   'ECONNRESET',

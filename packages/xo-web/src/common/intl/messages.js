@@ -2417,6 +2417,7 @@ const messages = {
   redeployProxyWarning: 'This action will destroy the old proxy VM',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
+  updateProxyApplianceSettings: 'Update appliance settings',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',
@@ -2430,6 +2431,8 @@ const messages = {
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
   proxyUpgradesError: 'Unable to check upgrades availability',
+  proxyApplianceSettingsInfo:
+    'Leave the field empty and click on OK to remove the existing configuration',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
