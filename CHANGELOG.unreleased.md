@@ -10,7 +10,7 @@
 - [Host/Advanced] Add the field `IOMMU` if it is defined (PR [#5294](https://github.com/vatesfr/xen-orchestra/pull/5294))
 - [Backup logs/report] Hide merge task when no merge is done (PR [#5263](https://github.com/vatesfr/xen-orchestra/pull/5263))
 - [New backup] Enable created schedules by default (PR [#5280](https://github.com/vatesfr/xen-orchestra/pull/5280))
-- [Proxy] Ability to update HTTP proxy configuration (PR [#5148](https://github.com/vatesfr/xen-orchestra/pull/5148))
+- [Proxy] Ability to update HTTP proxy configuration on XOA proxy (PR [#5148](https://github.com/vatesfr/xen-orchestra/pull/5148))
 
 ### Bug fixes
 
