@@ -27,11 +27,17 @@ const Overview = decorate([
   provideState({
     initialState: () => ({
       scrollIntoJobs: undefined,
+      scrollIntoLogs: undefined,
     }),
     effects: {
       handleJobsRef(_, ref) {
         if (ref !== null) {
           this.state.scrollIntoJobs = ref.scrollIntoView.bind(ref)
+        }
+      },
+      handleLogsRef(_, ref) {
+        if (ref !== null) {
+          this.state.scrollIntoLogs = ref.scrollIntoView.bind(ref)
         }
       },
     },
@@ -41,7 +47,10 @@ const Overview = decorate([
     },
   }),
   injectState,
-  ({ effects, state: { haveLegacyBackups, scrollIntoJobs } }) => (
+  ({
+    effects,
+    state: { haveLegacyBackups, scrollIntoJobs, scrollIntoLogs },
+  }) => (
     <div>
       {haveLegacyBackups && <LegacyOverview />}
       <div className='mt-2 mb-1'>
@@ -52,11 +61,13 @@ const Overview = decorate([
           </CardHeader>
           <CardBlock>
             <div ref={effects.handleJobsRef}>
-              <JobsTable />
+              <JobsTable scrollIntoLogs={scrollIntoLogs} />
             </div>
           </CardBlock>
         </Card>
-        <LogsTable scrollIntoJobs={scrollIntoJobs} />
+        <div ref={effects.handleLogsRef}>
+          <LogsTable scrollIntoJobs={scrollIntoJobs} />
+        </div>
       </div>
     </div>
   ),

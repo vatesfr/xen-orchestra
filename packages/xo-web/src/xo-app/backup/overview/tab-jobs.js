@@ -18,7 +18,9 @@ import { createFilter, createGetObjectsOfType, createSelector } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
 import { groupBy, isEmpty, map, some } from 'lodash'
+import { injectState, provideState } from 'reaclette'
 import { Proxy } from 'render-xo-item'
+import { withRouter } from 'react-router'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -110,6 +112,49 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
       : runMetadataBackupJob({ id, schedule })
   )
 
+const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
+const GoToLogs = decorate([
+  withRouter,
+  provideState({
+    effects: {
+      goTo() {
+        const {
+          jobId,
+          location,
+          router,
+          scheduleId,
+          scrollIntoLogs,
+        } = this.props
+        router.replace({
+          ...location,
+          query: {
+            ...location.query,
+            s_logs:
+              jobId !== undefined
+                ? `jobId:${jobId}`
+                : `scheduleId:${scheduleId}`,
+          },
+        })
+        scrollIntoLogs()
+      },
+    },
+  }),
+  injectState,
+  ({ effects, children }) => (
+    <Tooltip content={_('goToCorrespondingLogs')}>
+      <span onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
+        {children}
+      </span>
+    </Tooltip>
+  ),
+])
+
+GoToLogs.propTypes = {
+  jobId: PropTypes.string,
+  scheduleId: PropTypes.string,
+  scrollIntoLogs: PropTypes.func.isRequired,
+}
+
 const SchedulePreviewBody = decorate([
   addSubscriptions(({ schedule }) => ({
     lastRunLog: cb =>
@@ -138,12 +183,14 @@ const SchedulePreviewBody = decorate([
       .filter(createSelector((_, props) => props.job.vms, createPredicate))
       .count(),
   })),
-  ({ job, schedule, lastRunLog, nVms }) => (
+  ({ job, schedule, scrollIntoLogs, lastRunLog, nVms }) => (
     <Ul>
       <Li>
-        {schedule.name
-          ? _.keyValue(_('scheduleName'), schedule.name)
-          : _.keyValue(_('scheduleCron'), schedule.cron)}{' '}
+        <GoToLogs scheduleId={schedule.id} scrollIntoLogs={scrollIntoLogs}>
+          {schedule.name
+            ? _.keyValue(_('scheduleName'), schedule.name)
+            : _.keyValue(_('scheduleCron'), schedule.cron)}
+        </GoToLogs>{' '}
         <Tooltip content={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}>
           <CopyToClipboard text={schedule.id}>
             <Button size='small'>
@@ -226,9 +273,11 @@ class JobsTable extends React.Component {
   static tableProps = {
     columns: [
       {
-        itemRenderer: ({ id }) => (
+        itemRenderer: ({ id }, { scrollIntoLogs }) => (
           <Copiable data={id} tagName='p'>
-            {id.slice(4, 8)}
+            <GoToLogs jobId={id} scrollIntoLogs={scrollIntoLogs}>
+              {id.slice(4, 8)}
+            </GoToLogs>
           </Copiable>
         ),
         name: _('jobId'),
@@ -250,7 +299,7 @@ class JobsTable extends React.Component {
         name: _('jobModes'),
       },
       {
-        itemRenderer: (job, { schedulesByJob }) =>
+        itemRenderer: (job, { schedulesByJob, scrollIntoLogs }) =>
           map(
             get(() => schedulesByJob[job.id]),
             schedule => (
@@ -258,6 +307,7 @@ class JobsTable extends React.Component {
                 job={job}
                 key={schedule.id}
                 schedule={schedule}
+                scrollIntoLogs={scrollIntoLogs}
               />
             )
           ),
@@ -399,6 +449,7 @@ class JobsTable extends React.Component {
         data-goToNewTab={this._goToNewTab}
         data-main={this.props.main}
         data-schedulesByJob={this.props.schedulesByJob}
+        data-scrollIntoLogs={this.props.scrollIntoLogs}
         stateUrlParam='s'
       />
     )

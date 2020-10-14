@@ -72,6 +72,7 @@ class PatchesCard extends Component {
 
 @connectStore({
   hosts: createGetObjectsOfType('host'),
+  isAdmin,
   pools: createGetObjectsOfType('pool'),
   srs: createGetObjectsOfType('SR').filter([isSrWritable]),
   vms: createGetObjectsOfType('VM'),
@@ -82,10 +83,13 @@ class PatchesCard extends Component {
     task => task.status === 'pending',
   ]),
 })
-@addSubscriptions({
-  plugins: subscribePlugins,
-  users: subscribeUsers,
-})
+@addSubscriptions(
+  ({ isAdmin }) =>
+    isAdmin && {
+      plugins: subscribePlugins,
+      users: subscribeUsers,
+    }
+)
 @injectIntl
 class DefaultCard extends Component {
   _getPoolWisePredicate = createSelector(
