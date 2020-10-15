@@ -86,6 +86,9 @@ const messages = {
   installedCertificates: 'Installed certificates',
   expiry: 'Expiry',
   fingerprint: 'Fingerprint',
+  certificate: 'Certificate',
+  certificateChain: 'Certificate chain',
+  privateKey: 'Private key',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -912,6 +915,7 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
+  hostInstallNewCertificate: 'Install new certificate',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',

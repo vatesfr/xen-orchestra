@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import decorate from 'apply-decorators'
@@ -34,6 +35,8 @@ import {
   setHostsMultipathing,
   setRemoteSyslogHost,
 } from 'xo'
+
+import { installCertificate } from './install-certificate'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
@@ -454,7 +457,17 @@ export default class extends Component {
             ]}
             {host.certificates !== undefined && (
               <div>
-                <h3>{_('installedCertificates')}</h3>
+                <h3>
+                  {_('installedCertificates')}{' '}
+                  <ActionButton
+                    btnStyle='success'
+                    handler={installCertificate}
+                    handlerParam={host.id}
+                    icon='upload'
+                  >
+                    {_('hostInstallNewCertificate')}
+                  </ActionButton>
+                </h3>
                 {host.certificates.length > 0 ? (
                   <ul className='list-group'>
                     {host.certificates.map(({ fingerprint, notAfter }) => (
