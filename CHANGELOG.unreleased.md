@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host/Advanced] Display installed certificates [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PR [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319))
+- [Host/Advanced] Display installed certificates with ability to install a new certificate [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PR [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319) [#5332](https://github.com/vatesfr/xen-orchestra/pull/5332))
 
 ### Bug fixes
 
