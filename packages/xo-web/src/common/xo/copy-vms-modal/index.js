@@ -7,7 +7,6 @@ import { injectIntl } from 'react-intl'
 
 import BaseComponent from 'base-component'
 import SingleLineRow from 'single-line-row'
-import Upgrade from 'xoa-upgrade'
 import { Col } from 'grid'
 import { SelectSr } from 'select-objects'
 import { connectStore } from 'utils'
@@ -89,7 +88,7 @@ class CopyVmsModalBody extends BaseComponent {
     } = this.props
     const { compression, copyMode, namePattern, sr } = this.state
 
-    return process.env.XOA_PLAN > 2 ? (
+    return (
       <div>
         <SingleLineRow>
           <Col size={6}>{_('copyVmName')}</Col>
@@ -159,10 +158,6 @@ class CopyVmsModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-      </div>
-    ) : (
-      <div>
-        <Upgrade place='vmCopy' available={3} />
       </div>
     )
   }
