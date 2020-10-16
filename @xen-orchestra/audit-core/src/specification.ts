@@ -1,7 +1,7 @@
 class Storage {
   acquire: () => Promise<() => undefined>
   del: (id: string) => Promise<void>
-  get: (id: string, throwIfNotFound: boolean) => Promise<Record | void>
+  get: (id: string) => Promise<Record | void>
   getLastId: () => Promise<string | void>
   put: (record: Record) => Promise<void>
   setLastId: (id: string) => Promise<void>

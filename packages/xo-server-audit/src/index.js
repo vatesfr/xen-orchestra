@@ -101,9 +101,9 @@ class Db extends Storage {
     await this._db.del(id)
   }
 
-  get(id, throwIfNotFound = false) {
+  get(id) {
     return this._db.get(id).catch(error => {
-      if (throwIfNotFound || !error.notFound) {
+      if (!error.notFound) {
         throw error
       }
     })

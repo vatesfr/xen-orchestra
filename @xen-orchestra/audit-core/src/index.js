@@ -155,8 +155,9 @@ export class AuditCore {
     const storage = this._storage
     $defer(await storage.acquireLock())
 
-    await storage.get(newest, true)
+    assert.notStrictEqual(await storage.get(newest, true), undefined)
     const oldestRecord = await storage.get(oldest, true)
+    assert.notStrictEqual(oldestRecord, undefined)
 
     const lastId = await storage.getLastId()
     const recentRecords = []
