@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Licensing] Ability for free and starter user to copy VMs and create vm from snapshot localy [#4890](https://github.com/vatesfr/xen-orchestra/issues/4890)(PR [5333](https://github.com/vatesfr/xen-orchestra/pull/5333))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -27,3 +29,5 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- xo-web minor
