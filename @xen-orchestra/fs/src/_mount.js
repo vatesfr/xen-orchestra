@@ -1,21 +1,13 @@
 import execa from 'execa'
 import fs from 'fs-extra'
-import { ignoreErrors, fromCallback } from 'promise-toolbox'
+import { ignoreErrors } from 'promise-toolbox'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
 import LocalHandler from './local'
-import { Syscall6 } from 'syscall'
-import normalizePath from './_normalizePath'
-import { randomBytes } from 'crypto'
 
 const sudoExeca = (command, args, opts) =>
   execa('sudo', [command, ...args], opts)
-
-const computeRate = (hrtime: number[], size: number) => {
-  const seconds = hrtime[0] + hrtime[1] / 1e9
-  return size / seconds
-}
 
 export default class MountHandler extends LocalHandler {
   constructor(
@@ -62,71 +54,6 @@ export default class MountHandler extends LocalHandler {
 
   _getRealPath() {
     return this._realPath
-  }
-
-  async test(): Promise<Object> {
-    /**
-     * @returns the number of byte effectively copied, needs to be called in a loop!
-     */
-    function copy_file_range(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags = 0) {
-      // we are stuck on linux x86_64
-      function wrapOffset(offsetIn) {
-        if (offsetIn == null)
-          return 0
-        const offsetInBuffer = new Uint32Array(2)
-        new DataView(offsetInBuffer.buffer).setBigUint64(0, BigInt(offsetIn), true)
-        return offsetInBuffer
-      }
-
-      const SYS_copy_file_range = 326
-      const [ret, _, errno] = Syscall6(SYS_copy_file_range, fdIn, wrapOffset(offsetIn), fdOut, wrapOffset(offsetOut), data.byteLength, 0)
-      if (errno !== 0) {
-        throw new Error('Error no', errno)
-      }
-      return ret
-    }
-
-    const SIZE = 1024 * 1024 * 10
-    const testFileName = normalizePath(`${Date.now()}.test`)
-    const testFileName2 = normalizePath(`${Date.now()}__2.test`)
-    const data = await fromCallback(randomBytes, SIZE)
-    let step = 'write'
-    try {
-      const writeStart = process.hrtime()
-      await this._outputFile(testFileName, data, { flags: 'wx' })
-      const writeDuration = process.hrtime(writeStart)
-      step = 'duplicate'
-      const fd1 = await this._openFile(testFileName, 'r')
-      const fd2 = await this._openFile(testFileName2, 'w')
-      console.log('_openFile', fd1, fd2, data.byteLength)
-
-      const res = copy_file_range(fd1, 0, fd2, null, data.byteLength, 0)
-      console.log('copy_file_range', res)
-      await this._closeFile(fd2)
-
-      step = 'read'
-      const readStart = process.hrtime()
-      const read = await this._readFile(testFileName, { flags: 'r' })
-      const readDuration = process.hrtime(readStart)
-
-      if (!data.equals(read)) {
-        throw new Error('output and input did not match')
-      }
-      return {
-        success: true,
-        writeRate: computeRate(writeDuration, SIZE),
-        readRate: computeRate(readDuration, SIZE),
-      }
-    } catch (error) {
-      return {
-        success: false,
-        step,
-        file: testFileName,
-        error: error.message || String(error),
-      }
-    } finally {
-      ignoreErrors.call(this._unlink(testFileName))
-    }
   }
 
   async _sync() {

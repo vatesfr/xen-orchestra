@@ -3,6 +3,28 @@ import fs from 'fs-extra'
 import { fromEvent } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
+import { Syscall6 } from 'syscall'
+
+/**
+ * @returns the number of byte effectively copied, needs to be called in a loop!
+ */
+function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags = 0) {
+  // we are stuck on linux x86_64
+  function wrapOffset(offsetIn) {
+    if (offsetIn == null)
+      return 0
+    const offsetInBuffer = new Uint32Array(2)
+    new DataView(offsetInBuffer.buffer).setBigUint64(0, BigInt(offsetIn), true)
+    return offsetInBuffer
+  }
+
+  const SYS_copy_file_range = 326
+  const [copied, _, errno] = Syscall6(SYS_copy_file_range, fdIn, wrapOffset(offsetIn), fdOut, wrapOffset(offsetOut), dataLen, flags)
+  if (errno !== 0) {
+    throw new Error('Error no ' + errno)
+  }
+  return copied
+}
 
 export default class LocalHandler extends RemoteHandlerAbstract {
   get type() {
@@ -18,7 +40,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {
-    return fs.close(fd)
+    return fs.close(fd.fd)
   }
 
   async _createReadStream(file, options) {
@@ -79,6 +101,23 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _openFile(path, flags) {
     return fs.open(this._getFilePath(path), flags)
+  }
+
+  /**
+   * Slightly different from the linux system call:
+   *  - offsets are mandatory (because some remote handlers don't have a current pointer for files)
+   *  - flags is fixed to 0
+   *  - will not return until copy is finished.
+   *
+   * @param fdIn read open file descriptor
+   * @param offsetIn either start offset in the source file
+   * @param fdOut write open file descriptor (not append!)
+   * @param offsetOut offset in the target file
+   * @param dataLen how long to copy
+   * @returns {Promise<void>}
+   */
+  async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
+    await copyFileRangeSyscall(fdIn.fd, offsetIn, fdOut.fd, offsetOut, dataLen)
   }
 
   async _read(file, buffer, position) {

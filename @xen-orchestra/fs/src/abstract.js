@@ -311,6 +311,26 @@ export default class RemoteHandlerAbstract {
     )
   }
 
+  /**
+   * Slightly different from the copy_file_range linux system call:
+   *  - offsets are mandatory (because some remote handlers don't have a current pointer for files)
+   *  - flags is fixed to 0
+   *  - will not return until copy is finished.
+   *
+   * @param fdIn read open file descriptor
+   * @param offsetIn either start offset in the source file
+   * @param fdOut write open file descriptor (not append!)
+   * @param offsetOut offset in the target file
+   * @param dataLen how long to copy
+   * @returns {Promise<void>}
+   */
+  async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
+    // default implementation goes through the network
+    const buffer = Buffer.alloc(dataLen)
+    await this._read(fdIn, buffer, offsetIn)
+    await this._write(fdOut, buffer, offsetOut)
+  }
+
   async readFile(
     file: string,
     { flags = 'r' }: { flags?: string } = {}
@@ -358,13 +378,30 @@ export default class RemoteHandlerAbstract {
 
   async test(): Promise<Object> {
     const SIZE = 1024 * 1024 * 10
-    const testFileName = normalizePath(`${Date.now()}.test`)
+    const now = Date.now()
+    const testFileName = normalizePath(`${now}.test`)
+    const testFileName2 = normalizePath(`${now}__dup.test`)
     const data = await fromCallback(randomBytes, SIZE)
     let step = 'write'
     try {
       const writeStart = process.hrtime()
       await this._outputFile(testFileName, data, { flags: 'wx' })
       const writeDuration = process.hrtime(writeStart)
+      step = 'duplicate'
+      const fd1 = await this.openFile(testFileName, 'r')
+      try {
+        const fd2 = await this.openFile(testFileName2, 'wx')
+        try {
+          const cloneStart = process.hrtime()
+          await this.copyFileRange(fd1, 0, fd2, 0, data.byteLength)
+          const cloneDuration = process.hrtime(cloneStart)
+          console.log('cloneDuration', cloneDuration)
+        } finally {
+          await this._closeFile(fd2)
+        }
+      } finally {
+        await this._closeFile(fd1)
+      }
 
       step = 'read'
       const readStart = process.hrtime()
@@ -373,6 +410,11 @@ export default class RemoteHandlerAbstract {
 
       if (!data.equals(read)) {
         throw new Error('output and input did not match')
+      }
+
+      const read2 = await this._readFile(testFileName2, { flags: 'r' })
+      if (!data.equals(read2)) {
+        throw new Error('duplicated and input did not match')
       }
       return {
         success: true,
@@ -388,6 +430,7 @@ export default class RemoteHandlerAbstract {
       }
     } finally {
       ignoreErrors.call(this._unlink(testFileName))
+      ignoreErrors.call(this._unlink(testFileName2))
     }
   }
 
@@ -428,7 +471,7 @@ export default class RemoteHandlerAbstract {
   // Methods that can be called by private methods to avoid parallel limit on public methods
 
   async __closeFile(fd: FileDescriptor): Promise<void> {
-    await timeout.call(this._closeFile(fd.fd), this._timeout)
+    await timeout.call(this._closeFile(fd), this._timeout)
   }
 
   async __mkdir(dir: string): Promise<void> {
@@ -660,4 +703,5 @@ function createPrefixWrapperMethods() {
     defineProperty(pPw, name, descriptor)
   })
 }
+
 createPrefixWrapperMethods()
