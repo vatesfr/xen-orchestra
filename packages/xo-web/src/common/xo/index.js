@@ -424,7 +424,10 @@ export const subscribeNotifications = createSubscription(async () => {
 
   let notifications
   try {
-    notifications = await updater._call('getMessages')
+    const now = Date.now()
+    notifications = (await updater._call('getMessages')).filter(
+      ({ expires }) => expires == null || expires > now
+    )
   } catch (err) {
     return []
   }
@@ -1743,8 +1746,12 @@ export const deleteOrphanedVdis = vdis =>
     noop
   )
 
-export const migrateVdi = (vdi, sr) =>
-  _call('vdi.migrate', { id: resolveId(vdi), sr_id: resolveId(sr) })
+export const migrateVdi = (vdi, sr, resourceSet) =>
+  _call('vdi.migrate', {
+    id: resolveId(vdi),
+    resourceSet,
+    sr_id: resolveId(sr),
+  })
 
 // VBD ---------------------------------------------------------------
 
@@ -2342,8 +2349,10 @@ export const configurePlugin = (id, configuration) =>
   )
 
 export const getPlugin = async id => {
-  const plugins = await _call('plugin.get')
-  return plugins.find(plugin => plugin.id === id)
+  const { user } = store.getState()
+  if (user != null && user.permission === 'admin') {
+    return (await _call('plugin.get')).find(plugin => plugin.id === id)
+  }
 }
 
 export const purgePluginConfiguration = async id => {
@@ -3279,6 +3288,9 @@ export const upgradeProxyAppliance = proxy =>
 
 export const getProxyApplianceUpdaterState = id =>
   _call('proxy.getApplianceUpdaterState', { id })
+
+export const updateProxyApplianceSettings = (id, props) =>
+  _call('proxy.updateApplianceSettings', { id, ...props })
 
 const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
   'ECONNREFUSED',

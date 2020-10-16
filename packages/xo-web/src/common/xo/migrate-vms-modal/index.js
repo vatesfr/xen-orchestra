@@ -19,7 +19,7 @@ import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
 import { getDefaultNetworkForVif } from '../utils'
 import { SelectHost, SelectNetwork, SelectSr } from '../../select-objects'
-import { connectStore } from '../../utils'
+import { connectStore, createCompare } from '../../utils'
 import {
   createGetObjectsOfType,
   createPicker,
@@ -251,6 +251,12 @@ export default class MigrateVmsModalBody extends BaseComponent {
       srId: defaultSrConnectedToHost ? defaultSrId : undefined,
     })
   }
+
+  getCompareContainers = createSelector(
+    () => this.props.vms,
+    vms => createCompare([pool => some(vms, vm => vm.$pool === pool.id)])
+  )
+
   _selectMigrationNetwork = migrationNetwork =>
     this.setState({ migrationNetworkId: migrationNetwork.id })
   _selectNetwork = network => this.setState({ networkId: network.id })
@@ -277,6 +283,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             <Col size={6}>{_('migrateVmSelectHost')}</Col>
             <Col size={6}>
               <SelectHost
+                compareContainers={this.getCompareContainers()}
                 onChange={this._selectHost}
                 predicate={this._getHostPredicate()}
                 value={host}

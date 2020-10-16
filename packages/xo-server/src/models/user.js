@@ -19,6 +19,9 @@ const serialize = user => {
   let tmp
   return {
     ...user,
+    authProviders: isEmpty((tmp = user.authProviders))
+      ? undefined
+      : JSON.stringify(tmp),
     groups: isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp),
     preferences: isEmpty((tmp = user.preferences))
       ? undefined
@@ -28,6 +31,7 @@ const serialize = user => {
 
 const deserialize = user => ({
   ...user,
+  authProviders: parseProp('user', user, 'authProviders', undefined),
   groups: parseProp('user', user, 'groups', []),
   preferences: parseProp('user', user, 'preferences', {}),
 })
