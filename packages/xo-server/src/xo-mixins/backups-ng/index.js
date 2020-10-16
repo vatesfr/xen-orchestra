@@ -710,7 +710,7 @@ export default class BackupNg {
         const srs = srIds.map(id => app.getXapiObject(id, 'SR'))
         const remotes = await Promise.all(
           remoteIds.map(async id => {
-            const remote = await app.getRemote(id)
+            const remote = await app.getRemoteWithCredentials(id)
             if (remote.proxy !== undefined) {
               throw new Error(
                 `The remote ${remote.name} must not be linked to a proxy`

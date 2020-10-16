@@ -36,7 +36,7 @@ In the network creation view:
 
 :::tip
 
-- All hosts in a private network must be able to reach the other hosts' management interface.
+- All hosts in a private network must be able to reach the other hosts' management interface and all hosts must be able to reach one another on the interface selected for private networks creation.
   > The term ‘management interface’ is used to indicate the IP-enabled NIC that carries the management traffic.
 - Only 1 encrypted GRE network and 1 encrypted VxLAN network per pool can exist at a time due to Open vSwitch limitation.
   :::
