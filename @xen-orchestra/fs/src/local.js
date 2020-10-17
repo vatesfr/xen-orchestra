@@ -125,6 +125,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     } while (dataLen - copied > 0)
   }
 
+  async fSync(fd) {
+    await fs.fsync(fd.fd)
+  }
+
   async _read(file, buffer, position) {
     const needsClose = typeof file === 'string'
     file = needsClose ? await fs.open(this._getFilePath(file), 'r') : file.fd

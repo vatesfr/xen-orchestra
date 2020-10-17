@@ -312,6 +312,8 @@ export default class RemoteHandlerAbstract {
   }
 
   /**
+   * Copy a range from one file to the other, kernel side, server side or with a reflink if possible.
+   *
    * Slightly different from the copy_file_range linux system call:
    *  - offsets are mandatory (because some remote handlers don't have a current pointer for files)
    *  - flags is fixed to 0
@@ -329,6 +331,18 @@ export default class RemoteHandlerAbstract {
     const buffer = Buffer.alloc(dataLen)
     await this._read(fdIn, buffer, offsetIn)
     await this._write(fdOut, buffer, offsetOut)
+  }
+
+  /**
+   * Writes a succession of zero bytes in a file, server side, and with sparse FS support if possible so that it
+   * doesn't take space.
+   *
+   */
+  async writeBlankRange(fd, offset, blankLength) {
+    await this._write(fd, Buffer.alloc(blankLength), offset)
+  }
+
+  async fSync(fd) {
   }
 
   async readFile(
@@ -377,19 +391,25 @@ export default class RemoteHandlerAbstract {
   }
 
   async test(): Promise<Object> {
-    const SIZE = 1024 * 1024 * 10
+    const SIZE = 1024 * 1024 * 100
+    const HOLE_SIZE = 1024 * 1024 * 2
+    const HOLE_OFFSET = 30
     const now = Date.now()
     const testFileName = normalizePath(`${now}.test`)
     const testFileName2 = normalizePath(`${now}__dup.test`)
-    const data = await fromCallback(randomBytes, SIZE)
+    // get random ASCII for easy debug
+    const data = Buffer.from((await fromCallback(randomBytes, SIZE)).toString('base64'), 'ascii').slice(0, SIZE)
     let step = 'write'
     try {
       const writeStart = process.hrtime()
       await this._outputFile(testFileName, data, { flags: 'wx' })
       const writeDuration = process.hrtime(writeStart)
       step = 'duplicate'
-      const fd1 = await this.openFile(testFileName, 'r')
+      const fd1 = await this.openFile(testFileName, 'r+')
       try {
+        await this.writeBlankRange(fd1, HOLE_OFFSET, HOLE_SIZE)
+        // SMB doesn't flush the write on its own.
+        await this.fSync(fd1)
         const fd2 = await this.openFile(testFileName2, 'wx')
         try {
           const cloneStart = process.hrtime()
@@ -407,7 +427,8 @@ export default class RemoteHandlerAbstract {
       const readStart = process.hrtime()
       const read = await this._readFile(testFileName, { flags: 'r' })
       const readDuration = process.hrtime(readStart)
-
+      // put the hole in the expected data
+      data.fill(0, HOLE_OFFSET, HOLE_OFFSET + HOLE_SIZE)
       if (!data.equals(read)) {
         throw new Error('output and input did not match')
       }
@@ -422,6 +443,7 @@ export default class RemoteHandlerAbstract {
         readRate: computeRate(readDuration, SIZE),
       }
     } catch (error) {
+      console.log('ERROR', error)
       return {
         success: false,
         step,
