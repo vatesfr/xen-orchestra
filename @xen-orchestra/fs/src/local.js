@@ -7,6 +7,7 @@ import { Syscall6 } from 'syscall'
 
 /**
  * @returns the number of byte effectively copied, needs to be called in a loop!
+ * @throws Error if the syscall returned -1
  */
 function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags = 0) {
   // we are stuck on linux x86_64
@@ -18,9 +19,10 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
     return offsetInBuffer
   }
 
+  // https://man7.org/linux/man-pages/man2/copy_file_range.2.html
   const SYS_copy_file_range = 326
   const [copied, _, errno] = Syscall6(SYS_copy_file_range, fdIn, wrapOffset(offsetIn), fdOut, wrapOffset(offsetOut), dataLen, flags)
-  if (errno !== 0) {
+  if (copied === -1) {
     throw new Error('Error no ' + errno)
   }
   return copied
@@ -117,7 +119,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
    * @returns {Promise<void>}
    */
   async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
-    await copyFileRangeSyscall(fdIn.fd, offsetIn, fdOut.fd, offsetOut, dataLen)
+    let copied = 0
+    do {
+      copied += await copyFileRangeSyscall(fdIn.fd, offsetIn + copied, fdOut.fd, offsetOut + copied, dataLen - copied)
+    } while (dataLen - copied > 0)
   }
 
   async _read(file, buffer, position) {
