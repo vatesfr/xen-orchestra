@@ -72,7 +72,9 @@ When logical volume no longer necessary:
 
 ```
 > mkdir /tmp/block-mount
-> mount --options=loop,ro,$((START * 512)) --source= --destination=/tmp/vhd-mount/vhdi2 /tmp/block-mount
+> mount --options=loop,ro,$((START * 512)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
+> ls /tmp/block-mount
+bin  boot  dev	etc  home  lib	lib64  lost+found  media  mnt  opt  proc  root	run  sbin  srv	sys  @System.solv  tmp	usr  var
 ```
 
 When mountpoint no longer necessary:
