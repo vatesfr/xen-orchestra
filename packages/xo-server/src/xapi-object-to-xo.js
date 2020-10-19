@@ -262,7 +262,7 @@ const TRANSFORMS = {
         capability.startsWith('hvm')
       ),
 
-      // Only exists on XCP-ng/XenServer >= 8.2
+      // Only exists on XCP-ng/CH >= 8.2
       certificates: obj.$certificates?.map(({ fingerprint, not_after }) => ({
         fingerprint,
         notAfter: toTimestamp(not_after),
