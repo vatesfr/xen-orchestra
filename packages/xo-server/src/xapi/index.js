@@ -347,13 +347,19 @@ export default class Xapi extends XapiBase {
     hostId,
     { certificate, certificateChain = '', privateKey }
   ) {
-    await this.call(
-      'host.install_server_certificate',
-      this.getObject(hostId).$ref,
-      certificate,
-      privateKey,
-      certificateChain
-    )
+    try {
+      await this.call(
+        'host.install_server_certificate',
+        this.getObject(hostId).$ref,
+        certificate,
+        privateKey,
+        certificateChain
+      )
+    } catch (error) {
+      if (error.code !== 'ECONNRESET') {
+        throw error
+      }
+    }
   }
 
   // Resources:
