@@ -307,19 +307,13 @@ export default class Vhd {
     return this._write(blockTable.slice(i, i + 4), this.header.tableOffset + i)
   }
 
-  // Make a new empty block at vhd end.
-  // Update block allocation table in context and in file.
+  // Allocate a new uninitialized block in the BAT
   async _createBlock(blockId) {
     const blockAddr = Math.ceil(this._getEndOfData() / SECTOR_SIZE)
 
     debug(`create block ${blockId} at ${blockAddr}`)
 
-    await Promise.all([
-      // Write an empty block and addr in vhd file.
-      this._write(Buffer.alloc(this.fullBlockSize), sectorsToBytes(blockAddr)),
-
-      this._setBatEntry(blockId, blockAddr),
-    ])
+    await this._setBatEntry(blockId, blockAddr)
 
     return blockAddr
   }

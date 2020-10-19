@@ -28,5 +28,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- vhd-lib minor
 - @xen-orchestra/audit-core minor
 - xo-server-audit minor
