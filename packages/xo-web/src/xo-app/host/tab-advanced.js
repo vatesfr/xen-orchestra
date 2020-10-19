@@ -457,7 +457,7 @@ export default class extends Component {
                 <h3>{_('installedCertificates')}</h3>
                 {host.certificates.length > 0 ? (
                   <ul className='list-group'>
-                    {host.certificates.map(({ fingerprint, expiry }, key) => (
+                    {host.certificates.map(({ fingerprint, notAfter }, key) => (
                       <li className='list-group-item' key={key}>
                         <Container>
                           <Row>
@@ -474,7 +474,7 @@ export default class extends Component {
                             </Col>
                             <Col mediumSize={10}>
                               <FormattedTime
-                                value={expiry * 1e3}
+                                value={notAfter * 1e3}
                                 day='numeric'
                                 month='long'
                                 year='numeric'
@@ -486,7 +486,7 @@ export default class extends Component {
                     ))}
                   </ul>
                 ) : (
-                  <span>{_('noCertificateInstalled')}</span>
+                  <span>{_('hostNoCertificateInstalled')}</span>
                 )}
               </div>
             )}

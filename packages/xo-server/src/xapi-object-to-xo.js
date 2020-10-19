@@ -265,7 +265,7 @@ const TRANSFORMS = {
       // Only exists on XCP-ng/XenServer >= 8.2
       certificates: obj.$certificates?.map(({ fingerprint, not_after }) => ({
         fingerprint,
-        expiry: toTimestamp(not_after),
+        notAfter: toTimestamp(not_after),
       })),
 
       // TODO: dedupe.

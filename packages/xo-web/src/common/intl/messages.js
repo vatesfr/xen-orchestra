@@ -84,7 +84,6 @@ const messages = {
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
   installedCertificates: 'Installed certificates',
-  noCertificateInstalled: 'No certificate installed on this host',
   expiry: 'Expiry',
   fingerprint: 'Fingerprint',
 
@@ -912,6 +911,7 @@ const messages = {
   hostLicenseExpiry: 'Expiry',
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
+  hostNoCertificateInstalled: 'No certificate installed on this host',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',
