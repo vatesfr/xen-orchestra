@@ -66,13 +66,18 @@ export class AuditCore {
   }
 
   @defer
-  async add($defer, ...args) {
+  async add($defer, subject, event, data) {
+    const time = Date.now()
     $defer(await this._storage.acquireLock())
-    return this._addUnsafe(...args)
+    return this._addUnsafe({
+      data,
+      event,
+      subject,
+      time,
+    })
   }
 
-  async _addUnsafe(subject, event, data) {
-    const time = Date.now()
+  async _addUnsafe({ data, event, subject, time }) {
     const storage = this._storage
 
     // delete "undefined" properties and normalize data with JSON.stringify
@@ -180,7 +185,7 @@ export class AuditCore {
 
     for (const record of recentRecords) {
       try {
-        await this._addUnsafe(record.subject, record.event, record.data)
+        await this._addUnsafe(record)
         await storage.del(record.id)
       } catch (error) {
         log.error(error)
