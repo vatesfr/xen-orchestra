@@ -309,6 +309,8 @@ export default class Vhd {
 
   // Allocate a new uninitialized block in the BAT
   async _createBlock(blockId) {
+    assert.strictEqual(this._getBatEntry(blockId), BLOCK_UNUSED)
+
     const blockAddr = Math.ceil(this._getEndOfData() / SECTOR_SIZE)
 
     debug(`create block ${blockId} at ${blockAddr}`)
