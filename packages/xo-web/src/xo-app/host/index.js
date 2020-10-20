@@ -17,6 +17,7 @@ import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
   createFilter,
+  createGetHostState,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
@@ -93,6 +94,8 @@ const isRunning = host => host && host.power_state === 'Running'
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
+  const getHostState = createGetHostState(getHost)
+
   return (state, props) => {
     const host = getHost(state, props)
     if (!host) {
@@ -110,6 +113,7 @@ const isRunning = host => host && host.power_state === 'Running'
       pifs: getPifs(state, props),
       pool: getPool(state, props),
       privateNetworks: getPrivateNetworks(state, props),
+      state: getHostState(state, props),
       vmController: getVmController(state, props),
       vms: getHostVms(state, props),
     }
@@ -210,22 +214,9 @@ export default class Host extends Component {
   _setNameLabel = nameLabel =>
     editHost(this.props.host, { name_label: nameLabel })
 
-  _getHostState = createSelector(
-    () => this.props.host.power_state,
-    () => this.props.host.enabled,
-    () => this.props.host.current_operations,
-    (powerState, enabled, operations) =>
-      !isEmpty(operations)
-        ? 'Busy'
-        : powerState === 'Running' && !enabled
-        ? 'Disabled'
-        : powerState
-  )
-
   header() {
-    const { host, pool } = this.props
+    const { host, pool, state } = this.props
     const { missingPatches } = this.state || {}
-    const state = this._getHostState()
     if (!host) {
       return <Icon icon='loading' />
     }

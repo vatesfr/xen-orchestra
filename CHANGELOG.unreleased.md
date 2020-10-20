@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host] Fix power state stuck on busy after power off [#4919](https://github.com/vatesfr/xen-orchestra/issues/4919) (PR [#5288](https://github.com/vatesfr/xen-orchestra/pull/5288))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -31,3 +33,5 @@
 - vhd-lib minor
 - @xen-orchestra/audit-core minor
 - xo-server-audit minor
+- xo-web patch
+- xo-server patch
