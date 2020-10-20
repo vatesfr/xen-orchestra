@@ -457,8 +457,8 @@ export default class extends Component {
                 <h3>{_('installedCertificates')}</h3>
                 {host.certificates.length > 0 ? (
                   <ul className='list-group'>
-                    {host.certificates.map(({ fingerprint, notAfter }, key) => (
-                      <li className='list-group-item' key={key}>
+                    {host.certificates.map(({ fingerprint, notAfter }) => (
+                      <li className='list-group-item' key={fingerprint}>
                         <Container>
                           <Row>
                             <Col mediumSize={2}>
