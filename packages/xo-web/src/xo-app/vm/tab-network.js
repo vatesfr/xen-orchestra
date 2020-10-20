@@ -28,7 +28,7 @@ import {
   resolveResourceSet,
 } from 'utils'
 import {
-  SelectNetwork,
+  SelectNetwork as SelectAnyNetwork,
   SelectIp,
   SelectResourceSetIp,
   SelectResourceSetsNetwork,
@@ -551,9 +551,8 @@ class NewAclRuleForm extends BaseComponent {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRuleRow extends Component {
   render() {
     const { rule, vif, plugins } = this.props
@@ -588,9 +587,8 @@ class AclRuleRow extends Component {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRulesRows extends BaseComponent {
   _newAclRule(vif) {
     return confirm({
@@ -870,13 +868,15 @@ class NewVif extends BaseComponent {
     const { mac, network } = this.state
     const resourceSet = this._getResolvedResourceSet()
 
-    const Select_ =
-      isAdmin || resourceSet == null ? SelectNetwork : SelectResourceSetsNetwork
+    const SelectNetwork =
+      isAdmin || resourceSet == null
+        ? SelectAnyNetwork
+        : SelectResourceSetsNetwork
 
     return (
       <form id='newVifForm'>
         <div className='form-group'>
-          <Select_
+          <SelectNetwork
             onChange={this._selectNetwork}
             predicate={this._getNetworkPredicate()}
             required

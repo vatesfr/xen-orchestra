@@ -2349,8 +2349,10 @@ export const configurePlugin = (id, configuration) =>
   )
 
 export const getPlugin = async id => {
-  const plugins = await _call('plugin.get')
-  return plugins.find(plugin => plugin.id === id)
+  const { user } = store.getState()
+  if (user != null && user.permission === 'admin') {
+    return (await _call('plugin.get')).find(plugin => plugin.id === id)
+  }
 }
 
 export const purgePluginConfiguration = async id => {
@@ -3286,6 +3288,9 @@ export const upgradeProxyAppliance = proxy =>
 
 export const getProxyApplianceUpdaterState = id =>
   _call('proxy.getApplianceUpdaterState', { id })
+
+export const updateProxyApplianceSettings = (id, props) =>
+  _call('proxy.updateApplianceSettings', { id, ...props })
 
 const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
   'ECONNREFUSED',

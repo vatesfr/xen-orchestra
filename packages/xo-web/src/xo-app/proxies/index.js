@@ -24,6 +24,7 @@ import {
 import Page from '../page'
 
 import deployProxy from './deploy-proxy'
+import { updateApplianceSettings } from './update-appliance-settings'
 
 const _editProxy = (value, { name, proxy }) =>
   editProxyAppliance(proxy, { [name]: value })
@@ -63,6 +64,14 @@ const INDIVIDUAL_ACTIONS = [
     handler: checkProxyHealth,
     icon: 'diagnosis',
     label: _('checkProxyHealth'),
+    level: 'primary',
+  },
+  {
+    collapsed: true,
+    disabled: ({ vmUuid }) => vmUuid === undefined,
+    handler: proxy => updateApplianceSettings(proxy),
+    icon: 'settings',
+    label: _('updateProxyApplianceSettings'),
     level: 'primary',
   },
   {
