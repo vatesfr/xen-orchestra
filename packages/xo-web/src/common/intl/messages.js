@@ -911,7 +911,7 @@ const messages = {
   hostLicenseExpiry: 'Expiry',
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
-  hostNoCertificateInstalled: 'No certificate installed on this host',
+  hostNoCertificateInstalled: 'No certificates installed on this host',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',
