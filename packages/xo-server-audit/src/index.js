@@ -20,6 +20,7 @@ const DEFAULT_BLOCKED_LIST = {
   'acl.getCurrentPermissions': true,
   'audit.checkIntegrity': true,
   'audit.clean': true,
+  'audit.deleteRange': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
   'backup.list': true,
@@ -238,11 +239,21 @@ class AuditXoPlugin {
     clean.permission = 'admin'
     clean.description = 'Clean audit database'
 
+    const deleteRange = this._deleteRangeAndRewrite.bind(this)
+    deleteRange.description =
+      'Delete a range of records and rewrite the records chain'
+    deleteRange.permission = 'admin'
+    deleteRange.params = {
+      newest: { type: 'string' },
+      oldest: { type: 'string', optional: true },
+    }
+
     cleaners.push(
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
           clean,
+          deleteRange,
           exportRecords,
           generateFingerprint,
           getRecords,
@@ -426,6 +437,13 @@ class AuditXoPlugin {
         }
       }
       throw error
+    }
+  }
+
+  async _deleteRangeAndRewrite({ newest, oldest = newest }) {
+    await this._auditCore.deleteRangeAndRewrite(newest, oldest)
+    if (this._uploadLastHashJob !== undefined) {
+      await this._uploadLastHash()
     }
   }
 }

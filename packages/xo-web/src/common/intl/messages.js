@@ -1631,6 +1631,8 @@ const messages = {
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
   remoteNotCompatibleWithSelectedProxy:
     "The backup will not be run on this remote because it's not compatible with the selected proxy",
+  remoteLoadBackupsFailure: 'Loading backups failed',
+  remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
