@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Host/Advanced] Display installed certificates [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PR [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,5 @@
 - vhd-lib minor
 - @xen-orchestra/audit-core minor
 - xo-server-audit minor
-- xo-web patch
-- xo-server patch
+- xo-web minor
+- xo-server minor

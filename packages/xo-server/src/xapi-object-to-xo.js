@@ -264,6 +264,12 @@ const TRANSFORMS = {
         capability.startsWith('hvm')
       ),
 
+      // Only exists on XCP-ng/CH >= 8.2
+      certificates: obj.$certificates?.map(({ fingerprint, not_after }) => ({
+        fingerprint,
+        notAfter: toTimestamp(not_after),
+      })),
+
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),
       $PIFs: link(obj, 'PIFs'),
