@@ -970,6 +970,39 @@ export default class BackupNg {
       const { proxy, url, options } = await app.getRemoteWithCredentials(
         remoteId
       )
+
+      const handleBackups = backups =>
+        backups.map(backup => {
+          const filename =
+            proxy !== undefined ? backup.id.slice(1) : backup._filename
+
+          return {
+            disks:
+              backup.vhds === undefined
+                ? []
+                : Object.keys(backup.vhds).map(vdiId => {
+                    const vdi = backup.vdis[vdiId]
+                    return {
+                      id: `${dirname(filename)}/${backup.vhds[vdiId]}`,
+                      name: vdi.name_label,
+                      uuid: vdi.uuid,
+                    }
+                  }),
+
+            // inject an id usable by importVmBackupNg()
+            id: `${remoteId}/${filename}`,
+            jobId: backup.jobId,
+            mode: backup.mode,
+            scheduleId: backup.scheduleId,
+            size: backup.size,
+            timestamp: backup.timestamp,
+            vm: {
+              name_description: backup.vm.name_description,
+              name_label: backup.vm.name_label,
+            },
+          }
+        })
+
       if (proxy !== undefined) {
         const { [remoteId]: backupsByVm } = await app.callProxyMethod(
           proxy,
@@ -983,14 +1016,7 @@ export default class BackupNg {
             },
           }
         )
-
-        // inject the remote id on the backup which is needed for importVmBackupNg()
-        forOwn(backupsByVm, backups =>
-          backups.forEach(backup => {
-            backup.id = `${remoteId}${backup.id}`
-          })
-        )
-        return backupsByVm
+        return mapValues(backupsByVm, handleBackups)
       }
 
       const handler = await app.getRemoteHandler(remoteId)
@@ -1008,36 +1034,9 @@ export default class BackupNg {
         entries.map(async vmUuid => {
           // $FlowFixMe don't know what is the problem (JFT)
           const backups = await this._listVmBackups(handler, vmUuid)
-
-          if (backups.length === 0) {
-            return
+          if (backups.length !== 0) {
+            backupsByVm[vmUuid] = handleBackups(backups)
           }
-
-          backupsByVm[vmUuid] = backups.map(backup => ({
-            disks:
-              backup.vhds === undefined
-                ? []
-                : Object.keys(backup.vhds).map(vdiId => {
-                    const vdi = backup.vdis[vdiId]
-                    return {
-                      id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
-                      name: vdi.name_label,
-                      uuid: vdi.uuid,
-                    }
-                  }),
-
-            // inject an id usable by importVmBackupNg()
-            id: `${remoteId}/${backup._filename}`,
-            jobId: backup.jobId,
-            mode: backup.mode,
-            scheduleId: backup.scheduleId,
-            size: backup.size,
-            timestamp: backup.timestamp,
-            vm: {
-              name_description: backup.vm.name_description,
-              name_label: backup.vm.name_label,
-            },
-          }))
         })
       )
     } catch (error) {
