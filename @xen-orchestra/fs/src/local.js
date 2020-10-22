@@ -22,6 +22,7 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
   // https://man7.org/linux/man-pages/man2/copy_file_range.2.html
   const SYS_copy_file_range = 326
   const [copied, _, errno] = Syscall6(SYS_copy_file_range, fdIn, wrapOffset(offsetIn), fdOut, wrapOffset(offsetOut), dataLen, flags)
+  console.log('copy_file_range', [copied, _, errno])
   if (copied === -1) {
     throw new Error('Error no ' + errno)
   }
