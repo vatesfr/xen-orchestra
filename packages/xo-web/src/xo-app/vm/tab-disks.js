@@ -32,7 +32,6 @@ import {
   noop,
   resolveResourceSet,
 } from 'utils'
-import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
@@ -68,6 +67,11 @@ import {
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
+import {
+  SelectResourceSetsSr,
+  SelectSr as SelectAnySr,
+  SelectVdi,
+} from 'select-objects'
 
 const compareSrs = createCompare([isSrShared])
 
@@ -284,13 +288,13 @@ class NewDisk extends Component {
     const diskLimit = this._getResourceSetDiskLimit()
     const resourceSet = this._getResolvedResourceSet()
 
-    const SelectSr_ =
-      isAdmin || resourceSet == null ? SelectSr : SelectResourceSetsSr
+    const SelectSr =
+      isAdmin || resourceSet == null ? SelectAnySr : SelectResourceSetsSr
 
     return (
       <form id='newDiskForm'>
         <div className='form-group'>
-          <SelectSr_
+          <SelectSr
             onChange={this.linkState('sr')}
             predicate={this._getSrPredicate()}
             required

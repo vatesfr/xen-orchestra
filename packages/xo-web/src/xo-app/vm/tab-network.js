@@ -28,7 +28,7 @@ import {
   resolveResourceSet,
 } from 'utils'
 import {
-  SelectNetwork,
+  SelectNetwork as SelectAnyNetwork,
   SelectIp,
   SelectResourceSetIp,
   SelectResourceSetsNetwork,
@@ -868,13 +868,15 @@ class NewVif extends BaseComponent {
     const { mac, network } = this.state
     const resourceSet = this._getResolvedResourceSet()
 
-    const Select_ =
-      isAdmin || resourceSet == null ? SelectNetwork : SelectResourceSetsNetwork
+    const SelectNetwork =
+      isAdmin || resourceSet == null
+        ? SelectAnyNetwork
+        : SelectResourceSetsNetwork
 
     return (
       <form id='newVifForm'>
         <div className='form-group'>
-          <Select_
+          <SelectNetwork
             onChange={this._selectNetwork}
             predicate={this._getNetworkPredicate()}
             required

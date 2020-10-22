@@ -148,7 +148,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host(obj) {
+  host(obj, dependents) {
+    dependents[obj.metrics] = obj.$id
+
     const {
       $metrics: metrics,
       other_config: otherConfig,
@@ -261,6 +263,12 @@ const TRANSFORMS = {
       hvmCapable: obj.capabilities.some(capability =>
         capability.startsWith('hvm')
       ),
+
+      // Only exists on XCP-ng/CH >= 8.2
+      certificates: obj.$certificates?.map(({ fingerprint, not_after }) => ({
+        fingerprint,
+        notAfter: toTimestamp(not_after),
+      })),
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),
