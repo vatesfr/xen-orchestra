@@ -1,16 +1,16 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
 import { fromEvent } from 'promise-toolbox'
+import { Syscall6 } from 'syscall'
 
 import RemoteHandlerAbstract from './abstract'
-import { Syscall6 } from 'syscall'
 
 /**
  * @returns the number of byte effectively copied, needs to be called in a loop!
  * @throws Error if the syscall returned -1
  */
 function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags = 0) {
-  // we are stuck on linux x86_64
+  // we are stuck on linux x86_64 because of int64 representation and syscall numbers
   function wrapOffset(offsetIn) {
     if (offsetIn == null)
       return 0
@@ -26,6 +26,16 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
     throw new Error('Error no ' + errno)
   }
   return copied
+}
+
+function fAllocateSyscall(fd, mode, offset, length) {
+  // https://man7.org/linux/man-pages/man2/fallocate.2.html
+  const SYS_fallocate = 285
+  const [result, _, errno] = Syscall6(SYS_fallocate, fd, mode, offset, length)
+  console.log('fallocate', fd, mode, offset, length, { result, _, errno })
+  if (result === -1) {
+    throw new Error('Error no ' + errno)
+  }
 }
 
 export default class LocalHandler extends RemoteHandlerAbstract {
@@ -127,6 +137,14 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async fSync(fd) {
     await fs.fsync(fd.fd)
+  }
+
+  async writeBlankRange(fd, offset, blankLength) {
+    const FALLOC_FL_PUNCH_HOLE = 0x02
+    const FALLOC_FL_KEEP_SIZE = 0x01
+    const FALLOC_FL_ZERO_RANGE = 0x10
+    fAllocateSyscall(fd.fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, offset, blankLength)
+    // await this._write(fd, Buffer.alloc(blankLength), offset)
   }
 
   async _read(file, buffer, position) {

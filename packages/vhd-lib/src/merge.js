@@ -6,6 +6,7 @@ import noop from './_noop'
 
 import Vhd from './vhd'
 import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
+import execa from 'execa'
 
 // Merge vhd child into vhd parent.
 //
@@ -17,6 +18,8 @@ export default concurrency(2)(async function merge(
   childPath,
   { onProgress = noop } = {}
 ) {
+  // merges blocks
+  let mergedDataSize = 0
   const parentFd = await parentHandler.openFile(parentPath, 'r+')
   try {
     const parentVhd = new Vhd(parentHandler, parentFd)
@@ -68,14 +71,12 @@ export default concurrency(2)(async function merge(
 
       onProgress({ total: nBlocks, done: 0 })
 
-      // merges blocks
-      let mergedDataSize = 0
       for (let i = 0, block = firstBlock; i < nBlocks; ++i, ++block) {
         while (!childVhd.containsBlock(block)) {
           ++block
         }
 
-        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block)
+        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block,childFd, parentFd )
         onProgress({
           total: nBlocks,
           done: i + 1,
@@ -94,12 +95,12 @@ export default concurrency(2)(async function merge(
       // necessary to update values and to recreate the footer after block
       // creation
       await parentVhd.writeFooter()
-
-      return mergedDataSize
     } finally {
       await childHandler.closeFile(childFd)
     }
   } finally {
     await parentHandler.closeFile(parentFd)
   }
+  await execa('qemu-img', ['compare', parentHandler._getFilePath(childPath), parentHandler._getFilePath(parentPath)])
+  return mergedDataSize
 })

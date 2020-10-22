@@ -404,14 +404,15 @@ export default class RemoteHandlerAbstract {
       const writeStart = process.hrtime()
       await this._outputFile(testFileName, data, { flags: 'wx' })
       const writeDuration = process.hrtime(writeStart)
-      step = 'duplicate'
       const fd1 = await this.openFile(testFileName, 'r+')
       try {
+        step = 'punch hole'
         await this.writeBlankRange(fd1, HOLE_OFFSET, HOLE_SIZE)
         // SMB doesn't flush the write on its own.
         await this.fSync(fd1)
         const fd2 = await this.openFile(testFileName2, 'wx')
         try {
+          step = 'duplicate'
           const cloneStart = process.hrtime()
           await this.copyFileRange(fd1, 0, fd2, 0, data.byteLength)
           const cloneDuration = process.hrtime(cloneStart)

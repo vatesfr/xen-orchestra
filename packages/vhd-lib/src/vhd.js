@@ -199,30 +199,35 @@ export default class Vhd {
   }
 
   // return the first sector (bitmap) of a block
-  _getBatEntry(block) {
-    const i = block * 4
+  _getBatEntry(blockId) {
+    const i = blockId * 4
     const { blockTable } = this
     return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
-  _readBlock(blockId, onlyBitmap = false) {
+  // returns actual byt offset in the file or null
+  _getBlockOffsetBytes(blockId) {
     const blockAddr = this._getBatEntry(blockId)
-    if (blockAddr === BLOCK_UNUSED) {
+    return blockAddr === BLOCK_UNUSED ? null : sectorsToBytes(blockAddr)
+  }
+
+  _readBlock(blockId, onlyBitmap = false) {
+    const blockAddr = this._getBlockOffsetBytes(blockId)
+    if (blockAddr === null) {
       throw new Error(`no such block ${blockId}`)
     }
 
-    return this._read(
-      sectorsToBytes(blockAddr),
+    return this._read(blockAddr,
       onlyBitmap ? this.bitmapSize : this.fullBlockSize
     ).then(buf =>
       onlyBitmap
         ? { id: blockId, bitmap: buf }
         : {
-            id: blockId,
-            bitmap: buf.slice(0, this.bitmapSize),
-            data: buf.slice(this.bitmapSize),
-            buffer: buf,
-          }
+          id: blockId,
+          bitmap: buf.slice(0, this.bitmapSize),
+          data: buf.slice(this.bitmapSize),
+          buffer: buf,
+        }
     )
   }
 
@@ -309,14 +314,14 @@ export default class Vhd {
 
   // Make a new empty block at vhd end.
   // Update block allocation table in context and in file.
-  async _createBlock(blockId) {
+  async _createBlock(blockId, fullBlock = Buffer.alloc(this.fullBlockSize)) {
     const blockAddr = Math.ceil(this._getEndOfData() / SECTOR_SIZE)
 
     debug(`create block ${blockId} at ${blockAddr}`)
 
     await Promise.all([
       // Write an empty block and addr in vhd file.
-      this._write(Buffer.alloc(this.fullBlockSize), sectorsToBytes(blockAddr)),
+      this._write(fullBlock, sectorsToBytes(blockAddr)),
 
       this._setBatEntry(blockId, blockAddr),
     ])
@@ -342,12 +347,13 @@ export default class Vhd {
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
-  async _writeEntireBlock(block) {
-    let blockAddr = this._getBatEntry(block.id)
+  async _getAddressOrAllocate(blockId) {
+    const blockAddr = this._getBlockOffsetBytes(blockId)
+    return blockAddr === null ? await this._createBlock(blockId) : blockAddr
+  }
 
-    if (blockAddr === BLOCK_UNUSED) {
-      blockAddr = await this._createBlock(block.id)
-    }
+  async _writeEntireBlock(block) {
+    const blockAddr = this._getAddressOrAllocate(block.id)
     await this._write(block.buffer, sectorsToBytes(blockAddr))
   }
 
@@ -381,15 +387,18 @@ export default class Vhd {
     )
   }
 
-  async coalesceBlock(child, blockId) {
-    const block = await child._readBlock(blockId)
-    const { bitmap, data } = block
+  async coalesceBlock(child, blockId, childFd, parentFd) {
+    const childBlockAddress = child._getBlockOffsetBytes(blockId)
+    const bitmap = (await child._readBlock(blockId, true)).bitmap
 
     debug(`coalesceBlock block=${blockId}`)
 
     // For each sector of block data...
     const { sectorsPerBlock } = child
+    // lazily loaded
     let parentBitmap = null
+    // lazily loaded
+    let childBlock = null
     for (let i = 0; i < sectorsPerBlock; i++) {
       // If no changes on one sector, skip.
       if (!mapTestBit(bitmap, i)) {
@@ -407,19 +416,22 @@ export default class Vhd {
 
       const isFullBlock = i === 0 && endSector === sectorsPerBlock
       if (isFullBlock) {
-        await this._writeEntireBlock(block)
+        await this._handler.copyFileRange(childFd, childBlockAddress, parentFd, await this._getAddressOrAllocate(blockId), this.fullBlockSize)
       } else {
         if (parentBitmap === null) {
           parentBitmap = (await this._readBlock(blockId, true)).bitmap
         }
-        await this._writeBlockSectors(block, i, endSector, parentBitmap)
+        if (childBlock === null) {
+          childBlock = await child._readBlock(blockId)
+        }
+        await this._writeBlockSectors(childBlock, i, endSector, parentBitmap)
       }
 
       i = endSector
     }
 
     // Return the merged data size
-    return data.length
+    return this.fullBlockSize - this.bitmapSize
   }
 
   // Write a context footer. (At the end and beginning of a vhd file.)
@@ -485,7 +497,7 @@ export default class Vhd {
       )
       const endInBuffer = Math.min(
         ((currentBlock + 1) * this.sectorsPerBlock - offsetSectors) *
-          SECTOR_SIZE,
+        SECTOR_SIZE,
         buffer.length
       )
       let inputBuffer
