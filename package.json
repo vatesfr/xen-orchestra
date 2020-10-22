@@ -40,7 +40,6 @@
   "jest": {
     "collectCoverage": true,
     "moduleNameMapper": {
-      "^.": "./src",
       "^(@vates/[^/]+)": "$1/src",
       "^(@xen-orchestra/[^/]+)": "$1/src",
       "^(value-matcher)": "$1/src",

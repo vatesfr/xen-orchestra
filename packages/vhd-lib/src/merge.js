@@ -6,7 +6,6 @@ import noop from './_noop'
 
 import Vhd from './vhd'
 import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
-import execa from 'execa'
 
 // Merge vhd child into vhd parent.
 //
@@ -101,6 +100,5 @@ export default concurrency(2)(async function merge(
   } finally {
     await parentHandler.closeFile(parentFd)
   }
-  await execa('qemu-img', ['compare', parentHandler._getFilePath(childPath), parentHandler._getFilePath(parentPath)])
   return mergedDataSize
 })
