@@ -28,6 +28,7 @@ import {
 } from 'utils'
 import {
   createDoesHostNeedRestart,
+  createGetHostState,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
@@ -46,6 +47,7 @@ import styles from './index.css'
       hostId => obj => obj.$container === hostId
     )
   ),
+  state: createGetHostState((_, props) => props.item),
 }))
 export default class HostItem extends Component {
   get _isRunning() {
@@ -65,21 +67,15 @@ export default class HostItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  _getHostState = createSelector(
-    () => this.props.item.power_state,
-    () => this.props.item.enabled,
-    () => this.props.item.current_operations,
-    (powerState, enabled, operations) =>
-      !isEmpty(operations)
-        ? 'Busy'
-        : powerState === 'Running' && !enabled
-        ? 'Disabled'
-        : powerState
-  )
-
   render() {
-    const { item: host, container, expandAll, selected, nVms } = this.props
-    const state = this._getHostState()
+    const {
+      container,
+      expandAll,
+      item: host,
+      nVms,
+      selected,
+      state,
+    } = this.props
 
     return (
       <div className={styles.item}>

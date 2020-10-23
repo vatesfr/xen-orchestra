@@ -83,6 +83,9 @@ const messages = {
   advancedSettings: 'Advanced settings',
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
+  installedCertificates: 'Installed certificates',
+  expiry: 'Expiry',
+  fingerprint: 'Fingerprint',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -908,6 +911,7 @@ const messages = {
   hostLicenseExpiry: 'Expiry',
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
+  hostNoCertificateInstalled: 'No certificates installed on this host',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',
@@ -1631,6 +1635,8 @@ const messages = {
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
   remoteNotCompatibleWithSelectedProxy:
     "The backup will not be run on this remote because it's not compatible with the selected proxy",
+  remoteLoadBackupsFailure: 'Loading backups failed',
+  remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',

@@ -1825,6 +1825,7 @@ export const setVif = (
     mac,
     network,
     rateLimit,
+    resourceSet,
     txChecksumming,
   }
 ) =>
@@ -1836,6 +1837,7 @@ export const setVif = (
     mac,
     network: resolveId(network),
     rateLimit,
+    resourceSet,
     txChecksumming,
   })
 
