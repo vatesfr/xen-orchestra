@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Host/Advanced] Display installed certificates [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PR [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319))
+- [VM/network] Allow Self Service users to change a VIF's network [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5203](https://github.com/vatesfr/xen-orchestra/pull/5203))
 
 ### Bug fixes
 
