@@ -564,9 +564,13 @@ const parser = P.grammar({
       ).map(_ => new Or(_[4])),
       P.seq(P.text('!'), r.ws, r.term).map(_ => new Not(_[2])),
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
-        val = +val
-        if (Number.isNaN(val)) {
-          throw new TypeError('value must be a number')
+        let num = +val
+        if (!Number.isNaN(num)) {
+          num = ms(val)
+          if (num === undefined) {
+            throw new TypeError('value must be a number')
+          }
+          num += Date.now()
         }
         return new Comparison(op, val)
       }),
