@@ -2051,7 +2051,7 @@ const messages = {
   deleteSshKey: 'Delete',
   deleteSshKeys: 'Delete selected SSH keys',
   newSshKeyModalTitle: 'New SSH key',
-  SshKeyAlreadyExists: 'SSH key already exists!',
+  sshKeyAlreadyExists: 'SSH key already exists!',
   sshKeyErrorTitle: 'Invalid key',
   sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
   title: 'Title',

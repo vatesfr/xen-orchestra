@@ -2871,11 +2871,15 @@ export const addSshKey = async key => {
   const otherKeys = (preferences && preferences.sshKeys) || []
 
   if (key === undefined) {
-    key = await confirm({
-      icon: 'ssh-key',
-      title: _('newSshKeyModalTitle'),
-      body: <NewSshKeyModalBody />,
-    })
+    try {
+      key = await confirm({
+        icon: 'ssh-key',
+        title: _('newSshKeyModalTitle'),
+        body: <NewSshKeyModalBody />,
+      })
+    } catch (err) {
+      return
+    }
 
     if (!key.title || !key.key) {
       error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
@@ -2884,7 +2888,7 @@ export const addSshKey = async key => {
   }
 
   if (otherKeys.some(otherKey => otherKey.key === key.key)) {
-    error(_('sshKeyErrorTitle'), _('SshKeyAlreadyExists'))
+    error(_('sshKeyErrorTitle'), _('sshKeyAlreadyExists'))
     return
   }
 
