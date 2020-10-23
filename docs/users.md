@@ -278,6 +278,34 @@ Now, your authorized users can create VMs with their SSH keys, grow template dis
 
 ![](https://pbs.twimg.com/media/CYMt2cJUkAAWCPg.png)
 
+## Audit log
+
+Xo Audit Log is a plugin that records all important actions performed by users and provides to the administrators an overview which gives them an idea of the users behavior regarding the infrastructure in order to track suspicious activities.
+
+### How it works?
+
+Xo Audit Log listens to important actions performed by users and store them in the database using the [hash chain structure](https://en.wikipedia.org/wiki/Hash_chain).
+
+### Trustability of the records
+
+Stored records are secured by:
+
+- structure: records are chaines using the hash chain structure which means that each record is linked to its parent in a cryptographically secure way. This structure prevent from the alteration of the old records.
+
+- hash upload: the hash chain structure has limits, it not protects from the rewrite of the recent/all records. To reduce this risk, the Audit log plugin uploads regularly the last record hash to our database after checking the integrity of the whole records. This functionality keep the records safe by notifying users in case of the alteration of the records.
+
+### Configuration
+
+The record of the users' actions is disabled by default. To enable it:
+
+1. go into `settings/plugins`
+2. uncollapse `audit` configuration
+3. toggle active and save the configuration
+
+![](./assets/audit_log_configuration.png)
+
+The audit plugin now will record important users' actions and upload the last record chain every day at **06:00 AM (UTC)**.
+
 ## Debugging
 
 If you can't log in, please check the logs of `xo-server` while you attempt to connect. It will give you hints about the error encountered. You can do that with a `tail -f /var/log/syslog -n 100` on your XOA.
