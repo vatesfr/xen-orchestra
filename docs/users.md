@@ -292,7 +292,7 @@ Stored records are secured by:
 
 - structure: records are chaines using the hash chain structure which means that each record is linked to its parent in a cryptographically secure way. This structure prevent from the alteration of the old records.
 
-- hash upload: the hash chain structure has limits, it not protects from the rewrite of the recent/all records. To reduce this risk, the Audit log plugin uploads regularly the last record hash to our database after checking the integrity of the whole records. This functionality keep the records safe by notifying users in case of the alteration of the records.
+- hash upload: the hash chain structure has limits, it not protects from the rewrite of the recent/all records. To reduce this risk, the Audit log plugin uploads regularly the last record hash to our database after checking the integrity of the whole records. This functionality keeps the records safe by notifying users in case of the alteration of the records.
 
 ### Configuration
 
