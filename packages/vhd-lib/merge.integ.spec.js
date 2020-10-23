@@ -280,6 +280,7 @@ test('coalesce works in normal cases', async () => {
   await checkFile(child1FileName)
   await checkFile(parentFileName)
   await vhdMerge(handler, parentFileName, handler, child1FileName)
+  console.log('TEST console')
   await checkFile(parentFileName)
   await chainVhd(handler, parentFileName, handler, child2FileName, true)
   await checkFile(child2FileName)
