@@ -284,7 +284,7 @@ Xo Audit Log is a plugin that records all important actions performed by users a
 
 ### How it works?
 
-Xo Audit Log listens to important actions performed by users and store them in the database using the [hash chain structure](https://en.wikipedia.org/wiki/Hash_chain).
+Xo Audit Log listens to important actions performed by users and store them in the XOA database using the [hash chain structure](https://en.wikipedia.org/wiki/Hash_chain).
 
 ### Trustability of the records
 
