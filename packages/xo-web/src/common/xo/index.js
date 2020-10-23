@@ -2869,15 +2869,14 @@ import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line impo
 export const addSshKey = key => {
   const { preferences } = xo.user
   const otherKeys = (preferences && preferences.sshKeys) || []
-  const sshKeyAlreadyExistsWarning = ({ key }) => {
-    if (otherKeys.some(otherKey => otherKey.key === key)) {
+  const isSshKeyAlreadyExists = ({ key }) =>
+    otherKeys.some(otherKey => otherKey.key === key)
+
+  if (key) {
+    if (isSshKeyAlreadyExists(key)) {
       error(_('sshKeyErrorTitle'), _('SshKeyAlreadyExists'))
       return
     }
-  }
-
-  if (key) {
-    sshKeyAlreadyExistsWarning(key)
 
     return _setUserPreferences({
       sshKeys: [...otherKeys, key],
@@ -2893,7 +2892,10 @@ export const addSshKey = key => {
       return
     }
 
-    sshKeyAlreadyExistsWarning(newKey)
+    if (isSshKeyAlreadyExists(newKey)) {
+      error(_('sshKeyErrorTitle'), _('SshKeyAlreadyExists'))
+      return
+    }
 
     return _setUserPreferences({
       sshKeys: [...otherKeys, newKey],
