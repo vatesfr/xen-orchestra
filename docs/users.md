@@ -304,7 +304,7 @@ The record of the users' actions is disabled by default. To enable it:
 
 ![](./assets/audit_log_configuration.png)
 
-The audit plugin now will record important users' actions and upload the last record chain every day at **06:00 AM (UTC)**.
+Now, the audit plugin will record important users' actions and upload the last record chain every day at **06:00 AM (UTC)**.
 
 ## Debugging
 
