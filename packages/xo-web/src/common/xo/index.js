@@ -2866,41 +2866,31 @@ const _setUserPreferences = preferences =>
   })::tap(subscribeCurrentUser.forceRefresh)
 
 import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line import/first
-export const addSshKey = key => {
+export const addSshKey = async key => {
   const { preferences } = xo.user
   const otherKeys = (preferences && preferences.sshKeys) || []
-  const isSshKeyAlreadyExists = ({ key }) =>
-    otherKeys.some(otherKey => otherKey.key === key)
 
-  if (key) {
-    if (isSshKeyAlreadyExists(key)) {
-      error(_('sshKeyErrorTitle'), _('SshKeyAlreadyExists'))
-      return
-    }
-
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, key],
+  if (key === undefined) {
+    key = await confirm({
+      icon: 'ssh-key',
+      title: _('newSshKeyModalTitle'),
+      body: <NewSshKeyModalBody />,
     })
-  }
-  return confirm({
-    icon: 'ssh-key',
-    title: _('newSshKeyModalTitle'),
-    body: <NewSshKeyModalBody />,
-  }).then(newKey => {
-    if (!newKey.title || !newKey.key) {
+
+    if (!key.title || !key.key) {
       error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
       return
     }
+  }
 
-    if (isSshKeyAlreadyExists(newKey)) {
-      error(_('sshKeyErrorTitle'), _('SshKeyAlreadyExists'))
-      return
-    }
+  if (otherKeys.some(otherKey => otherKey.key === key.key)) {
+    error(_('sshKeyErrorTitle'), _('SshKeyAlreadyExists'))
+    return
+  }
 
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, newKey],
-    })
-  }, noop)
+  return _setUserPreferences({
+    sshKeys: [...otherKeys, key],
+  })
 }
 
 export const deleteSshKey = key =>
