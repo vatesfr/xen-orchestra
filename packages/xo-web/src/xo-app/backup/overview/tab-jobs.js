@@ -181,7 +181,6 @@ const SchedulePreviewBody = decorate([
           </Tooltip>
         ) : (
           <ActionButton
-            tooltip={_('runBackupJob')}
             btnStyle='primary'
             data-id={job.id}
             data-name={job.name}
@@ -192,6 +191,7 @@ const SchedulePreviewBody = decorate([
             icon='run-schedule'
             key='run'
             size='small'
+            tooltip={_('runBackupJob')}
           />
         )}{' '}
         {lastRunLog !== undefined && (
