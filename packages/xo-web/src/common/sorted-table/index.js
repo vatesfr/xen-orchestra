@@ -36,6 +36,7 @@ import SingleLineRow from '../single-line-row'
 import TableFilter from '../search-bar'
 import UserError from '../user-error'
 import { BlockLink } from '../link'
+import { conditionalTooltip } from '../utils'
 import { Container, Col } from '../grid'
 import { error as _error } from '../notification'
 import { generateId } from '../reaclette-utils'
@@ -58,6 +59,7 @@ class ColumnHead extends Component {
     name: PropTypes.node,
     sort: PropTypes.func,
     sortIcon: PropTypes.string,
+    tooltip: PropTypes.node,
   }
 
   _sort = () => {
@@ -66,15 +68,18 @@ class ColumnHead extends Component {
   }
 
   render() {
-    const { name, sortIcon, textAlign } = this.props
+    const { name, sortIcon, textAlign, tooltip } = this.props
 
     if (!this.props.sort) {
-      return <th className={textAlign && `text-xs-${textAlign}`}>{name}</th>
+      return conditionalTooltip(
+        <th className={textAlign && `text-xs-${textAlign}`}>{name}</th>,
+        tooltip
+      )
     }
 
     const isSelected = sortIcon === 'asc' || sortIcon === 'desc'
 
-    return (
+    return conditionalTooltip(
       <th
         className={classNames(
           textAlign && `text-xs-${textAlign}`,
@@ -87,7 +92,8 @@ class ColumnHead extends Component {
         <span className='pull-right'>
           <Icon icon={sortIcon} />
         </span>
-      </th>
+      </th>,
+      tooltip
     )
   }
 }
@@ -984,6 +990,7 @@ class SortedTable extends Component {
                       ? this._getSortOrder()
                       : 'sort'
                   }
+                  tooltip={column.tooltip}
                 />
               ))}
               {hasIndividualActions && <th />}

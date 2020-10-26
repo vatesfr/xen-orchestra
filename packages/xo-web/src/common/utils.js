@@ -24,6 +24,7 @@ import _ from './intl'
 import * as actions from './store/actions'
 import invoke from './invoke'
 import store from './store'
+import Tooltip from './tooltip'
 import { getObject, isAdmin } from './selectors'
 import { satisfies as versionSatisfies } from 'semver'
 
@@ -681,3 +682,8 @@ export const getDetachedBackupsOrSnapshots = (
 
   return detachedBackupsOrSnapshots
 }
+
+// ===================================================================
+
+export const conditionalTooltip = (component, tooltip) =>
+  tooltip ? <Tooltip content={tooltip}>{component}</Tooltip> : component
