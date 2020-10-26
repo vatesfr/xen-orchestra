@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Host/Advanced] Display installed certificates [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PR [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319))
+- [Pool/Network] Show tooltip message for Atomatic column (PR [#5345](https://github.com/vatesfr/xen-orchestra/pull/5345))
 
 ### Bug fixes
 
