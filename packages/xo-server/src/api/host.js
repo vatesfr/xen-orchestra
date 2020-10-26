@@ -3,13 +3,17 @@ import { format } from 'json-rpc-peer'
 // ===================================================================
 
 export async function getSchedulerGranularity({ host }) {
-  let schedGran
   try {
-    schedGran = await this.getXapi(host).getField('host', host.id, 'sched_gran')
+    return await this.getXapi(host).getField(
+      'host',
+      host._xapiRef,
+      'sched_gran'
+    )
   } catch (e) {
-    schedGran = e.code
-  } finally {
-    return schedGran
+    if (e.code === 'MESSAGE_METHOD_UNKNOWN') {
+      return
+    }
+    throw e
   }
 }
 
