@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [User] When detaching a default filter select, reset the default filter as default (PR [#5321](https://github.com/vatesfr/xen-orchestra/pull/5321))
+- [User] Fallback to default filter on resetting customized filter (PR [#5321](https://github.com/vatesfr/xen-orchestra/pull/5321))
 
 ### Packages to release
 
