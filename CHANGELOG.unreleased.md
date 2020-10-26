@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [xo-web/vm] Show snapshot button for self service user (PR [#5324](https://github.com/vatesfr/xen-orchestra/pull/5324))
+- [VM] Show snapshot button for self service user (PR [#5324](https://github.com/vatesfr/xen-orchestra/pull/5324))
 
 ### Packages to release
 
