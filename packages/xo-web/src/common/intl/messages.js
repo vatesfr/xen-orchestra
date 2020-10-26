@@ -833,7 +833,7 @@ const messages = {
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
   networkAutomaticTooltip:
-    'The default network added to any new VM created in this pool from XO',
+    'This column shows the default network added to any new VM created in this pool from XO',
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',
