@@ -29,8 +29,13 @@ getSchedulerGranularity.resolve = {
 
 // ===================================================================
 
-export async function setSchedulerGranularity({ host, value }) {
-  await this.getXapi(host).setField('host', host._xapiRef, 'sched_grand', value)
+export async function setSchedulerGranularity({ host, schedulerGranularity }) {
+  await this.getXapi(host).setField(
+    'host',
+    host._xapiRef,
+    'sched_grand',
+    schedulerGranularity
+  )
 }
 
 setSchedulerGranularity.description = 'set scheduler granularity of a host'

@@ -734,10 +734,13 @@ export const setPoolMaster = host =>
 // Host --------------------------------------------------------------
 
 export const getSchedulerGranularity = host =>
-  _call('host.getSchedulerGranularity', { host })
+  _call('host.getSchedulerGranularity', { host: resolveId(host) })
 
-export const setSchedulerGranularity = async (host, value) =>
-  await _call('host.setSchedulerGranularity', { host, value })
+export const setSchedulerGranularity = async (host, schedulerGranularity) =>
+  await _call('host.setSchedulerGranularity', {
+    host: resolveId(host),
+    schedulerGranularity,
+  })
 
 export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })

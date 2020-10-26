@@ -41,15 +41,15 @@ const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
 const SCHED_GRAN_TYPE_OPTIONS = [
   {
-    label: 'CPU',
-    value: 'cpu',
-  },
-  {
-    label: 'Core',
+    label: _('hostSchedulerGranularityCore'),
     value: 'core',
   },
   {
-    label: 'Socket',
+    label: _('hostSchedulerGranularityCpu'),
+    value: 'CPU',
+  },
+  {
+    label: _('hostSchedulerGranularitySocket'),
     value: 'socket',
   },
 ]
@@ -361,12 +361,13 @@ export default class extends Component {
                     <th>{_('hostSchedulerGranularity')}</th>
                     <td>
                       <Select
+                        onChange={this._setSchedulerGranularity}
                         options={SCHED_GRAN_TYPE_OPTIONS}
                         required
                         simpleValue
                         value={this.state.schedGran}
-                        onChange={this._setSchedulerGranularity}
                       />
+                      <small>{_('rebootUpdateHostLabel')}</small>
                     </td>
                   </tr>
                 )}
