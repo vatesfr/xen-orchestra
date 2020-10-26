@@ -193,7 +193,7 @@ const SchedulePreviewBody = decorate([
             key='run'
             size='small'
           />
-        )}
+        )}{' '}
         {lastRunLog !== undefined && (
           <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />
         )}

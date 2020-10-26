@@ -44,6 +44,6 @@
 
 - xo-server-sdn-controller patch
 - xo-server-backup-reports patch
-- xo-server patch
 - xo-server minor
 - xo-web minor
+- xo-web patch
