@@ -7,22 +7,16 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host/Advanced] Add the field `IOMMU` if it is defined (PR [#5294](https://github.com/vatesfr/xen-orchestra/pull/5294))
-- [Backup logs/report] Hide merge task when no merge is done (PR [#5263](https://github.com/vatesfr/xen-orchestra/pull/5263))
+- [Host/Advanced] Display installed certificates [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PR [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319))
+- [VM/network] Allow Self Service users to change a VIF's network [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5203](https://github.com/vatesfr/xen-orchestra/pull/5203))
+- [New SSH key] Show warning when the SSH key already exists (PR [#5329](https://github.com/vatesfr/xen-orchestra/pull/5329))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [XOA/Notifications] Don't show expired notifications (PR [#5304](https://github.com/vatesfr/xen-orchestra/pull/5304))
-- [Backup/S3] Fix secret key edit form [#5233](https://github.com/vatesfr/xen-orchestra/issues/5233) (PR[#5305](https://github.com/vatesfr/xen-orchestra/pull/5305))
-- [New network] Remove the possibility of creating a network on a bond member interface (PR [#5262](https://github.com/vatesfr/xen-orchestra/pull/5262))
-- [User] Fix custom filters not showing up when selecting a default filter for templates (PR [#5298](https://github.com/vatesfr/xen-orchestra/pull/5298))
-- [Self/VDI migration] Fix hidden VDI after migration (PR [#5296](https://github.com/vatesfr/xen-orchestra/pull/5296))
-- [Self/VDI migration] Fix `not enough permissions` error (PR [#5299](https://github.com/vatesfr/xen-orchestra/pull/5299))
-- [Home] Hide backup filter for non-admin users [#5285](https://github.com/vatesfr/xen-orchestra/issues/5285) (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
-- [Backup/S3] Fix request signature error [#5253](https://github.com/vatesfr/xen-orchestra/issues/5253) (PR[#5315](https://github.com/vatesfr/xen-orchestra/pull/5315))
-- [SDN Controller] Fix tunnel traffic going on the wrong NIC: see https://xcp-ng.org/forum/topic/3544/mtu-problems-with-vxlan. (PR [#5281](https://github.com/vatesfr/xen-orchestra/pull/5281))
+- [Host] Fix power state stuck on busy after power off [#4919](https://github.com/vatesfr/xen-orchestra/issues/4919) (PR [#5288](https://github.com/vatesfr/xen-orchestra/pull/5288))
+- [VM/Network] Don't allow users to change a VIF's locking mode if they don't have permissions on the network (PR [#5283](https://github.com/vatesfr/xen-orchestra/pull/5283))
 - [Backup/overview] Add tooltip on the running backup job button (PR [#5325 ](https://github.com/vatesfr/xen-orchestra/pull/5325))
 
 ### Packages to release
@@ -42,8 +36,8 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-sdn-controller patch
-- xo-server-backup-reports patch
-- xo-server minor
+- vhd-lib minor
+- @xen-orchestra/audit-core minor
+- xo-server-audit minor
 - xo-web minor
-- xo-web patch
+- xo-server minor

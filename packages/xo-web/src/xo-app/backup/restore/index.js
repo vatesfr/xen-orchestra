@@ -11,15 +11,14 @@ import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import {
+  cloneDeep,
   filter,
   find,
   flatMap,
   forEach,
-  keyBy,
   map,
   reduce,
   orderBy,
-  toArray,
 } from 'lodash'
 import {
   deleteBackups,
@@ -125,38 +124,7 @@ export default class Restore extends Component {
     }
   }
 
-  _refreshBackupList = async (
-    _remotes = this.props.remotes,
-    jobs = this.props.jobs
-  ) => {
-    const remotes = keyBy(filter(_remotes, { enabled: true }), 'id')
-    const backupsByRemote = await listVmBackups(toArray(remotes))
-
-    const backupDataByVm = {}
-    forEach(backupsByRemote, (backups, remoteId) => {
-      const remote = remotes[remoteId]
-      forEach(backups, (vmBackups, vmId) => {
-        if (vmBackups.length === 0) {
-          return
-        }
-
-        if (backupDataByVm[vmId] === undefined) {
-          backupDataByVm[vmId] = { backups: [] }
-        }
-
-        backupDataByVm[vmId].backups.push(
-          ...map(vmBackups, bkp => {
-            const job = find(jobs, { id: bkp.jobId })
-            return {
-              ...bkp,
-              remote,
-              jobName: job && job.name,
-            }
-          })
-        )
-      })
-    })
-    // TODO: perf
+  _sortBackupList = backupDataByVm => {
     let first, last
     forEach(backupDataByVm, (data, vmId) => {
       first = { timestamp: Infinity }
@@ -184,7 +152,59 @@ export default class Restore extends Component {
       backupDataByVm[vmId].backups = orderBy(backups, 'timestamp', 'desc')
     })
 
-    this.setState({ backupDataByVm })
+    return backupDataByVm
+  }
+
+  _refreshBackupListOnRemote = async (remote, jobs) => {
+    const remoteId = remote.id
+    const backupsByRemote = await listVmBackups([remoteId])
+    const { backupDataByVm } = this.state
+    const remoteBackupDataByVm = {}
+    forEach(backupsByRemote[remoteId], (vmBackups, vmId) => {
+      if (vmBackups.length === 0) {
+        return
+      }
+
+      const backupData = backupDataByVm[vmId]
+      remoteBackupDataByVm[vmId] =
+        backupData === undefined ? { backups: [] } : cloneDeep(backupData)
+
+      remoteBackupDataByVm[vmId].backups.push(
+        ...map(vmBackups, bkp => {
+          const job = find(jobs, { id: bkp.jobId })
+          return {
+            ...bkp,
+            remote,
+            jobName: job && job.name,
+          }
+        })
+      )
+    })
+
+    this.setState(({ backupDataByVm }) => ({
+      backupDataByVm: {
+        ...backupDataByVm,
+        ...this._sortBackupList(remoteBackupDataByVm),
+      },
+    }))
+  }
+
+  _refreshBackupList = (
+    remotes = this.props.remotes,
+    jobs = this.props.jobs
+  ) => {
+    this.setState({ backupDataByVm: {} }, () =>
+      Promise.all(
+        map(filter(remotes, { enabled: true }), remote =>
+          this._refreshBackupListOnRemote(remote, jobs).catch(() =>
+            error(
+              _('remoteLoadBackupsFailure'),
+              _('remoteLoadBackupsFailureMessage', { name: remote.name })
+            )
+          )
+        )
+      )
+    )
   }
 
   // Actions -------------------------------------------------------------------

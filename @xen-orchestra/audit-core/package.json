@@ -30,6 +30,7 @@
     "rimraf": "^3.0.0"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.2.0",
     "core-js": "^3.6.4",
     "golike-defer": "^0.4.1",
     "lodash": "^4.17.15",

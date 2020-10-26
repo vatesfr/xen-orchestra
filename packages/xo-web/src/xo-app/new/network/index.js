@@ -16,6 +16,7 @@ import {
   subscribePlugins,
 } from 'xo'
 import {
+  isAdmin,
   createGetObject,
   createGetObjectsOfType,
   getIsPoolAdmin,
@@ -80,14 +81,18 @@ const canSupportPrivateNetwork = (pool, pif) =>
   pif.$host === pool.master
 
 const NewNetwork = decorate([
-  addSubscriptions({
-    plugins: subscribePlugins,
-  }),
   connectStore(() => ({
+    isAdmin,
     isPoolAdmin: getIsPoolAdmin,
     nPools: createGetObjectsOfType('pool').count(),
     pool: createGetObject((_, props) => props.location.query.pool),
   })),
+  addSubscriptions(
+    ({ isAdmin }) =>
+      isAdmin && {
+        plugins: subscribePlugins,
+      }
+  ),
   injectIntl,
   provideState({
     initialState: () => ({ ...EMPTY, bondModes: undefined }),

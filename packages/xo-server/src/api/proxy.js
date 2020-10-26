@@ -149,7 +149,7 @@ deploy.resolve = {
 }
 
 export function upgradeAppliance({ id }) {
-  return this.upgradeProxyAppliance(id)
+  return this.updateProxyAppliance(id, { upgrade: true })
 }
 
 upgradeAppliance.permission = 'admin'
@@ -190,5 +190,20 @@ checkHealth.permission = 'admin'
 checkHealth.params = {
   id: {
     type: 'string',
+  },
+}
+
+export function updateApplianceSettings({ id, ...props }) {
+  return this.updateProxyAppliance(id, props)
+}
+
+updateApplianceSettings.permission = 'admin'
+updateApplianceSettings.params = {
+  id: {
+    type: 'string',
+  },
+  httpProxy: {
+    type: ['string', 'null'],
+    optional: true,
   },
 }

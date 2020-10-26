@@ -1825,6 +1825,7 @@ export const setVif = (
     mac,
     network,
     rateLimit,
+    resourceSet,
     txChecksumming,
   }
 ) =>
@@ -1836,6 +1837,7 @@ export const setVif = (
     mac,
     network: resolveId(network),
     rateLimit,
+    resourceSet,
     txChecksumming,
   })
 
@@ -2349,8 +2351,10 @@ export const configurePlugin = (id, configuration) =>
   )
 
 export const getPlugin = async id => {
-  const plugins = await _call('plugin.get')
-  return plugins.find(plugin => plugin.id === id)
+  const { user } = store.getState()
+  if (user != null && user.permission === 'admin') {
+    return (await _call('plugin.get')).find(plugin => plugin.id === id)
+  }
 }
 
 export const purgePluginConfiguration = async id => {
@@ -2864,27 +2868,35 @@ const _setUserPreferences = preferences =>
   })::tap(subscribeCurrentUser.forceRefresh)
 
 import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line import/first
-export const addSshKey = key => {
+export const addSshKey = async key => {
   const { preferences } = xo.user
   const otherKeys = (preferences && preferences.sshKeys) || []
-  if (key) {
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, key],
-    })
-  }
-  return confirm({
-    icon: 'ssh-key',
-    title: _('newSshKeyModalTitle'),
-    body: <NewSshKeyModalBody />,
-  }).then(newKey => {
-    if (!newKey.title || !newKey.key) {
+
+  if (key === undefined) {
+    try {
+      key = await confirm({
+        icon: 'ssh-key',
+        title: _('newSshKeyModalTitle'),
+        body: <NewSshKeyModalBody />,
+      })
+    } catch (err) {
+      return
+    }
+
+    if (!key.title || !key.key) {
       error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
       return
     }
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, newKey],
-    })
-  }, noop)
+  }
+
+  if (otherKeys.some(otherKey => otherKey.key === key.key)) {
+    error(_('sshKeyErrorTitle'), _('sshKeyAlreadyExists'))
+    return
+  }
+
+  return _setUserPreferences({
+    sshKeys: [...otherKeys, key],
+  })
 }
 
 export const deleteSshKey = key =>
@@ -3286,6 +3298,9 @@ export const upgradeProxyAppliance = proxy =>
 
 export const getProxyApplianceUpdaterState = id =>
   _call('proxy.getApplianceUpdaterState', { id })
+
+export const updateProxyApplianceSettings = (id, props) =>
+  _call('proxy.updateApplianceSettings', { id, ...props })
 
 const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
   'ECONNREFUSED',
