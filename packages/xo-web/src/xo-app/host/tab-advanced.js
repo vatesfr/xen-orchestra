@@ -156,7 +156,9 @@ export default class extends Component {
   )
 
   _setSchedulerGranularity = value =>
-    setSchedulerGranularity(this.props.host, value)
+    setSchedulerGranularity(this.props.host, value).then(() =>
+      this.setState({ schedGran: value })
+    )
 
   _setHostIscsiIqn = iscsiIqn =>
     confirm({
@@ -354,7 +356,7 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
-                {this.state.schedGran !== 'MESSAGE_METHOD_UNKNOWN' && (
+                {this.state.schedGran && (
                   <tr>
                     <th>{_('hostSchedulerGranularity')}</th>
                     <td>

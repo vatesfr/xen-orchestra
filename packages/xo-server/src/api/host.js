@@ -11,16 +11,16 @@ export async function getSchedulerGranularity({ host }) {
     )
   } catch (e) {
     if (e.code === 'MESSAGE_METHOD_UNKNOWN') {
-      return
+      return null
     }
     throw e
   }
 }
 
-getSchedulerGranularity.description = 'get the scheduler granularity of an host'
+getSchedulerGranularity.description = 'get the scheduler granularity of a host'
 
 getSchedulerGranularity.params = {
-  host: { type: 'object' },
+  id: { type: 'string' },
 }
 
 getSchedulerGranularity.resolve = {
@@ -29,15 +29,17 @@ getSchedulerGranularity.resolve = {
 
 // ===================================================================
 
-export function setSchedulerGranularity({ host, value }) {
-  this.getXapi(host).setField('host', host.id, 'sched_grand', value)
+export async function setSchedulerGranularity({ host, value }) {
+  await this.getXapi(host).setField('host', host._xapiRef, 'sched_grand', value)
 }
 
-setSchedulerGranularity.description = 'set scheduler granularity of an host'
+setSchedulerGranularity.description = 'set scheduler granularity of a host'
 
 setSchedulerGranularity.params = {
-  host: { type: 'object' },
-  value: { type: 'string' },
+  id: { type: 'string' },
+  schedulerGranularity: {
+    enum: ['cpu', 'core', 'socket'],
+  },
 }
 
 setSchedulerGranularity.resolve = {
