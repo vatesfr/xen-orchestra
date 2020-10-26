@@ -1338,7 +1338,7 @@ export const snapshotVms = vms =>
         ),
       noop
     )
-    ::tapCatch(e => error(_('snapshotError'), e.message))
+    .catch(e => error(_('snapshotError'), e.message))
 
 export const deleteSnapshot = vm =>
   confirm({
