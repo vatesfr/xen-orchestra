@@ -86,7 +86,7 @@ const messages = {
   installedCertificates: 'Installed certificates',
   expiry: 'Expiry',
   fingerprint: 'Fingerprint',
-  certificate: 'Certificate',
+  certificate: 'Certificate (PEM)',
   certificateChain: 'Certificate chain',
   privateKey: 'Private key',
 
