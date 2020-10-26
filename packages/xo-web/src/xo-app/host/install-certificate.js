@@ -94,7 +94,7 @@ const installCertificate = async id => {
     render: props => <InstallCertificateModal {...props} />,
     header: (
       <span>
-        <Icon icon='upload' /> {_('hostInstallNewCertificate')}
+        <Icon icon='upload' /> {_('installNewCertificate')}
       </span>
     ),
   })

@@ -465,7 +465,7 @@ export default class extends Component {
                     handlerParam={host.id}
                     icon='upload'
                   >
-                    {_('hostInstallNewCertificate')}
+                    {_('installNewCertificate')}
                   </ActionButton>
                 </h3>
                 {host.certificates.length > 0 ? (

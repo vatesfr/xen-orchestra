@@ -88,7 +88,8 @@ const messages = {
   fingerprint: 'Fingerprint',
   certificate: 'Certificate (PEM)',
   certificateChain: 'Certificate chain (PEM)',
-  privateKey: 'Private key',
+  privateKey: 'Private key (PKCS#8)',
+  installNewCertificate: 'Install new certificate',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -915,7 +916,6 @@ const messages = {
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
   hostNoCertificateInstalled: 'No certificates installed on this host',
-  hostInstallNewCertificate: 'Install new certificate',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',
