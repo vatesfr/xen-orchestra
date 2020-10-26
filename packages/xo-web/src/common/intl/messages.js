@@ -87,7 +87,7 @@ const messages = {
   expiry: 'Expiry',
   fingerprint: 'Fingerprint',
   certificate: 'Certificate (PEM)',
-  certificateChain: 'Certificate chain',
+  certificateChain: 'Certificate chain (PEM)',
   privateKey: 'Private key',
 
   // ----- Modals -----
