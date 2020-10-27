@@ -166,3 +166,8 @@ export default class Tooltip extends Component {
     return children
   }
 }
+
+// ===================================================================
+
+export const conditionalTooltip = (component, tooltip) =>
+  tooltip ? <Tooltip content={tooltip}>{component}</Tooltip> : component
