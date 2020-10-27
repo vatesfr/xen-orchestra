@@ -1,5 +1,4 @@
 import * as ComplexMatcher from 'complex-matcher'
-import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
@@ -8,6 +7,7 @@ import classNames from 'classnames'
 import Component from 'base-component'
 import cookies from 'js-cookie'
 import defined, { get } from '@xen-orchestra/defined'
+import homeFilters from 'home-filters'
 import Icon from 'icon'
 import invoke from 'invoke'
 import Link from 'link'
@@ -241,7 +241,7 @@ const OPTIONS = {
   },
   'VM-template': {
     defaultFilter: '',
-    filters: homeFilters.vmTemplate,
+    filters: homeFilters['VM-template'],
     mainActions: [
       {
         handler: vms => copyVms(vms, 'VM-template'),
@@ -475,10 +475,6 @@ const NoObjects = props =>
     <NoObjectsWithoutServers {...props} />
   )
 
-@addSubscriptions({
-  jobs: subscribeBackupNgJobs,
-  noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
-})
 @connectStore(() => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
 
@@ -502,6 +498,15 @@ const NoObjects = props =>
     type,
     user: getUser,
   }
+})
+@addSubscriptions(({ isAdmin }) => {
+  const noResourceSets = cb => subscribeResourceSets(data => cb(isEmpty(data)))
+  return isAdmin
+    ? {
+        jobs: subscribeBackupNgJobs,
+        noResourceSets,
+      }
+    : { noResourceSets }
 })
 export default class Home extends Component {
   static contextTypes = {
@@ -1162,7 +1167,7 @@ export default class Home extends Component {
                     </Button>
                   </OverlayTrigger>
                 )}
-                {type === 'VM' && (
+                {isAdmin && type === 'VM' && (
                   <OverlayTrigger
                     trigger='click'
                     rootClose

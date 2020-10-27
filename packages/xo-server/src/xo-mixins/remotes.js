@@ -55,6 +55,7 @@ export default class {
     })
   }
 
+  @synchronized
   async getRemoteHandler(remote) {
     if (typeof remote === 'string') {
       remote = await this._getRemote(remote)
