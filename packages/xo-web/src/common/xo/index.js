@@ -3028,7 +3028,7 @@ export const setDefaultHomeFilter = (type, name) => {
   return _setUserPreferences({
     defaultHomeFilters: {
       ...defaultFilters,
-      [type]: name,
+      [type]: name === null ? undefined : name,
     },
   })
 }
