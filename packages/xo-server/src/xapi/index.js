@@ -356,6 +356,7 @@ export default class Xapi extends XapiBase {
         certificateChain
       )
     } catch (error) {
+      // CH/XCP-ng reset the connection on the certificate install
       if (error.code !== 'ECONNRESET') {
         throw error
       }
