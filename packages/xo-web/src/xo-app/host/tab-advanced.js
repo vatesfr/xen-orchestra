@@ -162,9 +162,7 @@ export default class extends Component {
   )
 
   _setSchedulerGranularity = value =>
-    setSchedulerGranularity(this.props.host, value).then(() =>
-      this.setState({ schedGran: value })
-    )
+    setSchedulerGranularity(this.props.host, value)
 
   _setHostIscsiIqn = iscsiIqn =>
     confirm({
