@@ -356,21 +356,22 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
-                {this.state.schedGran && (
-                  <tr>
-                    <th>{_('hostSchedulerGranularity')}</th>
-                    <td>
-                      <Select
-                        onChange={this._setSchedulerGranularity}
-                        options={SCHED_GRAN_TYPE_OPTIONS}
-                        required
-                        simpleValue
-                        value={this.state.schedGran}
-                      />
-                      <small>{_('rebootUpdateHostLabel')}</small>
-                    </td>
-                  </tr>
-                )}
+                {this.state.schedGran !== null &&
+                  this.state.schedGran !== undefined && (
+                    <tr>
+                      <th>{_('hostSchedulerGranularity')}</th>
+                      <td>
+                        <Select
+                          onChange={this._setSchedulerGranularity}
+                          options={SCHED_GRAN_TYPE_OPTIONS}
+                          required
+                          simpleValue
+                          value={this.state.schedGran}
+                        />
+                        <small>{_('rebootUpdateHostLabel')}</small>
+                      </td>
+                    </tr>
+                  )}
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
                   <td>
