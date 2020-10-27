@@ -371,7 +371,7 @@ export default class extends Component {
                         options={SCHED_GRAN_TYPE_OPTIONS}
                         required
                         simpleValue
-                        value={this.state.schedGran}
+                        value={schedGran}
                       />
                       <small>{_('rebootUpdateHostLabel')}</small>
                     </td>
