@@ -899,6 +899,9 @@ export const isHyperThreadingEnabledHost = host =>
     id: resolveId(host),
   })
 
+export const installCertificateOnHost = (id, props) =>
+  _call('host.installCertificate', { id, ...props })
+
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
   confirm({

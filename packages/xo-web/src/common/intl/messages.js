@@ -86,6 +86,11 @@ const messages = {
   installedCertificates: 'Installed certificates',
   expiry: 'Expiry',
   fingerprint: 'Fingerprint',
+  certificate: 'Certificate (PEM)',
+  certificateChain: 'Certificate chain (PEM)',
+  privateKey: 'Private key (PKCS#8)',
+  installNewCertificate: 'Install new certificate',
+  replaceExistingCertificate: 'Replace existing certificate',
 
   // ----- Modals -----
   alertOk: 'OK',
