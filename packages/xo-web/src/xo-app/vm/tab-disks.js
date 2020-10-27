@@ -32,7 +32,6 @@ import {
   noop,
   resolveResourceSet,
 } from 'utils'
-import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
@@ -68,6 +67,11 @@ import {
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
+import {
+  SelectResourceSetsSr,
+  SelectSr as SelectAnySr,
+  SelectVdi,
+} from 'select-objects'
 
 const compareSrs = createCompare([isSrShared])
 
@@ -284,13 +288,13 @@ class NewDisk extends Component {
     const diskLimit = this._getResourceSetDiskLimit()
     const resourceSet = this._getResolvedResourceSet()
 
-    const SelectSr_ =
-      isAdmin || resourceSet == null ? SelectSr : SelectResourceSetsSr
+    const SelectSr =
+      isAdmin || resourceSet == null ? SelectAnySr : SelectResourceSetsSr
 
     return (
       <form id='newDiskForm'>
         <div className='form-group'>
-          <SelectSr_
+          <SelectSr
             onChange={this.linkState('sr')}
             predicate={this._getSrPredicate()}
             required
@@ -557,13 +561,14 @@ export default class TabDisks extends Component {
       newDisk: false,
     })
 
-  _migrateVdis = vdis =>
-    confirm({
+  _migrateVdis = vdis => {
+    const { resolvedResourceSet, vm } = this.props
+    return confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          pool={this.props.vm.$pool}
-          resourceSet={this.props.resolvedResourceSet}
+          pool={vm.$pool}
+          resourceSet={resolvedResourceSet}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
@@ -572,8 +577,17 @@ export default class TabDisks extends Component {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
 
-      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
+      return Promise.all(
+        map(vdis, vdi =>
+          migrateVdi(
+            vdi,
+            sr,
+            getDefined(() => resolvedResourceSet.id)
+          )
+        )
+      )
     }, noop)
+  }
 
   _getIsVmAdmin = createSelector(
     () => this.props.checkPermissions,

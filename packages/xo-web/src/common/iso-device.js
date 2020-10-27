@@ -8,7 +8,6 @@ import Icon from 'icon'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { isAdmin } from 'selectors'
-import { SelectVdi, SelectResourceSetsVdi } from './select-objects'
 import { addSubscriptions, connectStore, resolveResourceSet } from './utils'
 import { ejectCd, insertCd, subscribeResourceSets } from './xo'
 import {
@@ -17,6 +16,10 @@ import {
   createGetObject,
   createSelector,
 } from './selectors'
+import {
+  SelectResourceSetsVdi,
+  SelectVdi as SelectAnyVdi,
+} from './select-objects'
 
 const vdiPredicate = vdi => !vdi.missing
 
@@ -92,11 +95,11 @@ export default class IsoDevice extends Component {
     const { cdDrive, isAdmin, mountedIso } = this.props
     const resourceSet = this._getResolvedResourceSet()
     const useResourceSet = !(isAdmin || resourceSet === undefined)
-    const SelectVdi_ = useResourceSet ? SelectResourceSetsVdi : SelectVdi
+    const SelectVdi = useResourceSet ? SelectResourceSetsVdi : SelectAnyVdi
 
     return (
       <div className='input-group'>
-        <SelectVdi_
+        <SelectVdi
           onChange={this._handleInsert}
           predicate={vdiPredicate}
           resourceSet={useResourceSet ? resourceSet : undefined}

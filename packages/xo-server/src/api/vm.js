@@ -517,6 +517,9 @@ export async function migrate({
     })
     .catch(error => {
       if (error?.code !== undefined) {
+        // make sure we log the original error
+        log.warn('vm.migrate', { error })
+
         throw operationFailed({ objectId: vm.id, code: error.code })
       }
       throw error

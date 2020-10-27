@@ -17,7 +17,7 @@ Installation of the [npm package](https://npmjs.org/package/@vates/coalesce-call
 ## Usage
 
 ```js
-import { coalesceCalls } from 'coalesce-calls'
+import { coalesceCalls } from '@vates/coalesce-calls'
 
 const connect = coalesceCalls(async function () {
   // async operation
