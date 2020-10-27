@@ -461,8 +461,9 @@ export default class extends Component {
                   {_('installedCertificates')}{' '}
                   <ActionButton
                     btnStyle='success'
+                    data-id={host.id}
+                    data-isNewInstallation={host.certificates.length === 0}
                     handler={installCertificate}
-                    handlerParam={host.id}
                     icon='upload'
                   >
                     {host.certificates.length > 0

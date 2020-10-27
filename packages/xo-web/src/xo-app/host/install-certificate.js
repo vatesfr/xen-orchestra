@@ -84,7 +84,7 @@ const InstallCertificateModal = decorate([
   ),
 ])
 
-const installCertificate = async id => {
+const installCertificate = async ({ id, isNewInstallation = true }) => {
   const { certificate, certificateChain, privateKey } = await form({
     defaultValue: {
       certificate: '',
@@ -94,7 +94,10 @@ const installCertificate = async id => {
     render: props => <InstallCertificateModal {...props} />,
     header: (
       <span>
-        <Icon icon='upload' /> {_('installCertificate')}
+        <Icon icon='upload' />{' '}
+        {isNewInstallation
+          ? _('installNewCertificate')
+          : _('replaceExistingCertificate')}
       </span>
     ),
   })
