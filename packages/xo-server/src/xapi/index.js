@@ -345,7 +345,7 @@ export default class Xapi extends XapiBase {
 
   async installCertificateOnHost(
     hostId,
-    { certificate, certificateChain = '', privateKey }
+    { certificate, chain = '', privateKey }
   ) {
     try {
       await this.call(
@@ -353,7 +353,7 @@ export default class Xapi extends XapiBase {
         this.getObject(hostId).$ref,
         certificate,
         privateKey,
-        certificateChain
+        chain
       )
     } catch (error) {
       // CH/XCP-ng reset the connection on the certificate install

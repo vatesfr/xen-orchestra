@@ -327,7 +327,7 @@ installCertificate.description = 'Install a certificate on a host'
 installCertificate.params = {
   id: { type: 'string' },
   certificate: { type: 'string' },
-  certificateChain: { type: 'string', optional: true },
+  chain: { type: 'string', optional: true },
   privateKey: { type: 'string' },
 }
 

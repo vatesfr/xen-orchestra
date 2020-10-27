@@ -104,7 +104,7 @@ const installCertificate = async ({ id, isNewInstallation = false }) => {
 
   await installCertificateOnHost(id, {
     certificate: certificate.trim(),
-    certificateChain: certificateChain.trim(),
+    chain: certificateChain.trim(),
     privateKey: privateKey.trim(),
   })
 }
