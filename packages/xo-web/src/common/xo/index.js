@@ -1828,6 +1828,7 @@ export const setVif = (
     mac,
     network,
     rateLimit,
+    resourceSet,
     txChecksumming,
   }
 ) =>
@@ -1839,6 +1840,7 @@ export const setVif = (
     mac,
     network: resolveId(network),
     rateLimit,
+    resourceSet,
     txChecksumming,
   })
 
@@ -2869,27 +2871,35 @@ const _setUserPreferences = preferences =>
   })::tap(subscribeCurrentUser.forceRefresh)
 
 import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line import/first
-export const addSshKey = key => {
+export const addSshKey = async key => {
   const { preferences } = xo.user
   const otherKeys = (preferences && preferences.sshKeys) || []
-  if (key) {
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, key],
-    })
-  }
-  return confirm({
-    icon: 'ssh-key',
-    title: _('newSshKeyModalTitle'),
-    body: <NewSshKeyModalBody />,
-  }).then(newKey => {
-    if (!newKey.title || !newKey.key) {
+
+  if (key === undefined) {
+    try {
+      key = await confirm({
+        icon: 'ssh-key',
+        title: _('newSshKeyModalTitle'),
+        body: <NewSshKeyModalBody />,
+      })
+    } catch (err) {
+      return
+    }
+
+    if (!key.title || !key.key) {
       error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
       return
     }
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, newKey],
-    })
-  }, noop)
+  }
+
+  if (otherKeys.some(otherKey => otherKey.key === key.key)) {
+    error(_('sshKeyErrorTitle'), _('sshKeyAlreadyExists'))
+    return
+  }
+
+  return _setUserPreferences({
+    sshKeys: [...otherKeys, key],
+  })
 }
 
 export const deleteSshKey = key =>
