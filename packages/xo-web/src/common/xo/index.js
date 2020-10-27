@@ -440,6 +440,31 @@ export const subscribeNotifications = createSubscription(async () => {
   )
 })
 
+const checkSchedulerGranularitySubscriptions = {}
+export const subscribeSchedulerGranularity = (host, cb) => {
+  const hostId = host.id
+  if (!checkSchedulerGranularitySubscriptions[hostId]) {
+    checkSchedulerGranularitySubscriptions[hostId] = createSubscription(() =>
+      _call('host.getSchedulerGranularity', { host: hostId })
+    )
+  }
+
+  return checkSchedulerGranularitySubscriptions[hostId](cb)
+}
+subscribeSchedulerGranularity.forceRefresh = host => {
+  if (host === undefined) {
+    forEach(checkSchedulerGranularitySubscriptions, subscription =>
+      subscription.forceRefresh()
+    )
+    return
+  }
+
+  const subscription = checkSchedulerGranularitySubscriptions[host.id]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
+
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
   const poolId = resolveId(pool)
@@ -733,14 +758,11 @@ export const setPoolMaster = host =>
 
 // Host --------------------------------------------------------------
 
-export const getSchedulerGranularity = host =>
-  _call('host.getSchedulerGranularity', { host: host.id })
-
 export const setSchedulerGranularity = async (host, schedulerGranularity) =>
   _call('host.setSchedulerGranularity', {
     host: host.id,
     schedulerGranularity,
-  })
+  })::tap(() => subscribeSchedulerGranularity.forceRefresh(host))
 
 export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })

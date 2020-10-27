@@ -10,7 +10,12 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { compareVersions, connectStore, getIscsiPaths } from 'utils'
+import {
+  compareVersions,
+  connectStore,
+  getIscsiPaths,
+  addSubscriptions,
+} from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -33,8 +38,8 @@ import {
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
-  getSchedulerGranularity,
   setSchedulerGranularity,
+  subscribeSchedulerGranularity,
 } from 'xo'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
@@ -103,6 +108,9 @@ MultipathableSrs.propTypes = {
   hostId: PropTypes.string.isRequired,
 }
 
+@addSubscriptions(props => ({
+  schedGran: cb => subscribeSchedulerGranularity(props.host, cb),
+}))
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
     .pick((_, { host }) => host.$PGPUs)
@@ -123,7 +131,6 @@ export default class extends Component {
     const isNetDataPluginCorrectlySet = plugin !== undefined && plugin.loaded
     this.setState({
       isNetDataPluginCorrectlySet,
-      schedGran: await getSchedulerGranularity(this.props.host),
     })
     if (isNetDataPluginCorrectlySet) {
       this.setState({
@@ -188,7 +195,7 @@ export default class extends Component {
   }
 
   render() {
-    const { host, pcis, pgpus } = this.props
+    const { host, pcis, pgpus, schedGran } = this.props
     const {
       isHtEnabled,
       isNetDataPluginInstalledOnHost,
@@ -355,22 +362,21 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
-                {this.state.schedGran !== null &&
-                  this.state.schedGran !== undefined && (
-                    <tr>
-                      <th>{_('schedulerGranularity')}</th>
-                      <td>
-                        <Select
-                          onChange={this._setSchedulerGranularity}
-                          options={SCHED_GRAN_TYPE_OPTIONS}
-                          required
-                          simpleValue
-                          value={this.state.schedGran}
-                        />
-                        <small>{_('rebootUpdateHostLabel')}</small>
-                      </td>
-                    </tr>
-                  )}
+                {schedGran !== null && schedGran !== undefined && (
+                  <tr>
+                    <th>{_('schedulerGranularity')}</th>
+                    <td>
+                      <Select
+                        onChange={this._setSchedulerGranularity}
+                        options={SCHED_GRAN_TYPE_OPTIONS}
+                        required
+                        simpleValue
+                        value={this.state.schedGran}
+                      />
+                      <small>{_('rebootUpdateHostLabel')}</small>
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
                   <td>
