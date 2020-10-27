@@ -89,7 +89,9 @@ const messages = {
   certificate: 'Certificate (PEM)',
   certificateChain: 'Certificate chain (PEM)',
   privateKey: 'Private key (PKCS#8)',
+  installCertificate: 'Install certificate',
   installNewCertificate: 'Install new certificate',
+  replaceExistingCertificate: 'Replace existing certificate',
 
   // ----- Modals -----
   alertOk: 'OK',
