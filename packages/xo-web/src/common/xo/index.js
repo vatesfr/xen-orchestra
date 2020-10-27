@@ -737,7 +737,7 @@ export const getSchedulerGranularity = host =>
   _call('host.getSchedulerGranularity', { host: host.id })
 
 export const setSchedulerGranularity = async (host, schedulerGranularity) =>
-  await _call('host.setSchedulerGranularity', {
+  _call('host.setSchedulerGranularity', {
     host: host.id,
     schedulerGranularity,
   })
