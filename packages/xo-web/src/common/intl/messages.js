@@ -1199,6 +1199,7 @@ const messages = {
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
   snapshotDate: 'Creation date',
+  snapshotError: 'Snapshot error',
   snapshotName: 'Name',
   snapshotDescription: 'Description',
   snapshotQuiesce: 'Quiesced snapshot',
