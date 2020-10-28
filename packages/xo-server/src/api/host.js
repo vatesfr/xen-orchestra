@@ -33,7 +33,7 @@ export async function setSchedulerGranularity({ host, schedulerGranularity }) {
   await this.getXapi(host).setField(
     'host',
     host._xapiRef,
-    'sched_grand',
+    'sched_gran',
     schedulerGranularity
   )
 }
