@@ -139,10 +139,12 @@ export default class extends Component {
         ),
       })
     }
+
     this.setState({
       isHtEnabled: await isHyperThreadingEnabledHost(this.props.host),
     })
   }
+
   _getPacks = createSelector(
     () => this.props.host.supplementalPacks,
     packs => {
