@@ -172,7 +172,7 @@ class ToggleDefaultLockingMode extends Component {
         onChange={this._editDefaultIsLocked}
         value={network.defaultIsLocked}
       />,
-      isInUse && _('networkInUse')
+      isInUse ? _('networkInUse') : undefined
     )
   }
 }

@@ -832,8 +832,7 @@ const messages = {
   poolNetworkPifDetached: 'Disconnected',
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
-  networkAutomaticTooltip:
-    'This column shows the default network added to any new VM created in this pool from XO',
+  networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',
