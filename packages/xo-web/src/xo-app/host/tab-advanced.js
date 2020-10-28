@@ -109,7 +109,7 @@ MultipathableSrs.propTypes = {
 }
 
 @addSubscriptions(props => ({
-  schedGran: cb => subscribeSchedulerGranularity(props.host, cb),
+  schedGran: cb => subscribeSchedulerGranularity(props.host.id, cb),
 }))
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
