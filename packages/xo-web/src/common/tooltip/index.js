@@ -166,3 +166,12 @@ export default class Tooltip extends Component {
     return children
   }
 }
+
+// ===================================================================
+
+export const conditionalTooltip = (children, tooltip) =>
+  tooltip !== undefined && tooltip !== '' ? (
+    <Tooltip content={tooltip}>{children}</Tooltip>
+  ) : (
+    children
+  )

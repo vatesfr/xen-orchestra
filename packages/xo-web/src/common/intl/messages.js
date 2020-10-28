@@ -838,6 +838,7 @@ const messages = {
   poolNetworkPifDetached: 'Disconnected',
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
+  networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',

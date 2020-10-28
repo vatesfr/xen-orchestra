@@ -10,6 +10,7 @@
 - [Host/Advanced] Display installed certificates with ability to install a new certificate [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PR [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319) [#5332](https://github.com/vatesfr/xen-orchestra/pull/5332))
 - [VM/network] Allow Self Service users to change a VIF's network [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5203](https://github.com/vatesfr/xen-orchestra/pull/5203))
 - [New SSH key] Show warning when the SSH key already exists (PR [#5329](https://github.com/vatesfr/xen-orchestra/pull/5329))
+- [Pool/Network] Add a tooltip to the `Automatic` column (PR [#5345](https://github.com/vatesfr/xen-orchestra/pull/5345))
 
 ### Bug fixes
 
