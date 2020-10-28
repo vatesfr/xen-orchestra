@@ -1,6 +1,6 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
-import { fromEvent } from 'promise-toolbox'
+import { delay, fromEvent } from 'promise-toolbox'
 import { Syscall6 } from 'syscall'
 
 import RemoteHandlerAbstract from './abstract'
@@ -29,6 +29,10 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
   return copied
 }
 
+const FALLOC_FL_PUNCH_HOLE = 0x02
+const FALLOC_FL_KEEP_SIZE = 0x01
+const FALLOC_FL_ZERO_RANGE = 0x10
+
 function fAllocateSyscall(fd, mode, offset, length) {
   // https://man7.org/linux/man-pages/man2/fallocate.2.html
   const SYS_fallocate = 285
@@ -40,6 +44,11 @@ function fAllocateSyscall(fd, mode, offset, length) {
 }
 
 export default class LocalHandler extends RemoteHandlerAbstract {
+  constructor(remote: any, options: Object = {}) {
+    super(remote, options)
+    this._canFallocate = true
+  }
+
   get type() {
     return 'file'
   }
@@ -141,11 +150,30 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async writeBlankRange(fd, offset, blankLength) {
-    const FALLOC_FL_PUNCH_HOLE = 0x02
-    const FALLOC_FL_KEEP_SIZE = 0x01
-    const FALLOC_FL_ZERO_RANGE = 0x10
-    fAllocateSyscall(fd.fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, offset, blankLength)
-    // await this._write(fd, Buffer.alloc(blankLength), offset)
+    if (this._canFallocate) {
+      await fAllocateSyscall(fd.fd, FALLOC_FL_ZERO_RANGE, offset, blankLength)
+    } else {
+      await super.writeBlankRange(fd, offset, blankLength)
+    }
+  }
+
+  async _testWriteBlankRange() {
+    const path = this._getFilePath('test_fallocate.test')
+    const fd = await fs.open(path, 'w')
+    try {
+      await fAllocateSyscall(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0, 6000)
+      console.log('can fallocate')
+      this._canFallocate = true
+    } catch (e) {
+      console.log('cant fallocate', e)
+      this._canFallocate = false
+    } finally {
+      try {
+        await fs.close(fd)
+      } finally {
+        await this.unlink(path)
+      }
+    }
   }
 
   async _read(file, buffer, position) {
@@ -182,6 +210,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     const path = this._getRealPath('/')
     await fs.ensureDir(path)
     await fs.access(path, fs.R_OK | fs.W_OK)
+    await this._testWriteBlankRange()
   }
 
   _truncate(file, len) {

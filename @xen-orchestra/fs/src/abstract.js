@@ -408,8 +408,6 @@ export default class RemoteHandlerAbstract {
       try {
         step = 'punch hole'
         await this.writeBlankRange(fd1, HOLE_OFFSET, HOLE_SIZE)
-        // SMB doesn't flush the write on its own.
-        await this.fSync(fd1)
         const fd2 = await this.openFile(testFileName2, 'wx')
         try {
           step = 'duplicate'

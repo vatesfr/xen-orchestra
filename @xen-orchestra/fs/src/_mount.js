@@ -97,6 +97,8 @@ export default class MountHandler extends LocalHandler {
       }
     }
 
+    await this._testWriteBlankRange()
+
     // keep an open file on the mount to prevent it from being unmounted if used
     // by another handler/process
     const keeperPath = `${realPath}/.keeper_${Math.random()
