@@ -109,7 +109,7 @@ MultipathableSrs.propTypes = {
 }
 
 @addSubscriptions(props => ({
-  schedulerGranularity: cb => subscribeSchedulerGranularity(props.host.id, cb),
+  schedGran: cb => subscribeSchedulerGranularity(props.host.id, cb),
 }))
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
@@ -195,7 +195,7 @@ export default class extends Component {
   }
 
   render() {
-    const { host, pcis, pgpus, schedulerGranularity } = this.props
+    const { host, pcis, pgpus, schedGran } = this.props
     const {
       isHtEnabled,
       isNetDataPluginInstalledOnHost,
@@ -362,7 +362,7 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
-                {schedulerGranularity != null && (
+                {schedGran != null && (
                   <tr>
                     <th>{_('schedulerGranularity')}</th>
                     <td>
@@ -371,7 +371,7 @@ export default class extends Component {
                         options={SCHED_GRAN_TYPE_OPTIONS}
                         required
                         simpleValue
-                        value={schedulerGranularity}
+                        value={schedGran}
                       />
                       <small>{_('rebootUpdateHostLabel')}</small>
                     </td>
