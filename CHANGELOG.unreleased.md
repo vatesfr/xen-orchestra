@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Snapshot/VMs] Show error notification if snapshot on bulk vm failed (PR [#5323](https://github.com/vatesfr/xen-orchestra/pull/5323))
+- [Home] Show error notification when bulk VM snapshot fails (PR [#5323](https://github.com/vatesfr/xen-orchestra/pull/5323))
 
 ### Packages to release
 
