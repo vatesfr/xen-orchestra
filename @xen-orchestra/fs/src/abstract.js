@@ -342,9 +342,6 @@ export default class RemoteHandlerAbstract {
     await this._write(fd, Buffer.alloc(blankLength), offset)
   }
 
-  async fSync(fd) {
-  }
-
   async readFile(
     file: string,
     { flags = 'r' }: { flags?: string } = {}

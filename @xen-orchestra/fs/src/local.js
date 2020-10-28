@@ -143,10 +143,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     } while (dataLen - copied > 0)
   }
 
-  async fSync(fd) {
-    await fs.fsync(fd.fd)
-  }
-
   async writeBlankRange(fd, offset, blankLength) {
     if (this._canFallocate) {
       await fAllocateSyscall(fd.fd, FALLOC_FL_ZERO_RANGE, offset, blankLength)
