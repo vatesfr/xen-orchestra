@@ -4,12 +4,13 @@ import Component from 'base-component'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import { conditionalTooltip } from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { createSelector } from 'selectors'
+import { includes, isEmpty, keyBy, map, size } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { SelectSubject } from 'select-objects'
 import { Text } from 'editable'
-import { includes, isEmpty, keyBy, map, size, some } from 'lodash'
 
 import {
   addUserToGroup,
@@ -153,28 +154,39 @@ export default class Groups extends Component {
     }
   }
 
-  _isLdapLoaded = createSelector(
+  _isLdapGroupSyncConfigured = createSelector(
     () => this.props.plugins,
-    plugins =>
-      some(plugins, plugin => plugin.name === 'auth-ldap' && plugin.loaded)
+    plugins => {
+      if (plugins === undefined) {
+        return false
+      }
+
+      const ldapPlugin = plugins.find(({ name }) => name === 'auth-ldap')
+      if (ldapPlugin === undefined) {
+        return false
+      }
+
+      return ldapPlugin.loaded && ldapPlugin.configuration.groups !== undefined
+    }
   )
 
   render() {
     const { groups, intl } = this.props
+    const disableLdapGroupSync = !this._isLdapGroupSyncConfigured()
 
     return (
       <div>
-        {this._isLdapLoaded() && (
-          <div>
-            <ActionButton
-              icon='refresh'
-              btnStyle='primary'
-              className='mr-1 mb-1'
-              handler={synchronizeLdapGroups}
-            >
-              {_('syncLdapGroups')}
-            </ActionButton>
-          </div>
+        {conditionalTooltip(
+          <ActionButton
+            btnStyle='primary'
+            className='mr-1 mb-1'
+            disabled={disableLdapGroupSync}
+            handler={synchronizeLdapGroups}
+            icon='refresh'
+          >
+            {_('syncLdapGroups')}
+          </ActionButton>,
+          disableLdapGroupSync ? _('ldapPluginNotConfigured') : undefined
         )}
         <form id='newGroupForm' className='form-inline'>
           <div className='form-group'>

@@ -667,6 +667,7 @@ const messages = {
   newGroupName: 'New group name',
   createGroup: 'Create group',
   syncLdapGroups: 'Synchronize LDAP groups',
+  ldapPluginNotConfigured: 'Install and configure the auth-ldap plugin first',
   syncLdapGroupsWarning:
     'Are you sure you want to synchronize LDAP groups with XO? This may delete XO groups and their ACLs.',
   createGroupButton: 'Create',
