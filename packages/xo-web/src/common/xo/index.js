@@ -441,24 +441,24 @@ export const subscribeNotifications = createSubscription(async () => {
 })
 
 const checkSchedulerGranularitySubscriptions = {}
-export const subscribeSchedulerGranularity = ({ id }, cb) => {
-  if (checkSchedulerGranularitySubscriptions[id] === undefined) {
-    checkSchedulerGranularitySubscriptions[id] = createSubscription(() =>
-      _call('host.getSchedulerGranularity', { host: id })
+export const subscribeSchedulerGranularity = (host, cb) => {
+  if (checkSchedulerGranularitySubscriptions[host] === undefined) {
+    checkSchedulerGranularitySubscriptions[host] = createSubscription(() =>
+      _call('host.getSchedulerGranularity', { host })
     )
   }
 
-  return checkSchedulerGranularitySubscriptions[id](cb)
+  return checkSchedulerGranularitySubscriptions[host](cb)
 }
-subscribeSchedulerGranularity.forceRefresh = ({ id }) => {
-  if (id === undefined) {
+subscribeSchedulerGranularity.forceRefresh = host => {
+  if (host === undefined) {
     forEach(checkSchedulerGranularitySubscriptions, subscription =>
       subscription.forceRefresh()
     )
     return
   }
 
-  const subscription = checkSchedulerGranularitySubscriptions[id]
+  const subscription = checkSchedulerGranularitySubscriptions[host]
   if (subscription !== undefined) {
     subscription.forceRefresh()
   }
@@ -759,7 +759,7 @@ export const setPoolMaster = host =>
 
 export const setSchedulerGranularity = async (host, schedulerGranularity) =>
   _call('host.setSchedulerGranularity', {
-    host: host.id,
+    host,
     schedulerGranularity,
   })::tap(() => subscribeSchedulerGranularity.forceRefresh(host))
 
