@@ -86,6 +86,11 @@ const messages = {
   installedCertificates: 'Installed certificates',
   expiry: 'Expiry',
   fingerprint: 'Fingerprint',
+  certificate: 'Certificate (PEM)',
+  certificateChain: 'Certificate chain (PEM)',
+  privateKey: 'Private key (PKCS#8)',
+  installNewCertificate: 'Install new certificate',
+  replaceExistingCertificate: 'Replace existing certificate',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -574,6 +579,7 @@ const messages = {
     'Delete backup job{nJobs, plural, one {} other {s}}',
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
+  runBackupJob: 'Run backup job once',
 
   // ------ Remote -----
   remoteName: 'Name',
@@ -1194,6 +1200,7 @@ const messages = {
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
   snapshotDate: 'Creation date',
+  snapshotError: 'Snapshot error',
   snapshotName: 'Name',
   snapshotDescription: 'Description',
   snapshotQuiesce: 'Quiesced snapshot',
@@ -2058,6 +2065,7 @@ const messages = {
   deleteSshKey: 'Delete',
   deleteSshKeys: 'Delete selected SSH keys',
   newSshKeyModalTitle: 'New SSH key',
+  sshKeyAlreadyExists: 'SSH key already exists!',
   sshKeyErrorTitle: 'Invalid key',
   sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
   title: 'Title',

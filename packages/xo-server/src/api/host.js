@@ -314,3 +314,23 @@ scanPifs.params = {
 scanPifs.resolve = {
   host: ['id', 'host', 'administrate'],
 }
+
+// -------------------------------------------------------------------
+
+export async function installCertificate({ host, ...props }) {
+  host = this.getXapiObject(host)
+  await host.$xapi.installCertificateOnHost(host.$id, props)
+}
+
+installCertificate.description = 'Install a certificate on a host'
+
+installCertificate.params = {
+  id: { type: 'string' },
+  certificate: { type: 'string' },
+  chain: { type: 'string', optional: true },
+  privateKey: { type: 'string' },
+}
+
+installCertificate.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
