@@ -360,7 +360,7 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
-                {schedGran !== null && schedGran !== undefined && (
+                {schedGran != null && (
                   <tr>
                     <th>{_('schedulerGranularity')}</th>
                     <td>

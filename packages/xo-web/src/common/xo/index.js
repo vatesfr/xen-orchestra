@@ -441,25 +441,24 @@ export const subscribeNotifications = createSubscription(async () => {
 })
 
 const checkSchedulerGranularitySubscriptions = {}
-export const subscribeSchedulerGranularity = (host, cb) => {
-  const hostId = host.id
-  if (!checkSchedulerGranularitySubscriptions[hostId]) {
-    checkSchedulerGranularitySubscriptions[hostId] = createSubscription(() =>
-      _call('host.getSchedulerGranularity', { host: hostId })
+export const subscribeSchedulerGranularity = ({ id }, cb) => {
+  if (checkSchedulerGranularitySubscriptions[id] === undefined) {
+    checkSchedulerGranularitySubscriptions[id] = createSubscription(() =>
+      _call('host.getSchedulerGranularity', { host: id })
     )
   }
 
-  return checkSchedulerGranularitySubscriptions[hostId](cb)
+  return checkSchedulerGranularitySubscriptions[id](cb)
 }
-subscribeSchedulerGranularity.forceRefresh = host => {
-  if (host === undefined) {
+subscribeSchedulerGranularity.forceRefresh = ({ id }) => {
+  if (id === undefined) {
     forEach(checkSchedulerGranularitySubscriptions, subscription =>
       subscription.forceRefresh()
     )
     return
   }
 
-  const subscription = checkSchedulerGranularitySubscriptions[host.id]
+  const subscription = checkSchedulerGranularitySubscriptions[id]
   if (subscription !== undefined) {
     subscription.forceRefresh()
   }
