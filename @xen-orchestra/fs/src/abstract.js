@@ -724,5 +724,4 @@ function createPrefixWrapperMethods() {
     defineProperty(pPw, name, descriptor)
   })
 }
-
 createPrefixWrapperMethods()

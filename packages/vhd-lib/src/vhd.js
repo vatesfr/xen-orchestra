@@ -322,7 +322,6 @@ export default class Vhd {
     await Promise.all([
       // Write an empty block and addr in vhd file.
       this._write(fullBlock, sectorsToBytes(blockAddr)),
-
       this._setBatEntry(blockId, blockAddr),
     ])
 

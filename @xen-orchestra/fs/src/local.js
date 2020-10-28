@@ -1,6 +1,6 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
-import { delay, fromEvent } from 'promise-toolbox'
+import { fromEvent } from 'promise-toolbox'
 import { Syscall6 } from 'syscall'
 
 import RemoteHandlerAbstract from './abstract'
@@ -22,7 +22,6 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
   // https://man7.org/linux/man-pages/man2/copy_file_range.2.html
   const SYS_copy_file_range = 326
   const [copied, _, errno] = Syscall6(SYS_copy_file_range, fdIn, wrapOffset(offsetIn), fdOut, wrapOffset(offsetOut), dataLen, flags)
-  console.log('copy_file_range', [copied, _, errno])
   if (copied === -1) {
     throw new Error('Error no ' + errno)
   }
@@ -37,7 +36,6 @@ function fAllocateSyscall(fd, mode, offset, length) {
   // https://man7.org/linux/man-pages/man2/fallocate.2.html
   const SYS_fallocate = 285
   const [result, _, errno] = Syscall6(SYS_fallocate, fd, mode, offset, length)
-  console.log('fallocate', fd, mode, offset, length, { result, _, errno })
   if (result === -1) {
     throw new Error('Error no ' + errno)
   }
