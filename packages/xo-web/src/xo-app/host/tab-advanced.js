@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import decorate from 'apply-decorators'
@@ -34,6 +35,8 @@ import {
   setHostsMultipathing,
   setRemoteSyslogHost,
 } from 'xo'
+
+import { installCertificate } from './install-certificate'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
 
@@ -267,6 +270,20 @@ export default class extends Component {
                       : _('hostStatusDisabled')}
                   </td>
                 </tr>
+                {host.chipset_info.iommu !== undefined && (
+                  <tr>
+                    <th>
+                      <Tooltip content={_('hostIommuTooltip')}>
+                        {_('hostIommu')}
+                      </Tooltip>
+                    </th>
+                    <td>
+                      {host.chipset_info.iommu
+                        ? _('stateEnabled')
+                        : _('stateDisabled')}
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('hostPowerOnMode')}</th>
                   <td>
@@ -438,6 +455,57 @@ export default class extends Component {
                 <Upgrade place='supplementalPacks' available={2} />
               </Container>,
             ]}
+            {host.certificates !== undefined && (
+              <div>
+                <h3>
+                  {_('installedCertificates')}{' '}
+                  <ActionButton
+                    btnStyle='success'
+                    data-id={host.id}
+                    data-isNewInstallation={host.certificates.length === 0}
+                    handler={installCertificate}
+                    icon='upload'
+                  >
+                    {host.certificates.length > 0
+                      ? _('replaceExistingCertificate')
+                      : _('installNewCertificate')}
+                  </ActionButton>
+                </h3>
+                {host.certificates.length > 0 ? (
+                  <ul className='list-group'>
+                    {host.certificates.map(({ fingerprint, notAfter }) => (
+                      <li className='list-group-item' key={fingerprint}>
+                        <Container>
+                          <Row>
+                            <Col mediumSize={2}>
+                              <strong>{_('fingerprint')}</strong>
+                            </Col>
+                            <Col mediumSize={10}>
+                              <Copiable tagName='pre'>{fingerprint}</Copiable>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col mediumSize={2}>
+                              <strong>{_('expiry')}</strong>
+                            </Col>
+                            <Col mediumSize={10}>
+                              <FormattedTime
+                                value={notAfter * 1e3}
+                                day='numeric'
+                                month='long'
+                                year='numeric'
+                              />
+                            </Col>
+                          </Row>
+                        </Container>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span>{_('hostNoCertificateInstalled')}</span>
+                )}
+              </div>
+            )}
           </Col>
         </Row>
       </Container>
