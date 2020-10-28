@@ -11,10 +11,10 @@ import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import {
+  addSubscriptions,
   compareVersions,
   connectStore,
   getIscsiPaths,
-  addSubscriptions,
 } from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
@@ -51,7 +51,7 @@ const SCHED_GRAN_TYPE_OPTIONS = [
   },
   {
     label: _('cpu'),
-    value: 'CPU',
+    value: 'cpu',
   },
   {
     label: _('socket'),
@@ -109,7 +109,7 @@ MultipathableSrs.propTypes = {
 }
 
 @addSubscriptions(props => ({
-  schedGran: cb => subscribeSchedulerGranularity(props.host.id, cb),
+  schedulerGranularity: cb => subscribeSchedulerGranularity(props.host.id, cb),
 }))
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
@@ -195,7 +195,7 @@ export default class extends Component {
   }
 
   render() {
-    const { host, pcis, pgpus, schedGran } = this.props
+    const { host, pcis, pgpus, schedulerGranularity } = this.props
     const {
       isHtEnabled,
       isNetDataPluginInstalledOnHost,
@@ -362,7 +362,7 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
-                {schedGran != null && (
+                {schedulerGranularity != null && (
                   <tr>
                     <th>{_('schedulerGranularity')}</th>
                     <td>
@@ -371,7 +371,7 @@ export default class extends Component {
                         options={SCHED_GRAN_TYPE_OPTIONS}
                         required
                         simpleValue
-                        value={schedGran}
+                        value={schedulerGranularity}
                       />
                       <small>{_('rebootUpdateHostLabel')}</small>
                     </td>

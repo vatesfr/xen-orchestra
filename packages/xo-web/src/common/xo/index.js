@@ -757,7 +757,7 @@ export const setPoolMaster = host =>
 
 // Host --------------------------------------------------------------
 
-export const setSchedulerGranularity = async (host, schedulerGranularity) =>
+export const setSchedulerGranularity = (host, schedulerGranularity) =>
   _call('host.setSchedulerGranularity', {
     host,
     schedulerGranularity,
