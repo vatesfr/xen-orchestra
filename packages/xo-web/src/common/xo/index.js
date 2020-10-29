@@ -3402,3 +3402,15 @@ export const checkAuditRecordsIntegrity = (oldest, newest) =>
 
 export const generateAuditFingerprint = oldest =>
   _call('audit.generateFingerprint', { oldest })
+
+// LDAP ------------------------------------------------------------------------
+
+export const synchronizeLdapGroups = () =>
+  confirm({
+    title: _('syncLdapGroups'),
+    body: _('syncLdapGroupsWarning'),
+    icon: 'refresh',
+  }).then(
+    () => _call('ldap.synchronizeGroups')::tap(subscribeGroups.forceRefresh),
+    noop
+  )
