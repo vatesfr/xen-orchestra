@@ -725,7 +725,7 @@ const messages = {
   customizeFilters: 'Customize filters',
 
   // ----- VM actions ------
-  cantRemotlyCopy:
+  cantRemotelyCopy:
     "Your current edition doesn't support remote copy. You have to upgrade to Premium edition for this feature",
   startVmLabel: 'Start',
   startVmOnLabel: 'Start on…',

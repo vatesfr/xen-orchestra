@@ -132,7 +132,7 @@ class CopyVmsModalBody extends BaseComponent {
                 value={sr}
               />
               {(getXoaPlan() === 'Free' || getXoaPlan() === 'Starter') && (
-                <small>{_('cantRemotlyCopy')}</small>
+                <small>{_('cantRemotelyCopy')}</small>
               )}
             </Col>
           </SingleLineRow>
