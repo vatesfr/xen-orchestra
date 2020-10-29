@@ -1207,33 +1207,8 @@ export const copyVms = (vms, type) => {
         _vms.map((vm, index) => cloneVm({ id: vm }, false, names[index]))
       )
     }
-    if (sr !== undefined) {
-      if (process.env.XOA_PLAN < 3) {
-        const promise = [_call('xo.getAllObjects', { filter: { id: sr } })]
-        _vms.map(id =>
-          promise.push(_call('xo.getAllObjects', { filter: { id: id } }))
-        )
-        let isLocal = true
-        Promise.all(promise).then(response => {
-          let ipPool
-          response.map(objects => {
-            forEach(objects, object => {
-              ipPool === undefined || ipPool === object.$poolId
-                ? (ipPool = object.$poolId)
-                : (isLocal = false)
-            })
-          })
 
-          !isLocal
-            ? error(_('copyVm'), _('upgradeNeeded'))
-            : Promise.all(
-                _vms.map((vm, index) => {
-                  _call('vm.copy', { vm, sr, compress, name: names[index] })
-                })
-              )
-        })
-        return
-      }
+    if (sr !== undefined) {
       return Promise.all(
         _vms.map((vm, index) =>
           _call('vm.copy', { vm, sr, compress, name: names[index] })
