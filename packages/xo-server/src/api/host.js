@@ -2,6 +2,58 @@ import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
+export async function getSchedulerGranularity({ host }) {
+  try {
+    return await this.getXapi(host).getField(
+      'host',
+      host._xapiRef,
+      'sched_gran'
+    )
+  } catch (e) {
+    // This method is supported on XCP-ng >= 8.2 only.
+    if (e.code === 'MESSAGE_METHOD_UNKNOWN') {
+      return null
+    }
+    throw e
+  }
+}
+
+getSchedulerGranularity.description = 'get the scheduler granularity of a host'
+
+getSchedulerGranularity.params = {
+  id: { type: 'string' },
+}
+
+getSchedulerGranularity.resolve = {
+  host: ['id', 'host', 'view'],
+}
+
+// ===================================================================
+
+export async function setSchedulerGranularity({ host, schedulerGranularity }) {
+  await this.getXapi(host).setField(
+    'host',
+    host._xapiRef,
+    'sched_gran',
+    schedulerGranularity
+  )
+}
+
+setSchedulerGranularity.description = 'set scheduler granularity of a host'
+
+setSchedulerGranularity.params = {
+  id: { type: 'string' },
+  schedulerGranularity: {
+    enum: ['cpu', 'core', 'socket'],
+  },
+}
+
+setSchedulerGranularity.resolve = {
+  host: ['id', 'host', 'operate'],
+}
+
+// ===================================================================
+
 export async function set({
   host,
 
