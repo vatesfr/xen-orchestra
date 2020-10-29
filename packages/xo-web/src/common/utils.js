@@ -223,7 +223,7 @@ function safeHumanFormat(value, opts) {
 }
 
 export const formatSize = bytes =>
-  safeHumanFormat(bytes, { scale: 'binary', unit: 'B' })
+  bytes != null ? safeHumanFormat(bytes, { scale: 'binary', unit: 'B' }) : 'N/D'
 
 export const formatSizeShort = bytes =>
   safeHumanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
