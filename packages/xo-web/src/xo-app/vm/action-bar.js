@@ -42,14 +42,12 @@ const vmActionBarByState = {
           }
         />
       )}
-      {!isSelfUser && (
-        <Action
-          handler={snapshotVm}
-          icon='vm-snapshot'
-          label={_('snapshotVmLabel')}
-          pending={includes(vm.current_operations, 'snapshot')}
-        />
-      )}
+      <Action
+        handler={snapshotVm}
+        icon='vm-snapshot'
+        label={_('snapshotVmLabel')}
+        pending={includes(vm.current_operations, 'snapshot')}
+      />
       {!isSelfUser && canAdministrate && (
         <Action
           handler={exportVm}

@@ -1,5 +1,31 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Host/Advanced] Display installed certificates with ability to install a new certificate [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PRs [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319) [#5332](https://github.com/vatesfr/xen-orchestra/pull/5332))
+- [VM/network] Allow Self Service users to change a VIF's network [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5203](https://github.com/vatesfr/xen-orchestra/pull/5203))
+- [New SSH key] Show warning when the SSH key already exists (PR [#5329](https://github.com/vatesfr/xen-orchestra/pull/5329))
+- [Pool/Network] Add a tooltip to the `Automatic` column (PR [#5345](https://github.com/vatesfr/xen-orchestra/pull/5345))
+
+### Bug fixes
+
+- [Host] Fix power state stuck on busy after power off [#4919](https://github.com/vatesfr/xen-orchestra/issues/4919) (PR [#5288](https://github.com/vatesfr/xen-orchestra/pull/5288))
+- [VM/Network] Don't allow users to change a VIF's locking mode if they don't have permissions on the network (PR [#5283](https://github.com/vatesfr/xen-orchestra/pull/5283))
+- [Backup/overview] Add tooltip on the running backup job button (PR [#5325 ](https://github.com/vatesfr/xen-orchestra/pull/5325))
+- [VM] Show snapshot button in toolbar for Self Service users (PR [#5324](https://github.com/vatesfr/xen-orchestra/pull/5324))
+- [User] Fallback to default filter on resetting customized filter (PR [#5321](https://github.com/vatesfr/xen-orchestra/pull/5321))
+- [Home] Show error notification when bulk VM snapshot fails (PR [#5323](https://github.com/vatesfr/xen-orchestra/pull/5323))
+
+### Packages to release
+
+- vhd-lib 0.8.0
+- @xen-orchestra/audit-core 0.2.0
+- xo-server-audit 0.9.0
+- xo-web 5.73.0
+- xo-server 5.69.0
+
 ## **5.51.1** (2020-10-14)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
