@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host/Advanced] Ability to change the scheduler granularity. Only available on XCP-ng >= 8.2 [#5191](https://github.com/vatesfr/xen-orchestra/issues/5291) (PR [#5320](https://github.com/vatesfr/xen-orchestra/pull/5320))
+- [Host/Advanced] Ability to change the scheduler granularity. Only available on XCP-ng >= 8.2 [#5291](https://github.com/vatesfr/xen-orchestra/issues/5291) (PR [#5320](https://github.com/vatesfr/xen-orchestra/pull/5320))
 
 ### Bug fixes
 
