@@ -10,6 +10,7 @@ export async function getSchedulerGranularity({ host }) {
       'sched_gran'
     )
   } catch (e) {
+    // This method is supported on XCP-ng >= 8.2 only.
     if (e.code === 'MESSAGE_METHOD_UNKNOWN') {
       return null
     }

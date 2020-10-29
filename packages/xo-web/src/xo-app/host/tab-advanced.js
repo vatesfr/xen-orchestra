@@ -129,9 +129,7 @@ export default class extends Component {
   async componentDidMount() {
     const plugin = await getPlugin('netdata')
     const isNetDataPluginCorrectlySet = plugin !== undefined && plugin.loaded
-    this.setState({
-      isNetDataPluginCorrectlySet,
-    })
+    this.setState({ isNetDataPluginCorrectlySet })
     if (isNetDataPluginCorrectlySet) {
       this.setState({
         isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
