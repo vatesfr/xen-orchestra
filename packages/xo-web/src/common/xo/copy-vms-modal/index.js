@@ -1,5 +1,7 @@
 import _, { messages } from 'intl'
 import { every } from 'lodash'
+import { getXoaPlan, STARTER } from '../../xoa-plans'
+import Icon from 'icon'
 import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -10,7 +12,7 @@ import BaseComponent from 'base-component'
 import SingleLineRow from 'single-line-row'
 import { Col } from 'grid'
 import { SelectSr } from 'select-objects'
-import { connectStore, getXoaPlan } from 'utils'
+import { connectStore } from 'utils'
 
 import SelectCompression from '../../select-compression'
 import ZstdChecker from '../../zstd-checker'
@@ -75,7 +77,15 @@ class CopyVmsModalBody extends BaseComponent {
       copyMode: 'fullCopy',
       namePattern: '{name}_COPY',
     })
+    this.isCurrentPlanHigherThanStarter = getXoaPlan().value > STARTER.value
   }
+
+  _getPredicateSr = sr =>
+    createSelector(
+      () => this.props.resolvedVms,
+      vms =>
+        this.isCurrentPlanHigherThanStarter || every(vms, { $poolId: sr.$pool })
+    )()
 
   _onChangeSr = sr => this.setState({ sr })
   _onChangeNamePattern = event =>
@@ -85,7 +95,6 @@ class CopyVmsModalBody extends BaseComponent {
     const {
       intl: { formatMessage },
       isZstdSupported,
-      resolvedVms,
       vms,
     } = this.props
     const { compression, copyMode, namePattern, sr } = this.state
@@ -125,14 +134,13 @@ class CopyVmsModalBody extends BaseComponent {
               <SelectSr
                 disabled={copyMode !== 'fullCopy'}
                 onChange={this.linkState('sr')}
-                predicate={sr =>
-                  process.env.XOA_PLAN > 2 ||
-                  every(resolvedVms, { $poolId: sr.$pool })
-                }
+                predicate={sr => this._getPredicateSr(sr)}
                 value={sr}
               />
-              {(getXoaPlan() === 'Free' || getXoaPlan() === 'Starter') && (
-                <small>{_('cantRemotelyCopy')}</small>
+              {!this.isCurrentPlanHigherThanStarter && (
+                <muted>
+                  <Icon icon='info' /> {_('cantRemotelyCopy')}
+                </muted>
               )}
             </Col>
           </SingleLineRow>
