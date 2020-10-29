@@ -749,6 +749,14 @@ export default class BackupNg {
           let vmCancel
           try {
             cancelToken.throwIfRequested()
+
+            const isMigrating = Object.values(vm.current_operations).some(
+              op => op === 'migrate_send' || op === 'pool_migrate'
+            )
+            if (isMigrating) {
+              throw new Error('VM is currently migrating')
+            }
+
             vmCancel = CancelToken.source([cancelToken])
 
             // $FlowFixMe injected $defer param
