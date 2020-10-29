@@ -28,19 +28,6 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
   return copied
 }
 
-const FALLOC_FL_PUNCH_HOLE = 0x02
-const FALLOC_FL_KEEP_SIZE = 0x01
-const FALLOC_FL_ZERO_RANGE = 0x10
-
-function fAllocateSyscall(fd, mode, offset, length) {
-  // https://man7.org/linux/man-pages/man2/fallocate.2.html
-  const SYS_fallocate = 285
-  const [result, _, errno] = Syscall6(SYS_fallocate, fd, mode, offset, length)
-  if (result === -1) {
-    throw new Error('Error no ' + errno)
-  }
-}
-
 export default class LocalHandler extends RemoteHandlerAbstract {
   constructor(remote: any, options: Object = {}) {
     super(remote, options)
@@ -143,33 +130,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     } while (dataLen - copied > 0)
   }
 
-  async writeBlankRange(fd, offset, blankLength) {
-    if (this._canFallocate) {
-      await fAllocateSyscall(fd.fd, FALLOC_FL_ZERO_RANGE, offset, blankLength)
-    } else {
-      await super.writeBlankRange(fd, offset, blankLength)
-    }
-  }
-
-  async _testWriteBlankRange() {
-    const path = this._getFilePath('test_fallocate.test')
-    const fd = await fs.open(path, 'w')
-    try {
-      await fAllocateSyscall(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0, 6000)
-      console.log('can fallocate')
-      this._canFallocate = true
-    } catch (e) {
-      console.log('cant fallocate', e)
-      this._canFallocate = false
-    } finally {
-      try {
-        await fs.close(fd)
-      } finally {
-        await this.unlink(path)
-      }
-    }
-  }
-
   async _read(file, buffer, position) {
     const needsClose = typeof file === 'string'
     file = needsClose ? await fs.open(this._getFilePath(file), 'r') : file.fd
@@ -204,7 +164,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     const path = this._getRealPath('/')
     await fs.ensureDir(path)
     await fs.access(path, fs.R_OK | fs.W_OK)
-    await this._testWriteBlankRange()
   }
 
   _truncate(file, len) {

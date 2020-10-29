@@ -333,15 +333,6 @@ export default class RemoteHandlerAbstract {
     await this._write(fdOut, buffer, offsetOut)
   }
 
-  /**
-   * Writes a succession of zero bytes in a file, server side, and with sparse FS support if possible so that it
-   * doesn't take space.
-   *
-   */
-  async writeBlankRange(fd, offset, blankLength) {
-    await this._write(fd, Buffer.alloc(blankLength), offset)
-  }
-
   async readFile(
     file: string,
     { flags = 'r' }: { flags?: string } = {}
@@ -389,8 +380,6 @@ export default class RemoteHandlerAbstract {
 
   async test(): Promise<Object> {
     const SIZE = 1024 * 1024 * 100
-    const HOLE_SIZE = 1024 * 1024 * 2
-    const HOLE_OFFSET = 30
     const now = Date.now()
     const testFileName = normalizePath(`${now}.test`)
     const testFileName2 = normalizePath(`${now}__dup.test`)
@@ -401,16 +390,15 @@ export default class RemoteHandlerAbstract {
       const writeStart = process.hrtime()
       await this._outputFile(testFileName, data, { flags: 'wx' })
       const writeDuration = process.hrtime(writeStart)
+      let cloneDuration
       const fd1 = await this.openFile(testFileName, 'r+')
       try {
-        step = 'punch hole'
-        await this.writeBlankRange(fd1, HOLE_OFFSET, HOLE_SIZE)
         const fd2 = await this.openFile(testFileName2, 'wx')
         try {
           step = 'duplicate'
           const cloneStart = process.hrtime()
           await this.copyFileRange(fd1, 0, fd2, 0, data.byteLength)
-          const cloneDuration = process.hrtime(cloneStart)
+          cloneDuration = process.hrtime(cloneStart)
           console.log('cloneDuration', cloneDuration)
         } finally {
           await this._closeFile(fd2)
@@ -423,8 +411,6 @@ export default class RemoteHandlerAbstract {
       const readStart = process.hrtime()
       const read = await this._readFile(testFileName, { flags: 'r' })
       const readDuration = process.hrtime(readStart)
-      // put the hole in the expected data
-      data.fill(0, HOLE_OFFSET, HOLE_OFFSET + HOLE_SIZE)
       if (!data.equals(read)) {
         throw new Error('output and input did not match')
       }
@@ -437,9 +423,9 @@ export default class RemoteHandlerAbstract {
         success: true,
         writeRate: computeRate(writeDuration, SIZE),
         readRate: computeRate(readDuration, SIZE),
+        cloneDuration: computeRate(cloneDuration, SIZE),
       }
     } catch (error) {
-      console.log('ERROR', error)
       return {
         success: false,
         step,
