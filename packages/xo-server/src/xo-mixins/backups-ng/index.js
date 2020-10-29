@@ -1942,7 +1942,7 @@ export default class BackupNg {
                   {
                     __proto__: fork,
                     vm: {
-                      __proto__: fork.vm,
+                      ...fork.vm,
                       tags: [...fork.vm.tags, 'Continuous Replication'],
                     },
                   },
