@@ -749,6 +749,14 @@ export default class BackupNg {
           let vmCancel
           try {
             cancelToken.throwIfRequested()
+
+            const isMigrating = Object.values(vm.current_operations).some(
+              op => op === 'migrate_send' || op === 'pool_migrate'
+            )
+            if (isMigrating) {
+              throw new Error('VM is currently migrating')
+            }
+
             vmCancel = CancelToken.source([cancelToken])
 
             // $FlowFixMe injected $defer param
@@ -1541,17 +1549,19 @@ export default class BackupNg {
                     result: () => ({ size: xva.size }),
                   },
                   xapi._importVm($cancelToken, fork, sr, vm =>
-                    vm.set_name_label(
-                      `${metadata.vm.name_label} - ${
-                        job.name
-                      } - (${safeDateFormat(metadata.timestamp)})`
-                    )
+                    Promise.all([
+                      vm.add_tags('Disaster Recovery'),
+                      vm.set_name_label(
+                        `${metadata.vm.name_label} - ${
+                          job.name
+                        } - (${safeDateFormat(metadata.timestamp)})`
+                      ),
+                    ])
                   )
                 )
               )
 
               await Promise.all([
-                vm.add_tags('Disaster Recovery'),
                 disableVmHighAvailability(xapi, vm),
                 vm.update_blocked_operations(
                   'start',
@@ -1928,17 +1938,25 @@ export default class BackupNg {
                   parentId: taskId,
                   result: ({ transferSize }) => ({ size: transferSize }),
                 },
-                xapi.importDeltaVm(fork, {
-                  disableStartAfterImport: false, // we'll take care of that
-                  name_label: `${metadata.vm.name_label} - ${
-                    job.name
-                  } - (${safeDateFormat(metadata.timestamp)})`,
-                  srId: sr.$id,
-                })
+                xapi.importDeltaVm(
+                  {
+                    __proto__: fork,
+                    vm: {
+                      ...fork.vm,
+                      tags: [...fork.vm.tags, 'Continuous Replication'],
+                    },
+                  },
+                  {
+                    disableStartAfterImport: false, // we'll take care of that
+                    name_label: `${metadata.vm.name_label} - ${
+                      job.name
+                    } - (${safeDateFormat(metadata.timestamp)})`,
+                    srId: sr.$id,
+                  }
+                )
               )
 
               await Promise.all([
-                vm.add_tags('Continuous Replication'),
                 disableVmHighAvailability(xapi, vm),
                 vm.update_blocked_operations(
                   'start',

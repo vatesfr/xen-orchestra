@@ -11,7 +11,12 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { compareVersions, connectStore, getIscsiPaths } from 'utils'
+import {
+  addSubscriptions,
+  compareVersions,
+  connectStore,
+  getIscsiPaths,
+} from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -19,7 +24,7 @@ import { forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
-import { Toggle } from 'form'
+import { Toggle, Select } from 'form'
 import {
   detachHost,
   disableHost,
@@ -34,11 +39,28 @@ import {
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
+  setSchedulerGranularity,
+  subscribeSchedulerGranularity,
 } from 'xo'
 
 import { installCertificate } from './install-certificate'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
+
+const SCHED_GRAN_TYPE_OPTIONS = [
+  {
+    label: _('core'),
+    value: 'core',
+  },
+  {
+    label: _('cpu'),
+    value: 'cpu',
+  },
+  {
+    label: _('socket'),
+    value: 'socket',
+  },
+]
 
 const forceReboot = host => restartHost(host, true)
 
@@ -89,6 +111,9 @@ MultipathableSrs.propTypes = {
   hostId: PropTypes.string.isRequired,
 }
 
+@addSubscriptions(props => ({
+  schedGran: cb => subscribeSchedulerGranularity(props.host.id, cb),
+}))
 @connectStore(() => {
   const getPgpus = createGetObjectsOfType('PGPU')
     .pick((_, { host }) => host.$PGPUs)
@@ -139,6 +164,9 @@ export default class extends Component {
     }
   )
 
+  _setSchedulerGranularity = value =>
+    setSchedulerGranularity(this.props.host.id, value)
+
   _setHostIscsiIqn = iscsiIqn =>
     confirm({
       icon: 'alarm',
@@ -168,7 +196,7 @@ export default class extends Component {
   }
 
   render() {
-    const { host, pcis, pgpus } = this.props
+    const { host, pcis, pgpus, schedGran } = this.props
     const {
       isHtEnabled,
       isNetDataPluginInstalledOnHost,
@@ -349,6 +377,21 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
+                {schedGran != null && (
+                  <tr>
+                    <th>{_('schedulerGranularity')}</th>
+                    <td>
+                      <Select
+                        onChange={this._setSchedulerGranularity}
+                        options={SCHED_GRAN_TYPE_OPTIONS}
+                        required
+                        simpleValue
+                        value={schedGran}
+                      />
+                      <small>{_('rebootUpdateHostLabel')}</small>
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
                   <td>
