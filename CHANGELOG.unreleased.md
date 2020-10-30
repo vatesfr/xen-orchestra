@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [backup] improve marge speed after backup when using SMB3.1.1 or NFS4.2 (PR [#5331](https://github.com/vatesfr/xen-orchestra/pull/5331))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -27,3 +29,6 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- @xen-orchestra/fs minor
+- vhd-lib minor
