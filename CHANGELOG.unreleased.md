@@ -32,3 +32,5 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib minor
+- xo-server minor
+- xo-web minor
