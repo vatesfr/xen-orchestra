@@ -21,7 +21,7 @@
 - [Home] Show error notification when bulk VM snapshot fails (PR [#5323](https://github.com/vatesfr/xen-orchestra/pull/5323))
 - [Backup] Skip VMs currently migrating
 
-### Packages to release
+### Released packages
 
 - xo-server-auth-ldap 0.10.0
 - vhd-lib 0.8.0
@@ -60,7 +60,7 @@
 - Fix `not enough permissions` error when accessing some pages as a Self Service user (PR [#5303](https://github.com/vatesfr/xen-orchestra/pull/5303))
 - [VM] Explicit error when VM migration failed due to unset default SR on destination pool [#5282](https://github.com/vatesfr/xen-orchestra/issues/5282) (PR [#5306](https://github.com/vatesfr/xen-orchestra/pull/5306))
 
-### Packages to release
+### Released packages
 
 - xo-server-sdn-controller 1.0.4
 - xo-server-backup-reports 0.16.7
@@ -93,7 +93,7 @@
 - [Import OVA] Improve import speed of embedded gzipped VMDK disks (PR [#5275](https://github.com/vatesfr/xen-orchestra/pull/5275))
 - [Remotes] Fix editing bucket and directory for S3 remotes [#5233](https://github.com/vatesfr/xen-orchestra/issues/5233) (PR [5276](https://github.com/vatesfr/xen-orchestra/pull/5276))
 
-### Packages to release
+### Released packages
 
 - xo-server-auth-ldap 0.9.0
 - @xen-orchestra/fs 0.11.1
@@ -105,7 +105,7 @@
 
 ![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
-### Packages to release
+### Released packages
 
 - xo-server-audit 0.8.0
 
@@ -121,7 +121,7 @@
 - [New SR] Fix `Cannot read property 'trim' of undefined` error (PR [#5212](https://github.com/vatesfr/xen-orchestra/pull/5212))
 - [Dashboard/Health] Fix suspended VDIs considered as orphans [#5248](https://github.com/vatesfr/xen-orchestra/issues/5248) (PR [#5249](https://github.com/vatesfr/xen-orchestra/pull/5249))
 
-### Packages to release
+### Released packages
 
 - xo-server-audit 0.7.2
 - xo-web 5.70.0
@@ -137,7 +137,7 @@
 
 - [VM/Network] Fix TX checksumming [#5234](https://github.com/vatesfr/xen-orchestra/issues/5234)
 
-### Packages to release
+### Released packages
 
 - xo-server-usage-report 0.9.0
 - xo-server-audit 0.7.1
@@ -167,7 +167,7 @@
 - [Audit] Obfuscate sensitive data in `user.changePassword` action's records [#5219](https://github.com/vatesfr/xen-orchestra/issues/5219) (PR [#5220](https://github.com/vatesfr/xen-orchestra/pull/5220))
 - [SDN Controller] Fix `Cannot read property '$network' of undefined` error at the network creation (PR [#5217](https://github.com/vatesfr/xen-orchestra/pull/5217))
 
-### Packages to release
+### Released packages
 
 - xo-server-audit 0.7.0
 - xo-server-sdn-controller 1.0.3
@@ -184,7 +184,7 @@
 
 - [Patches] Don't log errors related to missing patches listing (Previous fix in 5.48.3 was not working)
 
-### Packages to release
+### Released packages
 
 - xo-server 5.64.1
 - xo-server-sdn-controller 1.0.2
