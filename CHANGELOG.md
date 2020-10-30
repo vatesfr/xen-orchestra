@@ -1,14 +1,19 @@
 # ChangeLog
 
-## **next**
+## **5.52.0** (2020-10-30)
 
-### Enhancements
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Highlights
 
 - [Host/Advanced] Display installed certificates with ability to install a new certificate [#5134](https://github.com/vatesfr/xen-orchestra/issues/5134) (PRs [#5319](https://github.com/vatesfr/xen-orchestra/pull/5319) [#5332](https://github.com/vatesfr/xen-orchestra/pull/5332))
 - [VM/network] Allow Self Service users to change a VIF's network [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5203](https://github.com/vatesfr/xen-orchestra/pull/5203))
+- [Host/Advanced] Ability to change the scheduler granularity. Only available on XCP-ng >= 8.2 [#5291](https://github.com/vatesfr/xen-orchestra/issues/5291) (PR [#5320](https://github.com/vatesfr/xen-orchestra/pull/5320))
+
+### Enhancements
+
 - [New SSH key] Show warning when the SSH key already exists (PR [#5329](https://github.com/vatesfr/xen-orchestra/pull/5329))
 - [Pool/Network] Add a tooltip to the `Automatic` column (PR [#5345](https://github.com/vatesfr/xen-orchestra/pull/5345))
-- [Host/Advanced] Ability to change the scheduler granularity. Only available on XCP-ng >= 8.2 [#5291](https://github.com/vatesfr/xen-orchestra/issues/5291) (PR [#5320](https://github.com/vatesfr/xen-orchestra/pull/5320))
 - [LDAP] Ability to force group synchronization [#1884](https://github.com/vatesfr/xen-orchestra/issues/1884) (PR [#5343](https://github.com/vatesfr/xen-orchestra/pull/5343))
 
 ### Bug fixes
@@ -32,7 +37,7 @@
 
 ## **5.51.1** (2020-10-14)
 
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 
@@ -102,8 +107,6 @@
 - xo-web 5.71.0
 
 ## **5.50.3** (2020-09-17)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Released packages
 
