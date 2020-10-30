@@ -8,6 +8,8 @@
 - [VM/network] Allow Self Service users to change a VIF's network [#5020](https://github.com/vatesfr/xen-orchestra/issues/5020) (PR [#5203](https://github.com/vatesfr/xen-orchestra/pull/5203))
 - [New SSH key] Show warning when the SSH key already exists (PR [#5329](https://github.com/vatesfr/xen-orchestra/pull/5329))
 - [Pool/Network] Add a tooltip to the `Automatic` column (PR [#5345](https://github.com/vatesfr/xen-orchestra/pull/5345))
+- [Host/Advanced] Ability to change the scheduler granularity. Only available on XCP-ng >= 8.2 [#5291](https://github.com/vatesfr/xen-orchestra/issues/5291) (PR [#5320](https://github.com/vatesfr/xen-orchestra/pull/5320))
+- [LDAP] Ability to force group synchronization [#1884](https://github.com/vatesfr/xen-orchestra/issues/1884) (PR [#5343](https://github.com/vatesfr/xen-orchestra/pull/5343))
 
 ### Bug fixes
 
@@ -17,14 +19,16 @@
 - [VM] Show snapshot button in toolbar for Self Service users (PR [#5324](https://github.com/vatesfr/xen-orchestra/pull/5324))
 - [User] Fallback to default filter on resetting customized filter (PR [#5321](https://github.com/vatesfr/xen-orchestra/pull/5321))
 - [Home] Show error notification when bulk VM snapshot fails (PR [#5323](https://github.com/vatesfr/xen-orchestra/pull/5323))
+- [Backup] Skip VMs currently migrating
 
 ### Packages to release
 
+- xo-server-auth-ldap 0.10.0
 - vhd-lib 0.8.0
 - @xen-orchestra/audit-core 0.2.0
 - xo-server-audit 0.9.0
-- xo-web 5.73.0
-- xo-server 5.69.0
+- xo-web 5.74.0
+- xo-server 5.70.0
 
 ## **5.51.1** (2020-10-14)
 
