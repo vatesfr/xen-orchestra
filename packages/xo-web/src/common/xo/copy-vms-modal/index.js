@@ -80,12 +80,10 @@ class CopyVmsModalBody extends BaseComponent {
     this.isCurrentPlanHigherThanStarter = getXoaPlan().value > STARTER.value
   }
 
-  _getPredicateSr = sr =>
-    createSelector(
-      () => this.props.resolvedVms,
-      vms =>
-        this.isCurrentPlanHigherThanStarter || every(vms, { $poolId: sr.$pool })
-    )()
+  getSrPredicate = createSelector(
+    () => this.props.resolvedVms,
+    vms => sr => every(vms, { $poolId: sr.$pool })
+  )
 
   _onChangeSr = sr => this.setState({ sr })
   _onChangeNamePattern = event =>
@@ -134,13 +132,17 @@ class CopyVmsModalBody extends BaseComponent {
               <SelectSr
                 disabled={copyMode !== 'fullCopy'}
                 onChange={this.linkState('sr')}
-                predicate={sr => this._getPredicateSr(sr)}
+                predicate={
+                  this.isCurrentPlanHigherThanStarter
+                    ? undefined
+                    : this.getSrPredicate()
+                }
                 value={sr}
               />
               {!this.isCurrentPlanHigherThanStarter && (
-                <muted>
+                <p className='text-muted'>
                   <Icon icon='info' /> {_('cantRemotelyCopy')}
-                </muted>
+                </p>
               )}
             </Col>
           </SingleLineRow>
