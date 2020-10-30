@@ -106,23 +106,22 @@ connect()
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
-const _call = (method, params) => {
-  let promise = _signIn.then(() => xo.call(method, params))
-
-  if (process.env.NODE_ENV !== 'production') {
-    promise = promise::tap(null, error => {
-      console.error('XO error', {
-        method,
-        params,
-        code: error.code,
-        message: error.message,
-        data: error.data,
+const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
+  ? async (method, params) => {
+      await _signIn
+      // eslint-disable-next-line no-console
+      console.debug('API call', method, params)
+      return tap.call(xo.call(method, params), null, error => {
+        console.error('XO error', {
+          method,
+          params,
+          code: error.code,
+          message: error.message,
+          data: error.data,
+        })
       })
-    })
-  }
-
-  return promise
-}
+    }
+  : (method, params) => _signIn.then(() => xo.call(method, params))
 
 // ===================================================================
 
