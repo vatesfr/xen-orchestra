@@ -1,13 +1,14 @@
 import * as CM from 'complex-matcher'
 import _ from 'intl'
 import classNames from 'classnames'
+import cookies from 'js-cookie'
 import defined, { ifDef } from '@xen-orchestra/defined'
 import DropdownMenu from 'react-bootstrap-4/lib/DropdownMenu' // https://phabricator.babeljs.io/T6662 so Dropdown.Menu won't work like https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import DropdownToggle from 'react-bootstrap-4/lib/DropdownToggle' // https://phabricator.babeljs.io/T6662 so Dropdown.Toggle won't work https://react-bootstrap.github.io/components.html#btn-dropdowns-custom
 import PropTypes from 'prop-types'
 import React from 'react'
 import Shortcuts from 'shortcuts'
-import { Dropdown, MenuItem } from 'react-bootstrap-4/lib'
+import { Dropdown, DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { Portal } from 'react-overlays'
 import { Set } from 'immutable'
 import { injectState, provideState } from 'reaclette'
@@ -38,6 +39,7 @@ import {
   createSelector,
   createSort,
 } from '../selectors'
+import { DEFAULT_ITEMS_PER_PAGE, ITEMS_PER_PAGE_OPTIONS } from '../xo'
 
 import styles from './index.css'
 
@@ -268,7 +270,6 @@ class SortedTable extends Component {
     ),
     groupedActions: actionsShape,
     individualActions: actionsShape,
-    itemsPerPage: PropTypes.number,
     onSelect: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
@@ -281,10 +282,6 @@ class SortedTable extends Component {
 
     // @deprecated, use `data-${key}` instead
     userData: PropTypes.any,
-  }
-
-  static defaultProps = {
-    itemsPerPage: 10,
   }
 
   constructor(props, context) {
@@ -306,6 +303,10 @@ class SortedTable extends Component {
 
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
+      itemsPerPage: +defined(
+        cookies.get('sortedTableItemsPerPage'),
+        DEFAULT_ITEMS_PER_PAGE
+      ),
     })
 
     this._getSelectedColumn = () => this.props.columns[this._getSelectedColumnId()]
@@ -340,7 +341,7 @@ class SortedTable extends Component {
       this._getSortOrder
     )
 
-    this._getVisibleItems = createPager(this._getItems, this._getPage, () => this.props.itemsPerPage)
+    this._getVisibleItems = createPager(this._getItems, this._getPage, () => this.state.itemsPerPage)
 
     state.selectedItemsIds = new Set()
 
@@ -584,7 +585,7 @@ class SortedTable extends Component {
 
   _getNPages = createSelector(
     () => this._getItems().length,
-    () => this.props.itemsPerPage,
+    () => this.state.itemsPerPage,
     (nItems, itemsPerPage) => ceil(nItems / itemsPerPage)
   )
 
@@ -727,18 +728,22 @@ class SortedTable extends Component {
     )
   }
 
+  _setNItemsPerPage = itemsPerPage => {
+    this.setState({ itemsPerPage })
+    cookies.set('sortedTableItemsPerPage', itemsPerPage)
+  }
+
   render() {
     const { props, state } = this
     const {
       actions,
       filterContainer,
       individualActions,
-      itemsPerPage,
       onSelect,
       paginationContainer,
       shortcutsTarget,
     } = props
-    const { all } = state
+    const { all, itemsPerPage } = state
     const groupedActions = this._getGroupedActions()
 
     const nAllItems = this._getTotalNumberOfItems()
@@ -860,7 +865,7 @@ class SortedTable extends Component {
         </table>
         <Container>
           <SingleLineRow>
-            <Col mediumSize={8}>
+            <Col mediumSize={7}>
               {displayPagination &&
                 (paginationContainer !== undefined ? (
                   // Rebuild container function to refresh Portal component.
@@ -871,6 +876,18 @@ class SortedTable extends Component {
             </Col>
             <Col mediumSize={4}>
               {filterContainer ? <Portal container={() => filterContainer()}>{filterInstance}</Portal> : filterInstance}
+            </Col>
+            <Col mediumSize={1} className='pull-right'>
+              <DropdownButton bsStyle='info' title={itemsPerPage}>
+                {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+                  <MenuItem
+                    key={nItems}
+                    onClick={() => this._setNItemsPerPage(nItems)}
+                  >
+                    {nItems}
+                  </MenuItem>
+                ))}
+              </DropdownButton>
             </Col>
           </SingleLineRow>
         </Container>

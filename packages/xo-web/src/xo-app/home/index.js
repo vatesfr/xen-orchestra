@@ -64,6 +64,8 @@ import {
   subscribeResourceSets,
   subscribeServers,
   suspendVms,
+  DEFAULT_ITEMS_PER_PAGE,
+  ITEMS_PER_PAGE_OPTIONS,
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { createPredicate } from 'value-matcher'
@@ -90,9 +92,6 @@ import PoolItem from './pool-item'
 import VmItem from './vm-item'
 import TemplateItem from './template-item'
 import SrItem from './sr-item'
-
-const DEFAULT_ITEMS_PER_PAGE = 20
-const ITEMS_PER_PAGE_OPTIONS = [20, 50, 100]
 
 const OPTIONS = {
   host: {
