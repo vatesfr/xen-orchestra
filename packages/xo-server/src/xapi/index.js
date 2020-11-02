@@ -343,6 +343,26 @@ export default class Xapi extends XapiBase {
     await this.call('host.enable', this.getObject(hostId).$ref)
   }
 
+  async installCertificateOnHost(
+    hostId,
+    { certificate, chain = '', privateKey }
+  ) {
+    try {
+      await this.call(
+        'host.install_server_certificate',
+        this.getObject(hostId).$ref,
+        certificate,
+        privateKey,
+        chain
+      )
+    } catch (error) {
+      // CH/XCP-ng reset the connection on the certificate install
+      if (error.code !== 'ECONNRESET') {
+        throw error
+      }
+    }
+  }
+
   // Resources:
   // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
   // - https://github.com/xcp-ng/xenadmin/blob/60dd70fc36faa0ec91654ec97e24b7af36acff9f/XenModel/Actions/Host/EditMultipathAction.cs

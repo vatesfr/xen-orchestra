@@ -31,6 +31,8 @@ const messages = {
   showLogs: 'Show logs',
   noValue: 'None',
   compression: 'Compression',
+  core: 'Core',
+  cpu: 'CPU',
   multipathing: 'Multipathing',
   multipathingDisabled: 'Multipathing disabled',
   enableMultipathing: 'Enable multipathing',
@@ -42,6 +44,8 @@ const messages = {
   hasInactivePath: 'Has an inactive path',
   pools: 'Pools',
   remotes: 'Remotes',
+  schedulerGranularity: 'Scheduler granularity',
+  socket: 'Socket',
   type: 'Type',
   restore: 'Restore',
   delete: 'Delete',
@@ -83,6 +87,14 @@ const messages = {
   advancedSettings: 'Advanced settings',
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
+  installedCertificates: 'Installed certificates',
+  expiry: 'Expiry',
+  fingerprint: 'Fingerprint',
+  certificate: 'Certificate (PEM)',
+  certificateChain: 'Certificate chain (PEM)',
+  privateKey: 'Private key (PKCS#8)',
+  installNewCertificate: 'Install new certificate',
+  replaceExistingCertificate: 'Replace existing certificate',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -571,6 +583,7 @@ const messages = {
     'Delete backup job{nJobs, plural, one {} other {s}}',
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
+  runBackupJob: 'Run backup job once',
 
   // ------ Remote -----
   remoteName: 'Name',
@@ -653,6 +666,10 @@ const messages = {
   aclCreate: 'Create',
   newGroupName: 'New group name',
   createGroup: 'Create group',
+  syncLdapGroups: 'Synchronize LDAP groups',
+  ldapPluginNotConfigured: 'Install and configure the auth-ldap plugin first',
+  syncLdapGroupsWarning:
+    'Are you sure you want to synchronize LDAP groups with XO? This may delete XO groups and their ACLs.',
   createGroupButton: 'Create',
   deleteGroup: 'Delete group',
   deleteGroupConfirm: 'Are you sure you want to delete this group?',
@@ -829,6 +846,7 @@ const messages = {
   poolNetworkPifDetached: 'Disconnected',
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
+  networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',
@@ -908,6 +926,7 @@ const messages = {
   hostLicenseExpiry: 'Expiry',
   hostRemoteSyslog: 'Remote syslog',
   hostIommu: 'IOMMU',
+  hostNoCertificateInstalled: 'No certificates installed on this host',
   supplementalPacks: 'Installed supplemental packs',
   supplementalPackNew: 'Install new supplemental pack',
   supplementalPackPoolNew: 'Install supplemental pack on every host',
@@ -1189,6 +1208,7 @@ const messages = {
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
   snapshotDate: 'Creation date',
+  snapshotError: 'Snapshot error',
   snapshotName: 'Name',
   snapshotDescription: 'Description',
   snapshotQuiesce: 'Quiesced snapshot',
@@ -1631,6 +1651,8 @@ const messages = {
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
   remoteNotCompatibleWithSelectedProxy:
     "The backup will not be run on this remote because it's not compatible with the selected proxy",
+  remoteLoadBackupsFailure: 'Loading backups failed',
+  remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
 
   // ----- Restore files view -----
   listRemoteBackups: 'List remote backups',
@@ -2051,6 +2073,7 @@ const messages = {
   deleteSshKey: 'Delete',
   deleteSshKeys: 'Delete selected SSH keys',
   newSshKeyModalTitle: 'New SSH key',
+  sshKeyAlreadyExists: 'SSH key already exists!',
   sshKeyErrorTitle: 'Invalid key',
   sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
   title: 'Title',

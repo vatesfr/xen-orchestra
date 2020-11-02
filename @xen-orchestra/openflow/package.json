@@ -31,5 +31,10 @@
   },
   "dependencies": {
     "@vates/read-chunk": "^0.1.0"
-  }
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC"
 }

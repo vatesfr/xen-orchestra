@@ -238,6 +238,7 @@ const SchedulePreviewBody = decorate([
             icon='run-schedule'
             key='run'
             size='small'
+            tooltip={_('runBackupJob')}
           />
         )}{' '}
         {lastRunLog !== undefined && (
