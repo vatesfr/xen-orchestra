@@ -181,35 +181,6 @@ createIso.resolve = {
 }
 
 // -------------------------------------------------------------------
-
-export async function createFile({
-  host,
-  nameLabel,
-  nameDescription,
-  location,
-}) {
-  const xapi = this.getXapi(host)
-  return xapi.createSr({
-    hostRef: host._xapiRef,
-    name_label: nameLabel,
-    name_description: nameDescription,
-    type: 'file',
-    device_config: { location },
-  })
-}
-
-createFile.params = {
-  host: { type: 'string' },
-  nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
-  location: { type: 'string' },
-}
-
-createFile.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
 // NFS SR
 
 // This functions creates a NFS SR
