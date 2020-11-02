@@ -1,3 +1,5 @@
+import { forbiddenOperation } from 'xo-common/api-errors'
+
 export async function create({ name }) {
   return (await this.createGroup({ name })).id
 }
@@ -51,6 +53,13 @@ setUsers.params = {
 
 // adds the user id to group.users
 export async function addUser({ id, userId }) {
+  const group = await this.getGroup(id)
+  if (group.provider !== undefined) {
+    throw forbiddenOperation(
+      'add user',
+      'cannot add user to synchronized group'
+    )
+  }
   await this.addUserToGroup(userId, id)
 }
 
@@ -65,6 +74,13 @@ addUser.params = {
 
 // remove the user id from group.users
 export async function removeUser({ id, userId }) {
+  const group = await this.getGroup(id)
+  if (group.provider !== undefined) {
+    throw forbiddenOperation(
+      'remove user',
+      'cannot remove user from synchronized group'
+    )
+  }
   await this.removeUserFromGroup(userId, id)
 }
 
@@ -80,6 +96,15 @@ removeUser.params = {
 // -------------------------------------------------------------------
 
 export async function set({ id, name }) {
+  if (name !== undefined) {
+    const group = await this.getGroup(id)
+    if (group.provider !== undefined) {
+      throw forbiddenOperation(
+        'set group name',
+        'cannot edit synchronized group'
+      )
+    }
+  }
   await this.updateGroup(id, { name })
 }
 

@@ -304,7 +304,9 @@ export default class {
           [providerId]: {
             id,
             data:
-              data !== undefined ? data : user.authProviders?.[providerId]?.data,
+              data !== undefined
+                ? data
+                : user.authProviders?.[providerId]?.data,
           },
         },
       })
