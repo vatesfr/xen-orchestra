@@ -25,7 +25,7 @@ export default class MountHandler extends LocalHandler {
     this._keeper = undefined
     this._params = {
       ...params,
-      options: [params.options, remote.options]
+      options: [params.options, remote.options ?? params.defaultOptions]
         .filter(_ => _ !== undefined)
         .join(','),
     }
