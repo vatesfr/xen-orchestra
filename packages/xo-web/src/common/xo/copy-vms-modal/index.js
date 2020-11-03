@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import { every } from 'lodash'
 import { getXoaPlan, STARTER } from '../../xoa-plans'
 import Icon from 'icon'
+import { isSrWritable } from 'xo'
 import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -82,7 +83,13 @@ class CopyVmsModalBody extends BaseComponent {
 
   getSrPredicate = createSelector(
     () => this.props.resolvedVms,
-    vms => sr => every(vms, { $poolId: sr.$pool })
+    vms => sr => {
+      if (isSrWritable(sr)) {
+        return this.isCurrentPlanHigherThanStarter
+          ? undefined
+          : every(vms, { $poolId: sr.$pool })
+      }
+    }
   )
 
   _onChangeSr = sr => this.setState({ sr })
@@ -132,16 +139,12 @@ class CopyVmsModalBody extends BaseComponent {
               <SelectSr
                 disabled={copyMode !== 'fullCopy'}
                 onChange={this.linkState('sr')}
-                predicate={
-                  this.isCurrentPlanHigherThanStarter
-                    ? undefined
-                    : this.getSrPredicate()
-                }
+                predicate={this.getSrPredicate()}
                 value={sr}
               />
               {!this.isCurrentPlanHigherThanStarter && (
                 <p className='text-muted'>
-                  <Icon icon='info' /> {_('cantRemotelyCopy')}
+                  <Icon icon='info' /> {_('cantInterPoolCopy')}
                 </p>
               )}
             </Col>

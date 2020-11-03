@@ -725,7 +725,7 @@ const messages = {
   customizeFilters: 'Customize filters',
 
   // ----- VM actions ------
-  cantRemotelyCopy: 'Remote copy requires at least enterprise plan',
+  cantInterPoolCopy: 'Remote copy requires at least Enterprise plan',
   startVmLabel: 'Start',
   startVmOnLabel: 'Start on…',
   startVmOnMissingHostTitle: 'No host selected',
