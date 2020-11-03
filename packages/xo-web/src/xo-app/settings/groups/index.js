@@ -40,7 +40,7 @@ class UserDisplay extends Component {
   }
 
   render() {
-    const { id, users } = this.props
+    const { id, users, canRemove } = this.props
 
     return (
       <span>
@@ -51,13 +51,15 @@ class UserDisplay extends Component {
             &gt;
           </em>
         )}{' '}
-        <ActionButton
-          className='pull-right'
-          btnStyle='primary'
-          size='small'
-          icon='remove'
-          handler={this._removeUser}
-        />
+        {canRemove && (
+          <ActionButton
+            className='pull-right'
+            btnStyle='primary'
+            size='small'
+            icon='remove'
+            handler={this._removeUser}
+          />
+        )}
       </span>
     )
   }
@@ -88,7 +90,11 @@ class GroupMembersDisplay extends Component {
                 <ul className='list-group'>
                   {map(group.users, user => (
                     <li className='list-group-item' key={user}>
-                      <UserDisplay id={user} group={group} />
+                      <UserDisplay
+                        id={user}
+                        group={group}
+                        canRemove={group.provider === undefined}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -107,9 +113,15 @@ const getPredicate = users => entity =>
 const GROUP_COLUMNS = [
   {
     name: _('groupNameColumn'),
-    itemRenderer: group => (
-      <Text value={group.name} onChange={value => setGroupName(group, value)} />
-    ),
+    itemRenderer: group =>
+      group.provider === undefined ? (
+        <Text
+          value={group.name}
+          onChange={value => setGroupName(group, value)}
+        />
+      ) : (
+        group.name
+      ),
     sortCriteria: group => group.name,
   },
   {
@@ -118,13 +130,14 @@ const GROUP_COLUMNS = [
   },
   {
     name: _('addUserToGroupColumn'),
-    itemRenderer: group => (
-      <SelectSubject
-        predicate={getPredicate(group.users)}
-        onChange={user => user && addUserToGroup(user, group)}
-        value={null}
-      />
-    ),
+    itemRenderer: group =>
+      group.provider === undefined ? (
+        <SelectSubject
+          predicate={getPredicate(group.users)}
+          onChange={user => user && addUserToGroup(user, group)}
+          value={null}
+        />
+      ) : null,
   },
 ]
 
