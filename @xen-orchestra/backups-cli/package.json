@@ -14,7 +14,7 @@
     "lodash": "^4.17.15",
     "promise-toolbox": "^0.15.0",
     "proper-lockfile": "^4.1.1",
-    "vhd-lib": "^0.8.0"
+    "vhd-lib": "^0.9.0-0"
   },
   "engines": {
     "node": ">=7.10.1"
