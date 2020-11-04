@@ -1,6 +1,5 @@
 import _, { messages } from 'intl'
 import { every } from 'lodash'
-import { getXoaPlan, STARTER } from '../../xoa-plans'
 import Icon from 'icon'
 import { isSrWritable } from 'xo'
 import map from 'lodash/map'
@@ -22,6 +21,9 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from '../../selectors'
+import { getXoaPlan, STARTER } from '../../xoa-plans'
+
+const isCurrentPlanHigherThanStarter = getXoaPlan().value > STARTER.value
 
 @connectStore(
   () => {
@@ -78,18 +80,14 @@ class CopyVmsModalBody extends BaseComponent {
       copyMode: 'fullCopy',
       namePattern: '{name}_COPY',
     })
-    this.isCurrentPlanHigherThanStarter = getXoaPlan().value > STARTER.value
   }
 
   getSrPredicate = createSelector(
     () => this.props.resolvedVms,
-    vms => sr => {
-      if (isSrWritable(sr)) {
-        return this.isCurrentPlanHigherThanStarter
-          ? undefined
-          : every(vms, { $poolId: sr.$pool })
-      }
-    }
+    vms =>
+      isCurrentPlanHigherThanStarter
+        ? undefined
+        : sr => isSrWritable(sr) && every(vms, { $poolId: sr.$pool })
   )
 
   _onChangeSr = sr => this.setState({ sr })
@@ -142,7 +140,7 @@ class CopyVmsModalBody extends BaseComponent {
                 predicate={this.getSrPredicate()}
                 value={sr}
               />
-              {!this.isCurrentPlanHigherThanStarter && (
+              {!isCurrentPlanHigherThanStarter && (
                 <p className='text-muted'>
                   <Icon icon='info' /> {_('cantInterPoolCopy')}
                 </p>
