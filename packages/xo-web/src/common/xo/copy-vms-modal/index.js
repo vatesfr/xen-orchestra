@@ -1,12 +1,12 @@
 import _, { messages } from 'intl'
-import { every } from 'lodash'
 import Icon from 'icon'
-import { isSrWritable } from 'xo'
 import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { compileTemplate } from '@xen-orchestra/template'
+import { every } from 'lodash'
 import { injectIntl } from 'react-intl'
+import { isSrWritable } from 'xo'
 
 import BaseComponent from 'base-component'
 import SingleLineRow from 'single-line-row'
@@ -23,7 +23,7 @@ import {
 } from '../../selectors'
 import { getXoaPlan, STARTER } from '../../xoa-plans'
 
-const isCurrentPlanHigherThanStarter = getXoaPlan().value > STARTER.value
+const ISCURRENTPLANHIGHERTHANSTARTER = getXoaPlan().value > STARTER.value
 
 @connectStore(
   () => {
@@ -85,7 +85,7 @@ class CopyVmsModalBody extends BaseComponent {
   getSrPredicate = createSelector(
     () => this.props.resolvedVms,
     vms =>
-      isCurrentPlanHigherThanStarter
+      ISCURRENTPLANHIGHERTHANSTARTER
         ? undefined
         : sr => isSrWritable(sr) && every(vms, { $poolId: sr.$pool })
   )
@@ -140,7 +140,7 @@ class CopyVmsModalBody extends BaseComponent {
                 predicate={this.getSrPredicate()}
                 value={sr}
               />
-              {!isCurrentPlanHigherThanStarter && (
+              {!ISCURRENTPLANHIGHERTHANSTARTER && (
                 <p className='text-muted'>
                   <Icon icon='info' /> {_('cantInterPoolCopy')}
                 </p>
