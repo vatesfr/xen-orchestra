@@ -264,6 +264,27 @@ export default class Jobs {
       key: job.key,
       type,
     })
+    const data = {
+      data:
+        type === 'backup' || type === 'metadataBackup'
+          ? {
+              // $FlowFixMe only defined for BackupJob
+              mode: job.mode,
+              reportWhen: job.settings['']?.reportWhen ?? 'failure',
+            }
+          : undefined,
+      event: 'job.start',
+      method: 'pre',
+      userId: job.userId,
+      jobId: id,
+      jobName: job.name,
+      proxyId: job.proxy,
+      scheduleId: schedule?.id,
+      key: job.key,
+      type,
+    }
+
+    //console.log(data)
 
     const app = this._app
     try {
@@ -290,6 +311,15 @@ export default class Jobs {
 
         session = app.createUserConnection()
         session.set('user_id', job.userId)
+
+        app.emit('job.started', {
+          callId: '0',
+          userId: job.userId,
+          userName: 'mathieu.test',
+          method: 'backupNg.runJob',
+          params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+          timestamp: 0,
+        })
 
         const status = await executor({
           app,

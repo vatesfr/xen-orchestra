@@ -540,6 +540,36 @@ export default class BackupNg {
           throw new Error('backup job cannot run without a schedule')
         }
 
+        // console.log({
+        //   job: job_,
+        //   logger,
+        //   runJobId,
+        //   schedule})
+
+        //   console.table(job_.settings)
+
+        // callId: '0',
+        // userId: job.userId,
+        // userName: 'mathieu.test',
+        // method: 'backupNg.runJob',
+        // params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+        // timestamp: 0,
+
+        // callId: ?
+        // userId: job.userId
+        // userName: ??
+        // method: 'backupNg.runJob',
+        // params: job.vms
+        console.log('started from backupNg')
+        app.emit('backupJob.started', {
+          callid: '0',
+          userId: job_.userId,
+          userName: 'Mathieu.test',
+          method: 'backupNg.runJob',
+          params: job_.vms,
+          timestamp: Date.now(),
+        })
+
         let vmsId = data?.vms
 
         const job: BackupJob = (job_: any)
@@ -582,6 +612,7 @@ export default class BackupNg {
               ...vmsPattern,
             }),
           })
+          console.log(vms)
           if (isEmpty(vms)) {
             throw new Error('no VMs match this pattern')
           }
