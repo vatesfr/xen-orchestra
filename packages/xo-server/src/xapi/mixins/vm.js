@@ -229,10 +229,7 @@ export default {
             ipv4_allowed: vif.ipv4_allowed,
             ipv6_allowed: vif.ipv6_allowed,
             device: devices[index],
-            locking_mode:
-              isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed)
-                ? 'network_default'
-                : 'locked',
+            locking_mode: vif.lockingMode,
             mac: vif.mac,
             mtu: vif.mtu,
           })
