@@ -250,10 +250,16 @@ class AuthLdap {
 
   load() {
     this._xo.registerAuthenticationProvider(this._authenticate)
+    this._removeApiMethods = this._xo.addApiMethods({
+      ldap: {
+        synchronizeGroups: () => this._synchronizeGroups(),
+      },
+    })
   }
 
   unload() {
     this._xo.unregisterAuthenticationProvider(this._authenticate)
+    this._removeApiMethods()
   }
 
   test({ username, password }) {
@@ -330,7 +336,7 @@ class AuthLdap {
                   user,
                   entry[groupsConfig.membersMapping.userAttribute]
                 )
-              } catch(error) {
+              } catch (error) {
                 logger(`failed to synchronize groups: ${error.message}`)
               }
             }
@@ -382,7 +388,7 @@ class AuthLdap {
       })
 
       const xoUsers =
-        user !== undefined &&
+        user === undefined &&
         (await this._xo.getAllUsers()).filter(
           user =>
             user.authProviders !== undefined && 'ldap' in user.authProviders

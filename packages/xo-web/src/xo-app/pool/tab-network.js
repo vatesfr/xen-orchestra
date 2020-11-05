@@ -10,7 +10,7 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
-import Tooltip from 'tooltip'
+import Tooltip, { conditionalTooltip } from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { TabButtonLink } from 'tab-button'
@@ -31,9 +31,6 @@ import {
 } from 'xo'
 
 // =============================================================================
-
-const _conditionalTooltip = (component, tooltip) =>
-  tooltip ? <Tooltip content={tooltip}>{component}</Tooltip> : component
 
 const _createGetPifs = () =>
   createGetObjectsOfType('PIF').pick((_, props) => props.network.PIFs)
@@ -169,13 +166,13 @@ class ToggleDefaultLockingMode extends Component {
 
   render() {
     const { isInUse, network } = this.props
-    return _conditionalTooltip(
+    return conditionalTooltip(
       <Toggle
         disabled={isInUse}
         onChange={this._editDefaultIsLocked}
         value={network.defaultIsLocked}
       />,
-      isInUse && _('networkInUse')
+      isInUse ? _('networkInUse') : undefined
     )
   }
 }
@@ -356,6 +353,7 @@ const NETWORKS_COLUMNS = [
   {
     name: _('poolNetworkAutomatic'),
     itemRenderer: network => <AutomaticNetwork network={network} />,
+    tooltip: _('networkAutomaticTooltip'),
   },
   {
     name: '',

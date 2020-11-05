@@ -106,23 +106,22 @@ connect()
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
-const _call = (method, params) => {
-  let promise = _signIn.then(() => xo.call(method, params))
-
-  if (process.env.NODE_ENV !== 'production') {
-    promise = promise::tap(null, error => {
-      console.error('XO error', {
-        method,
-        params,
-        code: error.code,
-        message: error.message,
-        data: error.data,
+const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
+  ? async (method, params) => {
+      await _signIn
+      // eslint-disable-next-line no-console
+      console.debug('API call', method, params)
+      return tap.call(xo.call(method, params), null, error => {
+        console.error('XO error', {
+          method,
+          params,
+          code: error.code,
+          message: error.message,
+          data: error.data,
+        })
       })
-    })
-  }
-
-  return promise
-}
+    }
+  : (method, params) => _signIn.then(() => xo.call(method, params))
 
 // ===================================================================
 
@@ -443,6 +442,30 @@ export const subscribeNotifications = createSubscription(async () => {
   )
 })
 
+const checkSchedulerGranularitySubscriptions = {}
+export const subscribeSchedulerGranularity = (host, cb) => {
+  if (checkSchedulerGranularitySubscriptions[host] === undefined) {
+    checkSchedulerGranularitySubscriptions[host] = createSubscription(() =>
+      _call('host.getSchedulerGranularity', { host })
+    )
+  }
+
+  return checkSchedulerGranularitySubscriptions[host](cb)
+}
+subscribeSchedulerGranularity.forceRefresh = host => {
+  if (host === undefined) {
+    forEach(checkSchedulerGranularitySubscriptions, subscription =>
+      subscription.forceRefresh()
+    )
+    return
+  }
+
+  const subscription = checkSchedulerGranularitySubscriptions[host]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
+
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
   const poolId = resolveId(pool)
@@ -736,6 +759,12 @@ export const setPoolMaster = host =>
 
 // Host --------------------------------------------------------------
 
+export const setSchedulerGranularity = (host, schedulerGranularity) =>
+  _call('host.setSchedulerGranularity', {
+    host,
+    schedulerGranularity,
+  })::tap(() => subscribeSchedulerGranularity.forceRefresh(host))
+
 export const editHost = (host, props) =>
   _call('host.set', { ...props, id: resolveId(host) })
 
@@ -898,6 +927,9 @@ export const isHyperThreadingEnabledHost = host =>
   _call('host.isHyperThreadingEnabled', {
     id: resolveId(host),
   })
+
+export const installCertificateOnHost = (id, props) =>
+  _call('host.installCertificate', { id, ...props })
 
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
@@ -1331,13 +1363,17 @@ export const snapshotVms = vms =>
     icon: 'memory',
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: <SnapshotVmModalBody vms={vms} />,
-  }).then(
-    ({ names, saveMemory, descriptions }) =>
-      Promise.all(
-        map(vms, vm => snapshotVm(vm, names[vm], saveMemory, descriptions[vm]))
-      ),
-    noop
-  )
+  })
+    .then(
+      ({ names, saveMemory, descriptions }) =>
+        Promise.all(
+          map(vms, vm =>
+            snapshotVm(vm, names[vm], saveMemory, descriptions[vm])
+          )
+        ),
+      noop
+    )
+    .catch(e => error(_('snapshotError'), e.message))
 
 export const deleteSnapshot = vm =>
   confirm({
@@ -1825,6 +1861,7 @@ export const setVif = (
     mac,
     network,
     rateLimit,
+    resourceSet,
     txChecksumming,
   }
 ) =>
@@ -1836,6 +1873,7 @@ export const setVif = (
     mac,
     network: resolveId(network),
     rateLimit,
+    resourceSet,
     txChecksumming,
   })
 
@@ -2866,27 +2904,35 @@ const _setUserPreferences = preferences =>
   })::tap(subscribeCurrentUser.forceRefresh)
 
 import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line import/first
-export const addSshKey = key => {
+export const addSshKey = async key => {
   const { preferences } = xo.user
   const otherKeys = (preferences && preferences.sshKeys) || []
-  if (key) {
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, key],
-    })
-  }
-  return confirm({
-    icon: 'ssh-key',
-    title: _('newSshKeyModalTitle'),
-    body: <NewSshKeyModalBody />,
-  }).then(newKey => {
-    if (!newKey.title || !newKey.key) {
+
+  if (key === undefined) {
+    try {
+      key = await confirm({
+        icon: 'ssh-key',
+        title: _('newSshKeyModalTitle'),
+        body: <NewSshKeyModalBody />,
+      })
+    } catch (err) {
+      return
+    }
+
+    if (!key.title || !key.key) {
       error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
       return
     }
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, newKey],
-    })
-  }, noop)
+  }
+
+  if (otherKeys.some(otherKey => otherKey.key === key.key)) {
+    error(_('sshKeyErrorTitle'), _('sshKeyAlreadyExists'))
+    return
+  }
+
+  return _setUserPreferences({
+    sshKeys: [...otherKeys, key],
+  })
 }
 
 export const deleteSshKey = key =>
@@ -3018,7 +3064,7 @@ export const setDefaultHomeFilter = (type, name) => {
   return _setUserPreferences({
     defaultHomeFilters: {
       ...defaultFilters,
-      [type]: name,
+      [type]: name === null ? undefined : name,
     },
   })
 }
@@ -3355,3 +3401,15 @@ export const checkAuditRecordsIntegrity = (oldest, newest) =>
 
 export const generateAuditFingerprint = oldest =>
   _call('audit.generateFingerprint', { oldest })
+
+// LDAP ------------------------------------------------------------------------
+
+export const synchronizeLdapGroups = () =>
+  confirm({
+    title: _('syncLdapGroups'),
+    body: _('syncLdapGroupsWarning'),
+    icon: 'refresh',
+  }).then(
+    () => _call('ldap.synchronizeGroups')::tap(subscribeGroups.forceRefresh),
+    noop
+  )
