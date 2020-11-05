@@ -4,9 +4,7 @@ import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { compileTemplate } from '@xen-orchestra/template'
-import { every } from 'lodash'
 import { injectIntl } from 'react-intl'
-import { isSrWritable } from 'xo'
 
 import BaseComponent from 'base-component'
 import SingleLineRow from 'single-line-row'
@@ -21,7 +19,9 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from '../../selectors'
+import { every } from 'lodash'
 import { getXoaPlan, STARTER } from '../../xoa-plans'
+import { isSrWritable } from 'xo'
 
 const ISCURRENTPLANHIGHERTHANSTARTER = getXoaPlan().value > STARTER.value
 
