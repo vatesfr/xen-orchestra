@@ -264,29 +264,15 @@ export default class Jobs {
       key: job.key,
       type,
     })
-    const data = {
-      data:
-        type === 'backup' || type === 'metadataBackup'
-          ? {
-              // $FlowFixMe only defined for BackupJob
-              mode: job.mode,
-              reportWhen: job.settings['']?.reportWhen ?? 'failure',
-            }
-          : undefined,
-      event: 'job.start',
-      method: 'pre',
-      userId: job.userId,
-      jobId: id,
-      jobName: job.name,
-      proxyId: job.proxy,
-      scheduleId: schedule?.id,
-      key: job.key,
-      type,
-    }
-
-    //console.log(data)
 
     const app = this._app
+    const user = await app.getUser(job.userId)
+    const data = {
+      callId: Math.random().toString(36).slice(2),
+      userId: user.id,
+      userName: user.name,
+      params: job.vms,
+    }
     try {
       const runningJobs = this._runningJobs
 
@@ -312,14 +298,12 @@ export default class Jobs {
         session = app.createUserConnection()
         session.set('user_id', job.userId)
 
-        app.emit('job.started', {
-          callId: '0',
-          userId: job.userId,
-          userName: 'mathieu.test',
-          method: 'backupNg.runJob',
-          params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
-          timestamp: 0,
-        })
+        type === 'backup' &&
+          app.emit('xo:preCall', {
+            ...data,
+            timestamp: Date.now(),
+            method: 'backupNg.runJob',
+          })
 
         const status = await executor({
           app,
@@ -340,6 +324,13 @@ export default class Jobs {
           },
           true
         )
+
+        type === 'backup' &&
+          app.emit('xo:postCall', {
+            ...data,
+            timestamp: Date.now(),
+            method: 'backupNg.runJob',
+          })
 
         app.emit('job:terminated', runJobId, {
           type: job.type,

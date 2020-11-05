@@ -4,13 +4,7 @@ const log = createLogger('xo:web-hooks')
 
 function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
-  console.log('hooks = ' + hooks)
-  console.log('type = ' + type)
-  console.log('data = ' + data.method)
-
   if (hooks !== undefined) {
-    console.log('step3')
-
     return Promise.all(
       hooks.map(({ url }) =>
         this._makeRequest(url, type, data).catch(error => {
@@ -36,7 +30,6 @@ class XoServerHooks {
   }
 
   _makeRequest(url, type, data) {
-    console.log('request send')
     return this._xo.httpRequest(url, {
       body: JSON.stringify({ ...data, type }),
       headers: { 'Content-Type': 'application/json' },
@@ -80,23 +73,9 @@ class XoServerHooks {
     this._hooks = hooks
   }
 
-  // I need to send this from my emit
-  // { callId: '4wtr9e31euk',
-  // userId: '49bebfab-fad0-4e30-9213-cdd3eb925a67',
-  // userName: 'admin@admin.net',
-  // userIp: '::ffff:127.0.0.1',
-  // method: 'pool.listMissingPatches',
-  // params: { host: 'bb63ce4e-b0e9-4d53-8e88-db1884f072aa' },
-  // timestamp: 1604499515038 }
-
   load() {
-    //this._xo.on('xo:preCall', this._handlePreHook)
-    //this._xo.on('xo:postCall', this._handlePostHook)
-    //this._xo.on('job.started', this._handlePreHook)
-    // this._xo.on('backupJob.started', this._handlePreHook)
-    // this._xo.on('job:terminated', () => {
-    //   console.log('BackupJob ended')
-    // })
+    this._xo.on('xo:preCall', this._handlePreHook)
+    this._xo.on('xo:postCall', this._handlePostHook)
   }
 
   unload() {
