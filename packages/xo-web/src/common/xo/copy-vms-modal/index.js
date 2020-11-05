@@ -4,6 +4,7 @@ import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { compileTemplate } from '@xen-orchestra/template'
+import { every } from 'lodash'
 import { injectIntl } from 'react-intl'
 
 import BaseComponent from 'base-component'
@@ -11,17 +12,16 @@ import SingleLineRow from 'single-line-row'
 import { Col } from 'grid'
 import { SelectSr } from 'select-objects'
 import { connectStore } from 'utils'
+import { isSrWritable } from 'xo'
 
 import SelectCompression from '../../select-compression'
 import ZstdChecker from '../../zstd-checker'
+import { getXoaPlan, STARTER } from '../../xoa-plans'
 import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
 } from '../../selectors'
-import { every } from 'lodash'
-import { getXoaPlan, STARTER } from '../../xoa-plans'
-import { isSrWritable } from 'xo'
 
 const CAN_INTERPOOL_COPY = getXoaPlan().value > STARTER.value
 
