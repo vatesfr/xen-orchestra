@@ -118,7 +118,8 @@ export async function set({
     const newVif = await xapi.createVif(vm.$id, network.$id, {
       mac,
       currently_attached: attached,
-      ipv4_allowed: newIpAddresses,
+      ipv4_allowed:
+        network.id !== vif.$network ? allowedIpv4Addresses : newIpAddresses,
       locking_mode: lockingMode,
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
       qos_algorithm_params:
