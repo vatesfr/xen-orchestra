@@ -14,6 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Remotes/NFS] Only mount with `vers=3` when no other options [#4940](https://github.com/vatesfr/xen-orchestra/issues/4940) (PR [#5354](https://github.com/vatesfr/xen-orchestra/pull/5354))
+- [Webhooks/Backup job] Web hooks support correctly backup job listener [#5205](https://github.com/vatesfr/xen-orchestra/issues/5205) (PR [#5360](https://github.com/vatesfr/xen-orchestra/pull/5360))
 
 ### Packages to release
 
@@ -35,3 +36,4 @@
 - @xen-orchestra/fs patch
 - xo-server minor
 - xo-web minor
+- xo-server patch

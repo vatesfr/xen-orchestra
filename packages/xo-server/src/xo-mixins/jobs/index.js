@@ -301,8 +301,8 @@ export default class Jobs {
         type === 'backup' &&
           app.emit('xo:preCall', {
             ...data,
-            timestamp: Date.now(),
             method: 'backupNg.runJob',
+            timestamp: Date.now(),
           })
 
         const status = await executor({
@@ -328,8 +328,8 @@ export default class Jobs {
         type === 'backup' &&
           app.emit('xo:postCall', {
             ...data,
-            timestamp: Date.now(),
             method: 'backupNg.runJob',
+            timestamp: Date.now(),
           })
 
         app.emit('job:terminated', runJobId, {
