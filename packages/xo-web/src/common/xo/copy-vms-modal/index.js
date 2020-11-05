@@ -23,7 +23,7 @@ import { every } from 'lodash'
 import { getXoaPlan, STARTER } from '../../xoa-plans'
 import { isSrWritable } from 'xo'
 
-const ISCURRENTPLANHIGHERTHANSTARTER = getXoaPlan().value > STARTER.value
+const CAN_INTERPOOL_COPY = getXoaPlan().value > STARTER.value
 
 @connectStore(
   () => {
@@ -85,7 +85,7 @@ class CopyVmsModalBody extends BaseComponent {
   getSrPredicate = createSelector(
     () => this.props.resolvedVms,
     vms =>
-      ISCURRENTPLANHIGHERTHANSTARTER
+      CAN_INTERPOOL_COPY
         ? undefined
         : sr => isSrWritable(sr) && every(vms, { $poolId: sr.$pool })
   )
@@ -140,7 +140,7 @@ class CopyVmsModalBody extends BaseComponent {
                 predicate={this.getSrPredicate()}
                 value={sr}
               />
-              {!ISCURRENTPLANHIGHERTHANSTARTER && (
+              {!CAN_INTERPOOL_COPY && (
                 <p className='text-muted'>
                   <Icon icon='info' /> {_('cantInterPoolCopy')}
                 </p>
