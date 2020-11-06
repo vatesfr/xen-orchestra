@@ -19,7 +19,7 @@ const askPassword = prompt =>
 const formatSize = bytes =>
   humanFormat(bytes, {
     prefix: 'Gi',
-    scale: 'binary',
+    scale: 'binary'
   })
 
 const required = name => {
@@ -32,12 +32,12 @@ const required = name => {
 const STYLES = [
   [
     vdi => !vdi.managed,
-    chalk.enabled ? chalk.red : label => `[unmanaged] ${label}`,
+    chalk.enabled ? chalk.red : label => `[unmanaged] ${label}`
   ],
   [
     vdi => vdi.is_a_snapshot,
-    chalk.enabled ? chalk.yellow : label => `[snapshot] ${label}`,
-  ],
+    chalk.enabled ? chalk.yellow : label => `[snapshot] ${label}`
+  ]
 ]
 const getStyle = vdi => {
   for (let i = 0, n = STYLES.length; i < n; ++i) {
@@ -49,7 +49,7 @@ const getStyle = vdi => {
 }
 
 const mapFilter = (collection, iteratee, results = []) => {
-  forEach(collection, function () {
+  forEach(collection, function() {
     const result = iteratee.apply(this, arguments)
     if (result !== undefined) {
       results.push(result)
@@ -62,7 +62,7 @@ const mapFilter = (collection, iteratee, results = []) => {
 
 execPromise(async args => {
   if (args.length === 0 || args[0] === '-h' || args[0] === '--help') {
-    return `Usage: xapi-explore-sr [--full] <SR UUID> <XenServer URL> <XenServer user> [<XenServer password>]`
+    return `Usage: xapi-explore-sr [--full] <SR UUID> <Host URL> <Host user> [<Host password>]`
   }
 
   const full = args[0] === '--full'
@@ -72,9 +72,9 @@ execPromise(async args => {
 
   const [
     srUuid = required('SR UUID'),
-    url = required('XenServer URL'),
-    user = required('XenServer user'),
-    password = await askPassword('XenServer password'),
+    url = required('Host URL'),
+    user = required('Host user'),
+    password = await askPassword('Host password')
   ] = args
 
   const xapi = createClient({
@@ -82,7 +82,7 @@ execPromise(async args => {
     auth: { user, password },
     readOnly: true,
     url,
-    watchEvents: false,
+    watchEvents: false
   })
   await xapi.connect()
 
@@ -156,6 +156,6 @@ execPromise(async args => {
 
   return archy({
     label: `${sr.name_label} (${sr.VDIs.length} VDIs)`,
-    nodes,
+    nodes
   })
 })
