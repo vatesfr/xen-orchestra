@@ -24,12 +24,8 @@ export default {
     await this._disconnectVif(this.getObject(vifId))
   },
   editVif: makeEditObject({
-    ipv4Allowed: {
-      set: (value, vif) => vif.set_ipv4_allowed(value),
-    },
-    ipv6Allowed: {
-      set: (value, vif) => vif.set_ipv6_allowed(value),
-    },
+    ipv4Allowed: true,
+    ipv6Allowed: true,
     lockingMode: {
       set: (value, vif) => vif.set_locking_mode(value),
     },
