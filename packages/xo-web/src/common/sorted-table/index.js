@@ -303,10 +303,7 @@ class SortedTable extends Component {
 
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      itemsPerPage: +defined(
-        cookies.get('sortedTableItemsPerPage'),
-        DEFAULT_ITEMS_PER_PAGE
-      ),
+      itemsPerPage: +defined(cookies.get(props.location.pathname + props.stateUrlParam), DEFAULT_ITEMS_PER_PAGE),
     })
 
     this._getSelectedColumn = () => this.props.columns[this._getSelectedColumnId()]
@@ -469,7 +466,7 @@ class SortedTable extends Component {
   _setPage = this._setPage.bind(this)
 
   goTo(id) {
-    this._setPage(Math.floor(this._getItems().findIndex(item => item.id === id) / this.props.itemsPerPage) + 1)
+    this._setPage(Math.floor(this._getItems().findIndex(item => item.id === id) / this.state.itemsPerPage) + 1)
   }
 
   _selectAllVisibleItems = event => {
@@ -729,20 +726,14 @@ class SortedTable extends Component {
   }
 
   _setNItemsPerPage = itemsPerPage => {
+    const { location, stateUrlParam } = this.props
     this.setState({ itemsPerPage })
-    cookies.set('sortedTableItemsPerPage', itemsPerPage)
+    cookies.set(location.pathname + stateUrlParam, itemsPerPage)
   }
 
   render() {
     const { props, state } = this
-    const {
-      actions,
-      filterContainer,
-      individualActions,
-      onSelect,
-      paginationContainer,
-      shortcutsTarget,
-    } = props
+    const { actions, filterContainer, individualActions, onSelect, paginationContainer, shortcutsTarget } = props
     const { all, itemsPerPage } = state
     const groupedActions = this._getGroupedActions()
 
@@ -880,10 +871,7 @@ class SortedTable extends Component {
             <Col mediumSize={1} className='pull-right'>
               <DropdownButton bsStyle='info' title={itemsPerPage}>
                 {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
-                  <MenuItem
-                    key={nItems}
-                    onClick={() => this._setNItemsPerPage(nItems)}
-                  >
+                  <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
                     {nItems}
                   </MenuItem>
                 ))}

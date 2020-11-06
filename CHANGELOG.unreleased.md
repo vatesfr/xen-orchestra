@@ -15,7 +15,7 @@
 - [Proxy] Ability to restore a file from VM backup (PR [#5359](https://github.com/vatesfr/xen-orchestra/pull/5359))
 - [Web Hooks] `backupNg.runJob` is now triggered by scheduled runs [#5205](https://github.com/vatesfr/xen-orchestra/issues/5205) (PR [#5360](https://github.com/vatesfr/xen-orchestra/pull/5360))
 - [Licensing] Add trial end information banner (PR [#5374](https://github.com/vatesfr/xen-orchestra/pull/5374))
-- Allow to change the number of items per page (PR [#5355](https://github.com/vatesfr/xen-orchestra/pull/5355))
+- Ability to change the number of items displayed per table or page (PR [#5355](https://github.com/vatesfr/xen-orchestra/pull/5355))
 
 ### Bug fixes
 
@@ -42,7 +42,6 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-<<<<<<< HEAD
 
 - xo-server-auth-ldap patch
 - @vates/multi-key-map minor
@@ -52,8 +51,3 @@
 - xo-server minor
 - xo-server-web-hooks minor
 - xo-web minor
-||||||| constructed merge base
-=======
-
-- xo-web minor
->>>>>>> changelog
