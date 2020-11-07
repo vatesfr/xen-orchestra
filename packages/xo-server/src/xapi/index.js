@@ -51,7 +51,7 @@ import {
   pDelay,
   pFinally,
   promisifyAll,
-  pSettle,
+  pSettle, pFromCallback,
 } from '../utils'
 
 import mixins from './mixins'
@@ -71,6 +71,10 @@ import {
   prepareXapiParam,
 } from './utils'
 import { createVhdStreamWithLength } from 'vhd-lib'
+import * as tls from 'tls'
+import * as net from 'net'
+import readChunk from './readChunk'
+import { pingNbdServer } from './nbd-client'
 
 const log = createLogger('xo:xapi')
 
@@ -2045,7 +2049,7 @@ export default class Xapi extends XapiBase {
   }
 
   @cancelable
-  _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
+  async _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
     const query = {
       format,
       vdi: vdi.$ref,
@@ -2059,7 +2063,13 @@ export default class Xapi extends XapiBase {
         base ? ` (from base ${vdi.name_label})` : ''
       }`
     )
-
+    const nbds = await this.call('VDI.get_nbd_info', vdi.$ref)
+    if (nbds.length > 0) {
+      const nbd = nbds[0]
+      console.log('NBD', nbd)
+      await pingNbdServer(nbd)
+    }
+    throw Error('STOP')
     return this.getResource($cancelToken, '/export_raw_vdi/', {
       query,
       task: this.createTask('VDI Export', vdi.name_label),
