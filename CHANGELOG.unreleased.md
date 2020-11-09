@@ -14,7 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Remotes/NFS] Only mount with `vers=3` when no other options [#4940](https://github.com/vatesfr/xen-orchestra/issues/4940) (PR [#5354](https://github.com/vatesfr/xen-orchestra/pull/5354))
-- [VM/network] Don't save the allowed IPs when changing the VIF's network (PR [#5358](https://github.com/vatesfr/xen-orchestra/pull/5358))
+- [VM/network] Remove the allowed IPs from the VIF when changing the VIF's network (PR [#5358](https://github.com/vatesfr/xen-orchestra/pull/5358))
 
 ### Packages to release
 
