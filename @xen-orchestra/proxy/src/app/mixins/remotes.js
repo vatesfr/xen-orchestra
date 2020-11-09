@@ -1,14 +1,17 @@
-import { getHandler } from '@xen-orchestra/fs'
+import using from 'promise-toolbox/using'
+
+import { getRemoteHandler } from './backups/_RemoteAdapter'
 
 export default class Remotes {
-  constructor(app, { config: { remoteOptions } }) {
-    this._remoteOptions = remoteOptions
-
+  constructor(app, { config }) {
     app.api.addMethods({
       remote: {
         getInfo: [
           ({ remote }) =>
-            this._doWithHandler(remote, handler => handler.getInfo()),
+            using(
+              getRemoteHandler(remote, config, config.remoteOptions),
+              handler => handler.getInfo()
+            ),
           {
             params: {
               remote: { type: 'object' },
@@ -18,7 +21,10 @@ export default class Remotes {
 
         test: [
           ({ remote }) =>
-            this._doWithHandler(remote, handler => handler.test()),
+            using(
+              getRemoteHandler(remote, config, config.remoteOptions),
+              handler => handler.test()
+            ),
           {
             params: {
               remote: { type: 'object' },
@@ -27,15 +33,5 @@ export default class Remotes {
         ],
       },
     })
-  }
-
-  async _doWithHandler(remote, cb) {
-    const handler = getHandler(remote, this._remoteOptions)
-    await handler.sync()
-    try {
-      return await cb(handler)
-    } finally {
-      await handler.forget()
-    }
   }
 }
