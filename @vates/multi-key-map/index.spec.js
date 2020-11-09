@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import MultiKeyMap from './_MultiKeyMap'
+const { MultiKeyMap } = require('./')
 
 describe('MultiKeyMap', () => {
   it('works', () => {

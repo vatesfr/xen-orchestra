@@ -1,7 +1,7 @@
 import assert from 'assert'
+import { MultiKeyMap } from '@vates/multi-key-map'
 
 import ensureArray from './_ensureArray'
-import MultiKeyMap from './_MultiKeyMap'
 
 function State() {
   this.i = 0
