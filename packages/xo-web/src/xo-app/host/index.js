@@ -204,6 +204,7 @@ export default class Host extends Component {
     if (host === undefined) {
       return
     }
+
     this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(
       host,
       missingPatches =>
