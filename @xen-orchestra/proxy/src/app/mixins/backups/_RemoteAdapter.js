@@ -2,7 +2,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import fromCallback from 'promise-toolbox/fromCallback'
 import pump from 'pump'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
-import { basename, dirname, resolve } from 'path'
+import { basename, dirname, join, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
@@ -174,7 +174,7 @@ export class RemoteAdapter {
     await asyncMap(vdis, async (vdi, id) => {
       streams[`${id}.vhd`] = await createSyntheticStream(
         handler,
-        resolve(dir, vhds[id])
+        join(dir, vhds[id])
       )
     })
 

@@ -1,9 +1,11 @@
 import _, { messages } from 'intl'
 import Collapse from 'collapse'
 import Component from 'base-component'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
+import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
@@ -13,12 +15,14 @@ import {
   differenceBy,
   flatMap,
   flatten,
+  forOwn,
+  groupBy,
   isEmpty,
   keys,
+  map,
   some,
   toArray,
 } from 'lodash'
-import { Pool } from 'render-xo-item'
 import {
   createFilter,
   createGetObject,
@@ -39,6 +43,16 @@ const HEADER = (
       </Col>
     </Row>
   </Container>
+)
+
+const Ul = props => <ul {...props} style={{ listStyleType: 'none' }} />
+const Li = props => (
+  <li
+    {...props}
+    style={{
+      whiteSpace: 'nowrap',
+    }}
+  />
 )
 
 const TASK_ITEM_STYLE = {
@@ -70,6 +84,33 @@ export class TaskItem extends Component {
   }
 }
 
+const taskObjectsRenderer = ({ objects }) => (
+  <Ul>
+    {map(objects, obj => {
+      const { id, type } = obj
+      return type === 'VDI' || type === 'network' ? (
+        <Li key={id}>{renderXoItem(obj)}</Li>
+      ) : (
+        <Li key={id}>
+          <Link to={`/${type}s/${id}`}>{renderXoItem(obj)}</Link>
+        </Li>
+      )
+    })}
+  </Ul>
+)
+
+const COMMON = [
+  {
+    component: TaskItem,
+    name: _('task'),
+    sortCriteria: 'name_label',
+  },
+  {
+    itemRenderer: taskObjectsRenderer,
+    name: _('objects'),
+  },
+]
+
 const COLUMNS = [
   {
     default: true,
@@ -80,11 +121,7 @@ const COLUMNS = [
       return pool !== undefined && pool.name_label
     },
   },
-  {
-    component: TaskItem,
-    name: _('task'),
-    sortCriteria: 'name_label',
-  },
+  ...COMMON,
   {
     itemRenderer: task => (
       <progress
@@ -104,10 +141,7 @@ const FINISHED_TASKS_COLUMNS = [
     itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
   },
-  {
-    component: TaskItem,
-    name: _('task'),
-  },
+  ...COMMON,
   {
     default: true,
     itemRenderer: task => (
@@ -168,7 +202,54 @@ const GROUPED_ACTIONS = [
 
   const getNPendingTasks = getPendingTasks.count()
 
-  const getPendingTasksByPool = getPendingTasks.sort().groupBy('$pool')
+  const predicate = obj => !isEmpty(obj.current_operations)
+
+  const getLinkedObjectsByTaskRefOrId = createSelector(
+    createGetObjectsOfType('pool').filter([predicate]),
+    createGetObjectsOfType('host').filter([predicate]),
+    createGetObjectsOfType('SR').filter([predicate]),
+    createGetObjectsOfType('VDI').filter([predicate]),
+    createGetObjectsOfType('VM').filter([predicate]),
+    createGetObjectsOfType('network').filter([predicate]),
+    (pools, hosts, srs, vdis, vms, networks) => {
+      const linkedObjectsByTaskRefOrId = {}
+      const resolveLinkedObjects = obj => {
+        Object.keys(obj.current_operations).forEach(task => {
+          if (linkedObjectsByTaskRefOrId[task] === undefined) {
+            linkedObjectsByTaskRefOrId[task] = []
+          }
+          linkedObjectsByTaskRefOrId[task].push(obj)
+        })
+      }
+
+      forOwn(pools, resolveLinkedObjects)
+      forOwn(hosts, resolveLinkedObjects)
+      forOwn(srs, resolveLinkedObjects)
+      forOwn(vdis, resolveLinkedObjects)
+      forOwn(vms, resolveLinkedObjects)
+      forOwn(networks, resolveLinkedObjects)
+
+      return linkedObjectsByTaskRefOrId
+    }
+  )
+
+  const getPendingTasksByPool = createSelector(
+    getPendingTasks,
+    getLinkedObjectsByTaskRefOrId,
+    (tasks, linkedObjectsByTaskRefOrId) =>
+      groupBy(
+        map(tasks, task => ({
+          ...task,
+          objects: [
+            ...defined(linkedObjectsByTaskRefOrId[task.xapiRef], []),
+            // for VMs, the current_operations prop is
+            // { taskId → operation } map instead of { taskRef → operation } map
+            ...defined(linkedObjectsByTaskRefOrId[task.id], []),
+          ],
+        })),
+        '$pool'
+      )
+  )
 
   const getPools = createGetObjectsOfType('pool').pick(
     createSelector(getPendingTasksByPool, keys)

@@ -33,6 +33,7 @@ import {
   isEmpty,
   noop,
   omit,
+  once,
   uniq,
 } from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
@@ -340,6 +341,26 @@ export default class Xapi extends XapiBase {
 
   async enableHost(hostId) {
     await this.call('host.enable', this.getObject(hostId).$ref)
+  }
+
+  async installCertificateOnHost(
+    hostId,
+    { certificate, chain = '', privateKey }
+  ) {
+    try {
+      await this.call(
+        'host.install_server_certificate',
+        this.getObject(hostId).$ref,
+        certificate,
+        privateKey,
+        chain
+      )
+    } catch (error) {
+      // CH/XCP-ng reset the connection on the certificate install
+      if (error.code !== 'ECONNRESET') {
+        throw error
+      }
+    }
   }
 
   // Resources:
@@ -1197,9 +1218,21 @@ export default class Xapi extends XapiBase {
       force = false,
     }
   ) {
+    const getDefaultSrRef = once(() => {
+      if (sr !== undefined) {
+        return hostXapi.getObject(sr).$ref
+      }
+      const defaultSr = host.$pool.$default_SR
+      if (defaultSr === undefined) {
+        throw new Error(
+          `This operation requires a default SR to be set on the pool ${host.$pool.name_label}`
+        )
+      }
+      return defaultSr.$ref
+    })
+
     // VDIs/SRs mapping
     const vdis = {}
-    const defaultSr = host.$pool.$default_SR
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
@@ -1207,9 +1240,7 @@ export default class Xapi extends XapiBase {
         vdis[vdi.$ref] =
           mapVdisSrs && mapVdisSrs[vdi.$id]
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-            : sr !== undefined
-            ? hostXapi.getObject(sr).$ref
-            : defaultSr.$ref // Will error if there are no default SR.
+            : getDefaultSrRef()
       }
     }
 

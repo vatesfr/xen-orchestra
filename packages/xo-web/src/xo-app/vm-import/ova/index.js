@@ -21,14 +21,9 @@ class BrowserParsableFile extends ParsableFile {
 }
 
 async function parseTarFile(file) {
-  document.body.style.cursor = 'wait'
-  try {
-    return parseOVAFile(new BrowserParsableFile(file), (buffer, encoding) =>
-      new TextDecoder(encoding).decode(buffer)
-    )
-  } finally {
-    document.body.style.cursor = null
-  }
+  return await parseOVAFile(new BrowserParsableFile(file), (buffer, encoding) =>
+    new TextDecoder(encoding).decode(buffer)
+  )
 }
 
 export { parseTarFile as default }

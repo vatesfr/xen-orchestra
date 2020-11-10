@@ -117,6 +117,7 @@ const TRANSFORMS = {
   pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
+      current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
       master: link(obj, 'master'),
@@ -147,7 +148,9 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host(obj) {
+  host(obj, dependents) {
+    dependents[obj.metrics] = obj.$id
+
     const {
       $metrics: metrics,
       other_config: otherConfig,
@@ -189,6 +192,12 @@ const TRANSFORMS = {
       address: obj.address,
       bios_strings: obj.bios_strings,
       build: softwareVersion.build_number,
+      chipset_info: {
+        iommu:
+          obj.chipset_info.iommu !== undefined
+            ? obj.chipset_info.iommu === 'true'
+            : undefined,
+      },
       enabled: Boolean(obj.enabled),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
@@ -254,6 +263,12 @@ const TRANSFORMS = {
       hvmCapable: obj.capabilities.some(capability =>
         capability.startsWith('hvm')
       ),
+
+      // Only exists on XCP-ng/CH >= 8.2
+      certificates: obj.$certificates?.map(({ fingerprint, not_after }) => ({
+        fingerprint,
+        notAfter: toTimestamp(not_after),
+      })),
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),
@@ -525,6 +540,7 @@ const TRANSFORMS = {
       physical_usage: +obj.physical_utilisation,
 
       allocationStrategy: ALLOCATION_BY_TYPE[srType],
+      current_operations: obj.current_operations,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
@@ -609,6 +625,7 @@ const TRANSFORMS = {
       tags: obj.tags,
       usage: +obj.physical_utilisation,
       VDI_type: obj.type,
+      current_operations: obj.current_operations,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
@@ -682,6 +699,7 @@ const TRANSFORMS = {
     return {
       automatic: obj.other_config?.automatic === 'true',
       bridge: obj.bridge,
+      current_operations: obj.current_operations,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
       name_description: obj.name_description,
@@ -718,6 +736,7 @@ const TRANSFORMS = {
       progress: +obj.progress,
       result: obj.result,
       status: obj.status,
+      xapiRef: obj.$ref,
 
       $host: link(obj, 'resident_on'),
     }

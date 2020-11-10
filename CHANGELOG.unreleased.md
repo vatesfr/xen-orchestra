@@ -7,16 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM Import] Make the `Description` field optional (PR [#5258](https://github.com/vatesfr/xen-orchestra/pull/5258))
-- [New VM] Hide missing ISOs in selector [#5222](https://github.com/vatesfr/xen-orchestra/issues/5222)
-- [Dashboard/Health] Show VMs that have too many snapshots [#5238](https://github.com/vatesfr/xen-orchestra/pull/5238)
-- [Groups] Ability to delete multiple groups at once (PR [#5264](https://github.com/vatesfr/xen-orchestra/pull/5264))
+- [LDAP] Prevent LDAP-provided groups from being edited from XO [#1884](https://github.com/vatesfr/xen-orchestra/issues/1884) (PR [#5351](https://github.com/vatesfr/xen-orchestra/pull/5351))
+- [Licensing] Allow Free and Starter users to copy VMs and create a VM from snapshot on the same pool [#4890](https://github.com/vatesfr/xen-orchestra/issues/4890) (PR [5333](https://github.com/vatesfr/xen-orchestra/pull/5333))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Import VMDK] Fix `No position specified for vmdisk1` error (PR [#5255](https://github.com/vatesfr/xen-orchestra/pull/5255))
+- [Remotes/NFS] Only mount with `vers=3` when no other options [#4940](https://github.com/vatesfr/xen-orchestra/issues/4940) (PR [#5354](https://github.com/vatesfr/xen-orchestra/pull/5354))
 
 ### Packages to release
 
@@ -35,5 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-vmdk-to-vhd patch
+- @vates/multi-key-map minor
+- @xen-orchestra/fs patch
+- xo-server minor
 - xo-web minor

@@ -1,17 +1,21 @@
 import _, { FormattedDuration } from 'intl'
+import * as CM from 'complex-matcher'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
+import Pagination from 'pagination'
 import React from 'react'
+import SearchBar from 'search-bar'
 import Select from 'form/select'
 import Tooltip from 'tooltip'
-import { addSubscriptions, formatSize, formatSpeed } from 'utils'
-import { countBy, cloneDeep, filter, keyBy, map } from 'lodash'
+import { addSubscriptions, connectStore, formatSize, formatSpeed } from 'utils'
+import { countBy, cloneDeep, filter, map } from 'lodash'
+import { createGetObjectsOfType } from 'selectors'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { runBackupNgJob, subscribeBackupNgLogs, subscribeRemotes } from 'xo'
+import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 import { Vm, Sr, Remote, Pool } from 'render-xo-item'
 
 const hasTaskFailed = ({ status }) =>
@@ -132,8 +136,8 @@ const Warnings = ({ warnings }) =>
     </div>
   ) : null
 
-const VmTask = ({ children, restartVmJob, task }) => (
-  <div>
+const VmTask = ({ children, className, restartVmJob, task }) => (
+  <li className={className}>
     <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
       <ButtonGroup>
@@ -186,11 +190,11 @@ const VmTask = ({ children, restartVmJob, task }) => (
     )}
     {task.isFull !== undefined &&
       _.keyValue(_('exportType'), task.isFull ? 'full' : 'delta')}
-  </div>
+  </li>
 )
 
-const PoolTask = ({ children, task }) => (
-  <div>
+const PoolTask = ({ children, className, task }) => (
+  <li className={className}>
     <Pool id={task.data.id} link newTab />{' '}
     <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
@@ -199,11 +203,11 @@ const PoolTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const XoTask = ({ children, task }) => (
-  <div>
+const XoTask = ({ children, className, task }) => (
+  <li className={className}>
     <Icon icon='menu-xoa' /> XO <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     {children}
@@ -211,22 +215,22 @@ const XoTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const SnapshotTask = ({ task }) => (
-  <div>
+const SnapshotTask = ({ className, task }) => (
+  <li className={className}>
     <Icon icon='task' /> {_('snapshotVmLabel')}{' '}
     <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     <TaskStart task={task} />
     <TaskEnd task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const RemoteTask = ({ children, task }) => (
-  <div>
+const RemoteTask = ({ children, className, task }) => (
+  <li className={className}>
     <Remote id={task.data.id} link newTab />{' '}
     <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
@@ -235,11 +239,11 @@ const RemoteTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const SrTask = ({ children, task }) => (
-  <div>
+const SrTask = ({ children, className, task }) => (
+  <li className={className}>
     <Sr id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     {children}
@@ -247,13 +251,17 @@ const SrTask = ({ children, task }) => (
     <TaskEnd task={task} />
     <TaskDuration task={task} />
     <TaskError task={task} />
-  </div>
+  </li>
 )
 
-const TransferMergeTask = ({ task }) => {
-  const size = get(() => task.result.size)
+const TransferMergeTask = ({ className, task }) => {
+  const size = defined(() => task.result.size, 0)
+  if (task.status === 'success' && size === 0) {
+    return null
+  }
+
   return (
-    <div>
+    <li className={className}>
       <Icon icon='task' /> {task.message}{' '}
       <TaskStateInfos status={task.status} />
       <Warnings warnings={task.warnings} />
@@ -271,7 +279,7 @@ const TransferMergeTask = ({ task }) => {
           )}
         </div>
       )}
-    </div>
+    </li>
   )
 }
 
@@ -289,7 +297,7 @@ const COMPONENT_BY_MESSAGE = {
   transfer: TransferMergeTask,
 }
 
-const TaskLi = ({ className, task, ...props }) => {
+const TaskLi = ({ task, ...props }) => {
   let Component
   if (
     (Component = defined(
@@ -301,32 +309,41 @@ const TaskLi = ({ className, task, ...props }) => {
   ) {
     return null
   }
-  return (
-    <li className={className}>
-      <Component task={task} {...props} />
-    </li>
-  )
+  return <Component task={task} {...props} />
 }
 
+const SEARCH_BAR_FILTERS = { name: 'name:' }
+
+const ITEMS_PER_PAGE = 5
 export default decorate([
   addSubscriptions(({ id }) => ({
-    remotes: cb =>
-      subscribeRemotes(remotes => {
-        cb(keyBy(remotes, 'id'))
-      }),
     log: cb =>
       subscribeBackupNgLogs(logs => {
         cb(logs[id])
       }),
   })),
+  connectStore({
+    pools: createGetObjectsOfType('pool'),
+    vms: createGetObjectsOfType('VM'),
+  }),
   provideState({
     initialState: () => ({
-      filter: undefined,
+      _status: undefined,
+      filter: '',
+      page: 1,
     }),
     effects: {
-      setFilter: (_, filter) => () => ({
-        filter,
-      }),
+      onPageChange(_, page) {
+        this.state.page = page
+      },
+      onFilterChange(_, filter) {
+        this.state.filter = filter
+        this.state.page = 1
+      },
+      onStatusChange(_, status) {
+        this.state._status = status
+        this.state.page = 1
+      },
       restartVmJob: (_, params) => async (
         _,
         { log: { scheduleId, jobId } }
@@ -340,7 +357,7 @@ export default decorate([
       },
     },
     computed: {
-      log: (_, { log }) => {
+      log: (_, { log, pools, vms }) => {
         if (log === undefined) {
           return {}
         }
@@ -349,41 +366,53 @@ export default decorate([
           return log
         }
 
-        let newLog
-        log.tasks.forEach((task, key) => {
-          if (task.tasks === undefined || get(() => task.data.type) !== 'VM') {
+        const newLog = cloneDeep(log)
+        newLog.tasks.forEach(task => {
+          const type = get(() => task.data.type)
+          if (type !== 'VM' && type !== 'xo' && type !== 'pool') {
             return
           }
 
-          const subTaskWithIsFull = task.tasks.find(
-            ({ data = {} }) => data.isFull !== undefined
-          )
-          if (subTaskWithIsFull !== undefined) {
-            if (newLog === undefined) {
-              newLog = cloneDeep(log)
-            }
-            newLog.tasks[key].isFull = subTaskWithIsFull.data.isFull
+          task.name =
+            type === 'VM'
+              ? get(() => vms[task.data.id].name_label)
+              : type === 'pool'
+              ? get(() => pools[task.data.id].name_label)
+              : 'xo'
+
+          if (task.tasks !== undefined) {
+            const subTaskWithIsFull = task.tasks.find(
+              ({ data = {} }) => data.isFull !== undefined
+            )
+            task.isFull = get(() => subTaskWithIsFull.data.isFull)
           }
         })
 
-        return defined(newLog, log)
+        return newLog
       },
-      filteredTaskLogs: ({
-        defaultFilter,
-        filter: value = defaultFilter,
-        log,
-      }) =>
-        value === 'all'
-          ? log.tasks
-          : filter(log.tasks, ({ status }) => status === value),
+      preFilteredTasksLogs: ({ log, filter }) => {
+        try {
+          return log.tasks.filter(CM.parse(filter).createPredicate())
+        } catch (_) {
+          return []
+        }
+      },
+      tasksFilteredByStatus: ({ preFilteredTasksLogs, status }) =>
+        status === 'all'
+          ? preFilteredTasksLogs
+          : filter(preFilteredTasksLogs, task => task.status === status),
+      displayedTasks: ({ tasksFilteredByStatus, page }) => {
+        const start = (page - 1) * ITEMS_PER_PAGE
+        return tasksFilteredByStatus.slice(start, start + ITEMS_PER_PAGE)
+      },
       optionRenderer: ({ countByStatus }) => ({ label, value }) => (
         <span>
           {_(label)} ({countByStatus[value] || 0})
         </span>
       ),
-      countByStatus: ({ log }) => ({
-        all: get(() => log.tasks.length),
-        ...countBy(log.tasks, 'status'),
+      countByStatus: ({ preFilteredTasksLogs }) => ({
+        all: get(() => preFilteredTasksLogs.length),
+        ...countBy(preFilteredTasksLogs, 'status'),
       }),
       options: ({ countByStatus }) => [
         { label: 'allTasks', value: 'all' },
@@ -413,25 +442,28 @@ export default decorate([
           value: 'success',
         },
       ],
-      defaultFilter: ({ countByStatus }) => {
-        if (countByStatus.pending > 0) {
-          return 'pending'
-        }
+      status: ({ _status, countByStatus }) =>
+        defined(_status, () => {
+          if (countByStatus.pending > 0) {
+            return 'pending'
+          }
 
-        if (countByStatus.failure > 0) {
-          return 'failure'
-        }
+          if (countByStatus.failure > 0) {
+            return 'failure'
+          }
 
-        if (countByStatus.interrupted > 0) {
-          return 'interrupted'
-        }
+          if (countByStatus.interrupted > 0) {
+            return 'interrupted'
+          }
 
-        return 'all'
-      },
+          return 'all'
+        }),
+      nPages: ({ tasksFilteredByStatus }) =>
+        Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
     },
   }),
   injectState,
-  ({ remotes, state, effects }) => {
+  ({ state, effects }) => {
     const { scheduleId, warnings, tasks = [] } = state.log
     return tasks.length === 0 ? (
       <div>
@@ -440,20 +472,26 @@ export default decorate([
       </div>
     ) : (
       <div>
+        <SearchBar
+          className='mb-1'
+          filters={SEARCH_BAR_FILTERS}
+          onChange={effects.onFilterChange}
+          value={state.filter}
+        />
         <Select
           labelKey='label'
-          onChange={effects.setFilter}
+          onChange={effects.onStatusChange}
           optionRenderer={state.optionRenderer}
           options={state.options}
           required
           simpleValue
-          value={state.filter || state.defaultFilter}
+          value={state.status}
           valueKey='value'
         />
         <Warnings warnings={warnings} />
         <br />
         <ul className='list-group'>
-          {map(state.filteredTaskLogs, taskLog => {
+          {map(state.displayedTasks, taskLog => {
             return (
               <TaskLi
                 className='list-group-item'
@@ -476,6 +514,15 @@ export default decorate([
             )
           })}
         </ul>
+        {state.tasksFilteredByStatus.length > ITEMS_PER_PAGE && (
+          <div className='text-xs-center'>
+            <Pagination
+              onChange={effects.onPageChange}
+              pages={state.nPages}
+              value={state.page}
+            />
+          </div>
+        )}
       </div>
     )
   },
