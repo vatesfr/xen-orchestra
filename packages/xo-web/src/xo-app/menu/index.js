@@ -151,7 +151,10 @@ export default class Menu extends Component {
       missingPatches: pick(missingPatches, Object.keys(this.props.hosts)),
     }))
 
-    const unsubs = map(this.props.hosts, host =>
+    const unsubs = map(this.props.hosts, host => {
+      if (host.power_state === 'Halted') {
+        return
+      }
       subscribeHostMissingPatches(host, patches => {
         this.setState(state => ({
           missingPatches: {
@@ -160,7 +163,7 @@ export default class Menu extends Component {
           },
         }))
       })
-    )
+    })
 
     if (this._unsubscribeMissingPatches !== undefined) {
       this._unsubscribeMissingPatches()

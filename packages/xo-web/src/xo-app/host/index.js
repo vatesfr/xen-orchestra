@@ -183,7 +183,9 @@ export default class Host extends Component {
       return
     }
 
-    this._subscribePatches(hostNext)
+    if (!this.unsubscribeHostMissingPatches) {
+      this._subscribePatches(hostNext)
+    }
 
     if (!isRunning(hostCur) && isRunning(hostNext)) {
       this.loop(hostNext)
@@ -192,13 +194,16 @@ export default class Host extends Component {
         statsOverview: undefined,
       })
     }
+
+    if (!isRunning(hostNext)) {
+      this.unsubscribeHostMissingPatches()
+    }
   }
 
   _subscribePatches(host) {
     if (host === undefined) {
       return
     }
-
     this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(
       host,
       missingPatches =>
