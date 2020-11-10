@@ -2,12 +2,10 @@ import Component from 'base-component'
 import React from 'react'
 import XoParallelChart from 'xo-parallel-chart'
 import forEach from 'lodash/forEach'
-import invoke from 'invoke'
 import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
-import { createFilter, createGetObjectsOfType, createPicker, createSelector } from 'selectors'
+import { createGetObjectsOfType, createSelector, getVdisByVm } from 'selectors'
 import { connectStore, formatSize } from 'utils'
 
 // ===================================================================
@@ -29,49 +27,10 @@ const DATA_RENDERERS = {
 
 // ===================================================================
 
-@connectStore(() => {
-  const getVms = createGetObjectsOfType('VM')
-  const getVdisByVm = invoke(() => {
-    let current = {}
-    const getVdisByVmSelectors = createSelector(
-      vms => vms,
-      vms => {
-        const previous = current
-        current = {}
-
-        forEach(vms, vm => {
-          const { id } = vm
-          current[id] =
-            previous[id] ||
-            createPicker(
-              (vm, vbds, vdis) => vdis,
-              createSelector(
-                createFilter(
-                  createPicker(
-                    (vm, vbds) => vbds,
-                    vm => vm.$VBDs
-                  ),
-                  [vbd => !vbd.is_cd_drive && vbd.attached]
-                ),
-                vbds => map(vbds, vbd => vbd.VDI)
-              )
-            )
-        })
-
-        return current
-      }
-    )
-
-    return createSelector(getVms, createGetObjectsOfType('VBD'), createGetObjectsOfType('VDI'), (vms, vbds, vdis) =>
-      mapValues(getVdisByVmSelectors(vms), (getVdis, vmId) => getVdis(vms[vmId], vbds, vdis))
-    )
-  })
-
-  return {
-    vms: getVms,
-    vdisByVm: getVdisByVm,
-  }
-})
+@connectStore(() => ({
+  vdisByVm: getVdisByVm,
+  vms: createGetObjectsOfType('VM'),
+}))
 export default class Visualizations extends Component {
   _getData = createSelector(
     () => this.props.vms,

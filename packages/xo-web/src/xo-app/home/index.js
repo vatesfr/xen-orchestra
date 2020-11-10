@@ -38,6 +38,7 @@ import {
   pickBy,
   size,
   some,
+  sumBy,
   uniq,
 } from 'lodash'
 import {
@@ -80,6 +81,7 @@ import {
   createSort,
   getIsPoolAdmin,
   getUser,
+  getVdisByVm,
   isAdmin,
 } from 'selectors'
 import { DropdownButton, MenuItem, OverlayTrigger, Popover } from 'react-bootstrap-4/lib'
@@ -196,6 +198,11 @@ const OPTIONS = {
     showResourceSetsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' },
+      {
+        labelId: 'sortByDisksUsage',
+        sortBy: 'vdisUsage',
+        sortOrder: 'desc',
+      },
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       {
         labelId: 'homeSortByPowerstate',
@@ -439,26 +446,44 @@ const NoObjects = props =>
   props.isAdmin ? <NoObjectsWithServers {...props} /> : <NoObjectsWithoutServers {...props} />
 
 @connectStore(() => {
-  const type = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getType = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getContainers = createSelector(
+    createGetObjectsOfType('host'),
+    createGetObjectsOfType('pool'),
+    (hosts, pools) => ({ ...hosts, ...pools })
+  )
+  const getItems = createSelector(
+    getContainers,
+    createGetObjectsOfType(getType),
+    (containers, items) =>
+      mapValues(items, item => ({
+        ...item,
+        container: containers[item.$container || item.$pool],
+      }))
+  )
+  const getVms = createSelector(
+    getContainers,
+    createGetObjectsOfType(getType),
+    getVdisByVm,
+    (containers, vms, vdisByVm) =>
+      mapValues(vms, (vm, vmId) => ({
+        ...vm,
+        container: containers[vm.$container || vm.$pool],
+        vdisUsage: sumBy(map(vdisByVm[vmId]), 'usage'),
+      }))
+  )
 
-  return {
-    areObjectsFetched,
-    isAdmin,
-    isPoolAdmin: getIsPoolAdmin,
-    items: createSelector(
-      createSelector(createGetObjectsOfType('host'), createGetObjectsOfType('pool'), (hosts, pools) => ({
-        ...hosts,
-        ...pools,
-      })),
-      createGetObjectsOfType(type),
-      (containers, items) =>
-        mapValues(items, item => ({
-          ...item,
-          container: containers[item.$container || item.$pool],
-        }))
-    ),
-    type,
-    user: getUser,
+  return (state, props) => {
+    const type = getType(state, props)
+
+    return {
+      areObjectsFetched: areObjectsFetched(state, props),
+      isAdmin: isAdmin(state, props),
+      isPoolAdmin: getIsPoolAdmin(state, props),
+      items: type === 'VM' ? getVms(state, props) : getItems(state, props),
+      type,
+      user: getUser(state, props),
+    }
   }
 })
 @addSubscriptions(({ isAdmin }) => {

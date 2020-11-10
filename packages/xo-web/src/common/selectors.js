@@ -13,6 +13,7 @@ import {
   keyBy,
   keys,
   map,
+  mapValues,
   orderBy,
   pick,
   pickBy,
@@ -574,6 +575,48 @@ export const getResolvedResourceSets = create(
   (resourceSets, networks, srs, vms) =>
     map(resourceSets, resourceSet => _getResolvedResourceSet(resourceSet, networks, srs, vms))
 )
+
+export const getVdisByVm = invoke(() => {
+  let current = {}
+  const getVdisByVmSelectors = create(
+    _createCollectionWrapper(_ => _),
+    vms => {
+      const previous = current
+      current = {}
+
+      forEach(vms, vm => {
+        const { id } = vm
+        current[id] =
+          previous[id] ||
+          createPicker(
+            (vm, vbds, vdis) => vdis,
+            create(
+              createFilter(
+                createPicker(
+                  (vm, vbds) => vbds,
+                  vm => vm.$VBDs
+                ),
+                [vbd => !vbd.is_cd_drive && vbd.attached]
+              ),
+              vbds => map(vbds, vbd => vbd.VDI)
+            )
+          )
+      })
+
+      return current
+    }
+  )
+
+  return create(
+    createGetObjectsOfType('VM'),
+    createGetObjectsOfType('VBD'),
+    createGetObjectsOfType('VDI'),
+    (vms, vbds, vdis) =>
+      mapValues(getVdisByVmSelectors(vms), (getVdis, vmId) =>
+        getVdis(vms[vmId], vbds, vdis)
+      )
+  )
+})
 
 export const createGetHostState = getHost =>
   create(
