@@ -171,6 +171,11 @@ export default class {
     const store = this._store
 
     if (await store.has(id)) {
+      await Promise.all(
+        mapToArray(this._xo.getObjects({ filter: { resourceSet: id } }), vm =>
+          this.setVmResourceSet(vm.id, null, true)
+        )
+      )
       return store.del(id)
     }
 
@@ -307,7 +312,7 @@ export default class {
     await this._save(set)
   }
 
-  async removeSubjectToResourceSet(subjectId, setId) {
+  async removeSubjectFromResourceSet(subjectId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.subjects, id => id === subjectId)
     await this._save(set)

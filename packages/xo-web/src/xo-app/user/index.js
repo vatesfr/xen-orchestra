@@ -1,8 +1,8 @@
 import * as FormGrid from 'form-grid'
-import * as homeFilters from 'home-filters'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import homeFilters from 'home-filters'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -52,7 +52,7 @@ const FILTER_TYPE_TO_LABEL_ID = {
   host: 'homeTypeHost',
   pool: 'homeTypePool',
   VM: 'homeTypeVm',
-  vmTemplate: 'homeTypeVmTemplate',
+  'VM-template': 'homeTypeVmTemplate',
 }
 
 const SSH_KEY_STYLE = { wordWrap: 'break-word' }

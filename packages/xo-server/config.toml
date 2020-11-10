@@ -42,6 +42,17 @@ perMessageDeflate = { threshold = 524288 } # 512kiB
 defaultTokenValidity = '30 days'
 maxTokenValidity = '0.5 year'
 
+# 2020-09-29
+# Helpful to smoothly transition from old to new LDAP plugin implementation
+# See https://github.com/vatesfr/xen-orchestra/pull/5279
+# This will be removed in 1 year
+#
+# When a user logs in using an authentication provider, but another user with the
+# same username is found in XO:
+# - if true: the 2 users will be merged
+# - if false: the user will not be able to log in.
+mergeProvidersUsers = true
+
 # Default to `maxTokenValidity`
 #permanentCookieValidity = '30 days'
 
@@ -88,18 +99,6 @@ port = 80
 
 # These options are applied to all listen entries.
 [http.listenOptions]
-# Ciphers to use.
-#
-# These are the default ciphers in Node 4.2.6, we are setting
-# them explicitly for older Node versions.
-ciphers = 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
-
-# Tell Node to respect the cipher order.
-honorCipherOrder = true
-
-# Specify to use at least TLSv1.1.
-# See: https:#github.com/certsimple/minimum-tls-version
-secureOptions = 117440512
 
 [http.mounts]
 '/' = '../xo-web/dist'

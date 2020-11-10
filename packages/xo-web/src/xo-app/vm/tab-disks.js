@@ -2,7 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
-import defined from '@xen-orchestra/defined'
+import defined, { get as getDefined } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
 import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
@@ -19,6 +19,7 @@ import {
   createSelector,
   createFinder,
   getCheckPermissions,
+  getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
 import { injectIntl } from 'react-intl'
@@ -31,7 +32,6 @@ import {
   noop,
   resolveResourceSet,
 } from 'utils'
-import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
@@ -40,6 +40,7 @@ import {
   compact,
   every,
   filter,
+  find,
   forEach,
   get,
   map,
@@ -66,9 +67,17 @@ import {
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
+import {
+  SelectResourceSetsSr,
+  SelectSr as SelectAnySr,
+  SelectVdi,
+} from 'select-objects'
 
 const compareSrs = createCompare([isSrShared])
 
+@connectStore(() => ({
+  isAdmin,
+}))
 class VdiSr extends Component {
   _getCompareContainers = createSelector(
     () => this.props.userData.vm.$pool,
@@ -80,23 +89,39 @@ class VdiSr extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  _onChangeSr = sr => migrateVdi(this.props.item.vdi, sr)
+  _onChangeSr = sr => {
+    const {
+      item: { vdi },
+      userData: { resourceSet },
+    } = this.props
+    return migrateVdi(
+      vdi,
+      sr,
+      getDefined(() => resourceSet.id)
+    )
+  }
 
   render() {
-    const sr = this.props.item.vdiSr
+    const {
+      isAdmin,
+      item: { vdiSr },
+      userData: { resourceSet },
+    } = this.props
+    const self = !isAdmin && resourceSet !== undefined
     return (
-      sr !== undefined && (
+      vdiSr !== undefined && (
         <XoSelect
           compareContainers={this._getCompareContainers()}
           compareOptions={compareSrs}
           labelProp='name_label'
           onChange={this._onChangeSr}
           predicate={this._getSrPredicate()}
+          resourceSet={self ? resourceSet : undefined}
           useLongClick
-          value={sr}
-          xoType='SR'
+          value={vdiSr}
+          xoType={self ? 'resourceSetSr' : 'SR'}
         >
-          <Sr id={sr.id} link />
+          <Sr id={vdiSr.id} link={!self} self={self} />
         </XoSelect>
       )
     )
@@ -263,13 +288,13 @@ class NewDisk extends Component {
     const diskLimit = this._getResourceSetDiskLimit()
     const resourceSet = this._getResolvedResourceSet()
 
-    const SelectSr_ =
-      isAdmin || resourceSet == null ? SelectSr : SelectResourceSetsSr
+    const SelectSr =
+      isAdmin || resourceSet == null ? SelectAnySr : SelectResourceSetsSr
 
     return (
       <form id='newDiskForm'>
         <div className='form-group'>
-          <SelectSr_
+          <SelectSr
             onChange={this.linkState('sr')}
             predicate={this._getSrPredicate()}
             required
@@ -468,11 +493,27 @@ class AttachDisk extends Component {
   }
 }
 
-@connectStore(() => ({
-  checkPermissions: getCheckPermissions,
-  isAdmin,
-  allVbds: createGetObjectsOfType('VBD'),
+@addSubscriptions(props => ({
+  // used by getResolvedResourceSet
+  resourceSet: cb =>
+    subscribeResourceSets(resourceSets =>
+      cb(find(resourceSets, { id: props.vm.resourceSet }))
+    ),
 }))
+@connectStore(() => {
+  const getAllVbds = createGetObjectsOfType('VBD')
+
+  return (state, props) => ({
+    allVbds: getAllVbds(state, props),
+    checkPermissions: getCheckPermissions(state, props),
+    isAdmin: isAdmin(state, props),
+    resolvedResourceSet: getResolvedResourceSet(
+      state,
+      props,
+      !props.isAdmin && props.resourceSet !== undefined
+    ),
+  })
+})
 export default class TabDisks extends Component {
   constructor(props) {
     super(props)
@@ -520,12 +561,14 @@ export default class TabDisks extends Component {
       newDisk: false,
     })
 
-  _migrateVdis = vdis =>
-    confirm({
+  _migrateVdis = vdis => {
+    const { resolvedResourceSet, vm } = this.props
+    return confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          pool={this.props.vm.$pool}
+          pool={vm.$pool}
+          resourceSet={resolvedResourceSet}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
@@ -534,8 +577,17 @@ export default class TabDisks extends Component {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
 
-      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
+      return Promise.all(
+        map(vdis, vdi =>
+          migrateVdi(
+            vdi,
+            sr,
+            getDefined(() => resolvedResourceSet.id)
+          )
+        )
+      )
     }, noop)
+  }
 
   _getIsVmAdmin = createSelector(
     () => this.props.checkPermissions,
@@ -584,14 +636,25 @@ export default class TabDisks extends Component {
     () => this.props.vbds,
     () => this.props.vdis,
     () => this.props.srs,
-    (vbds, vdis, srs) =>
+    () => this.props.resolvedResourceSet,
+    (vbds, vdis, srs, resourceSet) =>
       compact(
         map(vbds, vbd => {
           let vdi
           return (
             !vbd.is_cd_drive &&
             ((vdi = vdis[vbd.VDI]),
-            vdi !== undefined && { ...vbd, vdi, vdiSr: srs[vdi.$SR] })
+            vdi !== undefined && {
+              ...vbd,
+              vdi,
+              vdiSr: defined(
+                srs[vdi.$SR],
+                find(
+                  getDefined(() => resourceSet.objectsByType.SR),
+                  { id: vdi.$SR }
+                )
+              ),
+            })
           )
         })
       )
@@ -637,7 +700,7 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { allVbds, vm } = this.props
+    const { allVbds, resolvedResourceSet, vm } = this.props
 
     const { attachDisk, newDisk } = this.state
 
@@ -699,6 +762,7 @@ export default class TabDisks extends Component {
               actions={this.actions}
               collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
+              data-resourceSet={resolvedResourceSet}
               data-vm={vm}
               individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'

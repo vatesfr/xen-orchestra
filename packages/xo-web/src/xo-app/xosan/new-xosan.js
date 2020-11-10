@@ -424,7 +424,7 @@ export default class NewXosan extends Component {
             </Row>
           ) : (
             [
-              <Row>
+              <Row key='lvm-srs'>
                 <Col>
                   <SortedTable
                     collection={this._getLvmSrs()}
@@ -435,7 +435,7 @@ export default class NewXosan extends Component {
                   />
                 </Col>
               </Row>,
-              <Row>
+              <Row key='warning'>
                 <Col>
                   {srsOnSameHost && (
                     <span className='text-danger'>
@@ -444,7 +444,7 @@ export default class NewXosan extends Component {
                   )}
                 </Col>
               </Row>,
-              <Row>
+              <Row key='suggestions'>
                 <Col>
                   {!isEmpty(suggestions) && (
                     <div>
@@ -596,7 +596,7 @@ export default class NewXosan extends Component {
                   )}
                 </Col>
               </Row>,
-              <Row>
+              <Row key='new-xosan'>
                 <Col>
                   <ActionButton
                     btnStyle='success'

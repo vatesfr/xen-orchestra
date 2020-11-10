@@ -1,24 +1,29 @@
 import _, { messages } from 'intl'
+import Icon from 'icon'
 import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { compileTemplate } from '@xen-orchestra/template'
+import { every } from 'lodash'
 import { injectIntl } from 'react-intl'
 
 import BaseComponent from 'base-component'
 import SingleLineRow from 'single-line-row'
-import Upgrade from 'xoa-upgrade'
 import { Col } from 'grid'
 import { SelectSr } from 'select-objects'
 import { connectStore } from 'utils'
+import { isSrWritable } from 'xo'
 
 import SelectCompression from '../../select-compression'
 import ZstdChecker from '../../zstd-checker'
+import { getXoaPlan, STARTER } from '../../xoa-plans'
 import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
 } from '../../selectors'
+
+const CAN_INTERPOOL_COPY = getXoaPlan().value > STARTER.value
 
 @connectStore(
   () => {
@@ -77,6 +82,14 @@ class CopyVmsModalBody extends BaseComponent {
     })
   }
 
+  getSrPredicate = createSelector(
+    () => this.props.resolvedVms,
+    vms =>
+      CAN_INTERPOOL_COPY
+        ? undefined
+        : sr => isSrWritable(sr) && every(vms, { $poolId: sr.$pool })
+  )
+
   _onChangeSr = sr => this.setState({ sr })
   _onChangeNamePattern = event =>
     this.setState({ namePattern: event.target.value })
@@ -89,7 +102,7 @@ class CopyVmsModalBody extends BaseComponent {
     } = this.props
     const { compression, copyMode, namePattern, sr } = this.state
 
-    return process.env.XOA_PLAN > 2 ? (
+    return (
       <div>
         <SingleLineRow>
           <Col size={6}>{_('copyVmName')}</Col>
@@ -124,8 +137,14 @@ class CopyVmsModalBody extends BaseComponent {
               <SelectSr
                 disabled={copyMode !== 'fullCopy'}
                 onChange={this.linkState('sr')}
+                predicate={this.getSrPredicate()}
                 value={sr}
               />
+              {!CAN_INTERPOOL_COPY && (
+                <p className='text-muted'>
+                  <Icon icon='info' /> {_('cantInterPoolCopy')}
+                </p>
+              )}
             </Col>
           </SingleLineRow>
           <SingleLineRow className='mt-1'>
@@ -159,10 +178,6 @@ class CopyVmsModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-      </div>
-    ) : (
-      <div>
-        <Upgrade place='vmCopy' available={3} />
       </div>
     )
   }

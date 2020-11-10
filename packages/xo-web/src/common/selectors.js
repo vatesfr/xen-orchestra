@@ -589,32 +589,63 @@ export const getLoneSnapshots = create(
   )
 )
 
+const _getResolvedResourceSet = (resourceSet, networks, srs, vms) => {
+  if (resourceSet === undefined) {
+    return
+  }
+
+  const { objects, ...attrs } = resourceSet
+  const objectsByType = {}
+  const objectsFound = []
+
+  const resolve = (type, _objects) => {
+    const resolvedObjects = pick(_objects, objects)
+    if (!isEmpty(resolvedObjects)) {
+      objectsFound.push(...Object.keys(resolvedObjects))
+      objectsByType[type] = Object.values(resolvedObjects)
+    }
+  }
+  resolve('VM-template', vms)
+  resolve('SR', srs)
+  resolve('network', networks)
+
+  return {
+    ...attrs,
+    missingObjects: difference(objectsFound, objects),
+    objectsByType,
+  }
+}
+
+export const getResolvedResourceSet = create(
+  (_, props) => props.resourceSet,
+  createGetObjectsOfType('network'),
+  createGetObjectsOfType('SR'),
+  createGetObjectsOfType('VM-template'),
+  _getResolvedResourceSet
+)
+
 export const getResolvedResourceSets = create(
   (_, props) => props.resourceSets,
   createGetObjectsOfType('network'),
   createGetObjectsOfType('SR'),
   createGetObjectsOfType('VM-template'),
   (resourceSets, networks, srs, vms) =>
-    map(resourceSets, resourceSet => {
-      const { objects, ...attrs } = resourceSet
-      const objectsByType = {}
-      const objectsFound = []
-
-      const resolve = (type, _objects) => {
-        const resolvedObjects = pick(_objects, objects)
-        if (!isEmpty(resolvedObjects)) {
-          objectsFound.push(...Object.keys(resolvedObjects))
-          objectsByType[type] = Object.values(resolvedObjects)
-        }
-      }
-      resolve('VM-template', vms)
-      resolve('SR', srs)
-      resolve('network', networks)
-
-      return {
-        ...attrs,
-        missingObjects: difference(objectsFound, objects),
-        objectsByType,
-      }
-    })
+    map(resourceSets, resourceSet =>
+      _getResolvedResourceSet(resourceSet, networks, srs, vms)
+    )
 )
+
+export const createGetHostState = getHost =>
+  create(
+    (state, props) => getHost(state, props).power_state,
+    (state, props) => getHost(state, props).enabled,
+    (state, props) => getHost(state, props).current_operations,
+    (powerState, enabled, operations) =>
+      powerState !== 'Running'
+        ? powerState
+        : !isEmpty(operations)
+        ? 'Busy'
+        : !enabled
+        ? 'Disabled'
+        : 'Running'
+  )

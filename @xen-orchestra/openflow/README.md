@@ -1,6 +1,8 @@
 <!-- DO NOT EDIT MANUALLY, THIS FILE HAS BEEN GENERATED -->
 
-# @xen-orchestra/openflow [![Build Status](https://travis-ci.org/vatesfr/xen-orchestra.png?branch=master)](https://travis-ci.org/vatesfr/xen-orchestra)
+# @xen-orchestra/openflow
+
+[![Package Version](https://badgen.net/npm/v/@xen-orchestra/openflow)](https://npmjs.org/package/@xen-orchestra/openflow) ![License](https://badgen.net/npm/license/@xen-orchestra/openflow) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/openflow)](https://bundlephobia.com/result?p=@xen-orchestra/openflow) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/openflow)](https://npmjs.org/package/@xen-orchestra/openflow)
 
 > Pack and unpack OpenFlow messages
 
@@ -136,4 +138,4 @@ You may:
 
 ## License
 
-© [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

@@ -29,7 +29,7 @@ import {
   resolveResourceSet,
 } from 'utils'
 import {
-  SelectNetwork,
+  SelectNetwork as SelectAnyNetwork,
   SelectIp,
   SelectResourceSetIp,
   SelectResourceSetsNetwork,
@@ -53,6 +53,8 @@ import {
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  getCheckPermissions,
+  getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
 
@@ -72,22 +74,42 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
+@addSubscriptions(props => ({
+  resourceSet: cb =>
+    subscribeResourceSets(resourceSets =>
+      cb(find(resourceSets, { id: props.resourceSet }))
+    ),
+}))
+@connectStore((state, props) => ({
+  isAdmin: isAdmin(state, props),
+  resolvedResourceSet: getResolvedResourceSet(
+    state,
+    props,
+    props.resourceSet !== undefined // to get objects as a self user
+  ),
+}))
 class VifNetwork extends BaseComponent {
   _getNetworkPredicate = createSelector(
     () => this.props.vif.$pool,
     vifPoolId => network => network.$pool === vifPoolId
   )
 
-  render() {
-    const { network } = this.props
+  _onChangeNetwork = network => {
+    const { resourceSet, vif } = this.props
+    return setVif(vif, { network, resourceSet: get(() => resourceSet.id) })
+  }
 
+  render() {
+    const { isAdmin, network, resolvedResourceSet } = this.props
+    const self = !isAdmin && resolvedResourceSet !== undefined
     return (
       network !== undefined && (
         <XoSelect
-          onChange={network => setVif(this.props.vif, { network })}
+          onChange={this._onChangeNetwork}
           predicate={this._getNetworkPredicate()}
+          resourceSet={self ? resolvedResourceSet : undefined}
           value={network}
-          xoType='network'
+          xoType={self ? 'resourceSetNetwork' : 'network'}
         >
           {network.name_label}
         </XoSelect>
@@ -272,12 +294,21 @@ class VifAllowedIps extends BaseComponent {
   }
 }
 
+@connectStore(() => ({
+  checkPermissions: getCheckPermissions,
+}))
 class VifStatus extends BaseComponent {
   componentDidMount() {
     getLockingModeValues().then(lockingModeValues =>
       this.setState({ lockingModeValues })
     )
   }
+
+  _getCanEditVifLockingMode = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.vif.$network,
+    (checkPermissions, networkId) => checkPermissions(networkId, 'operate')
+  )
 
   _getIps = createSelector(
     () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
@@ -369,28 +400,29 @@ class VifStatus extends BaseComponent {
           state={vif.attached}
         />{' '}
         {this._getNetworkStatus()}{' '}
-        {isLockingModeEdition ? (
-          <select
-            className='form-control'
-            onBlur={this.toggleState('isLockingModeEdition')}
-            onChange={this._onChangeVif}
-            value={vif.lockingMode}
-          >
-            {map(this.state.lockingModeValues, lockingMode => (
-              <option key={lockingMode} value={lockingMode}>
-                {lockingMode}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <ActionButton
-            btnStyle='primary'
-            icon='edit'
-            handler={this.toggleState('isLockingModeEdition')}
-            size='small'
-            tooltip={_('editVifLockingMode')}
-          />
-        )}
+        {this._getCanEditVifLockingMode() &&
+          (isLockingModeEdition ? (
+            <select
+              className='form-control'
+              onBlur={this.toggleState('isLockingModeEdition')}
+              onChange={this._onChangeVif}
+              value={vif.lockingMode}
+            >
+              {map(this.state.lockingModeValues, lockingMode => (
+                <option key={lockingMode} value={lockingMode}>
+                  {lockingMode}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <ActionButton
+              btnStyle='primary'
+              icon='edit'
+              handler={this.toggleState('isLockingModeEdition')}
+              size='small'
+              tooltip={_('editVifLockingMode')}
+            />
+          ))}
       </div>
     )
   }
@@ -552,9 +584,8 @@ class NewAclRuleForm extends BaseComponent {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRuleRow extends Component {
   render() {
     const { rule, vif, plugins } = this.props
@@ -589,9 +620,8 @@ class AclRuleRow extends Component {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRulesRows extends BaseComponent {
   _newAclRule(vif) {
     return confirm({
@@ -700,8 +730,12 @@ const COLUMNS = [
     sortCriteria: 'MTU',
   },
   {
-    itemRenderer: (vif, userData) => (
-      <VifNetwork vif={vif} network={userData.networks[vif.$network]} />
+    itemRenderer: (vif, { networks, resourceSet }) => (
+      <VifNetwork
+        vif={vif}
+        network={networks[vif.$network]}
+        resourceSet={resourceSet}
+      />
     ),
     name: _('vifNetworkLabel'),
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
@@ -871,13 +905,15 @@ class NewVif extends BaseComponent {
     const { mac, network } = this.state
     const resourceSet = this._getResolvedResourceSet()
 
-    const Select_ =
-      isAdmin || resourceSet == null ? SelectNetwork : SelectResourceSetsNetwork
+    const SelectNetwork =
+      isAdmin || resourceSet == null
+        ? SelectAnyNetwork
+        : SelectResourceSetsNetwork
 
     return (
       <form id='newVifForm'>
         <div className='form-group'>
-          <Select_
+          <SelectNetwork
             onChange={this._selectNetwork}
             predicate={this._getNetworkPredicate()}
             required
@@ -923,7 +959,11 @@ class NewVif extends BaseComponent {
 
   return (state, props) => ({
     vifs: getVifs(state, props),
-    networks: getNetworks(state, props),
+    networks: getNetworks(
+      state,
+      props,
+      props.vm.resourceSet !== undefined // to get networks as a self user
+    ),
   })
 })
 export default class TabNetwork extends BaseComponent {
@@ -979,6 +1019,7 @@ export default class TabNetwork extends BaseComponent {
               columns={COLUMNS}
               data-ipsByDevice={this._getIpsByDevice()}
               data-networks={networks}
+              data-resourceSet={vm.resourceSet}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}

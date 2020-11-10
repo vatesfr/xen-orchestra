@@ -19,6 +19,8 @@ const DEFAULT_BLOCKED_LIST = {
   'acl.get': true,
   'acl.getCurrentPermissions': true,
   'audit.checkIntegrity': true,
+  'audit.clean': true,
+  'audit.deleteRange': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
   'backup.list': true,
@@ -113,6 +115,30 @@ class Db extends Storage {
 
   getLastId() {
     return this.get(LAST_ID)
+  }
+
+  async clean() {
+    const db = this._db
+
+    // delete first so that a new chain can be constructed even if anything else fails
+    await db.del(LAST_ID)
+
+    return new Promise((resolve, reject) => {
+      let count = 1
+      const cb = () => {
+        if (--count === 0) {
+          resolve()
+        }
+      }
+      const deleteEntry = key => {
+        ++count
+        db.del(key, cb)
+      }
+      db.createKeyStream()
+        .on('data', deleteEntry)
+        .on('end', cb)
+        .on('error', reject)
+    })
   }
 }
 
@@ -209,10 +235,25 @@ class AuditXoPlugin {
       cleaners.push(() => uploadLastHashJob.stop())
     }
 
+    const clean = this._storage.clean.bind(this._storage)
+    clean.permission = 'admin'
+    clean.description = 'Clean audit database'
+
+    const deleteRange = this._deleteRangeAndRewrite.bind(this)
+    deleteRange.description =
+      'Delete a range of records and rewrite the records chain'
+    deleteRange.permission = 'admin'
+    deleteRange.params = {
+      newest: { type: 'string' },
+      oldest: { type: 'string', optional: true },
+    }
+
     cleaners.push(
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
+          clean,
+          deleteRange,
           exportRecords,
           generateFingerprint,
           getRecords,
@@ -325,34 +366,38 @@ class AuditXoPlugin {
 
     const chain = await xo.audit.getLastChain()
 
-    let lastHash, integrityCheckSuccess
+    let lastValidHash
     if (chain !== null) {
       const hashes = chain.hashes
-      lastHash = hashes[hashes.length - 1]
+      lastValidHash = hashes[hashes.length - 1]
 
-      if (lastHash === lastRecordId) {
+      if (lastValidHash === lastRecordId) {
         return
       }
 
       // check the integrity of all stored hashes
-      integrityCheckSuccess = await Promise.all(
-        hashes.map((oldest, key) =>
-          oldest !== lastHash
-            ? this._checkIntegrity({ oldest, newest: hashes[key + 1] })
-            : true
-        )
-      ).then(
-        () => true,
-        () => false
-      )
+      try {
+        for (let i = 0; i < hashes.length - 1; ++i) {
+          await this._checkIntegrity({
+            oldest: hashes[i],
+            newest: hashes[i + 1],
+          })
+        }
+      } catch (error) {
+        if (!missingAuditRecord.is(error) && !alteredAuditRecord.is(error)) {
+          throw error
+        }
+
+        lastValidHash = undefined
+      }
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
     const { oldest, newest, error } = await this._generateFingerprint({
-      oldest: integrityCheckSuccess ? lastHash : undefined,
+      oldest: lastValidHash,
     })
 
-    if (chain === null || !integrityCheckSuccess || error !== undefined) {
+    if (lastValidHash === undefined || error !== undefined) {
       await xo.audit.startNewChain({ oldest, newest })
     } else {
       await xo.audit.extendLastChain({ oldest, newest })
@@ -392,6 +437,13 @@ class AuditXoPlugin {
         }
       }
       throw error
+    }
+  }
+
+  async _deleteRangeAndRewrite({ newest, oldest = newest }) {
+    await this._auditCore.deleteRangeAndRewrite(newest, oldest)
+    if (this._uploadLastHashJob !== undefined) {
+      await this._uploadLastHash()
     }
   }
 }
