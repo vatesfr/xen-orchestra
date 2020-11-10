@@ -4,6 +4,7 @@ import { getHandler } from '@xen-orchestra/fs'
 
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
+import { deduped } from './_deduped'
 import { disposable } from './_disposable'
 
 export default class Remotes {
@@ -37,6 +38,9 @@ export default class Remotes {
     })
   }
 
+  @decorateWith(deduped, remote => [remote.url], function () {
+    return this._config.resourceDebounce
+  })
   @decorateWith(disposable)
   async *getHandler(remote, options) {
     const handler = getHandler(remote, options)
@@ -48,6 +52,9 @@ export default class Remotes {
     }
   }
 
+  @decorateWith(deduped, remote => [remote.url], function () {
+    return this._config.resourceDebounce
+  })
   @decorateWith(disposable)
   *getAdapter(remote) {
     return new RemoteAdapter(yield this.getHandler(remote))

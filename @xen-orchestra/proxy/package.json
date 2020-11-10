@@ -33,6 +33,8 @@
   "dependencies": {
     "@iarna/toml": "^2.2.0",
     "@vates/decorate-with": "^0.0.1",
+    "@vates/multi-key-map": "^0.0.0",
+    "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/async-map": "^0.0.0",
     "@xen-orchestra/backups": "^0.2.0",
     "@xen-orchestra/emit-async": "^0.0.0",
@@ -46,6 +48,7 @@
     "async-iterator-to-stream": "^1.1.0",
     "compare-versions": "^3.4.0",
     "end-of-stream": "^1.4.4",
+    "ensure-array": "^1.0.0",
     "fs-extra": "^8.1.0",
     "get-stream": "^5.1.0",
     "getopts": "^2.2.3",
