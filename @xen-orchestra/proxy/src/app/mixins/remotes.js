@@ -1,16 +1,19 @@
 import using from 'promise-toolbox/using'
+import { decorateWith } from '@vates/decorate-with'
+import { getHandler } from '@xen-orchestra/fs'
 
-import { getRemoteHandler } from './backups/_RemoteAdapter'
+import { RemoteAdapter } from './backups/_RemoteAdapter'
+
+import { disposable } from './_disposable'
 
 export default class Remotes {
-  constructor(app, { config }) {
+  constructor(app, { config: { remoteOptions } }) {
     app.api.addMethods({
       remote: {
         getInfo: [
           ({ remote }) =>
-            using(
-              getRemoteHandler(remote, config, config.remoteOptions),
-              handler => handler.getInfo()
+            using(this.getHandler(remote, remoteOptions), handler =>
+              handler.getInfo()
             ),
           {
             params: {
@@ -21,9 +24,8 @@ export default class Remotes {
 
         test: [
           ({ remote }) =>
-            using(
-              getRemoteHandler(remote, config, config.remoteOptions),
-              handler => handler.test()
+            using(this.getHandler(remote, remoteOptions), handler =>
+              handler.test()
             ),
           {
             params: {
@@ -33,5 +35,21 @@ export default class Remotes {
         ],
       },
     })
+  }
+
+  @decorateWith(disposable)
+  async *getHandler(remote, options) {
+    const handler = getHandler(remote, options)
+    await handler.sync()
+    try {
+      yield handler
+    } finally {
+      await handler.forget()
+    }
+  }
+
+  @decorateWith(disposable)
+  *getAdapter(remote) {
+    return new RemoteAdapter(yield this.getHandler(remote))
   }
 }

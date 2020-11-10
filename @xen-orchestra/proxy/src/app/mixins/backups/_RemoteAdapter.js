@@ -4,11 +4,8 @@ import pump from 'pump'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
 import { basename, dirname, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
-import { getHandler } from '@xen-orchestra/fs/dist'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
-import { deduped } from './_deduped'
-import { disposable } from './_disposable'
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
@@ -205,25 +202,3 @@ export class RemoteAdapter {
     )
   }
 }
-
-export const getRemoteHandler = deduped(
-  disposable(async function* (remote, config, options) {
-    const handler = getHandler(remote, options)
-    await handler.sync()
-    try {
-      yield handler
-    } finally {
-      await handler.forget()
-    }
-  }),
-  remote => [remote.url],
-  (_, config) => config.resourceDebounce
-)
-
-export const getRemoteAdapter = deduped(
-  disposable(function* (remote, config) {
-    return new RemoteAdapter(yield getRemoteHandler(remote, config))
-  }),
-  remote => [remote.url],
-  (_, config) => config.resourceDebounce
-)

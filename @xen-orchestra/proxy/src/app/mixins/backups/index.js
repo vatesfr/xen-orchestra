@@ -7,7 +7,6 @@ import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { Xapi } from '@xen-orchestra/xapi'
 
 import { Backup } from './_Backup'
-import { getRemoteAdapter } from './_RemoteAdapter'
 import { importDeltaVm } from './_deltaVm'
 import { Task } from './_Task'
 import { Readable } from 'stream'
@@ -134,7 +133,7 @@ export default class Backups {
       backup: {
         importVmBackup: [
           defer(($defer, { backupId, remote, srUuid, xapi: xapiOpts }) =>
-            using(getRemoteAdapter(remote, config), async adapter => {
+            using(app.remotes.getAdapter(remote), async adapter => {
               const xapi = createXapi(xapiOpts)
               await xapi.connect()
               $defer.call(xapi, 'disconnect')
@@ -189,7 +188,7 @@ export default class Backups {
               Object.keys(remotes).map(async remoteId => {
                 try {
                   await using(
-                    getRemoteAdapter(remotes[remoteId], config),
+                    app.remotes.getAdapter(remotes[remoteId]),
                     async adapter => {
                       backups[remoteId] = await adapter.listAllVmBackups()
                     }
