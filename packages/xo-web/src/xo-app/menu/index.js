@@ -155,7 +155,7 @@ export default class Menu extends Component {
       if (host.power_state === 'Halted') {
         return
       }
-      subscribeHostMissingPatches(host, patches => {
+      return subscribeHostMissingPatches(host, patches => {
         this.setState(state => ({
           missingPatches: {
             ...state.missingPatches,
