@@ -2,18 +2,20 @@ import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
 
+import { deduped } from '../_deduped'
+import { disposable } from '../_disposable'
+
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
-import { deduped } from './_deduped'
-import { disposable } from './_disposable'
-
 export default class Remotes {
-  constructor(app, { config: { remoteOptions } }) {
+  constructor(app, { config }) {
+    this._config = config
+
     app.api.addMethods({
       remote: {
         getInfo: [
           ({ remote }) =>
-            using(this.getHandler(remote, remoteOptions), handler =>
+            using(this.getHandler(remote, config.remoteOptions), handler =>
               handler.getInfo()
             ),
           {
@@ -25,7 +27,7 @@ export default class Remotes {
 
         test: [
           ({ remote }) =>
-            using(this.getHandler(remote, remoteOptions), handler =>
+            using(this.getHandler(remote, config.remoteOptions), handler =>
               handler.test()
             ),
           {
