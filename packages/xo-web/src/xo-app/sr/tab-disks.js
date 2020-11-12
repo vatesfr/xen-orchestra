@@ -398,7 +398,7 @@ export default class SrDisks extends Component {
     return (
       <Container>
         {this._getIsSrAdmin() && [
-          <Row>
+          <Row key='new-disk'>
             <Col className='text-xs-right'>
               <TabButton
                 btnStyle={newDisk ? 'info' : 'primary'}
@@ -409,7 +409,7 @@ export default class SrDisks extends Component {
             </Col>
           </Row>,
           newDisk && (
-            <Row>
+            <Row key='new-disk-form'>
               <Col>
                 <NewDisk sr={this.props.sr} onClose={this._closeNewDiskForm} />
                 <hr />

@@ -1,4 +1,4 @@
 ```
 > xapi-explore-sr
-Usage: xapi-explore-sr [--full] <SR UUID> <XenServer URL> <XenServer user> [<XenServer password>]
+Usage: xapi-explore-sr [--full] <SR UUID> <Host URL> <Host user> [<Host password>]
 ```

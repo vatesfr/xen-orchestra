@@ -138,11 +138,9 @@ class Vlan extends BaseComponent {
 
     return (
       <span>
-        {
-          <Number value={defaultPif.vlan} onChange={this._editPif}>
-            {defaultPif.vlan === -1 ? 'None' : defaultPif.vlan}
-          </Number>
-        }
+        <Number value={defaultPif.vlan} onChange={this._editPif}>
+          {defaultPif.vlan === -1 ? 'None' : defaultPif.vlan}
+        </Number>
       </span>
     )
   }
