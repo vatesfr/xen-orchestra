@@ -1379,6 +1379,8 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
         })())
       } else {
         await Promise.all(promises)
+        // XVA files are directly sent to xcp-ng who wants a content-length
+        part.length = part.byteCount
         const vm = await xapi.importVm(part, { data, srId, type })
         res.end(format.response(0, vm.$id))
         resolve()
