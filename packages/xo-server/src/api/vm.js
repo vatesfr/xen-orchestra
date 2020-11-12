@@ -1348,7 +1348,7 @@ export { export_ as export }
 
 /**
  * here we expect to receive a POST in multipart/form-data
- * Whe importing an OVA file:
+ * When importing an OVA file:
  *  - The first parts are the tables in uint32 LE
  *    - grainLogicalAddressList : uint32 LE in VMDK blocks
  *    - grainFileOffsetList : uint32 LE in sectors, limits the biggest VMDK size to 2^41B (2^32 * 512B)
