@@ -25,6 +25,7 @@ const VHD_BLOCK_SIZE_SECTORS = VHD_BLOCK_SIZE_BYTES / SECTOR_SIZE
 function createBAT(
   firstBlockPosition,
   fragmentLogicAddressList,
+  fragmentSize,
   ratio,
   bat,
   bitmapSize
@@ -32,12 +33,10 @@ function createBAT(
   let currentVhdPositionSector = firstBlockPosition / SECTOR_SIZE
   const lastFragmentPerBlock = new Map()
   forEachRight(fragmentLogicAddressList, fragmentLogicAddress => {
-    assert.strictEqual(fragmentLogicAddress % SECTOR_SIZE, 0)
-    const vhdTableIndex = Math.floor(
-      fragmentLogicAddress / VHD_BLOCK_SIZE_BYTES
-    )
+    assert.strictEqual(fragmentLogicAddress * fragmentSize % SECTOR_SIZE, 0)
+    const vhdTableIndex = Math.floor(fragmentLogicAddress * fragmentSize / VHD_BLOCK_SIZE_BYTES)
     if (!lastFragmentPerBlock.has(vhdTableIndex)) {
-      lastFragmentPerBlock.set(vhdTableIndex, fragmentLogicAddress)
+      lastFragmentPerBlock.set(vhdTableIndex, fragmentLogicAddress * fragmentSize)
     }
   })
   const lastFragmentPerBlockArray = [...lastFragmentPerBlock]
@@ -62,7 +61,7 @@ function createBAT(
  *  "fragment" designate a chunk of incoming data (ie probably a VMDK grain), and "block" is a VHD block.
  * @param diskSize
  * @param fragmentSize
- * @param fragmentLogicalAddressList
+ * @param fragmentLogicalAddressList an iterable returning LBAs in multiple of fragmentSize
  * @param fragmentIterator
  * @returns {Promise<Function>}
  */
@@ -111,6 +110,7 @@ export default async function createReadableStream(
   const [endOfData, lastFragmentPerBlock] = createBAT(
     firstBlockPosition,
     fragmentLogicalAddressList,
+    fragmentSize,
     ratio,
     bat,
     bitmapSize
@@ -120,7 +120,7 @@ export default async function createReadableStream(
 
   function* yieldAndTrack(buffer, expectedPosition, reason) {
     if (expectedPosition !== undefined) {
-      assert.strictEqual(position, expectedPosition, reason)
+      assert.strictEqual(position, expectedPosition, `${reason} (${position}|${expectedPosition})`)
     }
     if (buffer.length > 0) {
       yield buffer

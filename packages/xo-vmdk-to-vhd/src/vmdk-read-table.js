@@ -67,9 +67,9 @@ async function grabTables(
 }
 
 /***
- *
+ * the tables are encoded in uint32 LE
  * @param fileAccessor: (start, end) => ArrayBuffer
- * @returns {Promise<{capacityBytes: number, tablePromise: Promise<{ grainLogicalAddressList: [number], grainFileOffsetList: [number] }>}>}
+ * @returns {Promise<{capacityBytes: number, tablePromise: Promise<{ grainLogicalAddressList: ArrayBuffer, grainFileOffsetList: ArrayBuffer }>}>}
  */
 export async function readCapacityAndGrainTable(fileAccessor) {
   let headerBuffer = await fileAccessor(0, HEADER_SIZE)
@@ -128,16 +128,23 @@ export async function readCapacityAndGrainTable(fileAccessor) {
       }
     }
     extractedGrainTable.sort(
-      ([i1, grainAddress1], [_i2, grainAddress2]) =>
+      ([_i1, grainAddress1], [_i2, grainAddress2]) =>
         grainAddress1 - grainAddress2
     )
-    const fragmentAddressList = extractedGrainTable.map(
-      ([index, _grainAddress]) => index * grainSizeByte
-    )
-    const grainFileOffsetList = extractedGrainTable.map(
-      ([_index, grainAddress]) => grainAddress * SECTOR_SIZE
-    )
-    return { grainLogicalAddressList: fragmentAddressList, grainFileOffsetList }
+
+    const byteLength = 4 * extractedGrainTable.length
+    const grainLogicalAddressList = new DataView(new ArrayBuffer(byteLength))
+    const grainFileOffsetList = new DataView(new ArrayBuffer(byteLength))
+    extractedGrainTable.forEach(([index, grainAddress], i) => {
+      grainLogicalAddressList.setUint32(i * 4, index, true)
+      grainFileOffsetList.setUint32(i * 4, grainAddress, true)
+    })
+    console.log({
+      extractedGrainTable,
+      grainLogicalAddressList: grainLogicalAddressList.buffer,
+      grainFileOffsetList: grainFileOffsetList.buffer
+    })
+    return { grainLogicalAddressList: grainLogicalAddressList.buffer, grainFileOffsetList: grainFileOffsetList.buffer }
   }
 
   return {

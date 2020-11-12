@@ -192,7 +192,7 @@ export default class VMDKDirectParser {
     const position = this.virtualBuffer.position
     const sector = await this.virtualBuffer.readChunk(
       SECTOR_SIZE,
-      'marker start ' + position
+      `marker starting at ${position}`
     )
     const marker = parseMarker(sector)
     if (marker.size === 0) {
@@ -203,7 +203,7 @@ export default class VMDKDirectParser {
       const remainOfBufferSize = alignedGrainDiskSize - SECTOR_SIZE
       const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(
         remainOfBufferSize,
-        'grain remainder ' + this.virtualBuffer.position
+        `grain remainder ${this.virtualBuffer.position} -> ${this.virtualBuffer.position + remainOfBufferSize}`
       )
       const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
       const grainObject = readGrain(
@@ -224,13 +224,12 @@ export default class VMDKDirectParser {
       tableIndex++
     ) {
       const position = this.virtualBuffer.position
-      const grainPosition = this.grainFileOffsetList[tableIndex]
-      const grainSizeBytes = this.header.grainSizeSectors * 512
-      const lba = this.grainLogicalAddressList[tableIndex]
-      // console.log('VMDK before blank', position, grainPosition,'lba', lba, 'tableIndex', tableIndex, 'grainFileOffsetList.length', this.grainFileOffsetList.length)
+      const grainPosition = this.grainFileOffsetList[tableIndex] * SECTOR_SIZE
+      const grainSizeBytes = this.header.grainSizeSectors * SECTOR_SIZE
+      const lba = this.grainLogicalAddressList[tableIndex] * grainSizeBytes
       await this.virtualBuffer.readChunk(
         grainPosition - position,
-        'blank before ' + position
+        `blank from ${position} to ${grainPosition}`
       )
       let grain
       if (this.header.flags.hasMarkers) {

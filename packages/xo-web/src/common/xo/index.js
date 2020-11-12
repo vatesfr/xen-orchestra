@@ -1577,14 +1577,21 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
   info(_('startVmImport'), name)
+  const formData = new FormData()
   if (data !== undefined && data.tables !== undefined) {
     for (const k in data.tables) {
-      data.tables[k] = await data.tables[k]
+      const tables = await data.tables[k]
+      delete data.tables[k]
+      for (const l in tables) {
+        const blob = new Blob([tables[l]])
+        formData.append(l, blob, k)
+      }
     }
   }
   return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
-    ({ $sendTo }) =>
-      post($sendTo, file)
+    async ({ $sendTo }) => {
+      formData.append('file', file)
+      return post($sendTo, formData)
         .then(res => {
           if (res.status !== 200) {
             throw res.status
@@ -1596,6 +1603,7 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
           error(_('vmImportFailed'), name)
           throw err
         })
+    }
   )
 }
 

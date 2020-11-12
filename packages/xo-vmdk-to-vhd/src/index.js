@@ -8,6 +8,14 @@ export {
   readCapacityAndGrainTable,
 } from './vmdk-read-table'
 
+/**
+ *
+ * @param vmdkReadStream
+ * @param grainLogicalAddressList iterable of LBAs in VMDK grain size
+ * @param grainFileOffsetList iterable of offsets in sectors (512 bytes)
+ * @param gzipped
+ * @returns a stream whose bytes represent a VHD file containing the VMDK data
+ */
 async function vmdkToVhd(
   vmdkReadStream,
   grainLogicalAddressList,
