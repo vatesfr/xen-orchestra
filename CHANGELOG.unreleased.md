@@ -37,5 +37,7 @@
 
 - @vates/multi-key-map minor
 - @xen-orchestra/fs patch
+- vhd-lib major
+- xo-vmdk-to-vhd major
 - xo-server minor
 - xo-web minor
