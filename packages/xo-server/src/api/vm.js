@@ -1369,8 +1369,12 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
           if (!(part.filename in tables)) {
             tables[part.filename] = {}
           }
-          const buffer = await getStream.buffer(part)
-          tables[part.filename][part.name] = new Uint32Array(buffer.buffer)
+          const view = new DataView((await getStream.buffer(part)).buffer)
+          const result = new Uint32Array(view.byteLength / 4)
+          for (const i in result) {
+            result[i] = view.getUint32(i * 4, true)
+          }
+          tables[part.filename][part.name] = result
           data.tables = tables
         })())
       } else {
