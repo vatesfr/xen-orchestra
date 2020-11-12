@@ -121,46 +121,6 @@ export default class RemoteHandlerAbstract {
     await this.__closeFile(fd)
   }
 
-  // TODO: remove method
-  async createOutputStream(
-    file: File,
-    { checksum = false, ...options }: Object = {}
-  ): Promise<LaxWritable> {
-    if (typeof file === 'string') {
-      file = normalizePath(file)
-    }
-    const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout.call(
-      this._createOutputStream(file, {
-        flags: 'wx',
-        ...options,
-      }),
-      this._timeout
-    )
-
-    if (!checksum) {
-      return streamP
-    }
-
-    const checksumStream = createChecksumStream()
-    const forwardError = error => {
-      checksumStream.emit('error', error)
-    }
-
-    const stream = await streamP
-    stream.on('error', forwardError)
-    checksumStream.pipe(stream)
-
-    // $FlowFixMe
-    checksumStream.checksumWritten = checksumStream.checksum
-      .then(value =>
-        this._outputFile(checksumFile(path), value, { flags: 'wx' })
-      )
-      .catch(forwardError)
-
-    return checksumStream
-  }
-
   createReadStream(
     file: File,
     { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
@@ -533,9 +493,48 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, options)
   }
 
+  async _createOutputStreamChecksum(
+    file: File,
+    { checksum = false, ...options }: Object = {}
+  ): Promise<LaxWritable> {
+    if (typeof file === 'string') {
+      file = normalizePath(file)
+    }
+    const path = typeof file === 'string' ? file : file.path
+    const streamP = timeout.call(
+      this._createOutputStream(file, {
+        flags: 'wx',
+        ...options,
+      }),
+      this._timeout
+    )
+
+    if (!checksum) {
+      return streamP
+    }
+
+    const checksumStream = createChecksumStream()
+    const forwardError = error => {
+      checksumStream.emit('error', error)
+    }
+
+    const stream = await streamP
+    stream.on('error', forwardError)
+    checksumStream.pipe(stream)
+
+    // $FlowFixMe
+    checksumStream.checksumWritten = checksumStream.checksum
+      .then(value =>
+        this._outputFile(checksumFile(path), value, { flags: 'wx' })
+      )
+      .catch(forwardError)
+
+    return checksumStream
+  }
+
   async _outputStream(input, path, { checksum }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = await this.createOutputStream(tmpPath, { checksum })
+    const output = await this._createOutputStreamChecksum(tmpPath, { checksum })
     try {
       input.pipe(output)
       await fromEvent(output, 'finish')

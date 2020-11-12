@@ -603,12 +603,8 @@ export default class {
     const sizeStream = createSizeStream()
 
     try {
-      const targetStream = await handler.createOutputStream(backupFullPath)
-
-      stream.on('error', error => targetStream.emit('error', error))
-
       await Promise.all([
-        fromEvent(stream.pipe(sizeStream).pipe(targetStream), 'finish'),
+        await handler.outputStream(backupFullPath, sizeStream),
         stream.task,
       ])
     } catch (error) {
@@ -852,9 +848,7 @@ export default class {
 
   @deferrable
   async _backupVm($defer, vm, handler, file, { compress }) {
-    const targetStream = await handler.createOutputStream(file)
     $defer.onFailure.call(handler, 'unlink', file)
-    $defer.onFailure.call(targetStream, 'close')
 
     const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
       compress,
@@ -862,9 +856,9 @@ export default class {
 
     const sizeStream = createSizeStream()
 
-    sourceStream.pipe(sizeStream).pipe(targetStream)
+    sourceStream.pipe(sizeStream)
 
-    await Promise.all([sourceStream.task, fromEvent(targetStream, 'finish')])
+    await Promise.all([sourceStream.task, await handler.outputStream(file, sizeStream)])
 
     return {
       transferSize: sizeStream.size,

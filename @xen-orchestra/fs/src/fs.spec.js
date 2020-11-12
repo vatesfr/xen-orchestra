@@ -82,14 +82,6 @@ handlers.forEach(url => {
       })
     })
 
-    describe('#createOutputStream()', () => {
-      it('creates parent dir if missing', async () => {
-        const stream = await handler.createOutputStream('dir/file')
-        await fromCallback(pipeline, createTestDataStream(), stream)
-        await expect(await handler.readFile('dir/file')).toEqual(TEST_DATA)
-      })
-    })
-
     describe('#getInfo()', () => {
       let info
       beforeAll(async () => {

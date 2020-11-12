@@ -349,17 +349,11 @@ export default class metadataBackup {
           }
         )
 
-        let outputStream
         try {
           await waitAll([
             (async () => {
-              outputStream = await handler.createOutputStream(fileName)
-
-              // 'readable-stream/pipeline' not call the callback when an error throws
-              // from the readable stream
-              stream.pipe(outputStream)
               return timeout.call(
-                fromEvent(stream, 'end').catch(error => {
+                await handler.outputStream(fileName, stream).catch(error => {
                   if (error.message !== 'aborted') {
                     throw error
                   }
@@ -401,9 +395,6 @@ export default class metadataBackup {
 
           this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
         } catch (error) {
-          if (outputStream !== undefined) {
-            outputStream.destroy()
-          }
           await handler.rmtree(dir).catch(error => {
             logger.warning(`unable to delete the folder ${dir}`, {
               event: 'task.warning',
