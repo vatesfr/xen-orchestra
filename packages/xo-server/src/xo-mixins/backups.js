@@ -604,7 +604,7 @@ export default class {
 
     try {
       await Promise.all([
-        await handler.outputStream(backupFullPath, sizeStream),
+        handler.outputStream(backupFullPath, sizeStream),
         stream.task,
       ])
     } catch (error) {
@@ -858,7 +858,7 @@ export default class {
 
     sourceStream.pipe(sizeStream)
 
-    await Promise.all([sourceStream.task, await handler.outputStream(file, sizeStream)])
+    await Promise.all([sourceStream.task, handler.outputStream(file, sizeStream)])
 
     return {
       transferSize: sizeStream.size,
