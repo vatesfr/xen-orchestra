@@ -2414,6 +2414,8 @@ const messages = {
   selectLicense: 'Select a license',
   bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
+  isTrialLicense:
+    'You are currently in a {edition} trial period that will end on {date, date, medium}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',
   xosanLoadXoaPlugin: 'Load XOA plugin first',
   bindXoaLicense: 'Activate license',

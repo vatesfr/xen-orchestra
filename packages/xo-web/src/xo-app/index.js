@@ -11,6 +11,7 @@ import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess } from 'xoa-updater'
 import { connectStore, getXoaPlan, routes } from 'utils'
+import { createSelector } from 'reselect'
 import { Notification } from 'notification'
 import { ShortcutManager } from 'react-shortcuts'
 import { ThemeProvider } from 'styled-components'
@@ -125,6 +126,7 @@ export default class XoApp extends Component {
 
   state = {
     dismissedSourceBanner: Boolean(cookies.get('dismissedSourceBanner')),
+    dismissedTrialBanner: Boolean(cookies.get('dismissedTrialBanner')),
   }
 
   displayOpenSourceDisclaimer() {
@@ -153,6 +155,16 @@ export default class XoApp extends Component {
     cookies.set('dismissedSourceBanner', true, { expires: 1 }) // 1 day
     this.setState({ dismissedSourceBanner: true })
   }
+
+  dismissTrialBanner = () => {
+    cookies.set('dismissedTrialBanner', true, { expires: 1 })
+    this.setState({ dismissedTrialBanner: true })
+  }
+
+  isTrialVersion = createSelector(
+    () => this.props.trial,
+    edition => edition.trial && edition.trial.end > new Date().getTime() && true
+  )
 
   componentDidMount() {
     this.refs.bodyWrapper.style.minHeight =
@@ -268,6 +280,23 @@ export default class XoApp extends Component {
                     {_('disclaimerText4')}
                   </a>
                   <button className='close' onClick={this.dismissSourceBanner}>
+                    &times;
+                  </button>
+                </div>
+              )}
+              {this.isTrialVersion() && !this.state.dismissedTrialBanner && (
+                <div className='alert alert-info mb-0'>
+                  <a
+                    href='https://xen-orchestra.com/#!/xoa?pk_campaign=xo_source_banner'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    {_('isTrialLicense', {
+                      edition: trial.trial.productId,
+                      date: new Date(trial.trial.end),
+                    })}
+                  </a>
+                  <button className='close' onClick={this.dismissTrialBanner}>
                     &times;
                   </button>
                 </div>
