@@ -1,13 +1,10 @@
 /* eslint-env jest */
 
 import 'dotenv/config'
-import asyncIteratorToStream from 'async-iterator-to-stream'
 import { forOwn, random } from 'lodash'
-import { fromCallback } from 'promise-toolbox'
-import { pipeline } from 'readable-stream'
 import { tmpdir } from 'os'
 
-import { getHandler } from '.'
+import { getHandler } from './'
 
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {
@@ -27,9 +24,6 @@ const unsecureRandomBytes = n => {
 
 const TEST_DATA_LEN = 1024
 const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
-const createTestDataStream = asyncIteratorToStream(function* () {
-  yield TEST_DATA
-})
 
 const rejectionOf = p =>
   p.then(
