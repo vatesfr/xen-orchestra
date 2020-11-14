@@ -505,7 +505,11 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT])
     .sort()
   const getGuestToolsVms = createGetObjectsOfType('VM')
-    .filter([vm => vm.power_state === 'Running' && !vm.pvDriversUpToDate])
+    .filter([
+      vm =>
+        vm.power_state === 'Running' &&
+        (!vm.managementAgentDetected || !vm.pvDriversUpToDate),
+    ])
     .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([
