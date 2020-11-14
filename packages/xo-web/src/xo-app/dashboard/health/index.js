@@ -368,6 +368,45 @@ const TOO_MANY_SNAPSHOT_COLUMNS = [
   },
 ]
 
+const GUEST_TOOLS_COLUMNS = [
+  {
+    name: _('vmNameLabel'),
+    itemRenderer: vm => <Link to={`vms/${vm.id}`}>{vm.name_label}</Link>,
+    sortCriteria: vm => vm.name_label,
+  },
+  {
+    name: _('vmNameDescription'),
+    itemRenderer: vm => vm.name_description,
+    sortCriteria: vm => vm.name_description,
+  },
+  {
+    name: _('vmContainer'),
+    itemRenderer: vm => <VmColContainer id={vm.$container} />,
+  },
+  {
+    default: true,
+    name: _('guestToolStatusColumn'),
+    itemRenderer: vm => {
+      if (!vm.pvDriversDetected) {
+        return _('noToolsDetected')
+      }
+      if (!vm.managementAgentDetected) {
+        return _('managementAgentNotDetected')
+      }
+
+      const version =
+        get(() => vm.pvDriversVersion.split('.')[0]) > 0
+          ? vm.pvDriversVersion
+          : ''
+
+      return _('managementAgentOutOfDate', {
+        version,
+      })
+    },
+    sortOrder: 'desc',
+  },
+]
+
 const ALARM_COLUMNS = [
   {
     name: _('alarmDate'),
@@ -465,6 +504,9 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getTooManySnapshotsVms = createGetObjectsOfType('VM')
     .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT])
     .sort()
+  const getGuestToolsVms = createGetObjectsOfType('VM')
+    .filter([vm => vm.power_state === 'Running' && !vm.pvDriversUpToDate])
+    .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([
     message => message.name === 'ALARM',
@@ -476,6 +518,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
     tooManySnapshotsVms: getTooManySnapshotsVms,
+    guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
   }
 })
@@ -548,6 +591,11 @@ export default class Health extends Component {
 
   _getTooManySnapshotsVms = createFilter(
     () => this.props.tooManySnapshotsVms,
+    this._getPoolPredicate
+  )
+
+  _getGuestToolsVms = createFilter(
+    () => this.props.guestToolsVms,
     this._getPoolPredicate
   )
 
@@ -687,6 +735,30 @@ export default class Health extends Component {
                   emptyMessage={_('noTooManySnapshotsObject')}
                   shortcutsTarget='.too-many-snapshots-vms'
                   stateUrlParam='s_too_many_snapshots_vms'
+                />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row className='guest-tools-vms'>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='administration' /> {_('guestToolStatus')}
+              </CardHeader>
+              <CardBlock>
+                <p>
+                  <Icon icon='info' /> <em>{_('guestToolStatusTip')}</em>
+                </p>
+                <NoObjects
+                  collection={
+                    props.areObjectsFetched ? this._getGuestToolsVms() : null
+                  }
+                  columns={GUEST_TOOLS_COLUMNS}
+                  component={SortedTable}
+                  emptyMessage={_('noGuestToolStatusObject')}
+                  shortcutsTarget='.guest-tools-vms'
+                  stateUrlParam='s_guest_tools_vms'
                 />
               </CardBlock>
             </Card>
