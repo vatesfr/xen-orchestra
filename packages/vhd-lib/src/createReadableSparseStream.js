@@ -22,14 +22,13 @@ const VHD_BLOCK_SIZE_SECTORS = VHD_BLOCK_SIZE_BYTES / SECTOR_SIZE
  * then allocates the blocks in a forwards pass.
  * @returns currentVhdPositionSector the first free sector after the data
  */
-function createBAT(
-  firstBlockPosition,
-  fragmentLogicAddressList,
-  fragmentSize,
-  ratio,
-  bat,
-  bitmapSize
-) {
+function createBAT({
+                     firstBlockPosition,
+                     fragmentLogicAddressList,
+                     fragmentSize,
+                     bat,
+                     bitmapSize,
+                   }) {
   let currentVhdPositionSector = firstBlockPosition / SECTOR_SIZE
   const lastFragmentPerBlock = new Map()
   forEachRight(fragmentLogicAddressList, fragmentLogicAddress => {
@@ -61,7 +60,7 @@ function createBAT(
  *  "fragment" designate a chunk of incoming data (ie probably a VMDK grain), and "block" is a VHD block.
  * @param diskSize
  * @param fragmentSize
- * @param fragmentLogicalAddressList an iterable returning LBAs in multiple of fragmentSize
+ * @param fragmentLogicAddressList an iterable returning LBAs in multiple of fragmentSize
  * @param fragmentIterator
  * @returns {Promise<Function>}
  */
@@ -69,7 +68,7 @@ function createBAT(
 export default async function createReadableStream(
   diskSize,
   fragmentSize,
-  fragmentLogicalAddressList,
+  fragmentLogicAddressList,
   fragmentIterator
 ) {
   const ratio = VHD_BLOCK_SIZE_BYTES / fragmentSize
@@ -107,18 +106,17 @@ export default async function createReadableStream(
   const bitmapSize =
     Math.ceil(VHD_BLOCK_SIZE_SECTORS / 8 / SECTOR_SIZE) * SECTOR_SIZE
   const bat = Buffer.alloc(tablePhysicalSizeBytes, 0xff)
-  const [endOfData, lastFragmentPerBlock] = createBAT(
+  const [endOfData, lastFragmentPerBlock] = createBAT({
     firstBlockPosition,
-    fragmentLogicalAddressList,
+    fragmentLogicAddressList,
     fragmentSize,
-    ratio,
     bat,
     bitmapSize
-  )
+  })
   const fileSize = endOfData * SECTOR_SIZE + FOOTER_SIZE
   let position = 0
 
-  function* yieldAndTrack(buffer, expectedPosition, reason) {
+  function * yieldAndTrack(buffer, expectedPosition, reason) {
     if (expectedPosition !== undefined) {
       assert.strictEqual(position, expectedPosition, `${reason} (${position}|${expectedPosition})`)
     }
