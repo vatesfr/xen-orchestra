@@ -281,4 +281,26 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {}
+
+  // https://stackoverflow.com/a/48955582/72637
+  async _rmtree(dir) {
+    const listParams = {
+      Bucket: this._bucket,
+      Prefix: this._dir + dir
+    }
+    let listedObjects = {}
+    do {
+      listedObjects = await this._s3.listObjectsV2({
+        ...listParams,
+        ContinuationToken: listedObjects.NextContinuationToken
+      }).promise()
+      if (listedObjects.Contents.length === 0) {
+        return
+      }
+      await this._s3.deleteObjects({
+        Bucket: this._bucket,
+        Delete: { Objects: listedObjects.Contents.map(({ Key }) => ({ Key })) }
+      }).promise()
+    } while (listedObjects.IsTruncated)
+  }
 }

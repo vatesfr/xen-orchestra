@@ -352,8 +352,9 @@ export default class metadataBackup {
         try {
           await waitAll([
             (async () => {
+              console.log('fileName', fileName)
               return timeout.call(
-                handler.outputStream(fileName, stream).catch(error => {
+                handler.outputStream(stream, fileName).catch(error => {
                   stream.destroy()
                   if (error.message !== 'aborted') {
                     throw error
