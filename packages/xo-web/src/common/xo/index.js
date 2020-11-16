@@ -1649,6 +1649,15 @@ export const importVms = (vms, sr) =>
   ).then(ids => ids.filter(_ => _ !== undefined))
 
 const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+  const formData = new FormData()
+  if (vmdkData !== undefined) {
+    for (const l of ['grainLogicalAddressList', 'grainFileOffsetList']) {
+      const table = await vmdkData[l]
+      delete vmdkData[l]
+      const blob = new Blob([table])
+      formData.append(l, blob, file.name)
+    }
+  }
   const res = await _call('disk.import', {
     description,
     name,
@@ -1656,11 +1665,11 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     type,
     vmdkData,
   })
-  const result = await post(res.$sendTo, file)
+  formData.append('file', file)
+  const result = await post(res.$sendTo, formData)
   if (result.status !== 200) {
     throw result.status
   }
-  success(_('diskImportSuccess'), name)
   const body = await result.json()
   await body.result
 }
