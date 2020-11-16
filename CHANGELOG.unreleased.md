@@ -18,6 +18,7 @@
 
 - [Remotes/NFS] Only mount with `vers=3` when no other options [#4940](https://github.com/vatesfr/xen-orchestra/issues/4940) (PR [#5354](https://github.com/vatesfr/xen-orchestra/pull/5354))
 - [VM/network] Don't change VIF's locking mode automatically (PR [#5357](https://github.com/vatesfr/xen-orchestra/pull/5357))
+- [Backup] Make backup directories only accessible by root users (PR [#5378](https://github.com/vatesfr/xen-orchestra/pull/5378))
 
 ### Packages to release
 
@@ -37,6 +38,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - @vates/multi-key-map minor
-- @xen-orchestra/fs patch
+- @xen-orchestra/fs minor
 - xo-server minor
 - xo-web minor

@@ -73,8 +73,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return fs.readdir(this._getFilePath(dir))
   }
 
-  _mkdir(dir) {
-    return fs.mkdir(this._getFilePath(dir))
+  _mkdir(dir, { mode }) {
+    return fs.mkdir(this._getFilePath(dir), { mode })
   }
 
   async _openFile(path, flags) {
@@ -129,7 +129,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return fs.write(file.fd, buffer, 0, buffer.length, position)
   }
 
-  _writeFile(file, data, { flags }) {
-    return fs.writeFile(this._getFilePath(file), data, { flag: flags })
+  _writeFile(file, data, { flags, ...options }) {
+    return fs.writeFile(this._getFilePath(file), data, {
+      flag: flags,
+      ...options,
+    })
   }
 }

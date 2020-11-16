@@ -17,6 +17,8 @@ import {
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
 
+const BACKUP_FILES_MODE = 0o700
+
 const log = createLogger('xo:xo-mixins:metadata-backups')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
@@ -219,8 +221,10 @@ export default class metadataBackup {
 
         try {
           await Promise.all([
-            handler.outputFile(fileName, data),
-            handler.outputFile(metaDataFileName, metadata),
+            handler.outputFile(fileName, data, { dirMode: BACKUP_FILES_MODE }),
+            handler.outputFile(metaDataFileName, metadata, {
+              dirMode: BACKUP_FILES_MODE,
+            }),
           ])
 
           await deleteOldBackups(
@@ -353,7 +357,9 @@ export default class metadataBackup {
         try {
           await waitAll([
             (async () => {
-              outputStream = await handler.createOutputStream(fileName)
+              outputStream = await handler.createOutputStream(fileName, {
+                dirMode: BACKUP_FILES_MODE,
+              })
 
               // 'readable-stream/pipeline' not call the callback when an error throws
               // from the readable stream
@@ -367,7 +373,9 @@ export default class metadataBackup {
                 this._poolMetadataTimeout
               )
             })(),
-            handler.outputFile(metaDataFileName, metadata),
+            handler.outputFile(metaDataFileName, metadata, {
+              dirMode: BACKUP_FILES_MODE,
+            }),
           ])
 
           await deleteOldBackups(

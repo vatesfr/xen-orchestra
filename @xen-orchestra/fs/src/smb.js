@@ -96,8 +96,10 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this._client.readdir(this._getFilePath(dir)).catch(normalizeDirError)
   }
 
-  _mkdir(dir) {
-    return this._client.mkdir(this._getFilePath(dir)).catch(normalizeDirError)
+  _mkdir(dir, { mode }) {
+    return this._client
+      .mkdir(this._getFilePath(dir), mode)
+      .catch(normalizeDirError)
   }
 
   // TODO: add flags
