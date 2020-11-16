@@ -119,7 +119,7 @@ export async function set({
       mac,
       currently_attached: attached,
       ipv4_allowed: newIpAddresses,
-      locking_mode: lockingMode,
+      locking_mode: lockingMode ?? vif.lockingMode,
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
       qos_algorithm_params:
         rateLimit != null ? { kbps: String(rateLimit) } : undefined,
