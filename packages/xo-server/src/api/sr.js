@@ -181,35 +181,6 @@ createIso.resolve = {
 }
 
 // -------------------------------------------------------------------
-
-export async function createFile({
-  host,
-  nameLabel,
-  nameDescription,
-  location,
-}) {
-  const xapi = this.getXapi(host)
-  return xapi.createSr({
-    hostRef: host._xapiRef,
-    name_label: nameLabel,
-    name_description: nameDescription,
-    type: 'file',
-    device_config: { location },
-  })
-}
-
-createFile.params = {
-  host: { type: 'string' },
-  nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
-  location: { type: 'string' },
-}
-
-createFile.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
 // NFS SR
 
 // This functions creates a NFS SR
@@ -443,6 +414,34 @@ probeZfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
+export async function createZfs({
+  host,
+  nameLabel,
+  nameDescription,
+  location,
+}) {
+  const xapi = this.getXapi(host)
+  // only XCP-ng >=8.2 support the ZFS SR
+  const types = await xapi.call('SR.get_supported_types')
+  return xapi.createSr({
+    hostRef: host._xapiRef,
+    name_label: nameLabel,
+    name_description: nameDescription,
+    type: types.includes('zfs') ? 'zfs' : 'file',
+    device_config: { location },
+  })
+}
+
+createZfs.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  location: { type: 'string' },
+}
+
+createZfs.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
 // -------------------------------------------------------------------
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
