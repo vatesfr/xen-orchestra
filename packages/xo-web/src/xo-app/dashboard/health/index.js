@@ -2,6 +2,7 @@ import _ from 'intl'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
 import fromCallback from 'promise-toolbox/fromCallback'
+import { get as getDefined } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
@@ -395,7 +396,7 @@ const GUEST_TOOLS_COLUMNS = [
       }
 
       const version =
-        get(() => vm.pvDriversVersion.split('.')[0]) > 0
+        getDefined(() => vm.pvDriversVersion.split('.')[0]) > 0
           ? vm.pvDriversVersion
           : ''
 
