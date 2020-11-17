@@ -404,7 +404,8 @@ const GUEST_TOOLS_COLUMNS = [
         version,
       })
     },
-    sortOrder: 'desc',
+    sortCriteria: vm =>
+      !vm.pvDriversDetected ? 0 : !vm.managementAgentDetected ? 1 : 2,
   },
 ]
 
