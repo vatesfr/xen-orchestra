@@ -3,6 +3,7 @@ import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
 import { createChecksumStream } from './checksum'
+import * as Readable from 'readable-stream'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -25,6 +26,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       s3ForcePathStyle: true,
       secretAccessKey: password,
       signatureVersion: 'v4',
+      sslEnabled: false
     })
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
@@ -169,7 +171,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
         let suffixOffset = prefixSize + buffer.length
         let suffixSize = Math.max(0, fileSize - suffixOffset)
         let hasSuffix = suffixSize > 0
-        let editBuffer = buffer
+        // keep the buffer as a list to avoid a giant allocation.
+        const editBufferList = [buffer]
+        let editBufferLength = buffer.length
         let editBufferOffset = position
         let partNumber = 1
         if (prefixSize < MIN_PART_SIZE) {
@@ -181,7 +185,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
             prefixSize > 0
               ? (await this._s3.getObject(downloadParams).promise()).Body
               : Buffer.alloc(0)
-          editBuffer = Buffer.concat([prefixBuffer, buffer])
+          editBufferList.unshift(prefixBuffer)
+          editBufferLength += prefixBuffer.length
           editBufferOffset = 0
         } else {
           const fragmentsCount = Math.ceil(prefixSize / MAX_PART_SIZE)
@@ -210,15 +215,15 @@ export default class S3Handler extends RemoteHandlerAbstract {
           if (lastFragmentSize) {
           }
         }
-        if (hasSuffix && editBuffer.length < MIN_PART_SIZE) {
+        if (hasSuffix && editBufferLength < MIN_PART_SIZE) {
           // the edit fragment is too short and is not the last fragment
           // let's steal from the suffix fragment to reach the minimum size
           // the suffix might be too short and itself entirely absorbed in the edit fragment, making it the last one.
           const complementSize = Math.min(
-            MIN_PART_SIZE - editBuffer.length,
+            MIN_PART_SIZE - editBufferLength,
             suffixSize
           )
-          const complementOffset = editBufferOffset + editBuffer.length
+          const complementOffset = editBufferOffset + editBufferLength
           suffixOffset += complementSize
           suffixSize -= complementSize
           hasSuffix = suffixSize > 0
@@ -229,11 +234,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
           const complementBuffer = (
             await this._s3.getObject(downloadParams).promise()
           ).Body
-          editBuffer = Buffer.concat([editBuffer, complementBuffer])
+          editBufferList.push(complementBuffer)
+          // noinspection JSUnusedAssignment
+          editBufferLength += complementBuffer.length
         }
         const editParams = {
           ...multipartParams,
-          Body: editBuffer,
+          Body: Readable.from(editBufferList),
           PartNumber: partNumber++,
         }
         const editPart = await this._s3.uploadPart(editParams).promise()
