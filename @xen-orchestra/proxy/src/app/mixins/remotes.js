@@ -51,7 +51,7 @@ export default class Remotes {
   @decorateResult(disposeResourceOnStop, function () {
     return this._app.hooks
   })
-  @decorateWith(disposable)
+  @decorateResult(disposable)
   async *getHandler(remote, options) {
     const handler = getHandler(remote, options)
     await handler.sync()

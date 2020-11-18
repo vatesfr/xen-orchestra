@@ -1,7 +1,7 @@
 import Resource from 'promise-toolbox/_Resource'
 
-export function disposeResourceOnStop(res, getHooks) {
-  const hooks = getHooks.call(this)
+export function disposeResourceOnStop(res, [getHooks], args) {
+  const hooks = getHooks.apply(this, args)
 
   const dispose = value => {
     if (res.d !== undefined) {
