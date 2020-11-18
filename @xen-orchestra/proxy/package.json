@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@xen-orchestra/proxy",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "license": "AGPL-3.0-or-later",
   "description": "",
   "keywords": [
@@ -36,7 +36,7 @@
     "@vates/multi-key-map": "^0.0.0",
     "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/async-map": "^0.0.0",
-    "@xen-orchestra/backups": "^0.2.0",
+    "@xen-orchestra/backups": "^0.3.0",
     "@xen-orchestra/emit-async": "^0.0.0",
     "@xen-orchestra/fs": "^0.10.1",
     "@xen-orchestra/log": "^0.2.0",

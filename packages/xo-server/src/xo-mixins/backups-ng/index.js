@@ -12,6 +12,7 @@ import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
+import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
 import {
@@ -1021,31 +1022,9 @@ export default class BackupNg {
             return
           }
 
-          backupsByVm[vmUuid] = backups.map(backup => ({
-            disks:
-              backup.vhds === undefined
-                ? []
-                : Object.keys(backup.vhds).map(vdiId => {
-                    const vdi = backup.vdis[vdiId]
-                    return {
-                      id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
-                      name: vdi.name_label,
-                      uuid: vdi.uuid,
-                    }
-                  }),
-
-            // inject an id usable by importVmBackupNg()
-            id: `${remoteId}/${backup._filename}`,
-            jobId: backup.jobId,
-            mode: backup.mode,
-            scheduleId: backup.scheduleId,
-            size: backup.size,
-            timestamp: backup.timestamp,
-            vm: {
-              name_description: backup.vm.name_description,
-              name_label: backup.vm.name_label,
-            },
-          }))
+          backupsByVm[vmUuid] = backups.map(backup =>
+            formatVmBackup(remoteId, backup)
+          )
         })
       )
     } catch (error) {

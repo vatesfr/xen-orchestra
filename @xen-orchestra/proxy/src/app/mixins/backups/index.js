@@ -1,9 +1,11 @@
 import assert from 'assert'
 import defer from 'golike-defer'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import mapValues from 'lodash/mapValues'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
+import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
 
 import { Backup } from './_Backup'
@@ -190,7 +192,15 @@ export default class Backups {
                   await using(
                     app.remotes.getAdapter(remotes[remoteId]),
                     async adapter => {
-                      backups[remoteId] = await adapter.listAllVmBackups()
+                      backups[
+                        remoteId
+                      ] = mapValues(
+                        await adapter.listAllVmBackups(),
+                        vmBackups =>
+                          vmBackups.map(backup =>
+                            formatVmBackup(remoteId, backup)
+                          )
+                      )
                     }
                   )
                 } catch (error) {
