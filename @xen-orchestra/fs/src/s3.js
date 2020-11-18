@@ -26,7 +26,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
       s3ForcePathStyle: true,
       secretAccessKey: password,
       signatureVersion: 'v4',
-      sslEnabled: false
     })
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
