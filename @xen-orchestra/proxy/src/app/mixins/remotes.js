@@ -2,8 +2,11 @@ import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
 
+import { debounceResource } from '../_debounceResource'
+import { decorateResult } from '../_decorateResult'
 import { deduped } from '../_deduped'
 import { disposable } from '../_disposable'
+import { disposeResourceOnStop } from '../_disposeResourceOnStop'
 
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
@@ -41,12 +44,14 @@ export default class Remotes {
     })
   }
 
-  @decorateWith(deduped, remote => [remote.url], function () {
+  @decorateResult(debounceResource, function () {
     return this._config.resourceDebounce
   })
-  @decorateWith(disposable, function (dispose) {
-    this._app.hooks.on('stop', dispose)
+  @decorateWith(deduped, remote => [remote.url])
+  @decorateResult(disposeResourceOnStop, function () {
+    return this._app.hooks
   })
+  @decorateWith(disposable)
   async *getHandler(remote, options) {
     const handler = getHandler(remote, options)
     await handler.sync()
@@ -57,12 +62,14 @@ export default class Remotes {
     }
   }
 
-  @decorateWith(deduped, remote => [remote.url], function () {
+  @decorateResult(debounceResource, function () {
     return this._config.resourceDebounce
   })
-  @decorateWith(disposable, function (dispose) {
-    this._app.hooks.on('stop', dispose)
+  @decorateWith(deduped, remote => [remote.url])
+  @decorateResult(disposeResourceOnStop, function () {
+    return this._app.hooks
   })
+  @decorateResult(disposable)
   *getAdapter(remote) {
     return new RemoteAdapter(yield this.getHandler(remote))
   }

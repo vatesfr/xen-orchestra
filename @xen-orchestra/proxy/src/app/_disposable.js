@@ -15,27 +15,22 @@ async function helper(gen, resolve, disposers) {
 }
 
 // inspired by https://github.com/tc39/proposal-explicit-resource-management
-export const disposable = (genFn, onStop) =>
-  function () {
-    const gen = genFn.apply(this, arguments)
-
-    const { promise, reject, resolve } = defer()
-    const disposers = []
-    const dispose = async () => {
-      let disposer
-      while ((disposer = disposers.pop()) !== undefined) {
-        await disposer()
-      }
+export const disposable = gen => {
+  const { promise, reject, resolve } = defer()
+  const disposers = []
+  const dispose = async () => {
+    let disposer
+    while ((disposer = disposers.pop()) !== undefined) {
+      await disposer()
     }
-    helper(gen, resolve, disposers).catch(error => {
-      reject(error)
-      return dispose()
-    })
-
-    const resourceDisposer = async value => {
-      await gen.return(value)
-      await dispose()
-    }
-    onStop.apply(this, [dispose, ...arguments])
-    return new Resource(promise, resourceDisposer)
   }
+  helper(gen, resolve, disposers).catch(error => {
+    reject(error)
+    return dispose()
+  })
+
+  return new Resource(promise, async value => {
+    await gen.return(value)
+    await dispose()
+  })
+}
