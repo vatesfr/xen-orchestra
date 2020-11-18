@@ -1,8 +1,10 @@
 import assert from 'assert'
 import defer from 'golike-defer'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import mapValues from 'lodash/mapValues'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
+import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { getHandler } from '@xen-orchestra/fs/dist'
 import { Xapi } from '@xen-orchestra/xapi'
 
@@ -201,7 +203,11 @@ export default class Backups {
                   await handler.sync()
                   try {
                     const adapter = new RemoteAdapter(handler)
-                    backups[remoteId] = await adapter.listAllVmBackups()
+                    backups[
+                      remoteId
+                    ] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
+                      vmBackups.map(backup => formatVmBackup(remoteId, backup))
+                    )
                   } finally {
                     await handler.forget()
                   }
