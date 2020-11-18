@@ -9,6 +9,7 @@ import { RemoteAdapter } from './backups/_RemoteAdapter'
 
 export default class Remotes {
   constructor(app, { config }) {
+    this._app = app
     this._config = config
 
     app.api.addMethods({
@@ -43,7 +44,9 @@ export default class Remotes {
   @decorateWith(deduped, remote => [remote.url], function () {
     return this._config.resourceDebounce
   })
-  @decorateWith(disposable)
+  @decorateWith(disposable, function (dispose) {
+    this._app.hooks.on('stop', dispose)
+  })
   async *getHandler(remote, options) {
     const handler = getHandler(remote, options)
     await handler.sync()
@@ -57,7 +60,9 @@ export default class Remotes {
   @decorateWith(deduped, remote => [remote.url], function () {
     return this._config.resourceDebounce
   })
-  @decorateWith(disposable)
+  @decorateWith(disposable, function (dispose) {
+    this._app.hooks.on('stop', dispose)
+  })
   *getAdapter(remote) {
     return new RemoteAdapter(yield this.getHandler(remote))
   }

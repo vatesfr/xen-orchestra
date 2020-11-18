@@ -15,7 +15,7 @@ async function helper(gen, resolve, disposers) {
 }
 
 // inspired by https://github.com/tc39/proposal-explicit-resource-management
-export const disposable = genFn =>
+export const disposable = (genFn, onStop) =>
   function () {
     const gen = genFn.apply(this, arguments)
 
@@ -32,8 +32,10 @@ export const disposable = genFn =>
       return dispose()
     })
 
-    return new Resource(promise, async value => {
+    const resourceDisposer = async value => {
       await gen.return(value)
       await dispose()
-    })
+    }
+    onStop.apply(this, [dispose, ...arguments])
+    return new Resource(promise, resourceDisposer)
   }
