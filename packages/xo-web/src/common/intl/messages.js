@@ -1182,6 +1182,8 @@ const messages = {
   vifIpAddresses: 'IP addresses',
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
+  selectIpFromIpPool: 'Select an IP',
+  enterIp: 'Enter an IP',
   addAllowedIp: 'Add allowed IP',
   addIpError: 'Error while adding allowed IP',
   invalidIp: 'Invalid IP',

@@ -202,16 +202,16 @@ class VifAllowedIps extends BaseComponent {
     })
 
   _onKeyDown = async event => {
-    const { keyCode, target } = event
+    const { key, target } = event
 
-    if (keyCode === 13) {
-      if (target.value) {
+    if (key === 'Enter') {
+      if (target.value != null) {
         target.disabled = true
         await this._addIp({ id: target.value })
         target.disabled = false
         target.value = ''
       }
-    } else if (keyCode === 27) {
+    } else if (key === 'Escape') {
       this._hideIpInputs()
     } else {
       return
@@ -298,6 +298,7 @@ class VifAllowedIps extends BaseComponent {
                   size='small'
                   handler={this.toggleState('showIpSelector')}
                   icon='add'
+                  tooltip={_('selectIpFromIpPool')}
                 />{' '}
                 {isAdmin && (
                   <ActionButton
@@ -305,6 +306,7 @@ class VifAllowedIps extends BaseComponent {
                     size='small'
                     handler={this.toggleState('showIpInput')}
                     icon='edit'
+                    tooltip={_('enterIp')}
                   />
                 )}{' '}
                 {warningMessage !== undefined && (
