@@ -211,7 +211,7 @@ class VifAllowedIps extends BaseComponent {
         target.disabled = false
         target.value = ''
       }
-    } else if (key === 'Escape') {
+    } else if (key === 'Escape' || key === 'Esc') {
       this._hideIpInputs()
     } else {
       return
