@@ -1,14 +1,10 @@
-// @decorateResult(function(result, [arg1, arg2], [fnArg1, fnArg2]) {}, arg1, arg2)
-// fn(fnArg1, fnArg2) {}
-
-export const decorateResult = (fn, ...args) => (target, name, descriptor) => ({
+// Applies passed transformer to the result returned by the method
+//
+// @decorateResult(transform)
+// method () {}
+export const decorateResult = fn => (target, name, descriptor) => ({
   ...descriptor,
   value: function () {
-    return fn.call(
-      this,
-      descriptor.value.apply(this, arguments),
-      args,
-      arguments
-    )
+    return fn.call(this, descriptor.value.apply(this, arguments), ...arguments)
   },
 })
