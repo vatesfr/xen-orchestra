@@ -863,6 +863,18 @@ export const installAllPatchesOnPool = ({ pool }) => {
   )
 }
 
+export const rollingPoolUpdate = ({ pool }) => {
+  const poolId = resolveId(pool)
+  return confirm({
+    body: _('rollingPoolUpdateMessage'),
+    title: _('rollingPoolUpdate'),
+    icon: 'pool-rolling-update',
+  }).then(
+    () => _call('pool.rollingUpdate', { pool: poolId })::tap(() => subscribeHostMissingPatches.forceRefresh()),
+    noop
+  )
+}
+
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
 

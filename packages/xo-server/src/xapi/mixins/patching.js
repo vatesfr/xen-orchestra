@@ -2,13 +2,13 @@ import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'unzipper'
 import { decorateWith } from '@vates/decorate-with'
-import { filter, find, pickBy, some } from 'lodash'
+import { filter, find, flatMap, groupBy, mapValues, pickBy, some } from 'lodash'
 
 import ensureArray from '../../_ensureArray'
 import { debounceWithKey } from '../../_pDebounceWithKey'
 import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
 
-import { extractOpaqueRef, useUpdateSystem } from '../utils'
+import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils'
 
 // TOC -------------------------------------------------------------------------
 
@@ -436,7 +436,7 @@ export default {
   //
   // XS pool-wide optimization only works when no hosts are specified
   // it may install more patches that specified if some of them require other patches
-  async installPatches({ patches, hosts }) {
+  async installPatches({ patches, hosts } = {}) {
     // XCP
     if (_isXcp(this.pool.$master)) {
       return this._xcpUpdate(hosts)
@@ -463,5 +463,128 @@ export default {
     // sort patches
     // host-by-host install
     throw new Error('non pool-wide install not implemented')
+  },
+
+  async rollingPoolUpdate() {
+    let hosts = filter(this.objects.all, { $type: 'host' })
+    await Promise.all(hosts.map(host => this.call('host.assert_can_evacuate', host.$ref)))
+
+    log.debug('Install patches')
+    await this.installPatches()
+
+    // Remember on which hosts and SRs the running VMs are
+    const vmsByHost = mapValues(
+      groupBy(
+        filter(this.objects.all, {
+          $type: 'VM',
+          power_state: 'Running',
+          is_control_domain: false,
+        }),
+        vm => vm.$resident_on?.$id
+      ),
+      vms =>
+        vms.map(vm => {
+          const mapVifsNetworks = {}
+          vm.$VIFs.forEach(vif => {
+            mapVifsNetworks[vif.$id] = vif.$network.$id
+          })
+
+          const mapVdisSrs = {}
+          flatMap(vm.$snapshots, '$VBDs')
+            .concat(vm.$VBDs)
+            .forEach(vbd => {
+              if (vbd.type === 'Disk') {
+                const vdi = vbd.$VDI
+                mapVdisSrs[vdi.$id] = vdi.$SR.$id
+              }
+            })
+
+          return {
+            id: vm.$id,
+            ref: vm.$ref,
+            mapVifsNetworks,
+            mapVdisSrs,
+          }
+        })
+    )
+
+    if (vmsByHost.undefined !== undefined) {
+      throw new Error('Could not find host of all running VMs')
+    }
+
+    // Cache $fields to make sure we can access them later
+    hosts = hosts.map(host => ({
+      ...host,
+      id: host.$id,
+      ref: host.$ref,
+      metricsId: host.$metrics.$id,
+      metricsRef: host.$metrics.$ref,
+    }))
+
+    // Put master in first position to restart it first
+    const indexOfMaster = hosts.findIndex(host => host.ref === this.pool.master)
+    if (indexOfMaster > 0) {
+      ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
+    }
+
+    // Restart all the hosts one by one
+    for (const host of hosts) {
+      const hostId = host.id
+      const metricsId = host.metricsId
+
+      await this.barrier(host.metricsRef)
+      await this._waitObjectState(metricsId, metrics => metrics.live)
+      const rebootTime = parseDateTime(await this.call('host.get_servertime', host.ref))
+
+      log.debug(`Evacuate and restart host ${hostId}`)
+      await this.rebootHost(hostId)
+
+      log.debug(`Wait for host ${hostId} to be up`)
+      await Promise.race([
+        (async () => {
+          await this._waitObjectState(hostId, host => rebootTime < host.other_config.agent_start_time * 1e3)
+          await this._waitObjectState(metricsId, metrics => metrics.live)
+          await this._waitObjectState(hostId, host => host.enabled)
+        })(),
+        new Promise((resolve, reject) =>
+          setTimeout(() => reject(new Error(`Host ${hostId} took too long to restart`)), 5 * 60 * 1e3)
+        ),
+      ])
+      log.debug(`Host ${hostId} is up`)
+    }
+
+    log.debug('Migrate VMs back to where they were')
+
+    // Start with the last host since it's the emptiest one after the rolling
+    // update
+    ;[hosts[0], hosts[hosts.length - 1]] = [hosts[hosts.length - 1], hosts[0]]
+
+    let error
+    for (const host of hosts) {
+      const hostId = host.id
+      const vmsData = vmsByHost[hostId]
+
+      if (vmsData === undefined) {
+        continue
+      }
+
+      for (const vmData of vmsData) {
+        try {
+          await this.migrateVm(vmData.id, this, hostId, {
+            mapVifsNetworks: vmData.mapVifsNetworks,
+            mapVdisSrs: vmData.mapVdisSrs,
+          })
+        } catch (err) {
+          log.error(err)
+          if (error === undefined) {
+            error = err
+          }
+        }
+      }
+    }
+
+    if (error !== undefined) {
+      throw error
+    }
   },
 }

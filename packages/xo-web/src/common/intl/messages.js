@@ -974,8 +974,11 @@ const messages = {
   installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
   installPatchesContent:
     'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
-  installPoolPatches: 'Install pool patches',
+  installPoolPatches: 'Install all pool patches',
   confirmPoolPatch: 'Are you sure you want to install all the patches on this pool?',
+  rollingPoolUpdate: 'Rolling pool update',
+  rollingPoolUpdateMessage:
+    'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',

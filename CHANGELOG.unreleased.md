@@ -9,6 +9,7 @@
 
 - [Plugins] Add user feedback when a plugin test finishes successfully (PR [#5409](https://github.com/vatesfr/xen-orchestra/pull/5409))
 - [New HBA SR] Show LUN serial and id in LUN selector (PR [#5422](https://github.com/vatesfr/xen-orchestra/pull/5422))
+- [Patches] Rolling pool update: automatically patch and restart a whole pool by live migrating running VMs back and forth as needed [#5286](https://github.com/vatesfr/xen-orchestra/issues/5286)
 
 ### Bug fixes
 
