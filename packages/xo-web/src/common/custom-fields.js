@@ -97,7 +97,7 @@ const CustomFields = decorate([
     },
   }),
   injectState,
-  ({ effects, object, state }) => {
+  ({ effects, state }) => {
     return (
       <Container>
         {Object.entries(state.otherConfig).map(([key, value]) => {
