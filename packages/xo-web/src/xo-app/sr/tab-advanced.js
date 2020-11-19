@@ -6,6 +6,7 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
 import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr } from 'xo'
@@ -67,6 +68,12 @@ export default ({ sr }) => (
             <tr>
               <th>{_('provisioning')}</th>
               <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
+            </tr>
+            <tr>
+              <th>{_('customfields')}</th>
+              <td>
+                <CustomFields object={sr.id} />
+              </td>
             </tr>
           </tbody>
         </table>

@@ -14,6 +14,7 @@ import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, compareVersions, connectStore, getIscsiPaths } from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -357,6 +358,12 @@ export default class extends Component {
                   <th>{_('hostRemoteSyslog')}</th>
                   <td>
                     <Text value={host.logging.syslog_destination || ''} onChange={this._setRemoteSyslogHost} />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('customfields')}</th>
+                  <td>
+                    <CustomFields object={host.id} />
                   </td>
                 </tr>
               </tbody>
