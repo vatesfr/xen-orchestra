@@ -76,15 +76,24 @@ export async function set({
   resourceSet,
   txChecksumming,
 }) {
+  // - If allowed IPs were explicitly passed: use them
+  // - Else if the network is changing: remove the existing allowed IPs
+  // - Else: use the old IPs
+  const newIpv4Addresses =
+    allowedIpv4Addresses ??
+    (network === undefined || network.id === vif.$network
+      ? vif.allowedIpv4Addresses
+      : [])
+  const newIpv6Addresses =
+    allowedIpv6Addresses ??
+    (network === undefined || network.id === vif.$network
+      ? vif.allowedIpv6Addresses
+      : [])
+
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(
     vif.allowedIpv6Addresses
   )
-  const newIpAddresses = []
-  {
-    const { push } = newIpAddresses
-    push.apply(newIpAddresses, allowedIpv4Addresses || vif.allowedIpv4Addresses)
-    push.apply(newIpAddresses, allowedIpv6Addresses || vif.allowedIpv6Addresses)
-  }
+  const newIpAddresses = newIpv4Addresses.concat(newIpv6Addresses)
 
   if (lockingMode !== undefined) {
     await this.checkPermissions(this.user.id, [
@@ -118,7 +127,8 @@ export async function set({
     const newVif = await xapi.createVif(vm.$id, network.$id, {
       mac,
       currently_attached: attached,
-      ipv4_allowed: newIpAddresses,
+      ipv4_allowed: newIpv4Addresses,
+      ipv6_allowed: newIpv6Addresses,
       locking_mode: lockingMode ?? vif.lockingMode,
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
       qos_algorithm_params:
