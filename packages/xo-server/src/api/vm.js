@@ -1365,18 +1365,20 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
     form.on('error', reject)
     form.on('part', async part => {
       if (part.name !== 'file') {
-        promises.push((async () => {
-          if (!(part.filename in tables)) {
-            tables[part.filename] = {}
-          }
-          const view = new DataView((await getStream.buffer(part)).buffer)
-          const result = new Uint32Array(view.byteLength / 4)
-          for (const i in result) {
-            result[i] = view.getUint32(i * 4, true)
-          }
-          tables[part.filename][part.name] = result
-          data.tables = tables
-        })())
+        promises.push(
+          (async () => {
+            if (!(part.filename in tables)) {
+              tables[part.filename] = {}
+            }
+            const view = new DataView((await getStream.buffer(part)).buffer)
+            const result = new Uint32Array(view.byteLength / 4)
+            for (const i in result) {
+              result[i] = view.getUint32(i * 4, true)
+            }
+            tables[part.filename][part.name] = result
+            data.tables = tables
+          })()
+        )
       } else {
         await Promise.all(promises)
         // XVA files are directly sent to xcp-ng who wants a content-length

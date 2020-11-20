@@ -203,7 +203,9 @@ export default class VMDKDirectParser {
       const remainOfBufferSize = alignedGrainDiskSize - SECTOR_SIZE
       const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(
         remainOfBufferSize,
-        `grain remainder ${this.virtualBuffer.position} -> ${this.virtualBuffer.position + remainOfBufferSize}`
+        `grain remainder ${this.virtualBuffer.position} -> ${
+          this.virtualBuffer.position + remainOfBufferSize
+        }`
       )
       const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
       const grainObject = readGrain(

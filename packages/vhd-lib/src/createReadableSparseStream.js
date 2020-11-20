@@ -23,19 +23,24 @@ const VHD_BLOCK_SIZE_SECTORS = VHD_BLOCK_SIZE_BYTES / SECTOR_SIZE
  * @returns currentVhdPositionSector the first free sector after the data
  */
 function createBAT({
-                     firstBlockPosition,
-                     fragmentLogicAddressList,
-                     fragmentSize,
-                     bat,
-                     bitmapSize,
-                   }) {
+  firstBlockPosition,
+  fragmentLogicAddressList,
+  fragmentSize,
+  bat,
+  bitmapSize,
+}) {
   let currentVhdPositionSector = firstBlockPosition / SECTOR_SIZE
   const lastFragmentPerBlock = new Map()
   forEachRight(fragmentLogicAddressList, fragmentLogicAddress => {
-    assert.strictEqual(fragmentLogicAddress * fragmentSize % SECTOR_SIZE, 0)
-    const vhdTableIndex = Math.floor(fragmentLogicAddress * fragmentSize / VHD_BLOCK_SIZE_BYTES)
+    assert.strictEqual((fragmentLogicAddress * fragmentSize) % SECTOR_SIZE, 0)
+    const vhdTableIndex = Math.floor(
+      (fragmentLogicAddress * fragmentSize) / VHD_BLOCK_SIZE_BYTES
+    )
     if (!lastFragmentPerBlock.has(vhdTableIndex)) {
-      lastFragmentPerBlock.set(vhdTableIndex, fragmentLogicAddress * fragmentSize)
+      lastFragmentPerBlock.set(
+        vhdTableIndex,
+        fragmentLogicAddress * fragmentSize
+      )
     }
   })
   const lastFragmentPerBlockArray = [...lastFragmentPerBlock]
@@ -111,14 +116,18 @@ export default async function createReadableStream(
     fragmentLogicAddressList,
     fragmentSize,
     bat,
-    bitmapSize
+    bitmapSize,
   })
   const fileSize = endOfData * SECTOR_SIZE + FOOTER_SIZE
   let position = 0
 
-  function * yieldAndTrack(buffer, expectedPosition, reason) {
+  function* yieldAndTrack(buffer, expectedPosition, reason) {
     if (expectedPosition !== undefined) {
-      assert.strictEqual(position, expectedPosition, `${reason} (${position}|${expectedPosition})`)
+      assert.strictEqual(
+        position,
+        expectedPosition,
+        `${reason} (${position}|${expectedPosition})`
+      )
     }
     if (buffer.length > 0) {
       yield buffer

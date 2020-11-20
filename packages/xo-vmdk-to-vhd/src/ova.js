@@ -291,7 +291,8 @@ export async function parseOVAFile(
         data = { ...data, ...res }
       }
       if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk')) {
-        const readFile = async (start, end) => fileSlice.slice(start, end).read()
+        const readFile = async (start, end) =>
+          fileSlice.slice(start, end).read()
         readFile.fileName = header.fileName
         data.tables[header.fileName] = suppressUnhandledRejection(
           readVmdkGrainTable(readFile)

@@ -155,7 +155,6 @@ importContent.resolve = {
   vdi: ['id', ['VDI'], 'operate'],
 }
 
-
 /**
  * here we expect to receive a POST in multipart/form-data
  * When importing a VMDK file:
@@ -178,14 +177,16 @@ async function handleImport(
     form.on('error', reject)
     form.on('part', async part => {
       if (part.name !== 'file') {
-        promises.push((async () => {
-          const view = new DataView((await getStream.buffer(part)).buffer)
-          const result = new Uint32Array(view.byteLength / 4)
-          for (const i in result) {
-            result[i] = view.getUint32(i * 4, true)
-          }
-          vmdkData[part.name] = result
-        })())
+        promises.push(
+          (async () => {
+            const view = new DataView((await getStream.buffer(part)).buffer)
+            const result = new Uint32Array(view.byteLength / 4)
+            for (const i in result) {
+              result[i] = view.getUint32(i * 4, true)
+            }
+            vmdkData[part.name] = result
+          })()
+        )
       } else {
         await Promise.all(promises)
         part.length = part.byteCount
@@ -201,7 +202,9 @@ async function handleImport(
           const footer = await peekFooterFromVhdStream(vhdStream)
           size = footer.currentSize
         } else {
-          throw new Error(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)
+          throw new Error(
+            `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
+          )
         }
         const vdi = await xapi.createVdi({
           name_description: description,
@@ -248,7 +251,7 @@ importDisk.params = {
     type: 'object',
     optional: true,
     properties: {
-      capacity: { type: 'integer' }
+      capacity: { type: 'integer' },
     },
   },
 }

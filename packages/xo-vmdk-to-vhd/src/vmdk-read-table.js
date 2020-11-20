@@ -139,7 +139,10 @@ export async function readCapacityAndGrainTable(fileAccessor) {
       grainLogicalAddressList.setUint32(i * 4, index, true)
       grainFileOffsetList.setUint32(i * 4, grainAddress, true)
     })
-    return { grainLogicalAddressList: grainLogicalAddressList.buffer, grainFileOffsetList: grainFileOffsetList.buffer }
+    return {
+      grainLogicalAddressList: grainLogicalAddressList.buffer,
+      grainFileOffsetList: grainFileOffsetList.buffer,
+    }
   }
 
   return {
