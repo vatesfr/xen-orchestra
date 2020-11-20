@@ -118,27 +118,18 @@ class VifNetwork extends BaseComponent {
   }
 }
 
+@connectStore({
+  isAdmin,
+})
 @addSubscriptions({
   ipPools: subscribeIpPools,
   resourceSets: subscribeResourceSets,
 })
+@injectIntl
 class VifAllowedIps extends BaseComponent {
-  _saveIp = (ipIndex, newIp) => {
-    if (!isIp(newIp.id)) {
-      throw new Error('Not a valid IP')
-    }
-    const vif = this.props.item
-    const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-    if (isIpV4(newIp.id)) {
-      allowedIpv4Addresses[ipIndex] = newIp.id
-    } else {
-      allowedIpv6Addresses[ipIndex - allowedIpv4Addresses.length] = newIp.id
-    }
-    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
-  }
   _addIp = ip => {
-    this._toggleNewIp()
     if (!isIp(ip.id)) {
+      error(_('addIpError'), _('invalidIp'))
       return
     }
     const vif = this.props.item
@@ -148,7 +139,11 @@ class VifAllowedIps extends BaseComponent {
     } else {
       allowedIpv6Addresses = [...allowedIpv6Addresses, ip.id]
     }
-    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
+    return setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses }).catch(
+      err => {
+        error(_('addIpError'), err.message)
+      }
+    )
   }
   _deleteIp = ipIndex => {
     const vif = this.props.item
@@ -200,12 +195,39 @@ class VifAllowedIps extends BaseComponent {
       find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
   )
 
-  _toggleNewIp = () =>
-    this.setState({ showNewIpForm: !this.state.showNewIpForm })
+  _hideIpInputs = () =>
+    this.setState({
+      showIpSelector: false,
+      showIpInput: false,
+    })
+
+  _onKeyDown = async event => {
+    const { key, target } = event
+
+    if (key === 'Enter') {
+      if (target.value != null) {
+        target.disabled = true
+        await this._addIp({ id: target.value })
+        target.disabled = false
+        target.value = ''
+      }
+    } else if (key === 'Escape' || key === 'Esc') {
+      this._hideIpInputs()
+    } else {
+      return
+    }
+
+    event.preventDefault()
+  }
 
   render() {
-    const { showNewIpForm } = this.state
-    const { resourceSet, item: vif } = this.props
+    const { showIpSelector, showIpInput } = this.state
+    const {
+      intl: { formatMessage },
+      isAdmin,
+      item: vif,
+      resourceSet,
+    } = this.props
 
     if (!vif) {
       return null
@@ -231,18 +253,7 @@ class VifAllowedIps extends BaseComponent {
         ) : (
           map(this._getIps(), (ip, ipIndex) => (
             <Row>
-              <Col size={10}>
-                <XoSelect
-                  containerPredicate={this._getIsNetworkAllowed()}
-                  onChange={newIp => this._saveIp(ipIndex, newIp)}
-                  predicate={this._getIpPredicate()}
-                  resourceSetId={resourceSet}
-                  value={ip}
-                  xoType={resourceSet ? 'resourceSetIp' : 'ip'}
-                >
-                  {ip}
-                </XoSelect>
-              </Col>
+              <Col size={10}>{ip}</Col>
               <Col size={1}>
                 <ActionRowButton
                   handler={this._deleteIp}
@@ -255,8 +266,8 @@ class VifAllowedIps extends BaseComponent {
         )}
         <Row>
           <Col size={10}>
-            {showNewIpForm ? (
-              <span onBlur={this._toggleNewIp}>
+            {showIpSelector && (
+              <span onBlur={this._hideIpInputs}>
                 {resourceSet ? (
                   <SelectResourceSetIp
                     autoFocus
@@ -264,6 +275,7 @@ class VifAllowedIps extends BaseComponent {
                     onChange={this._addIp}
                     predicate={this._getIpPredicate()}
                     resourceSetId={resourceSet}
+                    value={null}
                   />
                 ) : (
                   <SelectIp
@@ -271,21 +283,43 @@ class VifAllowedIps extends BaseComponent {
                     containerPredicate={this._getIsNetworkAllowed()}
                     onChange={this._addIp}
                     predicate={this._getIpPredicate()}
+                    value={null}
                   />
                 )}
               </span>
-            ) : (
-              <ActionButton
-                btnStyle='success'
-                size='small'
-                handler={this._toggleNewIp}
-                icon='add'
+            )}
+            {showIpInput && (
+              <input
+                autoFocus
+                onBlur={this._hideIpInputs}
+                onKeyDown={this._onKeyDown}
+                placeholder={formatMessage(messages.addAllowedIp)}
               />
-            )}{' '}
-            {warningMessage !== undefined && (
-              <Tooltip content={warningMessage}>
-                <Icon icon='error' />
-              </Tooltip>
+            )}
+            {!showIpSelector && !showIpInput && (
+              <span>
+                <ActionButton
+                  btnStyle='success'
+                  size='small'
+                  handler={this.toggleState('showIpSelector')}
+                  icon='add'
+                  tooltip={_('selectIpFromIpPool')}
+                />{' '}
+                {isAdmin && (
+                  <ActionButton
+                    btnStyle='primary'
+                    size='small'
+                    handler={this.toggleState('showIpInput')}
+                    icon='edit'
+                    tooltip={_('enterIp')}
+                  />
+                )}{' '}
+                {warningMessage !== undefined && (
+                  <Tooltip content={warningMessage}>
+                    <Icon icon='error' />
+                  </Tooltip>
+                )}
+              </span>
             )}
           </Col>
         </Row>
