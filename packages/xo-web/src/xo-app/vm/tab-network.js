@@ -222,7 +222,12 @@ class VifAllowedIps extends BaseComponent {
 
   render() {
     const { showIpSelector, showIpInput } = this.state
-    const { intl: { formatMessage }, resourceSet, item: vif } = this.props
+    const {
+      intl: { formatMessage },
+      isAdmin,
+      item: vif,
+      resourceSet,
+    } = this.props
 
     if (!vif) {
       return null
