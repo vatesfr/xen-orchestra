@@ -37,6 +37,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-auth-ldap patch
 - @vates/multi-key-map minor
 - @xen-orchestra/fs patch
 - xo-server minor
