@@ -124,7 +124,7 @@ export class RemoteAdapter {
     const handler = this._handler
 
     const diskPath = handler._getFilePath('/' + diskId)
-    const mountDir = yield this._app.remotes.getMountDir()
+    const mountDir = yield this._app.remotes.getTempMountDir()
     await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
     try {
       let max = 0

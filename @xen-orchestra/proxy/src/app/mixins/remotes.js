@@ -79,7 +79,7 @@ export default class Remotes {
   }
 
   @decorateWith(disposable)
-  async *getMountDir() {
+  async *getTempMountDir() {
     const mountDir = await fromCallback(tmp.dir)
     try {
       yield mountDir
