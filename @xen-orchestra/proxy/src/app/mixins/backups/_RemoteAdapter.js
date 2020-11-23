@@ -31,6 +31,10 @@ const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path
 
 const RE_VHDI = /^vhdi(\d+)$/
 
+function getDebouncedResource(resource) {
+  return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
+}
+
 export class RemoteAdapter {
   constructor(handler, { app, config } = {}) {
     this._app = app
@@ -80,6 +84,15 @@ export class RemoteAdapter {
     }
   }
 
+  async _findPartition(diskId, partitionId) {
+    const partitions = await this.listPartitions(diskId)
+    const partition = partitions.find(_ => _.id === partitionId)
+    if (partition === undefined) {
+      throw new Error(`partition ${partitionId} not found`)
+    }
+    return partition
+  }
+
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
     let mergedDataSize = 0
@@ -103,9 +116,7 @@ export class RemoteAdapter {
     )
   }
 
-  @decorateResult(function (resource) {
-    return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
-  })
+  @decorateResult(getDebouncedResource)
   @decorateWith(deduped, diskId => [diskId])
   @decorateWith(disposable)
   async *getDisk(diskId) {
@@ -135,6 +146,41 @@ export class RemoteAdapter {
       yield `${mountDir}/${maxEntry}`
     } finally {
       await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
+    }
+  }
+
+  @decorateResult(getDebouncedResource)
+  @decorateWith(deduped, (diskId, partitionId) => [diskId, partitionId])
+  @decorateWith(disposable)
+  async *getPartition(diskId, partitionId) {
+    const devicePath = yield this.getDisk(diskId)
+
+    const options = ['loop', 'ro']
+    const { start } = await this._findPartition(diskId, partitionId)
+    if (start !== undefined) {
+      options.push(`offset=${start * 512}`)
+    }
+
+    const path = yield this._app.remotes.getTempMountDir()
+    const mount = options => {
+      return fromCallback(execFile, 'mount', [
+        `--options=${options.join(',')}`,
+        `--source=${devicePath}`,
+        `--target=${path}`,
+      ])
+    }
+
+    // `norecovery` option is used for ext3/ext4/xfs, if it fails it might be
+    // another fs, try without
+    try {
+      await mount([...options, 'norecovery'])
+    } catch (error) {
+      await mount(options)
+    }
+    try {
+      yield path
+    } finally {
+      await fromCallback(execFile, 'umount', ['--lazy', path])
     }
   }
 

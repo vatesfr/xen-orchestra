@@ -8,6 +8,8 @@ import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
 
+import { disposable } from '../../_disposable'
+
 import { Backup } from './_Backup'
 import { importDeltaVm } from './_deltaVm'
 import { Task } from './_Task'
@@ -217,6 +219,58 @@ export default class Backups {
             description: 'returns a list of running jobs',
           },
         ],
+
+        ...(() => {
+          const getPartition = disposable(function* ({ disk, partition, remote }) {
+            const adapter = yield app.remotes.getAdapter(remote)
+            return yield adapter.getPartition(disk, partition)
+          })
+
+          const partitionDisposers = {}
+          return {
+            mountPartition: [
+              async props => {
+                const resource = getPartition(props)
+                const path = await resource.p
+
+                if (partitionDisposers[path] === undefined) {
+                  partitionDisposers[path] = []
+                }
+                partitionDisposers[path].push(resource.d)
+
+                return path
+              },
+              {
+                description: 'mount a partition',
+                params: {
+                  disk: { type: 'string' },
+                  partition: { type: 'string' },
+                  remote: { type: 'object' },
+                },
+              },
+            ],
+            unmountPartition: [
+              async ({ path }) => {
+                const disposers = partitionDisposers[path]
+                if (disposers === undefined) {
+                  throw new Error(`No partition corresponding to the path ${path} found`)
+                }
+
+                await disposers.pop()()
+                if (disposers.length === 0) {
+                  delete partitionDisposers[path]
+                }
+              },
+              {
+                description: 'unmount a partition',
+                params: {
+                  path: { type: 'string' },
+                },
+              },
+            ],
+          }
+        })(),
+
         run: [
           ({ streamLogs = false, ...rest }) => (streamLogs ? runWithLogs(rest) : run(rest)),
           {
