@@ -35,4 +35,5 @@
 
 - @xen-orchestra/fs patch
 - xo-server minor
+- xo-server-web-hooks minor
 - xo-web minor

@@ -269,10 +269,15 @@ export default class Jobs {
     const user = await app.getUser(job.userId)
     const data = {
       callId: Math.random().toString(36).slice(2),
+      method: 'backupNg.runJob',
+      params: {
+        jobId: job.id,
+        scheduleId: schedule.id,
+        settings: job.settings,
+        vms: job.vms,
+      },
       userId: user.id,
       userName: user.name,
-      method: 'backupNg.runJob',
-      params: job.vms,
     }
     try {
       const runningJobs = this._runningJobs
@@ -356,6 +361,7 @@ export default class Jobs {
       type === 'backup' &&
         app.emit('backup:postCall', {
           ...data,
+          error: serializeError(error),
           timestamp: Date.now(),
         })
       app.emit('job:terminated', runJobId, {
