@@ -1,8 +1,6 @@
 import Resource from 'promise-toolbox/_Resource'
-import { parseDuration } from '@vates/parse-duration'
 
 export function debounceResource(resource, hooks, delay = 0) {
-  delay = parseDuration(delay)
   if (delay === 0) {
     return resource
   }

@@ -1,6 +1,7 @@
 import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
+import { parseDuration } from '@vates/parse-duration'
 
 import { debounceResource } from '../_debounceResource'
 import { decorateResult } from '../_decorateResult'
@@ -13,7 +14,7 @@ function getDebouncedResource(resource) {
   return debounceResource(
     resource,
     this._app.hooks,
-    this._config.resourceDebounce
+    parseDuration(this._config.resourceDebounce)
   )
 }
 
