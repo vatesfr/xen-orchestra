@@ -2698,6 +2698,14 @@
     "@webassemblyjs/wast-parser" "1.9.0"
     "@xtuc/long" "4.2.2"
 
+"@xen-orchestra/backups@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/backups/-/backups-0.1.1.tgz#853f423eaf445f26fd771f39d04bbeee6c5a7ac8"
+  integrity sha512-rcjtpqAFzvCB0cIMAIaFVy/U+q3IHeOsxYe8HftkO8EwI2Sv7/z+mypHe7TdSx2Zt716LKukbqpr/Xrcf3zmYQ==
+  dependencies:
+    d3-time-format "^2.2.3"
+    fs-extra "^8.1.0"
+
 "@xen-orchestra/fs@^0.10.1":
   version "0.10.4"
   resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-0.10.4.tgz#85d9d2b538285b4dba0ac257aaa5335582aba0d2"
