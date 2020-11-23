@@ -36,4 +36,3 @@
 - @xen-orchestra/fs patch
 - xo-server minor
 - xo-web minor
-- xo-server patch
