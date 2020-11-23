@@ -7,6 +7,7 @@ import { basename, dirname, join, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
+import { parseDuration } from '@vates/parse-duration'
 import { readdir } from 'fs-extra'
 
 import { debounceResource } from '../../_debounceResource'
@@ -114,7 +115,7 @@ export class RemoteAdapter {
     return debounceResource(
       resource,
       this._app.hooks,
-      this._config.resourceDebounce
+      parseDuration(this._config.resourceDebounce)
     )
   })
   @decorateWith(deduped, diskId => [diskId])
