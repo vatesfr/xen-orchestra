@@ -15,7 +15,7 @@ import { deduped } from '../../_deduped'
 import { disposable } from '../../_disposable'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
-import { listPartitions } from './_listPartitions'
+import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
@@ -167,7 +167,7 @@ export class RemoteAdapter {
       const partitions = await listPartitions(devicePath)
 
       // TODO: support LVM partitions
-      return partitions.filter(({ type }) => type !== 'lvm')
+      return partitions.filter(({ type }) => type !== LVM_PARTITION_TYPE)
     })
   }
 

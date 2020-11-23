@@ -19,21 +19,12 @@ const IGNORED_PARTITION_TYPES = {
   0x82: true, // swap
 }
 
-const PARTITION_TYPE_NAMES = {
-  0x07: 'NTFS',
-  0x0c: 'FAT',
-  0x83: 'linux',
-  0x8e: 'lvm',
-}
+export const LVM_PARTITION_TYPE = 0x8e
 
 const parsePartxLine = createParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
   valueTransform: (value, key) =>
-    key === 'start' || key === 'size'
-      ? +value
-      : key === 'type'
-      ? PARTITION_TYPE_NAMES[+value] ?? value
-      : value,
+    key === 'start' || key === 'size' ? +value : value,
 })
 
 export const listPartitions = async devicePath => {
