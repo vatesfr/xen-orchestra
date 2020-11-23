@@ -9,7 +9,7 @@ import { disposable } from '../_disposable'
 
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
-function debounceResourceFn(resource) {
+function getDebouncedResource(resource) {
   return debounceResource(
     resource,
     this._app.hooks,
@@ -51,7 +51,7 @@ export default class Remotes {
     })
   }
 
-  @decorateResult(debounceResourceFn)
+  @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(disposable)
   async *getHandler(remote, options) {
@@ -64,7 +64,7 @@ export default class Remotes {
     }
   }
 
-  @decorateResult(debounceResourceFn)
+  @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(disposable)
   *getAdapter(remote) {
