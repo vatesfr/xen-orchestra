@@ -271,6 +271,7 @@ export default class Jobs {
       callId: Math.random().toString(36).slice(2),
       userId: user.id,
       userName: user.name,
+      method: 'backupNg.runJob',
       params: job.vms,
     }
     try {
@@ -299,9 +300,8 @@ export default class Jobs {
         session.set('user_id', job.userId)
 
         type === 'backup' &&
-          app.emit('xo:preCall', {
+          app.emit('backup:preCall', {
             ...data,
-            method: 'backupNg.runJob',
             timestamp: Date.now(),
           })
 
@@ -326,9 +326,8 @@ export default class Jobs {
         )
 
         type === 'backup' &&
-          app.emit('xo:postCall', {
+          app.emit('backup:postCall', {
             ...data,
-            method: 'backupNg.runJob',
             timestamp: Date.now(),
           })
 
@@ -354,6 +353,11 @@ export default class Jobs {
         },
         true
       )
+      type === 'backup' &&
+        app.emit('backup:postCall', {
+          ...data,
+          timestamp: Date.now(),
+        })
       app.emit('job:terminated', runJobId, {
         type: job.type,
       })
