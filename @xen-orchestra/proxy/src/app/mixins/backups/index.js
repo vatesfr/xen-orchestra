@@ -2,15 +2,14 @@ import assert from 'assert'
 import defer from 'golike-defer'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import mapValues from 'lodash/mapValues'
+import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
-import { getHandler } from '@xen-orchestra/fs/dist'
 import { Xapi } from '@xen-orchestra/xapi'
 
 import { Backup } from './_Backup'
 import { importDeltaVm } from './_deltaVm'
-import { RemoteAdapter } from './_RemoteAdapter'
 import { Task } from './_Task'
 import { Readable } from 'stream'
 
@@ -135,17 +134,8 @@ export default class Backups {
     app.api.addMethods({
       backup: {
         importVmBackup: [
-          defer(
-            async ($defer, { backupId, remote, srUuid, xapi: xapiOpts }) => {
-              const adapter = new RemoteAdapter(
-                await (async () => {
-                  const handler = getHandler(remote)
-                  await handler.sync()
-                  $defer.call(handler, 'forget')
-                  return handler
-                })()
-              )
-
+          defer(($defer, { backupId, remote, srUuid, xapi: xapiOpts }) =>
+            using(app.remotes.getAdapter(remote), async adapter => {
               const xapi = createXapi(xapiOpts)
               await xapi.connect()
               $defer.call(xapi, 'disconnect')
@@ -181,7 +171,7 @@ export default class Backups {
               ])
 
               return xapi.getField('VM', vmRef, 'uuid')
-            }
+            })
           ),
           {
             description: 'create a new VM from a backup',
@@ -199,18 +189,20 @@ export default class Backups {
             await Promise.all(
               Object.keys(remotes).map(async remoteId => {
                 try {
-                  const handler = getHandler(remotes[remoteId])
-                  await handler.sync()
-                  try {
-                    const adapter = new RemoteAdapter(handler)
-                    backups[
-                      remoteId
-                    ] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
-                      vmBackups.map(backup => formatVmBackup(remoteId, backup))
-                    )
-                  } finally {
-                    await handler.forget()
-                  }
+                  await using(
+                    app.remotes.getAdapter(remotes[remoteId]),
+                    async adapter => {
+                      backups[
+                        remoteId
+                      ] = mapValues(
+                        await adapter.listAllVmBackups(),
+                        vmBackups =>
+                          vmBackups.map(backup =>
+                            formatVmBackup(remoteId, backup)
+                          )
+                      )
+                    }
+                  )
                 } catch (error) {
                   warn('listVmBackups', { error, remote: remotes[remoteId] })
                 }

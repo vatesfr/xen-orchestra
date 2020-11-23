@@ -1,14 +1,35 @@
+import using from 'promise-toolbox/using'
+import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
+import { parseDuration } from '@vates/parse-duration'
+
+import { debounceResource } from '../_debounceResource'
+import { decorateResult } from '../_decorateResult'
+import { deduped } from '../_deduped'
+import { disposable } from '../_disposable'
+
+import { RemoteAdapter } from './backups/_RemoteAdapter'
+
+function getDebouncedResource(resource) {
+  return debounceResource(
+    resource,
+    this._app.hooks,
+    parseDuration(this._config.resourceDebounce)
+  )
+}
 
 export default class Remotes {
-  constructor(app, { config: { remoteOptions } }) {
-    this._remoteOptions = remoteOptions
+  constructor(app, { config }) {
+    this._app = app
+    this._config = config
 
     app.api.addMethods({
       remote: {
         getInfo: [
           ({ remote }) =>
-            this._doWithHandler(remote, handler => handler.getInfo()),
+            using(this.getHandler(remote, config.remoteOptions), handler =>
+              handler.getInfo()
+            ),
           {
             params: {
               remote: { type: 'object' },
@@ -18,7 +39,9 @@ export default class Remotes {
 
         test: [
           ({ remote }) =>
-            this._doWithHandler(remote, handler => handler.test()),
+            using(this.getHandler(remote, config.remoteOptions), handler =>
+              handler.test()
+            ),
           {
             params: {
               remote: { type: 'object' },
@@ -29,13 +52,23 @@ export default class Remotes {
     })
   }
 
-  async _doWithHandler(remote, cb) {
-    const handler = getHandler(remote, this._remoteOptions)
+  @decorateResult(getDebouncedResource)
+  @decorateWith(deduped, remote => [remote.url])
+  @decorateWith(disposable)
+  async *getHandler(remote, options) {
+    const handler = getHandler(remote, options)
     await handler.sync()
     try {
-      return await cb(handler)
+      yield handler
     } finally {
       await handler.forget()
     }
+  }
+
+  @decorateResult(getDebouncedResource)
+  @decorateWith(deduped, remote => [remote.url])
+  @decorateWith(disposable)
+  *getAdapter(remote) {
+    return new RemoteAdapter(yield this.getHandler(remote))
   }
 }
