@@ -1,5 +1,7 @@
+import * as multiparty from 'multiparty'
 import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
+import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
@@ -1344,12 +1346,50 @@ export { export_ as export }
 
 // -------------------------------------------------------------------
 
+/**
+ * here we expect to receive a POST in multipart/form-data
+ * When importing an OVA file:
+ *  - The first parts are the tables in uint32 LE
+ *    - grainLogicalAddressList : uint32 LE in VMDK blocks
+ *    - grainFileOffsetList : uint32 LE in sectors, limits the biggest VMDK size to 2^41B (2^32 * 512B)
+ *  - the last part is the ova file.
+ */
 async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
-  const vm = await xapi.importVm(req, { data, srId, type })
-  res.end(format.response(0, vm.$id))
+  await new Promise((resolve, reject) => {
+    const form = new multiparty.Form()
+    const promises = []
+    const tables = {}
+    form.on('error', reject)
+    form.on('part', async part => {
+      if (part.name !== 'file') {
+        promises.push(
+          (async () => {
+            if (!(part.filename in tables)) {
+              tables[part.filename] = {}
+            }
+            const view = new DataView((await getStream.buffer(part)).buffer)
+            const result = new Uint32Array(view.byteLength / 4)
+            for (const i in result) {
+              result[i] = view.getUint32(i * 4, true)
+            }
+            tables[part.filename][part.name] = result
+            data.tables = tables
+          })()
+        )
+      } else {
+        await Promise.all(promises)
+        // XVA files are directly sent to xcp-ng who wants a content-length
+        part.length = part.byteCount
+        const vm = await xapi.importVm(part, { data, srId, type })
+        res.end(format.response(0, vm.$id))
+        resolve()
+      }
+    })
+    form.parse(req)
+  })
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR

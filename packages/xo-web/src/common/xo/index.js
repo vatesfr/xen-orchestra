@@ -1577,14 +1577,21 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
   info(_('startVmImport'), name)
+  const formData = new FormData()
   if (data !== undefined && data.tables !== undefined) {
     for (const k in data.tables) {
-      data.tables[k] = await data.tables[k]
+      const tables = await data.tables[k]
+      delete data.tables[k]
+      for (const l in tables) {
+        const blob = new Blob([tables[l]])
+        formData.append(l, blob, k)
+      }
     }
   }
   return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
-    ({ $sendTo }) =>
-      post($sendTo, file)
+    async ({ $sendTo }) => {
+      formData.append('file', file)
+      return post($sendTo, formData)
         .then(res => {
           if (res.status !== 200) {
             throw res.status
@@ -1596,6 +1603,7 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
           error(_('vmImportFailed'), name)
           throw err
         })
+    }
   )
 }
 
@@ -1641,6 +1649,15 @@ export const importVms = (vms, sr) =>
   ).then(ids => ids.filter(_ => _ !== undefined))
 
 const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+  const formData = new FormData()
+  if (vmdkData !== undefined) {
+    for (const l of ['grainLogicalAddressList', 'grainFileOffsetList']) {
+      const table = await vmdkData[l]
+      delete vmdkData[l]
+      const blob = new Blob([table])
+      formData.append(l, blob, file.name)
+    }
+  }
   const res = await _call('disk.import', {
     description,
     name,
@@ -1648,11 +1665,11 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     type,
     vmdkData,
   })
-  const result = await post(res.$sendTo, file)
+  formData.append('file', file)
+  const result = await post(res.$sendTo, formData)
   if (result.status !== 200) {
     throw result.status
   }
-  success(_('diskImportSuccess'), name)
   const body = await result.json()
   await body.result
 }

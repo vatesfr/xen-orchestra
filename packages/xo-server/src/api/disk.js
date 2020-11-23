@@ -1,5 +1,7 @@
+import * as multiparty from 'multiparty'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
+import getStream from 'get-stream'
 import pump from 'pump'
 import { format } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
@@ -153,8 +155,14 @@ importContent.resolve = {
   vdi: ['id', ['VDI'], 'operate'],
 }
 
-// -------------------------------------------------------------------
-
+/**
+ * here we expect to receive a POST in multipart/form-data
+ * When importing a VMDK file:
+ *  - The first parts are the tables in uint32 LE
+ *    - grainLogicalAddressList : uint32 LE in VMDK blocks
+ *    - grainFileOffsetList : uint32 LE in sectors, limits the biggest VMDK size to 2^41B (2^32 * 512B)
+ *  - the last part is the vmdk file.
+ */
 async function handleImport(
   req,
   res,
@@ -163,33 +171,59 @@ async function handleImport(
   req.setTimeout(43200000) // 12 hours
   req.length = req.headers['content-length']
   let vhdStream, size
-  if (type === 'vmdk') {
-    vhdStream = await vmdkToVhd(
-      req,
-      vmdkData.grainLogicalAddressList,
-      vmdkData.grainFileOffsetList
-    )
-    size = vmdkData.capacity
-  } else if (type === 'vhd') {
-    vhdStream = req
-    const footer = await peekFooterFromVhdStream(req)
-    size = footer.currentSize
-  } else {
-    throw new Error(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)
-  }
-  const vdi = await xapi.createVdi({
-    name_description: description,
-    name_label: name,
-    size,
-    sr: srId,
+  await new Promise((resolve, reject) => {
+    const promises = []
+    const form = new multiparty.Form()
+    form.on('error', reject)
+    form.on('part', async part => {
+      if (part.name !== 'file') {
+        promises.push(
+          (async () => {
+            const view = new DataView((await getStream.buffer(part)).buffer)
+            const result = new Uint32Array(view.byteLength / 4)
+            for (const i in result) {
+              result[i] = view.getUint32(i * 4, true)
+            }
+            vmdkData[part.name] = result
+          })()
+        )
+      } else {
+        await Promise.all(promises)
+        part.length = part.byteCount
+        if (type === 'vmdk') {
+          vhdStream = await vmdkToVhd(
+            part,
+            vmdkData.grainLogicalAddressList,
+            vmdkData.grainFileOffsetList
+          )
+          size = vmdkData.capacity
+        } else if (type === 'vhd') {
+          vhdStream = part
+          const footer = await peekFooterFromVhdStream(vhdStream)
+          size = footer.currentSize
+        } else {
+          throw new Error(
+            `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
+          )
+        }
+        const vdi = await xapi.createVdi({
+          name_description: description,
+          name_label: name,
+          size,
+          sr: srId,
+        })
+        try {
+          await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+          res.end(format.response(0, vdi.$id))
+        } catch (e) {
+          await xapi.deleteVdi(vdi)
+          throw e
+        }
+        resolve()
+      }
+    })
+    form.parse(req)
   })
-  try {
-    await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
-    res.end(format.response(0, vdi.$id))
-  } catch (e) {
-    await xapi.deleteVdi(vdi)
-    throw e
-  }
 }
 
 // type is 'vhd' or 'vmdk'
@@ -218,23 +252,6 @@ importDisk.params = {
     optional: true,
     properties: {
       capacity: { type: 'integer' },
-      grainLogicalAddressList: {
-        description:
-          'virtual address of the blocks on the disk (LBA), in order encountered in the VMDK',
-        type: 'array',
-        items: {
-          type: 'integer',
-        },
-      },
-      grainFileOffsetList: {
-        description:
-          'offset of the grains in the VMDK file, in order encountered in the VMDK',
-        optional: true,
-        type: 'array',
-        items: {
-          type: 'integer',
-        },
-      },
     },
   },
 }

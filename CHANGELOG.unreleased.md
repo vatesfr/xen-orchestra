@@ -19,6 +19,7 @@
 
 - [Remotes/NFS] Only mount with `vers=3` when no other options [#4940](https://github.com/vatesfr/xen-orchestra/issues/4940) (PR [#5354](https://github.com/vatesfr/xen-orchestra/pull/5354))
 - [VM/network] Don't change VIF's locking mode automatically (PR [#5357](https://github.com/vatesfr/xen-orchestra/pull/5357))
+- [Import OVA] Fix 'Max payload size exceeded' error when importing huge OVAs (PR [#5372](https://github.com/vatesfr/xen-orchestra/pull/5372))
 
 ### Packages to release
 
@@ -40,5 +41,7 @@
 - xo-server-auth-ldap patch
 - @vates/multi-key-map minor
 - @xen-orchestra/fs patch
+- vhd-lib major
+- xo-vmdk-to-vhd major
 - xo-server minor
 - xo-web minor

@@ -22,22 +22,25 @@ const VHD_BLOCK_SIZE_SECTORS = VHD_BLOCK_SIZE_BYTES / SECTOR_SIZE
  * then allocates the blocks in a forwards pass.
  * @returns currentVhdPositionSector the first free sector after the data
  */
-function createBAT(
+function createBAT({
   firstBlockPosition,
   fragmentLogicAddressList,
-  ratio,
+  fragmentSize,
   bat,
-  bitmapSize
-) {
+  bitmapSize,
+}) {
   let currentVhdPositionSector = firstBlockPosition / SECTOR_SIZE
   const lastFragmentPerBlock = new Map()
   forEachRight(fragmentLogicAddressList, fragmentLogicAddress => {
-    assert.strictEqual(fragmentLogicAddress % SECTOR_SIZE, 0)
+    assert.strictEqual((fragmentLogicAddress * fragmentSize) % SECTOR_SIZE, 0)
     const vhdTableIndex = Math.floor(
-      fragmentLogicAddress / VHD_BLOCK_SIZE_BYTES
+      (fragmentLogicAddress * fragmentSize) / VHD_BLOCK_SIZE_BYTES
     )
     if (!lastFragmentPerBlock.has(vhdTableIndex)) {
-      lastFragmentPerBlock.set(vhdTableIndex, fragmentLogicAddress)
+      lastFragmentPerBlock.set(
+        vhdTableIndex,
+        fragmentLogicAddress * fragmentSize
+      )
     }
   })
   const lastFragmentPerBlockArray = [...lastFragmentPerBlock]
@@ -62,7 +65,7 @@ function createBAT(
  *  "fragment" designate a chunk of incoming data (ie probably a VMDK grain), and "block" is a VHD block.
  * @param diskSize
  * @param fragmentSize
- * @param fragmentLogicalAddressList
+ * @param fragmentLogicAddressList an iterable returning LBAs in multiple of fragmentSize
  * @param fragmentIterator
  * @returns {Promise<Function>}
  */
@@ -70,7 +73,7 @@ function createBAT(
 export default async function createReadableStream(
   diskSize,
   fragmentSize,
-  fragmentLogicalAddressList,
+  fragmentLogicAddressList,
   fragmentIterator
 ) {
   const ratio = VHD_BLOCK_SIZE_BYTES / fragmentSize
@@ -108,19 +111,23 @@ export default async function createReadableStream(
   const bitmapSize =
     Math.ceil(VHD_BLOCK_SIZE_SECTORS / 8 / SECTOR_SIZE) * SECTOR_SIZE
   const bat = Buffer.alloc(tablePhysicalSizeBytes, 0xff)
-  const [endOfData, lastFragmentPerBlock] = createBAT(
+  const [endOfData, lastFragmentPerBlock] = createBAT({
     firstBlockPosition,
-    fragmentLogicalAddressList,
-    ratio,
+    fragmentLogicAddressList,
+    fragmentSize,
     bat,
-    bitmapSize
-  )
+    bitmapSize,
+  })
   const fileSize = endOfData * SECTOR_SIZE + FOOTER_SIZE
   let position = 0
 
   function* yieldAndTrack(buffer, expectedPosition, reason) {
     if (expectedPosition !== undefined) {
-      assert.strictEqual(position, expectedPosition, reason)
+      assert.strictEqual(
+        position,
+        expectedPosition,
+        `${reason} (${position}|${expectedPosition})`
+      )
     }
     if (buffer.length > 0) {
       yield buffer

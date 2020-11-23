@@ -278,6 +278,8 @@ export async function parseOVAFile(
     if (header === null) {
       break
     }
+    const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
+    fileSlice.fileName = header.fileName
     if (
       !(
         header.fileName.startsWith('PaxHeader/') ||
@@ -285,23 +287,19 @@ export async function parseOVAFile(
       )
     ) {
       if (header.fileName.toLowerCase().endsWith('.ovf')) {
-        const res = await parseOVF(
-          parsableFile.slice(offset, offset + header.fileSize),
-          stringDeserializer
-        )
+        const res = await parseOVF(fileSlice, stringDeserializer)
         data = { ...data, ...res }
       }
       if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk')) {
-        const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
         const readFile = async (start, end) =>
           fileSlice.slice(start, end).read()
+        readFile.fileName = header.fileName
         data.tables[header.fileName] = suppressUnhandledRejection(
           readVmdkGrainTable(readFile)
         )
       }
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
-      const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
       let forwardsInflater = new pako.Inflate()
 
       const readFile = async (start, end) => {
@@ -357,6 +355,7 @@ export async function parseOVAFile(
           return parseGzipFromEnd(start, end, fileSlice, header)
         }
       }
+      readFile.fileName = header.fileName
       data.tables[header.fileName] = suppressUnhandledRejection(
         readVmdkGrainTable(readFile)
       )
