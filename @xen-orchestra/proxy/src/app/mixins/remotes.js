@@ -6,16 +6,15 @@ import { debounceResource } from '../_debounceResource'
 import { decorateResult } from '../_decorateResult'
 import { deduped } from '../_deduped'
 import { disposable } from '../_disposable'
-import { disposeResourceOnStop } from '../_disposeResourceOnStop'
 
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
-function _debounceResource(res) {
-  return debounceResource(res, this._config.resourceDebounce)
-}
-
-function _getResource(gen) {
-  return disposeResourceOnStop(disposable(gen), this._app.hooks)
+function debounceResourceFn(resource) {
+  return debounceResource(
+    resource,
+    this._app.hooks,
+    this._config.resourceDebounce
+  )
 }
 
 export default class Remotes {
@@ -52,9 +51,9 @@ export default class Remotes {
     })
   }
 
-  @decorateResult(_debounceResource)
+  @decorateResult(debounceResourceFn)
   @decorateWith(deduped, remote => [remote.url])
-  @decorateResult(_getResource)
+  @decorateWith(disposable)
   async *getHandler(remote, options) {
     const handler = getHandler(remote, options)
     await handler.sync()
@@ -65,9 +64,9 @@ export default class Remotes {
     }
   }
 
-  @decorateResult(_debounceResource)
+  @decorateResult(debounceResourceFn)
   @decorateWith(deduped, remote => [remote.url])
-  @decorateResult(_getResource)
+  @decorateWith(disposable)
   *getAdapter(remote) {
     return new RemoteAdapter(yield this.getHandler(remote))
   }
