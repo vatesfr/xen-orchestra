@@ -30,6 +30,7 @@ export function debounceResource(resource, hooks, delay = 0) {
   hooks.on('stop', onStop)
 
   return new Resource(resource.p, v => {
+    // onStop doesn't have access to the value
     value = v
     timeoutId = setTimeout(dispose, delay)
   })
