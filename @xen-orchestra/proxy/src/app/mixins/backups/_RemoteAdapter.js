@@ -1,11 +1,21 @@
 import asyncMap from '@xen-orchestra/async-map'
 import fromCallback from 'promise-toolbox/fromCallback'
 import pump from 'pump'
+import using from 'promise-toolbox/using'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
 import { basename, dirname, join, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
+import { execFile } from 'child_process'
+import { readdir } from 'fs-extra'
+
+import { debounceResource } from '../../_debounceResource'
+import { decorateResult } from '../../_decorateResult'
+import { deduped } from '../../_deduped'
+import { disposable } from '../../_disposable'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
+import { listPartitions } from './_listPartitions'
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
@@ -19,8 +29,12 @@ const noop = Function.prototype
 const resolveRelativeFromFile = (file, path) =>
   resolve('/', dirname(file), path).slice(1)
 
+const RE_VHDI = /^vhdi(\d+)$/
+
 export class RemoteAdapter {
-  constructor(handler) {
+  constructor(handler, { app, config } = {}) {
+    this._app = app
+    this._config = config
     this._handler = handler
   }
 
@@ -96,6 +110,45 @@ export class RemoteAdapter {
     )
   }
 
+  @decorateResult(function (resource) {
+    return debounceResource(
+      resource,
+      this._app.hooks,
+      this._config.resourceDebounce
+    )
+  })
+  @decorateWith(deduped, diskId => [diskId])
+  @decorateWith(disposable)
+  async *getDisk(diskId) {
+    const handler = this._handler
+
+    const diskPath = handler._getFilePath('/' + diskId)
+    const mountDir = yield this._app.remotes.getMountDir()
+    await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
+    try {
+      let max = 0
+      let maxEntry
+      const entries = await readdir(mountDir)
+      entries.forEach(entry => {
+        const matches = RE_VHDI.exec(entry)
+        if (matches !== null) {
+          const value = +matches[1]
+          if (value > max) {
+            max = value
+            maxEntry = entry
+          }
+        }
+      })
+      if (max === 0) {
+        throw new Error('no disks found')
+      }
+
+      yield `${mountDir}/${maxEntry}`
+    } finally {
+      await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
+    }
+  }
+
   async listAllVmBackups() {
     const handler = this._handler
 
@@ -107,6 +160,15 @@ export class RemoteAdapter {
       })
     )
     return backups
+  }
+
+  listPartitions(diskId) {
+    return using(this.getDisk(diskId), async devicePath => {
+      const partitions = await listPartitions(devicePath)
+
+      // TODO: support LVM partitions
+      return partitions.filter(({ type }) => type !== 'lvm')
+    })
   }
 
   async listVmBackups(vmUuid, predicate) {
