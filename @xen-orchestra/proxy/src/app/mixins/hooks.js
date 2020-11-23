@@ -21,7 +21,7 @@ export default class Hooks extends EventEmitter {
   constructor(xo, { config }) {
     super()
 
-    // `debounceResource` open a listener on each method call
+    // `debounceResource` opens a listener on each method call
     this.setMaxListeners(config.maxHooksListeners)
   }
 
