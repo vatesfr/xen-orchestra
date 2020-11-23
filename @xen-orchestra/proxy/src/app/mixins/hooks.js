@@ -18,6 +18,13 @@ const runHook = async (emitter, hook) => {
 }
 
 export default class Hooks extends EventEmitter {
+  constructor(xo, { config }) {
+    super()
+
+    // `debounceResource` opens a listener on each method call
+    this.setMaxListeners(config.maxHooksListeners)
+  }
+
   // Run *clean* async listeners.
   //
   // They normalize existing data, clear invalid entries, etc.

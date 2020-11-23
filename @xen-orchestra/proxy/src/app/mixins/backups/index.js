@@ -183,6 +183,19 @@ export default class Backups {
             },
           },
         ],
+        listDiskPartitions: [
+          ({ disk: diskId, remote }) =>
+            using(app.remotes.getAdapter(remote), adapter =>
+              adapter.listPartitions(diskId)
+            ),
+          {
+            description: 'list disk partitions',
+            params: {
+              disk: { type: 'string' },
+              remote: { type: 'object' },
+            },
+          },
+        ],
         listVmBackups: [
           async ({ remotes }) => {
             const backups = {}
