@@ -252,7 +252,7 @@ export default class Backups {
       )
       app.hooks.removeListener('stop', dispose)
     }
-    app.hooks.on('stop', () => dispose)
+    app.hooks.on('stop', dispose)
 
     app.api.addMethods({
       backup: {
