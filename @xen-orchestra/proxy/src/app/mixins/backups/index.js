@@ -8,6 +8,8 @@ import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
 
+import { disposable } from '../../_disposable'
+
 import { Backup } from './_Backup'
 import { importDeltaVm } from './_deltaVm'
 import { Task } from './_Task'
@@ -228,6 +230,69 @@ export default class Backups {
               xapis: { type: 'object' },
               recordToXapi: { type: 'object' },
               streamLogs: { type: 'boolean', optional: true },
+            },
+          },
+        ],
+      },
+    })
+
+    const getPartition = disposable(function* ({ disk, partition, remote }) {
+      const adapter = yield app.remotes.getAdapter(remote)
+      return yield adapter.getPartition(disk, partition)
+    })
+
+    // private resource API is used exceptionally to be able to separate resource creation and release
+    const partitionDisposers = {}
+    const dispose = async () => {
+      await Promise.all(
+        Object.keys(partitionDisposers).map(path => {
+          const disposers = partitionDisposers[path]
+          delete partitionDisposers[path]
+          return Promise.all(disposers.map(d => d(path).catch(noop)))
+        })
+      )
+    }
+    app.hooks.once('stop', dispose)
+
+    app.api.addMethods({
+      backup: {
+        mountPartition: [
+          async props => {
+            const resource = getPartition(props)
+            const path = await resource.p
+
+            if (partitionDisposers[path] === undefined) {
+              partitionDisposers[path] = []
+            }
+            partitionDisposers[path].push(resource.d)
+
+            return path
+          },
+          {
+            description: 'mount a partition',
+            params: {
+              disk: { type: 'string' },
+              partition: { type: 'string' },
+              remote: { type: 'object' },
+            },
+          },
+        ],
+        unmountPartition: [
+          async ({ path }) => {
+            const disposers = partitionDisposers[path]
+            if (disposers === undefined) {
+              throw new Error(`No partition corresponding to the path ${path} found`)
+            }
+
+            await disposers.pop()()
+            if (disposers.length === 0) {
+              delete partitionDisposers[path]
+            }
+          },
+          {
+            description: 'unmount a partition',
+            params: {
+              path: { type: 'string' },
             },
           },
         ],
