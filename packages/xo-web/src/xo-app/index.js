@@ -12,6 +12,7 @@ import _, { IntlProvider } from 'intl'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { connectStore, getXoaPlan, routes } from 'utils'
 import { Notification } from 'notification'
+import { productId2Plan } from 'xoa-plans'
 import { ShortcutManager } from 'react-shortcuts'
 import { ThemeProvider } from 'styled-components'
 import { TooltipViewer } from 'tooltip'
@@ -286,7 +287,9 @@ export default class XoApp extends Component {
                     target='_blank'
                   >
                     {_('trialLicenseInfo', {
-                      edition: trial.trial.productId,
+                      edition: getXoaPlan(
+                        productId2Plan[trial.trial.productId]
+                      ),
                       date: new Date(trial.trial.end),
                     })}
                   </a>
