@@ -12,13 +12,7 @@ import Tooltip from './tooltip'
 import { addSubscriptions, connectStore, formatSize } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
-import {
-  isSrWritable,
-  subscribeBackupNgJobs,
-  subscribeProxies,
-  subscribeRemotes,
-  subscribeUsers,
-} from './xo'
+import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
 
 // ===================================================================
 
@@ -26,9 +20,7 @@ const unknowItem = (uuid, type, placeholder) => (
   <Tooltip content={_('copyUuid', { uuid })}>
     <CopyToClipboard text={uuid}>
       <span className='text-muted' style={{ cursor: 'pointer' }}>
-        {placeholder === undefined
-          ? _('errorUnknownItem', { type })
-          : placeholder}
+        {placeholder === undefined ? _('errorUnknownItem', { type }) : placeholder}
       </span>
     </CopyToClipboard>
   </Tooltip>
@@ -140,9 +132,7 @@ export const Vm = decorate([
     const getVm = createGetObject()
     return {
       vm: getVm,
-      container: createGetObject(
-        createSelector(getVm, vm => get(() => vm.$container))
-      ),
+      container: createGetObject(createSelector(getVm, vm => get(() => vm.$container))),
     }
   }),
   ({ id, vm, container, link, newTab, name }) => {
@@ -176,9 +166,7 @@ Vm.defaultProps = {
 export const VmTemplate = decorate([
   connectStore(() => {
     const getObject = createGetObject()
-    const getPool = createGetObject(
-      createSelector(getObject, vm => get(() => vm.$pool))
-    )
+    const getPool = createGetObject(createSelector(getObject, vm => get(() => vm.$pool)))
     return (state, props) => ({
       // FIXME: props.self ugly workaround to get object as a self user
       template: getObject(state, props, props.self),
@@ -193,9 +181,7 @@ export const VmTemplate = decorate([
     return (
       <span>
         <Icon icon='vm' /> {template.name_label}
-        {pool !== undefined && (
-          <span className='text-muted'>{` - ${pool.name_label}`}</span>
-        )}
+        {pool !== undefined && <span className='text-muted'>{` - ${pool.name_label}`}</span>}
       </span>
     )
   },
@@ -241,17 +227,10 @@ export const Sr = decorate([
         {!self && spaceLeft && isSrWritable(sr) && (
           <span className={!link && 'text-muted'}>
             {` (${formatSize(sr.size - sr.physical_usage)} free`}
-            {sr.allocationStrategy !== undefined &&
-              ` - ${sr.allocationStrategy}`}
-            )
+            {sr.allocationStrategy !== undefined && ` - ${sr.allocationStrategy}`})
           </span>
         )}
-        {!self && container !== undefined && (
-          <span className={!link && 'text-muted'}>
-            {' '}
-            - {container.name_label}
-          </span>
-        )}
+        {!self && container !== undefined && <span className={!link && 'text-muted'}> - {container.name_label}</span>}
       </LinkWrapper>
     )
   },
@@ -297,12 +276,8 @@ export const Vdi = decorate([
     return (
       <span>
         <Icon icon='disk' /> {vdi.name_label}
-        {sr !== undefined && showSr && (
-          <span className='text-muted'> - {sr.name_label}</span>
-        )}
-        {showSize && (
-          <span className='text-muted'> ({formatSize(vdi.size)})</span>
-        )}
+        {sr !== undefined && showSr && <span className='text-muted'> - {sr.name_label}</span>}
+        {showSize && <span className='text-muted'> ({formatSize(vdi.size)})</span>}
       </span>
     )
   },
@@ -325,9 +300,7 @@ Vdi.defaultProps = {
 export const Network = decorate([
   connectStore(() => {
     const getObject = createGetObject()
-    const getPool = createGetObject(
-      createSelector(getObject, network => get(() => network.$pool))
-    )
+    const getPool = createGetObject(createSelector(getObject, network => get(() => network.$pool)))
 
     // FIXME: props.self ugly workaround to get object as a self user
     return (state, props) => ({
@@ -343,9 +316,7 @@ export const Network = decorate([
     return (
       <span>
         <Icon icon='network' /> {network.name_label}
-        {pool !== undefined && (
-          <span className='text-muted'>{` - ${pool.name_label}`}</span>
-        )}
+        {pool !== undefined && <span className='text-muted'>{` - ${pool.name_label}`}</span>}
       </span>
     )
   },
@@ -394,8 +365,7 @@ Remote.defaultProps = {
 
 export const Proxy = decorate([
   addSubscriptions(({ id }) => ({
-    proxy: cb =>
-      subscribeProxies(proxies => cb(proxies.find(proxy => proxy.id === id))),
+    proxy: cb => subscribeProxies(proxies => cb(proxies.find(proxy => proxy.id === id))),
   })),
   ({ id, proxy, link, newTab }) =>
     proxy !== undefined ? (
@@ -431,8 +401,7 @@ Proxy.defaultProps = {
 
 export const BackupJob = decorate([
   addSubscriptions(({ id }) => ({
-    job: cb =>
-      subscribeBackupNgJobs(jobs => cb(jobs.find(job => job.id === id))),
+    job: cb => subscribeBackupNgJobs(jobs => cb(jobs.find(job => job.id === id))),
   })),
   ({ id, job, link, newTab }) => {
     if (job === undefined) {
@@ -440,11 +409,7 @@ export const BackupJob = decorate([
     }
 
     return (
-      <LinkWrapper
-        link={link}
-        newTab={newTab}
-        to={`/backup/overview?s=id:${id}`}
-      >
+      <LinkWrapper link={link} newTab={newTab} to={`/backup/overview?s=id:${id}`}>
         {job.name}
       </LinkWrapper>
     )
@@ -494,11 +459,7 @@ export const User = decorate([
       return defaultRender || unknowItem(id, 'user')
     }
     return (
-      <LinkWrapper
-        link={link}
-        newTab={newTab}
-        to={`/settings/users?s=id:${id}`}
-      >
+      <LinkWrapper link={link} newTab={newTab} to={`/settings/users?s=id:${id}`}>
         <Icon icon='user' /> {user.email}
       </LinkWrapper>
     )
@@ -588,11 +549,7 @@ const xoItemToRender = {
   // PIF.
   PIF: pif => (
     <span>
-      <Icon
-        icon='network'
-        color={pif.carrier ? 'text-success' : 'text-danger'}
-      />{' '}
-      {pif.device} ({pif.deviceName})
+      <Icon icon='network' color={pif.carrier ? 'text-success' : 'text-danger'} /> {pif.device} ({pif.deviceName})
     </span>
   ),
 
@@ -609,17 +566,12 @@ const xoItemToRender = {
 
   vgpuType: type => (
     <span>
-      <Icon icon='gpu' /> {type.modelName} ({type.vendorName}){' '}
-      {type.maxResolutionX}x{type.maxResolutionY}
+      <Icon icon='gpu' /> {type.modelName} ({type.vendorName}) {type.maxResolutionX}x{type.maxResolutionY}
     </span>
   ),
 
   gpuGroup: group => (
-    <span>
-      {group.name_label.startsWith('Group of ')
-        ? group.name_label.slice(9)
-        : group.name_label}
-    </span>
+    <span>{group.name_label.startsWith('Group of ') ? group.name_label.slice(9) : group.name_label}</span>
   ),
 
   backup: backup => (
@@ -628,9 +580,7 @@ const xoItemToRender = {
         {backup.mode}
       </span>{' '}
       <span className='tag tag-warning'>{backup.remote.name}</span>{' '}
-      {backup.size !== undefined && (
-        <span className='tag tag-info'>{formatSize(backup.size)}</span>
-      )}{' '}
+      {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
       <FormattedDate
         value={new Date(backup.timestamp)}
         month='long'
@@ -685,8 +635,7 @@ const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
 
 export { renderXoItem as default }
 
-export const getRenderXoItemOfType = type => (item, options = {}) =>
-  renderXoItem(item, { ...options, type })
+export const getRenderXoItemOfType = type => (item, options = {}) => renderXoItem(item, { ...options, type })
 
 const GenericXoItem = connectStore(() => {
   const getObject = createGetObject()
@@ -694,14 +643,8 @@ const GenericXoItem = connectStore(() => {
   return (state, props) => ({
     xoItem: getObject(state, props),
   })
-})(({ xoItem, ...props }) =>
-  xoItem ? renderXoItem(xoItem, props) : renderXoUnknownItem()
-)
+})(({ xoItem, ...props }) => (xoItem ? renderXoItem(xoItem, props) : renderXoUnknownItem()))
 
-export const renderXoItemFromId = (id, props) => (
-  <GenericXoItem {...props} id={id} />
-)
+export const renderXoItemFromId = (id, props) => <GenericXoItem {...props} id={id} />
 
-export const renderXoUnknownItem = () => (
-  <span className='text-muted'>{_('errorNoSuchItem')}</span>
-)
+export const renderXoUnknownItem = () => <span className='text-muted'>{_('errorNoSuchItem')}</span>

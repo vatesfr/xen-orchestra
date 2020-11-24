@@ -122,10 +122,7 @@ class XoWeekChart extends Component {
       for (let i = 0; i < HORIZON_AREA_N_STEPS; i++) {
         splittedData[i].push({
           date,
-          value: Math.min(
-            Math.max(0, elem.value - intervalSize * i),
-            intervalSize
-          ),
+          value: Math.min(Math.max(0, elem.value - intervalSize * i), intervalSize),
         })
       }
     })
@@ -146,12 +143,7 @@ class XoWeekChart extends Component {
 
     svg.select('.horizon-area').selectAll('path').remove()
     forEach(splittedData, data => {
-      svg
-        .select('.horizon-area')
-        .append('path')
-        .datum(data)
-        .attr('d', this._line)
-        ::setStyles(HORIZON_AREA_PATH_STYLE)
+      svg.select('.horizon-area').append('path').datum(data).attr('d', this._line)::setStyles(HORIZON_AREA_PATH_STYLE)
     })
   }
 
@@ -175,10 +167,7 @@ class XoWeekChart extends Component {
       .attr('width', horizonAreaWidth)
       .attr('height', horizonAreaHeight)
 
-    svg
-      .select('.hover-container')
-      .select('.hover-line')
-      .attr('y2', horizonAreaHeight)
+    svg.select('.hover-container').select('.hover-line').attr('y2', horizonAreaHeight)
 
     // 2. Draw horizon area.
     this._drawHorizonArea(props.data, props.maxValue)
@@ -196,9 +185,7 @@ class XoWeekChart extends Component {
   }
 
   _handleMouseMove = () => {
-    this.props.onTooltipChange(
-      d3.mouse(this.refs.chart)[0] - HORIZON_AREA_MARGIN
-    )
+    this.props.onTooltipChange(d3.mouse(this.refs.chart)[0] - HORIZON_AREA_MARGIN)
   }
 
   // Update hover area position and text.
@@ -243,25 +230,11 @@ class XoWeekChart extends Component {
     svg.append('text').attr('class', 'label')::setStyles(LABEL_STYLE)
 
     // Tooltip ---------------------------------------------
-    svg
-      .append('rect')
-      .attr('class', 'mouse-area')
-      .on('mousemove', this._handleMouseMove)
-      ::setStyles(MOUSE_AREA_STYLE)
+    svg.append('rect').attr('class', 'mouse-area').on('mousemove', this._handleMouseMove)::setStyles(MOUSE_AREA_STYLE)
 
-    const hover = svg
-      .append('g')
-      .attr('class', 'hover-container')
-      ::setStyles('pointer-events', 'none')
-    hover
-      .append('line')
-      .attr('class', 'hover-line')
-      .attr('y1', 0)
-      ::setStyles(HOVER_LINE_STYLE)
-    hover
-      .append('text')
-      .attr('class', 'hover-text')
-      ::setStyles(HOVER_TEXT_STYLE)
+    const hover = svg.append('g').attr('class', 'hover-container')::setStyles('pointer-events', 'none')
+    hover.append('line').attr('class', 'hover-line').attr('y1', 0)::setStyles(HOVER_LINE_STYLE)
+    hover.append('text').attr('class', 'hover-text')::setStyles(HOVER_TEXT_STYLE)
 
     this._draw()
   }
@@ -269,14 +242,7 @@ class XoWeekChart extends Component {
   componentWillReceiveProps(nextProps) {
     const { props } = this
 
-    if (
-      !propsEqual(props, nextProps, [
-        'chartHeight',
-        'chartWidth',
-        'data',
-        'maxValue',
-      ])
-    ) {
+    if (!propsEqual(props, nextProps, ['chartHeight', 'chartWidth', 'data', 'maxValue'])) {
       this._draw(nextProps)
     }
 
@@ -371,8 +337,7 @@ export default class XoWeekCharts extends Component {
       <div>
         <div>
           <p className='mt-1'>
-            {_('weeklyChartsScaleInfo')}{' '}
-            <Toggle iconSize={1} icon='scale' onChange={this._updateScale} />
+            {_('weeklyChartsScaleInfo')} <Toggle iconSize={1} icon='scale' onChange={this._updateScale} />
           </p>
         </div>
         <div ref='container' className={styles.container}>

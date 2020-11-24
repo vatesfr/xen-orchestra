@@ -8,11 +8,7 @@ import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import {
-  installAllPatchesOnPool,
-  installPatches,
-  subscribeHostMissingPatches,
-} from 'xo'
+import { installAllPatchesOnPool, installPatches, subscribeHostMissingPatches } from 'xo'
 import { isEmpty } from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
@@ -34,8 +30,7 @@ const MISSING_PATCH_COLUMNS = [
     name: _('patchReleaseDate'),
     itemRenderer: ({ date }) => (
       <span>
-        <FormattedTime value={date} day='numeric' month='long' year='numeric' />{' '}
-        (<FormattedRelative value={date} />)
+        <FormattedTime value={date} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={date} />)
       </span>
     ),
     sortCriteria: 'date',
@@ -101,12 +96,7 @@ const INDIVIDUAL_ACTIONS_XCP = [
               <strong>{_('changelogDate')}</strong>
             </Col>
             <Col size={9}>
-              <FormattedTime
-                value={date * 1000}
-                day='numeric'
-                month='long'
-                year='numeric'
-              />
+              <FormattedTime value={date * 1000} day='numeric' month='long' year='numeric' />
             </Col>
           </Row>
           <Row className='mb-1'>
@@ -146,13 +136,7 @@ const INSTALLED_PATCH_COLUMNS = [
       const time = patch.time * 1000
       return (
         <span>
-          <FormattedTime
-            value={time}
-            day='numeric'
-            month='long'
-            year='numeric'
-          />{' '}
-          (<FormattedRelative value={time} />)
+          <FormattedTime value={time} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={time} />)
         </span>
       )
     },
@@ -170,9 +154,7 @@ const INSTALLED_PATCH_COLUMNS = [
   missingPatches: cb => subscribeHostMissingPatches(master, cb),
 }))
 @connectStore({
-  hostPatches: createGetObjectsOfType('patch').pick(
-    (_, { master }) => master.patches
-  ),
+  hostPatches: createGetObjectsOfType('patch').pick((_, { master }) => master.patches),
 })
 export default class TabPatches extends Component {
   render() {
@@ -227,11 +209,7 @@ export default class TabPatches extends Component {
               <Row>
                 <Col>
                   <h3>{_('hostAppliedPatches')}</h3>
-                  <SortedTable
-                    collection={hostPatches}
-                    columns={INSTALLED_PATCH_COLUMNS}
-                    stateUrlParam='s_installed'
-                  />
+                  <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} stateUrlParam='s_installed' />
                 </Col>
               </Row>
             </div>

@@ -24,14 +24,10 @@ export default class RestoreBackupsModalBody extends Component {
           />
         </div>
         <div className='mb-1'>
-          <SelectSr
-            onChange={this.linkState('sr')}
-            placeholder={_('importBackupModalSelectSr')}
-          />
+          <SelectSr onChange={this.linkState('sr')} placeholder={_('importBackupModalSelectSr')} />
         </div>
         <div>
-          <Toggle iconSize={1} onChange={this.linkState('start')} />{' '}
-          {_('restoreVmBackupsStart', { nVms: 1 })}
+          <Toggle iconSize={1} onChange={this.linkState('start')} /> {_('restoreVmBackupsStart', { nVms: 1 })}
         </div>
       </div>
     )
@@ -63,10 +59,7 @@ export class RestoreBackupsBulkModalBody extends Component {
           })}
         </div>
         <div className='mb-1'>
-          <SelectSr
-            onChange={this.linkState('sr')}
-            placeholder={_('importBackupModalSelectSr')}
-          />
+          <SelectSr onChange={this.linkState('sr')} placeholder={_('importBackupModalSelectSr')} />
         </div>
         <div>
           <Toggle iconSize={1} onChange={this.linkState('start')} />{' '}

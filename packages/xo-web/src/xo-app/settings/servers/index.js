@@ -14,20 +14,9 @@ import { Password, Toggle } from 'form'
 import { Pool } from 'render-xo-item'
 import { injectIntl } from 'react-intl'
 import { noop } from 'lodash'
-import {
-  addServer,
-  disableServer,
-  editServer,
-  enableServer,
-  removeServer,
-  subscribeServers,
-} from 'xo'
+import { addServer, disableServer, editServer, enableServer, removeServer, subscribeServers } from 'xo'
 
-const showInfo = () =>
-  alert(
-    _('serverAllowUnauthorizedCertificates'),
-    _('serverUnauthorizedCertificatesInfo')
-  )
+const showInfo = () => alert(_('serverAllowUnauthorizedCertificates'), _('serverUnauthorizedCertificatesInfo'))
 const showServerError = server => {
   const { code, message } = server.error
 
@@ -35,13 +24,7 @@ const showServerError = server => {
     return confirm({
       title: _('serverSelfSignedCertError'),
       body: _('serverSelfSignedCertQuestion'),
-    }).then(
-      () =>
-        editServer(server, { allowUnauthorized: true }).then(() =>
-          enableServer(server)
-        ),
-      noop
-    )
+    }).then(() => editServer(server, { allowUnauthorized: true }).then(() => enableServer(server)), noop)
   }
 
   if (code === 'SESSION_AUTHENTICATION_FAILED') {
@@ -111,10 +94,7 @@ const COLUMNS = [
         />{' '}
         {server.error != null && (
           <Tooltip content={_('serverConnectionFailed')}>
-            <a
-              className='text-danger btn btn-link btn-sm'
-              onClick={() => showServerError(server)}
-            >
+            <a className='text-danger btn btn-link btn-sm' onClick={() => showServerError(server)}>
               <Icon icon='alarm' size='lg' />
             </a>
           </Tooltip>
@@ -125,12 +105,7 @@ const COLUMNS = [
     sortCriteria: _ => _.status,
   },
   {
-    itemRenderer: server => (
-      <Toggle
-        onChange={readOnly => editServer(server, { readOnly })}
-        value={server.readOnly}
-      />
-    ),
+    itemRenderer: server => <Toggle onChange={readOnly => editServer(server, { readOnly })} value={server.readOnly} />,
     name: _('serverReadOnly'),
     sortCriteria: _ => _.readOnly,
   },
@@ -138,9 +113,7 @@ const COLUMNS = [
     itemRenderer: server => (
       <Toggle
         value={Boolean(server.allowUnauthorized)}
-        onChange={allowUnauthorized =>
-          editServer(server, { allowUnauthorized })
-        }
+        onChange={allowUnauthorized => editServer(server, { allowUnauthorized })}
       />
     ),
     name: (
@@ -156,8 +129,7 @@ const COLUMNS = [
     sortCriteria: _ => _.allowUnauthorized,
   },
   {
-    itemRenderer: ({ poolId }) =>
-      poolId !== undefined && <Pool id={poolId} link />,
+    itemRenderer: ({ poolId }) => poolId !== undefined && <Pool id={poolId} link />,
     name: _('pool'),
   },
 ]
@@ -252,18 +224,10 @@ export default class Servers extends Component {
           </div>{' '}
           <div className='form-group'>
             <Tooltip content={_('serverAllowUnauthorizedCertificates')}>
-              <Toggle
-                onChange={this.linkState('allowUnauthorized')}
-                value={state.allowUnauthorized}
-              />
+              <Toggle onChange={this.linkState('allowUnauthorized')} value={state.allowUnauthorized} />
             </Tooltip>
           </div>{' '}
-          <ActionButton
-            btnStyle='primary'
-            form='form-add-server'
-            handler={this._addServer}
-            icon='save'
-          >
+          <ActionButton btnStyle='primary' form='form-add-server' handler={this._addServer} icon='save'>
             {_('serverConnect')}
           </ActionButton>
         </form>

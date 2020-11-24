@@ -4,10 +4,7 @@ import { promisify } from 'promise-toolbox'
 // ===================================================================
 
 const logAndRethrow = error => {
-  console.error(
-    '[WARN] plugin transport-slack:',
-    (error != null && error.stack) || error
-  )
+  console.error('[WARN] plugin transport-slack:', (error != null && error.stack) || error)
 
   throw error
 }

@@ -21,13 +21,7 @@ import { injectIntl } from 'react-intl'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
 import { provideState, injectState } from 'reaclette'
-import {
-  addSubscriptions,
-  connectStore,
-  EMPTY_ARRAY,
-  noop,
-  resolveResourceSet,
-} from 'utils'
+import { addSubscriptions, connectStore, EMPTY_ARRAY, noop, resolveResourceSet } from 'utils'
 import {
   SelectNetwork as SelectAnyNetwork,
   SelectIp,
@@ -35,18 +29,7 @@ import {
   SelectResourceSetsNetwork,
 } from 'select-objects'
 import { Select, Toggle } from 'form'
-import {
-  concat,
-  every,
-  find,
-  includes,
-  isEmpty,
-  keys,
-  map,
-  pick,
-  remove,
-  some,
-} from 'lodash'
+import { concat, every, find, includes, isEmpty, keys, map, pick, remove, some } from 'lodash'
 
 import {
   createFinder,
@@ -75,10 +58,7 @@ import {
 } from 'xo'
 
 @addSubscriptions(props => ({
-  resourceSet: cb =>
-    subscribeResourceSets(resourceSets =>
-      cb(find(resourceSets, { id: props.resourceSet }))
-    ),
+  resourceSet: cb => subscribeResourceSets(resourceSets => cb(find(resourceSets, { id: props.resourceSet }))),
 }))
 @connectStore((state, props) => ({
   isAdmin: isAdmin(state, props),
@@ -139,11 +119,9 @@ class VifAllowedIps extends BaseComponent {
     } else {
       allowedIpv6Addresses = [...allowedIpv6Addresses, ip.id]
     }
-    return setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses }).catch(
-      err => {
-        error(_('addIpError'), err.message)
-      }
-    )
+    return setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses }).catch(err => {
+      error(_('addIpError'), err.message)
+    })
   }
   _deleteIp = ipIndex => {
     const vif = this.props.item
@@ -151,10 +129,7 @@ class VifAllowedIps extends BaseComponent {
     if (ipIndex < allowedIpv4Addresses.length) {
       remove(allowedIpv4Addresses, (_, i) => i === ipIndex)
     } else {
-      remove(
-        allowedIpv6Addresses,
-        (_, i) => i === ipIndex - allowedIpv4Addresses.length
-      )
+      remove(allowedIpv6Addresses, (_, i) => i === ipIndex - allowedIpv4Addresses.length)
     }
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
@@ -173,17 +148,10 @@ class VifAllowedIps extends BaseComponent {
         const isNotUsed = every(ips, vifIp => vifIp !== selectedIp.id)
         let enoughResources
         if (resourceSetId) {
-          const resourceSet = find(
-            resourceSets,
-            set => set.id === resourceSetId
-          )
-          const ipPool = find(ipPools, ipPool =>
-            includes(keys(ipPool.addresses), selectedIp.id)
-          )
-          const ipPoolLimits =
-            resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
-          enoughResources =
-            resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
+          const resourceSet = find(resourceSets, set => set.id === resourceSetId)
+          const ipPool = find(ipPools, ipPool => includes(keys(ipPool.addresses), selectedIp.id))
+          const ipPoolLimits = resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
+          enoughResources = resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
         }
         return isNotUsed && (!resourceSetId || enoughResources)
       }
@@ -191,8 +159,7 @@ class VifAllowedIps extends BaseComponent {
   )
   _getIsNetworkAllowed = createSelector(
     () => this.props.item.$network,
-    vifNetworkId => ipPool =>
-      find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
+    vifNetworkId => ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
   )
 
   _hideIpInputs = () =>
@@ -255,11 +222,7 @@ class VifAllowedIps extends BaseComponent {
             <Row>
               <Col size={10}>{ip}</Col>
               <Col size={1}>
-                <ActionRowButton
-                  handler={this._deleteIp}
-                  handlerParam={ipIndex}
-                  icon='delete'
-                />
+                <ActionRowButton handler={this._deleteIp} handlerParam={ipIndex} icon='delete' />
               </Col>
             </Row>
           ))
@@ -333,9 +296,7 @@ class VifAllowedIps extends BaseComponent {
 }))
 class VifStatus extends BaseComponent {
   componentDidMount() {
-    getLockingModeValues().then(lockingModeValues =>
-      this.setState({ lockingModeValues })
-    )
+    getLockingModeValues().then(lockingModeValues => this.setState({ lockingModeValues }))
   }
 
   _getCanEditVifLockingMode = createSelector(
@@ -523,13 +484,7 @@ class NewAclRuleForm extends BaseComponent {
   }
 
   get value() {
-    return pick(this.state, [
-      'allow',
-      'protocol',
-      'port',
-      'ipRange',
-      'direction',
-    ])
+    return pick(this.state, ['allow', 'protocol', 'port', 'ipRange', 'direction'])
   }
 
   render() {
@@ -624,9 +579,7 @@ class AclRuleRow extends Component {
   render() {
     const { rule, vif, plugins } = this.props
     const ruleObj = JSON.parse(rule)
-    const sdnControllerLoaded = plugins.some(
-      plugin => plugin.name === 'sdn-controller' && plugin.loaded
-    )
+    const sdnControllerLoaded = plugins.some(plugin => plugin.name === 'sdn-controller' && plugin.loaded)
 
     return (
       <tr>
@@ -642,11 +595,7 @@ class AclRuleRow extends Component {
             handlerParam={{ ...ruleObj, vif }}
             icon='delete'
             level='danger'
-            tooltip={
-              sdnControllerLoaded
-                ? _('deleteRule')
-                : _('sdnControllerNotLoaded')
-            }
+            tooltip={sdnControllerLoaded ? _('deleteRule') : _('sdnControllerNotLoaded')}
           />
         </td>
       </tr>
@@ -664,10 +613,7 @@ class AclRulesRows extends BaseComponent {
       body: <NewAclRuleForm />,
     }).then(({ allow, protocol, port, ipRange, direction }) => {
       const hasProtocol = protocol != null
-      const usePort =
-        hasProtocol &&
-        USABLE_PORT_PROTOCOL.includes(protocol) &&
-        port !== undefined
+      const usePort = hasProtocol && USABLE_PORT_PROTOCOL.includes(protocol) && port !== undefined
 
       return addAclRule({
         allow,
@@ -688,9 +634,7 @@ class AclRulesRows extends BaseComponent {
   render() {
     const { vif, plugins = [] } = this.props
     const { showRules } = this.state
-    const sdnControllerLoaded = plugins.some(
-      plugin => plugin.name === 'sdn-controller' && plugin.loaded
-    )
+    const sdnControllerLoaded = plugins.some(plugin => plugin.name === 'sdn-controller' && plugin.loaded)
     const rules = this._getRules()
     const rulesToSee = rules !== undefined
 
@@ -713,9 +657,7 @@ class AclRulesRows extends BaseComponent {
           handlerParam={vif}
           icon='add'
           size='small'
-          tooltip={
-            sdnControllerLoaded ? _('addRule') : _('sdnControllerNotLoaded')
-          }
+          tooltip={sdnControllerLoaded ? _('addRule') : _('sdnControllerNotLoaded')}
         />
         {showRules && rulesToSee && (
           <table className='table'>
@@ -765,11 +707,7 @@ const COLUMNS = [
   },
   {
     itemRenderer: (vif, { networks, resourceSet }) => (
-      <VifNetwork
-        vif={vif}
-        network={networks[vif.$network]}
-        resourceSet={resourceSet}
-      />
+      <VifNetwork vif={vif} network={networks[vif.$network]} resourceSet={resourceSet} />
     ),
     name: _('vifNetworkLabel'),
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
@@ -792,12 +730,7 @@ const COLUMNS = [
         ? _('noIpRecord')
         : map(ips, ip => (
             <Tooltip content={_('copyToClipboard')}>
-              <span
-                className='tag tag-info tag-ip'
-                key={ip}
-                onClick={() => copy(ip)}
-                style={{ cursor: 'pointer' }}
-              >
+              <span className='tag tag-info tag-ip' key={ip} onClick={() => copy(ip)} style={{ cursor: 'pointer' }}>
                 {ip}
               </span>
             </Tooltip>
@@ -814,9 +747,7 @@ const COLUMNS = [
     name: _('vifAclRules'),
   },
   {
-    itemRenderer: (vif, userData) => (
-      <VifStatus vif={vif} network={userData.networks[vif.$network]} />
-    ),
+    itemRenderer: (vif, userData) => <VifStatus vif={vif} network={userData.networks[vif.$network]} />,
     name: _('vifStatusLabel'),
   },
 ]
@@ -858,18 +789,13 @@ const FILTERS = {
   resourceSets: subscribeResourceSets,
 })
 @connectStore(() => {
-  const getHostMaster = createGetObject(
-    (_, props) => props.pool && props.pool.master
-  )
+  const getHostMaster = createGetObject((_, props) => props.pool && props.pool.master)
   const getPifs = createGetObjectsOfType('PIF').pick((state, props) => {
     const hostMaster = getHostMaster(state, props)
     return hostMaster && hostMaster.$PIFs
   })
   const getDefaultNetwork = createGetObject(
-    createSelector(
-      createFinder(getPifs, [pif => pif.management]),
-      pif => pif && pif.$network
-    )
+    createSelector(createFinder(getPifs, [pif => pif.management]), pif => pif && pif.$network)
   )
   return {
     defaultNetwork: getDefaultNetwork,
@@ -928,10 +854,7 @@ class NewVif extends BaseComponent {
     )
   )
 
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
-    resolveResourceSet
-  )
+  _getResolvedResourceSet = createSelector(this._getResourceSet, resolveResourceSet)
 
   render() {
     const formatMessage = this.props.intl.formatMessage
@@ -939,10 +862,7 @@ class NewVif extends BaseComponent {
     const { mac, network } = this.state
     const resourceSet = this._getResolvedResourceSet()
 
-    const SelectNetwork =
-      isAdmin || resourceSet == null
-        ? SelectAnyNetwork
-        : SelectResourceSetsNetwork
+    const SelectNetwork = isAdmin || resourceSet == null ? SelectAnyNetwork : SelectResourceSetsNetwork
 
     return (
       <form id='newVifForm'>
@@ -967,12 +887,7 @@ class NewVif extends BaseComponent {
             ({_('vifMacAutoGenerate')})
           </div>
           <span className='pull-right'>
-            <ActionButton
-              form='newVifForm'
-              icon='add'
-              btnStyle='primary'
-              handler={this._createVif}
-            >
+            <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>
               {_('vifCreate')}
             </ActionButton>
           </span>
@@ -983,12 +898,8 @@ class NewVif extends BaseComponent {
 }
 
 @connectStore(() => {
-  const getVifs = createGetObjectsOfType('VIF').pick(
-    (_, props) => props.vm.VIFs
-  )
-  const getNetworksId = createSelector(getVifs, vifs =>
-    map(vifs, vif => vif.$network)
-  )
+  const getVifs = createGetObjectsOfType('VIF').pick((_, props) => props.vm.VIFs)
+  const getNetworksId = createSelector(getVifs, vifs => map(vifs, vif => vif.$network))
   const getNetworks = createGetObjectsOfType('network').pick(getNetworksId)
 
   return (state, props) => ({
@@ -1031,12 +942,7 @@ export default class TabNetwork extends BaseComponent {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              handler={this._toggleNewVif}
-              icon='add'
-              labelId='vifCreateDeviceButton'
-            />
+            <TabButton btnStyle='primary' handler={this._toggleNewVif} icon='add' labelId='vifCreateDeviceButton' />
           </Col>
         </Row>
         {newVif && (

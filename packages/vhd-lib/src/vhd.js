@@ -28,8 +28,7 @@ const { debug } = createLogger('vhd-lib:Vhd')
 //
 // ===================================================================
 
-const computeBatSize = entries =>
-  sectorsToBytes(sectorsRoundUpNoZero(entries * 4))
+const computeBatSize = entries => sectorsToBytes(sectorsRoundUpNoZero(entries * 4))
 
 // Sectors conversions.
 const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / SECTOR_SIZE) || 1
@@ -38,11 +37,7 @@ const sectorsToBytes = sectors => sectors * SECTOR_SIZE
 const assertChecksum = (name, buf, struct) => {
   const actual = unpackField(struct.fields.checksum, buf)
   const expected = checksumStruct(buf, struct)
-  assert.strictEqual(
-    actual,
-    expected,
-    `invalid ${name} checksum ${actual}, expected ${expected}`
-  )
+  assert.strictEqual(actual, expected, `invalid ${name} checksum ${actual}, expected ${expected}`)
 }
 
 // unused block as buffer containing a uint32BE
@@ -88,11 +83,7 @@ export default class Vhd {
   // =================================================================
 
   async _read(start, n) {
-    const { bytesRead, buffer } = await this._handler.read(
-      this._path,
-      Buffer.alloc(n),
-      start
-    )
+    const { bytesRead, buffer } = await this._handler.read(this._path, Buffer.alloc(n), start)
     assert.strictEqual(bytesRead, n)
     return buffer
   }
@@ -114,10 +105,7 @@ export default class Vhd {
       const entry = header.parentLocatorEntry[i]
 
       if (entry.platformCode !== PLATFORM_NONE) {
-        end = Math.max(
-          end,
-          entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace)
-        )
+        end = Math.max(end, entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace))
       }
     }
 
@@ -158,10 +146,7 @@ export default class Vhd {
 
     if (checkSecondFooter) {
       const size = await this._handler.getSize(this._path)
-      assert(
-        bufFooter.equals(await this._read(size - FOOTER_SIZE, FOOTER_SIZE)),
-        'footer1 !== footer2'
-      )
+      assert(bufFooter.equals(await this._read(size - FOOTER_SIZE, FOOTER_SIZE)), 'footer1 !== footer2')
     }
 
     const footer = (this.footer = fuFooter.unpack(bufFooter))
@@ -172,14 +157,11 @@ export default class Vhd {
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
-    const sectorsPerBlock = (this.sectorsPerBlock =
-      header.blockSize / SECTOR_SIZE)
+    const sectorsPerBlock = (this.sectorsPerBlock = header.blockSize / SECTOR_SIZE)
 
     // Compute bitmap size in sectors.
     // Default: 1.
-    const sectorsOfBitmap = (this.sectorsOfBitmap = sectorsRoundUpNoZero(
-      sectorsPerBlock >> 3
-    ))
+    const sectorsOfBitmap = (this.sectorsOfBitmap = sectorsRoundUpNoZero(sectorsPerBlock >> 3))
 
     // Full block size => data block size + bitmap size.
     this.fullBlockSize = sectorsToBytes(sectorsPerBlock + sectorsOfBitmap)
@@ -192,10 +174,7 @@ export default class Vhd {
   // Returns a buffer that contains the block allocation table of a vhd file.
   async readBlockAllocationTable() {
     const { header } = this
-    this.blockTable = await this._read(
-      header.tableOffset,
-      header.maxTableEntries * 4
-    )
+    this.blockTable = await this._read(header.tableOffset, header.maxTableEntries * 4)
   }
 
   // return the first sector (bitmap) of a block
@@ -211,10 +190,7 @@ export default class Vhd {
       throw new Error(`no such block ${blockId}`)
     }
 
-    return this._read(
-      sectorsToBytes(blockAddr),
-      onlyBitmap ? this.bitmapSize : this.fullBlockSize
-    ).then(buf =>
+    return this._read(sectorsToBytes(blockAddr), onlyBitmap ? this.bitmapSize : this.fullBlockSize).then(buf =>
       onlyBitmap
         ? { id: blockId, bitmap: buf }
         : {
@@ -246,21 +222,11 @@ export default class Vhd {
     const { first, firstSector, lastSector } = firstAndLastBlocks
     const tableOffset = this.header.tableOffset
     const { batSize } = this
-    const newMinSector = Math.ceil(
-      (tableOffset + batSize + spaceNeededBytes) / SECTOR_SIZE
-    )
-    if (
-      tableOffset + batSize + spaceNeededBytes >=
-      sectorsToBytes(firstSector)
-    ) {
+    const newMinSector = Math.ceil((tableOffset + batSize + spaceNeededBytes) / SECTOR_SIZE)
+    if (tableOffset + batSize + spaceNeededBytes >= sectorsToBytes(firstSector)) {
       const { fullBlockSize } = this
-      const newFirstSector = Math.max(
-        lastSector + fullBlockSize / SECTOR_SIZE,
-        newMinSector
-      )
-      debug(
-        `freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`
-      )
+      const newFirstSector = Math.max(lastSector + fullBlockSize / SECTOR_SIZE, newMinSector)
+      debug(`freeFirstBlockSpace: move first block ${firstSector} -> ${newFirstSector}`)
       // copy the first block at the end
       const block = await this._read(sectorsToBytes(firstSector), fullBlockSize)
       await this._write(block, sectorsToBytes(newFirstSector))
@@ -287,9 +253,7 @@ export default class Vhd {
     const bat = (this.blockTable = Buffer.allocUnsafe(newBatSize))
     prevBat.copy(bat)
     bat.fill(BUF_BLOCK_UNUSED, prevMaxTableEntries * 4)
-    debug(
-      `ensureBatSize: extend BAT ${prevMaxTableEntries} -> ${maxTableEntries}`
-    )
+    debug(`ensureBatSize: extend BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
     await this._write(
       Buffer.alloc(maxTableEntries - prevMaxTableEntries, BUF_BLOCK_UNUSED),
       header.tableOffset + prevBat.length
@@ -330,11 +294,7 @@ export default class Vhd {
 
     const offset = sectorsToBytes(blockAddr)
 
-    debug(
-      `Write bitmap at: ${offset}. (size=${bitmapSize}, data=${bitmap.toString(
-        'hex'
-      )})`
-    )
+    debug(`Write bitmap at: ${offset}. (size=${bitmapSize}, data=${bitmap.toString('hex')})`)
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
@@ -359,9 +319,7 @@ export default class Vhd {
 
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
 
-    debug(
-      `_writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`
-    )
+    debug(`_writeBlockSectors at ${offset} block=${block.id}, sectors=${beginSectorId}...${endSectorId}`)
 
     for (let i = beginSectorId; i < endSectorId; ++i) {
       mapSetBit(parentBitmap, i)
@@ -369,10 +327,7 @@ export default class Vhd {
 
     await this._writeBlockBitmap(blockAddr, parentBitmap)
     await this._write(
-      block.data.slice(
-        sectorsToBytes(beginSectorId),
-        sectorsToBytes(endSectorId)
-      ),
+      block.data.slice(sectorsToBytes(beginSectorId), sectorsToBytes(endSectorId)),
       sectorsToBytes(offset)
     )
   }
@@ -428,11 +383,7 @@ export default class Vhd {
     const offset = Math.max(this._getEndOfData(), eof - rawFooter.length)
 
     footer.checksum = checksumStruct(rawFooter, fuFooter)
-    debug(
-      `Write footer at: ${offset} (checksum=${
-        footer.checksum
-      }). (data=${rawFooter.toString('hex')})`
-    )
+    debug(`Write footer at: ${offset} (checksum=${footer.checksum}). (data=${rawFooter.toString('hex')})`)
     if (!onlyEndFooter) {
       await this._write(rawFooter, 0)
     }
@@ -444,11 +395,7 @@ export default class Vhd {
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     const offset = FOOTER_SIZE
-    debug(
-      `Write header at: ${offset} (checksum=${
-        header.checksum
-      }). (data=${rawHeader.toString('hex')})`
-    )
+    debug(`Write header at: ${offset} (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
     return this._write(rawHeader, offset)
   }
 
@@ -462,26 +409,12 @@ export default class Vhd {
     const coversWholeBlock = (offsetInBlockSectors, endInBlockSectors) =>
       offsetInBlockSectors === 0 && endInBlockSectors === this.sectorsPerBlock
 
-    for (
-      let currentBlock = startBlock;
-      currentBlock <= lastBlock;
-      currentBlock++
-    ) {
-      const offsetInBlockSectors = Math.max(
-        0,
-        offsetSectors - currentBlock * this.sectorsPerBlock
-      )
-      const endInBlockSectors = Math.min(
-        endBufferSectors - currentBlock * this.sectorsPerBlock,
-        this.sectorsPerBlock
-      )
-      const startInBuffer = Math.max(
-        0,
-        (currentBlock * this.sectorsPerBlock - offsetSectors) * SECTOR_SIZE
-      )
+    for (let currentBlock = startBlock; currentBlock <= lastBlock; currentBlock++) {
+      const offsetInBlockSectors = Math.max(0, offsetSectors - currentBlock * this.sectorsPerBlock)
+      const endInBlockSectors = Math.min(endBufferSectors - currentBlock * this.sectorsPerBlock, this.sectorsPerBlock)
+      const startInBuffer = Math.max(0, (currentBlock * this.sectorsPerBlock - offsetSectors) * SECTOR_SIZE)
       const endInBuffer = Math.min(
-        ((currentBlock + 1) * this.sectorsPerBlock - offsetSectors) *
-          SECTOR_SIZE,
+        ((currentBlock + 1) * this.sectorsPerBlock - offsetSectors) * SECTOR_SIZE,
         buffer.length
       )
       let inputBuffer
@@ -489,27 +422,16 @@ export default class Vhd {
         inputBuffer = buffer.slice(startInBuffer, endInBuffer)
       } else {
         inputBuffer = Buffer.alloc(blockSizeBytes, 0)
-        buffer.copy(
-          inputBuffer,
-          offsetInBlockSectors * SECTOR_SIZE,
-          startInBuffer,
-          endInBuffer
-        )
+        buffer.copy(inputBuffer, offsetInBlockSectors * SECTOR_SIZE, startInBuffer, endInBuffer)
       }
-      await this._writeBlockSectors(
-        { id: currentBlock, data: inputBuffer },
-        offsetInBlockSectors,
-        endInBlockSectors
-      )
+      await this._writeBlockSectors({ id: currentBlock, data: inputBuffer }, offsetInBlockSectors, endInBlockSectors)
     }
     await this.writeFooter()
   }
 
   async _ensureSpaceForParentLocators(neededSectors) {
     const firstLocatorOffset = FOOTER_SIZE + HEADER_SIZE
-    const currentSpace =
-      Math.floor(this.header.tableOffset / SECTOR_SIZE) -
-      firstLocatorOffset / SECTOR_SIZE
+    const currentSpace = Math.floor(this.header.tableOffset / SECTOR_SIZE) - firstLocatorOffset / SECTOR_SIZE
     if (currentSpace < neededSectors) {
       const deltaSectors = neededSectors - currentSpace
       await this._freeFirstBlockSpace(sectorsToBytes(deltaSectors))
@@ -526,8 +448,7 @@ export default class Vhd {
     const dataSpaceSectors = Math.ceil(encodedFilename.length / SECTOR_SIZE)
     const position = await this._ensureSpaceForParentLocators(dataSpaceSectors)
     await this._write(encodedFilename, position)
-    header.parentLocatorEntry[0].platformDataSpace =
-      dataSpaceSectors * SECTOR_SIZE
+    header.parentLocatorEntry[0].platformDataSpace = dataSpaceSectors * SECTOR_SIZE
     header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
     header.parentLocatorEntry[0].platformDataOffset = position
     for (let i = 1; i < 8; i++) {

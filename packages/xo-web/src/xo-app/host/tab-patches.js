@@ -21,11 +21,7 @@ const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchDescription'),
     itemRenderer: patch => (
-      <a
-        href={patch.documentationUrl}
-        rel='noopener noreferrer'
-        target='_blank'
-      >
+      <a href={patch.documentationUrl} rel='noopener noreferrer' target='_blank'>
         {patch.description}
       </a>
     ),
@@ -35,13 +31,8 @@ const MISSING_PATCH_COLUMNS = [
     name: _('patchReleaseDate'),
     itemRenderer: patch => (
       <span>
-        <FormattedTime
-          value={patch.date}
-          day='numeric'
-          month='long'
-          year='numeric'
-        />{' '}
-        (<FormattedRelative value={patch.date} />)
+        <FormattedTime value={patch.date} day='numeric' month='long' year='numeric' /> (
+        <FormattedRelative value={patch.date} />)
       </span>
     ),
     sortCriteria: patch => patch.date,
@@ -98,12 +89,7 @@ const INDIVIDUAL_ACTIONS_XCP = [
               <strong>{_('changelogDate')}</strong>
             </Col>
             <Col size={9}>
-              <FormattedTime
-                value={patch.changelog.date * 1000}
-                day='numeric'
-                month='long'
-                year='numeric'
-              />
+              <FormattedTime value={patch.changelog.date * 1000} day='numeric' month='long' year='numeric' />
             </Col>
           </Row>
           <Row className='mb-1'>
@@ -143,13 +129,7 @@ const INSTALLED_PATCH_COLUMNS = [
       const time = patch.time * 1000
       return (
         <span>
-          <FormattedTime
-            value={time}
-            day='numeric'
-            month='long'
-            year='numeric'
-          />{' '}
-          (<FormattedRelative value={time} />)
+          <FormattedTime value={time} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={time} />)
         </span>
       )
     },
@@ -239,22 +219,14 @@ class XenServerPatches extends Component {
           <Row>
             <Col>
               <h3>{_('hostMissingPatches')}</h3>
-              <SortedTable
-                collection={missingPatches}
-                columns={MISSING_PATCH_COLUMNS}
-                stateUrlParam='s_missing'
-              />
+              <SortedTable collection={missingPatches} columns={MISSING_PATCH_COLUMNS} stateUrlParam='s_missing' />
             </Col>
           </Row>
         )}
         <Row>
           <Col>
             <h3>{_('hostAppliedPatches')}</h3>
-            <SortedTable
-              collection={hostPatches}
-              columns={INSTALLED_PATCH_COLUMNS}
-              stateUrlParam='s_installed'
-            />
+            <SortedTable collection={hostPatches} columns={INSTALLED_PATCH_COLUMNS} stateUrlParam='s_installed' />
           </Col>
         </Row>
       </Container>
@@ -294,10 +266,7 @@ export default class TabPatches extends Component {
     if (this.props.missingPatches === null) {
       return <em>{_('updatePluginNotInstalled')}</em>
     }
-    const Patches =
-      this.props.host.productBrand === 'XCP-ng' ? XcpPatches : XenServerPatches
-    return (
-      <Patches {...this.props} installAllPatches={this._installAllPatches} />
-    )
+    const Patches = this.props.host.productBrand === 'XCP-ng' ? XcpPatches : XenServerPatches
+    return <Patches {...this.props} installAllPatches={this._installAllPatches} />
   }
 }

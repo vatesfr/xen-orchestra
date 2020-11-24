@@ -28,9 +28,7 @@ export const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 
 const SENSITIVE_PARAMS = ['token', /password/i]
 const isSensitiveParam = name =>
-  SENSITIVE_PARAMS.some(pattern =>
-    typeof pattern === 'string' ? pattern === name : pattern.test(name)
-  )
+  SENSITIVE_PARAMS.some(pattern => (typeof pattern === 'string' ? pattern === name : pattern.test(name)))
 
 export function replace(value, replacement) {
   function helper(value, name) {

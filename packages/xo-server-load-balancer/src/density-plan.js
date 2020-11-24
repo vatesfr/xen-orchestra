@@ -99,9 +99,7 @@ export default class DensityPlan extends Plan {
 
     for (const vm of vms) {
       if (!vm.xenTools) {
-        debug(
-          `VM (${vm.id}) of Host (${hostId}) does not support pool migration.`
-        )
+        debug(`VM (${vm.id}) of Host (${hostId}) does not support pool migration.`)
         return
       }
     }
@@ -151,9 +149,7 @@ export default class DensityPlan extends Plan {
     } = this
 
     // Sort the destinations by available memory. (- -> +)
-    destinations.sort(
-      (a, b) => hostsAverages[a.id].memoryFree - hostsAverages[b.id].memoryFree
-    )
+    destinations.sort((a, b) => hostsAverages[a.id].memoryFree - hostsAverages[b.id].memoryFree)
 
     for (const destination of destinations) {
       const destinationAverages = hostsAverages[destination.id]
@@ -188,14 +184,8 @@ export default class DensityPlan extends Plan {
       mapToArray(moves, move => {
         const { vm, destination } = move
         const xapiDest = this.xo.getXapi(destination)
-        debug(
-          `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`
-        )
-        return xapiDest.migrateVm(
-          vm._xapiId,
-          this.xo.getXapi(destination),
-          destination._xapiId
-        )
+        debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`)
+        return xapiDest.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
       })
     )
 

@@ -9,12 +9,7 @@ import { createGetObjectsOfType, createSelector } from 'selectors'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { map } from 'lodash'
 import { Toggle } from 'form'
-import {
-  PoolCpuLineChart,
-  PoolMemoryLineChart,
-  PoolPifLineChart,
-  PoolLoadLineChart,
-} from 'xo-line-chart'
+import { PoolCpuLineChart, PoolMemoryLineChart, PoolPifLineChart, PoolLoadLineChart } from 'xo-line-chart'
 
 @connectStore({
   hosts: createGetObjectsOfType('host').filter(
@@ -87,12 +82,7 @@ export default class PoolStats extends Component {
   }
 
   render() {
-    const {
-      granularity,
-      selectStatsLoading,
-      stats,
-      useCombinedValues,
-    } = this.state
+    const { granularity, selectStatsLoading, stats, useCombinedValues } = this.state
 
     return stats ? (
       <Container>
@@ -100,10 +90,7 @@ export default class PoolStats extends Component {
           <Col mediumSize={5}>
             <div className='form-group'>
               <Tooltip content={_('useStackedValuesOnStats')}>
-                <Toggle
-                  value={useCombinedValues}
-                  onChange={this.linkState('useCombinedValues')}
-                />
+                <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
               </Tooltip>
             </div>
           </Col>
@@ -115,11 +102,7 @@ export default class PoolStats extends Component {
             )}
           </Col>
           <Col mediumSize={6}>
-            <SelectGranularity
-              onChange={this._handleSelectStats}
-              required
-              value={granularity}
-            />
+            <SelectGranularity onChange={this._handleSelectStats} required value={granularity} />
           </Col>
         </Row>
         <Row>
@@ -133,10 +116,7 @@ export default class PoolStats extends Component {
             <h5 className='text-xs-center'>
               <Icon icon='memory' /> {_('statsMemory')}
             </h5>
-            <PoolMemoryLineChart
-              addSumSeries={useCombinedValues}
-              data={stats}
-            />
+            <PoolMemoryLineChart addSumSeries={useCombinedValues} data={stats} />
           </Col>
         </Row>
         <br />

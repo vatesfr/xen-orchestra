@@ -141,10 +141,7 @@ export class NumberNode extends Node {
   }
 
   match(value) {
-    return (
-      value === this.value ||
-      (value !== null && typeof value === 'object' && some(value, this.match))
-    )
+    return value === this.value || (value !== null && typeof value === 'object' && some(value, this.match))
   }
 
   toString() {
@@ -170,8 +167,7 @@ export class NumberOrStringNode extends Node {
       value === numValue ||
       (typeof value === 'string'
         ? value.toLowerCase().indexOf(lcValue) !== -1
-        : (Array.isArray(value) || isPlainObject(value)) &&
-          some(value, this.match))
+        : (Array.isArray(value) || isPlainObject(value)) && some(value, this.match))
     )
   }
 
@@ -200,11 +196,7 @@ export class Property extends Node {
 
 const escapeChar = char => '\\' + char
 const formatString = value =>
-  Number.isNaN(+value)
-    ? isRawString(value)
-      ? value
-      : `"${value.replace(/\\|"/g, escapeChar)}"`
-    : `"${value}"`
+  Number.isNaN(+value) ? (isRawString(value) ? value : `"${value.replace(/\\|"/g, escapeChar)}"`) : `"${value}"`
 
 export class GlobPattern extends Node {
   constructor(value) {
@@ -219,10 +211,7 @@ export class GlobPattern extends Node {
 
     // should not be enumerable for the tests
     Object.defineProperty(this, 'match', {
-      value: this.match.bind(
-        this,
-        new RegExp(value.split('*').map(escapeRegExp).join('.*'), 'i')
-      ),
+      value: this.match.bind(this, new RegExp(value.split('*').map(escapeRegExp).join('.*'), 'i')),
     })
   }
 
@@ -330,9 +319,7 @@ class Failure {
   }
 
   get value() {
-    throw new Error(
-      `parse error: expected ${this.expected} at position ${this.pos}`
-    )
+    throw new Error(`parse error: expected ${this.expected} at position ${this.pos}`)
   }
 }
 
@@ -369,9 +356,7 @@ class P {
   }
 
   static lazy(parserCreator, arg) {
-    const parser = new P((input, pos, end) =>
-      (parser._parse = parserCreator(arg)._parse)(input, pos, end)
-    )
+    const parser = new P((input, pos, end) => (parser._parse = parserCreator(arg)._parse)(input, pos, end))
     return parser
   }
 
@@ -380,9 +365,7 @@ class P {
     return new P((input, pos) => {
       regex.lastIndex = pos
       const matches = regex.exec(input)
-      return matches !== null
-        ? new Success(regex.lastIndex, matches[0])
-        : new Failure(pos, regex)
+      return matches !== null ? new Success(regex.lastIndex, matches[0]) : new Failure(pos, regex)
     })
   }
 
@@ -405,9 +388,7 @@ class P {
   static text(text) {
     const { length } = text
     return new P((input, pos) =>
-      input.startsWith(text, pos)
-        ? new Success(pos + length, text)
-        : new Failure(pos, `'${text}'`)
+      input.startsWith(text, pos) ? new Success(pos + length, text) : new Failure(pos, `'${text}'`)
     )
   }
 
@@ -443,10 +424,7 @@ class P {
         value.push(result.value)
         pos = result.pos
       }
-      while (
-        i < max &&
-        (result = this._parse(input, pos, end)) instanceof Success
-      ) {
+      while (i < max && (result = this._parse(input, pos, end)) instanceof Success) {
         ++i
         value.push(result.value)
         pos = result.pos
@@ -471,17 +449,13 @@ class P {
   }
 }
 
-P.eof = new P((input, pos, end) =>
-  pos < end ? new Failure(pos, 'end of input') : new Success(pos)
-)
+P.eof = new P((input, pos, end) => (pos < end ? new Failure(pos, 'end of input') : new Success(pos)))
 
 // -------------------------------------------------------------------
 
 const parser = P.grammar({
   default: r =>
-    P.seq(r.ws, r.term.repeat(), P.eof).map(([, terms]) =>
-      terms.length === 0 ? new Null() : new And(terms)
-    ),
+    P.seq(r.ws, r.term.repeat(), P.eof).map(([, terms]) => (terms.length === 0 ? new Null() : new And(terms))),
   globPattern: new P((input, pos, end) => {
     let value = ''
     let c
@@ -489,9 +463,7 @@ const parser = P.grammar({
       ++pos
       value += c
     }
-    return value.length === 0
-      ? new Failure(pos, 'a raw string')
-      : new Success(pos, value)
+    return value.length === 0 ? new Failure(pos, 'a raw string') : new Success(pos, value)
   }),
   quotedString: new P((input, pos, end) => {
     if (input[pos] !== '"') {
@@ -518,9 +490,7 @@ const parser = P.grammar({
       ++pos
       value += c
     }
-    return value.length === 0
-      ? new Failure(pos, 'a raw string')
-      : new Success(pos, value)
+    return value.length === 0 ? new Failure(pos, 'a raw string') : new Success(pos, value)
   }),
   regex: new P((input, pos, end) => {
     if (input[pos] !== '/') {
@@ -551,17 +521,8 @@ const parser = P.grammar({
   }),
   term: r =>
     P.alt(
-      P.seq(P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(
-        _ => new And(_[2])
-      ),
-      P.seq(
-        P.text('|'),
-        r.ws,
-        P.text('('),
-        r.ws,
-        r.term.repeat(1),
-        P.text(')')
-      ).map(_ => new Or(_[4])),
+      P.seq(P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(_ => new And(_[2])),
+      P.seq(P.text('|'), r.ws, P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(_ => new Or(_[4])),
       P.seq(P.text('!'), r.ws, r.term).map(_ => new Not(_[2])),
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
         val = +val
@@ -570,9 +531,7 @@ const parser = P.grammar({
         }
         return new Comparison(op, val)
       }),
-      P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(
-        _ => new Property(_[0], _[4])
-      ),
+      P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(_ => new Property(_[0], _[4])),
       P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),
       r.value
     ).skip(r.ws),
@@ -582,9 +541,7 @@ const parser = P.grammar({
       r.regex,
       r.globPattern.map(str => {
         const asNum = +str
-        return Number.isNaN(asNum)
-          ? new GlobPattern(str)
-          : new NumberOrStringNode(str)
+        return Number.isNaN(asNum) ? new GlobPattern(str) : new NumberOrStringNode(str)
       })
     ),
   ws: P.regex(/\s*/),
@@ -664,12 +621,7 @@ export const getPropertyClausesStrings = node => {
 // -------------------------------------------------------------------
 
 export const setPropertyClause = (node, name, child) => {
-  const property =
-    child &&
-    new Property(
-      name,
-      typeof child === 'string' ? new StringNode(child) : child
-    )
+  const property = child && new Property(name, typeof child === 'string' ? new StringNode(child) : child)
 
   if (node === undefined) {
     return property

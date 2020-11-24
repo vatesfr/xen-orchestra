@@ -3,10 +3,7 @@ import { parseOVAFile, ParsableFile } from './ova'
 
 import VMDKDirectParser from './vmdk-read'
 
-export {
-  default as readVmdkGrainTable,
-  readCapacityAndGrainTable,
-} from './vmdk-read-table'
+export { default as readVmdkGrainTable, readCapacityAndGrainTable } from './vmdk-read-table'
 
 /**
  *
@@ -16,18 +13,8 @@ export {
  * @param gzipped
  * @returns a stream whose bytes represent a VHD file containing the VMDK data
  */
-async function vmdkToVhd(
-  vmdkReadStream,
-  grainLogicalAddressList,
-  grainFileOffsetList,
-  gzipped = false
-) {
-  const parser = new VMDKDirectParser(
-    vmdkReadStream,
-    grainLogicalAddressList,
-    grainFileOffsetList,
-    gzipped
-  )
+async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped = false) {
+  const parser = new VMDKDirectParser(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped)
   const header = await parser.readHeader()
   return createReadableSparseStream(
     header.capacitySectors * 512,

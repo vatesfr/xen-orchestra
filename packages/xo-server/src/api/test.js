@@ -92,11 +92,7 @@ copyVm.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function changeConnectedXapiHostname({
-  hostname,
-  newObject,
-  oldObject,
-}) {
+export async function changeConnectedXapiHostname({ hostname, newObject, oldObject }) {
   const xapi = this.getXapi(oldObject)
   const { pool: currentPool } = xapi
 

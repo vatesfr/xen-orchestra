@@ -32,9 +32,7 @@ const jobKeyToLabel = {
 
 const SCHEDULES_COLUMNS = [
   {
-    itemRenderer: schedule => (
-      <span>{`${schedule.name} (${schedule.id.slice(4, 8)})`}</span>
-    ),
+    itemRenderer: schedule => <span>{`${schedule.name} (${schedule.id.slice(4, 8)})`}</span>,
     name: _('schedule'),
     sortCriteria: 'name',
   },
@@ -52,10 +50,7 @@ const SCHEDULES_COLUMNS = [
                 <Icon className='mr-1' icon='error' />
               </Tooltip>
             )}
-            <Link
-              className='btn btn-sm btn-primary ml-1'
-              to={`/jobs/${job.id}/edit`}
-            >
+            <Link className='btn btn-sm btn-primary ml-1' to={`/jobs/${job.id}/edit`}>
               <Tooltip content={_('jobEdit')}>
                 <Icon icon='edit' />
               </Tooltip>
@@ -139,9 +134,7 @@ export default class Overview extends Component {
       })
 
       this.setState({
-        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], [
-          'desc',
-        ]),
+        schedules: orderBy(schedules, schedule => +schedule.id.split(':')[1], ['desc']),
       })
     })
 
@@ -163,10 +156,7 @@ export default class Overview extends Component {
       const isScheduleUserMissing = {}
 
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !find(
-          users,
-          user => user.id === this._getScheduleJob(schedule).userId
-        )
+        isScheduleUserMissing[schedule.id] = !find(users, user => user.id === this._getScheduleJob(schedule).userId)
       })
 
       return isScheduleUserMissing
@@ -175,8 +165,7 @@ export default class Overview extends Component {
 
   _individualActions = [
     {
-      disabled: (schedule, { isScheduleUserMissing }) =>
-        isScheduleUserMissing[schedule.id],
+      disabled: (schedule, { isScheduleUserMissing }) => isScheduleUserMissing[schedule.id],
       handler: schedule => runJob(schedule.jobId),
       icon: 'run-schedule',
       label: _('scheduleRun'),

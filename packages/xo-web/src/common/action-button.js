@@ -92,10 +92,7 @@ export default class ActionButton extends Component {
 
       const { redirectOnSuccess } = props
       if (redirectOnSuccess !== undefined) {
-        const to =
-          typeof redirectOnSuccess === 'function'
-            ? redirectOnSuccess(result, handlerParam)
-            : redirectOnSuccess
+        const to = typeof redirectOnSuccess === 'function' ? redirectOnSuccess(result, handlerParam) : redirectOnSuccess
         if (to !== undefined) {
           return this.context.router.push(to)
         }
@@ -116,10 +113,7 @@ export default class ActionButton extends Component {
           _error(error.title, error.body)
         } else {
           logError(error)
-          _error(
-            children || tooltip || error.name,
-            error.message || String(error)
-          )
+          _error(children || tooltip || error.name, error.message || String(error))
         }
       }
     }
@@ -135,9 +129,7 @@ export default class ActionButton extends Component {
     const { form } = this.props
 
     if (form) {
-      document
-        .getElementById(form)
-        .addEventListener('submit', this._eventListener)
+      document.getElementById(form).addEventListener('submit', this._eventListener)
     }
   }
 
@@ -145,9 +137,7 @@ export default class ActionButton extends Component {
     const { form } = this.props
 
     if (form) {
-      document
-        .getElementById(form)
-        .removeEventListener('submit', this._eventListener)
+      document.getElementById(form).removeEventListener('submit', this._eventListener)
     }
   }
 
@@ -172,11 +162,7 @@ export default class ActionButton extends Component {
 
     const button = (
       <Button {...props}>
-        <Icon
-          color={iconColor}
-          fixedWidth
-          icon={pending || working ? 'loading' : icon}
-        />
+        <Icon color={iconColor} fixedWidth icon={pending || working ? 'loading' : icon} />
         {children && ' '}
         {children}
       </Button>

@@ -33,9 +33,7 @@ describe('parse()', () => {
   })
 
   it('reports invalid aliases', () => {
-    expect(() => parse('* * * jan-foo *')).toThrow(
-      'month: missing alias or integer at character 10'
-    )
+    expect(() => parse('* * * jan-foo *')).toThrow('month: missing alias or integer at character 10')
   })
 
   it('dayOfWeek: 0 and 7 bind to sunday', () => {

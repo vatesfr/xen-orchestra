@@ -7,10 +7,7 @@ import Url from 'url-parse'
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0]+)(?:\0(.*))?$/
 
-const sanitizePath = (...paths) =>
-  filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join(
-    '/'
-  )
+const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
 export const parse = string => {
   const object = {}
@@ -51,15 +48,7 @@ export const parse = string => {
   return object
 }
 
-export const format = ({
-  type,
-  host,
-  path,
-  port,
-  username,
-  password,
-  domain,
-}) => {
+export const format = ({ type, host, path, port, username, password, domain }) => {
   type === 'local' && (type = 'file')
   let string = `${type}://`
   if (type === 'nfs') {

@@ -13,13 +13,9 @@ const openssl = (cmd, args, { input, ...opts } = {}) =>
 exports.genSelfSignedCert = async ({ days = 360 } = {}) => {
   const key = await openssl('genrsa', ['2048'])
   return {
-    cert: await openssl(
-      'req',
-      ['-batch', '-new', '-key', '-', '-x509', '-days', String(days), '-nodes'],
-      {
-        input: key,
-      }
-    ),
+    cert: await openssl('req', ['-batch', '-new', '-key', '-', '-x509', '-days', String(days), '-nodes'], {
+      input: key,
+    }),
     key,
   }
 }

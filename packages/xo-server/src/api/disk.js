@@ -14,23 +14,16 @@ const log = createLogger('xo:disk')
 
 // ===================================================================
 
-export const create = defer(async function (
-  $defer,
-  { name, size, sr, vm, bootable, position, mode }
-) {
+export const create = defer(async function ($defer, { name, size, sr, vm, bootable, position, mode }) {
   const attach = vm !== undefined
 
   do {
     let resourceSet
     if (attach && (resourceSet = vm.resourceSet) != null) {
       try {
-        await this.checkResourceSetConstraints(resourceSet, this.user.id, [
-          sr.id,
-        ])
+        await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
         await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
-        $defer.onFailure(() =>
-          this.releaseLimitsInResourceSet({ disk: size }, resourceSet)
-        )
+        $defer.onFailure(() => this.releaseLimitsInResourceSet({ disk: size }, resourceSet))
 
         break
       } catch (error) {
@@ -92,11 +85,7 @@ async function handleExportContent(req, res, { xapi, id }) {
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'
 
-  res.writeHead(
-    stream.statusCode,
-    stream.statusMessage != null ? stream.statusMessage : '',
-    stream.headers
-  )
+  res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
   pump(stream, res, error => {
     if (error != null) {
       log.warn('disk.exportContent', { error })
@@ -163,11 +152,7 @@ importContent.resolve = {
  *    - grainFileOffsetList : uint32 LE in sectors, limits the biggest VMDK size to 2^41B (2^32 * 512B)
  *  - the last part is the vmdk file.
  */
-async function handleImport(
-  req,
-  res,
-  { type, name, description, vmdkData, srId, xapi }
-) {
+async function handleImport(req, res, { type, name, description, vmdkData, srId, xapi }) {
   req.setTimeout(43200000) // 12 hours
   req.length = req.headers['content-length']
   let vhdStream, size
@@ -191,20 +176,14 @@ async function handleImport(
         await Promise.all(promises)
         part.length = part.byteCount
         if (type === 'vmdk') {
-          vhdStream = await vmdkToVhd(
-            part,
-            vmdkData.grainLogicalAddressList,
-            vmdkData.grainFileOffsetList
-          )
+          vhdStream = await vmdkToVhd(part, vmdkData.grainLogicalAddressList, vmdkData.grainFileOffsetList)
           size = vmdkData.capacity
         } else if (type === 'vhd') {
           vhdStream = part
           const footer = await peekFooterFromVhdStream(vhdStream)
           size = footer.currentSize
         } else {
-          throw new Error(
-            `Unknown disk type, expected "vhd" or "vmdk", got ${type}`
-          )
+          throw new Error(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)
         }
         const vdi = await xapi.createVdi({
           name_description: description,

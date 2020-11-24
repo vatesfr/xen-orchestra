@@ -66,9 +66,7 @@ export default class Scheduling {
         app.getAllSchedules(),
       ])
 
-      await db.remove(
-        schedules.filter(_ => !(_.jobId in jobsById)).map(_ => _.id)
-      )
+      await db.remove(schedules.filter(_ => !(_.jobId in jobsById)).map(_ => _.id))
 
       return db.rebuildIndexes()
     })
@@ -96,14 +94,7 @@ export default class Scheduling {
     })
   }
 
-  async createSchedule({
-    cron,
-    enabled,
-    jobId,
-    name = '',
-    timezone,
-    userId,
-  }: $Diff<Schedule, {| id: string |}>) {
+  async createSchedule({ cron, enabled, jobId, name = '', timezone, userId }: $Diff<Schedule, {| id: string |}>) {
     const schedule = (
       await this._db.add({
         cron,
@@ -135,15 +126,7 @@ export default class Scheduling {
     await this._db.remove(id)
   }
 
-  async updateSchedule({
-    cron,
-    enabled,
-    id,
-    jobId,
-    name,
-    timezone,
-    userId,
-  }: $Shape<Schedule>) {
+  async updateSchedule({ cron, enabled, id, jobId, name, timezone, userId }: $Shape<Schedule>) {
     const schedule = await this.getSchedule(id)
     patch(schedule, { cron, enabled, jobId, name, timezone, userId })
 
@@ -158,10 +141,7 @@ export default class Scheduling {
     this._stop(id)
 
     if (schedule.enabled) {
-      this._runs[id] = createSchedule(
-        schedule.cron,
-        schedule.timezone
-      ).startJob(() => {
+      this._runs[id] = createSchedule(schedule.cron, schedule.timezone).startJob(() => {
         ignoreErrors.call(this._app.runJobSequence([schedule.jobId], schedule))
       })
     }

@@ -26,8 +26,7 @@ const diskOptionRenderer = disk => (
 
 const partitionOptionRenderer = partition => (
   <span>
-    {partition.name} {partition.type}{' '}
-    {partition.size && `(${formatSize(+partition.size)})`}
+    {partition.name} {partition.type} {partition.size && `(${formatSize(+partition.size)})`}
   </span>
 )
 
@@ -110,8 +109,7 @@ export default class RestoreFileModalBody extends Component {
   _getSelectableFiles = createSelector(
     () => this.state.files,
     () => this.state.selectedFiles,
-    (available, selected) =>
-      filter(available, file => !includes(selected, file))
+    (available, selected) => filter(available, file => !includes(selected, file))
   )
 
   _onBackupChange = backup => {
@@ -224,10 +222,7 @@ export default class RestoreFileModalBody extends Component {
 
   _unselectFile = file => {
     this.setState({
-      selectedFiles: filter(
-        this.state.selectedFiles,
-        ({ id }) => id !== file.id
-      ),
+      selectedFiles: filter(this.state.selectedFiles, ({ id }) => id !== file.id),
     })
   }
 
@@ -239,9 +234,7 @@ export default class RestoreFileModalBody extends Component {
 
   _selectAllFolderFiles = () => {
     this.setState({
-      selectedFiles: this.state.selectedFiles.concat(
-        filter(this._getSelectableFiles(), 'isFile')
-      ),
+      selectedFiles: this.state.selectedFiles.concat(filter(this._getSelectableFiles(), 'isFile')),
     })
   }
 
@@ -251,10 +244,7 @@ export default class RestoreFileModalBody extends Component {
       const redundantFiles = {}
       forEach(files, file => {
         redundantFiles[file.path] =
-          find(
-            files,
-            f => !f.isFile && f !== file && file.path.startsWith(f.path)
-          ) !== undefined
+          find(files, f => !f.isFile && f !== file && file.path.startsWith(f.path)) !== undefined
       })
       return redundantFiles
     }
@@ -342,11 +332,7 @@ export default class RestoreFileModalBody extends Component {
                       />
                     </Tooltip>
                     <Tooltip content={_('restoreFilesSelectAllFiles')}>
-                      <ActionButton
-                        handler={this._selectAllFolderFiles}
-                        icon='files'
-                        size='small'
-                      />
+                      <ActionButton handler={this._selectAllFolderFiles} icon='files' size='small' />
                     </Tooltip>
                   </ButtonGroup>
                 </span>
@@ -387,21 +373,14 @@ export default class RestoreFileModalBody extends Component {
                   <Col size={10}>
                     <pre
                       style={{
-                        textDecoration:
-                          redundantFiles[file.path] && 'line-through',
+                        textDecoration: redundantFiles[file.path] && 'line-through',
                       }}
                     >
-                      <Icon icon={file.isFile ? 'file' : 'folder'} />{' '}
-                      {file.path}
+                      <Icon icon={file.isFile ? 'file' : 'folder'} /> {file.path}
                     </pre>
                   </Col>
                   <Col size={2} className='text-xs-right'>
-                    <ActionButton
-                      handler={this._unselectFile}
-                      handlerParam={file}
-                      icon='remove'
-                      size='small'
-                    />
+                    <ActionButton handler={this._unselectFile} handlerParam={file} icon='remove' size='small' />
                   </Col>
                 </Row>
               ))}

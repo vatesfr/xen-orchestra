@@ -33,10 +33,7 @@ function checkPermissionOnSrs(vm, permission = 'operate') {
     if (vbd.is_cd_drive || !vdiId) {
       return
     }
-    return permissions.push([
-      this.getObject(vdiId, ['VDI', 'VDI-snapshot']).$SR,
-      permission,
-    ])
+    return permissions.push([this.getObject(vdiId, ['VDI', 'VDI-snapshot']).$SR, permission])
   })
 
   return this.checkPermissions(this.session.get('user_id'), permissions)
@@ -56,9 +53,7 @@ export const create = defer(async function ($defer, params) {
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
   if (resourceSet === undefined) {
-    await this.checkPermissions(this.user.id, [
-      [template.$pool, 'administrate'],
-    ])
+    await this.checkPermissions(this.user.id, [[template.$pool, 'administrate']])
   }
 
   params.template = template._xapiId
@@ -151,9 +146,7 @@ export const create = defer(async function ($defer, params) {
     checkLimits = async limits2 => {
       const _limits = assignWith({}, limits, limits2, (l1 = 0, l2) => l1 + l2)
       await this.allocateLimitsInResourceSet(_limits, resourceSet)
-      $defer.onFailure(() =>
-        this.releaseLimitsInResourceSet(_limits, resourceSet)
-      )
+      $defer.onFailure(() => this.releaseLimitsInResourceSet(_limits, resourceSet))
     }
   }
 
@@ -166,9 +159,7 @@ export const create = defer(async function ($defer, params) {
     await Promise.all([
       params.share
         ? Promise.all(
-            map((await this.getResourceSet(resourceSet)).subjects, subjectId =>
-              this.addAcl(subjectId, vm.id, 'admin')
-            )
+            map((await this.getResourceSet(resourceSet)).subjects, subjectId => this.addAcl(subjectId, vm.id, 'admin'))
           )
         : this.addAcl(user.id, vm.id, 'admin'),
       xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet),
@@ -177,10 +168,7 @@ export const create = defer(async function ($defer, params) {
 
   for (const vif of xapiVm.$VIFs) {
     xapi.xo.addObject(vif)
-    await this.allocIpAddresses(
-      vif.$id,
-      concat(vif.ipv4_allowed, vif.ipv6_allowed)
-    ).catch(() => xapi.deleteVif(vif))
+    await this.allocIpAddresses(vif.$id, concat(vif.ipv4_allowed, vif.ipv6_allowed)).catch(() => xapi.deleteVif(vif))
   }
 
   if (params.bootAfterCreate) {
@@ -364,9 +352,7 @@ const delete_ = defer(async function (
     return Promise.all(
       mapFilter(acls, acl => {
         if (acl.object === vm.id) {
-          return ignoreErrors.call(
-            this.removeAcl(acl.subject, acl.object, acl.action)
-          )
+          return ignoreErrors.call(this.removeAcl(acl.subject, acl.object, acl.action))
         }
       })
     )
@@ -376,13 +362,7 @@ const delete_ = defer(async function (
   await Promise.all(
     map(vm.VIFs, vifId => {
       const vif = xapi.getObject(vifId)
-      return ignoreErrors.call(
-        this.allocIpAddresses(
-          vifId,
-          null,
-          concat(vif.ipv4_allowed, vif.ipv6_allowed)
-        )
-      )
+      return ignoreErrors.call(this.allocIpAddresses(vifId, null, concat(vif.ipv4_allowed, vif.ipv6_allowed)))
     })
   )
 
@@ -393,9 +373,7 @@ const delete_ = defer(async function (
     (resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')) != null
   ) {
     await this.setVmResourceSet(vm._xapiId, null)::ignoreErrors()
-    $defer.onFailure(() =>
-      this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors()
-    )
+    $defer.onFailure(() => this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors())
   }
 
   await asyncMap(vm.snapshots, async id => {
@@ -406,12 +384,7 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.deleteVm(
-    vm._xapiId,
-    deleteDisks,
-    force,
-    forceDeleteDefaultTemplate
-  )
+  return xapi.deleteVm(vm._xapiId, deleteDisks, force, forceDeleteDefaultTemplate)
 })
 
 delete_.params = {
@@ -473,15 +446,7 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function migrate({
-  vm,
-  host,
-  sr,
-  mapVdisSrs,
-  mapVifsNetworks,
-  migrationNetwork,
-  force,
-}) {
+export async function migrate({ vm, host, sr, mapVdisSrs, mapVifsNetworks, migrationNetwork, force }) {
   let mapVdisSrsXapi, mapVifsNetworksXapi
   const permissions = []
 
@@ -498,10 +463,7 @@ export async function migrate({
     mapVifsNetworksXapi = {}
     forEach(mapVifsNetworks, (networkId, vifId) => {
       const vifXapiId = this.getObject(vifId, 'VIF')._xapiId
-      mapVifsNetworksXapi[vifXapiId] = this.getObject(
-        networkId,
-        'network'
-      )._xapiId
+      mapVifsNetworksXapi[vifXapiId] = this.getObject(networkId, 'network')._xapiId
       return permissions.push([networkId, 'administrate'])
     })
   }
@@ -511,8 +473,7 @@ export async function migrate({
   await this.getXapi(vm)
     .migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
       sr: sr && this.getObject(sr, 'SR')._xapiId,
-      migrationNetworkId:
-        migrationNetwork != null ? migrationNetwork._xapiId : undefined,
+      migrationNetworkId: migrationNetwork != null ? migrationNetwork._xapiId : undefined,
       mapVifsNetworks: mapVifsNetworksXapi,
       mapVdisSrs: mapVdisSrsXapi,
       force,
@@ -583,9 +544,7 @@ export const set = defer(async function ($defer, params) {
     if (resourceSet) {
       try {
         await this.allocateLimitsInResourceSet(limits, resourceSet)
-        $defer.onFailure(() =>
-          this.releaseLimitsInResourceSet(limits, resourceSet)
-        )
+        $defer.onFailure(() => this.releaseLimitsInResourceSet(limits, resourceSet))
         return
       } catch (error) {
         // if the resource set no longer exist, behave as if the VM is free
@@ -698,10 +657,7 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export const clone = defer(async function (
-  $defer,
-  { vm, name, full_copy: fullCopy }
-) {
+export const clone = defer(async function ($defer, { vm, name, full_copy: fullCopy }) {
   await checkPermissionOnSrs.call(this, vm)
   const xapi = this.getXapi(vm)
 
@@ -717,11 +673,7 @@ export const clone = defer(async function (
   }
 
   if (vm.resourceSet !== undefined) {
-    await this.allocateLimitsInResourceSet(
-      await this.computeVmResourcesUsage(vm),
-      vm.resourceSet,
-      isAdmin
-    )
+    await this.allocateLimitsInResourceSet(await this.computeVmResourcesUsage(vm), vm.resourceSet, isAdmin)
   }
 
   return cloneId
@@ -803,12 +755,7 @@ export { convertToTemplate as convert }
 
 export const snapshot = defer(async function (
   $defer,
-  {
-    vm,
-    name = `${vm.name_label}_${new Date().toISOString()}`,
-    saveMemory = false,
-    description,
-  }
+  { vm, name = `${vm.name_label}_${new Date().toISOString()}`, saveMemory = false, description }
 ) {
   const { user } = this
   let resourceSet
@@ -831,14 +778,8 @@ export const snapshot = defer(async function (
   if (vm.resourceSet !== undefined) {
     // Compute the resource usage of the VM as if it was used by the snapshot
     const usage = await this.computeVmSnapshotResourcesUsage(vm)
-    await this.allocateLimitsInResourceSet(
-      usage,
-      vm.resourceSet,
-      user.permission === 'admin'
-    )
-    $defer.onFailure(() =>
-      this.releaseLimitsInResourceSet(usage, vm.resourceSet)
-    )
+    await this.allocateLimitsInResourceSet(usage, vm.resourceSet, user.permission === 'admin')
+    $defer.onFailure(() => this.releaseLimitsInResourceSet(usage, vm.resourceSet))
   }
 
   const xapi = this.getXapi(vm)
@@ -870,13 +811,7 @@ snapshot.resolve = {
 
 // -------------------------------------------------------------------
 
-export function rollingDeltaBackup({
-  vm,
-  remote,
-  tag,
-  depth,
-  retention = depth,
-}) {
+export function rollingDeltaBackup({ vm, remote, tag, depth, retention = depth }) {
   return this.rollingDeltaVmBackup({
     vm,
     remoteId: remote,
@@ -999,8 +934,7 @@ export function importBackup({ remote, file, sr }) {
 }
 
 importBackup.permission = 'admin'
-importBackup.description =
-  'Imports a VM into host, from a file found in the chosen remote'
+importBackup.description = 'Imports a VM into host, from a file found in the chosen remote'
 importBackup.params = {
   remote: { type: 'string' },
   file: { type: 'string' },
@@ -1015,14 +949,7 @@ importBackup.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export function rollingBackup({
-  vm,
-  remoteId,
-  tag,
-  depth,
-  retention = depth,
-  compress,
-}) {
+export function rollingBackup({ vm, remoteId, tag, depth, retention = depth, compress }) {
   return this.rollingBackupVm({
     vm,
     remoteId,
@@ -1053,24 +980,14 @@ rollingBackup.description =
 
 // -------------------------------------------------------------------
 
-export function rollingDrCopy({
-  vm,
-  pool,
-  sr,
-  tag,
-  depth,
-  retention = depth,
-  deleteOldBackupsFirst,
-}) {
+export function rollingDrCopy({ vm, pool, sr, tag, depth, retention = depth, deleteOldBackupsFirst }) {
   if (sr === undefined) {
     if (pool === undefined) {
       throw invalidParameters('either pool or sr param should be specified')
     }
 
     if (vm.$pool === pool.id) {
-      throw forbiddenOperation(
-        'Disaster Recovery attempts to copy on the same pool'
-      )
+      throw forbiddenOperation('Disaster Recovery attempts to copy on the same pool')
     }
 
     sr = this.getObject(pool.default_SR, 'SR')
@@ -1141,10 +1058,7 @@ export async function stop({ vm, force }) {
     await xapi.shutdownVm(vm._xapiRef)
   } catch (error) {
     const { code } = error
-    if (
-      code === 'VM_MISSING_PV_DRIVERS' ||
-      code === 'VM_LACKS_FEATURE_SHUTDOWN'
-    ) {
+    if (code === 'VM_MISSING_PV_DRIVERS' || code === 'VM_LACKS_FEATURE_SHUTDOWN') {
       throw invalidParameters('clean shutdown requires PV drivers')
     }
 
@@ -1206,82 +1120,46 @@ resume.resolve = {
 // -------------------------------------------------------------------
 
 export const revert = defer(async function ($defer, { snapshot }) {
-  await this.checkPermissions(this.user.id, [
-    [snapshot.$snapshot_of, 'operate'],
-  ])
+  await this.checkPermissions(this.user.id, [[snapshot.$snapshot_of, 'operate']])
   const vm = this.getObject(snapshot.$snapshot_of)
   const { resourceSet } = vm
   if (resourceSet !== undefined) {
     const vmUsage = await this.computeVmResourcesUsage(vm)
     await this.releaseLimitsInResourceSet(vmUsage, resourceSet)
-    $defer.onFailure(() =>
-      this.allocateLimitsInResourceSet(vmUsage, resourceSet, true)
-    )
+    $defer.onFailure(() => this.allocateLimitsInResourceSet(vmUsage, resourceSet, true))
 
     // Deallocate IP addresses
     const vmIpsByVif = {}
     vm.VIFs.forEach(vifId => {
       const vif = this.getObject(vifId)
-      vmIpsByVif[vifId] = [
-        ...vif.allowedIpv4Addresses,
-        ...vif.allowedIpv6Addresses,
-      ]
+      vmIpsByVif[vifId] = [...vif.allowedIpv4Addresses, ...vif.allowedIpv6Addresses]
     })
-    await Promise.all(
-      Object.entries(vmIpsByVif).map(([vifId, ips]) =>
-        this.allocIpAddresses(vifId, null, ips)
-      )
-    )
+    await Promise.all(Object.entries(vmIpsByVif).map(([vifId, ips]) => this.allocIpAddresses(vifId, null, ips)))
     $defer.onFailure(() =>
-      Promise.all(
-        Object.entries(vmIpsByVif).map(([vifId, ips]) =>
-          this.allocIpAddresses(vifId, ips)
-        )
-      )
+      Promise.all(Object.entries(vmIpsByVif).map(([vifId, ips]) => this.allocIpAddresses(vifId, ips)))
     )
 
     // Compute the resource usage of the snapshot that's being reverted as if it
     // was used by the VM
     const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
-    await this.allocateLimitsInResourceSet(
-      snapshotUsage,
-      resourceSet,
-      this.user.permission === 'admin'
-    )
-    $defer.onFailure(() =>
-      this.releaseLimitsInResourceSet(snapshotUsage, resourceSet)
-    )
+    await this.allocateLimitsInResourceSet(snapshotUsage, resourceSet, this.user.permission === 'admin')
+    $defer.onFailure(() => this.releaseLimitsInResourceSet(snapshotUsage, resourceSet))
 
     // Reallocate the snapshot's IP addresses
     const snapshotIpsByVif = {}
     snapshot.VIFs.forEach(vifId => {
       const vif = this.getObject(vifId)
-      snapshotIpsByVif[vifId] = [
-        ...vif.allowedIpv4Addresses,
-        ...vif.allowedIpv6Addresses,
-      ]
+      snapshotIpsByVif[vifId] = [...vif.allowedIpv4Addresses, ...vif.allowedIpv6Addresses]
     })
-    await Promise.all(
-      Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
-        this.allocIpAddresses(vifId, ips)
-      )
-    )
+    await Promise.all(Object.entries(snapshotIpsByVif).map(([vifId, ips]) => this.allocIpAddresses(vifId, ips)))
     $defer.onFailure(() =>
-      Promise.all(
-        Object.entries(snapshotIpsByVif).map(([vifId, ips]) =>
-          this.allocIpAddresses(vifId, null, ips)
-        )
-      )
+      Promise.all(Object.entries(snapshotIpsByVif).map(([vifId, ips]) => this.allocIpAddresses(vifId, null, ips)))
     )
   }
   await this.getXapi(snapshot).revertVm(snapshot._xapiId)
 
   // Reverting a snapshot must not set the VM back to the old resource set
-  await this.getXapi(vm).xo.setData(
-    vm._xapiId,
-    'resourceSet',
-    resourceSet === undefined ? null : resourceSet
-  )
+  await this.getXapi(vm).xo.setData(vm._xapiId, 'resourceSet', resourceSet === undefined ? null : resourceSet)
 })
 
 revert.params = {
@@ -1302,11 +1180,7 @@ async function handleExport(req, res, { xapi, id, compress }) {
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'
 
-  res.writeHead(
-    stream.statusCode,
-    stream.statusMessage != null ? stream.statusMessage : '',
-    stream.headers
-  )
+  res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
   stream.pipe(res)
 }
 
@@ -1324,11 +1198,7 @@ async function export_({ vm, compress }) {
 
   return {
     $getFrom: await this.registerHttpRequest(handleExport, data, {
-      suffix:
-        '/' +
-        encodeURIComponent(
-          `${safeDateFormat(new Date())} - ${vm.name_label}.xva`
-        ),
+      suffix: '/' + encodeURIComponent(`${safeDateFormat(new Date())} - ${vm.name_label}.xva`),
     }),
   }
 }
@@ -1481,19 +1351,10 @@ attachDisk.resolve = {
 // -------------------------------------------------------------------
 
 // TODO: implement resource sets
-export async function createInterface({
-  vm,
-  network,
-  position,
-  mac,
-  allowedIpv4Addresses,
-  allowedIpv6Addresses,
-}) {
+export async function createInterface({ vm, network, position, mac, allowedIpv4Addresses, allowedIpv6Addresses }) {
   const { resourceSet } = vm
   if (resourceSet != null) {
-    await this.checkResourceSetConstraints(resourceSet, this.user.id, [
-      network.id,
-    ])
+    await this.checkResourceSetConstraints(resourceSet, this.user.id, [network.id])
   } else {
     await this.checkPermissions(this.user.id, [[network.id, 'view']])
   }
@@ -1645,25 +1506,14 @@ getCloudInitConfig.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createCloudInitConfigDrive({
-  config,
-  coreos,
-  networkConfig,
-  sr,
-  vm,
-}) {
+export async function createCloudInitConfigDrive({ config, coreos, networkConfig, sr, vm }) {
   const xapi = this.getXapi(vm)
   if (coreos) {
     // CoreOS is a special CloudConfig drive created by XS plugin
     await xapi.createCoreOsCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
   } else {
     // use generic Cloud Init drive
-    await xapi.createCloudInitConfigDrive(
-      vm._xapiId,
-      sr._xapiId,
-      config,
-      networkConfig
-    )
+    await xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config, networkConfig)
   }
 }
 
@@ -1686,11 +1536,7 @@ createCloudInitConfigDrive.resolve = {
 
 export async function createVgpu({ vm, gpuGroup, vgpuType }) {
   // TODO: properly handle device. Can a VM have 2 vGPUS?
-  await this.getXapi(vm).createVgpu(
-    vm._xapiId,
-    gpuGroup._xapiId,
-    vgpuType._xapiId
-  )
+  await this.getXapi(vm).createVgpu(vm._xapiId, gpuGroup._xapiId, vgpuType._xapiId)
 }
 
 createVgpu.params = {

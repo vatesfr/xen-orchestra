@@ -16,9 +16,7 @@ export default class Pools {
       const source = _xo.getObject(sourceId)
       const sourceHost = _xo.getObject(source.master)
       if (sourceHost.productBrand !== targetHost.productBrand) {
-        throw new Error(
-          `a ${sourceHost.productBrand} pool cannot be merged into a ${targetHost.productBrand} pool`
-        )
+        throw new Error(`a ${sourceHost.productBrand} pool cannot be merged into a ${targetHost.productBrand} pool`)
       }
       if (sourceHost.version !== targetHost.version) {
         throw new Error('The hosts are not compatible')
@@ -29,13 +27,7 @@ export default class Pools {
 
     // Find missing patches on the target.
     const targetRequiredPatches = uniq(
-      flatten(
-        await Promise.all(
-          sources.map(({ master }) =>
-            _xo.getPatchesDifference(master, target.master)
-          )
-        )
-      )
+      flatten(await Promise.all(sources.map(({ master }) => _xo.getPatchesDifference(master, target.master))))
     )
 
     // Find missing patches on the sources.
@@ -44,9 +36,7 @@ export default class Pools {
     )
     const sourceRequiredPatches = {}
     for (const sourceId of sourceIds) {
-      const _sourcePatches = sourcePatches[sourceId].map(
-        patchId => _xo.getObject(patchId).name
-      )
+      const _sourcePatches = sourcePatches[sourceId].map(patchId => _xo.getObject(patchId).name)
       const requiredPatches = difference(allRequiredPatches, _sourcePatches)
       if (requiredPatches.length > 0) {
         sourceRequiredPatches[sourceId] = requiredPatches
@@ -63,14 +53,9 @@ export default class Pools {
       const targetXapi = _xo.getXapi(target)
       for (const sourceId of sourceIds) {
         const sourceXapi = (sourceXapis[sourceId] = _xo.getXapi(sourceId))
-        findPatchesPromises.push(
-          sourceXapi.findPatches(sourceRequiredPatches[sourceId] ?? [])
-        )
+        findPatchesPromises.push(sourceXapi.findPatches(sourceRequiredPatches[sourceId] ?? []))
       }
-      const patchesName = await Promise.all([
-        targetXapi.findPatches(targetRequiredPatches),
-        ...findPatchesPromises,
-      ])
+      const patchesName = await Promise.all([targetXapi.findPatches(targetRequiredPatches), ...findPatchesPromises])
 
       // Install patches in parallel.
       const installPatchesPromises = []

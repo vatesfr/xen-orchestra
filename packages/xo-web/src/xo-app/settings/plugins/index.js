@@ -39,10 +39,7 @@ class Plugin extends Component {
     this.testFormId = `form-test-${props.id}`
   }
 
-  _getUiSchema = createSelector(
-    () => this.props.configurationSchema,
-    generateUiSchema
-  )
+  _getUiSchema = createSelector(() => this.props.configurationSchema, generateUiSchema)
 
   _updateExpanded = () => {
     this.setState({
@@ -57,9 +54,7 @@ class Plugin extends Component {
 
     this._updateAutoload = true
 
-    const method = event.target.checked
-      ? enablePluginAutoload
-      : disablePluginAutoload
+    const method = event.target.checked ? enablePluginAutoload : disablePluginAutoload
     method(this.props.id)::pFinally(() => {
       this._updateAutoload = false
     })
@@ -129,11 +124,7 @@ class Plugin extends Component {
         <Row>
           <Col mediumSize={8}>
             <h5 className='form-inline clearfix'>
-              <ActionToggle
-                disabled={loaded && props.unloadable === false}
-                handler={this._updateLoad}
-                value={loaded}
-              />
+              <ActionToggle disabled={loaded && props.unloadable === false} handler={this._updateLoad} value={loaded} />
               <span className='text-primary'>{` ${props.name} `}</span>
               <span>{`(v${props.version}) `}</span>
               {description !== undefined && description !== '' && (
@@ -141,12 +132,7 @@ class Plugin extends Component {
               )}
               <div className='checkbox small'>
                 <label className='text-muted'>
-                  {_('autoloadPlugin')}{' '}
-                  <input
-                    type='checkbox'
-                    checked={props.autoload}
-                    onChange={this._setAutoload}
-                  />
+                  {_('autoloadPlugin')} <input type='checkbox' checked={props.autoload} onChange={this._setAutoload} />
                 </label>
               </div>
             </h5>
@@ -168,11 +154,7 @@ class Plugin extends Component {
                   <p>{_('pluginConfigurationChoosePreset')}</p>
                 </span>
                 <div className='input-group'>
-                  <select
-                    className='form-control'
-                    disabled={!editedConfig}
-                    ref='selectPredefinedConfiguration'
-                  >
+                  <select className='form-control' disabled={!editedConfig} ref='selectPredefinedConfiguration'>
                     {map(configurationPresets, (_, name) => (
                       <option key={name} value={name}>
                         {name}
@@ -180,11 +162,7 @@ class Plugin extends Component {
                     ))}
                   </select>
                   <span className='input-group-btn'>
-                    <Button
-                      btnStyle='primary'
-                      disabled={!editedConfig}
-                      onClick={this._applyPredefinedConfiguration}
-                    >
+                    <Button btnStyle='primary' disabled={!editedConfig} onClick={this._applyPredefinedConfiguration}>
                       {_('applyPluginPreset')}
                     </Button>
                   </span>
@@ -288,8 +266,7 @@ export default decorate([
           },
         }
       ) => s,
-      filteredPlugins: ({ predicate }, { plugins }) =>
-        predicate === undefined ? plugins : plugins.filter(predicate),
+      filteredPlugins: ({ predicate }, { plugins }) => (predicate === undefined ? plugins : plugins.filter(predicate)),
       predicate: ({ search }) => {
         if (search.trim() === '') {
           return
@@ -313,11 +290,7 @@ export default decorate([
     ) : (
       <div>
         <p>
-          <input
-            className='form-control'
-            onChange={effects.onSearchChange}
-            value={state.search}
-          />
+          <input className='form-control' onChange={effects.onSearchChange} value={state.search} />
         </p>
         <span>
           {_('homeDisplayedItems', {

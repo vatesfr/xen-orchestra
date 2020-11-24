@@ -51,12 +51,7 @@ export default class TabLogs extends Component {
                 <Button size='large' onClick={this._nextPage}>
                   &gt;
                 </Button>
-                <TabButton
-                  btnStyle='danger'
-                  handler={this._deleteAllLogs}
-                  icon='delete'
-                  labelId='logRemoveAll'
-                />
+                <TabButton btnStyle='danger' handler={this._deleteAllLogs} icon='delete' labelId='logRemoveAll' />
               </Col>
             </Row>
             <Row>
@@ -87,12 +82,7 @@ export default class TabLogs extends Component {
                         <td>{log.name}</td>
                         <td>{log.body}</td>
                         <td>
-                          <ActionRow
-                            btnStyle='danger'
-                            handler={deleteMessage}
-                            handlerParam={log}
-                            icon='delete'
-                          />
+                          <ActionRow btnStyle='danger' handler={deleteMessage} handlerParam={log} icon='delete' />
                         </td>
                       </tr>
                     ))}

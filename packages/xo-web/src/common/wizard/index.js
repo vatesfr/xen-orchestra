@@ -9,17 +9,11 @@ import Icon from '../icon'
 import styles from './index.css'
 
 const Wizard = ({ children }) => {
-  const allDone = every(
-    React.Children.toArray(children),
-    child => child.props.done || child.props.summary
-  )
+  const allDone = every(React.Children.toArray(children), child => child.props.done || child.props.summary)
 
   return (
     <ul className={styles.wizard}>
-      {React.Children.map(
-        children,
-        (child, key) => child && cloneElement(child, { allDone, key })
-      )}
+      {React.Children.map(children, (child, key) => child && cloneElement(child, { allDone, key }))}
     </ul>
   )
 }
@@ -42,21 +36,12 @@ export class Section extends Component {
     const { allDone, icon, title, done, children } = this.props
     return (
       <li
-        className={classNames(
-          styles.section,
-          styles.bullet,
-          (done || allDone) && styles.success
-        )}
+        className={classNames(styles.section, styles.bullet, (done || allDone) && styles.success)}
         onFocus={this._onFocus}
         onBlur={this._onBlur}
       >
         {/* TITLE */}
-        <div
-          className={classNames(
-            styles.title,
-            (done || allDone) && styles.success
-          )}
-        >
+        <div className={classNames(styles.title, (done || allDone) && styles.success)}>
           <h4>
             {icon && <Icon icon={icon} />} {_(title)}
           </h4>

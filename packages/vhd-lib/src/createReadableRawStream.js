@@ -6,21 +6,13 @@ import { createFooter } from './_createFooterHeader'
 export default asyncIteratorToStream(async function* (size, blockParser) {
   const geometry = computeGeometryForSize(size)
   const actualSize = geometry.actualSize
-  const footer = createFooter(
-    actualSize,
-    Math.floor(Date.now() / 1000),
-    geometry
-  )
+  const footer = createFooter(actualSize, Math.floor(Date.now() / 1000), geometry)
   let position = 0
 
   function* filePadding(paddingLength) {
     if (paddingLength > 0) {
       const chunkSize = 1024 * 1024 // 1Mo
-      for (
-        let paddingPosition = 0;
-        paddingPosition + chunkSize < paddingLength;
-        paddingPosition += chunkSize
-      ) {
+      for (let paddingPosition = 0; paddingPosition + chunkSize < paddingLength; paddingPosition += chunkSize) {
         yield Buffer.alloc(chunkSize)
       }
       yield Buffer.alloc(paddingLength % chunkSize)

@@ -1,20 +1,8 @@
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
-import {
-  extractProperty,
-  forEach,
-  isEmpty,
-  mapFilter,
-  mapToArray,
-  parseXml,
-} from './utils'
-import {
-  getVmDomainType,
-  isHostRunning,
-  isVmRunning,
-  parseDateTime,
-} from './xapi'
+import { extractProperty, forEach, isEmpty, mapFilter, mapToArray, parseXml } from './utils'
+import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
 import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
@@ -101,13 +89,10 @@ const getVmGuestToolsProps = vm => {
 
   return {
     // Linux VMs don't have the flag "feature-static-ip-setting"
-    managementAgentDetected:
-      hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
+    managementAgentDetected: hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
     pvDriversDetected,
     pvDriversVersion: hasPvVersion ? `${major}.${minor}` : undefined,
-    pvDriversUpToDate: pvDriversDetected
-      ? guestMetrics.PV_drivers_up_to_date
-      : undefined,
+    pvDriversUpToDate: pvDriversDetected ? guestMetrics.PV_drivers_up_to_date : undefined,
   }
 }
 
@@ -124,9 +109,7 @@ const TRANSFORMS = {
       tags: obj.tags,
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
-      xosanPackInstallationTime: toTimestamp(
-        obj.other_config.xosan_pack_installation_time
-      ),
+      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
@@ -151,11 +134,7 @@ const TRANSFORMS = {
   host(obj, dependents) {
     dependents[obj.metrics] = obj.$id
 
-    const {
-      $metrics: metrics,
-      other_config: otherConfig,
-      software_version: softwareVersion,
-    } = obj
+    const { $metrics: metrics, other_config: otherConfig, software_version: softwareVersion } = obj
 
     const isRunning = isHostRunning(obj)
     let supplementalPacks
@@ -193,10 +172,7 @@ const TRANSFORMS = {
       bios_strings: obj.bios_strings,
       build: softwareVersion.build_number,
       chipset_info: {
-        iommu:
-          obj.chipset_info.iommu !== undefined
-            ? obj.chipset_info.iommu === 'true'
-            : undefined,
+        iommu: obj.chipset_info.iommu !== undefined ? obj.chipset_info.iommu === 'true' : undefined,
       },
       enabled: Boolean(obj.enabled),
       cpus: {
@@ -254,15 +230,12 @@ const TRANSFORMS = {
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
       rebootRequired:
         softwareVersion.product_brand === 'XCP-ng'
-          ? toTimestamp(otherConfig.boot_time) <
-            +otherConfig.rpm_patch_installation_time
+          ? toTimestamp(otherConfig.boot_time) < +otherConfig.rpm_patch_installation_time
           : !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
       version: softwareVersion.product_version,
       productBrand: softwareVersion.product_brand,
-      hvmCapable: obj.capabilities.some(capability =>
-        capability.startsWith('hvm')
-      ),
+      hvmCapable: obj.capabilities.some(capability => capability.startsWith('hvm')),
 
       // Only exists on XCP-ng/CH >= 8.2
       certificates: obj.$certificates?.map(({ fingerprint, not_after }) => ({
@@ -296,11 +269,7 @@ const TRANSFORMS = {
     dependents[obj.guest_metrics] = obj.$id
     dependents[obj.metrics] = obj.$id
 
-    const {
-      $guest_metrics: guestMetrics,
-      $metrics: metrics,
-      other_config: otherConfig,
-    } = obj
+    const { $guest_metrics: guestMetrics, $metrics: metrics, other_config: otherConfig } = obj
 
     const domainType = getVmDomainType(obj)
     const isHvm = domainType === 'hvm'
@@ -371,10 +340,7 @@ const TRANSFORMS = {
       boot: obj.HVM_boot_params,
       CPUs: {
         max: +obj.VCPUs_max,
-        number:
-          isRunning && metrics && xenTools
-            ? +metrics.VCPUs_number
-            : +obj.VCPUs_at_startup,
+        number: isRunning && metrics && xenTools ? +metrics.VCPUs_number : +obj.VCPUs_at_startup,
       },
       current_operations: currentOperations,
       docker: (function () {
@@ -389,11 +355,7 @@ const TRANSFORMS = {
           }
         }
 
-        const {
-          docker_ps: process,
-          docker_info: info,
-          docker_version: version,
-        } = otherConfig
+        const { docker_ps: process, docker_info: info, docker_version: version } = otherConfig
 
         return {
           enabled: true,
@@ -552,10 +514,7 @@ const TRANSFORMS = {
       other_config: obj.other_config,
       sm_config: obj.sm_config,
 
-      $container:
-        obj.shared || !obj.$PBDs[0]
-          ? link(obj, 'pool')
-          : link(obj.$PBDs[0], 'host'),
+      $container: obj.shared || !obj.$PBDs[0] ? link(obj, 'pool') : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
     }
   },
@@ -569,10 +528,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: sensitiveValues.replace(
-        obj.device_config,
-        '* obfuscated *'
-      ),
+      device_config: sensitiveValues.replace(obj.device_config, '* obfuscated *'),
       otherConfig: obj.other_config,
     }
   },

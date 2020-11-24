@@ -306,16 +306,7 @@ async function listCommands(args) {
       }
 
       const type = info.type
-      str.push(
-        name,
-        '=<',
-        type == null
-          ? 'unknown type'
-          : Array.isArray(type)
-          ? type.join('|')
-          : type,
-        '>'
-      )
+      str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
 
       if (info.optional) {
         str.push(']')
@@ -356,9 +347,7 @@ exports.listObjects = listObjects
 
 function ensurePathParam(method, value) {
   if (typeof value !== 'string') {
-    const error =
-      method +
-      ' requires the @ parameter to be a path (e.g. @=/tmp/config.json)'
+    const error = method + ' requires the @ parameter to be a path (e.g. @=/tmp/config.json)'
     throw error
   }
 }

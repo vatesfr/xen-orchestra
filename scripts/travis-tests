@@ -2,21 +2,12 @@
 
 const { execFileSync, spawnSync } = require('child_process')
 
-const run = (command, args) =>
-  spawnSync(command, args, { stdio: 'inherit' }).status
+const run = (command, args) => spawnSync(command, args, { stdio: 'inherit' }).status
 
 const getFiles = () =>
-  execFileSync(
-    'git',
-    [
-      'diff-index',
-      '--diff-filter=AM',
-      '--ignore-submodules',
-      '--name-only',
-      'master',
-    ],
-    { encoding: 'utf8' }
-  )
+  execFileSync('git', ['diff-index', '--diff-filter=AM', '--ignore-submodules', '--name-only', 'master'], {
+    encoding: 'utf8',
+  })
     .split('\n')
     .filter(_ => _ !== '')
 
@@ -26,17 +17,8 @@ const getFiles = () =>
 if (process.env.TRAVIS_PULL_REQUEST !== 'false') {
   const files = getFiles().filter(_ => _.endsWith('.js'))
   if (files.length !== 0) {
-    process.exit(
-      run(
-        './node_modules/.bin/jest',
-        ['--findRelatedTests', '--passWithNoTests'].concat(files)
-      )
-    )
+    process.exit(run('./node_modules/.bin/jest', ['--findRelatedTests', '--passWithNoTests'].concat(files)))
   }
 } else {
-  process.exit(
-    run('yarn', ['test-lint']) +
-      run('yarn', ['test-unit']) +
-      run('yarn', ['test-integration'])
-  )
+  process.exit(run('yarn', ['test-lint']) + run('yarn', ['test-unit']) + run('yarn', ['test-integration']))
 }

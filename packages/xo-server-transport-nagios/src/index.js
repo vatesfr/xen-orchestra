@@ -101,8 +101,7 @@ class XoServerNagios {
 
   test() {
     return this._sendPassiveCheck({
-      message:
-        'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
+      message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
       status: OK,
     })
   }

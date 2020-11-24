@@ -32,11 +32,7 @@ export default {
     buffer.fill(0, offset + OFFSETS.pad, offset + OFFSETS.pad + PAD2_LENGTH)
     buffer.write(name, offset + OFFSETS.name, of.maxPortNameLen)
     if (name.length < of.maxPortNameLen) {
-      buffer.fill(
-        0,
-        offset + OFFSETS.name + name.length,
-        offset + OFFSETS.name + of.maxPortNameLen
-      )
+      buffer.fill(0, offset + OFFSETS.name + name.length, offset + OFFSETS.name + of.maxPortNameLen)
     }
 
     buffer.writeUInt32BE(config, offset + OFFSETS.config)
@@ -56,11 +52,7 @@ export default {
     body.port_no = buffer.readUInt32BE(offset + OFFSETS.portNo)
     body.hw_addr = addressParser.ethToString(buffer, offset + OFFSETS.hwAddr)
 
-    const name = buffer.toString(
-      'utf8',
-      offset + OFFSETS.name,
-      offset + OFFSETS.name + of.maxPortNameLen
-    )
+    const name = buffer.toString('utf8', offset + OFFSETS.name, offset + OFFSETS.name + of.maxPortNameLen)
     body.name = name.substr(0, name.indexOf('\0')) // Remove useless 0 if name.length < of.maxPortNameLen
 
     body.config = buffer.readUInt32BE(offset + OFFSETS.config)
