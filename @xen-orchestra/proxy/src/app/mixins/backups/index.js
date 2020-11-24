@@ -250,9 +250,8 @@ export default class Backups {
           return Promise.all(disposers.map(d => d(path).catch(noop)))
         })
       )
-      app.hooks.removeListener('stop', dispose)
     }
-    app.hooks.on('stop', dispose)
+    app.hooks.once('stop', dispose)
 
     app.api.addMethods({
       backup: {
