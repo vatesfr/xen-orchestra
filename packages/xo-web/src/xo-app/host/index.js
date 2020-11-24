@@ -183,20 +183,12 @@ export default class Host extends Component {
       return
     }
 
-    if (!this.unsubscribeHostMissingPatches) {
-      this._subscribePatches(hostNext)
-    }
-
     if (!isRunning(hostCur) && isRunning(hostNext)) {
       this.loop(hostNext)
     } else if (isRunning(hostCur) && !isRunning(hostNext)) {
       this.setState({
         statsOverview: undefined,
       })
-    }
-
-    if (!isRunning(hostNext)) {
-      this.unsubscribeHostMissingPatches()
     }
   }
 
