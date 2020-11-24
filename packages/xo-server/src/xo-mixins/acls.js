@@ -49,9 +49,7 @@ export default class {
       push.apply(acls, entries)
     })(acls.push)
 
-    await Promise.all(
-      map(subjects, subject => this.getAclsForSubject(subject).then(pushAcls))
-    )
+    await Promise.all(map(subjects, subject => this.getAclsForSubject(subject).then(pushAcls)))
 
     return acls
   }
@@ -80,15 +78,11 @@ export default class {
   }
 
   async getPermissionsForUser(userId) {
-    const [acls, permissionsByRole] = await Promise.all([
-      this._getAclsForUser(userId),
-      this._getPermissionsByRole(),
-    ])
+    const [acls, permissionsByRole] = await Promise.all([this._getAclsForUser(userId), this._getPermissionsByRole()])
 
     const permissions = { __proto__: null }
     for (const { action, object: objectId } of acls) {
-      const current =
-        permissions[objectId] || (permissions[objectId] = { __proto__: null })
+      const current = permissions[objectId] || (permissions[objectId] = { __proto__: null })
 
       const permissionsForRole = permissionsByRole[action]
       if (permissionsForRole) {
@@ -110,11 +104,7 @@ export default class {
       return true
     }
 
-    aclResolver.assert(
-      await this.getPermissionsForUser(userId),
-      id => this._xo.getObject(id),
-      permissions
-    )
+    aclResolver.assert(await this.getPermissionsForUser(userId), id => this._xo.getObject(id), permissions)
   }
 
   async hasPermissions(userId, permissions) {
@@ -125,11 +115,7 @@ export default class {
       return true
     }
 
-    return aclResolver.check(
-      await this.getPermissionsForUser(userId),
-      id => this._xo.getObject(id),
-      permissions
-    )
+    return aclResolver.check(await this.getPermissionsForUser(userId), id => this._xo.getObject(id), permissions)
   }
 
   async removeAclsForObject(objectId) {

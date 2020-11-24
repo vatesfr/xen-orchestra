@@ -20,10 +20,10 @@ export default asyncIteratorToStream(async function* (handler, path) {
       yield vhd.containsBlock(i) ? (await vhd._readBlock(i)).data : emptyBlock
     }
     if (nLeftoverBytes !== 0) {
-      yield (vhd.containsBlock(nFullBlocks)
-        ? (await vhd._readBlock(nFullBlocks)).data
-        : emptyBlock
-      ).slice(0, nLeftoverBytes)
+      yield (vhd.containsBlock(nFullBlocks) ? (await vhd._readBlock(nFullBlocks)).data : emptyBlock).slice(
+        0,
+        nLeftoverBytes
+      )
     }
   } finally {
     await handler.closeFile(fd)

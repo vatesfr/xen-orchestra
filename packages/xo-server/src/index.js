@@ -92,10 +92,7 @@ async function loadConfiguration() {
 const LOCAL_CONFIG_FILE = `${xdg.config}/${APP_NAME}/config.z-auto.json`
 async function updateLocalConfig(diff) {
   // TODO lock file
-  const localConfig = await readFile(LOCAL_CONFIG_FILE).then(
-    JSON.parse,
-    () => ({})
-  )
+  const localConfig = await readFile(LOCAL_CONFIG_FILE).then(JSON.parse, () => ({}))
   merge(localConfig, diff)
   await outputFile(LOCAL_CONFIG_FILE, JSON.stringify(localConfig), {
     mode: 0o600,
@@ -147,16 +144,9 @@ async function createExpressApp(config) {
   return app
 }
 
-async function setUpPassport(
-  express,
-  xo,
-  { authentication: authCfg, http: { cookies: cookieCfg } }
-) {
+async function setUpPassport(express, xo, { authentication: authCfg, http: { cookies: cookieCfg } }) {
   const strategies = { __proto__: null }
-  xo.registerPassportStrategy = (
-    strategy,
-    { label = strategy.label, name = strategy.name } = {}
-  ) => {
+  xo.registerPassportStrategy = (strategy, { label = strategy.label, name = strategy.name } = {}) => {
     passport.use(name, strategy)
     if (name !== 'local') {
       strategies[name] = label ?? name
@@ -169,9 +159,7 @@ async function setUpPassport(
   }
 
   // Registers the sign in form.
-  const signInPage = compilePug(
-    await readFile(joinPath(__dirname, '..', 'signin.pug'))
-  )
+  const signInPage = compilePug(await readFile(joinPath(__dirname, '..', 'signin.pug')))
   express.get('/signin', (req, res, next) => {
     res.send(
       signInPage({
@@ -215,10 +203,7 @@ async function setUpPassport(
     }
   })
 
-  const PERMANENT_VALIDITY = ifDef(
-    authCfg.permanentCookieValidity,
-    parseDuration
-  )
+  const PERMANENT_VALIDITY = ifDef(authCfg.permanentCookieValidity, parseDuration)
   const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
   const setToken = async (req, res, next) => {
     const { user, isPersistent } = req.session
@@ -262,8 +247,7 @@ async function setUpPassport(
         }
 
         req.session.user = { id: user.id, preferences: user.preferences }
-        req.session.isPersistent =
-          matches[1] === 'local' && req.body['remember-me'] === 'on'
+        req.session.isPersistent = matches[1] === 'local' && req.body['remember-me'] === 'on'
 
         if (user.preferences?.otp !== undefined) {
           return res.redirect(303, '/signin-otp')
@@ -283,20 +267,14 @@ async function setUpPassport(
 
   // Install the local strategy.
   xo.registerPassportStrategy(
-    new LocalStrategy(
-      { passReqToCallback: true },
-      async (req, username, password, done) => {
-        try {
-          const { user } = await xo.authenticateUser(
-            { username, password },
-            { ip: req.ip }
-          )
-          done(null, user)
-        } catch (error) {
-          done(null, false, { message: error.message })
-        }
+    new LocalStrategy({ passReqToCallback: true }, async (req, username, password, done) => {
+      try {
+        const { user } = await xo.authenticateUser({ username, password }, { ip: req.ip })
+        done(null, user)
+      } catch (error) {
+        done(null, false, { message: error.message })
       }
-    )
+    })
   )
 }
 
@@ -313,12 +291,7 @@ async function registerPlugin(pluginPath, pluginName) {
   })()
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
-  let {
-    default: factory = plugin,
-    configurationSchema,
-    configurationPresets,
-    testSchema,
-  } = plugin
+  let { default: factory = plugin, configurationSchema, configurationPresets, testSchema } = plugin
   let instance
 
   const config = this._config
@@ -333,12 +306,7 @@ async function registerPlugin(pluginPath, pluginName) {
           },
         })
       : factory
-  ;[
-    instance,
-    configurationSchema,
-    configurationPresets,
-    testSchema,
-  ] = await Promise.all([
+  ;[instance, configurationSchema, configurationPresets, testSchema] = await Promise.all([
     handleFactory(factory),
     handleFactory(configurationSchema),
     handleFactory(configurationPresets),
@@ -383,11 +351,7 @@ async function registerPluginsInPath(path, prefix) {
   await Promise.all(
     files.map(name => {
       if (name.startsWith(prefix)) {
-        return registerPluginWrapper.call(
-          this,
-          `${path}/${name}`,
-          name.slice(prefix.length)
-        )
+        return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
       }
     })
   )
@@ -423,10 +387,7 @@ async function makeWebServerListen(
   try {
     if (cert && key) {
       try {
-        ;[opts.cert, opts.key] = await Promise.all([
-          readFile(cert),
-          readFile(key),
-        ])
+        ;[opts.cert, opts.key] = await Promise.all([readFile(cert), readFile(key)])
         if (opts.key.includes('ENCRYPTED')) {
           opts.passphrase = await new Promise(resolve => {
             // eslint-disable-next-line no-console
@@ -473,11 +434,7 @@ async function makeWebServerListen(
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
 
-  await Promise.all(
-    map(listen, opts =>
-      makeWebServerListen(webServer, { ...listenOptions, ...opts })
-    )
-  )
+  await Promise.all(map(listen, opts => makeWebServerListen(webServer, { ...listenOptions, ...opts })))
 
   return webServer
 }
@@ -519,8 +476,7 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.web(req, res, {
-          agent:
-            new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
+          agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
           target: target + url.slice(prefix.length),
         })
 
@@ -545,8 +501,7 @@ const setUpProxies = (express, opts, xo) => {
         const target = opts[prefix]
 
         proxy.ws(req, socket, head, {
-          agent:
-            new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
+          agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
           target: target + url.slice(prefix.length),
         })
 
@@ -631,9 +586,7 @@ const setUpApi = (webServer, xo, config) => {
   }
   webServer.on('upgrade', (req, socket, head) => {
     if (req.url === '/api/') {
-      webSocketServer.handleUpgrade(req, socket, head, ws =>
-        onConnection(ws, req)
-      )
+      webSocketServer.handleUpgrade(req, socket, head, ws => onConnection(ws, req))
     }
   })
 }

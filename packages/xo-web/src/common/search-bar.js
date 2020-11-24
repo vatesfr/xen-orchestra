@@ -61,12 +61,7 @@ export default class SearchBar extends Component {
             </Dropdown>
           </span>
         )}
-        <DebouncedInput
-          className='form-control'
-          onChange={this._onChange}
-          ref='filter'
-          value={props.value}
-        />
+        <DebouncedInput className='form-control' onChange={this._onChange} ref='filter' value={props.value} />
         <Tooltip content={_('filterSyntaxLinkTooltip')}>
           <a
             className='input-group-addon'

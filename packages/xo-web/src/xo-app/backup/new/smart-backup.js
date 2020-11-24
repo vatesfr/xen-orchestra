@@ -4,10 +4,7 @@ import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
-import SmartBackupPreview, {
-  constructSmartPattern,
-  destructSmartPattern,
-} from 'smart-backup'
+import SmartBackupPreview, { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import Tooltip from 'tooltip'
 import { connectStore, resolveIds } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
@@ -41,9 +38,7 @@ const SmartBackup = decorate([
           power_state: powerState === 'All' ? undefined : powerState,
         })
       },
-      setPoolPattern: ({ setPattern }, { values, notValues }) => ({
-        pools,
-      }) => {
+      setPoolPattern: ({ setPattern }, { values, notValues }) => ({ pools }) => {
         setPattern({
           $pool: constructSmartPattern(
             {
@@ -64,8 +59,7 @@ const SmartBackup = decorate([
     computed: {
       poolPredicate: (_, { deltaMode, hosts }) => pool =>
         !deltaMode || canDeltaBackup(get(() => hosts[pool.master].version)),
-      pools: (_, { pattern }) =>
-        pattern.$pool !== undefined ? destructSmartPattern(pattern.$pool) : {},
+      pools: (_, { pattern }) => (pattern.$pool !== undefined ? destructSmartPattern(pattern.$pool) : {}),
     },
   }),
   injectState,
@@ -89,22 +83,13 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartResidentOn')}</strong>
         </label>
-        <SelectPool
-          multi
-          onChange={effects.setPoolValues}
-          predicate={state.poolPredicate}
-          value={state.pools.values}
-        />
+        <SelectPool multi onChange={effects.setPoolValues} predicate={state.poolPredicate} value={state.pools.values} />
       </FormGroup>
       <FormGroup>
         <label>
           <strong>{_('editBackupSmartNotResidentOn')}</strong>
         </label>
-        <SelectPool
-          multi
-          onChange={effects.setPoolNotValues}
-          value={state.pools.notValues}
-        />
+        <SelectPool multi onChange={effects.setPoolNotValues} value={state.pools.notValues} />
       </FormGroup>
       <h3>{_('editBackupSmartTags')}</h3>
       <hr />
@@ -112,11 +97,7 @@ const SmartBackup = decorate([
         <label>
           <strong>{_('editBackupSmartTagsTitle')}</strong>
         </label>{' '}
-        <SelectTag
-          multi
-          onChange={effects.setTagValues}
-          value={get(() => state.tags.values)}
-        />
+        <SelectTag multi onChange={effects.setTagValues} value={get(() => state.tags.values)} />
       </FormGroup>
       <FormGroup>
         <label>
@@ -125,11 +106,7 @@ const SmartBackup = decorate([
         <Tooltip content={_('backupReplicatedVmsInfo')}>
           <Icon icon='info' />
         </Tooltip>{' '}
-        <SelectTag
-          multi
-          onChange={effects.setTagNotValues}
-          value={get(() => state.tags.notValues)}
-        />
+        <SelectTag multi onChange={effects.setTagNotValues} value={get(() => state.tags.notValues)} />
       </FormGroup>
       <SmartBackupPreview vms={vms} pattern={state.vmsSmartPattern} />
     </div>

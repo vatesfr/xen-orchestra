@@ -1,11 +1,7 @@
 import createCallback from 'lodash/iteratee'
 import forEach from 'lodash/forEach'
 
-import Collection, {
-  ACTION_ADD,
-  ACTION_UPDATE,
-  ACTION_REMOVE,
-} from './collection'
+import Collection, { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 
 // ===================================================================
 

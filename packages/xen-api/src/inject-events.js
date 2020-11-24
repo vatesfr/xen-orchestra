@@ -20,10 +20,7 @@ async function main([url]) {
   const { pool } = xapi
   // eslint-disable-next-line no-unmodified-loop-condition
   while (loop) {
-    await pool.update_other_config(
-      'xo:injectEvents',
-      Math.random().toString(36).slice(2)
-    )
+    await pool.update_other_config('xo:injectEvents', Math.random().toString(36).slice(2))
     await pDelay(1e2)
   }
 

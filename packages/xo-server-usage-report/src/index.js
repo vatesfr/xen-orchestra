@@ -110,25 +110,16 @@ const normaliseValue = value => (isFinite(value) ? round(value, 2) : '-')
 
 // ===================================================================
 
-Handlebars.registerHelper('compare', function (
-  lvalue,
-  operator,
-  rvalue,
-  options
-) {
+Handlebars.registerHelper('compare', function (lvalue, operator, rvalue, options) {
   if (arguments.length < 3) {
     throw new Error('Handlebars Helper "compare" needs 2 parameters')
   }
 
   if (!compareOperators[operator]) {
-    throw new Error(
-      `Handlebars Helper "compare" doesn't know the operator ${operator}`
-    )
+    throw new Error(`Handlebars Helper "compare" doesn't know the operator ${operator}`)
   }
 
-  return compareOperators[operator](lvalue, rvalue)
-    ? options.fn(this)
-    : options.inverse(this)
+  return compareOperators[operator](lvalue, rvalue) ? options.fn(this) : options.inverse(this)
 })
 
 Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
@@ -137,9 +128,7 @@ Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
   }
 
   if (!mathOperators[operator]) {
-    throw new Error(
-      `Handlebars Helper "math" doesn't know the operator ${operator}`
-    )
+    throw new Error(`Handlebars Helper "math" doesn't know the operator ${operator}`)
   }
 
   return mathOperators[operator](+lvalue, +rvalue)
@@ -196,10 +185,7 @@ Handlebars.registerHelper(
     `)
 )
 
-Handlebars.registerHelper(
-  'getTopIops',
-  props => new Handlebars.SafeString(getTopIops(props))
-)
+Handlebars.registerHelper('getTopIops', props => new Handlebars.SafeString(getTopIops(props)))
 
 // ===================================================================
 
@@ -253,9 +239,7 @@ function computePercentage(curr, prev, options) {
   return zipObject(
     options,
     map(options, opt =>
-      prev[opt] === 0 || prev[opt] === null
-        ? 'NONE'
-        : `${((curr[opt] - prev[opt]) * 100) / prev[opt]}`
+      prev[opt] === 0 || prev[opt] === null ? 'NONE' : `${((curr[opt] - prev[opt]) * 100) / prev[opt]}`
     )
   )
 }
@@ -286,17 +270,15 @@ async function getVmsStats({ runningVms, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
-        const { stats } = await xo
-          .getXapiVmStats(vm, GRANULARITY)
-          .catch(error => {
-            log.warn('Error on fetching VM stats', {
-              error,
-              vmId: vm.id,
-            })
-            return {
-              stats: {},
-            }
+        const { stats } = await xo.getXapiVmStats(vm, GRANULARITY).catch(error => {
+          log.warn('Error on fetching VM stats', {
+            error,
+            vmId: vm.id,
           })
+          return {
+            stats: {},
+          }
+        })
 
         const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
         const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
@@ -324,17 +306,15 @@ async function getHostsStats({ runningHosts, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
-        const { stats } = await xo
-          .getXapiHostStats(host, GRANULARITY)
-          .catch(error => {
-            log.warn('Error on fetching host stats', {
-              error,
-              hostId: host.id,
-            })
-            return {
-              stats: {},
-            }
+        const { stats } = await xo.getXapiHostStats(host, GRANULARITY).catch(error => {
+          log.warn('Error on fetching host stats', {
+            error,
+            hostId: host.id,
           })
+          return {
+            stats: {},
+          }
+        })
 
         return {
           uuid: host.uuid,
@@ -355,34 +335,26 @@ async function getHostsStats({ runningHosts, xo }) {
 async function getSrsStats({ xo, xoObjects }) {
   return orderBy(
     await asyncMap(
-      filter(
-        xoObjects,
-        obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0
-      ),
+      filter(xoObjects, obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0),
       async sr => {
         const totalSpace = sr.size / gibPower
         const usedSpace = sr.physical_usage / gibPower
         let name = sr.name_label
         // [Bug in XO] a SR with not container can be found (SR attached to a PBD with no host attached)
         let container
-        if (
-          !sr.shared &&
-          (container = find(xoObjects, { id: sr.$container })) !== undefined
-        ) {
+        if (!sr.shared && (container = find(xoObjects, { id: sr.$container })) !== undefined) {
           name += ` (${container.name_label})`
         }
 
-        const { stats } = await xo
-          .getXapiSrStats(sr.id, GRANULARITY)
-          .catch(error => {
-            log.warn('Error on fetching SR stats', {
-              error,
-              srId: sr.id,
-            })
-            return {
-              stats: {},
-            }
+        const { stats } = await xo.getXapiSrStats(sr.id, GRANULARITY).catch(error => {
+          log.warn('Error on fetching SR stats', {
+            error,
+            srId: sr.id,
           })
+          return {
+            stats: {},
+          }
+        })
 
         const iopsRead = computeMean(get(stats.iops, 'r'))
         const iopsWrite = computeMean(get(stats.iops, 'w'))
@@ -413,9 +385,7 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
   haltedVms.forEach(vm => {
     const isReplication =
       'start' in vm.blockedOperations &&
-      vm.tags.some(
-        tag => tag === 'Disaster Recovery' || tag === 'Continuous Replication'
-      )
+      vm.tags.some(tag => tag === 'Disaster Recovery' || tag === 'Continuous Replication')
 
     // Exclude replicated VMs because they keep being created/destroyed due to the implementation
     if (!isReplication) {
@@ -427,14 +397,7 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
   })
 
   return Object.assign(
-    computeMeans(vmsStats, [
-      'cpu',
-      'ram',
-      'diskRead',
-      'diskWrite',
-      'netReception',
-      'netTransmission',
-    ]),
+    computeMeans(vmsStats, ['cpu', 'ram', 'diskRead', 'diskWrite', 'netReception', 'netTransmission']),
     {
       number: vmsStats.length + haltedVms.length,
       allVms,
@@ -454,19 +417,10 @@ function computeGlobalHostsStats({ haltedHosts, hostsStats, xo }) {
     }))
   )
 
-  return Object.assign(
-    computeMeans(hostsStats, [
-      'cpu',
-      'ram',
-      'load',
-      'netReception',
-      'netTransmission',
-    ]),
-    {
-      number: allHosts.length,
-      allHosts,
-    }
-  )
+  return Object.assign(computeMeans(hostsStats, ['cpu', 'ram', 'load', 'netReception', 'netTransmission']), {
+    number: allHosts.length,
+    allHosts,
+  })
 }
 
 function getTopVms({ vmsStats, xo }) {
@@ -484,13 +438,7 @@ function getTopVms({ vmsStats, xo }) {
 }
 
 function getTopHosts({ hostsStats, xo }) {
-  return getTop(hostsStats, [
-    'cpu',
-    'ram',
-    'load',
-    'netReception',
-    'netTransmission',
-  ])
+  return getTop(hostsStats, ['cpu', 'ram', 'load', 'netReception', 'netTransmission'])
 }
 
 function getTopSrs(srsStats) {
@@ -504,10 +452,7 @@ async function getHostsMissingPatches({ runningHosts, xo }) {
         .getXapi(host)
         .listMissingPatches(host._xapiId)
         .catch(error => {
-          console.error(
-            '[WARN] error on fetching hosts missing patches:',
-            JSON.stringify(error)
-          )
+          console.error('[WARN] error on fetching hosts missing patches:', JSON.stringify(error))
           return []
         })
 
@@ -568,21 +513,11 @@ async function computeEvolution({ storedStatsPath, ...newStats }) {
 
     const hostsEvolution = {
       number: newStatsHosts.number - oldStatsHosts.number,
-      ...computePercentage(
-        newStatsHosts,
-        oldStatsHosts,
-        resourcesOptions.hosts
-      ),
+      ...computePercentage(newStatsHosts, oldStatsHosts, resourcesOptions.hosts),
     }
 
-    const vmsResourcesEvolution = getDiff(
-      oldStatsVms.allVms,
-      newStatsVms.allVms
-    )
-    const hostsResourcesEvolution = getDiff(
-      oldStatsHosts.allHosts,
-      newStatsHosts.allHosts
-    )
+    const vmsResourcesEvolution = getDiff(oldStatsVms.allVms, newStatsVms.allVms)
+    const hostsResourcesEvolution = getDiff(oldStatsHosts.allHosts, newStatsHosts.allHosts)
 
     const usersEvolution = getDiff(oldStats.users, newStats.users)
 
@@ -590,10 +525,7 @@ async function computeEvolution({ storedStatsPath, ...newStats }) {
     const oldAllResourcesStats = oldStats.allResources
 
     // adding for each resource its evolution
-    if (
-      newAllResourcesStats !== undefined &&
-      oldAllResourcesStats !== undefined
-    ) {
+    if (newAllResourcesStats !== undefined && oldAllResourcesStats !== undefined) {
       forEach(newAllResourcesStats, (resource, key) => {
         const option = resourcesOptions[key]
 
@@ -633,13 +565,7 @@ async function dataBuilder({ currDate, xo, storedStatsPath, all }) {
     power_state: 'Running',
   })
   const haltedHosts = filter(xoObjects, { type: 'host', power_state: 'Halted' })
-  const [
-    users,
-    vmsStats,
-    hostsStats,
-    srsStats,
-    hostsMissingPatches,
-  ] = await Promise.all([
+  const [users, vmsStats, hostsStats, srsStats, hostsMissingPatches] = await Promise.all([
     xo.getAllUsers(),
     getVmsStats({ xo, runningVms }),
     getHostsStats({ xo, runningHosts }),
@@ -647,14 +573,7 @@ async function dataBuilder({ currDate, xo, storedStatsPath, all }) {
     getHostsMissingPatches({ xo, runningHosts }),
   ])
 
-  const [
-    globalVmsStats,
-    globalHostsStats,
-    topVms,
-    topHosts,
-    topSrs,
-    usersEmail,
-  ] = await Promise.all([
+  const [globalVmsStats, globalHostsStats, topVms, topHosts, topSrs, usersEmail] = await Promise.all([
     computeGlobalVmsStats({ xo, vmsStats, haltedVms }),
     computeGlobalHostsStats({ xo, hostsStats, haltedHosts }),
     getTopVms({ xo, vmsStats }),
@@ -782,10 +701,7 @@ class UsageReportPlugin {
     this._dir = getDataDir
     // Defined in configure().
     this._conf = null
-    this._xo.addApiMethod(
-      'plugin.usageReport.send',
-      this._sendReport.bind(this, false)
-    )
+    this._xo.addApiMethod('plugin.usageReport.send', this._sendReport.bind(this, false))
   }
 
   configure(configuration, state) {
@@ -795,16 +711,11 @@ class UsageReportPlugin {
       this._job.stop()
     }
 
-    this._job = createSchedule(
-      CRON_BY_PERIODICITY[configuration.periodicity]
-    ).createJob(async () => {
+    this._job = createSchedule(CRON_BY_PERIODICITY[configuration.periodicity]).createJob(async () => {
       try {
         await this._sendReport(true)
       } catch (error) {
-        console.error(
-          '[WARN] scheduled function:',
-          (error && error.stack) || error
-        )
+        console.error('[WARN] scheduled function:', (error && error.stack) || error)
       }
     })
 
@@ -832,9 +743,7 @@ class UsageReportPlugin {
     const xo = this._xo
     if (xo.sendEmail === undefined) {
       ignoreErrors.call(xo.unloadPlugin('usage-report'))
-      throw new Error(
-        'The plugin usage-report requires the plugin transport-email to be loaded'
-      )
+      throw new Error('The plugin usage-report requires the plugin transport-email to be loaded')
     }
 
     const currDate = new Date().toISOString().slice(0, 10)

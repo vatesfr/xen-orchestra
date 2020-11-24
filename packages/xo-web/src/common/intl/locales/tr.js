@@ -477,8 +477,7 @@ export default {
   sortedTableNoItems: 'Hiç öğe bulunamadı',
 
   // Original text: "{nFiltered, number} of {nTotal, number} items"
-  sortedTableNumberOfFilteredItems:
-    '{nTotal, number} öğeden {nFiltered, number}',
+  sortedTableNumberOfFilteredItems: '{nTotal, number} öğeden {nFiltered, number}',
 
   // Original text: "{nTotal, number} items"
   sortedTableNumberOfItems: '{nTotal, number} öğe',
@@ -796,12 +795,10 @@ export default {
   cancelJob: undefined,
 
   // Original text: "Are you sure you want to run {backupType} {id} ({tag})?"
-  runJobConfirm:
-    '{backupType} {id} ({tag} işini çalıştırmak istediğinize emin misiniz?',
+  runJobConfirm: '{backupType} {id} ({tag} işini çalıştırmak istediğinize emin misiniz?',
 
   // Original text: "One shot running started. See overview for logs."
-  runJobVerbose:
-    'Tek seferlik çalıştırma başladı. Günlükler için genel görünüme bakın',
+  runJobVerbose: 'Tek seferlik çalıştırma başladı. Günlükler için genel görünüme bakın',
 
   // Original text: "Edit job"
   jobEdit: 'İşi düzenle',
@@ -879,8 +876,7 @@ export default {
   deleteBackupSchedule: 'Yedekleme işini kaldır',
 
   // Original text: "Are you sure you want to delete this backup job?"
-  deleteBackupScheduleQuestion:
-    'Bu yedekleme işini silmek istediğinize emin misiniz?',
+  deleteBackupScheduleQuestion: 'Bu yedekleme işini silmek istediğinize emin misiniz?',
 
   // Original text: "Delete selected jobs"
   deleteSelectedJobs: 'Seçilen işleri sil',
@@ -893,8 +889,7 @@ export default {
     '{name} ({id}) zamanlamasını düzenliyorsunuz. Kaydetme işlemi önceki zamanlamanın üzerine yazılacak.',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage:
-    '{name} ({id}) işini düzenliyorsunuz. Kaydetme işlemi önceki işin üzerine yazılacak',
+  jobEditMessage: '{name} ({id}) işini düzenliyorsunuz. Kaydetme işlemi önceki işin üzerine yazılacak',
 
   // Original text: "Edit schedule"
   scheduleEdit: 'Zamanlamayı düzenle',
@@ -966,8 +961,7 @@ export default {
   jobActionPlaceHolder: 'Bir xo-server API komutu seç',
 
   // Original text: "Timeout (number of seconds after which a VM is considered failed)"
-  jobTimeoutPlaceHolder:
-    "Zaman aşımı (Bir VM'nin değerlendirilmesinin başarısız olduğu saniye sayısı)",
+  jobTimeoutPlaceHolder: "Zaman aşımı (Bir VM'nin değerlendirilmesinin başarısız olduğu saniye sayısı)",
 
   // Original text: "Schedules"
   jobSchedules: 'Zamanlamalar',
@@ -1070,8 +1064,7 @@ export default {
   offlineSnapshotInfo: undefined,
 
   // Original text: "Delta Backup and DR require Entreprise plan"
-  dbAndDrRequireEnterprisePlan:
-    'Fark Yedekleme ve DR Enterprise planı gerektirir',
+  dbAndDrRequireEnterprisePlan: 'Fark Yedekleme ve DR Enterprise planı gerektirir',
 
   // Original text: "CR requires Premium plan"
   crRequiresPremiumPlan: 'CR Premium planı gerektirir',
@@ -1093,8 +1086,7 @@ export default {
     "Uyarı: yerel hedef XOA'nın disk alını ile sınırlıdır. Sadece ileri seviye kullanıcılar içindir.",
 
   // Original text: "Warning: this feature works only with XenServer 6.5 or newer."
-  backupVersionWarning:
-    'Uyarı: Bu özellik yalnızca Xenserver 6.5 ve daha yeni sürümlerinde çalışır.',
+  backupVersionWarning: 'Uyarı: Bu özellik yalnızca Xenserver 6.5 ve daha yeni sürümlerinde çalışır.',
 
   // Original text: "VMs"
   editBackupVmsTitle: "VM'ler",
@@ -1203,8 +1195,7 @@ export default {
   confirmDeleteBackupJobsTitle: 'Yedekleme işini(lerini) sil',
 
   // Original text: "Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?"
-  confirmDeleteBackupJobsBody:
-    '{nJobs, number} yedekleme işini(lerini) silmek istediğinize emin misiniz?',
+  confirmDeleteBackupJobsBody: '{nJobs, number} yedekleme işini(lerini) silmek istediğinize emin misiniz?',
 
   // Original text: "Name"
   remoteName: 'Ad',
@@ -1498,8 +1489,7 @@ export default {
   purgePluginConfiguration: 'Eklenti yapılandırmasını temizle',
 
   // Original text: "Are you sure you want to purge this configuration ?"
-  purgePluginConfigurationQuestion:
-    'Bu yapılandırmayı temizlemek istediğinize emin misiniz?',
+  purgePluginConfigurationQuestion: 'Bu yapılandırmayı temizlemek istediğinize emin misiniz?',
 
   // Original text: "Edit"
   editPluginConfiguration: 'Düzenle',
@@ -1787,12 +1777,10 @@ export default {
   addHostLabel: 'Sunucu ekle',
 
   // Original text: "This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long."
-  hostNeedsPatchUpdate:
-    'Havuza eklemeden önce bu sunucuya {patches, number} yama yüklenmeli. Bu işlem uzun sürebilir.',
+  hostNeedsPatchUpdate: 'Havuza eklemeden önce bu sunucuya {patches, number} yama yüklenmeli. Bu işlem uzun sürebilir.',
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
-  hostNeedsPatchUpdateNoInstall:
-    'Bu sunucu havuza eklenemez çünkü bazı yamaları eksik',
+  hostNeedsPatchUpdateNoInstall: 'Bu sunucu havuza eklenemez çünkü bazı yamaları eksik',
 
   // Original text: "Adding host failed"
   addHostErrorTitle: 'Sunucu ekleme başarısız',
@@ -1835,8 +1823,7 @@ export default {
   failHostBulkRestartTitle: 'Sunucu yeniden başlatılırken hata',
 
   // Original text: "{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted."
-  failHostBulkRestartMessage:
-    '{failedHosts, number}/{totalHosts, number} sunucu yeniden başlatılamadı.',
+  failHostBulkRestartMessage: '{failedHosts, number}/{totalHosts, number} sunucu yeniden başlatılamadı.',
 
   // Original text: "Reboot to apply updates"
   rebootUpdateHostLabel: 'Güncellemeleri uygulamak için yeniden başlat',
@@ -1857,8 +1844,7 @@ export default {
   hostTitleRamUsage: 'Sunucu RAM kullanımı:',
 
   // Original text: "RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)"
-  memoryHostState:
-    'RAM: {memoryTotal} alanda {memoryUsed} alan kullanılıyor ({memoryFree} boş)',
+  memoryHostState: 'RAM: {memoryTotal} alanda {memoryUsed} alan kullanılıyor ({memoryFree} boş)',
 
   // Original text: "Hardware"
   hardwareHostSettingsLabel: 'Donanım',
@@ -2417,12 +2403,10 @@ export default {
   deleteSelectedVdi: "Seçilen VDI'ı sil",
 
   // Original text: "Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)"
-  useQuotaWarning:
-    'Disk oluşturma, kaynak setindeki disk kotasını kullanacak {resourceSet} (kalan {spaceLeft})',
+  useQuotaWarning: 'Disk oluşturma, kaynak setindeki disk kotasını kullanacak {resourceSet} (kalan {spaceLeft})',
 
   // Original text: "Not enough space in resource set {resourceSet} ({spaceLeft} left)"
-  notEnoughSpaceInResourceSet:
-    'Kaynak setinde yeterli disk alanı yok {resourceSet} (kalan {spaceLeft})',
+  notEnoughSpaceInResourceSet: 'Kaynak setinde yeterli disk alanı yok {resourceSet} (kalan {spaceLeft})',
 
   // Original text: "New device"
   vifCreateDeviceButton: 'Yeni cihaz',
@@ -2500,8 +2484,7 @@ export default {
   snapshotCreateButton: 'Yeni snapshot',
 
   // Original text: "Just click on the snapshot button to create one!"
-  tipCreateSnapshotLabel:
-    'Bir tane oluşturmak için snapshot butonuna tıklayın!',
+  tipCreateSnapshotLabel: 'Bir tane oluşturmak için snapshot butonuna tıklayın!',
 
   // Original text: "Revert VM to this snapshot"
   revertSnapshot: "VM'i bu snapshot'a döndür",
@@ -2657,8 +2640,7 @@ export default {
   vmChooseCoresPerSocket: 'Varsayılan davranış',
 
   // Original text: "{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket"
-  vmSocketsWithCoresPerSocket:
-    '{nSockets, number} soket ve her sokette  {nCores, number} çekirdek',
+  vmSocketsWithCoresPerSocket: '{nSockets, number} soket ve her sokette  {nCores, number} çekirdek',
 
   // Original text: "None"
   vmCoresPerSocketNone: 'Yok',
@@ -2667,8 +2649,7 @@ export default {
   vmCoresPerSocketIncorrectValue: 'Soket başına geçersiz çekirdek sayısı',
 
   // Original text: "Please change the selected value to fix it."
-  vmCoresPerSocketIncorrectValueSolution:
-    'Düzeltmek için lütfen seçili değeri değiştirin',
+  vmCoresPerSocketIncorrectValueSolution: 'Düzeltmek için lütfen seçili değeri değiştirin',
 
   // Original text: 'disabled'
   vmHaDisabled: undefined,
@@ -2734,8 +2715,7 @@ export default {
   deleteDefaultTemplatesTitle: 'Varsayılan kalıbı(ları) sil',
 
   // Original text: "You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?"
-  deleteDefaultTemplatesMessage:
-    'Varsayılan kalıbı(ları) silmeye çalışıyorsunuz. Devam etmek istiyor musunuz?',
+  deleteDefaultTemplatesMessage: 'Varsayılan kalıbı(ları) silmeye çalışıyorsunuz. Devam etmek istiyor musunuz?',
 
   // Original text: "Pool{pools, plural, one {} other {s}}"
   poolPanel: 'Havuz(lar)',
@@ -2856,12 +2836,10 @@ export default {
   dashboardReport: 'Rapor',
 
   // Original text: "This will send a usage report to your configured emails."
-  dashboardSendReportMessage:
-    'Bu işlem ayarlanmış eposta adreslerine kullanım raporu gönderecek.',
+  dashboardSendReportMessage: 'Bu işlem ayarlanmış eposta adreslerine kullanım raporu gönderecek.',
 
   // Original text: "The usage report and transport email plugins need to be loaded!"
-  dashboardSendReportInfo:
-    "'usage report' ve 'transport email' eklentilerinin yüklenmesi gerekli!",
+  dashboardSendReportInfo: "'usage report' ve 'transport email' eklentilerinin yüklenmesi gerekli!",
 
   // Original text: "{value} {date, date, medium}"
   weekHeatmapData: '{value} {date, date, medium}',
@@ -3086,8 +3064,7 @@ export default {
   newVmCreateVms: 'VM oluştur',
 
   // Original text: "Are you sure you want to create {nbVms, number} VMs?"
-  newVmCreateVmsConfirm:
-    '{nbVms, number} adet VM oluşturmak istediğinize emin misiniz?',
+  newVmCreateVmsConfirm: '{nbVms, number} adet VM oluşturmak istediğinize emin misiniz?',
 
   // Original text: "Multiple VMs:"
   newVmMultipleVms: 'Çoklu VM',
@@ -3171,8 +3148,7 @@ export default {
   deleteResourceSetWarning: 'Kaynak setini sil',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion:
-    'Bu kaynak setini silmek istediğinize emin misiniz?',
+  deleteResourceSetQuestion: 'Bu kaynak setini silmek istediğinize emin misiniz?',
 
   // Original text: "Missing objects:"
   resourceSetMissingObjects: 'Eksik nesneler:',
@@ -3199,8 +3175,7 @@ export default {
   noHostsAvailable: 'Uygun sunucu yok',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription:
-    'Bu kaynak setinden oluşturulan sanal makineler aşağıdaki sunucularda çalışacak.',
+  availableHostsDescription: 'Bu kaynak setinden oluşturulan sanal makineler aşağıdaki sunucularda çalışacak.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'En fazla CPU',
@@ -3369,8 +3344,7 @@ export default {
   restoreBackupsInfo: "Geri getirme seçenekleri için bir VM'e tıklayın",
 
   // Original text: "Only the files of Delta Backup which are not on a SMB remote can be restored"
-  restoreDeltaBackupsInfo:
-    'Yalnızca SMB hedefinde olmayan fark yedeklerinden dosya alınabilir',
+  restoreDeltaBackupsInfo: 'Yalnızca SMB hedefinde olmayan fark yedeklerinden dosya alınabilir',
 
   // Original text: "Enabled"
   remoteEnabled: 'Etkin',
@@ -3442,8 +3416,7 @@ export default {
   restoreVmBackupsBulkTitle: '{nVms, number} VM geri yükle',
 
   // Original text: "Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup."
-  restoreVmBackupsBulkMessage:
-    '{oldestOrLatest} yedekten {nVms, number} VM geri yükle',
+  restoreVmBackupsBulkMessage: '{oldestOrLatest} yedekten {nVms, number} VM geri yükle',
 
   // Original text: "oldest"
   oldest: 'En eski',
@@ -3476,8 +3449,7 @@ export default {
   deleteVmBackupsBulkTitle: 'Yedekleri sil',
 
   // Original text: "Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?"
-  deleteVmBackupsBulkMessage:
-    "{nVms, number} VM'e ait tüm yedekleri silmek istediğinize emin misiniz?",
+  deleteVmBackupsBulkMessage: "{nVms, number} VM'e ait tüm yedekleri silmek istediğinize emin misiniz?",
 
   // Original text: "delete {nBackups} backup{nBackups, plural, one {} other {s}}"
   deleteVmBackupsBulkConfirmText: 'Yedeği(leri) sil',
@@ -3531,15 +3503,13 @@ export default {
   emergencyShutdownHostModalTitle: 'Acil durum sunucu kapatması',
 
   // Original text: "Are you sure you want to shutdown {host}?"
-  emergencyShutdownHostModalMessage:
-    'Kapatmak istediğinize emin misiniz {host}',
+  emergencyShutdownHostModalMessage: 'Kapatmak istediğinize emin misiniz {host}',
 
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
   emergencyShutdownHostsModalTitle: 'Acil durum sunucu kapatması',
 
   // Original text: "Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
-  emergencyShutdownHostsModalMessage:
-    '{nHosts, number} Sunucu kapatmak istediğinize emin misiniz?',
+  emergencyShutdownHostsModalMessage: '{nHosts, number} Sunucu kapatmak istediğinize emin misiniz?',
 
   // Original text: "Shutdown host"
   stopHostModalTitle: 'Sunucuyu Kapat',
@@ -3552,29 +3522,25 @@ export default {
   addHostModalTitle: 'Sunucu ekle',
 
   // Original text: "Are you sure you want to add {host} to {pool}?"
-  addHostModalMessage:
-    '{host} sunucusunu {pool} havuzuna eklemek istediğinize emin misiniz?',
+  addHostModalMessage: '{host} sunucusunu {pool} havuzuna eklemek istediğinize emin misiniz?',
 
   // Original text: "Restart host"
   restartHostModalTitle: 'Sunucuyu yenden başlat',
 
   // Original text: "This will restart your host. Do you want to continue?"
-  restartHostModalMessage:
-    'Bu işlem sunucunuzu yeniden başlatacak. Devam etmek istiyor musunuz?',
+  restartHostModalMessage: 'Bu işlem sunucunuzu yeniden başlatacak. Devam etmek istiyor musunuz?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
   restartHostsAgentsModalTitle: 'Sunucu ajanını yeniden başlat',
 
   // Original text: "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
-  restartHostsAgentsModalMessage:
-    '{nHosts, number} sunucunun ajanlarını yeniden başlatmak istediğinize emin misiniz?',
+  restartHostsAgentsModalMessage: '{nHosts, number} sunucunun ajanlarını yeniden başlatmak istediğinize emin misiniz?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}}"
   restartHostsModalTitle: 'Sunucuyu(ları) yeniden başlat',
 
   // Original text: "Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
-  restartHostsModalMessage:
-    '{nHosts, number} sunucuyu yeniden başlatmak istediğinize emin misiniz?',
+  restartHostsModalMessage: '{nHosts, number} sunucuyu yeniden başlatmak istediğinize emin misiniz?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'VM(leri) başlat',
@@ -3608,8 +3574,7 @@ export default {
   stopHostsModalTitle: 'Sunucuyu(ları) durdur',
 
   // Original text: "Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?"
-  stopHostsModalMessage:
-    '{nHosts, number} sunucuyu durdurmak istediğinize emin misiniz?',
+  stopHostsModalMessage: '{nHosts, number} sunucuyu durdurmak istediğinize emin misiniz?',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
   stopVmsModalTitle: 'VM(leri) durdur',
@@ -3633,29 +3598,25 @@ export default {
   suspendVmsModalTitle: 'VM(leri) duraklat',
 
   // Original text: "Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?"
-  suspendVmsModalMessage:
-    '{vms, number} VM duraklatmak istediğinize emin misiniz?',
+  suspendVmsModalMessage: '{vms, number} VM duraklatmak istediğinize emin misiniz?',
 
   // Original text: "Restart VM{vms, plural, one {} other {s}}"
   restartVmsModalTitle: 'VM(leri) yeniden başlat',
 
   // Original text: "Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage:
-    '{vms, number} VM yeniden başlatmak istediğinize emin misiniz?',
+  restartVmsModalMessage: '{vms, number} VM yeniden başlatmak istediğinize emin misiniz?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
   snapshotVmsModalTitle: 'Snapshot VM',
 
   // Original text: "Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage:
-    '{vms, number} VM için snapshot almak istediğinize emin misiniz?',
+  snapshotVmsModalMessage: '{vms, number} VM için snapshot almak istediğinize emin misiniz?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
   deleteVmsModalTitle: 'VM sil',
 
   // Original text: "Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
-  deleteVmsModalMessage:
-    '{vms, number} VM silmek istediğinize emin misiniz? BÜTÜN VM DİSKLERİ KALDIRILACAK',
+  deleteVmsModalMessage: '{vms, number} VM silmek istediğinize emin misiniz? BÜTÜN VM DİSKLERİ KALDIRILACAK',
 
   // Original text: "delete {nVms, number} vm{nVms, plural, one {} other {s}}"
   deleteVmsConfirmText: '{nVms, number} vm sil',
@@ -3664,15 +3625,13 @@ export default {
   deleteVmModalTitle: 'VM sil',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage:
-    "Bu VM'i silmek istediğinize emin misiniz? BÜTÜN VM DİSKLERİ KALDIRILACAK",
+  deleteVmModalMessage: "Bu VM'i silmek istediğinize emin misiniz? BÜTÜN VM DİSKLERİ KALDIRILACAK",
 
   // Original text: "Blocked operation"
   deleteVmBlockedModalTitle: 'Engellenmiş işlem',
 
   // Original text: "Removing the VM is a blocked operation. Would you like to remove it anyway?"
-  deleteVmBlockedModalMessage:
-    'VM kaldırmak engellenmiş bir işlemdir. Yine de kaldırmak istiyor musunuz?',
+  deleteVmBlockedModalMessage: 'VM kaldırmak engellenmiş bir işlemdir. Yine de kaldırmak istiyor musunuz?',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'VM taşı',
@@ -3735,22 +3694,19 @@ export default {
   deleteJobsModalTitle: 'İşi(leri) sil',
 
   // Original text: "Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?"
-  deleteJobsModalMessage:
-    '{nJobs, number} işi silmek istediğinize emin misiniz?',
+  deleteJobsModalMessage: '{nJobs, number} işi silmek istediğinize emin misiniz?',
 
   // Original text: "Delete VBD{nVbds, plural, one {} other {s}}"
   deleteVbdsModalTitle: 'VBD sil',
 
   // Original text: "Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?"
-  deleteVbdsModalMessage:
-    '{nVbds, number} VBD silmek istediğinize emin misiniz?',
+  deleteVbdsModalMessage: '{nVbds, number} VBD silmek istediğinize emin misiniz?',
 
   // Original text: "Delete VDI"
   deleteVdiModalTitle: 'VDI sil',
 
   // Original text: "Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST"
-  deleteVdiModalMessage:
-    'Bu diski silmek istediğinize emin misiniz? DİSK ÜZERİNDEKİ TÜM VERİ KAYBOLACAK',
+  deleteVdiModalMessage: 'Bu diski silmek istediğinize emin misiniz? DİSK ÜZERİNDEKİ TÜM VERİ KAYBOLACAK',
 
   // Original text: "Delete VDI{nVdis, plural, one {} other {s}}"
   deleteVdisModalTitle: 'VDI sil',
@@ -3763,15 +3719,13 @@ export default {
   deleteSchedulesModalTitle: 'Zamanlama sil',
 
   // Original text: "Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?"
-  deleteSchedulesModalMessage:
-    '{nSchedules, number} zamanlama silmek istediğinize emin misiniz?',
+  deleteSchedulesModalMessage: '{nSchedules, number} zamanlama silmek istediğinize emin misiniz?',
 
   // Original text: "Delete remote{nRemotes, plural, one {} other {s}}"
   deleteRemotesModalTitle: 'Hedef sil',
 
   // Original text: "Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?"
-  deleteRemotesModalMessage:
-    '{nRemotes, number} yedekleme hedefi silmek istediğinze emin misiniz?',
+  deleteRemotesModalMessage: '{nRemotes, number} yedekleme hedefi silmek istediğinze emin misiniz?',
 
   // Original text: "Revert your VM"
   revertVmModalTitle: "VM'i eski haline döndür",
@@ -3780,15 +3734,13 @@ export default {
   shareVmInResourceSetModalTitle: "VM'i paylaş",
 
   // Original text: "This VM will be shared with all the members of the self-service {self}. Are you sure?"
-  shareVmInResourceSetModalMessage:
-    "Bu VM self-servis'in tüm üyeleri ile paylaşılacak. Emin misiniz?",
+  shareVmInResourceSetModalMessage: "Bu VM self-servis'in tüm üyeleri ile paylaşılacak. Emin misiniz?",
 
   // Original text: "Delete VIF{nVifs, plural, one {} other {s}}"
   deleteVifsModalTitle: 'VIF sil',
 
   // Original text: "Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?"
-  deleteVifsModalMessage:
-    '{nVifs, number} VIF silmek istediğinize emin misiniz?',
+  deleteVifsModalMessage: '{nVifs, number} VIF silmek istediğinize emin misiniz?',
 
   // Original text: "Delete snapshot"
   deleteSnapshotModalTitle: 'Snapshot sil',
@@ -3800,19 +3752,16 @@ export default {
   deleteSnapshotsModalTitle: 'Snapshot sil',
 
   // Original text: "Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?"
-  deleteSnapshotsModalMessage:
-    '{nVms, number} snapshot silmek istediğinize emin misiniz?',
+  deleteSnapshotsModalMessage: '{nVms, number} snapshot silmek istediğinize emin misiniz?',
 
   // Original text: "Disconnect VBD{nVbds, plural, one {} other {s}}"
   disconnectVbdsModalTitle: 'VBD bağlantısını kes',
 
   // Original text: "Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?"
-  disconnectVbdsModalMessage:
-    '{nVbds, number} VBD bağlantısını kesmek istediğinize emin misiniz',
+  disconnectVbdsModalMessage: '{nVbds, number} VBD bağlantısını kesmek istediğinize emin misiniz',
 
   // Original text: "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible."
-  revertVmModalMessage:
-    "Bu VM'i snapshot'daki haline döndürmek istiyor musunuz? Bu işlem geri alınamaz.",
+  revertVmModalMessage: "Bu VM'i snapshot'daki haline döndürmek istiyor musunuz? Bu işlem geri alınamaz.",
 
   // Original text: "Snapshot before"
   revertVmModalSnapshotBefore: 'Snapshot öncesi',
@@ -3830,15 +3779,13 @@ export default {
   importBackupModalSelectSr: 'Bir hedef SR seçin...',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning:
-    "Bütün yetim VDI snapshot'larını silmek istediğinize emin misiniz?",
+  removeAllOrphanedModalWarning: "Bütün yetim VDI snapshot'larını silmek istediğinize emin misiniz?",
 
   // Original text: "Remove all logs"
   removeAllLogsModalTitle: 'Bütün günlükleri kaldır',
 
   // Original text: "Are you sure you want to remove all logs?"
-  removeAllLogsModalWarning:
-    'Bütün günlükleri kaldırmak istediğinize emin misiniz?',
+  removeAllLogsModalWarning: 'Bütün günlükleri kaldırmak istediğinize emin misiniz?',
 
   // Original text: "This operation is definitive."
   definitiveMessageModal: 'Bu işlem kesindir.',
@@ -3875,15 +3822,13 @@ export default {
   cancelTasksModalTitle: 'Görev iptel et',
 
   // Original text: "Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?"
-  cancelTasksModalMessage:
-    '{nTasks, number} görevi iptal etmek istediğinize emin misiniz?',
+  cancelTasksModalMessage: '{nTasks, number} görevi iptal etmek istediğinize emin misiniz?',
 
   // Original text: "Destroy task{nTasks, plural, one {} other {s}}"
   destroyTasksModalTitle: 'Görev imha et',
 
   // Original text: "Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?"
-  destroyTasksModalMessage:
-    '{nTasks, number} görevi imha etmek istediğinize emin misiniz?',
+  destroyTasksModalMessage: '{nTasks, number} görevi imha etmek istediğinize emin misiniz?',
 
   // Original text: "Label"
   serverLabel: 'Başlık',
@@ -4010,8 +3955,7 @@ export default {
   setPoolMasterModalTitle: 'Yeni bir master tayin et',
 
   // Original text: "This operation may take several minutes. Do you want to continue?"
-  setPoolMasterModalMessage:
-    'Bu işlem birkaç dakika sürebilir. Devam etmek istiyor musunuz?',
+  setPoolMasterModalMessage: 'Bu işlem birkaç dakika sürebilir. Devam etmek istiyor musunuz?',
 
   // Original text: "Create network"
   newNetworkCreate: 'Ağ oluştur',
@@ -4086,8 +4030,7 @@ export default {
   noProductionUse: 'Üretimde kendi risklerinizle kullanın.',
 
   // Original text: "You can download our turnkey appliance at {website}"
-  downloadXoaFromWebsite:
-    'Bizim anahtar teslimi sunucumuzu şuradan indirebilirsiniz {website}',
+  downloadXoaFromWebsite: 'Bizim anahtar teslimi sunucumuzu şuradan indirebilirsiniz {website}',
 
   // Original text: "Bug Tracker"
   bugTracker: 'Hata Takibi',
@@ -4219,8 +4162,7 @@ export default {
   editRegistration: 'Kaydı düzenle',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration:
-    'Lütfen, denemenizin tadını çıkarmak adına kaydolmak için zaman ayırın.',
+  trialRegistration: 'Lütfen, denemenizin tadını çıkarmak adına kaydolmak için zaman ayırın.',
 
   // Original text: "Start trial"
   trialStartButton: 'Denemeyi başlat',
@@ -4230,12 +4172,10 @@ export default {
     'Deneme sürümünü {date, date, medium} tarihine kadar kullanabilirsiniz. Almak için cihazınızı yeni sürüme geçirin.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed:
-    'Denemeniz süreniz sona erdi. Bize ulaşın veya Ücretsiz sürüme geçin.',
+  trialConsumed: 'Denemeniz süreniz sona erdi. Bize ulaşın veya Ücretsiz sürüme geçin.',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked:
-    "Xoa-updater hizmetiniz çalışmıyor gibi görünüyor. XOA'nız bu servise ulaşmadan tamamen çalışamaz.",
+  trialLocked: "Xoa-updater hizmetiniz çalışmıyor gibi görünüyor. XOA'nız bu servise ulaşmadan tamamen çalışamaz.",
 
   // Original text: "No update information available"
   noUpdateInfo: 'Güncelleme bilgisi mevcut değil',
@@ -4273,16 +4213,13 @@ export default {
   disclaimerTitle: 'Kaynak koddan Xen Orchestra',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1:
-    "XO'yu kaynak koddan kullanıyorsunuz! Kişisel/kar amacı gütmeyen kullanım için mükemmeldir.",
+  disclaimerText1: "XO'yu kaynak koddan kullanıyorsunuz! Kişisel/kar amacı gütmeyen kullanım için mükemmeldir.",
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2:
-    'Bir şirket iseniz, bizim hazır uygulamamızı kullanmanız daha iyidir + pro destek dahil:',
+  disclaimerText2: 'Bir şirket iseniz, bizim hazır uygulamamızı kullanmanız daha iyidir + pro destek dahil:',
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3:
-    'Bu sürüm herhangi bir destek veya güncellemeyle birlikte verilmez. Dikkatli kullanın.',
+  disclaimerText3: 'Bu sürüm herhangi bir destek veya güncellemeyle birlikte verilmez. Dikkatli kullanın.',
 
   // Original text: "Connect PIF"
   connectPif: "PIF'e bağlan",
@@ -4381,8 +4318,7 @@ export default {
   sshKeyErrorTitle: 'Geçersiz anahtar',
 
   // Original text: "An SSH key requires both a title and a key."
-  sshKeyErrorMessage:
-    'Bir SSH anahtarı hem bir başlık hem de bir anahtar gerektirir.',
+  sshKeyErrorMessage: 'Bir SSH anahtarı hem bir başlık hem de bir anahtar gerektirir.',
 
   // Original text: "Title"
   title: 'Başlık',
@@ -4394,15 +4330,13 @@ export default {
   deleteSshKeyConfirm: 'SSH anahtarını sil',
 
   // Original text: "Are you sure you want to delete the SSH key {title}?"
-  deleteSshKeyConfirmMessage:
-    'SSH anahtarını silmek istediğinizden emin misiniz {title}?',
+  deleteSshKeyConfirmMessage: 'SSH anahtarını silmek istediğinizden emin misiniz {title}?',
 
   // Original text: "Delete SSH key{nKeys, plural, one {} other {s}}"
   deleteSshKeysConfirm: 'SSH anahtarı sil',
 
   // Original text: "Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?"
-  deleteSshKeysConfirmMessage:
-    '{nKeys, number} SSH anahtarını silmek istediğinize emin misiniz?',
+  deleteSshKeysConfirmMessage: '{nKeys, number} SSH anahtarını silmek istediğinize emin misiniz?',
 
   // Original text: "Others"
   others: 'Diğerleri',
@@ -4450,8 +4384,7 @@ export default {
   logDeleteMultiple: 'Günlük(leri) sil',
 
   // Original text: "Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?"
-  logDeleteMultipleMessage:
-    '{nLogs, number} günlük silmek istediğinize emin misiniz?',
+  logDeleteMultipleMessage: '{nLogs, number} günlük silmek istediğinize emin misiniz?',
 
   // Original text: "Delete all logs"
   logDeleteAll: 'Bütün günlükleri sil',
@@ -4616,8 +4549,7 @@ export default {
   noConfigFile: 'Yapılandırma dosyası seçilmedi',
 
   // Original text: "Try dropping a config file here, or click to select a config file to upload."
-  importTip:
-    'Bir yapılandırma dosyasını buraya sürükleyin veya seçmek için tıklayın',
+  importTip: 'Bir yapılandırma dosyasını buraya sürükleyin veya seçmek için tıklayın',
 
   // Original text: "Config"
   config: 'Yapılandırma',
@@ -4638,15 +4570,13 @@ export default {
   downloadConfig: 'Mevcut yapılandırmayı indir',
 
   // Original text: "No config import available for Community Edition"
-  noConfigImportCommunity:
-    'Topluluk Sürümünde yapılandırma içe aktarma özelliği yoktur',
+  noConfigImportCommunity: 'Topluluk Sürümünde yapılandırma içe aktarma özelliği yoktur',
 
   // Original text: "Reconnect all hosts"
   srReconnectAllModalTitle: 'Tüm sunuculara tekrar bağlan',
 
   // Original text: "This will reconnect this SR to all its hosts."
-  srReconnectAllModalMessage:
-    "Bu işlem bu SR'yi sunucularına tekrar bağlayacak.",
+  srReconnectAllModalMessage: "Bu işlem bu SR'yi sunucularına tekrar bağlayacak.",
 
   // Original text: "This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR)."
   srsReconnectAllModalMessage:
@@ -4656,8 +4586,7 @@ export default {
   srDisconnectAllModalTitle: 'Tüm sunucuların bağlantısını kes',
 
   // Original text: "This will disconnect this SR from all its hosts."
-  srDisconnectAllModalMessage:
-    "Bu işlem bu SR'nin sunucu bağlantısını kesecek.",
+  srDisconnectAllModalMessage: "Bu işlem bu SR'nin sunucu bağlantısını kesecek.",
 
   // Original text: "This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR)."
   srsDisconnectAllModalMessage:
@@ -4670,12 +4599,10 @@ export default {
   srsForgetModalTitle: "Seçili SR'leri unut",
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage:
-    "Bu SR'yi unutmak istediğinize emin misinz? Bu işlem SR üzerindeki VDI'ları silmez.",
+  srForgetModalMessage: "Bu SR'yi unutmak istediğinize emin misinz? Bu işlem SR üzerindeki VDI'ları silmez.",
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage:
-    "Seçili SR'leri unutmak istediğinize emin misinz? Bu işlem SR'ler üzerindeki VDI'ları silmez.",
+  srsForgetModalMessage: "Seçili SR'leri unutmak istediğinize emin misinz? Bu işlem SR'ler üzerindeki VDI'ları silmez.",
 
   // Original text: "Disconnected"
   srAllDisconnected: 'Bağlantıyı kes',
@@ -4699,8 +4626,7 @@ export default {
   xosanSuggestions: 'Öneriler',
 
   // Original text: "Warning: using disperse layout is not recommended right now. Please read {link}."
-  xosanDisperseWarning:
-    'Uyarı: dağıtma düzeninin kullanılması şu anda önerilmez. Lütfen okuyun {link}.',
+  xosanDisperseWarning: 'Uyarı: dağıtma düzeninin kullanılması şu anda önerilmez. Lütfen okuyun {link}.',
 
   // Original text: "Name"
   xosanName: 'Ad',
@@ -4736,8 +4662,7 @@ export default {
   xosanInstallIt: 'Şimdi kur!',
 
   // Original text: "Some hosts need their toolstack to be restarted before you can create an XOSAN"
-  xosanNeedRestart:
-    "XOSAN oluşturmadan önce bazı sunucuların toolstack'ı yeniden başlatılmalı",
+  xosanNeedRestart: "XOSAN oluşturmadan önce bazı sunucuların toolstack'ı yeniden başlatılmalı",
 
   // Original text: "Restart toolstacks"
   xosanRestartAgents: "toolstack'ları yeniden başlat",
@@ -4888,8 +4813,7 @@ export default {
   xosanFilesNeedingHealing: 'İyileştirme ihtiyacı olan dosyalar',
 
   // Original text: "Some XOSAN Virtual Machines have files needing healing"
-  xosanFilesNeedHealing:
-    'Bazı XOSAN Sanal Makinalarında iyileştirilmesi gereken dosyalar var',
+  xosanFilesNeedHealing: 'Bazı XOSAN Sanal Makinalarında iyileştirilmesi gereken dosyalar var',
 
   // Original text: "Host {hostName} is not in XOSAN network"
   xosanHostNotInNetwork: '{hostName} sunucusu XOSAN ağında değil',
@@ -4988,15 +4912,13 @@ export default {
   xosanCustomIpNetwork: 'Özel IP ağı (/24)',
 
   // Original text: "Will configure the host xosan network device with a static IP address and plug it in."
-  xosanIssueHostNotInNetwork:
-    'Sunucu, xosan ağ cihazını statik bir IP adresiyle yapılandırır ve fişe takar.',
+  xosanIssueHostNotInNetwork: 'Sunucu, xosan ağ cihazını statik bir IP adresiyle yapılandırır ve fişe takar.',
 
   // Original text: "Licenses"
   licensesTitle: 'Lisanslar',
 
   // Original text: "You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}"
-  xosanUnregisteredDisclaimer:
-    'Kayıtlı değilsiniz ve bu nedenle XOSAN SR oluşturamaz veya yönetemezsiniz. {Link}',
+  xosanUnregisteredDisclaimer: 'Kayıtlı değilsiniz ve bu nedenle XOSAN SR oluşturamaz veya yönetemezsiniz. {Link}',
 
   // Original text: "In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}."
   xosanSourcesDisclaimer:
@@ -5006,8 +4928,7 @@ export default {
   registerNow: 'Şimdi kaydol!',
 
   // Original text: "You need to register your appliance to manage your licenses."
-  licensesUnregisteredDisclaimer:
-    'Lisanlarınızı yönetmek için kaydolmalısınız.',
+  licensesUnregisteredDisclaimer: 'Lisanlarınızı yönetmek için kaydolmalısınız.',
 
   // Original text: "Product"
   licenseProduct: 'Ürün',
@@ -5046,8 +4967,7 @@ export default {
   xosanLicenseRestricted: 'Limitli boyut çünkü XOSAN deneme sürecinde',
 
   // Original text: "You need a license on this SR to manage the XOSAN."
-  xosanAdminNoLicenseDisclaimer:
-    "XOSAN'ı yönetmek için bu SR üzerinde bir lisansa ihtiyacınız var.",
+  xosanAdminNoLicenseDisclaimer: "XOSAN'ı yönetmek için bu SR üzerinde bir lisansa ihtiyacınız var.",
 
   // Original text: "Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore."
   xosanAdminExpiredLicenseDisclaimer:

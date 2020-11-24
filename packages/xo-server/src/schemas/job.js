@@ -15,8 +15,7 @@ export default {
     },
     userId: {
       type: 'string',
-      description:
-        'identifier of the user who have created the job (the permissions of the user are used by the job)',
+      description: 'identifier of the user who have created the job (the permissions of the user are used by the job)',
     },
     key: {
       type: 'string',
@@ -31,8 +30,7 @@ export default {
     },
     timeout: {
       type: 'number',
-      description:
-        'number of milliseconds after which the job is considered failed',
+      description: 'number of milliseconds after which the job is considered failed',
     },
   },
   required: ['type', 'id', 'userId', 'key', 'method'],

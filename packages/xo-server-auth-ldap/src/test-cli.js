@@ -16,14 +16,9 @@ const CACHE_FILE = './ldap.cache.conf'
 execPromise(async args => {
   const config = await promptSchema(
     configurationSchema,
-    await fromCallback(readFile, CACHE_FILE, 'utf-8').then(
-      JSON.parse,
-      () => ({})
-    )
+    await fromCallback(readFile, CACHE_FILE, 'utf-8').then(JSON.parse, () => ({}))
   )
-  await fromCallback(cb =>
-    writeFile(CACHE_FILE, JSON.stringify(config, null, 2), cb)
-  ).then(
+  await fromCallback(cb => writeFile(CACHE_FILE, JSON.stringify(config, null, 2), cb)).then(
     () => {
       console.log('configuration saved in %s', CACHE_FILE)
     },

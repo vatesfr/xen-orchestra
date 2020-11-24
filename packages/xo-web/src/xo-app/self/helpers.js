@@ -84,8 +84,7 @@ export class Subjects extends Component {
 export const computeAvailableHosts = (pools, srs, hostsByPool) => {
   const validHosts = reduce(
     hostsByPool,
-    (result, hosts, poolId) =>
-      includes(resolveIds(pools), poolId) ? result.concat(hosts) : result,
+    (result, hosts, poolId) => (includes(resolveIds(pools), poolId) ? result.concat(hosts) : result),
     []
   )
 

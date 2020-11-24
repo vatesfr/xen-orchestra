@@ -49,19 +49,12 @@ export default {
       set: (value, vif) =>
         Promise.all([
           vif.set_qos_algorithm_type(value === null ? '' : 'ratelimit'),
-          vif.update_qos_algorithm_params(
-            'kbps',
-            value === null ? null : String(value)
-          ),
+          vif.update_qos_algorithm_params('kbps', value === null ? null : String(value)),
         ]),
     },
 
     txChecksumming: {
-      set: (value, vif) =>
-        vif.update_other_config(
-          'ethtool-tx',
-          value === null ? null : String(value)
-        ),
+      set: (value, vif) => vif.update_other_config('ethtool-tx', value === null ? null : String(value)),
     },
   }),
 }

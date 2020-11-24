@@ -110,8 +110,7 @@ const updateNetworkOtherConfig = network =>
 function updateOldPrivateNetwork(network) {
   log.info('Update old network', { network: network.name_label })
   const uuid =
-    network.other_config['xo:sdn-controller:cross-pool-network-uuid'] !==
-    undefined
+    network.other_config['xo:sdn-controller:cross-pool-network-uuid'] !== undefined
       ? network.other_config['xo:sdn-controller:cross-pool-network-uuid']
       : uuidv4()
 
@@ -151,61 +150,25 @@ async function generateCertificatesAndKey(dataDir) {
   try {
     // CA Cert
     operation = 'Generating CA private key'
-    const caKey = await fromCallback.call(
-      openssl,
-      'generateRSAPrivateKey',
-      rsaKeyOptions
-    )
+    const caKey = await fromCallback.call(openssl, 'generateRSAPrivateKey', rsaKeyOptions)
 
     operation = 'Generating CA certificate'
-    const caCsr = await fromCallback.call(
-      openssl,
-      'generateCSR',
-      caCsrOptions,
-      caKey,
-      null
-    )
+    const caCsr = await fromCallback.call(openssl, 'generateCSR', caCsrOptions, caKey, null)
 
     operation = 'Signing CA certificate'
-    const caCrt = await fromCallback.call(
-      openssl,
-      'selfSignCSR',
-      caCsr,
-      caCsrOptions,
-      caKey,
-      null
-    )
+    const caCrt = await fromCallback.call(openssl, 'selfSignCSR', caCsr, caCsrOptions, caKey, null)
     await fileWrite(join(dataDir, CA_CERT), caCrt)
 
     // Cert
     operation = 'Generating private key'
-    const key = await fromCallback.call(
-      openssl,
-      'generateRSAPrivateKey',
-      rsaKeyOptions
-    )
+    const key = await fromCallback.call(openssl, 'generateRSAPrivateKey', rsaKeyOptions)
     await fileWrite(join(dataDir, CLIENT_KEY), key)
 
     operation = 'Generating certificate'
-    const csr = await fromCallback.call(
-      openssl,
-      'generateCSR',
-      csrOptions,
-      key,
-      null
-    )
+    const csr = await fromCallback.call(openssl, 'generateCSR', csrOptions, key, null)
 
     operation = 'Signing certificate'
-    const crt = await fromCallback.call(
-      openssl,
-      'CASignCSR',
-      csr,
-      caCsrOptions,
-      false,
-      caCrt,
-      caKey,
-      null
-    )
+    const crt = await fromCallback.call(openssl, 'CASignCSR', csr, caCsrOptions, false, caCrt, caKey, null)
     await fileWrite(join(dataDir, CLIENT_CERT), crt)
   } catch (error) {
     log.error('Error while generating certificates and keys', {
@@ -225,10 +188,7 @@ async function createTunnel(host, network) {
   const pifDevice = otherConfig['xo:sdn-controller:pif-device']
   const pifVlan = otherConfig['xo:sdn-controller:vlan']
   const hostPif = host.$PIFs.find(
-    pif =>
-      pif.device === pifDevice &&
-      pif.VLAN === +pifVlan &&
-      pif.ip_configuration_mode !== 'None'
+    pif => pif.device === pifDevice && pif.VLAN === +pifVlan && pif.ip_configuration_mode !== 'None'
   )
   if (hostPif === undefined) {
     log.error("Can't create tunnel: no available PIF", {
@@ -245,29 +205,17 @@ async function createTunnel(host, network) {
   try {
     let tunnelRef
     try {
-      tunnelRef = await host.$xapi.call(
-        'tunnel.create',
-        hostPif.$ref,
-        network.$ref,
-        encapsulation
-      )
+      tunnelRef = await host.$xapi.call('tunnel.create', hostPif.$ref, network.$ref, encapsulation)
     } catch (error) {
       if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
         // Before 8.2, protocol field did not exist, let's try without it!
-        tunnelRef = await host.$xapi.call(
-          'tunnel.create',
-          hostPif.$ref,
-          network.$ref
-        )
+        tunnelRef = await host.$xapi.call('tunnel.create', hostPif.$ref, network.$ref)
       } else {
         throw error
       }
     }
     const tunnel = await host.$xapi._getOrWaitObject(tunnelRef)
-    await tunnel.$xapi._waitObjectState(
-      tunnel.access_PIF,
-      pif => pif.currently_attached
-    )
+    await tunnel.$xapi._waitObjectState(tunnel.access_PIF, pif => pif.currently_attached)
   } catch (error) {
     log.error('Error while creating tunnel', {
       error,
@@ -307,11 +255,7 @@ function getHostTunnelForNetwork(host, networkRef) {
 
 function isControllerNeeded(xapi) {
   const controller = find(xapi.objects.all, { $type: 'SDN_controller' })
-  return !(
-    controller?.protocol === PROTOCOL &&
-    controller.address === '' &&
-    controller.port === 0
-  )
+  return !(controller?.protocol === PROTOCOL && controller.address === '' && controller.port === 0)
 }
 
 // =============================================================================
@@ -381,14 +325,8 @@ class SDNController extends EventEmitter {
 
       if (!(await fileExists(join(certDirectory, CA_CERT)))) {
         // If one certificate doesn't exist, none should
-        assert(
-          !(await fileExists(join(certDirectory, CLIENT_KEY))),
-          `${CLIENT_KEY} should not exist`
-        )
-        assert(
-          !(await fileExists(join(certDirectory, CLIENT_CERT))),
-          `${CLIENT_CERT} should not exist`
-        )
+        assert(!(await fileExists(join(certDirectory, CLIENT_KEY))), `${CLIENT_KEY} should not exist`)
+        assert(!(await fileExists(join(certDirectory, CLIENT_CERT))), `${CLIENT_CERT} should not exist`)
 
         log.debug(`No default self-signed certificates exists, creating them`)
         await generateCertificatesAndKey(certDirectory)
@@ -401,11 +339,7 @@ class SDNController extends EventEmitter {
       fileRead(join(certDirectory, CLIENT_CERT)),
       fileRead(join(certDirectory, CA_CERT)),
     ])
-    this._tlsHelper.updateCertificates(
-      this._clientKey,
-      this._clientCert,
-      this._caCert
-    )
+    this._tlsHelper.updateCertificates(this._clientKey, this._clientCert, this._caCert)
     const updatedPools = []
     await Promise.all(
       map(this.privateNetworks, async privateNetworks => {
@@ -433,8 +367,7 @@ class SDNController extends EventEmitter {
         vni: ++this._prevVni,
       })
 
-    createPrivateNetwork.description =
-      'Creates a pool-wide private network on a selected pool'
+    createPrivateNetwork.description = 'Creates a pool-wide private network on a selected pool'
     createPrivateNetwork.params = {
       poolIds: {
         type: 'array',
@@ -500,8 +433,7 @@ class SDNController extends EventEmitter {
     })
 
     const handleConnectedServer = ({ xapi }) => this._handleConnectedXapi(xapi)
-    const handleDisconnectedServer = ({ xapi }) =>
-      this._handleDisconnectedXapi(xapi)
+    const handleDisconnectedServer = ({ xapi }) => this._handleDisconnectedXapi(xapi)
     this._xo.on('server:connected', handleConnectedServer)
     this._xo.on('server:disconnected', handleDisconnectedServer)
     this._cleaners.push(() => {
@@ -582,13 +514,10 @@ class SDNController extends EventEmitter {
 
           let privateNetwork = this.privateNetworks[uuid]
           if (privateNetwork === undefined) {
-            const preferredCenterUuid =
-              otherConfig['xo:sdn-controller:preferred-center']
+            const preferredCenterUuid = otherConfig['xo:sdn-controller:preferred-center']
             const preferredCenter =
               preferredCenterUuid !== undefined
-                ? this._xo.getXapiObject(
-                    this._xo.getObject(preferredCenterUuid, 'host')
-                  )
+                ? this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
                 : undefined
             privateNetwork = new PrivateNetwork(this, uuid, preferredCenter)
             this.privateNetworks[uuid] = privateNetwork
@@ -609,15 +538,9 @@ class SDNController extends EventEmitter {
           // This is used to add the pif-device to networks created before this version. (v0.1.2)
           // This will be removed in 1 year.
           if (otherConfig['xo:sdn-controller:pif-device'] === undefined) {
-            const tunnel = getHostTunnelForNetwork(
-              privateNetwork.center,
-              network.$ref
-            )
+            const tunnel = getHostTunnelForNetwork(privateNetwork.center, network.$ref)
             const pif = xapi.getObjectByRef(tunnel.transport_PIF)
-            await network.update_other_config(
-              'xo:sdn-controller:pif-device',
-              pif.device
-            )
+            await network.update_other_config('xo:sdn-controller:pif-device', pif.device)
           }
 
           // Previously created network didn't store `vlan`
@@ -626,23 +549,14 @@ class SDNController extends EventEmitter {
           // This is used to add the `vlan` to networks created before this version. (v0.4.0)
           // This will be removed in 1 year.
           if (otherConfig['xo:sdn-controller:vlan'] === undefined) {
-            const tunnel = getHostTunnelForNetwork(
-              privateNetwork.center,
-              network.$ref
-            )
+            const tunnel = getHostTunnelForNetwork(privateNetwork.center, network.$ref)
             const pif = xapi.getObjectByRef(tunnel.transport_PIF)
-            await network.update_other_config(
-              'xo:sdn-controller:vlan',
-              String(pif.VLAN)
-            )
+            await network.update_other_config('xo:sdn-controller:vlan', String(pif.VLAN))
           }
 
           this._networks.set(network.$id, network.$ref)
           if (privateNetwork.center !== undefined) {
-            this._starCenters.set(
-              privateNetwork.center.$id,
-              privateNetwork.center.$ref
-            )
+            this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
           }
         })
       )
@@ -654,15 +568,10 @@ class SDNController extends EventEmitter {
       // This will be removed in 1 year.
       await Promise.all(
         noVniNetworks.map(async network => {
-          await network.update_other_config(
-            'xo:sdn-controller:vni',
-            String(++this._prevVni)
-          )
+          await network.update_other_config('xo:sdn-controller:vni', String(++this._prevVni))
 
           // Re-elect a center to apply the VNI
-          const privateNetwork = this.privateNetworks[
-            network.other_config['xo:sdn-controller:private-network-uuid']
-          ]
+          const privateNetwork = this.privateNetworks[network.other_config['xo:sdn-controller:private-network-uuid']]
           await this._electNewCenter(privateNetwork)
         })
       )
@@ -685,10 +594,7 @@ class SDNController extends EventEmitter {
     log.debug('xapi disconnected', { id: xapi.pool.uuid })
     try {
       forOwn(this.privateNetworks, privateNetwork => {
-        privateNetwork.networks = omitBy(
-          privateNetwork.networks,
-          network => network.$pool.uuid === xapi.pool.uuid
-        )
+        privateNetwork.networks = omitBy(privateNetwork.networks, network => network.$pool.uuid === xapi.pool.uuid)
 
         if (privateNetwork.center?.$pool.uuid === xapi.pool.uuid) {
           this._electNewCenter(privateNetwork)
@@ -718,15 +624,7 @@ class SDNController extends EventEmitter {
       const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
       const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
       const ofport = await client.getOfPortForVif(vif)
-      await channel.addRule(
-        vif,
-        allow,
-        protocol,
-        port,
-        ipRange,
-        direction,
-        ofport
-      )
+      await channel.addRule(vif, allow, protocol, port, ipRange, direction, ofport)
       const vifRules = vif.other_config['xo:sdn-controller:of-rules']
       const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
       const stringRule = JSON.stringify({
@@ -738,10 +636,7 @@ class SDNController extends EventEmitter {
       })
       if (!newVifRules.includes(stringRule)) {
         newVifRules.push(stringRule)
-        await vif.update_other_config(
-          'xo:sdn-controller:of-rules',
-          JSON.stringify(newVifRules)
-        )
+        await vif.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newVifRules))
       }
     } catch (error) {
       log.error('Error while adding OF rule', {
@@ -757,10 +652,7 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _deleteRule(
-    { direction, ipRange = '', port, protocol, vifId },
-    updateOtherConfig = true
-  ) {
+  async _deleteRule({ direction, ipRange = '', port, protocol, vifId }, updateOtherConfig = true) {
     let vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
@@ -782,18 +674,13 @@ class SDNController extends EventEmitter {
       const newVifRules = JSON.parse(vifRules).filter(vifRule => {
         const rule = JSON.parse(vifRule)
         return (
-          rule.protocol !== protocol ||
-          rule.port !== port ||
-          rule.ipRange !== ipRange ||
-          rule.direction !== direction
+          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
         )
       })
 
       await vif.update_other_config(
         'xo:sdn-controller:of-rules',
-        Object.keys(newVifRules).length === 0
-          ? null
-          : JSON.stringify(newVifRules)
+        Object.keys(newVifRules).length === 0 ? null : JSON.stringify(newVifRules)
       )
 
       vif = await vif.$xapi.barrier(vif.$ref)
@@ -830,9 +717,7 @@ class SDNController extends EventEmitter {
 
     let preferredCenter
     if (preferredCenterId !== undefined) {
-      preferredCenter = this._xo.getXapiObject(
-        this._xo.getObject(preferredCenterId, 'host')
-      )
+      preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterId, 'host'))
 
       // Put pool of preferred center first
       const preferredCenterPoolUuid = preferredCenter.$pool.uuid
@@ -869,9 +754,7 @@ class SDNController extends EventEmitter {
         },
       })
 
-      const createdNetwork = await pool.$xapi._getOrWaitObject(
-        createdNetworkRef
-      )
+      const createdNetwork = await pool.$xapi._getOrWaitObject(createdNetworkRef)
 
       log.info('New network created', {
         privateNetwork: privateNetwork.uuid,
@@ -893,10 +776,7 @@ class SDNController extends EventEmitter {
       await privateNetwork.addNetwork(createdNetwork)
       this._networks.set(createdNetwork.$id, createdNetwork.$ref)
       if (privateNetwork.center !== undefined) {
-        this._starCenters.set(
-          privateNetwork.center.$id,
-          privateNetwork.center.$ref
-        )
+        this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
       }
     }
   }
@@ -981,14 +861,8 @@ class SDNController extends EventEmitter {
   _objectsRemoved(xapi, objects) {
     forOwn(objects, async (object, id) => {
       try {
-        this.ovsdbClients = omitBy(
-          this.ovsdbClients,
-          client => client.host.$id === id
-        )
-        this.ofChannels = omitBy(
-          this.ofChannels,
-          channel => channel.host.$id === id
-        )
+        this.ovsdbClients = omitBy(this.ovsdbClients, client => client.host.$id === id)
+        this.ofChannels = omitBy(this.ofChannels, channel => channel.host.$id === id)
 
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
@@ -1009,10 +883,7 @@ class SDNController extends EventEmitter {
         if (networkRef !== undefined) {
           this._networks.delete(id)
           forOwn(this.privateNetworks, privateNetwork => {
-            privateNetwork.networks = omitBy(
-              privateNetwork.networks,
-              network => network.$ref === networkRef
-            )
+            privateNetwork.networks = omitBy(privateNetwork.networks, network => network.$ref === networkRef)
           })
 
           this.privateNetworks = filter(
@@ -1033,8 +904,7 @@ class SDNController extends EventEmitter {
     // Only if PIF is in a private network
     const privateNetwork = find(
       this.privateNetworks,
-      privateNetwork =>
-        privateNetwork.networks[pif.$pool.uuid]?.$ref === pif.network
+      privateNetwork => privateNetwork.networks[pif.$pool.uuid]?.$ref === pif.network
     )
     if (privateNetwork === undefined) {
       return
@@ -1047,15 +917,12 @@ class SDNController extends EventEmitter {
         return
       }
 
-      log.debug(
-        'PIF of star-center host has been unplugged, electing a new star-center',
-        {
-          pif: pif.device,
-          network: pif.$network.name_label,
-          host: pif.$host.name_label,
-          pool: pif.$pool.name_label,
-        }
-      )
+      log.debug('PIF of star-center host has been unplugged, electing a new star-center', {
+        pif: pif.device,
+        network: pif.$network.name_label,
+        host: pif.$host.name_label,
+        pool: pif.$pool.name_label,
+      })
       await this._electNewCenter(privateNetwork)
     } else {
       if (privateNetwork.center === undefined) {
@@ -1082,11 +949,7 @@ class SDNController extends EventEmitter {
 
   async _hostUpdated(host) {
     let i
-    if (
-      !host.enabled ||
-      host.PIFs.length === 0 ||
-      (i = this._newHosts.findIndex(_ => _.$ref === host.$ref)) === -1
-    ) {
+    if (!host.enabled || host.PIFs.length === 0 || (i = this._newHosts.findIndex(_ => _.$ref === host.$ref)) === -1) {
       return
     }
 
@@ -1125,10 +988,7 @@ class SDNController extends EventEmitter {
   }
 
   _hostMetricsUpdated(hostMetrics) {
-    const ovsdbClient = find(
-      this.ovsdbClients,
-      client => client.host.metrics === hostMetrics.$ref
-    )
+    const ovsdbClient = find(this.ovsdbClients, client => client.host.metrics === hostMetrics.$ref)
 
     if (hostMetrics.live) {
       return this._addHostToPrivateNetworks(ovsdbClient.host)
@@ -1255,11 +1115,7 @@ class SDNController extends EventEmitter {
     }
 
     try {
-      await xapi.call(
-        'pool.certificate_install',
-        SDN_CONTROLLER_CERT,
-        this._caCert.toString()
-      )
+      await xapi.call('pool.certificate_install', SDN_CONTROLLER_CERT, this._caCert.toString())
       await xapi.call('pool.certificate_sync')
       log.debug('SDN controller CA certficate installed', {
         pool: xapi.pool.name_label,
@@ -1287,29 +1143,21 @@ class SDNController extends EventEmitter {
 
     const privateNetwork = find(
       this.privateNetworks,
-      privateNetwork =>
-        privateNetwork.networks[host.$pool.uuid]?.$ref === network.$ref
+      privateNetwork => privateNetwork.networks[host.$pool.uuid]?.$ref === network.$ref
     )
     if (privateNetwork === undefined) {
       // TODO: log error?
       return
     }
 
-    const centerNetwork =
-      privateNetwork.networks[privateNetwork.center.$pool.uuid]
-    const starCenterTunnel = getHostTunnelForNetwork(
-      privateNetwork.center,
-      centerNetwork.$ref
-    )
+    const centerNetwork = privateNetwork.networks[privateNetwork.center.$pool.uuid]
+    const starCenterTunnel = getHostTunnelForNetwork(privateNetwork.center, centerNetwork.$ref)
     await tunnel.set_status({ active: 'false' })
 
     const bridgeName = await privateNetwork.addHost(host)
     if (bridgeName !== undefined) {
       const activeStatus = { active: 'true', key: bridgeName }
-      await Promise.all([
-        tunnel.set_status(activeStatus),
-        starCenterTunnel.set_status(activeStatus),
-      ])
+      await Promise.all([tunnel.set_status(activeStatus), starCenterTunnel.set_status(activeStatus)])
     }
   }
 
@@ -1354,10 +1202,7 @@ class SDNController extends EventEmitter {
   async _electNewCenter(privateNetwork) {
     await privateNetwork.electNewCenter()
     if (privateNetwork.center !== undefined) {
-      this._starCenters.set(
-        privateNetwork.center.$id,
-        privateNetwork.center.$ref
-      )
+      this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
     }
   }
 
@@ -1375,16 +1220,10 @@ class SDNController extends EventEmitter {
       await this._electNewCenter(privateNetwork)
     }
 
-    privateNetworks = filter(
-      this.privateNetworks,
-      privateNetwork => privateNetwork[host.$pool.uuid] !== undefined
-    )
+    privateNetworks = filter(this.privateNetworks, privateNetwork => privateNetwork[host.$pool.uuid] !== undefined)
     await Promise.all(
       map(privateNetworks, privateNetwork => {
-        const tunnel = getHostTunnelForNetwork(
-          host,
-          privateNetwork[host.$pool.uuid]
-        )
+        const tunnel = getHostTunnelForNetwork(host, privateNetwork[host.$pool.uuid])
         if (tunnel !== undefined) {
           return tunnel.set_status({ active: 'false' })
         }

@@ -97,6 +97,7 @@
     "moment-timezone": "^0.5.14",
     "ms": "^2.1.1",
     "multikey-hash": "^1.0.4",
+    "multiparty": "^4.2.2",
     "ndjson": "^2.0.0",
     "openpgp": "^4.10.4",
     "otplib": "^11.0.0",

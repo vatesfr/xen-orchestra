@@ -20,10 +20,7 @@ export default decorate([
           ...params,
         })
       },
-      setCronTimezone: (
-        { setSchedule },
-        { cronPattern: cron, timezone }
-      ) => () => {
+      setCronTimezone: ({ setSchedule }, { cronPattern: cron, timezone }) => () => {
         setSchedule({
           cron,
           timezone,
@@ -43,8 +40,7 @@ export default decorate([
     computed: {
       idInputName: generateId,
 
-      missingRetentions: (_, { value, retentions }) =>
-        areRetentionsMissing(value, retentions),
+      missingRetentions: (_, { value, retentions }) => areRetentionsMissing(value, retentions),
     },
   }),
   injectState,
@@ -59,35 +55,18 @@ export default decorate([
         <label htmlFor={state.idInputName}>
           <strong>{_('formName')}</strong>
         </label>
-        <Input
-          id={state.idInputName}
-          onChange={effects.setName}
-          value={schedule.name}
-        />
+        <Input id={state.idInputName} onChange={effects.setName} value={schedule.name} />
       </FormGroup>
       {retentions.map(({ name, valuePath }) => (
         <FormGroup key={valuePath}>
           <label>
             <strong>{name}</strong>
           </label>
-          <Number
-            data-name={valuePath}
-            min='0'
-            onChange={effects.setRetention}
-            required
-            value={schedule[valuePath]}
-          />
+          <Number data-name={valuePath} min='0' onChange={effects.setRetention} required value={schedule[valuePath]} />
         </FormGroup>
       ))}
-      <Scheduler
-        onChange={effects.setCronTimezone}
-        cronPattern={schedule.cron}
-        timezone={schedule.timezone}
-      />
-      <SchedulePreview
-        cronPattern={schedule.cron}
-        timezone={schedule.timezone}
-      />
+      <Scheduler onChange={effects.setCronTimezone} cronPattern={schedule.cron} timezone={schedule.timezone} />
+      <SchedulePreview cronPattern={schedule.cron} timezone={schedule.timezone} />
     </div>
   ),
 ])

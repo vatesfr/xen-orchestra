@@ -13,9 +13,7 @@ const paramsVectorActionsMap = {
     return mapValues(mapping, key => value[key])
   },
   crossProduct({ items }) {
-    return thunkToArray(
-      crossProduct(map(items, value => resolveParamsVector.call(this, value)))
-    )
+    return thunkToArray(crossProduct(map(items, value => resolveParamsVector.call(this, value))))
   },
   fetchObjects({ pattern }) {
     const objects = filter(this.getObjects(), createPredicate(pattern))
@@ -46,18 +44,9 @@ export function resolveParamsVector(paramsVector) {
 
 // ===================================================================
 
-export default async function executeJobCall({
-  app,
-  job,
-  logger,
-  runJobId,
-  schedule,
-  session,
-}) {
+export default async function executeJobCall({ app, job, logger, runJobId, schedule, session }) {
   const { paramsVector } = job
-  const paramsFlatVector = paramsVector
-    ? resolveParamsVector.call(app, paramsVector)
-    : [{}] // One call with no parameters
+  const paramsFlatVector = paramsVector ? resolveParamsVector.call(app, paramsVector) : [{}] // One call with no parameters
 
   const execStatus = {
     calls: {},
@@ -67,55 +56,42 @@ export default async function executeJobCall({
   }
 
   await asyncMap(paramsFlatVector, params => {
-    const runCallId = logger.notice(
-      `Starting ${job.method} call. (${job.id})`,
-      {
-        event: 'jobCall.start',
-        runJobId,
-        method: job.method,
-        params,
-      }
-    )
+    const runCallId = logger.notice(`Starting ${job.method} call. (${job.id})`, {
+      event: 'jobCall.start',
+      runJobId,
+      method: job.method,
+      params,
+    })
 
     const call = (execStatus.calls[runCallId] = {
       method: job.method,
       params,
       start: Date.now(),
     })
-    let promise = app.callApiMethod(
-      session,
-      job.method,
-      Object.assign({}, params)
-    )
+    let promise = app.callApiMethod(session, job.method, Object.assign({}, params))
     if (job.timeout) {
       promise = promise::timeout(job.timeout)
     }
 
     return promise.then(
       value => {
-        logger.notice(
-          `Call ${job.method} (${runCallId}) is a success. (${job.id})`,
-          {
-            event: 'jobCall.end',
-            runJobId,
-            runCallId,
-            returnedValue: value,
-          }
-        )
+        logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
+          event: 'jobCall.end',
+          runJobId,
+          runCallId,
+          returnedValue: value,
+        })
 
         call.returnedValue = value
         call.end = Date.now()
       },
       reason => {
-        logger.notice(
-          `Call ${job.method} (${runCallId}) has failed. (${job.id})`,
-          {
-            event: 'jobCall.end',
-            runJobId,
-            runCallId,
-            error: serializeError(reason),
-          }
-        )
+        logger.notice(`Call ${job.method} (${runCallId}) has failed. (${job.id})`, {
+          event: 'jobCall.end',
+          runJobId,
+          runCallId,
+          error: serializeError(reason),
+        })
 
         call.error = reason
         call.end = Date.now()

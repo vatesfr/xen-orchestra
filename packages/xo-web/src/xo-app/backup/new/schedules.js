@@ -24,10 +24,7 @@ export default decorate([
   provideState({
     computed: {
       error: state => find(FEEDBACK_ERRORS, error => state[error]),
-      individualActions: (
-        { disabledEdition },
-        { effects: { deleteSchedule, showScheduleModal } }
-      ) => [
+      individualActions: ({ disabledEdition }, { effects: { deleteSchedule, showScheduleModal } }) => [
         {
           disabled: disabledEdition,
           handler: showScheduleModal,
@@ -42,10 +39,7 @@ export default decorate([
           level: 'danger',
         },
       ],
-      rowTransform: ({
-        propSettings,
-        settings = propSettings,
-      }) => schedule => ({
+      rowTransform: ({ propSettings, settings = propSettings }) => schedule => ({
         ...schedule,
         ...settings.get(schedule.id),
       }),

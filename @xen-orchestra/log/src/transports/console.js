@@ -3,12 +3,7 @@ import LEVELS, { NAMES } from '../levels'
 const { DEBUG, ERROR, FATAL, INFO, WARN } = LEVELS
 
 let formatLevel, formatNamespace
-if (
-  process.stdout !== undefined &&
-  process.stdout.isTTY &&
-  process.stderr !== undefined &&
-  process.stderr.isTTY
-) {
+if (process.stdout !== undefined && process.stdout.isTTY && process.stderr !== undefined && process.stderr.isTTY) {
   const ansi = (style, str) => `\x1b[${style}m${str}\x1b[0m`
 
   const LEVEL_STYLES = {
@@ -71,10 +66,7 @@ if (
     // const g = f(3)
     // const b = f(1)
     // return ansi(`38;2;${r};${g};${b}`, namespace)
-    return ansi(
-      `1;38;5;${NAMESPACE_COLORS[Math.abs(hash) % NAMESPACE_COLORS.length]}`,
-      namespace
-    )
+    return ansi(`1;38;5;${NAMESPACE_COLORS[Math.abs(hash) % NAMESPACE_COLORS.length]}`, namespace)
   }
 } else {
   formatLevel = str => NAMES[str]
@@ -84,21 +76,10 @@ if (
 const consoleTransport = ({ data, level, namespace, message, time }) => {
   const fn =
     /* eslint-disable no-console */
-    level < INFO
-      ? console.log
-      : level < WARN
-      ? console.info
-      : level < ERROR
-      ? console.warn
-      : console.error
+    level < INFO ? console.log : level < WARN ? console.info : level < ERROR ? console.warn : console.error
   /* eslint-enable no-console */
 
-  const args = [
-    time.toISOString(),
-    formatNamespace(namespace),
-    formatLevel(level),
-    message,
-  ]
+  const args = [time.toISOString(), formatNamespace(namespace), formatLevel(level), message]
   if (data != null) {
     args.push(data)
   }

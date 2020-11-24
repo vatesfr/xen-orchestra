@@ -48,10 +48,7 @@ export default class ResourceSetQuotas extends Component {
     const {
       intl: { formatMessage },
     } = this.props
-    const labels = [
-      formatMessage(messages.availableResourceLabel),
-      formatMessage(messages.usedResourceLabel),
-    ]
+    const labels = [formatMessage(messages.availableResourceLabel), formatMessage(messages.usedResourceLabel)]
     const { cpus, disk, memory } = this._getQuotas()
     const quotas = [
       {
@@ -106,12 +103,8 @@ export default class ResourceSetQuotas extends Component {
                       />
                       <p className='text-xs-center'>
                         {_('resourceSetQuota', {
-                          total: validFormat
-                            ? quota.total.toString()
-                            : formatSize(quota.total),
-                          usage: validFormat
-                            ? quota.usage.toString()
-                            : formatSize(quota.usage),
+                          total: validFormat ? quota.total.toString() : formatSize(quota.total),
+                          usage: validFormat ? quota.usage.toString() : formatSize(quota.usage),
                         })}
                       </p>
                     </div>

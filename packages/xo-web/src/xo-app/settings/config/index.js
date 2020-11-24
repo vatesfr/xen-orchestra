@@ -25,8 +25,7 @@ export default class Config extends Component {
             this.setState({ importStatus: 'selectedFile' })
           }
         },
-        () =>
-          this.setState({ configFile: undefined, importStatus: 'importError' })
+        () => this.setState({ configFile: undefined, importStatus: 'importError' })
       )
     )
   }
@@ -37,8 +36,7 @@ export default class Config extends Component {
       importStatus: 'selectedFile',
     })
 
-  _unselectFile = () =>
-    this.setState({ configFile: undefined, importStatus: 'noFile' })
+  _unselectFile = () => this.setState({ configFile: undefined, importStatus: 'noFile' })
 
   _renderImportStatus = () => {
     const { configFile, importStatus } = this.state
@@ -47,9 +45,7 @@ export default class Config extends Component {
       case 'noFile':
         return _('noConfigFile')
       case 'selectedFile':
-        return (
-          <span>{`${configFile.name} (${formatSize(configFile.size)})`}</span>
-        )
+        return <span>{`${configFile.name} (${formatSize(configFile.size)})`}</span>
       case 'start':
         return <Icon icon='loading' />
       case 'end':
@@ -83,9 +79,7 @@ export default class Config extends Component {
               >
                 {_('importConfig')}
               </ActionButton>
-              <Button onClick={this._unselectFile}>
-                {_('importVmsCleanList')}
-              </Button>
+              <Button onClick={this._unselectFile}>{_('importVmsCleanList')}</Button>
             </div>
           </form>
         </div>

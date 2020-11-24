@@ -23,11 +23,7 @@ import Xo from 'xo-lib'
 import { parseOVAFile } from 'xo-vmdk-to-vhd'
 
 import pkg from '../package'
-import {
-  load as loadConfig,
-  set as setConfig,
-  unset as unsetConfig,
-} from './config'
+import { load as loadConfig, set as setConfig, unset as unsetConfig } from './config'
 
 function help() {
   return stripIndent(
@@ -121,11 +117,7 @@ function nodeStringDecoder(buffer, encoder) {
 
 export async function inspect(args) {
   const file = args[0]
-  const data = await parseOVAFile(
-    new NodeParsableFile(file, (await stat(file)).size),
-    nodeStringDecoder,
-    true
-  )
+  const data = await parseOVAFile(new NodeParsableFile(file, (await stat(file)).size), nodeStringDecoder, true)
   console.log('file metadata:', data)
 }
 
@@ -159,14 +151,10 @@ export async function upload(args) {
     overrides = parseOverride(args)
   }
 
-  const data = await parseOVAFile(
-    new NodeParsableFile(file, (await stat(file)).size),
-    nodeStringDecoder
-  )
+  const data = await parseOVAFile(new NodeParsableFile(file, (await stat(file)).size), nodeStringDecoder)
   const params = { sr: srId }
   const xo = await connect()
-  const getXoObject = async filter =>
-    Object.values(await xo.call('xo.getAllObjects', { filter }))[0]
+  const getXoObject = async filter => Object.values(await xo.call('xo.getAllObjects', { filter }))[0]
   const sr = await getXoObject({ id: srId })
   const pool = await getXoObject({ id: sr.$poolId })
   const master = await getXoObject({ id: pool.master })
@@ -260,10 +248,7 @@ export class NodeParsableFile {
     )
     // crazy stuff to get a browser-compatible ArrayBuffer from a node buffer
     // https://stackoverflow.com/a/31394257/72637
-    return result.buffer.slice(
-      result.byteOffset,
-      result.byteOffset + result.byteLength
-    )
+    return result.buffer.slice(result.byteOffset, result.byteOffset + result.byteLength)
   }
 }
 
@@ -294,9 +279,7 @@ export default async function main(args) {
   if (!args || !args.length || args[0] === '-h' || args[0] === '--help') {
     return help()
   }
-  const fnName = args[0].replace(/^--|-\w/g, match =>
-    match === '--' ? '' : match[1].toUpperCase()
-  )
+  const fnName = args[0].replace(/^--|-\w/g, match => (match === '--' ? '' : match[1].toUpperCase()))
   if (fnName in exports) {
     return exports[fnName](args.slice(1))
   }

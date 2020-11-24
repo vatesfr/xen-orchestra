@@ -101,10 +101,7 @@ class Editable extends Component {
       return
     }
 
-    return this.__save(
-      () => this.state.previous,
-      typeof onUndo === 'function' ? onUndo : props.onChange
-    )
+    return this.__save(() => this.state.previous, typeof onUndo === 'function' ? onUndo : props.onChange)
   }
 
   _save = () => this.__save(() => this.value, this.props.onChange)
@@ -135,9 +132,7 @@ class Editable extends Component {
     } catch (error) {
       this.setState({
         // `error` may be undefined if the action has been cancelled
-        error:
-          error !== undefined &&
-          (typeof error === 'string' ? error : error.message),
+        error: error !== undefined && (typeof error === 'string' ? error : error.message),
         saving: false,
       })
       logError(error)
@@ -173,12 +168,7 @@ class Editable extends Component {
 
       const success = <Icon icon='success' />
       return (
-        <span
-          className={classNames(
-            styles.clickToEdit,
-            !useLongClick && styles.shortClick
-          )}
-        >
+        <span className={classNames(styles.clickToEdit, !useLongClick && styles.shortClick)}>
           <span
             onClick={useLongClick ? undefined : this._openEdition}
             onMouseDown={useLongClick ? this.__startTimer : undefined}
@@ -256,10 +246,7 @@ export class Text extends Editable {
 
     return (
       <span className='text-muted'>
-        {placeholder ||
-          (useLongClick
-            ? _('editableLongClickPlaceholder')
-            : _('editableClickPlaceholder'))}
+        {placeholder || (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))}
       </span>
     )
   }
@@ -269,12 +256,7 @@ export class Text extends Editable {
     const { saving } = this.state
 
     // Optional props that the user may set on the input.
-    const extraProps = pick(this.props, [
-      'autoComplete',
-      'maxLength',
-      'minLength',
-      'pattern',
-    ])
+    const extraProps = pick(this.props, ['autoComplete', 'maxLength', 'minLength', 'pattern'])
 
     return (
       <input
@@ -328,13 +310,7 @@ export class Number extends Component {
 
   render() {
     const { value } = this.props
-    return (
-      <Text
-        {...this.props}
-        onChange={this._onChange}
-        value={value === null ? '' : String(value)}
-      />
-    )
+    return <Text {...this.props} onChange={this._onChange} value={value === null ? '' : String(value)} />
   }
 }
 
@@ -356,13 +332,7 @@ class SimpleSelect_ extends Editable {
     const { children, optionRenderer, value } = this.props
     return (
       children || (
-        <span>
-          {optionRenderer !== undefined
-            ? optionRenderer(value)
-            : value != null
-            ? value.label
-            : _('noValue')}
-        </span>
+        <span>{optionRenderer !== undefined ? optionRenderer(value) : value != null ? value.label : _('noValue')}</span>
       )
     )
   }
@@ -386,23 +356,13 @@ class MultiSelect_ extends Editable {
   }
 
   get value() {
-    return this.state.nextValue === undefined
-      ? this.props.value
-      : this.state.nextValue
+    return this.state.nextValue === undefined ? this.props.value : this.state.nextValue
   }
 
   _renderDisplay() {
     const { children, optionRenderer, value } = this.props
 
-    return (
-      children || (
-        <span>
-          {!isEmpty(value)
-            ? map(value, optionRenderer || 'label').join(', ')
-            : _('noValue')}
-        </span>
-      )
-    )
+    return children || <span>{!isEmpty(value) ? map(value, optionRenderer || 'label').join(', ') : _('noValue')}</span>
   }
 
   _onBlur = () => {
@@ -422,8 +382,7 @@ class MultiSelect_ extends Editable {
   )
 }
 
-export const Select = ({ multi, ...props }) =>
-  multi ? <MultiSelect_ {...props} /> : <SimpleSelect_ {...props} />
+export const Select = ({ multi, ...props }) => (multi ? <MultiSelect_ {...props} /> : <SimpleSelect_ {...props} />)
 
 Select.defaultProps = { multi: false }
 Select.propTypes = { multi: PropTypes.bool }
@@ -456,11 +415,7 @@ export class XoSelect extends Editable {
   }
 
   _renderDisplay() {
-    return (
-      this.props.children || (
-        <span>{this.props.value[this.props.labelProp]}</span>
-      )
-    )
+    return this.props.children || <span>{this.props.value[this.props.labelProp]}</span>
   }
 
   _onChange = object => {
@@ -481,12 +436,7 @@ export class XoSelect extends Editable {
     // when this element is clicked.
     return (
       <a onBlur={this._closeEdition}>
-        <Select
-          {...props}
-          autoFocus
-          disabled={saving}
-          onChange={this._onChange}
-        />
+        <Select {...props} autoFocus disabled={saving} onChange={this._onChange} />
       </a>
     )
   }
@@ -494,8 +444,7 @@ export class XoSelect extends Editable {
 
 export class Size extends Editable {
   static propTypes = {
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])])
-      .isRequired,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]).isRequired,
   }
 
   get value() {
@@ -538,13 +487,7 @@ export class Size extends Editable {
         onFocus={this._focus}
         onKeyDown={this._onKeyDown}
       >
-        <SizeInput
-          autoFocus
-          className={styles.size}
-          ref='input'
-          readOnly={saving}
-          defaultValue={value}
-        />
+        <SizeInput autoFocus className={styles.size} ref='input' readOnly={saving} defaultValue={value} />
       </span>
     )
   }

@@ -7,12 +7,7 @@ import { Container, Row, Col } from 'grid'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { get } from 'lodash'
 import { Toggle } from 'form'
-import {
-  IopsLineChart,
-  IoThroughputChart,
-  IowaitChart,
-  LatencyChart,
-} from 'xo-line-chart'
+import { IopsLineChart, IoThroughputChart, IowaitChart, LatencyChart } from 'xo-line-chart'
 
 export default class SrStats extends Component {
   state = {
@@ -74,12 +69,7 @@ export default class SrStats extends Component {
   }
 
   render() {
-    const {
-      data,
-      granularity,
-      selectStatsLoading,
-      useCombinedValues,
-    } = this.state
+    const { data, granularity, selectStatsLoading, useCombinedValues } = this.state
 
     return data === undefined ? (
       <span>{_('srNoStats')}</span>
@@ -89,10 +79,7 @@ export default class SrStats extends Component {
           <Col mediumSize={5}>
             <div className='form-group'>
               <Tooltip content={_('useStackedValuesOnStats')}>
-                <Toggle
-                  value={useCombinedValues}
-                  onChange={this.linkState('useCombinedValues')}
-                />
+                <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
               </Tooltip>
             </div>
           </Col>
@@ -104,11 +91,7 @@ export default class SrStats extends Component {
             )}
           </Col>
           <Col mediumSize={6}>
-            <SelectGranularity
-              onChange={this._onGranularityChange}
-              required
-              value={granularity}
-            />
+            <SelectGranularity onChange={this._onGranularityChange} required value={granularity} />
           </Col>
         </Row>
         <Row>

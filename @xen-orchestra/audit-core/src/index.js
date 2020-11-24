@@ -119,9 +119,7 @@ export class AuditCore {
       if (record === undefined) {
         throw new MissingRecordError(newest, nValid)
       }
-      if (
-        newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))
-      ) {
+      if (newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))) {
         throw new AlteredRecordError(newest, nValid, record)
       }
       newest = record.previousId

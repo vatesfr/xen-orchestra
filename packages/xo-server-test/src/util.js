@@ -29,9 +29,7 @@ export async function createUser(xo, userIds, params) {
 }
 
 export async function deleteUsers(xo, userIds) {
-  await Promise.all(
-    map(userIds, userId => xo.call('user.delete', { id: userId }))
-  )
+  await Promise.all(map(userIds, userId => xo.call('user.delete', { id: userId })))
 }
 
 // ==================================================================

@@ -31,8 +31,7 @@ const backupOptionRenderer = backup => (
 
 const partitionOptionRenderer = partition => (
   <span>
-    {partition.name} {partition.type}{' '}
-    {partition.size && `(${formatSize(+partition.size)})`}
+    {partition.name} {partition.type} {partition.size && `(${formatSize(+partition.size)})`}
   </span>
 )
 
@@ -108,8 +107,7 @@ export default class RestoreFileModalBody extends Component {
   _getSelectableFiles = createSelector(
     () => this.state.files,
     () => this.state.selectedFiles,
-    (available, selected) =>
-      filter(available, file => !includes(selected, file))
+    (available, selected) => filter(available, file => !includes(selected, file))
   )
 
   _onBackupChange = backup => {
@@ -211,10 +209,7 @@ export default class RestoreFileModalBody extends Component {
 
   _unselectFile = file => {
     this.setState({
-      selectedFiles: filter(
-        this.state.selectedFiles,
-        ({ id }) => id !== file.id
-      ),
+      selectedFiles: filter(this.state.selectedFiles, ({ id }) => id !== file.id),
     })
   }
 
@@ -305,11 +300,7 @@ export default class RestoreFileModalBody extends Component {
               <Col size={2}>
                 <span className='pull-right'>
                   <Tooltip content={_('restoreFilesSelectAllFiles')}>
-                    <ActionButton
-                      handler={this._selectAllFolderFiles}
-                      icon='add'
-                      size='small'
-                    />
+                    <ActionButton handler={this._selectAllFolderFiles} icon='add' size='small' />
                   </Tooltip>
                 </span>
               </Col>
@@ -373,12 +364,7 @@ export default class RestoreFileModalBody extends Component {
                     <pre>{file.path}</pre>
                   </Col>
                   <Col size={2} className='text-xs-right'>
-                    <ActionButton
-                      handler={this._unselectFile}
-                      handlerParam={file}
-                      icon='remove'
-                      size='small'
-                    />
+                    <ActionButton handler={this._unselectFile} handlerParam={file} icon='remove' size='small' />
                   </Col>
                 </Row>
               ))}

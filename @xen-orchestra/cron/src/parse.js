@@ -66,9 +66,7 @@ const createParser = ({ fields: [...fields], presets: { ...presets } }) => {
       aliasesRegExp.lastIndex = i
       const matches = aliasesRegExp.exec(pattern)
       if (matches === null) {
-        throw new SyntaxError(
-          `${field.name}: missing alias or integer at character ${i}`
-        )
+        throw new SyntaxError(`${field.name}: missing alias or integer at character ${i}`)
       }
       const [alias] = matches
       i += alias.length
@@ -77,9 +75,7 @@ const createParser = ({ fields: [...fields], presets: { ...presets } }) => {
 
     const { range } = field
     if (value < range[0] || value > range[1]) {
-      throw new SyntaxError(
-        `${field.name}: ${value} is not between ${range[0]} and ${range[1]}`
-      )
+      throw new SyntaxError(`${field.name}: ${value} is not between ${range[0]} and ${range[1]}`)
     }
     return value
   }
@@ -117,9 +113,7 @@ const createParser = ({ fields: [...fields], presets: { ...presets } }) => {
     {
       const schedule = presets[p]
       if (schedule !== undefined) {
-        return typeof schedule === 'string'
-          ? (presets[p] = parse(schedule))
-          : schedule
+        return typeof schedule === 'string' ? (presets[p] = parse(schedule)) : schedule
       }
     }
 
@@ -142,9 +136,7 @@ const createParser = ({ fields: [...fields], presets: { ...presets } }) => {
 
       consumeWhitespaces()
       if (i !== n) {
-        throw new SyntaxError(
-          `unexpected character at offset ${i}, expected end`
-        )
+        throw new SyntaxError(`unexpected character at offset ${i}, expected end`)
       }
 
       return schedule

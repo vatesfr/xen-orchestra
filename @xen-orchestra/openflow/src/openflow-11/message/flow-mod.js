@@ -76,18 +76,10 @@ export default {
     // fill header length
     header.length = of.sizes.flowMod
     instructions.forEach(instruction => {
-      header.length += get(
-        INSTRUCTION_SIZE,
-        instruction.type,
-        `Invalid instruction type: ${instruction.type}`
-      )
+      header.length += get(INSTRUCTION_SIZE, instruction.type, `Invalid instruction type: ${instruction.type}`)
       const { actions = [] } = instruction
       actions.forEach(action => {
-        header.length += get(
-          ACTION_SIZE,
-          action.type,
-          `Invalid instruction type: ${action.type}`
-        )
+        header.length += get(ACTION_SIZE, action.type, `Invalid instruction type: ${action.type}`)
       })
     })
 
@@ -99,24 +91,12 @@ export default {
       if (cookie_mask !== undefined) {
         cookie_mask.copy(buffer, offset + OFFSETS.cookieMask)
       } else {
-        buffer.fill(
-          0x00,
-          offset + OFFSETS.cookie_mask,
-          offset + OFFSETS.cookieMask + COOKIE_LENGTH
-        )
+        buffer.fill(0x00, offset + OFFSETS.cookie_mask, offset + OFFSETS.cookieMask + COOKIE_LENGTH)
       }
       cookie.copy(buffer, offset + OFFSETS.cookie)
     } else {
-      buffer.fill(
-        0x00,
-        offset + OFFSETS.cookie,
-        offset + OFFSETS.cookie + COOKIE_LENGTH
-      )
-      buffer.fill(
-        0xff,
-        offset + OFFSETS.cookieMask,
-        offset + OFFSETS.cookieMask + COOKIE_LENGTH
-      )
+      buffer.fill(0x00, offset + OFFSETS.cookie, offset + OFFSETS.cookie + COOKIE_LENGTH)
+      buffer.fill(0xff, offset + OFFSETS.cookieMask, offset + OFFSETS.cookieMask + COOKIE_LENGTH)
     }
 
     buffer.writeUInt8(table_id, offset + OFFSETS.tableId)
@@ -149,12 +129,7 @@ export default {
     const object = { header }
 
     object.cookie = Buffer.alloc(COOKIE_LENGTH)
-    buffer.copy(
-      object.cookie,
-      0,
-      offset + OFFSETS.cookie,
-      offset + OFFSETS.cookie + COOKIE_LENGTH
-    )
+    buffer.copy(object.cookie, 0, offset + OFFSETS.cookie, offset + OFFSETS.cookie + COOKIE_LENGTH)
     if (
       !uIntHelper.isUInt64None([
         buffer.readUInt32BE(offset + OFFSETS.cookieMask),
@@ -162,12 +137,7 @@ export default {
       ])
     ) {
       object.cookie_mask = Buffer.alloc(COOKIE_LENGTH)
-      buffer.copy(
-        object.cookie_mask,
-        0,
-        offset + OFFSETS.cookieMask,
-        offset + OFFSETS.cookieMask + COOKIE_LENGTH
-      )
+      buffer.copy(object.cookie_mask, 0, offset + OFFSETS.cookieMask, offset + OFFSETS.cookieMask + COOKIE_LENGTH)
     }
 
     object.table_id = buffer.readUInt8(offset + OFFSETS.tableId)

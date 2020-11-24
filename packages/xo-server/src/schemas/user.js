@@ -19,8 +19,7 @@ export default {
     },
     permission: {
       enum: ['none', 'read', 'write', 'admin'],
-      description:
-        'root permission for this user, none and admin are the only significant ones',
+      description: 'root permission for this user, none and admin are the only significant ones',
     },
     preferences: {
       type: 'object',

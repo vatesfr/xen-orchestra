@@ -86,9 +86,7 @@ export default class RemoteHandlerAbstract {
     }
     ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
 
-    const sharedLimit = limit(
-      options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS
-    )
+    const sharedLimit = limit(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
     this.getInfo = sharedLimit(this.getInfo)
     this.getSize = sharedLimit(this.getSize)
@@ -154,9 +152,7 @@ export default class RemoteHandlerAbstract {
 
     // $FlowFixMe
     checksumStream.checksumWritten = checksumStream.checksum
-      .then(value =>
-        this._outputFile(checksumFile(path), value, { flags: 'wx' })
-      )
+      .then(value => this._outputFile(checksumFile(path), value, { flags: 'wx' }))
       .catch(forwardError)
 
     return checksumStream
@@ -170,30 +166,24 @@ export default class RemoteHandlerAbstract {
       file = normalizePath(file)
     }
     const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout
-      .call(this._createReadStream(file, options), this._timeout)
-      .then(stream => {
-        // detect early errors
-        let promise = fromEvent(stream, 'readable')
+    const streamP = timeout.call(this._createReadStream(file, options), this._timeout).then(stream => {
+      // detect early errors
+      let promise = fromEvent(stream, 'readable')
 
-        // try to add the length prop if missing and not a range stream
-        if (
-          stream.length === undefined &&
-          options.end === undefined &&
-          options.start === undefined
-        ) {
-          promise = Promise.all([
-            promise,
-            ignoreErrors.call(
-              this._getSize(file).then(size => {
-                stream.length = size
-              })
-            ),
-          ])
-        }
+      // try to add the length prop if missing and not a range stream
+      if (stream.length === undefined && options.end === undefined && options.start === undefined) {
+        promise = Promise.all([
+          promise,
+          ignoreErrors.call(
+            this._getSize(file).then(size => {
+              stream.length = size
+            })
+          ),
+        ])
+      }
 
-        return promise.then(() => stream)
-      })
+      return promise.then(() => stream)
+    })
 
     if (!checksum) {
       return streamP
@@ -206,10 +196,7 @@ export default class RemoteHandlerAbstract {
       checksum =>
         streamP.then(stream => {
           const { length } = stream
-          stream = (validChecksumOfReadStream(
-            stream,
-            String(checksum).trim()
-          ): LaxReadable)
+          stream = (validChecksumOfReadStream(stream, String(checksum).trim()): LaxReadable)
           stream.length = length
 
           return stream
@@ -253,18 +240,12 @@ export default class RemoteHandlerAbstract {
   }
 
   async getSize(file: File): Promise<number> {
-    return timeout.call(
-      this._getSize(typeof file === 'string' ? normalizePath(file) : file),
-      this._timeout
-    )
+    return timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
   }
 
   async list(
     dir: string,
-    {
-      filter,
-      prependDir = false,
-    }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
+    { filter, prependDir = false }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
   ): Promise<string[]> {
     const virtualDir = normalizePath(dir)
     dir = normalizePath(dir)
@@ -303,48 +284,27 @@ export default class RemoteHandlerAbstract {
     await this._outputFile(normalizePath(file), data, { dirMode, flags })
   }
 
-  async read(
-    file: File,
-    buffer: Buffer,
-    position?: number
-  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
-    return this._read(
-      typeof file === 'string' ? normalizePath(file) : file,
-      buffer,
-      position
-    )
+  async read(file: File, buffer: Buffer, position?: number): Promise<{| bytesRead: number, buffer: Buffer |}> {
+    return this._read(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
-  async readFile(
-    file: string,
-    { flags = 'r' }: { flags?: string } = {}
-  ): Promise<Buffer> {
+  async readFile(file: string, { flags = 'r' }: { flags?: string } = {}): Promise<Buffer> {
     return this._readFile(normalizePath(file), { flags })
   }
 
-  async rename(
-    oldPath: string,
-    newPath: string,
-    { checksum = false }: Object = {}
-  ) {
+  async rename(oldPath: string, newPath: string, { checksum = false }: Object = {}) {
     oldPath = normalizePath(oldPath)
     newPath = normalizePath(newPath)
 
     let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
     if (checksum) {
-      p = Promise.all([
-        p,
-        this._rename(checksumFile(oldPath), checksumFile(newPath)),
-      ])
+      p = Promise.all([p, this._rename(checksumFile(oldPath), checksumFile(newPath))])
     }
     return p
   }
 
   async rmdir(dir: string): Promise<void> {
-    await timeout.call(
-      this._rmdir(normalizePath(dir)).catch(ignoreEnoent),
-      this._timeout
-    )
+    await timeout.call(this._rmdir(normalizePath(dir)).catch(ignoreEnoent), this._timeout)
   }
 
   async rmtree(dir: string): Promise<void> {
@@ -409,23 +369,11 @@ export default class RemoteHandlerAbstract {
     await this._unlink(file).catch(ignoreEnoent)
   }
 
-  async write(
-    file: File,
-    buffer: Buffer,
-    position: number
-  ): Promise<{| bytesWritten: number, buffer: Buffer |}> {
-    await this._write(
-      typeof file === 'string' ? normalizePath(file) : file,
-      buffer,
-      position
-    )
+  async write(file: File, buffer: Buffer, position: number): Promise<{| bytesWritten: number, buffer: Buffer |}> {
+    await this._write(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
-  async writeFile(
-    file: string,
-    data: Data,
-    { flags = 'wx' }: { flags?: string } = {}
-  ): Promise<void> {
+  async writeFile(file: string, data: Data, { flags = 'wx' }: { flags?: string } = {}): Promise<void> {
     await this._writeFile(normalizePath(file), data, { flags })
   }
 
@@ -563,11 +511,7 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  _read(
-    file: File,
-    buffer: Buffer,
-    position?: number
-  ): Promise<{| bytesRead: number, buffer: Buffer |}> {
+  _read(file: File, buffer: Buffer, position?: number): Promise<{| bytesRead: number, buffer: Buffer |}> {
     throw new Error('Not implemented')
   }
 
@@ -625,19 +569,11 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  async _writeFd(
-    fd: FileDescriptor,
-    buffer: Buffer,
-    position: number
-  ): Promise<void> {
+  async _writeFd(fd: FileDescriptor, buffer: Buffer, position: number): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  async _writeFile(
-    file: string,
-    data: Data,
-    options: { flags?: string }
-  ): Promise<void> {
+  async _writeFile(file: string, data: Data, options: { flags?: string }): Promise<void> {
     throw new Error('Not implemented')
   }
 }
@@ -657,8 +593,7 @@ function createPrefixWrapperMethods() {
     if (
       hasOwnProperty.call(pPw, name) ||
       name[0] === '_' ||
-      typeof (value = (descriptor = getOwnPropertyDescriptor(pRha, name))
-        .value) !== 'function'
+      typeof (value = (descriptor = getOwnPropertyDescriptor(pRha, name)).value) !== 'function'
     ) {
       return
     }

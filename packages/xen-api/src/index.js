@@ -5,15 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
-import {
-  cancelable,
-  defer,
-  fromEvents,
-  ignoreErrors,
-  pDelay,
-  pRetry,
-  pTimeout,
-} from 'promise-toolbox'
+import { cancelable, defer, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
 import coalesceCalls from './_coalesceCalls'
@@ -88,9 +80,7 @@ export class Xapi extends EventEmitter {
     super()
 
     this._addSyncStackTrace =
-      opts.syncStackTraces ?? process.env.NODE_ENV === 'development'
-        ? addSyncStackTrace
-        : identity
+      opts.syncStackTraces ?? process.env.NODE_ENV === 'development' ? addSyncStackTrace : identity
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
@@ -262,8 +252,7 @@ export class Xapi extends EventEmitter {
 
     const promise = this.watchTask(taskRef)
 
-    const destroyTask = () =>
-      ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
+    const destroyTask = () => ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
     promise.then(destroyTask, destroyTask)
 
     return promise
@@ -274,25 +263,15 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   async getAllRecords(type) {
-    return map(
-      await this._sessionCall(`${type}.get_all_records`),
-      (record, ref) => this._wrapRecord(type, ref, record)
-    )
+    return map(await this._sessionCall(`${type}.get_all_records`), (record, ref) => this._wrapRecord(type, ref, record))
   }
 
   async getRecord(type, ref) {
-    return this._wrapRecord(
-      type,
-      ref,
-      await this._sessionCall(`${type}.get_record`, [ref])
-    )
+    return this._wrapRecord(type, ref, await this._sessionCall(`${type}.get_record`, [ref]))
   }
 
   async getRecordByUuid(type, uuid) {
-    return this.getRecord(
-      type,
-      await this._sessionCall(`${type}.get_by_uuid`, [uuid])
-    )
+    return this.getRecord(type, await this._sessionCall(`${type}.get_by_uuid`, [uuid]))
   }
 
   getRecords(type, refs) {
@@ -423,12 +402,7 @@ export class Xapi extends EventEmitter {
     const isStream = typeof body.pipe === 'function'
     const useHack = isStream && body.length === undefined
     if (useHack) {
-      console.warn(
-        this._humanId,
-        'Xapi#putResource',
-        pathname,
-        'missing length'
-      )
+      console.warn(this._humanId, 'Xapi#putResource', pathname, 'missing length')
 
       headers['content-length'] = '1125899906842624'
     }
@@ -557,9 +531,7 @@ export class Xapi extends EventEmitter {
 
     await this._addSyncStackTrace(promise)
 
-    ignoreErrors.call(
-      this._sessionCall('pool.remove_from_other_config', [poolRef, key])
-    )
+    ignoreErrors.call(this._sessionCall('pool.remove_from_other_config', [poolRef, key]))
 
     if (ref !== undefined) {
       return this.getObjectByRef(ref)
@@ -571,13 +543,9 @@ export class Xapi extends EventEmitter {
   //  allowed even in read-only mode because it does not have impact on the
   //  XenServer and it's necessary for getResource()
   async createTask(nameLabel, nameDescription = '') {
-    const taskRef = await this._sessionCall('task.create', [
-      nameLabel,
-      nameDescription,
-    ])
+    const taskRef = await this._sessionCall('task.create', [nameLabel, nameDescription])
 
-    const destroyTask = () =>
-      ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
+    const destroyTask = () => ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
     this.watchTask(taskRef).then(destroyTask, destroyTask)
 
     return taskRef
@@ -591,8 +559,7 @@ export class Xapi extends EventEmitter {
       idOrUuidOrRef = idOrUuidOrRef.$id
     }
 
-    const object =
-      this._objects.all[idOrUuidOrRef] || this._objectsByRef[idOrUuidOrRef]
+    const object = this._objects.all[idOrUuidOrRef] || this._objectsByRef[idOrUuidOrRef]
 
     if (object !== undefined) return object
 
@@ -663,17 +630,8 @@ export class Xapi extends EventEmitter {
   async _call(method, args, timeout = this._callTimeout(method, args)) {
     const startTime = Date.now()
     try {
-      const result = await pTimeout.call(
-        this._addSyncStackTrace(this._transport(method, args)),
-        timeout
-      )
-      debug(
-        '%s: %s(...) [%s] ==> %s',
-        this._humanId,
-        method,
-        ms(Date.now() - startTime),
-        kindOf(result)
-      )
+      const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)
+      debug('%s: %s(...) [%s] ==> %s', this._humanId, method, ms(Date.now() - startTime), kindOf(result))
       return result
     } catch (error) {
       // do not log the session ID
@@ -691,13 +649,7 @@ export class Xapi extends EventEmitter {
             : replaceSensitiveValues(params, '* obfuscated *'),
       }
 
-      debug(
-        '%s: %s(...) [%s] =!> %s',
-        this._humanId,
-        method,
-        ms(Date.now() - startTime),
-        error
-      )
+      debug('%s: %s(...) [%s] =!> %s', this._humanId, method, ms(Date.now() - startTime), error)
 
       throw error
     }
@@ -737,15 +689,12 @@ export class Xapi extends EventEmitter {
 
   _sessionCallRetryOptions = {
     tries: 2,
-    when: error =>
-      this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID',
+    when: error => this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID',
     onRetry: () => this._sessionOpen(),
   }
   _sessionCall(method, args, timeout) {
     if (method.startsWith('session.')) {
-      return Promise.reject(
-        new Error('session.*() methods are disabled from this interface')
-      )
+      return Promise.reject(new Error('session.*() methods are disabled from this interface'))
     }
 
     return pRetry(() => {
@@ -773,10 +722,7 @@ export class Xapi extends EventEmitter {
     const { user, password } = this._auth
     const params = [user, password]
     this._sessionId = await pRetry(
-      () =>
-        this._interruptOnDisconnect(
-          this._call('session.login_with_password', params)
-        ),
+      () => this._interruptOnDisconnect(this._call('session.login_with_password', params)),
       {
         tries: 2,
         when: { code: 'HOST_IS_SLAVE' },
@@ -794,9 +740,7 @@ export class Xapi extends EventEmitter {
     // the event loop in that case
     if (this._pool.$ref !== oldPoolRef) {
       // Uses introspection to list available types.
-      const types = (this._types = (
-        await this._interruptOnDisconnect(this._call('system.listMethods'))
-      )
+      const types = (this._types = (await this._interruptOnDisconnect(this._call('system.listMethods')))
         .filter(isGetAllRecordsMethod)
         .map(method => method.slice(0, method.indexOf('.'))))
       this._lcToTypes = { __proto__: null }
@@ -833,11 +777,7 @@ export class Xapi extends EventEmitter {
     // An object's UUID can change during its life.
     const prev = objectsByRef[ref]
     let prevUuid
-    if (
-      prev !== undefined &&
-      (prevUuid = prev.uuid) !== undefined &&
-      prevUuid !== object.uuid
-    ) {
+    if (prev !== undefined && (prevUuid = prev.uuid) !== undefined && prevUuid !== object.uuid) {
       objects.remove(prevUuid)
     }
 
@@ -977,10 +917,7 @@ export class Xapi extends EventEmitter {
       // we need to do this before the initial fetch to avoid losing events
       let fromToken
       try {
-        fromToken = await this._sessionCall('event.inject', [
-          'pool',
-          this._pool.$ref,
-        ])
+        fromToken = await this._sessionCall('event.inject', ['pool', this._pool.$ref])
       } catch (error) {
         if (error?.code === 'MESSAGE_METHOD_UNKNOWN') {
           return this._watchEventsLegacy()
@@ -1076,14 +1013,10 @@ export class Xapi extends EventEmitter {
 
       try {
         await this._connected
-        this._processEvents(
-          await this._sessionCall('event.next', undefined, EVENT_TIMEOUT * 1e3)
-        )
+        this._processEvents(await this._sessionCall('event.next', undefined, EVENT_TIMEOUT * 1e3))
       } catch (error) {
         if (error?.code === 'EVENTS_LOST') {
-          await ignoreErrors.call(
-            this._sessionCall('event.unregister', [types])
-          )
+          await ignoreErrors.call(this._sessionCall('event.unregister', [types]))
           return this._watchEventsLegacy()
         }
 
@@ -1165,14 +1098,10 @@ export class Xapi extends EventEmitter {
           }
 
           props[`add_${field}`] = function (value) {
-            return xapi
-              .call(`${type}.add_${field}`, this.$ref, value)
-              .then(noop)
+            return xapi.call(`${type}.add_${field}`, this.$ref, value).then(noop)
           }
           props[`remove_${field}`] = function (value) {
-            return xapi
-              .call(`${type}.remove_${field}`, this.$ref, value)
-              .then(noop)
+            return xapi.call(`${type}.remove_${field}`, this.$ref, value).then(noop)
           }
         } else if (value !== null && typeof value === 'object') {
           getters[$field] = function () {

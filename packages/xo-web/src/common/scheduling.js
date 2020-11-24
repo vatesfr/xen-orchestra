@@ -103,18 +103,12 @@ const TIME_FORMAT = {
 // ===================================================================
 
 // monthNum: [ 0 : 11 ]
-const getMonthName = monthNum => (
-  <FormattedDate value={Date.UTC(1970, monthNum)} month='long' timeZone='UTC' />
-)
+const getMonthName = monthNum => <FormattedDate value={Date.UTC(1970, monthNum)} month='long' timeZone='UTC' />
 
 // dayNum: [ 0 : 6 ]
 const getDayName = dayNum => (
   // January, 1970, 5th => Monday
-  <FormattedDate
-    value={Date.UTC(1970, 0, 4 + dayNum)}
-    weekday='long'
-    timeZone='UTC'
-  />
+  <FormattedDate value={Date.UTC(1970, 0, 4 + dayNum)} weekday='long' timeZone='UTC' />
 )
 
 // ===================================================================
@@ -236,9 +230,7 @@ const TableSelect = decorate([
                     tdId={tdOption}
                     key={tdOption}
                     onChange={effects.onChange}
-                    value={
-                      k < value.length && value[k] === tdOption && (++k, true)
-                    }
+                    value={k < value.length && value[k] === tdOption && (++k, true)}
                   />
                 ))}
               </tr>
@@ -293,12 +285,7 @@ const TimePicker = decorate([
       // '*' => 1
       // '*/2' => 2
       // otherwise => undefined
-      step: (_, { value }) =>
-        value === '*'
-          ? 1
-          : value.indexOf('/') === 1
-          ? +value.split('/')[1]
-          : undefined,
+      step: (_, { value }) => (value === '*' ? 1 : value.indexOf('/') === 1 ? +value.split('/')[1] : undefined),
     },
   }),
   injectState,
@@ -316,12 +303,7 @@ const TimePicker = decorate([
           options={props.options}
           value={state.tableValue}
         />
-        <Range
-          max={state.maxStep}
-          min={1}
-          onChange={effects.onChange}
-          value={state.step}
-        />
+        <Range max={state.maxStep} min={1} onChange={effects.onChange} value={state.step} />
       </CardBlock>
     </Card>
   ),
@@ -376,17 +358,9 @@ class DayPicker extends Component {
     const { weekDayMode } = this.state
 
     const dayModeToggle = (
-      <Tooltip
-        content={_(
-          weekDayMode ? 'schedulingSetMonthDayMode' : 'schedulingSetWeekDayMode'
-        )}
-      >
+      <Tooltip content={_(weekDayMode ? 'schedulingSetMonthDayMode' : 'schedulingSetWeekDayMode')}>
         <span className='pull-right'>
-          <Toggle
-            onChange={this._setWeekDayMode}
-            iconSize={1}
-            value={weekDayMode}
-          />
+          <Toggle onChange={this._setWeekDayMode} iconSize={1} value={weekDayMode} />
         </span>
       </Tooltip>
     )
@@ -436,8 +410,7 @@ export default class Scheduler extends Component {
     forEach(UNITS, unit => {
       this[`_${unit}Change`] = cron => this._onCronChange({ [unit]: cron })
     })
-    this._dayChange = ([monthDay, weekDay]) =>
-      this._onCronChange({ monthDay, weekDay })
+    this._dayChange = ([monthDay, weekDay]) => this._onCronChange({ monthDay, weekDay })
   }
 
   _onTimezoneChange = timezone => {
@@ -505,10 +478,7 @@ export default class Scheduler extends Component {
         <Row>
           <Col>
             <hr />
-            <TimezonePicker
-              value={timezone}
-              onChange={this._onTimezoneChange}
-            />
+            <TimezonePicker value={timezone} onChange={this._onTimezoneChange} />
           </Col>
         </Row>
       </div>

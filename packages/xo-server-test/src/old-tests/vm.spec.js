@@ -42,9 +42,7 @@ describe('vm', () => {
 
   afterEach(async () => {
     jest.setTimeout(15e3)
-    await Promise.all(
-      map(vmIds, vmId => xo.call('vm.delete', { id: vmId, delete_disks: true }))
-    )
+    await Promise.all(map(vmIds, vmId => xo.call('vm.delete', { id: vmId, delete_disks: true })))
     vmIds = []
   })
 
@@ -163,9 +161,7 @@ describe('vm', () => {
 
         await waitObjectState(xo, vmId, vm => {
           expect(vm.name_label).to.be.equal('vmTest')
-          expect(vm.other.base_template_name).to.be.equal(
-            config.templates.otherConfig
-          )
+          expect(vm.other.base_template_name).to.be.equal(config.templates.otherConfig)
           expect(vm.VIFs).to.have.length(2)
           expect(vm.$VBDs).to.have.length(3)
         })
@@ -179,9 +175,7 @@ describe('vm', () => {
         })
 
         await waitObjectState(xo, vmId, vm => {
-          expect(vm.other.base_template_name).to.be.equal(
-            config.templates.otherConfig
-          )
+          expect(vm.other.base_template_name).to.be.equal(config.templates.otherConfig)
           expect(vm.VIFs).to.have.length(0)
           expect(vm.$VBDs).to.have.length(0)
         })
@@ -214,9 +208,7 @@ describe('vm', () => {
         })
 
         await waitObjectState(xo, vmId, vm => {
-          expect(vm.other.base_template_name).to.be.equal(
-            config.templates.debian
-          )
+          expect(vm.other.base_template_name).to.be.equal(config.templates.debian)
           expect(vm.VIFs).to.have.length(1)
           expect(vm.$VBDs).to.have.length(1)
         })
@@ -237,9 +229,7 @@ describe('vm', () => {
         })
 
         await waitObjectState(xo, vmId, vm => {
-          expect(vm.other.base_template_name).to.be.equal(
-            config.templates.centOS
-          )
+          expect(vm.other.base_template_name).to.be.equal(config.templates.centOS)
           expect(vm.VIFs).to.have.length(2)
           expect(vm.$VBDs).to.have.length(2)
         })
@@ -259,9 +249,7 @@ describe('vm', () => {
 
     afterAll(async () => {
       await Promise.all(
-        map(snapshotIds, snapshotId =>
-          xo.call('vm.delete', { id: snapshotId })
-        ),
+        map(snapshotIds, snapshotId => xo.call('vm.delete', { id: snapshotId })),
         map(diskIds, diskId => xo.call('vdi.delete', { id: diskId }))
       )
     })
@@ -358,9 +346,7 @@ describe('vm', () => {
     let hostId
 
     beforeAll(async () => {
-      secondServerId = await xo
-        .call('server.add', config.xenServer2)
-        .catch(() => {})
+      secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
       vmId = await getVmToMigrateId(xo)
@@ -406,9 +392,7 @@ describe('vm', () => {
     let startHostId
 
     beforeAll(async () => {
-      secondServerId = await xo
-        .call('server.add', config.xenServer2)
-        .catch(() => {})
+      secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
       vmId = await getVmToMigrateId(xo)
@@ -461,10 +445,7 @@ describe('vm', () => {
       // push cloneId in vmIds array to delete the VM after test
       vmIds.push(cloneId)
 
-      const [vm, clone] = await Promise.all([
-        xo.getOrWaitObject(vmId),
-        xo.getOrWaitObject(cloneId),
-      ])
+      const [vm, clone] = await Promise.all([xo.getOrWaitObject(vmId), xo.getOrWaitObject(cloneId)])
       expect(clone.type).to.be.equal('VM')
       expect(clone.name_label).to.be.equal('clone')
 

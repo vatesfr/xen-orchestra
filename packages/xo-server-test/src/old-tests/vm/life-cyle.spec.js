@@ -58,11 +58,7 @@ describe('the VM life cyle', () => {
 
   afterAll(async () => {
     await Promise.all(
-      map(vmsToDelete, id =>
-        xo
-          .call('vm.delete', { id, delete_disks: true })
-          .catch(error => console.error(error))
-      )
+      map(vmsToDelete, id => xo.call('vm.delete', { id, delete_disks: true }).catch(error => console.error(error)))
     )
     vmsToDelete.length = 0
   })
@@ -121,8 +117,7 @@ describe('the VM life cyle', () => {
     it('restarts a VM without PV drivers(clean reboot)', async () => {
       await xo.call('vm.start', { id: hvmWithoutToolsId })
       await waitObjectState(xo, hvmWithoutToolsId, vm => {
-        if (size(vm.current_operations) !== 0 || vm.power_state !== 'Running')
-          throw new Error('retry')
+        if (size(vm.current_operations) !== 0 || vm.power_state !== 'Running') throw new Error('retry')
       })
 
       expect(
@@ -193,8 +188,7 @@ describe('the VM life cyle', () => {
     it('stops a VM without PV drivers (clean shutdown)', async () => {
       await xo.call('vm.start', { id: hvmWithoutToolsId })
       await waitObjectState(xo, hvmWithoutToolsId, vm => {
-        if (size(vm.current_operations) !== 0 || vm.power_state !== 'Running')
-          throw new Error('retry')
+        if (size(vm.current_operations) !== 0 || vm.power_state !== 'Running') throw new Error('retry')
       })
 
       expect(
@@ -212,8 +206,7 @@ describe('the VM life cyle', () => {
     it('stops a VM (hard shutdown)', async () => {
       await xo.call('vm.start', { id: hvmWithToolsId })
       await waitObjectState(xo, hvmWithToolsId, vm => {
-        if (size(vm.current_operations) !== 0 || vm.startTime === 0)
-          throw new Error('retry')
+        if (size(vm.current_operations) !== 0 || vm.startTime === 0) throw new Error('retry')
       })
 
       await xo.call('vm.stop', {

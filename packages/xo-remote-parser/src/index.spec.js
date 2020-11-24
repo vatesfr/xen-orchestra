@@ -45,8 +45,7 @@ const data = deepFreeze({
     },
   },
   S3: {
-    string:
-      's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir',
+    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir',
     object: {
       type: 's3',
       host: 's3-us-west-2.amazonaws.com',

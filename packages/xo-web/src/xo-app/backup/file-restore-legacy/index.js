@@ -8,17 +8,7 @@ import { addSubscriptions, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
-import {
-  filter,
-  find,
-  forEach,
-  groupBy,
-  isEmpty,
-  map,
-  mapValues,
-  reduce,
-  uniq,
-} from 'lodash'
+import { filter, find, forEach, groupBy, isEmpty, map, mapValues, reduce, uniq } from 'lodash'
 import { fetchFiles, listRemoteBackups, subscribeRemotes } from 'xo'
 
 import RestoreFileModalBody from './restore-file-modal'
@@ -79,9 +69,7 @@ const openImportModal = ({ backups }) =>
   }, noop)
 
 const _listAllBackups = async remotes => {
-  const remotesBackups = await Promise.all(
-    map(remotes, remote => listRemoteBackups(remote))
-  )
+  const remotesBackups = await Promise.all(map(remotes, remote => listRemoteBackups(remote)))
 
   const backupsByVm = {}
   forEach(remotesBackups, (backups, index) => {
@@ -103,23 +91,17 @@ const _listAllBackups = async remotes => {
     backups,
     count: backups.length,
     last: reduce(backups, (last, b) => (b.datetime > last.datetime ? b : last)),
-    tagsByRemote: mapValues(
-      groupBy(backups, 'remoteId'),
-      (backups, remoteId) => ({
-        remoteName: find(remotes, remote => remote.id === remoteId).name,
-        tags: uniq(map(backups, 'tag')),
-      })
-    ),
+    tagsByRemote: mapValues(groupBy(backups, 'remoteId'), (backups, remoteId) => ({
+      remoteName: find(remotes, remote => remote.id === remoteId).name,
+      tags: uniq(map(backups, 'tag')),
+    })),
   }))
 
   return backupInfoByVm
 }
 
 @addSubscriptions({
-  backupInfoByVm: cb =>
-    subscribeRemotes(remotes =>
-      _listAllBackups(filter(remotes, 'enabled')).then(cb)
-    ),
+  backupInfoByVm: cb => subscribeRemotes(remotes => _listAllBackups(filter(remotes, 'enabled')).then(cb)),
 })
 export default class FileRestore extends Component {
   render() {

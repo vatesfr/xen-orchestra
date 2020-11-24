@@ -32,11 +32,7 @@ const HOST_COLUMNS = [
       const host = hosts[pbd.host]
       return (
         <Link to={`/hosts/${host.id}`}>
-          <Text
-            value={host.name_label}
-            onChange={value => editHost(host, { name_label: value })}
-            useLongClick
-          />
+          <Text value={host.name_label} onChange={value => editHost(host, { name_label: value })} useLongClick />
         </Link>
       )
     },
@@ -46,12 +42,7 @@ const HOST_COLUMNS = [
     name: _('hostDescription'),
     itemRenderer: (pbd, hosts) => {
       const host = hosts[pbd.host]
-      return (
-        <Text
-          value={host.name_description}
-          onChange={value => editHost(host, { name_description: value })}
-        />
-      )
+      return <Text value={host.name_description} onChange={value => editHost(host, { name_description: value })} />
     },
     sortCriteria: (pbd, hosts) => hosts[pbd.host].name_description,
   },
@@ -131,8 +122,7 @@ const HOST_WITH_PATHS_COLUMNS = [
 export default decorate([
   provideState({
     computed: {
-      columns: (_, { sr }) =>
-        sr.sm_config.multipathable ? HOST_WITH_PATHS_COLUMNS : HOST_COLUMNS,
+      columns: (_, { sr }) => (sr.sm_config.multipathable ? HOST_WITH_PATHS_COLUMNS : HOST_COLUMNS),
     },
   }),
   injectState,

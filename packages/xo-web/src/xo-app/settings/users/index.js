@@ -14,14 +14,7 @@ import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 
-import {
-  createUser,
-  deleteUser,
-  deleteUsers,
-  editUser,
-  subscribeGroups,
-  subscribeUsers,
-} from 'xo'
+import { createUser, deleteUser, deleteUsers, editUser, subscribeGroups, subscribeUsers } from 'xo'
 
 const permissions = {
   none: {
@@ -37,12 +30,7 @@ const permissions = {
 const USER_COLUMNS = [
   {
     name: _('userNameColumn'),
-    itemRenderer: user => (
-      <Editable.Text
-        onChange={email => editUser(user, { email })}
-        value={user.email}
-      />
-    ),
+    itemRenderer: user => <Editable.Text onChange={email => editUser(user, { email })} value={user.email} />,
     sortCriteria: user => user.email,
   },
   {
@@ -74,9 +62,7 @@ const USER_COLUMNS = [
         clearable={false}
         value={user.permission || permissions.none.value}
         ref='permission'
-        onChange={permission =>
-          editUser(user, { permission: permission.value })
-        }
+        onChange={permission => editUser(user, { permission: permission.value })}
         options={map(permissions)}
       />
     ),
@@ -84,12 +70,7 @@ const USER_COLUMNS = [
   },
   {
     name: _('userPasswordColumn'),
-    itemRenderer: user => (
-      <Editable.Password
-        onChange={password => editUser(user, { password })}
-        value=''
-      />
-    ),
+    itemRenderer: user => <Editable.Password onChange={password => editUser(user, { password })} value='' />,
   },
 ]
 
@@ -160,12 +141,7 @@ export default class Users extends Component {
               value={password}
             />
           </div>{' '}
-          <ActionButton
-            form='newUserForm'
-            icon='add'
-            btnStyle='success'
-            handler={this._create}
-          >
+          <ActionButton form='newUserForm' icon='add' btnStyle='success' handler={this._create}>
             {_('createUserButton')}
           </ActionButton>
         </form>

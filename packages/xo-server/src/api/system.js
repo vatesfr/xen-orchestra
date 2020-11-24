@@ -20,8 +20,7 @@ export function getMethodsInfo() {
 
   return methods
 }
-getMethodsInfo.description =
-  'returns the signatures of all available API methods'
+getMethodsInfo.description = 'returns the signatures of all available API methods'
 getMethodsInfo.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------

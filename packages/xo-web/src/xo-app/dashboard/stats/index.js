@@ -21,10 +21,7 @@ import { fetchHostStats, fetchVmStats } from 'xo'
 
 // ===================================================================
 
-const computeMetricArray = (
-  stats,
-  { metricKey, metrics, objectId, timestampStart, valueRenderer }
-) => {
+const computeMetricArray = (stats, { metricKey, metrics, objectId, timestampStart, valueRenderer }) => {
   if (!stats) {
     return
   }
@@ -160,12 +157,8 @@ const STATS_TYPE_TO_COMPUTE_FNC = {
 }
 
 @connectStore(() => {
-  const getRunningHosts = createGetObjectsOfType('host')
-    .filter([runningObjectsPredicate])
-    .sort()
-  const getRunningVms = createGetObjectsOfType('VM')
-    .filter([runningObjectsPredicate])
-    .sort()
+  const getRunningHosts = createGetObjectsOfType('host').filter([runningObjectsPredicate]).sort()
+  const getRunningVms = createGetObjectsOfType('VM').filter([runningObjectsPredicate]).sort()
 
   return {
     hosts: getRunningHosts,
@@ -191,8 +184,7 @@ class SelectMetric extends Component {
       metrics: undefined,
       objects,
       predicate: objects.length
-        ? object =>
-            runningObjectsPredicate(object) && object.type === objects[0].type
+        ? object => runningObjectsPredicate(object) && object.type === objects[0].type
         : runningObjectsPredicate,
     })
   }
@@ -206,8 +198,7 @@ class SelectMetric extends Component {
       metricsState: undefined,
       metrics: undefined,
       objects: this.props.hosts,
-      predicate: object =>
-        runningObjectsPredicate(object) && object.type === 'host',
+      predicate: object => runningObjectsPredicate(object) && object.type === 'host',
     })
   }
 
@@ -216,8 +207,7 @@ class SelectMetric extends Component {
       metricsState: undefined,
       metrics: undefined,
       objects: this.props.vms,
-      predicate: object =>
-        runningObjectsPredicate(object) && object.type === 'VM',
+      predicate: object => runningObjectsPredicate(object) && object.type === 'VM',
     })
   }
 
@@ -225,8 +215,7 @@ class SelectMetric extends Component {
     this.setState({ metricsState: METRICS_LOADING })
 
     const { objects } = this.state
-    const getStats =
-      (objects[0].type === 'host' && fetchHostStats) || fetchVmStats
+    const getStats = (objects[0].type === 'host' && fetchHostStats) || fetchVmStats
 
     const metrics = {}
 
@@ -243,8 +232,7 @@ class SelectMetric extends Component {
             const params = {
               metrics,
               objectId: object.id,
-              timestampStart:
-                (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000,
+              timestampStart: (result.endTimestamp - 3600 * (stats.memory.length - 1)) * 1000,
             }
 
             stats.memoryUsed = getMemoryUsedMetric(stats)
@@ -260,8 +248,7 @@ class SelectMetric extends Component {
             error(
               _('statsDashboardGenericErrorTitle'),
               <span>
-                {_('statsDashboardGenericErrorMessage')}{' '}
-                {object.name_label || object.id}
+                {_('statsDashboardGenericErrorMessage')} {object.name_label || object.id}
               </span>
             )
           })
@@ -289,34 +276,13 @@ class SelectMetric extends Component {
         <Row>
           <Col mediumSize={6}>
             <div className='form-group'>
-              <SelectHostVm
-                multi
-                onChange={this._handleSelection}
-                predicate={predicate}
-                value={objects}
-              />
+              <SelectHostVm multi onChange={this._handleSelection} predicate={predicate} value={objects} />
             </div>
             <div className='btn-group mt-1' role='group'>
-              <ActionButton
-                handler={this._resetSelection}
-                icon='remove'
-                tooltip={_('dashboardStatsButtonRemoveAll')}
-              />
-              <ActionButton
-                handler={this._selectAllHosts}
-                icon='host'
-                tooltip={_('dashboardStatsButtonAddAllHost')}
-              />
-              <ActionButton
-                handler={this._selectAllVms}
-                icon='vm'
-                tooltip={_('dashboardStatsButtonAddAllVM')}
-              />
-              <ActionButton
-                disabled={!objects.length}
-                handler={this._validSelection}
-                icon='success'
-              >
+              <ActionButton handler={this._resetSelection} icon='remove' tooltip={_('dashboardStatsButtonRemoveAll')} />
+              <ActionButton handler={this._selectAllHosts} icon='host' tooltip={_('dashboardStatsButtonAddAllHost')} />
+              <ActionButton handler={this._selectAllVms} icon='vm' tooltip={_('dashboardStatsButtonAddAllVM')} />
+              <ActionButton disabled={!objects.length} handler={this._validSelection} icon='success'>
                 {_('statsDashboardSelectObjects')}
               </ActionButton>
             </div>
@@ -328,10 +294,7 @@ class SelectMetric extends Component {
               </div>
             ) : (
               metricsState === METRICS_LOADED && (
-                <select
-                  className='form-control'
-                  onChange={this._handleSelectedMetric}
-                >
+                <select className='form-control' onChange={this._handleSelectedMetric}>
                   {_('noSelectedMetric', message => (
                     <option value=''>{message}</option>
                   ))}
@@ -376,11 +339,7 @@ class MetricViewer extends Component {
         {selectedMetric && (
           <Container>
             <Row>
-              <Col>
-                {map(objects, object =>
-                  renderXoItem(object, { className: 'mr-1' })
-                )}
-              </Col>
+              <Col>{map(objects, object => renderXoItem(object, { className: 'mr-1' }))}</Col>
             </Row>
             <Row>
               <Col>{metricRenderer(selectedMetric)}</Col>
@@ -419,14 +378,8 @@ const weekChartsRenderer = metric => (
 const Stats = () =>
   process.env.XOA_PLAN > 2 ? (
     <div>
-      <MetricViewer
-        metricRenderer={weekHeatmapRenderer}
-        title={_('weeklyHeatmap')}
-      />
-      <MetricViewer
-        metricRenderer={weekChartsRenderer}
-        title={_('weeklyCharts')}
-      />
+      <MetricViewer metricRenderer={weekHeatmapRenderer} title={_('weeklyHeatmap')} />
+      <MetricViewer metricRenderer={weekChartsRenderer} title={_('weeklyCharts')} />
     </div>
   ) : (
     <Container>
