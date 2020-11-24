@@ -243,46 +243,48 @@ export default class Backups {
 
     const partitionDisposers = {}
     app.api.addMethods({
-      mountPartition: [
-        async props => {
-          const resource = getPartition(props)
-          const path = await resource.p
+      backup: {
+        mountPartition: [
+          async props => {
+            const resource = getPartition(props)
+            const path = await resource.p
 
-          if (partitionDisposers[path] === undefined) {
-            partitionDisposers[path] = []
-          }
-          partitionDisposers[path].push(resource.d)
+            if (partitionDisposers[path] === undefined) {
+              partitionDisposers[path] = []
+            }
+            partitionDisposers[path].push(resource.d)
 
-          return path
-        },
-        {
-          description: 'mount a partition',
-          params: {
-            disk: { type: 'string' },
-            partition: { type: 'string' },
-            remote: { type: 'object' },
+            return path
           },
-        },
-      ],
-      unmountPartition: [
-        async ({ path }) => {
-          const disposers = partitionDisposers[path]
-          if (disposers === undefined) {
-            throw new Error(`No partition corresponding to the path ${path} found`)
-          }
-
-          await disposers.pop()()
-          if (disposers.length === 0) {
-            delete partitionDisposers[path]
-          }
-        },
-        {
-          description: 'unmount a partition',
-          params: {
-            path: { type: 'string' },
+          {
+            description: 'mount a partition',
+            params: {
+              disk: { type: 'string' },
+              partition: { type: 'string' },
+              remote: { type: 'object' },
+            },
           },
-        },
-      ],
+        ],
+        unmountPartition: [
+          async ({ path }) => {
+            const disposers = partitionDisposers[path]
+            if (disposers === undefined) {
+              throw new Error(`No partition corresponding to the path ${path} found`)
+            }
+
+            await disposers.pop()()
+            if (disposers.length === 0) {
+              delete partitionDisposers[path]
+            }
+          },
+          {
+            description: 'unmount a partition',
+            params: {
+              path: { type: 'string' },
+            },
+          },
+        ],
+      },
     })
   }
 }
