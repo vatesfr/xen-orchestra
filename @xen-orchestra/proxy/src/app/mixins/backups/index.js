@@ -241,6 +241,7 @@ export default class Backups {
       return yield adapter.getPartition(disk, partition)
     })
 
+    // private resource API is used exceptionally to be able to separate resource creation and release
     const partitionDisposers = {}
     const dispose = async () => {
       await Promise.all(
