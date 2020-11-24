@@ -183,6 +183,8 @@ export default class Host extends Component {
       return
     }
 
+    this._subscribePatches(hostNext)
+
     if (!isRunning(hostCur) && isRunning(hostNext)) {
       this.loop(hostNext)
     } else if (isRunning(hostCur) && !isRunning(hostNext)) {
