@@ -1,6 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
 import fromCallback from 'promise-toolbox/fromCallback'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import pump from 'pump'
 import using from 'promise-toolbox/using'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
@@ -132,22 +131,6 @@ export class RemoteAdapter {
     )
   }
 
-  async fetchPartitionFiles(diskId, partitionId, paths) {
-    const resource = this.getPartition(diskId, partitionId)
-    const path = await resource.p
-    try {
-      const zip = new ZipFile()
-      await Promise.all(
-        paths.map(file => addDirectory(zip, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
-      )
-      zip.end()
-      return zip.outputStream.on('end', () => resource.d(path))
-    } catch (error) {
-      ignoreErrors.call(resource.d(path))
-      throw error
-    }
-  }
-
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, diskId => [diskId])
   @decorateWith(disposable)
@@ -214,6 +197,19 @@ export class RemoteAdapter {
     } finally {
       await fromCallback(execFile, 'umount', ['--lazy', path])
     }
+  }
+
+  @decorateWith(disposable)
+  async *getPartitionFiles(diskId, partitionId, paths) {
+    const path = yield this.getPartition(diskId, partitionId)
+
+    const zip = new ZipFile()
+    await Promise.all(
+      paths.map(file => addDirectory(zip, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
+    )
+    zip.end()
+
+    return zip
   }
 
   async listAllVmBackups() {

@@ -130,8 +130,18 @@ export default class Backups {
     app.api.addMethods({
       backup: {
         fetchPartitionFiles: [
-          ({ disk: diskId, remote, partition: partitionId, paths }) =>
-            using(app.remotes.getAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths)),
+          (() => {
+            const fetchPartitionFiles = disposable(function* ({ disk: diskId, remote, partition: partitionId, paths }) {
+              const adapter = yield app.remotes.getAdapter(remote)
+              return yield adapter.getPartitionFiles(diskId, partitionId, paths)
+            })
+
+            return async props => {
+              const resource = fetchPartitionFiles(props)
+              const zip = await resource.p
+              return zip.outputStream.on('end', () => resource.d(zip))
+            }
+          })(),
           {
             description: 'fetch files from partition',
             params: {
