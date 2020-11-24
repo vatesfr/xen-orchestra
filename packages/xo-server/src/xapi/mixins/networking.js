@@ -1,5 +1,3 @@
-import { isEmpty } from '../../utils'
-
 import { makeEditObject } from '../utils'
 
 export default {
@@ -26,38 +24,8 @@ export default {
     await this._disconnectVif(this.getObject(vifId))
   },
   editVif: makeEditObject({
-    ipv4Allowed: {
-      get: true,
-      set: [
-        'ipv4Allowed',
-        function (value, vif) {
-          const lockingMode =
-            isEmpty(value) && isEmpty(vif.ipv6_allowed)
-              ? 'network_default'
-              : 'locked'
-
-          if (lockingMode !== vif.locking_mode) {
-            return vif.set_locking_mode(lockingMode)
-          }
-        },
-      ],
-    },
-    ipv6Allowed: {
-      get: true,
-      set: [
-        'ipv6Allowed',
-        function (value, vif) {
-          const lockingMode =
-            isEmpty(value) && isEmpty(vif.ipv4_allowed)
-              ? 'network_default'
-              : 'locked'
-
-          if (lockingMode !== vif.locking_mode) {
-            return vif.set_locking_mode(lockingMode)
-          }
-        },
-      ],
-    },
+    ipv4Allowed: true,
+    ipv6Allowed: true,
     lockingMode: {
       set: (value, vif) => vif.set_locking_mode(value),
     },
@@ -81,19 +49,12 @@ export default {
       set: (value, vif) =>
         Promise.all([
           vif.set_qos_algorithm_type(value === null ? '' : 'ratelimit'),
-          vif.update_qos_algorithm_params(
-            'kbps',
-            value === null ? null : String(value)
-          ),
+          vif.update_qos_algorithm_params('kbps', value === null ? null : String(value)),
         ]),
     },
 
     txChecksumming: {
-      set: (value, vif) =>
-        vif.update_other_config(
-          'ethtool-tx',
-          value === null ? null : String(value)
-        ),
+      set: (value, vif) => vif.update_other_config('ethtool-tx', value === null ? null : String(value)),
     },
   }),
 }

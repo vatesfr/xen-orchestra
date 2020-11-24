@@ -5,12 +5,7 @@ import Link from './link'
 
 export const NavLink = ({ children, exact, to }) => (
   <li className='nav-item' role='tab'>
-    <Link
-      activeClassName='active'
-      className='nav-link'
-      onlyActiveOnIndex={exact}
-      to={to}
-    >
+    <Link activeClassName='active' className='nav-link' onlyActiveOnIndex={exact} to={to}>
       {children}
     </Link>
   </li>

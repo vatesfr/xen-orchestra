@@ -6,15 +6,7 @@ export default url => {
     throw new Error('invalid URL: ' + url)
   }
 
-  const [
-    ,
-    protocol = 'https:',
-    username,
-    password,
-    ipv6,
-    hostname = ipv6,
-    port,
-  ] = matches
+  const [, protocol = 'https:', username, password, ipv6, hostname = ipv6, port] = matches
   const parsedUrl = { protocol, hostname, port }
   if (username !== undefined) {
     parsedUrl.username = decodeURIComponent(username)

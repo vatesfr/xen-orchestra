@@ -17,26 +17,16 @@ import { isSrWritable } from 'xo'
 import SelectCompression from '../../select-compression'
 import ZstdChecker from '../../zstd-checker'
 import { getXoaPlan, STARTER } from '../../xoa-plans'
-import {
-  createGetObject,
-  createGetObjectsOfType,
-  createSelector,
-} from '../../selectors'
+import { createGetObject, createGetObjectsOfType, createSelector } from '../../selectors'
 
 const CAN_INTERPOOL_COPY = getXoaPlan().value > STARTER.value
 
 @connectStore(
   () => {
-    const getVms = createGetObjectsOfType((_, props) => props.type).pick(
-      (_, props) => props.vms
-    )
+    const getVms = createGetObjectsOfType((_, props) => props.type).pick((_, props) => props.vms)
     // To remove 'Zstd' option if it's not supported when copying one VM.
     const getIsZstdSupported = createSelector(
-      createGetObject(
-        createSelector(getVms, vms =>
-          vms.length === 1 ? Object.values(vms)[0].$container : undefined
-        )
-      ),
+      createGetObject(createSelector(getVms, vms => (vms.length === 1 ? Object.values(vms)[0].$container : undefined))),
       container => container === undefined || container.zstdSupported
     )
 
@@ -84,15 +74,11 @@ class CopyVmsModalBody extends BaseComponent {
 
   getSrPredicate = createSelector(
     () => this.props.resolvedVms,
-    vms =>
-      CAN_INTERPOOL_COPY
-        ? undefined
-        : sr => isSrWritable(sr) && every(vms, { $poolId: sr.$pool })
+    vms => (CAN_INTERPOOL_COPY ? undefined : sr => isSrWritable(sr) && every(vms, { $poolId: sr.$pool }))
   )
 
   _onChangeSr = sr => this.setState({ sr })
-  _onChangeNamePattern = event =>
-    this.setState({ namePattern: event.target.value })
+  _onChangeNamePattern = event => this.setState({ namePattern: event.target.value })
 
   render() {
     const {
@@ -156,9 +142,7 @@ class CopyVmsModalBody extends BaseComponent {
                 showZstd={isZstdSupported}
                 value={compression}
               />
-              {vms.length > 1 && compression === 'zstd' && (
-                <ZstdChecker vms={vms} />
-              )}
+              {vms.length > 1 && compression === 'zstd' && <ZstdChecker vms={vms} />}
             </Col>
           </SingleLineRow>
         </div>

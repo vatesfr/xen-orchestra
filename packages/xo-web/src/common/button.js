@@ -2,15 +2,7 @@ import classNames from 'classnames'
 import React from 'react'
 import PropTypes from 'prop-types'
 
-const Button = ({
-  active,
-  block,
-  btnStyle = 'secondary',
-  children,
-  outline,
-  size,
-  ...props
-}) => {
+const Button = ({ active, block, btnStyle = 'secondary', children, outline, size, ...props }) => {
   props.className = classNames(
     props.className,
     'btn',
@@ -36,14 +28,7 @@ Button.propTypes = {
   //
   // The default value (secondary) is not listed here because it does
   // not make sense to explicit it.
-  btnStyle: PropTypes.oneOf([
-    'danger',
-    'info',
-    'link',
-    'primary',
-    'success',
-    'warning',
-  ]),
+  btnStyle: PropTypes.oneOf(['danger', 'info', 'link', 'primary', 'success', 'warning']),
 
   outline: PropTypes.bool,
   size: PropTypes.oneOf(['large', 'small']),

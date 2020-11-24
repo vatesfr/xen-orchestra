@@ -30,11 +30,7 @@ class Xapi extends Base {
 }
 function mixin(mixins) {
   const xapiProto = Xapi.prototype
-  const {
-    defineProperties,
-    getOwnPropertyDescriptor,
-    getOwnPropertyNames,
-  } = Object
+  const { defineProperties, getOwnPropertyDescriptor, getOwnPropertyNames } = Object
   const descriptors = { __proto__: null }
   Object.keys(mixins).forEach(prefix => {
     const mixinProto = mixins[prefix].prototype

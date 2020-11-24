@@ -14,11 +14,7 @@ import { disposable } from '../_disposable'
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
 function getDebouncedResource(resource) {
-  return debounceResource(
-    resource,
-    this._app.hooks,
-    parseDuration(this._config.resourceDebounce)
-  )
+  return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
 }
 
 export default class Remotes {
@@ -29,10 +25,7 @@ export default class Remotes {
     app.api.addMethods({
       remote: {
         getInfo: [
-          ({ remote }) =>
-            using(this.getHandler(remote, config.remoteOptions), handler =>
-              handler.getInfo()
-            ),
+          ({ remote }) => using(this.getHandler(remote, config.remoteOptions), handler => handler.getInfo()),
           {
             params: {
               remote: { type: 'object' },
@@ -41,10 +34,7 @@ export default class Remotes {
         ],
 
         test: [
-          ({ remote }) =>
-            using(this.getHandler(remote, config.remoteOptions), handler =>
-              handler.test()
-            ),
+          ({ remote }) => using(this.getHandler(remote, config.remoteOptions), handler => handler.test()),
           {
             params: {
               remote: { type: 'object' },

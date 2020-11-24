@@ -27,8 +27,7 @@ const isVhdFile = filename => filename.endsWith('.vhd')
 
 const noop = Function.prototype
 
-const resolveRelativeFromFile = (file, path) =>
-  resolve('/', dirname(file), path).slice(1)
+const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 const RE_VHDI = /^vhdi(\d+)$/
 
@@ -64,9 +63,7 @@ export class RemoteAdapter {
       }
     )
     const base = basename(path)
-    const child = vhds.find(
-      _ => _ !== undefined && _.header.parentUnicodeName === base
-    )
+    const child = vhds.find(_ => _ !== undefined && _.header.parentUnicodeName === base)
     if (child === undefined) {
       await handler.unlink(path)
       return 0
@@ -91,9 +88,7 @@ export class RemoteAdapter {
         handler.unlink(_filename),
         Promise.all(
           Object.values(vhds).map(async _ => {
-            mergedDataSize += await this._deleteVhd(
-              resolveRelativeFromFile(_filename, _)
-            )
+            mergedDataSize += await this._deleteVhd(resolveRelativeFromFile(_filename, _))
           })
         ),
       ])
@@ -104,19 +99,12 @@ export class RemoteAdapter {
   async deleteFullVmBackups(backups) {
     const handler = this._handler
     await asyncMap(backups, ({ _filename, xva }) =>
-      Promise.all([
-        handler.unlink(_filename),
-        handler.unlink(resolveRelativeFromFile(_filename, xva)),
-      ])
+      Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     )
   }
 
   @decorateResult(function (resource) {
-    return debounceResource(
-      resource,
-      this._app.hooks,
-      parseDuration(this._config.resourceDebounce)
-    )
+    return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
   })
   @decorateWith(deduped, diskId => [diskId])
   @decorateWith(disposable)
@@ -198,10 +186,7 @@ export class RemoteAdapter {
       )
     } catch (error) {
       let code
-      if (
-        error == null ||
-        ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')
-      ) {
+      if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
         throw error
       }
     }
@@ -215,11 +200,7 @@ export class RemoteAdapter {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await handler.createOutputStream(tmpPath, { checksum })
     try {
-      await Promise.all([
-        fromCallback(pump, input, output),
-        output.checksumWritten,
-        input.task,
-      ])
+      await Promise.all([fromCallback(pump, input, output), output.checksumWritten, input.task])
       await validator(tmpPath)
       await handler.rename(tmpPath, path, { checksum })
     } catch (error) {
@@ -235,10 +216,7 @@ export class RemoteAdapter {
 
     const streams = {}
     await asyncMap(vdis, async (vdi, id) => {
-      streams[`${id}.vhd`] = await createSyntheticStream(
-        handler,
-        join(dir, vhds[id])
-      )
+      streams[`${id}.vhd`] = await createSyntheticStream(handler, join(dir, vhds[id]))
     })
 
     return {
@@ -252,16 +230,10 @@ export class RemoteAdapter {
   }
 
   readFullVmBackup(metadata) {
-    return this._handler.createReadStream(
-      resolve('/', dirname(metadata._filename), metadata.xva)
-    )
+    return this._handler.createReadStream(resolve('/', dirname(metadata._filename), metadata.xva))
   }
 
   async readVmBackupMetadata(path) {
-    return Object.defineProperty(
-      JSON.parse(await this._handler.readFile(path)),
-      '_filename',
-      { value: path }
-    )
+    return Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
   }
 }

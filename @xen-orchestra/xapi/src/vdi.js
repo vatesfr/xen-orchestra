@@ -48,10 +48,7 @@ module.exports = class Vdi {
     })
   }
 
-  async exportContent(
-    ref,
-    { baseRef, cancelToken = CancelToken.none, format }
-  ) {
+  async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format }) {
     const query = {
       format,
       vdi: ref,
@@ -62,13 +59,7 @@ module.exports = class Vdi {
     try {
       return await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
-        task: await this.task_create(
-          `Exporting content of VDI ${await this.getField(
-            'VDI',
-            ref,
-            'name_label'
-          )}`
-        ),
+        task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
       })
     } catch (error) {
       // augment the error with as much relevant info as possible
@@ -85,9 +76,7 @@ module.exports = class Vdi {
 
   async importContent(ref, stream, { cancelToken = CancelToken.none, format }) {
     if (stream.length === undefined) {
-      throw new Error(
-        'Trying to import a VDI without a length field. Please report this error to Xen Orchestra.'
-      )
+      throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
     }
     try {
       await this.putResource(cancelToken, stream, '/import_raw_vdi/', {
@@ -95,13 +84,7 @@ module.exports = class Vdi {
           format,
           vdi: ref,
         },
-        task: await this.task_create(
-          `Importing content into VDI ${await this.getField(
-            'VDI',
-            ref,
-            'name_label'
-          )}`
-        ),
+        task: await this.task_create(`Importing content into VDI ${await this.getField('VDI', ref, 'name_label')}`),
       })
     } catch (error) {
       // augment the error with as much relevant info as possible

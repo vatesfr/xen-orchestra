@@ -32,10 +32,7 @@ const BIOS_STRINGS_KEYS = new Set([
 ])
 const cleanBiosStrings = biosStrings => {
   if (biosStrings !== undefined) {
-    biosStrings = pickBy(
-      biosStrings,
-      (value, key) => value !== '' && BIOS_STRINGS_KEYS.hash(key)
-    )
+    biosStrings = pickBy(biosStrings, (value, key) => value !== '' && BIOS_STRINGS_KEYS.hash(key))
 
     if (Object.keys(biosStrings).length !== 0) {
       return biosStrings
@@ -56,11 +53,7 @@ module.exports = class Vm {
     let vdi = cache[vdiRefOrUuid]
     if (vdi === undefined) {
       try {
-        vdi = await this[
-          vdiRefOrUuid.startsWith('OpaqueRef:')
-            ? 'getRecord'
-            : 'getRecordByUuid'
-        ]('VDI', vdiRefOrUuid)
+        vdi = await this[vdiRefOrUuid.startsWith('OpaqueRef:') ? 'getRecord' : 'getRecordByUuid']('VDI', vdiRefOrUuid)
       } catch (error) {
         warn(error)
         return
@@ -117,9 +110,7 @@ module.exports = class Vm {
 
   async assertHealthyVdiChains(vmRef, tolerance = this._maxUncoalescedVdis) {
     const vdiRefs = {}
-    ;(
-      await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))
-    ).forEach(({ VDI: ref }) => {
+    ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(({ VDI: ref }) => {
       if (isValidRef(ref)) {
         vdiRefs[ref] = true
       }
@@ -136,12 +127,7 @@ module.exports = class Vm {
       nameLabel = await this.getField('VM', vmRef, 'name_label')
     }
     try {
-      return await this.callAsync(
-        $cancelToken,
-        'VM.checkpoint',
-        vmRef,
-        nameLabel
-      ).then(extractOpaqueRef)
+      return await this.callAsync($cancelToken, 'VM.checkpoint', vmRef, nameLabel).then(extractOpaqueRef)
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
         return this.VM_snapshot($cancelToken, vmRef, nameLabel)
@@ -280,22 +266,12 @@ module.exports = class Vm {
     return ref
   }
 
-  async destroy(
-    vmRef,
-    {
-      deleteDisks = true,
-      force = false,
-      forceDeleteDefaultTemplate = false,
-    } = {}
-  ) {
+  async destroy(vmRef, { deleteDisks = true, force = false, forceDeleteDefaultTemplate = false } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     if (!force && 'destroy' in vm.blocked_operations) {
       throw new Error('destroy is blocked')
     }
-    if (
-      !forceDeleteDefaultTemplate &&
-      vm.other_config.default_template === 'true'
-    ) {
+    if (!forceDeleteDefaultTemplate && vm.other_config.default_template === 'true') {
       throw new Error('VM is default template')
     }
     // It is necessary for suspended VMs to be shut down
@@ -328,9 +304,8 @@ module.exports = class Vm {
             pRetry(
               async () => {
                 // list VMs connected to this VDI
-                const vmRefs = await asyncMap(
-                  this.getField('VDI', vdiRef, 'VBDs'),
-                  vbdRef => this.getField('VBD', vbdRef, 'VM')
+                const vmRefs = await asyncMap(this.getField('VDI', vdiRef, 'VBDs'), vbdRef =>
+                  this.getField('VBD', vbdRef, 'VM')
                 )
                 if (vmRefs.every(_ => _ === vmRef)) {
                   return this.callAsync('VDI.destroy', vdiRef)
@@ -350,12 +325,7 @@ module.exports = class Vm {
 
   @cancelable
   @defer
-  async export(
-    $defer,
-    $cancelToken,
-    vmRef,
-    { compress = false, useSnapshot } = {}
-  ) {
+  async export($defer, $cancelToken, vmRef, { compress = false, useSnapshot } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     const taskRef = await this.task_create('VM export', vm.name_label)
     $defer.onFailure.call(this, 'task_destroy', taskRef)
@@ -363,22 +333,13 @@ module.exports = class Vm {
       useSnapshot = isVmRunning(vm)
     }
     const exportedVmRef = useSnapshot
-      ? await this.VM_snapshot(
-          $cancelToken,
-          vmRef,
-          `[XO Export] ${vm.name_label}`
-        )
+      ? await this.VM_snapshot($cancelToken, vmRef, `[XO Export] ${vm.name_label}`)
       : vmRef
     try {
       return await this.getResource($cancelToken, '/export/', {
         query: {
           ref: exportedVmRef,
-          use_compression:
-            compress === 'zstd'
-              ? 'zstd'
-              : compress === true || compress === 'gzip'
-              ? 'true'
-              : 'false',
+          use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
         },
         task: taskRef,
       })
@@ -421,10 +382,7 @@ module.exports = class Vm {
     if (onVmCreation != null) {
       ignoreErrors.call(
         this._waitObject(
-          obj =>
-            obj != null &&
-            obj.current_operations != null &&
-            taskRef in obj.current_operations
+          obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations
         ).then(onVmCreation)
       )
     }
@@ -458,17 +416,9 @@ module.exports = class Vm {
           ref = await pRetry(
             async bail => {
               try {
-                return await this.callAsync(
-                  $cancelToken,
-                  'VM.snapshot_with_quiesce',
-                  vmRef,
-                  nameLabel
-                )
+                return await this.callAsync($cancelToken, 'VM.snapshot_with_quiesce', vmRef, nameLabel)
               } catch (error) {
-                if (
-                  error == null ||
-                  error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-                ) {
+                if (error == null || error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
                   throw bail(error)
                 }
                 // detect and remove new broken snapshots
@@ -513,12 +463,7 @@ module.exports = class Vm {
           }
         }
       }
-      ref = await this.callAsync(
-        $cancelToken,
-        'VM.snapshot',
-        vmRef,
-        nameLabel
-      ).then(extractOpaqueRef)
+      ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
     } while (false)
 
     // Don't set `is_a_template = false` like done in xo-server, it does not

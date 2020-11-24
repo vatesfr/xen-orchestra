@@ -16,10 +16,7 @@ import { version as serverVersion } from '../../../package.json'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
-const ndJsonStream = asyncIteratorToStream(async function* (
-  responseId,
-  iterable
-) {
+const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable) {
   yield format.response(responseId, { $responseType: 'ndjson' }) + '\n'
   for await (const data of iterable) {
     yield JSON.stringify(data) + '\n'
@@ -76,8 +73,7 @@ export default class Api {
       const isAsyncIterable =
         result !== null &&
         typeof result === 'object' &&
-        (typeof result[Symbol.iterator] === 'function' ||
-          typeof result[Symbol.asyncIterator] === 'function')
+        (typeof result[Symbol.iterator] === 'function' || typeof result[Symbol.asyncIterator] === 'function')
       if (isAsyncIterable) {
         const stream = ndJsonStream(body.id, result)
         ctx.body = stream
@@ -92,10 +88,7 @@ export default class Api {
           stream.on('end', stopTimer).on('error', stopTimer)
         }
       } else {
-        ctx.body = format.response(
-          body.id,
-          result !== undefined ? result : true
-        )
+        ctx.body = format.response(body.id, result !== undefined ? result : true)
       }
     })
 

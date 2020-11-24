@@ -6,14 +6,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
-import {
-  connectPbd,
-  disconnectPbd,
-  deletePbd,
-  deletePbds,
-  editSr,
-  isSrShared,
-} from 'xo'
+import { connectPbd, disconnectPbd, deletePbd, deletePbds, editSr, isSrShared } from 'xo'
 import { connectStore, formatSize, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -38,11 +31,7 @@ const SR_COLUMNS = [
     name: _('srName'),
     itemRenderer: storage => (
       <Link to={`/srs/${storage.id}`}>
-        <Text
-          onChange={nameLabel => editSr(storage.id, { nameLabel })}
-          useLongClick
-          value={storage.nameLabel}
-        />
+        <Text onChange={nameLabel => editSr(storage.id, { nameLabel })} useLongClick value={storage.nameLabel} />
       </Link>
     ),
     sortCriteria: 'nameLabel',
@@ -68,14 +57,7 @@ const SR_COLUMNS = [
             free: formatSize(storage.free),
           })}
         >
-          <meter
-            value={storage.usagePercentage}
-            min='0'
-            max='100'
-            optimum='40'
-            low='80'
-            high='90'
-          />
+          <meter value={storage.usagePercentage} min='0' max='100' optimum='40' low='80' high='90' />
         </Tooltip>
       ),
     sortCriteria: storage => storage.usagePercentage,
@@ -83,8 +65,7 @@ const SR_COLUMNS = [
   },
   {
     name: _('srType'),
-    itemRenderer: storage =>
-      storage.shared ? _('srShared') : _('srNotShared'),
+    itemRenderer: storage => (storage.shared ? _('srShared') : _('srNotShared')),
     sortCriteria: 'shared',
   },
   {
@@ -130,12 +111,8 @@ const SR_ACTIONS = [
 ]
 
 export default connectStore(() => {
-  const pbds = createGetObjectsOfType('PBD').pick(
-    (_, props) => props.host.$PBDs
-  )
-  const srs = createGetObjectsOfType('SR').pick(
-    createSelector(pbds, pbds => map(pbds, pbd => pbd.SR))
-  )
+  const pbds = createGetObjectsOfType('PBD').pick((_, props) => props.host.$PBDs)
+  const srs = createGetObjectsOfType('SR').pick(createSelector(pbds, pbds => map(pbds, pbd => pbd.SR)))
 
   const storages = createSelector(pbds, srs, (pbds, srs) =>
     map(pbds, pbd => {
@@ -162,11 +139,7 @@ export default connectStore(() => {
   <Container>
     <Row>
       <Col className='text-xs-right'>
-        <TabButtonLink
-          icon='add'
-          labelId='addSrDeviceButton'
-          to={`/new/sr?host=${host.id}`}
-        />
+        <TabButtonLink icon='add' labelId='addSrDeviceButton' to={`/new/sr?host=${host.id}`} />
       </Col>
     </Row>
     <Row>
@@ -174,12 +147,7 @@ export default connectStore(() => {
         {isEmpty(storages) ? (
           <h4 className='text-xs-center'>{_('pbdNoSr')}</h4>
         ) : (
-          <SortedTable
-            actions={SR_ACTIONS}
-            columns={SR_COLUMNS}
-            collection={storages}
-            stateUrlParam='s'
-          />
+          <SortedTable actions={SR_ACTIONS} columns={SR_COLUMNS} collection={storages} stateUrlParam='s' />
         )}
       </Col>
     </Row>

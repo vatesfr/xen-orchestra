@@ -4,6 +4,4 @@ const RUNNING_POWER_STATES = {
 }
 
 module.exports = vmOrPowerState =>
-  (typeof vmOrPowerState === 'string'
-    ? vmOrPowerState
-    : vmOrPowerState.power_state) in RUNNING_POWER_STATES
+  (typeof vmOrPowerState === 'string' ? vmOrPowerState : vmOrPowerState.power_state) in RUNNING_POWER_STATES

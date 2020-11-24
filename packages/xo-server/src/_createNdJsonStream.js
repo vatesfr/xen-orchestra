@@ -13,9 +13,7 @@ function* values(object) {
  * @param {(Array|Object)} collection
  */
 module.exports = asyncIteratorToStream(function* (collection) {
-  for (const value of Array.isArray(collection)
-    ? collection
-    : values(collection)) {
+  for (const value of Array.isArray(collection) ? collection : values(collection)) {
     yield JSON.stringify(value)
     yield '\n'
   }

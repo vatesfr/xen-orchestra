@@ -113,10 +113,7 @@ export default class XoParallelChart extends Component {
         const columnId = brush.__data__
         const { invert } = this._y[columnId] // Range to domain.
 
-        return (
-          invert(selection[1]) <= data[columnId] &&
-          data[columnId] <= invert(selection[0])
-        )
+        return invert(selection[1]) <= data[columnId] && data[columnId] <= invert(selection[0])
       })
 
       const line = d3.select(lines[lineId])
@@ -146,18 +143,14 @@ export default class XoParallelChart extends Component {
     svg.selectAll('.objectTooltip').remove()
 
     // Reset all lines.
-    svg
-      .selectAll('.chartLine')
-      .attr('stroke-width', CHART_WIDTH / DEFAULT_STROKE_WIDTH_FACTOR)
+    svg.selectAll('.chartLine').attr('stroke-width', CHART_WIDTH / DEFAULT_STROKE_WIDTH_FACTOR)
 
     if (!position) {
       return
     }
 
     // Set stroke on selected line.
-    svg
-      .select('#chartLine-' + elem.objectId)
-      .attr('stroke-width', CHART_WIDTH / HIGHLIGHT_STROKE_WIDTH_FACTOR)
+    svg.select('#chartLine-' + elem.objectId).attr('stroke-width', CHART_WIDTH / HIGHLIGHT_STROKE_WIDTH_FACTOR)
 
     const { label } = elem
 
@@ -233,11 +226,7 @@ export default class XoParallelChart extends Component {
     columns
       .append('g')
       .each((columnId, axisId, axes) => {
-        const axis = d3
-          .axisLeft()
-          .ticks(N_TICKS, ',f')
-          .tickSize(TICK_SIZE)
-          .scale(y[columnId])
+        const axis = d3.axisLeft().ticks(N_TICKS, ',f').tickSize(TICK_SIZE).scale(y[columnId])
 
         const renderer = props.renderers[columnId]
 
@@ -251,15 +240,7 @@ export default class XoParallelChart extends Component {
       ::setStyles(COLUMN_VALUES_STYLE)
 
     // 6. Draw lines.
-    const path = elem =>
-      this._line(
-        map(
-          columnsIds.map(columnId => [
-            x(columnId),
-            y[columnId](elem.data[columnId]),
-          ])
-        )
-      )
+    const path = elem => this._line(map(columnsIds.map(columnId => [x(columnId), y[columnId](elem.data[columnId])])))
     svg
       .append('g')
       .attr('class', 'linesContainer')

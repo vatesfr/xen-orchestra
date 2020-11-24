@@ -23,8 +23,7 @@ module.exports = class Vif {
     ;[device, MTU] = rest
 
     const vifRef = await this.call('VIF.create', {
-      currently_attached:
-        powerState === 'Suspended' ? currently_attached : undefined,
+      currently_attached: powerState === 'Suspended' ? currently_attached : undefined,
       device,
       ipv4_allowed,
       ipv6_allowed,

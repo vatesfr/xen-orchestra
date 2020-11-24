@@ -10,9 +10,7 @@ const APP_NAME = 'xo-proxy'
   catchGlobalErrors(require('@xen-orchestra/log').createLogger('xo:proxy'))
 }
 
-const { fatal, info, warn } = require('@xen-orchestra/log').createLogger(
-  'xo:proxy:bootstrap'
-)
+const { fatal, info, warn } = require('@xen-orchestra/log').createLogger('xo:proxy:bootstrap')
 
 // -------------------------------------------------------------------
 
@@ -46,69 +44,65 @@ ${name} v${version}
   let httpServer = new (require('http-server-plus'))({
     createSecureServer:
       require('compare-versions')(process.version, '10.10.0') >= 0
-        ? (({ createSecureServer }) => opts =>
-            createSecureServer({ ...opts, allowHTTP1: true }))(require('http2'))
+        ? (({ createSecureServer }) => opts => createSecureServer({ ...opts, allowHTTP1: true }))(require('http2'))
         : undefined,
   })
 
   const { readFileSync, outputFileSync, unlinkSync } = require('fs-extra')
   const retry = require('promise-toolbox/retry')
 
-  require('lodash/forOwn')(
-    config.http.listen,
-    async ({ autoCert, cert, key, ...opts }) => {
-      try {
-        const niceAddress = await retry(
-          async () => {
-            if (cert !== undefined && key !== undefined) {
-              try {
-                opts.cert = readFileSync(cert)
-                opts.key = readFileSync(key)
-              } catch (error) {
-                if (!(autoCert && error.code === 'ENOENT')) {
-                  throw error
-                }
-
-                const pems = await require('@xen-orchestra/self-signed').genSelfSignedCert()
-                outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
-                outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
-                info('new certificate generated', { cert, key })
-                opts.cert = pems.cert
-                opts.key = pems.key
+  require('lodash/forOwn')(config.http.listen, async ({ autoCert, cert, key, ...opts }) => {
+    try {
+      const niceAddress = await retry(
+        async () => {
+          if (cert !== undefined && key !== undefined) {
+            try {
+              opts.cert = readFileSync(cert)
+              opts.key = readFileSync(key)
+            } catch (error) {
+              if (!(autoCert && error.code === 'ENOENT')) {
+                throw error
               }
+
+              const pems = await require('@xen-orchestra/self-signed').genSelfSignedCert()
+              outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
+              outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
+              info('new certificate generated', { cert, key })
+              opts.cert = pems.cert
+              opts.key = pems.key
             }
+          }
 
-            return httpServer.listen(opts)
+          return httpServer.listen(opts)
+        },
+        {
+          tries: 2,
+          when: e => autoCert && e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
+          onRetry: () => {
+            warn('deleting invalid certificate')
+            unlinkSync(cert)
+            unlinkSync(key)
           },
-          {
-            tries: 2,
-            when: e => autoCert && e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
-            onRetry: () => {
-              warn('deleting invalid certificate')
-              unlinkSync(cert)
-              unlinkSync(key)
-            },
-          }
-        )
-
-        info(`Web server listening on ${niceAddress}`)
-      } catch (error) {
-        if (error.niceAddress !== undefined) {
-          warn(`Web server could not listen on ${error.niceAddress}`)
-
-          const { code } = error
-          if (code === 'EACCES') {
-            warn('  Access denied.')
-            warn('  Ports < 1024 are often reserved to privileges users.')
-          } else if (code === 'EADDRINUSE') {
-            warn('  Address already in use.')
-          }
-        } else {
-          warn('web server could not listen', { error })
         }
+      )
+
+      info(`Web server listening on ${niceAddress}`)
+    } catch (error) {
+      if (error.niceAddress !== undefined) {
+        warn(`Web server could not listen on ${error.niceAddress}`)
+
+        const { code } = error
+        if (code === 'EACCES') {
+          warn('  Access denied.')
+          warn('  Ports < 1024 are often reserved to privileges users.')
+        } else if (code === 'EADDRINUSE') {
+          warn('  Address already in use.')
+        }
+      } else {
+        warn('web server could not listen', { error })
       }
     }
-  )
+  })
 
   const { group, user } = config
   group != null && process.setgid(group)

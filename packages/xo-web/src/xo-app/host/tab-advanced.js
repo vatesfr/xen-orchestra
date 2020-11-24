@@ -11,12 +11,7 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import {
-  addSubscriptions,
-  compareVersions,
-  connectStore,
-  getIscsiPaths,
-} from 'utils'
+import { addSubscriptions, compareVersions, connectStore, getIscsiPaths } from 'utils'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -119,9 +114,7 @@ MultipathableSrs.propTypes = {
     .pick((_, { host }) => host.$PGPUs)
     .sort()
 
-  const getPcis = createGetObjectsOfType('PCI').pick(
-    createSelector(getPgpus, pgpus => map(pgpus, 'pci'))
-  )
+  const getPcis = createGetObjectsOfType('PCI').pick(createSelector(getPgpus, pgpus => map(pgpus, 'pci')))
 
   return {
     pcis: getPcis,
@@ -135,9 +128,7 @@ export default class extends Component {
     this.setState({ isNetDataPluginCorrectlySet })
     if (isNetDataPluginCorrectlySet) {
       this.setState({
-        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
-          this.props.host
-        ),
+        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(this.props.host),
       })
     }
 
@@ -164,8 +155,7 @@ export default class extends Component {
     }
   )
 
-  _setSchedulerGranularity = value =>
-    setSchedulerGranularity(this.props.host.id, value)
+  _setSchedulerGranularity = value => setSchedulerGranularity(this.props.host.id, value)
 
   _setHostIscsiIqn = iscsiIqn =>
     confirm({
@@ -183,10 +173,7 @@ export default class extends Component {
 
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
-  _accessAdvancedLiveTelemetry = () =>
-    window.open(
-      `/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`
-    )
+  _accessAdvancedLiveTelemetry = () => window.open(`/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`)
 
   _enableAdvancedLiveTelemetry = async host => {
     await enableAdvancedLiveTelemetry(host)
@@ -197,11 +184,7 @@ export default class extends Component {
 
   render() {
     const { host, pcis, pgpus, schedGran } = this.props
-    const {
-      isHtEnabled,
-      isNetDataPluginInstalledOnHost,
-      isNetDataPluginCorrectlySet,
-    } = this.state
+    const { isHtEnabled, isNetDataPluginInstalledOnHost, isNetDataPluginCorrectlySet } = this.state
 
     const _isXcpNgHost = host.productBrand === 'XCP-ng'
 
@@ -229,9 +212,7 @@ export default class extends Component {
         <Row>
           <Col className='text-xs-right'>
             {!isNetDataPluginCorrectlySet ? (
-              <Tooltip content={_('pluginNetDataIsNecessary')}>
-                {telemetryButton}
-              </Tooltip>
+              <Tooltip content={_('pluginNetDataIsNecessary')}>{telemetryButton}</Tooltip>
             ) : !_isXcpNgHost ? (
               <Tooltip content={_('xcpOnlyFeature')}>{telemetryButton}</Tooltip>
             ) : (
@@ -292,34 +273,20 @@ export default class extends Component {
                 </tr>
                 <tr>
                   <th>{_('hostStatus')}</th>
-                  <td>
-                    {host.enabled
-                      ? _('hostStatusEnabled')
-                      : _('hostStatusDisabled')}
-                  </td>
+                  <td>{host.enabled ? _('hostStatusEnabled') : _('hostStatusDisabled')}</td>
                 </tr>
                 {host.chipset_info.iommu !== undefined && (
                   <tr>
                     <th>
-                      <Tooltip content={_('hostIommuTooltip')}>
-                        {_('hostIommu')}
-                      </Tooltip>
+                      <Tooltip content={_('hostIommuTooltip')}>{_('hostIommu')}</Tooltip>
                     </th>
-                    <td>
-                      {host.chipset_info.iommu
-                        ? _('stateEnabled')
-                        : _('stateDisabled')}
-                    </td>
+                    <td>{host.chipset_info.iommu ? _('stateEnabled') : _('stateDisabled')}</td>
                   </tr>
                 )}
                 <tr>
                   <th>{_('hostPowerOnMode')}</th>
                   <td>
-                    <Toggle
-                      disabled
-                      onChange={noop}
-                      value={Boolean(host.powerOnMode)}
-                    />
+                    <Toggle disabled onChange={noop} value={Boolean(host.powerOnMode)} />
                   </td>
                 </tr>
                 <tr>
@@ -334,17 +301,14 @@ export default class extends Component {
                   <th>{_('hostStackStartedSince')}</th>
                   <td>
                     {_('started', {
-                      ago: (
-                        <FormattedRelative value={host.agentStartTime * 1000} />
-                      ),
+                      ago: <FormattedRelative value={host.agentStartTime * 1000} />,
                     })}
                   </td>
                 </tr>
                 <tr>
                   <th>{_('hostXenServerVersion')}</th>
                   <Copiable tagName='td' data={host.version}>
-                    {host.license_params.sku_marketing_name} {host.version} (
-                    {host.license_params.sku_type})
+                    {host.license_params.sku_marketing_name} {host.version} ({host.license_params.sku_type})
                   </Copiable>
                 </tr>
                 <tr>
@@ -354,10 +318,7 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostIscsiIqn')}</th>
                   <td>
-                    <Text
-                      onChange={this._setHostIscsiIqn}
-                      value={host.iscsiIqn}
-                    />
+                    <Text onChange={this._setHostIscsiIqn} value={host.iscsiIqn} />
                   </td>
                 </tr>
                 <tr>
@@ -395,10 +356,7 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
                   <td>
-                    <Text
-                      value={host.logging.syslog_destination || ''}
-                      onChange={this._setRemoteSyslogHost}
-                    />
+                    <Text value={host.logging.syslog_destination || ''} onChange={this._setRemoteSyslogHost} />
                   </td>
                 </tr>
               </tbody>
@@ -413,9 +371,7 @@ export default class extends Component {
                 </tr>
                 <tr>
                   <th>{_('hostGpus')}</th>
-                  <td>
-                    {map(pgpus, pgpu => pcis[pgpu.pci].device_name).join(', ')}
-                  </td>
+                  <td>{map(pgpus, pgpu => pcis[pgpu.pci].device_name).join(', ')}</td>
                 </tr>
                 <tr>
                   <th>{_('hostCpusNumber')}</th>
@@ -436,15 +392,13 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostManufacturerinfo')}</th>
                   <Copiable tagName='td'>
-                    {host.bios_strings['system-manufacturer']} (
-                    {host.bios_strings['system-product-name']})
+                    {host.bios_strings['system-manufacturer']} ({host.bios_strings['system-product-name']})
                   </Copiable>
                 </tr>
                 <tr>
                   <th>{_('hostBiosinfo')}</th>
                   <td>
-                    {host.bios_strings['bios-vendor']} (
-                    {host.bios_strings['bios-version']})
+                    {host.bios_strings['bios-vendor']} ({host.bios_strings['bios-version']})
                   </td>
                 </tr>
               </tbody>
@@ -464,12 +418,7 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostLicenseExpiry')}</th>
                   <td>
-                    <FormattedTime
-                      value={host.license_expiry * 1000}
-                      day='numeric'
-                      month='long'
-                      year='numeric'
-                    />
+                    <FormattedTime value={host.license_expiry * 1000} day='numeric' month='long' year='numeric' />
                     <br />
                   </td>
                 </tr>
@@ -483,10 +432,7 @@ export default class extends Component {
                   <tr>
                     <th>{_('supplementalPackNew')}</th>
                     <td>
-                      <SelectFiles
-                        type='file'
-                        onChange={file => installSupplementalPack(host, file)}
-                      />
+                      <SelectFiles type='file' onChange={file => installSupplementalPack(host, file)} />
                     </td>
                   </tr>
                 )}
@@ -509,9 +455,7 @@ export default class extends Component {
                     handler={installCertificate}
                     icon='upload'
                   >
-                    {host.certificates.length > 0
-                      ? _('replaceExistingCertificate')
-                      : _('installNewCertificate')}
+                    {host.certificates.length > 0 ? _('replaceExistingCertificate') : _('installNewCertificate')}
                   </ActionButton>
                 </h3>
                 {host.certificates.length > 0 ? (
@@ -532,12 +476,7 @@ export default class extends Component {
                               <strong>{_('expiry')}</strong>
                             </Col>
                             <Col mediumSize={10}>
-                              <FormattedTime
-                                value={notAfter * 1e3}
-                                day='numeric'
-                                month='long'
-                                year='numeric'
-                              />
+                              <FormattedTime value={notAfter * 1e3} day='numeric' month='long' year='numeric' />
                             </Col>
                           </Row>
                         </Container>

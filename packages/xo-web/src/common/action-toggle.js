@@ -4,11 +4,7 @@ import PropTypes from 'prop-types'
 import ActionButton from './action-button'
 
 const ActionToggle = ({ className, value, ...props }) => (
-  <ActionButton
-    {...props}
-    btnStyle={value ? 'success' : null}
-    icon={value ? 'toggle-on' : 'toggle-off'}
-  />
+  <ActionButton {...props} btnStyle={value ? 'success' : null} icon={value ? 'toggle-on' : 'toggle-off'} />
 )
 ActionToggle.propTypes = {
   value: PropTypes.bool,

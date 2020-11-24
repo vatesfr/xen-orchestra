@@ -46,9 +46,7 @@ export class Backup {
       ...settings[schedule.id],
     }
 
-    const srs = await Promise.all(
-      extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _))
-    )
+    const srs = await Promise.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _)))
 
     const remoteIds = extractIdsFromSimplePattern(job.remotes)
     const remoteHandlers = {}
@@ -64,31 +62,22 @@ export class Backup {
       Task.info('vms', { vms: vmIds })
 
       const handleVm = vmUuid =>
-        Task.run(
-          { name: 'backup VM', data: { type: 'VM', id: vmUuid } },
-          async () =>
-            new VmBackup({
-              getSnapshotNameLabel,
-              job,
-              // remotes,
-              remoteHandlers,
-              schedule,
-              settings: { ...scheduleSettings, ...settings[vmUuid] },
-              srs,
-              vm: await this._getRecord('VM', vmUuid),
-            }).run()
+        Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, async () =>
+          new VmBackup({
+            getSnapshotNameLabel,
+            job,
+            // remotes,
+            remoteHandlers,
+            schedule,
+            settings: { ...scheduleSettings, ...settings[vmUuid] },
+            srs,
+            vm: await this._getRecord('VM', vmUuid),
+          }).run()
         ).catch(noop) // errors are handled by logs
       const { concurrency } = scheduleSettings
-      await asyncMap(
-        vmIds,
-        concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm)
-      )
+      await asyncMap(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
     } finally {
-      await Promise.all(
-        Object.keys(remoteHandlers).map(id =>
-          remoteHandlers[id].forget().then(noop)
-        )
-      )
+      await Promise.all(Object.keys(remoteHandlers).map(id => remoteHandlers[id].forget().then(noop)))
     }
   }
 

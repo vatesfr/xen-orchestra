@@ -66,12 +66,7 @@ export default {
     const dataSize = header.length - of.sizes.errorMsg
     if (dataSize > 0) {
       object.data = Buffer.alloc(dataSize)
-      buffer.copy(
-        object.data,
-        0,
-        offset + OFFSETS.data,
-        offset + OFFSETS.data + dataSize
-      )
+      buffer.copy(object.data, 0, offset + OFFSETS.data, offset + OFFSETS.data + dataSize)
     }
 
     return object

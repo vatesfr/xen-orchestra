@@ -1,13 +1,9 @@
 function fulfilledThen(cb) {
-  return typeof cb === 'function'
-    ? SyncThenable.fromFunction(cb, this.value)
-    : this
+  return typeof cb === 'function' ? SyncThenable.fromFunction(cb, this.value) : this
 }
 
 function rejectedThen(_, cb) {
-  return typeof cb === 'function'
-    ? SyncThenable.fromFunction(cb, this.value)
-    : this
+  return typeof cb === 'function' ? SyncThenable.fromFunction(cb, this.value) : this
 }
 
 export class SyncThenable {

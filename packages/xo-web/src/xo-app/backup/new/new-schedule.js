@@ -40,10 +40,7 @@ const New = decorate([
           snapshotRetention,
         })
       },
-      setCronTimezone: (
-        { setSchedule },
-        { cronPattern: cron, timezone }
-      ) => () => {
+      setCronTimezone: ({ setSchedule }, { cronPattern: cron, timezone }) => () => {
         setSchedule({
           cron,
           timezone,
@@ -57,14 +54,7 @@ const New = decorate([
     },
   }),
   injectState,
-  ({
-    effects,
-    missingRetentions,
-    modes,
-    showRetentionWarning,
-    state,
-    value: schedule,
-  }) => (
+  ({ effects, missingRetentions, modes, showRetentionWarning, state, value: schedule }) => (
     <Card>
       <CardBlock>
         {missingRetentions && (
@@ -76,11 +66,7 @@ const New = decorate([
           <label htmlFor={state.idInputName}>
             <strong>{_('formName')}</strong>
           </label>
-          <Input
-            id={state.idInputName}
-            onChange={effects.setName}
-            value={schedule.name}
-          />
+          <Input id={state.idInputName} onChange={effects.setName} value={schedule.name} />
         </FormGroup>
         {modes.exportMode && (
           <FormGroup>
@@ -92,12 +78,7 @@ const New = decorate([
                 <Icon icon='error' />
               </Tooltip>
             )}
-            <Number
-              min='0'
-              onChange={effects.setExportRetention}
-              value={schedule.exportRetention}
-              required
-            />
+            <Number min='0' onChange={effects.setExportRetention} value={schedule.exportRetention} required />
           </FormGroup>
         )}
         {modes.copyMode && (
@@ -105,12 +86,7 @@ const New = decorate([
             <label>
               <strong>{_('scheduleCopyRetention')}</strong>
             </label>
-            <Number
-              min='0'
-              onChange={effects.setCopyRetention}
-              value={schedule.copyRetention}
-              required
-            />
+            <Number min='0' onChange={effects.setCopyRetention} value={schedule.copyRetention} required />
           </FormGroup>
         )}
         {modes.snapshotMode && (
@@ -118,23 +94,11 @@ const New = decorate([
             <label>
               <strong>{_('snapshotRetention')}</strong>
             </label>
-            <Number
-              min='0'
-              onChange={effects.setSnapshotRetention}
-              value={schedule.snapshotRetention}
-              required
-            />
+            <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
           </FormGroup>
         )}
-        <Scheduler
-          onChange={effects.setCronTimezone}
-          cronPattern={schedule.cron}
-          timezone={schedule.timezone}
-        />
-        <SchedulePreview
-          cronPattern={schedule.cron}
-          timezone={schedule.timezone}
-        />
+        <Scheduler onChange={effects.setCronTimezone} cronPattern={schedule.cron} timezone={schedule.timezone} />
+        <SchedulePreview cronPattern={schedule.cron} timezone={schedule.timezone} />
       </CardBlock>
     </Card>
   ),

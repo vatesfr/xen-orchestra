@@ -47,16 +47,7 @@ const forkDeltaExport = deltaExport =>
   })
 
 export class VmBackup {
-  constructor({
-    getSnapshotNameLabel,
-    job,
-    remotes,
-    remoteHandlers,
-    schedule,
-    settings,
-    srs,
-    vm,
-  }) {
+  constructor({ getSnapshotNameLabel, job, remotes, remoteHandlers, schedule, settings, srs, vm }) {
     this.job = job
     this.remoteHandlers = remoteHandlers
     this.remotes = remotes
@@ -135,19 +126,16 @@ export class VmBackup {
 
     const settings = this._settings
 
-    const doSnapshot =
-      this._isDelta ||
-      vm.power_state === 'Running' ||
-      settings.snapshotRetention !== 0
+    const doSnapshot = this._isDelta || vm.power_state === 'Running' || settings.snapshotRetention !== 0
     if (doSnapshot) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
 
-        const snapshotRef = await vm[
-          settings.checkpointSnapshot ? '$checkpoint' : '$snapshot'
-        ](this._getSnapshotNameLabel(vm))
+        const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot'](
+          this._getSnapshotNameLabel(vm)
+        )
         this.timestamp = Date.now()
 
         await xapi.setFieldEntries('VM', snapshotRef, 'other_config', {
@@ -200,10 +188,7 @@ export class VmBackup {
       await exportedVm.update_other_config('xo:backup:exported', 'true')
     }
 
-    const size = Object.values(sizeContainers).reduce(
-      (sum, { size }) => sum + size,
-      0
-    )
+    const size = Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0)
     const end = Date.now()
     const duration = end - timestamp
     debug('transfer complete', {
@@ -216,8 +201,7 @@ export class VmBackup {
   async _copyFull() {
     const { compression } = this.job
     const stream = await this._xapi.VM_export(this.exportedVm.$ref, {
-      compress:
-        Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
+      compress: Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
       useSnapshot: false,
     })
     const sizeContainer = watchStreamSize(stream)
@@ -258,9 +242,7 @@ export class VmBackup {
     const xapi = this._xapi
 
     const snapshotsRef = await xapi.getField('VM', vmRef, 'snapshots')
-    const snapshotsOtherConfig = await Promise.all(
-      snapshotsRef.map(ref => xapi.getField('VM', ref, 'other_config'))
-    )
+    const snapshotsOtherConfig = await Promise.all(snapshotsRef.map(ref => xapi.getField('VM', ref, 'other_config')))
 
     const snapshots = []
     snapshotsOtherConfig.forEach((other_config, i) => {
@@ -268,12 +250,7 @@ export class VmBackup {
         snapshots.push({ other_config, $ref: snapshotsRef[i] })
       }
     })
-    snapshots.sort((a, b) =>
-      a.other_config['xo:backup:datetime'] <
-      b.other_config['xo:backup:datetime']
-        ? -1
-        : 1
-    )
+    snapshots.sort((a, b) => (a.other_config['xo:backup:datetime'] < b.other_config['xo:backup:datetime'] ? -1 : 1))
     this._jobSnapshots = snapshots
   }
 
@@ -281,31 +258,23 @@ export class VmBackup {
     // TODO: handle all schedules (no longer existing schedules default to 0 retention)
 
     const { scheduleId } = this
-    const scheduleSnapshots = this._jobSnapshots.filter(
-      _ => _.other_config['xo:backup:schedule'] === scheduleId
-    )
+    const scheduleSnapshots = this._jobSnapshots.filter(_ => _.other_config['xo:backup:schedule'] === scheduleId)
 
     const baseVmRef = this._baseVm?.$ref
     const xapi = this._xapi
     await Promise.all(
-      getOldEntries(this._settings.snapshotRetention, scheduleSnapshots).map(
-        ({ $ref }) => {
-          if ($ref !== baseVmRef) {
-            return xapi.VM_destroy($ref)
-          }
+      getOldEntries(this._settings.snapshotRetention, scheduleSnapshots).map(({ $ref }) => {
+        if ($ref !== baseVmRef) {
+          return xapi.VM_destroy($ref)
         }
-      )
+      })
     )
   }
 
   async _selectBaseVm() {
-    const baseVm = findLast(
-      this._jobSnapshots,
-      _ => 'xo:backup:exported' in _.other_config
-    )
+    const baseVm = findLast(this._jobSnapshots, _ => 'xo:backup:exported' in _.other_config)
     if (baseVm !== undefined) {
-      const deltaChainLength =
-        (baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
+      const deltaChainLength = (baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
 
       const fullInterval = this._settings.fullInterval
       if (fullInterval === 0 || fullInterval > deltaChainLength) {
@@ -329,11 +298,7 @@ export class VmBackup {
 
     const { _settings: settings, vm } = this
     const isRunning = vm.power_state === 'Running'
-    const startAfter =
-      isRunning &&
-      (settings.offlineBackup
-        ? 'backup'
-        : settings.offlineSnapshot && 'snapshot')
+    const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {
       await vm.$callAsync('clean_shutdown')
     }

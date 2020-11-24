@@ -48,8 +48,7 @@ export class Servers extends Collection {
       server.allowUnauthorized = server.allowUnauthorized ? 'true' : undefined
       server.enabled = server.enabled ? 'true' : undefined
       const { error } = server
-      server.error =
-        error != null ? JSON.stringify(serializeError(error)) : undefined
+      server.error = error != null ? JSON.stringify(serializeError(error)) : undefined
       server.readOnly = server.readOnly ? 'true' : undefined
     })
     return super._update(servers)

@@ -72,23 +72,8 @@ connect.resolve = {
 // ===================================================================
 // Reconfigure IP
 
-export async function reconfigureIp({
-  pif,
-  mode = 'DHCP',
-  ip = '',
-  netmask = '',
-  gateway = '',
-  dns = '',
-}) {
-  await this.getXapi(pif).call(
-    'PIF.reconfigure_ip',
-    pif._xapiRef,
-    mode,
-    ip,
-    netmask,
-    gateway,
-    dns
-  )
+export async function reconfigureIp({ pif, mode = 'DHCP', ip = '', netmask = '', gateway = '', dns = '' }) {
+  await this.getXapi(pif).call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
 }
 
 reconfigureIp.params = {

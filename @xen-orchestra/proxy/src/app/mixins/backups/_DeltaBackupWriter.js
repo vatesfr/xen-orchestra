@@ -23,9 +23,7 @@ export class DeltaBackupWriter {
         name: 'export',
         data: ({ deltaExport }) => ({
           id: remoteId,
-          isFull: Object.values(deltaExport.vdis).some(
-            vdi => vdi.other_config['xo:base_delta'] === undefined
-          ),
+          isFull: Object.values(deltaExport.vdis).some(vdi => vdi.other_config['xo:base_delta'] === undefined),
           type: 'remote',
         }),
       },
@@ -49,10 +47,7 @@ export class DeltaBackupWriter {
 
     const oldBackups = getOldEntries(
       settings.exportRetention - 1,
-      await adapter.listVmBackups(
-        vm.uuid,
-        _ => _.mode === 'delta' && _.scheduleId === scheduleId
-      )
+      await adapter.listVmBackups(vm.uuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
     )
 
     // FIXME: implement optimized multiple VHDs merging with synthetic
@@ -118,19 +113,14 @@ export class DeltaBackupWriter {
             const vdiDir = dirname(path)
             parentPath = (
               await handler.list(vdiDir, {
-                filter: filename =>
-                  filename[0] !== '.' && filename.endsWith('.vhd'),
+                filter: filename => filename[0] !== '.' && filename.endsWith('.vhd'),
                 prependDir: true,
               })
             )
               .sort()
               .pop()
 
-            assert.notStrictEqual(
-              parentPath,
-              undefined,
-              `missing parent of ${id}`
-            )
+            assert.notStrictEqual(parentPath, undefined, `missing parent of ${id}`)
 
             parentPath = parentPath.slice(1) // remove leading slash
 
@@ -158,10 +148,7 @@ export class DeltaBackupWriter {
         })
       )
       return {
-        size: Object.values(sizeContainers).reduce(
-          (sum, { size }) => sum + size,
-          0
-        ),
+        size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
     })
     await handler.outputFile(metadataFilename, metadataContent)

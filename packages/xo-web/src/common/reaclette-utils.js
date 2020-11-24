@@ -6,8 +6,7 @@ export const generateId = () => `i${Math.random().toString(36).slice(2)}`
 // It only supports native inputs
 export const linkState = (_, { target }) => () => ({
   [target.name]:
-    target.nodeName.toLowerCase() === 'input' &&
-    target.type.toLowerCase() === 'checkbox'
+    target.nodeName.toLowerCase() === 'input' && target.type.toLowerCase() === 'checkbox'
       ? target.checked
       : target.value,
 })

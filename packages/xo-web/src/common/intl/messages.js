@@ -56,8 +56,7 @@ const messages = {
   temporarilyDisabled: 'Temporarily disabled',
   clickToShowError: 'Click to show error',
   backupJobs: 'Backup jobs',
-  iscsiSessions:
-    '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
+  iscsiSessions: '({ nSessions, number }) iSCSI session{nSessions, plural, one {} other {s}}',
   requiresAdminPermissions: 'Requires admin permissions',
   proxy: 'Proxy',
   proxies: 'Proxies',
@@ -200,8 +199,7 @@ const messages = {
   closeTunnel: 'Close tunnel',
   createSupportTicket: 'Create a support ticket',
   openTunnel: 'Open tunnel',
-  supportCommunity:
-    'The XOA check and the support tunnel are available in XOA.',
+  supportCommunity: 'The XOA check and the support tunnel are available in XOA.',
   supportTunnel: 'Support tunnel',
   supportTunnelClosed: 'The support tunnel is closed.',
 
@@ -218,8 +216,7 @@ const messages = {
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XenServer hosts or pools',
-  homeConnectServerText:
-    'Some XenServers have been registered but are not connected',
+  homeConnectServerText: 'Some XenServers have been registered but are not connected',
   homeHelp: 'Want some help?',
   homeAddServer: 'Add server',
   homeConnectServer: 'Connect servers',
@@ -272,8 +269,7 @@ const messages = {
   highAvailability: 'High Availability',
   powerState: 'Power state',
   srSharedType: 'Shared {type}',
-  warningHostTimeTooltip:
-    'Host time and XOA time are not consistent with each other',
+  warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
 
   // ----- Home snapshots -----
@@ -283,8 +279,7 @@ const messages = {
   // ----- Common components -----
   sortedTableAllItemsSelected: 'All of them are selected ({nItems, number})',
   sortedTableNoItems: 'No items found',
-  sortedTableNumberOfFilteredItems:
-    '{nFiltered, number} of {nTotal, number} items',
+  sortedTableNumberOfFilteredItems: '{nFiltered, number} of {nTotal, number} items',
   sortedTableNumberOfItems: '{nTotal, number} items',
   sortedTableNumberOfSelectedItems: '{nSelected, number} selected',
   sortedTableSelectAllItems: 'Click here to select all items',
@@ -426,14 +421,11 @@ const messages = {
   taskReason: 'Reason',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
-  deleteBackupScheduleQuestion:
-    'Are you sure you want to delete this backup job?',
+  deleteBackupScheduleQuestion: 'Are you sure you want to delete this backup job?',
   deleteSelectedJobs: 'Delete selected jobs',
   scheduleEnableAfterCreation: 'Enable immediately after creation',
-  scheduleEditMessage:
-    'You are editing schedule {name} ({id}). Saving will override previous schedule state.',
-  jobEditMessage:
-    'You are editing job {name} ({id}). Saving will override previous job state.',
+  scheduleEditMessage: 'You are editing schedule {name} ({id}). Saving will override previous schedule state.',
+  jobEditMessage: 'You are editing job {name} ({id}). Saving will override previous job state.',
   scheduleEdit: 'Edit schedule',
   missingBackupName: "A name is required to create the backup's job!",
   missingVms: 'Missing VMs!',
@@ -442,24 +434,17 @@ const messages = {
   missingSrs: 'Missing SRs!',
   missingPools: 'Missing pools!',
   missingSchedules: 'Missing schedules!',
-  missingRetentions:
-    'The modes need at least a schedule with retention higher than 0',
-  missingExportRetention:
-    'The Backup mode and the Delta Backup mode require backup retention to be higher than 0!',
-  missingCopyRetention:
-    'The CR mode and The DR mode require replication retention to be higher than 0!',
-  missingSnapshotRetention:
-    'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
-  deltaChainRetentionWarning:
-    'Either the full backup interval or the backup retention should be lower than 50.',
+  missingRetentions: 'The modes need at least a schedule with retention higher than 0',
+  missingExportRetention: 'The Backup mode and the Delta Backup mode require backup retention to be higher than 0!',
+  missingCopyRetention: 'The CR mode and The DR mode require replication retention to be higher than 0!',
+  missingSnapshotRetention: 'The Rolling Snapshot mode requires snapshot retention to be higher than 0!',
+  deltaChainRetentionWarning: 'Either the full backup interval or the backup retention should be lower than 50.',
   retentionNeeded: 'Requires one retention to be higher than 0!',
   newScheduleError: 'Invalid schedule',
-  createRemoteMessage:
-    'No remotes found, please click on the remotes settings button to create one!',
+  createRemoteMessage: 'No remotes found, please click on the remotes settings button to create one!',
   remotesSettings: 'Remotes settings',
   pluginsSettings: 'Plugins settings',
-  pluginsWarning:
-    'To receive the report, the plugins backup-reports and transport-email need to be loaded.',
+  pluginsWarning: 'To receive the report, the plugins backup-reports and transport-email need to be loaded.',
   scheduleAdd: 'Add a schedule',
   scheduleDelete: 'Delete',
   scheduleRun: 'Run schedule',
@@ -469,8 +454,7 @@ const messages = {
   newSchedule: 'New schedule',
   noSchedules: 'No schedules found',
   jobActionPlaceHolder: 'Select an xo-server API command',
-  jobTimeoutPlaceHolder:
-    'Timeout (number of seconds after which a VM is considered failed)',
+  jobTimeoutPlaceHolder: 'Timeout (number of seconds after which a VM is considered failed)',
   jobSchedules: 'Schedules',
   jobScheduleNamePlaceHolder: 'Name of your schedule',
   jobScheduleJobPlaceHolder: 'Select a job',
@@ -485,8 +469,7 @@ const messages = {
   migrateBackupScheduleMessage:
     'This will convert the legacy backup job to the new backup system. This operation is not reversible. Do you want to continue?',
   runBackupNgJobConfirm: 'Are you sure you want to run {name} ({id})?',
-  runBackupJobWarningNVms:
-    'This job will backup {nVms, number} VM{nVms, plural, one {} other {s}}.',
+  runBackupJobWarningNVms: 'This job will backup {nVms, number} VM{nVms, plural, one {} other {s}}.',
   cancelJobConfirm: 'Are you sure you want to cancel {name} ({id})?',
   scheduleDstWarning:
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
@@ -509,14 +492,12 @@ const messages = {
   checkpointSnapshot: 'Checkpoint snapshot',
   offlineSnapshot: 'Offline snapshot',
   offlineBackup: 'Offline backup',
-  offlineBackupInfo:
-    'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
+  offlineBackupInfo: 'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
   timeoutUnit: 'In hours',
-  dbAndDrRequireEnterprisePlan:
-    'Delta Backup and DR require an Enterprise plan',
+  dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require an Enterprise plan',
   crRequiresPremiumPlan: 'CR requires a Premium plan',
   smartBackupModeTitle: 'Smart mode',
   backupTargetRemotes: 'Target remotes (for export)',
@@ -526,14 +507,10 @@ const messages = {
     'Tip: Using thin-provisioned storage will consume less space. Please click on the icon to get more information',
   vmsOnThinProvisionedSrTip:
     'Tip: Creating VMs on thin-provisioned storage will consume less space. Please click on the icon to get more information',
-  deltaBackupOnOutdatedXenServerWarning:
-    'Delta Backup and Continuous Replication require at least XenServer 6.5.',
-  backupNgLinkToDocumentationMessage:
-    'Click for more information about the backup methods.',
-  localRemoteWarningMessage:
-    'Warning: Local remotes will use limited XOA disk space. Only for advanced users.',
-  backupVersionWarning:
-    'Warning: This feature works only with XenServer 6.5 or newer.',
+  deltaBackupOnOutdatedXenServerWarning: 'Delta Backup and Continuous Replication require at least XenServer 6.5.',
+  backupNgLinkToDocumentationMessage: 'Click for more information about the backup methods.',
+  localRemoteWarningMessage: 'Warning: Local remotes will use limited XOA disk space. Only for advanced users.',
+  backupVersionWarning: 'Warning: This feature works only with XenServer 6.5 or newer.',
   editBackupVmsTitle: 'VMs',
   editBackupSmartStatusTitle: 'VMs statuses',
   editBackupSmartResidentOn: 'Resident on',
@@ -579,8 +556,7 @@ const messages = {
 
   // ------ Backup job -----
 
-  confirmDeleteBackupJobsTitle:
-    'Delete backup job{nJobs, plural, one {} other {s}}',
+  confirmDeleteBackupJobsTitle: 'Delete backup job{nJobs, plural, one {} other {s}}',
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
   runBackupJob: 'Run backup job once',
@@ -655,8 +631,7 @@ const messages = {
   srLocation: 'Storage location',
 
   // ------ New Network -----
-  createNewNetworkNoPermission:
-    'You do not have permission to create a network',
+  createNewNetworkNoPermission: 'You do not have permission to create a network',
   createNewNetworkOn: 'Create a new network on {select}',
 
   // ----- ACLs, Users, Groups ------
@@ -682,8 +657,7 @@ const messages = {
   deleteUser: 'Delete user',
   deleteSelectedUsers: 'Delete selected users',
   deleteUsersModalTitle: 'Delete user{nUsers, plural, one {} other {s}}',
-  deleteUsersModalMessage:
-    'Are you sure you want to delete {nUsers, number} user{nUsers, plural, one {} other {s}}?',
+  deleteUsersModalMessage: 'Are you sure you want to delete {nUsers, number} user{nUsers, plural, one {} other {s}}?',
   noUser: 'No user',
   unknownUser: 'Unknown user',
   noGroupFound: 'No group found',
@@ -707,8 +681,7 @@ const messages = {
   deleteAcl: 'Delete ACL',
   deleteSelectedAcls: 'Delete selected ACLs',
   deleteAclsModalTitle: 'Delete ACL{nAcls, plural, one {} other {s}}',
-  deleteAclsModalMessage:
-    'Are you sure you want to delete {nAcls, number} ACL{nAcls, plural, one {} other {s}}?',
+  deleteAclsModalMessage: 'Are you sure you want to delete {nAcls, number} ACL{nAcls, plural, one {} other {s}}?',
 
   // ----- Plugins ------
   noPlugins: 'No plugins found',
@@ -718,8 +691,7 @@ const messages = {
   pluginError: 'Plugin error',
   unknownPluginError: 'Unknown error',
   purgePluginConfiguration: 'Purge plugin configuration',
-  purgePluginConfigurationQuestion:
-    'Are you sure you want to purge this configuration?',
+  purgePluginConfigurationQuestion: 'Are you sure you want to purge this configuration?',
   cancelPluginEdition: 'Cancel',
   pluginConfigurationSuccess: 'Plugin configuration',
   pluginConfigurationChanges: 'Plugin configuration successfully saved!',
@@ -767,11 +739,9 @@ const messages = {
   backupLabel: 'Backup',
 
   // ----- SR general tab -----
-  baseCopyTooltip:
-    '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
+  baseCopyTooltip: '{n, number} base cop{n, plural, one {y} other {ies}} ({usage})',
   diskTooltip: '{name} ({usage})',
-  snapshotsTooltip:
-    '{n, number} snapshot{n, plural, one {} other {s}} ({usage})',
+  snapshotsTooltip: '{n, number} snapshot{n, plural, one {} other {s}} ({usage})',
   vdiOnVmTooltip: '{name} ({usage}) on {vmName}',
   vdisTooltip: '{n, number} VDI{n, plural, one {} other {s}} ({usage})',
 
@@ -808,12 +778,10 @@ const messages = {
   displayAllStorages: 'Display all storages of this pool',
   displayAllVMs: 'Display all VMs of this pool',
   licenseRestrictions: 'License restrictions',
-  licenseRestrictionsModalTitle:
-    'Warning: You are using a Free XenServer license',
+  licenseRestrictionsModalTitle: 'Warning: You are using a Free XenServer license',
   actionsRestricted: 'Some functionality is restricted.',
   counterRestrictionsOptions: 'You can:',
-  counterRestrictionsOptionsXcp:
-    'upgrade to XCP-ng for free to get rid of these restrictions',
+  counterRestrictionsOptionsXcp: 'upgrade to XCP-ng for free to get rid of these restrictions',
   counterRestrictionsOptionsXsLicense: 'or get a commercial Citrix license',
   // ----- Pool tabs -----
   hostsTabName: 'Hosts',
@@ -891,12 +859,10 @@ const messages = {
   editHostIscsiIqnMessage:
     'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
-  memoryHostState:
-    'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
+  memoryHostState: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
-  hyperThreadingNotAvailable:
-    'HT detection is only available on XCP-ng 7.6 and higher',
+  hyperThreadingNotAvailable: 'HT detection is only available on XCP-ng 7.6 and higher',
   hostAddress: 'Address',
   hostStatus: 'Status',
   hostBuildNumber: 'Build number',
@@ -904,8 +870,7 @@ const messages = {
   hostIommuTooltip: 'PCI passthrough capable',
   hostNoIscsiSr: 'Not connected to an iSCSI SR',
   hostMultipathingSrs: 'Click to see concerned SRs',
-  hostMultipathingPaths:
-    '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}',
+  hostMultipathingPaths: '{nActives, number} of {nPaths, number} path{nPaths, plural, one {} other {s}}',
   hostMultipathingRequiredState:
     'This action will not be fulfilled if a VM is in a running state. Please ensure that all VMs are evacuated or stopped before performing this action!',
   hostMultipathingWarning:
@@ -935,11 +900,9 @@ const messages = {
   supplementalPackInstallStartedTitle: 'Installation started',
   supplementalPackInstallStartedMessage: 'Installing new supplemental pack…',
   supplementalPackInstallErrorTitle: 'Installation error',
-  supplementalPackInstallErrorMessage:
-    'The installation of the supplemental pack failed.',
+  supplementalPackInstallErrorMessage: 'The installation of the supplemental pack failed.',
   supplementalPackInstallSuccessTitle: 'Installation success',
-  supplementalPackInstallSuccessMessage:
-    'Supplemental pack successfully installed.',
+  supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
   uniqueHostIscsiIqnInfo: 'The iSCSI IQN must be unique. ',
   // ----- Host net tabs -----
   networkCreateButton: 'Add a network',
@@ -990,8 +953,7 @@ const messages = {
   installAllPatchesTitle: 'Install all patches',
   installAllPatchesContent: 'To install all patches go to pool.',
   installAllPatchesRedirect: 'Go to pool',
-  installAllPatchesOnHostContent:
-    'Are you sure you want to install all patches on this host?',
+  installAllPatchesOnHostContent: 'Are you sure you want to install all patches on this host?',
   patchRelease: 'Release',
   updatePluginNotInstalled:
     'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
@@ -1007,11 +969,9 @@ const messages = {
   installPatchesContent:
     'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
-  confirmPoolPatch:
-    'Are you sure you want to install all the patches on this pool?',
+  confirmPoolPatch: 'Are you sure you want to install all the patches on this pool?',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
-  vmsHaveCds:
-    '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
+  vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',
@@ -1052,8 +1012,7 @@ const messages = {
   created: 'Created on {date}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
-  hvmModeWithPvDriversEnabled:
-    'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
+  hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----
@@ -1100,8 +1059,7 @@ const messages = {
   // ----- VM disk tab -----
   vbdCreateDeviceButton: 'New disk',
   vdiAttachDevice: 'Attach disk',
-  vdiAttachDeviceConfirm:
-    'The selected VDI is already attached to this VM. Are you sure you want to continue?',
+  vdiAttachDeviceConfirm: 'The selected VDI is already attached to this VM. Are you sure you want to continue?',
   vdiBootOrder: 'Boot order',
   vdiNameLabel: 'Name',
   vdiNameDescription: 'Description',
@@ -1142,10 +1100,8 @@ const messages = {
   selectVdiMessage: 'Drop VHD file here',
   useQuotaWarning:
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
-  notEnoughSpaceInResourceSet:
-    'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
-  warningVdiSr:
-    "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
+  notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
+  warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
 
   // ----- VM network tab -----
 
@@ -1182,16 +1138,19 @@ const messages = {
   vifIpAddresses: 'IP addresses',
   vifMacAutoGenerate: 'Auto-generated if empty',
   vifAllowedIps: 'Allowed IPs',
+  selectIpFromIpPool: 'Select an IP',
+  enterIp: 'Enter an IP',
+  addAllowedIp: 'Add allowed IP',
+  addIpError: 'Error while adding allowed IP',
+  invalidIp: 'Invalid IP',
   vifNoIps: 'No IPs',
   vifLockingModeDisabled: 'VIF locking mode is disabled',
   vifLockingModeUnlocked: 'VIF locking mode is unlocked',
   vifLockingModeLocked: 'VIF locking mode is locked',
   networkDefaultLockingModeDisabled: 'Network default locking mode is disabled',
   networkDefaultLockingModeUnlocked: 'Network default locking mode is unlocked',
-  vifLockedNetworkNoIps:
-    'Network locked and no IPs are allowed for this interface',
-  vifUnlockedNetworkWithIps:
-    'Some IPs are unnecessarily set as allowed for this interface',
+  vifLockedNetworkNoIps: 'Network locked and no IPs are allowed for this interface',
+  vifUnlockedNetworkWithIps: 'Some IPs are unnecessarily set as allowed for this interface',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
 
@@ -1218,8 +1177,7 @@ const messages = {
 
   // ----- VM backup tab -----
   goToBackupPage: 'Go to the backup page.',
-  vmInLegacyBackup:
-    'This VM may be backed up by the legacy backup system. See legacy jobs.',
+  vmInLegacyBackup: 'This VM may be backed up by the legacy backup system. See legacy jobs.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
@@ -1275,13 +1233,10 @@ const messages = {
   vmSocketsWithCoresPerSocket:
     '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNone: 'None',
-  vmCoresPerSocket:
-    '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
+  vmCoresPerSocket: '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNotDivisor: "Not a divisor of the VM's max CPUs",
-  vmCoresPerSocketExceedsCoresLimit:
-    'The selected value exceeds the cores limit ({maxCores, number})',
-  vmCoresPerSocketExceedsSocketsLimit:
-    'The selected value exceeds the sockets limit ({maxSockets, number})',
+  vmCoresPerSocketExceedsCoresLimit: 'The selected value exceeds the cores limit ({maxCores, number})',
+  vmCoresPerSocketExceedsSocketsLimit: 'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmVgpu: 'vGPU',
@@ -1310,16 +1265,13 @@ const messages = {
   templateHomeNamePlaceholder: 'Click to add a name',
   templateHomeDescriptionPlaceholder: 'Click to add a description',
   templateDelete: 'Delete template',
-  templateDeleteModalTitle:
-    'Delete VM template{templates, plural, one {} other {s}}',
+  templateDeleteModalTitle: 'Delete VM template{templates, plural, one {} other {s}}',
   templateDeleteModalBody:
     'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?',
-  failedToDeleteTemplatesTitle:
-    'Delete template{nTemplates, plural, one {} other {s}} failed',
+  failedToDeleteTemplatesTitle: 'Delete template{nTemplates, plural, one {} other {s}} failed',
   failedToDeleteTemplatesMessage:
     'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.',
-  deleteDefaultTemplatesTitle:
-    'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
+  deleteDefaultTemplatesTitle: 'Delete default template{nDefaultTemplates, plural, one {} other {s}}',
   deleteDefaultTemplatesMessage:
     'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?',
 
@@ -1364,10 +1316,8 @@ const messages = {
   dashboardStatsButtonAddAllVM: 'Add all VMs',
   dashboardSendReport: 'Send report',
   dashboardReport: 'Report',
-  dashboardSendReportMessage:
-    'This will send a usage report to your configured emails.',
-  dashboardSendReportInfo:
-    'The usage report and transport email plugins need to be loaded!',
+  dashboardSendReportMessage: 'This will send a usage report to your configured emails.',
+  dashboardSendReportInfo: 'The usage report and transport email plugins need to be loaded!',
 
   // --- Stats board --
   weekHeatmapData: '{value} {date, date, medium}',
@@ -1401,6 +1351,10 @@ const messages = {
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
   noTooManySnapshotsObject: 'No VMs with too many snapshots',
   numberOfSnapshots: 'Number of snapshots',
+  guestToolStatus: 'Guest Tools status',
+  guestToolStatusTip: 'VMs with missing or outdated guest tools',
+  noGuestToolStatusObject: 'All running VMs have up to date guest tools',
+  guestToolStatusColumn: 'Status',
   deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
   deleteSelectedOrphanedVdis: 'Delete selected orphaned snapshot VDIs',
   vdisOnControlDomain: 'VDIs attached to Control Domain',
@@ -1455,14 +1409,12 @@ const messages = {
   newVmSshKey: 'SSH key',
   noConfigDrive: 'No config drive',
   newVmCustomConfig: 'Custom config',
-  availableTemplateVarsInfo:
-    'Click here to see the available template variables',
+  availableTemplateVarsInfo: 'Click here to see the available template variables',
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
   templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
-  coreOsDefaultTemplateError:
-    'Error on getting the default coreOS cloud template',
+  coreOsDefaultTemplateError: 'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
   newVmMacPlaceholder: 'Auto-generated if empty',
   newVmCpuWeightLabel: 'CPU weight',
@@ -1485,11 +1437,9 @@ const messages = {
   newVmShare: 'Share this VM',
   newVmSrsNotOnSameHost: 'The SRs must either be on the same host or shared',
   newVmNetworkConfigLabel: 'Network config',
-  newVmNetworkConfigInfo:
-    'Network configuration is only compatible with the {noCloudDatasourceLink}.',
+  newVmNetworkConfigInfo: 'Network configuration is only compatible with the {noCloudDatasourceLink}.',
   newVmNetworkConfigDocLink: 'See {networkConfigDocLink}.',
-  newVmNetworkConfigTooltip:
-    'Click here to get more information about network config',
+  newVmNetworkConfigTooltip: 'Click here to get more information about network config',
   newVmUserConfigLabel: 'User config',
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
@@ -1511,15 +1461,13 @@ const messages = {
   editResourceSet: 'Edit',
   deleteResourceSet: 'Delete',
   deleteResourceSetWarning: 'Delete resource set',
-  deleteResourceSetQuestion:
-    'Are you sure you want to delete this resource set?',
+  deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',
   resourceSetMissingObjects: 'Missing objects:',
   unknownResourceSetValue: 'Unknown',
   availableHosts: 'Available hosts',
   excludedHosts: 'Excluded hosts',
   noHostsAvailable: 'No hosts available.',
-  availableHostsDescription:
-    'VMs created from this resource set shall run on the following hosts.',
+  availableHostsDescription: 'VMs created from this resource set shall run on the following hosts.',
   maxCpus: 'Maximum CPUs',
   maxRam: 'Maximum RAM',
   maxDiskSpace: 'Maximum disk space',
@@ -1578,8 +1526,7 @@ const messages = {
 
   // ---- Backup views ---
   backupSchedules: 'Schedules',
-  loneSnapshotsMessages:
-    '{nLoneSnapshots} lone snapshot{nLoneSnapshots, plural, one {} other {s}} to delete!',
+  loneSnapshotsMessages: '{nLoneSnapshots} lone snapshot{nLoneSnapshots, plural, one {} other {s}} to delete!',
   scheduleCron: 'Cron pattern',
   scheduleLastRun: 'Click to display last run details',
   scheduleName: 'Name',
@@ -1596,14 +1543,12 @@ const messages = {
   delta: 'delta',
   noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
-  restoreDeltaBackupsInfo:
-    'Only the files of Delta Backup which are not on a SMB remote can be restored',
+  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB remote can be restored',
   remoteEnabled: 'Enabled',
   remoteDisabled: 'Disabled',
   enableRemote: 'Enable',
   disableRemote: 'Disable',
-  remoteErrorMessage:
-    'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
+  remoteErrorMessage: 'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.',
   backupVmNameColumn: 'VM Name',
   backupVmDescriptionColumn: 'VM Description',
   backupTags: 'Tags',
@@ -1620,14 +1565,12 @@ const messages = {
   restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
-  restoreVmBackupsBulkTitle:
-    'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
+  restoreVmBackupsBulkTitle: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
   restoreVmBackupsBulkMessage:
     'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',
   oldest: 'oldest',
   latest: 'latest',
-  restoreVmBackupsStart:
-    'Start VM{nVms, plural, one {} other {s}} after restore',
+  restoreVmBackupsStart: 'Start VM{nVms, plural, one {} other {s}} after restore',
   restoreVmBackupsBulkErrorTitle: 'Multi-restore error',
   restoreMetadataBackupTitle: 'Restore {item}',
   bulkRestoreMetadataBackupTitle:
@@ -1643,8 +1586,7 @@ const messages = {
   deleteVmBackupsBulkTitle: 'Delete backups',
   deleteVmBackupsBulkMessage:
     'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?',
-  deleteVmBackupsBulkConfirmText:
-    'delete {nBackups} backup{nBackups, plural, one {} other {s}}',
+  deleteVmBackupsBulkConfirmText: 'delete {nBackups} backup{nBackups, plural, one {} other {s}}',
   bulkDeleteMetadataBackupsTitle: 'Delete metadata backups',
   bulkDeleteMetadataBackupsMessage:
     'Are you sure you want to delete all the backups from {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}?',
@@ -1674,10 +1616,8 @@ const messages = {
 
   // ----- Modals -----
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
-  emergencyShutdownHostModalMessage:
-    'Are you sure you want to shutdown {host}?',
-  emergencyShutdownHostsModalTitle:
-    'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
+  emergencyShutdownHostModalMessage: 'Are you sure you want to shutdown {host}?',
+  emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
   emergencyShutdownHostsModalMessage:
     'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopHostModalTitle: 'Shutdown host',
@@ -1686,59 +1626,47 @@ const messages = {
   addHostModalTitle: 'Add host',
   addHostModalMessage: 'Are you sure you want to add {host} to {pool}?',
   restartHostModalTitle: 'Restart host',
-  restartHostModalMessage:
-    'This will restart your host. Do you want to continue?',
+  restartHostModalMessage: 'This will restart your host. Do you want to continue?',
   restartHostsAgentsModalTitle:
     'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
   restartHostsAgentsModalMessage:
     'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?',
   restartHostsModalTitle: 'Restart Host{nHosts, plural, one {} other {s}}',
-  restartHostsModalMessage:
-    'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  restartHostsModalMessage: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   startVmsModalTitle: 'Start VM{vms, plural, one {} other {s}}',
   cloneAndStartVM: 'Start a copy',
   forceStartVm: 'Force start',
   forceStartVmModalTitle: 'Forbidden operation',
   blockedStartVmModalMessage: 'Start operation for this vm is blocked.',
-  blockedStartVmsModalMessage:
-    'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
-  startVmsModalMessage:
-    'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
+  blockedStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
+  startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
   failedVmsErrorMessage:
     '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
   failedVmsErrorTitle: 'Start failed',
   stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
-  stopHostsModalMessage:
-    'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
+  stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
-  stopVmsModalMessage:
-    'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?',
+  stopVmsModalMessage: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmModalTitle: 'Restart VM',
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
   suspendVmsModalTitle: 'Suspend VM{vms, plural, one {} other {s}}',
-  suspendVmsModalMessage:
-    'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?',
+  suspendVmsModalMessage: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?',
   pauseVmsModalTitle: 'Pause VM{vms, plural, one {} other {s}}',
-  pauseVmsModalMessage:
-    'Are you sure you want to pause {vms, number} VM{vms, plural, one {} other {s}}?',
+  pauseVmsModalMessage: 'Are you sure you want to pause {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
-  restartVmsModalMessage:
-    'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
+  restartVmsModalMessage: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
   snapshotSaveMemory: 'save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
   deleteVmsModalMessage:
     'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED',
-  deleteVmsConfirmText:
-    'delete {nVms, number} vm{nVms, plural, one {} other {s}}',
+  deleteVmsConfirmText: 'delete {nVms, number} vm{nVms, plural, one {} other {s}}',
   deleteVmModalTitle: 'Delete VM',
-  deleteVmModalMessage:
-    'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
+  deleteVmModalMessage: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
   deleteVmBlockedModalTitle: 'Blocked operation',
-  deleteVmBlockedModalMessage:
-    'Removing the VM is a blocked operation. Would you like to remove it anyway?',
+  deleteVmBlockedModalMessage: 'Removing the VM is a blocked operation. Would you like to remove it anyway?',
   forceVmMigrateModalTitle: 'Force migration',
   forceVmMigrateModalMessage:
     'The VM is incompatible with the CPU features of the destination host. Would you like to force it anyway?',
@@ -1761,19 +1689,15 @@ const messages = {
   chooseSrForEachVdisModalVdiLabel: 'VDI',
   chooseSrForEachVdisModalSrLabel: 'SR*',
   deleteJobsModalTitle: 'Delete job{nJobs, plural, one {} other {s}}',
-  deleteJobsModalMessage:
-    'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
+  deleteJobsModalMessage: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?',
   deleteVbdsModalTitle: 'Delete VBD{nVbds, plural, one {} other {s}}',
-  deleteVbdsModalMessage:
-    'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
+  deleteVbdsModalMessage: 'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
   deleteVdiModalTitle: 'Delete VDI',
-  deleteVdiModalMessage:
-    'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
+  deleteVdiModalMessage: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST',
   deleteVdisModalTitle: 'Delete VDI{nVdis, plural, one {} other {s}}',
   deleteVdisModalMessage:
     'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST',
-  deleteSchedulesModalTitle:
-    'Delete schedule{nSchedules, plural, one {} other {s}}',
+  deleteSchedulesModalTitle: 'Delete schedule{nSchedules, plural, one {} other {s}}',
   deleteSchedulesModalMessage:
     'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?',
   deleteRemotesModalTitle: 'Delete remote{nRemotes, plural, one {} other {s}}',
@@ -1784,8 +1708,7 @@ const messages = {
   shareVmInResourceSetModalMessage:
     'This VM will be shared with all the members of the self-service {self}. Are you sure?',
   deleteVifsModalTitle: 'Delete VIF{nVifs, plural, one {} other {s}}',
-  deleteVifsModalMessage:
-    'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',
+  deleteVifsModalMessage: 'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?',
   deleteSnapshotModalTitle: 'Delete snapshot',
   deleteSnapshotModalMessage: 'Are you sure you want to delete this snapshot?',
   deleteSnapshotsModalTitle: 'Delete snapshot{nVms, plural, one {} other {s}}',
@@ -1815,11 +1738,9 @@ const messages = {
   trialReadyModalText:
     'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!',
   cancelTasksModalTitle: 'Cancel task{nTasks, plural, one {} other {s}}',
-  cancelTasksModalMessage:
-    'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?',
+  cancelTasksModalMessage: 'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?',
   destroyTasksModalTitle: 'Destroy task{nTasks, plural, one {} other {s}}',
-  destroyTasksModalMessage:
-    'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?',
+  destroyTasksModalMessage: 'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?',
   forgetHostFromSrModalTitle: 'Forget host',
   forgetHostFromSrModalMessage:
     'Are you sure you want to forget this host? This will disconnect the SR from the host by removing the link between them (PBD).',
@@ -1836,8 +1757,7 @@ const messages = {
 
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',
-  enableServerErrorMessage:
-    'Unexpected response. Please check your server address.',
+  enableServerErrorMessage: 'Unexpected response. Please check your server address.',
   serverLabel: 'Label',
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -1873,8 +1793,7 @@ const messages = {
   copyVmSelectSr: 'Select SR',
   copyVmsNoTargetSr: 'No target SR',
   copyVmsNoTargetSrMessage: 'A target SR is required to copy a VM',
-  notSupportedZstdWarning:
-    'Zstd is not supported on {nVms, number} VM{nVms, plural, one {} other {s}}',
+  notSupportedZstdWarning: 'Zstd is not supported on {nVms, number} VM{nVms, plural, one {} other {s}}',
   notSupportedZstdTooltip: 'Click to see the concerned VMs',
   fastCloneMode: 'Fast clone',
   fullCopyMode: 'Full copy',
@@ -1890,8 +1809,7 @@ const messages = {
   advancedLiveTelemetry: 'Advanced Live Telemetry',
   pluginNetDataIsNecessary: 'Netdata plugin is necessary',
   enableAdvancedLiveTelemetry: 'Enable Advanced Live Telemetry',
-  enableAdvancedLiveTelemetrySuccess:
-    'Advanced Live Telemetry successfully enabled',
+  enableAdvancedLiveTelemetrySuccess: 'Advanced Live Telemetry successfully enabled',
   xcpOnlyFeature: 'This feature is only XCP-ng compatible',
 
   // ----- Forget host -----
@@ -1903,8 +1821,7 @@ const messages = {
   // ----- Set pool master -----
 
   setPoolMasterModalTitle: 'Designate a new master',
-  setPoolMasterModalMessage:
-    'This operation may take several minutes. Do you want to continue?',
+  setPoolMasterModalMessage: 'This operation may take several minutes. Do you want to continue?',
 
   // ----- Network -----
   newNetworkCreate: 'Create network',
@@ -1921,8 +1838,7 @@ const messages = {
   newNetworkPreferredCenter: 'Preferred center (optional)',
   newNetworkEncapsulation: 'Encapsulation',
   newNetworkEncrypted: 'Encrypted',
-  encryptionWarning:
-    'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
+  encryptionWarning: 'A pool can have 1 encrypted GRE network and 1 encrypted VxLAN network max',
   preferredCenterTip: 'The host to try first to elect as center of the network',
   newNetworkSdnControllerTip: 'Please see the requirements',
   deleteNetwork: 'Delete network',
@@ -1965,8 +1881,7 @@ const messages = {
   or: 'Or',
   tryIt: 'Try it for free!',
   availableIn: 'This feature is available starting from {plan} Edition',
-  notAvailable:
-    'This feature is not available in your version, contact your administrator to know more.',
+  notAvailable: 'This feature is not available in your version, contact your administrator to know more.',
 
   // ----- Updates View -----
   registration: 'Registration',
@@ -1988,15 +1903,11 @@ const messages = {
   currentVersion: 'Current version:',
   register: 'Register',
   editRegistration: 'Edit registration',
-  trialRegistration:
-    'Please, take time to register in order to enjoy your trial.',
+  trialRegistration: 'Please, take time to register in order to enjoy your trial.',
   trialStartButton: 'Start trial',
-  trialAvailableUntil:
-    'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
-  trialConsumed:
-    'Your trial has been ended. Contact us or downgrade to Free version',
-  trialLocked:
-    'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
+  trialAvailableUntil: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
+  trialConsumed: 'Your trial has been ended. Contact us or downgrade to Free version',
+  trialLocked: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
   noUpdateInfo: 'No update information available',
   waitingUpdateInfo: 'Update information may be available',
   upToDate: 'Your XOA is up-to-date',
@@ -2014,24 +1925,18 @@ const messages = {
   unlistedChannelName: 'Unlisted channel name',
   selectChannel: 'Select channel',
   changeChannel: 'Change channel',
-  updaterCommunity:
-    'The Web updater, the release channels and the proxy settings are available in XOA.',
+  updaterCommunity: 'The Web updater, the release channels and the proxy settings are available in XOA.',
   xoaBuild: 'XOA build:',
 
   // ----- OS Disclaimer -----
   disclaimerTitle: 'Xen Orchestra from the sources',
-  disclaimerText1:
-    "You are using XO from the sources! That's great for a personal/non-profit usage.",
-  disclaimerText2:
-    "If you are a company, it's better to use it with our appliance + pro support included:",
-  disclaimerText3:
-    'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText1: "You are using XO from the sources! That's great for a personal/non-profit usage.",
+  disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
+  disclaimerText3: 'This version is not bundled with any support nor updates. Use it with caution.',
   disclaimerText4: 'Why do I see this message?',
-  notRegisteredDisclaimerInfo:
-    'You are not registered. Your XOA may not be up to date.',
+  notRegisteredDisclaimerInfo: 'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',
-  notRegisteredDisclaimerRegister:
-    'Click here to register and update your XOA.',
+  notRegisteredDisclaimerRegister: 'Click here to register and update your XOA.',
 
   // ----- PIF -----
   connectPif: 'Connect PIF',
@@ -2041,8 +1946,7 @@ const messages = {
   deletePif: 'Delete PIF',
   deletePifConfirm: 'Are you sure you want to delete this PIF?',
   deletePifs: 'Delete PIFs',
-  deletePifsConfirm:
-    'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?',
+  deletePifsConfirm: 'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?',
   pifConnected: 'Connected',
   pifDisconnected: 'Disconnected',
   pifPhysicallyConnected: 'Physically connected',
@@ -2056,13 +1960,11 @@ const messages = {
   newPasswordPlaceholder: 'New password',
   confirmPasswordPlaceholder: 'Confirm new password',
   confirmationPasswordError: 'Confirmation password incorrect',
-  confirmationPasswordErrorBody:
-    'Password does not match the confirm password.',
+  confirmationPasswordErrorBody: 'Password does not match the confirm password.',
   pwdChangeSuccess: 'Password changed',
   pwdChangeSuccessBody: 'Your password has been successfully changed.',
   pwdChangeError: 'Incorrect password',
-  pwdChangeErrorBody:
-    'The old password provided is incorrect. Your password has not been changed.',
+  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
   changePasswordOk: 'OK',
   forgetTokens: 'Forget all connection tokens',
   forgetTokensExplained:
@@ -2080,16 +1982,14 @@ const messages = {
   title: 'Title',
   key: 'Key',
   deleteSshKeyConfirm: 'Delete SSH key',
-  deleteSshKeyConfirmMessage:
-    'Are you sure you want to delete the SSH key {title}?',
+  deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
   deleteSshKeysConfirmMessage:
     'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?',
   addOtpConfirm: 'Add OTP authentication',
   addOtpConfirmMessage: 'Are you sure you want to add OTP authentication?',
   removeOtpConfirm: 'Remove OTP authentication',
-  removeOtpConfirmMessage:
-    'Are you sure you want to remove OTP authentication?',
+  removeOtpConfirmMessage: 'Are you sure you want to remove OTP authentication?',
   OtpAuthentication: 'OTP authentication',
 
   // ----- Usage -----
@@ -2116,8 +2016,7 @@ const messages = {
   logsFailedRestoreError: 'Click to show error',
   logsFailedRestoreTitle: 'Restore error',
   logDeleteMultiple: 'Delete log{nLogs, plural, one {} other {s}}',
-  logDeleteMultipleMessage:
-    'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',
+  logDeleteMultipleMessage: 'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?',
   logIndicationToEnable: 'Click to enable',
   logIndicationToDisable: 'Click to disable',
   reportBug: 'Report a bug',
@@ -2173,8 +2072,7 @@ const messages = {
 
   // ----- Settings/Cloud configs -----
   settingsCloudConfigTemplate: 'Template',
-  confirmDeleteCloudConfigsTitle:
-    'Delete cloud config{nCloudConfigs, plural, one {} other {s}}',
+  confirmDeleteCloudConfigsTitle: 'Delete cloud config{nCloudConfigs, plural, one {} other {s}}',
   confirmDeleteCloudConfigsBody:
     'Are you sure you want to delete {nCloudConfigs, number} cloud config{nCloudConfigs, plural, one {} other {s}}?',
   deleteCloudConfig: 'Delete cloud config',
@@ -2183,33 +2081,27 @@ const messages = {
 
   // ----- Config -----
   noConfigFile: 'No config file selected',
-  importTip:
-    'Try dropping a config file here or click to select a config file to upload.',
+  importTip: 'Try dropping a config file here or click to select a config file to upload.',
   config: 'Config',
   importConfig: 'Import',
-  importConfigEnterPassphrase:
-    'If the config is encrypted, please enter the passphrase:',
+  importConfigEnterPassphrase: 'If the config is encrypted, please enter the passphrase:',
   importConfigSuccess: 'Config file successfully imported',
   importConfigError: 'Error while importing config file',
   exportConfig: 'Export',
-  exportConfigEnterPassphrase:
-    'If you want to encrypt the exported config, please enter a passphrase:',
+  exportConfigEnterPassphrase: 'If you want to encrypt the exported config, please enter a passphrase:',
   downloadConfig: 'Download current config',
 
   // ----- SR -----
-  disabledVdiMigrateTooltip:
-    "Snapshots and base copies can't be migrated individually",
+  disabledVdiMigrateTooltip: "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
   srDisconnectAllModalTitle: 'Disconnect all hosts',
-  srDisconnectAllModalMessage:
-    'This will disconnect this SR from all its hosts.',
+  srDisconnectAllModalMessage: 'This will disconnect this SR from all its hosts.',
   srsDisconnectAllModalMessage:
     'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).',
   srForgetModalTitle: 'Forget SR',
   srsForgetModalTitle: 'Forget selected SRs',
-  srForgetModalMessage:
-    "Are you sure you want to forget this SR? VDIs on this storage won't be removed.",
+  srForgetModalMessage: "Are you sure you want to forget this SR? VDIs on this storage won't be removed.",
   srsForgetModalMessage:
     "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed.",
   srAllDisconnected: 'Disconnected',
@@ -2222,8 +2114,7 @@ const messages = {
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',
   xosanSuggestions: 'Suggestions',
-  xosanDisperseWarning:
-    'Warning: using disperse layout is not recommended right now. Please read {link}.',
+  xosanDisperseWarning: 'Warning: using disperse layout is not recommended right now. Please read {link}.',
   xosanName: 'Name',
   xosanHost: 'Host',
   xosanHosts: 'Connected Hosts',
@@ -2232,11 +2123,9 @@ const messages = {
   xosanUsedSpace: 'Used space',
   xosanLicense: 'License',
   xosanMultipleLicenses: 'This XOSAN has more than 1 license!',
-  xosanNeedPack:
-    'XOSAN pack needs to be installed and up to date on each host of the pool.',
+  xosanNeedPack: 'XOSAN pack needs to be installed and up to date on each host of the pool.',
   xosanInstallIt: 'Install it now!',
-  xosanNeedRestart:
-    'Some hosts need their toolstack to be restarted before you can create an XOSAN',
+  xosanNeedRestart: 'Some hosts need their toolstack to be restarted before you can create an XOSAN',
   xosanRestartAgents: 'Restart toolstacks',
   xosanSrOnSameHostMessage: 'Select no more than 1 SR per host',
   xosanLayout: 'Layout',
@@ -2280,14 +2169,12 @@ const messages = {
   // Pack download modal
   xosanInstallCloudPlugin: 'Install XOA plugin first',
   xosanLoadCloudPlugin: 'Load XOA plugin first',
-  xosanNoPackFound:
-    'No compatible XOSAN pack found for your XenServer versions.',
+  xosanNoPackFound: 'No compatible XOSAN pack found for your XenServer versions.',
   // SR tab XOSAN
   xosanVmsNotRunning: 'Some XOSAN Virtual Machines are not running',
   xosanVmsNotFound: 'Some XOSAN Virtual Machines could not be found',
   xosanFilesNeedingHealing: 'Files needing healing',
-  xosanFilesNeedHealing:
-    'Some XOSAN Virtual Machines have files needing healing',
+  xosanFilesNeedHealing: 'Some XOSAN Virtual Machines have files needing healing',
   xosanHostNotInNetwork: 'Host {hostName} is not in XOSAN network',
   xosanVm: 'VM controller',
   xosanUnderlyingStorage: 'SR',
@@ -2320,8 +2207,7 @@ const messages = {
   xosanCouldNotFindVm: 'Could not find VM',
   xosanUnderlyingStorageUsage: 'Using {usage}',
   xosanCustomIpNetwork: 'Custom IP network (/24)',
-  xosanIssueHostNotInNetwork:
-    'Will configure the host xosan network device with a static IP address and plug it in.',
+  xosanIssueHostNotInNetwork: 'Will configure the host xosan network device with a static IP address and plug it in.',
 
   // Hub
   hubPage: 'Hub',
@@ -2337,8 +2223,7 @@ const messages = {
   totalDiskSize: 'Total disk size',
   hideInstalledPool: 'Already installed templates are hidden',
   hubImportNotificationTitle: 'XVA import',
-  hubTemplateDescriptionNotAvailable:
-    'No description available for this template',
+  hubTemplateDescriptionNotAvailable: 'No description available for this template',
   recipeCreatedSuccessfully: 'Recipe created successfully',
   recipeViewCreatedVms: 'View created VMs',
   templatesLabel: 'Templates',
@@ -2351,20 +2236,17 @@ const messages = {
 
   // Audit
   auditActionEvent: 'Action/Event',
-  auditAlteredRecord:
-    'The record ({ id }) was altered ({ n, number } valid records)',
+  auditAlteredRecord: 'The record ({ id }) was altered ({ n, number } valid records)',
   auditCheckIntegrity: 'Check integrity',
   auditCopyFingerprintToClipboard: 'Copy fingerprint to clipboard',
   auditGenerateNewFingerprint: 'Generate a new fingerprint',
-  auditMissingRecord:
-    'The record ({ id }) is missing ({ n, number } valid records)',
+  auditMissingRecord: 'The record ({ id }) is missing ({ n, number } valid records)',
   auditEnterFingerprint: 'Fingerprint',
   auditEnterFingerprintInfo:
     "Enter the saved fingerprint to check the previous logs' integrity. If you don't have any, click OK.",
   auditRecord: 'Audit record',
   auditIntegrityVerified: 'Integrity verified',
-  auditSaveFingerprintInfo:
-    'Keep this fingerprint to be able to check the integrity of the current records later.',
+  auditSaveFingerprintInfo: 'Keep this fingerprint to be able to check the integrity of the current records later.',
   auditSaveFingerprintInErrorInfo:
     'However, if you trust the current state of the records, keep this fingerprint to be able to check their integrity later.',
   auditNewFingerprint: 'New fingerprint',
@@ -2372,8 +2254,7 @@ const messages = {
   displayAuditRecord: 'Display record',
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
-  auditInactiveUserActionsRecord:
-    'User actions recording is currently inactive',
+  auditInactiveUserActionsRecord: 'User actions recording is currently inactive',
 
   // Licenses
   xosanUnregisteredDisclaimer:
@@ -2381,8 +2262,7 @@ const messages = {
   xosanSourcesDisclaimer:
     'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.',
   registerNow: 'Register now!',
-  licensesUnregisteredDisclaimer:
-    'You need to register your appliance to manage your licenses.',
+  licensesUnregisteredDisclaimer: 'You need to register your appliance to manage your licenses.',
   licenseProduct: 'Product',
   licensePurchaser: 'Purchaser',
   licenseExpires: 'Expires',
@@ -2396,8 +2276,7 @@ const messages = {
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
   xosanLicenseRestricted: 'Limited size because XOSAN is in trial',
-  xosanAdminNoLicenseDisclaimer:
-    'You need a license on this SR to manage the XOSAN.',
+  xosanAdminNoLicenseDisclaimer: 'You need a license on this SR to manage the XOSAN.',
   xosanAdminExpiredLicenseDisclaimer:
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
@@ -2418,8 +2297,7 @@ const messages = {
   xosanLoadXoaPlugin: 'Load XOA plugin first',
   bindXoaLicense: 'Activate license',
   rebindXoaLicense: 'Move license to this XOA',
-  bindXoaLicenseConfirm:
-    'Are you sure you want to activate this license on your XOA? This action is not reversible!',
+  bindXoaLicenseConfirm: 'Are you sure you want to activate this license on your XOA? This action is not reversible!',
   bindXoaLicenseConfirmText: 'activate {licenseType} license',
   updateNeeded: 'Update needed',
   starterLicense: 'Starter license',
@@ -2428,12 +2306,10 @@ const messages = {
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
-  forgetProxyApplianceMessage:
-    'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
+  forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
   destroyProxyApplianceTitle: 'Destroy prox{n, plural, one {y} other {ies}}',
-  destroyProxyApplianceMessage:
-    'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
+  destroyProxyApplianceMessage: 'Are you sure you want to destroy {n, number} prox{n, plural, one {y} other {ies}}?',
   destroyProxies: 'Destroy proxy(ies)',
   deployProxy: 'Deploy a proxy',
   redeployProxy: 'Redeploy proxy',
@@ -2450,13 +2326,11 @@ const messages = {
   proxyLinkedBackups: 'Click to see linked backups',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
-  proxySrPredicateInfo:
-    'The select only contains SRs connected to at least one HVM-capable host',
+  proxySrPredicateInfo: 'The select only contains SRs connected to at least one HVM-capable host',
   httpProxy: 'HTTP proxy',
   httpProxyPlaceholder: 'protocol://username:password@address:port',
   proxyUpgradesError: 'Unable to check upgrades availability',
-  proxyApplianceSettingsInfo:
-    'Leave the field empty and click on OK to remove the existing configuration',
+  proxyApplianceSettingsInfo: 'Leave the field empty and click on OK to remove the existing configuration',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

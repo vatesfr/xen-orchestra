@@ -12,8 +12,7 @@ import { CancelToken } from 'promise-toolbox'
 const TAG_BASE_DELTA = 'xo:base_delta'
 const TAG_COPY_SRC = 'xo:copy_of'
 
-const ensureArray = value =>
-  value === undefined ? [] : Array.isArray(value) ? value : [value]
+const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
 export const exportDeltaVm = async function (
   vm,
@@ -32,11 +31,7 @@ export const exportDeltaVm = async function (
   baseVm &&
     baseVm.$VBDs.forEach(vbd => {
       let vdi, snapshotOf
-      if (
-        (vdi = vbd.$VDI) &&
-        (snapshotOf = vdi.$snapshot_of) &&
-        !fullVdisRequired.has(snapshotOf.uuid)
-      ) {
+      if ((vdi = vbd.$VDI) && (snapshotOf = vdi.$snapshot_of) && !fullVdisRequired.has(snapshotOf.uuid)) {
         baseVdis[vdi.snapshot_of] = vdi
       }
     })
@@ -77,8 +72,7 @@ export const exportDeltaVm = async function (
       ...vdi,
       other_config: {
         ...vdi.other_config,
-        [TAG_BASE_DELTA]:
-          baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        [TAG_BASE_DELTA]: baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
       },
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
@@ -142,12 +136,7 @@ export const exportDeltaVm = async function (
 }
 
 export const importDeltaVm = defer(
-  async (
-    $defer,
-    deltaVm,
-    sr,
-    { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {} } = {}
-  ) => {
+  async ($defer, deltaVm, sr, { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {} } = {}) => {
     const { version } = deltaVm
     if (compareVersions(version, '1.0.0') < 0) {
       throw new Error(`Unsupported delta backup version: ${version}`)
@@ -160,16 +149,10 @@ export const importDeltaVm = defer(
     if (detectBase) {
       const remoteBaseVmUuid = vmRecord.other_config[TAG_BASE_DELTA]
       if (remoteBaseVmUuid) {
-        baseVm = find(
-          xapi.objects.all,
-          obj =>
-            (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid
-        )
+        baseVm = find(xapi.objects.all, obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid)
 
         if (!baseVm) {
-          throw new Error(
-            `could not find the base VM (copy of ${remoteBaseVmUuid})`
-          )
+          throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
         }
       }
     }
@@ -225,9 +208,7 @@ export const importDeltaVm = defer(
 
     // 2. Delete all VBDs which may have been created by the import.
     await Promise.all(
-      (await xapi.getField('VM', vmRef, 'VBDs')).map(ref =>
-        ignoreErrors.call(xapi.call('VBD.destroy', ref))
-      )
+      (await xapi.getField('VM', vmRef, 'VBDs')).map(ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
     )
 
     // 3. Create VDIs & VBDs.
@@ -241,10 +222,7 @@ export const importDeltaVm = defer(
 
         const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
         if (remoteBaseVdiUuid) {
-          const baseVdi = find(
-            baseVdis,
-            vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid
-          )
+          const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
           if (!baseVdi) {
             throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
           }
@@ -296,9 +274,7 @@ export const importDeltaVm = defer(
           return
         }
         const vlan = pif.VLAN
-        const networksByNameLabel =
-          networksByNameLabelByVlan[vlan] ||
-          (networksByNameLabelByVlan[vlan] = {})
+        const networksByNameLabel = networksByNameLabelByVlan[vlan] || (networksByNameLabelByVlan[vlan] = {})
         defaultNetwork = networksByNameLabel[object.name_label] = object
       }
     })
@@ -307,21 +283,17 @@ export const importDeltaVm = defer(
 
     await Promise.all([
       // Import VDI contents.
-      cancelableMap(
-        cancelToken,
-        Object.entries(newVdis),
-        async (cancelToken, [id, vdi]) => {
-          for (let stream of ensureArray(streams[`${id}.vhd`])) {
-            if (typeof stream === 'function') {
-              stream = await stream()
-            }
-            if (stream.length === undefined) {
-              stream = await createVhdStreamWithLength(stream)
-            }
-            await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
+      cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
+        for (let stream of ensureArray(streams[`${id}.vhd`])) {
+          if (typeof stream === 'function') {
+            stream = await stream()
           }
+          if (stream.length === undefined) {
+            stream = await createVhdStreamWithLength(stream)
+          }
+          await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
         }
-      ),
+      }),
 
       // Wait for VDI export tasks (if any) termination.
       Promise.all(Object.values(streams).map(stream => stream.task)),
@@ -329,9 +301,7 @@ export const importDeltaVm = defer(
       // Create VIFs.
       Promise.all(
         Object.values(deltaVm.vifs).map(vif => {
-          let network =
-            vif.$network$uuid &&
-            xapi.getObjectByUuid(vif.$network$uuid, undefined)
+          let network = vif.$network$uuid && xapi.getObjectByUuid(vif.$network$uuid, undefined)
 
           if (network === undefined) {
             const { $network$VLAN: vlan = -1 } = vif
@@ -339,8 +309,7 @@ export const importDeltaVm = defer(
             if (networksByNameLabel !== undefined) {
               network = networksByNameLabel[vif.$network$name_label]
               if (network === undefined) {
-                network =
-                  networksByNameLabel[Object.keys(networksByNameLabel)[0]]
+                network = networksByNameLabel[Object.keys(networksByNameLabel)[0]]
               }
             } else {
               network = defaultNetwork
@@ -359,8 +328,7 @@ export const importDeltaVm = defer(
     ])
 
     await Promise.all([
-      deltaVm.vm.ha_always_run &&
-        xapi.setField('VM', vmRef, 'ha_always_run', true),
+      deltaVm.vm.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
       xapi.setField('VM', vmRef, 'name_label', deltaVm.vm.name_label),
     ])
 

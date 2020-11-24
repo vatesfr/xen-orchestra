@@ -36,19 +36,11 @@ export class DisasterRecoveryWriter {
     const { uuid: srUuid, $xapi: xapi } = sr
 
     // delete previous interrupted copies
-    ignoreErrors.call(
-      asyncMap(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm =>
-        xapi.VM_destroy(vm.$ref)
-      )
-    )
+    ignoreErrors.call(asyncMap(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref)))
 
-    const oldVms = getOldEntries(
-      settings.copyRetention - 1,
-      listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid)
-    )
+    const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
-    const deleteOldBackups = () =>
-      asyncMap(oldVms, vm => xapi.VM_destroy(vm.$ref))
+    const deleteOldBackups = () => asyncMap(oldVms, vm => xapi.VM_destroy(vm.$ref))
     const { deleteFirst } = settings
     if (deleteFirst) {
       await deleteOldBackups()
@@ -65,13 +57,8 @@ export class DisasterRecoveryWriter {
     await Promise.all([
       targetVm.add_tags('Disaster Recovery'),
       targetVm.ha_restart_priority !== '' &&
-        Promise.all([
-          targetVm.set_ha_restart_priority(''),
-          targetVm.add_tags('HA disabled'),
-        ]),
-      targetVm.set_name_label(
-        `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`
-      ),
+        Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
+      targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
       targetVm.update_blocked_operations(
         'start',
         'Start operation for this vm is blocked, clone it if you want to use it.'

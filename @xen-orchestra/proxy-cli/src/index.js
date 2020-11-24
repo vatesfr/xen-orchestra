@@ -12,8 +12,7 @@ import { readChunk } from '@vates/read-chunk'
 
 import pkg from '../package.json'
 
-const parseValue = value =>
-  value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
+const parseValue = value => (value.startsWith('json:') ? JSON.parse(value.slice(5)) : value)
 
 async function main(argv) {
   const config = await loadConfig('xo-proxy', {

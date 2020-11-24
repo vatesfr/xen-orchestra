@@ -19,9 +19,7 @@ export class ContinuousReplicationWriter {
         name: 'export',
         data: ({ deltaExport }) => ({
           id: sr.uuid,
-          isFull: Object.values(deltaExport.vdis).some(
-            vdi => vdi.other_config['xo:base_delta'] === undefined
-          ),
+          isFull: Object.values(deltaExport.vdis).some(vdi => vdi.other_config['xo:base_delta'] === undefined),
           type: 'SR',
         }),
       },
@@ -37,19 +35,11 @@ export class ContinuousReplicationWriter {
     const { uuid: srUuid, $xapi: xapi } = sr
 
     // delete previous interrupted copies
-    ignoreErrors.call(
-      asyncMap(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm =>
-        xapi.VM_destroy(vm.$ref)
-      )
-    )
+    ignoreErrors.call(asyncMap(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref)))
 
-    const oldVms = getOldEntries(
-      settings.copyRetention - 1,
-      listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid)
-    )
+    const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
-    const deleteOldBackups = () =>
-      asyncMap(oldVms, vm => xapi.VM_destroy(vm.$ref))
+    const deleteOldBackups = () => asyncMap(oldVms, vm => xapi.VM_destroy(vm.$ref))
     const { deleteFirst } = settings
     if (deleteFirst) {
       await deleteOldBackups()
@@ -59,10 +49,7 @@ export class ContinuousReplicationWriter {
     await Task.run({ name: 'transfer' }, async () => {
       targetVmRef = await importDeltaVm(deltaExport, sr)
       return {
-        size: Object.values(sizeContainers).reduce(
-          (sum, { size }) => sum + size,
-          0
-        ),
+        size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
     })
 
@@ -71,13 +58,8 @@ export class ContinuousReplicationWriter {
     await Promise.all([
       targetVm.add_tags('Continuous Replication'),
       targetVm.ha_restart_priority !== '' &&
-        Promise.all([
-          targetVm.set_ha_restart_priority(''),
-          targetVm.add_tags('HA disabled'),
-        ]),
-      targetVm.set_name_label(
-        `${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`
-      ),
+        Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
+      targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
       targetVm.update_blocked_operations(
         'start',
         'Start operation for this vm is blocked, clone it if you want to use it.'

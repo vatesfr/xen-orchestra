@@ -52,9 +52,7 @@ import VmActionBar from './action-bar'
 @connectStore(() => {
   const getVm = createGetObject()
 
-  const getContainer = createGetObject(
-    (state, props) => getVm(state, props).$container
-  )
+  const getContainer = createGetObject((state, props) => getVm(state, props).$container)
 
   const getPool = createGetObject((state, props) => getVm(state, props).$pool)
 
@@ -62,9 +60,7 @@ import VmActionBar from './action-bar'
     .pick((state, props) => getVm(state, props).$VBDs)
     .sort()
   const getVdis = createGetVmDisks(getVm)
-  const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(getVdis, vdis => map(vdis, '$SR'))
-  )
+  const getSrs = createGetObjectsOfType('SR').pick(createSelector(getVdis, vdis => map(vdis, '$SR')))
 
   const getVmTotalDiskSpace = createSumBy(createGetVmDisks(getVm), 'size')
 
@@ -166,8 +162,7 @@ export default class Vm extends BaseComponent {
     (checkPermissions, vm, srs) => checkPermissions(vm.id, 'operate')
   )
 
-  _setNameDescription = nameDescription =>
-    editVm(this.props.vm, { name_description: nameDescription })
+  _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
   _migrateVm = host => migrateVm(this.props.vm, host)
 
@@ -236,10 +231,7 @@ export default class Vm extends BaseComponent {
             <Copiable tagName='pre' className='text-muted mb-0'>
               {vm.uuid}
             </Copiable>
-            <Text
-              value={vm.name_description}
-              onChange={this._setNameDescription}
-            />
+            <Text value={vm.name_description} onChange={this._setNameDescription} />
           </Col>
           <Col mediumSize={6} className='text-xs-center'>
             <div>
@@ -250,41 +242,21 @@ export default class Vm extends BaseComponent {
         <Row>
           <Col>
             <NavTabs>
-              <NavLink to={`/vms/${vm.id}/general`}>
-                {_('generalTabName')}
-              </NavLink>
+              <NavLink to={`/vms/${vm.id}/general`}>{_('generalTabName')}</NavLink>
               <NavLink to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</NavLink>
-              <NavLink to={`/vms/${vm.id}/console`}>
-                {_('consoleTabName')}
-              </NavLink>
-              <NavLink to={`/vms/${vm.id}/network`}>
-                {_('networkTabName')}
-              </NavLink>
-              <NavLink to={`/vms/${vm.id}/disks`}>
-                {_('disksTabName', { disks: vm.$VBDs.length })}
-              </NavLink>
+              <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
+              <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
+              <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
               {this._getCanSnapshot() && (
                 <NavLink to={`/vms/${vm.id}/snapshots`}>
                   {_('snapshotsTabName')}{' '}
-                  {vm.snapshots.length !== 0 && (
-                    <span className='tag tag-pill tag-default'>
-                      {vm.snapshots.length}
-                    </span>
-                  )}
+                  {vm.snapshots.length !== 0 && <span className='tag tag-pill tag-default'>{vm.snapshots.length}</span>}
                 </NavLink>
               )}
-              {isAdmin && (
-                <NavLink to={`/vms/${vm.id}/backups`}>{_('backup')}</NavLink>
-              )}
+              {isAdmin && <NavLink to={`/vms/${vm.id}/backups`}>{_('backup')}</NavLink>}
               <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
-              {vm.docker && (
-                <NavLink to={`/vms/${vm.id}/containers`}>
-                  {_('containersTabName')}
-                </NavLink>
-              )}
-              <NavLink to={`/vms/${vm.id}/advanced`}>
-                {_('advancedTabName')}
-              </NavLink>
+              {vm.docker && <NavLink to={`/vms/${vm.id}/containers`}>{_('containersTabName')}</NavLink>}
+              <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
             </NavTabs>
           </Col>
         </Row>
@@ -292,8 +264,7 @@ export default class Vm extends BaseComponent {
     )
   }
 
-  _toggleHeader = () =>
-    this.setState({ collapsedHeader: !this.state.collapsedHeader })
+  _toggleHeader = () => this.setState({ collapsedHeader: !this.state.collapsedHeader })
 
   render() {
     const { container, vm } = this.props
@@ -302,25 +273,14 @@ export default class Vm extends BaseComponent {
     }
 
     const childProps = Object.assign(
-      pick(this.props, [
-        'container',
-        'pool',
-        'removeTag',
-        'srs',
-        'vbds',
-        'vdis',
-        'vm',
-        'vmTotalDiskSpace',
-      ]),
+      pick(this.props, ['container', 'pool', 'removeTag', 'srs', 'vbds', 'vdis', 'vm', 'vmTotalDiskSpace']),
       pick(this.state, ['statsOverview'])
     )
     return (
       <Page
         header={this.header()}
         collapsedHeader={this.state.collapsedHeader}
-        title={`${vm.name_label}${
-          container ? ` (${container.name_label})` : ''
-        }`}
+        title={`${vm.name_label}${container ? ` (${container.name_label})` : ''}`}
       >
         {cloneElement(this.props.children, {
           ...childProps,

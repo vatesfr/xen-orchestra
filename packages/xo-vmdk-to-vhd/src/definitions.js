@@ -42,32 +42,16 @@ export function parseHeader(buffer) {
   }
   const version = buffer.readUInt32LE(4)
   if (version !== 1 && version !== 3) {
-    throw new Error(
-      'unsupported VMDK version ' +
-        version +
-        ', only version 1 and 3 are supported'
-    )
+    throw new Error('unsupported VMDK version ' + version + ', only version 1 and 3 are supported')
   }
   const flags = parseFlags(buffer.slice(8, 12))
   const capacitySectors = parseU64b(buffer, 12, 'capacitySectors')
   const grainSizeSectors = parseU64b(buffer, 20, 'grainSizeSectors')
-  const descriptorOffsetSectors = parseU64b(
-    buffer,
-    28,
-    'descriptorOffsetSectors'
-  )
+  const descriptorOffsetSectors = parseU64b(buffer, 28, 'descriptorOffsetSectors')
   const descriptorSizeSectors = parseU64b(buffer, 36, 'descriptorSizeSectors')
   const numGTEsPerGT = buffer.readUInt32LE(44)
-  const rGrainDirectoryOffsetSectors = parseS64b(
-    buffer,
-    48,
-    'rGrainDirectoryOffsetSectors'
-  )
-  const grainDirectoryOffsetSectors = parseS64b(
-    buffer,
-    56,
-    'grainDirectoryOffsetSectors'
-  )
+  const rGrainDirectoryOffsetSectors = parseS64b(buffer, 48, 'rGrainDirectoryOffsetSectors')
+  const grainDirectoryOffsetSectors = parseS64b(buffer, 56, 'grainDirectoryOffsetSectors')
   const overheadSectors = parseS64b(buffer, 64, 'overheadSectors')
   const compressionMethod = compressionMap[buffer.readUInt16LE(77)]
   const l1EntrySectors = numGTEsPerGT * grainSizeSectors

@@ -10,8 +10,7 @@ import { isHostTimeConsistentWithXoaTime } from 'xo'
 const InconsistentHostTimeWarning = decorate([
   provideState({
     computed: {
-      isHostTimeConsistentWithXoaTime: (_, { host }) =>
-        isHostTimeConsistentWithXoaTime(host),
+      isHostTimeConsistentWithXoaTime: (_, { host }) => isHostTimeConsistentWithXoaTime(host),
     },
   }),
   injectState,

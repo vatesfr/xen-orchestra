@@ -12,9 +12,7 @@ const isValidToken = t => typeof t === 'string' && t.length !== 0
 export default class Authentication {
   constructor(_, { appName, config: { authenticationToken: token } }) {
     if (!isValidToken(token)) {
-      token = JSON.parse(
-        execFileSync('xenstore-read', ['vm-data/xo-proxy-authenticationToken'])
-      )
+      token = JSON.parse(execFileSync('xenstore-read', ['vm-data/xo-proxy-authenticationToken']))
 
       if (!isValidToken(token)) {
         throw new Error('missing authenticationToken in configuration')

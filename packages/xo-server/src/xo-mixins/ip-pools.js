@@ -14,25 +14,11 @@ import synchronized from 'decorator-synchronized'
 import { noSuchObject } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 
-import {
-  forEach,
-  generateUnsecureToken,
-  isEmpty,
-  lightSet,
-  mapToArray,
-  streamToArray,
-  throwFn,
-} from '../utils'
+import { forEach, generateUnsecureToken, isEmpty, lightSet, mapToArray, streamToArray, throwFn } from '../utils'
 
 // ===================================================================
 
-const normalize = ({
-  addresses,
-  id = throwFn('id is a required field'),
-  name = '',
-  networks,
-  resourceSets,
-}) => ({
+const normalize = ({ addresses, id = throwFn('id is a required field'), name = '', networks, resourceSets }) => ({
   addresses,
   id,
   name,
@@ -41,9 +27,7 @@ const normalize = ({
 })
 
 const _isAddressInIpPool = (address, network, ipPool) =>
-  ipPool.addresses &&
-  address in ipPool.addresses &&
-  includes(ipPool.networks, isObject(network) ? network.id : network)
+  ipPool.addresses && address in ipPool.addresses && includes(ipPool.networks, isObject(network) ? network.id : network)
 
 // ===================================================================
 
@@ -60,8 +44,7 @@ export default class IpPools {
       xo.addConfigManager(
         'ipPools',
         () => this.getAllIpPools(),
-        ipPools =>
-          Promise.all(mapToArray(ipPools, ipPool => this._save(ipPool)))
+        ipPools => Promise.all(mapToArray(ipPools, ipPool => this._save(ipPool)))
       )
     })
   }
@@ -89,9 +72,7 @@ export default class IpPools {
           return this._xo.removeIpPoolFromResourceSet(id, set.id)
         })
       )
-      await this._removeIpAddressesFromVifs(
-        mapValues((await this.getIpPool(id)).addresses, 'vifs')
-      )
+      await this._removeIpAddressesFromVifs(mapValues((await this.getIpPool(id)).addresses, 'vifs'))
 
       return store.del(id)
     }
@@ -127,9 +108,7 @@ export default class IpPools {
   }
 
   async _getAddressIpPool(address, network) {
-    const ipPools = await this._getAllIpPools(ipPool =>
-      _isAddressInIpPool(address, network, ipPool)
-    )
+    const ipPools = await this._getAllIpPools(ipPool => _isAddressInIpPool(address, network, ipPool))
 
     return ipPools && ipPools[0]
   }
@@ -140,16 +119,9 @@ export default class IpPools {
     const vifs = vm.VIFs
     const ipPools = []
     for (const vifId of vifs) {
-      const {
-        allowedIpv4Addresses,
-        allowedIpv6Addresses,
-        $network,
-      } = this._xo.getObject(vifId)
+      const { allowedIpv4Addresses, allowedIpv6Addresses, $network } = this._xo.getObject(vifId)
 
-      for (const address of concat(
-        allowedIpv4Addresses,
-        allowedIpv6Addresses
-      )) {
+      for (const address of concat(allowedIpv4Addresses, allowedIpv6Addresses)) {
         const ipPool = await this._getAddressIpPool(address, $network)
         ipPool && ipPools.push(ipPool.id)
       }
@@ -171,12 +143,9 @@ export default class IpPools {
       const resourseSetId = xapi.xo.getData(vif.VM, 'resourceSet')
 
       return () => {
-        const saveIpPools = () =>
-          Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
+        const saveIpPools = () => Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
         return resourseSetId
-          ? this._xo
-              .allocateLimitsInResourceSet(limits, resourseSetId)
-              .then(saveIpPools)
+          ? this._xo.allocateLimitsInResourceSet(limits, resourseSetId).then(saveIpPools)
           : saveIpPools()
       }
     })()
@@ -198,11 +167,7 @@ export default class IpPools {
           let changed = false
           forEach(removeAddresses, address => {
             let vifs, i
-            if (
-              (vifs = addresses[address]) &&
-              (vifs = vifs.vifs) &&
-              (i = findIndex(vifs, isVif)) !== -1
-            ) {
+            if ((vifs = addresses[address]) && (vifs = vifs.vifs) && (i = findIndex(vifs, isVif)) !== -1) {
               vifs.splice(i, 1)
               --allocations
               changed = true
@@ -256,11 +221,7 @@ export default class IpPools {
         const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
         remove(allowedIpv4Addresses, address => includes(addresses, address))
         remove(allowedIpv6Addresses, address => includes(addresses, address))
-        this.allocIpAddresses(
-          vifId,
-          undefined,
-          concat(allowedIpv4Addresses, allowedIpv6Addresses)
-        )
+        this.allocIpAddresses(vifId, undefined, concat(allowedIpv4Addresses, allowedIpv6Addresses))
 
         return getXapi(vif).editVif(vif._xapiId, {
           ipv4Allowed: allowedIpv4Addresses,
@@ -287,9 +248,7 @@ export default class IpPools {
 
       // Remove the addresses that are no longer in the IP pool from the concerned VIFs
       const deletedAddresses = diff(keys(previousAddresses), keys(addresses_))
-      await this._removeIpAddressesFromVifs(
-        pick(previousAddresses, deletedAddresses)
-      )
+      await this._removeIpAddressesFromVifs(pick(previousAddresses, deletedAddresses))
 
       if (isEmpty(addresses_)) {
         delete ipPool.addresses

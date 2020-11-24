@@ -5,12 +5,7 @@ import { NULL_REF } from 'xen-api'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 
-import {
-  extractOpaqueRef,
-  isVmHvm,
-  isVmRunning,
-  makeEditObject,
-} from '../utils'
+import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']
@@ -80,10 +75,7 @@ export default {
     const template = this.getObject(templateId)
 
     // Clones the template.
-    const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](
-      template,
-      nameLabel
-    )
+    const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
     $defer.onFailure(() => this.deleteVm(vmRef))
 
     // Copy BIOS strings
@@ -97,19 +89,13 @@ export default {
       await this.callAsync(
         'VM.copy_bios_strings',
         vmRef,
-        this.getObject(
-          props.affinityHost ?? this.getObject(template.$pool).master
-        ).$ref
+        this.getObject(props.affinityHost ?? this.getObject(template.$pool).master).$ref
       )
     }
 
     // Removes disks from the provision XML, we will create them by
     // ourselves.
-    await this.call(
-      'VM.remove_from_other_config',
-      vmRef,
-      'disks'
-    )::ignoreErrors()
+    await this.call('VM.remove_from_other_config', vmRef, 'disks')::ignoreErrors()
 
     // Creates the VDIs and executes the initial steps of the
     // installation.
@@ -125,16 +111,10 @@ export default {
       const isHvm = isVmHvm(vm)
 
       if (isHvm) {
-        if (
-          (isEmpty(vdis) && isEmpty(existingVdis)) ||
-          installMethod === 'network'
-        ) {
+        if ((isEmpty(vdis) && isEmpty(existingVdis)) || installMethod === 'network') {
           const { order } = vm.HVM_boot_params
 
-          vm.update_HVM_boot_params(
-            'order',
-            order ? 'n' + order.replace('n', '') : 'ncd'
-          )
+          vm.update_HVM_boot_params('order', order ? 'n' + order.replace('n', '') : 'ncd')
         }
       } else {
         // PV
@@ -142,10 +122,7 @@ export default {
           if (installMethod === 'network') {
             // TODO: normalize RHEL URL?
 
-            await vm.update_other_config(
-              'install-repository',
-              installRepository
-            )
+            await vm.update_other_config('install-repository', installRepository)
           } else if (installMethod === 'cd') {
             await vm.update_other_config('install-repository', 'cdrom')
           }
@@ -168,27 +145,24 @@ export default {
     // Modify existing (previous template) disks if necessary
     existingVdis &&
       (await Promise.all(
-        mapToArray(
-          existingVdis,
-          async ({ size, $SR: srId, ...properties }, userdevice) => {
-            const vbd = find(vm.$VBDs, { userdevice })
-            if (!vbd) {
-              return
-            }
-            let vdi = vbd.$VDI
-            await this._setObjectProperties(vdi, properties)
-
-            // if another SR is set, move it there
-            if (srId) {
-              vdi = await this.moveVdi(vdi.$id, srId)
-            }
-
-            // if the disk is bigger
-            if (size != null && size > vdi.virtual_size) {
-              await this.resizeVdi(vdi.$id, size)
-            }
+        mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
+          const vbd = find(vm.$VBDs, { userdevice })
+          if (!vbd) {
+            return
           }
-        )
+          let vdi = vbd.$VDI
+          await this._setObjectProperties(vdi, properties)
+
+          // if another SR is set, move it there
+          if (srId) {
+            vdi = await this.moveVdi(vdi.$id, srId)
+          }
+
+          // if the disk is bigger
+          if (size != null && size > vdi.virtual_size) {
+            await this.resizeVdi(vdi.$id, size)
+          }
+        })
       ))
 
     // Creates the user defined VDIs.
@@ -229,10 +203,7 @@ export default {
             ipv4_allowed: vif.ipv4_allowed,
             ipv6_allowed: vif.ipv6_allowed,
             device: devices[index],
-            locking_mode:
-              isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed)
-                ? 'network_default'
-                : 'locked',
+            locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
             mac: vif.mac,
             mtu: vif.mtu,
           })
@@ -262,12 +233,7 @@ export default {
       if (coreOs) {
         await this.createCoreOsCloudInitConfigDrive(vm.$id, srRef, cloudConfig)
       } else {
-        await this.createCloudInitConfigDrive(
-          vm.$id,
-          srRef,
-          cloudConfig,
-          networkConfig
-        )
+        await this.createCloudInitConfigDrive(vm.$id, srRef, cloudConfig, networkConfig)
       }
     }
 
@@ -281,8 +247,7 @@ export default {
   _editVm: makeEditObject({
     affinityHost: {
       get: 'affinity',
-      set: (value, vm) =>
-        vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : NULL_REF),
+      set: (value, vm) => vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : NULL_REF),
     },
 
     autoPoweron: {
@@ -296,9 +261,7 @@ export default {
 
     blockedOperations: {
       set(operations, vm) {
-        return vm.update_blocked_operations(
-          mapValues(operations, value => (value ? 'true' : null))
-        )
+        return vm.update_blocked_operations(mapValues(operations, value => (value ? 'true' : null)))
       },
     },
 
@@ -309,18 +272,13 @@ export default {
         }
         return vm.set_domain_type !== undefined
           ? vm.set_domain_type(virtualizationMode)
-          : vm.set_HVM_boot_policy(
-              virtualizationMode === 'hvm' ? 'Boot order' : ''
-            )
+          : vm.set_HVM_boot_policy(virtualizationMode === 'hvm' ? 'Boot order' : '')
       },
     },
 
     coresPerSocket: {
       set: (coresPerSocket, vm) =>
-        vm.update_platform(
-          'cores-per-socket',
-          coresPerSocket !== null ? String(coresPerSocket) : null
-        ),
+        vm.update_platform('cores-per-socket', coresPerSocket !== null ? String(coresPerSocket) : null),
     },
 
     CPUs: 'cpus',
@@ -338,25 +296,18 @@ export default {
       get: vm => +vm.VCPUs_at_startup,
       set: [
         'VCPUs_at_startup',
-        (value, vm) =>
-          isVmRunning(vm) &&
-          vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),
+        (value, vm) => isVmRunning(vm) && vm.$xapi.call('VM.set_VCPUs_number_live', vm.$ref, String(value)),
       ],
     },
 
     cpuCap: {
       get: vm => vm.VCPUs_params.cap && +vm.VCPUs_params.cap,
-      set: (cap, vm) =>
-        vm.update_VCPUs_params('cap', cap !== null ? String(cap) : null),
+      set: (cap, vm) => vm.update_VCPUs_params('cap', cap !== null ? String(cap) : null),
     },
 
     cpuMask: {
       get: vm => vm.VCPUs_params.mask && vm.VCPUs_params.mask.split(','),
-      set: (cpuMask, vm) =>
-        vm.update_VCPUs_params(
-          'mask',
-          cpuMask == null ? cpuMask : cpuMask.join(',')
-        ),
+      set: (cpuMask, vm) => vm.update_VCPUs_params('mask', cpuMask == null ? cpuMask : cpuMask.join(',')),
     },
 
     cpusMax: 'cpusStaticMax',
@@ -370,11 +321,7 @@ export default {
 
     cpuWeight: {
       get: vm => vm.VCPUs_params.weight && +vm.VCPUs_params.weight,
-      set: (weight, vm) =>
-        vm.update_VCPUs_params(
-          'weight',
-          weight === null ? null : String(weight)
-        ),
+      set: (weight, vm) => vm.update_VCPUs_params('weight', weight === null ? null : String(weight)),
     },
 
     highAvailability: {
@@ -401,12 +348,7 @@ export default {
         const dynamicMin = Math.min(vm.memory_dynamic_min, dynamicMax)
 
         if (isVmRunning(vm)) {
-          return this.call(
-            'VM.set_memory_dynamic_range',
-            $ref,
-            dynamicMin,
-            dynamicMax
-          )
+          return this.call('VM.set_memory_dynamic_range', $ref, dynamicMin, dynamicMax)
         }
 
         const staticMin = Math.min(vm.memory_static_min, dynamicMax)
@@ -418,14 +360,7 @@ export default {
           dynamicMin,
           dynamicMax
         )::pCatch({ code: 'MEMORY_CONSTRAINT_VIOLATION' }, () =>
-          this.call(
-            'VM.set_memory_limits',
-            $ref,
-            staticMin,
-            dynamicMax,
-            dynamicMax,
-            dynamicMax
-          )
+          this.call('VM.set_memory_limits', $ref, staticMin, dynamicMax, dynamicMax, dynamicMax)
         )
       },
     },
@@ -450,8 +385,7 @@ export default {
     hasVendorDevice: true,
 
     expNestedHvm: {
-      set: (expNestedHvm, vm) =>
-        vm.update_platform('exp-nested-hvm', expNestedHvm ? 'true' : null),
+      set: (expNestedHvm, vm) => vm.update_platform('exp-nested-hvm', expNestedHvm ? 'true' : null),
     },
 
     nicType: {
@@ -461,9 +395,7 @@ export default {
     vga: {
       set(vga, vm) {
         if (!includes(XEN_VGA_VALUES, vga)) {
-          throw new Error(
-            `The different values that the VGA can take are: ${XEN_VGA_VALUES}`
-          )
+          throw new Error(`The different values that the VGA can take are: ${XEN_VGA_VALUES}`)
         }
         return vm.update_platform('vga', vga)
       },
@@ -472,9 +404,7 @@ export default {
     videoram: {
       set(videoram, vm) {
         if (!includes(XEN_VIDEORAM_VALUES, videoram)) {
-          throw new Error(
-            `The different values that the video RAM can take are: ${XEN_VIDEORAM_VALUES}`
-          )
+          throw new Error(`The different values that the video RAM can take are: ${XEN_VIDEORAM_VALUES}`)
         }
         return vm.update_platform('videoram', String(videoram))
       },
@@ -517,16 +447,10 @@ export default {
   },
 
   rebootVm(vmId, { hard = false } = {}) {
-    return this.callAsync(
-      `VM.${hard ? 'hard' : 'clean'}_reboot`,
-      this.getObject(vmId).$ref
-    ).then(noop)
+    return this.callAsync(`VM.${hard ? 'hard' : 'clean'}_reboot`, this.getObject(vmId).$ref).then(noop)
   },
 
   shutdownVm(vmId, { hard = false } = {}) {
-    return this.callAsync(
-      `VM.${hard ? 'hard' : 'clean'}_shutdown`,
-      this.getObject(vmId).$ref
-    ).then(noop)
+    return this.callAsync(`VM.${hard ? 'hard' : 'clean'}_shutdown`, this.getObject(vmId).$ref).then(noop)
   },
 }

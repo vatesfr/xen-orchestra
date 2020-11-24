@@ -23,8 +23,7 @@ export const LVM_PARTITION_TYPE = 0x8e
 
 const parsePartxLine = createParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
-  valueTransform: (value, key) =>
-    key === 'start' || key === 'size' ? +value : value,
+  valueTransform: (value, key) => (key === 'start' || key === 'size' ? +value : value),
 })
 
 export const listPartitions = async devicePath => {
@@ -38,7 +37,5 @@ export const listPartitions = async devicePath => {
   return parts
     .split(/\r?\n/)
     .map(parsePartxLine)
-    .filter(
-      ({ type }) => type != null && !((type = +type) in IGNORED_PARTITION_TYPES)
-    )
+    .filter(({ type }) => type != null && !((type = +type) in IGNORED_PARTITION_TYPES))
 }

@@ -20,9 +20,7 @@ const isIgnoredStaticProperty = name => name in IGNORED_STATIC_PROPERTIES
 const ownKeys =
   (typeof Reflect !== 'undefined' && Reflect.ownKeys) ||
   (({ getOwnPropertyNames: names, getOwnPropertySymbols: symbols }) =>
-    symbols !== undefined ? obj => names(obj).concat(symbols(obj)) : names)(
-    Object
-  )
+    symbols !== undefined ? obj => names(obj).concat(symbols(obj)) : names)(Object)
 
 // -------------------------------------------------------------------
 
@@ -50,10 +48,7 @@ const mixin = Mixins => Class => {
           throw new Error(`${name}#${prop} is already defined`)
         }
 
-        ;(descriptors[prop] = getOwnPropertyDescriptor(
-          Mixin,
-          prop
-        )).enumerable = false // Object methods are enumerable but class methods are not.
+        ;(descriptors[prop] = getOwnPropertyDescriptor(Mixin, prop)).enumerable = false // Object methods are enumerable but class methods are not.
       }
     })
     defineProperties(prototype, descriptors)
@@ -81,11 +76,7 @@ const mixin = Mixins => Class => {
           throw new Error(`${name}#${prop} is already defined`)
         }
 
-        descriptors[prop] = getBoundPropertyDescriptor(
-          prototype,
-          prop,
-          mixinInstance
-        )
+        descriptors[prop] = getBoundPropertyDescriptor(prototype, prop, mixinInstance)
       }
       defineProperties(instance, descriptors)
     }
@@ -101,8 +92,7 @@ const mixin = Mixins => Class => {
       !(
         isIgnoredStaticProperty(prop) &&
         // if they already exist...
-        (descriptor = getOwnPropertyDescriptor(DecoratedClass, prop)) !==
-          undefined &&
+        (descriptor = getOwnPropertyDescriptor(DecoratedClass, prop)) !== undefined &&
         // and are not configurable.
         !descriptor.configurable
       )

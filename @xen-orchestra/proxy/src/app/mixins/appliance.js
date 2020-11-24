@@ -104,9 +104,7 @@ async function getStateSupportTunnel() {
 
   return {
     open: isActive,
-    stdout: isActiveOrFailed
-      ? await fromCallback(readFile, '/tmp/xoa-support-tunnel.out', 'utf8')
-      : '',
+    stdout: isActiveOrFailed ? await fromCallback(readFile, '/tmp/xoa-support-tunnel.out', 'utf8') : '',
   }
 }
 
@@ -122,8 +120,7 @@ export default class Appliance {
         getInfo: [
           getApplianceInfo,
           {
-            description:
-              'returns various information about the appliance itself',
+            description: 'returns various information about the appliance itself',
           },
         ],
         supportTunnel: {

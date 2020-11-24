@@ -224,5 +224,4 @@ export function recomputeAllLimits() {
 }
 
 recomputeAllLimits.permission = 'admin'
-recomputeAllLimits.description =
-  'Recompute manually the current resource set usage'
+recomputeAllLimits.description = 'Recompute manually the current resource set usage'

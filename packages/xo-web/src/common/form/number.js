@@ -39,10 +39,7 @@ const Number_ = decorate([
     computed: {
       value: ({ displayedValue }, { value }) => {
         const numericValue = +displayedValue
-        if (
-          displayedValue === '' ||
-          (!Number.isNaN(numericValue) && numericValue !== value)
-        ) {
+        if (displayedValue === '' || (!Number.isNaN(numericValue) && numericValue !== value)) {
           return value === undefined ? '' : String(value)
         }
         return displayedValue
@@ -51,13 +48,7 @@ const Number_ = decorate([
   }),
   injectState,
   ({ state, effects, value, className = 'form-control', ...props }) => (
-    <input
-      {...props}
-      className={className}
-      onChange={effects.onChange}
-      type='number'
-      value={state.value}
-    />
+    <input {...props} className={className} onChange={effects.onChange} type='number' value={state.value} />
   ),
 ])
 

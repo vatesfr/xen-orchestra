@@ -18,14 +18,8 @@ const noop = Function.prototype
 const { warn } = createLogger('xo:proxy:backups')
 
 export default class Backups {
-  constructor(
-    app,
-    { config: { backups: config, xapiOptions: globalXapiOptions } }
-  ) {
-    const createXapi = ({
-      credentials: { username: user, password },
-      ...opts
-    }) =>
+  constructor(app, { config: { backups: config, xapiOptions: globalXapiOptions } }) {
+    const createXapi = ({ credentials: { username: user, password }, ...opts }) =>
       new Xapi({
         ...globalXapiOptions,
         ...opts,
@@ -145,10 +139,7 @@ export default class Backups {
               const metadata = await adapter.readVmBackupMetadata(backupId)
               let vmRef
               if (metadata.mode === 'full') {
-                vmRef = await xapi.VM_import(
-                  await adapter.readFullVmBackup(metadata),
-                  srRef
-                )
+                vmRef = await xapi.VM_import(await adapter.readFullVmBackup(metadata), srRef)
               } else {
                 assert.strictEqual(metadata.mode, 'delta')
 
@@ -164,9 +155,7 @@ export default class Backups {
                 xapi.call(
                   'VM.set_name_label',
                   vmRef,
-                  `${metadata.vm.name_label} (${formatFilenameDate(
-                    metadata.timestamp
-                  )})`
+                  `${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
                 ),
               ])
 
@@ -185,9 +174,7 @@ export default class Backups {
         ],
         listDiskPartitions: [
           ({ disk: diskId, remote }) =>
-            using(app.remotes.getAdapter(remote), adapter =>
-              adapter.listPartitions(diskId)
-            ),
+            using(app.remotes.getAdapter(remote), adapter => adapter.listPartitions(diskId)),
           {
             description: 'list disk partitions',
             params: {
@@ -202,20 +189,11 @@ export default class Backups {
             await Promise.all(
               Object.keys(remotes).map(async remoteId => {
                 try {
-                  await using(
-                    app.remotes.getAdapter(remotes[remoteId]),
-                    async adapter => {
-                      backups[
-                        remoteId
-                      ] = mapValues(
-                        await adapter.listAllVmBackups(),
-                        vmBackups =>
-                          vmBackups.map(backup =>
-                            formatVmBackup(remoteId, backup)
-                          )
-                      )
-                    }
-                  )
+                  await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
+                    backups[remoteId] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
+                      vmBackups.map(backup => formatVmBackup(remoteId, backup))
+                    )
+                  })
                 } catch (error) {
                   warn('listVmBackups', { error, remote: remotes[remoteId] })
                 }
@@ -240,8 +218,7 @@ export default class Backups {
           },
         ],
         run: [
-          ({ streamLogs = false, ...rest }) =>
-            streamLogs ? runWithLogs(rest) : run(rest),
+          ({ streamLogs = false, ...rest }) => (streamLogs ? runWithLogs(rest) : run(rest)),
           {
             description: 'run a backup job',
             params: {

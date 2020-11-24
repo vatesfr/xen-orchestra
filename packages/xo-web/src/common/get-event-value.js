@@ -6,8 +6,7 @@ const getEventValue = event => {
     return event
   }
 
-  return target.nodeName.toLowerCase() === 'input' &&
-    target.type.toLowerCase() === 'checkbox'
+  return target.nodeName.toLowerCase() === 'input' && target.type.toLowerCase() === 'checkbox'
     ? target.checked
     : target.value
 }

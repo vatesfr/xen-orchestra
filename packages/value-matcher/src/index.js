@@ -1,13 +1,7 @@
 // @flow
 
 /* eslint-disable no-use-before-define */
-export type Pattern =
-  | AndPattern
-  | OrPattern
-  | NotPattern
-  | ObjectPattern
-  | ArrayPattern
-  | ValuePattern
+export type Pattern = AndPattern | OrPattern | NotPattern | ObjectPattern | ArrayPattern | ValuePattern
 /* eslint-enable no-use-before-define */
 
 // all patterns must match
@@ -77,5 +71,4 @@ const match = (pattern: Pattern, value: any) => {
   return pattern === value
 }
 
-export const createPredicate = (pattern: Pattern) => (value: any) =>
-  match(pattern, value)
+export const createPredicate = (pattern: Pattern) => (value: any) => match(pattern, value)

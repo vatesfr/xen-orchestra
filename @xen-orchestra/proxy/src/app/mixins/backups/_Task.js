@@ -114,12 +114,9 @@ class TaskLogger {
   wrapFn(fn, message, data) {
     const logger = this
     return function () {
-      const evaluate = v =>
-        typeof v === 'function' ? v.apply(this, arguments) : v
+      const evaluate = v => (typeof v === 'function' ? v.apply(this, arguments) : v)
 
-      return logger.run(evaluate(message), evaluate(data), () =>
-        fn.apply(this, arguments)
-      )
+      return logger.run(evaluate(message), evaluate(data), () => fn.apply(this, arguments))
     }
   }
 }
@@ -162,12 +159,8 @@ export const Task = {
 
   wrapFn({ name, data, onLog }, fn) {
     return function () {
-      const evaluate = v =>
-        typeof v === 'function' ? v.apply(this, arguments) : v
-      return Task.run(
-        { name: evaluate(name), data: evaluate(data), onLog },
-        () => fn.apply(this, arguments)
-      )
+      const evaluate = v => (typeof v === 'function' ? v.apply(this, arguments) : v)
+      return Task.run({ name: evaluate(name), data: evaluate(data), onLog }, () => fn.apply(this, arguments))
     }
   },
 }

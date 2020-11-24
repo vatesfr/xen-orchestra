@@ -59,9 +59,7 @@ interface Remote {
 
 declare namespace system {
   function listMethods(): string[]
-  function methodSignature(_: {
-    name: string
-  }): { params: { [string]: object } }
+  function methodSignature(_: { name: string }): { params: { [string]: object } }
 }
 
 declare namespace event {
@@ -114,12 +112,7 @@ declare namespace backup {
     url: string
   }
 
-  function importVmBackup(_: {
-    backupId: string
-    remote: Remote
-    srUuid: string
-    xapi: Xapi
-  }): string
+  function importVmBackup(_: { backupId: string; remote: Remote; srUuid: string; xapi: Xapi }): string
 
   function listVmBackups(_: {
     remotes: { [remoteId: string]: Remote }
@@ -136,13 +129,7 @@ declare namespace backup {
 }
 
 declare namespace task {
-  type Status =
-    | 'canceled'
-    | 'failure'
-    | 'interrupted'
-    | 'pending'
-    | 'skipped'
-    | 'success'
+  type Status = 'canceled' | 'failure' | 'interrupted' | 'pending' | 'skipped' | 'success'
 
   interface Task {
     data: any

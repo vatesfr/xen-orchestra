@@ -1,11 +1,6 @@
 import assert from 'assert'
 
-const streamToExistingBuffer = (
-  stream,
-  buffer,
-  offset = 0,
-  end = buffer.length
-) =>
+const streamToExistingBuffer = (stream, buffer, offset = 0, end = buffer.length) =>
   new Promise((resolve, reject) => {
     assert(offset >= 0)
     assert(end > offset)

@@ -5,15 +5,7 @@ import { noop } from 'lodash'
 
 import ButtonGroup from './button-group'
 
-export const Action = ({
-  display,
-  handler,
-  handlerParam,
-  icon,
-  label,
-  pending,
-  redirectOnSuccess,
-}) => (
+export const Action = ({ display, handler, handlerParam, icon, label, pending, redirectOnSuccess }) => (
   <ActionButton
     handler={handler}
     handlerParam={handlerParam}

@@ -42,10 +42,7 @@ export class FullBackupWriter {
 
     const oldBackups = getOldEntries(
       settings.exportRetention - 1,
-      await adapter.listVmBackups(
-        vm.uuid,
-        _ => _.mode === 'full' && _.scheduleId === scheduleId
-      )
+      await adapter.listVmBackups(vm.uuid, _ => _.mode === 'full' && _.scheduleId === scheduleId)
     )
     const deleteOldBackups = () => adapter.deleteFullVmBackups(oldBackups)
 
