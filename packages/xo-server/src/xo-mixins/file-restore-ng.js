@@ -172,6 +172,20 @@ export default class BackupNgFileRestore {
 
   @defer
   async fetchBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, paths) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      return app.callProxyMethod(proxy, 'backup.fetchPartitionFiles', {
+        disk: diskId,
+        remote: {
+          url,
+          options,
+        },
+        partition: partitionId,
+        paths,
+      })
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer.onFailure(disk.unmount)
 
@@ -190,6 +204,29 @@ export default class BackupNgFileRestore {
 
   @defer
   async listBackupNgDiskPartitions($defer, remoteId, diskId) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const stream = await app.callProxyMethod(
+        proxy,
+        'backup.listDiskPartitions',
+        {
+          disk: diskId,
+          remote: {
+            url,
+            options,
+          },
+        },
+        { expectStream: true }
+      )
+
+      const partitions = []
+      for await (const partition of stream) {
+        partitions.push(partition)
+      }
+      return partitions
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer(disk.unmount)
     return this._listPartitions(disk.path)
@@ -197,6 +234,20 @@ export default class BackupNgFileRestore {
 
   @defer
   async listBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, path) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      return app.callProxyMethod(proxy, 'backup.listPartitionFiles', {
+        disk: diskId,
+        remote: {
+          url,
+          options,
+        },
+        partition: partitionId,
+        path,
+      })
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer(disk.unmount)
 
