@@ -242,6 +242,12 @@ export default class Backups {
     })
 
     const partitionDisposers = {}
+    const dispose = async () => {
+      await Promise.all(Object.keys(partitionDisposers), path => partitionDisposers[path].map(d => d().catch(noop)))
+      app.hooks.removeListener('stop', dispose)
+    }
+    app.hooks.on('stop', () => dispose)
+
     app.api.addMethods({
       backup: {
         mountPartition: [
