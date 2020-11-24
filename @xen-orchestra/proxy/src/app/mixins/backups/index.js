@@ -243,7 +243,13 @@ export default class Backups {
 
     const partitionDisposers = {}
     const dispose = async () => {
-      await Promise.all(Object.keys(partitionDisposers), path => partitionDisposers[path].map(d => d().catch(noop)))
+      await Promise.all(
+        Object.keys(partitionDisposers).map(async path => {
+          const disposers = partitionDisposers[path]
+          await Promise.all(disposers.map(d => d(path).catch(noop)))
+          delete partitionDisposers[path]
+        })
+      )
       app.hooks.removeListener('stop', dispose)
     }
     app.hooks.on('stop', () => dispose)
