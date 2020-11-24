@@ -2698,14 +2698,6 @@
     "@webassemblyjs/wast-parser" "1.9.0"
     "@xtuc/long" "4.2.2"
 
-"@xen-orchestra/backups@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@xen-orchestra/backups/-/backups-0.1.1.tgz#853f423eaf445f26fd771f39d04bbeee6c5a7ac8"
-  integrity sha512-rcjtpqAFzvCB0cIMAIaFVy/U+q3IHeOsxYe8HftkO8EwI2Sv7/z+mypHe7TdSx2Zt716LKukbqpr/Xrcf3zmYQ==
-  dependencies:
-    d3-time-format "^2.2.3"
-    fs-extra "^8.1.0"
-
 "@xen-orchestra/fs@^0.10.1":
   version "0.10.4"
   resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-0.10.4.tgz#85d9d2b538285b4dba0ac257aaa5335582aba0d2"
@@ -9950,7 +9942,7 @@ http-errors@1.7.3, http-errors@~1.7.2:
     statuses ">= 1.5.0 < 2"
     toidentifier "1.0.0"
 
-http-errors@^1.3.1, http-errors@^1.6.3:
+http-errors@^1.3.1, http-errors@^1.6.3, http-errors@~1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.8.0.tgz#75d1bbe497e1044f51e4ee9e704a62f28d336507"
   integrity sha512-4I8r0C5JDhT5VkvI47QktDW75rNlGVsUf/8hzjCC/wkWI/jdTRmBb9aI7erSG82r1bjKY3F6k28WnsVxB1C73A==
@@ -9978,17 +9970,6 @@ http-errors@~1.6.2:
     inherits "2.0.3"
     setprototypeof "1.1.0"
     statuses ">= 1.4.0 < 2"
-
-http-errors@~1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.8.0.tgz#75d1bbe497e1044f51e4ee9e704a62f28d336507"
-  integrity sha512-4I8r0C5JDhT5VkvI47QktDW75rNlGVsUf/8hzjCC/wkWI/jdTRmBb9aI7erSG82r1bjKY3F6k28WnsVxB1C73A==
-  dependencies:
-    depd "~1.1.2"
-    inherits "2.0.4"
-    setprototypeof "1.2.0"
-    statuses ">= 1.5.0 < 2"
-    toidentifier "1.0.0"
 
 http-parser-js@>=0.5.1:
   version "0.5.2"
