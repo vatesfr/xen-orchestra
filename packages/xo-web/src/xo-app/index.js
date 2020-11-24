@@ -9,9 +9,8 @@ import React from 'react'
 import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
-import { blockXoaAccess } from 'xoa-updater'
+import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { connectStore, getXoaPlan, routes } from 'utils'
-import { createSelector } from 'reselect'
 import { Notification } from 'notification'
 import { ShortcutManager } from 'react-shortcuts'
 import { ThemeProvider } from 'styled-components'
@@ -161,11 +160,6 @@ export default class XoApp extends Component {
     this.setState({ dismissedTrialBanner: true })
   }
 
-  isTrialVersion = createSelector(
-    () => this.props.trial,
-    edition => edition.trial && edition.trial.end > new Date().getTime() && true
-  )
-
   componentDidMount() {
     this.refs.bodyWrapper.style.minHeight =
       this.refs.menu.getWrappedInstance().height + 'px'
@@ -284,14 +278,14 @@ export default class XoApp extends Component {
                   </button>
                 </div>
               )}
-              {this.isTrialVersion() && !this.state.dismissedTrialBanner && (
+              {isTrialRunning(trial.trial) && !this.state.dismissedTrialBanner && (
                 <div className='alert alert-info mb-0'>
                   <a
                     href='https://xen-orchestra.com/#!/xoa?pk_campaign=xo_source_banner'
                     rel='noopener noreferrer'
                     target='_blank'
                   >
-                    {_('isTrialLicense', {
+                    {_('trialLicenseInfo', {
                       edition: trial.trial.productId,
                       date: new Date(trial.trial.end),
                     })}
