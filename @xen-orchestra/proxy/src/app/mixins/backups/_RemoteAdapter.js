@@ -8,7 +8,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { parseDuration } from '@vates/parse-duration'
-import { readdir } from 'fs-extra'
+import { readdir, stat } from 'fs-extra'
 
 import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
@@ -28,6 +28,8 @@ const isVhdFile = filename => filename.endsWith('.vhd')
 const noop = Function.prototype
 
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
+
+const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
 
 const RE_VHDI = /^vhdi(\d+)$/
 
@@ -195,6 +197,28 @@ export class RemoteAdapter {
       })
     )
     return backups
+  }
+
+  listPartitionFiles(diskId, partitionId, path) {
+    return using(this.getPartition(diskId, partitionId), async rootPath => {
+      path = resolveSubpath(rootPath, path)
+
+      const entriesMap = {}
+      await Promise.all(
+        (await readdir(path)).map(async name => {
+          try {
+            const stats = await stat(`${path}/${name}`)
+            entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
+          } catch (error) {
+            if (error == null || error.code !== 'ENOENT') {
+              throw error
+            }
+          }
+        })
+      )
+
+      return entriesMap
+    })
   }
 
   listPartitions(diskId) {
