@@ -1,14 +1,16 @@
 import asyncMap from '@xen-orchestra/async-map'
 import fromCallback from 'promise-toolbox/fromCallback'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import pump from 'pump'
 import using from 'promise-toolbox/using'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
-import { basename, dirname, join, resolve } from 'path'
+import { basename, dirname, join, normalize, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { parseDuration } from '@vates/parse-duration'
 import { readdir, stat } from 'fs-extra'
+import { ZipFile } from 'yazl'
 
 import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
@@ -32,6 +34,18 @@ const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path
 const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
 
 const RE_VHDI = /^vhdi(\d+)$/
+
+async function addDirectory(zip, realPath, metadataPath) {
+  try {
+    const files = await readdir(realPath)
+    await Promise.all(files.map(file => addDirectory(zip, realPath + '/' + file, metadataPath + '/' + file)))
+  } catch (error) {
+    if (error == null || error.code !== 'ENOTDIR') {
+      throw error
+    }
+    zip.addFile(realPath, metadataPath)
+  }
+}
 
 function getDebouncedResource(resource) {
   return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
@@ -116,6 +130,22 @@ export class RemoteAdapter {
     await asyncMap(backups, ({ _filename, xva }) =>
       Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     )
+  }
+
+  async fetchPartitionFiles(diskId, partitionId, paths) {
+    const resource = this.getPartition(diskId, partitionId)
+    const path = await resource.p
+    try {
+      const zip = new ZipFile()
+      await Promise.all(
+        paths.map(file => addDirectory(zip, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
+      )
+      zip.end()
+      return zip.outputStream.on('end', () => resource.d(path))
+    } catch (error) {
+      ignoreErrors.call(resource.d(path))
+      throw error
+    }
   }
 
   @decorateResult(getDebouncedResource)

@@ -129,6 +129,19 @@ export default class Backups {
 
     app.api.addMethods({
       backup: {
+        fetchPartitionFiles: [
+          ({ disk: diskId, remote, partition: partitionId, paths }) =>
+            using(app.remotes.getAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths)),
+          {
+            description: 'fetch files from partition',
+            params: {
+              disk: { type: 'string' },
+              partition: { type: 'string' },
+              paths: { type: 'array' },
+              remote: { type: 'object' },
+            },
+          },
+        ],
         importVmBackup: [
           defer(($defer, { backupId, remote, srUuid, xapi: xapiOpts }) =>
             using(app.remotes.getAdapter(remote), async adapter => {
