@@ -120,10 +120,7 @@ export default class RemoteHandlerAbstract {
   }
 
   // TODO: remove method
-  async createOutputStream(
-    file: File,
-    { checksum = false, dirMode, ...options }: Object = {}
-  ): Promise<LaxWritable> {
+  async createOutputStream(file: File, { checksum = false, dirMode, ...options }: Object = {}): Promise<LaxWritable> {
     if (typeof file === 'string') {
       file = normalizePath(file)
     }
@@ -411,10 +408,7 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _createOutputStream(
-    file: File,
-    { dirMode, ...options }: Object = {}
-  ): Promise<LaxWritable> {
+  async _createOutputStream(file: File, { dirMode, ...options }: Object = {}): Promise<LaxWritable> {
     try {
       return await this._createWriteStream(file, options)
     } catch (error) {
@@ -471,11 +465,7 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _outputFile(
-    file: string,
-    data: Data,
-    { dirMode, flags }: { dirMode?: number, flags?: string }
-  ): Promise<void> {
+  async _outputFile(file: string, data: Data, { dirMode, flags }: { dirMode?: number, flags?: string }): Promise<void> {
     try {
       return await this._writeFile(file, data, { flags })
     } catch (error) {
@@ -488,11 +478,7 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(
-    input: Readable,
-    path: string,
-    { checksum, dirMode }: { checksum?: boolean, dirMode?: number }
-  ) {
+  async _outputStream(input: Readable, path: string, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, {
       checksum,

@@ -1649,16 +1649,12 @@ export default class BackupNg {
                     }
 
                     // FIXME: should only be renamed after the metadata file has been written
-                    await handler.outputStream(
-                      fork.streams[`${id}.vhd`](),
-                      path,
-                      {
-                        // no checksum for VHDs, because they will be invalidated by
-                        // merges and chainings
-                        checksum: false,
-                        dirMode: BACKUP_FILES_MODE,
-                      }
-                    )
+                    await handler.outputStream(fork.streams[`${id}.vhd`](), path, {
+                      // no checksum for VHDs, because they will be invalidated by
+                      // merges and chainings
+                      checksum: false,
+                      dirMode: BACKUP_FILES_MODE,
+                    })
                     $defer.onFailure.call(handler, 'unlink', path)
 
                     if (isDelta) {
