@@ -110,6 +110,7 @@ ${pkg.name} v${pkg.version}`
     return
   }
 
+  assert.strictEqual(responseType, 'application/json')
   const lines = pumpify.obj(response, split2())
 
   const firstLine = await readChunk(lines)
