@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import contentType from 'content-type'
 import fs from 'fs'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
@@ -85,13 +86,33 @@ ${pkg.name} v${pkg.version}`
     request.port = port
   }
 
-  const lines = pumpify.obj(await hrp.post(request), split2())
+  const response = await hrp.post(request)
+
+  const { stdout } = process
+  const { httpVersion, statusCode, statusMessage } = response
+  stdout.write(
+    inspect(`HTTP/${httpVersion} ${statusCode} ${statusMessage}`, {
+      colors: true,
+      depth: null,
+    })
+  )
+  stdout.write('\n')
+
+  const responseType = contentType.parse(response).type
+  stdout.write(inspect(`Content-Type: ${responseType}`, { colors: true, depth: null }))
+  stdout.write('\n\n')
+
+  if (responseType === 'application/octet-stream') {
+    stdout.write('Binary data')
+    return
+  }
+
+  const lines = pumpify.obj(response, split2())
 
   const firstLine = await readChunk(lines)
 
   try {
     const result = await parse.result(firstLine)
-    const { stdout } = process
     if (
       result !== null &&
       typeof result === 'object' &&

@@ -70,6 +70,13 @@ export default class Api {
         return
       }
 
+      if (typeof result.pipe === 'function') {
+        ctx.body = result
+        return
+      }
+
+      ctx.set('Content-Type', 'application/json')
+
       const isAsyncIterable =
         result !== null &&
         typeof result === 'object' &&

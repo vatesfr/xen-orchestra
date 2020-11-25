@@ -35,7 +35,9 @@ Content-Length: 69
 {"id":0,"jsonrpc":"2.0","method":"task.getAll","params":{"limit":10}}
 ```
 
-A result is a JSON-RPC response:
+A result can be:
+
+- JSON-RPC response
 
 ```http
 HTTP/1.1 200 OK
@@ -47,6 +49,24 @@ Content-Type: application/json
 {"id":"task3"}
 {"id":"task4"}
 {"id":"task5"}
+```
+
+Or
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":0,"jsonrpc":"2.0","result": "toto"}
+```
+
+- binary response
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/octet-stream
+
+<Binary data>
 ```
 
 ## Methods
