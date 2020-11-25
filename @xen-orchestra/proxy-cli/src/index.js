@@ -21,7 +21,7 @@ const parseValue = value => (value.startsWith('json:') ? JSON.parse(value.slice(
 async function main(argv) {
   const config = await loadConfig('xo-proxy', {
     appDir: `${__dirname}/..`,
-    ignoreUnknownFormats: true
+    ignoreUnknownFormats: true,
   })
 
   const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
@@ -30,10 +30,10 @@ async function main(argv) {
     alias: { help: 'h' },
     boolean: ['help', 'raw'],
     default: {
-      token: config.authenticationToken
+      token: config.authenticationToken,
     },
     stopEarly: true,
-    string: ['host', 'token']
+    string: ['host', 'token'],
   })
 
   if (help || args.length === 0) {
@@ -76,11 +76,11 @@ ${pkg.name} v${pkg.version}`
     body: format.request(0, method, params),
     headers: {
       'content-type': 'application/json',
-      cookie: `authenticationToken=${token}`
+      cookie: `authenticationToken=${token}`,
     },
     pathname: '/api/v1',
     protocol: 'https:',
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   }
   if (host !== '') {
     request.host = host
