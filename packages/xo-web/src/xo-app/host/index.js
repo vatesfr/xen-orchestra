@@ -174,6 +174,11 @@ export default class Host extends Component {
   componentWillReceiveProps(props) {
     const hostNext = props.host
     const hostCur = this.props.host
+    const canUnsubs =
+      this.unsubscribeHostMissingPatches &&
+      typeof this.unsubscribeHostMissingPatches === 'function'
+        ? true
+        : false
 
     if (hostCur && !hostNext) {
       return this.context.router.push('/')
@@ -183,7 +188,13 @@ export default class Host extends Component {
       return
     }
 
-    this._subscribePatches(hostNext)
+    if (!canUnsubs) {
+      this._subscribePatches(hostNext)
+    }
+
+    if (!isRunning(hostNext) && canUnsubs) {
+      this.unsubscribeHostMissingPatches()
+    }
 
     if (!isRunning(hostCur) && isRunning(hostNext)) {
       this.loop(hostNext)
