@@ -1,6 +1,6 @@
 const { dirname } = require('path')
 
-exports.formatVmBackup = (remoteId, backup) => {
+exports.formatVmBackup = backup => {
   return {
     disks:
       backup.vhds === undefined
@@ -14,8 +14,7 @@ exports.formatVmBackup = (remoteId, backup) => {
             }
           }),
 
-    // inject an id usable by importVmBackupNg()
-    id: `${remoteId}/${backup._filename}`,
+    id: backup.id,
     jobId: backup.jobId,
     mode: backup.mode,
     scheduleId: backup.scheduleId,

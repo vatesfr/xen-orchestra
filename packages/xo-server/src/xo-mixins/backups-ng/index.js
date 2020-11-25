@@ -904,13 +904,13 @@ export default class BackupNg {
       await Promise.all(
         entries.map(async vmUuid => {
           // $FlowFixMe don't know what is the problem (JFT)
-          const backups = await this._listVmBackups(handler, vmUuid)
+          const backups = await this._listVmBackups(handler, remoteId, vmUuid)
 
           if (backups.length === 0) {
             return
           }
 
-          backupsByVm[vmUuid] = backups.map(backup => formatVmBackup(remoteId, backup))
+          backupsByVm[vmUuid] = backups.map(backup => formatVmBackup(backup))
         })
       )
     } catch (error) {
@@ -1264,7 +1264,7 @@ export default class BackupNg {
 
               const oldBackups: MetadataFull[] = (getOldEntries(
                 exportRetention - 1,
-                await this._listVmBackups(handler, vm, _ => _.mode === 'full' && _.scheduleId === scheduleId)
+                await this._listVmBackups(handler, remoteId, vm, _ => _.mode === 'full' && _.scheduleId === scheduleId)
               ): any)
 
               const deleteOldBackups = () =>
@@ -1556,7 +1556,7 @@ export default class BackupNg {
 
               const oldBackups: MetadataDelta[] = (getOldEntries(
                 exportRetention - 1,
-                await this._listVmBackups(handler, vm, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
+                await this._listVmBackups(handler, remoteId, vm, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
               ): any)
 
               // FIXME: implement optimized multiple VHDs merging with synthetic
@@ -1802,6 +1802,7 @@ export default class BackupNg {
 
   async _listVmBackups(
     handler: RemoteHandler,
+    remoteId,
     vm: Object | string,
     predicate?: Metadata => boolean
   ): Promise<Metadata[]> {
@@ -1829,6 +1830,7 @@ export default class BackupNg {
               Object.defineProperty(metadata, '_filename', {
                 value: path,
               })
+              metadata.id = `${remoteId}/${path}`
               backups.push(metadata)
             }
           } catch (error) {
