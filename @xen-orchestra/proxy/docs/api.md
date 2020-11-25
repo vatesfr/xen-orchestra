@@ -24,6 +24,8 @@ Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
 
 ### Remote Procedure Call
 
+#### Request
+
 A call is a JSON-RPC request over a POST HTTP request:
 
 ```http
@@ -35,9 +37,20 @@ Content-Length: 69
 {"id":0,"jsonrpc":"2.0","method":"task.getAll","params":{"limit":10}}
 ```
 
-A result can be:
+#### Response
 
-- JSON-RPC response
+##### JSON-RPC response
+
+Plain JSON-RPC response
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":0,"jsonrpc":"2.0","result": "toto"}
+```
+
+NDJSON Response
 
 ```http
 HTTP/1.1 200 OK
@@ -51,16 +64,8 @@ Content-Type: application/json
 {"id":"task5"}
 ```
 
-Or
 
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"id":0,"jsonrpc":"2.0","result": "toto"}
-```
-
-- binary response
+##### Binary response
 
 ```http
 HTTP/1.1 200 OK
