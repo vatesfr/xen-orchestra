@@ -276,8 +276,8 @@ export default class Jobs {
         settings: job.settings,
         vms: job.vms,
       },
-      userId: user.id,
-      userName: user.name,
+      userId: job.userId,
+      userName: user ? user.name : '(unknown user)',
     }
     try {
       const runningJobs = this._runningJobs
