@@ -1481,10 +1481,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@sullux/aws-sdk@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@sullux/aws-sdk/-/aws-sdk-1.0.4.tgz#e48294ed817ac05e201028f3cc3caf05a02e2558"
-  integrity sha512-IFQuLOLz8mNeqL9uYY0ZiXEeEkPYlKXofFZPu3YqXKGqecEuJvoFYlACbmOQxjGhsX6XoJ6WJbyNX1znSMJYyQ==
+"@sullux/aws-sdk@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@sullux/aws-sdk/-/aws-sdk-1.0.5.tgz#6d0377024b286f8732250a832a895ef32f764099"
+  integrity sha512-5Dq9Wjg7UsLyMz87vyGgW2+Ykcz1mJVSNNEwu096L5G1xS1+37dBzV8ibq91DOLQ22pMs8HgFpmzqTgyZy4cOw==
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"

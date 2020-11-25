@@ -1,7 +1,4 @@
-import AWS from 'aws-sdk'
-import http from 'http'
 import aws from '@sullux/aws-sdk'
-
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -19,36 +16,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
     const { host, path, username, password } = parse(remote.url)
-
-    AWS.config.update({
-      httpOptions: {
-        agent: new http.Agent({
-          keepAlive: true,
-          maxSockets: 50,
-          rejectUnauthorized: true,
-        }),
-      },
-    })
     // https://www.zenko.io/blog/first-things-first-getting-started-scality-s3-server/
-    this._s3 = new AWS.S3({
+    const options = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
       endpoint: host,
       s3ForcePathStyle: true,
       secretAccessKey: password,
       signatureVersion: 'v4',
-      sslEnabled: false,
-    })
-
-    this._ss3 = aws({
-      accessKeyId: username,
-      apiVersion: '2006-03-01',
-      endpoint: host,
-      s3ForcePathStyle: true,
-      secretAccessKey: password,
-      signatureVersion: 'v4',
-      sslEnabled: false,
-    }).s3
+      region: 'eu-west-3',
+    }
+    this._ss3 = aws(options).s3
 
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
@@ -97,7 +75,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _createReadStream(file, options) {
-    return this._s3.getObject(this._createParams(file)).createReadStream()
+    // https://github.com/Sullux/aws-sdk/issues/11
+    return this._ss3.getObject.raw(this._createParams(file)).createReadStream()
   }
 
   async _unlink(file) {
