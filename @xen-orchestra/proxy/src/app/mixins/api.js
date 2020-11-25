@@ -70,7 +70,7 @@ export default class Api {
         return
       }
 
-      if (typeof result.pipe === 'function') {
+      if (typeof result?.pipe === 'function') {
         ctx.body = result
         return
       }
