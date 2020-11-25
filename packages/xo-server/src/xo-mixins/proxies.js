@@ -1,3 +1,4 @@
+import assert from 'assert'
 import contentType from 'content-type'
 import cookie from 'cookie'
 import defer from 'golike-defer'
@@ -359,6 +360,8 @@ export default class Proxy {
     if (responseType === 'application/octet-stream') {
       return response
     }
+
+    assert.strictEqual(responseType, 'application/json')
 
     const lines = pumpify.obj(response, split2(JSON.parse))
     const firstLine = await readChunk(lines)
