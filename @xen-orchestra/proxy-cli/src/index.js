@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
+import assert from 'assert'
 import contentType from 'content-type'
+import fromCallback from 'promise-toolbox/fromCallback'
 import fs from 'fs'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
+import pump from 'pump'
 import split2 from 'split2'
 import pumpify from 'pumpify'
 import { format, parse } from 'json-rpc-protocol'
@@ -18,7 +21,7 @@ const parseValue = value => (value.startsWith('json:') ? JSON.parse(value.slice(
 async function main(argv) {
   const config = await loadConfig('xo-proxy', {
     appDir: `${__dirname}/..`,
-    ignoreUnknownFormats: true,
+    ignoreUnknownFormats: true
   })
 
   const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
@@ -27,10 +30,10 @@ async function main(argv) {
     alias: { help: 'h' },
     boolean: ['help', 'raw'],
     default: {
-      token: config.authenticationToken,
+      token: config.authenticationToken
     },
     stopEarly: true,
-    string: ['host', 'token'],
+    string: ['host', 'token']
   })
 
   if (help || args.length === 0) {
@@ -73,11 +76,11 @@ ${pkg.name} v${pkg.version}`
     body: format.request(0, method, params),
     headers: {
       'content-type': 'application/json',
-      cookie: `authenticationToken=${token}`,
+      cookie: `authenticationToken=${token}`
     },
     pathname: '/api/v1',
     protocol: 'https:',
-    rejectUnauthorized: false,
+    rejectUnauthorized: false
   }
   if (host !== '') {
     request.host = host
@@ -89,24 +92,13 @@ ${pkg.name} v${pkg.version}`
   const response = await hrp.post(request)
 
   const { stdout } = process
-  const { httpVersion, statusCode, statusMessage } = response
-  stdout.write(
-    inspect(`HTTP/${httpVersion} ${statusCode} ${statusMessage}`, {
-      colors: true,
-      depth: null,
-    })
-  )
-  stdout.write('\n')
 
   const responseType = contentType.parse(response).type
-  stdout.write(inspect(`Content-Type: ${responseType}`, { colors: true, depth: null }))
-  stdout.write('\n\n')
-
   if (responseType === 'application/octet-stream') {
     if (stdout.isTTY) {
       throw new Error('binary data, pipe to a file!')
     }
-    await fromCallback(pipeline, result, stdout)
+    await fromCallback(pump, response, stdout)
     return
   }
 
