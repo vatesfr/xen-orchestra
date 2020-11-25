@@ -271,8 +271,8 @@ export default class Jobs {
       callId: Math.random().toString(36).slice(2),
       method: 'backupNg.runJob',
       params: {
-        jobId: job.id,
-        scheduleId: schedule.id,
+        id: job.id,
+        schedule: schedule.id,
         settings: job.settings,
         vms: job.vms,
       },
