@@ -57,6 +57,7 @@
     "body-parser": "^1.18.2",
     "compression": "^1.7.3",
     "connect-flash": "^0.1.1",
+    "content-type": "^1.0.4",
     "cookie": "^0.4.0",
     "cookie-parser": "^1.4.3",
     "d3-time-format": "^3.0.0",
