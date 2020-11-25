@@ -106,7 +106,7 @@ ${pkg.name} v${pkg.version}`
     if (stdout.isTTY) {
       throw new Error('binary data, pipe to a file!')
     }
-    return await fromCallback(pipeline, result, stdout)
+    await fromCallback(pipeline, result, stdout)
     return
   }
 
