@@ -1,3 +1,4 @@
+import contentType from 'content-type'
 import cookie from 'cookie'
 import defer from 'golike-defer'
 import hrp from 'http-request-plus'
@@ -352,6 +353,11 @@ export default class Proxy {
     }).authenticationToken?.value
     if (authenticationToken !== undefined) {
       await this.updateProxy(id, { authenticationToken })
+    }
+
+    const responseType = contentType.parse(response).type
+    if (responseType === 'application/octet-stream') {
+      return response
     }
 
     const lines = pumpify.obj(response, split2(JSON.parse))
