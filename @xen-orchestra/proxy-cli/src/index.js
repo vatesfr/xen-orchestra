@@ -103,7 +103,10 @@ ${pkg.name} v${pkg.version}`
   stdout.write('\n\n')
 
   if (responseType === 'application/octet-stream') {
-    stdout.write('Binary data')
+    if (stdout.isTTY) {
+      throw new Error('binary data, pipe to a file!')
+    }
+    return await fromCallback(pipeline, result, stdout)
     return
   }
 
