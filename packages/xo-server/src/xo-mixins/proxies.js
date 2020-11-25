@@ -1,3 +1,5 @@
+import assert from 'assert'
+import contentType from 'content-type'
 import cookie from 'cookie'
 import defer from 'golike-defer'
 import hrp from 'http-request-plus'
@@ -353,6 +355,13 @@ export default class Proxy {
     if (authenticationToken !== undefined) {
       await this.updateProxy(id, { authenticationToken })
     }
+
+    const responseType = contentType.parse(response).type
+    if (responseType === 'application/octet-stream') {
+      return response
+    }
+
+    assert.strictEqual(responseType, 'application/json')
 
     const lines = pumpify.obj(response, split2(JSON.parse))
     const firstLine = await readChunk(lines)
