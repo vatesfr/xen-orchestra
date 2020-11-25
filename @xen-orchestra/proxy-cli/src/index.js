@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
+import assert from 'assert'
+import contentType from 'content-type'
+import fromCallback from 'promise-toolbox/fromCallback'
 import fs from 'fs'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
+import pump from 'pump'
 import split2 from 'split2'
 import pumpify from 'pumpify'
 import { format, parse } from 'json-rpc-protocol'
@@ -85,13 +89,26 @@ ${pkg.name} v${pkg.version}`
     request.port = port
   }
 
-  const lines = pumpify.obj(await hrp.post(request), split2())
+  const response = await hrp.post(request)
+
+  const { stdout } = process
+
+  const responseType = contentType.parse(response).type
+  if (responseType === 'application/octet-stream') {
+    if (stdout.isTTY) {
+      throw new Error('binary data, pipe to a file!')
+    }
+    await fromCallback(pump, response, stdout)
+    return
+  }
+
+  assert.strictEqual(responseType, 'application/json')
+  const lines = pumpify.obj(response, split2())
 
   const firstLine = await readChunk(lines)
 
   try {
     const result = await parse.result(firstLine)
-    const { stdout } = process
     if (
       result !== null &&
       typeof result === 'object' &&

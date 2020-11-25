@@ -32,9 +32,12 @@
     "@iarna/toml": "^2.2.0",
     "@vates/read-chunk": "^0.1.1",
     "app-conf": "^0.7.0",
+    "content-type": "^1.0.4",
     "getopts": "^2.2.3",
     "http-request-plus": "^0.9.1",
     "json-rpc-protocol": "^0.13.1",
+    "promise-toolbox": "^0.15.1",
+    "pump": "^3.0.0",
     "pumpify": "^2.0.1",
     "split2": "^3.1.1"
   },
