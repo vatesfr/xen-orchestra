@@ -129,6 +129,7 @@ export default class metadataBackup {
 
   constructor(app: any, { backup }) {
     this._app = app
+    this._backupOptions = backup
     this._logger = undefined
     this._runningMetadataRestores = new Set()
     this._poolMetadataTimeout = parseDuration(backup.poolMetadataTimeout)
@@ -187,7 +188,13 @@ export default class metadataBackup {
         })
 
         try {
-          await Promise.all([handler.outputFile(fileName, data), handler.outputFile(metaDataFileName, metadata)])
+          const { dirMode } = this._backupOptions
+          await Promise.all([
+            handler.outputFile(fileName, data, { dirMode }),
+            handler.outputFile(metaDataFileName, metadata, {
+              dirMode,
+            }),
+          ])
 
           await deleteOldBackups(handler, scheduleDir, retention, (error, backupDir) => {
             logger.warning(
@@ -298,9 +305,12 @@ export default class metadataBackup {
 
         let outputStream
         try {
+          const { dirMode } = this._backupOptions
           await waitAll([
             (async () => {
-              outputStream = await handler.createOutputStream(fileName)
+              outputStream = await handler.createOutputStream(fileName, {
+                dirMode,
+              })
 
               // 'readable-stream/pipeline' not call the callback when an error throws
               // from the readable stream
@@ -314,7 +324,9 @@ export default class metadataBackup {
                 this._poolMetadataTimeout
               )
             })(),
-            handler.outputFile(metaDataFileName, metadata),
+            handler.outputFile(metaDataFileName, metadata, {
+              dirMode,
+            }),
           ])
 
           await deleteOldBackups(handler, poolDir, retention, (error, backupDir) => {
