@@ -1,12 +1,15 @@
 import assert from 'assert'
 import defer from 'golike-defer'
+import fromEvent from 'promise-toolbox/fromEvent'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import mapValues from 'lodash/mapValues'
+import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
+import { ZipFile } from 'yazl'
 
 import { disposable } from '../../_disposable'
 
@@ -129,6 +132,34 @@ export default class Backups {
 
     app.api.addMethods({
       backup: {
+        fetchPartitionFiles: [
+          ({ disk: diskId, remote, partition: partitionId, paths }) => {
+            const { promise, reject, resolve } = pDefer()
+            using(app.remotes.getAdapter(remote), adapter =>
+              using(adapter.usePartitionFiles(diskId, partitionId, paths), async files => {
+                const zip = new ZipFile()
+                files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
+                zip.end()
+                const { outputStream } = zip
+                resolve(outputStream)
+                await fromEvent(outputStream, 'end')
+              })
+            ).catch(error => {
+              warn(error)
+              reject(error)
+            })
+            return promise
+          },
+          {
+            description: 'fetch files from partition',
+            params: {
+              disk: { type: 'string' },
+              partition: { type: 'string' },
+              paths: { type: 'array', items: { type: 'string' } },
+              remote: { type: 'object' },
+            },
+          },
+        ],
         importVmBackup: [
           defer(($defer, { backupId, remote, srUuid, xapi: xapiOpts }) =>
             using(app.remotes.getAdapter(remote), async adapter => {

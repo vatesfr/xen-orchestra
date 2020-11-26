@@ -3,7 +3,7 @@ import fromCallback from 'promise-toolbox/fromCallback'
 import pump from 'pump'
 import using from 'promise-toolbox/using'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
-import { basename, dirname, join, resolve } from 'path'
+import { basename, dirname, join, normalize, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
@@ -32,6 +32,21 @@ const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path
 const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
 
 const RE_VHDI = /^vhdi(\d+)$/
+
+async function addDirectory(files, realPath, metadataPath) {
+  try {
+    const subFiles = await readdir(realPath)
+    await Promise.all(subFiles.map(file => addDirectory(files, realPath + '/' + file, metadataPath + '/' + file)))
+  } catch (error) {
+    if (error == null || error.code !== 'ENOTDIR') {
+      throw error
+    }
+    files.push({
+      realPath,
+      metadataPath,
+    })
+  }
+}
 
 function getDebouncedResource(resource) {
   return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
@@ -93,6 +108,18 @@ export class RemoteAdapter {
       throw new Error(`partition ${partitionId} not found`)
     }
     return partition
+  }
+
+  @decorateWith(disposable)
+  async *usePartitionFiles(diskId, partitionId, paths) {
+    const path = yield this.getPartition(diskId, partitionId)
+
+    const files = []
+    await Promise.all(
+      paths.map(file => addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
+    )
+
+    return files
   }
 
   async deleteDeltaVmBackups(backups) {
