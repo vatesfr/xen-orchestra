@@ -33,7 +33,7 @@ const diskOptionRenderer = disk => (
 
 const partitionOptionRenderer = partition => (
   <span>
-    {partition.name} {defined(PARTITION_TYPE_NAMES[partition.type], partition.type)}{' '}
+    {partition.name} {defined(PARTITION_TYPE_NAMES[+partition.type], partition.type)}{' '}
     {partition.size && `(${formatSize(+partition.size)})`}
   </span>
 )
