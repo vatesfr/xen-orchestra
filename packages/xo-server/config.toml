@@ -68,7 +68,7 @@ mergeProvidersUsers = true
 defaultSignInPage = '/signin'
 
 [backup]
-# File system permissions for backup files dir
+# File system permissions for backup directories
 dirMode = 0o700
 
 # Delay for which backups listing on a remote is cached
