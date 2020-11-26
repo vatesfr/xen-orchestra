@@ -32,12 +32,6 @@ const IGNORED_PARTITION_TYPES = {
   0x82: true, // swap
 }
 
-const PARTITION_TYPE_NAMES = {
-  0x07: 'NTFS',
-  0x0c: 'FAT',
-  0x83: 'linux',
-}
-
 const RE_VHDI = /^vhdi(\d+)$/
 
 async function addDirectory(zip, realPath, metadataPath) {
@@ -54,8 +48,7 @@ async function addDirectory(zip, realPath, metadataPath) {
 
 const parsePartxLine = createPairsParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
-  valueTransform: (value, key) =>
-    key === 'start' || key === 'size' ? +value : key === 'type' ? PARTITION_TYPE_NAMES[+value] || value : value,
+  valueTransform: (value, key) => (key === 'start' || key === 'size' ? +value : value),
 })
 
 const listLvmLogicalVolumes = compose(
