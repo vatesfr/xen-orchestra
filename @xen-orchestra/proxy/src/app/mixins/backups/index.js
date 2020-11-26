@@ -152,7 +152,7 @@ export default class Backups {
             params: {
               disk: { type: 'string' },
               partition: { type: 'string' },
-              paths: { type: 'array' },
+              paths: { type: 'array', items: { type: 'string ' } },
               remote: { type: 'object' },
             },
           },
