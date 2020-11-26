@@ -66,6 +66,7 @@ export default class Api {
       } catch (error) {
         const { method, params } = body
         warn('call error', { method, params, error })
+        ctx.set('Content-Type', 'application/json')
         ctx.body = format.error(body.id, error)
         return
       }
