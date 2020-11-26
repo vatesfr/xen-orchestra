@@ -48,7 +48,7 @@ async function addDirectory(zip, realPath, metadataPath) {
 
 const parsePartxLine = createPairsParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
-  valueTransform: (value, key) => (key === 'start' || key === 'size' ? +value : value),
+  valueTransform: (value, key) => (key === 'start' || key === 'size' || key === 'type' ? +value : value),
 })
 
 const listLvmLogicalVolumes = compose(
@@ -168,15 +168,20 @@ export default class BackupNgFileRestore {
     const app = this._app
     const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
-      return app.callProxyMethod(proxy, 'backup.fetchPartitionFiles', {
-        disk: diskId,
-        remote: {
-          url,
-          options,
+      return app.callProxyMethod(
+        proxy,
+        'backup.fetchPartitionFiles',
+        {
+          disk: diskId,
+          remote: {
+            url,
+            options,
+          },
+          partition: partitionId,
+          paths,
         },
-        partition: partitionId,
-        paths,
-      })
+        { assertType: 'stream' }
+      )
     }
 
     const disk = await this._mountDisk(remoteId, diskId)
@@ -210,7 +215,7 @@ export default class BackupNgFileRestore {
             options,
           },
         },
-        { expectStream: true }
+        { assertType: 'iterator' }
       )
 
       const partitions = []
@@ -281,8 +286,8 @@ export default class BackupNgFileRestore {
     const partitions = []
     splitLines(stdout).forEach(line => {
       const partition = parsePartxLine(line)
-      let { type } = partition
-      if (type == null || (type = +type) in IGNORED_PARTITION_TYPES) {
+      const { type } = partition
+      if (type == null || type in IGNORED_PARTITION_TYPES) {
         return
       }
 
