@@ -111,7 +111,7 @@ export class RemoteAdapter {
   }
 
   @decorateWith(disposable)
-  async *_usePartitionFiles(diskId, partitionId, paths) {
+  async *usePartitionFiles(diskId, partitionId, paths) {
     const path = yield this.getPartition(diskId, partitionId)
 
     const files = []
