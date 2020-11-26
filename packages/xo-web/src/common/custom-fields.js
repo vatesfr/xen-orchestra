@@ -18,7 +18,7 @@ import { error } from './notification'
 import { form } from './modal'
 import { Text } from './editable'
 
-const CUSTOM_FIELDS_KEY = 'XenCenter.CustomFields.'
+const CUSTOM_FIELDS_KEY_PREFIX = 'XenCenter.CustomFields.'
 
 const AddCustomFieldModal = decorate([
   provideState({
@@ -49,19 +49,19 @@ const AddCustomFieldModal = decorate([
           />
         </Col>
       </SingleLineRow>
-        <SingleLineRow className='mt-1'>
-          <Col size={6}>{_('value')}</Col>
-          <Col size={6}>
-            <input
-              className='form-control'
-              name='value'
-              onChange={effects.onChange}
-              required
-              type='text'
-              value={value.value}
-            />
-          </Col>
-        </SingleLineRow>
+      <SingleLineRow className='mt-1'>
+        <Col size={6}>{_('value')}</Col>
+        <Col size={6}>
+          <input
+            className='form-control'
+            name='value'
+            onChange={effects.onChange}
+            required
+            type='text'
+            value={value.value}
+          />
+        </Col>
+      </SingleLineRow>
     </Container>
   ),
 ])
@@ -92,17 +92,18 @@ const CustomFields = decorate([
         setCustomField(id, name, value),
     },
     computed: {
-      otherConfig: (_, { object }) =>
-         defined(object.otherConfig, object.other_config, object.other, {})
+      customFields: (_, { object }) =>
+        Object.entries(defined(object.otherConfig, object.other_config, object.other, {}))
+         .filter(([key]) => key.startsWith(CUSTOM_FIELDS_KEY_PREFIX))
+         .sort(([keyA], [keyB]) => keyA < keyB ? -1 : 1)
     },
   }),
   injectState,
-  ({ effects, state }) => {
+  ({ effects, state: { customFields = [] } }) => {
     return (
       <Container>
-        {Object.entries(state.otherConfig).sort((a, b) => a[0] < b[0] ? -1 : 1).map(([key, value]) => {
-          if (key.startsWith(CUSTOM_FIELDS_KEY)) {
-            const name = key.substring(CUSTOM_FIELDS_KEY.length)
+        {customFields.map(([key, value]) => {
+            const name = key.substring(CUSTOM_FIELDS_KEY_PREFIX.length)
             return (
               <Row key={key}>
                 <Col>
@@ -124,7 +125,6 @@ const CustomFields = decorate([
                 </Col>
               </Row>
             )
-          }
         })}
         <Row>
           <Col>
