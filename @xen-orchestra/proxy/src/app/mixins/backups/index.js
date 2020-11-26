@@ -144,7 +144,7 @@ export default class Backups {
                 stream.resolve(outputStream)
                 await fromEvent(outputStream, 'end')
               })
-            )
+            ).catch(warn)
             return stream.promise
           },
           {
