@@ -12,8 +12,6 @@ import { safeDateFormat, serializeError, type SimpleIdPattern, unboxIdsFromPatte
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
 
-const BACKUP_FILES_MODE = 0o700
-
 const log = createLogger('xo:xo-mixins:metadata-backups')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
@@ -131,6 +129,7 @@ export default class metadataBackup {
 
   constructor(app: any, { backup }) {
     this._app = app
+    this._backupOptions = backup
     this._logger = undefined
     this._runningMetadataRestores = new Set()
     this._poolMetadataTimeout = parseDuration(backup.poolMetadataTimeout)
@@ -189,10 +188,11 @@ export default class metadataBackup {
         })
 
         try {
+          const { dirMode } = this._backupOptions
           await Promise.all([
-            handler.outputFile(fileName, data, { dirMode: BACKUP_FILES_MODE }),
+            handler.outputFile(fileName, data, { dirMode }),
             handler.outputFile(metaDataFileName, metadata, {
-              dirMode: BACKUP_FILES_MODE,
+              dirMode,
             }),
           ])
 
@@ -305,10 +305,11 @@ export default class metadataBackup {
 
         let outputStream
         try {
+          const { dirMode } = this._backupOptions
           await waitAll([
             (async () => {
               outputStream = await handler.createOutputStream(fileName, {
-                dirMode: BACKUP_FILES_MODE,
+                dirMode,
               })
 
               // 'readable-stream/pipeline' not call the callback when an error throws
@@ -324,7 +325,7 @@ export default class metadataBackup {
               )
             })(),
             handler.outputFile(metaDataFileName, metadata, {
-              dirMode: BACKUP_FILES_MODE,
+              dirMode,
             }),
           ])
 

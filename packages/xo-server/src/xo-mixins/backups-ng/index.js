@@ -53,8 +53,6 @@ import { translateLegacyJob } from './migration'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
 
-const BACKUP_FILES_MODE = 0o700
-
 export type Mode = 'full' | 'delta'
 export type ReportWhen = 'always' | 'failure' | 'never'
 
@@ -1306,6 +1304,7 @@ export default class BackupNg {
                 await deleteOldBackups()
               }
 
+              const { dirMode } = this._backupOptions
               await wrapTask(
                 {
                   logger,
@@ -1314,7 +1313,7 @@ export default class BackupNg {
                   result: () => ({ size: xva.size }),
                 },
                 handler.outputStream(fork, dataFilename, {
-                  dirMode: BACKUP_FILES_MODE,
+                  dirMode,
                 })
               )
 
@@ -1323,7 +1322,7 @@ export default class BackupNg {
               }
 
               await handler.outputFile(metadataFilename, jsonMetadata, {
-                dirMode: BACKUP_FILES_MODE,
+                dirMode,
               })
 
               if (!deleteFirst) {
@@ -1618,6 +1617,8 @@ export default class BackupNg {
                 await deleteOldBackups()
               }
 
+              const { dirMode } = this._backupOptions
+
               await wrapTask(
                 {
                   logger,
@@ -1653,7 +1654,7 @@ export default class BackupNg {
                       // no checksum for VHDs, because they will be invalidated by
                       // merges and chainings
                       checksum: false,
-                      dirMode: BACKUP_FILES_MODE,
+                      dirMode,
                     })
                     $defer.onFailure.call(handler, 'unlink', path)
 
@@ -1673,7 +1674,7 @@ export default class BackupNg {
                 ).then(sum)
               )
               await handler.outputFile(metadataFilename, jsonMetadata, {
-                dirMode: BACKUP_FILES_MODE,
+                dirMode,
               })
 
               if (!deleteFirst) {
