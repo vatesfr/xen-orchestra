@@ -276,6 +276,7 @@ export default class Jobs {
         settings: job.settings,
         vms: job.vms,
       },
+      timestamp: Date.now(),
       userId: job.userId,
       userName: user?.name ?? '(unknown user)',
     }
@@ -304,11 +305,7 @@ export default class Jobs {
         session = app.createUserConnection()
         session.set('user_id', job.userId)
 
-        type === 'backup' &&
-          app.emit('backup:preCall', {
-            ...data,
-            timestamp: Date.now(),
-          })
+        type === 'backup' && app.emit('backup:preCall', data)
 
         const status = await executor({
           app,
@@ -330,10 +327,14 @@ export default class Jobs {
           true
         )
 
+        const now = Date.now()
         type === 'backup' &&
           app.emit('backup:postCall', {
             ...data,
-            timestamp: Date.now(),
+            duration: now - data.timestamp,
+            // Result of runJobSequence()
+            result: true,
+            timestamp: now,
           })
 
         app.emit('job:terminated', runJobId, {
@@ -358,11 +359,13 @@ export default class Jobs {
         },
         true
       )
+      const now = Date.now()
       type === 'backup' &&
         app.emit('backup:postCall', {
           ...data,
+          duration: now - data.timestamp,
           error: serializeError(error),
-          timestamp: Date.now(),
+          timestamp: now,
         })
       app.emit('job:terminated', runJobId, {
         type: job.type,
