@@ -373,7 +373,7 @@ export default class Proxy {
 
     const result = parse.result(firstLine)
     const isIterator = result.$responseType === 'ndjson'
-    if (isIterator !== (assertType === 'iterator')) {
+    if (isIterator ? assertType === 'iterator' : assertType === 'scalar') {
       lines.destroy()
       throw new Error(`expect the result to be ${assertType}`)
     }
