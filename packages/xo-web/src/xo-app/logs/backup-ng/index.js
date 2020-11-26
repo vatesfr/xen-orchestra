@@ -16,11 +16,7 @@ import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, filter, map, keyBy } from 'lodash'
 import { withRouter } from 'react-router'
-import {
-  subscribeBackupNgJobs,
-  subscribeBackupNgLogs,
-  subscribeMetadataBackupJobs,
-} from 'xo'
+import { subscribeBackupNgJobs, subscribeBackupNgLogs, subscribeMetadataBackupJobs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
@@ -33,8 +29,7 @@ const LI_STYLE = {
   whiteSpace: 'nowrap',
 }
 
-const showTasks = id =>
-  alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
+const showTasks = id => alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
 
 export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
   const { className, label } = STATUS_LABELS[log.status]
@@ -112,10 +107,7 @@ const COLUMNS = [
   },
   {
     name: _('jobDuration'),
-    itemRenderer: log =>
-      log.end !== undefined && (
-        <FormattedDuration duration={log.end - log.start} />
-      ),
+    itemRenderer: log => log.end !== undefined && <FormattedDuration duration={log.end - log.start} />,
     sortCriteria: log => log.end - log.start,
   },
   {
@@ -143,16 +135,10 @@ const COLUMNS = [
             if (operationTask.status !== 'success') {
               return
             }
-            if (
-              operationTask.message === 'transfer' &&
-              vmTransferSize === undefined
-            ) {
+            if (operationTask.message === 'transfer' && vmTransferSize === undefined) {
               vmTransferSize = operationTask.result.size
             }
-            if (
-              operationTask.message === 'merge' &&
-              vmMergeSize === undefined
-            ) {
+            if (operationTask.message === 'merge' && vmMergeSize === undefined) {
               vmMergeSize = operationTask.result.size
             }
 
@@ -166,16 +152,8 @@ const COLUMNS = [
       })
       return (
         <ul style={UL_STYLE}>
-          {transferSize > 0 && (
-            <li style={LI_STYLE}>
-              {_.keyValue(_('labelTransfer'), formatSize(transferSize))}
-            </li>
-          )}
-          {mergeSize > 0 && (
-            <li style={LI_STYLE}>
-              {_.keyValue(_('labelMerge'), formatSize(mergeSize))}
-            </li>
-          )}
+          {transferSize > 0 && <li style={LI_STYLE}>{_.keyValue(_('labelTransfer'), formatSize(transferSize))}</li>}
+          {mergeSize > 0 && <li style={LI_STYLE}>{_.keyValue(_('labelMerge'), formatSize(mergeSize))}</li>}
         </ul>
       )
     },
@@ -187,13 +165,9 @@ export default decorate([
     vms: createGetObjectsOfType('VM'),
   }),
   addSubscriptions({
-    logs: cb =>
-      subscribeBackupNgLogs(logs =>
-        cb(logs && filter(logs, log => log.message === 'backup'))
-      ),
+    logs: cb => subscribeBackupNgLogs(logs => cb(logs && filter(logs, log => log.message === 'backup'))),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
-    metadataJobs: cb =>
-      subscribeMetadataBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
+    metadataJobs: cb => subscribeMetadataBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   provideState({
     computed: {
@@ -204,9 +178,7 @@ export default decorate([
             ? {
                 ...log,
                 // "vmNames" can contains undefined entries
-                vmNames: map(log.tasks, ({ data }) =>
-                  get(() => vms[data.id].name_label)
-                ),
+                vmNames: map(log.tasks, ({ data }) => get(() => vms[data.id].name_label)),
               }
             : log
         ),

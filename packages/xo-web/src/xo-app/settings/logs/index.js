@@ -13,26 +13,19 @@ import { alert } from 'modal'
 import { createSelector } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { reportBug } from 'report-bug-button'
-import {
-  deleteApiLog,
-  deleteApiLogs,
-  subscribeApiLogs,
-  subscribeUsers,
-} from 'xo'
+import { deleteApiLog, deleteApiLogs, subscribeApiLogs, subscribeUsers } from 'xo'
 
 const formatMessage = data =>
-  `\`\`\`\n${data.method}\n${JSON.stringify(
-    data.params,
-    null,
-    2
-  )}\n${JSON.stringify(data.error, null, 2).replace(/\\n/g, '\n')}\n\`\`\``
+  `\`\`\`\n${data.method}\n${JSON.stringify(data.params, null, 2)}\n${JSON.stringify(data.error, null, 2).replace(
+    /\\n/g,
+    '\n'
+  )}\n\`\`\``
 
 const formatLog = log =>
-  `${log.data.method}\n${JSON.stringify(
-    log.data.params,
-    null,
-    2
-  )}\n${JSON.stringify(log.data.error, null, 2).replace(/\\n/g, '\n')}`
+  `${log.data.method}\n${JSON.stringify(log.data.params, null, 2)}\n${JSON.stringify(log.data.error, null, 2).replace(
+    /\\n/g,
+    '\n'
+  )}`
 
 const LogMessage = ({ item: log }) => {
   const { error } = log.data
@@ -106,14 +99,12 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: log =>
-      alert(_('logError'), <Copiable tagName='pre'>{formatLog(log)}</Copiable>),
+    handler: log => alert(_('logError'), <Copiable tagName='pre'>{formatLog(log)}</Copiable>),
     icon: 'preview',
     label: _('logDisplayDetails'),
   },
   {
-    handler: log =>
-      downloadLog({ log: formatLog(log), date: log.time, type: 'XO' }),
+    handler: log => downloadLog({ log: formatLog(log), date: log.time, type: 'XO' }),
     icon: 'download',
     label: _('logDownload'),
   },
@@ -145,11 +136,7 @@ export default class Logs extends BaseComponent {
     const logs = this._getLogs()
 
     return (
-      <NoObjects
-        collection={logs}
-        message={_('noLogs')}
-        predicate={this._getPredicate}
-      >
+      <NoObjects collection={logs} message={_('noLogs')} predicate={this._getPredicate}>
         {() => (
           <SortedTable
             actions={ACTIONS}

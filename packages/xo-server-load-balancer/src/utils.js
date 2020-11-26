@@ -8,6 +8,4 @@ export const EXECUTION_DELAY = 1
 
 // ===================================================================
 
-export const debug = LOAD_BALANCER_DEBUG
-  ? str => console.log(`[load-balancer]${str}`)
-  : noop
+export const debug = LOAD_BALANCER_DEBUG ? str => console.log(`[load-balancer]${str}`) : noop

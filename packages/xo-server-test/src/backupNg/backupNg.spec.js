@@ -118,11 +118,7 @@ describe('backupNg', () => {
         },
       }
       const jobOutput = await xo.createTempBackupNgJob(jobInput)
-      validateBackupJob(
-        jobInput,
-        jobOutput,
-        await xo.getSchedule({ jobId: jobOutput.id })
-      )
+      validateBackupJob(jobInput, jobOutput, await xo.getSchedule({ jobId: jobOutput.id }))
     })
   })
 
@@ -190,9 +186,7 @@ describe('backupNg', () => {
       const schedule = await xo.getSchedule({ jobId })
       expect(typeof schedule).toBe('object')
 
-      await expect(
-        xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })
-      ).rejects.toMatchSnapshot()
+      await expect(xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })).rejects.toMatchSnapshot()
     })
 
     it('fails trying to run a backup job with non-existent vm', async () => {
@@ -449,9 +443,7 @@ describe('backupNg', () => {
       status: 'success',
     })
 
-    const subTaskSnapshot = subTasks.find(
-      ({ message }) => message === 'snapshot'
-    )
+    const subTaskSnapshot = subTasks.find(({ message }) => message === 'snapshot')
     expect(subTaskSnapshot).toMatchSnapshot({
       end: expect.any(Number),
       id: expect.any(String),
@@ -522,9 +514,7 @@ describe('backupNg', () => {
       remotes,
       nExecutions,
     })
-    forOwn(backupsByRemote, backups =>
-      expect(backups.length).toBe(exportRetention)
-    )
+    forOwn(backupsByRemote, backups => expect(backups.length).toBe(exportRetention))
 
     const backupLogs = await xo.getBackupLogs({
       jobId,
@@ -572,10 +562,7 @@ describe('backupNg', () => {
               numberOfTasks.export++
               let mergeTaskKey, transferTaskKey
               tasks.forEach((operationTask, key) => {
-                if (
-                  operationTask.message === 'transfer' ||
-                  operationTask.message === 'merge'
-                ) {
+                if (operationTask.message === 'transfer' || operationTask.message === 'merge') {
                   validateOperationTask(operationTask, {
                     result: { size: expect.any(Number) },
                     status: 'success',
@@ -590,9 +577,7 @@ describe('backupNg', () => {
                 }
               })
               expect(
-                subTask.data.id === remoteId1
-                  ? mergeTaskKey > transferTaskKey
-                  : mergeTaskKey < transferTaskKey
+                subTask.data.id === remoteId1 ? mergeTaskKey > transferTaskKey : mergeTaskKey < transferTaskKey
               ).toBe(true)
             }
           })
@@ -688,21 +673,14 @@ describe('backupNg', () => {
         expect(subTask.message).not.toBe('snapshot')
 
         if (subTask.message === 'export') {
-          validateExportTask(
-            subTask,
-            subTask.data.type === 'remote' ? remoteId : srId,
-            {
-              data: expect.any(Object),
-              status: 'success',
-            }
-          )
+          validateExportTask(subTask, subTask.data.type === 'remote' ? remoteId : srId, {
+            data: expect.any(Object),
+            status: 'success',
+          })
 
           expect(Array.isArray(tasks)).toBe(true)
           tasks.forEach(operationTask => {
-            if (
-              operationTask.message === 'transfer' ||
-              operationTask.message === 'merge'
-            ) {
+            if (operationTask.message === 'transfer' || operationTask.message === 'merge') {
               validateOperationTask(operationTask, {
                 result: { size: expect.any(Number) },
                 status: 'success',

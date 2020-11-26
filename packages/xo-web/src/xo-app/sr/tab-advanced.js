@@ -41,21 +41,14 @@ const UnhealthyVdiChains = flowRight(
     chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr),
   })),
   connectStore(() => ({
-    vdis: createGetObjectsOfType('VDI').pick(
-      createSelector((_, props) => props.chains, keys)
-    ),
+    vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains, keys)),
   }))
 )(({ chains, vdis }) =>
   isEmpty(vdis) ? null : (
     <div>
       <hr />
       <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
-      <SortedTable
-        collection={vdis}
-        columns={COLUMNS}
-        stateUrlParam='s_unhealthy_vdis'
-        userData={chains}
-      />
+      <SortedTable collection={vdis} columns={COLUMNS} stateUrlParam='s_unhealthy_vdis' userData={chains} />
     </div>
   )
 )
@@ -64,13 +57,7 @@ export default ({ sr }) => (
   <Container>
     <Row>
       <Col className='text-xs-right'>
-        <TabButton
-          btnStyle='danger'
-          handler={deleteSr}
-          handlerParam={sr}
-          icon='sr-remove'
-          labelId='srRemoveButton'
-        />
+        <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
       </Col>
     </Row>
     <Row>

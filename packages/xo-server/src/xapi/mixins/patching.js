@@ -45,11 +45,7 @@ async function _listMissingPatches(hostId) {
       this._listInstallablePatches(host)
 }
 
-const listMissingPatches = debounceWithKey(
-  _listMissingPatches,
-  LISTING_DEBOUNCE_TIME_MS,
-  hostId => hostId
-)
+const listMissingPatches = debounceWithKey(_listMissingPatches, LISTING_DEBOUNCE_TIME_MS, hostId => hostId)
 
 // =============================================================================
 
@@ -60,9 +56,7 @@ export default {
     return this
   })
   async _getXenUpdates() {
-    const response = await this.xo.httpRequest(
-      'http://updates.xensource.com/XenServer/updates.xml'
-    )
+    const response = await this.xo.httpRequest('http://updates.xensource.com/XenServer/updates.xml')
 
     if (response.statusCode !== 200) {
       throw new Error('cannot fetch patches list from Citrix')
@@ -81,14 +75,8 @@ export default {
         url: patch['patch-url'],
         id: patch.uuid,
         uuid: patch.uuid,
-        conflicts: mapToArray(
-          ensureArray(patch.conflictingpatches),
-          patch => patch.conflictingpatch.uuid
-        ),
-        requirements: mapToArray(
-          ensureArray(patch.requiredpatches),
-          patch => patch.requiredpatch.uuid
-        ),
+        conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => patch.conflictingpatch.uuid),
+        requirements: mapToArray(ensureArray(patch.requiredpatches), patch => patch.requiredpatch.uuid),
         paid: patch['update-stream'] === 'premium',
         upgrade: /^(XS|CH)\d{2,}$/.test(patch['name-label']),
         // TODO: what does it mean, should we handle it?
@@ -162,15 +150,7 @@ export default {
   // list all yum updates available for a XCP-ng host
   // (hostObject) → { uuid: patchObject }
   async _listXcpUpdates(host) {
-    return JSON.parse(
-      await this.call(
-        'host.call_plugin',
-        host.$ref,
-        'updater.py',
-        'check_update',
-        {}
-      )
-    )
+    return JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'check_update', {}))
   },
 
   // list all patches provided by Citrix for this host version regardless
@@ -181,9 +161,7 @@ export default {
     const versions = (await this._getXenUpdates()).versions
 
     const hostVersions = host.software_version
-    const version =
-      versions[hostVersions.product_version] ||
-      versions[hostVersions.product_version_text]
+    const version = versions[hostVersions.product_version] || versions[hostVersions.product_version_text]
 
     return version ? pickBy(version.patches, patch => !patch.upgrade) : {}
   },
@@ -260,41 +238,24 @@ export default {
         if (getAll) {
           return
         }
-        throw new Error(
-          `requested patch ${patch.name} (${id}) requires a XenServer license`
-        )
+        throw new Error(`requested patch ${patch.name} (${id}) requires a XenServer license`)
       }
 
       let conflictId
-      if (
-        (conflictId = find(
-          patch.conflicts,
-          conflictId => installed[conflictId] !== undefined
-        )) !== undefined
-      ) {
+      if ((conflictId = find(patch.conflicts, conflictId => installed[conflictId] !== undefined)) !== undefined) {
         if (getAll) {
-          log.debug(
-            `patch ${patch.name} (${id}) conflicts with installed patch ${conflictId}`
-          )
+          log.debug(`patch ${patch.name} (${id}) conflicts with installed patch ${conflictId}`)
           return
         }
-        throw new Error(
-          `patch ${patch.name} (${id}) conflicts with installed patch ${conflictId}`
-        )
+        throw new Error(`patch ${patch.name} (${id}) conflicts with installed patch ${conflictId}`)
       }
 
-      if (
-        (conflictId = find(patch.conflicts, conflictId =>
-          find(installable, { id: conflictId })
-        )) !== undefined
-      ) {
+      if ((conflictId = find(patch.conflicts, conflictId => find(installable, { id: conflictId }))) !== undefined) {
         if (getAll) {
           log.debug(`patches ${id} and ${conflictId} conflict with eachother`)
           return
         }
-        throw new Error(
-          `patches ${id} and ${conflictId} conflict with eachother`
-        )
+        throw new Error(`patches ${id} and ${conflictId} conflict with eachother`)
       }
 
       // add requirements
@@ -305,9 +266,7 @@ export default {
         }
         if (!installed[id] && find(installable, { id }) === undefined) {
           if (requiredPatch.paid && freeHost) {
-            throw new Error(
-              `required patch ${requiredPatch.name} (${id}) requires a XenServer license`
-            )
+            throw new Error(`required patch ${requiredPatch.name} (${id}) requires a XenServer license`)
           }
           installable.push(requiredPatch)
         }
@@ -330,9 +289,7 @@ export default {
   // [ names ] → [ IDs ]
   async findPatches(names) {
     const all = await this._listPatches(this.pool.$master)
-    return filter(all, patch => names.includes(patch.name)).map(
-      patch => patch.id
-    )
+    return filter(all, patch => names.includes(patch.name)).map(patch => patch.id)
   },
 
   // INSTALL -------------------------------------------------------------------
@@ -341,31 +298,19 @@ export default {
     if (hosts === undefined) {
       hosts = filter(this.objects.all, { $type: 'host' })
     } else {
-      hosts = filter(
-        this.objects.all,
-        obj => obj.$type === 'host' && hosts.includes(obj.$id)
-      )
+      hosts = filter(this.objects.all, obj => obj.$type === 'host' && hosts.includes(obj.$id))
     }
 
     // XCP-ng hosts need to be updated one at a time starting with the pool master
     // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
     for (const host of hosts) {
-      const update = await this.call(
-        'host.call_plugin',
-        host.$ref,
-        'updater.py',
-        'update',
-        {}
-      )
+      const update = await this.call('host.call_plugin', host.$ref, 'updater.py', 'update', {})
 
       if (JSON.parse(update).exit !== 0) {
         throw new Error('Update install failed')
       } else {
-        await host.update_other_config(
-          'rpm_patch_installation_time',
-          String(Date.now() / 1000)
-        )
+        await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
       }
     }
   },
@@ -462,19 +407,13 @@ export default {
 
     // for each patch: pool_update.introduce → pool_update.pool_apply
     for (const p of patches) {
-      const [vdi] = await Promise.all([
-        this._uploadPatch($defer, p.uuid),
-        this._ejectToolsIsos(),
-      ])
+      const [vdi] = await Promise.all([this._uploadPatch($defer, p.uuid), this._ejectToolsIsos()])
       if (vdi === undefined) {
         throw new Error('patch could not be uploaded')
       }
 
       log.debug(`installing patch ${p.uuid}`)
-      await this.call(
-        'pool_update.pool_apply',
-        await this.call('pool_update.introduce', vdi.$ref)
-      )
+      await this.call('pool_update.pool_apply', await this.call('pool_update.introduce', vdi.$ref))
     }
   }),
 
@@ -508,10 +447,7 @@ export default {
     const poolWide = hosts === undefined
     if (poolWide) {
       log.debug('patches that were requested to be installed', patches)
-      const installablePatches = await this._listInstallablePatches(
-        this.pool.$master,
-        patches
-      )
+      const installablePatches = await this._listInstallablePatches(this.pool.$master, patches)
 
       log.debug(
         'patches that will actually be installed',

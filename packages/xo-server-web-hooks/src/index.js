@@ -122,8 +122,7 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             type: 'string',
           },
           type: {
-            description:
-              'Right before the API call *or* right after the action has been completed',
+            description: 'Right before the API call *or* right after the action has been completed',
             enum: ['pre', 'post', 'pre/post'],
             title: 'Type',
             type: 'string',
@@ -146,8 +145,7 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
 
 export const testSchema = {
   type: 'object',
-  description:
-    'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
+  description: 'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
   properties: {
     url: {
       title: 'URL',

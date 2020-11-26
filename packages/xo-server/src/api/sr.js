@@ -48,8 +48,7 @@ scan.resolve = {
 }
 
 // -------------------------------------------------------------------
-const srIsBackingHa = sr =>
-  sr.$pool.ha_enabled && some(sr.$pool.$ha_statefiles, f => f.$SR === sr)
+const srIsBackingHa = sr => sr.$pool.ha_enabled && some(sr.$pool.$ha_statefiles, f => f.$SR === sr)
 
 // TODO: find a way to call this "delete" and not destroy
 export async function destroy({ sr }) {
@@ -60,9 +59,7 @@ export async function destroy({ sr }) {
   }
   const xapiSr = xapi.getObject(sr)
   if (srIsBackingHa(xapiSr)) {
-    throw new Error(
-      'You tried to remove a SR the High Availability is relying on. Please disable HA first.'
-    )
+    throw new Error('You tried to remove a SR the High Availability is relying on. Please disable HA first.')
   }
   const config = xapi.xo.getData(sr, 'xosan_config')
   // we simply forget because the hosted disks are being destroyed with the VMs
@@ -126,15 +123,7 @@ disconnectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createIso({
-  host,
-  nameLabel,
-  nameDescription,
-  path,
-  type,
-  user,
-  password,
-}) {
+export async function createIso({ host, nameLabel, nameDescription, path, type, user, password }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {}
@@ -181,48 +170,11 @@ createIso.resolve = {
 }
 
 // -------------------------------------------------------------------
-
-export async function createFile({
-  host,
-  nameLabel,
-  nameDescription,
-  location,
-}) {
-  const xapi = this.getXapi(host)
-  return xapi.createSr({
-    hostRef: host._xapiRef,
-    name_label: nameLabel,
-    name_description: nameDescription,
-    type: 'file',
-    device_config: { location },
-  })
-}
-
-createFile.params = {
-  host: { type: 'string' },
-  nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
-  location: { type: 'string' },
-}
-
-createFile.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
 // NFS SR
 
 // This functions creates a NFS SR
 
-export async function createNfs({
-  host,
-  nameLabel,
-  nameDescription,
-  server,
-  serverPath,
-  nfsVersion,
-  nfsOptions,
-}) {
+export async function createNfs({ host, nameLabel, nameDescription, server, serverPath, nfsVersion, nfsOptions }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -415,19 +367,10 @@ createExt.resolve = {
 export async function probeZfs({ host }) {
   const xapi = this.getXapi(host)
   try {
-    const result = await xapi.call(
-      'host.call_plugin',
-      host._xapiRef,
-      'zfs.py',
-      'list_zfs_pools',
-      {}
-    )
+    const result = await xapi.call('host.call_plugin', host._xapiRef, 'zfs.py', 'list_zfs_pools', {})
     return JSON.parse(result)
   } catch (error) {
-    if (
-      error.code === 'XENAPI_MISSING_PLUGIN' ||
-      error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION'
-    ) {
+    if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
       return {}
     } else {
       throw error
@@ -443,6 +386,29 @@ probeZfs.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 
+export async function createZfs({ host, nameLabel, nameDescription, location }) {
+  const xapi = this.getXapi(host)
+  // only XCP-ng >=8.2 support the ZFS SR
+  const types = await xapi.call('SR.get_supported_types')
+  return xapi.createSr({
+    hostRef: host._xapiRef,
+    name_label: nameLabel,
+    name_description: nameDescription,
+    type: types.includes('zfs') ? 'zfs' : 'file',
+    device_config: { location },
+  })
+}
+
+createZfs.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  location: { type: 'string' },
+}
+
+createZfs.resolve = {
+  host: ['host', 'host', 'administrate'],
+}
 // -------------------------------------------------------------------
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
@@ -603,13 +569,7 @@ createIscsi.resolve = {
 // This function helps to detect all iSCSI IQN on a Target (iSCSI "server")
 // Return a table of IQN or empty table if no iSCSI connection to the target
 
-export async function probeIscsiIqns({
-  host,
-  target: targetIp,
-  port,
-  chapUser,
-  chapPassword,
-}) {
+export async function probeIscsiIqns({ host, target: targetIp, port, chapUser, chapPassword }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -673,14 +633,7 @@ probeIscsiIqns.resolve = {
 // This function helps to detect all iSCSI ID and LUNs on a Target
 //  It will return a LUN table
 
-export async function probeIscsiLuns({
-  host,
-  target: targetIp,
-  port,
-  targetIqn,
-  chapUser,
-  chapPassword,
-}) {
+export async function probeIscsiLuns({ host, target: targetIp, port, targetIqn, chapUser, chapPassword }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -744,15 +697,7 @@ probeIscsiLuns.resolve = {
 // This function helps to detect if this target already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeIscsiExists({
-  host,
-  target: targetIp,
-  port,
-  targetIqn,
-  scsiId,
-  chapUser,
-  chapPassword,
-}) {
+export async function probeIscsiExists({ host, target: targetIp, port, targetIqn, scsiId, chapUser, chapPassword }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -772,9 +717,7 @@ export async function probeIscsiExists({
     deviceConfig.port = asInteger(port)
   }
 
-  const xml = parseXml(
-    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {})
-  )
+  const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {}))
 
   const srs = []
   forEach(ensureArray(xml.SRlist.SR), sr => {
@@ -810,9 +753,7 @@ export async function probeHbaExists({ host, scsiId }) {
     SCSIid: scsiId,
   }
 
-  const xml = parseXml(
-    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmohba', {})
-  )
+  const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmohba', {}))
 
   // get the UUID of SR connected to this LUN
   return ensureArray(xml.SRlist.SR).map(sr => ({ uuid: sr.UUID.trim() }))
@@ -839,9 +780,7 @@ export async function probeNfsExists({ host, server, serverPath }) {
     serverpath: serverPath,
   }
 
-  const xml = parseXml(
-    await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'nfs', {})
-  )
+  const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'nfs', {}))
 
   const srs = []
 
@@ -866,29 +805,14 @@ probeNfsExists.resolve = {
 // -------------------------------------------------------------------
 // This function helps to reattach a forgotten NFS/iSCSI SR
 
-export async function reattach({
-  host,
-  uuid,
-  nameLabel,
-  nameDescription,
-  type,
-}) {
+export async function reattach({ host, uuid, nameLabel, nameDescription, type }) {
   const xapi = this.getXapi(host)
 
   if (type === 'iscsi') {
     type = 'lvmoiscsi' // the internal XAPI name
   }
 
-  const srRef = await xapi.call(
-    'SR.introduce',
-    uuid,
-    nameLabel,
-    nameDescription,
-    type,
-    'user',
-    true,
-    {}
-  )
+  const srRef = await xapi.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -909,29 +833,14 @@ reattach.resolve = {
 // -------------------------------------------------------------------
 // This function helps to reattach a forgotten ISO SR
 
-export async function reattachIso({
-  host,
-  uuid,
-  nameLabel,
-  nameDescription,
-  type,
-}) {
+export async function reattachIso({ host, uuid, nameLabel, nameDescription, type }) {
   const xapi = this.getXapi(host)
 
   if (type === 'iscsi') {
     type = 'lvmoiscsi' // the internal XAPI name
   }
 
-  const srRef = await xapi.call(
-    'SR.introduce',
-    uuid,
-    nameLabel,
-    nameDescription,
-    type,
-    'iso',
-    true,
-    {}
-  )
+  const srRef = await xapi.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'iso', true, {})
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid

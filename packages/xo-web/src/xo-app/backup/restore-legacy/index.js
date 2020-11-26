@@ -11,19 +11,7 @@ import { Container, Row, Col } from 'grid'
 import { FormattedDate, injectIntl } from 'react-intl'
 import { info, error } from 'notification'
 import { Select, Toggle } from 'form'
-import {
-  countBy,
-  every,
-  filter,
-  find,
-  forEach,
-  groupBy,
-  isEmpty,
-  map,
-  mapValues,
-  reduce,
-  uniq,
-} from 'lodash'
+import { countBy, every, filter, find, forEach, groupBy, isEmpty, map, mapValues, reduce, uniq } from 'lodash'
 
 import {
   importBackup,
@@ -36,8 +24,7 @@ import {
 } from 'xo'
 
 // Can 2 SRs on the same pool have 2 VDIs used by the same VM
-const areSrsCompatible = (sr1, sr2) =>
-  sr1.shared || sr2.shared || sr1.$container === sr2.$container
+const areSrsCompatible = (sr1, sr2) => sr1.shared || sr2.shared || sr1.$container === sr2.$container
 
 const parseDate = date => +moment(date, 'YYYYMMDDTHHmmssZ').format('x')
 
@@ -105,15 +92,13 @@ const VM_COLUMNS = [
       <span>
         {count.simple > 0 && (
           <span>
-            {_('simpleBackup')}{' '}
-            <span className='tag tag-pill tag-primary'>{count.simple}</span>
+            {_('simpleBackup')} <span className='tag tag-pill tag-primary'>{count.simple}</span>
           </span>
         )}
         {count.simple > 0 && count.delta > 0 && ', '}
         {count.delta > 0 && (
           <span>
-            {_('delta')}{' '}
-            <span className='tag tag-pill tag-primary'>{count.delta}</span>
+            {_('delta')} <span className='tag tag-pill tag-primary'>{count.delta}</span>
           </span>
         )}
       </span>
@@ -168,10 +153,7 @@ class _ModalBody extends Component {
       isSrWritable(sr) &&
       mainSr.$pool === sr.$pool &&
       areSrsCompatible(mainSr, sr) &&
-      every(
-        mapVdisSrs,
-        selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr)
-      )
+      every(mapVdisSrs, selectedSr => selectedSr == null || areSrsCompatible(selectedSr, sr))
   )
 
   _onSrsChange = props => {
@@ -182,20 +164,11 @@ class _ModalBody extends Component {
 
     // This code fixes the incompatibilities between the mapVdisSrs values
     if (oldMainSr !== newMainSr) {
-      if (
-        oldMainSr == null ||
-        newMainSr == null ||
-        oldMainSr.$pool !== newMainSr.$pool
-      ) {
+      if (oldMainSr == null || newMainSr == null || oldMainSr.$pool !== newMainSr.$pool) {
         targetSrs.mapVdisSrs = {}
       } else if (!newMainSr.shared) {
         forEach(targetSrs.mapVdisSrs, (sr, vdi) => {
-          if (
-            sr != null &&
-            newMainSr !== sr &&
-            sr.$container !== newMainSr.$container &&
-            !sr.shared
-          ) {
+          if (sr != null && newMainSr !== sr && sr.$container !== newMainSr.$container && !sr.shared) {
             delete targetSrs.mapVdisSrs[vdi]
           }
         })
@@ -216,9 +189,7 @@ class _ModalBody extends Component {
           onChange={this.linkState('backup')}
           optionRenderer={backupOptionRenderer}
           options={props.backups}
-          placeholder={props.intl.formatMessage(
-            messages.importBackupModalSelectBackup
-          )}
+          placeholder={props.intl.formatMessage(messages.importBackupModalSelectBackup)}
           valueKey='path'
         />
         <br />
@@ -229,8 +200,7 @@ class _ModalBody extends Component {
           vdis={vdis}
         />
         <br />
-        <Toggle onChange={this.linkState('start')} />{' '}
-        {_('importBackupModalStart')}
+        <Toggle onChange={this.linkState('start')} /> {_('importBackupModalStart')}
       </div>
     )
   }
@@ -316,13 +286,10 @@ export default class Restore extends Component {
         backups,
         count: countBy(backups, 'type'),
         last: reduce(backups, (last, b) => (b.date > last.date ? b : last)),
-        tagsByRemote: mapValues(
-          groupBy(backups, 'remoteId'),
-          (backups, remoteId) => ({
-            remoteName: backups[0].remoteName,
-            tags: uniq(map(backups, 'tag')),
-          })
-        ),
+        tagsByRemote: mapValues(groupBy(backups, 'remoteId'), (backups, remoteId) => ({
+          remoteName: backups[0].remoteName,
+          tags: uniq(map(backups, 'tag')),
+        })),
       }
     })
     this.setState({ backupInfoByVm })

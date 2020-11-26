@@ -62,12 +62,7 @@ export class Password extends Component {
   }
 
   render() {
-    const {
-      className,
-      defaultVisible,
-      enableGenerator = false,
-      ...props
-    } = this.props
+    const { className, defaultVisible, enableGenerator = false, ...props } = this.props
     const { visible } = this.state
 
     return (
@@ -123,9 +118,7 @@ export class Range extends Component {
     return (
       <Container>
         <SingleLineRow>
-          <Col size={2}>
-            {value !== undefined && <span className='pull-right'>{value}</span>}
-          </Col>
+          <Col size={2}>{value !== undefined && <span className='pull-right'>{value}</span>}</Col>
           <Col size={10}>
             <input
               className='form-control'
@@ -165,9 +158,7 @@ export class SizeInput extends BaseComponent {
   constructor(props) {
     super(props)
 
-    this.state = this._createStateFromBytes(
-      defined(props.value, props.defaultValue, null)
-    )
+    this.state = this._createStateFromBytes(defined(props.value, props.defaultValue, null))
   }
 
   componentWillReceiveProps(props) {
@@ -210,10 +201,7 @@ export class SizeInput extends BaseComponent {
   }
 
   set value(value) {
-    if (
-      process.env.NODE_ENV !== 'production' &&
-      this.props.value !== undefined
-    ) {
+    if (process.env.NODE_ENV !== 'production' && this.props.value !== undefined) {
       throw new Error('cannot set value of controlled SizeInput')
     }
     this.setState(this._createStateFromBytes(value))
@@ -278,14 +266,7 @@ export class SizeInput extends BaseComponent {
   }
 
   render() {
-    const {
-      autoFocus,
-      className,
-      readOnly,
-      placeholder,
-      required,
-      style,
-    } = this.props
+    const { autoFocus, className, readOnly, placeholder, required, style } = this.props
 
     return (
       <span className={classNames('input-group', className)} style={style}>
@@ -300,13 +281,7 @@ export class SizeInput extends BaseComponent {
           value={this.state.input}
         />
         <span className='input-group-btn'>
-          <DropdownButton
-            bsStyle='secondary'
-            id='size'
-            pullRight
-            disabled={readOnly}
-            title={this.state.unit}
-          >
+          <DropdownButton bsStyle='secondary' id='size' pullRight disabled={readOnly} title={this.state.unit}>
             {map(UNITS, unit => (
               <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>
                 {unit}

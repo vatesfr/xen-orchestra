@@ -17,8 +17,7 @@ const normalizeError = (error, shouldBeDirectory) => {
     ? wrapError(error, 'EISDIR')
     : code === 'STATUS_NOT_A_DIRECTORY'
     ? wrapError(error, 'ENOTDIR')
-    : code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
-      code === 'STATUS_OBJECT_PATH_NOT_FOUND'
+    : code === 'STATUS_OBJECT_NAME_NOT_FOUND' || code === 'STATUS_OBJECT_PATH_NOT_FOUND'
     ? wrapError(error, 'ENOENT')
     : code === 'STATUS_OBJECT_NAME_COLLISION'
     ? wrapError(error, 'EEXIST')
@@ -44,12 +43,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   _getFilePath(file) {
-    return (
-      this._prefix +
-      (typeof file === 'string' ? file : file.path)
-        .slice(1)
-        .replace(/\//g, '\\')
-    )
+    return this._prefix + (typeof file === 'string' ? file : file.path).slice(1).replace(/\//g, '\\')
   }
 
   _dirname(file) {
@@ -96,15 +90,13 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this._client.readdir(this._getFilePath(dir)).catch(normalizeDirError)
   }
 
-  _mkdir(dir) {
-    return this._client.mkdir(this._getFilePath(dir)).catch(normalizeDirError)
+  _mkdir(dir, { mode }) {
+    return this._client.mkdir(this._getFilePath(dir), mode).catch(normalizeDirError)
   }
 
   // TODO: add flags
   _openFile(path, flags) {
-    return this._client
-      .open(this._getFilePath(path), flags)
-      .catch(normalizeError)
+    return this._client.open(this._getFilePath(path), flags).catch(normalizeError)
   }
 
   async _read(file, buffer, position) {
@@ -123,9 +115,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   _readFile(file, options) {
-    return this._client
-      .readFile(this._getFilePath(file), options)
-      .catch(normalizeError)
+    return this._client.readFile(this._getFilePath(file), options).catch(normalizeError)
   }
 
   _rename(oldPath, newPath) {
@@ -156,9 +146,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   _truncate(file, len) {
-    return this._client
-      .truncate(this._getFilePath(file), len)
-      .catch(normalizeError)
+    return this._client.truncate(this._getFilePath(file), len).catch(normalizeError)
   }
 
   _unlink(file) {
@@ -170,8 +158,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   _writeFile(file, data, options) {
-    return this._client
-      .writeFile(this._getFilePath(file), data, options)
-      .catch(normalizeError)
+    return this._client.writeFile(this._getFilePath(file), data, options).catch(normalizeError)
   }
 }

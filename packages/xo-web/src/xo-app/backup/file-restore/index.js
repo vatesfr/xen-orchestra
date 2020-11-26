@@ -9,24 +9,8 @@ import { addSubscriptions, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
-import {
-  deleteBackups,
-  fetchFilesNg as fetchFiles,
-  listVmBackups,
-  subscribeBackupNgJobs,
-  subscribeRemotes,
-} from 'xo'
-import {
-  filter,
-  find,
-  flatMap,
-  forEach,
-  keyBy,
-  map,
-  orderBy,
-  reduce,
-  toArray,
-} from 'lodash'
+import { deleteBackups, fetchFilesNg as fetchFiles, listVmBackups, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
+import { filter, find, flatMap, forEach, keyBy, map, orderBy, reduce, toArray } from 'lodash'
 
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
 import RestoreFileModalBody from './restore-file-modal'
@@ -98,22 +82,13 @@ export default class Restore extends Component {
   }
 
   componentWillReceiveProps(props) {
-    if (
-      props.remotes !== this.props.remotes ||
-      props.jobs !== this.props.jobs
-    ) {
+    if (props.remotes !== this.props.remotes || props.jobs !== this.props.jobs) {
       this._refreshBackupList(props.remotes, props.jobs)
     }
   }
 
-  _refreshBackupList = async (
-    _remotes = this.props.remotes,
-    jobs = this.props.jobs
-  ) => {
-    const remotes = keyBy(
-      filter(_remotes, ({ enabled, proxy }) => enabled && proxy === undefined),
-      'id'
-    )
+  _refreshBackupList = async (_remotes = this.props.remotes, jobs = this.props.jobs) => {
+    const remotes = keyBy(filter(_remotes, 'enabled'), 'id')
     const backupsByRemote = await listVmBackups(toArray(remotes))
 
     const backupDataByVm = {}
@@ -166,9 +141,7 @@ export default class Restore extends Component {
   _restore = ({ backups, last }) =>
     confirm({
       title: _('restoreFilesFromBackup', { name: last.vm.name_label }),
-      body: (
-        <RestoreFileModalBody vmName={last.vm.name_label} backups={backups} />
-      ),
+      body: <RestoreFileModalBody vmName={last.vm.name_label} backups={backups} />,
     }).then(({ remote, disk, partition, paths }) => {
       if (remote === undefined || disk === undefined || paths.length === 0) {
         return error(_('restoreFiles'), _('restoreFilesError'))
@@ -228,11 +201,7 @@ export default class Restore extends Component {
           <RestoreFileLegacy />
           <div className='mt-1 mb-1'>
             <h3>{_('backupFileRestorePage')}</h3>
-            <ActionButton
-              btnStyle='primary'
-              handler={this._refreshBackupList}
-              icon='refresh'
-            >
+            <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
               {_('refreshBackupList')}
             </ActionButton>
           </div>

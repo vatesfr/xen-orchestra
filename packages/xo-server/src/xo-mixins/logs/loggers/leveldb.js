@@ -49,9 +49,7 @@ export default class LevelDbLogger extends AbstractLogger {
   }
 
   createReadStream() {
-    return highland(this._db.createReadStream()).filter(
-      ({ value }) => value.namespace === this._namespace
-    )
+    return highland(this._db.createReadStream()).filter(({ value }) => value.namespace === this._namespace)
   }
 
   del(id) {

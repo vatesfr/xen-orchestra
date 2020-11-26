@@ -55,10 +55,7 @@ setUsers.params = {
 export async function addUser({ id, userId }) {
   const group = await this.getGroup(id)
   if (group.provider !== undefined) {
-    throw forbiddenOperation(
-      'add user',
-      'cannot add user to synchronized group'
-    )
+    throw forbiddenOperation('add user', 'cannot add user to synchronized group')
   }
   await this.addUserToGroup(userId, id)
 }
@@ -76,10 +73,7 @@ addUser.params = {
 export async function removeUser({ id, userId }) {
   const group = await this.getGroup(id)
   if (group.provider !== undefined) {
-    throw forbiddenOperation(
-      'remove user',
-      'cannot remove user from synchronized group'
-    )
+    throw forbiddenOperation('remove user', 'cannot remove user from synchronized group')
   }
   await this.removeUserFromGroup(userId, id)
 }
@@ -99,10 +93,7 @@ export async function set({ id, name }) {
   if (name !== undefined) {
     const group = await this.getGroup(id)
     if (group.provider !== undefined) {
-      throw forbiddenOperation(
-        'set group name',
-        'cannot edit synchronized group'
-      )
+      throw forbiddenOperation('set group name', 'cannot edit synchronized group')
     }
   }
   await this.updateGroup(id, { name })

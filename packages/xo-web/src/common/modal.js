@@ -14,10 +14,7 @@ import getEventValue from './get-event-value'
 import Icon from './icon'
 import Tooltip from './tooltip'
 import { generateId } from './reaclette-utils'
-import {
-  disable as disableShortcuts,
-  enable as enableShortcuts,
-} from './shortcuts'
+import { disable as disableShortcuts, enable as enableShortcuts } from './shortcuts'
 
 // -----------------------------------------------------------------------------
 
@@ -28,10 +25,7 @@ const modal = (content, onClose, props) => {
   } else if (instance.state.showModal) {
     throw new Error('Other modal still open.')
   }
-  instance.setState(
-    { content, onClose, showModal: true, props },
-    disableShortcuts
-  )
+  instance.setState({ content, onClose, showModal: true, props }, disableShortcuts)
 }
 
 const _addRef = (component, ref) => {
@@ -66,9 +60,7 @@ class GenericModal extends Component {
   _getBodyValue = () => {
     const { body } = this.refs
     if (body !== undefined) {
-      return body.getWrappedInstance === undefined
-        ? body.value
-        : body.getWrappedInstance().value
+      return body.getWrappedInstance === undefined ? body.value : body.getWrappedInstance().value
     }
   }
 
@@ -110,18 +102,10 @@ class GenericModal extends Component {
               </Button>
             )
             return (
-              <span key={key}>
-                {tooltip !== undefined ? (
-                  <Tooltip content={tooltip}>{button}</Tooltip>
-                ) : (
-                  button
-                )}{' '}
-              </span>
+              <span key={key}>{tooltip !== undefined ? <Tooltip content={tooltip}>{button}</Tooltip> : button} </span>
             )
           })}
-          {this.props.reject !== undefined && (
-            <Button onClick={this._reject}>{_('genericCancel')}</Button>
-          )}
+          {this.props.reject !== undefined && <Button onClick={this._reject}>{_('genericCancel')}</Button>}
         </ReactModal.Footer>
       </div>
     )
@@ -131,13 +115,7 @@ class GenericModal extends Component {
 export const chooseAction = ({ body, buttons, icon, title }) => {
   return new Promise((resolve, reject) => {
     modal(
-      <GenericModal
-        buttons={buttons}
-        icon={icon}
-        reject={reject}
-        resolve={resolve}
-        title={title}
-      >
+      <GenericModal buttons={buttons} icon={icon} reject={reject} resolve={resolve} title={title}>
         {body}
       </GenericModal>,
       reject
@@ -172,10 +150,7 @@ class StrongConfirm extends Component {
     const confirmButton = this.state.buttons[0]
 
     let disabled
-    if (
-      (userInput.toLowerCase() === strongConfirmString.toLowerCase()) ^
-      (disabled = !confirmButton.disabled)
-    ) {
+    if ((userInput.toLowerCase() === strongConfirmString.toLowerCase()) ^ (disabled = !confirmButton.disabled)) {
       this.setState({
         buttons: [{ ...confirmButton, disabled }],
       })
@@ -203,8 +178,7 @@ class StrongConfirm extends Component {
         ref.focus()
       })
       ref.addEventListener('keydown', this._handleKeyDown)
-      this.componentWillUnmount = () =>
-        ref.removeEventListener('keydown', this._handleKeyDown)
+      this.componentWillUnmount = () => ref.removeEventListener('keydown', this._handleKeyDown)
     }
   }
 
@@ -219,25 +193,14 @@ class StrongConfirm extends Component {
     } = this.props
 
     return (
-      <GenericModal
-        buttons={this.state.buttons}
-        icon={icon}
-        reject={reject}
-        resolve={resolve}
-        title={title}
-      >
+      <GenericModal buttons={this.state.buttons} icon={icon} reject={reject} resolve={resolve} title={title}>
         {body}
         <hr />
         <div>
-          {_('enterConfirmText')}{' '}
-          <strong className='no-text-selection'>{_(messageId, values)}</strong>
+          {_('enterConfirmText')} <strong className='no-text-selection'>{_(messageId, values)}</strong>
         </div>
         <div>
-          <input
-            className='form-control'
-            ref={this._focusAndAddEventListener}
-            onChange={this._onInputChange}
-          />
+          <input className='form-control' ref={this._focusAndAddEventListener} onChange={this._onInputChange} />
         </div>
       </GenericModal>
     )
@@ -287,14 +250,7 @@ export const confirm = ({ body, icon = 'alarm', title, strongConfirm }) =>
 // -----------------------------------------------------------------------------
 
 let formModalState
-export const form = ({
-  component,
-  defaultValue,
-  handler = identity,
-  header,
-  render,
-  size,
-}) =>
+export const form = ({ component, defaultValue, handler = identity, header, render, size }) =>
   new Promise((resolve, reject) => {
     formModalState.component = component
     formModalState.handler = handler
@@ -395,13 +351,7 @@ export const FormModal = decorate([
       </ReactModal.Body>
 
       <ReactModal.Footer>
-        <ActionButton
-          btnStyle='primary'
-          form={state.formId}
-          handler={effects.onSubmit}
-          icon='save'
-          size='large'
-        >
+        <ActionButton btnStyle='primary' form={state.formId} handler={effects.onSubmit} icon='save' size='large'>
           {_('formOk')}
         </ActionButton>{' '}
         <ActionButton handler={effects.onCancel} icon='cancel' size='large'>

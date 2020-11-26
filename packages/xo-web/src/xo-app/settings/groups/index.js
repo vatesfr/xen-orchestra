@@ -90,11 +90,7 @@ class GroupMembersDisplay extends Component {
                 <ul className='list-group'>
                   {map(group.users, user => (
                     <li className='list-group-item' key={user}>
-                      <UserDisplay
-                        id={user}
-                        group={group}
-                        canRemove={group.provider === undefined}
-                      />
+                      <UserDisplay id={user} group={group} canRemove={group.provider === undefined} />
                     </li>
                   ))}
                 </ul>
@@ -107,18 +103,14 @@ class GroupMembersDisplay extends Component {
   }
 }
 
-const getPredicate = users => entity =>
-  entity.email && !includes(users, entity.id) // Entity is a user and is not already in list
+const getPredicate = users => entity => entity.email && !includes(users, entity.id) // Entity is a user and is not already in list
 
 const GROUP_COLUMNS = [
   {
     name: _('groupNameColumn'),
     itemRenderer: group =>
       group.provider === undefined ? (
-        <Text
-          value={group.name}
-          onChange={value => setGroupName(group, value)}
-        />
+        <Text value={group.name} onChange={value => setGroupName(group, value)} />
       ) : (
         group.name
       ),
@@ -212,12 +204,7 @@ export default class Groups extends Component {
             />
           </div>{' '}
           <div className='form-group'>
-            <ActionButton
-              form='newGroupForm'
-              icon='add'
-              btnStyle='success'
-              handler={this._createGroup}
-            >
+            <ActionButton form='newGroupForm' icon='add' btnStyle='success' handler={this._createGroup}>
               {_('createGroupButton')}
             </ActionButton>
           </div>
@@ -228,12 +215,7 @@ export default class Groups extends Component {
             <em>{_('noGroupFound')}</em>
           </p>
         ) : (
-          <SortedTable
-            actions={ACTIONS}
-            collection={groups}
-            columns={GROUP_COLUMNS}
-            stateUrlParam='s'
-          />
+          <SortedTable actions={ACTIONS} collection={groups} columns={GROUP_COLUMNS} stateUrlParam='s' />
         )}
       </div>
     )

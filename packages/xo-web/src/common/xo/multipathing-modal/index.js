@@ -11,9 +11,7 @@ import { Sr } from '../../render-xo-item'
 @connectStore(
   {
     srIds: createSelector(
-      createGetObjectsOfType('PBD').filter((_, { hostIds }) => pbd =>
-        hostIds.includes(pbd.host)
-      ),
+      createGetObjectsOfType('PBD').filter((_, { hostIds }) => pbd => hostIds.includes(pbd.host)),
       pbds => {
         const srIds = new Set([])
         for (const id in pbds) {
@@ -41,11 +39,7 @@ export default class MultipathingModal extends Component {
         <span className='text-info'>
           <Icon icon='info' /> {_('hostMultipathingRequiredState')}
         </span>
-        <Collapse
-          buttonText={_('hostMultipathingSrs')}
-          size='small'
-          className='mt-1'
-        >
+        <Collapse buttonText={_('hostMultipathingSrs')} size='small' className='mt-1'>
           {srIds.map(srId => (
             <div key={srId}>
               <Sr id={srId} link newTab />

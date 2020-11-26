@@ -25,10 +25,7 @@ function removeListeners() {
 function Reader(stream, size, resolve, reject) {
   stream.on('end', (this.onEnd = onEnd.bind(this, reject)))
   stream.on('error', (this.onError = onError.bind(this, reject)))
-  stream.on(
-    'readable',
-    (this.onReadable = onReadable.bind(this, resolve, size))
-  )
+  stream.on('readable', (this.onReadable = onReadable.bind(this, resolve, size)))
   this.stream = stream
 }
 

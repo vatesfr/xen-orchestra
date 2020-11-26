@@ -37,21 +37,15 @@ const DiskImport = decorate([
             const { name } = file
             const extIndex = name.lastIndexOf('.')
             let type
-            if (
-              extIndex >= 0 &&
-              (type = name.slice(extIndex + 1)) &&
-              (type === 'vmdk' || type === 'vhd')
-            ) {
+            if (extIndex >= 0 && (type = name.slice(extIndex + 1)) && (type === 'vmdk' || type === 'vhd')) {
               let vmdkData
               if (type === 'vmdk') {
-                const parsed = await readCapacityAndGrainTable(
-                  async (start, end) => {
-                    /* global FileReader */
-                    const reader = new FileReader()
-                    reader.readAsArrayBuffer(file.slice(start, end))
-                    return (await fromEvent(reader, 'loadend')).target.result
-                  }
-                )
+                const parsed = await readCapacityAndGrainTable(async (start, end) => {
+                  /* global FileReader */
+                  const reader = new FileReader()
+                  reader.readAsArrayBuffer(file.slice(start, end))
+                  return (await fromEvent(reader, 'loadend')).target.result
+                })
                 const table = await parsed.tablePromise
                 vmdkData = {
                   grainLogicalAddressList: table.grainLogicalAddressList,
@@ -84,9 +78,7 @@ const DiskImport = decorate([
         )
       },
       linkState,
-      onChangeDescription: (_, { target: { name, value } }) => ({
-        mapDescriptions,
-      }) => {
+      onChangeDescription: (_, { target: { name, value } }) => ({ mapDescriptions }) => {
         mapDescriptions[name] = value
         return { mapDescriptions }
       },
@@ -100,10 +92,7 @@ const DiskImport = decorate([
   }),
   injectIntl,
   injectState,
-  ({
-    effects,
-    state: { disks, loadingDisks, mapDescriptions, mapNames, sr },
-  }) => (
+  ({ effects, state: { disks, loadingDisks, mapDescriptions, mapNames, sr } }) => (
     <Container>
       <form id='import-form'>
         <Row>
@@ -114,21 +103,13 @@ const DiskImport = decorate([
         </Row>
         {sr !== undefined && (
           <div>
-            <Dropzone
-              onDrop={effects.handleDrop}
-              message={_('dropDisksFiles')}
-            />
+            <Dropzone onDrop={effects.handleDrop} message={_('dropDisksFiles')} />
             {loadingDisks && <Icon icon='loading' />}
             {disks.length > 0 && (
               <div>
                 <div>
                   {disks.map(({ file: { name, size }, id }) => (
-                    <Collapse
-                      buttonText={`${name} - ${formatSize(size)}`}
-                      key={id}
-                      size='small'
-                      className='mb-1'
-                    >
+                    <Collapse buttonText={`${name} - ${formatSize(size)}`} key={id} size='small' className='mb-1'>
                       <div className='mt-1'>
                         <Row>
                           <LabelCol>{_('formName')}</LabelCol>

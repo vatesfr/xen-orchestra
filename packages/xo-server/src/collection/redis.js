@@ -1,13 +1,6 @@
 import asyncMap from '@xen-orchestra/async-map'
 import { createClient as createRedisClient } from 'redis'
-import {
-  difference,
-  filter,
-  forEach,
-  isEmpty,
-  keys as getKeys,
-  map,
-} from 'lodash'
+import { difference, filter, forEach, isEmpty, keys as getKeys, map } from 'lodash'
 import { ignoreErrors, promisifyAll } from 'promise-toolbox'
 import { v4 as generateUuid } from 'uuid'
 
@@ -40,9 +33,7 @@ export default class Redis extends Collection {
 
     this.indexes = indexes
     this.prefix = prefix
-    const redis = (this.redis = promisifyAll(
-      connection || createRedisClient(uri)
-    ))
+    const redis = (this.redis = promisifyAll(connection || createRedisClient(uri)))
 
     const key = `${prefix}:version`
     redis
@@ -73,9 +64,7 @@ export default class Redis extends Collection {
 
     const idsIndex = `${prefix}_ids`
     return asyncMap(indexes, index =>
-      redis
-        .keys(`${prefix}_${index}:*`)
-        .then(keys => keys.length !== 0 && redis.del(keys))
+      redis.keys(`${prefix}_${index}:*`).then(keys => keys.length !== 0 && redis.del(keys))
     ).then(() =>
       asyncMap(redis.smembers(idsIndex), id =>
         redis.hgetall(`${prefix}:${id}`).then(values =>
@@ -84,10 +73,7 @@ export default class Redis extends Collection {
             : asyncMap(indexes, index => {
                 const value = values[index]
                 if (value !== undefined) {
-                  return redis.sadd(
-                    `${prefix}_${index}:${String(value).toLowerCase()}`,
-                    id
-                  )
+                  return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
                 }
               })
         )
@@ -144,10 +130,7 @@ export default class Redis extends Collection {
             await asyncMap(indexes, index => {
               const value = previous[index]
               if (value !== undefined) {
-                return redis.srem(
-                  `${prefix}_${index}:${String(value).toLowerCase()}`,
-                  id
-                )
+                return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
               }
             })
           }
@@ -210,10 +193,7 @@ export default class Redis extends Collection {
       throw new Error('fields not indexed: ' + unfit.join())
     }
 
-    const keys = map(
-      properties,
-      (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`
-    )
+    const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
     return redis.sinter(...keys).then(ids => this._extract(ids))
   }
 
@@ -238,10 +218,7 @@ export default class Redis extends Collection {
               asyncMap(indexes, index => {
                 const value = values[index]
                 if (value !== undefined) {
-                  return redis.srem(
-                    `${prefix}_${index}:${String(value).toLowerCase()}`,
-                    id
-                  )
+                  return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
                 }
               })
           )

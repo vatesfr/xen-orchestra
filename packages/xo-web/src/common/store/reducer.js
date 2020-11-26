@@ -56,9 +56,7 @@ const combineActionHandlers = invoke(
       const handler = handlers[actionType]
 
       return (state = initialState, action) =>
-        action.type === actionType
-          ? handler(state, action.payload, action)
-          : state
+        action.type === actionType ? handler(state, action.payload, action) : state
     }
 
     return (state = initialState, action) => {
@@ -89,20 +87,18 @@ export default {
 
   // These IDs are used temporarily to be preselected in backup/new/vms
   homeVmIdsSelection: combineActionHandlers([], {
-    [actions.setHomeVmIdsSelection]: (_, homeVmIdsSelection) =>
-      homeVmIdsSelection,
+    [actions.setHomeVmIdsSelection]: (_, homeVmIdsSelection) => homeVmIdsSelection,
   }),
 
   // whether a resource is currently being installed: `hubInstallingResources[<template id>]`
   hubInstallingResources: combineActionHandlers(
     {},
     {
-      [actions.markHubResourceAsInstalling]: (
-        prevHubInstallingResources,
-        id
-      ) => ({ ...prevHubInstallingResources, [id]: true }),
-      [actions.markHubResourceAsInstalled]: (prevHubInstallingResources, id) =>
-        omit(prevHubInstallingResources, id),
+      [actions.markHubResourceAsInstalling]: (prevHubInstallingResources, id) => ({
+        ...prevHubInstallingResources,
+        [id]: true,
+      }),
+      [actions.markHubResourceAsInstalled]: (prevHubInstallingResources, id) => omit(prevHubInstallingResources, id),
     }
   ),
 
@@ -114,8 +110,7 @@ export default {
         ...prevRecipeCreatingResources,
         [id]: true,
       }),
-      [actions.markRecipeAsDone]: (prevRecipeCreatedResources, id) =>
-        omit(prevRecipeCreatedResources, id),
+      [actions.markRecipeAsDone]: (prevRecipeCreatedResources, id) => omit(prevRecipeCreatedResources, id),
     }
   ),
 
@@ -126,10 +121,7 @@ export default {
       fetched: false,
     },
     {
-      [actions.updateObjects]: (
-        { all, byType: prevByType, fetched },
-        updates
-      ) => {
+      [actions.updateObjects]: ({ all, byType: prevByType, fetched }, updates) => {
         const byType = { ...prevByType }
         const get = type => {
           const curr = byType[type]

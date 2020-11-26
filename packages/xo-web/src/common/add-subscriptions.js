@@ -12,10 +12,7 @@ const addSubscriptions = subscriptions => Component =>
 
       // provide all props since the beginning (better behavior with Freactal)
       this.state = mapValues(
-        (this._subscribes =
-          typeof subscriptions === 'function'
-            ? subscriptions(props)
-            : subscriptions),
+        (this._subscribes = typeof subscriptions === 'function' ? subscriptions(props) : subscriptions),
         noop
       )
     }

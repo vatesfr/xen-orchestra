@@ -57,44 +57,28 @@ class ConfigureIpModal extends Component {
         <SingleLineRow>
           <Col size={6}>{_('staticIp')}</Col>
           <Col size={6}>
-            <input
-              className='form-control'
-              onChange={this.linkState('ip')}
-              value={ip}
-            />
+            <input className='form-control' onChange={this.linkState('ip')} value={ip} />
           </Col>
         </SingleLineRow>
         &nbsp;
         <SingleLineRow>
           <Col size={6}>{_('netmask')}</Col>
           <Col size={6}>
-            <input
-              className='form-control'
-              onChange={this.linkState('netmask')}
-              value={netmask}
-            />
+            <input className='form-control' onChange={this.linkState('netmask')} value={netmask} />
           </Col>
         </SingleLineRow>
         &nbsp;
         <SingleLineRow>
           <Col size={6}>{_('dns')}</Col>
           <Col size={6}>
-            <input
-              className='form-control'
-              onChange={this.linkState('dns')}
-              value={dns}
-            />
+            <input className='form-control' onChange={this.linkState('dns')} value={dns} />
           </Col>
         </SingleLineRow>
         &nbsp;
         <SingleLineRow>
           <Col size={6}>{_('gateway')}</Col>
           <Col size={6}>
-            <input
-              className='form-control'
-              onChange={this.linkState('gateway')}
-              value={gateway}
-            />
+            <input className='form-control' onChange={this.linkState('gateway')} value={gateway} />
           </Col>
         </SingleLineRow>
       </div>
@@ -147,11 +131,7 @@ class PifItemIp extends Component {
       <div>
         {pifIp}{' '}
         {pifIp && (
-          <a
-            className='hidden-md-down'
-            onClick={this._onEditIp}
-            style={EDIT_BUTTON_STYLE}
-          >
+          <a className='hidden-md-down' onClick={this._onEditIp} style={EDIT_BUTTON_STYLE}>
             <Icon icon='edit' size='1' fixedWidth />
           </a>
         )}
@@ -181,11 +161,7 @@ class PifItemMode extends Component {
 
   render() {
     return (
-      <Select
-        onChange={this._configIp}
-        options={this._getOptions()}
-        value={this._getValue()}
-      >
+      <Select onChange={this._configIp} options={this._getOptions()} value={this._getValue()}>
         {this.props.pif.mode}
       </Select>
     )
@@ -213,11 +189,7 @@ class PifItemLock extends Component {
 
     const pifInUse = some(vifsByNetwork[pif.$network], vif => vif.attached)
     return _toggleDefaultLockingMode(
-      <Toggle
-        disabled={pifInUse}
-        onChange={this._editNetwork}
-        value={network.defaultIsLocked}
-      />,
+      <Toggle disabled={pifInUse} onChange={this._editNetwork} value={network.defaultIsLocked} />,
       pifInUse && _('pifInUse')
     )
   }
@@ -231,11 +203,9 @@ const PIF_COLUMNS = [
     sortCriteria: 'device',
   },
   {
-    itemRenderer: (pif, userData) =>
-      get(() => userData.networks[pif.$network].name_label),
+    itemRenderer: (pif, userData) => get(() => userData.networks[pif.$network].name_label),
     name: _('pifNetworkLabel'),
-    sortCriteria: (pif, userData) =>
-      get(() => userData.networks[pif.$network].name_label),
+    sortCriteria: (pif, userData) => get(() => userData.networks[pif.$network].name_label),
   },
   {
     component: PifItemVlan,
@@ -243,16 +213,12 @@ const PIF_COLUMNS = [
     sortCriteria: 'vlan',
   },
   {
-    itemRenderer: (pif, userData) => (
-      <PifItemIp pif={pif} networks={userData.networks} />
-    ),
+    itemRenderer: (pif, userData) => <PifItemIp pif={pif} networks={userData.networks} />,
     name: _('pifAddressLabel'),
     sortCriteria: 'ip',
   },
   {
-    itemRenderer: (pif, userData) => (
-      <PifItemMode pif={pif} networks={userData.networks} />
-    ),
+    itemRenderer: (pif, userData) => <PifItemMode pif={pif} networks={userData.networks} />,
     name: _('pifModeLabel'),
     sortCriteria: 'mode',
   },
@@ -267,15 +233,12 @@ const PIF_COLUMNS = [
     sortCriteria: 'mtu',
   },
   {
-    itemRenderer: ({ speed }) =>
-      speed !== undefined && humanFormat(speed * 1e6, { unit: 'b/s' }), // 1e6: convert Mb to b
+    itemRenderer: ({ speed }) => speed !== undefined && humanFormat(speed * 1e6, { unit: 'b/s' }), // 1e6: convert Mb to b
     name: _('pifSpeedLabel'),
     sortCriteria: 'speed',
   },
   {
-    itemRenderer: (pif, userData) => (
-      <PifItemLock pif={pif} networks={userData.networks} />
-    ),
+    itemRenderer: (pif, userData) => <PifItemLock pif={pif} networks={userData.networks} />,
     name: _('defaultLockingMode'),
   },
   {
@@ -292,18 +255,8 @@ const PIF_COLUMNS = [
           handlerParam={pif}
           state={pif.attached}
         />{' '}
-        <Tooltip
-          content={
-            pif.carrier
-              ? _('pifPhysicallyConnected')
-              : _('pifPhysicallyDisconnected')
-          }
-        >
-          <Icon
-            icon='network'
-            size='lg'
-            className={pif.carrier ? 'text-success' : 'text-muted'}
-          />
+        <Tooltip content={pif.carrier ? _('pifPhysicallyConnected') : _('pifPhysicallyDisconnected')}>
+          <Icon icon='network' size='lg' className={pif.carrier ? 'text-success' : 'text-muted'} />
         </Tooltip>
       </div>
     ),
@@ -355,9 +308,7 @@ const PVT_NETWORK_COLUMNS = [
         </Tooltip>
       </div>
     ),
-    itemRenderer: network => (
-      <Icon icon={network.defaultIsLocked ? 'lock' : 'unlock'} />
-    ),
+    itemRenderer: network => <Icon icon={network.defaultIsLocked ? 'lock' : 'unlock'} />,
   },
 ]
 
@@ -375,12 +326,7 @@ export default ({ host, networks, pifs, privateNetworks }) => (
       <Col>
         <h1>
           {_('poolNetworkPif')}
-          <ActionButton
-            className='ml-1'
-            handler={scanHostPifs}
-            handlerParam={host.id}
-            icon='refresh'
-          >
+          <ActionButton className='ml-1' handler={scanHostPifs} handlerParam={host.id} icon='refresh'>
             {_('refresh')}
           </ActionButton>
         </h1>
@@ -403,9 +349,7 @@ export default ({ host, networks, pifs, privateNetworks }) => (
               className='ml-1'
               handler={noop}
               icon='edit'
-              redirectOnSuccess={`/pools/${
-                host.$pool
-              }/network?s=${encodeURIComponent('!PIFs:length?')}`}
+              redirectOnSuccess={`/pools/${host.$pool}/network?s=${encodeURIComponent('!PIFs:length?')}`}
             >
               {_('manage')}
             </ActionButton>

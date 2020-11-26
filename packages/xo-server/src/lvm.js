@@ -20,9 +20,7 @@ const makeFunction = command => async (fields, ...args) => {
     ...args,
   ])
 
-  return splitLines(stdout).map(
-    Array.isArray(fields) ? parse : line => parse(line)[fields]
-  )
+  return splitLines(stdout).map(Array.isArray(fields) ? parse : line => parse(line)[fields])
 }
 
 export const lvs = makeFunction('lvs')

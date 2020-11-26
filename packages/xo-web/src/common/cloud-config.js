@@ -61,11 +61,7 @@ const showNetworkConfigInfo = () =>
 
 export const AvailableTemplateVars = () => (
   <Tooltip content={_('availableTemplateVarsInfo')}>
-    <a
-      className='text-info'
-      style={{ cursor: 'pointer' }}
-      onClick={showAvailableTemplateVars}
-    >
+    <a className='text-info' style={{ cursor: 'pointer' }} onClick={showAvailableTemplateVars}>
       <Icon icon='info' />
     </a>
   </Tooltip>
@@ -73,11 +69,7 @@ export const AvailableTemplateVars = () => (
 
 export const NetworkConfigInfo = () => (
   <Tooltip content={_('newVmNetworkConfigTooltip')}>
-    <a
-      className='text-info'
-      style={{ cursor: 'pointer' }}
-      onClick={showNetworkConfigInfo}
-    >
+    <a className='text-info' style={{ cursor: 'pointer' }} onClick={showNetworkConfigInfo}>
       <Icon icon='info' />
     </a>
   </Tooltip>

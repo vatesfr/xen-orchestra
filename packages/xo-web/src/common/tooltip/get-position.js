@@ -20,13 +20,7 @@ export default function (e, target, node, place, effect, offset) {
   const tipWidth = node.clientWidth
   const tipHeight = node.clientHeight
   const { mouseX, mouseY } = getCurrentOffset(e, target, effect)
-  const defaultOffset = getDefaultPosition(
-    effect,
-    target.clientWidth,
-    target.clientHeight,
-    tipWidth,
-    tipHeight
-  )
+  const defaultOffset = getDefaultPosition(effect, target.clientWidth, target.clientHeight, tipWidth, tipHeight)
   const { extraOffsetX, extraOffsetY } = calculateOffset(offset)
 
   const windowWidth = window.innerWidth
@@ -78,11 +72,7 @@ export default function (e, target, node, place, effect, offset) {
     if (result && outsideHorizontal().result) {
       return { result: false } // No need to change, if change to vertical will out of space
     }
-    if (
-      !result &&
-      getTipOffsetLeft('left') < 0 &&
-      getTipOffsetRight('right') <= windowWidth
-    ) {
+    if (!result && getTipOffsetLeft('left') < 0 && getTipOffsetRight('right') <= windowWidth) {
       result = true // If vertical ok, but let out of side and right won't out of side
       newPlace = 'right'
     }
@@ -93,11 +83,7 @@ export default function (e, target, node, place, effect, offset) {
     if (result && outsideHorizontal().result) {
       return { result: false } // No need to change, if change to vertical will out of space
     }
-    if (
-      !result &&
-      getTipOffsetRight('right') > windowWidth &&
-      getTipOffsetLeft('left') >= 0
-    ) {
+    if (!result && getTipOffsetRight('right') > windowWidth && getTipOffsetLeft('left') >= 0) {
       result = true
       newPlace = 'left'
     }
@@ -129,11 +115,7 @@ export default function (e, target, node, place, effect, offset) {
     if (result && outsideVertical().result) {
       return { result: false }
     }
-    if (
-      !result &&
-      getTipOffsetTop('top') < 0 &&
-      getTipOffsetBottom('bottom') <= windowHeight
-    ) {
+    if (!result && getTipOffsetTop('top') < 0 && getTipOffsetBottom('bottom') <= windowHeight) {
       result = true
       newPlace = 'bottom'
     }
@@ -144,11 +126,7 @@ export default function (e, target, node, place, effect, offset) {
     if (result && outsideVertical().result) {
       return { result: false }
     }
-    if (
-      !result &&
-      getTipOffsetBottom('bottom') > windowHeight &&
-      getTipOffsetTop('top') >= 0
-    ) {
+    if (!result && getTipOffsetBottom('bottom') > windowHeight && getTipOffsetTop('top') >= 0) {
       result = true
       newPlace = 'top'
     }
@@ -215,13 +193,7 @@ const getCurrentOffset = (e, currentTarget, effect) => {
 
 // List all possibility of tooltip final offset
 // This is useful in judging if it is necessary for tooltip to switch position when out of window
-const getDefaultPosition = (
-  effect,
-  targetWidth,
-  targetHeight,
-  tipWidth,
-  tipHeight
-) => {
+const getDefaultPosition = (effect, targetWidth, targetHeight, tipWidth, tipHeight) => {
   let top
   let right
   let bottom

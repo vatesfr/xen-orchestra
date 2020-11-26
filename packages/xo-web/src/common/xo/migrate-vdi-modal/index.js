@@ -23,10 +23,7 @@ export default class MigrateVdiModalBody extends Component {
     return this.state
   }
 
-  _getCompareContainers = createSelector(
-    () => this.props.pool,
-    createCompareContainers
-  )
+  _getCompareContainers = createSelector(() => this.props.pool, createCompareContainers)
 
   _getWarningBeforeMigrate = createSelector(
     () => this.props.warningBeforeMigrate,
@@ -42,8 +39,7 @@ export default class MigrateVdiModalBody extends Component {
   render() {
     const { resourceSet } = this.props
     const warningBeforeMigrate = this._getWarningBeforeMigrate()
-    const SelectSr =
-      resourceSet !== undefined ? SelectResourceSetsSr : SelectAnySr
+    const SelectSr = resourceSet !== undefined ? SelectResourceSetsSr : SelectAnySr
     return (
       <Container>
         <SingleLineRow>

@@ -18,22 +18,8 @@ import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import {
-  concat,
-  every,
-  groupBy,
-  isEmpty,
-  map,
-  mapValues,
-  pick,
-  some,
-} from 'lodash'
-import {
-  createCollectionWrapper,
-  createGetObjectsOfType,
-  createSelector,
-  getCheckPermissions,
-} from 'selectors'
+import { concat, every, groupBy, isEmpty, map, mapValues, pick, some } from 'lodash'
+import { createCollectionWrapper, createGetObjectsOfType, createSelector, getCheckPermissions } from 'selectors'
 import {
   connectVbd,
   createDisk,
@@ -57,10 +43,7 @@ const COLUMNS = [
     name: _('vdiNameLabel'),
     itemRenderer: vdi => (
       <span>
-        <Text
-          value={vdi.name_label}
-          onChange={value => editVdi(vdi, { name_label: value })}
-        />{' '}
+        <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />{' '}
         {vdi.type === 'VDI-snapshot' && (
           <span className='tag tag-info'>
             <Icon icon='vm-snapshot' />
@@ -73,10 +56,7 @@ const COLUMNS = [
   {
     name: _('vdiNameDescription'),
     itemRenderer: vdi => (
-      <Text
-        value={vdi.name_description}
-        onChange={value => editVdi(vdi, { name_description: value })}
-      />
+      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
     ),
   },
   {
@@ -96,15 +76,9 @@ const COLUMNS = [
         .sort()
       const getVmIds = createSelector(getVbds, vbds => map(vbds, 'VM'))
       const getVms = createGetObjectsOfType('VM').pick(getVmIds)
-      const getVmControllers = createGetObjectsOfType('VM-controller').pick(
-        getVmIds
-      )
-      const getVmSnapshots = createGetObjectsOfType('VM-snapshot').pick(
-        getVmIds
-      )
-      const getVmTemplates = createGetObjectsOfType('VM-template').pick(
-        getVmIds
-      )
+      const getVmControllers = createGetObjectsOfType('VM-controller').pick(getVmIds)
+      const getVmSnapshots = createGetObjectsOfType('VM-snapshot').pick(getVmIds)
+      const getVmTemplates = createGetObjectsOfType('VM-template').pick(getVmIds)
       const getAllVms = createSelector(
         getVms,
         getVmControllers,
@@ -143,10 +117,7 @@ const COLUMNS = [
             } else if (type === 'VM-template') {
               link = `/home?s=${vm.id}&t=VM-template`
             } else {
-              link =
-                vm.$snapshot_of === undefined
-                  ? '/dashboard/health'
-                  : `/vms/${vm.$snapshot_of}/snapshots`
+              link = vm.$snapshot_of === undefined ? '/dashboard/health' : `/vms/${vm.$snapshot_of}/snapshots`
             }
 
             return (
@@ -206,8 +177,7 @@ const INDIVIDUAL_ACTIONS = [
   ...(process.env.XOA_PLAN > 1
     ? [
         {
-          disabled: ({ id, type }, { isVdiAttached }) =>
-            isVdiAttached[id] || type === 'VDI-unmanaged',
+          disabled: ({ id, type }, { isVdiAttached }) => isVdiAttached[id] || type === 'VDI-unmanaged',
           handler: importVdi,
           icon: 'import',
           label: _('importVdi'),
@@ -287,8 +257,7 @@ class NewDisk extends Component {
         </div>
         <div className='form-group ml-1'>
           <span>
-            {_('vbdReadonly')}{' '}
-            <Toggle onChange={this.toggleState('readOnly')} value={readOnly} />
+            {_('vbdReadonly')} <Toggle onChange={this.toggleState('readOnly')} value={readOnly} />
           </span>
         </div>
         <ActionButton
@@ -339,9 +308,7 @@ export default class SrDisks extends Component {
   _getGenerateWarningBeforeMigrate = createSelector(
     createCollectionWrapper(_ => _),
     vdis => sr =>
-      sr === undefined ||
-      isSrShared(sr) ||
-      every(vdis, _ => isEmpty(_.$VBDs)) ? null : (
+      sr === undefined || isSrShared(sr) || every(vdis, _ => isEmpty(_.$VBDs)) ? null : (
         <span className='text-warning'>
           <Icon icon='alarm' /> {_('migrateVdiMessage')}
         </span>
@@ -367,24 +334,15 @@ export default class SrDisks extends Component {
 
   _actions = [
     {
-      disabled: vdis =>
-        some(
-          vdis,
-          ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'
-        ),
+      disabled: vdis => some(vdis, ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'),
       handler: this._migrateVdis,
       icon: 'vdi-migrate',
       individualLabel: vdis => {
         const { type } = vdis[0]
-        return type === 'VDI-unmanaged' || type === 'VDI-snapshot'
-          ? _('disabledVdiMigrateTooltip')
-          : _('vdiMigrate')
+        return type === 'VDI-unmanaged' || type === 'VDI-snapshot' ? _('disabledVdiMigrateTooltip') : _('vdiMigrate')
       },
       label: vdis => {
-        return some(
-          vdis,
-          ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot'
-        )
+        return some(vdis, ({ type }) => type === 'VDI-unmanaged' || type === 'VDI-snapshot')
           ? _('disabledVdiMigrateTooltip')
           : _('migrateSelectedVdis')
       },
@@ -398,7 +356,7 @@ export default class SrDisks extends Component {
     return (
       <Container>
         {this._getIsSrAdmin() && [
-          <Row>
+          <Row key='new-disk'>
             <Col className='text-xs-right'>
               <TabButton
                 btnStyle={newDisk ? 'info' : 'primary'}
@@ -409,7 +367,7 @@ export default class SrDisks extends Component {
             </Col>
           </Row>,
           newDisk && (
-            <Row>
+            <Row key='new-disk-form'>
               <Col>
                 <NewDisk sr={this.props.sr} onClose={this._closeNewDiskForm} />
                 <hr />

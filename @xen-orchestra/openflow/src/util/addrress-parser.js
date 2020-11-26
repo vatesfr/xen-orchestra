@@ -5,12 +5,10 @@ import util from 'util'
 
 export default {
   isEthMaskNone: (buffer, offset) =>
-    buffer.readUInt32BE(offset) === 0x00000000 &&
-    buffer.readUInt16BE(offset + 4) === 0x0000,
+    buffer.readUInt32BE(offset) === 0x00000000 && buffer.readUInt16BE(offset + 4) === 0x0000,
 
   isEthMaskAll: (buffer, offset) =>
-    buffer.readUInt32BE(offset) === 0xffffffff &&
-    buffer.readUInt16BE(offset + 4) === 0xffff,
+    buffer.readUInt32BE(offset) === 0xffffffff && buffer.readUInt16BE(offset + 4) === 0xffff,
 
   isIp4MaskNone: (buffer, offset) => buffer.readUInt32BE(offset) === 0x00000000,
 

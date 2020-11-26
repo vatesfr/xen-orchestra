@@ -49,12 +49,7 @@ createJob.params = {
 }
 
 export function getSuggestedExcludedTags() {
-  return [
-    'Continuous Replication',
-    'Disaster Recovery',
-    'XOSAN',
-    this._config['xo-proxy'].vmTag,
-  ]
+  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this._config['xo-proxy'].vmTag]
 }
 
 export function migrateLegacyJob({ id }) {
@@ -138,13 +133,7 @@ getJob.params = {
   },
 }
 
-export async function runJob({
-  id,
-  schedule,
-  settings,
-  vm,
-  vms = vm !== undefined ? [vm] : undefined,
-}) {
+export async function runJob({ id, schedule, settings, vm, vms = vm !== undefined ? [vm] : undefined }) {
   return this.runJobSequence([id], await this.getSchedule(schedule), {
     settings,
     vms,
@@ -313,12 +302,7 @@ listFiles.params = {
 }
 
 async function handleFetchFiles(req, res, { remote, disk, partition, paths }) {
-  const zipStream = await this.fetchBackupNgPartitionFiles(
-    remote,
-    disk,
-    partition,
-    paths
-  )
+  const zipStream = await this.fetchBackupNgPartitionFiles(remote, disk, partition, paths)
 
   res.setHeader('content-disposition', 'attachment')
   res.setHeader('content-type', 'application/octet-stream')

@@ -31,9 +31,7 @@ const valueToComplexMatcher = pattern => {
     Object.keys(pattern).forEach(property => {
       const subpattern = pattern[property]
       if (subpattern !== undefined) {
-        children.push(
-          new CM.Property(property, valueToComplexMatcher(subpattern))
-        )
+        children.push(new CM.Property(property, valueToComplexMatcher(subpattern)))
       }
     })
     return children.length === 0 ? new CM.Null() : new CM.And(children)

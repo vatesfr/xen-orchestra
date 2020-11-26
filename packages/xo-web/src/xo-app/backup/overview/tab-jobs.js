@@ -51,28 +51,23 @@ const Li = props => (
 const MODES = [
   {
     label: 'rollingSnapshot',
-    test: job =>
-      some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
+    test: job => some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
   },
   {
     label: 'backup',
-    test: job =>
-      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
     label: 'deltaBackup',
-    test: job =>
-      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
     label: 'continuousReplication',
-    test: job =>
-      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
     label: 'disasterRecovery',
-    test: job =>
-      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
     label: 'poolMetadata',
@@ -85,10 +80,7 @@ const MODES = [
 ]
 
 const _deleteBackupJobs = items => {
-  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(
-    items,
-    'type'
-  )
+  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(items, 'type')
   return deleteBackupJobs({ backupIds, metadataBackupIds })
 }
 
@@ -106,11 +98,7 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
         })}
       </span>
     ),
-  }).then(() =>
-    type === 'backup'
-      ? runBackupNgJob({ id, schedule })
-      : runMetadataBackupJob({ id, schedule })
-  )
+  }).then(() => (type === 'backup' ? runBackupNgJob({ id, schedule }) : runMetadataBackupJob({ id, schedule })))
 
 const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
 const GoToLogs = decorate([
@@ -118,21 +106,12 @@ const GoToLogs = decorate([
   provideState({
     effects: {
       goTo() {
-        const {
-          jobId,
-          location,
-          router,
-          scheduleId,
-          scrollIntoLogs,
-        } = this.props
+        const { jobId, location, router, scheduleId, scrollIntoLogs } = this.props
         router.replace({
           ...location,
           query: {
             ...location.query,
-            s_logs:
-              jobId !== undefined
-                ? `jobId:${jobId}`
-                : `scheduleId:${scheduleId}`,
+            s_logs: jobId !== undefined ? `jobId:${jobId}` : `scheduleId:${scheduleId}`,
           },
         })
         scrollIntoLogs()
@@ -167,10 +146,7 @@ const SchedulePreviewBody = decorate([
               lastRunLog = log
               break
             }
-            if (
-              lastRunLog === undefined ||
-              (lastRunLog.end || lastRunLog.start) < (log.end || log.start)
-            ) {
+            if (lastRunLog === undefined || (lastRunLog.end || lastRunLog.start) < (log.end || log.start)) {
               lastRunLog = log
             }
           }
@@ -187,9 +163,7 @@ const SchedulePreviewBody = decorate([
     <Ul>
       <Li>
         <GoToLogs scheduleId={schedule.id} scrollIntoLogs={scrollIntoLogs}>
-          {schedule.name
-            ? _.keyValue(_('scheduleName'), schedule.name)
-            : _.keyValue(_('scheduleCron'), schedule.cron)}
+          {schedule.name ? _.keyValue(_('scheduleName'), schedule.name) : _.keyValue(_('scheduleCron'), schedule.cron)}
         </GoToLogs>{' '}
         <Tooltip content={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}>
           <CopyToClipboard text={schedule.id}>
@@ -241,9 +215,7 @@ const SchedulePreviewBody = decorate([
             tooltip={_('runBackupJob')}
           />
         )}{' '}
-        {lastRunLog !== undefined && (
-          <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />
-        )}
+        {lastRunLog !== undefined && <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />}
       </Li>
     </Ul>
   ),
@@ -304,12 +276,7 @@ class JobsTable extends React.Component {
           map(
             get(() => schedulesByJob[job.id]),
             schedule => (
-              <SchedulePreviewBody
-                job={job}
-                key={schedule.id}
-                schedule={schedule}
-                scrollIntoLogs={scrollIntoLogs}
-              />
+              <SchedulePreviewBody job={job} key={schedule.id} schedule={schedule} scrollIntoLogs={scrollIntoLogs} />
             )
           ),
         name: _('jobSchedules'),
@@ -334,52 +301,22 @@ class JobsTable extends React.Component {
 
           return (
             <Ul>
-              {proxyId !== undefined && (
-                <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} />)}</Li>
-              )}
-              {reportWhen !== undefined && (
-                <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
-              )}
-              {concurrency !== undefined && (
-                <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
-              )}
-              {timeout !== undefined && (
-                <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
-              )}
-              {fullInterval !== undefined && (
-                <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>
-              )}
+              {proxyId !== undefined && <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} />)}</Li>}
+              {reportWhen !== undefined && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
+              {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
+              {timeout !== undefined && <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>}
+              {fullInterval !== undefined && <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>}
               {offlineBackup !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('offlineBackup'),
-                    _(offlineBackup ? 'stateEnabled' : 'stateDisabled')
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('offlineBackup'), _(offlineBackup ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
               {offlineSnapshot !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('offlineSnapshot'),
-                    _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled')
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('offlineSnapshot'), _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
               {checkpointSnapshot !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('checkpointSnapshot'),
-                    _(checkpointSnapshot ? 'stateEnabled' : 'stateDisabled')
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('checkpointSnapshot'), _(checkpointSnapshot ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
               {compression !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('compression'),
-                    compression === 'native' ? 'GZIP' : compression
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('compression'), compression === 'native' ? 'GZIP' : compression)}</Li>
               )}
             </Ul>
           )
@@ -399,8 +336,7 @@ class JobsTable extends React.Component {
         icon: 'preview',
       },
       {
-        handler: (job, { goTo, goToNewTab, main }) =>
-          (main ? goTo : goToNewTab)(`/backup/${job.id}/edit`),
+        handler: (job, { goTo, goToNewTab, main }) => (main ? goTo : goToNewTab)(`/backup/${job.id}/edit`),
         label: _('formEdit'),
         icon: 'edit',
         level: 'primary',

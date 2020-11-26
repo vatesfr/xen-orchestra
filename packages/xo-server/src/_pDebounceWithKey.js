@@ -1,5 +1,6 @@
+import { MultiKeyMap } from '@vates/multi-key-map'
+
 import ensureArray from './_ensureArray'
-import MultiKeyMap from './_MultiKeyMap'
 
 function removeCacheEntry(cache, keys) {
   cache.delete(keys)
@@ -32,21 +33,14 @@ export const debounceWithKey = (fn, delay, keyFn = defaultKeyFn) => {
   const delayFn = typeof delay === 'number' ? () => delay : delay
   return function (arg) {
     if (arg === REMOVE_CACHE_ENTRY) {
-      return removeCacheEntry(
-        cache,
-        ensureArray(keyFn.apply(this, slice.call(arguments, 1)))
-      )
+      return removeCacheEntry(cache, ensureArray(keyFn.apply(this, slice.call(arguments, 1))))
     }
 
     const keys = ensureArray(keyFn.apply(this, arguments))
     let promise = cache.get(keys)
     if (promise === undefined) {
       cache.set(keys, (promise = fn.apply(this, arguments)))
-      const remove = scheduleRemoveCacheEntry.bind(
-        cache,
-        keys,
-        Date.now() + delayFn.apply(this, arguments)
-      )
+      const remove = scheduleRemoveCacheEntry.bind(cache, keys, Date.now() + delayFn.apply(this, arguments))
       promise.then(remove, remove)
     }
     return promise

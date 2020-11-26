@@ -67,12 +67,7 @@ function alignSectors(number) {
 }
 
 export default class VMDKDirectParser {
-  constructor(
-    readStream,
-    grainLogicalAddressList,
-    grainFileOffsetList,
-    gzipped = false
-  ) {
+  constructor(readStream, grainLogicalAddressList, grainFileOffsetList, gzipped = false) {
     if (gzipped) {
       const unzipStream = zlib.createGunzip()
       readStream.pipe(unzipStream)
@@ -89,14 +84,10 @@ export default class VMDKDirectParser {
   async _readL1() {
     const position = this.virtualBuffer.position
     const l1entries = Math.floor(
-      (this.header.capacitySectors + this.header.l1EntrySectors - 1) /
-        this.header.l1EntrySectors
+      (this.header.capacitySectors + this.header.l1EntrySectors - 1) / this.header.l1EntrySectors
     )
     const sectorAlignedL1Bytes = alignSectors(l1entries * 4)
-    const l1Buffer = await this.virtualBuffer.readChunk(
-      sectorAlignedL1Bytes,
-      'L1 table ' + position
-    )
+    const l1Buffer = await this.virtualBuffer.readChunk(sectorAlignedL1Bytes, 'L1 table ' + position)
     let l2Start = 0
     let l2IsContiguous = true
     for (let i = 0; i < l1entries; i++) {
@@ -116,19 +107,11 @@ export default class VMDKDirectParser {
     }
     const l1L2FreeSpace = l2Start - this.virtualBuffer.position
     if (l1L2FreeSpace > 0) {
-      await this.virtualBuffer.readChunk(
-        l1L2FreeSpace,
-        'freeSpace between L1 and L2'
-      )
+      await this.virtualBuffer.readChunk(l1L2FreeSpace, 'freeSpace between L1 and L2')
     }
-    const l2entries = Math.ceil(
-      this.header.capacitySectors / this.header.grainSizeSectors
-    )
+    const l2entries = Math.ceil(this.header.capacitySectors / this.header.grainSizeSectors)
     const l2ByteSize = alignSectors(l1entries * this.header.numGTEsPerGT * 4)
-    const l2Buffer = await this.virtualBuffer.readChunk(
-      l2ByteSize,
-      'L2 table ' + position
-    )
+    const l2Buffer = await this.virtualBuffer.readChunk(l2ByteSize, 'L2 table ' + position)
     let firstGrain = null
     for (let i = 0; i < l2entries; i++) {
       const l2Entry = l2Buffer.readUInt32LE(i * 4)
@@ -143,42 +126,28 @@ export default class VMDKDirectParser {
   }
 
   async readHeader() {
-    const headerBuffer = await this.virtualBuffer.readChunk(
-      HEADER_SIZE,
-      'readHeader'
-    )
+    const headerBuffer = await this.virtualBuffer.readChunk(HEADER_SIZE, 'readHeader')
     const magicString = headerBuffer.slice(0, 4).toString('ascii')
     if (magicString !== 'KDMV') {
       throw new Error('not a VMDK file')
     }
     const version = headerBuffer.readUInt32LE(VERSION_OFFSET)
     if (version !== 1 && version !== 3) {
-      throw new Error(
-        'unsupported VMDK version ' +
-          version +
-          ', only version 1 and 3 are supported'
-      )
+      throw new Error('unsupported VMDK version ' + version + ', only version 1 and 3 are supported')
     }
     this.header = parseHeader(headerBuffer)
     // I think the multiplications are OK, because the descriptor is always at the beginning of the file
     const descriptorLength = this.header.descriptorSizeSectors * SECTOR_SIZE
-    const descriptorBuffer = await this.virtualBuffer.readChunk(
-      descriptorLength,
-      'descriptor'
-    )
+    const descriptorBuffer = await this.virtualBuffer.readChunk(descriptorLength, 'descriptor')
     this.descriptor = parseDescriptor(descriptorBuffer)
     let l1PositionBytes = null
-    if (
-      this.header.grainDirectoryOffsetSectors !== -1 &&
-      this.header.grainDirectoryOffsetSectors !== 0
-    ) {
+    if (this.header.grainDirectoryOffsetSectors !== -1 && this.header.grainDirectoryOffsetSectors !== 0) {
       l1PositionBytes = this.header.grainDirectoryOffsetSectors * SECTOR_SIZE
     }
     const endOfDescriptor = this.virtualBuffer.position
     if (
       l1PositionBytes !== null &&
-      (l1PositionBytes === endOfDescriptor ||
-        l1PositionBytes === endOfDescriptor + SECTOR_SIZE)
+      (l1PositionBytes === endOfDescriptor || l1PositionBytes === endOfDescriptor + SECTOR_SIZE)
     ) {
       if (l1PositionBytes === endOfDescriptor + SECTOR_SIZE) {
         await this.virtualBuffer.readChunk(SECTOR_SIZE, 'skipping L1 marker')
@@ -190,10 +159,7 @@ export default class VMDKDirectParser {
 
   async parseMarkedGrain(expectedLogicalAddress) {
     const position = this.virtualBuffer.position
-    const sector = await this.virtualBuffer.readChunk(
-      SECTOR_SIZE,
-      'marker start ' + position
-    )
+    const sector = await this.virtualBuffer.readChunk(SECTOR_SIZE, `marker starting at ${position}`)
     const marker = parseMarker(sector)
     if (marker.size === 0) {
       throw new Error(`expected grain marker, received ${marker}`)
@@ -203,14 +169,13 @@ export default class VMDKDirectParser {
       const remainOfBufferSize = alignedGrainDiskSize - SECTOR_SIZE
       const remainderOfGrainBuffer = await this.virtualBuffer.readChunk(
         remainOfBufferSize,
-        'grain remainder ' + this.virtualBuffer.position
+        `grain remainder ${this.virtualBuffer.position} -> ${this.virtualBuffer.position + remainOfBufferSize}`
       )
       const grainBuffer = Buffer.concat([sector, remainderOfGrainBuffer])
       const grainObject = readGrain(
         0,
         grainBuffer,
-        this.header.compressionMethod === compressionDeflate &&
-          this.header.flags.compressedGrains
+        this.header.compressionMethod === compressionDeflate && this.header.flags.compressedGrains
       )
       assert.strictEqual(grainObject.lba * SECTOR_SIZE, expectedLogicalAddress)
       return grainObject.grain
@@ -218,28 +183,17 @@ export default class VMDKDirectParser {
   }
 
   async *blockIterator() {
-    for (
-      let tableIndex = 0;
-      tableIndex < this.grainFileOffsetList.length;
-      tableIndex++
-    ) {
+    for (let tableIndex = 0; tableIndex < this.grainFileOffsetList.length; tableIndex++) {
       const position = this.virtualBuffer.position
-      const grainPosition = this.grainFileOffsetList[tableIndex]
-      const grainSizeBytes = this.header.grainSizeSectors * 512
-      const lba = this.grainLogicalAddressList[tableIndex]
-      // console.log('VMDK before blank', position, grainPosition,'lba', lba, 'tableIndex', tableIndex, 'grainFileOffsetList.length', this.grainFileOffsetList.length)
-      await this.virtualBuffer.readChunk(
-        grainPosition - position,
-        'blank before ' + position
-      )
+      const grainPosition = this.grainFileOffsetList[tableIndex] * SECTOR_SIZE
+      const grainSizeBytes = this.header.grainSizeSectors * SECTOR_SIZE
+      const lba = this.grainLogicalAddressList[tableIndex] * grainSizeBytes
+      await this.virtualBuffer.readChunk(grainPosition - position, `blank from ${position} to ${grainPosition}`)
       let grain
       if (this.header.flags.hasMarkers) {
         grain = await this.parseMarkedGrain(lba)
       } else {
-        grain = await this.virtualBuffer.readChunk(
-          grainSizeBytes,
-          'grain ' + this.virtualBuffer.position
-        )
+        grain = await this.virtualBuffer.readChunk(grainSizeBytes, 'grain ' + this.virtualBuffer.position)
       }
       yield { logicalAddressBytes: lba, data: grain }
     }

@@ -115,9 +115,7 @@ async function handleVm(vmDir) {
         const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
         vhdParents[path] = parent
         if (parent in vhdChildren) {
-          const error = new Error(
-            'this script does not support multiple VHD children'
-          )
+          const error = new Error('this script does not support multiple VHD children')
           error.parent = parent
           error.child1 = vhdChildren[parent]
           error.child2 = path
@@ -224,11 +222,7 @@ async function handleVm(vmDir) {
       } else {
         console.warn('Error while checking backup', json)
         const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
-        console.warn(
-          '  %i/%i missing VHDs',
-          missingVhds.length,
-          linkedVhds.length
-        )
+        console.warn('  %i/%i missing VHDs', missingVhds.length, linkedVhds.length)
         missingVhds.forEach(vhd => {
           console.warn('  ', vhd)
         })

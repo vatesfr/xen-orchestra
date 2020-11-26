@@ -36,10 +36,7 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(
-    xo,
-    { guessVhdSizeOnImport, xapiMarkDisconnectedDelay, xapiOptions }
-  ) {
+  constructor(xo, { guessVhdSizeOnImport, xapiMarkDisconnectedDelay, xapiOptions }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -92,14 +89,7 @@ export default class {
     // TODO: disconnect servers on stop.
   }
 
-  async registerXenServer({
-    allowUnauthorized = false,
-    host,
-    label,
-    password,
-    readOnly = false,
-    username,
-  }) {
+  async registerXenServer({ allowUnauthorized = false, host, label, password, readOnly = false, username }) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
@@ -124,35 +114,14 @@ export default class {
     }
   }
 
-  async updateXenServer(
-    id,
-    {
-      allowUnauthorized,
-      enabled,
-      error,
-      host,
-      label,
-      password,
-      readOnly,
-      username,
-    }
-  ) {
+  async updateXenServer(id, { allowUnauthorized, enabled, error, host, label, password, readOnly, username }) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
-      allowUnauthorized !== undefined ||
-      host !== undefined ||
-      password !== undefined ||
-      username !== undefined
+      allowUnauthorized !== undefined || host !== undefined || password !== undefined || username !== undefined
 
-    if (
-      requireDisconnected &&
-      xapi !== undefined &&
-      xapi.status !== 'disconnected'
-    ) {
-      throw new Error(
-        'this entry require disconnecting the server to update it'
-      )
+    if (requireDisconnected && xapi !== undefined && xapi.status !== 'disconnected') {
+      throw new Error('this entry require disconnecting the server to update it')
     }
 
     if (label !== undefined) server.set('label', label || undefined)
@@ -213,28 +182,15 @@ export default class {
     return serverId
   }
 
-  _onXenAdd(
-    newXapiObjects,
-    xapiIdsToXo,
-    toRetry,
-    conId,
-    dependents,
-    xapiObjects
-  ) {
+  _onXenAdd(newXapiObjects, xapiIdsToXo, toRetry, conId, dependents, xapiObjects) {
     const conflicts = this._objectConflicts
     const objects = this._xo._objects
 
     const serverIdsByPool = this._serverIdsByPool
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
       // handle pool UUID change
-      if (
-        xapiObject.$type === 'pool' &&
-        serverIdsByPool[xapiObject.$id] === undefined
-      ) {
-        const obsoletePoolId = findKey(
-          serverIdsByPool,
-          serverId => serverId === conId
-        )
+      if (xapiObject.$type === 'pool' && serverIdsByPool[xapiObject.$id] === undefined) {
+        const obsoletePoolId = findKey(serverIdsByPool, serverId => serverId === conId)
         delete serverIdsByPool[obsoletePoolId]
         serverIdsByPool[xapiObject.$id] = conId
       }
@@ -258,8 +214,7 @@ export default class {
 
         const previous = objects.get(xoId, undefined)
         if (previous && previous._xapiRef !== $ref) {
-          const conflicts_ =
-            conflicts[xoId] || (conflicts[xoId] = { __proto__: null })
+          const conflicts_ = conflicts[xoId] || (conflicts[xoId] = { __proto__: null })
           conflicts_[conId] = xoObject
         } else {
           objects.set(xoId, xoObject)
@@ -337,11 +292,7 @@ export default class {
       const serverIdsByPool = this._serverIdsByPool
       const poolId = xapi.pool.$id
       if (serverIdsByPool[poolId] !== undefined) {
-        throw new PoolAlreadyConnected(
-          poolId,
-          serverIdsByPool[poolId],
-          server.id
-        )
+        throw new PoolAlreadyConnected(poolId, serverIdsByPool[poolId], server.id)
       }
 
       serverIdsByPool[poolId] = server.id
@@ -363,14 +314,7 @@ export default class {
         const dependents = { __proto__: null }
 
         const onAddOrUpdate = objects => {
-          this._onXenAdd(
-            objects,
-            xapiIdsToXo,
-            toRetryNext,
-            conId,
-            dependents,
-            xapi.objects.all
-          )
+          this._onXenAdd(objects, xapiIdsToXo, toRetryNext, conId, dependents, xapi.objects.all)
         }
         const onRemove = objects => {
           this._onXenRemove(objects, xapiIdsToXo, toRetry, conId, dependents)
@@ -418,8 +362,7 @@ export default class {
 
           addObject,
           getData: (id, key) => {
-            const value = (typeof id === 'string' ? xapi.getObject(id) : id)
-              .other_config[`xo:${camelToSnakeCase(key)}`]
+            const value = (typeof id === 'string' ? xapi.getObject(id) : id).other_config[`xo:${camelToSnakeCase(key)}`]
             return value && JSON.parse(value)
           },
           setData: async (id, key, value) => {
@@ -427,9 +370,7 @@ export default class {
             value = value !== null ? JSON.stringify(value) : value
 
             const object = await xapi.getObject(id)
-            if (
-              object.other_config[key] === (value === null ? undefined : value)
-            ) {
+            if (object.other_config[key] === (value === null ? undefined : value)) {
               return
             }
 
@@ -484,10 +425,7 @@ export default class {
 
   // returns the XAPI object corresponding to an XO object/ID
   getXapiObject(xoObjectOrId, type) {
-    const xoObject =
-      typeof xoObjectOrId === 'string'
-        ? this._xo.getObject(xoObjectOrId, type)
-        : xoObjectOrId
+    const xoObject = typeof xoObjectOrId === 'string' ? this._xo.getObject(xoObjectOrId, type) : xoObjectOrId
     return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
   }
 
@@ -504,8 +442,7 @@ export default class {
     const servers = await this._servers.get()
     const xapis = this._xapis
     forEach(servers, server => {
-      const lastEventFetchedTimestamp =
-        xapis[server.id]?.lastEventFetchedTimestamp
+      const lastEventFetchedTimestamp = xapis[server.id]?.lastEventFetchedTimestamp
       if (
         lastEventFetchedTimestamp !== undefined &&
         Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
@@ -555,9 +492,7 @@ export default class {
       throw e
     }
 
-    this.unregisterXenServer(
-      this._serverIdsByPool[sourcePoolId]
-    )::ignoreErrors()
+    this.unregisterXenServer(this._serverIdsByPool[sourcePoolId])::ignoreErrors()
   }
 
   async detachHostFromPool(hostId) {
@@ -583,10 +518,7 @@ export default class {
             await this.connectXenServer(id)
             break
           } catch (error) {
-            if (
-              !(error instanceof PoolAlreadyConnected) &&
-              error.code !== 'EHOSTUNREACH'
-            ) {
+            if (!(error instanceof PoolAlreadyConnected) && error.code !== 'EHOSTUNREACH') {
               throw error
             }
           }
