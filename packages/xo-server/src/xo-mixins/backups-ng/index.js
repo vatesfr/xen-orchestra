@@ -1304,6 +1304,7 @@ export default class BackupNg {
                 await deleteOldBackups()
               }
 
+              const { dirMode } = this._backupOptions
               await wrapTask(
                 {
                   logger,
@@ -1311,14 +1312,18 @@ export default class BackupNg {
                   parentId: taskId,
                   result: () => ({ size: xva.size }),
                 },
-                handler.outputStream(fork, dataFilename)
+                handler.outputStream(fork, dataFilename, {
+                  dirMode,
+                })
               )
 
               if (handler._getFilePath !== undefined) {
                 await isValidXva(handler._getFilePath('/' + dataFilename))
               }
 
-              await handler.outputFile(metadataFilename, jsonMetadata)
+              await handler.outputFile(metadataFilename, jsonMetadata, {
+                dirMode,
+              })
 
               if (!deleteFirst) {
                 await deleteOldBackups()
@@ -1612,6 +1617,8 @@ export default class BackupNg {
                 await deleteOldBackups()
               }
 
+              const { dirMode } = this._backupOptions
+
               await wrapTask(
                 {
                   logger,
@@ -1647,6 +1654,7 @@ export default class BackupNg {
                       // no checksum for VHDs, because they will be invalidated by
                       // merges and chainings
                       checksum: false,
+                      dirMode,
                     })
                     $defer.onFailure.call(handler, 'unlink', path)
 
@@ -1665,7 +1673,9 @@ export default class BackupNg {
                   })
                 ).then(sum)
               )
-              await handler.outputFile(metadataFilename, jsonMetadata)
+              await handler.outputFile(metadataFilename, jsonMetadata, {
+                dirMode,
+              })
 
               if (!deleteFirst) {
                 await deleteOldBackups()
