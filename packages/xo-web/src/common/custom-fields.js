@@ -101,12 +101,11 @@ const CustomFields = decorate([
   injectState,
   ({ effects, state: { customFields = [] } }) => {
     return (
-      <Container>
+      <div>
         {customFields.map(([key, value]) => {
             const name = key.substring(CUSTOM_FIELDS_KEY_PREFIX.length)
             return (
-              <Row key={key}>
-                <Col>
+                <div key={key}>
                   {name}:{' '}
                   <Text
                     data-name={name}
@@ -122,12 +121,11 @@ const CustomFields = decorate([
                       <Icon icon='remove' />
                     </a>
                   </Tooltip>
-                </Col>
-              </Row>
+                </div>
             )
         })}
-        <Row>
-          <Col>
+
+          <div>
             <ActionButton
               btnStyle='primary'
               handler={effects.addCustomField}
@@ -135,9 +133,8 @@ const CustomFields = decorate([
               size='small'
               tooltip={_('addCustomField')}
             />
-          </Col>
-        </Row>
-      </Container>
+          </div>
+        </div>
     )
   },
 ])
