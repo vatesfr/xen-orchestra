@@ -9,7 +9,6 @@ import Link, { BlockLink } from 'link'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ResourceSetQuotas from 'resource-set-quotas'
-import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -494,26 +493,24 @@ export default class Overview extends Component {
     }
 
     return (
-      <Upgrade place='dashboard' required={3}>
-        <Container>
-          {showResourceSets ? (
-            map(props.resourceSets, resourceSet => (
-              <Row key={resourceSet.id}>
-                <Card>
-                  <CardHeader>
-                    <Icon icon='menu-self-service' /> {resourceSet.name}
-                  </CardHeader>
-                  <CardBlock>
-                    <ResourceSetQuotas limits={resourceSet.limits} />
-                  </CardBlock>
-                </Card>
-              </Row>
-            ))
-          ) : (
-            <DefaultCard isAdmin={props.isAdmin} />
-          )}
-        </Container>
-      </Upgrade>
+      <Container>
+        {showResourceSets ? (
+          map(props.resourceSets, resourceSet => (
+            <Row key={resourceSet.id}>
+              <Card>
+                <CardHeader>
+                  <Icon icon='menu-self-service' /> {resourceSet.name}
+                </CardHeader>
+                <CardBlock>
+                  <ResourceSetQuotas limits={resourceSet.limits} />
+                </CardBlock>
+              </Card>
+            </Row>
+          ))
+        ) : (
+          <DefaultCard isAdmin={props.isAdmin} />
+        )}
+      </Container>
     )
   }
 }
