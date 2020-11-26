@@ -136,7 +136,7 @@ export default class Backups {
           ({ disk: diskId, remote, partition: partitionId, paths }) => {
             const { promise, reject, resolve } = pDefer()
             using(app.remotes.getAdapter(remote), adapter =>
-              using(adapter.getPartitionFiles(diskId, partitionId, paths), async files => {
+              using(adapter._usePartitionFiles(diskId, partitionId, paths), async files => {
                 const zip = new ZipFile()
                 files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
                 zip.end()

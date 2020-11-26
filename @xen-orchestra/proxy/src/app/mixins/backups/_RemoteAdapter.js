@@ -110,6 +110,18 @@ export class RemoteAdapter {
     return partition
   }
 
+  @decorateWith(disposable)
+  async *_usePartitionFiles(diskId, partitionId, paths) {
+    const path = yield this.getPartition(diskId, partitionId)
+
+    const files = []
+    await Promise.all(
+      paths.map(file => addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
+    )
+
+    return files
+  }
+
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
     let mergedDataSize = 0
@@ -199,20 +211,6 @@ export class RemoteAdapter {
     } finally {
       await fromCallback(execFile, 'umount', ['--lazy', path])
     }
-  }
-
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, (diskId, partitionId, paths) => [diskId, partitionId, ...paths])
-  @decorateWith(disposable)
-  async *getPartitionFiles(diskId, partitionId, paths) {
-    const path = yield this.getPartition(diskId, partitionId)
-
-    const files = []
-    await Promise.all(
-      paths.map(file => addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
-    )
-
-    return files
   }
 
   async listAllVmBackups() {
