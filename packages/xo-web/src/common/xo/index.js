@@ -1802,7 +1802,7 @@ export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(ob
 export const addCustomField = (id, name, value) =>
   _call('customField.add', { id, name, value })
 
-export const deleteCustomField = (id, name) =>
+export const removeCustomField = (id, name) =>
   _call('customField.remove', { id, name })
 
 export const setCustomField = (id, name, value) =>

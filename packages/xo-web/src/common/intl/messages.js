@@ -95,7 +95,7 @@ const messages = {
   privateKey: 'Private key (PKCS#8)',
   installNewCertificate: 'Install new certificate',
   replaceExistingCertificate: 'Replace existing certificate',
-  customfields: 'Custom fields',
+  customFields: 'Custom fields',
   addCustomField: 'Add custom field',
   deleteCustomField: 'Delete custom field',
 
@@ -1252,8 +1252,6 @@ const messages = {
   vmAddAcls: 'Add ACLs',
   addAclsErrorTitle: 'Failed to add ACL(s)',
   addAclsErrorMessage: 'User(s)/group(s) and role are required.',
-  addCustomFieldErrorTitle: 'Failed to add custom field',
-  addCustomFieldErrorMessage: 'Name and value are required.',
   removeAcl: 'Delete',
   moreAcls: '{nAcls, number} more…',
   vmBootFirmware: 'Boot firmware',

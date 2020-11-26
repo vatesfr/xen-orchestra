@@ -70,7 +70,7 @@ export default ({ sr }) => (
               <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
             </tr>
             <tr>
-              <th>{_('customfields')}</th>
+              <th>{_('customFields')}</th>
               <td>
                 <CustomFields object={sr.id} />
               </td>

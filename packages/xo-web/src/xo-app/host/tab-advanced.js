@@ -361,7 +361,7 @@ export default class extends Component {
                   </td>
                 </tr>
                 <tr>
-                  <th>{_('customfields')}</th>
+                  <th>{_('customFields')}</th>
                   <td>
                     <CustomFields object={host.id} />
                   </td>

@@ -86,7 +86,7 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                   <tr>
-                    <th>{_('customfields')}</th>
+                    <th>{_('customFields')}</th>
                     <td>
                       <CustomFields object={pool.id} />
                     </td>

@@ -1,10 +1,10 @@
-const KEY = 'XenCenter.CustomFields.'
+const KEY_PREFIX = 'XenCenter.CustomFields.'
 
 export async function add({ object, name, value }) {
-  await this.getXapiObject(object).update_other_config(KEY + name, value)
+  await this.getXapiObject(object).update_other_config(KEY_PREFIX + name, value)
 }
 
-add.description = 'Add a new costum field to an object'
+add.description = 'Add a new custom field to an object'
 
 add.params = {
   id: { type: 'string' },
@@ -19,7 +19,7 @@ add.resolve = {
 // -------------------------------------------------------------------
 
 export async function remove({ object, name }) {
-  await this.getXapiObject(object).update_other_config(KEY + name, null)
+  await this.getXapiObject(object).update_other_config(KEY_PREFIX + name, null)
 }
 
 remove.description = 'Remove an existing custom field from an object'
@@ -36,10 +36,10 @@ remove.resolve = {
 // -------------------------------------------------------------------
 
 export async function set({ object, name, value }) {
-  await this.getXapiObject(object).update_other_config(KEY + name, value)
+  await this.getXapiObject(object).update_other_config(KEY_PREFIX + name, value)
 }
 
-set.description = 'Set a costum field'
+set.description = 'Set a custom field'
 
 set.params = {
   id: { type: 'string' },

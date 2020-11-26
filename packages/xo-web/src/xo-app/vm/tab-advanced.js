@@ -773,7 +773,7 @@ export default class TabAdvanced extends Component {
                   </tr>
                 )}
                 <tr>
-                  <th>{_('customfields')}</th>
+                  <th>{_('customFields')}</th>
                   <td>
                     <CustomFields object={vm.id} />
                   </td>
