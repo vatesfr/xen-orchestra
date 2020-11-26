@@ -281,18 +281,10 @@ export default class XoApp extends Component {
               )}
               {isTrialRunning(trial.trial) && !this.state.dismissedTrialBanner && (
                 <div className='alert alert-info mb-0'>
-                  <a
-                    href='https://xen-orchestra.com/#!/xoa?pk_campaign=xo_source_banner'
-                    rel='noopener noreferrer'
-                    target='_blank'
-                  >
-                    {_('trialLicenseInfo', {
-                      edition: getXoaPlan(
-                        productId2Plan[trial.trial.productId]
-                      ),
-                      date: new Date(trial.trial.end),
-                    })}
-                  </a>
+                  {_('trialLicenseInfo', {
+                    edition: getXoaPlan(productId2Plan[trial.trial.productId]),
+                    date: new Date(trial.trial.end),
+                  })}
                   <button className='close' onClick={this.dismissTrialBanner}>
                     &times;
                   </button>
