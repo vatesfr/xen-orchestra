@@ -12,6 +12,7 @@
 - [SR] Use SR type `zfs` instead of `file` for ZFS storage repositories (PR [5302](https://github.com/vatesfr/xen-orchestra/pull/5330))
 - [Dashboard/Health] List VMs with missing or outdated guest tools (PR [#5376](https://github.com/vatesfr/xen-orchestra/pull/5376))
 - [VIF] Ability for admins to set any allowed IPs, including IPv6 and IPs that are not in an IP pool [#2535](https://github.com/vatesfr/xen-orchestra/issues/2535) [#1872](https://github.com/vatesfr/xen-orchestra/issues/1872) (PR [#5367](https://github.com/vatesfr/xen-orchestra/pull/5367))
+- [Proxy] Ability to restore a file from VM backup (PR [#5359](https://github.com/vatesfr/xen-orchestra/pull/5359))
 
 ### Bug fixes
 
