@@ -1,12 +1,15 @@
 import assert from 'assert'
 import defer from 'golike-defer'
+import fromEvent from 'promise-toolbox/fromEvent'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import mapValues from 'lodash/mapValues'
+import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
+import { ZipFile } from 'yazl'
 
 import { disposable } from '../../_disposable'
 
@@ -130,18 +133,20 @@ export default class Backups {
     app.api.addMethods({
       backup: {
         fetchPartitionFiles: [
-          (() => {
-            const fetchPartitionFiles = disposable(function* ({ disk: diskId, remote, partition: partitionId, paths }) {
-              const adapter = yield app.remotes.getAdapter(remote)
-              return yield adapter.getPartitionFiles(diskId, partitionId, paths)
-            })
-
-            return async props => {
-              const resource = fetchPartitionFiles(props)
-              const zip = await resource.p
-              return zip.outputStream.on('end', () => resource.d(zip))
-            }
-          })(),
+          ({ disk: diskId, remote, partition: partitionId, paths }) => {
+            const stream = pDefer()
+            using(app.remotes.getAdapter(remote), adapter =>
+              using(adapter.getPartitionFiles(diskId, partitionId, paths), async files => {
+                const zip = new ZipFile()
+                files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
+                zip.end()
+                const { outputStream } = zip
+                stream.resolve(outputStream)
+                await fromEvent(outputStream, 'end')
+              })
+            )
+            return stream.promise
+          },
           {
             description: 'fetch files from partition',
             params: {

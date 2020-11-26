@@ -9,7 +9,6 @@ import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { parseDuration } from '@vates/parse-duration'
 import { readdir, stat } from 'fs-extra'
-import { ZipFile } from 'yazl'
 
 import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
@@ -34,15 +33,18 @@ const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
 
 const RE_VHDI = /^vhdi(\d+)$/
 
-async function addDirectory(zip, realPath, metadataPath) {
+async function addDirectory(files, realPath, metadataPath) {
   try {
-    const files = await readdir(realPath)
-    await Promise.all(files.map(file => addDirectory(zip, realPath + '/' + file, metadataPath + '/' + file)))
+    const subFiles = await readdir(realPath)
+    await Promise.all(subFiles.map(file => addDirectory(files, realPath + '/' + file, metadataPath + '/' + file)))
   } catch (error) {
     if (error == null || error.code !== 'ENOTDIR') {
       throw error
     }
-    zip.addFile(realPath, metadataPath)
+    files.push({
+      realPath,
+      metadataPath,
+    })
   }
 }
 
@@ -199,17 +201,18 @@ export class RemoteAdapter {
     }
   }
 
+  @decorateResult(getDebouncedResource)
+  @decorateWith(deduped, (diskId, partitionId, paths) => [diskId, partitionId, ...paths])
   @decorateWith(disposable)
   async *getPartitionFiles(diskId, partitionId, paths) {
     const path = yield this.getPartition(diskId, partitionId)
 
-    const zip = new ZipFile()
+    const files = []
     await Promise.all(
-      paths.map(file => addDirectory(zip, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
+      paths.map(file => addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
     )
-    zip.end()
 
-    return zip
+    return files
   }
 
   async listAllVmBackups() {
