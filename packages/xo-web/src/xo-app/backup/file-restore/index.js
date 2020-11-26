@@ -88,10 +88,7 @@ export default class Restore extends Component {
   }
 
   _refreshBackupList = async (_remotes = this.props.remotes, jobs = this.props.jobs) => {
-    const remotes = keyBy(
-      filter(_remotes, ({ enabled, proxy }) => enabled && proxy === undefined),
-      'id'
-    )
+    const remotes = keyBy(filter(_remotes, 'enabled'), 'id')
     const backupsByRemote = await listVmBackups(toArray(remotes))
 
     const backupDataByVm = {}

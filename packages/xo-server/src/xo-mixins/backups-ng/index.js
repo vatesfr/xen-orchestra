@@ -591,7 +591,7 @@ export default class BackupNg {
 
           try {
             const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
-              expectStream: true,
+              assertType: 'iterator',
             })
 
             const localTaskIds = { __proto__: null }
