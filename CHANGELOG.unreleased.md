@@ -38,11 +38,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-auth-ldap patch
-- @vates/multi-key-map minor
-- @xen-orchestra/fs patch
-- vhd-lib major
-- xo-vmdk-to-vhd major
-- xo-server minor
-- xo-web minor
 - xo-web patch
