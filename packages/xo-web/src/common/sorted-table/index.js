@@ -39,9 +39,11 @@ import {
   createSelector,
   createSort,
 } from '../selectors'
-import { DEFAULT_ITEMS_PER_PAGE, ITEMS_PER_PAGE_OPTIONS } from '../xo'
+import { ITEMS_PER_PAGE_OPTIONS } from '../xo'
 
 import styles from './index.css'
+
+const DEFAULT_ITEMS_PER_PAGE = 10
 
 // ===================================================================
 
@@ -303,7 +305,7 @@ class SortedTable extends Component {
 
     const state = (this.state = {
       all: false, // whether all items are selected (accross pages)
-      itemsPerPage: +defined(cookies.get(props.location.pathname + props.stateUrlParam), DEFAULT_ITEMS_PER_PAGE),
+      itemsPerPage: +defined(cookies.get(`${props.location.pathname}-${props.stateUrlParam}`), DEFAULT_ITEMS_PER_PAGE),
     })
 
     this._getSelectedColumn = () => this.props.columns[this._getSelectedColumnId()]
