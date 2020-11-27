@@ -32,12 +32,6 @@ const IGNORED_PARTITION_TYPES = {
   0x82: true, // swap
 }
 
-const PARTITION_TYPE_NAMES = {
-  0x07: 'NTFS',
-  0x0c: 'FAT',
-  0x83: 'linux',
-}
-
 const RE_VHDI = /^vhdi(\d+)$/
 
 async function addDirectory(zip, realPath, metadataPath) {
@@ -54,8 +48,7 @@ async function addDirectory(zip, realPath, metadataPath) {
 
 const parsePartxLine = createPairsParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
-  valueTransform: (value, key) =>
-    key === 'start' || key === 'size' ? +value : key === 'type' ? PARTITION_TYPE_NAMES[+value] || value : value,
+  valueTransform: (value, key) => (key === 'start' || key === 'size' || key === 'type' ? +value : value),
 })
 
 const listLvmLogicalVolumes = compose(
@@ -172,6 +165,25 @@ export default class BackupNgFileRestore {
 
   @defer
   async fetchBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, paths) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      return app.callProxyMethod(
+        proxy,
+        'backup.fetchPartitionFiles',
+        {
+          disk: diskId,
+          remote: {
+            url,
+            options,
+          },
+          partition: partitionId,
+          paths,
+        },
+        { assertType: 'stream' }
+      )
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer.onFailure(disk.unmount)
 
@@ -190,6 +202,29 @@ export default class BackupNgFileRestore {
 
   @defer
   async listBackupNgDiskPartitions($defer, remoteId, diskId) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const stream = await app.callProxyMethod(
+        proxy,
+        'backup.listDiskPartitions',
+        {
+          disk: diskId,
+          remote: {
+            url,
+            options,
+          },
+        },
+        { assertType: 'iterator' }
+      )
+
+      const partitions = []
+      for await (const partition of stream) {
+        partitions.push(partition)
+      }
+      return partitions
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer(disk.unmount)
     return this._listPartitions(disk.path)
@@ -197,6 +232,20 @@ export default class BackupNgFileRestore {
 
   @defer
   async listBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, path) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      return app.callProxyMethod(proxy, 'backup.listPartitionFiles', {
+        disk: diskId,
+        remote: {
+          url,
+          options,
+        },
+        partition: partitionId,
+        path,
+      })
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer(disk.unmount)
 
@@ -237,8 +286,8 @@ export default class BackupNgFileRestore {
     const partitions = []
     splitLines(stdout).forEach(line => {
       const partition = parsePartxLine(line)
-      let { type } = partition
-      if (type == null || (type = +type) in IGNORED_PARTITION_TYPES) {
+      const { type } = partition
+      if (type == null || type in IGNORED_PARTITION_TYPES) {
         return
       }
 

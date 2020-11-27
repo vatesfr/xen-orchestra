@@ -1,3 +1,5 @@
+import assert from 'assert'
+import contentType from 'content-type'
 import cookie from 'cookie'
 import defer from 'golike-defer'
 import hrp from 'http-request-plus'
@@ -319,7 +321,8 @@ export default class Proxy {
     await this.callProxyMethod(id, 'system.getServerVersion')
   }
 
-  async callProxyMethod(id, method, params, { expectStream = false } = {}) {
+  // enum assertType {iterator, scalar, stream}
+  async callProxyMethod(id, method, params, { assertType = 'scalar' } = {}) {
     const proxy = await this._getProxy(id)
 
     const request = {
@@ -354,17 +357,28 @@ export default class Proxy {
       await this.updateProxy(id, { authenticationToken })
     }
 
+    const responseType = contentType.parse(response).type
+    if (responseType === 'application/octet-stream') {
+      if (assertType !== 'stream') {
+        response.destroy()
+        throw new Error(`expect the result to be ${assertType}`)
+      }
+      return response
+    }
+
+    assert.strictEqual(responseType, 'application/json')
+
     const lines = pumpify.obj(response, split2(JSON.parse))
     const firstLine = await readChunk(lines)
 
     const result = parse.result(firstLine)
-    const isStream = result.$responseType === 'ndjson'
-    if (isStream !== expectStream) {
+    const isIterator = result.$responseType === 'ndjson'
+    if (assertType !== (isIterator ? 'iterator' : 'scalar')) {
       lines.destroy()
-      throw new Error(`expect the result ${expectStream ? '' : 'not'} to be a stream`)
+      throw new Error(`expect the result to be ${assertType}`)
     }
 
-    if (isStream) {
+    if (isIterator) {
       return lines
     }
     lines.destroy()

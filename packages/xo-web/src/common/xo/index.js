@@ -37,6 +37,10 @@ import parseNdJson from './_parseNdJson'
 
 // ===================================================================
 
+export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
+
+// ===================================================================
+
 export const XEN_DEFAULT_CPU_WEIGHT = 256
 export const XEN_DEFAULT_CPU_CAP = 0
 
@@ -1796,6 +1800,17 @@ export const deleteMessages = logs =>
 export const addTag = (object, tag) => _call('tag.add', { id: resolveId(object), tag })
 
 export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(object), tag })
+
+// Custom fields ------------------------------------------------------------------------
+
+export const addCustomField = (id, name, value) =>
+  _call('customField.add', { id, name, value })
+
+export const removeCustomField = (id, name) =>
+  _call('customField.remove', { id, name })
+
+export const setCustomField = (id, name, value) =>
+  _call('customField.set', { id, name, value })
 
 // Tasks --------------------------------------------------------------
 

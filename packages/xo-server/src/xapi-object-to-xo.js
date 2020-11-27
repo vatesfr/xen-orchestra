@@ -110,6 +110,7 @@ const TRANSFORMS = {
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
       xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
+      otherConfig: obj.other_config,
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
@@ -209,6 +210,7 @@ const TRANSFORMS = {
         }
       })(),
       multipathing: otherConfig.multipathing === 'true',
+      otherConfig,
       patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
