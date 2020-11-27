@@ -8,6 +8,6 @@
     "promise-toolbox": "^0.13.0",
     "readable-stream": "^3.1.1",
     "throttle": "^1.0.3",
-    "vhd-lib": "^0.8.0"
+    "vhd-lib": "^1.0.0"
   }
 }

@@ -28,12 +28,12 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@xen-orchestra/fs": "^0.11.1",
+    "@xen-orchestra/fs": "^0.12.0",
     "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
     "struct-fu": "^1.2.0",
-    "vhd-lib": "^0.8.0"
+    "vhd-lib": "^1.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

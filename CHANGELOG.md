@@ -1,5 +1,38 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [LDAP] Prevent LDAP-provided groups from being edited from XO [#1884](https://github.com/vatesfr/xen-orchestra/issues/1884) (PR [#5351](https://github.com/vatesfr/xen-orchestra/pull/5351))
+- [Licensing] Allow Free and Starter users to copy VMs and create a VM from snapshot on the same pool [#4890](https://github.com/vatesfr/xen-orchestra/issues/4890) (PR [5333](https://github.com/vatesfr/xen-orchestra/pull/5333))
+- [SR] Use SR type `zfs` instead of `file` for ZFS storage repositories (PR [5302](https://github.com/vatesfr/xen-orchestra/pull/5330))
+- [Dashboard/Health] List VMs with missing or outdated guest tools (PR [#5376](https://github.com/vatesfr/xen-orchestra/pull/5376))
+- [VIF] Ability for admins to set any allowed IPs, including IPv6 and IPs that are not in an IP pool [#2535](https://github.com/vatesfr/xen-orchestra/issues/2535) [#1872](https://github.com/vatesfr/xen-orchestra/issues/1872) (PR [#5367](https://github.com/vatesfr/xen-orchestra/pull/5367))
+- [Proxy] Ability to restore a file from VM backup (PR [#5359](https://github.com/vatesfr/xen-orchestra/pull/5359))
+- [Web Hooks] `backupNg.runJob` is now triggered by scheduled runs [#5205](https://github.com/vatesfr/xen-orchestra/issues/5205) (PR [#5360](https://github.com/vatesfr/xen-orchestra/pull/5360))
+- [Licensing] Add trial end information banner (PR [#5374](https://github.com/vatesfr/xen-orchestra/pull/5374))
+- Assign custom fields on pools, hosts, SRs, and VMs in advanced tab [#4730](https://github.com/vatesfr/xen-orchestra/issues/4730) (PR [#5387](https://github.com/vatesfr/xen-orchestra/pull/5387))
+- Ability to change the number of items displayed per table or page (PR [#5355](https://github.com/vatesfr/xen-orchestra/pull/5355))
+
+### Bug fixes
+
+- [Remotes/NFS] Only mount with `vers=3` when no other options [#4940](https://github.com/vatesfr/xen-orchestra/issues/4940) (PR [#5354](https://github.com/vatesfr/xen-orchestra/pull/5354))
+- [VM/network] Don't change VIF's locking mode automatically (PR [#5357](https://github.com/vatesfr/xen-orchestra/pull/5357))
+- [Import OVA] Fix 'Max payload size exceeded' error when importing huge OVAs (PR [#5372](https://github.com/vatesfr/xen-orchestra/pull/5372))
+- [Backup] Make backup directories only accessible by root users (PR [#5378](https://github.com/vatesfr/xen-orchestra/pull/5378))
+
+### Released packages
+
+- xo-server-auth-ldap 0.10.1
+- @vates/multi-key-map 0.1.0
+- @xen-orchestra/fs 0.12.0
+- vhd-lib 1.0.0
+- xo-vmdk-to-vhd 2.0.0
+- xo-server-web-hooks 0.2.0
+- xo-server 5.71.0
+- xo-web 5.75.0
+
 ## **5.52.0** (2020-10-30)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
