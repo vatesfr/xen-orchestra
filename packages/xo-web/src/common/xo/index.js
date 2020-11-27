@@ -1801,6 +1801,17 @@ export const addTag = (object, tag) => _call('tag.add', { id: resolveId(object),
 
 export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(object), tag })
 
+// Custom fields ------------------------------------------------------------------------
+
+export const addCustomField = (id, name, value) =>
+  _call('customField.add', { id, name, value })
+
+export const removeCustomField = (id, name) =>
+  _call('customField.remove', { id, name })
+
+export const setCustomField = (id, name, value) =>
+  _call('customField.set', { id, name, value })
+
 // Tasks --------------------------------------------------------------
 
 export const cancelTask = task => _call('task.cancel', { id: resolveId(task) })
