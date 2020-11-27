@@ -9,7 +9,6 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
 import { Sr } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
@@ -564,7 +563,7 @@ export default class Health extends Component {
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
-    return process.env.XOA_PLAN > 3 ? (
+    return (
       <Container>
         <Row className='mb-1'>
           <SelectPool multi onChange={this.linkState('pools')} value={state.pools} />
@@ -723,10 +722,6 @@ export default class Health extends Component {
             </Card>
           </Col>
         </Row>
-      </Container>
-    ) : (
-      <Container>
-        <Upgrade place='health' available={4} />
       </Container>
     )
   }
