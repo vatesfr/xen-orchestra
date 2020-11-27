@@ -3,10 +3,7 @@ import React, { Component } from 'react'
 import RFB from '@nraynaud/novnc/lib/rfb'
 import URL from 'url-parse'
 import { createBackoff } from 'jsonrpc-websocket-client'
-import {
-  enable as enableShortcuts,
-  disable as disableShortcuts,
-} from 'shortcuts'
+import { enable as enableShortcuts, disable as disableShortcuts } from 'shortcuts'
 
 const PROTOCOL_ALIASES = {
   'http:': 'ws:',
@@ -44,10 +41,7 @@ export default class NoVnc extends Component {
       }
 
       clearTimeout(this._retryTimeout)
-      this._retryTimeout = setTimeout(
-        this._connect,
-        this._retryGen.next().value
-      )
+      this._retryTimeout = setTimeout(this._connect, this._retryGen.next().value)
     }
   }
 

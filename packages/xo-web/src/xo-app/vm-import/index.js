@@ -12,12 +12,7 @@ import React from 'react'
 import { Container, Col, Row } from 'grid'
 import { importVms, isSrWritable } from 'xo'
 import { SizeInput } from 'form'
-import {
-  createFinder,
-  createGetObject,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
+import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { connectStore, formatSize, mapPlus, noop } from 'utils'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
@@ -37,13 +32,8 @@ const FORMAT_TO_HANDLER = {
 @connectStore(
   () => {
     const getHostMaster = createGetObject((_, props) => props.pool.master)
-    const getPifs = createGetObjectsOfType('PIF').pick(
-      (state, props) => getHostMaster(state, props).$PIFs
-    )
-    const getDefaultNetworkId = createSelector(
-      createFinder(getPifs, [pif => pif.management]),
-      pif => pif.$network
-    )
+    const getPifs = createGetObjectsOfType('PIF').pick((state, props) => getHostMaster(state, props).$PIFs)
+    const getDefaultNetworkId = createSelector(createFinder(getPifs, [pif => pif.management]), pif => pif.$network)
 
     return {
       defaultNetwork: getDefaultNetworkId,
@@ -74,17 +64,14 @@ class VmData extends Component {
     const { props, refs } = this
     return {
       descriptionLabel: refs.descriptionLabel.value,
-      disks: map(
-        props.disks,
-        ({ capacity, path, compression, position }, diskId) => ({
-          capacity,
-          descriptionLabel: refs[`disk-description-${diskId}`].value,
-          nameLabel: refs[`disk-name-${diskId}`].value,
-          path,
-          position,
-          compression,
-        })
-      ),
+      disks: map(props.disks, ({ capacity, path, compression, position }, diskId) => ({
+        capacity,
+        descriptionLabel: refs[`disk-description-${diskId}`].value,
+        nameLabel: refs[`disk-name-${diskId}`].value,
+        path,
+        position,
+        compression,
+      })),
       memory: +refs.memory.value,
       nameLabel: refs.nameLabel.value,
       networks: map(props.networks, (_, networkId) => {
@@ -102,15 +89,7 @@ class VmData extends Component {
   )
 
   render() {
-    const {
-      descriptionLabel,
-      defaultNetwork,
-      disks,
-      memory,
-      nameLabel,
-      nCpus,
-      networks,
-    } = this.props
+    const { descriptionLabel, defaultNetwork, disks, memory, nameLabel, nCpus, networks } = this.props
 
     return (
       <div>
@@ -118,34 +97,17 @@ class VmData extends Component {
           <Col mediumSize={6}>
             <div className='form-group'>
               <label>{_('vmNameLabel')}</label>
-              <input
-                className='form-control'
-                ref='nameLabel'
-                defaultValue={nameLabel}
-                type='text'
-                required
-              />
+              <input className='form-control' ref='nameLabel' defaultValue={nameLabel} type='text' required />
             </div>
             <div className='form-group'>
               <label>{_('vmNameDescription')}</label>
-              <input
-                className='form-control'
-                ref='descriptionLabel'
-                defaultValue={descriptionLabel}
-                type='text'
-              />
+              <input className='form-control' ref='descriptionLabel' defaultValue={descriptionLabel} type='text' />
             </div>
           </Col>
           <Col mediumSize={6}>
             <div className='form-group'>
               <label>{_('nCpus')}</label>
-              <input
-                className='form-control'
-                ref='nCpus'
-                defaultValue={nCpus}
-                type='number'
-                required
-              />
+              <input className='form-control' ref='nCpus' defaultValue={nCpus} type='number' required />
             </div>
             <div className='form-group'>
               <label>{_('vmMemory')}</label>
@@ -268,11 +230,7 @@ export default class Import extends Component {
         let func
         let type
 
-        if (
-          extIndex >= 0 &&
-          (type = name.slice(extIndex + 1)) &&
-          (func = FORMAT_TO_HANDLER[type])
-        ) {
+        if (extIndex >= 0 && (type = name.slice(extIndex + 1)) && (func = FORMAT_TO_HANDLER[type])) {
           push(parseFile(file, type, func))
         }
       })
@@ -320,11 +278,7 @@ export default class Import extends Component {
           <FormGrid.Row>
             <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
             <FormGrid.InputCol>
-              <SelectPool
-                value={pool}
-                onChange={this._handleSelectedPool}
-                required
-              />
+              <SelectPool value={pool} onChange={this._handleSelectedPool} required />
             </FormGrid.InputCol>
           </FormGrid.Row>
           <FormGrid.Row>
@@ -341,10 +295,7 @@ export default class Import extends Component {
           </FormGrid.Row>
           {sr && (
             <div>
-              <Dropzone
-                onDrop={this._handleDrop}
-                message={_('importVmsList')}
-              />
+              <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
               <hr />
               <h5>{_('vmsToImport')}</h5>
               {vms.length > 0 ? (
@@ -360,14 +311,9 @@ export default class Import extends Component {
                           <div>
                             <hr />
                             <div className='alert alert-info' role='alert'>
-                              <strong>{_('vmImportFileType', { type })}</strong>{' '}
-                              {_('vmImportConfigAlert')}
+                              <strong>{_('vmImportFileType', { type })}</strong> {_('vmImportConfigAlert')}
                             </div>
-                            <VmData
-                              {...data}
-                              ref={`vm-data-${vmIndex}`}
-                              pool={pool}
-                            />
+                            <VmData {...data} ref={`vm-data-${vmIndex}`} pool={pool} />
                           </div>
                         )
                       ) : (
@@ -375,8 +321,7 @@ export default class Import extends Component {
                           <hr />
                           <div className='alert alert-danger' role='alert'>
                             <strong>{_('vmImportError')}</strong>{' '}
-                            {(error && error.message) ||
-                              _('noVmImportErrorDescription')}
+                            {(error && error.message) || _('noVmImportErrorDescription')}
                           </div>
                         </div>
                       )}
@@ -400,9 +345,7 @@ export default class Import extends Component {
                 >
                   {_('newImport')}
                 </ActionButton>
-                <Button onClick={this._handleCleanSelectedVms}>
-                  {_('importVmsCleanList')}
-                </Button>
+                <Button onClick={this._handleCleanSelectedVms}>{_('importVmsCleanList')}</Button>
               </div>
             </div>
           )}

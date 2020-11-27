@@ -20,19 +20,11 @@ export default {
 
   pack: object => {
     const version = object.header.version
-    return get(
-      OPENFLOW,
-      version,
-      `Unsupported OpenFlow version: ${version}`
-    ).pack(object)
+    return get(OPENFLOW, version, `Unsupported OpenFlow version: ${version}`).pack(object)
   },
 
   unpack: (buffer, offset = 0) => {
     const version = buffer.readUInt8(offset + scheme.offsets.version)
-    return get(
-      OPENFLOW,
-      version,
-      `Unsupported OpenFlow version: ${version}`
-    ).unpack(buffer, offset)
+    return get(OPENFLOW, version, `Unsupported OpenFlow version: ${version}`).unpack(buffer, offset)
   },
 }

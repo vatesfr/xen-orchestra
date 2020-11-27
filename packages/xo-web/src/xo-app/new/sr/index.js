@@ -19,12 +19,7 @@ import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 import { SelectHost } from 'select-objects'
-import {
-  createFilter,
-  createGetObjectsOfType,
-  createSelector,
-  getObject,
-} from 'selectors'
+import { createFilter, createGetObjectsOfType, createSelector, getObject } from 'selectors'
 import {
   createSrExt,
   createSrIso,
@@ -78,10 +73,7 @@ class SelectScsiId extends Component {
 
   componentDidUpdate() {
     let options
-    if (
-      this.state.value === null &&
-      (options = this._getOptions()).length === 1
-    ) {
+    if (this.state.value === null && (options = this._getOptions()).length === 1) {
       this._handleChange(options[0])
     }
   }
@@ -90,12 +82,7 @@ class SelectScsiId extends Component {
 
   render() {
     return (
-      <Select
-        clearable={false}
-        onChange={this._handleChange}
-        options={this._getOptions()}
-        value={this.state.value}
-      />
+      <Select clearable={false} onChange={this._handleChange} options={this._getOptions()} value={this.state.value} />
     )
   }
 }
@@ -122,10 +109,7 @@ class SelectIqn extends Component {
 
   componentDidUpdate() {
     let options
-    if (
-      this.state.value === null &&
-      (options = this._getOptions()).length === 1
-    ) {
+    if (this.state.value === null && (options = this._getOptions()).length === 1) {
       this._handleChange(options[0])
     }
   }
@@ -134,12 +118,7 @@ class SelectIqn extends Component {
 
   render() {
     return (
-      <Select
-        clearable={false}
-        onChange={this._handleChange}
-        options={this._getOptions()}
-        value={this.state.value}
-      />
+      <Select clearable={false} onChange={this._handleChange} options={this._getOptions()} value={this.state.value} />
     )
   }
 }
@@ -157,9 +136,7 @@ class SelectLun extends Component {
     (options, formatMessage) =>
       map(options, (lun, index) => ({
         label: `LUN ${lun.id}: ${lun.serial} - ${
-          lun.size !== undefined
-            ? formatSize(+lun.size)
-            : formatMessage(messages.unknownSize)
+          lun.size !== undefined ? formatSize(+lun.size) : formatMessage(messages.unknownSize)
         } - (${lun.vendor})`,
         value: index,
       }))
@@ -176,10 +153,7 @@ class SelectLun extends Component {
 
   componentDidUpdate() {
     let options
-    if (
-      this.state.value === null &&
-      (options = this._getOptions()).length === 1
-    ) {
+    if (this.state.value === null && (options = this._getOptions()).length === 1) {
       this._handleChange(options[0])
     }
   }
@@ -188,12 +162,7 @@ class SelectLun extends Component {
 
   render() {
     return (
-      <Select
-        clearable={false}
-        onChange={this._handleChange}
-        options={this._getOptions()}
-        value={this.state.value}
-      />
+      <Select clearable={false} onChange={this._handleChange} options={this._getOptions()} value={this.state.value} />
     )
   }
 }
@@ -269,27 +238,8 @@ export default class New extends Component {
   }
 
   _handleSubmit = async () => {
-    const {
-      description,
-      device,
-      localPath,
-      name,
-      password,
-      port,
-      server,
-      username,
-      zfsLocation,
-    } = this.refs
-    const {
-      host,
-      iqn,
-      lun,
-      nfsOptions,
-      nfsVersion,
-      path,
-      scsiId,
-      type,
-    } = this.state
+    const { description, device, localPath, name, password, port, server, username, zfsLocation } = this.refs
+    const { host, iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
 
     const createMethodFactories = {
       nfs: () =>
@@ -348,20 +298,10 @@ export default class New extends Component {
           password && password.value
         )
       },
-      lvm: () =>
-        createSrLvm(host.id, name.value, description.value, device.value),
-      ext: () =>
-        createSrExt(host.id, name.value, description.value, device.value),
-      zfs: () =>
-        createSrZfs(host.id, name.value, description.value, zfsLocation.value),
-      local: () =>
-        createSrIso(
-          host.id,
-          name.value,
-          description.value,
-          localPath.value,
-          'local'
-        ),
+      lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
+      ext: () => createSrExt(host.id, name.value, description.value, device.value),
+      zfs: () => createSrZfs(host.id, name.value, description.value, zfsLocation.value),
+      local: () => createSrIso(host.id, name.value, description.value, localPath.value, 'local'),
       nfsiso: () =>
         createSrIso(
           host.id,
@@ -396,8 +336,7 @@ export default class New extends Component {
     await this._probe(host, this.state.type)
   }
   _handleNameChange = event => this.setState({ name: event.target.value })
-  _handleDescriptionChange = event =>
-    this.setState({ description: event.target.value })
+  _handleDescriptionChange = event => this.setState({ description: event.target.value })
 
   _handleSrTypeSelection = async event => {
     const type = event.target.value
@@ -631,11 +570,7 @@ export default class New extends Component {
             <Section icon='sr' title='newSrGeneral'>
               <fieldset className='form-group'>
                 <label>{_('newSrHost')}</label>
-                <SelectHost
-                  value={host}
-                  options={hosts}
-                  onChange={this._handleSrHostSelection}
-                />
+                <SelectHost value={host} options={hosts} onChange={this._handleSrHostSelection} />
                 <label htmlFor='srName'>{_('newSrName')}</label>
                 <input
                   id='srName'
@@ -664,9 +599,7 @@ export default class New extends Component {
                   onChange={this._handleSrTypeSelection}
                   required
                 >
-                  <option value={null}>
-                    {formatMessage(messages.noSelectedValue)}
-                  </option>
+                  <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
                   {map(typeGroups, (types, group) => (
                     <optgroup key={group} label={SR_GROUP_TO_LABEL[group]}>
                       {map(types, type => (
@@ -689,18 +622,13 @@ export default class New extends Component {
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder={formatMessage(
-                            messages.newSrNfsAddressPlaceHolder
-                          )}
+                          placeholder={formatMessage(messages.newSrNfsAddressPlaceHolder)}
                           ref='server'
                           required
                           type='text'
                         />
                         <span className='input-group-btn'>
-                          <ActionButton
-                            icon='search'
-                            handler={this._handleSearchServer}
-                          />
+                          <ActionButton icon='search' handler={this._handleSearchServer} />
                         </span>
                       </div>
                     </fieldset>,
@@ -712,9 +640,7 @@ export default class New extends Component {
                         onChange={this._handleNfsVersion}
                         value={nfsVersion}
                       >
-                        <option value=''>
-                          {formatMessage(messages.newSrNfsDefaultVersion)}
-                        </option>
+                        <option value=''>{formatMessage(messages.newSrNfsDefaultVersion)}</option>
                         {map(NFS_VERSIONS, option => (
                           <option key={option} value={option}>
                             {option}
@@ -737,10 +663,7 @@ export default class New extends Component {
                       <label>{_('newSrLun')}</label>
                       <div>
                         {!isEmpty(hbaDevices) ? (
-                          <SelectScsiId
-                            options={hbaDevices}
-                            onChange={this._handleSrHbaSelection}
-                          />
+                          <SelectScsiId options={hbaDevices} onChange={this._handleSrHbaSelection} />
                         ) : (
                           <em>{_('newSrNoHba')}</em>
                         )}
@@ -760,9 +683,7 @@ export default class New extends Component {
                         ref='path'
                         required
                       >
-                        <option value={null}>
-                          {formatMessage(messages.noSelectedValue)}
-                        </option>
+                        <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
                         {map(paths, (item, key) => (
                           <option key={key} value={item.path}>
                             {item.path}
@@ -788,9 +709,7 @@ export default class New extends Component {
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder={formatMessage(
-                            messages.newSrIscsiAddressPlaceHolder
-                          )}
+                          placeholder={formatMessage(messages.newSrIscsiAddressPlaceHolder)}
                           ref='server'
                           required
                           type='text'
@@ -799,37 +718,26 @@ export default class New extends Component {
                         <input
                           id='srServer'
                           className='form-control'
-                          placeholder={formatMessage(
-                            messages.newSrPortPlaceHolder
-                          )}
+                          placeholder={formatMessage(messages.newSrPortPlaceHolder)}
                           ref='port'
                           type='text'
                         />
-                        <ActionButton
-                          icon='search'
-                          handler={this._handleSearchServer}
-                        />
+                        <ActionButton icon='search' handler={this._handleSearchServer} />
                       </div>
                       {auth && (
                         <fieldset>
-                          <label htmlFor='srServerUser'>
-                            {_('newSrUsername')}
-                          </label>
+                          <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
                           <input
                             id='srServerUser'
                             className='form-control'
-                            placeholder={formatMessage(
-                              messages.newSrUsernamePlaceHolder
-                            )}
+                            placeholder={formatMessage(messages.newSrUsernamePlaceHolder)}
                             ref='username'
                             required
                             type='text'
                           />
                           <label>{_('newSrPassword')}</label>
                           <Password
-                            placeholder={formatMessage(
-                              messages.newSrPasswordPlaceHolder
-                            )}
+                            placeholder={formatMessage(messages.newSrPasswordPlaceHolder)}
                             ref='password'
                             required
                           />
@@ -840,19 +748,13 @@ export default class New extends Component {
                   {iqns && (
                     <fieldset>
                       <label>{_('newSrIqn')}</label>
-                      <SelectIqn
-                        options={iqns}
-                        onChange={this._handleSrIqnSelection}
-                      />
+                      <SelectIqn options={iqns} onChange={this._handleSrIqnSelection} />
                     </fieldset>
                   )}
                   {luns && (
                     <fieldset>
                       <label>{_('newSrLun')}</label>
-                      <SelectLun
-                        options={luns}
-                        onChange={this._handleSrLunSelection}
-                      />
+                      <SelectLun options={luns} onChange={this._handleSrLunSelection} />
                     </fieldset>
                   )}
                   {type === 'smb' && (
@@ -861,9 +763,7 @@ export default class New extends Component {
                       <input
                         id='srServer'
                         className='form-control'
-                        placeholder={formatMessage(
-                          messages.newSrSmbAddressPlaceHolder
-                        )}
+                        placeholder={formatMessage(messages.newSrSmbAddressPlaceHolder)}
                         ref='server'
                         required
                         type='text'
@@ -872,18 +772,14 @@ export default class New extends Component {
                       <input
                         id='srServerUser'
                         className='form-control'
-                        placeholder={formatMessage(
-                          messages.newSrUsernamePlaceHolder
-                        )}
+                        placeholder={formatMessage(messages.newSrUsernamePlaceHolder)}
                         ref='username'
                         required
                         type='text'
                       />
                       <label>{_('newSrPassword')}</label>
                       <Password
-                        placeholder={formatMessage(
-                          messages.newSrPasswordPlaceHolder
-                        )}
+                        placeholder={formatMessage(messages.newSrPasswordPlaceHolder)}
                         ref='password'
                         required
                       />
@@ -895,9 +791,7 @@ export default class New extends Component {
                       <input
                         id='srDevice'
                         className='form-control'
-                        placeholder={formatMessage(
-                          messages.newSrLvmDevicePlaceHolder
-                        )}
+                        placeholder={formatMessage(messages.newSrLvmDevicePlaceHolder)}
                         ref='device'
                         required
                         type='text'
@@ -910,9 +804,7 @@ export default class New extends Component {
                       <input
                         id='srPath'
                         className='form-control'
-                        placeholder={formatMessage(
-                          messages.newSrLocalPathPlaceHolder
-                        )}
+                        placeholder={formatMessage(messages.newSrLocalPathPlaceHolder)}
                         ref='localPath'
                         required
                         type='text'
@@ -921,16 +813,8 @@ export default class New extends Component {
                   )}
                   {type === 'zfs' && (
                     <fieldset>
-                      <label htmlFor='selectSrLocation'>
-                        {_('srLocation')}
-                      </label>
-                      <select
-                        className='form-control'
-                        defaultValue=''
-                        id='selectSrLocation'
-                        ref='zfsLocation'
-                        required
-                      >
+                      <label htmlFor='selectSrLocation'>{_('srLocation')}</label>
+                      <select className='form-control' defaultValue='' id='selectSrLocation' ref='zfsLocation' required>
                         <option value=''>
                           {isEmpty(zfsPools)
                             ? formatMessage(messages.noSharedZfsAvailable)
@@ -984,20 +868,14 @@ export default class New extends Component {
                     <dt>{_('newSrName')}</dt>
                     <dd>{this.refs.name && this.refs.name.value}</dd>
                     <dt>{_('newSrDescription')}</dt>
-                    <dd>
-                      {this.refs.description && this.refs.description.value}
-                    </dd>
+                    <dd>{this.refs.description && this.refs.description.value}</dd>
                     <dt>{_('newSrType')}</dt>
                     <dd>{type}</dd>
                   </dl>
                   {type === 'iscsi' && (
                     <dl className='dl-horizontal'>
                       <dt>{_('newSrSize')}</dt>
-                      <dd>
-                        {lun.size !== undefined
-                          ? formatSize(+lun.size)
-                          : _('unknownSize')}
-                      </dd>
+                      <dd>{lun.size !== undefined ? formatSize(+lun.size) : _('unknownSize')}</dd>
                     </dl>
                   )}
                   {includes(['nfs', 'hba'], type) && (

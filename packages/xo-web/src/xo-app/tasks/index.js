@@ -11,24 +11,8 @@ import { FormattedDate, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { connectStore, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
-import {
-  differenceBy,
-  flatMap,
-  flatten,
-  forOwn,
-  groupBy,
-  isEmpty,
-  keys,
-  map,
-  some,
-  toArray,
-} from 'lodash'
-import {
-  createFilter,
-  createGetObject,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
+import { differenceBy, flatMap, flatten, forOwn, groupBy, isEmpty, keys, map, some, toArray } from 'lodash'
+import { createFilter, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { cancelTask, cancelTasks, destroyTask, destroyTasks } from 'xo'
 
 import Page from '../page'
@@ -68,17 +52,9 @@ export class TaskItem extends Component {
 
     return (
       <div>
-        {task.name_label} (
-        {task.name_description && `${task.name_description} `}
-        on{' '}
-        {host ? (
-          <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
-        ) : (
-          `unknown host − ${task.$host}`
-        )}
-        )
-        {task.disappeared === undefined &&
-          ` ${Math.round(task.progress * 100)}%`}
+        {task.name_label} ({task.name_description && `${task.name_description} `}
+        on {host ? <Link to={`/hosts/${host.id}`}>{host.name_label}</Link> : `unknown host − ${task.$host}`})
+        {task.disappeared === undefined && ` ${Math.round(task.progress * 100)}%`}
       </div>
     )
   }
@@ -124,12 +100,7 @@ const COLUMNS = [
   ...COMMON,
   {
     itemRenderer: task => (
-      <progress
-        style={TASK_ITEM_STYLE}
-        className='progress'
-        value={task.progress * 100}
-        max='100'
-      />
+      <progress style={TASK_ITEM_STYLE} className='progress' value={task.progress * 100} max='100' />
     ),
     name: _('progress'),
     sortCriteria: 'progress',
@@ -144,14 +115,7 @@ const FINISHED_TASKS_COLUMNS = [
   ...COMMON,
   {
     default: true,
-    itemRenderer: task => (
-      <FormattedDate
-        value={task.disappeared}
-        hour='2-digit'
-        minute='2-digit'
-        second='2-digit'
-      />
-    ),
+    itemRenderer: task => <FormattedDate value={task.disappeared} hour='2-digit' minute='2-digit' second='2-digit' />,
     name: _('taskLastSeen'),
     sortCriteria: task => task.disappeared,
     sortOrder: 'desc',
@@ -196,9 +160,7 @@ const GROUPED_ACTIONS = [
 ]
 
 @connectStore(() => {
-  const getPendingTasks = createGetObjectsOfType('task').filter([
-    task => task.status === 'pending',
-  ])
+  const getPendingTasks = createGetObjectsOfType('task').filter([task => task.status === 'pending'])
 
   const getNPendingTasks = getPendingTasks.count()
 
@@ -251,9 +213,7 @@ const GROUPED_ACTIONS = [
       )
   )
 
-  const getPools = createGetObjectsOfType('pool').pick(
-    createSelector(getPendingTasksByPool, keys)
-  )
+  const getPools = createGetObjectsOfType('pool').pick(createSelector(getPendingTasksByPool, keys))
 
   return {
     nTasks: getNPendingTasks,
@@ -295,8 +255,7 @@ export default class Tasks extends Component {
     () => this.state.finishedTasks,
     createSelector(
       createSelector(() => this.state.pools, resolveIds),
-      poolIds =>
-        isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId)
+      poolIds => (isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId))
     )
   )
 
@@ -306,10 +265,7 @@ export default class Tasks extends Component {
     const { formatMessage } = intl
 
     return (
-      <Page
-        header={HEADER}
-        title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}
-      >
+      <Page header={HEADER} title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}>
         <Container>
           <Row className='mb-1'>
             <Col mediumSize={8}>

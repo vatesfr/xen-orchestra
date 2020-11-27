@@ -5,13 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {
-  getConfig,
-  getMainConnection,
-  getNetworkId,
-  waitObjectState,
-  getVmXoTestPvId,
-} from './util'
+import { getConfig, getMainConnection, getNetworkId, waitObjectState, getVmXoTestPvId } from './util'
 import eventToPromise from 'event-to-promise'
 import { map } from 'lodash'
 
@@ -47,9 +41,7 @@ describe('vif', () => {
   // -------------------------------------------------------------------
 
   afterEach(async () => {
-    await Promise.all(
-      map(vifIds, vifId => xo.call('vif.delete', { id: vifId }))
-    )
+    await Promise.all(map(vifIds, vifId => xo.call('vif.delete', { id: vifId })))
     vifIds = []
   })
 

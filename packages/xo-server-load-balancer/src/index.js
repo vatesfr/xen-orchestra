@@ -3,10 +3,7 @@ import { intersection, map as mapToArray, uniq } from 'lodash'
 
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
-import {
-  DEFAULT_CRITICAL_THRESHOLD_CPU,
-  DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE,
-} from './plan'
+import { DEFAULT_CRITICAL_THRESHOLD_CPU, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE } from './plan'
 import { EXECUTION_DELAY, debug } from './utils'
 
 // ===================================================================
@@ -96,18 +93,13 @@ class LoadBalancerPlugin {
   constructor(xo) {
     this.xo = xo
 
-    this._job = createSchedule(`*/${EXECUTION_DELAY} * * * *`).createJob(
-      async () => {
-        try {
-          await this._executePlans()
-        } catch (error) {
-          console.error(
-            '[WARN] scheduled function:',
-            (error && error.stack) || error
-          )
-        }
+    this._job = createSchedule(`*/${EXECUTION_DELAY} * * * *`).createJob(async () => {
+      try {
+        await this._executePlans()
+      } catch (error) {
+        console.error('[WARN] scheduled function:', (error && error.stack) || error)
       }
-    )
+    })
   }
 
   async configure({ plans }) {
@@ -116,10 +108,7 @@ class LoadBalancerPlugin {
 
     if (plans) {
       for (const plan of plans) {
-        this._addPlan(
-          plan.mode === 'Performance mode' ? PERFORMANCE_MODE : DENSITY_MODE,
-          plan
-        )
+        this._addPlan(plan.mode === 'Performance mode' ? PERFORMANCE_MODE : DENSITY_MODE, plan)
       }
     }
   }

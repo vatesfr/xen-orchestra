@@ -4,13 +4,7 @@ import { createLogger } from '@xen-orchestra/log'
 import resolveRelativeFromFile from './_resolveRelativeFromFile'
 
 import Vhd from './vhd'
-import {
-  BLOCK_UNUSED,
-  DISK_TYPE_DYNAMIC,
-  FOOTER_SIZE,
-  HEADER_SIZE,
-  SECTOR_SIZE,
-} from './_constants'
+import { BLOCK_UNUSED, DISK_TYPE_DYNAMIC, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from './_constants'
 import { fuFooter, fuHeader, checksumStruct } from './_structs'
 import { test as mapTestBit } from './_bitmap'
 

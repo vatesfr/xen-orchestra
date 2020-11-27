@@ -16,15 +16,7 @@ import { error } from 'notification'
 import { generateUiSchema } from 'xo-json-schema-input'
 import { injectIntl } from 'react-intl'
 import { SelectSubject } from 'select-objects'
-import {
-  delay,
-  find,
-  forEach,
-  includes,
-  isEmpty,
-  mapValues,
-  size,
-} from 'lodash'
+import { delay, find, forEach, includes, isEmpty, mapValues, size } from 'lodash'
 import {
   apiMethods,
   createJob,
@@ -95,8 +87,7 @@ const getType = function (param) {
 /**
  * Tries extracting Object targeted property
  */
-const reduceObject = (value, propertyName = 'id') =>
-  (value != null && value[propertyName]) || value
+const reduceObject = (value, propertyName = 'id') => (value != null && value[propertyName]) || value
 
 /**
  * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick
@@ -259,18 +250,7 @@ export default class Jobs extends Component {
                   modifyProperty(property, 'Pool')
                 } else if (includes(['sr', 'sr_id', 'target_sr_id'], key)) {
                   modifyProperty(property, 'Sr')
-                } else if (
-                  includes(
-                    [
-                      'affinityHost',
-                      'host',
-                      'host_id',
-                      'target_host_id',
-                      'targetHost',
-                    ],
-                    key
-                  )
-                ) {
+                } else if (includes(['affinityHost', 'host', 'host_id', 'target_host_id', 'targetHost'], key)) {
                   modifyProperty(property, 'Host')
                 } else if (includes(['vm'], key)) {
                   modifyProperty(property, 'Vm')
@@ -318,10 +298,7 @@ export default class Jobs extends Component {
       method: method.value.method,
       paramsVector: {
         type: 'crossProduct',
-        items: dataToParamVectorItems(
-          method.value.info.properties,
-          params.value
-        ),
+        items: dataToParamVectorItems(method.value.info.properties, params.value),
       },
       userId: owner !== undefined ? owner : this.props.currentUser.id,
       timeout: timeout ? timeout * 1e3 : undefined,
@@ -417,8 +394,7 @@ export default class Jobs extends Component {
     }
   )
 
-  _subjectPredicate = ({ type, permission }) =>
-    type === 'user' && permission === 'admin'
+  _subjectPredicate = ({ type, permission }) => type === 'user' && permission === 'admin'
 
   _individualActions = [
     {
@@ -494,12 +470,7 @@ export default class Jobs extends Component {
               )}
               {process.env.XOA_PLAN > 3 ? (
                 <span>
-                  <ActionButton
-                    form='newJobForm'
-                    handler={this._handleSubmit}
-                    icon='save'
-                    btnStyle='primary'
-                  >
+                  <ActionButton form='newJobForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>
                     {_('saveResourceSet')}
                   </ActionButton>{' '}
                   <Button onClick={this._reset}>{_('resetResourceSet')}</Button>

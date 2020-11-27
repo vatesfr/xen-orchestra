@@ -34,19 +34,12 @@ const SelectCompression = decorate([
   provideState({
     computed: {
       options: (_, { showZstd }) => (showZstd ? OPTIONS_WITH_ZSTD : OPTIONS),
-      selectProps: (_, props) =>
-        omit(props, Object.keys(SELECT_COMPRESSION_PROP_TYPES)),
+      selectProps: (_, props) => omit(props, Object.keys(SELECT_COMPRESSION_PROP_TYPES)),
     },
   }),
   injectState,
   ({ onChange, state, value }) => (
-    <Select
-      labelKey='label'
-      options={state.options}
-      required
-      simpleValue
-      {...state.selectProps}
-    />
+    <Select labelKey='label' options={state.options} required simpleValue {...state.selectProps} />
   ),
 ])
 

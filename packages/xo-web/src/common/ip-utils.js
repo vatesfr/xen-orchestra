@@ -43,9 +43,7 @@ function* range(ip1, ip2) {
   }
 
   for (let i = hex; i <= hex2; i++) {
-    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${
-      i & 0xff
-    }`
+    yield `${(i >> 24) & 0xff}.${(i >> 16) & 0xff}.${(i >> 8) & 0xff}.${i & 0xff}`
   }
 }
 
@@ -53,10 +51,7 @@ function* range(ip1, ip2) {
 
 export const getNextIpV4 = ip => {
   const splitIp = ip.split('.')
-  if (
-    splitIp.length !== 4 ||
-    some(splitIp, value => value < 0 || value > 255)
-  ) {
+  if (splitIp.length !== 4 || some(splitIp, value => value < 0 || value > 255)) {
     return
   }
   let index
@@ -105,8 +100,7 @@ export const formatIps = ips => {
   forEach(sortedIps, ip => {
     if (ip !== getNextIpV4(range.last)) {
       if (range.first) {
-        formattedIps[index] =
-          range.first === range.last ? range.first : { ...range }
+        formattedIps[index] = range.first === range.last ? range.first : { ...range }
         index++
       }
       range.first = range.last = ip

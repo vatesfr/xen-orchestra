@@ -41,23 +41,9 @@ export default class PoolActionBar extends Component {
 
     return (
       <ActionBar display='icon' handlerParam={pool}>
-        <Action
-          handler={noop}
-          icon='add-sr'
-          label={_('addSrLabel')}
-          redirectOnSuccess={`new/sr?host=${pool.master}`}
-        />
-        <Action
-          handler={noop}
-          icon='add-vm'
-          label={_('addVmLabel')}
-          redirectOnSuccess={`vms/new?pool=${pool.id}`}
-        />
-        <Action
-          handler={addHostsToPool}
-          icon='add-host'
-          label={_('addHostsLabel')}
-        />
+        <Action handler={noop} icon='add-sr' label={_('addSrLabel')} redirectOnSuccess={`new/sr?host=${pool.master}`} />
+        <Action handler={noop} icon='add-vm' label={_('addVmLabel')} redirectOnSuccess={`vms/new?pool=${pool.id}`} />
+        <Action handler={addHostsToPool} icon='add-host' label={_('addHostsLabel')} />
         <Action
           handler={this._disconnectServer}
           icon='disconnect'

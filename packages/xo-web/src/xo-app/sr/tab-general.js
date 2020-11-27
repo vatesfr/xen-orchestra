@@ -8,23 +8,8 @@ import Usage, { UsageElement } from 'usage'
 import { addTag, removeTag, getLicense } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
-import {
-  createCollectionWrapper,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
-import {
-  flattenDeep,
-  flatMap,
-  forEach,
-  groupBy,
-  keyBy,
-  map,
-  mapValues,
-  pick,
-  sumBy,
-  uniq,
-} from 'lodash'
+import { createCollectionWrapper, createGetObjectsOfType, createSelector } from 'selectors'
+import { flattenDeep, flatMap, forEach, groupBy, keyBy, map, mapValues, pick, sumBy, uniq } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 
@@ -53,12 +38,10 @@ const UsageTooltip = decorate([
   }),
   provideState({
     computed: {
-      baseCopiesUsage: (_, { group: { baseCopies } }) =>
-        formatSize(sumBy(baseCopies, 'usage')),
+      baseCopiesUsage: (_, { group: { baseCopies } }) => formatSize(sumBy(baseCopies, 'usage')),
       vdis: (_, { group: { vdis } }) => keyBy(vdis, 'id'),
       vdisUsage: (_, { group: { vdis } }) => formatSize(sumBy(vdis, 'usage')),
-      snapshotsUsage: (_, { group: { snapshots } }) =>
-        formatSize(sumBy(snapshots, 'usage')),
+      snapshotsUsage: (_, { group: { snapshots } }) => formatSize(sumBy(snapshots, 'usage')),
       vmNamesByVdi: createCollectionWrapper(({ vdis }, { vbds, vms }) =>
         mapValues(vdis, vdi => get(() => vms[vbds[vdi.$VBDs[0]].VM].name_label))
       ),
@@ -86,14 +69,7 @@ const UsageTooltip = decorate([
 
     render() {
       const { group, state } = this.props
-      const {
-        baseCopies,
-        name_label: name,
-        snapshots,
-        type,
-        usage,
-        vdis,
-      } = group
+      const { baseCopies, name_label: name, snapshots, type, usage, vdis } = group
       return (
         <div>
           {type === 'orphanedSnapshot' ? (
@@ -153,9 +129,7 @@ export default class TabGeneral extends Component {
     const { sr } = this.props
 
     if (sr.SR_type === 'xosan') {
-      getLicense('xosan.trial', sr.id).then(() =>
-        this.setState({ licenseRestriction: true })
-      )
+      getLicense('xosan.trial', sr.id).then(() => this.setState({ licenseRestriction: true }))
     }
   }
 
@@ -193,10 +167,7 @@ export default class TabGeneral extends Component {
         if ((snapshots = snapshotsByVdi[id]) !== undefined) {
           // snapshot can have base copy without active VDI
           snapshots.forEach(({ parent }) => {
-            while (
-              (baseCopy = unmanagedVdisById[parent]) !== undefined &&
-              !baseCopies.has(baseCopy)
-            ) {
+            while ((baseCopy = unmanagedVdisById[parent]) !== undefined && !baseCopies.has(baseCopy)) {
               parent = baseCopy.parent
               baseCopies.add(baseCopy)
             }
@@ -231,8 +202,7 @@ export default class TabGeneral extends Component {
           id: vdis[0].id,
           vdis,
           baseCopies,
-          usage:
-            vdisUsage + sumBy(baseCopies, 'usage') + sumBy(snapshots, 'usage'),
+          usage: vdisUsage + sumBy(baseCopies, 'usage') + sumBy(snapshots, 'usage'),
           snapshots,
         })
       })
@@ -243,12 +213,8 @@ export default class TabGeneral extends Component {
   _getGenerateLink = createSelector(this._getDiskGroups, diskGroups => ids =>
     `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
       `id:|(${flattenDeep(
-        map(
-          pick(keyBy(diskGroups, 'id'), ids),
-          ({ id, baseCopies, vdis, snapshots, type }) =>
-            type === 'orphanedSnapshot'
-              ? id
-              : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
+        map(pick(keyBy(diskGroups, 'id'), ids), ({ id, baseCopies, vdis, snapshots, type }) =>
+          type === 'orphanedSnapshot' ? id : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
         )
       )
         .sort()
@@ -271,9 +237,7 @@ export default class TabGeneral extends Component {
               {formatSize(sr.size)} <Icon icon='sr' size='lg' />
             </h2>
             <p>Type: {sr.SR_type}</p>
-            {this.state.licenseRestriction && (
-              <p className='text-danger'>{_('xosanLicenseRestricted')}</p>
-            )}
+            {this.state.licenseRestriction && <p className='text-danger'>{_('xosanLicenseRestricted')}</p>}
           </Col>
           <Col mediumSize={4}>
             <h2>
@@ -284,8 +248,7 @@ export default class TabGeneral extends Component {
         <Row>
           <Col className='text-xs-center'>
             <h5>
-              {formatSize(sr.physical_usage)} {_('srUsed')} (
-              {formatSize(sr.size - sr.physical_usage)} {_('srFree')})
+              {formatSize(sr.physical_usage)} {_('srUsed')} ({formatSize(sr.size - sr.physical_usage)} {_('srFree')})
             </h5>
           </Col>
         </Row>

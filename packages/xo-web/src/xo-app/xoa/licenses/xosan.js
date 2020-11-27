@@ -73,17 +73,13 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanLicense'),
-    itemRenderer: (
-      sr,
-      { availableLicenses, licensesByXosan, updateLicenses }
-    ) => {
+    itemRenderer: (sr, { availableLicenses, licensesByXosan, updateLicenses }) => {
       const license = licensesByXosan[sr.id]
 
       if (license === null) {
         return (
           <span className='text-danger'>
-            {_('xosanMultipleLicenses')}{' '}
-            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+            {_('xosanMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
           </span>
         )
       }
@@ -93,9 +89,7 @@ const XOSAN_COLUMNS = [
       ) : (
         <SelectLicense
           licenses={availableLicenses}
-          onChange={licenseId =>
-            unlockXosan(licenseId, sr.id).then(updateLicenses)
-          }
+          onChange={licenseId => unlockXosan(licenseId, sr.id).then(updateLicenses)}
         />
       )
     },
@@ -136,9 +130,7 @@ export default class Xosan extends Component {
   )
 
   _getAvailableLicenses = createFilter(() => this.props.xosanLicenses, [
-    ({ boundObjectId, expires }) =>
-      boundObjectId === undefined &&
-      (expires === undefined || expires > Date.now()),
+    ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now()),
   ])
 
   _getKnownXosans = createSelector(
@@ -147,8 +139,7 @@ export default class Xosan extends Component {
       (licenses = []) => filter(map(licenses, 'boundObjectId'))
     ),
     () => this.props.xosanSrs,
-    (knownXosanIds, xosanSrs) =>
-      filter(xosanSrs, ({ id }) => includes(knownXosanIds, id))
+    (knownXosanIds, xosanSrs) => filter(xosanSrs, ({ id }) => includes(knownXosanIds, id))
   )
 
   render() {

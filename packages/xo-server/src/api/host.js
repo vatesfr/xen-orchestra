@@ -4,11 +4,7 @@ import { format } from 'json-rpc-peer'
 
 export async function getSchedulerGranularity({ host }) {
   try {
-    return await this.getXapi(host).getField(
-      'host',
-      host._xapiRef,
-      'sched_gran'
-    )
+    return await this.getXapi(host).getField('host', host._xapiRef, 'sched_gran')
   } catch (e) {
     // This method is supported on XCP-ng >= 8.2 only.
     if (e.code === 'MESSAGE_METHOD_UNKNOWN') {
@@ -31,12 +27,7 @@ getSchedulerGranularity.resolve = {
 // ===================================================================
 
 export async function setSchedulerGranularity({ host, schedulerGranularity }) {
-  await this.getXapi(host).setField(
-    'host',
-    host._xapiRef,
-    'sched_gran',
-    schedulerGranularity
-  )
+  await this.getXapi(host).setField('host', host._xapiRef, 'sched_gran', schedulerGranularity)
 }
 
 setSchedulerGranularity.description = 'set scheduler granularity of a host'
@@ -68,14 +59,10 @@ export async function set({
     iscsiIqn !== undefined &&
       (host.iscsi_iqn !== undefined
         ? host.set_iscsi_iqn(iscsiIqn)
-        : host.update_other_config(
-            'iscsi_iqn',
-            iscsiIqn === '' ? null : iscsiIqn
-          )),
+        : host.update_other_config('iscsi_iqn', iscsiIqn === '' ? null : iscsiIqn)),
     nameDescription !== undefined && host.set_name_description(nameDescription),
     nameLabel !== undefined && host.set_name_label(nameLabel),
-    multipathing !== undefined &&
-      host.$xapi.setHostMultipathing(host.$id, multipathing),
+    multipathing !== undefined && host.$xapi.setHostMultipathing(host.$id, multipathing),
   ])
 }
 

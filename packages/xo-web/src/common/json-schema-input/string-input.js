@@ -25,13 +25,7 @@ export default class StringInput extends Component {
 
   render() {
     const { required, schema } = this.props
-    const {
-      disabled,
-      password,
-      placeholder = schema.default,
-      value,
-      ...props
-    } = this.props
+    const { disabled, password, placeholder = schema.default, value, ...props } = this.props
     delete props.onChange
 
     return (

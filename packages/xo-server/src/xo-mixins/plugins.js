@@ -26,10 +26,7 @@ export default class {
       xo.addConfigManager(
         'plugins',
         () => this._pluginsMetadata.get(),
-        plugins =>
-          Promise.all(
-            mapToArray(plugins, plugin => this._pluginsMetadata.save(plugin))
-          )
+        plugins => Promise.all(mapToArray(plugins, plugin => this._pluginsMetadata.save(plugin)))
       )
     })
   }
@@ -47,15 +44,7 @@ export default class {
     return metadata?.properties
   }
 
-  async registerPlugin(
-    name,
-    instance,
-    configurationSchema,
-    configurationPresets,
-    description,
-    testSchema,
-    version
-  ) {
+  async registerPlugin(name, instance, configurationSchema, configurationPresets, description, testSchema, version) {
     const id = name
     const plugin = (this._plugins[id] = {
       configurationPresets,
@@ -114,8 +103,7 @@ export default class {
       unloadable,
       version,
     } = this._getRawPlugin(id)
-    const { autoload, configuration } =
-      (await this._getPluginMetadata(id)) || {}
+    const { autoload, configuration } = (await this._getPluginMetadata(id)) || {}
 
     return {
       id,
@@ -134,9 +122,7 @@ export default class {
   }
 
   async getPlugins() {
-    return /* await */ Promise.all(
-      mapToArray(this._plugins, ({ id }) => this._getPlugin(id))
-    )
+    return /* await */ Promise.all(mapToArray(this._plugins, ({ id }) => this._getPlugin(id)))
   }
 
   // Validate the configuration and configure the plugin instance.
@@ -174,10 +160,7 @@ export default class {
     const metadata = await this._getPluginMetadata(id)
 
     if (metadata !== undefined) {
-      configuration = sensitiveValues.merge(
-        configuration,
-        metadata.configuration
-      )
+      configuration = sensitiveValues.merge(configuration, metadata.configuration)
     }
 
     await this._configurePlugin(plugin, configuration)

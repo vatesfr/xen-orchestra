@@ -78,8 +78,7 @@ const BODY_STYLE = {
   about: About,
   backup: Backup,
   'backup-ng/*': {
-    onEnter: ({ location }, replace) =>
-      replace(location.pathname.replace('/backup-ng', '/backup')),
+    onEnter: ({ location }, replace) => replace(location.pathname.replace('/backup-ng', '/backup')),
   },
   dashboard: Dashboard,
   home: Home,
@@ -155,8 +154,7 @@ export default class XoApp extends Component {
   }
 
   componentDidMount() {
-    this.refs.bodyWrapper.style.minHeight =
-      this.refs.menu.getWrappedInstance().height + 'px'
+    this.refs.bodyWrapper.style.minHeight = this.refs.menu.getWrappedInstance().height + 'px'
     if (+process.env.XOA_PLAN === 5) {
       this.displayOpenSourceDisclaimer()
     }
@@ -206,9 +204,7 @@ export default class XoApp extends Component {
                       message && (
                         <Row key={`${contextKey}_${key}`}>
                           <Col size={2} className='text-xs-right'>
-                            <strong>
-                              {Array.isArray(keys) ? keys[0] : keys}
-                            </strong>
+                            <strong>{Array.isArray(keys) ? keys[0] : keys}</strong>
                           </Col>
                           <Col size={10}>{message}</Col>
                         </Row>
@@ -225,10 +221,7 @@ export default class XoApp extends Component {
   render() {
     const { signedUp, trial, registerNeeded } = this.props
     // If we are under expired or unstable trial (signed up only)
-    const blocked =
-      signedUp &&
-      blockXoaAccess(trial) &&
-      !this.context.router.location.pathname.startsWith('/xoa/')
+    const blocked = signedUp && blockXoaAccess(trial) && !this.context.router.location.pathname.startsWith('/xoa/')
     const plan = getXoaPlan()
 
     return (
@@ -239,16 +232,10 @@ export default class XoApp extends Component {
               {plan !== 'Community' && registerNeeded && (
                 <div className='alert alert-danger mb-0'>
                   {_('notRegisteredDisclaimerInfo')}{' '}
-                  <a
-                    href='https://xen-orchestra.com/#!/signup'
-                    rel='noopener noreferrer'
-                    target='_blank'
-                  >
+                  <a href='https://xen-orchestra.com/#!/signup' rel='noopener noreferrer' target='_blank'>
                     {_('notRegisteredDisclaimerCreateAccount')}
                   </a>{' '}
-                  <Link to='/xoa/update'>
-                    {_('notRegisteredDisclaimerRegister')}
-                  </Link>
+                  <Link to='/xoa/update'>{_('notRegisteredDisclaimerRegister')}</Link>
                 </div>
               )}
               {plan === 'Community' && !this.state.dismissedSourceBanner && (
@@ -282,13 +269,7 @@ export default class XoApp extends Component {
                 <Menu ref='menu' />
                 <div ref='bodyWrapper' style={BODY_WRAPPER_STYLE}>
                   <div style={BODY_STYLE}>
-                    {blocked ? (
-                      <XoaUpdates />
-                    ) : signedUp ? (
-                      this.props.children
-                    ) : (
-                      <p>Still loading</p>
-                    )}
+                    {blocked ? <XoaUpdates /> : signedUp ? this.props.children : <p>Still loading</p>}
                   </div>
                 </div>
                 <Modal />

@@ -198,10 +198,7 @@ export default class Jobs {
 
   async getJob(id: string, type?: string): Promise<Job> {
     let job = await this._jobs.first(id)
-    if (
-      job === undefined ||
-      (type !== undefined && job.properties.type !== type)
-    ) {
+    if (job === undefined || (type !== undefined && job.properties.type !== type)) {
       throw noSuchObject(id, 'job')
     }
 
@@ -374,14 +371,8 @@ export default class Jobs {
     }
   }
 
-  async runJobSequence(
-    idSequence: Array<string>,
-    schedule?: Schedule,
-    data?: any
-  ) {
-    const jobs = await Promise.all(
-      mapToArray(idSequence, id => this.getJob(id))
-    )
+  async runJobSequence(idSequence: Array<string>, schedule?: Schedule, data?: any) {
+    const jobs = await Promise.all(mapToArray(idSequence, id => this.getJob(id)))
 
     for (const job of jobs) {
       await this._runJob(job, schedule, data)

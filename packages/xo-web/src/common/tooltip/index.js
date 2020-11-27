@@ -36,16 +36,12 @@ export class TooltipViewer extends Component {
     return (
       <div
         className={classNames(
-          show && content !== undefined
-            ? styles.tooltipEnabled
-            : styles.tooltipDisabled,
+          show && content !== undefined ? styles.tooltipEnabled : styles.tooltipDisabled,
           className
         )}
         style={{
-          marginTop:
-            (place === 'top' && '-10px') || (place === 'bottom' && '10px'),
-          marginLeft:
-            (place === 'left' && '-10px') || (place === 'right' && '10px'),
+          marginTop: (place === 'top' && '-10px') || (place === 'bottom' && '10px'),
+          marginLeft: (place === 'left' && '-10px') || (place === 'right' && '10px'),
           ...style,
         }}
       >
@@ -132,19 +128,10 @@ export default class Tooltip extends Component {
 
   _updateTooltip = event => {
     const node = ReactDOM.findDOMNode(instance)
-    const result = getPosition(
-      event,
-      event.currentTarget,
-      node,
-      instance.state.place,
-      'solid',
-      {}
-    )
+    const result = getPosition(event, event.currentTarget, node, instance.state.place, 'solid', {})
 
     if (result.isNewState) {
-      return instance.setState(result.newState, () =>
-        this._updateTooltip(event)
-      )
+      return instance.setState(result.newState, () => this._updateTooltip(event))
     }
 
     const { position } = result
@@ -170,8 +157,4 @@ export default class Tooltip extends Component {
 // ===================================================================
 
 export const conditionalTooltip = (children, tooltip) =>
-  tooltip !== undefined && tooltip !== '' ? (
-    <Tooltip content={tooltip}>{children}</Tooltip>
-  ) : (
-    children
-  )
+  tooltip !== undefined && tooltip !== '' ? <Tooltip content={tooltip}>{children}</Tooltip> : children

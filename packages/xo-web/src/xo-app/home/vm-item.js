@@ -11,29 +11,9 @@ import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text, XoSelect } from 'editable'
 import { isEmpty, map } from 'lodash'
-import {
-  addTag,
-  editVm,
-  fetchVmStats,
-  migrateVm,
-  removeTag,
-  startVm,
-  stopVm,
-  subscribeResourceSets,
-} from 'xo'
-import {
-  addSubscriptions,
-  connectStore,
-  formatSizeShort,
-  osFamily,
-} from 'utils'
-import {
-  createFinder,
-  createGetObject,
-  createGetVmDisks,
-  createSelector,
-  createSumBy,
-} from 'selectors'
+import { addTag, editVm, fetchVmStats, migrateVm, removeTag, startVm, stopVm, subscribeResourceSets } from 'xo'
+import { addSubscriptions, connectStore, formatSizeShort, osFamily } from 'utils'
+import { createFinder, createGetObject, createGetVmDisks, createSelector, createSumBy } from 'selectors'
 
 import MiniStats from './mini-stats'
 import styles from './index.css'
@@ -71,10 +51,8 @@ export default class VmItem extends Component {
   _fetchStats = () => fetchVmStats(this.props.item.id)
   _migrateVm = host => migrateVm(this.props.item, host)
   _removeTag = tag => removeTag(this.props.item.id, tag)
-  _setNameDescription = nameDescription =>
-    editVm(this.props.item, { name_description: nameDescription })
-  _setNameLabel = nameLabel =>
-    editVm(this.props.item, { name_label: nameLabel })
+  _setNameDescription = nameDescription => editVm(this.props.item, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editVm(this.props.item, { name_label: nameLabel })
   _start = () => startVm(this.props.item)
   _stop = () => stopVm(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
@@ -97,12 +75,7 @@ export default class VmItem extends Component {
           <SingleLineRow>
             <Col smallSize={10} mediumSize={6} largeSize={5}>
               <EllipsisContainer>
-                <input
-                  type='checkbox'
-                  checked={selected}
-                  onChange={this._onSelect}
-                  value={vm.id}
-                />
+                <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
                 &nbsp;&nbsp;
                 <Tooltip
                   content={
@@ -158,16 +131,8 @@ export default class VmItem extends Component {
                     </span>
                   )}
                 </span>
-                <Tooltip
-                  content={
-                    vm.os_version ? vm.os_version.name : _('unknownOsName')
-                  }
-                >
-                  <Icon
-                    className='text-info'
-                    icon={vm.os_version && osFamily(vm.os_version.distro)}
-                    fixedWidth
-                  />
+                <Tooltip content={vm.os_version ? vm.os_version.name : _('unknownOsName')}>
+                  <Icon className='text-info' icon={vm.os_version && osFamily(vm.os_version.distro)} fixedWidth />
                 </Tooltip>{' '}
                 <Ellipsis>
                   <Text
@@ -190,23 +155,14 @@ export default class VmItem extends Component {
                   value={container}
                   xoType='host'
                 >
-                  <Link to={`/${container.type}s/${container.id}`}>
-                    {renderXoItem(container)}
-                  </Link>
+                  <Link to={`/${container.type}s/${container.id}`}>{renderXoItem(container)}</Link>
                 </XoSelect>
               ) : (
-                container && (
-                  <Link to={`/${container.type}s/${container.id}`}>
-                    {renderXoItem(container)}
-                  </Link>
-                )
+                container && <Link to={`/${container.type}s/${container.id}`}>{renderXoItem(container)}</Link>
               )}
             </Col>
             <Col mediumSize={1} className={styles.itemExpandRow}>
-              <a
-                className={styles.itemExpandButton}
-                onClick={this._toggleExpanded}
-              >
+              <a className={styles.itemExpandButton} onClick={this._toggleExpanded}>
                 <Icon icon='nav' fixedWidth />
                 &nbsp;&nbsp;&nbsp;
               </a>
@@ -217,10 +173,8 @@ export default class VmItem extends Component {
           <Row>
             <Col mediumSize={4} className={styles.itemExpanded}>
               <span>
-                {vm.CPUs.number}x <Icon icon='cpu' /> &nbsp;{' '}
-                {formatSizeShort(vm.memory.size)} <Icon icon='memory' /> &nbsp;{' '}
-                {formatSizeShort(this.props.totalDiskSize)} <Icon icon='disk' />{' '}
-                &nbsp;{' '}
+                {vm.CPUs.number}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(vm.memory.size)} <Icon icon='memory' />{' '}
+                &nbsp; {formatSizeShort(this.props.totalDiskSize)} <Icon icon='disk' /> &nbsp;{' '}
                 {isEmpty(vm.snapshots) ? null : (
                   <span>
                     {vm.snapshots.length}x <Icon icon='vm-snapshot' />
@@ -235,11 +189,7 @@ export default class VmItem extends Component {
                   {resourceSet && (
                     <span>
                       {_('homeResourceSet', {
-                        resourceSet: (
-                          <Link to={`self?resourceSet=${resourceSet.id}`}>
-                            {resourceSet.name}
-                          </Link>
-                        ),
+                        resourceSet: <Link to={`self?resourceSet=${resourceSet.id}`}>{resourceSet.name}</Link>,
                       })}
                     </span>
                   )}
@@ -255,12 +205,7 @@ export default class VmItem extends Component {
             </Col>
             <Col mediumSize={6}>
               <span style={{ fontSize: '1.4em' }}>
-                <HomeTags
-                  type='VM'
-                  labels={vm.tags}
-                  onDelete={this._removeTag}
-                  onAdd={this._addTag}
-                />
+                <HomeTags type='VM' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
               </span>
             </Col>
             <Col mediumSize={6} className={styles.itemExpanded}>

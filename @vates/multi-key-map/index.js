@@ -67,7 +67,7 @@ function set(node, i, keys, value) {
   return node
 }
 
-export default class MultiKeyMap {
+exports.MultiKeyMap = class MultiKeyMap {
   constructor() {
     // each node is either a value or a Node if it contains children
     this._root = undefined

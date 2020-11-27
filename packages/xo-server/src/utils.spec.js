@@ -1,14 +1,6 @@
 /* eslint-env jest */
 
-import {
-  camelToSnakeCase,
-  diffItems,
-  extractProperty,
-  formatXml,
-  generateToken,
-  parseSize,
-  pSettle,
-} from './utils'
+import { camelToSnakeCase, diffItems, extractProperty, formatXml, generateToken, parseSize, pSettle } from './utils'
 
 // ===================================================================
 
@@ -32,10 +24,7 @@ describe('camelToSnakeCase()', function () {
 
 describe('diffItems', () => {
   it('computes the added/removed items between 2 iterables', () => {
-    expect(diffItems(['foo', 'bar'], ['baz', 'foo'])).toEqual([
-      ['bar'],
-      ['baz'],
-    ])
+    expect(diffItems(['foo', 'bar'], ['baz', 'foo'])).toEqual([['bar'], ['baz']])
   })
 })
 
@@ -110,11 +99,7 @@ describe('parseSize()', function () {
 describe('pSettle()', () => {
   it('works with arrays', async () => {
     const rejection = 'fatality'
-    const [status1, status2, status3] = await pSettle([
-      Promise.resolve(42),
-      Math.PI,
-      Promise.reject(rejection),
-    ])
+    const [status1, status2, status3] = await pSettle([Promise.resolve(42), Math.PI, Promise.reject(rejection)])
 
     expect(status1.isRejected()).toBe(false)
     expect(status2.isRejected()).toBe(false)

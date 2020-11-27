@@ -94,10 +94,7 @@ const installCertificate = async ({ id, isNewInstallation = false }) => {
     render: props => <InstallCertificateModal {...props} />,
     header: (
       <span>
-        <Icon icon='upload' />{' '}
-        {isNewInstallation
-          ? _('installNewCertificate')
-          : _('replaceExistingCertificate')}
+        <Icon icon='upload' /> {isNewInstallation ? _('installNewCertificate') : _('replaceExistingCertificate')}
       </span>
     ),
   })

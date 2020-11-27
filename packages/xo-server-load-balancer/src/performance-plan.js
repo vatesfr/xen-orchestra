@@ -24,8 +24,7 @@ export default class PerformancePlan extends Plan {
       const objectAverages = averages[object.id]
 
       return (
-        objectAverages.cpu >= this._thresholds.cpu.high ||
-        objectAverages.memoryFree <= this._thresholds.memoryFree.high
+        objectAverages.cpu >= this._thresholds.cpu.high || objectAverages.memoryFree <= this._thresholds.memoryFree.high
       )
     })
   }
@@ -35,10 +34,7 @@ export default class PerformancePlan extends Plan {
     try {
       await Promise.all(
         mapToArray(
-          filter(
-            this._getHosts({ powerState: 'Halted' }),
-            host => host.powerOnMode !== ''
-          ),
+          filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== ''),
           host => {
             const { id } = host
             return this.xo.getXapi(id).powerOnHost(id)
@@ -94,8 +90,7 @@ export default class PerformancePlan extends Plan {
     const xapiSrc = this.xo.getXapi(exceededHost)
     let optimizationsCount = 0
 
-    const searchFunction = (a, b) =>
-      hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
+    const searchFunction = (a, b) => hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
 
     for (const vm of vms) {
       debug(`Trying to migrate ${vm.id}...`)
@@ -107,32 +102,25 @@ export default class PerformancePlan extends Plan {
       )
 
       if (!destination) {
-        debug(
-          'No destination host found in the current VM pool. Trying in all pools.'
-        )
+        debug('No destination host found in the current VM pool. Trying in all pools.')
         destination = searchBestObject(hosts, searchFunction)
       }
 
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
 
-      debug(
-        `Trying to migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id})...`
-      )
+      debug(`Trying to migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id})...`)
 
       // Unable to move the vm.
       if (
-        exceededAverages.cpu - vmAverages.cpu <
-          destinationAverages.cpu + vmAverages.cpu ||
+        exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
         destinationAverages.memoryFree < vmAverages.memory
       ) {
         debug(`Cannot migrate VM (${vm.id}) to Host (${destination.id}).`)
         debug(
           `Src Host CPU=${exceededAverages.cpu}, Dest Host CPU=${destinationAverages.cpu}, VM CPU=${vmAverages.cpu}`
         )
-        debug(
-          `Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`
-        )
+        debug(`Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`)
         continue
       }
 
@@ -142,23 +130,13 @@ export default class PerformancePlan extends Plan {
       exceededAverages.memoryFree += vmAverages.memory
       destinationAverages.memoryFree -= vmAverages.memory
 
-      debug(
-        `Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`
-      )
+      debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`)
       optimizationsCount++
 
-      promises.push(
-        xapiSrc.migrateVm(
-          vm._xapiId,
-          this.xo.getXapi(destination),
-          destination._xapiId
-        )
-      )
+      promises.push(xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId))
     }
 
     await Promise.all(promises)
-    debug(
-      `Performance mode: ${optimizationsCount} optimizations for Host (${exceededHost.id}).`
-    )
+    debug(`Performance mode: ${optimizationsCount} optimizations for Host (${exceededHost.id}).`)
   }
 }

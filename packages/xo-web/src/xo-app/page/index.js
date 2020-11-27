@@ -6,29 +6,18 @@ import { injectIntl } from 'react-intl'
 
 import styles from './index.css'
 
-const Page = ({
-  children,
-  collapsedHeader,
-  formatTitle,
-  header,
-  intl,
-  title,
-}) => {
+const Page = ({ children, collapsedHeader, formatTitle, header, intl, title }) => {
   const { formatMessage } = intl
 
   const content = (
     <div className={styles.container}>
-      {!collapsedHeader && (
-        <nav className={'page-header ' + styles.header}>{header}</nav>
-      )}
+      {!collapsedHeader && <nav className={'page-header ' + styles.header}>{header}</nav>}
       <div className={styles.content}>{children}</div>
     </div>
   )
 
   return title ? (
-    <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>
-      {content}
-    </DocumentTitle>
+    <DocumentTitle title={formatTitle ? formatMessage(messages[title]) : title}>{content}</DocumentTitle>
   ) : (
     content
   )

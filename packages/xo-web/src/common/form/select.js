@@ -3,12 +3,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import ReactSelect from 'react-select'
 import uncontrollableInput from 'uncontrollable-input'
-import {
-  AutoSizer,
-  CellMeasurer,
-  CellMeasurerCache,
-  List,
-} from 'react-virtualized'
+import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized'
 
 const SELECT_STYLE = {
   minWidth: '10em',
@@ -42,12 +37,9 @@ export default class Select extends React.PureComponent {
   _renderMenu(opts) {
     const { focusOption, options, selectValue } = opts
 
-    const focusFromEvent = event =>
-      focusOption(options[event.currentTarget.dataset.index])
-    const selectFromEvent = event =>
-      selectValue(options[event.currentTarget.dataset.index])
-    const renderRow = opts2 =>
-      this._renderRow(opts, opts2, focusFromEvent, selectFromEvent)
+    const focusFromEvent = event => focusOption(options[event.currentTarget.dataset.index])
+    const selectFromEvent = event => selectValue(options[event.currentTarget.dataset.index])
+    const renderRow = opts2 => this._renderRow(opts, opts2, focusFromEvent, selectFromEvent)
 
     let focusedOptionIndex = options.indexOf(opts.focusedOption)
     if (focusedOptionIndex === -1) {
@@ -86,15 +78,7 @@ export default class Select extends React.PureComponent {
   _renderMenu = this._renderMenu.bind(this)
 
   _renderRow(
-    {
-      focusedOption,
-      focusOption,
-      inputValue,
-      optionClassName,
-      optionRenderer,
-      options,
-      selectValue,
-    },
+    { focusedOption, focusOption, inputValue, optionClassName, optionRenderer, options, selectValue },
     { index, key, parent, style },
     focusFromEvent,
     selectFromEvent
@@ -103,13 +87,7 @@ export default class Select extends React.PureComponent {
     const { disabled } = option
 
     return (
-      <CellMeasurer
-        cache={this._cellMeasurerCache}
-        columnIndex={0}
-        key={key}
-        parent={parent}
-        rowIndex={index}
-      >
+      <CellMeasurer cache={this._cellMeasurerCache} columnIndex={0} key={key} parent={parent} rowIndex={index}>
         <div
           className={classNames('Select-option', optionClassName, {
             'is-disabled': disabled,
@@ -133,25 +111,15 @@ export default class Select extends React.PureComponent {
 
   componentDidUpdate() {
     const { props } = this
-    const {
-      autoSelectSingleOption = props.required,
-      multi,
-      options,
-      simpleValue,
-      value,
-    } = props
+    const { autoSelectSingleOption = props.required, multi, options, simpleValue, value } = props
     let option
     if (
       autoSelectSingleOption &&
       options != null &&
-      (value == null ||
-        (simpleValue && value === '') ||
-        (multi && value.length === 0)) &&
+      (value == null || (simpleValue && value === '') || (multi && value.length === 0)) &&
       ([option] = options.filter(_ => !_.disabled)).length === 1
     ) {
-      props.onChange(
-        simpleValue ? option[props.valueKey] : multi ? [option] : option
-      )
+      props.onChange(simpleValue ? option[props.valueKey] : multi ? [option] : option)
     }
   }
 

@@ -6,13 +6,7 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
-import {
-  addSubscriptions,
-  formatSize,
-  formatSpeed,
-  generateRandomId,
-  noop,
-} from 'utils'
+import { addSubscriptions, formatSize, formatSpeed, generateRandomId, noop } from 'utils'
 import { alert } from 'modal'
 import { format, parse } from 'xo-remote-parser'
 import { get } from '@xen-orchestra/defined'
@@ -41,8 +35,7 @@ const _changeUrlElement = (value, { remote, element }) =>
   })
 const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
-const _editRemoteOptions = (options, { remote }) =>
-  editRemote(remote, { options: options !== '' ? options : null })
+const _editRemoteOptions = (options, { remote }) => editRemote(remote, { options: options !== '' ? options : null })
 
 const COLUMN_NAME = {
   itemRenderer: (remote, { formatMessage }) => (
@@ -71,11 +64,7 @@ const COLUMN_STATE = {
       />{' '}
       {remote.error && (
         <Tooltip content={_('remoteConnectionFailed')}>
-          <a
-            className='text-danger btn btn-link'
-            onClick={() => _showError(remote)}
-            style={{ padding: '0px' }}
-          >
+          <a className='text-danger btn btn-link' onClick={() => _showError(remote)} style={{ padding: '0px' }}>
             <Icon icon='alarm' size='lg' />
           </a>
         </Tooltip>
@@ -89,9 +78,7 @@ const COLUMN_DISK = {
     remote.info !== undefined &&
     remote.info.used !== undefined &&
     remote.info.size !== undefined && (
-      <span>
-        {`${formatSize(remote.info.used)} / ${formatSize(remote.info.size)}`}
-      </span>
+      <span>{`${formatSize(remote.info.used)} / ${formatSize(remote.info.size)}`}</span>
     ),
   name: _('remoteDisk'),
 }
@@ -103,10 +90,7 @@ const COLUMN_SPEED = {
       benchmark !== undefined &&
       benchmark.readRate !== undefined &&
       benchmark.writeRate !== undefined && (
-        <span>{`${formatSpeed(benchmark.writeRate, 1e3)} / ${formatSpeed(
-          benchmark.readRate,
-          1e3
-        )}`}</span>
+        <span>{`${formatSpeed(benchmark.writeRate, 1e3)} / ${formatSpeed(benchmark.readRate, 1e3)}`}</span>
       )
     )
   },
@@ -122,11 +106,7 @@ const COLUMN_SPEED = {
 
 const COLUMN_PROXY = {
   itemRenderer: remote => (
-    <XoSelect
-      onChange={proxy => editRemote(remote, { proxy })}
-      value={remote.proxy}
-      xoType='proxy'
-    >
+    <XoSelect onChange={proxy => editRemote(remote, { proxy })} value={remote.proxy} xoType='proxy'>
       {remote.proxy !== undefined ? (
         <div>
           <Proxy id={remote.proxy} />{' '}
@@ -212,13 +192,7 @@ const COLUMNS_NFS_REMOTE = [
   },
   {
     name: _('remoteOptions'),
-    itemRenderer: remote => (
-      <Text
-        data-remote={remote}
-        onChange={_editRemoteOptions}
-        value={remote.options || ''}
-      />
-    ),
+    itemRenderer: remote => <Text data-remote={remote} onChange={_editRemoteOptions} value={remote.options || ''} />,
   },
   COLUMN_STATE,
   COLUMN_DISK,
@@ -231,12 +205,7 @@ const COLUMNS_SMB_REMOTE = [
     itemRenderer: (remote, { formatMessage }) => (
       <span>
         <strong className='text-info'>\\</strong>
-        <Text
-          data-element='host'
-          data-remote={remote}
-          onChange={_changeUrlElement}
-          value={remote.host}
-        />
+        <Text data-element='host' data-remote={remote} onChange={_changeUrlElement} value={remote.host} />
         <strong className='text-info'>\</strong>
         <span>
           <Text
@@ -253,24 +222,13 @@ const COLUMNS_SMB_REMOTE = [
   },
   {
     name: _('remoteOptions'),
-    itemRenderer: remote => (
-      <Text
-        data-remote={remote}
-        onChange={_editRemoteOptions}
-        value={remote.options || ''}
-      />
-    ),
+    itemRenderer: remote => <Text data-remote={remote} onChange={_editRemoteOptions} value={remote.options || ''} />,
   },
   COLUMN_STATE,
   {
     itemRenderer: (remote, { formatMessage }) => (
       <span>
-        <Text
-          data-element='username'
-          data-remote={remote}
-          onChange={_changeUrlElement}
-          value={remote.username}
-        />
+        <Text data-element='username' data-remote={remote} onChange={_changeUrlElement} value={remote.username} />
         :
         <Password
           data-element='password'
@@ -280,12 +238,7 @@ const COLUMNS_SMB_REMOTE = [
           value=''
         />
         @
-        <Text
-          data-element='domain'
-          data-remote={remote}
-          onChange={_changeUrlElement}
-          value={remote.domain}
-        />
+        <Text data-element='domain' data-remote={remote} onChange={_changeUrlElement} value={remote.domain} />
       </span>
     ),
     name: _('remoteAuth'),
@@ -324,12 +277,7 @@ const COLUMNS_S3_REMOTE = [
   {
     itemRenderer: (remote, { formatMessage }) => (
       <span>
-        <Text
-          data-element='username'
-          data-remote={remote}
-          onChange={_changeUrlElement}
-          value={remote.username}
-        />
+        <Text data-element='username' data-remote={remote} onChange={_changeUrlElement} value={remote.username} />
         :
         <Password
           data-element='password'
@@ -364,15 +312,13 @@ const INDIVIDUAL_ACTIONS = [
           answer.success
             ? alert(
                 <span>
-                  <Icon icon='success' />{' '}
-                  {_('remoteTestSuccess', { name: remote.name })}
+                  <Icon icon='success' /> {_('remoteTestSuccess', { name: remote.name })}
                 </span>,
                 _('remoteTestSuccessMessage')
               )
             : alert(
                 <span>
-                  <Icon icon='error' />{' '}
-                  {_('remoteTestFailure', { name: remote.name })}
+                  <Icon icon='error' /> {_('remoteTestFailure', { name: remote.name })}
                 </span>,
                 <p>
                   <dl className='dl-horizontal'>

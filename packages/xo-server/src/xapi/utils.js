@@ -6,15 +6,7 @@ import pickBy from 'lodash/pickBy'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { satisfies as versionSatisfies } from 'semver'
 
-import {
-  camelToSnakeCase,
-  forEach,
-  isInteger,
-  map,
-  mapFilter,
-  mapToArray,
-  noop,
-} from '../utils'
+import { camelToSnakeCase, forEach, isInteger, map, mapFilter, mapToArray, noop } from '../utils'
 
 // ===================================================================
 
@@ -31,8 +23,7 @@ export const asInteger = value => String(value)
 
 export const filterUndefineds = obj => pickBy(obj, value => value !== undefined)
 
-export const optional = (value, fn) =>
-  value == null ? undefined : fn ? fn(value) : value
+export const optional = (value, fn) => (value == null ? undefined : fn ? fn(value) : value)
 
 export const prepareXapiParam = param => {
   // if (isFinite(param) && !isInteger(param)) {
@@ -173,13 +164,7 @@ export const makeEditObject = specs => {
       const entry = set.slice(index + 1)
 
       return function (value, object) {
-        return this.setFieldEntry(
-          object.$type,
-          object.$ref,
-          field,
-          entry,
-          value
-        )
+        return this.setFieldEntry(object.$type, object.$ref, field, entry, value)
       }
     }
 
@@ -307,10 +292,7 @@ export const makeEditObject = specs => {
           const constraintNewValue = values[constraintName]
 
           if (!constraint(constraintCurrentValue, value)) {
-            const cb = set(
-              constraintNewValue == null ? value : constraintNewValue,
-              constraintName
-            )
+            const cb = set(constraintNewValue == null ? value : constraintNewValue, constraintName)
             if (cb) {
               cbs.push(cb)
             }

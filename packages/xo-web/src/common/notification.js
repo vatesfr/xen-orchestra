@@ -46,12 +46,7 @@ export class Notification extends Component {
               this.props.isAdmin ? (
                 <div>
                   <div>{body}</div>
-                  <ButtonLink
-                    btnStyle='danger'
-                    className='mt-1'
-                    size='small'
-                    to='/settings/logs'
-                  >
+                  <ButtonLink btnStyle='danger' className='mt-1' size='small' to='/settings/logs'>
                     <Icon icon='logs' /> {_('showLogs')}
                   </ButtonLink>
                 </div>
@@ -60,10 +55,8 @@ export class Notification extends Component {
               ),
               autoCloseTimeout
             )
-          info = (title, body, autoCloseTimeout = 3e3) =>
-            notification.info(title, body, autoCloseTimeout)
-          success = (title, body, autoCloseTimeout = 3e3) =>
-            notification.success(title, body, autoCloseTimeout)
+          info = (title, body, autoCloseTimeout = 3e3) => notification.info(title, body, autoCloseTimeout)
+          success = (title, body, autoCloseTimeout = 3e3) => notification.success(title, body, autoCloseTimeout)
         }}
       />
     )

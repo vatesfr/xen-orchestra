@@ -55,9 +55,7 @@ function computeRessourcesAverage(objects, objectsStats, nPoints) {
     const { stats } = objectsStats[id]
 
     averages[id] = {
-      cpu: computeAverage(
-        mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
-      ),
+      cpu: computeAverage(mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))),
       nCpus: size(stats.cpus),
       memoryFree: computeAverage(stats.memoryFree, nPoints),
       memory: computeAverage(stats.memory, nPoints),
@@ -79,8 +77,7 @@ function computeRessourcesAverageWithWeight(averages1, averages2, ratio) {
         continue
       }
 
-      objectAverages[averageName] =
-        average1 * ratio + averages2[id][averageName] * (1 - ratio)
+      objectAverages[averageName] = average1 * ratio + averages2[id][averageName] * (1 - ratio)
     }
   }
 
@@ -104,17 +101,10 @@ export default class Plan {
     this._excludedHosts = excludedHosts
     this._thresholds = {
       cpu: {
-        critical: numberOrDefault(
-          thresholds && thresholds.cpu,
-          DEFAULT_CRITICAL_THRESHOLD_CPU
-        ),
+        critical: numberOrDefault(thresholds && thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU),
       },
       memoryFree: {
-        critical:
-          numberOrDefault(
-            thresholds && thresholds.memoryFree,
-            DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE
-          ) * 1024,
+        critical: numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024,
       },
     }
 
@@ -155,16 +145,8 @@ export default class Plan {
     }
 
     // Check in the last 30 min interval with ratio.
-    const avgBefore = computeRessourcesAverage(
-      hosts,
-      hostsStats,
-      MINUTES_OF_HISTORICAL_DATA
-    )
-    const avgWithRatio = computeRessourcesAverageWithWeight(
-      avgNow,
-      avgBefore,
-      0.75
-    )
+    const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
+    const avgWithRatio = computeRessourcesAverageWithWeight(avgNow, avgBefore, 0.75)
 
     toOptimize = this._checkRessourcesThresholds(toOptimize, avgWithRatio)
 
@@ -218,10 +200,7 @@ export default class Plan {
   async _getVms(hostId) {
     return filter(
       this.xo.getObjects(),
-      object =>
-        object.type === 'VM' &&
-        object.power_state === 'Running' &&
-        object.$container === hostId
+      object => object.type === 'VM' && object.power_state === 'Running' && object.$container === hostId
     )
   }
 

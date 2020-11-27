@@ -6,15 +6,10 @@ import { type BackupJob } from '../backups-ng'
 import { type CallJob } from '../jobs'
 import { type Schedule } from '../scheduling'
 
-const createOr = (children: Array<any>): any =>
-  children.length === 1 ? children[0] : { __or: children }
+const createOr = (children: Array<any>): any => (children.length === 1 ? children[0] : { __or: children })
 
 const methods = {
-  'vm.deltaCopy': (
-    job: CallJob,
-    { _reportWhen: reportWhen, retention = 1, sr, vms },
-    schedule: Schedule
-  ) => ({
+  'vm.deltaCopy': (job: CallJob, { _reportWhen: reportWhen, retention = 1, sr, vms }, schedule: Schedule) => ({
     mode: 'delta',
     settings: {
       '': reportWhen === undefined ? undefined : { reportWhen },
@@ -45,14 +40,7 @@ const methods = {
   }),
   'vm.rollingDrCopy': (
     job: CallJob,
-    {
-      _reportWhen: reportWhen,
-      deleteOldBackupsFirst,
-      depth = 1,
-      retention = depth,
-      sr,
-      vms,
-    },
+    { _reportWhen: reportWhen, deleteOldBackupsFirst, depth = 1, retention = depth, sr, vms },
     schedule: Schedule
   ) => ({
     mode: 'full',
@@ -69,14 +57,7 @@ const methods = {
   }),
   'vm.rollingBackup': (
     job: CallJob,
-    {
-      _reportWhen: reportWhen,
-      compress,
-      depth = 1,
-      retention = depth,
-      remoteId,
-      vms,
-    },
+    { _reportWhen: reportWhen, compress, depth = 1, retention = depth, remoteId, vms },
     schedule: Schedule
   ) => ({
     compression: compress ? 'native' : undefined,
@@ -139,10 +120,7 @@ const parseParamsVector = (vector: any) => {
   return { ...params, vms }
 }
 
-export const translateLegacyJob = (
-  job: CallJob,
-  schedules: Schedule[]
-): BackupJob => {
+export const translateLegacyJob = (job: CallJob, schedules: Schedule[]): BackupJob => {
   const { id } = job
   let method, schedule
   if (

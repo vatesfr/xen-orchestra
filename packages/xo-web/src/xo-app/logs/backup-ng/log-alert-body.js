@@ -18,8 +18,7 @@ import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 import { Vm, Sr, Remote, Pool } from 'render-xo-item'
 
-const hasTaskFailed = ({ status }) =>
-  status !== 'success' && status !== 'pending'
+const hasTaskFailed = ({ status }) => status !== 'success' && status !== 'pending'
 
 const TASK_STATUS = {
   failure: {
@@ -65,26 +64,16 @@ const TaskDate = ({ value }) => (
   />
 )
 
-const TaskStart = ({ task }) => (
-  <div>{_.keyValue(_('taskStart'), <TaskDate value={task.start} />)}</div>
-)
+const TaskStart = ({ task }) => <div>{_.keyValue(_('taskStart'), <TaskDate value={task.start} />)}</div>
 const TaskEnd = ({ task }) =>
-  task.end !== undefined ? (
-    <div>{_.keyValue(_('taskEnd'), <TaskDate value={task.end} />)}</div>
-  ) : null
+  task.end !== undefined ? <div>{_.keyValue(_('taskEnd'), <TaskDate value={task.end} />)}</div> : null
 const TaskDuration = ({ task }) =>
   task.end !== undefined ? (
-    <div>
-      {_.keyValue(
-        _('taskDuration'),
-        <FormattedDuration duration={task.end - task.start} />
-      )}
-    </div>
+    <div>{_.keyValue(_('taskDuration'), <FormattedDuration duration={task.end - task.start} />)}</div>
   ) : null
 
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
-const UNHEALTHY_VDI_CHAIN_LINK =
-  'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
+const UNHEALTHY_VDI_CHAIN_LINK = 'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
 const TaskError = ({ task }) => {
   let message
@@ -102,12 +91,7 @@ const TaskError = ({ task }) => {
     return (
       <div>
         <Tooltip content={_('clickForMoreInformation')}>
-          <a
-            className='text-info'
-            href={UNHEALTHY_VDI_CHAIN_LINK}
-            rel='noopener noreferrer'
-            target='_blank'
-          >
+          <a className='text-info' href={UNHEALTHY_VDI_CHAIN_LINK} rel='noopener noreferrer' target='_blank'>
             <Icon icon='info' /> {_('unhealthyVdiChainError')}
           </a>
         </Tooltip>
@@ -116,13 +100,9 @@ const TaskError = ({ task }) => {
   }
 
   const [label, className] =
-    task.status === 'skipped'
-      ? [_('taskReason'), 'text-info']
-      : [_('taskError'), 'text-danger']
+    task.status === 'skipped' ? [_('taskReason'), 'text-info'] : [_('taskError'), 'text-danger']
 
-  return (
-    <div>{_.keyValue(label, <span className={className}>{message}</span>)}</div>
-  )
+  return <div>{_.keyValue(label, <span className={className}>{message}</span>)}</div>
 }
 
 const Warnings = ({ warnings }) =>
@@ -167,36 +147,25 @@ const VmTask = ({ children, className, restartVmJob, task }) => (
     <TaskError task={task} />
     {task.transfer !== undefined && (
       <div>
-        {_.keyValue(
-          _('taskTransferredDataSize'),
-          formatSize(task.transfer.size)
-        )}
+        {_.keyValue(_('taskTransferredDataSize'), formatSize(task.transfer.size))}
         <br />
-        {_.keyValue(
-          _('taskTransferredDataSpeed'),
-          formatSpeed(task.transfer.size, task.transfer.duration)
-        )}
+        {_.keyValue(_('taskTransferredDataSpeed'), formatSpeed(task.transfer.size, task.transfer.duration))}
       </div>
     )}
     {task.merge !== undefined && (
       <div>
         {_.keyValue(_('taskMergedDataSize'), formatSize(task.merge.size))}
         <br />
-        {_.keyValue(
-          _('taskMergedDataSpeed'),
-          formatSpeed(task.merge.size, task.merge.duration)
-        )}
+        {_.keyValue(_('taskMergedDataSpeed'), formatSpeed(task.merge.size, task.merge.duration))}
       </div>
     )}
-    {task.isFull !== undefined &&
-      _.keyValue(_('exportType'), task.isFull ? 'full' : 'delta')}
+    {task.isFull !== undefined && _.keyValue(_('exportType'), task.isFull ? 'full' : 'delta')}
   </li>
 )
 
 const PoolTask = ({ children, className, task }) => (
   <li className={className}>
-    <Pool id={task.data.id} link newTab />{' '}
-    <TaskStateInfos status={task.status} />
+    <Pool id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
@@ -220,8 +189,7 @@ const XoTask = ({ children, className, task }) => (
 
 const SnapshotTask = ({ className, task }) => (
   <li className={className}>
-    <Icon icon='task' /> {_('snapshotVmLabel')}{' '}
-    <TaskStateInfos status={task.status} />
+    <Icon icon='task' /> {_('snapshotVmLabel')} <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -231,8 +199,7 @@ const SnapshotTask = ({ className, task }) => (
 
 const RemoteTask = ({ children, className, task }) => (
   <li className={className}>
-    <Remote id={task.data.id} link newTab />{' '}
-    <TaskStateInfos status={task.status} />
+    <Remote id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
@@ -262,8 +229,7 @@ const TransferMergeTask = ({ className, task }) => {
 
   return (
     <li className={className}>
-      <Icon icon='task' /> {task.message}{' '}
-      <TaskStateInfos status={task.status} />
+      <Icon icon='task' /> {task.message} <TaskStateInfos status={task.status} />
       <Warnings warnings={task.warnings} />
       <TaskStart task={task} />
       <TaskEnd task={task} />
@@ -273,10 +239,7 @@ const TransferMergeTask = ({ className, task }) => {
         <div>
           {_.keyValue(_('operationSize'), formatSize(size))}
           <br />
-          {_.keyValue(
-            _('operationSpeed'),
-            formatSpeed(size, task.end - task.start)
-          )}
+          {_.keyValue(_('operationSpeed'), formatSpeed(size, task.end - task.start))}
         </div>
       )}
     </li>
@@ -344,10 +307,7 @@ export default decorate([
         this.state._status = status
         this.state.page = 1
       },
-      restartVmJob: (_, params) => async (
-        _,
-        { log: { scheduleId, jobId } }
-      ) => {
+      restartVmJob: (_, params) => async (_, { log: { scheduleId, jobId } }) => {
         await runBackupNgJob({
           force: get(() => params.force),
           id: jobId,
@@ -381,9 +341,7 @@ export default decorate([
               : 'xo'
 
           if (task.tasks !== undefined) {
-            const subTaskWithIsFull = task.tasks.find(
-              ({ data = {} }) => data.isFull !== undefined
-            )
+            const subTaskWithIsFull = task.tasks.find(({ data = {} }) => data.isFull !== undefined)
             task.isFull = get(() => subTaskWithIsFull.data.isFull)
           }
         })
@@ -398,9 +356,7 @@ export default decorate([
         }
       },
       tasksFilteredByStatus: ({ preFilteredTasksLogs, status }) =>
-        status === 'all'
-          ? preFilteredTasksLogs
-          : filter(preFilteredTasksLogs, task => task.status === status),
+        status === 'all' ? preFilteredTasksLogs : filter(preFilteredTasksLogs, task => task.status === status),
       displayedTasks: ({ tasksFilteredByStatus, page }) => {
         const start = (page - 1) * ITEMS_PER_PAGE
         return tasksFilteredByStatus.slice(start, start + ITEMS_PER_PAGE)
@@ -458,8 +414,7 @@ export default decorate([
 
           return 'all'
         }),
-      nPages: ({ tasksFilteredByStatus }) =>
-        Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
+      nPages: ({ tasksFilteredByStatus }) => Math.ceil(tasksFilteredByStatus.length / ITEMS_PER_PAGE),
     },
   }),
   injectState,
@@ -516,11 +471,7 @@ export default decorate([
         </ul>
         {state.tasksFilteredByStatus.length > ITEMS_PER_PAGE && (
           <div className='text-xs-center'>
-            <Pagination
-              onChange={effects.onPageChange}
-              pages={state.nPages}
-              value={state.page}
-            />
+            <Pagination onChange={effects.onPageChange} pages={state.nPages} value={state.page} />
           </div>
         )}
       </div>

@@ -8,10 +8,7 @@ import Icon from 'icon'
 import moment from 'moment-timezone'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import SmartBackupPreview, {
-  constructPattern,
-  destructPattern,
-} from 'smart-backup'
+import SmartBackupPreview, { constructPattern, destructPattern } from 'smart-backup'
 import uncontrollableInput from 'uncontrollable-input'
 import Wizard, { Section } from 'wizard'
 import { confirm } from 'modal'
@@ -60,8 +57,7 @@ const SMART_SCHEMA = {
         not: {
           type: 'boolean',
           title: _('editBackupNot'),
-          description:
-            'Toggle on to backup VMs that are NOT resident on these pools',
+          description: 'Toggle on to backup VMs that are NOT resident on these pools',
         },
         values: {
           type: 'array',
@@ -90,8 +86,7 @@ const SMART_SCHEMA = {
             'xo:type': 'tag',
           },
           title: _('editBackupSmartTagsTitle'),
-          description:
-            'VMs which contain at least one of these tags. Not used if empty.', // FIXME: can't translate
+          description: 'VMs which contain at least one of these tags. Not used if empty.', // FIXME: can't translate
         },
       },
     },
@@ -351,9 +346,7 @@ export default class NewLegacyBackup extends Component {
           vms: {
             $pool: destructPattern($pool),
             power_state: pattern.power_state,
-            tags: destructPattern(tags, tags =>
-              map(tags, tag => (isArray(tag) ? tag[0] : tag))
-            ),
+            tags: destructPattern(tags, tags => map(tags, tag => (isArray(tag) ? tag[0] : tag))),
           },
         }
       }
@@ -387,8 +380,7 @@ export default class NewLegacyBackup extends Component {
         return scheduling
       }
 
-      const { cron = DEFAULT_CRON_PATTERN, timezone = DEFAULT_TIMEZONE } =
-        schedule || EMPTY_OBJECT
+      const { cron = DEFAULT_CRON_PATTERN, timezone = DEFAULT_TIMEZONE } = schedule || EMPTY_OBJECT
 
       return {
         cronPattern: cron,
@@ -492,15 +484,10 @@ export default class NewLegacyBackup extends Component {
   }
 
   _handleSmartBackupMode = event => {
-    this.setState(
-      event.target.value === 'smart'
-        ? { vmsParam: {} }
-        : { vmsParam: { vms: [] } }
-    )
+    this.setState(event.target.value === 'smart' ? { vmsParam: {} } : { vmsParam: { vms: [] } })
   }
 
-  _subjectPredicate = ({ type, permission }) =>
-    type === 'user' && permission === 'admin'
+  _subjectPredicate = ({ type, permission }) => type === 'user' && permission === 'admin'
 
   _getValue = (ns, key, defaultValue) => {
     let tmp
@@ -540,11 +527,7 @@ export default class NewLegacyBackup extends Component {
                         onChange={this.linkState('job.userId', 'id')}
                         predicate={this._subjectPredicate}
                         required
-                        value={this._getValue(
-                          'job',
-                          'userId',
-                          this.props.currentUser.id
-                        )}
+                        value={this._getValue('job', 'userId', this.props.currentUser.id)}
                       />
                     </fieldset>
                     <fieldset className='form-group'>
@@ -556,9 +539,7 @@ export default class NewLegacyBackup extends Component {
                       />
                     </fieldset>
                     <fieldset className='form-group'>
-                      <label htmlFor='selectBackup'>
-                        {_('newBackupSelection')}
-                      </label>
+                      <label htmlFor='selectBackup'>{_('newBackupSelection')}</label>
                       <select
                         className='form-control'
                         id='selectBackup'
@@ -570,14 +551,11 @@ export default class NewLegacyBackup extends Component {
                           <option value=''>{message}</option>
                         ))}
                         {map(BACKUP_METHOD_TO_INFO, (info, key) =>
-                          _({ key }, info.label, message => (
-                            <option value={key}>{message}</option>
-                          ))
+                          _({ key }, info.label, message => <option value={key}>{message}</option>)
                         )}
                       </select>
                     </fieldset>
-                    {(method === 'vm.rollingDeltaBackup' ||
-                      method === 'vm.deltaCopy') && (
+                    {(method === 'vm.rollingDeltaBackup' || method === 'vm.deltaCopy') && (
                       <div className='alert alert-warning' role='alert'>
                         <Icon icon='error' /> {_('backupVersionWarning')}
                       </div>
@@ -587,8 +565,7 @@ export default class NewLegacyBackup extends Component {
                         <GenericInput
                           label={
                             <span>
-                              <Icon icon={backupInfo.icon} />{' '}
-                              {_(backupInfo.label)}
+                              <Icon icon={backupInfo.icon} /> {_(backupInfo.label)}
                             </span>
                           }
                           required
@@ -598,9 +575,7 @@ export default class NewLegacyBackup extends Component {
                           value={this._getMainParams()}
                         />
                         <fieldset className='form-group'>
-                          <label htmlFor='smartMode'>
-                            {_('smartBackupModeSelection')}
-                          </label>
+                          <label htmlFor='smartMode'>{_('smartBackupModeSelection')}</label>
                           <select
                             className='form-control'
                             id='smartMode'
@@ -630,10 +605,7 @@ export default class NewLegacyBackup extends Component {
                               uiSchema={SMART_UI_SCHEMA}
                               value={vms}
                             />
-                            <SmartBackupPreview
-                              pattern={this._constructPattern(vms)}
-                              vms={this.props.vms}
-                            />
+                            <SmartBackupPreview pattern={this._constructPattern(vms)} vms={this.props.vms} />
                           </div>
                         ) : (
                           <GenericInput
@@ -656,14 +628,8 @@ export default class NewLegacyBackup extends Component {
               </Container>
             </Section>
             <Section icon='schedule' title='schedule'>
-              <Scheduler
-                onChange={this.linkState('scheduling')}
-                value={scheduling}
-              />
-              <SchedulePreview
-                cronPattern={scheduling.cronPattern}
-                timezone={scheduling.timezone}
-              />
+              <Scheduler onChange={this.linkState('scheduling')} value={scheduling} />
+              <SchedulePreview cronPattern={scheduling.cronPattern} timezone={scheduling.timezone} />
             </Section>
             <Section title='action' summary>
               <Container>

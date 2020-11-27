@@ -172,11 +172,7 @@ const handleHook = data => {
   const { method, params, type, result, error, timestamp } = JSON.parse(data)
 
   // Log it
-  console.log(
-    `${new Date(timestamp).toISOString()} [${method}|${type}] ${params} → ${
-      result || error
-    }`
-  )
+  console.log(`${new Date(timestamp).toISOString()} [${method}|${type}] ${params} → ${result || error}`)
 
   // Run scripts
   exec(`./hook-scripts/${method}-${type}.sh`)

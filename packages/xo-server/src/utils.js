@@ -18,10 +18,7 @@ import { type SimpleIdPattern } from './utils'
 // ===================================================================
 
 export function camelToSnakeCase(string) {
-  return string.replace(
-    /([a-z0-9])([A-Z])/g,
-    (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`
-  )
+  return string.replace(/([a-z0-9])([A-Z])/g, (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`)
 }
 
 // -------------------------------------------------------------------
@@ -70,15 +67,7 @@ export const firstDefined = function () {
 // -------------------------------------------------------------------
 
 export const getUserPublicProperties = user =>
-  pick(
-    user.properties || user,
-    'authProviders',
-    'id',
-    'email',
-    'groups',
-    'permission',
-    'preferences'
-  )
+  pick(user.properties || user, 'authProviders', 'id', 'email', 'groups', 'permission', 'preferences')
 
 // -------------------------------------------------------------------
 
@@ -97,8 +86,7 @@ export const getPseudoRandomBytes = n => {
   return bytes
 }
 
-export const generateUnsecureToken = (n = 32) =>
-  base64url(getPseudoRandomBytes(n))
+export const generateUnsecureToken = (n = 32) => base64url(getPseudoRandomBytes(n))
 
 // Generate a secure random Base64 string.
 export const generateToken = (randomBytes => {
@@ -194,15 +182,7 @@ export function pSettle(promises) {
 
 // -------------------------------------------------------------------
 
-export {
-  pAll,
-  pDelay,
-  pFinally,
-  pFromCallback,
-  pReflect,
-  promisify,
-  promisifyAll,
-} from 'promise-toolbox'
+export { pAll, pDelay, pFinally, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
 
 // -------------------------------------------------------------------
 
@@ -238,8 +218,7 @@ export const popProperty = obj => {
 // -------------------------------------------------------------------
 
 // resolve a relative path from a file
-export const resolveRelativeFromFile = (file, path) =>
-  resolve('/', dirname(file), path).slice(1)
+export const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 // -------------------------------------------------------------------
 
@@ -279,11 +258,7 @@ export const DONE = {}
 // `DONE` provided as the fourth argument.
 //
 // Usage: map(collection, item => item + 1)
-export function map(
-  collection,
-  iteratee,
-  target = has(collection, 'length') ? [] : {}
-) {
+export function map(collection, iteratee, target = has(collection, 'length') ? [] : {}) {
   forEach(collection, (item, i) => {
     const value = iteratee(item, i, collection, DONE)
     if (value === DONE) {
@@ -311,8 +286,7 @@ export const multiKeyHash = (...args) =>
 
 // -------------------------------------------------------------------
 
-export const resolveSubpath = (root, path) =>
-  resolve(root, `./${resolve('/', path)}`)
+export const resolveSubpath = (root, path) => resolve(root, `./${resolve('/', path)}`)
 
 // -------------------------------------------------------------------
 
@@ -388,9 +362,7 @@ export const mapFilter = (collection, iteratee) => {
 
 export const splitFirst = (string, separator) => {
   const i = string.indexOf(separator)
-  return i === -1
-    ? null
-    : [string.slice(0, i), string.slice(i + separator.length)]
+  return i === -1 ? null : [string.slice(0, i), string.slice(i + separator.length)]
 }
 
 // -------------------------------------------------------------------

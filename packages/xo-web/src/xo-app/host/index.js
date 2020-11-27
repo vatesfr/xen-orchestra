@@ -64,11 +64,8 @@ const isRunning = host => host && host.power_state === 'Running'
 
   const getLogs = createGetObjectsOfType('message')
     .filter(
-      createSelector(
-        getHost,
-        getVmController,
-        (host, controller) => ({ $object }) =>
-          $object === host.id || $object === controller.id
+      createSelector(getHost, getVmController, (host, controller) => ({ $object }) =>
+        $object === host.id || $object === controller.id
       )
     )
     .sort()
@@ -83,14 +80,10 @@ const isRunning = host => host && host.power_state === 'Running'
 
   const getPrivateNetworks = createFilter(
     createGetObjectsOfType('network'),
-    createSelector(getPool, pool => network =>
-      network.$pool === pool.id && isEmpty(network.PIFs)
-    )
+    createSelector(getPool, pool => network => network.$pool === pool.id && isEmpty(network.PIFs))
   )
 
-  const getHostPatches = createGetObjectsOfType('patch').pick(
-    createSelector(getHost, host => host.patches)
-  )
+  const getHostPatches = createGetObjectsOfType('patch').pick(createSelector(getHost, host => host.patches))
 
   const doesNeedRestart = createDoesHostNeedRestart(getHost)
 
@@ -104,8 +97,7 @@ const isRunning = host => host && host.power_state === 'Running'
 
     return {
       host,
-      hostPatches:
-        host.productBrand !== 'XCP-ng' && getHostPatches(state, props),
+      hostPatches: host.productBrand !== 'XCP-ng' && getHostPatches(state, props),
       logs: getLogs(state, props),
       needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
@@ -199,20 +191,15 @@ export default class Host extends Component {
       return
     }
 
-    this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(
-      host,
-      missingPatches =>
-        this.setState({
-          missingPatches:
-            missingPatches && sortBy(missingPatches, patch => -patch.time),
-        })
+    this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(host, missingPatches =>
+      this.setState({
+        missingPatches: missingPatches && sortBy(missingPatches, patch => -patch.time),
+      })
     )
   }
 
-  _setNameDescription = nameDescription =>
-    editHost(this.props.host, { name_description: nameDescription })
-  _setNameLabel = nameLabel =>
-    editHost(this.props.host, { name_label: nameLabel })
+  _setNameDescription = nameDescription => editHost(this.props.host, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editHost(this.props.host, { name_label: nameLabel })
 
   header() {
     const { host, pool, state } = this.props
@@ -256,10 +243,7 @@ export default class Host extends Component {
             <Copiable tagName='pre' className='text-muted mb-0'>
               {host.uuid}
             </Copiable>
-            <Text
-              value={host.name_description}
-              onChange={this._setNameDescription}
-            />
+            <Text value={host.name_description} onChange={this._setNameDescription} />
           </Col>
           <Col mediumSize={6}>
             <div className='text-xs-center'>
@@ -270,35 +254,19 @@ export default class Host extends Component {
         <Row>
           <Col>
             <NavTabs>
-              <NavLink to={`/hosts/${host.id}/general`}>
-                {_('generalTabName')}
-              </NavLink>
-              <NavLink to={`/hosts/${host.id}/stats`}>
-                {_('statsTabName')}
-              </NavLink>
-              <NavLink to={`/hosts/${host.id}/console`}>
-                {_('consoleTabName')}
-              </NavLink>
-              <NavLink to={`/hosts/${host.id}/network`}>
-                {_('networkTabName')}
-              </NavLink>
-              <NavLink to={`/hosts/${host.id}/storage`}>
-                {_('storageTabName')}
-              </NavLink>
+              <NavLink to={`/hosts/${host.id}/general`}>{_('generalTabName')}</NavLink>
+              <NavLink to={`/hosts/${host.id}/stats`}>{_('statsTabName')}</NavLink>
+              <NavLink to={`/hosts/${host.id}/console`}>{_('consoleTabName')}</NavLink>
+              <NavLink to={`/hosts/${host.id}/network`}>{_('networkTabName')}</NavLink>
+              <NavLink to={`/hosts/${host.id}/storage`}>{_('storageTabName')}</NavLink>
               <NavLink to={`/hosts/${host.id}/patches`}>
                 {_('patchesTabName')}{' '}
                 {isEmpty(missingPatches) ? null : (
-                  <span className='tag tag-pill tag-danger'>
-                    {missingPatches.length}
-                  </span>
+                  <span className='tag tag-pill tag-danger'>{missingPatches.length}</span>
                 )}
               </NavLink>
-              <NavLink to={`/hosts/${host.id}/logs`}>
-                {_('logsTabName')}
-              </NavLink>
-              <NavLink to={`/hosts/${host.id}/advanced`}>
-                {_('advancedTabName')}
-              </NavLink>
+              <NavLink to={`/hosts/${host.id}/logs`}>{_('logsTabName')}</NavLink>
+              <NavLink to={`/hosts/${host.id}/advanced`}>{_('advancedTabName')}</NavLink>
             </NavTabs>
           </Col>
         </Row>
@@ -329,10 +297,7 @@ export default class Host extends Component {
       pick(this.state, ['missingPatches', 'statsOverview'])
     )
     return (
-      <Page
-        header={this.header()}
-        title={`${host.name_label}${pool ? ` (${pool.name_label})` : ''}`}
-      >
+      <Page header={this.header()} title={`${host.name_label}${pool ? ` (${pool.name_label})` : ''}`}>
         {cloneElement(this.props.children, childProps)}
       </Page>
     )

@@ -17,8 +17,7 @@ import { subscribeNotifications, dismissNotification } from 'xo'
 const COLUMNS = [
   {
     name: '',
-    itemRenderer: ({ level }) =>
-      level === 'warning' && <Icon icon='alarm' color='text-danger' />,
+    itemRenderer: ({ level }) => level === 'warning' && <Icon icon='alarm' color='text-danger' />,
     sortCriteria: 'level',
   },
   {
@@ -61,8 +60,7 @@ const COLUMNS = [
   },
   {
     name: '',
-    itemRenderer: ({ id, read }) =>
-      !read && <strong className='text-success'>{_('notificationNew')}</strong>,
+    itemRenderer: ({ id, read }) => !read && <strong className='text-success'>{_('notificationNew')}</strong>,
     sortCriteria: 'read',
   },
 ]
@@ -89,9 +87,7 @@ const Notifications = decorate([
           <span>
             <Icon icon='notification' /> {notification.title}
           </span>,
-          <div
-            dangerouslySetInnerHTML={{ __html: marked(notification.message) }}
-          />
+          <div dangerouslySetInnerHTML={{ __html: marked(notification.message) }} />
         ).then(() => dismissNotification(notification.id)),
     },
   }),
@@ -116,22 +112,14 @@ export const NotificationTag = decorate([
   }),
   provideState({
     computed: {
-      nNewNotifications: (_, { notifications }) =>
-        filter(notifications, { read: false }).length,
-      someWarningNotifications: (_, { notifications }) =>
-        some(notifications, { level: 'warning', read: false }),
+      nNewNotifications: (_, { notifications }) => filter(notifications, { read: false }).length,
+      someWarningNotifications: (_, { notifications }) => some(notifications, { level: 'warning', read: false }),
     },
   }),
   injectState,
   ({ state }) =>
     state.nNewNotifications > 0 ? (
-      <span
-        className={classNames(
-          'tag',
-          'tag-pill',
-          state.someWarningNotifications ? 'tag-danger' : 'tag-warning'
-        )}
-      >
+      <span className={classNames('tag', 'tag-pill', state.someWarningNotifications ? 'tag-danger' : 'tag-warning')}>
         {state.nNewNotifications}
       </span>
     ) : null,

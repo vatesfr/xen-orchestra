@@ -4,16 +4,14 @@ import escapeRegExp from 'lodash/escapeRegExp'
 
 const TPL_RE = /\{\{(.+?)\}\}/g
 export const evalTemplate = (tpl, data) => {
-  const getData =
-    typeof data === 'function' ? (_, key) => data(key) : (_, key) => data[key]
+  const getData = typeof data === 'function' ? (_, key) => data(key) : (_, key) => data[key]
 
   return tpl.replace(TPL_RE, getData)
 }
 
 // -------------------------------------------------------------------
 
-const compileGlobPatternFragment = pattern =>
-  pattern.split('*').map(escapeRegExp).join('.*')
+const compileGlobPatternFragment = pattern => pattern.split('*').map(escapeRegExp).join('.*')
 
 export const compileGlobPattern = pattern => {
   const no = []
