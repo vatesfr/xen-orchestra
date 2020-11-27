@@ -71,7 +71,7 @@ export default class Api {
         return
       }
 
-      if (typeof result?.pipe === 'function') {
+      if (typeof result?.pipe === 'function' && !result._readableState?.objectMode) {
         ctx.body = result
         return
       }
