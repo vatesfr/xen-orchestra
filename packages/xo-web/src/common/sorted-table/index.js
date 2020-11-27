@@ -730,7 +730,7 @@ class SortedTable extends Component {
   _setNItemsPerPage = itemsPerPage => {
     const { location, stateUrlParam } = this.props
     this.setState({ itemsPerPage })
-    cookies.set(`${location}-${stateUrlParam}`, itemsPerPage)
+    cookies.set(`${location.pathname}-${stateUrlParam}`, itemsPerPage)
   }
 
   render() {
