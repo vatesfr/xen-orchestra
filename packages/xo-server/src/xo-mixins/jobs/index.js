@@ -263,7 +263,11 @@ export default class Jobs {
     })
 
     const app = this._app
-    const user = await app.getUser(job.userId)
+    const user = await app.getUser(job.userId).catch(error => {
+      if (!noSuchObject.is(error)) {
+        throw error
+      }
+    })
     const data = {
       callId: Math.random().toString(36).slice(2),
       method: 'backupNg.runJob',
