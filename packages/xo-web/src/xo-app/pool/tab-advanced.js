@@ -9,6 +9,7 @@ import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType, createGroupBy } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { map } from 'lodash'
@@ -82,6 +83,12 @@ export default class TabAdvanced extends Component {
                     <th>{_('setpoolMaster')}</th>
                     <td>
                       <PoolMaster pool={pool} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('customFields')}</th>
+                    <td>
+                      <CustomFields object={pool.id} />
                     </td>
                   </tr>
                   <tr>
