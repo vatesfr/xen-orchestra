@@ -37,6 +37,10 @@ import parseNdJson from './_parseNdJson'
 
 // ===================================================================
 
+export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
+
+// ===================================================================
+
 export const XEN_DEFAULT_CPU_WEIGHT = 256
 export const XEN_DEFAULT_CPU_CAP = 0
 
