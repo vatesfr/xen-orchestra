@@ -45,3 +45,4 @@
 - xo-vmdk-to-vhd major
 - xo-server minor
 - xo-web minor
+- xo-web patch
