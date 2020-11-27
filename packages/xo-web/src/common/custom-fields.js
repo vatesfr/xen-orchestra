@@ -10,7 +10,7 @@ import Icon from './icon'
 import SingleLineRow from './single-line-row'
 import Tooltip from './tooltip'
 import { addCustomField, removeCustomField, setCustomField } from './xo'
-import { connectStore, noop } from './utils'
+import { connectStore } from './utils'
 import { Container, Col } from './grid'
 import { createGetObject } from './selectors'
 import { form } from './modal'
@@ -79,7 +79,7 @@ const CustomFields = decorate([
               <Icon icon='add' /> {_('addCustomField')}
             </span>
           ),
-        }).then(({ name, value }) => addCustomField(id, name.trim(), value.trim()), noop),
+        }).then(({ name, value }) => addCustomField(id, name.trim(), value.trim())),
       removeCustomField: (_, { currentTarget: { dataset } }) => (_, { object: { id } }) =>
         removeCustomField(id, dataset.name),
       setCustomFieldValue: (_, value, { name }) => (_, { object: { id } }) => setCustomField(id, name, value),
