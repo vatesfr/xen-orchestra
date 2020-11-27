@@ -61,6 +61,7 @@ const messages = {
   proxy: 'Proxy',
   proxies: 'Proxies',
   name: 'Name',
+  value: 'Value',
   address: 'Address',
   vm: 'VM',
   destinationSR: 'Destination SR',
@@ -94,6 +95,9 @@ const messages = {
   privateKey: 'Private key (PKCS#8)',
   installNewCertificate: 'Install new certificate',
   replaceExistingCertificate: 'Replace existing certificate',
+  customFields: 'Custom fields',
+  addCustomField: 'Add custom field',
+  deleteCustomField: 'Delete custom field',
 
   // ----- Modals -----
   alertOk: 'OK',
