@@ -9,9 +9,10 @@ import React from 'react'
 import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
-import { blockXoaAccess } from 'xoa-updater'
+import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { connectStore, getXoaPlan, routes } from 'utils'
 import { Notification } from 'notification'
+import { productId2Plan } from 'xoa-plans'
 import { ShortcutManager } from 'react-shortcuts'
 import { ThemeProvider } from 'styled-components'
 import { TooltipViewer } from 'tooltip'
@@ -124,6 +125,7 @@ export default class XoApp extends Component {
 
   state = {
     dismissedSourceBanner: Boolean(cookies.get('dismissedSourceBanner')),
+    dismissedTrialBanner: Boolean(cookies.get('dismissedTrialBanner')),
   }
 
   displayOpenSourceDisclaimer() {
@@ -151,6 +153,11 @@ export default class XoApp extends Component {
   dismissSourceBanner = () => {
     cookies.set('dismissedSourceBanner', true, { expires: 1 }) // 1 day
     this.setState({ dismissedSourceBanner: true })
+  }
+
+  dismissTrialBanner = () => {
+    cookies.set('dismissedTrialBanner', true, { expires: 1 })
+    this.setState({ dismissedTrialBanner: true })
   }
 
   componentDidMount() {
@@ -255,6 +262,17 @@ export default class XoApp extends Component {
                     {_('disclaimerText4')}
                   </a>
                   <button className='close' onClick={this.dismissSourceBanner}>
+                    &times;
+                  </button>
+                </div>
+              )}
+              {isTrialRunning(trial.trial) && !this.state.dismissedTrialBanner && (
+                <div className='alert alert-info mb-0'>
+                  {_('trialLicenseInfo', {
+                    edition: getXoaPlan(productId2Plan[trial.trial.productId]),
+                    date: new Date(trial.trial.end),
+                  })}
+                  <button className='close' onClick={this.dismissTrialBanner}>
                     &times;
                   </button>
                 </div>

@@ -13,6 +13,8 @@
 - [Dashboard/Health] List VMs with missing or outdated guest tools (PR [#5376](https://github.com/vatesfr/xen-orchestra/pull/5376))
 - [VIF] Ability for admins to set any allowed IPs, including IPv6 and IPs that are not in an IP pool [#2535](https://github.com/vatesfr/xen-orchestra/issues/2535) [#1872](https://github.com/vatesfr/xen-orchestra/issues/1872) (PR [#5367](https://github.com/vatesfr/xen-orchestra/pull/5367))
 - [Proxy] Ability to restore a file from VM backup (PR [#5359](https://github.com/vatesfr/xen-orchestra/pull/5359))
+- [Web Hooks] `backupNg.runJob` is now triggered by scheduled runs [#5205](https://github.com/vatesfr/xen-orchestra/issues/5205) (PR [#5360](https://github.com/vatesfr/xen-orchestra/pull/5360))
+- [Licensing] Add trial end information banner (PR [#5374](https://github.com/vatesfr/xen-orchestra/pull/5374))
 - Assign custom fields on pools, hosts, SRs, and VMs in advanced tab [#4730](https://github.com/vatesfr/xen-orchestra/issues/4730) (PR [#5387](https://github.com/vatesfr/xen-orchestra/pull/5387))
 
 ### Bug fixes
@@ -47,4 +49,5 @@
 - vhd-lib major
 - xo-vmdk-to-vhd major
 - xo-server minor
+- xo-server-web-hooks minor
 - xo-web minor

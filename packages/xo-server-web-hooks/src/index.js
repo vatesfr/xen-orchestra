@@ -76,11 +76,15 @@ class XoServerHooks {
   load() {
     this._xo.on('xo:preCall', this._handlePreHook)
     this._xo.on('xo:postCall', this._handlePostHook)
+    this._xo.on('backup:preCall', this._handlePreHook)
+    this._xo.on('backup:postCall', this._handlePostHook)
   }
 
   unload() {
     this._xo.removeListener('xo:preCall', this._handlePreHook)
     this._xo.removeListener('xo:postCall', this._handlePostHook)
+    this._xo.removeListener('backup:preCall', this._handlePreHook)
+    this._xo.removeListener('backup:postCall', this._handlePostHook)
   }
 
   async test({ url }) {
