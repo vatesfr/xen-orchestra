@@ -1,7 +1,7 @@
 const KEY_PREFIX = 'XenCenter.CustomFields.'
 
 export async function add({ object, name, value }) {
-  await this.getXapiObject(object).update_other_config(KEY_PREFIX + name, value)
+  await this.getXapiObject(object).$call('add_to_other_config', KEY_PREFIX + name, value)
 }
 
 add.description = 'Add a new custom field to an object'

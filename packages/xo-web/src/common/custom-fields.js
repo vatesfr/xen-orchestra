@@ -5,16 +5,14 @@ import PropTypes from 'prop-types'
 import { injectState, provideState } from 'reaclette'
 
 import ActionButton from './action-button'
-import Component from './base-component'
 import decorate from './apply-decorators'
 import Icon from './icon'
 import SingleLineRow from './single-line-row'
 import Tooltip from './tooltip'
 import { addCustomField, removeCustomField, setCustomField } from './xo'
 import { connectStore, noop } from './utils'
-import { Container, Col, Row } from './grid'
+import { Container, Col } from './grid'
 import { createGetObject } from './selectors'
-import { error } from './notification'
 import { form } from './modal'
 import { Text } from './editable'
 
@@ -75,27 +73,22 @@ const CustomFields = decorate([
       addCustomField: () => (state, { object: { id } }) =>
         form({
           render: props => <AddCustomFieldModal {...props} />,
-          defaultValue: { name: '',value: ''},
+          defaultValue: { name: '', value: '' },
           header: (
             <span>
               <Icon icon='add' /> {_('addCustomField')}
             </span>
           ),
-        }).then(
-          ({ name, value }) => addCustomField(id, name.trim(), value.trim()), noop
-        ),
-      removeCustomField: (_, { currentTarget: { dataset } }) => (
-        _,
-        { object: { id } }
-      ) => removeCustomField(id, dataset.name),
-      setCustomFieldValue: (_, value, { name }) => (_, { object: { id } }) =>
-        setCustomField(id, name, value),
+        }).then(({ name, value }) => addCustomField(id, name.trim(), value.trim()), noop),
+      removeCustomField: (_, { currentTarget: { dataset } }) => (_, { object: { id } }) =>
+        removeCustomField(id, dataset.name),
+      setCustomFieldValue: (_, value, { name }) => (_, { object: { id } }) => setCustomField(id, name, value),
     },
     computed: {
       customFields: (_, { object }) =>
         Object.entries(defined(object.otherConfig, object.other_config, object.other, {}))
-         .filter(([key]) => key.startsWith(CUSTOM_FIELDS_KEY_PREFIX))
-         .sort(([keyA], [keyB]) => keyA < keyB ? -1 : 1)
+          .filter(([key]) => key.startsWith(CUSTOM_FIELDS_KEY_PREFIX))
+          .sort(([keyA], [keyB]) => (keyA < keyB ? -1 : 1)),
     },
   }),
   injectState,
@@ -103,38 +96,28 @@ const CustomFields = decorate([
     return (
       <div>
         {customFields.map(([key, value]) => {
-            const name = key.substring(CUSTOM_FIELDS_KEY_PREFIX.length)
-            return (
-                <div key={key}>
-                  {name}:{' '}
-                  <Text
-                    data-name={name}
-                    value={value}
-                    onChange={effects.setCustomFieldValue}
-                  />
-                  <Tooltip content={_('deleteCustomField')}>
-                    <a
-                      data-name={name}
-                      onClick={effects.removeCustomField}
-                      role='button'
-                    >
-                      <Icon icon='remove' />
-                    </a>
-                  </Tooltip>
-                </div>
-            )
+          const name = key.substring(CUSTOM_FIELDS_KEY_PREFIX.length)
+          return (
+            <div key={key}>
+              {name}: <Text data-name={name} value={value} onChange={effects.setCustomFieldValue} />
+              <Tooltip content={_('deleteCustomField')}>
+                <a data-name={name} onClick={effects.removeCustomField} role='button'>
+                  <Icon icon='remove' />
+                </a>
+              </Tooltip>
+            </div>
+          )
         })}
-
-          <div>
-            <ActionButton
-              btnStyle='primary'
-              handler={effects.addCustomField}
-              icon='add'
-              size='small'
-              tooltip={_('addCustomField')}
-            />
-          </div>
+        <div>
+          <ActionButton
+            btnStyle='primary'
+            handler={effects.addCustomField}
+            icon='add'
+            size='small'
+            tooltip={_('addCustomField')}
+          />
         </div>
+      </div>
     )
   },
 ])
