@@ -29,8 +29,8 @@
 - @xen-orchestra/fs 0.12.0
 - vhd-lib 1.0.0
 - xo-vmdk-to-vhd 2.0.0
-- xo-server 5.71.0
 - xo-server-web-hooks 0.2.0
+- xo-server 5.71.0
 - xo-web 5.75.0
 
 ## **5.52.0** (2020-10-30)
