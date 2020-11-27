@@ -17,11 +17,7 @@ const _getPackages = scope => {
 }
 
 exports.getPackages = (readPackageJson = false) => {
-  const p = Promise.all([
-    _getPackages(),
-    _getPackages('@vates'),
-    _getPackages('@xen-orchestra'),
-  ]).then(pkgs => {
+  const p = Promise.all([_getPackages(), _getPackages('@vates'), _getPackages('@xen-orchestra')]).then(pkgs => {
     pkgs = [].concat(...pkgs) // flatten
     return readPackageJson
       ? Promise.all(
@@ -41,8 +37,7 @@ exports.getPackages = (readPackageJson = false) => {
 
 const noop = (exports.noop = () => {})
 
-const readFile = (exports.readFile = file =>
-  fromCallback(fs.readFile, file, 'utf8'))
+const readFile = (exports.readFile = file => fromCallback(fs.readFile, file, 'utf8'))
 
 exports.unlink = path =>
   fromCallback(fs.unlink, path).catch(error => {

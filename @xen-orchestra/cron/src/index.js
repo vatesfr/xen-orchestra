@@ -42,10 +42,7 @@ class Job {
         const now = schedule._createDate()
         scheduledDate = +next(schedule._schedule, now)
         const delay = scheduledDate - now
-        this._timeout =
-          delay < MAX_DELAY
-            ? setTimeout(wrapper, delay)
-            : setTimeout(scheduleNext, MAX_DELAY)
+        this._timeout = delay < MAX_DELAY ? setTimeout(wrapper, delay) : setTimeout(scheduleNext, MAX_DELAY)
       }
     }
 
@@ -73,12 +70,7 @@ class Job {
 class Schedule {
   constructor(pattern, zone = 'utc') {
     this._schedule = parse(pattern)
-    this._createDate =
-      zone.toLowerCase() === 'utc'
-        ? moment.utc
-        : zone === 'local'
-        ? moment
-        : () => moment.tz(zone)
+    this._createDate = zone.toLowerCase() === 'utc' ? moment.utc : zone === 'local' ? moment : () => moment.tz(zone)
   }
 
   createJob(fn) {

@@ -7,10 +7,8 @@ import ActionButton from './action-button'
 
 // do not forward `state` to ActionButton
 const Button = styled(p => <ActionButton {...omit(p, 'state')} />)`
-  background-color: ${p =>
-    p.theme[`${p.state ? 'enabled' : 'disabled'}StateBg`]};
-  border: 2px solid
-    ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateColor`]};
+  background-color: ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateBg`]};
+  border: 2px solid ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateColor`]};
   color: ${p => p.theme[`${p.state ? 'enabled' : 'disabled'}StateColor`]};
 `
 

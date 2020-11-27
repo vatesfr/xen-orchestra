@@ -37,11 +37,7 @@ const SIZES = {
 
 // -----------------------------------------------------------------------------
 
-const TYPES = [
-  of.instructionType.clearActions,
-  of.instructionType.writeActions,
-  of.instructionType.applyActions,
-]
+const TYPES = [of.instructionType.clearActions, of.instructionType.writeActions, of.instructionType.applyActions]
 const OFFSETS = of.offsets.instructionActions
 
 const PAD_LENGTH = 4
@@ -57,11 +53,7 @@ export default {
     actions.forEach(action => {
       assert(Object.values(of.actionType).includes(action.type))
       // TODO: manage experimenter
-      object.len += get(
-        SIZES,
-        action.type,
-        `Invalid action type: ${action.type}`
-      )
+      object.len += get(SIZES, action.type, `Invalid action type: ${action.type}`)
     })
 
     buffer = buffer !== undefined ? buffer : Buffer.alloc(object.len)

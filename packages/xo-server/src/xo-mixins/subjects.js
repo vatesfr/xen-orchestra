@@ -13,10 +13,8 @@ import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
 
 const log = createLogger('xo:xo-mixins:subjects')
 
-const addToArraySet = (set, value) =>
-  set !== undefined ? (set.includes(value) ? set : set.concat(value)) : [value]
-const removeFromArraySet = (set, value) =>
-  set && filter(set, current => current !== value)
+const addToArraySet = (set, value) => (set !== undefined ? (set.includes(value) ? set : set.concat(value)) : [value])
+const removeFromArraySet = (set, value) => set && filter(set, current => current !== value)
 
 // ===================================================================
 
@@ -36,15 +34,12 @@ export default class {
       indexes: ['email'],
     }))
 
-    xo.on('clean', () =>
-      Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()])
-    )
+    xo.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
     xo.on('start', async () => {
       xo.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups =>
-          Promise.all(mapToArray(groups, group => groupsDb.save(group))),
+        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group))),
         ['users']
       )
       xo.addConfigManager(
@@ -56,12 +51,7 @@ export default class {
               const userId = user.id
               const conflictUsers = await usersDb.get({ email: user.email })
               if (!isEmpty(conflictUsers)) {
-                await Promise.all(
-                  mapToArray(
-                    conflictUsers,
-                    ({ id }) => id !== userId && this.deleteUser(id)
-                  )
-                )
+                await Promise.all(mapToArray(conflictUsers, ({ id }) => id !== userId && this.deleteUser(id)))
               }
               return usersDb.save(user)
             })
@@ -69,10 +59,7 @@ export default class {
       )
 
       if (!(await usersDb.exists())) {
-        const {
-          email = 'admin@admin.net',
-          password = 'admin',
-        } = await XenStore.read('vm-data/admin-account')
+        const { email = 'admin@admin.net', password = 'admin' } = await XenStore.read('vm-data/admin-account')
           .then(JSON.parse)
           .catch(() => ({}))
 
@@ -172,9 +159,7 @@ export default class {
         newAuthProviders[name] = value
       }
     })
-    user.authProviders = isEmpty(newAuthProviders)
-      ? undefined
-      : newAuthProviders
+    user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
 
     // TODO: remove
     user.email = user.name
@@ -294,8 +279,7 @@ export default class {
       // avoid conflicts
       await this.updateUser(user.id, {
         name:
-          (user.authProviders === undefined ||
-            Object.keys(user.authProviders).length < 2) &&
+          (user.authProviders === undefined || Object.keys(user.authProviders).length < 2) &&
           conflictingUser === undefined // cf: TODO above
             ? name
             : undefined,
@@ -303,10 +287,7 @@ export default class {
           ...user.authProviders,
           [providerId]: {
             id,
-            data:
-              data !== undefined
-                ? data
-                : user.authProviders?.[providerId]?.data,
+            data: data !== undefined ? data : user.authProviders?.[providerId]?.data,
           },
         },
       })
@@ -340,8 +321,7 @@ export default class {
 
   async createGroup({ name, provider, providerGroupId }) {
     // TODO: use plain objects.
-    const group = (await this._groups.create(name, provider, providerGroupId))
-      .properties
+    const group = (await this._groups.create(name, provider, providerGroupId)).properties
 
     return group
   }
@@ -388,10 +368,7 @@ export default class {
   }
 
   async addUserToGroup(userId, groupId) {
-    const [user, group] = await Promise.all([
-      this.getUser(userId),
-      this.getGroup(groupId),
-    ])
+    const [user, group] = await Promise.all([this.getUser(userId), this.getGroup(groupId)])
 
     user.groups = addToArraySet(user.groups, groupId)
     group.users = addToArraySet(group.users, userId)
@@ -410,15 +387,9 @@ export default class {
   }
 
   async removeUserFromGroup(userId, groupId) {
-    const [user, group] = await Promise.all([
-      this.getUser(userId),
-      this.getGroup(groupId),
-    ])
+    const [user, group] = await Promise.all([this.getUser(userId), this.getGroup(groupId)])
 
-    await Promise.all([
-      this._removeUserFromGroup(userId, group),
-      this._removeGroupFromUser(groupId, user),
-    ])
+    await Promise.all([this._removeUserFromGroup(userId, group), this._removeGroupFromUser(groupId, user)])
   }
 
   async setGroupUsers(groupId, userIds) {

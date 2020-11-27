@@ -6,12 +6,7 @@ import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { Toggle } from 'form'
-import {
-  CpuLineChart,
-  MemoryLineChart,
-  VifLineChart,
-  XvdLineChart,
-} from 'xo-line-chart'
+import { CpuLineChart, MemoryLineChart, VifLineChart, XvdLineChart } from 'xo-line-chart'
 
 export default class VmStats extends Component {
   state = {
@@ -67,10 +62,7 @@ export default class VmStats extends Component {
 
     if (vmCur.power_state !== 'Running' && vmNext.power_state === 'Running') {
       this.loop(vmNext)
-    } else if (
-      vmCur.power_state === 'Running' &&
-      vmNext.power_state !== 'Running'
-    ) {
+    } else if (vmCur.power_state === 'Running' && vmNext.power_state !== 'Running') {
       this.setState({
         stats: undefined,
       })
@@ -91,12 +83,7 @@ export default class VmStats extends Component {
   handleSelectStats = ::this.handleSelectStats
 
   render() {
-    const {
-      granularity,
-      selectStatsLoading,
-      stats,
-      useCombinedValues,
-    } = this.state
+    const { granularity, selectStatsLoading, stats, useCombinedValues } = this.state
 
     return !stats ? (
       <p>No stats.</p>
@@ -106,10 +93,7 @@ export default class VmStats extends Component {
           <Col mediumSize={6}>
             <div className='form-group'>
               <Tooltip content={_('useStackedValuesOnStats')}>
-                <Toggle
-                  value={useCombinedValues}
-                  onChange={this.linkState('useCombinedValues')}
-                />
+                <Toggle value={useCombinedValues} onChange={this.linkState('useCombinedValues')} />
               </Tooltip>
             </div>
             {selectStatsLoading && (
@@ -119,11 +103,7 @@ export default class VmStats extends Component {
             )}
           </Col>
           <Col mediumSize={6}>
-            <SelectGranularity
-              onChange={this.handleSelectStats}
-              required
-              value={granularity}
-            />
+            <SelectGranularity onChange={this.handleSelectStats} required value={granularity} />
           </Col>
         </Row>
         <Row>

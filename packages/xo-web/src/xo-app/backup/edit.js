@@ -6,11 +6,7 @@ import Icon from 'icon'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
 import { find, groupBy, keyBy } from 'lodash'
-import {
-  subscribeBackupNgJobs,
-  subscribeMetadataBackupJobs,
-  subscribeSchedules,
-} from 'xo'
+import { subscribeBackupNgJobs, subscribeMetadataBackupJobs, subscribeSchedules } from 'xo'
 
 import Metadata from './new/metadata'
 import New from './new'
@@ -26,14 +22,10 @@ export default decorate([
   }),
   provideState({
     computed: {
-      job: (_, { jobs, metadataJobs, routeParams: { id } }) =>
-        defined(find(jobs, { id }), find(metadataJobs, { id })),
-      schedules: (_, { schedulesByJob, routeParams: { id } }) =>
-        schedulesByJob && keyBy(schedulesByJob[id], 'id'),
+      job: (_, { jobs, metadataJobs, routeParams: { id } }) => defined(find(jobs, { id }), find(metadataJobs, { id })),
+      schedules: (_, { schedulesByJob, routeParams: { id } }) => schedulesByJob && keyBy(schedulesByJob[id], 'id'),
       loading: (_, props) =>
-        props.jobs === undefined ||
-        props.metadataJobs === undefined ||
-        props.schedulesByJob === undefined,
+        props.jobs === undefined || props.metadataJobs === undefined || props.schedulesByJob === undefined,
     },
   }),
   injectState,

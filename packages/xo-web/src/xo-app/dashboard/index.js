@@ -25,16 +25,13 @@ const HEADER = (
             <Icon icon='menu-dashboard-overview' /> {_('overviewDashboardPage')}
           </NavLink>
           <NavLink to='/dashboard/visualizations'>
-            <Icon icon='menu-dashboard-visualization' />{' '}
-            {_('overviewVisualizationDashboardPage')}
+            <Icon icon='menu-dashboard-visualization' /> {_('overviewVisualizationDashboardPage')}
           </NavLink>
           <NavLink to='/dashboard/stats'>
-            <Icon icon='menu-dashboard-stats' />{' '}
-            {_('overviewStatsDashboardPage')}
+            <Icon icon='menu-dashboard-stats' /> {_('overviewStatsDashboardPage')}
           </NavLink>
           <NavLink to='/dashboard/health'>
-            <Icon icon='menu-dashboard-health' />{' '}
-            {_('overviewHealthDashboardPage')}
+            <Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}
           </NavLink>
         </NavTabs>
       </Col>

@@ -19,13 +19,9 @@ const serialize = user => {
   let tmp
   return {
     ...user,
-    authProviders: isEmpty((tmp = user.authProviders))
-      ? undefined
-      : JSON.stringify(tmp),
+    authProviders: isEmpty((tmp = user.authProviders)) ? undefined : JSON.stringify(tmp),
     groups: isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp),
-    preferences: isEmpty((tmp = user.preferences))
-      ? undefined
-      : JSON.stringify(tmp),
+    preferences: isEmpty((tmp = user.preferences)) ? undefined : JSON.stringify(tmp),
   }
 }
 

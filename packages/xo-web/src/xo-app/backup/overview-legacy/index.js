@@ -125,12 +125,7 @@ const JOB_COLUMNS = [
               icon='migrate-job'
               tooltip={_('migrateBackupSchedule')}
             />
-            <ActionRowButton
-              btnStyle='danger'
-              handler={deleteBackupSchedule}
-              handlerParam={schedule}
-              icon='delete'
-            />
+            <ActionRowButton btnStyle='danger' handler={deleteBackupSchedule} handlerParam={schedule} icon='delete' />
           </ButtonGroup>
         </fieldset>
       )
@@ -188,14 +183,9 @@ export default class LegacyOverview extends Component {
         return {
           jobId: job.id,
           jobLabel: jobKeyToLabel[job.key] || _('unknownSchedule'),
-          redirect:
-            pattern !== undefined &&
-            (() => this._redirectToMatchingVms(pattern)),
+          redirect: pattern !== undefined && (() => this._redirectToMatchingVms(pattern)),
           // Old versions of XenOrchestra use items[0]
-          scheduleTag:
-            get(items, '[0].values[0].tag') ||
-            get(items, '[1].values[0].tag') ||
-            schedule.id,
+          scheduleTag: get(items, '[0].values[0].tag') || get(items, '[1].values[0].tag') || schedule.id,
           schedule,
         }
       })
@@ -209,9 +199,7 @@ export default class LegacyOverview extends Component {
     (schedules, jobs, users) => {
       const isScheduleUserMissing = {}
       forEach(schedules, schedule => {
-        isScheduleUserMissing[schedule.id] = !(
-          jobs && find(users, user => user.id === jobs[schedule.jobId].userId)
-        )
+        isScheduleUserMissing[schedule.id] = !(jobs && find(users, user => user.id === jobs[schedule.jobId].userId))
       })
 
       return isScheduleUserMissing
@@ -231,9 +219,7 @@ export default class LegacyOverview extends Component {
             </CardHeader>
             <CardBlock>
               <div className='alert alert-warning'>
-                <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>
-                  {_('backupMigrationLink')}
-                </a>
+                <a href='https://xen-orchestra.com/blog/migrate-backup-to-backup-ng/'>{_('backupMigrationLink')}</a>
               </div>
               <SortedTable
                 columns={JOB_COLUMNS}

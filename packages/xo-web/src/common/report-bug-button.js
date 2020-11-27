@@ -41,23 +41,13 @@ const ADDITIONAL_FILES = [
   },
 ]
 
-const reportInNewWindow = (
-  url,
-  { title, message, formatMessage = identity }
-) => {
+const reportInNewWindow = (url, { title, message, formatMessage = identity }) => {
   const encodedTitle = encodeURIComponent(title == null ? '' : title)
-  const encodedMessage = encodeURIComponent(
-    message == null ? '' : formatMessage(message)
-  )
+  const encodedMessage = encodeURIComponent(message == null ? '' : formatMessage(message))
   window.open(`${url}?title=${encodedTitle}&body=${encodedMessage}`)
 }
 
-export const reportOnSupportPanel = async ({
-  files = [],
-  formatMessage = identity,
-  message,
-  title,
-} = {}) => {
+export const reportOnSupportPanel = async ({ files = [], formatMessage = identity, message, title } = {}) => {
   const { FormData, open } = window
 
   const formData = new FormData()
@@ -74,8 +64,7 @@ export const reportOnSupportPanel = async ({
   await Promise.all(
     ADDITIONAL_FILES.map(({ fetch, name }) =>
       timeout.call(fetch(), ADDITIONAL_FILES_FETCH_TIMEOUT).then(
-        file =>
-          formData.append('attachments', createBlobFromString(file), name),
+        file => formData.append('attachments', createBlobFromString(file), name),
         error => logger.warn(`cannot get ${name}`, error)
       )
     )
@@ -98,17 +87,12 @@ export const reportOnSupportPanel = async ({
 }
 
 export const reportBug =
-  xoaPlans.CURRENT === xoaPlans.SOURCES
-    ? params => reportInNewWindow(GITHUB_URL, params)
-    : reportOnSupportPanel
+  xoaPlans.CURRENT === xoaPlans.SOURCES ? params => reportInNewWindow(GITHUB_URL, params) : reportOnSupportPanel
 
 const REPORT_BUG_BUTTON_PROP_TYPES = {
   files: PropTypes.arrayOf(
     PropTypes.shape({
-      content: PropTypes.oneOfType([
-        PropTypes.instanceOf(window.Blob),
-        PropTypes.instanceOf(window.File),
-      ]).isRequired,
+      content: PropTypes.oneOfType([PropTypes.instanceOf(window.Blob), PropTypes.instanceOf(window.File)]).isRequired,
       name: PropTypes.string.isRequired,
     })
   ),
@@ -132,20 +116,13 @@ const ReportBugButton = decorate([
       },
     },
     computed: {
-      Button: (state, { rowButton }) =>
-        rowButton ? ActionRowButton : ActionButton,
-      buttonProps: (state, props) =>
-        omit(props, Object.keys(REPORT_BUG_BUTTON_PROP_TYPES)),
+      Button: (state, { rowButton }) => (rowButton ? ActionRowButton : ActionButton),
+      buttonProps: (state, props) => omit(props, Object.keys(REPORT_BUG_BUTTON_PROP_TYPES)),
     },
   }),
   injectState,
   ({ state, effects }) => (
-    <state.Button
-      {...state.buttonProps}
-      handler={effects.reportBug}
-      icon='bug'
-      tooltip={_('reportBug')}
-    />
+    <state.Button {...state.buttonProps} handler={effects.reportBug} icon='bug' tooltip={_('reportBug')} />
   ),
 ])
 

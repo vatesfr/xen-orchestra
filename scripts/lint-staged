@@ -4,17 +4,10 @@ const formatFiles = files => {
   run('./node_modules/.bin/prettier', ['--write'].concat(files))
 }
 const testFiles = files => {
-  run(
-    './node_modules/.bin/eslint',
-    ['--ignore-pattern', '!*'].concat(files)
-  )
+  run('./node_modules/.bin/eslint', ['--ignore-pattern', '!*'].concat(files))
   run(
     './node_modules/.bin/jest',
-    [
-      '--testRegex=^(?!.*.integ.spec.js$).*.spec.js$',
-      '--findRelatedTests',
-      '--passWithNoTests',
-    ].concat(files)
+    ['--testRegex=^(?!.*.integ.spec.js$).*.spec.js$', '--findRelatedTests', '--passWithNoTests'].concat(files)
   )
 }
 
@@ -31,16 +24,9 @@ const run = (command, args) => {
 }
 
 const gitDiff = (what, args = []) =>
-  execFileSync(
-    'git',
-    [
-      'diff-' + what,
-      '--diff-filter=AM',
-      '--ignore-submodules',
-      '--name-only',
-    ].concat(args),
-    { encoding: 'utf8' }
-  )
+  execFileSync('git', ['diff-' + what, '--diff-filter=AM', '--ignore-submodules', '--name-only'].concat(args), {
+    encoding: 'utf8',
+  })
     .split('\n')
     .filter(_ => _ !== '')
 const gitDiffFiles = (files = []) => gitDiff('files', files)
@@ -67,9 +53,7 @@ if (unstaged.length !== 0) {
 
   if (unstaged.length !== 0) {
     const contents = unstaged.map(name => readFileSync(name))
-    process.on('exit', () =>
-      unstaged.map((name, i) => writeFileSync(name, contents[i]))
-    )
+    process.on('exit', () => unstaged.map((name, i) => writeFileSync(name, contents[i])))
     run('git', ['checkout'].concat(unstaged))
     formatFiles(unstaged)
   }

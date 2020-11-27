@@ -14,12 +14,7 @@ import { createBlobFromString, downloadLog, safeDateFormat } from 'utils'
 import { get, ifDef } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { keyBy } from 'lodash'
-import {
-  runBackupNgJob,
-  subscribeBackupNgJobs,
-  subscribeBackupNgLogs,
-  subscribeSchedules,
-} from 'xo'
+import { runBackupNgJob, subscribeBackupNgJobs, subscribeBackupNgLogs, subscribeSchedules } from 'xo'
 
 export default decorate([
   addSubscriptions(({ id }) => ({
@@ -28,22 +23,16 @@ export default decorate([
         cb(logs[id])
       }),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
-    schedules: cb =>
-      subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
+    schedules: cb => subscribeSchedules(schedules => cb(keyBy(schedules, 'id'))),
   })),
   provideState({
     effects: {
       _downloadLog: () => ({ formattedLog }, { log }) =>
         downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
-      restartFailedVms: (_, params) => async (
-        _,
-        { log: { jobId: id, scheduleId: schedule, tasks, infos } }
-      ) => {
+      restartFailedVms: (_, params) => async (_, { log: { jobId: id, scheduleId: schedule, tasks, infos } }) => {
         let vms
         if (tasks !== undefined) {
-          const scheduledVms = get(
-            () => infos.find(({ message }) => message === 'vms').data.vms
-          )
+          const scheduledVms = get(() => infos.find(({ message }) => message === 'vms').data.vms)
 
           if (scheduledVms !== undefined) {
             vms = new Set(scheduledVms)
@@ -68,12 +57,8 @@ export default decorate([
     },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),
-      jobFailed: (_, { log = {} }) =>
-        log.status !== 'success' && log.status !== 'pending',
-      reportBugProps: (
-        { formattedLog },
-        { log = {}, schedules = {}, jobs = {} }
-      ) => {
+      jobFailed: (_, { log = {} }) => log.status !== 'success' && log.status !== 'pending',
+      reportBugProps: ({ formattedLog }, { log = {}, schedules = {}, jobs = {} }) => {
         const props = {
           size: 'small',
           title: 'Backup job failed',
@@ -110,8 +95,7 @@ export default decorate([
   injectState,
   ({ state, effects, log = {}, jobs }) => (
     <span>
-      {get(() => jobs[log.jobId].name) || 'Job'} (
-      {get(() => log.jobId.slice(4, 8))}){' '}
+      {get(() => jobs[log.jobId].name) || 'Job'} ({get(() => log.jobId.slice(4, 8))}){' '}
       <span style={{ fontSize: '0.5em' }} className='text-muted'>
         {log.id}
       </span>{' '}

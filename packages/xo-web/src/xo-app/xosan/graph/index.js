@@ -10,23 +10,13 @@ import styles from './index.css'
 const ICON_WIDTH = 38.56 // fa-2x (2em) ; font-size 15px
 
 const disk = (x, y, loss) => (
-  <foreignObject
-    x={x - ICON_WIDTH / 2}
-    y={y}
-    width={ICON_WIDTH}
-    height={ICON_WIDTH}
-  >
+  <foreignObject x={x - ICON_WIDTH / 2} y={y} width={ICON_WIDTH} height={ICON_WIDTH}>
     <Icon className={loss && styles.loss} size={2} icon='disk' fixedWidth />
   </foreignObject>
 )
 
 const xosan = (x, y, h) => (
-  <foreignObject
-    x={x - ICON_WIDTH / 2}
-    y={y}
-    width={ICON_WIDTH}
-    height={ICON_WIDTH}
-  >
+  <foreignObject x={x - ICON_WIDTH / 2} y={y} width={ICON_WIDTH} height={ICON_WIDTH}>
     <Icon icon='sr' size={2} fixedWidth />
   </foreignObject>
 )
@@ -48,8 +38,7 @@ const fork = (n, x, y, w, h, nDisksLoss) => [
   // vertical lines (and disks icons)
   map(new Array(n), (_, i) => [
     stroke((i * w) / n + w / (2 * n), 0, (i * w) / n + w / (2 * n), h, x, y),
-    nDisksLoss !== undefined &&
-      disk(x + (i * w) / n + w / (2 * n), y + h, i >= n - nDisksLoss),
+    nDisksLoss !== undefined && disk(x + (i * w) / n + w / (2 * n), y + h, i >= n - nDisksLoss),
   ]),
 ]
 
@@ -65,14 +54,7 @@ const graph = (nGroups, nPerGroup, w, h, disksLoss) => {
         : [
             fork(nGroups, 0, 2 * hUnit, w, hUnit),
             map(new Array(nGroups), (_, i) =>
-              fork(
-                nPerGroup,
-                (i * w) / nGroups,
-                3 * hUnit,
-                w / nGroups,
-                hUnit,
-                disksLoss
-              )
+              fork(nPerGroup, (i * w) / nGroups, 3 * hUnit, w / nGroups, hUnit, disksLoss)
             ),
           ]}
     </svg>
@@ -109,12 +91,7 @@ export default class Graph extends Component {
           <div className={styles.graph}>
             {layout === 'disperse'
               ? disperseGraph(nSrs, redundancy, width, height)
-              : replicationGraph(
-                  nSrs,
-                  redundancy - (layout === 'replica_arbiter' ? 1 : 0),
-                  width,
-                  height
-                )}
+              : replicationGraph(nSrs, redundancy - (layout === 'replica_arbiter' ? 1 : 0), width, height)}
           </div>
         </div>
         <div>

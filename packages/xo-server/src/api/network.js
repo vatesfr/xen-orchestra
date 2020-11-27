@@ -5,14 +5,7 @@ export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
 
-export async function create({
-  pool,
-  name,
-  description,
-  pif,
-  mtu = 1500,
-  vlan = 0,
-}) {
+export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0 }) {
   return xapiObjectToXo(
     await this.getXapi(pool).createNetwork({
       name,
@@ -40,14 +33,7 @@ create.permission = 'admin'
 
 // =================================================================
 
-export async function createBonded({
-  pool,
-  name,
-  description,
-  pifs,
-  mtu = 1500,
-  bondMode,
-}) {
+export async function createBonded({ pool, name, description, pifs, mtu = 1500, bondMode }) {
   return this.getXapi(pool).createBondedNetwork({
     name,
     description,
@@ -79,8 +65,7 @@ createBonded.resolve = {
   pool: ['pool', 'pool', 'administrate'],
 }
 createBonded.permission = 'admin'
-createBonded.description =
-  'Create a bonded network. bondMode can be balance-slb, active-backup or lacp'
+createBonded.description = 'Create a bonded network. bondMode can be balance-slb, active-backup or lacp'
 
 // ===================================================================
 
@@ -95,14 +80,9 @@ export async function set({
   network = this.getXapiObject(network)
 
   await Promise.all([
-    automatic !== undefined &&
-      network.update_other_config('automatic', automatic ? 'true' : null),
-    defaultIsLocked !== undefined &&
-      network.set_default_locking_mode(
-        defaultIsLocked ? 'disabled' : 'unlocked'
-      ),
-    nameDescription !== undefined &&
-      network.set_name_description(nameDescription),
+    automatic !== undefined && network.update_other_config('automatic', automatic ? 'true' : null),
+    defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
+    nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
   ])
 }

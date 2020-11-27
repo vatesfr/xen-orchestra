@@ -44,10 +44,8 @@ export default decorate([
       },
     },
     computed: {
-      networkPredicate: (_, { value: { pool } }) => network =>
-        pool.id === network.$pool,
-      srPredicate: (_, { value }) => sr =>
-        sr.$pool === get(() => value.pool.id) && isSrWritable(sr),
+      networkPredicate: (_, { value: { pool } }) => network => pool.id === network.$pool,
+      srPredicate: (_, { value }) => sr => sr.$pool === get(() => value.pool.id) && isSrWritable(sr),
     },
   }),
   injectState,
@@ -55,21 +53,11 @@ export default decorate([
     <Container>
       <FormGrid.Row>
         <label>{_('vmImportToPool')}</label>
-        <SelectPool
-          className='mb-1'
-          onChange={effects.onChangePool}
-          required
-          value={value.pool}
-        />
+        <SelectPool className='mb-1' onChange={effects.onChangePool} required value={value.pool} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('vmImportToSr')}</label>
-        <SelectSr
-          onChange={effects.onChangeSr}
-          predicate={state.srPredicate}
-          required
-          value={value.sr}
-        />
+        <SelectSr onChange={effects.onChangeSr} predicate={state.srPredicate} required value={value.sr} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('network')}</label>

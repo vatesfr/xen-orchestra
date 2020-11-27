@@ -68,6 +68,11 @@ mergeProvidersUsers = true
 defaultSignInPage = '/signin'
 
 [backup]
+# Mode to use for newly created backup directories
+#
+# https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
+dirMode = 0o700
+
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 

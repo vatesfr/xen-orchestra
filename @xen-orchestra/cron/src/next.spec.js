@@ -37,9 +37,7 @@ describe('next()', () => {
   })
 
   it('fails when no solutions has been found', () => {
-    expect(() => N('0 0 30 feb *')).toThrow(
-      'no solutions found for this schedule'
-    )
+    expect(() => N('0 0 30 feb *')).toThrow('no solutions found for this schedule')
   })
 
   it('select the first sunday of the month', () => {

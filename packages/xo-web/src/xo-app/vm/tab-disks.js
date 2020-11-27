@@ -36,18 +36,7 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import {
-  compact,
-  every,
-  filter,
-  find,
-  forEach,
-  get,
-  map,
-  some,
-  sortedUniq,
-  uniq,
-} from 'lodash'
+import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -67,11 +56,7 @@ import {
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
-import {
-  SelectResourceSetsSr,
-  SelectSr as SelectAnySr,
-  SelectVdi,
-} from 'select-objects'
+import { SelectResourceSetsSr, SelectSr as SelectAnySr, SelectVdi } from 'select-objects'
 
 const compareSrs = createCompare([isSrShared])
 
@@ -130,32 +115,19 @@ class VdiSr extends Component {
 
 const COLUMNS_VM_PV = [
   {
-    itemRenderer: ({ vdi }) => (
-      <Text
-        value={vdi.name_label}
-        onChange={value => editVdi(vdi, { name_label: value })}
-      />
-    ),
+    itemRenderer: ({ vdi }) => <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />,
     name: _('vdiNameLabel'),
     sortCriteria: 'vdi.name_label',
   },
   {
     itemRenderer: ({ vdi }) => (
-      <Text
-        value={vdi.name_description}
-        onChange={value => editVdi(vdi, { name_description: value })}
-      />
+      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
     ),
     name: _('vdiNameDescription'),
     sortCriteria: 'vdi.name_description',
   },
   {
-    itemRenderer: ({ vdi }) => (
-      <Size
-        value={defined(vdi.size, null)}
-        onChange={size => editVdi(vdi, { size })}
-      />
-    ),
+    itemRenderer: ({ vdi }) => <Size value={defined(vdi.size, null)} onChange={size => editVdi(vdi, { size })} />,
     name: _('vdiSize'),
     sortCriteria: 'vdi.size',
   },
@@ -171,12 +143,7 @@ const COLUMNS_VM_PV = [
     sortCriteria: vbd => +vbd.position,
   },
   {
-    itemRenderer: vbd => (
-      <Toggle
-        onChange={bootable => setBootableVbd(vbd, bootable)}
-        value={vbd.bootable}
-      />
-    ),
+    itemRenderer: vbd => <Toggle onChange={bootable => setBootableVbd(vbd, bootable)} value={vbd.bootable} />,
     name: _('vbdBootableStatus'),
     id: 'vbdBootableStatus',
   },
@@ -265,10 +232,7 @@ class NewDisk extends Component {
     )
   )
 
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
-    resolveResourceSet
-  )
+  _getResolvedResourceSet = createSelector(this._getResourceSet, resolveResourceSet)
 
   _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
     get(resourceSet, 'limits.disk.available')
@@ -288,8 +252,7 @@ class NewDisk extends Component {
     const diskLimit = this._getResourceSetDiskLimit()
     const resourceSet = this._getResolvedResourceSet()
 
-    const SelectSr =
-      isAdmin || resourceSet == null ? SelectAnySr : SelectResourceSetsSr
+    const SelectSr = isAdmin || resourceSet == null ? SelectAnySr : SelectResourceSetsSr
 
     return (
       <form id='newDiskForm'>
@@ -324,19 +287,11 @@ class NewDisk extends Component {
           <div className='form-group'>
             {vm.virtualizationMode === 'pv' && (
               <span>
-                {_('vbdBootable')}{' '}
-                <Toggle
-                  onChange={this.toggleState('bootable')}
-                  value={bootable}
-                />{' '}
+                {_('vbdBootable')} <Toggle onChange={this.toggleState('bootable')} value={bootable} />{' '}
               </span>
             )}
             <span>
-              {_('vbdReadonly')}{' '}
-              <Toggle
-                onChange={this.toggleState('readOnly')}
-                value={readOnly}
-              />
+              {_('vbdReadonly')} <Toggle onChange={this.toggleState('readOnly')} value={readOnly} />
             </span>
           </div>
           <span className='pull-right'>
@@ -470,12 +425,7 @@ class AttachDisk extends Component {
               </span>
             </div>
             <span className='pull-right'>
-              <ActionButton
-                icon='connect'
-                form='attachDiskForm'
-                btnStyle='primary'
-                handler={this._addVdi}
-              >
+              <ActionButton icon='connect' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>
                 {_('vbdAttach')}
               </ActionButton>
             </span>
@@ -495,10 +445,7 @@ class AttachDisk extends Component {
 
 @addSubscriptions(props => ({
   // used by getResolvedResourceSet
-  resourceSet: cb =>
-    subscribeResourceSets(resourceSets =>
-      cb(find(resourceSets, { id: props.vm.resourceSet }))
-    ),
+  resourceSet: cb => subscribeResourceSets(resourceSets => cb(find(resourceSets, { id: props.vm.resourceSet }))),
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
@@ -507,11 +454,7 @@ class AttachDisk extends Component {
     allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
     isAdmin: isAdmin(state, props),
-    resolvedResourceSet: getResolvedResourceSet(
-      state,
-      props,
-      !props.isAdmin && props.resourceSet !== undefined
-    ),
+    resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
   })
 })
 export default class TabDisks extends Component {
@@ -542,9 +485,7 @@ export default class TabDisks extends Component {
         if (isSrShared(sr)) {
           return true
         }
-        return container === undefined
-          ? ((container = sr.$container), true)
-          : container === sr.$container
+        return container === undefined ? ((container = sr.$container), true) : container === sr.$container
       })
     }
   )
@@ -599,8 +540,7 @@ export default class TabDisks extends Component {
     () => this.props.isAdmin,
     () => this.props.vm.resourceSet,
     this._getIsVmAdmin,
-    (isAdmin, resourceSet, isVmAdmin) =>
-      isAdmin || (resourceSet == null && isVmAdmin)
+    (isAdmin, resourceSet, isVmAdmin) => isAdmin || (resourceSet == null && isVmAdmin)
   )
 
   _getRequiredHost = createSelector(
@@ -626,10 +566,7 @@ export default class TabDisks extends Component {
   )
 
   _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
-    sr === undefined ||
-    isSrShared(sr) ||
-    requiredHost === undefined ||
-    sr.$container === requiredHost
+    sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
   )
 
   _getVbds = createSelector(
@@ -660,14 +597,12 @@ export default class TabDisks extends Component {
       )
   )
 
-  _getGenerateWarningBeforeMigrate = createSelector(
-    this._getCheckSr,
-    check => sr =>
-      check(sr) ? null : (
-        <span className='text-warning'>
-          <Icon icon='alarm' /> {_('warningVdiSr')}
-        </span>
-      )
+  _getGenerateWarningBeforeMigrate = createSelector(this._getCheckSr, check => sr =>
+    check(sr) ? null : (
+      <span className='text-warning'>
+        <Icon icon='alarm' /> {_('warningVdiSr')}
+      </span>
+    )
   )
 
   actions = [
@@ -691,8 +626,7 @@ export default class TabDisks extends Component {
       level: 'danger',
     },
     {
-      handler: selectedVbds =>
-        this._migrateVdis(uniq(map(selectedVbds, 'vdi'))),
+      handler: selectedVbds => this._migrateVdis(uniq(map(selectedVbds, 'vdi'))),
       icon: 'vdi-migrate',
       individualLabel: _('vdiMigrate'),
       label: _('migrateSelectedVdis'),
@@ -728,22 +662,13 @@ export default class TabDisks extends Component {
           <Col>
             {newDisk && (
               <div>
-                <NewDisk
-                  checkSr={this._getCheckSr()}
-                  vm={vm}
-                  onClose={this._toggleNewDisk}
-                />
+                <NewDisk checkSr={this._getCheckSr()} vm={vm} onClose={this._toggleNewDisk} />
                 <hr />
               </div>
             )}
             {attachDisk && (
               <div>
-                <AttachDisk
-                  checkSr={this._getCheckSr()}
-                  vm={vm}
-                  vbds={allVbds}
-                  onClose={this._toggleAttachDisk}
-                />
+                <AttachDisk checkSr={this._getCheckSr()} vm={vm} vbds={allVbds} onClose={this._toggleAttachDisk} />
                 <hr />
               </div>
             )}

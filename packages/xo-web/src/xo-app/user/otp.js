@@ -15,10 +15,7 @@ authenticator.options = { crypto }
 export default decorate([
   provideState({
     initialState: ({ user: { preferences = {} } }) => ({
-      secret:
-        preferences.otp !== undefined
-          ? preferences.otp
-          : authenticator.generateSecret(),
+      secret: preferences.otp !== undefined ? preferences.otp : authenticator.generateSecret(),
     }),
     effects: {
       _handleOtp(_, isChecked) {
@@ -27,9 +24,7 @@ export default decorate([
     },
     computed: {
       qrcode({ secret }, { user }) {
-        return qrcode.toDataURL(
-          authenticator.keyuri(user.email, 'XenOrchestra', secret)
-        )
+        return qrcode.toDataURL(authenticator.keyuri(user.email, 'XenOrchestra', secret))
       },
     },
   }),
@@ -41,18 +36,11 @@ export default decorate([
           <strong>{_('OtpAuthentication')}</strong>
         </Col>
         <Col smallSize={10}>
-          <Toggle
-            value={user.preferences.otp !== undefined}
-            onChange={effects._handleOtp}
-          />{' '}
+          <Toggle value={user.preferences.otp !== undefined} onChange={effects._handleOtp} />{' '}
           {user.preferences.otp !== undefined && (
             <span>
               {state.secret}
-              <div>
-                {state.qrcode !== undefined && (
-                  <img src={state.qrcode} alt='qrcode' />
-                )}
-              </div>
+              <div>{state.qrcode !== undefined && <img src={state.qrcode} alt='qrcode' />}</div>
             </span>
           )}
         </Col>

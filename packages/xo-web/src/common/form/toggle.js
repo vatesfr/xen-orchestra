@@ -37,10 +37,7 @@ export default class Toggle extends Component {
 
     return (
       <Icon
-        className={classNames(
-          props.disabled ? 'text-muted' : props.value ? 'text-success' : null,
-          props.className
-        )}
+        className={classNames(props.disabled ? 'text-muted' : props.value ? 'text-success' : null, props.className)}
         icon={props.icon || (props.value ? props.iconOn : props.iconOff)}
         onClick={this._toggle}
         size={props.iconSize}

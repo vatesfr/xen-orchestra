@@ -34,16 +34,11 @@ export default {
 
   pack: object => {
     const type = object.header.type
-    return get(MESSAGE, type, `Invalid OpenFlow message type: ${type}`).pack(
-      object
-    )
+    return get(MESSAGE, type, `Invalid OpenFlow message type: ${type}`).pack(object)
   },
 
   unpack: (buffer, offset = 0) => {
     const type = buffer.readUInt8(offset + of.offsets.header.type)
-    return get(MESSAGE, type, `Invalid OpenFlow message type: ${type}`).unpack(
-      buffer,
-      offset
-    )
+    return get(MESSAGE, type, `Invalid OpenFlow message type: ${type}`).unpack(buffer, offset)
   },
 }

@@ -29,8 +29,7 @@ export default {
     },
     configurationSchema: {
       $ref: 'http://json-schema.org/draft-04/schema#',
-      description:
-        'configuration schema for this plugin (not present if not configurable)',
+      description: 'configuration schema for this plugin (not present if not configurable)',
     },
     testable: {
       type: 'boolean',

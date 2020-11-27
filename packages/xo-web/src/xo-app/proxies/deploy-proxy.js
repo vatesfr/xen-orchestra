@@ -15,12 +15,7 @@ import { injectIntl } from 'react-intl'
 import { provideState, injectState } from 'reaclette'
 import { Select } from 'form'
 import { SelectNetwork, SelectSr } from 'select-objects'
-import {
-  createProxyTrialLicense,
-  deployProxyAppliance,
-  getLicenses,
-  isSrWritable,
-} from 'xo'
+import { createProxyTrialLicense, deployProxyAppliance, getLicenses, isSrWritable } from 'xo'
 
 const Label = ({ children, ...props }) => (
   <label {...props} style={{ cursor: 'pointer' }}>
@@ -86,10 +81,8 @@ const Modal = decorate([
 
       isStaticMode: (state, { value }) => value.networkMode === 'static',
       srPredicate: (state, { pbds, hosts }) => sr =>
-        isSrWritable(sr) &&
-        sr.$PBDs.some(pbd => get(() => hosts[pbds[pbd].host].hvmCapable)),
-      networkPredicate: (state, { value }) =>
-        value.sr && (network => value.sr.$pool === network.$pool),
+        isSrWritable(sr) && sr.$PBDs.some(pbd => get(() => hosts[pbds[pbd].host].hvmCapable)),
+      networkPredicate: (state, { value }) => value.sr && (network => value.sr.$pool === network.$pool),
     },
   }),
   injectState,
@@ -117,9 +110,7 @@ const Modal = decorate([
       </SingleLineRow>
       <SingleLineRow className='mt-1'>
         <Col mediumSize={4}>
-          <Label htmlFor={state.idSelectNetwork}>
-            {_('destinationNetwork')}
-          </Label>
+          <Label htmlFor={state.idSelectNetwork}>{_('destinationNetwork')}</Label>
         </Col>
         <Col mediumSize={8}>
           <SelectNetwork
@@ -148,9 +139,7 @@ const Modal = decorate([
       </SingleLineRow>
       <SingleLineRow className='mt-1'>
         <Col mediumSize={4}>
-          <Label htmlFor={state.idSelectNetworkMode}>
-            {_('networkConfiguration')}
-          </Label>
+          <Label htmlFor={state.idSelectNetworkMode}>{_('networkConfiguration')}</Label>
         </Col>
         <Col mediumSize={8}>
           <Select
@@ -191,12 +180,9 @@ const Modal = decorate([
                 id={state.idNetmaskInput}
                 name='netmask'
                 onChange={effects.onInputChange}
-                placeholder={formatMessage(
-                  messages.proxyNetworkNetmaskPlaceHolder,
-                  {
-                    netmask: DEFAULT_NETMASK,
-                  }
-                )}
+                placeholder={formatMessage(messages.proxyNetworkNetmaskPlaceHolder, {
+                  netmask: DEFAULT_NETMASK,
+                })}
                 value={value.netmask}
               />
             </Col>
@@ -227,12 +213,9 @@ const Modal = decorate([
                 id={state.idDnsInput}
                 name='dns'
                 onChange={effects.onInputChange}
-                placeholder={formatMessage(
-                  messages.proxyNetworkDnsPlaceHolder,
-                  {
-                    dns: DEFAULT_DNS,
-                  }
-                )}
+                placeholder={formatMessage(messages.proxyNetworkDnsPlaceHolder, {
+                  dns: DEFAULT_DNS,
+                })}
                 value={value.dns}
               />
             </Col>
@@ -256,19 +239,12 @@ const deployProxy = async ({ proxy } = {}) => {
 
   let license
   if (isRedeployMode) {
-    license = licenses.find(
-      license =>
-        !(license.expires < Date.now()) &&
-        license.boundObjectId === proxy.vmUuid
-    )
+    license = licenses.find(license => !(license.expires < Date.now()) && license.boundObjectId === proxy.vmUuid)
   }
 
   // in case of deploying a proxy or when the associated proxy VM doesn't have a license
   if (license === undefined) {
-    license = licenses.find(
-      license =>
-        !(license.expires < Date.now()) && license.boundObjectId === undefined
-    )
+    license = licenses.find(license => !(license.expires < Date.now()) && license.boundObjectId === undefined)
   }
 
   const title = isRedeployMode ? _('redeployProxy') : _('deployProxy')
@@ -325,24 +301,21 @@ const deployProxy = async ({ proxy } = {}) => {
         <Icon icon='proxy' /> {title}
       </span>
     ),
-  }).then(
-    ({ httpProxy, sr, network, networkMode, ip, netmask, gateway, dns }) =>
-      deployProxyAppliance(license, sr, {
-        httpProxy:
-          (httpProxy = httpProxy.trim()) !== '' ? httpProxy : undefined,
-        network: network === null ? undefined : network,
-        networkConfiguration:
-          networkMode === 'static'
-            ? {
-                dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
-                gateway,
-                ip,
-                netmask:
-                  (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
-              }
-            : undefined,
-        proxy,
-      })
+  }).then(({ httpProxy, sr, network, networkMode, ip, netmask, gateway, dns }) =>
+    deployProxyAppliance(license, sr, {
+      httpProxy: (httpProxy = httpProxy.trim()) !== '' ? httpProxy : undefined,
+      network: network === null ? undefined : network,
+      networkConfiguration:
+        networkMode === 'static'
+          ? {
+              dns: (dns = dns.trim()) === '' ? DEFAULT_DNS : dns,
+              gateway,
+              ip,
+              netmask: (netmask = netmask.trim()) === '' ? DEFAULT_NETMASK : netmask,
+            }
+          : undefined,
+      proxy,
+    })
   )
 }
 

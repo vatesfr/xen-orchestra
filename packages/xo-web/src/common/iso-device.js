@@ -10,16 +10,8 @@ import { alert } from 'modal'
 import { isAdmin } from 'selectors'
 import { addSubscriptions, connectStore, resolveResourceSet } from './utils'
 import { ejectCd, insertCd, subscribeResourceSets } from './xo'
-import {
-  createGetObjectsOfType,
-  createFinder,
-  createGetObject,
-  createSelector,
-} from './selectors'
-import {
-  SelectResourceSetsVdi,
-  SelectVdi as SelectAnyVdi,
-} from './select-objects'
+import { createGetObjectsOfType, createFinder, createGetObject, createSelector } from './selectors'
+import { SelectResourceSetsVdi, SelectVdi as SelectAnyVdi } from './select-objects'
 
 const vdiPredicate = vdi => !vdi.missing
 
@@ -107,18 +99,11 @@ export default class IsoDevice extends Component {
           value={mountedIso}
         />
         <span className='input-group-btn'>
-          <ActionButton
-            disabled={!mountedIso}
-            handler={this._handleEject}
-            icon='vm-eject'
-          />
+          <ActionButton disabled={!mountedIso} handler={this._handleEject} icon='vm-eject' />
         </span>
         {mountedIso && !cdDrive.device && (
           <Tooltip content={_('cdDriveNotInstalled')}>
-            <a
-              className='text-warning btn btn-link'
-              onClick={this._showWarning}
-            >
+            <a className='text-warning btn btn-link' onClick={this._showWarning}>
               <Icon icon='alarm' size='lg' />
             </a>
           </Tooltip>

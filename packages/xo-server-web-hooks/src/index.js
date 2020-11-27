@@ -76,11 +76,15 @@ class XoServerHooks {
   load() {
     this._xo.on('xo:preCall', this._handlePreHook)
     this._xo.on('xo:postCall', this._handlePostHook)
+    this._xo.on('backup:preCall', this._handlePreHook)
+    this._xo.on('backup:postCall', this._handlePostHook)
   }
 
   unload() {
     this._xo.removeListener('xo:preCall', this._handlePreHook)
     this._xo.removeListener('xo:postCall', this._handlePostHook)
+    this._xo.removeListener('backup:preCall', this._handlePreHook)
+    this._xo.removeListener('backup:postCall', this._handlePostHook)
   }
 
   async test({ url }) {
@@ -122,8 +126,7 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             type: 'string',
           },
           type: {
-            description:
-              'Right before the API call *or* right after the action has been completed',
+            description: 'Right before the API call *or* right after the action has been completed',
             enum: ['pre', 'post', 'pre/post'],
             title: 'Type',
             type: 'string',
@@ -146,8 +149,7 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
 
 export const testSchema = {
   type: 'object',
-  description:
-    'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
+  description: 'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
   properties: {
     url: {
       title: 'URL',

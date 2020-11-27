@@ -13,20 +13,13 @@ import { FormattedRelative } from 'react-intl'
 import { formatSize, formatSizeShort, hasLicenseRestrictions } from 'utils'
 import Usage, { UsageElement } from 'usage'
 import { getObject } from 'selectors'
-import {
-  CpuSparkLines,
-  MemorySparkLines,
-  NetworkSparkLines,
-  LoadSparkLines,
-} from 'xo-sparklines'
+import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, LoadSparkLines } from 'xo-sparklines'
 
 import LicenseWarning from './license-warning'
 
 export default ({ statsOverview, host, nVms, vmController, vms }) => {
   const pool = getObject(store.getState(), host.$pool)
-  const vmsFilter = encodeURIComponent(
-    new CM.Property('$container', new CM.String(host.id)).toString()
-  )
+  const vmsFilter = encodeURIComponent(new CM.Property('$container', new CM.String(host.id)).toString())
 
   return (
     <Container>
@@ -81,10 +74,8 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
         <Col mediumSize={3}>
           <p>
             {host.productBrand} {host.version} (
-            {host.productBrand !== 'XCP-ng'
-              ? host.license_params.sku_type
-              : 'GPLv2'}
-            ) {hasLicenseRestrictions(host) && <LicenseWarning iconSize='lg' />}
+            {host.productBrand !== 'XCP-ng' ? host.license_params.sku_type : 'GPLv2'}){' '}
+            {hasLicenseRestrictions(host) && <LicenseWarning iconSize='lg' />}
           </p>
         </Col>
         <Col mediumSize={3}>
@@ -92,8 +83,7 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
         </Col>
         <Col mediumSize={3}>
           <p>
-            {host.bios_strings['system-manufacturer']}{' '}
-            {host.bios_strings['system-product-name']}
+            {host.bios_strings['system-manufacturer']} {host.bios_strings['system-product-name']}
           </p>
         </Col>
       </Row>
@@ -118,9 +108,7 @@ export default ({ statsOverview, host, nVms, vmController, vms }) => {
           <Usage total={host.memory.size}>
             <UsageElement
               highlight
-              tooltip={`${host.productBrand} (${formatSize(
-                vmController.memory.size
-              )})`}
+              tooltip={`${host.productBrand} (${formatSize(vmController.memory.size)})`}
               value={vmController.memory.size}
             />
             {map(vms, vm => (

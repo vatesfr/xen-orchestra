@@ -16,8 +16,6 @@ export const writeStream = (input, path) => {
   const output = createOutputStream(path)
 
   return new Promise((resolve, reject) =>
-    input
-      .on('error', reject)
-      .pipe(output.on('error', reject).on('finish', resolve))
+    input.on('error', reject).pipe(output.on('error', reject).on('finish', resolve))
   )
 }

@@ -70,11 +70,7 @@ export default class Index {
   // -----------------------------------------------------------------
 
   _onAdd(items) {
-    const {
-      computeHash,
-      _itemsByHash: itemsByHash,
-      _keysToHash: keysToHash,
-    } = this
+    const { computeHash, _itemsByHash: itemsByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {
       const value = items[key]
@@ -94,11 +90,7 @@ export default class Index {
   }
 
   _onUpdate(items) {
-    const {
-      computeHash,
-      _itemsByHash: itemsByHash,
-      _keysToHash: keysToHash,
-    } = this
+    const { computeHash, _itemsByHash: itemsByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {
       const value = items[key]

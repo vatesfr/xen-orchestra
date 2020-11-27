@@ -59,10 +59,8 @@ const removeUndefinedArrays = arrays =>
     }
   })
 
-export const computeArraysSum = arrays =>
-  _computeArraysSum(removeUndefinedArrays(arrays))
-export const computeArraysAvg = arrays =>
-  _computeArraysAvg(removeUndefinedArrays(arrays))
+export const computeArraysSum = arrays => _computeArraysSum(removeUndefinedArrays(arrays))
+export const computeArraysAvg = arrays => _computeArraysAvg(removeUndefinedArrays(arrays))
 
 // More complex than computeArraysAvg.
 //
@@ -74,7 +72,5 @@ export const computeArraysAvg = arrays =>
 //
 // Note: The parameter can be also an 3D array.
 export const computeObjectsAvg = objects => {
-  return _computeArraysAvg(
-    map(objects, object => computeArraysAvg(values(object)))
-  )
+  return _computeArraysAvg(map(objects, object => computeArraysAvg(values(object))))
 }

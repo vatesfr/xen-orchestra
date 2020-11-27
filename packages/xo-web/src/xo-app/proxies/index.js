@@ -26,8 +26,7 @@ import Page from '../page'
 import deployProxy from './deploy-proxy'
 import { updateApplianceSettings } from './update-appliance-settings'
 
-const _editProxy = (value, { name, proxy }) =>
-  editProxyAppliance(proxy, { [name]: value })
+const _editProxy = (value, { name, proxy }) => editProxyAppliance(proxy, { [name]: value })
 
 const HEADER = (
   <h2>
@@ -103,14 +102,7 @@ const INDIVIDUAL_ACTIONS = [
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: proxy => (
-      <Text
-        data-name='name'
-        data-proxy={proxy}
-        onChange={_editProxy}
-        value={proxy.name}
-      />
-    ),
+    itemRenderer: proxy => <Text data-name='name' data-proxy={proxy} onChange={_editProxy} value={proxy.name} />,
     name: _('name'),
     sortCriteria: 'name',
   },
@@ -199,12 +191,10 @@ const Proxies = decorate([
         const upgradesByProxy = { ...this.state.upgradesByProxy }
         await Promise.all(
           proxies.map(async id => {
-            upgradesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(
-              e => ({
-                state: 'error',
-                message: _('proxyUpgradesError'),
-              })
-            )
+            upgradesByProxy[id] = await getProxyApplianceUpdaterState(id).catch(e => ({
+              state: 'error',
+              message: _('proxyUpgradesError'),
+            }))
           })
         )
         this.state.upgradesByProxy = upgradesByProxy
@@ -224,12 +214,7 @@ const Proxies = decorate([
     <Page header={HEADER} title='proxies' formatTitle>
       <div>
         <div className='mt-1 mb-1'>
-          <ActionButton
-            btnStyle='success'
-            handler={effects.deployProxy}
-            icon='proxy'
-            size='large'
-          >
+          <ActionButton btnStyle='success' handler={effects.deployProxy} icon='proxy' size='large'>
             {_('deployProxy')}
           </ActionButton>
         </div>
@@ -262,6 +247,5 @@ export default decorate([
   addSubscriptions({
     proxies: subscribeProxies,
   }),
-  ({ proxies }) =>
-    proxies === undefined ? _('statusLoading') : <Proxies proxies={proxies} />,
+  ({ proxies }) => (proxies === undefined ? _('statusLoading') : <Proxies proxies={proxies} />),
 ])

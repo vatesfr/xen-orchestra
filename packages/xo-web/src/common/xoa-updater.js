@@ -1,7 +1,4 @@
-import Client, {
-  AbortedConnection,
-  ConnectionError,
-} from 'jsonrpc-websocket-client'
+import Client, { AbortedConnection, ConnectionError } from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash/forEach'
 import makeError from 'make-error'
@@ -17,15 +14,7 @@ import {
 
 // ===================================================================
 
-const states = [
-  'disconnected',
-  'updating',
-  'upgrading',
-  'upToDate',
-  'upgradeNeeded',
-  'registerNeeded',
-  'error',
-]
+const states = ['disconnected', 'updating', 'upgrading', 'upToDate', 'upgradeNeeded', 'registerNeeded', 'error']
 
 // ===================================================================
 
@@ -150,10 +139,7 @@ class XoaUpdater extends EventEmitter {
         this.emit('end', end)
         if (state === 'register-needed') {
           this.isRegistered()
-        } else if (
-          state === 'updater-upgraded' ||
-          state === 'installer-upgraded'
-        ) {
+        } else if (state === 'updater-upgraded' || state === 'installer-upgraded') {
           this.update()
         } else if (state === 'xoa-upgraded') {
           this._upgradeSuccessful()
@@ -205,9 +191,7 @@ class XoaUpdater extends EventEmitter {
     if (c.status === 'open') {
       return c
     } else {
-      return eventToPromise
-        .multi(c, ['open'], ['closed', 'error'])
-        .then(() => c)
+      return eventToPromise.multi(c, ['open'], ['closed', 'error']).then(() => c)
     }
   }
 
@@ -215,9 +199,7 @@ class XoaUpdater extends EventEmitter {
     try {
       const token = await this._call('isRegistered')
       if (token.registrationToken === undefined) {
-        throw new NotRegistered(
-          'Your Xen Orchestra Appliance is not registered'
-        )
+        throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
       } else {
         this.registerState = 'registered'
         this.token = token
@@ -417,15 +399,9 @@ const xoaUpdater = new XoaUpdater()
 export default xoaUpdater
 
 export const connectStore = store => {
-  forEach(states, state =>
-    xoaUpdater.on(state, () => store.dispatch(setXoaUpdaterState(state)))
-  )
+  forEach(states, state => xoaUpdater.on(state, () => store.dispatch(setXoaUpdaterState(state))))
   xoaUpdater.on('trialState', state => store.dispatch(setXoaTrialState(state)))
   xoaUpdater.on('log', log => store.dispatch(setXoaUpdaterLog(log)))
-  xoaUpdater.on('registerState', registration =>
-    store.dispatch(setXoaRegisterState(registration))
-  )
-  xoaUpdater.on('configuration', configuration =>
-    store.dispatch(setXoaConfiguration(configuration))
-  )
+  xoaUpdater.on('registerState', registration => store.dispatch(setXoaRegisterState(registration)))
+  xoaUpdater.on('configuration', configuration => store.dispatch(setXoaConfiguration(configuration)))
 }

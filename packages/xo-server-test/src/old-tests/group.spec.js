@@ -292,10 +292,7 @@ describe('group', () => {
         userId: userId,
       })
 
-      const [group, user] = await Promise.all([
-        getGroup(groupId),
-        getUser(xo, userId),
-      ])
+      const [group, user] = await Promise.all([getGroup(groupId), getUser(xo, userId)])
 
       compareGroup(group, {
         id: groupId,
@@ -335,10 +332,7 @@ describe('group', () => {
         userId: userId,
       })
 
-      const [group, user] = await Promise.all([
-        getGroup(groupId),
-        getUser(xo, userId),
-      ])
+      const [group, user] = await Promise.all([getGroup(groupId), getUser(xo, userId)])
 
       compareGroup(group, {
         id: groupId,

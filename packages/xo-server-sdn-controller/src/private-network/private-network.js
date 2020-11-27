@@ -9,8 +9,7 @@ const log = createLogger('xo:xo-server:sdn-controller:private-network')
 // =============================================================================
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!'
-const createPassword = () =>
-  Array.from({ length: 16 }, _ => sample(CHARS)).join('')
+const createPassword = () => Array.from({ length: 16 }, _ => sample(CHARS)).join('')
 
 // =============================================================================
 
@@ -55,26 +54,16 @@ export class PrivateNetwork {
     const network = this.networks[host.$pool.uuid]
     const centerNetwork = this.networks[this.center.$pool.uuid]
     const otherConfig = network.other_config
-    const encapsulation =
-      otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
+    const encapsulation = otherConfig['xo:sdn-controller:encapsulation'] ?? 'gre'
     const vni = otherConfig['xo:sdn-controller:vni'] ?? '0'
-    const password =
-      otherConfig['xo:sdn-controller:encrypted'] === 'true'
-        ? createPassword()
-        : undefined
+    const password = otherConfig['xo:sdn-controller:encrypted'] === 'true' ? createPassword() : undefined
     const pifDevice = otherConfig['xo:sdn-controller:pif-device']
     const pifVlan = +otherConfig['xo:sdn-controller:vlan']
     const hostPif = hostClient.host.$PIFs.find(
-      pif =>
-        pif?.device === pifDevice &&
-        pif.VLAN === pifVlan &&
-        pif.ip_configuration_mode !== 'None'
+      pif => pif?.device === pifDevice && pif.VLAN === pifVlan && pif.ip_configuration_mode !== 'None'
     )
     const centerPif = centerClient.host.$PIFs.find(
-      pif =>
-        pif?.device === pifDevice &&
-        pif.VLAN === pifVlan &&
-        pif.ip_configuration_mode !== 'None'
+      pif => pif?.device === pifDevice && pif.VLAN === pifVlan && pif.ip_configuration_mode !== 'None'
     )
     assert(hostPif !== undefined, 'No PIF found', {
       privateNetwork: this.uuid,
@@ -92,22 +81,8 @@ export class PrivateNetwork {
     let bridgeName
     try {
       ;[bridgeName] = await Promise.all([
-        hostClient.addInterfaceAndPort(
-          network,
-          centerPif.IP,
-          encapsulation,
-          vni,
-          password,
-          this.uuid
-        ),
-        centerClient.addInterfaceAndPort(
-          centerNetwork,
-          hostPif.IP,
-          encapsulation,
-          vni,
-          password,
-          this.uuid
-        ),
+        hostClient.addInterfaceAndPort(network, centerPif.IP, encapsulation, vni, password, this.uuid),
+        centerClient.addInterfaceAndPort(centerNetwork, hostPif.IP, encapsulation, vni, password, this.uuid),
       ])
     } catch (error) {
       log.error('Error while connecting host to private network', {
@@ -155,9 +130,7 @@ export class PrivateNetwork {
     delete this.center
 
     if (this._preferredCenter !== undefined) {
-      this._preferredCenter = await this._preferredCenter.$xapi.barrier(
-        this._preferredCenter.$ref
-      )
+      this._preferredCenter = await this._preferredCenter.$xapi.barrier(this._preferredCenter.$ref)
     }
 
     this.center = this._findBestCenter()
@@ -226,17 +199,12 @@ export class PrivateNetwork {
   }
 
   _hostCanBeCenter(host) {
-    const pif = host.$PIFs.find(
-      _ => _.network === this.networks[host.$pool.uuid].$ref
-    )
+    const pif = host.$PIFs.find(_ => _.network === this.networks[host.$pool.uuid].$ref)
     return pif?.currently_attached && host.$metrics.live
   }
 
   _findBestCenter() {
-    if (
-      this._preferredCenter !== undefined &&
-      this._hostCanBeCenter(this._preferredCenter)
-    ) {
+    if (this._preferredCenter !== undefined && this._hostCanBeCenter(this._preferredCenter)) {
       return this._preferredCenter
     }
 

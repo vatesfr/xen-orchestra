@@ -40,8 +40,6 @@ export default class Shortcuts extends Component {
   }
 
   render() {
-    return enabled ? (
-      <ReactShortcuts {...this.props} handler={this._handler} />
-    ) : null
+    return enabled ? <ReactShortcuts {...this.props} handler={this._handler} /> : null
   }
 }

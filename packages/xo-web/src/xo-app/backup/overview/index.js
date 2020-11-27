@@ -12,13 +12,7 @@ import JobsTable from './tab-jobs'
 import LogsTable from '../../logs/backup-ng'
 import LegacyOverview from '../overview-legacy'
 
-const legacyJobKey = [
-  'continuousReplication',
-  'deltaBackup',
-  'disasterRecovery',
-  'backup',
-  'rollingSnapshot',
-]
+const legacyJobKey = ['continuousReplication', 'deltaBackup', 'disasterRecovery', 'backup', 'rollingSnapshot']
 
 const Overview = decorate([
   addSubscriptions({
@@ -42,15 +36,11 @@ const Overview = decorate([
       },
     },
     computed: {
-      haveLegacyBackups: (_, { legacyJobs }) =>
-        some(legacyJobs, job => legacyJobKey.includes(job.key)),
+      haveLegacyBackups: (_, { legacyJobs }) => some(legacyJobs, job => legacyJobKey.includes(job.key)),
     },
   }),
   injectState,
-  ({
-    effects,
-    state: { haveLegacyBackups, scrollIntoJobs, scrollIntoLogs },
-  }) => (
+  ({ effects, state: { haveLegacyBackups, scrollIntoJobs, scrollIntoLogs } }) => (
     <div>
       {haveLegacyBackups && <LegacyOverview />}
       <div className='mt-2 mb-1'>

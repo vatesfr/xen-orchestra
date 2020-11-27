@@ -30,14 +30,8 @@ const required = name => {
 // -------------------------------------------------------------------
 
 const STYLES = [
-  [
-    vdi => !vdi.managed,
-    chalk.enabled ? chalk.red : label => `[unmanaged] ${label}`,
-  ],
-  [
-    vdi => vdi.is_a_snapshot,
-    chalk.enabled ? chalk.yellow : label => `[snapshot] ${label}`,
-  ],
+  [vdi => !vdi.managed, chalk.enabled ? chalk.red : label => `[unmanaged] ${label}`],
+  [vdi => vdi.is_a_snapshot, chalk.enabled ? chalk.yellow : label => `[snapshot] ${label}`],
 ]
 const getStyle = vdi => {
   for (let i = 0, n = STYLES.length; i < n; ++i) {
@@ -102,9 +96,7 @@ execPromise(async args => {
   forEach(vdisByRef, vdi => {
     const vhdParent = vdi.sm_config['vhd-parent']
     if (vhdParent) {
-      ;(
-        vhdChildrenByUuid[vhdParent] || (vhdChildrenByUuid[vhdParent] = [])
-      ).push(vdi)
+      ;(vhdChildrenByUuid[vhdParent] || (vhdChildrenByUuid[vhdParent] = [])).push(vdi)
     } else if (!(vdi.snapshot_of in vdisByRef)) {
       return
     }
@@ -115,18 +107,12 @@ execPromise(async args => {
   const makeVdiNode = vdi => {
     const { uuid } = vdi
 
-    let label = `${vdi.name_label} - ${uuid} - ${formatSize(
-      +vdi.physical_utilisation
-    )}`
+    let label = `${vdi.name_label} - ${uuid} - ${formatSize(+vdi.physical_utilisation)}`
     const nodes = []
 
     const vhdChildren = vhdChildrenByUuid[uuid]
     if (vhdChildren) {
-      mapFilter(
-        orderBy(vhdChildren, 'is_a_snapshot', 'desc'),
-        makeVdiNode,
-        nodes
-      )
+      mapFilter(orderBy(vhdChildren, 'is_a_snapshot', 'desc'), makeVdiNode, nodes)
     }
 
     mapFilter(

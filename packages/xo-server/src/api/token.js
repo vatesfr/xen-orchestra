@@ -48,8 +48,7 @@ export async function deleteAll({ except }) {
   })
 }
 
-deleteAll.description =
-  'delete all tokens of the current user except the current one'
+deleteAll.description = 'delete all tokens of the current user except the current one'
 
 deleteAll.params = {
   except: { type: 'string', optional: true },

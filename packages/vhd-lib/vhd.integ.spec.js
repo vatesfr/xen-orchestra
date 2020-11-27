@@ -53,9 +53,7 @@ test('ReadableRawVHDStream does not crash', async () => {
   }
   const fileSize = 1000
   const stream = createReadableRawStream(fileSize, mockParser)
-  await pFromCallback(cb =>
-    pipeline(stream, createWriteStream(`${tempDir}/output.vhd`), cb)
-  )
+  await pFromCallback(cb => pipeline(stream, createWriteStream(`${tempDir}/output.vhd`), cb))
   await execa('vhd-util', ['check', '-t', '-i', '-n', `${tempDir}/output.vhd`])
 })
 
@@ -86,9 +84,7 @@ test('ReadableRawVHDStream detects when blocks are out of order', async () => {
     new Promise((resolve, reject) => {
       const stream = createReadableRawStream(100000, mockParser)
       stream.on('error', reject)
-      pipeline(stream, createWriteStream(`${tempDir}/outputStream`), err =>
-        err ? reject(err) : resolve()
-      )
+      pipeline(stream, createWriteStream(`${tempDir}/outputStream`), err => (err ? reject(err) : resolve()))
     })
   ).rejects.toThrow('Received out of order blocks')
 })
@@ -116,15 +112,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   const pipe = stream.pipe(createWriteStream(`${tempDir}/output.vhd`))
   await fromEvent(pipe, 'finish')
   await execa('vhd-util', ['check', '-t', '-i', '-n', `${tempDir}/output.vhd`])
-  await execa('qemu-img', [
-    'convert',
-    '-f',
-    'vpc',
-    '-O',
-    'raw',
-    `${tempDir}/output.vhd`,
-    `${tempDir}/out1.raw`,
-  ])
+  await execa('qemu-img', ['convert', '-f', 'vpc', '-O', 'raw', `${tempDir}/output.vhd`, `${tempDir}/out1.raw`])
   const out1 = await readFile(`${tempDir}/out1.raw`)
   const expected = Buffer.alloc(fileSize)
   blocks.forEach(b => {

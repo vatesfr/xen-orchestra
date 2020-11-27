@@ -10,9 +10,7 @@ describe('server', () => {
   let serverIds = []
 
   afterEach(async () => {
-    await Promise.all(
-      map(serverIds, serverId => xo.call('server.remove', { id: serverId }))
-    )
+    await Promise.all(map(serverIds, serverId => xo.call('server.remove', { id: serverId })))
     serverIds = []
   })
 
@@ -152,9 +150,7 @@ describe('server', () => {
     jest.setTimeout(5e3)
 
     it('connects to a Xen server', async () => {
-      const serverId = await addServer(
-        Object.assign({ autoConnect: false }, config.xenServer1)
-      )
+      const serverId = await addServer(Object.assign({ autoConnect: false }, config.xenServer1))
 
       await xo.call('server.connect', {
         id: serverId,
@@ -185,9 +181,7 @@ describe('server', () => {
     jest.setTimeout(5e3)
     let serverId
     beforeEach(async () => {
-      serverId = await addServer(
-        Object.assign({ autoConnect: false }, config.xenServer1)
-      )
+      serverId = await addServer(Object.assign({ autoConnect: false }, config.xenServer1))
       await xo.call('server.connect', {
         id: serverId,
       })
