@@ -63,6 +63,7 @@ export default class Backups {
       try {
         await new Backup({
           ...rest,
+          app,
           config,
           getConnectedXapi,
         }).run()
