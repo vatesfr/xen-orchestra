@@ -44,7 +44,7 @@
     "@xen-orchestra/self-signed": "^0.1.0",
     "@xen-orchestra/template": "^0.1.0",
     "@vates/decorate-with": "^0.0.1",
-    "@vates/multi-key-map": "^0.0.0",
+    "@vates/multi-key-map": "^0.1.0",
     "@vates/parse-duration": "0.1.0",
     "ajv": "^6.1.1",
     "app-conf": "^0.8.0",
