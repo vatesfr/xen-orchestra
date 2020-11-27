@@ -442,9 +442,9 @@ const missingPatchesByHost = {}
 export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
 
-  if (missingPatchesByHost[hostId] == null) {
-    missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host))
-  }
+  host.power_state !== 'Running'
+    ? (missingPatchesByHost[hostId] = () => noop)
+    : (missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host)))
 
   return missingPatchesByHost[hostId](cb)
 }
