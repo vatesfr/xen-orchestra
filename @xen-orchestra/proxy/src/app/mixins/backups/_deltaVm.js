@@ -171,7 +171,7 @@ export const importDeltaVm = defer(
     let suspendVdi
     if (vmRecord.power_state === 'Suspended') {
       const vdi = vdiRecords[vmRecord.suspend_VDI]
-      suspendVdi = await this.createVdi({
+      suspendVdi = await xapi.VDI_create({
         ...vdi,
         other_config: {
           ...vdi.other_config,
@@ -180,7 +180,7 @@ export const importDeltaVm = defer(
         },
         sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
       })
-      $defer.onFailure.call(this, '_deleteVdi', suspendVdi.$ref)
+      $defer.onFailure(() => suspendVdi.$destroy())
     }
 
     // 1. Create the VM.
