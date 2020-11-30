@@ -15,9 +15,8 @@ export const deduped = (factory, keyFn = (...args) => args) =>
       let state = states.get(keys)
       if (state === undefined) {
         const resource = factory.apply(this, arguments)
-        resource.p.catch(error => {
+        resource.p.catch(() => {
           states.delete(keys)
-          throw error
         })
 
         state = new State(resource)
