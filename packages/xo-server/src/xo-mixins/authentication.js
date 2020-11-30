@@ -17,6 +17,7 @@ export default class {
   constructor(xo, { authentication: config }) {
     this._defaultTokenValidity = parseDuration(config.defaultTokenValidity)
     this._maxTokenValidity = parseDuration(config.maxTokenValidity)
+    this._throttlingDelay = parseDuration(config.throttlingDelay)
 
     this._providers = new Set()
     this._xo = xo
@@ -144,7 +145,7 @@ export default class {
     const { username } = credentials
     const now = Date.now()
     let lastFailure
-    if (username && (lastFailure = failures[username]) && lastFailure + 2e3 > now) {
+    if (username && (lastFailure = failures[username]) && lastFailure + this._throttlingDelay > now) {
       throw new Error('too fast authentication tries')
     }
 
