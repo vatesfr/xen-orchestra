@@ -15,6 +15,7 @@ import Tooltip from 'tooltip'
 import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { CustomFields } from 'custom-fields'
 import { injectState, provideState } from 'reaclette'
 import { Number, Select as EditableSelect, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
@@ -771,6 +772,12 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <th>{_('customFields')}</th>
+                  <td>
+                    <CustomFields object={vm.id} />
+                  </td>
+                </tr>
               </tbody>
             </table>
             <br />

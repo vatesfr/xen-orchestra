@@ -14,8 +14,11 @@ const log = createLogger('xo:authentification')
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
 export default class {
-  constructor(xo, config) {
-    this._config = config.authentication
+  constructor(xo, { authentication: config }) {
+    this._defaultTokenValidity = parseDuration(config.defaultTokenValidity)
+    this._maxTokenValidity = parseDuration(config.maxTokenValidity)
+    this._throttlingDelay = parseDuration(config.throttlingDelay)
+
     this._providers = new Set()
     this._xo = xo
 
@@ -142,7 +145,7 @@ export default class {
     const { username } = credentials
     const now = Date.now()
     let lastFailure
-    if (username && (lastFailure = failures[username]) && lastFailure + 2e3 > now) {
+    if (username && (lastFailure = failures[username]) && lastFailure + this._throttlingDelay > now) {
       throw new Error('too fast authentication tries')
     }
 
@@ -158,11 +161,11 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken({ expiresIn = this._config.defaultTokenValidity, userId }) {
+  async createAuthenticationToken({ expiresIn = this._defaultTokenValidity, userId }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
-      expiration: Date.now() + Math.min(parseDuration(expiresIn), parseDuration(this._config.maxTokenValidity)),
+      expiration: Date.now() + Math.min(expiresIn, this._maxTokenValidity),
     })
 
     await this._tokens.add(token)

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "vhd-lib",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "license": "AGPL-3.0-or-later",
   "description": "Primitives for VHD file handling",
   "keywords": [],
@@ -36,7 +36,7 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-flow": "^7.0.0",
-    "@xen-orchestra/fs": "^0.11.1",
+    "@xen-orchestra/fs": "^0.12.0",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
     "execa": "^4.0.2",

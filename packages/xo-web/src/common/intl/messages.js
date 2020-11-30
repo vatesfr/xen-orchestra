@@ -61,6 +61,7 @@ const messages = {
   proxy: 'Proxy',
   proxies: 'Proxies',
   name: 'Name',
+  value: 'Value',
   address: 'Address',
   vm: 'VM',
   destinationSR: 'Destination SR',
@@ -94,6 +95,9 @@ const messages = {
   privateKey: 'Private key (PKCS#8)',
   installNewCertificate: 'Install new certificate',
   replaceExistingCertificate: 'Replace existing certificate',
+  customFields: 'Custom fields',
+  addCustomField: 'Add custom field',
+  deleteCustomField: 'Delete custom field',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -2303,6 +2307,7 @@ const messages = {
   starterLicense: 'Starter license',
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
+  trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
