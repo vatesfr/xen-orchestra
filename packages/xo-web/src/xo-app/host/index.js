@@ -12,7 +12,7 @@ import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { Pool } from 'render-xo-item'
-import { fetchHostStats, subscribeHostMissingPatches } from 'xo'
+import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -201,6 +201,9 @@ export default class Host extends Component {
       })
     )
   }
+
+  _setNameDescription = nameDescription => editHost(this.props.host, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editHost(this.props.host, { name_label: nameLabel })
 
   header() {
     const { host, pool, state } = this.props
