@@ -11,6 +11,9 @@ import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils
 const XEN_VGA_VALUES = ['std', 'cirrus']
 const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
+// handle MEMORY_CONSTRAINT_VIOLATION and derivatives like MEMORY_CONSTRAINT_VIOLATION_MAXPIN
+const isMemoryConstraintError = e => e.code.startsWith('MEMORY_CONSTRAINT_VIOLATION')
+
 export default {
   // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
   @cancelable
@@ -359,7 +362,7 @@ export default {
           Math.max(dynamicMax, vm.memory_static_max),
           dynamicMin,
           dynamicMax
-        )::pCatch({ code: 'MEMORY_CONSTRAINT_VIOLATION' }, () =>
+        )::pCatch(isMemoryConstraintError, () =>
           this.call('VM.set_memory_limits', $ref, staticMin, dynamicMax, dynamicMax, dynamicMax)
         )
       },
