@@ -637,6 +637,8 @@ export default class BackupNg {
               return app.callProxyMethod(proxyId, 'backup.run', params)
             }
             throw error
+          } finally {
+            remoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
           }
         }
 
