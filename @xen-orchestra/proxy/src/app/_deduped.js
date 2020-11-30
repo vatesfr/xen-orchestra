@@ -14,7 +14,12 @@ export const deduped = (factory, keyFn = (...args) => args) =>
       const keys = ensureArray(keyFn.apply(this, arguments))
       let state = states.get(keys)
       if (state === undefined) {
-        state = new State(factory.apply(this, arguments))
+        const resource = factory.apply(this, arguments)
+        resource.p.catch(() => {
+          states.delete(keys)
+        })
+
+        state = new State(resource)
         states.set(keys, state)
       }
 
