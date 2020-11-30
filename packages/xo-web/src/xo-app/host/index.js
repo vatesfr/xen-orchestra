@@ -12,7 +12,7 @@ import Tooltip from 'tooltip'
 import { Text } from 'editable'
 import { Container, Row, Col } from 'grid'
 import { Pool } from 'render-xo-item'
-import { editHost, fetchHostStats, subscribeHostMissingPatches } from 'xo'
+import { fetchHostStats, subscribeHostMissingPatches } from 'xo'
 import { connectStore, routes } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -195,18 +195,12 @@ export default class Host extends Component {
       this.unsubscribeHostMissingPatches()
     }
 
-    this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(
-      host,
-      missingPatches =>
-        this.setState({
-          missingPatches:
-            missingPatches && sortBy(missingPatches, patch => -patch.time),
-        })
+    this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(host, missingPatches =>
+      this.setState({
+        missingPatches: missingPatches && sortBy(missingPatches, patch => -patch.time),
+      })
     )
   }
-
-  _setNameDescription = nameDescription => editHost(this.props.host, { name_description: nameDescription })
-  _setNameLabel = nameLabel => editHost(this.props.host, { name_label: nameLabel })
 
   header() {
     const { host, pool, state } = this.props
