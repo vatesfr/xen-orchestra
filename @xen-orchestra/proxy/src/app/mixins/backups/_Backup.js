@@ -1,10 +1,11 @@
 import asyncMap from '@xen-orchestra/async-map'
-import disposable from 'promise-toolbox/disposable'
 import limitConcurrency from 'limit-concurrency-decorator'
 import using from 'promise-toolbox/using'
 import { compileTemplate } from '@xen-orchestra/template'
 import { decorateWith } from '@vates/decorate-with'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
+
+import { disposable } from '../../_disposable'
 
 import { Task } from './_Task'
 import { VmBackup } from './_VmBackup'
