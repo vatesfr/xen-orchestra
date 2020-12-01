@@ -584,8 +584,7 @@ export const getVdisByVm = invoke(() => {
       const previous = current
       current = {}
 
-      forEach(vms, vm => {
-        const { id } = vm
+      forEach(vms, ({ id }) => {
         current[id] =
           previous[id] ||
           createPicker(
@@ -598,7 +597,7 @@ export const getVdisByVm = invoke(() => {
                 ),
                 [vbd => !vbd.is_cd_drive && vbd.attached]
               ),
-              vbds => map(vbds, vbd => vbd.VDI)
+              vbds => map(vbds, 'VDI')
             )
           )
       })
@@ -611,10 +610,7 @@ export const getVdisByVm = invoke(() => {
     createGetObjectsOfType('VM'),
     createGetObjectsOfType('VBD'),
     createGetObjectsOfType('VDI'),
-    (vms, vbds, vdis) =>
-      mapValues(getVdisByVmSelectors(vms), (getVdis, vmId) =>
-        getVdis(vms[vmId], vbds, vdis)
-      )
+    (vms, vbds, vdis) => mapValues(getVdisByVmSelectors(vms), (getVdis, vmId) => getVdis(vms[vmId], vbds, vdis))
   )
 })
 
