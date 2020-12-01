@@ -20,6 +20,7 @@ import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
+  compact,
   debounce,
   differenceBy,
   escapeRegExp,
@@ -81,7 +82,6 @@ import {
   createSort,
   getIsPoolAdmin,
   getUser,
-  getVdisByVm,
   isAdmin,
 } from 'selectors'
 import { DropdownButton, MenuItem, OverlayTrigger, Popover } from 'react-bootstrap-4/lib'
@@ -452,24 +452,25 @@ const NoObjects = props =>
     createGetObjectsOfType('pool'),
     (hosts, pools) => ({ ...hosts, ...pools })
   )
-  const getItems = createSelector(
-    getContainers,
-    createGetObjectsOfType(getType),
-    (containers, items) =>
-      mapValues(items, item => ({
-        ...item,
-        container: containers[item.$container || item.$pool],
-      }))
+  const getItems = createSelector(getContainers, createGetObjectsOfType(getType), (containers, items) =>
+    mapValues(items, item => ({
+      ...item,
+      container: containers[item.$container || item.$pool],
+    }))
   )
-  const getVms = createSelector(
+
+  const getVms = createGetObjectsOfType('VM')
+  const getVmsWithTotalVdisUsage = createSelector(
     getContainers,
-    createGetObjectsOfType(getType),
-    getVdisByVm,
-    (containers, vms, vdisByVm) =>
+    getVms,
+    createSelector(getVms, createGetObjectsOfType('VBD'), createGetObjectsOfType('VDI'), (vms, vbds, vdis) =>
+      mapValues(vms, vm => sumBy(compact(map(vm.$VBDs, vbdId => get(() => vdis[vbds[vbdId].VDI]))), 'usage'))
+    ),
+    (containers, vms, vdisUsageByVm) =>
       mapValues(vms, (vm, vmId) => ({
         ...vm,
         container: containers[vm.$container || vm.$pool],
-        vdisUsage: sumBy(map(vdisByVm[vmId]), 'usage'),
+        vdisUsage: vdisUsageByVm[vmId],
       }))
   )
 
@@ -480,7 +481,7 @@ const NoObjects = props =>
       areObjectsFetched: areObjectsFetched(state, props),
       isAdmin: isAdmin(state, props),
       isPoolAdmin: getIsPoolAdmin(state, props),
-      items: type === 'VM' ? getVms(state, props) : getItems(state, props),
+      items: type === 'VM' ? getVmsWithTotalVdisUsage(state, props) : getItems(state, props),
       type,
       user: getUser(state, props),
     }

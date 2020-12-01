@@ -25,7 +25,7 @@ import styles from './index.css'
   container: createGetObject((_, props) => props.item.$container),
   totalDiskSize: createSumBy(
     createGetVmDisks((_, props) => props.item),
-    'size'
+    'usage'
   ),
 }))
 export default class VmItem extends Component {
