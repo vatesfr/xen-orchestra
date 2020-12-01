@@ -25,7 +25,7 @@ export default class Remotes {
     app.api.addMethods({
       remote: {
         getInfo: [
-          ({ remote }) => using(this.getHandler(remote, config.remoteOptions), handler => handler.getInfo()),
+          ({ remote }) => using(this.getHandler(remote), handler => handler.getInfo()),
           {
             params: {
               remote: { type: 'object' },
@@ -34,7 +34,7 @@ export default class Remotes {
         ],
 
         test: [
-          ({ remote }) => using(this.getHandler(remote, config.remoteOptions), handler => handler.test()),
+          ({ remote }) => using(this.getHandler(remote), handler => handler.test()),
           {
             params: {
               remote: { type: 'object' },
@@ -49,7 +49,7 @@ export default class Remotes {
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(disposable)
   async *getHandler(remote, options) {
-    const handler = getHandler(remote, options)
+    const handler = getHandler(remote, { ...this._config.remoteOptions, ...options })
     await handler.sync()
     try {
       yield handler
