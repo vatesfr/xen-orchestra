@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Home] Ability to sort VMs by total disks physical size (PR (https://github.com/vatesfr/xen-orchestra/pull/5418))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
