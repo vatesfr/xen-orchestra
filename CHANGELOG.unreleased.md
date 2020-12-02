@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-[Settings/plugin] Show notification if no failure on plugin test (PR [#5409](https://github.com/vatesfr/xen-orchestra/pull/5409))
+[Plugins] Add user feedback when a plugin test finishes successfully (PR [#5409](https://github.com/vatesfr/xen-orchestra/pull/5409))
 
 ### Bug fixes
 
