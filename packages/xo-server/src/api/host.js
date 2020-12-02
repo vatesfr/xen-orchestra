@@ -2,6 +2,22 @@ import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
+export function disableCompletely({ host }) {
+  return this.getXapi(host)._clearHost({ $ref: host._xapiRef })
+}
+
+disableCompletely.description = 'disable and evacuate the VMs of the host'
+
+disableCompletely.params = {
+  id: { type: 'string' },
+}
+
+disableCompletely.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// ===================================================================
+
 export async function getSchedulerGranularity({ host }) {
   try {
     return await this.getXapi(host).getField('host', host._xapiRef, 'sched_gran')

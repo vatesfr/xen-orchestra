@@ -779,7 +779,7 @@ export const stopHosts = hosts => {
 
 export const enableHost = host => _call('host.enable', { id: resolveId(host) })
 
-export const disableHost = host => _call('host.disable', { id: resolveId(host) })
+export const disableHost = host => _call('host.disableCompletely', { id: resolveId(host) })
 
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
@@ -1803,14 +1803,11 @@ export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(ob
 
 // Custom fields ------------------------------------------------------------------------
 
-export const addCustomField = (id, name, value) =>
-  _call('customField.add', { id, name, value })
+export const addCustomField = (id, name, value) => _call('customField.add', { id, name, value })
 
-export const removeCustomField = (id, name) =>
-  _call('customField.remove', { id, name })
+export const removeCustomField = (id, name) => _call('customField.remove', { id, name })
 
-export const setCustomField = (id, name, value) =>
-  _call('customField.set', { id, name, value })
+export const setCustomField = (id, name, value) => _call('customField.set', { id, name, value })
 
 // Tasks --------------------------------------------------------------
 
