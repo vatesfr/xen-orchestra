@@ -48,8 +48,8 @@ export default class Remotes {
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(disposable)
-  async *getHandler(remote, options) {
-    const handler = getHandler(remote, { ...this._config.remoteOptions, ...options })
+  async *getHandler(remote) {
+    const handler = getHandler(remote, this._config.remoteOptions)
     await handler.sync()
     try {
       yield handler
