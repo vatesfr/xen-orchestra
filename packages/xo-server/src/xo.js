@@ -11,6 +11,7 @@ import mixins from './xo-mixins'
 import Connection from './connection'
 import { generateToken, noop } from './utils'
 
+import emitAsync from '@xen-orchestra/emit-async'
 // ===================================================================
 
 const log = createLogger('xo:xo')
@@ -19,6 +20,8 @@ const log = createLogger('xo:xo')
 export default class Xo extends EventEmitter {
   constructor(config) {
     super()
+
+    this.emitAsync = emitAsync
 
     // a lot of mixins adds listener for start/stop/… events
     this.setMaxListeners(0)

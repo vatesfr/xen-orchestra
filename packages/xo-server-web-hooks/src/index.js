@@ -1,6 +1,7 @@
 import createLogger from '@xen-orchestra/log'
 
 const log = createLogger('xo:web-hooks')
+const NEEDRESPONSE = true
 
 function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
@@ -29,8 +30,19 @@ class XoServerHooks {
     this._handlePostHook = handleHook.bind(this, 'post')
   }
 
-  _makeRequest(url, type, data) {
-    return this._xo.httpRequest(url, {
+  async _makeRequest(url, type, data) {
+    if (!NEEDRESPONSE) {
+      return this._xo.httpRequest(url, {
+        body: JSON.stringify({ ...data, type }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        onRequest: req => {
+          req.setTimeout(1e4)
+          req.on('timeout', req.abort)
+        },
+      })
+    }
+    await this._xo.httpRequest(url, {
       body: JSON.stringify({ ...data, type }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
@@ -39,6 +51,7 @@ class XoServerHooks {
         req.on('timeout', req.abort)
       },
     })
+    return await this._xo.httpRequest(url, { method: 'GET' })
   }
 
   configure(configuration) {
@@ -73,18 +86,18 @@ class XoServerHooks {
     this._hooks = hooks
   }
 
-  load() {
-    this._xo.on('xo:preCall', this._handlePreHook)
-    this._xo.on('xo:postCall', this._handlePostHook)
+  async load() {
+    // this._xo.on('xo:preCall', this._handlePreHook)
+    // this._xo.on('xo:postCall', this._handlePostHook)
     this._xo.on('backup:preCall', this._handlePreHook)
-    this._xo.on('backup:postCall', this._handlePostHook)
+    // this._xo.on('backup:postCall', this._handlePostHook)
   }
 
   unload() {
-    this._xo.removeListener('xo:preCall', this._handlePreHook)
-    this._xo.removeListener('xo:postCall', this._handlePostHook)
+    // this._xo.removeListener('xo:preCall', this._handlePreHook)
+    // this._xo.removeListener('xo:postCall', this._handlePostHook)
     this._xo.removeListener('backup:preCall', this._handlePreHook)
-    this._xo.removeListener('backup:postCall', this._handlePostHook)
+    // this._xo.removeListener('backup:postCall', this._handlePostHook)
   }
 
   async test({ url }) {
