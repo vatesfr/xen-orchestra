@@ -459,18 +459,16 @@ const NoObjects = props =>
     }))
   )
 
-  const getVms = createGetObjectsOfType('VM')
-  const getVmsWithTotalVdisUsage = createSelector(
+  const getVms = createSelector(
     getContainers,
-    getVms,
-    createSelector(getVms, createGetObjectsOfType('VBD'), createGetObjectsOfType('VDI'), (vms, vbds, vdis) =>
-      mapValues(vms, vm => sumBy(compact(map(vm.$VBDs, vbdId => get(() => vdis[vbds[vbdId].VDI]))), 'usage'))
-    ),
-    (containers, vms, vdisUsageByVm) =>
-      mapValues(vms, (vm, vmId) => ({
+    createGetObjectsOfType('VM'),
+    createGetObjectsOfType('VBD'),
+    createGetObjectsOfType('VDI'),
+    (containers, vms, vbds, vdis) =>
+      mapValues(vms, vm => ({
         ...vm,
         container: containers[vm.$container || vm.$pool],
-        vdisUsage: vdisUsageByVm[vmId],
+        vdisUsage: sumBy(compact(map(vm.$VBDs, vbdId => get(() => vdis[vbds[vbdId].VDI]))), 'usage'),
       }))
   )
 
@@ -481,7 +479,7 @@ const NoObjects = props =>
       areObjectsFetched: areObjectsFetched(state, props),
       isAdmin: isAdmin(state, props),
       isPoolAdmin: getIsPoolAdmin(state, props),
-      items: type === 'VM' ? getVmsWithTotalVdisUsage(state, props) : getItems(state, props),
+      items: type === 'VM' ? getVms(state, props) : getItems(state, props),
       type,
       user: getUser(state, props),
     }
