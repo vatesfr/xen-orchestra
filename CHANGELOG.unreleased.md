@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+[xo-web/host] displaying host page even if controller aren't defined
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
