@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import emitAsync from '@xen-orchestra/emit-async'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import mixin from '@xen-orchestra/mixin'
@@ -11,7 +12,6 @@ import mixins from './xo-mixins'
 import Connection from './connection'
 import { generateToken, noop } from './utils'
 
-import emitAsync from '@xen-orchestra/emit-async'
 // ===================================================================
 
 const log = createLogger('xo:xo')

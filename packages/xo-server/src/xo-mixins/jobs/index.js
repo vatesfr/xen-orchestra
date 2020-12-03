@@ -16,8 +16,6 @@ import { type Schedule } from '../scheduling'
 
 import executeCall from './execute-call'
 
-const AwaitEventEmitter = require('await-event-emitter').default
-
 // ===================================================================
 
 export type Job = {
@@ -133,7 +131,6 @@ export default class Jobs {
 
   constructor(xo: any) {
     this._app = xo
-    this.emitter = new AwaitEventEmitter()
     const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
       connection: xo._redis,
@@ -309,8 +306,6 @@ export default class Jobs {
         session = app.createUserConnection()
         session.set('user_id', job.userId)
 
-        console.log('launch emitter ')
-        const a = Date.now()
         if (type === 'backup') {
           await app.emitAsync(
             {
@@ -322,9 +317,6 @@ export default class Jobs {
             data
           )
         }
-
-        console.log('////////// duration: ' + (Date.now() - a) + ' /////////')
-        console.log('end emitter')
 
         const status = await executor({
           app,

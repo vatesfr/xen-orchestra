@@ -1,14 +1,13 @@
 import createLogger from '@xen-orchestra/log'
 
 const log = createLogger('xo:web-hooks')
-const NEEDRESPONSE = true
 
 function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
     return Promise.all(
-      hooks.map(({ url }) =>
-        this._makeRequest(url, type, data).catch(error => {
+      hooks.map(({ url, response }) =>
+        this._makeRequest(url, type, data, response).catch(error => {
           log.error('web hook failed', {
             error,
             webHook: { ...data, url, type },
@@ -30,9 +29,9 @@ class XoServerHooks {
     this._handlePostHook = handleHook.bind(this, 'post')
   }
 
-  async _makeRequest(url, type, data) {
-    if (!NEEDRESPONSE) {
-      return this._xo.httpRequest(url, {
+  async _makeRequest(url, type, data, response) {
+    if (response && type === 'pre') {
+      await this._xo.httpRequest(url, {
         body: JSON.stringify({ ...data, type }),
         headers: { 'Content-Type': 'application/json' },
         method: 'POST',
@@ -41,8 +40,16 @@ class XoServerHooks {
           req.on('timeout', req.abort)
         },
       })
+      return this._xo.httpRequest(url, {
+        method: 'GET',
+        onRequest: req => {
+          req.setTimeout(1e4)
+          req.on('timemout', req.abort)
+        },
+      })
     }
-    await this._xo.httpRequest(url, {
+
+    return this._xo.httpRequest(url, {
       body: JSON.stringify({ ...data, type }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
@@ -51,7 +58,6 @@ class XoServerHooks {
         req.on('timeout', req.abort)
       },
     })
-    return await this._xo.httpRequest(url, { method: 'GET' })
   }
 
   configure(configuration) {
@@ -61,7 +67,8 @@ class XoServerHooks {
     //       {
     //         method: 'vm.start',
     //         type: 'pre',
-    //         url: 'https://my-domain.net/xo-hooks?action=vm.start'
+    //         url: 'https://my-domain.net/xo-hooks?action=vm.start',
+    //         response: false
     //       },
     //       ...
     //     ],
@@ -86,38 +93,48 @@ class XoServerHooks {
     this._hooks = hooks
   }
 
-  async load() {
-    // this._xo.on('xo:preCall', this._handlePreHook)
-    // this._xo.on('xo:postCall', this._handlePostHook)
+  load() {
+    this._xo.on('xo:preCall', this._handlePreHook)
+    this._xo.on('xo:postCall', this._handlePostHook)
     this._xo.on('backup:preCall', this._handlePreHook)
-    // this._xo.on('backup:postCall', this._handlePostHook)
+    this._xo.on('backup:postCall', this._handlePostHook)
   }
 
   unload() {
-    // this._xo.removeListener('xo:preCall', this._handlePreHook)
-    // this._xo.removeListener('xo:postCall', this._handlePostHook)
+    this._xo.removeListener('xo:preCall', this._handlePreHook)
+    this._xo.removeListener('xo:postCall', this._handlePostHook)
     this._xo.removeListener('backup:preCall', this._handlePreHook)
-    // this._xo.removeListener('backup:postCall', this._handlePostHook)
+    this._xo.removeListener('backup:postCall', this._handlePostHook)
   }
 
   async test({ url }) {
-    await this._makeRequest(url, 'pre', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
-      timestamp: 0,
-    })
-    await this._makeRequest(url, 'post', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      result: '',
-      timestamp: 500,
-      duration: 500,
-    })
+    await this._makeRequest(
+      url,
+      'pre',
+      {
+        callId: '0',
+        userId: 'b4tm4n',
+        userName: 'bruce.wayne@waynecorp.com',
+        method: 'vm.start',
+        params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+        timestamp: 0,
+      },
+      false
+    )
+    await this._makeRequest(
+      url,
+      'post',
+      {
+        callId: '0',
+        userId: 'b4tm4n',
+        userName: 'bruce.wayne@waynecorp.com',
+        method: 'vm.start',
+        result: '',
+        timestamp: 500,
+        duration: 500,
+      },
+      false
+    )
   }
 }
 
@@ -151,6 +168,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             // configuration schema: https://i.imgur.com/CpvAwPM.png
             title: 'URL',
             type: 'string',
+          },
+          response: {
+            description: 'Waiting for the server response before execute the job. Only available on "PRE" type',
+            title: 'Response',
+            type: 'boolean',
           },
         },
         required: ['method', 'type', 'url'],

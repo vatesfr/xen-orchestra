@@ -261,7 +261,15 @@ export default class Api {
       timestamp: Date.now(),
     }
 
-    xo.emit('xo:preCall', data)
+    await xo.emitAsync(
+      {
+        onError(error) {
+          console.warn(error)
+        },
+      },
+      'xo:preCall',
+      data
+    )
 
     try {
       await checkPermission.call(context, method)
