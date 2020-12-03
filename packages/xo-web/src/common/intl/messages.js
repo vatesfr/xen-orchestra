@@ -692,7 +692,9 @@ const messages = {
   autoloadPlugin: 'Auto-load at server start',
   savePluginConfiguration: 'Save configuration',
   deletePluginConfiguration: 'Delete configuration',
+  pluginConfirmation: 'The test appears to be working.',
   pluginError: 'Plugin error',
+  pluginTest: 'Plugin test',
   unknownPluginError: 'Unknown error',
   purgePluginConfiguration: 'Purge plugin configuration',
   purgePluginConfigurationQuestion: 'Are you sure you want to purge this configuration?',
@@ -2307,8 +2309,7 @@ const messages = {
   starterLicense: 'Starter license',
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
-  trialLicenseInfo:
-    'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
