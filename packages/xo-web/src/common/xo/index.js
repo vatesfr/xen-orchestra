@@ -446,9 +446,9 @@ const missingPatchesByHost = {}
 export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
 
-  host.power_state !== 'Running'
-    ? (missingPatchesByHost[hostId] = () => noop)
-    : (missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host)))
+  missingPatchesByHost[hostId] = createSubscription(() =>
+    host.power_state !== 'Running' ? noop : getHostMissingPatches(host)
+  )
 
   return missingPatchesByHost[hostId](cb)
 }
@@ -1803,14 +1803,11 @@ export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(ob
 
 // Custom fields ------------------------------------------------------------------------
 
-export const addCustomField = (id, name, value) =>
-  _call('customField.add', { id, name, value })
+export const addCustomField = (id, name, value) => _call('customField.add', { id, name, value })
 
-export const removeCustomField = (id, name) =>
-  _call('customField.remove', { id, name })
+export const removeCustomField = (id, name) => _call('customField.remove', { id, name })
 
-export const setCustomField = (id, name, value) =>
-  _call('customField.set', { id, name, value })
+export const setCustomField = (id, name, value) => _call('customField.set', { id, name, value })
 
 // Tasks --------------------------------------------------------------
 
