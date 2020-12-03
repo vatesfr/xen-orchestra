@@ -9,7 +9,6 @@
 
 - [Home/VM] Ability to choose network for bulk migration within a pool
 
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
