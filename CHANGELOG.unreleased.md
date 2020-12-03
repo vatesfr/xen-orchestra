@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [New HBA SR] Show LUN serial and id in LUN selector (PR([#5422](https://github.com/vatesfr/xen-orchestra/pull/5422)))
+- [New HBA SR] Show LUN serial and id in LUN selector (PR [#5422](https://github.com/vatesfr/xen-orchestra/pull/5422))
 
 ### Bug fixes
 
