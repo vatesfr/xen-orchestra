@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-[xo-server/jobs] Bug fix when run a job manually [#5425] https://github.com/vatesfr/xen-orchestra/issues/5425 (PR []())
+[xo-server/jobs] Bug fix when run a job manually [#5425] https://github.com/vatesfr/xen-orchestra/issues/5425 (PR [#5426](https://github.com/vatesfr/xen-orchestra/pull/5426))
 
 ### Packages to release
 
