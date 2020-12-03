@@ -161,15 +161,10 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVifsNetworks[vm.id] = mapVifsNetworks
     })
 
-    // Map VM --> migration network
-    const mapVmsMigrationNetwork = mapValues(doNotMigrateVmVdis, doNotMigrateVdis =>
-      doNotMigrateVdis ? undefined : migrationNetworkId
-    )
-
     return {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
-      mapVmsMigrationNetwork,
+      migrationNetwork: migrationNetworkId,
       targetHost: host.id,
       vms,
     }
@@ -231,7 +226,8 @@ export default class MigrateVmsModalBody extends BaseComponent {
     vms => createCompare([pool => some(vms, vm => vm.$pool === pool.id)])
   )
 
-  _selectMigrationNetwork = migrationNetwork => this.setState({ migrationNetworkId: migrationNetwork.id })
+  _selectMigrationNetwork = migrationNetwork =>
+    this.setState({ migrationNetworkId: migrationNetwork == null ? undefined : migrationNetwork.id })
   _selectNetwork = network => this.setState({ networkId: network.id })
   _selectSr = sr => this.setState({ srId: sr.id })
   _toggleSmartVifMapping = () => this.setState({ smartVifMapping: !this.state.smartVifMapping })
@@ -263,7 +259,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {intraPool === false && (
+        {host !== undefined && (
           <div style={LINE_STYLE}>
             <SingleLineRow>
               <Col size={6}>{_('migrateVmSelectMigrationNetwork')}</Col>
@@ -271,10 +267,12 @@ export default class MigrateVmsModalBody extends BaseComponent {
                 <SelectNetwork
                   onChange={this._selectMigrationNetwork}
                   predicate={this._getMigrationNetworkPredicate()}
+                  required={!intraPool}
                   value={migrationNetworkId}
                 />
               </Col>
             </SingleLineRow>
+            {intraPool && <i>{_('optionalEntry')}</i>}
           </div>
         )}
         {host && (!intraPool || !noVdisMigration) && (
