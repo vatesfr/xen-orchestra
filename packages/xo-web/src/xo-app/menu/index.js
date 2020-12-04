@@ -79,12 +79,7 @@ export default class Menu extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (
-      !isEqual(
-        sortBy(prevProps.hosts, [host => host.id]).map(host => host.power_state),
-        sortBy(this.props.hosts, [host => host.id]).map(host => host.power_state)
-      )
-    ) {
+    if (!isEqual(Object.keys(prevProps.hosts).sort(), Object.keys(this.props.hosts).sort())) {
       this._updateMissingPatchesSubscriptions()
     }
   }
