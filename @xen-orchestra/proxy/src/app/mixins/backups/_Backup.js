@@ -53,8 +53,8 @@ export class Backup {
 
     const srs = await Promise.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _)))
 
-    const remoteIds = extractIdsFromSimplePattern(job.remotes)
-    await using(...remoteIds.map(id => this._getAdapter(id)), async (...adapters) => {
+    const remoteAdapters = extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))
+    await using(remoteAdapters, async adapters => {
       const vmIds = extractIdsFromSimplePattern(job.vms)
 
       Task.info('vms', { vms: vmIds })
