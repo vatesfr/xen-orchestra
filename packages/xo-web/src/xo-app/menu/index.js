@@ -26,7 +26,7 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, forEach, identity, isEmpty, isEqual, map, pick, some, sortBy } from 'lodash'
+import { every, forEach, identity, isEmpty, isEqual, map, pick, some } from 'lodash'
 
 import styles from './index.css'
 

@@ -783,15 +783,15 @@ export const disableHost = host => _call('host.disable', { id: resolveId(host) }
 
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
-  const currentHost = getObject(store.getState(), hostId)
+  host = getObject(store.getState(), hostId)
 
-  if (currentHost.power_state !== 'Running') {
+  if (host.power_state !== 'Running') {
     return []
   }
-  if (currentHost.productBrand !== 'XCP-ng') {
+  if (host.productBrand !== 'XCP-ng') {
     const patches = await _call('pool.listMissingPatches', { host: hostId })
     // Hide paid patches to XS-free users
-    return currentHost.license_params.sku_type !== 'free' ? patches : filter(patches, { paid: false })
+    return host.license_params.sku_type !== 'free' ? patches : filter(patches, { paid: false })
   }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
