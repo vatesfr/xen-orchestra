@@ -67,6 +67,11 @@ mergeProvidersUsers = true
 # should be used by default.
 defaultSignInPage = '/signin'
 
+# Minimum delay between two password authentication attemps.
+#
+# This is used to mitigate bruteforce attacks without being visible to users.
+throttlingDelay = '2 seconds'
+
 [backup]
 # Mode to use for newly created backup directories
 #

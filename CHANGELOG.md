@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.53.0** (2020-11-30)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
@@ -14,6 +16,7 @@
 - [Licensing] Add trial end information banner (PR [#5374](https://github.com/vatesfr/xen-orchestra/pull/5374))
 - Assign custom fields on pools, hosts, SRs, and VMs in advanced tab [#4730](https://github.com/vatesfr/xen-orchestra/issues/4730) (PR [#5387](https://github.com/vatesfr/xen-orchestra/pull/5387))
 - Ability to change the number of items displayed per table or page (PR [#5355](https://github.com/vatesfr/xen-orchestra/pull/5355))
+- [VM] Handle setting memory when DMC is disabled [#4978](https://github.com/vatesfr/xen-orchestra/issues/4978) & [#5326](https://github.com/vatesfr/xen-orchestra/issues/5326) (PR [#5412](https://github.com/vatesfr/xen-orchestra/pull/5412))
 
 ### Bug fixes
 
@@ -30,12 +33,12 @@
 - vhd-lib 1.0.0
 - xo-vmdk-to-vhd 2.0.0
 - xo-server-web-hooks 0.2.0
-- xo-server 5.71.1
+- xo-server 5.71.2
 - xo-web 5.75.0
 
 ## **5.52.0** (2020-10-30)
 
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Highlights
 
@@ -69,8 +72,6 @@
 - xo-server 5.70.0
 
 ## **5.51.1** (2020-10-14)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Enhancements
 
