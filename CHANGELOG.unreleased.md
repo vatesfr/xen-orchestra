@@ -14,6 +14,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [OVA/import] Fix OVA CLI import tool (PR [#5432](https://github.com/vatesfr/xen-orchestra/pull/5432))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -31,5 +33,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/upload-ova patch
 - xo-server minor
 - xo-web minor
