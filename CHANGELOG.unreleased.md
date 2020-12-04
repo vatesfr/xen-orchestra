@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [missingPatches] fix: `HOST_OFFLINE` error when shutdown a host [#5053] https://github.com/vatesfr/xen-orchestra/issues/5053 (PR [#5407] (https://github.com/vatesfr/xen-orchestra/pull/5407)
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
