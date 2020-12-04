@@ -132,6 +132,28 @@ export default class Backups {
 
     app.api.addMethods({
       backup: {
+        deleteVmBackup: [
+          ({ filename, remote }) =>
+            using(app.remotes.getAdapter(remote), async adapter => {
+              const metadata = JSON.parse(String(await adapter.handler.readFile(filename)))
+              metadata._filename = filename
+
+              if (metadata.mode === 'delta') {
+                await adapter.deleteDeltaVmBackups([metadata])
+              } else if (metadata.mode === 'full') {
+                await adapter.deleteFullVmBackups([metadata])
+              } else {
+                throw new Error(`no deleter for backup mode ${metadata.mode}`)
+              }
+            }),
+          {
+            description: 'delete VM backup',
+            params: {
+              filename: { type: 'string' },
+              remote: { type: 'object' },
+            },
+          },
+        ],
         fetchPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, paths }) => {
             const { promise, reject, resolve } = pDefer()

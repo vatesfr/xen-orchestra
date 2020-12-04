@@ -59,6 +59,10 @@ export class RemoteAdapter {
     this._handler = handler
   }
 
+  get handler() {
+    return this._handler
+  }
+
   async _deleteVhd(path) {
     const handler = this._handler
     const vhds = await asyncMap(
