@@ -9,7 +9,6 @@ import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 import { checkVhd } from './_checkVhd'
 import { getVmBackupDir } from './_getVmBackupDir'
 import { packUuid } from './_packUuid'
-import { RemoteAdapter } from './_RemoteAdapter'
 import { Task } from './_Task'
 
 export class DeltaBackupWriter {
@@ -36,11 +35,11 @@ export class DeltaBackupWriter {
     const remoteId = this._remoteId
     const settings = this._settings
 
-    const handler = backup.remoteHandlers[remoteId]
     const { job, scheduleId, vm } = backup
 
     const jobId = job.id
-    const adapter = new RemoteAdapter(handler)
+    const adapter = backup.remoteAdapters[remoteId]
+    const handler = adapter.handler
     const backupDir = getVmBackupDir(vm.uuid)
 
     // TODO: clean VM backup directory
