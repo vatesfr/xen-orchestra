@@ -9,6 +9,8 @@
 
 [Plugins] Add user feedback when a plugin test finishes successfully (PR [#5409](https://github.com/vatesfr/xen-orchestra/pull/5409))
 
+- [Proxy] Ability to delete VM backup (PR [#5428](https://github.com/vatesfr/xen-orchestra/pull/5428))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,4 +32,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server minor
 - xo-web minor
