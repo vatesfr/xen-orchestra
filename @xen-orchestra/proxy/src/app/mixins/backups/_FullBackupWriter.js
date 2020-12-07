@@ -3,7 +3,6 @@ import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 
 import { getVmBackupDir } from './_getVmBackupDir'
-import { RemoteAdapter } from './_RemoteAdapter'
 import { Task } from './_Task'
 
 export class FullBackupWriter {
@@ -32,10 +31,10 @@ export class FullBackupWriter {
     const remoteId = this._remoteId
     const settings = this._settings
 
-    const handler = backup.remoteHandlers[remoteId]
     const { job, scheduleId, vm } = backup
 
-    const adapter = new RemoteAdapter(handler)
+    const adapter = backup.remoteAdapters[remoteId]
+    const handler = adapter.handler
     const backupDir = getVmBackupDir(vm.uuid)
 
     // TODO: clean VM backup directory

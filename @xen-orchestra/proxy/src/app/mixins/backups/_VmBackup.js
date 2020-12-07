@@ -47,9 +47,9 @@ const forkDeltaExport = deltaExport =>
   })
 
 export class VmBackup {
-  constructor({ getSnapshotNameLabel, job, remotes, remoteHandlers, schedule, settings, srs, vm }) {
+  constructor({ getSnapshotNameLabel, job, remoteAdapters, remotes, schedule, settings, srs, vm }) {
     this.job = job
-    this.remoteHandlers = remoteHandlers
+    this.remoteAdapters = remoteAdapters
     this.remotes = remotes
     this.scheduleId = schedule.id
     this.timestamp = undefined
@@ -83,7 +83,7 @@ export class VmBackup {
 
       const allSettings = job.settings
 
-      Object.keys(remoteHandlers).forEach(remoteId => {
+      Object.keys(remoteAdapters).forEach(remoteId => {
         const targetSettings = {
           ...settings,
           ...allSettings[remoteId],
