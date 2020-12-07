@@ -9,7 +9,7 @@
 
 [Plugins] Add user feedback when a plugin test finishes successfully (PR [#5409](https://github.com/vatesfr/xen-orchestra/pull/5409))
 
-- [Proxy] Ability to delete VM backup (PR [#5428](https://github.com/vatesfr/xen-orchestra/pull/5428))
+- [Proxy] Ability to delete VM backups (PR [#5428](https://github.com/vatesfr/xen-orchestra/pull/5428))
 
 ### Bug fixes
 
