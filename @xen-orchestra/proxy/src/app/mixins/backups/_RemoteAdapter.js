@@ -54,10 +54,14 @@ function getDebouncedResource(resource) {
 }
 
 export class RemoteAdapter {
-  constructor(handler, { app, config } = {}) {
+  constructor(handler, { app, config }) {
     this._app = app
     this._config = config
     this._handler = handler
+  }
+
+  get handler() {
+    return this._handler
   }
 
   async _deleteVhd(path) {
