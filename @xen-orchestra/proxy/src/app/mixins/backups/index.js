@@ -133,6 +133,16 @@ export default class Backups {
 
     app.api.addMethods({
       backup: {
+        deleteVmBackup: [
+          ({ filename, remote }) => using(app.remotes.getAdapter(remote), adapter => adapter.deleteVmBackup(filename)),
+          {
+            description: 'delete VM backup',
+            params: {
+              filename: { type: 'string' },
+              remote: { type: 'object' },
+            },
+          },
+        ],
         fetchPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, paths }) => {
             const { promise, reject, resolve } = pDefer()

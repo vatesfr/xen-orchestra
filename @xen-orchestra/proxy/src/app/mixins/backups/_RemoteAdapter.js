@@ -149,6 +149,19 @@ export class RemoteAdapter {
     )
   }
 
+  async deleteVmBackup(filename) {
+    const metadata = JSON.parse(String(await this._handler.readFile(filename)))
+    metadata._filename = filename
+
+    if (metadata.mode === 'delta') {
+      await this.deleteDeltaVmBackups([metadata])
+    } else if (metadata.mode === 'full') {
+      await this.deleteFullVmBackups([metadata])
+    } else {
+      throw new Error(`no deleter for backup mode ${metadata.mode}`)
+    }
+  }
+
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, diskId => [diskId])
   @decorateWith(disposable)
