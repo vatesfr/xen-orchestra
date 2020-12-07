@@ -886,6 +886,11 @@ const messages = {
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
   hostPowerOnMode: 'Power on mode',
+  hostControlDomainMemory: 'Control domain memory',
+  setControlDomainMemory: 'Set control domain memory',
+  setControlDomainMemoryMessage:
+    'Editing the control domain memory will immediately restart the host in order to apply the changes.',
+  maintenanceModeRequired: 'The host needs to be in maintenance mode',
   hostStartedSince: 'Host uptime',
   hostStackStartedSince: 'Toolstack uptime',
   hostCpusModel: 'CPU model',

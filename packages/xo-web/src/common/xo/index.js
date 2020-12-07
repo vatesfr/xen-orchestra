@@ -828,6 +828,8 @@ export const isHyperThreadingEnabledHost = host =>
 
 export const installCertificateOnHost = (id, props) => _call('host.installCertificate', { id, ...props })
 
+export const setControlDomainMemory = (id, memory) => _call('host.setControlDomainMemory', { id, memory })
+
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
   confirm({
