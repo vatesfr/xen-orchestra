@@ -106,8 +106,8 @@ export class RemoteAdapter {
     }
   }
 
-  async _findPartition(diskId, partitionId) {
-    const partitions = await this.listPartitions(diskId, false)
+  async _findPartition(devicePath, partitionId) {
+    const partitions = await listPartitions(devicePath)
     const partition = partitions.find(_ => _.id === partitionId)
     if (partition === undefined) {
       throw new Error(`partition ${partitionId} not found`)
@@ -231,7 +231,7 @@ export class RemoteAdapter {
     const devicePath = yield this.getDisk(diskId)
 
     const options = ['loop', 'ro']
-    const { start } = await this._findPartition(diskId, partitionId)
+    const { start } = await this._findPartition(devicePath, partitionId)
     if (start !== undefined) {
       options.push(`offset=${start * 512}`)
     }
@@ -294,23 +294,15 @@ export class RemoteAdapter {
     })
   }
 
-  listPartitions(diskId, inspectLvmPv = true) {
+  listPartitions(diskId) {
     return using(this.getDisk(diskId), async devicePath => {
-      const partitions = await listPartitions(devicePath)
-
-      if (!inspectLvmPv) {
-        return partitions
-      }
-
-      const partitionsWithLvm = []
-      await Promise.all(
-        partitions.map(partition =>
-          partition.type === LVM_PARTITION_TYPE
-            ? this._listLvmLogicalVolumes(devicePath, partition, partitionsWithLvm)
-            : partitionsWithLvm.push(partition)
-        )
+      const partitions = []
+      await asyncMap(listPartitions(devicePath), partition =>
+        partition.type === LVM_PARTITION_TYPE
+          ? this._listLvmLogicalVolumes(devicePath, partition, partitions)
+          : partitions.push(partition)
       )
-      return partitionsWithLvm
+      return partitions
     })
   }
 
