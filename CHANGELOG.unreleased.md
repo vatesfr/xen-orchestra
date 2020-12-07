@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Home] Ability to sort VMs by total disks physical size (PR (https://github.com/vatesfr/xen-orchestra/pull/5418))
+- [Home] Ability to sort VMs by total disks physical usage (PR [#5418](https://github.com/vatesfr/xen-orchestra/pull/5418))
 
 ### Bug fixes
 
