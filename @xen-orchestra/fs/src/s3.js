@@ -25,6 +25,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
       secretAccessKey: password,
       signatureVersion: 'v4',
       region: 'eu-west-3',
+      httpOptions: {
+        timeout: 600000,
+      },
     }
     this._s3 = aws(options).s3
 
@@ -177,7 +180,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
         } else {
           const fragmentsCount = Math.ceil(prefixSize / MAX_PART_SIZE)
           const prefixFragmentSize = Math.ceil(prefixSize / fragmentsCount)
-          const lastFragmentSize = prefixFragmentSize * fragmentsCount - prefixSize
           let prefixPosition = 0
           for (let i = 0; i < fragmentsCount; i++) {
             const copyPrefixParams = {
@@ -192,8 +194,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
               PartNumber: copyPrefixParams.PartNumber,
             })
             prefixPosition += prefixFragmentSize
-          }
-          if (lastFragmentSize) {
           }
         }
         if (hasSuffix && editBufferLength < MIN_PART_SIZE) {
