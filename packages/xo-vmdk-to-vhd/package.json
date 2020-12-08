@@ -40,7 +40,7 @@
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
     "event-to-promise": "^0.8.0",
-    "execa": "^4.0.2",
+    "execa": "^5.0.0",
     "fs-extra": "^9.0.0",
     "get-stream": "^6.0.0",
     "index-modules": "^0.3.0",
