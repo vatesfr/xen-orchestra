@@ -458,7 +458,7 @@ const NoObjects = props =>
       container: containers[item.$container || item.$pool],
     }))
   )
-  // work around to avoid depending on VDIs and VBDs if type isn't "VM"
+  // VMs are handled separately because we need to inject their 'vdisUsage'
   const getVms = createSelector(
     getContainers,
     createGetObjectsOfType('VM'),
