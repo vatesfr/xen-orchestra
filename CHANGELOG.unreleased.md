@@ -17,6 +17,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [OVA/import] Fix OVA CLI import tool (PR [#5432](https://github.com/vatesfr/xen-orchestra/pull/5432))
+- [Jobs] Fix `Cannot read property id of undefined` error when running a job without a schedule [#5425] https://github.com/vatesfr/xen-orchestra/issues/5425 (PR [#5426](https://github.com/vatesfr/xen-orchestra/pull/5426))
 
 ### Packages to release
 
