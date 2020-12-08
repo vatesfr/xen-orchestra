@@ -17,6 +17,7 @@ import { disposable } from '../../_disposable'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
+import { pvs } from './_lvm'
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
@@ -105,13 +106,57 @@ export class RemoteAdapter {
     }
   }
 
-  async _findPartition(diskId, partitionId) {
-    const partitions = await this.listPartitions(diskId)
+  async _findPartition(devicePath, partitionId) {
+    const partitions = await listPartitions(devicePath)
     const partition = partitions.find(_ => _.id === partitionId)
     if (partition === undefined) {
       throw new Error(`partition ${partitionId} not found`)
     }
     return partition
+  }
+
+  @decorateResult(getDebouncedResource)
+  @decorateWith(deduped, (devicePath, partition) => [devicePath, partition.id])
+  @decorateWith(disposable)
+  async *_getLvmPhysicalVolume(devicePath, partition) {
+    const path = (
+      await fromCallback(execFile, 'losetup', [
+        '-o',
+        partition.start * 512,
+        '--sizelimit',
+        partition.size,
+        '--show',
+        '-f',
+        devicePath,
+      ])
+    ).trim()
+    try {
+      await fromCallback(execFile, 'pvscan', ['--cache', path])
+      yield path
+    } finally {
+      try {
+        const vgNames = await pvs('vg_name', path)
+        await fromCallback(execFile, 'vgchange', ['-an', ...vgNames])
+      } finally {
+        await fromCallback(execFile, 'losetup', ['-d', path])
+      }
+    }
+  }
+
+  _listLvmLogicalVolumes(devicePath, partition, results) {
+    return using(this._getLvmPhysicalVolume(devicePath, partition), async path => {
+      const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
+      lvs.forEach((lv, i) => {
+        const name = lv.lv_name
+        if (name !== '') {
+          results.push({
+            id: `${partition.id}/${lv.vg_name}/${name}`,
+            name,
+            size: lv.lv_size,
+          })
+        }
+      })
+    })
   }
 
   @decorateWith(disposable)
@@ -199,10 +244,15 @@ export class RemoteAdapter {
   @decorateWith(deduped, (diskId, partitionId) => [diskId, partitionId])
   @decorateWith(disposable)
   async *getPartition(diskId, partitionId) {
+    const isLvmPartition = partitionId.includes('/')
+    if (isLvmPartition) {
+      throw new Error('Not implemented')
+    }
+
     const devicePath = yield this.getDisk(diskId)
 
-    const options = ['loop', 'ro']
-    const { start } = await this._findPartition(diskId, partitionId)
+    const { size, start } = await this._findPartition(devicePath, partitionId)
+    const options = ['loop', 'ro', `sizelimit=${size}`]
     if (start !== undefined) {
       options.push(`offset=${start * 512}`)
     }
@@ -267,10 +317,13 @@ export class RemoteAdapter {
 
   listPartitions(diskId) {
     return using(this.getDisk(diskId), async devicePath => {
-      const partitions = await listPartitions(devicePath)
-
-      // TODO: support LVM partitions
-      return partitions.filter(({ type }) => type !== LVM_PARTITION_TYPE)
+      const partitions = []
+      await asyncMap(listPartitions(devicePath), partition =>
+        partition.type === LVM_PARTITION_TYPE
+          ? this._listLvmLogicalVolumes(devicePath, partition, partitions)
+          : partitions.push(partition)
+      )
+      return partitions
     })
   }
 

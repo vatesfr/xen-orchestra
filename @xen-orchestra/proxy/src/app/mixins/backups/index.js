@@ -1,11 +1,13 @@
 import assert from 'assert'
 import defer from 'golike-defer'
+import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import mapValues from 'lodash/mapValues'
 import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
+import { execFile } from 'child_process'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
@@ -24,6 +26,13 @@ const { warn } = createLogger('xo:proxy:backups')
 
 export default class Backups {
   constructor(app, { config: { backups: config, xapiOptions: globalXapiOptions } }) {
+    // clean any LVM volumes that might have not been properly
+    // unmounted
+    app.hooks.on('start', async () => {
+      await Promise.all([fromCallback(execFile, 'losetup', ['-D']), fromCallback(execFile, 'vgchange', ['-an'])])
+      await fromCallback(execFile, 'pvscan', ['--cache'])
+    })
+
     const createXapi = ({ credentials: { username: user, password }, ...opts }) =>
       new Xapi({
         ...globalXapiOptions,
