@@ -2821,11 +2821,11 @@ export default {
   // Original text: 'Reset'
   resetBootOption: 'Ripristina',
 
-  // Original text: 'Delete selected VDIs'
-  deleteSelectedVdis: 'Elimina i VDIs selezionati',
+  // Original text: 'Destroy selected VDIs'
+  destroySelectedVdis: 'Distruggi i VDIs selezionati',
 
-  // Original text: 'Delete selected VDI'
-  deleteSelectedVdi: 'Elimina il VDI selezionato',
+  // Original text: 'Destroy selected VDI'
+  destroySelectedVdi: 'Distruggi il VDI selezionato',
 
   // Original text: 'Export VDI content'
   exportVdi: 'Esporta contenuto VDI',
