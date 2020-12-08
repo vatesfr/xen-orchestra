@@ -31,7 +31,7 @@ NR="5" START="501760" SIZE="8331984896" NAME="" UUID="c8d70417-05" TYPE="0x8e"
 ## Mount LVM physical volume (partition type equals to `0x8e`)
 
 ```
-> losetup -o $(($START * 512)) --show -f /tmp/vhd-mount/vhdi2
+> losetup -o $(($START * 512)) --sizelimit $(($SIZE)) --show -f /tmp/vhd-mount/vhdi2
 /dev/loop0
 > pvscan --cache /dev/loop0
 ```
@@ -72,7 +72,7 @@ When logical volume no longer necessary:
 
 ```
 > mkdir /tmp/block-mount
-> mount --options=loop,ro,$((START * 512)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
+> mount --options=loop,ro,offset=$(($START * 512)),sizelimit=$(($SIZE)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
 > ls /tmp/block-mount
 bin  boot  dev	etc  home  lib	lib64  lost+found  media  mnt  opt  proc  root	run  sbin  srv	sys  @System.solv  tmp	usr  var
 ```
