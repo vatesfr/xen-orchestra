@@ -7,11 +7,18 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Plugins] Add user feedback when a plugin test finishes successfully (PR [#5409](https://github.com/vatesfr/xen-orchestra/pull/5409))
+- [New HBA SR] Show LUN serial and id in LUN selector (PR [#5422](https://github.com/vatesfr/xen-orchestra/pull/5422))
+- [Proxy] Ability to delete VM backups (PR [#5428](https://github.com/vatesfr/xen-orchestra/pull/5428))
+- [Home] Ability to sort VMs by total disks physical usage (PR [#5418](https://github.com/vatesfr/xen-orchestra/pull/5418))
 - [Home/VM] Ability to choose network for bulk migration within a pool (PR [#5427](https://github.com/vatesfr/xen-orchestra/pull/5427))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [OVA/import] Fix OVA CLI import tool (PR [#5432](https://github.com/vatesfr/xen-orchestra/pull/5432))
+- [Jobs] Fix `Cannot read property id of undefined` error when running a job without a schedule [#5425] https://github.com/vatesfr/xen-orchestra/issues/5425 (PR [#5426](https://github.com/vatesfr/xen-orchestra/pull/5426))
 
 ### Packages to release
 
@@ -30,4 +37,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/upload-ova patch
+- xo-server minor
 - xo-web minor

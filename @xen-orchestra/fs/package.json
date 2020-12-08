@@ -22,12 +22,12 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@marsaud/smb2": "^0.15.0",
+    "@marsaud/smb2": "^0.17.2",
     "@sindresorhus/df": "^3.1.1",
     "@xen-orchestra/async-map": "^0.0.0",
     "aws-sdk": "^2.686.0",
     "decorator-synchronized": "^0.5.0",
-    "execa": "^4.0.2",
+    "execa": "^5.0.0",
     "fs-extra": "^9.0.0",
     "get-stream": "^6.0.0",
     "limit-concurrency-decorator": "^0.4.0",

@@ -275,6 +275,7 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
+  sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -692,7 +693,9 @@ const messages = {
   autoloadPlugin: 'Auto-load at server start',
   savePluginConfiguration: 'Save configuration',
   deletePluginConfiguration: 'Delete configuration',
+  pluginConfirmation: 'The test appears to be working.',
   pluginError: 'Plugin error',
+  pluginTest: 'Plugin test',
   unknownPluginError: 'Unknown error',
   purgePluginConfiguration: 'Purge plugin configuration',
   purgePluginConfigurationQuestion: 'Are you sure you want to purge this configuration?',
@@ -2307,8 +2310,7 @@ const messages = {
   starterLicense: 'Starter license',
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
-  trialLicenseInfo:
-    'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
