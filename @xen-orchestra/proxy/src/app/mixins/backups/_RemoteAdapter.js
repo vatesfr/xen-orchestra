@@ -120,7 +120,15 @@ export class RemoteAdapter {
   @decorateWith(disposable)
   async *_getLvmPhysicalVolume(devicePath, partition) {
     const path = (
-      await fromCallback(execFile, 'losetup', ['-o', partition.start * 512, '--show', '-f', devicePath])
+      await fromCallback(execFile, 'losetup', [
+        '-o',
+        partition.start * 512,
+        '--sizelimit',
+        partition.size,
+        '--show',
+        '-f',
+        devicePath,
+      ])
     ).trim()
     try {
       await fromCallback(execFile, 'pvscan', ['--cache', path])
@@ -230,8 +238,8 @@ export class RemoteAdapter {
 
     const devicePath = yield this.getDisk(diskId)
 
-    const options = ['loop', 'ro']
-    const { start } = await this._findPartition(devicePath, partitionId)
+    const { size, start } = await this._findPartition(devicePath, partitionId)
+    const options = ['loop', 'ro', `sizelimit=${size}`]
     if (start !== undefined) {
       options.push(`offset=${start * 512}`)
     }
