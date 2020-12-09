@@ -293,7 +293,7 @@ export class RemoteAdapter {
   // - undefined: raw disk
   // - `<partitionId>`: partitioned disk
   // - `<pvId>/<vgName>/<lvName>`: lvm disk
-  // - `undefined/<vgName>/lvName>`: lvm disk on a raw disk
+  // - `/<vgName>/lvName>`: lvm disk on a raw disk
   @decorateWith(disposable)
   async *getPartition(diskId, partitionId) {
     const devicePath = yield this.getDisk(diskId)
