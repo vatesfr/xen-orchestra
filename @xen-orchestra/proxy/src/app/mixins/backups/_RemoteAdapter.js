@@ -350,7 +350,6 @@ export class RemoteAdapter {
     return using(this.getDisk(diskId), async devicePath => {
       const partitions = await listPartitions(devicePath)
 
-      // partitions can be empty in case of a raw disk
       if (partitions.length === 0) {
         try {
           // handle potential raw LVM physical volume
