@@ -353,6 +353,7 @@ export class RemoteAdapter {
       // partitions can be empty in case of a raw disk
       if (partitions.length === 0) {
         try {
+          // handle potential raw LVM physical volume
           return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
         } catch (error) {
           return []
