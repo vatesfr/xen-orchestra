@@ -163,7 +163,6 @@ export class RemoteAdapter {
   async *_getPartition(devicePath, partition) {
     const options = ['loop', 'ro']
 
-    // it is undefined in case of an LVM partition
     if (partition !== undefined) {
       const { size, start } = partition
       options.push(`sizelimit=${size}`)
