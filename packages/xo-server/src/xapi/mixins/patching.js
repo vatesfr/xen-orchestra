@@ -2,7 +2,8 @@ import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'unzipper'
 import { decorateWith } from '@vates/decorate-with'
-import { filter, find, flatMap, groupBy, mapValues, pickBy, some } from 'lodash'
+import { filter, find, groupBy, mapValues, pickBy, some } from 'lodash'
+import { timeout } from 'promise-toolbox'
 
 import ensureArray from '../../_ensureArray'
 import { debounceWithKey } from '../../_pDebounceWithKey'
@@ -472,7 +473,7 @@ export default {
     log.debug('Install patches')
     await this.installPatches()
 
-    // Remember on which hosts and SRs the running VMs are
+    // Remember on which hosts the running VMs are
     const vmsByHost = mapValues(
       groupBy(
         filter(this.objects.all, {
@@ -482,30 +483,7 @@ export default {
         }),
         vm => vm.$resident_on?.$id
       ),
-      vms =>
-        vms.map(vm => {
-          const mapVifsNetworks = {}
-          vm.$VIFs.forEach(vif => {
-            mapVifsNetworks[vif.$id] = vif.$network.$id
-          })
-
-          const mapVdisSrs = {}
-          flatMap(vm.$snapshots, '$VBDs')
-            .concat(vm.$VBDs)
-            .forEach(vbd => {
-              if (vbd.type === 'Disk') {
-                const vdi = vbd.$VDI
-                mapVdisSrs[vdi.$id] = vdi.$SR.$id
-              }
-            })
-
-          return {
-            id: vm.$id,
-            ref: vm.$ref,
-            mapVifsNetworks,
-            mapVdisSrs,
-          }
-        })
+      vms => vms.map(vm => vm.$id)
     )
 
     if (vmsByHost.undefined !== undefined) {
@@ -540,16 +518,17 @@ export default {
       await this.rebootHost(hostId)
 
       log.debug(`Wait for host ${hostId} to be up`)
-      await Promise.race([
+      await timeout.call(
         (async () => {
-          await this._waitObjectState(hostId, host => rebootTime < host.other_config.agent_start_time * 1e3)
+          await this._waitObjectState(
+            hostId,
+            host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
+          )
           await this._waitObjectState(metricsId, metrics => metrics.live)
-          await this._waitObjectState(hostId, host => host.enabled)
         })(),
-        new Promise((resolve, reject) =>
-          setTimeout(() => reject(new Error(`Host ${hostId} took too long to restart`)), 5 * 60 * 1e3)
-        ),
-      ])
+        5 * 60 * 1e3,
+        new Error(`Host ${hostId} took too long to restart`)
+      )
       log.debug(`Host ${hostId} is up`)
     }
 
@@ -562,18 +541,15 @@ export default {
     let error
     for (const host of hosts) {
       const hostId = host.id
-      const vmsData = vmsByHost[hostId]
+      const vmIds = vmsByHost[hostId]
 
-      if (vmsData === undefined) {
+      if (vmIds === undefined) {
         continue
       }
 
-      for (const vmData of vmsData) {
+      for (const vmId of vmIds) {
         try {
-          await this.migrateVm(vmData.id, this, hostId, {
-            mapVifsNetworks: vmData.mapVifsNetworks,
-            mapVdisSrs: vmData.mapVdisSrs,
-          })
+          await this.migrateVm(vmId, this, hostId)
         } catch (err) {
           log.error(err)
           if (error === undefined) {

@@ -172,9 +172,9 @@ export default class TabPatches extends Component {
             <Col className='text-xs-right'>
               <TabButton
                 btnStyle='primary'
-                data-pool={pool}
                 disabled={isEmpty(missingPatches)}
                 handler={rollingPoolUpdate}
+                handlerParam={pool.id}
                 icon='pool-rolling-update'
                 labelId='rollingPoolUpdate'
               />

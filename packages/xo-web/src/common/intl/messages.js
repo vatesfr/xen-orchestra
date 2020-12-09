@@ -974,7 +974,7 @@ const messages = {
   installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
   installPatchesContent:
     'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
-  installPoolPatches: 'Install all pool patches',
+  installPoolPatches: 'Install pool patches',
   confirmPoolPatch: 'Are you sure you want to install all the patches on this pool?',
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
