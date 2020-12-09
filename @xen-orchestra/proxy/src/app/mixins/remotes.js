@@ -45,6 +45,7 @@ export default class Remotes {
     })
   }
 
+  // FIXME: invalidate cache on remote option change
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(disposable)
@@ -58,6 +59,7 @@ export default class Remotes {
     }
   }
 
+  // FIXME: invalidate cache on remote option change
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(disposable)
