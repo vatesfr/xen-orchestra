@@ -1258,13 +1258,13 @@ export const migrateVms = vms =>
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
 
-    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, mapVmsMigrationNetwork, targetHost, vms } = params
+    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, targetHost, vms } = params
     Promise.all(
       map(vms, ({ id }) =>
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
-          migrationNetwork: mapVmsMigrationNetwork[id],
+          migrationNetwork,
           targetHost,
           vm: id,
         })

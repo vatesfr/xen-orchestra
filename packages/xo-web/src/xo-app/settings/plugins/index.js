@@ -100,6 +100,7 @@ class Plugin extends Component {
     try {
       const { testInput } = this.refs
       await testPlugin(this.props.id, testInput && testInput.value)
+      alert(_('pluginTest'), <p>{_('pluginConfirmation')}</p>)
     } catch (err) {
       await alert(
         'You have an error!',

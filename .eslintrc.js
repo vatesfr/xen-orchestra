@@ -48,9 +48,5 @@ module.exports = {
     'lines-between-class-members': 'off',
 
     'no-console': ['error', { allow: ['warn', 'error'] }],
-    'no-var': 'error',
-    'node/no-extraneous-import': 'error',
-    'node/no-extraneous-require': 'error',
-    'prefer-const': 'error',
   },
 }

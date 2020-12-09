@@ -275,6 +275,7 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
+  sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -692,7 +693,9 @@ const messages = {
   autoloadPlugin: 'Auto-load at server start',
   savePluginConfiguration: 'Save configuration',
   deletePluginConfiguration: 'Delete configuration',
+  pluginConfirmation: 'The test appears to be working.',
   pluginError: 'Plugin error',
+  pluginTest: 'Plugin test',
   unknownPluginError: 'Unknown error',
   purgePluginConfiguration: 'Purge plugin configuration',
   purgePluginConfigurationQuestion: 'Are you sure you want to purge this configuration?',
