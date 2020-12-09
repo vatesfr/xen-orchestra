@@ -336,8 +336,8 @@ export default class Backups {
             description: 'mount a partition',
             params: {
               disk: { type: 'string' },
-              partition: { type: 'string' },
-              remote: { type: 'object', optional: true },
+              partition: { type: 'string', optional: true },
+              remote: { type: 'object' },
             },
           },
         ],
