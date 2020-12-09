@@ -1260,13 +1260,13 @@ export const migrateVms = vms =>
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
 
-    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, mapVmsMigrationNetwork, targetHost, vms } = params
+    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, targetHost, vms } = params
     Promise.all(
       map(vms, ({ id }) =>
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
-          migrationNetwork: mapVmsMigrationNetwork[id],
+          migrationNetwork,
           targetHost,
           vm: id,
         })
@@ -1803,14 +1803,11 @@ export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(ob
 
 // Custom fields ------------------------------------------------------------------------
 
-export const addCustomField = (id, name, value) =>
-  _call('customField.add', { id, name, value })
+export const addCustomField = (id, name, value) => _call('customField.add', { id, name, value })
 
-export const removeCustomField = (id, name) =>
-  _call('customField.remove', { id, name })
+export const removeCustomField = (id, name) => _call('customField.remove', { id, name })
 
-export const setCustomField = (id, name, value) =>
-  _call('customField.set', { id, name, value })
+export const setCustomField = (id, name, value) => _call('customField.set', { id, name, value })
 
 // Tasks --------------------------------------------------------------
 

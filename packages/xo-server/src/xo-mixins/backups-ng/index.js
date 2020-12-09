@@ -781,16 +781,27 @@ export default class BackupNg {
   async deleteVmBackupNg(id: string): Promise<void> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const handler = await app.getRemoteHandler(remoteId)
-    const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
-    metadata._filename = metadataFilename
-
-    if (metadata.mode === 'delta') {
-      await this._deleteDeltaVmBackups(handler, [metadata])
-    } else if (metadata.mode === 'full') {
-      await this._deleteFullVmBackups(handler, [metadata])
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      await app.callProxyMethod(proxy, 'backup.deleteVmBackup', {
+        filename: metadataFilename,
+        remote: {
+          url,
+          options,
+        },
+      })
     } else {
-      throw new Error(`no deleter for backup mode ${metadata.mode}`)
+      const handler = await app.getRemoteHandler(remoteId)
+      const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
+      metadata._filename = metadataFilename
+
+      if (metadata.mode === 'delta') {
+        await this._deleteDeltaVmBackups(handler, [metadata])
+      } else if (metadata.mode === 'full') {
+        await this._deleteFullVmBackups(handler, [metadata])
+      } else {
+        throw new Error(`no deleter for backup mode ${metadata.mode}`)
+      }
     }
 
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
