@@ -119,7 +119,7 @@ export class RemoteAdapter {
   @decorateWith(deduped, (devicePath, pvId, vgName) => [devicePath, pvId, vgName])
   @decorateWith(disposable)
   async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
-    yield this._getLvmPhysicalVolume(devicePath, await this._findPartition(devicePath, pvId))
+    yield this._getLvmPhysicalVolume(devicePath, pvId && (await this._findPartition(devicePath, pvId)))
 
     await fromCallback(execFile, 'vgchange', ['-ay', vgName])
     try {
@@ -130,20 +130,15 @@ export class RemoteAdapter {
   }
 
   @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, (devicePath, partition) => [devicePath, partition.id])
+  @decorateWith(deduped, (devicePath, partition) => [devicePath, partition?.id])
   @decorateWith(disposable)
   async *_getLvmPhysicalVolume(devicePath, partition) {
-    const path = (
-      await fromCallback(execFile, 'losetup', [
-        '-o',
-        partition.start * 512,
-        '--sizelimit',
-        partition.size,
-        '--show',
-        '-f',
-        devicePath,
-      ])
-    ).trim()
+    const args = []
+    if (partition !== undefined) {
+      args.push('-o', partition.start * 512, '--sizelimit', partition.size)
+    }
+    args.push('--show', '-f', devicePath)
+    const path = (await fromCallback(execFile, 'losetup', args)).trim()
     try {
       await fromCallback(execFile, 'pvscan', ['--cache', path])
       yield path
@@ -194,19 +189,21 @@ export class RemoteAdapter {
     }
   }
 
-  _listLvmLogicalVolumes(devicePath, partition, results) {
+  _listLvmLogicalVolumes(devicePath, partition, results = []) {
     return using(this._getLvmPhysicalVolume(devicePath, partition), async path => {
       const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
+      const partitionId = partition !== undefined ? partition.id : ''
       lvs.forEach((lv, i) => {
         const name = lv.lv_name
         if (name !== '') {
           results.push({
-            id: `${partition.id}/${lv.vg_name}/${name}`,
+            id: `${partitionId}/${lv.vg_name}/${name}`,
             name,
             size: lv.lv_size,
           })
         }
       })
+      return results
     })
   }
 
@@ -291,6 +288,12 @@ export class RemoteAdapter {
     }
   }
 
+  // partitionId values:
+  //
+  // - undefined: raw disk
+  // - `<partitionId>`: partitioned disk
+  // - `<pvId>/<vgName>/<lvName>`: lvm disk
+  // - `/<vgName>/lvName>`: lvm disk on a raw disk
   @decorateWith(disposable)
   async *getPartition(diskId, partitionId) {
     const devicePath = yield this.getDisk(diskId)
@@ -301,7 +304,7 @@ export class RemoteAdapter {
     const isLvmPartition = partitionId.includes('/')
     if (isLvmPartition) {
       const [pvId, vgName, lvName] = partitionId.split('/')
-      const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId, vgName)
+      const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId !== '' ? pvId : undefined, vgName)
       return yield this._getPartition(lvs.find(_ => _.lv_name === lvName).lv_path)
     }
 
@@ -345,13 +348,24 @@ export class RemoteAdapter {
 
   listPartitions(diskId) {
     return using(this.getDisk(diskId), async devicePath => {
-      const partitions = []
-      await asyncMap(listPartitions(devicePath), partition =>
+      const partitions = await listPartitions(devicePath)
+
+      if (partitions.length === 0) {
+        try {
+          // handle potential raw LVM physical volume
+          return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
+        } catch (error) {
+          return []
+        }
+      }
+
+      const results = []
+      await asyncMap(partitions, partition =>
         partition.type === LVM_PARTITION_TYPE
-          ? this._listLvmLogicalVolumes(devicePath, partition, partitions)
-          : partitions.push(partition)
+          ? this._listLvmLogicalVolumes(devicePath, partition, results)
+          : results.push(partition)
       )
-      return partitions
+      return results
     })
   }
 
