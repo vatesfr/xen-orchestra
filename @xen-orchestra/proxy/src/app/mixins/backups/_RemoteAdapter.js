@@ -17,7 +17,7 @@ import { disposable } from '../../_disposable'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
-import { pvs } from './_lvm'
+import { lvs, pvs } from './_lvm'
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
@@ -116,6 +116,20 @@ export class RemoteAdapter {
   }
 
   @decorateResult(getDebouncedResource)
+  @decorateWith(deduped, (devicePath, pvId, vgName) => [devicePath, pvId, vgName])
+  @decorateWith(disposable)
+  async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
+    yield this._getLvmPhysicalVolume(devicePath, await this._findPartition(devicePath, pvId))
+
+    await fromCallback(execFile, 'vgchange', ['-ay', vgName])
+    try {
+      yield lvs(['lv_name', 'lv_path'], vgName)
+    } finally {
+      await fromCallback(execFile, 'vgchange', ['-an', vgName])
+    }
+  }
+
+  @decorateResult(getDebouncedResource)
   @decorateWith(deduped, (devicePath, partition) => [devicePath, partition.id])
   @decorateWith(disposable)
   async *_getLvmPhysicalVolume(devicePath, partition) {
@@ -140,6 +154,43 @@ export class RemoteAdapter {
       } finally {
         await fromCallback(execFile, 'losetup', ['-d', path])
       }
+    }
+  }
+
+  @decorateResult(getDebouncedResource)
+  @decorateWith(deduped, (devicePath, partition) => [devicePath, partition?.id])
+  @decorateWith(disposable)
+  async *_getPartition(devicePath, partition) {
+    const options = ['loop', 'ro']
+
+    if (partition !== undefined) {
+      const { size, start } = partition
+      options.push(`sizelimit=${size}`)
+      if (start !== undefined) {
+        options.push(`offset=${start * 512}`)
+      }
+    }
+
+    const path = yield this._app.remotes.getTempMountDir()
+    const mount = options => {
+      return fromCallback(execFile, 'mount', [
+        `--options=${options.join(',')}`,
+        `--source=${devicePath}`,
+        `--target=${path}`,
+      ])
+    }
+
+    // `norecovery` option is used for ext3/ext4/xfs, if it fails it might be
+    // another fs, try without
+    try {
+      await mount([...options, 'norecovery'])
+    } catch (error) {
+      await mount(options)
+    }
+    try {
+      yield path
+    } finally {
+      await fromCallback(execFile, 'umount', ['--lazy', path])
     }
   }
 
@@ -240,43 +291,16 @@ export class RemoteAdapter {
     }
   }
 
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, (diskId, partitionId) => [diskId, partitionId])
   @decorateWith(disposable)
   async *getPartition(diskId, partitionId) {
+    const devicePath = yield this.getDisk(diskId)
     const isLvmPartition = partitionId.includes('/')
     if (isLvmPartition) {
-      throw new Error('Not implemented')
-    }
-
-    const devicePath = yield this.getDisk(diskId)
-
-    const { size, start } = await this._findPartition(devicePath, partitionId)
-    const options = ['loop', 'ro', `sizelimit=${size}`]
-    if (start !== undefined) {
-      options.push(`offset=${start * 512}`)
-    }
-
-    const path = yield this._app.remotes.getTempMountDir()
-    const mount = options => {
-      return fromCallback(execFile, 'mount', [
-        `--options=${options.join(',')}`,
-        `--source=${devicePath}`,
-        `--target=${path}`,
-      ])
-    }
-
-    // `norecovery` option is used for ext3/ext4/xfs, if it fails it might be
-    // another fs, try without
-    try {
-      await mount([...options, 'norecovery'])
-    } catch (error) {
-      await mount(options)
-    }
-    try {
-      yield path
-    } finally {
-      await fromCallback(execFile, 'umount', ['--lazy', path])
+      const [pvId, vgName, lvName] = partitionId.split('/')
+      const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId, vgName)
+      return yield this._getPartition(lvs.find(_ => _.lv_name === lvName).lv_path)
+    } else {
+      return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
     }
   }
 
