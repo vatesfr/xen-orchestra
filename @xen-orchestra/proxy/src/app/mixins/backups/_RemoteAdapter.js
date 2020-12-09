@@ -288,25 +288,23 @@ export class RemoteAdapter {
     }
   }
 
+  // partitionId values:
+  //
+  // - undefined: raw disk
+  // - `<partitionId>`: partitioned disk
+  // - `<pvId>/<vgName>/<lvName>`: lvm disk
+  // - `undefined/<vgName>/lvName>`: lvm disk on a raw disk
   @decorateWith(disposable)
   async *getPartition(diskId, partitionId) {
-    let devicePath = yield this.getDisk(diskId)
+    const devicePath = yield this.getDisk(diskId)
     if (partitionId === undefined) {
-      // it will throw if it isn't an LVM partition
-      try {
-        const [lv] = await this._listLvmLogicalVolumes(devicePath)
-        const vgName = lv.id.split('/')[1]
-        const lvs = yield this._getLvmLogicalVolumes(devicePath, undefined, vgName)
-        devicePath = lvs[0].lv_path
-      } catch {}
-
       return yield this._getPartition(devicePath)
     }
 
     const isLvmPartition = partitionId.includes('/')
     if (isLvmPartition) {
       const [pvId, vgName, lvName] = partitionId.split('/')
-      const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId, vgName)
+      const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId !== '' ? pvId : undefined, vgName)
       return yield this._getPartition(lvs.find(_ => _.lv_name === lvName).lv_path)
     }
 
@@ -350,13 +348,24 @@ export class RemoteAdapter {
 
   listPartitions(diskId) {
     return using(this.getDisk(diskId), async devicePath => {
-      const partitions = []
-      await asyncMap(listPartitions(devicePath), partition =>
+      const partitions = await listPartitions(devicePath)
+
+      // partitions can be empty in case of a raw disk
+      if (partitions.length === 0) {
+        try {
+          return await this._listLvmLogicalVolumes(devicePath, undefined, partitions)
+        } catch (error) {
+          return []
+        }
+      }
+
+      const results = []
+      await asyncMap(partitions, partition =>
         partition.type === LVM_PARTITION_TYPE
-          ? this._listLvmLogicalVolumes(devicePath, partition, partitions)
-          : partitions.push(partition)
+          ? this._listLvmLogicalVolumes(devicePath, partition, results)
+          : results.push(partition)
       )
-      return partitions
+      return results
     })
   }
 
