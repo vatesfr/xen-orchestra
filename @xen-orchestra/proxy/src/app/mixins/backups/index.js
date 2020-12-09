@@ -174,7 +174,7 @@ export default class Backups {
             description: 'fetch files from partition',
             params: {
               disk: { type: 'string' },
-              partition: { type: 'string' },
+              partition: { type: 'string', optional: true },
               paths: { type: 'array', items: { type: 'string' } },
               remote: { type: 'object' },
             },
@@ -243,7 +243,7 @@ export default class Backups {
             description: 'list partition files',
             params: {
               disk: { type: 'string' },
-              partition: { type: 'string' },
+              partition: { type: 'string', optional: true },
               path: { type: 'string' },
               remote: { type: 'object' },
             },
@@ -336,7 +336,7 @@ export default class Backups {
             description: 'mount a partition',
             params: {
               disk: { type: 'string' },
-              partition: { type: 'string' },
+              partition: { type: 'string', optional: true },
               remote: { type: 'object' },
             },
           },

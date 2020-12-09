@@ -26,6 +26,7 @@ const parsePartxLine = createParser({
   valueTransform: (value, key) => (key === 'start' || key === 'size' || key === 'type' ? +value : value),
 })
 
+// returns an empty array in case of a non-partitioned disk
 export const listPartitions = async devicePath => {
   const parts = await fromCallback(execFile, 'partx', [
     '--bytes',

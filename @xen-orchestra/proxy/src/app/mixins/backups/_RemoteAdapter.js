@@ -294,14 +294,18 @@ export class RemoteAdapter {
   @decorateWith(disposable)
   async *getPartition(diskId, partitionId) {
     const devicePath = yield this.getDisk(diskId)
+    if (partitionId === undefined) {
+      return yield this._getPartition(devicePath)
+    }
+
     const isLvmPartition = partitionId.includes('/')
     if (isLvmPartition) {
       const [pvId, vgName, lvName] = partitionId.split('/')
       const lvs = yield this._getLvmLogicalVolumes(devicePath, pvId, vgName)
       return yield this._getPartition(lvs.find(_ => _.lv_name === lvName).lv_path)
-    } else {
-      return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
     }
+
+    return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
   async listAllVmBackups() {
