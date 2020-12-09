@@ -844,6 +844,8 @@ const messages = {
   disableHostLabel: 'Disable',
   restartHostAgent: 'Restart toolstack',
   forceRebootHostLabel: 'Force reboot',
+  maintenanceModeOff: 'Maintenance disable',
+  maintenanceModeOn: 'Maintenance enable',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:
@@ -2307,8 +2309,7 @@ const messages = {
   starterLicense: 'Starter license',
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
-  trialLicenseInfo:
-    'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',

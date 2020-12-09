@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Host] Disable / enable host are remplaced by `Maintenande Mode`
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”

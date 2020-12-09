@@ -23,15 +23,14 @@ import { Text } from 'editable'
 import { Toggle, Select } from 'form'
 import {
   detachHost,
-  disableHost,
   editHost,
   enableAdvancedLiveTelemetry,
-  enableHost,
   forgetHost,
   installSupplementalPack,
   isHyperThreadingEnabledHost,
   isNetDataInstalledOnHost,
   getPlugin,
+  maintenanceMode,
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
@@ -231,18 +230,18 @@ export default class extends Component {
             {host.enabled ? (
               <TabButton
                 btnStyle='warning'
-                handler={disableHost}
+                handler={maintenanceMode}
                 handlerParam={host}
                 icon='host-disable'
-                labelId='disableHostLabel'
+                labelId='maintenanceModeOn'
               />
             ) : (
               <TabButton
                 btnStyle='success'
-                handler={enableHost}
+                handler={maintenanceMode}
                 handlerParam={host}
                 icon='host-enable'
-                labelId='enableHostLabel'
+                labelId='maintenanceModeOff'
               />
             )}
             <TabButton

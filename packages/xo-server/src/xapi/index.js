@@ -286,7 +286,7 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async _clearHost({ $ref: ref }, force) {
+  async clearHost({ $ref: ref }, force) {
     await this.call('host.disable', ref)
 
     try {

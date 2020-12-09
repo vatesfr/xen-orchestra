@@ -2,17 +2,20 @@ import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
-export function disableCompletely({ host }) {
-  return this.getXapi(host)._clearHost({ $ref: host._xapiRef })
+export function maintenanceMode({ host, maintenance }) {
+  const xapi = this.getXapi(host)
+
+  return maintenance ? xapi.clearHost({ $ref: host._xapiRef }) : xapi.enableHost(host._xapiId)
 }
 
-disableCompletely.description = 'disable and evacuate the VMs of the host'
+maintenanceMode.description = 'manage the maintenance mode'
 
-disableCompletely.params = {
+maintenanceMode.params = {
   id: { type: 'string' },
+  maintenance: { type: 'boolean' },
 }
 
-disableCompletely.resolve = {
+maintenanceMode.resolve = {
   host: ['id', 'host', 'administrate'],
 }
 
