@@ -1085,7 +1085,6 @@ const messages = {
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
   vdiForget: 'Forget',
-  vdiRemove: 'Remove VDI',
   noControlDomainVdis: 'No VDIs attached to control domain',
   vbdBootableStatus: 'Boot flag',
   vbdDevice: 'Device',
@@ -1104,8 +1103,8 @@ const messages = {
   cdDriveInstallation: 'Stop and start the VM to install the CD drive',
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
-  deleteSelectedVdis: 'Delete selected VDIs',
-  deleteSelectedVdi: 'Delete selected VDI',
+  destroySelectedVdis: 'Destroy selected VDIs',
+  destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
@@ -1114,6 +1113,8 @@ const messages = {
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
+  removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
+  removeVdiFromVm: 'Remove VDI from this VM',
 
   // ----- VM network tab -----
 
