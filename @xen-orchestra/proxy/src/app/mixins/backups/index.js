@@ -47,12 +47,11 @@ export default class Backups {
       return using(
         xapiIds.map(id => this.getXapi(xapis[id])),
         connectedXapis => {
-          connectedXapis = zipObject(xapiIds, connectedXapis)
           return new Backup({
             ...rest,
             app,
             config,
-            connectedXapis,
+            connectedXapis: zipObject(xapiIds, connectedXapis),
           }).run()
         }
       )
