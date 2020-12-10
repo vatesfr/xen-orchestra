@@ -28,12 +28,19 @@ const parsePartxLine = createParser({
 
 // returns an empty array in case of a non-partitioned disk
 export const listPartitions = async devicePath => {
-  const parts = await fromCallback(execFile, 'partx', [
-    '--bytes',
-    '--output=NR,START,SIZE,NAME,UUID,TYPE',
-    '--pairs',
-    devicePath,
-  ])
+  let parts
+  try {
+    parts = await fromCallback(execFile, 'partx', [
+      '--bytes',
+      '--output=NR,START,SIZE,NAME,UUID,TYPE',
+      '--pairs',
+      devicePath,
+    ])
+  } catch (error) {
+    // Partx results with code 1 which throws an error since v2.33
+    console.debug('listPartitions', error)
+    return []
+  }
 
   return parts
     .split(/\r?\n/)
