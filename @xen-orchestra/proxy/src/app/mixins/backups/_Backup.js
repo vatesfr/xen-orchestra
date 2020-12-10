@@ -16,7 +16,7 @@ export class Backup {
   constructor({
     app,
     config,
-    getConnectedXapi,
+    connectedXapis,
     job,
 
     recordToXapi,
@@ -25,7 +25,7 @@ export class Backup {
   }) {
     this._app = app
     this._config = config
-    this._getConnectedXapi = getConnectedXapi
+    this._connectedXapis = connectedXapis
     this._job = job
     this._recordToXapi = recordToXapi
     this._remotes = remotes
@@ -93,11 +93,11 @@ export class Backup {
 
   async _getRecord(type, uuid) {
     const xapiId = this._recordToXapi[uuid]
-    if (xapiId === undefined) {
+    const xapi = this._connectedXapis[xapiId]
+    if (xapiId === undefined || xapi === undefined) {
       throw new Error('no XAPI associated to ' + uuid)
     }
 
-    const xapi = await this._getConnectedXapi(xapiId)
     return xapi.getRecordByUuid(type, uuid)
   }
 }
