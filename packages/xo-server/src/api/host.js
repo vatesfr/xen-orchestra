@@ -380,9 +380,9 @@ installCertificate.resolve = {
 export async function setControlDomainMemory({ host, memory }) {
   assert(!host.enabled)
 
-  const xapi = this.getXapi(host)
-  const controlDomain = xapi.getObject(host.controlDomain)
+  const controlDomain = this.getXapiObject(host.controlDomain, 'VM-controller')
 
+  const xapi = controlDomain.$xapi
   await xapi.call('VM.set_memory_limits', controlDomain.$ref, controlDomain.memory_static_min, memory, memory, memory)
   await xapi.rebootHost(host._xapiId)
 }
