@@ -1098,7 +1098,7 @@ const messages = {
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
   destroySelectedVdis: 'Destroy selected VDIs',
-  destroySelectedVdi: 'Destroy selected VDI',
+  destroydVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
@@ -1108,7 +1108,7 @@ const messages = {
   notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
   removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
-  removeSelectedVdiFromVm: 'Remove selected VDI from this VM',
+  removeVdiFromVm: 'Remove VDI from this VM',
 
   // ----- VM network tab -----
 

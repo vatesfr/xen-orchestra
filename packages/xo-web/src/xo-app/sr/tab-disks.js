@@ -199,7 +199,7 @@ const INDIVIDUAL_ACTIONS = [
     disabled: ({ type }) => type === 'VDI-unmanaged',
     handler: deleteVdi,
     icon: 'delete',
-    label: _('destroySelectedVdi'),
+    label: _('destroyVdi'),
     level: 'danger',
   },
 ]

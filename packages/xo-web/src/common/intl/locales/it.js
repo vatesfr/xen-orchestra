@@ -2824,8 +2824,8 @@ export default {
   // Original text: 'Destroy selected VDIs'
   destroySelectedVdis: 'Distruggi i VDIs selezionati',
 
-  // Original text: 'Destroy selected VDI'
-  destroySelectedVdi: 'Distruggi il VDI selezionato',
+  // Original text: 'Destroy VDI'
+  destroyVdi: 'Distruggi il VDI',
 
   // Original text: 'Export VDI content'
   exportVdi: 'Esporta contenuto VDI',
