@@ -46,14 +46,13 @@ export default class Backups {
       const xapiIds = Object.keys(xapis)
       return using(
         xapiIds.map(id => this.getXapi(xapis[id])),
-        connectedXapis => {
-          return new Backup({
+        connectedXapis =>
+          new Backup({
             ...rest,
             app,
             config,
             connectedXapis: zipObject(xapiIds, connectedXapis),
           }).run()
-        }
       )
     }
     const runningJobs = { __proto__: null }
