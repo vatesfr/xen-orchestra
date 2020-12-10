@@ -1,6 +1,8 @@
 # ChangeLog
 
-### **next**
+## **5.53.1** (2020-12-10)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Bug fixes
 
@@ -13,8 +15,6 @@
 - xo-server minor
 
 ## **5.53.0** (2020-11-30)
-
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Enhancements
 
