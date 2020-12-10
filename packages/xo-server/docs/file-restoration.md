@@ -21,18 +21,20 @@ When device no longer necessary:
 
 ## List available partitions
 
-> Tip: skip this step if the disk isn't partitionned
+Partitionned disk:
 
 ```
-# partitionned disk
 > partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
 NR="1" START="2048" SIZE="254803968" NAME="" UUID="c8d70417-01" TYPE="0x83"
 NR="2" START="501758" SIZE="8331985920" NAME="" UUID="c8d70417-02" TYPE="0x5"
 NR="5" START="501760" SIZE="8331984896" NAME="" UUID="c8d70417-05" TYPE="0x8e"
 > echo $?
 0
+```
 
-# raw disk
+Non-partionned disk:
+
+```
 > partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
 partx: /tmp/vhd-mount/vhdi2: failed to read partition table
 > echo $?
