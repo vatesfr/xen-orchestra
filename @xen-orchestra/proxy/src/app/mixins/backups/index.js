@@ -56,7 +56,6 @@ export default class Backups {
         }
       )
     }
-
     const runningJobs = { __proto__: null }
     run = (run => {
       return async function (params) {
