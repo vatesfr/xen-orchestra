@@ -176,6 +176,7 @@ const TRANSFORMS = {
         iommu: obj.chipset_info.iommu !== undefined ? obj.chipset_info.iommu === 'true' : undefined,
       },
       enabled: Boolean(obj.enabled),
+      controlDomain: link(obj, 'control_domain'),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
