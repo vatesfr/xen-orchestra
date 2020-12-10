@@ -468,7 +468,7 @@ export default {
 
   async rollingPoolUpdate() {
     let hosts = filter(this.objects.all, { $type: 'host' })
-    await Promise.all(hosts.map(host => this.call('host.assert_can_evacuate', host.$ref)))
+    await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
     log.debug('Install patches')
     await this.installPatches()
