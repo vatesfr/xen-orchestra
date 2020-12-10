@@ -1098,7 +1098,7 @@ const messages = {
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
   destroySelectedVdis: 'Destroy selected VDIs',
-  destroydVdi: 'Destroy VDI',
+  destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
