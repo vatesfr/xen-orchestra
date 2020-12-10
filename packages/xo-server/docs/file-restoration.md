@@ -21,6 +21,8 @@ When device no longer necessary:
 
 ## List available partitions
 
+> Tip: skip this step if the disk isn't partitionned
+
 ```
 > partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
 NR="1" START="2048" SIZE="254803968" NAME="" UUID="c8d70417-01" TYPE="0x83"
@@ -30,8 +32,10 @@ NR="5" START="501760" SIZE="8331984896" NAME="" UUID="c8d70417-05" TYPE="0x8e"
 
 ## Mount LVM physical volume (partition type equals to `0x8e`)
 
+> Tip: `offset` and `sizelimit` are only required on a partionned disk
+
 ```
-> losetup -o $(($START * 512)) --show -f /tmp/vhd-mount/vhdi2
+> losetup -o $(($START * 512)) --sizelimit $(($SIZE)) --show -f /tmp/vhd-mount/vhdi2
 /dev/loop0
 > pvscan --cache /dev/loop0
 ```
@@ -70,9 +74,11 @@ When logical volume no longer necessary:
 
 ## Mount block device
 
+>  Tip: `offset` and `sizelimit` are only required on a partionned disk
+
 ```
 > mkdir /tmp/block-mount
-> mount --options=loop,ro,$((START * 512)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
+> mount --options=loop,ro,offset=$(($START * 512)),sizelimit=$(($SIZE)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
 > ls /tmp/block-mount
 bin  boot  dev	etc  home  lib	lib64  lost+found  media  mnt  opt  proc  root	run  sbin  srv	sys  @System.solv  tmp	usr  var
 ```

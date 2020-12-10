@@ -11,16 +11,16 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { addSubscriptions, compareVersions, connectStore, getIscsiPaths } from 'utils'
-import { confirm } from 'modal'
+import { addSubscriptions, compareVersions, connectStore, formatSize, getIscsiPaths } from 'utils'
+import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
-import { Toggle, Select } from 'form'
+import { Toggle, Select, SizeInput } from 'form'
 import {
   detachHost,
   disableHost,
@@ -33,6 +33,7 @@ import {
   isNetDataInstalledOnHost,
   getPlugin,
   restartHost,
+  setControlDomainMemory,
   setHostsMultipathing,
   setRemoteSyslogHost,
   setSchedulerGranularity,
@@ -69,6 +70,22 @@ const formatPack = ({ name, author, description, version }, key) => (
 )
 
 const getPackId = ({ author, name }) => `${author}\0${name}`
+
+const SetControlDomainMemory = ({ value, onChange }) => (
+  <Container>
+    <Row className='mb-1'>
+      <Col>
+        <Icon icon='error' /> {_('setControlDomainMemoryMessage')}
+      </Col>
+    </Row>
+    <Row>
+      <Col size={6}>{_('vmMemory')}</Col>
+      <Col size={6}>
+        <SizeInput required value={value} onChange={onChange} />
+      </Col>
+    </Row>
+  </Container>
+)
 
 const MultipathableSrs = decorate([
   connectStore({
@@ -111,6 +128,8 @@ MultipathableSrs.propTypes = {
   schedGran: cb => subscribeSchedulerGranularity(props.host.id, cb),
 }))
 @connectStore(() => {
+  const getControlDomain = createGetObject((_, { host }) => host.controlDomain)
+
   const getPgpus = createGetObjectsOfType('PGPU')
     .pick((_, { host }) => host.$PGPUs)
     .sort()
@@ -118,6 +137,7 @@ MultipathableSrs.propTypes = {
   const getPcis = createGetObjectsOfType('PCI').pick(createSelector(getPgpus, pgpus => map(pgpus, 'pci')))
 
   return {
+    controlDomain: getControlDomain,
     pcis: getPcis,
     pgpus: getPgpus,
   }
@@ -174,6 +194,17 @@ export default class extends Component {
 
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
+  _setControlDomainMemory = () =>
+    form({
+      component: SetControlDomainMemory,
+      defaultValue: this.props.controlDomain.memory.size,
+      header: (
+        <span>
+          <Icon icon='memory' /> {_('setControlDomainMemory')}
+        </span>
+      ),
+    }).then(memory => setControlDomainMemory(this.props.host.id, memory), noop)
+
   _accessAdvancedLiveTelemetry = () => window.open(`/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`)
 
   _enableAdvancedLiveTelemetry = async host => {
@@ -184,7 +215,7 @@ export default class extends Component {
   }
 
   render() {
-    const { host, pcis, pgpus, schedGran } = this.props
+    const { controlDomain, host, pcis, pgpus, schedGran } = this.props
     const { isHtEnabled, isNetDataPluginInstalledOnHost, isNetDataPluginCorrectlySet } = this.state
 
     const _isXcpNgHost = host.productBrand === 'XCP-ng'
@@ -288,6 +319,25 @@ export default class extends Component {
                   <th>{_('hostPowerOnMode')}</th>
                   <td>
                     <Toggle disabled onChange={noop} value={Boolean(host.powerOnMode)} />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('hostControlDomainMemory')}</th>
+                  <td>
+                    {controlDomain !== undefined && (
+                      <span>
+                        {formatSize(controlDomain.memory.size)}{' '}
+                        <Tooltip content={host.enabled ? _('maintenanceModeRequired') : _('setControlDomainMemory')}>
+                          <ActionButton
+                            btnStyle='primary'
+                            disabled={host.enabled}
+                            handler={this._setControlDomainMemory}
+                            icon='edit'
+                            size='small'
+                          />
+                        </Tooltip>
+                      </span>
+                    )}
                   </td>
                 </tr>
                 <tr>

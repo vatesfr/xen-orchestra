@@ -828,6 +828,8 @@ export const isHyperThreadingEnabledHost = host =>
 
 export const installCertificateOnHost = (id, props) => _call('host.installCertificate', { id, ...props })
 
+export const setControlDomainMemory = (id, memory) => _call('host.setControlDomainMemory', { id, memory })
+
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
   confirm({
@@ -1260,13 +1262,13 @@ export const migrateVms = vms =>
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
 
-    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, mapVmsMigrationNetwork, targetHost, vms } = params
+    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, targetHost, vms } = params
     Promise.all(
       map(vms, ({ id }) =>
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
-          migrationNetwork: mapVmsMigrationNetwork[id],
+          migrationNetwork,
           targetHost,
           vm: id,
         })

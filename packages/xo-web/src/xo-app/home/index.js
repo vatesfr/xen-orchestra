@@ -20,6 +20,7 @@ import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
+  compact,
   debounce,
   differenceBy,
   escapeRegExp,
@@ -38,6 +39,7 @@ import {
   pickBy,
   size,
   some,
+  sumBy,
   uniq,
 } from 'lodash'
 import {
@@ -196,6 +198,11 @@ const OPTIONS = {
     showResourceSetsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' },
+      {
+        labelId: 'sortByDisksUsage',
+        sortBy: 'vdisUsage',
+        sortOrder: 'desc',
+      },
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       {
         labelId: 'homeSortByPowerstate',
@@ -439,26 +446,43 @@ const NoObjects = props =>
   props.isAdmin ? <NoObjectsWithServers {...props} /> : <NoObjectsWithoutServers {...props} />
 
 @connectStore(() => {
-  const type = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getType = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getContainers = createSelector(
+    createGetObjectsOfType('host'),
+    createGetObjectsOfType('pool'),
+    (hosts, pools) => ({ ...hosts, ...pools })
+  )
+  const getItems = createSelector(getContainers, createGetObjectsOfType(getType), (containers, items) =>
+    mapValues(items, item => ({
+      ...item,
+      container: containers[item.$container || item.$pool],
+    }))
+  )
+  // VMs are handled separately because we need to inject their 'vdisUsage'
+  const getVms = createSelector(
+    getContainers,
+    createGetObjectsOfType('VM'),
+    createGetObjectsOfType('VBD'),
+    createGetObjectsOfType('VDI'),
+    (containers, vms, vbds, vdis) =>
+      mapValues(vms, vm => ({
+        ...vm,
+        container: containers[vm.$container || vm.$pool],
+        vdisUsage: sumBy(compact(map(vm.$VBDs, vbdId => get(() => vdis[vbds[vbdId].VDI]))), 'usage'),
+      }))
+  )
 
-  return {
-    areObjectsFetched,
-    isAdmin,
-    isPoolAdmin: getIsPoolAdmin,
-    items: createSelector(
-      createSelector(createGetObjectsOfType('host'), createGetObjectsOfType('pool'), (hosts, pools) => ({
-        ...hosts,
-        ...pools,
-      })),
-      createGetObjectsOfType(type),
-      (containers, items) =>
-        mapValues(items, item => ({
-          ...item,
-          container: containers[item.$container || item.$pool],
-        }))
-    ),
-    type,
-    user: getUser,
+  return (state, props) => {
+    const type = getType(state, props)
+
+    return {
+      areObjectsFetched: areObjectsFetched(state, props),
+      isAdmin: isAdmin(state, props),
+      isPoolAdmin: getIsPoolAdmin(state, props),
+      items: type === 'VM' ? getVms(state, props) : getItems(state, props),
+      type,
+      user: getUser(state, props),
+    }
   }
 })
 @addSubscriptions(({ isAdmin }) => {
