@@ -481,14 +481,18 @@ export default {
           power_state: 'Running',
           is_control_domain: false,
         }),
-        vm => vm.$resident_on?.$id
+        vm => {
+          const hostId = vm.$resident_on?.$id
+
+          if (hostId === undefined) {
+            throw new Error('Could not find host of all running VMs')
+          }
+
+          return hostId
+        }
       ),
       vms => vms.map(vm => vm.$id)
     )
-
-    if (vmsByHost.undefined !== undefined) {
-      throw new Error('Could not find host of all running VMs')
-    }
 
     // Cache $fields to make sure we can access them later
     hosts = hosts.map(host => ({
