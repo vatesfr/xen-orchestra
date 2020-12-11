@@ -467,7 +467,7 @@ export default {
   },
 
   async rollingPoolUpdate({ restartHostTimeout }) {
-    let hosts = filter(this.objects.all, { $type: 'host' })
+    const hosts = filter(this.objects.all, { $type: 'host' })
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
     log.debug('Install patches')
@@ -494,29 +494,20 @@ export default {
       vms => vms.map(vm => vm.$id)
     )
 
-    // Cache $fields to make sure we can access them later
-    hosts = hosts.map(host => ({
-      ...host,
-      id: host.$id,
-      ref: host.$ref,
-      metricsId: host.$metrics.$id,
-      metricsRef: host.$metrics.$ref,
-    }))
-
     // Put master in first position to restart it first
-    const indexOfMaster = hosts.findIndex(host => host.ref === this.pool.master)
+    const indexOfMaster = hosts.findIndex(host => host.$ref === this.pool.master)
     if (indexOfMaster > 0) {
       ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
     }
 
     // Restart all the hosts one by one
     for (const host of hosts) {
-      const hostId = host.id
-      const metricsId = host.metricsId
+      const hostId = host.uuid
+      const metricsRef = host.metrics
 
-      await this.barrier(host.metricsRef)
-      await this._waitObjectState(metricsId, metrics => metrics.live)
-      const rebootTime = parseDateTime(await this.call('host.get_servertime', host.ref))
+      await this.barrier(metricsRef)
+      await this._waitObjectState(metricsRef, metrics => metrics.live)
+      const rebootTime = parseDateTime(await this.call('host.get_servertime', host.$ref))
 
       log.debug(`Evacuate and restart host ${hostId}`)
       await this.rebootHost(hostId)
@@ -528,7 +519,7 @@ export default {
             hostId,
             host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
           )
-          await this._waitObjectState(metricsId, metrics => metrics.live)
+          await this._waitObjectState(metricsRef, metrics => metrics.live)
         })(),
         restartHostTimeout,
         new Error(`Host ${hostId} took too long to restart`)
@@ -544,7 +535,7 @@ export default {
 
     let error
     for (const host of hosts) {
-      const hostId = host.id
+      const hostId = host.uuid
       const vmIds = vmsByHost[hostId]
 
       if (vmIds === undefined) {
