@@ -16,7 +16,7 @@ export class Backup {
   constructor({
     app,
     config,
-    connectedXapis,
+    getConnectedXapi,
     job,
 
     recordToXapi,
@@ -25,7 +25,7 @@ export class Backup {
   }) {
     this._app = app
     this._config = config
-    this._connectedXapis = connectedXapis
+    this._getConnectedXapi = getConnectedXapi
     this._job = job
     this._recordToXapi = recordToXapi
     this._remotes = remotes
@@ -51,35 +51,40 @@ export class Backup {
       ...settings[schedule.id],
     }
 
-    const srs = await Promise.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _)))
+    await using(
+      extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _)),
+      async srs => {
+        const remoteAdapters = extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))
+        await using(remoteAdapters, async adapters => {
+          const vmIds = extractIdsFromSimplePattern(job.vms)
 
-    const remoteAdapters = extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))
-    await using(remoteAdapters, async adapters => {
-      const vmIds = extractIdsFromSimplePattern(job.vms)
+          Task.info('vms', { vms: vmIds })
 
-      Task.info('vms', { vms: vmIds })
+          const remoteAdapters = {}
+          adapters.forEach(({ adapter, remoteId }) => {
+            remoteAdapters[remoteId] = adapter
+          })
 
-      const remoteAdapters = {}
-      adapters.forEach(({ adapter, remoteId }) => {
-        remoteAdapters[remoteId] = adapter
-      })
-
-      const handleVm = vmUuid =>
-        Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, async () =>
-          new VmBackup({
-            getSnapshotNameLabel,
-            job,
-            // remotes,
-            remoteAdapters,
-            schedule,
-            settings: { ...scheduleSettings, ...settings[vmUuid] },
-            srs,
-            vm: await this._getRecord('VM', vmUuid),
-          }).run()
-        ).catch(noop) // errors are handled by logs
-      const { concurrency } = scheduleSettings
-      await asyncMap(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
-    })
+          const handleVm = vmUuid =>
+            Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
+              using(this._getRecord('VM', vmUuid), vm =>
+                new VmBackup({
+                  getSnapshotNameLabel,
+                  job,
+                  // remotes,
+                  remoteAdapters,
+                  schedule,
+                  settings: { ...scheduleSettings, ...settings[vmUuid] },
+                  srs,
+                  vm,
+                }).run()
+              )
+            ).catch(noop) // errors are handled by logs
+          const { concurrency } = scheduleSettings
+          await asyncMap(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
+        })
+      }
+    )
   }
 
   @decorateWith(disposable)
@@ -91,13 +96,14 @@ export class Backup {
     }
   }
 
-  async _getRecord(type, uuid) {
+  @decorateWith(disposable)
+  async *_getRecord(type, uuid) {
     const xapiId = this._recordToXapi[uuid]
-    const xapi = this._connectedXapis[xapiId]
-    if (xapiId === undefined || xapi === undefined) {
+    if (xapiId === undefined) {
       throw new Error('no XAPI associated to ' + uuid)
     }
 
+    const xapi = yield this._getConnectedXapi(xapiId)
     return xapi.getRecordByUuid(type, uuid)
   }
 }

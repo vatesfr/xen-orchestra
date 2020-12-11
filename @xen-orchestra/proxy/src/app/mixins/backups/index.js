@@ -5,7 +5,6 @@ import fromEvent from 'promise-toolbox/fromEvent'
 import mapValues from 'lodash/mapValues'
 import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
-import zipObject from 'lodash/zipObject'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
@@ -42,19 +41,14 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = ({ xapis, ...rest }) => {
-      const xapiIds = Object.keys(xapis)
-      return using(
-        xapiIds.map(id => this.getXapi(xapis[id])),
-        connectedXapis =>
-          new Backup({
-            ...rest,
-            app,
-            config,
-            connectedXapis: zipObject(xapiIds, connectedXapis),
-          }).run()
-      )
-    }
+    let run = ({ xapis, ...rest }) =>
+      new Backup({
+        ...rest,
+        app,
+        config,
+        getConnectedXapi: id => this.getXapi(xapis[id]),
+      }).run()
+
     const runningJobs = { __proto__: null }
     run = (run => {
       return async function (params) {
