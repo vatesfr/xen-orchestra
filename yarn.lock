@@ -8973,17 +8973,16 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
-hashy@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/hashy/-/hashy-0.9.0.tgz#272c08d83c36abf051840922cec14a05b95d0e4a"
-  integrity sha512-x6S//MNi0qtbVIbb6gagk05rEIPEFg3nL7VEYUaH1UpqgzgS5tgm5nmo615MGlgiWyfh5hBiBlJ2ZFPks1q9Yw==
+hashy@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/hashy/-/hashy-0.10.0.tgz#c7bd532ad9352c71b854bd9f1107a8593c0a4133"
+  integrity sha512-TcmazkPlGu1E/Dn8ahvR8qnzkjyrQFftwfnG5HTiWA+Nf2axgyyFUSiwb3ooWk+3PvGPqxVDPN/Mq+PmCquUhA==
   dependencies:
+    argon2 "^0.27.0"
     bcryptjs "^2.4.3"
     exec-promise "^0.7.0"
     promise-toolbox "^0.15.0"
     yargs "^16.2.0"
-  optionalDependencies:
-    argon2 "^0.27.0"
 
 he@1.2.x, he@^1.1.0, he@^1.2.0:
   version "1.2.0"
