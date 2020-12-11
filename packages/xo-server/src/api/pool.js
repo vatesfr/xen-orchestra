@@ -1,5 +1,4 @@
 import { format } from 'json-rpc-peer'
-import { parseDuration } from '@vates/parse-duration'
 
 // ===================================================================
 
@@ -113,9 +112,7 @@ installPatches.description = 'Install patches on hosts'
 // -------------------------------------------------------------------
 
 export async function rollingUpdate({ pool }) {
-  await this.getXapi(pool).rollingPoolUpdate({
-    restartHostTimeout: parseDuration(this._config.patches.rollingPoolUpdate.restartHostTimeout),
-  })
+  await this.getXapi(pool).rollingPoolUpdate()
 }
 
 rollingUpdate.params = {
