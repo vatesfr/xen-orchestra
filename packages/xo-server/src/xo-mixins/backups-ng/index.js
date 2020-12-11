@@ -1119,7 +1119,10 @@ export default class BackupNg {
         xapi._assertHealthyVdiChains(vm)
       }
 
-      const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [vmUuid, ''])
+      const offlineSnapshot: boolean =
+        getSetting(settings, 'offlineSnapshot', [vmUuid, '']) ||
+        vm.tags.indexOf('xo-offline-backup') > -1
+
       const startAfterSnapshot = offlineSnapshot && vm.power_state === 'Running'
       if (startAfterSnapshot) {
         await wrapTask(
@@ -1132,7 +1135,10 @@ export default class BackupNg {
         )
       }
 
-      const checkpointSnapshot = !offlineSnapshot && getSetting(settings, 'checkpointSnapshot', [vmUuid, ''])
+      const checkpointSnapshot = !offlineSnapshot &&
+        (getSetting(settings, 'checkpointSnapshot', [vmUuid, '']) ||
+        vm.tags.indexOf('xo-memory-backup') > -1)
+
       exported = (await wrapTask(
         {
           logger,
