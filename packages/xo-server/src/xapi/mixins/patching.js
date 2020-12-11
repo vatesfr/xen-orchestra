@@ -466,7 +466,7 @@ export default {
     throw new Error('non pool-wide install not implemented')
   },
 
-  async rollingPoolUpdate() {
+  async rollingPoolUpdate({ restartHostTimeout }) {
     let hosts = filter(this.objects.all, { $type: 'host' })
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
@@ -530,7 +530,7 @@ export default {
           )
           await this._waitObjectState(metricsId, metrics => metrics.live)
         })(),
-        5 * 60 * 1e3,
+        restartHostTimeout,
         new Error(`Host ${hostId} took too long to restart`)
       )
       log.debug(`Host ${hostId} is up`)

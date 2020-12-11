@@ -113,6 +113,11 @@ port = 80
 [http.mounts]
 '/' = '../xo-web/dist'
 
+[patches.rollingPoolUpdate]
+# During a rolling pool update: the duration it will wait for a host to be live
+# before assuming it failed to restart
+restartHostTimeout = '5 minutes'
+
 [remoteOptions]
 mountsDir = '/run/xo-server/mounts'
 
