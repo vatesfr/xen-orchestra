@@ -228,15 +228,14 @@ export default class extends Component {
               />
             )}
             {host.enabled ? (
-              <Tooltip content={_('maintenanceHostTooltip')}>
-                <TabButton
-                  btnStyle='warning'
-                  handler={toggleMaintenanceMode}
-                  handlerParam={host}
-                  icon='host-disable'
-                  labelId='enableMaintenanceMode'
-                />
-              </Tooltip>
+              <TabButton
+                btnStyle='warning'
+                handler={toggleMaintenanceMode}
+                handlerParam={host}
+                icon='host-disable'
+                labelId='enableMaintenanceMode'
+                tooltip={_('maintenanceHostTooltip')}
+              />
             ) : (
               <TabButton
                 btnStyle='success'

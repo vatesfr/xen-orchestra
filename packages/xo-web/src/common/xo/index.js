@@ -781,8 +781,8 @@ export const toggleMaintenanceMode = async host => {
   if (host.enabled) {
     try {
       await confirm({
-        title: _('maintenanceHostModaleTitle'),
-        body: _('maintenanceHostModaleMessage'),
+        title: _('maintenanceHostModalTitle'),
+        body: _('maintenanceHostModalMessage'),
       })
     } catch (error) {
       return
