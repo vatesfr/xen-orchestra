@@ -778,11 +778,16 @@ export const stopHosts = hosts => {
 }
 
 export const toggleMaintenanceMode = async host => {
-  host.enabled &&
-    (await confirm({
-      title: _('maintenanceHostModaleTitle'),
-      body: _('maintenanceHostModaleMessage'),
-    }))
+  if (host.enabled) {
+    try {
+      await confirm({
+        title: _('maintenanceHostModaleTitle'),
+        body: _('maintenanceHostModaleMessage'),
+      })
+    } catch (error) {
+      return
+    }
+  }
   return _call('host.setMaintenanceMode', { id: resolveId(host), maintenance: host.enabled })
 }
 
