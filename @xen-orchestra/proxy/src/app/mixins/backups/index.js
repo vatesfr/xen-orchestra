@@ -2,17 +2,21 @@ import assert from 'assert'
 import defer from 'golike-defer'
 import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import mapValues from 'lodash/mapValues'
 import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
+import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
+import { parseDuration } from '@vates/parse-duration'
 import { Xapi } from '@xen-orchestra/xapi'
 import { ZipFile } from 'yazl'
 
+import { debounceResource } from '../../_debounceResource'
+import { decorateResult } from '../../_decorateResult'
+import { deduped } from '../../_deduped'
 import { disposable } from '../../_disposable'
 
 import { Backup } from './_Backup'
@@ -25,7 +29,11 @@ const noop = Function.prototype
 const { warn } = createLogger('xo:proxy:backups')
 
 export default class Backups {
-  constructor(app, { config: { backups: config, xapiOptions: globalXapiOptions } }) {
+  constructor(app, { config: { backups: config, resourceDebounce, xapiOptions: globalXapiOptions } }) {
+    this._app = app
+    this._globalXapiOptions = globalXapiOptions
+    this._resourceDebounce = resourceDebounce
+
     // clean any LVM volumes that might have not been properly
     // unmounted
     app.hooks.on('start', async () => {
@@ -33,54 +41,14 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    const createXapi = ({ credentials: { username: user, password }, ...opts }) =>
-      new Xapi({
-        ...globalXapiOptions,
-        ...opts,
-        auth: {
-          user,
-          password,
-        },
-      })
+    let run = ({ xapis, ...rest }) =>
+      new Backup({
+        ...rest,
+        app,
+        config,
+        getConnectedXapi: id => this.getXapi(xapis[id]),
+      }).run()
 
-    let run = async ({ xapis: xapisOptions, ...rest }) => {
-      const xapis = []
-      async function createConnectedXapi(id) {
-        const xapi = createXapi(xapisOptions[id])
-        xapis.push(xapi)
-        await xapi.connect()
-        await xapi.objectsFetched
-        return xapi
-      }
-      async function disconnectAllXapis() {
-        const promises = xapis.map(xapi => xapi.disconnect())
-        xapis.length = 0
-        await Promise.all(promises)
-      }
-      app.hooks.on('stop', disconnectAllXapis)
-
-      const connectedXapis = { __proto__: null }
-      function getConnectedXapi(id) {
-        let connectedXapi = connectedXapis[id]
-        if (connectedXapi === undefined) {
-          connectedXapi = createConnectedXapi(id)
-          connectedXapis[id] = connectedXapi
-        }
-        return connectedXapi
-      }
-
-      try {
-        await new Backup({
-          ...rest,
-          app,
-          config,
-          getConnectedXapi,
-        }).run()
-      } finally {
-        app.hooks.removeListener('stop', disconnectAllXapis)
-        ignoreErrors.call(disconnectAllXapis())
-      }
-    }
     const runningJobs = { __proto__: null }
     run = (run => {
       return async function (params) {
@@ -182,11 +150,7 @@ export default class Backups {
         ],
         importVmBackup: [
           defer(($defer, { backupId, remote, srUuid, xapi: xapiOpts }) =>
-            using(app.remotes.getAdapter(remote), async adapter => {
-              const xapi = createXapi(xapiOpts)
-              await xapi.connect()
-              $defer.call(xapi, 'disconnect')
-
+            using(app.remotes.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) => {
               const srRef = await xapi.call('SR.get_by_uuid', srUuid)
 
               const metadata = await adapter.readVmBackupMetadata(backupId)
@@ -362,5 +326,31 @@ export default class Backups {
         ],
       },
     })
+  }
+
+  // FIXME: invalidate cache on options change
+  @decorateResult(function (resource) {
+    return debounceResource(resource, this._app.hooks, parseDuration(this._resourceDebounce))
+  })
+  @decorateWith(deduped, ({ url }) => [url])
+  @decorateWith(disposable)
+  async *getXapi({ credentials: { username: user, password }, ...opts }) {
+    const xapi = new Xapi({
+      ...this._globalXapiOptions,
+      ...opts,
+      auth: {
+        user,
+        password,
+      },
+    })
+
+    await xapi.connect()
+    try {
+      await xapi.objectsFetched
+
+      yield xapi
+    } finally {
+      await xapi.disconnect()
+    }
   }
 }
