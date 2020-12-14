@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [xo-web/host] fix `an error has occurred` on accessing the host's page (PR [#5417](https://github.com/vatesfr/xen-orchestra/pull/5417))
+- [Host] Fix `an error has occurred` on accessing a host's page (PR [#5417](https://github.com/vatesfr/xen-orchestra/pull/5417))
 
 ### Packages to release
 
