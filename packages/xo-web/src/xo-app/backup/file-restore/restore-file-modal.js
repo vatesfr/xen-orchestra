@@ -125,6 +125,7 @@ export default class RestoreFileModalBody extends Component {
       backup,
       disk: undefined,
       partition: undefined,
+      partitions: undefined,
       file: undefined,
       selectedFiles: [],
       scanDiskError: false,
