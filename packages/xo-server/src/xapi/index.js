@@ -289,7 +289,7 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async _clearHost({ $ref: ref }, force) {
+  async clearHost({ $ref: ref }, force) {
     await this.call('host.disable', ref)
 
     try {
@@ -373,7 +373,7 @@ export default class Xapi extends XapiBase {
   async rebootHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
-    await this._clearHost(host, force)
+    await this.clearHost(host, force)
     await this.callAsync('host.reboot', host.$ref)
   }
 
@@ -392,7 +392,7 @@ export default class Xapi extends XapiBase {
   async shutdownHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
-    await this._clearHost(host, force)
+    await this.clearHost(host, force)
     await this.callAsync('host.shutdown', host.$ref)
   }
 

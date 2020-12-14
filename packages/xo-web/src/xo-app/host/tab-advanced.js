@@ -23,10 +23,8 @@ import { Text } from 'editable'
 import { Toggle, Select, SizeInput } from 'form'
 import {
   detachHost,
-  disableHost,
   editHost,
   enableAdvancedLiveTelemetry,
-  enableHost,
   forgetHost,
   installSupplementalPack,
   isHyperThreadingEnabledHost,
@@ -38,6 +36,7 @@ import {
   setRemoteSyslogHost,
   setSchedulerGranularity,
   subscribeSchedulerGranularity,
+  toggleMaintenanceMode,
 } from 'xo'
 
 import { installCertificate } from './install-certificate'
@@ -262,18 +261,19 @@ export default class extends Component {
             {host.enabled ? (
               <TabButton
                 btnStyle='warning'
-                handler={disableHost}
+                handler={toggleMaintenanceMode}
                 handlerParam={host}
                 icon='host-disable'
-                labelId='disableHostLabel'
+                labelId='enableMaintenanceMode'
+                tooltip={_('maintenanceHostTooltip')}
               />
             ) : (
               <TabButton
                 btnStyle='success'
-                handler={enableHost}
+                handler={toggleMaintenanceMode}
                 handlerParam={host}
                 icon='host-enable'
-                labelId='enableHostLabel'
+                labelId='disableMaintenanceMode'
               />
             )}
             <TabButton

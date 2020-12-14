@@ -3,6 +3,25 @@ import { format } from 'json-rpc-peer'
 
 // ===================================================================
 
+export function setMaintenanceMode({ host, maintenance }) {
+  const xapi = this.getXapi(host)
+
+  return maintenance ? xapi.clearHost({ $ref: host._xapiRef }) : xapi.enableHost(host._xapiId)
+}
+
+setMaintenanceMode.description = 'manage the maintenance mode'
+
+setMaintenanceMode.params = {
+  id: { type: 'string' },
+  maintenance: { type: 'boolean' },
+}
+
+setMaintenanceMode.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// ===================================================================
+
 export async function getSchedulerGranularity({ host }) {
   try {
     return await this.getXapi(host).getField('host', host._xapiRef, 'sched_gran')

@@ -841,6 +841,8 @@ const messages = {
   disconnectServer: 'Disconnect',
 
   // ----- Host actions ------
+  disableMaintenanceMode: 'Disable maintenance mode',
+  enableMaintenanceMode: 'Enable maintenance mode',
   startHostLabel: 'Start',
   stopHostLabel: 'Stop',
   enableHostLabel: 'Enable',
@@ -866,6 +868,10 @@ const messages = {
   editHostIscsiIqnMessage:
     'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
+  maintenanceHostModalMessage:
+    'Are you sure you want to enter maintenance mode? This will migrate all the VMs running on this host to other hosts of the pool.',
+  maintenanceHostModalTitle: 'Maintenance mode',
+  maintenanceHostTooltip: 'Evacuate and disable the host',
   memoryHostState: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
