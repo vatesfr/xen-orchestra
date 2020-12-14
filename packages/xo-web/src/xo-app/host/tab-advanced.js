@@ -30,12 +30,12 @@ import {
   isHyperThreadingEnabledHost,
   isNetDataInstalledOnHost,
   getPlugin,
-  setMaintenanceMode,
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
   setSchedulerGranularity,
   subscribeSchedulerGranularity,
+  toggleMaintenanceMode,
 } from 'xo'
 
 import { installCertificate } from './install-certificate'
@@ -228,17 +228,19 @@ export default class extends Component {
               />
             )}
             {host.enabled ? (
-              <TabButton
-                btnStyle='warning'
-                handler={setMaintenanceMode}
-                handlerParam={host}
-                icon='host-disable'
-                labelId='enableMaintenanceMode'
-              />
+              <Tooltip content={_('maintenanceHostTooltip')}>
+                <TabButton
+                  btnStyle='warning'
+                  handler={toggleMaintenanceMode}
+                  handlerParam={host}
+                  icon='host-disable'
+                  labelId='enableMaintenanceMode'
+                />
+              </Tooltip>
             ) : (
               <TabButton
                 btnStyle='success'
-                handler={setMaintenanceMode}
+                handler={toggleMaintenanceMode}
                 handlerParam={host}
                 icon='host-enable'
                 labelId='disableMaintenanceMode'

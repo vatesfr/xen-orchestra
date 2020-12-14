@@ -868,6 +868,9 @@ const messages = {
   editHostIscsiIqnMessage:
     'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
+  maintenanceHostModaleMessage: 'This disables the host and potentially migrates a lot of VMs.',
+  maintenanceHostModaleTitle: 'Maintenance mode',
+  maintenanceHostTooltip: 'Evacuate and disable the host',
   memoryHostState: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
