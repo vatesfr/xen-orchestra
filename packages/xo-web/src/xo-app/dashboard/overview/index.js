@@ -73,7 +73,7 @@ class PatchesCard extends Component {
   hosts: createGetObjectsOfType('host'),
   isAdmin,
   pools: createGetObjectsOfType('pool'),
-  srs: createGetObjectsOfType('SR').filter([isSrWritable]),
+  srs: createGetObjectsOfType('SR').filter([sr => isSrWritable(sr) && sr.SR_type !== 'udev']),
   vms: createGetObjectsOfType('VM'),
   alarmMessages: createGetObjectsOfType('message').filter([message => message.name === 'ALARM']),
   tasks: createGetObjectsOfType('task').filter([task => task.status === 'pending']),
