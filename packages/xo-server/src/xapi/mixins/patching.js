@@ -504,6 +504,8 @@ export default {
     // Restart all the hosts one by one
     for (const host of hosts) {
       const hostId = host.uuid
+      // This is an old metrics reference from before the pool master restart.
+      // The references don't seem to change but it's not guaranteed.
       const metricsRef = host.metrics
 
       await this.barrier(metricsRef)
