@@ -69,6 +69,14 @@ export default class Backups {
         }
       }
     })(run)
+    run = (run =>
+      async function () {
+        const license = await app.appliance.getSelfLicense()
+        if (license === undefined || license.expires < Date.now()) {
+          throw new Error('the proxy license is not valid')
+        }
+        return run.apply(this, arguments)
+      })(run)
     run = (run => async (params, onLog) => {
       if (onLog === undefined) {
         return run(params)
