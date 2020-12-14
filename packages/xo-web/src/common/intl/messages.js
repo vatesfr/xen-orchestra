@@ -847,8 +847,8 @@ const messages = {
   disableHostLabel: 'Disable',
   restartHostAgent: 'Restart toolstack',
   forceRebootHostLabel: 'Force reboot',
-  maintenanceModeOff: 'Maintenance disable',
-  maintenanceModeOn: 'Maintenance enable',
+  maintenanceModeOff: 'Disable maintenance mode',
+  maintenanceModeOn: 'Enable maintenance mode',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:

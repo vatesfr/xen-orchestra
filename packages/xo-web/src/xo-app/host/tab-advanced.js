@@ -30,7 +30,7 @@ import {
   isHyperThreadingEnabledHost,
   isNetDataInstalledOnHost,
   getPlugin,
-  maintenanceMode,
+  setMaintenanceMode,
   restartHost,
   setHostsMultipathing,
   setRemoteSyslogHost,
@@ -230,7 +230,7 @@ export default class extends Component {
             {host.enabled ? (
               <TabButton
                 btnStyle='warning'
-                handler={maintenanceMode}
+                handler={setMaintenanceMode}
                 handlerParam={host}
                 icon='host-disable'
                 labelId='maintenanceModeOn'
@@ -238,7 +238,7 @@ export default class extends Component {
             ) : (
               <TabButton
                 btnStyle='success'
-                handler={maintenanceMode}
+                handler={setMaintenanceMode}
                 handlerParam={host}
                 icon='host-enable'
                 labelId='maintenanceModeOff'

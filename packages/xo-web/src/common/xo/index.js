@@ -777,7 +777,8 @@ export const stopHosts = hosts => {
   }).then(() => Promise.all(map(hosts, host => _call('host.stop', { id: resolveId(host) }))), noop)
 }
 
-export const maintenanceMode = host => _call('host.maintenanceMode', { id: resolveId(host), maintenance: host.enabled })
+export const setMaintenanceMode = host =>
+  _call('host.setMaintenanceMode', { id: resolveId(host), maintenance: host.enabled })
 
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
