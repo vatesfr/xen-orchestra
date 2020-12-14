@@ -2,26 +2,33 @@ import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
 import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
+import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
+
+import { deduped } from '../_deduped'
+import { disposable } from '../_disposable'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
 const { debug, warn } = createLogger('xo:proxy:appliance')
 
-async function _withUpdater(cb) {
-  const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
-  await updater.open()
-  try {
-    return await cb(updater)
-  } finally {
-    await updater.close().then(Function.prototype)
-  }
-}
+const getUpdater = deduped(
+  disposable(async function* () {
+    const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
+    await updater.open()
+    try {
+      yield updater
+    } finally {
+      await updater.close()
+    }
+  })
+)
 
 const callUpdate = params =>
-  _withUpdater(
+  using(
+    getUpdater(),
     updater =>
       new Promise((resolve, reject) => {
         updater
@@ -144,11 +151,16 @@ export default class Appliance {
           ],
         },
         updater: {
-          getLocalManifest: () => _withUpdater(_ => _.call('getLocalManifest')),
+          getLocalManifest: () => using(getUpdater(), _ => _.call('getLocalManifest')),
           getState: () => callUpdate(),
           upgrade: () => callUpdate({ upgrade: true }),
         },
       },
     })
+  }
+
+  // A proxy can be bound to a unique license
+  getSelfLicense() {
+    return using(getUpdater(), _ => _.call('getSelfLicenses').then(licenses => licenses[0]))
   }
 }
