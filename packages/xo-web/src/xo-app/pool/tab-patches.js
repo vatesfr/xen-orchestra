@@ -8,7 +8,7 @@ import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { installAllPatchesOnPool, installPatches, subscribeHostMissingPatches } from 'xo'
+import { installAllPatchesOnPool, installPatches, rollingPoolUpdate, subscribeHostMissingPatches } from 'xo'
 import { isEmpty } from 'lodash'
 
 const MISSING_PATCH_COLUMNS = [
@@ -170,6 +170,14 @@ export default class TabPatches extends Component {
         <Container>
           <Row>
             <Col className='text-xs-right'>
+              <TabButton
+                btnStyle='primary'
+                disabled={isEmpty(missingPatches)}
+                handler={rollingPoolUpdate}
+                handlerParam={pool.id}
+                icon='pool-rolling-update'
+                labelId='rollingPoolUpdate'
+              />
               <TabButton
                 btnStyle='primary'
                 data-pool={pool}
