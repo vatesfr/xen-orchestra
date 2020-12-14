@@ -67,6 +67,11 @@ mergeProvidersUsers = true
 # should be used by default.
 defaultSignInPage = '/signin'
 
+# Minimum delay between two password authentication attemps.
+#
+# This is used to mitigate bruteforce attacks without being visible to users.
+throttlingDelay = '2 seconds'
+
 [backup]
 # Mode to use for newly created backup directories
 #
@@ -130,6 +135,9 @@ timeout = 600e3
 ignoreVmSnapshotResources = false
 
 [xapiOptions]
+# The duration XO will wait for a host to be live before assuming it failed to
+# restart
+restartHostTimeout = '5 minutes'
 maxUncoalescedVdis = 1
 vdiExportConcurrency = 12
 vmExportConcurrency = 2

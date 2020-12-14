@@ -191,6 +191,10 @@ export default class Host extends Component {
       return
     }
 
+    if (this.unsubscribeHostMissingPatches !== undefined) {
+      this.unsubscribeHostMissingPatches()
+    }
+
     this.unsubscribeHostMissingPatches = subscribeHostMissingPatches(host, missingPatches =>
       this.setState({
         missingPatches: missingPatches && sortBy(missingPatches, patch => -patch.time),

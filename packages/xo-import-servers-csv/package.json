@@ -34,10 +34,10 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   },
   "dependencies": {
-    "csv-parser": "^2.1.0",
+    "csv-parser": "^3.0.0",
     "end-of-stream": "^1.1.0",
     "exec-promise": "^0.7.0",
     "highland": "^2.10.1",

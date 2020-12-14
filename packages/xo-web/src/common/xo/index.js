@@ -783,13 +783,15 @@ export const disableHost = host => _call('host.disable', { id: resolveId(host) }
 
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
+  host = getObject(store.getState(), hostId)
+
+  if (host.power_state !== 'Running') {
+    return []
+  }
   if (host.productBrand !== 'XCP-ng') {
     const patches = await _call('pool.listMissingPatches', { host: hostId })
     // Hide paid patches to XS-free users
     return host.license_params.sku_type !== 'free' ? patches : filter(patches, { paid: false })
-  }
-  if (host.power_state !== 'Running') {
-    return []
   }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
@@ -828,6 +830,8 @@ export const isHyperThreadingEnabledHost = host =>
 
 export const installCertificateOnHost = (id, props) => _call('host.installCertificate', { id, ...props })
 
+export const setControlDomainMemory = (id, memory) => _call('host.setControlDomainMemory', { id, memory })
+
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
   confirm({
@@ -862,6 +866,16 @@ export const installAllPatchesOnPool = ({ pool }) => {
     noop
   )
 }
+
+export const rollingPoolUpdate = poolId =>
+  confirm({
+    body: _('rollingPoolUpdateMessage'),
+    title: _('rollingPoolUpdate'),
+    icon: 'pool-rolling-update',
+  }).then(
+    () => _call('pool.rollingUpdate', { pool: poolId })::tap(() => subscribeHostMissingPatches.forceRefresh()),
+    noop
+  )
 
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
@@ -1260,13 +1274,13 @@ export const migrateVms = vms =>
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
 
-    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, mapVmsMigrationNetwork, targetHost, vms } = params
+    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, targetHost, vms } = params
     Promise.all(
       map(vms, ({ id }) =>
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
-          migrationNetwork: mapVmsMigrationNetwork[id],
+          migrationNetwork,
           targetHost,
           vm: id,
         })
@@ -1803,14 +1817,11 @@ export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(ob
 
 // Custom fields ------------------------------------------------------------------------
 
-export const addCustomField = (id, name, value) =>
-  _call('customField.add', { id, name, value })
+export const addCustomField = (id, name, value) => _call('customField.add', { id, name, value })
 
-export const removeCustomField = (id, name) =>
-  _call('customField.remove', { id, name })
+export const removeCustomField = (id, name) => _call('customField.remove', { id, name })
 
-export const setCustomField = (id, name, value) =>
-  _call('customField.set', { id, name, value })
+export const setCustomField = (id, name, value) => _call('customField.set', { id, name, value })
 
 // Tasks --------------------------------------------------------------
 

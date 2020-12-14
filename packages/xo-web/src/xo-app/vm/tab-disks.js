@@ -611,8 +611,9 @@ export default class TabDisks extends Component {
       handler: deleteVbds,
       individualDisabled: vbd => vbd.attached,
       individualHandler: deleteVbd,
+      individualLabel: _('removeVdiFromVm'),
       icon: 'vdi-forget',
-      label: _('vdiForget'),
+      label: _('removeSelectedVdisFromVm'),
       level: 'danger',
     },
     {
@@ -620,9 +621,9 @@ export default class TabDisks extends Component {
       handler: selectedVbds => deleteVdis(uniq(map(selectedVbds, 'vdi'))),
       individualDisabled: vbd => vbd.attached,
       individualHandler: vbd => deleteVdi(vbd.vdi),
-      individualLabel: _('vdiRemove'),
+      individualLabel: _('destroyVdi'),
       icon: 'vdi-remove',
-      label: _('deleteSelectedVdis'),
+      label: _('destroySelectedVdis'),
       level: 'danger',
     },
     {
