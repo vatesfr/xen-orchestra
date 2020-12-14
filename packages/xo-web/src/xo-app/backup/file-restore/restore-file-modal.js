@@ -135,6 +135,7 @@ export default class RestoreFileModalBody extends Component {
   _onDiskChange = disk => {
     this.setState({
       partition: undefined,
+      partitions: undefined,
       file: undefined,
       selectedFiles: [],
       scanDiskError: false,
