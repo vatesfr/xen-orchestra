@@ -841,14 +841,14 @@ const messages = {
   disconnectServer: 'Disconnect',
 
   // ----- Host actions ------
+  disableMaintenanceMode: 'Disable maintenance mode',
+  enableMaintenanceMode: 'Enable maintenance mode',
   startHostLabel: 'Start',
   stopHostLabel: 'Stop',
   enableHostLabel: 'Enable',
   disableHostLabel: 'Disable',
   restartHostAgent: 'Restart toolstack',
   forceRebootHostLabel: 'Force reboot',
-  maintenanceModeOff: 'Disable maintenance mode',
-  maintenanceModeOn: 'Enable maintenance mode',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
   noHostsAvailableErrorMessage:
