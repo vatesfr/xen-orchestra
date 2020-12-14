@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-[xo-web/host] displaying host page even if controller aren't defined (PR [#5417](https://github.com/vatesfr/xen-orchestra/pull/5417))
+[xo-web/host] fix: `an error has occurred` when controller aren't defined (PR [#5417](https://github.com/vatesfr/xen-orchestra/pull/5417))
 
 ### Packages to release
 
