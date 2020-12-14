@@ -496,9 +496,10 @@ export default {
 
     // Put master in first position to restart it first
     const indexOfMaster = hosts.findIndex(host => host.$ref === this.pool.master)
-    if (indexOfMaster > 0) {
-      ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
+    if (indexOfMaster === -1) {
+      throw new Error('Could not find pool master')
     }
+    ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
 
     // Restart all the hosts one by one
     for (const host of hosts) {
