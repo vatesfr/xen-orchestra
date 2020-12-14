@@ -233,7 +233,7 @@ export default class extends Component {
                 handler={setMaintenanceMode}
                 handlerParam={host}
                 icon='host-disable'
-                labelId='maintenanceModeOn'
+                labelId='enableMaintenanceMode'
               />
             ) : (
               <TabButton
@@ -241,7 +241,7 @@ export default class extends Component {
                 handler={setMaintenanceMode}
                 handlerParam={host}
                 icon='host-enable'
-                labelId='maintenanceModeOff'
+                labelId='disableMaintenanceMode'
               />
             )}
             <TabButton
