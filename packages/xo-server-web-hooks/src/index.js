@@ -108,10 +108,7 @@ class XoServerHooks {
   }
 
   async test({ url }) {
-    await this._makeRequest(
-      url,
-      'pre',
-      {
+    await this._makeRequest(url, 'pre', {
         callId: '0',
         userId: 'b4tm4n',
         userName: 'bruce.wayne@waynecorp.com',
@@ -121,10 +118,7 @@ class XoServerHooks {
       },
       false
     )
-    await this._makeRequest(
-      url,
-      'post',
-      {
+    await this._makeRequest(url, 'post', {
         callId: '0',
         userId: 'b4tm4n',
         userName: 'bruce.wayne@waynecorp.com',
