@@ -19,7 +19,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Dashboard/Overview] Filer out `udev` SRs [#5423](https://github.com/vatesfr/xen-orchestra/issues/5423) (PR [#5453](https://github.com/vatesfr/xen-orchestra/pull/5453))
+- [Dashboard/Overview] Filter out `udev` SRs [#5423](https://github.com/vatesfr/xen-orchestra/issues/5423) (PR [#5453](https://github.com/vatesfr/xen-orchestra/pull/5453))
 
 ### Packages to release
 
