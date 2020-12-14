@@ -1,8 +1,20 @@
 # ChangeLog
 
-## **5.53.0** (2020-11-30)
+## **5.53.1** (2020-12-10)
 
 ![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+
+### Bug fixes
+
+- [OVA/import] Fix OVA CLI import tool (PR [#5432](https://github.com/vatesfr/xen-orchestra/pull/5432))
+- [Jobs] Fix `Cannot read property id of undefined` error when running a job without a schedule [#5425](https://github.com/vatesfr/xen-orchestra/issues/5425) (PR [#5426](https://github.com/vatesfr/xen-orchestra/pull/5426))
+
+### Released packages
+
+- @xen-orchestra/upload-ova patch
+- xo-server minor
+
+## **5.53.0** (2020-11-30)
 
 ### Enhancements
 

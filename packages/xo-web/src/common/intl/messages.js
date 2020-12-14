@@ -892,6 +892,11 @@ const messages = {
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
   hostPowerOnMode: 'Power on mode',
+  hostControlDomainMemory: 'Control domain memory',
+  setControlDomainMemory: 'Set control domain memory',
+  setControlDomainMemoryMessage:
+    'Editing the control domain memory will immediately restart the host in order to apply the changes.',
+  maintenanceModeRequired: 'The host needs to be in maintenance mode',
   hostStartedSince: 'Host uptime',
   hostStackStartedSince: 'Toolstack uptime',
   hostCpusModel: 'CPU model',
@@ -983,6 +988,9 @@ const messages = {
     'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch: 'Are you sure you want to install all the patches on this pool?',
+  rollingPoolUpdate: 'Rolling pool update',
+  rollingPoolUpdateMessage:
+    'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -1086,7 +1094,6 @@ const messages = {
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
   vdiForget: 'Forget',
-  vdiRemove: 'Remove VDI',
   noControlDomainVdis: 'No VDIs attached to control domain',
   vbdBootableStatus: 'Boot flag',
   vbdDevice: 'Device',
@@ -1105,8 +1112,8 @@ const messages = {
   cdDriveInstallation: 'Stop and start the VM to install the CD drive',
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
-  deleteSelectedVdis: 'Delete selected VDIs',
-  deleteSelectedVdi: 'Delete selected VDI',
+  destroySelectedVdis: 'Destroy selected VDIs',
+  destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
@@ -1115,6 +1122,8 @@ const messages = {
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
+  removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
+  removeVdiFromVm: 'Remove VDI from this VM',
 
   // ----- VM network tab -----
 
