@@ -783,13 +783,15 @@ export const disableHost = host => _call('host.disable', { id: resolveId(host) }
 
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
+  host = getObject(store.getState(), hostId)
+
+  if (host.power_state !== 'Running') {
+    return []
+  }
   if (host.productBrand !== 'XCP-ng') {
     const patches = await _call('pool.listMissingPatches', { host: hostId })
     // Hide paid patches to XS-free users
     return host.license_params.sku_type !== 'free' ? patches : filter(patches, { paid: false })
-  }
-  if (host.power_state !== 'Running') {
-    return []
   }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
@@ -864,6 +866,16 @@ export const installAllPatchesOnPool = ({ pool }) => {
     noop
   )
 }
+
+export const rollingPoolUpdate = poolId =>
+  confirm({
+    body: _('rollingPoolUpdateMessage'),
+    title: _('rollingPoolUpdate'),
+    icon: 'pool-rolling-update',
+  }).then(
+    () => _call('pool.rollingUpdate', { pool: poolId })::tap(() => subscribeHostMissingPatches.forceRefresh()),
+    noop
+  )
 
 export const installSupplementalPack = (host, file) => {
   info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))

@@ -14,11 +14,13 @@
 - [Home/VM] Ability to choose network for bulk migration within a pool (PR [#5427](https://github.com/vatesfr/xen-orchestra/pull/5427))
 - [Host] Ability to set host control domain memory [#2218](https://github.com/vatesfr/xen-orchestra/issues/2218) (PR [#5437](https://github.com/vatesfr/xen-orchestra/pull/5437))
 - [VM/disks, SR/disks] Destroy/forget VDIs: improve tooltip messages (PR [#5435](https://github.com/vatesfr/xen-orchestra/pull/5435))
+- [Patches] Rolling pool update: automatically patch and restart a whole pool by live migrating running VMs back and forth as needed [#5286](https://github.com/vatesfr/xen-orchestra/issues/5286) (PR [#5430](https://github.com/vatesfr/xen-orchestra/pull/5430))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host] Fix `an error has occurred` on accessing a host's page (PR [#5417](https://github.com/vatesfr/xen-orchestra/pull/5417))
 - [Dashboard/Overview] Filter out `udev` SRs [#5423](https://github.com/vatesfr/xen-orchestra/issues/5423) (PR [#5453](https://github.com/vatesfr/xen-orchestra/pull/5453))
 
 ### Packages to release
