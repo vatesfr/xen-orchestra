@@ -4,19 +4,52 @@ import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
-import { decorateWith } from '@vates/decorate-with'
 import { execFile, spawn } from 'child_process'
-import { parseDuration } from '@vates/parse-duration'
 import { readFile } from 'fs-extra'
 
-import { debounceResource } from '../_debounceResource'
-import { decorateResult } from '../_decorateResult'
 import { deduped } from '../_deduped'
 import { disposable } from '../_disposable'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
 const { debug, warn } = createLogger('xo:proxy:appliance')
+
+const getUpdater = deduped(
+  disposable(async function* () {
+    const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
+    await updater.open()
+    try {
+      yield updater
+    } finally {
+      await updater.close()
+    }
+  })
+)
+
+const callUpdate = params =>
+  using(
+    getUpdater(),
+    updater =>
+      new Promise((resolve, reject) => {
+        updater
+          .on('error', reject)
+          .on('notification', ({ method, params }) => {
+            if (method === 'print') {
+              debug('updater.update: ' + params.content)
+            } else if (method === 'end') {
+              resolve(params)
+            } else if (method === 'server-error') {
+              reject(new Error(params.message))
+            } else if (method !== 'connected') {
+              warn('update.update, unhandled message', {
+                method,
+                params,
+              })
+            }
+          })
+          .notify('update', params)
+      })
+  )
 
 async function checkAppliance() {
   const child = spawn('xoa', ['check'], {
@@ -121,53 +154,12 @@ export default class Appliance {
           ],
         },
         updater: {
-          getLocalManifest: () => using(this.getUpdater(), _ => _.call('getLocalManifest')),
-          getState: () => this._callUpdate(),
-          upgrade: () => this._callUpdate({ upgrade: true }),
+          getLocalManifest: () => using(getUpdater(), _ => _.call('getLocalManifest')),
+          getState: () => callUpdate(),
+          upgrade: () => callUpdate({ upgrade: true }),
         },
       },
     })
-  }
-
-  _callUpdate(params) {
-    return using(
-      this.getUpdater(),
-      updater =>
-        new Promise((resolve, reject) => {
-          updater
-            .on('error', reject)
-            .on('notification', ({ method, params }) => {
-              if (method === 'print') {
-                debug('updater.update: ' + params.content)
-              } else if (method === 'end') {
-                resolve(params)
-              } else if (method === 'server-error') {
-                reject(new Error(params.message))
-              } else if (method !== 'connected') {
-                warn('update.update, unhandled message', {
-                  method,
-                  params,
-                })
-              }
-            })
-            .notify('update', params)
-        })
-    )
-  }
-
-  @decorateResult(function (resource) {
-    return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
-  })
-  @decorateWith(deduped)
-  @decorateWith(disposable)
-  async *getUpdater() {
-    const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
-    await updater.open()
-    try {
-      yield updater
-    } finally {
-      await updater.close().then(Function.prototype)
-    }
   }
 
   // A proxy can be bound to a unique license
