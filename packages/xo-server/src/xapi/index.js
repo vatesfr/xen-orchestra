@@ -370,7 +370,7 @@ export default class Xapi extends XapiBase {
   async rebootHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
-    await this._clearHost(host, force)
+    await this.clearHost(host, force)
     await this.callAsync('host.reboot', host.$ref)
   }
 
@@ -389,7 +389,7 @@ export default class Xapi extends XapiBase {
   async shutdownHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
-    await this._clearHost(host, force)
+    await this.clearHost(host, force)
     await this.callAsync('host.shutdown', host.$ref)
   }
 
