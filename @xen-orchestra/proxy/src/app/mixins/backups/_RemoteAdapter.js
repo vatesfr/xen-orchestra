@@ -1,4 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
+import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import pump from 'pump'
 import using from 'promise-toolbox/using'
@@ -257,7 +258,7 @@ export class RemoteAdapter {
 
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, diskId => [diskId])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *getDisk(diskId) {
     const handler = this._handler
 
