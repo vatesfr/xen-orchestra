@@ -23,6 +23,7 @@
 
 - [Host] Fix `an error has occurred` on accessing a host's page (PR [#5417](https://github.com/vatesfr/xen-orchestra/pull/5417))
 - [Dashboard/Overview] Filter out `udev` SRs [#5423](https://github.com/vatesfr/xen-orchestra/issues/5423) (PR [#5453](https://github.com/vatesfr/xen-orchestra/pull/5453))
+- [Backup/S3] Fix `TimeoutError: Connection timed out after 120000ms` (PR [#5456](https://github.com/vatesfr/xen-orchestra/pull/5456))
 
 ### Packages to release
 
