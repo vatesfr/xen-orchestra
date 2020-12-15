@@ -1,3 +1,4 @@
+import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import tmp from 'tmp'
 import using from 'promise-toolbox/using'
@@ -70,13 +71,8 @@ export default class Remotes {
     })
   }
 
-  @decorateWith(disposable)
-  async *getTempMountDir() {
+  async getTempMountDir() {
     const mountDir = await fromCallback(tmp.dir)
-    try {
-      yield mountDir
-    } finally {
-      await rmdir(mountDir)
-    }
+    return new Disposable(mountDir, () => rmdir(mountDir))
   }
 }
