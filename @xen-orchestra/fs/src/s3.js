@@ -55,7 +55,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ...this._createParams(path),
         Body: inputStream,
       },
-      { partSize: IDEAL_FRAGMENT_SIZE }
+      { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
     )
     await upload.promise()
     if (checksum) {
@@ -174,7 +174,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
         } else {
           const fragmentsCount = Math.ceil(prefixSize / MAX_PART_SIZE)
           const prefixFragmentSize = Math.ceil(prefixSize / fragmentsCount)
-          const lastFragmentSize = prefixFragmentSize * fragmentsCount - prefixSize
           let prefixPosition = 0
           for (let i = 0; i < fragmentsCount; i++) {
             const copyPrefixParams = {
@@ -189,8 +188,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
               PartNumber: copyPrefixParams.PartNumber,
             })
             prefixPosition += prefixFragmentSize
-          }
-          if (lastFragmentSize) {
           }
         }
         if (hasSuffix && editBuffer.length < MIN_PART_SIZE) {
