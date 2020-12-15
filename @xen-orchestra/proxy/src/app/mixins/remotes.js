@@ -1,3 +1,4 @@
+import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import tmp from 'tmp'
 import using from 'promise-toolbox/using'
@@ -9,7 +10,6 @@ import { rmdir } from 'fs-extra'
 import { debounceResource } from '../_debounceResource'
 import { decorateResult } from '../_decorateResult'
 import { deduped } from '../_deduped'
-import { disposable } from '../_disposable'
 
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
@@ -48,21 +48,16 @@ export default class Remotes {
   // FIXME: invalidate cache on remote option change
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
-  @decorateWith(disposable)
-  async *getHandler(remote) {
+  async getHandler(remote) {
     const handler = getHandler(remote, this._config.remoteOptions)
     await handler.sync()
-    try {
-      yield handler
-    } finally {
-      await handler.forget()
-    }
+    return new Disposable(handler, () => handler.forget())
   }
 
   // FIXME: invalidate cache on remote option change
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   *getAdapter(remote) {
     return new RemoteAdapter(yield this.getHandler(remote), {
       app: this._app,
@@ -70,13 +65,8 @@ export default class Remotes {
     })
   }
 
-  @decorateWith(disposable)
-  async *getTempMountDir() {
+  async getTempMountDir() {
     const mountDir = await fromCallback(tmp.dir)
-    try {
-      yield mountDir
-    } finally {
-      await rmdir(mountDir)
-    }
+    return new Disposable(mountDir, () => rmdir(mountDir))
   }
 }

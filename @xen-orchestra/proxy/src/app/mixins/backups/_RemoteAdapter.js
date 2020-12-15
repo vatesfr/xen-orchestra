@@ -1,4 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
+import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import pump from 'pump'
 import using from 'promise-toolbox/using'
@@ -13,7 +14,6 @@ import { readdir, stat } from 'fs-extra'
 import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
-import { disposable } from '../../_disposable'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
@@ -117,7 +117,7 @@ export class RemoteAdapter {
 
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, (devicePath, pvId, vgName) => [devicePath, pvId, vgName])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
     yield this._getLvmPhysicalVolume(devicePath, pvId && (await this._findPartition(devicePath, pvId)))
 
@@ -131,7 +131,7 @@ export class RemoteAdapter {
 
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, (devicePath, partition) => [devicePath, partition?.id])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *_getLvmPhysicalVolume(devicePath, partition) {
     const args = []
     if (partition !== undefined) {
@@ -154,7 +154,7 @@ export class RemoteAdapter {
 
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, (devicePath, partition) => [devicePath, partition?.id])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *_getPartition(devicePath, partition) {
     const options = ['loop', 'ro']
 
@@ -207,7 +207,7 @@ export class RemoteAdapter {
     })
   }
 
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *usePartitionFiles(diskId, partitionId, paths) {
     const path = yield this.getPartition(diskId, partitionId)
 
@@ -257,7 +257,7 @@ export class RemoteAdapter {
 
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, diskId => [diskId])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *getDisk(diskId) {
     const handler = this._handler
 
@@ -294,7 +294,7 @@ export class RemoteAdapter {
   // - `<partitionId>`: partitioned disk
   // - `<pvId>/<vgName>/<lvName>`: LVM on a partitioned disk
   // - `/<vgName>/lvName>`: LVM on a raw disk
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *getPartition(diskId, partitionId) {
     const devicePath = yield this.getDisk(diskId)
     if (partitionId === undefined) {

@@ -1,11 +1,10 @@
 import asyncMap from '@xen-orchestra/async-map'
+import Disposable from 'promise-toolbox/Disposable'
 import limitConcurrency from 'limit-concurrency-decorator'
 import using from 'promise-toolbox/using'
 import { compileTemplate } from '@xen-orchestra/template'
 import { decorateWith } from '@vates/decorate-with'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
-
-import { disposable } from '../../_disposable'
 
 import { Task } from './_Task'
 import { VmBackup } from './_VmBackup'
@@ -87,7 +86,7 @@ export class Backup {
     )
   }
 
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   *_getAdapter(remoteId) {
     const adapter = yield this._app.remotes.getAdapter(this._remotes[remoteId])
     return {
@@ -96,7 +95,7 @@ export class Backup {
     }
   }
 
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *_getRecord(type, uuid) {
     const xapiId = this._recordToXapi[uuid]
     if (xapiId === undefined) {

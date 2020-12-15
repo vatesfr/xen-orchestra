@@ -1,25 +1,27 @@
-import Resource from 'promise-toolbox/_Resource'
+import Disposable from 'promise-toolbox/Disposable'
 
-export function debounceResource(resource, hooks, delay = 0) {
+export async function debounceResource(pDisposable, hooks, delay = 0) {
   if (delay === 0) {
-    return resource
+    return pDisposable
   }
 
-  let timeoutId, value
-  const dispose = () => {
-    const { d } = resource
-    if (d !== undefined) {
-      resource.d = undefined
+  const disposable = await pDisposable
+
+  let timeoutId
+  const disposeWrapper = () => {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+      timeoutId = undefined
       hooks.removeListener('stop', onStop)
-      return d(value)
+
+      return disposable.dispose()
     }
   }
 
   const onStop = () => {
     const shouldDisposeNow = timeoutId !== undefined
     if (shouldDisposeNow) {
-      clearTimeout(timeoutId)
-      return dispose()
+      return disposeWrapper()
     } else {
       // will dispose ASAP
       delay = 0
@@ -27,9 +29,7 @@ export function debounceResource(resource, hooks, delay = 0) {
   }
   hooks.on('stop', onStop)
 
-  return new Resource(resource.p, v => {
-    // onStop doesn't have access to the value
-    value = v
-    timeoutId = setTimeout(dispose, delay)
+  return new Disposable(disposable.value, () => {
+    timeoutId = setTimeout(disposeWrapper, delay)
   })
 }

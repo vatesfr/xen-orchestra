@@ -1,5 +1,6 @@
 import assert from 'assert'
 import defer from 'golike-defer'
+import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
 import mapValues from 'lodash/mapValues'
@@ -17,7 +18,6 @@ import { ZipFile } from 'yazl'
 import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
-import { disposable } from '../../_disposable'
 
 import { Backup } from './_Backup'
 import { importDeltaVm } from './_deltaVm'
@@ -131,16 +131,16 @@ export default class Backups {
         fetchPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, paths }) => {
             const { promise, reject, resolve } = pDefer()
-            using(app.remotes.getAdapter(remote), adapter =>
-              using(adapter.usePartitionFiles(diskId, partitionId, paths), async files => {
-                const zip = new ZipFile()
-                files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
-                zip.end()
-                const { outputStream } = zip
-                resolve(outputStream)
-                await fromEvent(outputStream, 'end')
-              })
-            ).catch(error => {
+            using(async function* () {
+              const adapter = yield app.remotes.getAdapter(remote)
+              const files = yield adapter.usePartitionFiles(diskId, partitionId, paths)
+              const zip = new ZipFile()
+              files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
+              zip.end()
+              const { outputStream } = zip
+              resolve(outputStream)
+              await fromEvent(outputStream, 'end')
+            }).catch(error => {
               warn(error)
               reject(error)
             })
@@ -272,7 +272,7 @@ export default class Backups {
       },
     })
 
-    const getPartition = disposable(function* ({ disk, partition, remote }) {
+    const getPartition = Disposable.factory(function* ({ disk, partition, remote }) {
       const adapter = yield app.remotes.getAdapter(remote)
       return yield adapter.getPartition(disk, partition)
     })
@@ -294,13 +294,12 @@ export default class Backups {
       backup: {
         mountPartition: [
           async props => {
-            const resource = getPartition(props)
-            const path = await resource.p
+            const { value: path, dispose } = await getPartition(props)
 
             if (partitionDisposers[path] === undefined) {
               partitionDisposers[path] = []
             }
-            partitionDisposers[path].push(resource.d)
+            partitionDisposers[path].push(dispose)
 
             return path
           },
@@ -341,7 +340,7 @@ export default class Backups {
     return debounceResource(resource, this._app.hooks, parseDuration(this._resourceDebounce))
   })
   @decorateWith(deduped, ({ url }) => [url])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   async *getXapi({ credentials: { username: user, password }, ...opts }) {
     const xapi = new Xapi({
       ...this._globalXapiOptions,
