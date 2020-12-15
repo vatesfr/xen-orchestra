@@ -7,12 +7,19 @@ function handleHook(type, data) {
   if (hooks !== undefined) {
     return Promise.all(
       hooks.map(({ url, response }) =>
-        this._makeRequest(url, type, data, response).catch(error => {
-          log.error('web hook failed', {
-            error,
-            webHook: { ...data, url, type },
-          })
-        })
+        response && type === 'pre'
+          ? this._waitForResponse(url, type, data).catch(error => {
+              log.error("web hook didn't receive response from server", {
+                error,
+                webHook: { ...data, url, type },
+              })
+            })
+          : this._makeRequest(url, type, data).catch(error => {
+              log.error('web hook failed', {
+                error,
+                webHook: { ...data, url, type },
+              })
+            })
       )
     )
   }
@@ -29,26 +36,11 @@ class XoServerHooks {
     this._handlePostHook = handleHook.bind(this, 'post')
   }
 
-  async _makeRequest(url, type, data, response) {
-    if (response && type === 'pre') {
-      await this._xo.httpRequest(url, {
-        body: JSON.stringify({ ...data, type }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        onRequest: req => {
-          req.setTimeout(1e4)
-          req.on('timeout', req.abort)
-        },
-      })
-      return this._xo.httpRequest(url, {
-        method: 'GET',
-        onRequest: req => {
-          req.setTimeout(1e4)
-          req.on('timemout', req.abort)
-        },
-      })
-    }
+  async _waitForResponse(url, type, data) {
+    return await this._makeRequest(url, type, data)
+  }
 
+  _makeRequest(url, type, data) {
     return this._xo.httpRequest(url, {
       body: JSON.stringify({ ...data, type }),
       headers: { 'Content-Type': 'application/json' },
@@ -108,7 +100,10 @@ class XoServerHooks {
   }
 
   async test({ url }) {
-    await this._makeRequest(url, 'pre', {
+    await this._makeRequest(
+      url,
+      'pre',
+      {
         callId: '0',
         userId: 'b4tm4n',
         userName: 'bruce.wayne@waynecorp.com',
@@ -118,7 +113,10 @@ class XoServerHooks {
       },
       false
     )
-    await this._makeRequest(url, 'post', {
+    await this._makeRequest(
+      url,
+      'post',
+      {
         callId: '0',
         userId: 'b4tm4n',
         userName: 'bruce.wayne@waynecorp.com',
