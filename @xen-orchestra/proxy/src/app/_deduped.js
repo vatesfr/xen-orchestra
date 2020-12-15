@@ -1,11 +1,13 @@
+import Disposable from 'promise-toolbox/Disposable'
 import ensureArray from 'ensure-array'
-import Resource from 'promise-toolbox/_Resource'
 import { MultiKeyMap } from '@vates/multi-key-map'
 
-function State(resource) {
+function State(pGetNewDisposable) {
+  this.pGetNewDisposable = pGetNewDisposable
   this.users = 0
-  this.resource = resource
 }
+
+const call = fn => fn()
 
 export const deduped = (factory, keyFn = (...args) => args) =>
   (function () {
@@ -14,21 +16,26 @@ export const deduped = (factory, keyFn = (...args) => args) =>
       const keys = ensureArray(keyFn.apply(this, arguments))
       let state = states.get(keys)
       if (state === undefined) {
-        const resource = factory.apply(this, arguments)
-        resource.p.catch(() => {
+        const pDisposable = factory.apply(this, arguments)
+        pDisposable.catch(() => {
           states.delete(keys)
         })
 
-        state = new State(resource)
+        state = new State(
+          pDisposable.then(({ value, dispose }) => {
+            const disposeWrapper = () => {
+              if (--state.users === 0) {
+                states.delete(keys)
+                return dispose()
+              }
+            }
+            return () => new Disposable(value, disposeWrapper)
+          })
+        )
         states.set(keys, state)
       }
 
       ++state.users
-      return new Resource(state.resource.p, value => {
-        if (--state.users === 0) {
-          states.delete(keys)
-          return state.resource.d(value)
-        }
-      })
+      return state.pGetNewDisposable.then(call)
     }
   })()
