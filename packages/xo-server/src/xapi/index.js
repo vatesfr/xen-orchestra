@@ -11,6 +11,7 @@ import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvent, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import { Xapi as XapiBase, NULL_REF } from 'xen-api'
@@ -92,6 +93,7 @@ export default class Xapi extends XapiBase {
   constructor({
     guessVhdSizeOnImport,
     maxUncoalescedVdis,
+    restartHostTimeout,
     vdiExportConcurrency,
     vmExportConcurrency,
     vmSnapshotConcurrency,
@@ -101,6 +103,7 @@ export default class Xapi extends XapiBase {
 
     this._guessVhdSizeOnImport = guessVhdSizeOnImport
     this._maxUncoalescedVdis = maxUncoalescedVdis
+    this._restartHostTimeout = parseDuration(restartHostTimeout)
 
     const waitStreamEnd = async stream => fromEvent(await stream, 'end')
     this._exportVdi = concurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
@@ -286,7 +289,7 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async _clearHost({ $ref: ref }, force) {
+  async clearHost({ $ref: ref }, force) {
     await this.call('host.disable', ref)
 
     try {
@@ -370,7 +373,7 @@ export default class Xapi extends XapiBase {
   async rebootHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
-    await this._clearHost(host, force)
+    await this.clearHost(host, force)
     await this.callAsync('host.reboot', host.$ref)
   }
 
@@ -389,7 +392,7 @@ export default class Xapi extends XapiBase {
   async shutdownHost(hostId, force = false) {
     const host = this.getObject(hostId)
 
-    await this._clearHost(host, force)
+    await this.clearHost(host, force)
     await this.callAsync('host.shutdown', host.$ref)
   }
 

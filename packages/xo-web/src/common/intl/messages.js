@@ -275,6 +275,7 @@ const messages = {
   srSharedType: 'Shared {type}',
   warningHostTimeTooltip: 'Host time and XOA time are not consistent with each other',
   selectExistingTags: 'Select from existing tags',
+  sortByDisksUsage: 'Disks usage',
 
   // ----- Home snapshots -----
   snapshotVmsName: 'Name',
@@ -692,7 +693,9 @@ const messages = {
   autoloadPlugin: 'Auto-load at server start',
   savePluginConfiguration: 'Save configuration',
   deletePluginConfiguration: 'Delete configuration',
+  pluginConfirmation: 'The test appears to be working.',
   pluginError: 'Plugin error',
+  pluginTest: 'Plugin test',
   unknownPluginError: 'Unknown error',
   purgePluginConfiguration: 'Purge plugin configuration',
   purgePluginConfigurationQuestion: 'Are you sure you want to purge this configuration?',
@@ -838,6 +841,8 @@ const messages = {
   disconnectServer: 'Disconnect',
 
   // ----- Host actions ------
+  disableMaintenanceMode: 'Disable maintenance mode',
+  enableMaintenanceMode: 'Enable maintenance mode',
   startHostLabel: 'Start',
   stopHostLabel: 'Stop',
   enableHostLabel: 'Enable',
@@ -863,6 +868,10 @@ const messages = {
   editHostIscsiIqnMessage:
     'Are you sure you want to edit the iSCSI IQN? This may result in failures connecting to existing SRs if the host is attached to iSCSI SRs.',
   hostTitleRamUsage: 'Host RAM usage:',
+  maintenanceHostModalMessage:
+    'Are you sure you want to enter maintenance mode? This will migrate all the VMs running on this host to other hosts of the pool.',
+  maintenanceHostModalTitle: 'Maintenance mode',
+  maintenanceHostTooltip: 'Evacuate and disable the host',
   memoryHostState: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
@@ -883,6 +892,11 @@ const messages = {
   hostStatusEnabled: 'Enabled',
   hostStatusDisabled: 'Disabled',
   hostPowerOnMode: 'Power on mode',
+  hostControlDomainMemory: 'Control domain memory',
+  setControlDomainMemory: 'Set control domain memory',
+  setControlDomainMemoryMessage:
+    'Editing the control domain memory will immediately restart the host in order to apply the changes.',
+  maintenanceModeRequired: 'The host needs to be in maintenance mode',
   hostStartedSince: 'Host uptime',
   hostStackStartedSince: 'Toolstack uptime',
   hostCpusModel: 'CPU model',
@@ -974,6 +988,9 @@ const messages = {
     'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch: 'Are you sure you want to install all the patches on this pool?',
+  rollingPoolUpdate: 'Rolling pool update',
+  rollingPoolUpdateMessage:
+    'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -1077,7 +1094,6 @@ const messages = {
   vdiMigrateNoSr: 'No SR',
   vdiMigrateNoSrMessage: 'A target SR is required to migrate a VDI',
   vdiForget: 'Forget',
-  vdiRemove: 'Remove VDI',
   noControlDomainVdis: 'No VDIs attached to control domain',
   vbdBootableStatus: 'Boot flag',
   vbdDevice: 'Device',
@@ -1096,8 +1112,8 @@ const messages = {
   cdDriveInstallation: 'Stop and start the VM to install the CD drive',
   saveBootOption: 'Save',
   resetBootOption: 'Reset',
-  deleteSelectedVdis: 'Delete selected VDIs',
-  deleteSelectedVdi: 'Delete selected VDI',
+  destroySelectedVdis: 'Destroy selected VDIs',
+  destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
@@ -1106,6 +1122,8 @@ const messages = {
     'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)',
   notEnoughSpaceInResourceSet: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)',
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
+  removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
+  removeVdiFromVm: 'Remove VDI from this VM',
 
   // ----- VM network tab -----
 
@@ -2307,8 +2325,7 @@ const messages = {
   starterLicense: 'Starter license',
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
-  trialLicenseInfo:
-    'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
 
   // ----- proxies -----
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',

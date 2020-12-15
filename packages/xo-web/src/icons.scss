@@ -634,6 +634,13 @@
     }
   }
 
+  &-pool {
+    &-rolling-update {
+      @extend .fa;
+      @extend .fa-angle-double-down;
+    }
+  }
+
   &-vif {
     &-disable {
       @extend .fa;

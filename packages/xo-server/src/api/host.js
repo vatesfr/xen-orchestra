@@ -1,4 +1,24 @@
+import assert from 'assert'
 import { format } from 'json-rpc-peer'
+
+// ===================================================================
+
+export function setMaintenanceMode({ host, maintenance }) {
+  const xapi = this.getXapi(host)
+
+  return maintenance ? xapi.clearHost({ $ref: host._xapiRef }) : xapi.enableHost(host._xapiId)
+}
+
+setMaintenanceMode.description = 'manage the maintenance mode'
+
+setMaintenanceMode.params = {
+  id: { type: 'string' },
+  maintenance: { type: 'boolean' },
+}
+
+setMaintenanceMode.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
 
 // ===================================================================
 
@@ -371,5 +391,28 @@ installCertificate.params = {
 }
 
 installCertificate.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export async function setControlDomainMemory({ host, memory }) {
+  assert(!host.enabled)
+
+  const controlDomain = this.getXapiObject(host.controlDomain, 'VM-controller')
+
+  const xapi = controlDomain.$xapi
+  await xapi.call('VM.set_memory_limits', controlDomain.$ref, controlDomain.memory_static_min, memory, memory, memory)
+  await xapi.rebootHost(host._xapiId)
+}
+
+setControlDomainMemory.description = "Set host's control domain memory and restart the host"
+
+setControlDomainMemory.params = {
+  id: { type: 'string' },
+  memory: { type: 'number' },
+}
+
+setControlDomainMemory.resolve = {
   host: ['id', 'host', 'administrate'],
 }

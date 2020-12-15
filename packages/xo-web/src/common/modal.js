@@ -324,42 +324,49 @@ export const FormModal = decorate([
     },
   }),
   injectState,
-  ({ state, effects }) => (
-    <ReactModal
-      backdrop='static'
-      bsSize={state.size}
-      keyboard={false}
-      onExited={effects.reset}
-      onHide={effects.onCancel}
-      show={state.opened}
-    >
-      <ReactModal.Header closeButton>
-        <ReactModal.Title>{state.header}</ReactModal.Title>
-      </ReactModal.Header>
+  ({ state, effects }) => {
+    const Component = state.component
 
-      <ReactModal.Body>
-        <form id={state.formId}>
-          {/* It should be better to use a computed to avoid calling the render function on each render,
+    return (
+      <ReactModal
+        backdrop='static'
+        bsSize={state.size}
+        keyboard={false}
+        onExited={effects.reset}
+        onHide={effects.onCancel}
+        show={state.opened}
+      >
+        <ReactModal.Header closeButton>
+          <ReactModal.Title>{state.header}</ReactModal.Title>
+        </ReactModal.Header>
+
+        <ReactModal.Body>
+          <form id={state.formId}>
+            {/* It should be better to use a computed to avoid calling the render function on each render,
             but reaclette(v0.4.0) not allow us to access to the effects from a computed */}
-          {state.component ||
-            (state.render !== undefined &&
+            {Component !== undefined ? (
+              <Component onChange={effects.onChange} value={state.value} />
+            ) : (
+              state.render !== undefined &&
               state.render({
                 onChange: effects.onChange,
                 value: state.value,
-              }))}
-        </form>
-      </ReactModal.Body>
+              })
+            )}
+          </form>
+        </ReactModal.Body>
 
-      <ReactModal.Footer>
-        <ActionButton btnStyle='primary' form={state.formId} handler={effects.onSubmit} icon='save' size='large'>
-          {_('formOk')}
-        </ActionButton>{' '}
-        <ActionButton handler={effects.onCancel} icon='cancel' size='large'>
-          {_('formCancel')}
-        </ActionButton>
-      </ReactModal.Footer>
-    </ReactModal>
-  ),
+        <ReactModal.Footer>
+          <ActionButton btnStyle='primary' form={state.formId} handler={effects.onSubmit} icon='save' size='large'>
+            {_('formOk')}
+          </ActionButton>{' '}
+          <ActionButton handler={effects.onCancel} icon='cancel' size='large'>
+            {_('formCancel')}
+          </ActionButton>
+        </ReactModal.Footer>
+      </ReactModal>
+    )
+  },
 ])
 
 // -----------------------------------------------------------------------------
