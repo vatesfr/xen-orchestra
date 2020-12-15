@@ -3,13 +3,7 @@ import { dirname, relative } from 'path'
 import Vhd from './vhd'
 import { DISK_TYPE_DIFFERENCING } from './_constants'
 
-export default async function chain(
-  parentHandler,
-  parentPath,
-  childHandler,
-  childPath,
-  force = false
-) {
+export default async function chain(parentHandler, parentPath, childHandler, childPath, force = false) {
   const parentVhd = new Vhd(parentHandler, parentPath)
   const childVhd = new Vhd(childHandler, childPath)
 
@@ -23,10 +17,7 @@ export default async function chain(
     footer.diskType = DISK_TYPE_DIFFERENCING
   }
 
-  await Promise.all([
-    childVhd.readBlockAllocationTable(),
-    parentVhd.readHeaderAndFooter(),
-  ])
+  await Promise.all([childVhd.readBlockAllocationTable(), parentVhd.readHeaderAndFooter()])
 
   const parentName = relative(dirname(childPath), parentPath)
   header.parentUuid = parentVhd.footer.uuid

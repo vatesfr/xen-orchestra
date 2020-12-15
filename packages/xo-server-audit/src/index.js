@@ -2,15 +2,10 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import createLogger from '@xen-orchestra/log'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
+import { createSchedule } from '@xen-orchestra/cron'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
-import {
-  AlteredRecordError,
-  AuditCore,
-  MissingRecordError,
-  NULL_ID,
-  Storage,
-} from '@xen-orchestra/audit-core'
+import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '@xen-orchestra/audit-core'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -18,6 +13,8 @@ const DEFAULT_BLOCKED_LIST = {
   'acl.get': true,
   'acl.getCurrentPermissions': true,
   'audit.checkIntegrity': true,
+  'audit.clean': true,
+  'audit.deleteRange': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
   'backup.list': true,
@@ -68,6 +65,22 @@ const DEFAULT_BLOCKED_LIST = {
 }
 
 const LAST_ID = 'lastId'
+
+// interface Db {
+//   lastId: string
+//   [RecordId: string]: {
+//     data: object
+//     event: string
+//     id: strings
+//     previousId: string
+//     subject: {
+//       userId: string
+//       userIp: string
+//       userName: string
+//     }
+//     time: number
+//   }
+// }
 class Db extends Storage {
   constructor(db) {
     super()
@@ -97,6 +110,37 @@ class Db extends Storage {
   getLastId() {
     return this.get(LAST_ID)
   }
+
+  async clean() {
+    const db = this._db
+
+    // delete first so that a new chain can be constructed even if anything else fails
+    await db.del(LAST_ID)
+
+    return new Promise((resolve, reject) => {
+      let count = 1
+      const cb = () => {
+        if (--count === 0) {
+          resolve()
+        }
+      }
+      const deleteEntry = key => {
+        ++count
+        db.del(key, cb)
+      }
+      db.createKeyStream().on('data', deleteEntry).on('end', cb).on('error', reject)
+    })
+  }
+}
+
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    active: {
+      description: 'Whether to save user actions in the audit log',
+      type: 'boolean',
+    },
+  },
 }
 
 const NAMESPACE = 'audit'
@@ -109,8 +153,27 @@ class AuditXoPlugin {
     this._cleaners = []
     this._xo = xo
 
+    const { enabled = true, schedule: { cron = '0 6 * * *', timezone } = {} } = staticConfig.lastHashUpload ?? {}
+
+    if (enabled) {
+      this._uploadLastHashJob = createSchedule(cron, timezone).createJob(() => this._uploadLastHash().catch(log.error))
+    }
+
     this._auditCore = undefined
     this._storage = undefined
+
+    this._listeners = {
+      'xo:audit': this._handleEvent.bind(this),
+      'xo:postCall': this._handleEvent.bind(this, 'apiCall'),
+    }
+  }
+
+  configure({ active = false }, { loaded }) {
+    this._active = active
+
+    if (loaded) {
+      this._addListeners()
+    }
   }
 
   async load() {
@@ -123,8 +186,7 @@ class AuditXoPlugin {
       this._storage = undefined
     })
 
-    this._addListener('xo:postCall', this._handleEvent.bind(this, 'apiCall'))
-    this._addListener('xo:audit', this._handleEvent.bind(this))
+    this._addListeners()
 
     const exportRecords = this._exportRecords.bind(this)
     exportRecords.permission = 'admin'
@@ -138,8 +200,7 @@ class AuditXoPlugin {
     }
 
     const checkIntegrity = this._checkIntegrity.bind(this)
-    checkIntegrity.description =
-      'Check records integrity between oldest and newest'
+    checkIntegrity.description = 'Check records integrity between oldest and newest'
     checkIntegrity.permission = 'admin'
     checkIntegrity.params = {
       newest: { type: 'string', optional: true },
@@ -147,11 +208,28 @@ class AuditXoPlugin {
     }
 
     const generateFingerprint = this._generateFingerprint.bind(this)
-    generateFingerprint.description =
-      'Generate a fingerprint of the chain oldest-newest'
+    generateFingerprint.description = 'Generate a fingerprint of the chain oldest-newest'
     generateFingerprint.permission = 'admin'
     generateFingerprint.params = {
       newest: { type: 'string', optional: true },
+      oldest: { type: 'string', optional: true },
+    }
+
+    const uploadLastHashJob = this._uploadLastHashJob
+    if (uploadLastHashJob !== undefined) {
+      uploadLastHashJob.start()
+      cleaners.push(() => uploadLastHashJob.stop())
+    }
+
+    const clean = this._storage.clean.bind(this._storage)
+    clean.permission = 'admin'
+    clean.description = 'Clean audit database'
+
+    const deleteRange = this._deleteRangeAndRewrite.bind(this)
+    deleteRange.description = 'Delete a range of records and rewrite the records chain'
+    deleteRange.permission = 'admin'
+    deleteRange.params = {
+      newest: { type: 'string' },
       oldest: { type: 'string', optional: true },
     }
 
@@ -159,6 +237,8 @@ class AuditXoPlugin {
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
+          clean,
+          deleteRange,
           exportRecords,
           generateFingerprint,
           getRecords,
@@ -168,34 +248,44 @@ class AuditXoPlugin {
   }
 
   unload() {
+    this._removeListeners()
     this._cleaners.forEach(cleaner => cleaner())
     this._cleaners.length = 0
   }
 
-  _addListener(event, listener_) {
-    const listener = async (...args) => {
-      try {
-        await listener_(...args)
-      } catch (error) {
-        log.error(error)
-      }
+  _addListeners(event, listener_) {
+    this._removeListeners()
+
+    if (this._active) {
+      const listeners = this._listeners
+      Object.keys(listeners).forEach(event => {
+        this._xo.addListener(event, listeners[event])
+      })
     }
-    const xo = this._xo
-    xo.on(event, listener)
-    this._cleaners.push(() => xo.removeListener(event, listener))
   }
 
-  _handleEvent(event, { userId, userIp, userName, ...data }) {
-    if (event !== 'apiCall' || !this._blockedList[data.method]) {
-      return this._auditCore.add(
-        {
-          userId,
-          userIp,
-          userName,
-        },
-        event,
-        data
-      )
+  _removeListeners() {
+    const listeners = this._listeners
+    Object.keys(listeners).forEach(event => {
+      this._xo.removeListener(event, listeners[event])
+    })
+  }
+
+  async _handleEvent(event, { userId, userIp, userName, ...data }) {
+    try {
+      if (event !== 'apiCall' || !this._blockedList[data.method]) {
+        return await this._auditCore.add(
+          {
+            userId,
+            userIp,
+            userName,
+          },
+          event,
+          data
+        )
+      }
+    } catch (error) {
+      log.error(error)
     }
   }
 
@@ -224,25 +314,72 @@ class AuditXoPlugin {
         (req, res) => {
           res.set({
             'content-disposition': 'attachment',
-            'content-type': 'application/json',
+            'content-type': 'application/x-gzip',
           })
-          return fromCallback(
-            pipeline,
-            this._getRecordsStream(),
-            createGzip(),
-            res
-          )
+          return fromCallback(pipeline, this._getRecordsStream(), createGzip(), res)
         },
         undefined,
         {
-          suffix: `/audit-records-${new Date()
-            .toISOString()
-            .replace(/:/g, '_')}.gz`,
+          suffix: `/audit-records-${new Date().toISOString().replace(/:/g, '_')}.ndjson.gz`,
         }
       )
       .then($getFrom => ({
         $getFrom,
       }))
+  }
+
+  // See www-xo#344
+  async _uploadLastHash() {
+    const xo = this._xo
+
+    // In case of non-existent XOA plugin
+    if (xo.audit === undefined) {
+      return
+    }
+
+    const lastRecordId = await this._storage.getLastId()
+    if (lastRecordId === undefined) {
+      return
+    }
+
+    const chain = await xo.audit.getLastChain()
+
+    let lastValidHash
+    if (chain !== null) {
+      const hashes = chain.hashes
+      lastValidHash = hashes[hashes.length - 1]
+
+      if (lastValidHash === lastRecordId) {
+        return
+      }
+
+      // check the integrity of all stored hashes
+      try {
+        for (let i = 0; i < hashes.length - 1; ++i) {
+          await this._checkIntegrity({
+            oldest: hashes[i],
+            newest: hashes[i + 1],
+          })
+        }
+      } catch (error) {
+        if (!missingAuditRecord.is(error) && !alteredAuditRecord.is(error)) {
+          throw error
+        }
+
+        lastValidHash = undefined
+      }
+    }
+
+    // generate a valid fingerprint of all stored records in case of a failure integrity check
+    const { oldest, newest, error } = await this._generateFingerprint({
+      oldest: lastValidHash,
+    })
+
+    if (lastValidHash === undefined || error !== undefined) {
+      await xo.audit.startNewChain({ oldest, newest })
+    } else {
+      await xo.audit.extendLastChain({ oldest, newest })
+    }
   }
 
   async _checkIntegrity(props) {
@@ -263,28 +400,37 @@ class AuditXoPlugin {
     try {
       return {
         fingerprint: `${oldest}|${newest}`,
+        newest,
         nValid: await this._checkIntegrity({ oldest, newest }),
+        oldest,
       }
     } catch (error) {
       if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
         return {
-          fingerprint: `${error.data.id}|${newest}`,
-          nValid: error.data.nValid,
           error,
+          fingerprint: `${error.data.id}|${newest}`,
+          newest,
+          nValid: error.data.nValid,
+          oldest: error.data.id,
         }
       }
       throw error
     }
   }
-}
 
-AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(
-  async function* (id) {
-    for await (const record of this._auditCore.getFrom(id)) {
-      yield JSON.stringify(record)
-      yield '\n'
+  async _deleteRangeAndRewrite({ newest, oldest = newest }) {
+    await this._auditCore.deleteRangeAndRewrite(newest, oldest)
+    if (this._uploadLastHashJob !== undefined) {
+      await this._uploadLastHash()
     }
   }
-)
+}
+
+AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(async function* (id) {
+  for await (const record of this._auditCore.getFrom(id)) {
+    yield JSON.stringify(record)
+    yield '\n'
+  }
+})
 
 export default opts => new AuditXoPlugin(opts)

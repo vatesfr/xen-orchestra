@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import Copiable from 'copiable'
 import decorate from 'apply-decorators'
@@ -10,32 +11,52 @@ import StateButton from 'state-button'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
-import { compareVersions, connectStore, getIscsiPaths } from 'utils'
-import { confirm } from 'modal'
+import { addSubscriptions, compareVersions, connectStore, formatSize, getIscsiPaths } from 'utils'
+import { confirm, form } from 'modal'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType, createSelector } from 'selectors'
+import { CustomFields } from 'custom-fields'
+import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { forEach, isEmpty, map, noop } from 'lodash'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
-import { Toggle } from 'form'
+import { Toggle, Select, SizeInput } from 'form'
 import {
   detachHost,
-  disableHost,
   editHost,
   enableAdvancedLiveTelemetry,
-  enableHost,
   forgetHost,
   installSupplementalPack,
   isHyperThreadingEnabledHost,
   isNetDataInstalledOnHost,
   getPlugin,
   restartHost,
+  setControlDomainMemory,
   setHostsMultipathing,
   setRemoteSyslogHost,
+  setSchedulerGranularity,
+  subscribeSchedulerGranularity,
+  toggleMaintenanceMode,
 } from 'xo'
 
+import { installCertificate } from './install-certificate'
+
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
+
+const SCHED_GRAN_TYPE_OPTIONS = [
+  {
+    label: _('core'),
+    value: 'core',
+  },
+  {
+    label: _('cpu'),
+    value: 'cpu',
+  },
+  {
+    label: _('socket'),
+    value: 'socket',
+  },
+]
 
 const forceReboot = host => restartHost(host, true)
 
@@ -48,6 +69,22 @@ const formatPack = ({ name, author, description, version }, key) => (
 )
 
 const getPackId = ({ author, name }) => `${author}\0${name}`
+
+const SetControlDomainMemory = ({ value, onChange }) => (
+  <Container>
+    <Row className='mb-1'>
+      <Col>
+        <Icon icon='error' /> {_('setControlDomainMemoryMessage')}
+      </Col>
+    </Row>
+    <Row>
+      <Col size={6}>{_('vmMemory')}</Col>
+      <Col size={6}>
+        <SizeInput required value={value} onChange={onChange} />
+      </Col>
+    </Row>
+  </Container>
+)
 
 const MultipathableSrs = decorate([
   connectStore({
@@ -86,16 +123,20 @@ MultipathableSrs.propTypes = {
   hostId: PropTypes.string.isRequired,
 }
 
+@addSubscriptions(props => ({
+  schedGran: cb => subscribeSchedulerGranularity(props.host.id, cb),
+}))
 @connectStore(() => {
+  const getControlDomain = createGetObject((_, { host }) => host.controlDomain)
+
   const getPgpus = createGetObjectsOfType('PGPU')
     .pick((_, { host }) => host.$PGPUs)
     .sort()
 
-  const getPcis = createGetObjectsOfType('PCI').pick(
-    createSelector(getPgpus, pgpus => map(pgpus, 'pci'))
-  )
+  const getPcis = createGetObjectsOfType('PCI').pick(createSelector(getPgpus, pgpus => map(pgpus, 'pci')))
 
   return {
+    controlDomain: getControlDomain,
     pcis: getPcis,
     pgpus: getPgpus,
   }
@@ -107,9 +148,7 @@ export default class extends Component {
     this.setState({ isNetDataPluginCorrectlySet })
     if (isNetDataPluginCorrectlySet) {
       this.setState({
-        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(
-          this.props.host
-        ),
+        isNetDataPluginInstalledOnHost: await isNetDataInstalledOnHost(this.props.host),
       })
     }
 
@@ -136,6 +175,8 @@ export default class extends Component {
     }
   )
 
+  _setSchedulerGranularity = value => setSchedulerGranularity(this.props.host.id, value)
+
   _setHostIscsiIqn = iscsiIqn =>
     confirm({
       icon: 'alarm',
@@ -152,10 +193,18 @@ export default class extends Component {
 
   _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
 
-  _accessAdvancedLiveTelemetry = () =>
-    window.open(
-      `/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`
-    )
+  _setControlDomainMemory = () =>
+    form({
+      component: SetControlDomainMemory,
+      defaultValue: this.props.controlDomain.memory.size,
+      header: (
+        <span>
+          <Icon icon='memory' /> {_('setControlDomainMemory')}
+        </span>
+      ),
+    }).then(memory => setControlDomainMemory(this.props.host.id, memory), noop)
+
+  _accessAdvancedLiveTelemetry = () => window.open(`/netdata/host/${encodeURIComponent(this.props.host.hostname)}/`)
 
   _enableAdvancedLiveTelemetry = async host => {
     await enableAdvancedLiveTelemetry(host)
@@ -165,12 +214,8 @@ export default class extends Component {
   }
 
   render() {
-    const { host, pcis, pgpus } = this.props
-    const {
-      isHtEnabled,
-      isNetDataPluginInstalledOnHost,
-      isNetDataPluginCorrectlySet,
-    } = this.state
+    const { controlDomain, host, pcis, pgpus, schedGran } = this.props
+    const { isHtEnabled, isNetDataPluginInstalledOnHost, isNetDataPluginCorrectlySet } = this.state
 
     const _isXcpNgHost = host.productBrand === 'XCP-ng'
 
@@ -198,9 +243,7 @@ export default class extends Component {
         <Row>
           <Col className='text-xs-right'>
             {!isNetDataPluginCorrectlySet ? (
-              <Tooltip content={_('pluginNetDataIsNecessary')}>
-                {telemetryButton}
-              </Tooltip>
+              <Tooltip content={_('pluginNetDataIsNecessary')}>{telemetryButton}</Tooltip>
             ) : !_isXcpNgHost ? (
               <Tooltip content={_('xcpOnlyFeature')}>{telemetryButton}</Tooltip>
             ) : (
@@ -218,18 +261,19 @@ export default class extends Component {
             {host.enabled ? (
               <TabButton
                 btnStyle='warning'
-                handler={disableHost}
+                handler={toggleMaintenanceMode}
                 handlerParam={host}
                 icon='host-disable'
-                labelId='disableHostLabel'
+                labelId='enableMaintenanceMode'
+                tooltip={_('maintenanceHostTooltip')}
               />
             ) : (
               <TabButton
                 btnStyle='success'
-                handler={enableHost}
+                handler={toggleMaintenanceMode}
                 handlerParam={host}
                 icon='host-enable'
-                labelId='enableHostLabel'
+                labelId='disableMaintenanceMode'
               />
             )}
             <TabButton
@@ -261,20 +305,39 @@ export default class extends Component {
                 </tr>
                 <tr>
                   <th>{_('hostStatus')}</th>
-                  <td>
-                    {host.enabled
-                      ? _('hostStatusEnabled')
-                      : _('hostStatusDisabled')}
-                  </td>
+                  <td>{host.enabled ? _('hostStatusEnabled') : _('hostStatusDisabled')}</td>
                 </tr>
+                {host.chipset_info.iommu !== undefined && (
+                  <tr>
+                    <th>
+                      <Tooltip content={_('hostIommuTooltip')}>{_('hostIommu')}</Tooltip>
+                    </th>
+                    <td>{host.chipset_info.iommu ? _('stateEnabled') : _('stateDisabled')}</td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('hostPowerOnMode')}</th>
                   <td>
-                    <Toggle
-                      disabled
-                      onChange={noop}
-                      value={Boolean(host.powerOnMode)}
-                    />
+                    <Toggle disabled onChange={noop} value={Boolean(host.powerOnMode)} />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('hostControlDomainMemory')}</th>
+                  <td>
+                    {controlDomain !== undefined && (
+                      <span>
+                        {formatSize(controlDomain.memory.size)}{' '}
+                        <Tooltip content={host.enabled ? _('maintenanceModeRequired') : _('setControlDomainMemory')}>
+                          <ActionButton
+                            btnStyle='primary'
+                            disabled={host.enabled}
+                            handler={this._setControlDomainMemory}
+                            icon='edit'
+                            size='small'
+                          />
+                        </Tooltip>
+                      </span>
+                    )}
                   </td>
                 </tr>
                 <tr>
@@ -289,17 +352,14 @@ export default class extends Component {
                   <th>{_('hostStackStartedSince')}</th>
                   <td>
                     {_('started', {
-                      ago: (
-                        <FormattedRelative value={host.agentStartTime * 1000} />
-                      ),
+                      ago: <FormattedRelative value={host.agentStartTime * 1000} />,
                     })}
                   </td>
                 </tr>
                 <tr>
                   <th>{_('hostXenServerVersion')}</th>
                   <Copiable tagName='td' data={host.version}>
-                    {host.license_params.sku_marketing_name} {host.version} (
-                    {host.license_params.sku_type})
+                    {host.license_params.sku_marketing_name} {host.version} ({host.license_params.sku_type})
                   </Copiable>
                 </tr>
                 <tr>
@@ -309,10 +369,7 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostIscsiIqn')}</th>
                   <td>
-                    <Text
-                      onChange={this._setHostIscsiIqn}
-                      value={host.iscsiIqn}
-                    />
+                    <Text onChange={this._setHostIscsiIqn} value={host.iscsiIqn} />
                   </td>
                 </tr>
                 <tr>
@@ -332,13 +389,31 @@ export default class extends Component {
                     {host.multipathing && <MultipathableSrs hostId={host.id} />}
                   </td>
                 </tr>
+                {schedGran != null && (
+                  <tr>
+                    <th>{_('schedulerGranularity')}</th>
+                    <td>
+                      <Select
+                        onChange={this._setSchedulerGranularity}
+                        options={SCHED_GRAN_TYPE_OPTIONS}
+                        required
+                        simpleValue
+                        value={schedGran}
+                      />
+                      <small>{_('rebootUpdateHostLabel')}</small>
+                    </td>
+                  </tr>
+                )}
                 <tr>
                   <th>{_('hostRemoteSyslog')}</th>
                   <td>
-                    <Text
-                      value={host.logging.syslog_destination || ''}
-                      onChange={this._setRemoteSyslogHost}
-                    />
+                    <Text value={host.logging.syslog_destination || ''} onChange={this._setRemoteSyslogHost} />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('customFields')}</th>
+                  <td>
+                    <CustomFields object={host.id} />
                   </td>
                 </tr>
               </tbody>
@@ -353,9 +428,7 @@ export default class extends Component {
                 </tr>
                 <tr>
                   <th>{_('hostGpus')}</th>
-                  <td>
-                    {map(pgpus, pgpu => pcis[pgpu.pci].device_name).join(', ')}
-                  </td>
+                  <td>{map(pgpus, pgpu => pcis[pgpu.pci].device_name).join(', ')}</td>
                 </tr>
                 <tr>
                   <th>{_('hostCpusNumber')}</th>
@@ -376,15 +449,13 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostManufacturerinfo')}</th>
                   <Copiable tagName='td'>
-                    {host.bios_strings['system-manufacturer']} (
-                    {host.bios_strings['system-product-name']})
+                    {host.bios_strings['system-manufacturer']} ({host.bios_strings['system-product-name']})
                   </Copiable>
                 </tr>
                 <tr>
                   <th>{_('hostBiosinfo')}</th>
                   <td>
-                    {host.bios_strings['bios-vendor']} (
-                    {host.bios_strings['bios-version']})
+                    {host.bios_strings['bios-vendor']} ({host.bios_strings['bios-version']})
                   </td>
                 </tr>
               </tbody>
@@ -404,12 +475,7 @@ export default class extends Component {
                 <tr>
                   <th>{_('hostLicenseExpiry')}</th>
                   <td>
-                    <FormattedTime
-                      value={host.license_expiry * 1000}
-                      day='numeric'
-                      month='long'
-                      year='numeric'
-                    />
+                    <FormattedTime value={host.license_expiry * 1000} day='numeric' month='long' year='numeric' />
                     <br />
                   </td>
                 </tr>
@@ -423,10 +489,7 @@ export default class extends Component {
                   <tr>
                     <th>{_('supplementalPackNew')}</th>
                     <td>
-                      <SelectFiles
-                        type='file'
-                        onChange={file => installSupplementalPack(host, file)}
-                      />
+                      <SelectFiles type='file' onChange={file => installSupplementalPack(host, file)} />
                     </td>
                   </tr>
                 )}
@@ -438,6 +501,50 @@ export default class extends Component {
                 <Upgrade place='supplementalPacks' available={2} />
               </Container>,
             ]}
+            {host.certificates !== undefined && (
+              <div>
+                <h3>
+                  {_('installedCertificates')}{' '}
+                  <ActionButton
+                    btnStyle='success'
+                    data-id={host.id}
+                    data-isNewInstallation={host.certificates.length === 0}
+                    handler={installCertificate}
+                    icon='upload'
+                  >
+                    {host.certificates.length > 0 ? _('replaceExistingCertificate') : _('installNewCertificate')}
+                  </ActionButton>
+                </h3>
+                {host.certificates.length > 0 ? (
+                  <ul className='list-group'>
+                    {host.certificates.map(({ fingerprint, notAfter }) => (
+                      <li className='list-group-item' key={fingerprint}>
+                        <Container>
+                          <Row>
+                            <Col mediumSize={2}>
+                              <strong>{_('fingerprint')}</strong>
+                            </Col>
+                            <Col mediumSize={10}>
+                              <Copiable tagName='pre'>{fingerprint}</Copiable>
+                            </Col>
+                          </Row>
+                          <Row>
+                            <Col mediumSize={2}>
+                              <strong>{_('expiry')}</strong>
+                            </Col>
+                            <Col mediumSize={10}>
+                              <FormattedTime value={notAfter * 1e3} day='numeric' month='long' year='numeric' />
+                            </Col>
+                          </Row>
+                        </Container>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span>{_('hostNoCertificateInstalled')}</span>
+                )}
+              </div>
+            )}
           </Col>
         </Row>
       </Container>

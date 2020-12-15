@@ -8,9 +8,10 @@ let force
 const assert = require('assert')
 const flatten = require('lodash/flatten')
 const getopts = require('getopts')
+const limitConcurrency = require('limit-concurrency-decorator').default
 const lockfile = require('proper-lockfile')
 const pipe = require('promise-toolbox/pipe')
-const { default: Vhd } = require('vhd-lib')
+const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
 const { isValidXva } = require('@xen-orchestra/backups/isValidXva')
@@ -26,10 +27,10 @@ const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
 //
 // the whole chain will be merged into parent, parent will be renamed to child
 // and all the others will deleted
-async function mergeVhdChain(chain) {
+const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain) {
   assert(chain.length >= 2)
 
-  const child = chain[0]
+  let child = chain[0]
   const parent = chain[chain.length - 1]
   const children = chain.slice(0, -1).reverse()
 
@@ -46,15 +47,36 @@ async function mergeVhdChain(chain) {
     // `mergeVhd` does not work with a stream, either
     // - make it accept a stream
     // - or create synthetic VHD which is not a stream
-    return console.warn('TODO: implement merge')
-    // await mergeVhd(
-    //   handler,
-    //   parent,
-    //   handler,
-    //   children.length === 1
-    //     ? child
-    //     : await createSyntheticStream(handler, children)
-    // )
+    if (children.length !== 1) {
+      console.warn('TODO: implement merging multiple children')
+      children.length = 1
+      child = children[0]
+    }
+
+    let done, total
+    const handle = setInterval(() => {
+      if (done !== undefined) {
+        console.log('merging %s: %s/%s', child, done, total)
+      }
+    }, 10e3)
+
+    await mergeVhd(
+      handler,
+      parent,
+      handler,
+      child,
+      // children.length === 1
+      //   ? child
+      //   : await createSyntheticStream(handler, children),
+      {
+        onProgress({ done: d, total: t }) {
+          done = d
+          total = t
+        },
+      }
+    )
+
+    clearInterval(handle)
   }
 
   await Promise.all([
@@ -66,7 +88,7 @@ async function mergeVhdChain(chain) {
       return force && handler.unlink(child)
     }),
   ])
-}
+})
 
 const listVhds = pipe([
   vmDir => vmDir + '/vdis',
@@ -93,9 +115,7 @@ async function handleVm(vmDir) {
         const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
         vhdParents[path] = parent
         if (parent in vhdChildren) {
-          const error = new Error(
-            'this script does not support multiple VHD children'
-          )
+          const error = new Error('this script does not support multiple VHD children')
           error.parent = parent
           error.child1 = vhdChildren[parent]
           error.child2 = path
@@ -202,11 +222,7 @@ async function handleVm(vmDir) {
       } else {
         console.warn('Error while checking backup', json)
         const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
-        console.warn(
-          '  %i/%i missing VHDs',
-          missingVhds.length,
-          linkedVhds.length
-        )
+        console.warn('  %i/%i missing VHDs', missingVhds.length, linkedVhds.length)
         missingVhds.forEach(vhd => {
           console.warn('  ', vhd)
         })

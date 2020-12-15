@@ -2,7 +2,6 @@ import isEmpty from 'lodash/isEmpty'
 
 import Collection from '../collection/redis'
 import Model from '../model'
-import { forEach } from '../utils'
 
 import { parseProp } from './utils'
 
@@ -15,6 +14,23 @@ User.prototype.default = {
 }
 
 // -------------------------------------------------------------------
+
+const serialize = user => {
+  let tmp
+  return {
+    ...user,
+    authProviders: isEmpty((tmp = user.authProviders)) ? undefined : JSON.stringify(tmp),
+    groups: isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp),
+    preferences: isEmpty((tmp = user.preferences)) ? undefined : JSON.stringify(tmp),
+  }
+}
+
+const deserialize = user => ({
+  ...user,
+  authProviders: parseProp('user', user, 'authProviders', undefined),
+  groups: parseProp('user', user, 'groups', []),
+  preferences: parseProp('user', user, 'preferences', {}),
+})
 
 export class Users extends Collection {
   get Model() {
@@ -30,32 +46,17 @@ export class Users extends Collection {
     }
 
     // Create the user object.
-    const user = new User(properties)
+    const user = new User(serialize(properties))
 
     // Adds the user to the collection.
     return /* await */ this.add(user)
   }
 
   async save(user) {
-    // Serializes.
-    let tmp
-    user.groups = isEmpty((tmp = user.groups)) ? undefined : JSON.stringify(tmp)
-    user.preferences = isEmpty((tmp = user.preferences))
-      ? undefined
-      : JSON.stringify(tmp)
-
-    return /* await */ this.update(user)
+    return /* await */ this.update(serialize(user))
   }
 
   async get(properties) {
-    const users = await super.get(properties)
-
-    // Deserializes
-    forEach(users, user => {
-      user.groups = parseProp('user', user, 'groups', [])
-      user.preferences = parseProp('user', user, 'preferences', {})
-    })
-
-    return users
+    return (await super.get(properties)).map(deserialize)
   }
 }

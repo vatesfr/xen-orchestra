@@ -141,6 +141,10 @@
     @extend .fa;
     @extend .fa-download;
   }
+  &-upload {
+    @extend .fa;
+    @extend .fa-upload;
+  }
   &-shortcuts {
     @extend .fa;
     @extend .fa-keyboard-o;
@@ -321,6 +325,10 @@
   &-ticket {
     @extend .fa;
     @extend .fa-ticket;
+  }
+  &-circle {
+    @extend .fa;
+    @extend .fa-circle-thin;
   }
 
 
@@ -506,6 +514,11 @@
     @extend .xo-status-disabled;
   }
 
+  &-powerState {
+    @extend .fa;
+    @extend .fa-power-off;
+  }
+
   &-all-connected {
     @extend .fa;
     @extend .fa-circle;
@@ -620,6 +633,21 @@
       @extend .fa-download;
     }
   }
+
+  &-pool {
+    &-rolling-update {
+      @extend .fa;
+      @extend .fa-angle-double-down;
+    }
+  }
+
+  &-vif {
+    &-disable {
+      @extend .fa;
+      @extend .fa-times;
+    }
+  }
+
 
   // Host and VM actions
   &-host,

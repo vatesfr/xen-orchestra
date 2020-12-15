@@ -1,17 +1,24 @@
 import assert from 'assert'
 import createLogger from '@xen-orchestra/log'
 import fromEvent from 'promise-toolbox/fromEvent'
-import { connect } from 'tls'
 import { forOwn, toPairs } from 'lodash'
+
+// =============================================================================
 
 const log = createLogger('xo:xo-server:sdn-controller:ovsdb-client')
 
 const OVSDB_PORT = 6640
+const PROTOCOLS = 'OpenFlow11' // Supported OpenFlow versions
+const TARGET = 'pssl:' // OpenFlow Controller target
 
 // =============================================================================
 
 function toMap(object) {
   return ['map', toPairs(object)]
+}
+
+function setFromSelect(object) {
+  return object[0] === 'set' ? object[1] : [object]
 }
 
 // =============================================================================
@@ -36,7 +43,7 @@ export class OvsdbClient {
     - `remote_ip`: Remote IP of the tunnel
   */
 
-  constructor(host, clientKey, clientCert, caCert) {
+  constructor(host, tlsHelper) {
     this._numberOfPortAndInterface = 0
     this._requestId = 0
 
@@ -44,7 +51,7 @@ export class OvsdbClient {
 
     this.host = host
 
-    this.updateCertificates(clientKey, clientCert, caCert)
+    this._tlsHelper = tlsHelper
 
     log.debug('New OVSDB client', {
       host: this.host.name_label,
@@ -53,31 +60,8 @@ export class OvsdbClient {
 
   // ---------------------------------------------------------------------------
 
-  updateCertificates(clientKey, clientCert, caCert) {
-    this._clientKey = clientKey
-    this._clientCert = clientCert
-    this._caCert = caCert
-
-    log.debug('Certificates have been updated', {
-      host: this.host.name_label,
-    })
-  }
-
-  // ---------------------------------------------------------------------------
-
-  async addInterfaceAndPort(
-    network,
-    remoteAddress,
-    encapsulation,
-    key,
-    password,
-    privateNetworkUuid
-  ) {
-    if (
-      this._adding.find(
-        elem => elem.id === network.uuid && elem.addr === remoteAddress
-      ) !== undefined
-    ) {
+  async addInterfaceAndPort(network, remoteAddress, encapsulation, key, password, privateNetworkUuid) {
+    if (this._adding.find(elem => elem.id === network.uuid && elem.addr === remoteAddress) !== undefined) {
       return
     }
     const adding = { id: network.uuid, addr: remoteAddress }
@@ -86,32 +70,22 @@ export class OvsdbClient {
     try {
       socket = await this._connect()
     } catch (error) {
-      this._adding = this._adding.filter(
-        elem => elem.id !== network.uuid || elem.addr !== remoteAddress
-      )
+      this._adding = this._adding.filter(elem => elem.id !== network.uuid || elem.addr !== remoteAddress)
       return
     }
 
     const bridge = await this._getBridgeForNetwork(network, socket)
     if (bridge.uuid === undefined) {
       socket.destroy()
-      this._adding = this._adding.filter(
-        elem => elem.id !== network.uuid || elem.addr !== remoteAddress
-      )
+      this._adding = this._adding.filter(elem => elem.id !== network.uuid || elem.addr !== remoteAddress)
       return
     }
 
-    const port = await this._interfaceAndPortAlreadyExist(
-      bridge,
-      remoteAddress,
-      socket
-    )
+    const port = await this._interfaceAndPortAlreadyExist(bridge, remoteAddress, socket)
     if (port !== undefined) {
       if (password === undefined) {
         socket.destroy()
-        this._adding = this._adding.filter(
-          elem => elem.id !== network.uuid || elem.addr !== remoteAddress
-        )
+        this._adding = this._adding.filter(elem => elem.id !== network.uuid || elem.addr !== remoteAddress)
         return bridge.name
       }
 
@@ -120,9 +94,7 @@ export class OvsdbClient {
         await this._removePortsFromBridge(bridge, port, socket)
       } catch (error) {
         socket.destroy()
-        this._adding = this._adding.filter(
-          elem => elem.id !== network.uuid || elem.addr !== remoteAddress
-        )
+        this._adding = this._adding.filter(elem => elem.id !== network.uuid || elem.addr !== remoteAddress)
         log.error('Error while deleting port for encrypted password update', {
           error,
         })
@@ -169,17 +141,10 @@ export class OvsdbClient {
       where: [['_uuid', '==', ['uuid', bridge.uuid]]],
       mutations: [['ports', 'insert', ['named-uuid', 'new_port']]],
     }
-    const params = [
-      'Open_vSwitch',
-      addInterfaceOperation,
-      addPortOperation,
-      mutateBridgeOperation,
-    ]
+    const params = ['Open_vSwitch', addInterfaceOperation, addPortOperation, mutateBridgeOperation]
     const jsonObjects = await this._sendOvsdbTransaction(params, socket)
 
-    this._adding = this._adding.filter(
-      elem => elem.id !== network.uuid || elem.addr !== remoteAddress
-    )
+    this._adding = this._adding.filter(elem => elem.id !== network.uuid || elem.addr !== remoteAddress)
     if (jsonObjects === undefined) {
       socket.destroy()
       return
@@ -242,12 +207,7 @@ export class OvsdbClient {
       const portUuid = port[1]
 
       const where = [['_uuid', '==', ['uuid', portUuid]]]
-      const selectResult = await this._select(
-        'Port',
-        ['name', 'other_config'],
-        where,
-        socket
-      )
+      const selectResult = await this._select('Port', ['name', 'other_config'], where, socket)
       if (selectResult === undefined) {
         continue
       }
@@ -261,9 +221,7 @@ export class OvsdbClient {
           config[0] === 'xo:sdn-controller:private-pool-wide' ||
           config[0] === 'xo:sdn-controller:cross-pool'
 
-        const shouldDelete =
-          config[0] === 'xo:sdn-controller:private-network-uuid' &&
-          config[1] === privateNetworkUuid
+        const shouldDelete = config[0] === 'xo:sdn-controller:private-network-uuid' && config[1] === privateNetworkUuid
 
         if (shouldDelete || oldShouldDelete) {
           portsToDelete.push(['uuid', portUuid])
@@ -284,6 +242,153 @@ export class OvsdbClient {
     }
 
     socket.destroy()
+  }
+
+  async setBridgeController() {
+    const socket = await this._connect()
+    // Add controller to openvswitch table if needed
+    const params = ['Open_vSwitch']
+
+    params.push({
+      op: 'insert',
+      table: 'Controller',
+      row: {
+        target: TARGET,
+      },
+      'uuid-name': 'new_controller',
+    })
+
+    const networks = this.host.$PIFs.map(pif => pif?.$network)
+    for (const network of networks) {
+      // network can be undefined so we can't set its controller
+      // It can happen if there's a ref problem within XAPI
+      if (network === undefined) {
+        continue
+      }
+
+      const bridge = await this._getBridgeForNetwork(network, socket)
+      if (bridge.uuid === undefined) {
+        continue
+      }
+
+      if (await this._bridgeAlreadyControlled(bridge, socket)) {
+        continue
+      }
+
+      params.push({
+        op: 'mutate',
+        table: 'Bridge',
+        where: [['_uuid', '==', ['uuid', bridge.uuid]]],
+        mutations: [
+          ['controller', 'insert', ['named-uuid', 'new_controller']],
+          ['protocols', 'insert', PROTOCOLS],
+        ],
+      })
+    }
+
+    const jsonObjects = await this._sendOvsdbTransaction(params, socket)
+    if (jsonObjects === undefined) {
+      socket.destroy()
+      return
+    }
+    if (jsonObjects[0].error !== null) {
+      log.error('Error while setting controller', {
+        error: jsonObjects[0].error,
+        host: this.host.name_label,
+      })
+    } else {
+      this._controllerUuid = jsonObjects[0].result[0].uuid[1]
+      log.info('Controller set', { host: this.host.name_label })
+    }
+
+    socket.destroy()
+  }
+
+  async setBridgeControllerForNetwork(network) {
+    const socket = await this._connect()
+    if (this._controllerUuid === undefined) {
+      const where = [['target', '==', TARGET]]
+      const selectResult = await this._select('Controller', ['_uuid'], where, socket)
+
+      this._controllerUuid = selectResult._uuid[1]
+    }
+    assert.notStrictEqual(this._controllerUuid, undefined)
+
+    const bridge = await this._getBridgeForNetwork(network, socket)
+    if (bridge.uuid === undefined) {
+      socket.destroy()
+      return
+    }
+
+    if (await this._bridgeAlreadyControlled(bridge, socket)) {
+      socket.destroy()
+      return
+    }
+
+    const mutateOperation = {
+      op: 'mutate',
+      table: 'Bridge',
+      where: [['_uuid', '==', ['uuid', bridge.uuid]]],
+      mutations: [
+        ['controller', 'insert', ['uuid', this._controllerUuid]],
+        ['protocols', 'insert', PROTOCOLS],
+      ],
+    }
+
+    const params = ['Open_vSwitch', mutateOperation]
+    const jsonObjects = await this._sendOvsdbTransaction(params, socket)
+    if (jsonObjects === undefined) {
+      socket.destroy()
+      return
+    }
+    if (jsonObjects[0].error !== null) {
+      log.error('Error while setting controller for network', {
+        error: jsonObjects[0].error,
+        host: this.host.name_label,
+        network: network.name_label,
+      })
+    } else {
+      log.info('Controller set for network', {
+        controller: this._controllerUuid,
+        host: this.host.name_label,
+        network: network.name_label,
+      })
+    }
+
+    socket.destroy()
+  }
+
+  async getOfPortForVif(vif) {
+    const where = [['external_ids', 'includes', toMap({ 'xs-vif-uuid': vif.uuid })]]
+    const socket = await this._connect()
+    const selectResult = await this._select(
+      'Interface',
+      ['name', 'ofport'],
+      where,
+      socket,
+      true // multiResult
+    )
+    if (selectResult === undefined) {
+      log.error('No of port found for VIF', {
+        network: vif.$network.name_label,
+        host: this.host.name_label,
+        vm: vif.$VM.name_label,
+        vif: vif.uuid,
+      })
+      return
+    }
+
+    let ofport
+    for (const i in selectResult) {
+      const row = selectResult[i]
+      if (!row.name.includes('tap')) {
+        ofport = row.ofport
+        break
+      }
+    }
+
+    socket.destroy()
+    return ofport
   }
 
   // ===========================================================================
@@ -351,16 +456,28 @@ export class OvsdbClient {
     })
   }
 
+  // ---------------------------------------------------------------------------
+
+  async _bridgeAlreadyControlled(bridge, socket) {
+    const where = [['_uuid', '==', ['uuid', bridge.uuid]]]
+    let result = await this._select('Bridge', ['controller'], where, socket)
+    const controllers = setFromSelect(result.controller)
+    for (const controller of controllers) {
+      const where = [['_uuid', '==', controller]]
+      result = await this._select('Controller', ['target'], where, socket)
+      if (result.target === TARGET) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  // ---------------------------------------------------------------------------
+
   async _getBridgeForNetwork(network, socket) {
-    const where = [
-      ['external_ids', 'includes', toMap({ 'xs-network-uuids': network.uuid })],
-    ]
-    const selectResult = await this._select(
-      'Bridge',
-      ['_uuid', 'name'],
-      where,
-      socket
-    )
+    const where = [['external_ids', 'includes', toMap({ 'xs-network-uuids': network.uuid })]]
+    const selectResult = await this._select('Bridge', ['_uuid', 'name'], where, socket)
     if (selectResult === undefined) {
       log.error('No bridge found for network', {
         network: network.name_label,
@@ -387,11 +504,7 @@ export class OvsdbClient {
 
       for (const iface of interfaces) {
         const interfaceUuid = iface[1]
-        const hasRemote = await this._interfaceHasRemote(
-          interfaceUuid,
-          remoteAddress,
-          socket
-        )
+        const hasRemote = await this._interfaceHasRemote(interfaceUuid, remoteAddress, socket)
         if (hasRemote) {
           return port
         }
@@ -406,36 +519,22 @@ export class OvsdbClient {
       return
     }
 
-    return selectResult.ports[0] === 'set'
-      ? selectResult.ports[1]
-      : [selectResult.ports]
+    return setFromSelect(selectResult.ports)
   }
 
   async _getPortInterfaces(portUuid, socket) {
     const where = [['_uuid', '==', ['uuid', portUuid]]]
-    const selectResult = await this._select(
-      'Port',
-      ['name', 'interfaces'],
-      where,
-      socket
-    )
+    const selectResult = await this._select('Port', ['name', 'interfaces'], where, socket)
     if (selectResult === undefined) {
       return
     }
 
-    return selectResult.interfaces[0] === 'set'
-      ? selectResult.interfaces[1]
-      : [selectResult.interfaces]
+    return setFromSelect(selectResult.interfaces)
   }
 
   async _interfaceHasRemote(interfaceUuid, remoteAddress, socket) {
     const where = [['_uuid', '==', ['uuid', interfaceUuid]]]
-    const selectResult = await this._select(
-      'Interface',
-      ['name', 'options'],
-      where,
-      socket
-    )
+    const selectResult = await this._select('Interface', ['name', 'options'], where, socket)
     if (selectResult === undefined) {
       return false
     }
@@ -451,12 +550,12 @@ export class OvsdbClient {
 
   // ---------------------------------------------------------------------------
 
-  async _select(table, columns, where, socket) {
+  async _select(table, columns, where, socket, multiResult = false) {
     const selectOperation = {
       op: 'select',
-      table: table,
-      columns: columns,
-      where: where,
+      table,
+      columns,
+      where,
     }
 
     const params = ['Open_vSwitch', selectOperation]
@@ -485,6 +584,10 @@ export class OvsdbClient {
         host: this.host.name_label,
       })
       return
+    }
+
+    if (multiResult) {
+      return jsonResult.rows
     }
 
     // For now all select operations should return only 1 row
@@ -538,37 +641,7 @@ export class OvsdbClient {
 
   // ---------------------------------------------------------------------------
 
-  async _connect() {
-    const options = {
-      ca: this._caCert,
-      key: this._clientKey,
-      cert: this._clientCert,
-      host: this.host.address,
-      port: OVSDB_PORT,
-      rejectUnauthorized: false,
-      requestCert: false,
-    }
-    const socket = connect(options)
-
-    try {
-      await fromEvent(socket, 'secureConnect')
-    } catch (error) {
-      log.error('TLS connection failed', {
-        error,
-        code: error.code,
-        host: this.host.name_label,
-      })
-      throw error
-    }
-
-    socket.on('error', error => {
-      log.error('Socket error', {
-        error,
-        code: error.code,
-        host: this.host.name_label,
-      })
-    })
-
-    return socket
+  _connect() {
+    return this._tlsHelper.connect(this.host.address, OVSDB_PORT)
   }
 }

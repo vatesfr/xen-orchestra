@@ -10,8 +10,7 @@ import { isHostTimeConsistentWithXoaTime } from 'xo'
 const InconsistentHostTimeWarning = decorate([
   provideState({
     computed: {
-      isHostTimeConsistentWithXoaTime: (_, { hostId }) =>
-        isHostTimeConsistentWithXoaTime(hostId),
+      isHostTimeConsistentWithXoaTime: (_, { host }) => isHostTimeConsistentWithXoaTime(host),
     },
   }),
   injectState,
@@ -24,7 +23,7 @@ const InconsistentHostTimeWarning = decorate([
 ])
 
 InconsistentHostTimeWarning.propTypes = {
-  hostId: PropTypes.string.isRequired,
+  host: PropTypes.object.isRequired,
 }
 
 export { InconsistentHostTimeWarning as default }

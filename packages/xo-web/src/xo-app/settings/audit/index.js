@@ -5,6 +5,7 @@ import Copiable from 'copiable'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
+import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
@@ -23,28 +24,22 @@ import {
   exportAuditRecords,
   fetchAuditRecords,
   generateAuditFingerprint,
+  getPlugin,
 } from 'xo'
 
 const getIntegrityErrorRender = ({ nValid, error }) => (
   <p className='text-danger'>
     <Icon icon='alarm' />{' '}
-    {_(
-      missingAuditRecord.is(error)
-        ? 'auditMissingRecord'
-        : 'auditAlteredRecord',
-      {
-        id: (
-          <Tooltip content={_('copyToClipboard')}>
-            <CopyToClipboard text={error.data.id}>
-              <span style={{ cursor: 'pointer' }}>
-                {error.data.id.slice(4, 8)}
-              </span>
-            </CopyToClipboard>
-          </Tooltip>
-        ),
-        n: nValid,
-      }
-    )}
+    {_(missingAuditRecord.is(error) ? 'auditMissingRecord' : 'auditAlteredRecord', {
+      id: (
+        <Tooltip content={_('copyToClipboard')}>
+          <CopyToClipboard text={error.data.id}>
+            <span style={{ cursor: 'pointer' }}>{error.data.id.slice(4, 8)}</span>
+          </CopyToClipboard>
+        </Tooltip>
+      ),
+      n: nValid,
+    })}
   </p>
 )
 
@@ -100,28 +95,24 @@ const openIntegrityFeedbackModal = error =>
     () => false
   )
 
-const FingerPrintModalBody = injectIntl(
-  ({ intl: { formatMessage }, onChange, value }) => (
-    <div>
-      <p>{_('auditEnterFingerprintInfo')}</p>
-      <div className='form-group'>
-        <input
-          className='form-control'
-          onChange={onChange}
-          pattern='[^|]+\|[^|]+'
-          placeholder={formatMessage(messages.auditEnterFingerprint)}
-          value={value}
-        />
-      </div>
+const FingerPrintModalBody = injectIntl(({ intl: { formatMessage }, onChange, value }) => (
+  <div>
+    <p>{_('auditEnterFingerprintInfo')}</p>
+    <div className='form-group'>
+      <input
+        className='form-control'
+        onChange={onChange}
+        pattern='[^|]+\|[^|]+'
+        placeholder={formatMessage(messages.auditEnterFingerprint)}
+        value={value}
+      />
     </div>
-  )
-)
+  </div>
+))
 
 const openFingerprintPromptModal = () =>
   form({
-    render: ({ onChange, value }) => (
-      <FingerPrintModalBody onChange={onChange} value={value} />
-    ),
+    render: ({ onChange, value }) => <FingerPrintModalBody onChange={onChange} value={value} />,
     header: (
       <span>
         <Icon icon='diagnosis' /> {_('auditCheckIntegrity')}
@@ -140,18 +131,15 @@ const checkIntegrity = async ({ handleCheck }) => {
     const [oldest, newest] = fingerprint.split('|')
     recentRecord = newest
 
-    const result = await checkAuditRecordsIntegrity(oldest, newest).then(
-      noop,
-      error => {
-        if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
-          return {
-            nValid: error.data.nValid,
-            error,
-          }
+    const result = await checkAuditRecordsIntegrity(oldest, newest).then(noop, error => {
+      if (missingAuditRecord.is(error) || alteredAuditRecord.is(error)) {
+        return {
+          nValid: error.data.nValid,
+          error,
         }
-        throw error
       }
-    )
+      throw error
+    })
 
     handleCheck(
       oldest,
@@ -168,10 +156,7 @@ const checkIntegrity = async ({ handleCheck }) => {
   const generatedFingerprint = await generateAuditFingerprint(recentRecord)
 
   // display coherence feedback
-  handleCheck(
-    ...generatedFingerprint.fingerprint.split('|'),
-    generatedFingerprint.error
-  )
+  handleCheck(...generatedFingerprint.fingerprint.split('|'), generatedFingerprint.error)
 
   await openGeneratedFingerprintModal(generatedFingerprint)
 }
@@ -217,11 +202,9 @@ const COLUMNS = [
     valuePath: 'subject.userIp',
   },
   {
-    itemRenderer: ({ data, event }) =>
-      event === 'apiCall' ? data.method : startCase(event),
+    itemRenderer: ({ data, event }) => (event === 'apiCall' ? data.method : startCase(event)),
     name: _('auditActionEvent'),
-    sortCriteria: ({ data, event }) =>
-      event === 'apiCall' ? data.method : event,
+    sortCriteria: ({ data, event }) => (event === 'apiCall' ? data.method : event),
   },
   {
     itemRenderer: ({ time }) => (
@@ -338,6 +321,11 @@ export default decorate([
               },
             ]
           : _records,
+      isUserActionsRecordInactive: async () => {
+        const { configuration: { active } = {} } = await getPlugin('audit')
+
+        return !active
+      },
     },
   }),
   injectState,
@@ -345,20 +333,10 @@ export default decorate([
     <Upgrade place='audit' available={PREMIUM.value}>
       <div>
         <div className='mt-1 mb-1'>
-          <ActionButton
-            btnStyle='primary'
-            handler={effects.fetchRecords}
-            icon='refresh'
-            size='large'
-          >
+          <ActionButton btnStyle='primary' handler={effects.fetchRecords} icon='refresh' size='large'>
             {_('refreshAuditRecordsList')}
           </ActionButton>{' '}
-          <ActionButton
-            btnStyle='primary'
-            handler={exportAuditRecords}
-            icon='download'
-            size='large'
-          >
+          <ActionButton btnStyle='primary' handler={exportAuditRecords} icon='download' size='large'>
             {_('downloadAuditRecords')}
           </ActionButton>{' '}
           <ActionButton
@@ -371,6 +349,21 @@ export default decorate([
             {_('auditCheckIntegrity')}
           </ActionButton>
         </div>
+        {state.isUserActionsRecordInactive && (
+          <p>
+            <Link
+              className='text-warning'
+              to={{
+                pathname: '/settings/plugins',
+                query: {
+                  s: 'id:/^audit$/',
+                },
+              }}
+            >
+              <Icon icon='alarm' /> {_('auditInactiveUserActionsRecord')}
+            </Link>
+          </p>
+        )}
         <NoObjects
           collection={state.records}
           columns={COLUMNS}

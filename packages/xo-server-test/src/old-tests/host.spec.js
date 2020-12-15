@@ -4,13 +4,7 @@
 
 import expect from 'must'
 import eventToPromise from 'event-to-promise'
-import {
-  getAllHosts,
-  getConfig,
-  getMainConnection,
-  getVmToMigrateId,
-  waitObjectState,
-} from './util'
+import { getAllHosts, getConfig, getMainConnection, getVmToMigrateId, waitObjectState } from './util'
 import { find, forEach } from 'lodash'
 
 // ===================================================================

@@ -12,26 +12,35 @@ import JobsTable from './tab-jobs'
 import LogsTable from '../../logs/backup-ng'
 import LegacyOverview from '../overview-legacy'
 
-const legacyJobKey = [
-  'continuousReplication',
-  'deltaBackup',
-  'disasterRecovery',
-  'backup',
-  'rollingSnapshot',
-]
+const legacyJobKey = ['continuousReplication', 'deltaBackup', 'disasterRecovery', 'backup', 'rollingSnapshot']
 
 const Overview = decorate([
   addSubscriptions({
     legacyJobs: subscribeJobs,
   }),
   provideState({
+    initialState: () => ({
+      scrollIntoJobs: undefined,
+      scrollIntoLogs: undefined,
+    }),
+    effects: {
+      handleJobsRef(_, ref) {
+        if (ref !== null) {
+          this.state.scrollIntoJobs = ref.scrollIntoView.bind(ref)
+        }
+      },
+      handleLogsRef(_, ref) {
+        if (ref !== null) {
+          this.state.scrollIntoLogs = ref.scrollIntoView.bind(ref)
+        }
+      },
+    },
     computed: {
-      haveLegacyBackups: (_, { legacyJobs }) =>
-        some(legacyJobs, job => legacyJobKey.includes(job.key)),
+      haveLegacyBackups: (_, { legacyJobs }) => some(legacyJobs, job => legacyJobKey.includes(job.key)),
     },
   }),
   injectState,
-  ({ state: { haveLegacyBackups } }) => (
+  ({ effects, state: { haveLegacyBackups, scrollIntoJobs, scrollIntoLogs } }) => (
     <div>
       {haveLegacyBackups && <LegacyOverview />}
       <div className='mt-2 mb-1'>
@@ -41,10 +50,14 @@ const Overview = decorate([
             <Icon icon='backup' /> {_('backupJobs')}
           </CardHeader>
           <CardBlock>
-            <JobsTable />
+            <div ref={effects.handleJobsRef}>
+              <JobsTable scrollIntoLogs={scrollIntoLogs} />
+            </div>
           </CardBlock>
         </Card>
-        <LogsTable />
+        <div ref={effects.handleLogsRef}>
+          <LogsTable scrollIntoJobs={scrollIntoJobs} />
+        </div>
       </div>
     </div>
   ),

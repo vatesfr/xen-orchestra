@@ -1,7 +1,7 @@
 import mapValues from 'lodash/mapValues'
 
 // this random value is used to obfuscate real data
-const OBFUSCATED_VALUE = 'q3oi6d9X8uenGvdLnHk2'
+const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
 
 export const merge = (newValue, oldValue) => {
   if (newValue === OBFUSCATED_VALUE) {
@@ -26,16 +26,13 @@ export const merge = (newValue, oldValue) => {
 
 export const obfuscate = value => replace(value, OBFUSCATED_VALUE)
 
-const SENSITIVE_PARAMS = {
-  __proto__: null,
-  cifspassword: true,
-  password: true,
-  token: true,
-}
+const SENSITIVE_PARAMS = ['token', /password/i]
+const isSensitiveParam = name =>
+  SENSITIVE_PARAMS.some(pattern => (typeof pattern === 'string' ? pattern === name : pattern.test(name)))
 
 export function replace(value, replacement) {
   function helper(value, name) {
-    if (typeof value === 'string' && name in SENSITIVE_PARAMS) {
+    if (typeof value === 'string' && isSensitiveParam(name)) {
       return replacement
     }
 

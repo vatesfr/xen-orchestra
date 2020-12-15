@@ -174,10 +174,7 @@ export default class XoWeekHeatmap extends Component {
                   }
                   key={key}
                 >
-                  <td
-                    className={styles.cell}
-                    style={{ background: hour ? hour.color : '#ffffff' }}
-                  />
+                  <td className={styles.cell} style={{ background: hour ? hour.color : '#ffffff' }} />
                 </Tooltip>
               ))}
             </tr>

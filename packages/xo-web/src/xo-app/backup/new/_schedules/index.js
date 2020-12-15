@@ -33,8 +33,7 @@ const setDefaultRetentions = (schedule, retentions) => {
 }
 
 export const areRetentionsMissing = (value, retentions) =>
-  retentions.length !== 0 &&
-  !retentions.some(({ valuePath }) => value[valuePath] > 0)
+  retentions.length !== 0 && !retentions.some(({ valuePath }) => value[valuePath] > 0)
 
 const COLUMNS = [
   {
@@ -94,26 +93,16 @@ const Schedules = decorate([
         delete settings[id]
         props.handlerSettings(settings)
       },
-      showModal: (
-        effects,
-        { id = generateRandomId(), name, cron, timezone } = DEFAULT_SCHEDULE
-      ) => async (state, props) => {
+      showModal: (effects, { id = generateRandomId(), name, cron, timezone } = DEFAULT_SCHEDULE) => async (
+        state,
+        props
+      ) => {
         const schedule = get(() => props.schedules[id])
         const setting = get(() => props.settings[id])
 
-        const {
-          cron: newCron,
-          name: newName,
-          timezone: newTimezone,
-          ...newSetting
-        } = await form({
-          defaultValue: setDefaultRetentions(
-            { cron, name, timezone, ...setting },
-            state.retentions
-          ),
-          render: props => (
-            <NewSchedule retentions={state.retentions} {...props} />
-          ),
+        const { cron: newCron, name: newName, timezone: newTimezone, ...newSetting } = await form({
+          defaultValue: setDefaultRetentions({ cron, name, timezone, ...setting }, state.retentions),
+          render: props => <NewSchedule retentions={state.retentions} {...props} />,
           header: (
             <span>
               <Icon icon='schedule' /> {_('schedule')}
@@ -146,10 +135,7 @@ const Schedules = decorate([
           },
         })
       },
-      toggleScheduleState: (_, id) => (
-        state,
-        { handlerSchedules, schedules }
-      ) => {
+      toggleScheduleState: (_, id) => (state, { handlerSchedules, schedules }) => {
         const schedule = schedules[id]
         handlerSchedules({
           ...schedules,
@@ -161,10 +147,7 @@ const Schedules = decorate([
       },
     },
     computed: {
-      columns: (_, { retentions }) => [
-        ...COLUMNS,
-        ...retentions.map(({ defaultValue, ...props }) => props),
-      ],
+      columns: (_, { retentions }) => [...COLUMNS, ...retentions.map(({ defaultValue, ...props }) => props)],
       rowTransform: (_, { settings = {}, retentions }) => schedule => {
         schedule = { ...schedule, ...settings[schedule.id] }
         return setDefaultRetentions(schedule, retentions)
@@ -176,9 +159,7 @@ const Schedules = decorate([
     <FormFeedback
       component={Card}
       error={missingSchedules || missingRetentions}
-      message={
-        missingSchedules ? _('missingSchedules') : _('missingRetentions')
-      }
+      message={missingSchedules ? _('missingSchedules') : _('missingRetentions')}
     >
       <CardHeader>
         {_('backupSchedules')}*

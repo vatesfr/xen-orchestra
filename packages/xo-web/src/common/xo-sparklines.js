@@ -17,12 +17,7 @@ const templateError = <div>No stats.</div>
 
 // ===================================================================
 
-export const CpuSparkLines = ({
-  data,
-  width = WIDTH,
-  height = HEIGHT,
-  strokeWidth = STROKE_WIDTH,
-}) => {
+export const CpuSparkLines = ({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { cpus } = data.stats
 
   if (!cpus) {
@@ -30,14 +25,7 @@ export const CpuSparkLines = ({
   }
 
   return (
-    <Sparklines
-      style={STYLE}
-      data={computeArraysAvg(cpus)}
-      max={100}
-      min={0}
-      width={width}
-      height={height}
-    >
+    <Sparklines style={STYLE} data={computeArraysAvg(cpus)} max={100} min={0} width={width} height={height}>
       <SparklinesLine
         style={{
           strokeWidth,
@@ -55,12 +43,7 @@ CpuSparkLines.propTypes = {
   data: PropTypes.object.isRequired,
 }
 
-export const MemorySparkLines = ({
-  data,
-  width = WIDTH,
-  height = HEIGHT,
-  strokeWidth = STROKE_WIDTH,
-}) => {
+export const MemorySparkLines = ({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { memory } = data.stats
   const memoryUsed = getMemoryUsedMetric(data.stats)
   if (!memory || !memoryUsed) {
@@ -68,14 +51,7 @@ export const MemorySparkLines = ({
   }
 
   return (
-    <Sparklines
-      style={STYLE}
-      data={memoryUsed}
-      max={memory[memory.length - 1]}
-      min={0}
-      width={width}
-      height={height}
-    >
+    <Sparklines style={STYLE} data={memoryUsed} max={memory[memory.length - 1]} min={0} width={width} height={height}>
       <SparklinesLine
         style={{
           strokeWidth,
@@ -93,12 +69,7 @@ MemorySparkLines.propTypes = {
   data: PropTypes.object.isRequired,
 }
 
-export const XvdSparkLines = ({
-  data,
-  width = WIDTH,
-  height = HEIGHT,
-  strokeWidth = STROKE_WIDTH,
-}) => {
+export const XvdSparkLines = ({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { xvds } = data.stats
 
   if (!xvds) {
@@ -106,13 +77,7 @@ export const XvdSparkLines = ({
   }
 
   return (
-    <Sparklines
-      style={STYLE}
-      data={computeObjectsAvg(xvds)}
-      min={0}
-      width={width}
-      height={height}
-    >
+    <Sparklines style={STYLE} data={computeObjectsAvg(xvds)} min={0} width={width} height={height}>
       <SparklinesLine
         style={{
           strokeWidth,
@@ -130,24 +95,13 @@ XvdSparkLines.propTypes = {
   data: PropTypes.object.isRequired,
 }
 
-export const NetworkSparkLines = ({
-  data,
-  width = WIDTH,
-  height = HEIGHT,
-  strokeWidth = STROKE_WIDTH,
-}) => {
+export const NetworkSparkLines = ({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { pifs, vifs: ifs = pifs } = data.stats
 
   return ifs === undefined ? (
     templateError
   ) : (
-    <Sparklines
-      style={STYLE}
-      data={computeObjectsAvg(ifs)}
-      min={0}
-      width={width}
-      height={height}
-    >
+    <Sparklines style={STYLE} data={computeObjectsAvg(ifs)} min={0} width={width} height={height}>
       <SparklinesLine
         style={{
           strokeWidth,
@@ -165,12 +119,7 @@ NetworkSparkLines.propTypes = {
   data: PropTypes.object.isRequired,
 }
 
-export const LoadSparkLines = ({
-  data,
-  width = WIDTH,
-  height = HEIGHT,
-  strokeWidth = STROKE_WIDTH,
-}) => {
+export const LoadSparkLines = ({ data, width = WIDTH, height = HEIGHT, strokeWidth = STROKE_WIDTH }) => {
   const { load } = data.stats
 
   if (!load) {

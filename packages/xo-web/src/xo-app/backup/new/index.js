@@ -23,13 +23,7 @@ import { Map } from 'immutable'
 import { Number } from 'form'
 import { renderXoItemFromId, Remote } from 'render-xo-item'
 import { SelectProxy, SelectRemote, SelectSr, SelectVm } from 'select-objects'
-import {
-  addSubscriptions,
-  connectStore,
-  generateRandomId,
-  resolveId,
-  resolveIds,
-} from 'utils'
+import { addSubscriptions, connectStore, generateRandomId, resolveId, resolveIds } from 'utils'
 import {
   createBackupNgJob,
   createSchedule,
@@ -40,16 +34,7 @@ import {
   isSrWritable,
   subscribeRemotes,
 } from 'xo'
-import {
-  flatten,
-  includes,
-  isEmpty,
-  keyBy,
-  map,
-  mapValues,
-  omit,
-  some,
-} from 'lodash'
+import { flatten, includes, isEmpty, keyBy, map, mapValues, max, omit, some } from 'lodash'
 
 import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
@@ -58,16 +43,7 @@ import SmartBackup from './smart-backup'
 import SelectSnapshotMode from './_selectSnapshotMode'
 
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
-import {
-  canDeltaBackup,
-  constructPattern,
-  destructPattern,
-  FormFeedback,
-  FormGroup,
-  Input,
-  Li,
-  Ul,
-} from './../utils'
+import { canDeltaBackup, constructPattern, destructPattern, FormFeedback, FormGroup, Input, Li, Ul } from './../utils'
 
 export NewMetadataBackup from './metadata'
 
@@ -81,6 +57,7 @@ const DEFAULT_SCHEDULE = {
   cron: '0 0 * * *',
   timezone: moment.tz.guess(),
 }
+const RETENTION_LIMIT = 50
 
 const ReportRecipients = decorate([
   provideState({
@@ -124,12 +101,7 @@ const ReportRecipients = decorate([
             value={state.recipient}
           />
           <span className='input-group-btn'>
-            <ActionButton
-              btnStyle='primary'
-              disabled={state.disabledAddButton}
-              handler={effects.add}
-              icon='add'
-            />
+            <ActionButton btnStyle='primary' disabled={state.disabledAddButton} handler={effects.add} icon='add' />
           </span>
         </div>
       </FormGroup>
@@ -152,19 +124,13 @@ const ReportRecipients = decorate([
   ),
 ])
 
-const SR_BACKEND_FAILURE_LINK =
-  'https://xen-orchestra.com/docs/backup_troubleshooting.html#srbackendfailure44-insufficient-space'
+const SR_BACKEND_FAILURE_LINK = 'https://xen-orchestra.com/docs/backup_troubleshooting.html#sr-backend-failure-44'
 
-const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backups.html'
+const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backup.html'
 
 const ThinProvisionedTip = ({ label }) => (
   <Tooltip content={_(label)}>
-    <a
-      className='text-info'
-      href={SR_BACKEND_FAILURE_LINK}
-      rel='noopener noreferrer'
-      target='_blank'
-    >
+    <a className='text-info' href={SR_BACKEND_FAILURE_LINK} rel='noopener noreferrer' target='_blank'>
       <Icon icon='info' />
     </a>
   </Tooltip>
@@ -172,26 +138,13 @@ const ThinProvisionedTip = ({ label }) => (
 
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normalizeSettings = ({
-  copyMode,
-  exportMode,
-  offlineBackupActive,
-  settings,
-  snapshotMode,
-}) =>
+const normalizeSettings = ({ copyMode, exportMode, offlineBackupActive, settings, snapshotMode }) =>
   settings.map(setting =>
-    defined(
-      setting.copyRetention,
-      setting.exportRetention,
-      setting.snapshotRetention
-    ) !== undefined
+    defined(setting.copyRetention, setting.exportRetention, setting.snapshotRetention) !== undefined
       ? {
           copyRetention: copyMode ? setting.copyRetention : undefined,
           exportRetention: exportMode ? setting.exportRetention : undefined,
-          snapshotRetention:
-            snapshotMode && !offlineBackupActive
-              ? setting.snapshotRetention
-              : undefined,
+          snapshotRetention: snapshotMode && !offlineBackupActive ? setting.snapshotRetention : undefined,
         }
       : setting
   )
@@ -205,6 +158,10 @@ const destructVmsPattern = pattern =>
         vms: destructPattern(pattern),
       }
 
+// isRetentionLow returns the expected result when the 'fullInterval' is undefined.
+const isRetentionLow = (settings, retention) =>
+  retention < RETENTION_LIMIT || settings.getIn(['', 'fullInterval']) < RETENTION_LIMIT
+
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
   (copyMode && schedule.copyRetention > 0) ||
@@ -216,7 +173,7 @@ const createDoesRetentionExist = name => {
   return ({ propSettings, settings = propSettings }) => settings.some(predicate)
 }
 
-const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
+const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExcludedTags }) => {
   setHomeVmIdsSelection([]) // Clear preselected vmIds
   return {
     _displayAdvancedSettings: undefined,
@@ -228,7 +185,6 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
     deltaMode: false,
     drMode: false,
     name: '',
-    paramsUpdated: false,
     remotes: [],
     schedules: {},
     settings: undefined,
@@ -236,7 +192,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection }) => {
     smartMode: false,
     snapshotMode: false,
     srs: [],
-    tags: {},
+    tags: { notValues: suggestedExcludedTags },
     vms: preSelectedVmIds,
   }
 }
@@ -281,15 +237,12 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   </ActionButton>
 )
 
-export default decorate([
+const New = decorate([
   New => props => (
     <Upgrade place='newBackup' required={2}>
       <New {...props} />
     </Upgrade>
   ),
-  addSubscriptions({
-    remotes: subscribeRemotes,
-  }),
   connectStore(() => ({
     hostsById: createGetObjectsOfType('host'),
     poolsById: createGetObjectsOfType('pool'),
@@ -300,8 +253,10 @@ export default decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      initialize: async function () {
-        this.state.tags = { notValues: await getSuggestedExcludedTags() }
+      initialize: function ({ updateParams }) {
+        if (this.state.edition) {
+          updateParams()
+        }
       },
       createJob: () => async state => {
         if (state.isJobInvalid) {
@@ -313,10 +268,7 @@ export default decorate([
 
         let schedules, settings
         if (!isEmpty(state.schedules)) {
-          schedules = mapValues(
-            state.schedules,
-            ({ id, ...schedule }) => schedule
-          )
+          schedules = mapValues(state.schedules, ({ id, ...schedule }) => schedule)
           settings = normalizeSettings({
             offlineBackupActive: state.offlineBackupActive,
             settings: state.settings,
@@ -334,10 +286,7 @@ export default decorate([
             [id]: {
               copyRetention: state.copyMode ? DEFAULT_RETENTION : undefined,
               exportRetention: state.exportMode ? DEFAULT_RETENTION : undefined,
-              snapshotRetention:
-                state.snapshotMode && !state.offlineBackupActive
-                  ? DEFAULT_RETENTION
-                  : undefined,
+              snapshotRetention: state.snapshotMode && !state.offlineBackupActive ? DEFAULT_RETENTION : undefined,
             },
           }
         }
@@ -349,17 +298,9 @@ export default decorate([
           proxy: state.proxyId === null ? undefined : state.proxyId,
           schedules,
           settings,
-          remotes:
-            state.deltaMode || state.backupMode
-              ? constructPattern(state.remotes)
-              : undefined,
-          srs:
-            state.crMode || state.drMode
-              ? constructPattern(state.srs)
-              : undefined,
-          vms: state.smartMode
-            ? state.vmsSmartPattern
-            : constructPattern(state.vms),
+          remotes: state.deltaMode || state.backupMode ? constructPattern(state.remotes) : undefined,
+          srs: state.crMode || state.drMode ? constructPattern(state.srs) : undefined,
+          vms: state.smartMode ? state.vmsSmartPattern : constructPattern(state.vms),
         })
       },
       editJob: () => async (state, props) => {
@@ -429,17 +370,9 @@ export default decorate([
             copyMode: state.copyMode,
             snapshotMode: state.snapshotMode,
           }).toObject(),
-          remotes:
-            state.deltaMode || state.backupMode
-              ? constructPattern(state.remotes)
-              : constructPattern([]),
-          srs:
-            state.crMode || state.drMode
-              ? constructPattern(state.srs)
-              : constructPattern([]),
-          vms: state.smartMode
-            ? state.vmsSmartPattern
-            : constructPattern(state.vms),
+          remotes: state.deltaMode || state.backupMode ? constructPattern(state.remotes) : constructPattern([]),
+          srs: state.crMode || state.drMode ? constructPattern(state.srs) : constructPattern([]),
+          vms: state.smartMode ? state.vmsSmartPattern : constructPattern(state.vms),
         })
       },
       toggleMode: (_, { mode }) => state => ({
@@ -464,10 +397,7 @@ export default decorate([
         ...state,
         name: value,
       }),
-      setTargetDeleteFirst: (_, id) => ({
-        propSettings,
-        settings = propSettings,
-      }) => ({
+      setTargetDeleteFirst: (_, id) => ({ propSettings, settings = propSettings }) => ({
         settings: settings.set(id, {
           deleteFirst: !settings.getIn([id, 'deleteFirst']),
         }),
@@ -500,18 +430,13 @@ export default decorate([
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
       updateParams: () => (_, { job, schedules }) => {
-        const remotes =
-          job.remotes !== undefined ? destructPattern(job.remotes) : []
+        const remotes = job.remotes !== undefined ? destructPattern(job.remotes) : []
         const srs = job.srs !== undefined ? destructPattern(job.srs) : []
 
         return {
           name: job.name,
-          paramsUpdated: true,
           smartMode: job.vms.id === undefined,
-          snapshotMode: some(
-            job.settings,
-            ({ snapshotRetention }) => snapshotRetention > 0
-          ),
+          snapshotMode: some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
           backupMode: job.mode === 'full' && !isEmpty(remotes),
           deltaMode: job.mode === 'delta' && !isEmpty(remotes),
           drMode: job.mode === 'full' && !isEmpty(srs),
@@ -522,11 +447,8 @@ export default decorate([
           ...destructVmsPattern(job.vms),
         }
       },
-      showScheduleModal: (
-        { saveSchedule },
-        storedSchedule = DEFAULT_SCHEDULE
-      ) => async (
-        { copyMode, exportMode, snapshotMode },
+      showScheduleModal: ({ saveSchedule }, storedSchedule = DEFAULT_SCHEDULE) => async (
+        { copyMode, exportMode, deltaMode, propSettings, settings = propSettings, snapshotMode },
         { intl: { formatMessage } }
       ) => {
         const modes = { copyMode, exportMode, snapshotMode }
@@ -536,6 +458,7 @@ export default decorate([
             <NewSchedule
               missingRetentions={!checkRetentions(props.value, modes)}
               modes={modes}
+              showRetentionWarning={deltaMode && !isRetentionLow(settings, props.value.exportRetention)}
               {...props}
             />
           ),
@@ -558,11 +481,7 @@ export default decorate([
           id: storedSchedule.id || generateRandomId(),
         })
       },
-      deleteSchedule: (_, schedule) => ({
-        schedules: oldSchedules,
-        propSettings,
-        settings = propSettings,
-      }) => {
+      deleteSchedule: (_, schedule) => ({ schedules: oldSchedules, propSettings, settings = propSettings }) => {
         const id = resolveId(schedule)
         const schedules = { ...oldSchedules }
         delete schedules[id]
@@ -573,21 +492,14 @@ export default decorate([
       },
       saveSchedule: (
         _,
-        {
-          copyRetention,
-          cron,
-          exportRetention,
-          id,
-          name,
-          snapshotRetention,
-          timezone,
-        }
+        { copyRetention, cron, enabled = true, exportRetention, id, name, snapshotRetention, timezone }
       ) => ({ propSettings, schedules, settings = propSettings }) => ({
         schedules: {
           ...schedules,
           [id]: {
             ...schedules[id],
             cron,
+            enabled,
             id,
             name,
             timezone,
@@ -630,10 +542,7 @@ export default decorate([
       toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
         _displayAdvancedSettings: !displayAdvancedSettings,
       }),
-      setGlobalSettings: (_, globalSettings) => ({
-        propSettings,
-        settings = propSettings,
-      }) => ({
+      setGlobalSettings: (_, globalSettings) => ({ propSettings, settings = propSettings }) => ({
         settings: settings.update('', setting => ({
           ...setting,
           ...globalSettings,
@@ -641,10 +550,7 @@ export default decorate([
       }),
       addReportRecipient({ setGlobalSettings }, value) {
         const { propSettings, settings = propSettings } = this.state
-        const reportRecipients = defined(
-          settings.getIn(['', 'reportRecipients']),
-          []
-        )
+        const reportRecipients = defined(settings.getIn(['', 'reportRecipients']), [])
         if (!reportRecipients.includes(value)) {
           setGlobalSettings({
             reportRecipients: (reportRecipients.push(value), reportRecipients),
@@ -678,10 +584,7 @@ export default decorate([
           fullInterval,
         })
       },
-      setOfflineBackup: (
-        { setGlobalSettings },
-        { target: { checked: offlineBackup } }
-      ) => () => {
+      setOfflineBackup: ({ setGlobalSettings }, { target: { checked: offlineBackup } }) => () => {
         setGlobalSettings({
           offlineBackup,
         })
@@ -697,21 +600,13 @@ export default decorate([
 
       // In order to keep the user preference, the offline backup is kept in the DB
       // and it's considered active only when the full mode is enabled
-      offlineBackupActive: ({
-        isFull,
-        propSettings,
-        settings = propSettings,
-      }) => isFull && Boolean(settings.getIn(['', 'offlineBackup'])),
+      offlineBackupActive: ({ isFull, propSettings, settings = propSettings }) =>
+        isFull && Boolean(settings.getIn(['', 'offlineBackup'])),
       vmsPattern: ({ _vmsPattern }, { job }) =>
-        defined(
-          _vmsPattern,
-          () => (job.vms.id !== undefined ? undefined : job.vms),
-          {
-            type: 'VM',
-          }
-        ),
-      needUpdateParams: (state, { job, schedules }) =>
-        job !== undefined && schedules !== undefined && !state.paramsUpdated,
+        defined(_vmsPattern, () => (job.vms.id !== undefined ? undefined : job.vms), {
+          type: 'VM',
+        }),
+      edition: (_, { job }) => job !== undefined,
       isJobInvalid: state =>
         state.missingName ||
         state.missingVms ||
@@ -724,21 +619,14 @@ export default decorate([
         state.missingSnapshotRetention,
       missingName: state => state.name.trim() === '',
       missingVms: state => isEmpty(state.vms) && !state.smartMode,
-      missingBackupMode: state =>
-        !state.isDelta && !state.isFull && !state.snapshotMode,
-      missingRemotes: state =>
-        (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
+      missingBackupMode: state => !state.isDelta && !state.isFull && !state.snapshotMode,
+      missingRemotes: state => (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
       missingSrs: state => (state.drMode || state.crMode) && isEmpty(state.srs),
-      missingSchedules: (state, { job }) =>
-        job !== undefined && isEmpty(state.schedules),
-      missingExportRetention: (state, { job }) =>
-        job !== undefined && state.exportMode && !state.exportRetentionExists,
-      missingCopyRetention: (state, { job }) =>
-        job !== undefined && state.copyMode && !state.copyRetentionExists,
+      missingSchedules: (state, { job }) => job !== undefined && isEmpty(state.schedules),
+      missingExportRetention: (state, { job }) => job !== undefined && state.exportMode && !state.exportRetentionExists,
+      missingCopyRetention: (state, { job }) => job !== undefined && state.copyMode && !state.copyRetentionExists,
       missingSnapshotRetention: (state, { job }) =>
-        job !== undefined &&
-        state.snapshotMode &&
-        !state.snapshotRetentionExists,
+        job !== undefined && state.snapshotMode && !state.snapshotRetentionExists,
       exportMode: state => state.backupMode || state.deltaMode,
       copyMode: state => state.drMode || state.crMode,
       exportRetentionExists: createDoesRetentionExist('exportRetention'),
@@ -750,15 +638,18 @@ export default decorate([
         ...vmsPattern,
         tags: constructSmartPattern(tags, normalizeTagValues),
       }),
-      vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({
-        $container,
-      }) =>
+      vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({ $container }) =>
         !isDelta ||
         canDeltaBackup(
-          get(() => hostsById[$container].version) ||
-            get(() => hostsById[poolsById[$container].master].version)
+          get(() => hostsById[$container].version) || get(() => hostsById[poolsById[$container].master].version)
         ),
       selectedVmIds: state => resolveIds(state.vms),
+      showRetentionWarning: ({ deltaMode, propSettings, settings = propSettings, schedules }) =>
+        deltaMode &&
+        !isRetentionLow(
+          settings,
+          defined(max(Object.keys(schedules).map(key => settings.getIn([key, 'exportRetention']))), 0)
+        ),
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ proxyId, remotes }) => remote => {
         if (proxyId === null) {
@@ -768,24 +659,11 @@ export default decorate([
       },
       propSettings: (_, { job }) =>
         Map(get(() => job.settings)).map(setting =>
-          defined(
-            setting.copyRetention,
-            setting.exportRetention,
-            setting.snapshotRetention
-          )
+          defined(setting.copyRetention, setting.exportRetention, setting.snapshotRetention)
             ? {
-                copyRetention: defined(
-                  setting.copyRetention,
-                  DEFAULT_RETENTION
-                ),
-                exportRetention: defined(
-                  setting.exportRetention,
-                  DEFAULT_RETENTION
-                ),
-                snapshotRetention: defined(
-                  setting.snapshotRetention,
-                  DEFAULT_RETENTION
-                ),
+                copyRetention: defined(setting.copyRetention, DEFAULT_RETENTION),
+                exportRetention: defined(setting.exportRetention, DEFAULT_RETENTION),
+                snapshotRetention: defined(setting.snapshotRetention, DEFAULT_RETENTION),
               }
             : setting
         ),
@@ -796,9 +674,7 @@ export default decorate([
           !isEmpty(
             getSettingsWithNonDefaultValue(state.isFull ? 'full' : 'delta', {
               compression: get(() => props.job.compression),
-              ...get(() =>
-                omit(props.job.settings[''], ['reportRecipients', 'reportWhen'])
-              ),
+              ...get(() => omit(props.job.settings[''], ['reportRecipients', 'reportWhen'])),
             })
           )
         ),
@@ -819,10 +695,6 @@ export default decorate([
       reportWhen = 'failure',
       timeout,
     } = settings.get('') || {}
-
-    if (state.needUpdateParams) {
-      effects.updateParams()
-    }
 
     return (
       <form id={state.formId}>
@@ -869,10 +741,7 @@ export default decorate([
                     <ActionButton
                       active={state.deltaMode}
                       data-mode='deltaMode'
-                      disabled={
-                        state.isFull ||
-                        (!state.deltaMode && process.env.XOA_PLAN < 3)
-                      }
+                      disabled={state.isFull || (!state.deltaMode && process.env.XOA_PLAN < 3)}
                       handler={effects.toggleMode}
                       icon='delta-backup'
                     >
@@ -881,10 +750,7 @@ export default decorate([
                     <ActionButton
                       active={state.drMode}
                       data-mode='drMode'
-                      disabled={
-                        state.isDelta ||
-                        (!state.drMode && process.env.XOA_PLAN < 3)
-                      }
+                      disabled={state.isDelta || (!state.drMode && process.env.XOA_PLAN < 3)}
                       handler={effects.toggleMode}
                       icon='disaster-recovery'
                     >
@@ -898,10 +764,7 @@ export default decorate([
                     <ActionButton
                       active={state.crMode}
                       data-mode='crMode'
-                      disabled={
-                        state.isFull ||
-                        (!state.crMode && process.env.XOA_PLAN < 4)
-                      }
+                      disabled={state.isFull || (!state.crMode && process.env.XOA_PLAN < 4)}
                       handler={effects.toggleMode}
                       icon='continuous-replication'
                     >
@@ -913,14 +776,8 @@ export default decorate([
                       </Tooltip>
                     )}
                     <br />
-                    <a
-                      className='text-muted'
-                      href={BACKUP_NG_DOC_LINK}
-                      rel='noopener noreferrer'
-                      target='_blank'
-                    >
-                      <Icon icon='info' />{' '}
-                      {_('backupNgLinkToDocumentationMessage')}
+                    <a className='text-muted' href={BACKUP_NG_DOC_LINK} rel='noopener noreferrer' target='_blank'>
+                      <Icon icon='info' /> {_('backupNgLinkToDocumentationMessage')}
                     </a>
                   </div>
                 </CardBlock>
@@ -930,13 +787,8 @@ export default decorate([
                 <Card>
                   <CardHeader>
                     {_(state.backupMode ? 'backup' : 'deltaBackup')}
-                    <Link
-                      className='btn btn-primary pull-right'
-                      target='_blank'
-                      to='/settings/remotes'
-                    >
-                      <Icon icon='settings' />{' '}
-                      <strong>{_('remotesSettings')}</strong>
+                    <Link className='btn btn-primary pull-right' target='_blank' to='/settings/remotes'>
+                      <Icon icon='settings' /> <strong>{_('remotesSettings')}</strong>
                     </Link>
                   </CardHeader>
                   <CardBlock>
@@ -954,20 +806,14 @@ export default decorate([
                           message={_('missingRemotes')}
                           onChange={effects.addRemote}
                           predicate={state.remotePredicate}
-                          error={
-                            state.showErrors ? state.missingRemotes : undefined
-                          }
+                          error={state.showErrors ? state.missingRemotes : undefined}
                           value={null}
                         />
                         <br />
                         <Ul>
                           {map(state.remotes, (id, key) => (
                             <Li key={id}>
-                              <Remote id={id} />{' '}
-                              <RemoteProxyWarning
-                                id={id}
-                                proxyId={state.proxyId}
-                              />
+                              <Remote id={id} /> <RemoteProxyWarning id={id} proxyId={state.proxyId} />
                               <div className='pull-right'>
                                 <DeleteOldBackupsFirst
                                   handler={effects.setTargetDeleteFirst}
@@ -992,13 +838,7 @@ export default decorate([
               )}
               {(state.drMode || state.crMode) && (
                 <Card>
-                  <CardHeader>
-                    {_(
-                      state.drMode
-                        ? 'disasterRecovery'
-                        : 'continuousReplication'
-                    )}
-                  </CardHeader>
+                  <CardHeader>{_(state.drMode ? 'disasterRecovery' : 'continuousReplication')}</CardHeader>
                   <CardBlock>
                     <FormGroup>
                       <label>
@@ -1017,11 +857,9 @@ export default decorate([
                         {map(state.srs, (id, key) => (
                           <Li key={id}>
                             {renderXoItemFromId(id)}{' '}
-                            {!isEmpty(srsById) &&
-                              state.crMode &&
-                              get(() => srsById[id].SR_type) === 'lvm' && (
-                                <ThinProvisionedTip label='crOnThickProvisionedSrWarning' />
-                              )}
+                            {!isEmpty(srsById) && state.crMode && get(() => srsById[id].SR_type) === 'lvm' && (
+                              <ThinProvisionedTip label='crOnThickProvisionedSrWarning' />
+                            )}
                             <div className='pull-right'>
                               <DeleteOldBackupsFirst
                                 handler={effects.setTargetDeleteFirst}
@@ -1050,12 +888,8 @@ export default decorate([
                     className='pull-right'
                     data-mode='_displayAdvancedSettings'
                     handler={effects.toggleDisplayAdvancedSettings}
-                    icon={
-                      state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'
-                    }
-                    iconColor={
-                      state.displayAdvancedSettings ? 'text-success' : undefined
-                    }
+                    icon={state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+                    iconColor={state.displayAdvancedSettings ? 'text-success' : undefined}
                     size='small'
                   >
                     {_('newBackupAdvancedSettings')}
@@ -1066,11 +900,7 @@ export default decorate([
                     <label htmlFor={state.inputProxyId}>
                       <strong>{_('proxy')}</strong>
                     </label>
-                    <SelectProxy
-                      id={state.inputProxyId}
-                      onChange={effects.setProxy}
-                      value={state.proxyId}
-                    />
+                    <SelectProxy id={state.inputProxyId} onChange={effects.setProxy} value={state.proxyId} />
                   </FormGroup>
                   <ReportWhen
                     onChange={effects.setReportWhen}
@@ -1090,11 +920,7 @@ export default decorate([
                         <label htmlFor={state.inputConcurrencyId}>
                           <strong>{_('concurrency')}</strong>
                         </label>
-                        <Number
-                          id={state.inputConcurrencyId}
-                          onChange={effects.setConcurrency}
-                          value={concurrency}
-                        />
+                        <Number id={state.inputConcurrencyId} onChange={effects.setConcurrency} value={concurrency} />
                       </FormGroup>
                       <FormGroup>
                         <label htmlFor={state.inputTimeoutId}>
@@ -1115,6 +941,11 @@ export default decorate([
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
                           </label>{' '}
+                          {state.showRetentionWarning && (
+                            <Tooltip content={_('deltaChainRetentionWarning')}>
+                              <Icon icon='error' />
+                            </Tooltip>
+                          )}{' '}
                           <Tooltip content={_('clickForMoreInformation')}>
                             <a
                               className='text-info'
@@ -1174,8 +1005,7 @@ export default decorate([
             <Col mediumSize={6}>
               <Card>
                 <CardHeader>
-                  {_('vmsToBackup')}*{' '}
-                  <ThinProvisionedTip label='vmsOnThinProvisionedSrTip' />
+                  {_('vmsToBackup')}* <ThinProvisionedTip label='vmsOnThinProvisionedSrTip' />
                   <ActionButton
                     className='pull-right'
                     data-mode='smartMode'
@@ -1190,8 +1020,7 @@ export default decorate([
                 <CardBlock>
                   {state.isDelta && (
                     <span className='text-muted'>
-                      <Icon icon='info' />{' '}
-                      {_('deltaBackupOnOutdatedXenServerWarning')}
+                      <Icon icon='info' /> {_('deltaBackupOnOutdatedXenServerWarning')}
                     </span>
                   )}
 
@@ -1214,9 +1043,7 @@ export default decorate([
                         predicate={state.vmPredicate}
                         value={state.vms}
                       />
-                      {compression === 'zstd' && (
-                        <ZstdChecker vms={state.selectedVmIds} />
-                      )}
+                      {compression === 'zstd' && <ZstdChecker vms={state.selectedVmIds} />}
                     </div>
                   )}
                 </CardBlock>
@@ -1227,15 +1054,13 @@ export default decorate([
           <Row>
             <Card>
               <CardBlock>
-                {state.paramsUpdated ? (
+                {state.edition ? (
                   <ActionButton
                     btnStyle='primary'
                     form={state.formId}
                     handler={effects.editJob}
                     icon='save'
-                    redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup'
-                    }
+                    redirectOnSuccess={state.isJobInvalid ? undefined : '/backup'}
                     size='large'
                   >
                     {_('formSave')}
@@ -1246,20 +1071,13 @@ export default decorate([
                     form={state.formId}
                     handler={effects.createJob}
                     icon='save'
-                    redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup'
-                    }
+                    redirectOnSuccess={state.isJobInvalid ? undefined : '/backup'}
                     size='large'
                   >
                     {_('formCreate')}
                   </ActionButton>
                 )}
-                <ActionButton
-                  handler={effects.resetJob}
-                  icon='undo'
-                  className='pull-right'
-                  size='large'
-                >
+                <ActionButton handler={effects.resetJob} icon='undo' className='pull-right' size='large'>
                   {_('formReset')}
                 </ActionButton>
               </CardBlock>
@@ -1269,4 +1087,19 @@ export default decorate([
       </form>
     )
   },
+])
+
+export default decorate([
+  addSubscriptions({
+    remotes: subscribeRemotes,
+  }),
+  provideState({
+    computed: {
+      loading: (state, props) => state.suggestedExcludedTags === undefined || props.remotes === undefined,
+      suggestedExcludedTags: () => getSuggestedExcludedTags(),
+    },
+  }),
+  injectState,
+  ({ state: { loading, suggestedExcludedTags }, ...props }) =>
+    loading ? _('statusLoading') : <New suggestedExcludedTags={suggestedExcludedTags} {...props} />,
 ])

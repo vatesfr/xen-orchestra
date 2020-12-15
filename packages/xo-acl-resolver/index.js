@@ -111,12 +111,7 @@ function checkAuthorization(objectId, permission) {
 
 // -------------------------------------------------------------------
 
-function assertPermissions(
-  permissionsByObject_,
-  getObject_,
-  permissions,
-  permission
-) {
+function assertPermissions(permissionsByObject_, getObject_, permissions, permission) {
   // Assign global variables.
   permissionsByObject = permissionsByObject_
   getObject = getObject_

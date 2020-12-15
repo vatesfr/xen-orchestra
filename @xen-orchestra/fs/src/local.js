@@ -63,9 +63,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _getSize(file) {
-    const stats = await fs.stat(
-      this._getFilePath(typeof file === 'string' ? file : file.path)
-    )
+    const stats = await fs.stat(this._getFilePath(typeof file === 'string' ? file : file.path))
     return stats.size
   }
 
@@ -73,8 +71,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return fs.readdir(this._getFilePath(dir))
   }
 
-  _mkdir(dir) {
-    return fs.mkdir(this._getFilePath(dir))
+  _mkdir(dir, { mode }) {
+    return fs.mkdir(this._getFilePath(dir), { mode })
   }
 
   async _openFile(path, flags) {
@@ -85,13 +83,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     const needsClose = typeof file === 'string'
     file = needsClose ? await fs.open(this._getFilePath(file), 'r') : file.fd
     try {
-      return await fs.read(
-        file,
-        buffer,
-        0,
-        buffer.length,
-        position === undefined ? null : position
-      )
+      return await fs.read(file, buffer, 0, buffer.length, position === undefined ? null : position)
     } finally {
       if (needsClose) {
         await fs.close(file)

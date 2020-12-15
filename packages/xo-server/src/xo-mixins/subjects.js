@@ -1,5 +1,5 @@
 import createLogger from '@xen-orchestra/log'
-import { filter, includes } from 'lodash'
+import { filter } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
@@ -13,10 +13,8 @@ import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
 
 const log = createLogger('xo:xo-mixins:subjects')
 
-const addToArraySet = (set, value) =>
-  set && !includes(set, value) ? set.concat(value) : [value]
-const removeFromArraySet = (set, value) =>
-  set && filter(set, current => current !== value)
+const addToArraySet = (set, value) => (set !== undefined ? (set.includes(value) ? set : set.concat(value)) : [value])
+const removeFromArraySet = (set, value) => set && filter(set, current => current !== value)
 
 // ===================================================================
 
@@ -36,15 +34,12 @@ export default class {
       indexes: ['email'],
     }))
 
-    xo.on('clean', () =>
-      Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()])
-    )
+    xo.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
     xo.on('start', async () => {
       xo.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups =>
-          Promise.all(mapToArray(groups, group => groupsDb.save(group))),
+        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group))),
         ['users']
       )
       xo.addConfigManager(
@@ -56,12 +51,7 @@ export default class {
               const userId = user.id
               const conflictUsers = await usersDb.get({ email: user.email })
               if (!isEmpty(conflictUsers)) {
-                await Promise.all(
-                  mapToArray(
-                    conflictUsers,
-                    ({ id }) => id !== userId && this.deleteUser(id)
-                  )
-                )
+                await Promise.all(mapToArray(conflictUsers, ({ id }) => id !== userId && this.deleteUser(id)))
               }
               return usersDb.save(user)
             })
@@ -69,10 +59,7 @@ export default class {
       )
 
       if (!(await usersDb.exists())) {
-        const {
-          email = 'admin@admin.net',
-          password = 'admin',
-        } = await XenStore.read('vm-data/admin-account')
+        const { email = 'admin@admin.net', password = 'admin' } = await XenStore.read('vm-data/admin-account')
           .then(JSON.parse)
           .catch(() => ({}))
 
@@ -135,6 +122,7 @@ export default class {
       // TODO: remove
       email,
 
+      authProviders,
       name = email,
       password,
       permission,
@@ -162,6 +150,16 @@ export default class {
       }
     })
     user.preferences = isEmpty(newPreferences) ? undefined : newPreferences
+
+    const newAuthProviders = { ...user.authProviders }
+    forEach(authProviders, (value, name) => {
+      if (value == null) {
+        delete newAuthProviders[name]
+      } else {
+        newAuthProviders[name] = value
+      }
+    })
+    user.authProviders = isEmpty(newAuthProviders) ? undefined : newAuthProviders
 
     // TODO: remove
     user.email = user.name
@@ -210,6 +208,7 @@ export default class {
     throw noSuchObject(username, 'user')
   }
 
+  // Deprecated: use registerUser2 instead
   // Get or create a user associated with an auth provider.
   async registerUser(provider, name) {
     const user = await this.getUserByName(name, true)
@@ -229,6 +228,72 @@ export default class {
       name,
       _provider: provider,
     })
+  }
+
+  // New implementation of registerUser that:
+  //   - allows multiple providers per XO user
+  //   - binds a XO user to the provider's user with a unique ID
+  // - id: the ID that the provider uses to identify the user
+  // - name: the name of the user according to the provider
+  // - data: additional data about the user that the provider may want to store
+  async registerUser2(providerId, { user: { id, name }, data }) {
+    const users = await this.getAllUsers()
+
+    // Get the XO user bound to the provider's user
+    let user = users.find(user => user.authProviders?.[providerId]?.id === id)
+
+    // If that XO user doesn't exist or doesn't have the correct username, there
+    // is a chance that there is another XO user that already has that username
+    let conflictingUser
+    if (user?.email !== name) {
+      conflictingUser = users.find(user => user.email === name)
+
+      if (conflictingUser !== undefined) {
+        if (!this._xo._config.authentication.mergeProvidersUsers) {
+          throw new Error(`User with username ${name} already exists`)
+        }
+        if (user !== undefined) {
+          // TODO: merge `conflictingUser` into `user` and delete
+          // `conflictingUser`. For now: keep the 2 users. Once implemented:
+          // remove the `conflictingUser === undefined` condition on
+          // `updateUser`.
+        } else {
+          user = conflictingUser
+        }
+      }
+    } else if (user !== undefined) {
+      // The user exists and is up to date
+      return user
+    }
+
+    if (user === undefined) {
+      if (!this._xo._config.createUserOnFirstSignin) {
+        throw new Error(`registering ${name} user is forbidden`)
+      }
+      user = await this.createUser({
+        name,
+        authProviders: { [providerId]: { id, data } },
+      })
+    } else {
+      // If the user has more than 1 auth provider: don't update the username to
+      // avoid conflicts
+      await this.updateUser(user.id, {
+        name:
+          (user.authProviders === undefined || Object.keys(user.authProviders).length < 2) &&
+          conflictingUser === undefined // cf: TODO above
+            ? name
+            : undefined,
+        authProviders: {
+          ...user.authProviders,
+          [providerId]: {
+            id,
+            data: data !== undefined ? data : user.authProviders?.[providerId]?.data,
+          },
+        },
+      })
+    }
+
+    return this.getUser(user.id)
   }
 
   async changeUserPassword(userId, oldPassword, newPassword) {
@@ -254,9 +319,9 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createGroup({ name }) {
+  async createGroup({ name, provider, providerGroupId }) {
     // TODO: use plain objects.
-    const group = (await this._groups.create(name)).properties
+    const group = (await this._groups.create(name, provider, providerGroupId)).properties
 
     return group
   }
@@ -303,10 +368,7 @@ export default class {
   }
 
   async addUserToGroup(userId, groupId) {
-    const [user, group] = await Promise.all([
-      this.getUser(userId),
-      this.getGroup(groupId),
-    ])
+    const [user, group] = await Promise.all([this.getUser(userId), this.getGroup(groupId)])
 
     user.groups = addToArraySet(user.groups, groupId)
     group.users = addToArraySet(group.users, userId)
@@ -325,15 +387,9 @@ export default class {
   }
 
   async removeUserFromGroup(userId, groupId) {
-    const [user, group] = await Promise.all([
-      this.getUser(userId),
-      this.getGroup(groupId),
-    ])
+    const [user, group] = await Promise.all([this.getUser(userId), this.getGroup(groupId)])
 
-    await Promise.all([
-      this._removeUserFromGroup(userId, group),
-      this._removeGroupFromUser(groupId, user),
-    ])
+    await Promise.all([this._removeUserFromGroup(userId, group), this._removeGroupFromUser(groupId, user)])
   }
 
   async setGroupUsers(groupId, userIds) {

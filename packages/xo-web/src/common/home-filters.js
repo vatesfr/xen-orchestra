@@ -2,27 +2,32 @@ const common = {
   homeFilterNone: '',
 }
 
-export const VM = {
+const VM = {
   ...common,
   homeFilterPendingVms: 'current_operations:"" ',
-  homeFilterNonRunningVms: '!power_state:running ',
   homeFilterHvmGuests: 'virtualizationMode:hvm ',
-  homeFilterRunningVms: 'power_state:running ',
 }
 
-export const host = {
-  ...common,
-  homeFilterRunningHosts: 'power_state:running ',
-}
-
-export const pool = {
+const host = {
   ...common,
 }
 
-export const vmTemplate = {
+const pool = {
   ...common,
 }
 
-export const SR = {
+const vmTemplate = {
   ...common,
+}
+
+const SR = {
+  ...common,
+}
+
+export default {
+  VM,
+  host,
+  pool,
+  'VM-template': vmTemplate,
+  SR,
 }

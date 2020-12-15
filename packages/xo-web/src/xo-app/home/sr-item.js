@@ -10,19 +10,8 @@ import HomeTags from 'home-tags'
 import { Col } from 'grid'
 import { map, size, sum, some } from 'lodash'
 import { Text } from 'editable'
-import {
-  createGetObject,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
-import {
-  addTag,
-  editSr,
-  isSrShared,
-  reconnectAllHostsSr,
-  removeTag,
-  setDefaultSr,
-} from 'xo'
+import { createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
+import { addTag, editSr, isSrShared, reconnectAllHostsSr, removeTag, setDefaultSr } from 'xo'
 import { connectStore, formatSizeShort, getIscsiPaths } from 'utils'
 
 import styles from './index.css'
@@ -30,18 +19,14 @@ import styles from './index.css'
 @connectStore({
   container: createGetObject((_, props) => props.item.$container),
   isDefaultSr: createSelector(
-    createGetObjectsOfType('pool').find((_, props) => pool =>
-      props.item.$pool === pool.id
-    ),
+    createGetObjectsOfType('pool').find((_, props) => pool => props.item.$pool === pool.id),
     (_, props) => props.item,
     (pool, sr) => pool && pool.default_SR === sr.id
   ),
   isShared: createSelector((_, props) => props.item, isSrShared),
   status: createSelector(
     (_, props) => Boolean(props.item.sm_config.multipathable),
-    createGetObjectsOfType('PBD').filter((_, props) => pbd =>
-      pbd.SR === props.item.id
-    ),
+    createGetObjectsOfType('PBD').filter((_, props) => pbd => pbd.SR === props.item.id),
     (multipathable, pbds) => {
       const nbAttached = sum(map(pbds, pbd => (pbd.attached ? 1 : 0)))
       const nbPbds = size(pbds)
@@ -112,14 +97,7 @@ export default class SrItem extends Component {
   }
 
   render() {
-    const {
-      container,
-      expandAll,
-      isDefaultSr,
-      isShared,
-      item: sr,
-      selected,
-    } = this.props
+    const { container, expandAll, isDefaultSr, isShared, item: sr, selected } = this.props
 
     return (
       <div className={styles.item}>
@@ -127,27 +105,14 @@ export default class SrItem extends Component {
           <SingleLineRow>
             <Col smallSize={9} mediumSize={8} largeSize={3}>
               <EllipsisContainer>
-                <input
-                  type='checkbox'
-                  checked={selected}
-                  onChange={this._onSelect}
-                  value={sr.id}
-                />
+                <input type='checkbox' checked={selected} onChange={this._onSelect} value={sr.id} />
                 &nbsp;&nbsp;
                 {this._getStatusPill()}
                 &nbsp;&nbsp;
                 <Ellipsis>
-                  <Text
-                    value={sr.name_label}
-                    onChange={this._setNameLabel}
-                    useLongClick
-                  />
+                  <Text value={sr.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
-                {isDefaultSr && (
-                  <span className='tag tag-pill tag-info ml-1'>
-                    {_('defaultSr')}
-                  </span>
-                )}
+                {isDefaultSr && <span className='tag tag-pill tag-info ml-1'>{_('defaultSr')}</span>}
               </EllipsisContainer>
             </Col>
             <Col largeSize={1} className='hidden-md-down'>
@@ -176,9 +141,7 @@ export default class SrItem extends Component {
               {sr.size > 0 && (
                 <Tooltip
                   content={_('spaceLeftTooltip', {
-                    used: String(
-                      Math.round((sr.physical_usage / sr.size) * 100)
-                    ),
+                    used: String(Math.round((sr.physical_usage / sr.size) * 100)),
                     free: formatSizeShort(sr.size - sr.physical_usage),
                   })}
                 >
@@ -192,17 +155,10 @@ export default class SrItem extends Component {
               )}
             </Col>
             <Col mediumSize={1} largeSize={1} className='hidden-sm-down'>
-              {container && (
-                <Link to={`/${container.type}s/${container.id}`}>
-                  {container.name_label}
-                </Link>
-              )}
+              {container && <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>}
             </Col>
             <Col mediumSize={1} className={styles.itemExpandRow}>
-              <a
-                className={styles.itemExpandButton}
-                onClick={this._toggleExpanded}
-              >
+              <a className={styles.itemExpandButton} onClick={this._toggleExpanded}>
                 <Icon icon='nav' fixedWidth />
                 &nbsp;&nbsp;&nbsp;
               </a>
@@ -216,12 +172,7 @@ export default class SrItem extends Component {
             </Col>
             <Col mediumSize={4}>
               <span style={{ fontSize: '1.4em' }}>
-                <HomeTags
-                  type='SR'
-                  labels={sr.tags}
-                  onDelete={this._removeTag}
-                  onAdd={this._addTag}
-                />
+                <HomeTags type='SR' labels={sr.tags} onDelete={this._removeTag} onAdd={this._addTag} />
               </span>
             </Col>
           </SingleLineRow>

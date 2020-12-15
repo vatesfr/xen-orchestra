@@ -16,10 +16,7 @@ const removeUndefined = obj => {
 const markdownCompiler = nodemailerMarkdown()
 
 const logAndRethrow = error => {
-  console.error(
-    '[WARN] plugin transport-email:',
-    (error && error.stack) || error
-  )
+  console.error('[WARN] plugin transport-email:', (error && error.stack) || error)
 
   throw error
 }
@@ -58,8 +55,7 @@ export const configurationSchema = {
         },
         port: {
           type: 'integer',
-          description:
-            'port of the SMTP server (defaults to 25 or 465 for TLS)',
+          description: 'port of the SMTP server (defaults to 25 or 465 for TLS)',
         },
         secure: {
           default: false,
@@ -74,8 +70,7 @@ export const configurationSchema = {
         },
         ignoreUnauthorized: {
           type: 'boolean',
-          description:
-            'ignore certificates error (e.g. self-signed certificate)',
+          description: 'ignore certificates error (e.g. self-signed certificate)',
         },
 
         // FIXME: xo-web does not support edition of too nested
@@ -141,14 +136,9 @@ class TransportEmailPlugin {
     this._send = null
   }
 
-  configure({
-    from,
-    transport: { ignoreUnauthorized, password, secure, user, ...transportConf },
-  }) {
+  configure({ from, transport: { ignoreUnauthorized, password, secure, user, ...transportConf } }) {
     if (ignoreUnauthorized != null) {
-      ;(
-        transportConf.tls || (transportConf.tls = {})
-      ).rejectUnauthorized = !ignoreUnauthorized
+      ;(transportConf.tls || (transportConf.tls = {})).rejectUnauthorized = !ignoreUnauthorized
     }
 
     if (user != null && password != null) {

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-vmdk-to-vhd",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "license": "AGPL-3.0-or-later",
   "description": "JS lib streaming a vmdk file to a vhd",
   "keywords": [
@@ -28,8 +28,9 @@
     "child-process-promise": "^2.0.3",
     "core-js": "^3.0.0",
     "lodash": "^4.17.15",
+    "pako": "^1.0.11",
     "promise-toolbox": "^0.15.0",
-    "vhd-lib": "^0.7.2",
+    "vhd-lib": "^1.0.0",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
@@ -39,9 +40,9 @@
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
     "event-to-promise": "^0.8.0",
-    "execa": "^4.0.2",
+    "execa": "^5.0.0",
     "fs-extra": "^9.0.0",
-    "get-stream": "^5.1.0",
+    "get-stream": "^6.0.0",
     "index-modules": "^0.3.0",
     "rimraf": "^3.0.0",
     "tmp": "^0.2.1"
@@ -52,7 +53,7 @@
     "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
-    "prepare": "yarn run build",
+    "prepublishOnly": "yarn run build",
     "postversion": "npm publish"
   },
   "author": {

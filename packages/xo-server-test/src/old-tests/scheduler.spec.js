@@ -5,13 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {
-  jobTest,
-  scheduleTest,
-  getConfig,
-  getMainConnection,
-  getSchedule,
-} from './util'
+import { jobTest, scheduleTest, getConfig, getMainConnection, getSchedule } from './util'
 import eventToPromise from 'event-to-promise'
 
 // ===================================================================

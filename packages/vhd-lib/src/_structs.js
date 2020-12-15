@@ -13,13 +13,8 @@ const uint64 = fu.derive(
 const uint64Undefinable = fu.derive(
   fu.uint32(2),
   number =>
-    number === undefined
-      ? [0xffffffff, 0xffffffff]
-      : [Math.floor(number / SIZE_OF_32_BITS), number % SIZE_OF_32_BITS],
-  _ =>
-    _[0] === 0xffffffff && _[1] === 0xffffffff
-      ? undefined
-      : _[0] * SIZE_OF_32_BITS + _[1]
+    number === undefined ? [0xffffffff, 0xffffffff] : [Math.floor(number / SIZE_OF_32_BITS), number % SIZE_OF_32_BITS],
+  _ => (_[0] === 0xffffffff && _[1] === 0xffffffff ? undefined : _[0] * SIZE_OF_32_BITS + _[1])
 )
 
 export const fuFooter = fu.struct([
@@ -77,20 +72,13 @@ assert.strictEqual(fuHeader.size, HEADER_SIZE)
 export const packField = (field, value, buf) => {
   const { offset } = field
 
-  field.pack(
-    value,
-    buf,
-    typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset
-  )
+  field.pack(value, buf, typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset)
 }
 
 export const unpackField = (field, buf) => {
   const { offset } = field
 
-  return field.unpack(
-    buf,
-    typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset
-  )
+  return field.unpack(buf, typeof offset !== 'object' ? { bytes: offset, bits: 0 } : offset)
 }
 
 // Returns the checksum of a raw struct.
@@ -104,11 +92,7 @@ export function checksumStruct(buf, struct) {
   for (let i = 0, n = checksumOffset; i < n; ++i) {
     sum += buf[i]
   }
-  for (
-    let i = checksumOffset + checksumField.size, n = struct.size;
-    i < n;
-    ++i
-  ) {
+  for (let i = checksumOffset + checksumField.size, n = struct.size; i < n; ++i) {
     sum += buf[i]
   }
 

@@ -2,18 +2,7 @@ import JSON5 from 'json5'
 import limitConcurrency from 'limit-concurrency-decorator'
 import synchronized from 'decorator-synchronized'
 import { BaseError } from 'make-error'
-import {
-  defaults,
-  findKey,
-  forEach,
-  identity,
-  map,
-  mapValues,
-  mean,
-  sum,
-  uniq,
-  zipWith,
-} from 'lodash'
+import { defaults, findKey, forEach, identity, map, mapValues, mean, sum, uniq, zipWith } from 'lodash'
 
 import { parseDateTime } from './xapi'
 
@@ -65,22 +54,14 @@ async function getServerTimestamp(xapi, hostRef) {
 // -------------------------------------------------------------------
 
 const computeValues = (dataRow, legendIndex, transformValue = identity) =>
-  map(dataRow, ({ values }) =>
-    transformValue(convertNanToNull(values[legendIndex]))
-  )
+  map(dataRow, ({ values }) => transformValue(convertNanToNull(values[legendIndex])))
 
-const combineStats = (stats, path, combineValues) =>
-  zipWith(...map(stats, path), (...values) => combineValues(values))
+const combineStats = (stats, path, combineValues) => zipWith(...map(stats, path), (...values) => combineValues(values))
 
-const createGetProperty = (obj, property, defaultValue) =>
-  defaults(obj, { [property]: defaultValue })[property]
+const createGetProperty = (obj, property, defaultValue) => defaults(obj, { [property]: defaultValue })[property]
 
 const testMetric = (test, type) =>
-  typeof test === 'string'
-    ? test === type
-    : typeof test === 'function'
-    ? test(type)
-    : test.exec(type)
+  typeof test === 'string' ? test === type : typeof test === 'function' ? test(type) : test.exec(type)
 
 const findMetric = (metrics, metricType) => {
   let testResult
@@ -296,10 +277,7 @@ export default class XapiStats {
 
   @synchronized.withKey((_, { host }) => host.uuid)
   async _getAndUpdateStats(xapi, { host, uuid, granularity }) {
-    const step =
-      granularity === undefined
-        ? RRD_STEP_SECONDS
-        : RRD_STEP_FROM_STRING[granularity]
+    const step = granularity === undefined ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
 
     if (step === undefined) {
       throw new FaultyGranularity(
@@ -326,9 +304,7 @@ export default class XapiStats {
       // but this implementation requires it in the other direction
       json.data.reverse()
       json.meta.legend.forEach((legend, index) => {
-        const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
-          legend
-        )
+        const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(legend)
 
         const metrics = STATS[type]
         if (metrics === undefined) {
@@ -342,30 +318,20 @@ export default class XapiStats {
 
         const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
         let stepStats = xoObjectStats[actualStep]
-        if (
-          stepStats === undefined ||
-          stepStats.endTimestamp !== json.meta.end
-        ) {
+        if (stepStats === undefined || stepStats.endTimestamp !== json.meta.end) {
           stepStats = xoObjectStats[actualStep] = {
             endTimestamp: json.meta.end,
             interval: actualStep,
           }
         }
 
-        const path =
-          metric.getPath !== undefined
-            ? metric.getPath(testResult)
-            : [findKey(metrics, metric)]
+        const path = metric.getPath !== undefined ? metric.getPath(testResult) : [findKey(metrics, metric)]
 
         const lastKey = path.length - 1
         let metricStats = createGetProperty(stepStats, 'stats', {})
         path.forEach((property, key) => {
           if (key === lastKey) {
-            metricStats[property] = computeValues(
-              json.data,
-              index,
-              metric.transformValue
-            )
+            metricStats[property] = computeValues(json.data, index, metric.transformValue)
             return
           }
 
@@ -375,9 +341,7 @@ export default class XapiStats {
     }
 
     if (actualStep !== step) {
-      throw new FaultyGranularity(
-        `Unable to get the true granularity: ${actualStep}`
-      )
+      throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
     }
 
     return (
@@ -435,16 +399,8 @@ export default class XapiStats {
           w: combineStats(hostsStats, `stats.iops.w[${srShortUUID}]`, sum),
         },
         ioThroughput: {
-          r: combineStats(
-            hostsStats,
-            `stats.ioThroughput.r[${srShortUUID}]`,
-            sum
-          ),
-          w: combineStats(
-            hostsStats,
-            `stats.ioThroughput.w[${srShortUUID}]`,
-            sum
-          ),
+          r: combineStats(hostsStats, `stats.ioThroughput.r[${srShortUUID}]`, sum),
+          w: combineStats(hostsStats, `stats.ioThroughput.w[${srShortUUID}]`, sum),
         },
         latency: {
           r: combineStats(hostsStats, `stats.latency.r[${srShortUUID}]`, mean),

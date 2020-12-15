@@ -237,7 +237,11 @@ Then, you can define quotas on this set:
 - max disk usage
 
 :::tip
-Snapshotting a VM within a self-service will _not_ use the quota from the resource set. The same rule applies for backups and replication.
+Replicated VMs and snapshots created by a backup job don't use quotas.
+:::
+
+:::tip
+A snapshot of a Self Service VM will use as much resources as a VM would. You can disable this by setting `ignoreVmSnapshotResources` to `true` in the `selfService` section of `xo-server`'s config.
 :::
 
 When you click on create, you can see the resource set and remove or edit it:
@@ -273,6 +277,34 @@ Self-service is a major step in the Cloud. Combine it with our [Cloudinit compat
 Now, your authorized users can create VMs with their SSH keys, grow template disks if needed, etc. Everything is inside a "sandbox" (the resource set) you defined earlier!
 
 ![](https://pbs.twimg.com/media/CYMt2cJUkAAWCPg.png)
+
+## Audit log
+
+XO Audit Log is a plugin that records all important actions performed by users and provides the administrators an overview of each action. This gives them an idea of the users behavior regarding their infrastructure in order to track suspicious activities.
+
+### How does it work?
+
+XO Audit Log listens to important actions performed by users and stores them in the XOA database using the [hash chain structure](https://en.wikipedia.org/wiki/Hash_chain).
+
+### Trustability of the records
+
+Stored records are secured by:
+
+- structure: records are chained using the hash chain structure which means that each record is linked to its parent in a cryptographically secure way. This structure prevents the alteration of old records.
+
+- hash upload: the hash chain structure has limits, it does not protect from the rewrite of recent/all records. To reduce this risk, the Audit log plugin regularly uploads the last record hash to our database after checking the integrity of the whole record chain. This functionality keeps the records safe by notifying users in case of alteration of the records.
+
+### Configuration
+
+The recording of the users' actions is disabled by default. To enable it:
+
+1. go into `settings/plugins`
+2. expand the `audit` configuration
+3. toggle active and save the configuration
+
+![](./assets/audit_log_configuration.png)
+
+Now, the audit plugin will record users' actions and upload the last record in the chain every day at **06:00 AM (UTC)**.
 
 ## Debugging
 

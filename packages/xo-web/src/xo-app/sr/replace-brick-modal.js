@@ -47,10 +47,7 @@ export default class ReplaceBrickModalBody extends Component {
               <strong>{_('xosanOnSameVm')}</strong>
             </Col>
             <Col size={6}>
-              <Toggle
-                onChange={this._toggleOnSameVm}
-                value={this.state.onSameVm}
-              />
+              <Toggle onChange={this._toggleOnSameVm} value={this.state.onSameVm} />
             </Col>
           </Row>
         )}
@@ -59,11 +56,7 @@ export default class ReplaceBrickModalBody extends Component {
             <strong>{_('xosanUnderlyingStorage')}</strong>
           </Col>
           <Col size={6}>
-            <SelectSr
-              onChange={this._selectSr}
-              predicate={this._getSrPredicate()}
-              value={this.state.sr}
-            />
+            <SelectSr onChange={this._selectSr} predicate={this._getSrPredicate()} value={this.state.sr} />
           </Col>
         </Row>
         <Row className='mb-1'>
@@ -71,10 +64,7 @@ export default class ReplaceBrickModalBody extends Component {
             <strong>{_('xosanBrickSize')}</strong>
           </Col>
           <Col size={6}>
-            <SizeInput
-              onChange={this.linkState('brickSize')}
-              value={this.state.brickSize}
-            />
+            <SizeInput onChange={this.linkState('brickSize')} value={this.state.brickSize} />
           </Col>
         </Row>
       </Container>

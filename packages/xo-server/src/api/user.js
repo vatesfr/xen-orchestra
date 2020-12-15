@@ -64,17 +64,13 @@ export async function set({ id, email, password, permission, preferences }) {
       throw invalidParameters('a user cannot change its own permission')
     }
   } else if (email || password || permission) {
-    throw invalidParameters(
-      'this properties can only changed by an administrator'
-    )
+    throw invalidParameters('this properties can only changed by an administrator')
   }
 
   await this.updateUser(id, { email, password, permission, preferences })
 }
 
 set.description = 'changes the properties of an existing user'
-
-set.permission = ''
 
 set.params = {
   id: { type: 'string' },
@@ -91,10 +87,7 @@ export async function changePassword({ oldPassword, newPassword }) {
   await this.changeUserPassword(id, oldPassword, newPassword)
 }
 
-changePassword.description =
-  'change password after checking old password (user function)'
-
-changePassword.permission = ''
+changePassword.description = 'change password after checking old password (user function)'
 
 changePassword.params = {
   oldPassword: { type: 'string' },

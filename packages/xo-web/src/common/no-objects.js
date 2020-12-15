@@ -24,11 +24,7 @@ const NoObjects = props => {
   }
 
   const { children, component: Component, componentRef, ...otherProps } = props
-  return children !== undefined ? (
-    children(otherProps)
-  ) : (
-    <Component ref={componentRef} {...otherProps} />
-  )
+  return children !== undefined ? children(otherProps) : <Component ref={componentRef} {...otherProps} />
 }
 
 NoObjects.propTypes = {

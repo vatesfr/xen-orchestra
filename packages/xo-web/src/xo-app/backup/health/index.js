@@ -8,15 +8,14 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import renderXoItem, { BackupJob, Vm } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { addSubscriptions, connectStore, noop } from 'utils'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Container, Row, Col } from 'grid'
 import { confirm } from 'modal'
-import { createPredicate } from 'value-matcher'
-import { createGetLoneSnapshots, createGetObjectsOfType } from 'selectors'
-import { forEach, keyBy, omit, toArray } from 'lodash'
+import { createGetObjectsOfType, getLoneSnapshots } from 'selectors'
+import { flatMapDepth, keyBy, map, toArray } from 'lodash'
 import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import { addSubscriptions, connectStore, getDetachedBackupsOrSnapshots, noop } from 'utils'
 import {
   deleteBackups,
   deleteSnapshot,
@@ -123,6 +122,11 @@ const SNAPSHOT_COLUMNS = [
       return vm && vm.name_label
     },
   },
+  {
+    name: _('reason'),
+    itemRenderer: ({ reason }) => _(reason),
+    sortCriteria: 'reason',
+  },
 ]
 
 const ACTIONS = [
@@ -138,7 +142,7 @@ const ACTIONS = [
 
 const Health = decorate([
   addSubscriptions({
-    // used by createGetLoneSnapshots
+    // used by getLoneSnapshots
     schedules: cb =>
       subscribeSchedules(schedules => {
         cb(keyBy(schedules, 'id'))
@@ -149,7 +153,7 @@ const Health = decorate([
       }),
   }),
   connectStore({
-    loneSnapshots: createGetLoneSnapshots,
+    loneSnapshots: getLoneSnapshots,
     legacySnapshots: createGetObjectsOfType('VM-snapshot').filter([
       (() => {
         const RE = /^(?:XO_DELTA_EXPORT:|XO_DELTA_BASE_VM_SNAPSHOT_|rollingSnapshot_)/
@@ -169,9 +173,7 @@ const Health = decorate([
         return fetchBackupList()
       },
       async fetchBackupList() {
-        this.state.backupsByRemote = await listVmBackups(
-          toArray(await getRemotes())
-        )
+        this.state.backupsByRemote = await listVmBackups(toArray(await getRemotes()))
       },
     },
     computed: {
@@ -180,46 +182,19 @@ const Health = decorate([
           return []
         }
 
-        const detachedBackups = []
-        let job
-        forEach(backupsByRemote, backupsByVm => {
-          forEach(backupsByVm, (vmBackups, vmId) => {
-            const vm = vms[vmId]
-            vmBackups.forEach(backup => {
-              const reason =
-                vm === undefined
-                  ? 'missingVm'
-                  : (job = jobs[backup.jobId]) === undefined
-                  ? 'missingJob'
-                  : schedules[backup.scheduleId] === undefined
-                  ? 'missingSchedule'
-                  : !createPredicate(omit(job.vms, 'power_state'))(vm)
-                  ? 'missingVmInJob'
-                  : undefined
-
-              if (reason !== undefined) {
-                detachedBackups.push({
-                  ...backup,
-                  vmId,
-                  reason,
-                })
-              }
-            })
-          })
-        })
-        return detachedBackups
+        return getDetachedBackupsOrSnapshots(
+          flatMapDepth(
+            backupsByRemote,
+            backupsByVm => map(backupsByVm, (vmBackups, vmId) => vmBackups.map(backup => ({ ...backup, vmId }))),
+            2
+          ),
+          { jobs, schedules, vms }
+        )
       },
     },
   }),
   injectState,
-  ({
-    effects: { fetchBackupList },
-    jobs,
-    legacySnapshots,
-    loneSnapshots,
-    state: { detachedBackups },
-    vms,
-  }) => (
+  ({ effects: { fetchBackupList }, jobs, legacySnapshots, loneSnapshots, state: { detachedBackups }, vms }) => (
     <Container>
       <Row className='detached-backups'>
         <Col>
@@ -229,11 +204,7 @@ const Health = decorate([
             </CardHeader>
             <CardBlock>
               <div className='mb-1'>
-                <ActionButton
-                  btnStyle='primary'
-                  handler={fetchBackupList}
-                  icon='refresh'
-                >
+                <ActionButton btnStyle='primary' handler={fetchBackupList} icon='refresh'>
                   {_('refreshBackupList')}
                 </ActionButton>
               </div>
@@ -257,7 +228,7 @@ const Health = decorate([
         <Col>
           <Card>
             <CardHeader>
-              <Icon icon='vm' /> {_('vmSnapshotsRelatedToNonExistentBackups')}
+              <Icon icon='vm' /> {_('detachedVmSnapshots')}
             </CardHeader>
             <CardBlock>
               <NoObjects

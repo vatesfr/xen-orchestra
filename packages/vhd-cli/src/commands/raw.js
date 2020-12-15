@@ -9,8 +9,5 @@ export default async args => {
     return `Usage: ${this.command} <input VHD> [<output raw>]`
   }
 
-  await writeStream(
-    createContentStream(getHandler({ url: 'file:///' }), resolve(args[0])),
-    args[1]
-  )
+  await writeStream(createContentStream(getHandler({ url: 'file:///' }), resolve(args[0])), args[1])
 }

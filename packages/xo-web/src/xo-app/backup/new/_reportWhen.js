@@ -41,13 +41,8 @@ const ReportWhen = decorate([
         <strong>{_('reportWhen')}</strong>
       </label>{' '}
       <Tooltip content={_('pluginsWarning')}>
-        <Link
-          className='btn btn-primary btn-sm'
-          target='_blank'
-          to='/settings/plugins'
-        >
-          <Icon icon='menu-settings-plugins' />{' '}
-          <strong>{_('pluginsSettings')}</strong>
+        <Link className='btn btn-primary btn-sm' target='_blank' to='/settings/plugins'>
+          <Icon icon='menu-settings-plugins' /> <strong>{_('pluginsSettings')}</strong>
         </Link>
       </Tooltip>
       <Select

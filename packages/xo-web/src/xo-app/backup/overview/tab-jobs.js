@@ -18,7 +18,9 @@ import { createFilter, createGetObjectsOfType, createSelector } from 'selectors'
 import { createPredicate } from 'value-matcher'
 import { get } from '@xen-orchestra/defined'
 import { groupBy, isEmpty, map, some } from 'lodash'
+import { injectState, provideState } from 'reaclette'
 import { Proxy } from 'render-xo-item'
+import { withRouter } from 'react-router'
 import {
   cancelJob,
   deleteBackupJobs,
@@ -49,28 +51,23 @@ const Li = props => (
 const MODES = [
   {
     label: 'rollingSnapshot',
-    test: job =>
-      some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
+    test: job => some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
   },
   {
     label: 'backup',
-    test: job =>
-      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
     label: 'deltaBackup',
-    test: job =>
-      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
     label: 'continuousReplication',
-    test: job =>
-      job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
     label: 'disasterRecovery',
-    test: job =>
-      job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
     label: 'poolMetadata',
@@ -83,10 +80,7 @@ const MODES = [
 ]
 
 const _deleteBackupJobs = items => {
-  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(
-    items,
-    'type'
-  )
+  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(items, 'type')
   return deleteBackupJobs({ backupIds, metadataBackupIds })
 }
 
@@ -104,11 +98,41 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
         })}
       </span>
     ),
-  }).then(() =>
-    type === 'backup'
-      ? runBackupNgJob({ id, schedule })
-      : runMetadataBackupJob({ id, schedule })
-  )
+  }).then(() => (type === 'backup' ? runBackupNgJob({ id, schedule }) : runMetadataBackupJob({ id, schedule })))
+
+const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
+const GoToLogs = decorate([
+  withRouter,
+  provideState({
+    effects: {
+      goTo() {
+        const { jobId, location, router, scheduleId, scrollIntoLogs } = this.props
+        router.replace({
+          ...location,
+          query: {
+            ...location.query,
+            s_logs: jobId !== undefined ? `jobId:${jobId}` : `scheduleId:${scheduleId}`,
+          },
+        })
+        scrollIntoLogs()
+      },
+    },
+  }),
+  injectState,
+  ({ effects, children }) => (
+    <Tooltip content={_('goToCorrespondingLogs')}>
+      <span onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
+        {children}
+      </span>
+    </Tooltip>
+  ),
+])
+
+GoToLogs.propTypes = {
+  jobId: PropTypes.string,
+  scheduleId: PropTypes.string,
+  scrollIntoLogs: PropTypes.func.isRequired,
+}
 
 const SchedulePreviewBody = decorate([
   addSubscriptions(({ schedule }) => ({
@@ -117,11 +141,14 @@ const SchedulePreviewBody = decorate([
         let lastRunLog
         for (const runId in logs) {
           const log = logs[runId]
-          if (
-            log.scheduleId === schedule.id &&
-            (lastRunLog === undefined || lastRunLog.start < log.start)
-          ) {
-            lastRunLog = log
+          if (log.scheduleId === schedule.id) {
+            if (log.status === 'pending') {
+              lastRunLog = log
+              break
+            }
+            if (lastRunLog === undefined || (lastRunLog.end || lastRunLog.start) < (log.end || log.start)) {
+              lastRunLog = log
+            }
           }
         }
         cb(lastRunLog)
@@ -132,12 +159,12 @@ const SchedulePreviewBody = decorate([
       .filter(createSelector((_, props) => props.job.vms, createPredicate))
       .count(),
   })),
-  ({ job, schedule, lastRunLog, nVms }) => (
+  ({ job, schedule, scrollIntoLogs, lastRunLog, nVms }) => (
     <Ul>
       <Li>
-        {schedule.name
-          ? _.keyValue(_('scheduleName'), schedule.name)
-          : _.keyValue(_('scheduleCron'), schedule.cron)}{' '}
+        <GoToLogs scheduleId={schedule.id} scrollIntoLogs={scrollIntoLogs}>
+          {schedule.name ? _.keyValue(_('scheduleName'), schedule.name) : _.keyValue(_('scheduleCron'), schedule.cron)}
+        </GoToLogs>{' '}
         <Tooltip content={_('scheduleCopyId', { id: schedule.id.slice(4, 8) })}>
           <CopyToClipboard text={schedule.id}>
             <Button size='small'>
@@ -185,11 +212,10 @@ const SchedulePreviewBody = decorate([
             icon='run-schedule'
             key='run'
             size='small'
+            tooltip={_('runBackupJob')}
           />
         )}{' '}
-        {lastRunLog !== undefined && (
-          <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />
-        )}
+        {lastRunLog !== undefined && <LogStatus log={lastRunLog} tooltip={_('scheduleLastRun')} />}
       </Li>
     </Ul>
   ),
@@ -220,9 +246,11 @@ class JobsTable extends React.Component {
   static tableProps = {
     columns: [
       {
-        itemRenderer: ({ id }) => (
+        itemRenderer: ({ id }, { scrollIntoLogs }) => (
           <Copiable data={id} tagName='p'>
-            {id.slice(4, 8)}
+            <GoToLogs jobId={id} scrollIntoLogs={scrollIntoLogs}>
+              {id.slice(4, 8)}
+            </GoToLogs>
           </Copiable>
         ),
         name: _('jobId'),
@@ -244,15 +272,11 @@ class JobsTable extends React.Component {
         name: _('jobModes'),
       },
       {
-        itemRenderer: (job, { schedulesByJob }) =>
+        itemRenderer: (job, { schedulesByJob, scrollIntoLogs }) =>
           map(
             get(() => schedulesByJob[job.id]),
             schedule => (
-              <SchedulePreviewBody
-                job={job}
-                key={schedule.id}
-                schedule={schedule}
-              />
+              <SchedulePreviewBody job={job} key={schedule.id} schedule={schedule} scrollIntoLogs={scrollIntoLogs} />
             )
           ),
         name: _('jobSchedules'),
@@ -277,52 +301,22 @@ class JobsTable extends React.Component {
 
           return (
             <Ul>
-              {proxyId !== undefined && (
-                <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} />)}</Li>
-              )}
-              {reportWhen !== undefined && (
-                <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>
-              )}
-              {concurrency !== undefined && (
-                <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>
-              )}
-              {timeout !== undefined && (
-                <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>
-              )}
-              {fullInterval !== undefined && (
-                <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>
-              )}
+              {proxyId !== undefined && <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} />)}</Li>}
+              {reportWhen !== undefined && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
+              {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
+              {timeout !== undefined && <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>}
+              {fullInterval !== undefined && <Li>{_.keyValue(_('fullBackupInterval'), fullInterval)}</Li>}
               {offlineBackup !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('offlineBackup'),
-                    _(offlineBackup ? 'stateEnabled' : 'stateDisabled')
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('offlineBackup'), _(offlineBackup ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
               {offlineSnapshot !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('offlineSnapshot'),
-                    _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled')
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('offlineSnapshot'), _(offlineSnapshot ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
               {checkpointSnapshot !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('checkpointSnapshot'),
-                    _(checkpointSnapshot ? 'stateEnabled' : 'stateDisabled')
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('checkpointSnapshot'), _(checkpointSnapshot ? 'stateEnabled' : 'stateDisabled'))}</Li>
               )}
               {compression !== undefined && (
-                <Li>
-                  {_.keyValue(
-                    _('compression'),
-                    compression === 'native' ? 'GZIP' : compression
-                  )}
-                </Li>
+                <Li>{_.keyValue(_('compression'), compression === 'native' ? 'GZIP' : compression)}</Li>
               )}
             </Ul>
           )
@@ -342,8 +336,7 @@ class JobsTable extends React.Component {
         icon: 'preview',
       },
       {
-        handler: (job, { goTo, goToNewTab, main }) =>
-          (main ? goTo : goToNewTab)(`/backup/${job.id}/edit`),
+        handler: (job, { goTo, goToNewTab, main }) => (main ? goTo : goToNewTab)(`/backup/${job.id}/edit`),
         label: _('formEdit'),
         icon: 'edit',
         level: 'primary',
@@ -393,6 +386,7 @@ class JobsTable extends React.Component {
         data-goToNewTab={this._goToNewTab}
         data-main={this.props.main}
         data-schedulesByJob={this.props.schedulesByJob}
+        data-scrollIntoLogs={this.props.scrollIntoLogs}
         stateUrlParam='s'
       />
     )

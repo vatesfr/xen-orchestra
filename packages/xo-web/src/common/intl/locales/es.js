@@ -378,8 +378,7 @@ export default {
   homeDisplayedItems: '{displayed, number}x {icon} (sobre {total, number})',
 
   // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems:
-    '{selected, number}x {icon} seleccionados (sobre {total, number})',
+  homeSelectedItems: '{selected, number}x {icon} seleccionados (sobre {total, number})',
 
   // Original text: "More"
   homeMore: 'Más',
@@ -664,19 +663,16 @@ export default {
   deleteBackupSchedule: 'Eliminar tarea de backup',
 
   // Original text: "Are you sure you want to delete this backup job?"
-  deleteBackupScheduleQuestion:
-    '¿Estás seguro de querer borrar esta tarea de backup?',
+  deleteBackupScheduleQuestion: '¿Estás seguro de querer borrar esta tarea de backup?',
 
   // Original text: "Enable immediately after creation"
   scheduleEnableAfterCreation: 'Activar inmediatamente tras la creación',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
-  scheduleEditMessage:
-    'Estás editando la Programación {name} ({id}). Se sobreescribirá el estado actual al guardar.',
+  scheduleEditMessage: 'Estás editando la Programación {name} ({id}). Se sobreescribirá el estado actual al guardar.',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage:
-    'Estás editando la Tarea {name} ({id}). Se sobreescribirá el estado actual al guardar.',
+  jobEditMessage: 'Estás editando la Tarea {name} ({id}). Se sobreescribirá el estado actual al guardar.',
 
   // Original text: "No scheduled jobs."
   noScheduledJobs: 'No hay tareas programadas',
@@ -1102,8 +1098,7 @@ export default {
   purgePluginConfiguration: 'Purgar la configuración de plugins',
 
   // Original text: "Are you sure you want to purge this configuration ?"
-  purgePluginConfigurationQuestion:
-    '¿Estás seguro de querer purgar esta configuración?',
+  purgePluginConfigurationQuestion: '¿Estás seguro de querer purgar esta configuración?',
 
   // Original text: "Edit"
   editPluginConfiguration: 'Editar',
@@ -1115,8 +1110,7 @@ export default {
   pluginConfigurationSuccess: 'Configuración del Plugin',
 
   // Original text: "Plugin configuration successfully saved!"
-  pluginConfigurationChanges:
-    '¡Configuración del Plugin guardada correctamente!',
+  pluginConfigurationChanges: '¡Configuración del Plugin guardada correctamente!',
 
   // Original text: 'Predefined configuration'
   pluginConfigurationPresetTitle: undefined,
@@ -2532,8 +2526,7 @@ export default {
   deleteResourceSetWarning: 'Borrar conjunto de recursos',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion:
-    '¿Estás seguro de querer borrar este conjunto de recursos?',
+  deleteResourceSetQuestion: '¿Estás seguro de querer borrar este conjunto de recursos?',
 
   // Original text: "Missing objects:"
   resourceSetMissingObjects: 'Objetos perdidos:',
@@ -2560,8 +2553,7 @@ export default {
   noHostsAvailable: 'No hay hosts disponibles',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription:
-    'Las VMs creadas con este conjunto de recursos correrán en los siguientes hosts.',
+  availableHostsDescription: 'Las VMs creadas con este conjunto de recursos correrán en los siguientes hosts.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Máximas CPUs',
@@ -2838,8 +2830,7 @@ export default {
   blockedStartVmsModalMessage: undefined,
 
   // Original text: "Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?"
-  startVmsModalMessage:
-    '¿Estás seguro de querar arrancar {vms} VM{vms, plural, one {} other {s}}?',
+  startVmsModalMessage: '¿Estás seguro de querar arrancar {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
   failedVmsErrorMessage: undefined,
@@ -2857,8 +2848,7 @@ export default {
   stopVmsModalTitle: 'Parar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?"
-  stopVmsModalMessage:
-    '¿Estás seguro de querer parar {vms, number} VM{vms, plural, one {} other {s}}?',
+  stopVmsModalMessage: '¿Estás seguro de querer parar {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: 'Restart VM'
   restartVmModalTitle: undefined,
@@ -2876,15 +2866,13 @@ export default {
   restartVmsModalTitle: 'Reiniciar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage:
-    '¿Estás seguro de querer reiniciar {vms, number} VM{vms, plural, one {} other {s}}?',
+  restartVmsModalMessage: '¿Estás seguro de querer reiniciar {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage:
-    '¿Estás seguro de querer hacer snapshot de {vms, number} VM{vms, plural, one {} other {s}}?',
+  snapshotVmsModalMessage: '¿Estás seguro de querer hacer snapshot de {vms, number} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
   deleteVmsModalTitle: 'Borrar VM{vms, plural, one {} other {s}}',
@@ -2897,8 +2885,7 @@ export default {
   deleteVmModalTitle: 'Borrar VM',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage:
-    '¿Estás seguro de querer borrar esta VM? TODOS SUS DISCOS SERAN ELIMINADOS',
+  deleteVmModalMessage: '¿Estás seguro de querer borrar esta VM? TODOS SUS DISCOS SERAN ELIMINADOS',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Migrar VM',
@@ -2988,8 +2975,7 @@ export default {
   importBackupModalSelectBackup: 'Elige el backup…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning:
-    '¿Estás seguro de querer borrar todos los VDIs huérfanos?',
+  removeAllOrphanedModalWarning: '¿Estás seguro de querer borrar todos los VDIs huérfanos?',
 
   // Original text: "Remove all logs"
   removeAllLogsModalTitle: 'Borrar todos los logs',
@@ -3018,8 +3004,7 @@ export default {
   alreadyRegisteredModal: '¿Reemplazar el registro actual?',
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
-  alreadyRegisteredModalText:
-    'Tu XOA ya está registrado en {email}, ¿quieres olvidar y reemplazar este registro?',
+  alreadyRegisteredModalText: 'Tu XOA ya está registrado en {email}, ¿quieres olvidar y reemplazar este registro?',
 
   // Original text: "Ready for trial?"
   trialReadyModal: '¿Preparado para el periodo de prueba?',
@@ -3275,8 +3260,7 @@ export default {
   tryIt: '¡Pruébalo gratis!',
 
   // Original text: "This feature is available starting from {plan} Edition"
-  availableIn:
-    'Esta característica está sólo disponible a partir de la Edición {plan}',
+  availableIn: 'Esta característica está sólo disponible a partir de la Edición {plan}',
 
   // Original text: 'This feature is not available in your version, contact your administrator to know more.'
   notAvailable: undefined,
@@ -3344,8 +3328,7 @@ export default {
   editRegistration: undefined,
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration:
-    'Por favor, regístrate para poder disfrutar del periodo de prueba',
+  trialRegistration: 'Por favor, regístrate para poder disfrutar del periodo de prueba',
 
   // Original text: "Start trial"
   trialStartButton: 'Comenzar prueba',
@@ -3355,8 +3338,7 @@ export default {
     'Puedes usar la versión de prueba hasta {date, date, medium}. Actualiza tu instalación para obtenerla.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed:
-    'Tu periodo de prueba ha terminado. Contacta con nosotros o vuelve a la Edición Libre',
+  trialConsumed: 'Tu periodo de prueba ha terminado. Contacta con nosotros o vuelve a la Edición Libre',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
   trialLocked:
@@ -3390,16 +3372,13 @@ export default {
   disclaimerTitle: 'Xen Orchestra desde código fuente',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1:
-    '¡Estás utilizando XO a partir del código fuente! Estupendo para un uso personal/sin ánimo de lucro',
+  disclaimerText1: '¡Estás utilizando XO a partir del código fuente! Estupendo para un uso personal/sin ánimo de lucro',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2:
-    'Si eres una empresa, es mejor utilizarlo con nuestro appliance con soporte Pro incluído',
+  disclaimerText2: 'Si eres una empresa, es mejor utilizarlo con nuestro appliance con soporte Pro incluído',
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3:
-    'Esta versión no está creada para recibir soporte ni actualizaciones. Úsala con precaución.',
+  disclaimerText3: 'Esta versión no está creada para recibir soporte ni actualizaciones. Úsala con precaución.',
 
   // Original text: "Connect PIF"
   connectPif: 'Conectar PIF',

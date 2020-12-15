@@ -1,0 +1,11 @@
+# Vendor config: DO NOT TOUCH!
+#
+# See sample.config.toml to override.
+
+# The clone of a template can exceeds the jest timeout if it's used by other tests to create a VM
+cloneTempVmTimeout = '1 minute'
+
+# After some executions we saw that `deleteTempResources` takes around `21s`.
+# Then, we chose a large timeout to be sure that all resources created by `xo-server-test`
+# will be deleted
+deleteTempResourcesTimeout = '2 minutes'

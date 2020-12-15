@@ -1,21 +1,8 @@
 import asyncMap from '@xen-orchestra/async-map'
 import deferrable from 'golike-defer'
 import synchronized from 'decorator-synchronized'
-import {
-  difference,
-  every,
-  forEach,
-  isObject,
-  keyBy,
-  map as mapToArray,
-  remove,
-  some,
-} from 'lodash'
-import {
-  noSuchObject,
-  notEnoughResources,
-  unauthorized,
-} from 'xo-common/api-errors'
+import { difference, every, forEach, isObject, keyBy, map as mapToArray, remove, some } from 'lodash'
+import { noSuchObject, notEnoughResources, unauthorized } from 'xo-common/api-errors'
 
 import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils'
 
@@ -38,11 +25,7 @@ const computeVmXapiResourcesUsage = vm => {
 
   forEach(vm.$VBDs, vbd => {
     let vdi, vdiId
-    if (
-      vbd.type === 'Disk' &&
-      !processed[(vdiId = vbd.VDI)] &&
-      (vdi = vbd.$VDI)
-    ) {
+    if (vbd.type === 'Disk' && !processed[(vdiId = vbd.VDI)] && (vdi = vbd.$VDI)) {
       processed[vdiId] = true
       ++disks
       disk += +vdi.virtual_size
@@ -87,10 +70,7 @@ export default class {
       xo.addConfigManager(
         'resourceSets',
         () => this.getAllResourceSets(),
-        resourceSets =>
-          Promise.all(
-            mapToArray(resourceSets, resourceSet => this._save(resourceSet))
-          ),
+        resourceSets => Promise.all(mapToArray(resourceSets, resourceSet => this._save(resourceSet))),
         ['groups', 'users']
       )
 
@@ -134,12 +114,18 @@ export default class {
     )
   }
 
-  async createResourceSet(
-    name,
-    subjects = undefined,
-    objects = undefined,
-    limits = undefined
-  ) {
+  async computeVmSnapshotResourcesUsage(snapshot) {
+    if (this._xo._config.selfService?.ignoreVmSnapshotResources) {
+      return {}
+    }
+    return this.computeVmResourcesUsage(snapshot)
+  }
+
+  computeResourcesUsage(vm) {
+    return vm.type === 'VM-snapshot' ? this.computeVmSnapshotResourcesUsage(vm) : this.computeVmResourcesUsage(vm)
+  }
+
+  async createResourceSet(name, subjects = undefined, objects = undefined, limits = undefined) {
     const id = await this._generateId()
     const set = normalize({
       id,
@@ -158,6 +144,9 @@ export default class {
     const store = this._store
 
     if (await store.has(id)) {
+      await Promise.all(
+        mapToArray(this._xo.getObjects({ filter: { resourceSet: id } }), vm => this.setVmResourceSet(vm.id, null, true))
+      )
       return store.del(id)
     }
 
@@ -168,13 +157,7 @@ export default class {
   async updateResourceSet(
     $defer,
     id,
-    {
-      name = undefined,
-      subjects = undefined,
-      objects = undefined,
-      limits = undefined,
-      ipPools = undefined,
-    }
+    { name = undefined, subjects = undefined, objects = undefined, limits = undefined, ipPools = undefined }
   ) {
     const set = await this.getResourceSet(id)
     if (name) {
@@ -187,14 +170,9 @@ export default class {
             (await this._xo.getAclsForSubject(subjectId)).map(async acl => {
               try {
                 const object = this._xo.getObject(acl.object)
-                if (
-                  (object.type === 'VM' || object.type === 'VM-snapshot') &&
-                  object.resourceSet === id
-                ) {
+                if ((object.type === 'VM' || object.type === 'VM-snapshot') && object.resourceSet === id) {
                   await this._xo.removeAcl(subjectId, acl.object, acl.action)
-                  $defer.onFailure(() =>
-                    this._xo.addAcl(subjectId, acl.object, acl.action)
-                  )
+                  $defer.onFailure(() => this._xo.addAcl(subjectId, acl.object, acl.action))
                 }
               } catch (error) {
                 if (!noSuchObject.is(error)) {
@@ -294,7 +272,7 @@ export default class {
     await this._save(set)
   }
 
-  async removeSubjectToResourceSet(subjectId, setId) {
+  async removeSubjectFromResourceSet(subjectId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.subjects, id => id === subjectId)
     await this._save(set)
@@ -380,17 +358,12 @@ export default class {
             }
 
             const { limits } = set
-            forEach(
-              await this.computeVmResourcesUsage(
-                this._xo.getObject(object.$id)
-              ),
-              (usage, resource) => {
-                const limit = limits[resource]
-                if (limit) {
-                  limit.available -= usage
-                }
+            forEach(await this.computeResourcesUsage(this._xo.getObject(object.$id)), (usage, resource) => {
+              const limit = limits[resource]
+              if (limit) {
+                limit.available -= usage
               }
-            )
+            })
           })
         )
       )
@@ -404,56 +377,25 @@ export default class {
     const xapi = this._xo.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
-    if (
-      resourceSetId === previousResourceSetId ||
-      (previousResourceSetId === undefined && resourceSetId === null)
-    ) {
+    if (resourceSetId === previousResourceSetId || (previousResourceSetId === undefined && resourceSetId === null)) {
       return
     }
 
-    const resourcesUsage = await this.computeVmResourcesUsage(
-      this._xo.getObject(vmId)
-    )
+    const resourcesUsage = await this.computeResourcesUsage(this._xo.getObject(vmId))
 
     if (resourceSetId != null) {
-      await this.allocateLimitsInResourceSet(
-        resourcesUsage,
-        resourceSetId,
-        force
-      )
-      $defer.onFailure(() =>
-        this.releaseLimitsInResourceSet(resourcesUsage, resourceSetId)
-      )
+      await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId, force)
+      $defer.onFailure(() => this.releaseLimitsInResourceSet(resourcesUsage, resourceSetId))
     }
 
-    if (
-      previousResourceSetId !== undefined &&
-      (await this._store.has(previousResourceSetId))
-    ) {
-      await this.releaseLimitsInResourceSet(
-        resourcesUsage,
-        previousResourceSetId
-      )
-      $defer.onFailure(() =>
-        this.allocateLimitsInResourceSet(
-          resourcesUsage,
-          previousResourceSetId,
-          true
-        )
-      )
+    if (previousResourceSetId !== undefined && (await this._store.has(previousResourceSetId))) {
+      await this.releaseLimitsInResourceSet(resourcesUsage, previousResourceSetId)
+      $defer.onFailure(() => this.allocateLimitsInResourceSet(resourcesUsage, previousResourceSetId, true))
     }
 
-    await xapi.xo.setData(
-      vmId,
-      'resourceSet',
-      resourceSetId === undefined ? null : resourceSetId
-    )
+    await xapi.xo.setData(vmId, 'resourceSet', resourceSetId === undefined ? null : resourceSetId)
     $defer.onFailure(() =>
-      xapi.xo.setData(
-        vmId,
-        'resourceSet',
-        previousResourceSetId === undefined ? null : previousResourceSetId
-      )
+      xapi.xo.setData(vmId, 'resourceSet', previousResourceSetId === undefined ? null : previousResourceSetId)
     )
 
     if (previousResourceSetId !== undefined) {

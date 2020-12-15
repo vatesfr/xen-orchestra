@@ -1,25 +1,19 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
+import Component from 'base-component'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import moment from 'moment-timezone'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
-import React, { Component } from 'react'
+import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
 import { error } from 'notification'
 import { injectIntl } from 'react-intl'
 import { Select, Toggle } from 'form'
-import {
-  createSchedule,
-  deleteSchedule,
-  deleteSchedules,
-  subscribeJobs,
-  subscribeSchedules,
-  editSchedule,
-} from 'xo'
+import { createSchedule, deleteSchedule, deleteSchedules, subscribeJobs, subscribeSchedules, editSchedule } from 'xo'
 
 const JOB_KEY = 'genericTask'
 const DEFAULT_CRON_PATTERN = '0 0 * * *'
@@ -29,8 +23,7 @@ const COLUMNS = [
   {
     itemRenderer: schedule => (
       <span>
-        {schedule.name}{' '}
-        <span className='text-muted'>({schedule.id.slice(4, 8)})</span>
+        {schedule.name} <span className='text-muted'>({schedule.id.slice(4, 8)})</span>
       </span>
     ),
     name: _('jobName'),
@@ -43,8 +36,7 @@ const COLUMNS = [
       if (job !== undefined) {
         return (
           <span>
-            {job.name} - {job.method}{' '}
-            <span className='text-muted'>({schedule.jobId.slice(4, 8)})</span>
+            {job.name} - {job.method} <span className='text-muted'>({schedule.jobId.slice(4, 8)})</span>
           </span>
         )
       }
@@ -79,6 +71,7 @@ export default class Schedules extends Component {
       action: undefined,
       actions: undefined,
       cronPattern: DEFAULT_CRON_PATTERN,
+      enabled: true,
       job: undefined,
       jobs: undefined,
       timezone: DEFAULT_TIMEZONE,
@@ -130,36 +123,32 @@ export default class Schedules extends Component {
   }
 
   _handleSubmit = () => {
-    const { name, job, enabled } = this.refs
-    const { cronPattern, schedule, timezone } = this.state
+    const { name, job } = this.refs
+    const { cronPattern, enabled, schedule, timezone } = this.state
     let save
     if (schedule) {
       schedule.jobId = job.value.id
       schedule.cron = cronPattern
+      schedule.enabled = enabled
       schedule.name = name.value
       schedule.timezone = timezone
       save = editSchedule(schedule)
     } else {
       save = createSchedule(job.value.id, {
         cron: cronPattern,
-        enabled: enabled.value,
+        enabled,
         name: name.value,
         timezone,
       })
     }
-    return save
-      .then(this._reset)
-      .catch(err => error('Save Schedule', err.message || String(err)))
+    return save.then(this._reset).catch(err => error('Save Schedule', err.message || String(err)))
   }
 
   _edit = id => {
     const { schedules, jobs } = this.state
     const schedule = find(schedules, schedule => schedule.id === id)
     if (!schedule) {
-      error(
-        'Schedule edition',
-        'This schedule was not found, or may not longer exists.'
-      )
+      error('Schedule edition', 'This schedule was not found, or may not longer exists.')
       return
     }
 
@@ -168,6 +157,7 @@ export default class Schedules extends Component {
     job.value = jobs[schedule.jobId]
     this.setState({
       cronPattern: schedule.cron,
+      enabled: schedule.enabled,
       schedule,
       timezone: schedule.timezone,
     })
@@ -177,13 +167,13 @@ export default class Schedules extends Component {
     this.setState(
       {
         cronPattern: DEFAULT_CRON_PATTERN,
+        enabled: true,
         schedule: undefined,
         timezone: DEFAULT_TIMEZONE,
       },
       () => {
-        const { name, job, enabled } = this.refs
+        const { name, job } = this.refs
         name.value = ''
-        enabled.value = false
         job.value = undefined
       }
     )
@@ -209,7 +199,7 @@ export default class Schedules extends Component {
   ]
 
   render() {
-    const { cronPattern, jobs, schedule, schedules, timezone } = this.state
+    const { cronPattern, enabled, jobs, schedule, schedules, timezone } = this.state
     const userData = { jobs }
     return (
       <div>
@@ -220,9 +210,7 @@ export default class Schedules extends Component {
               type='text'
               ref='name'
               className='form-control'
-              placeholder={this.props.intl.formatMessage(
-                messages.jobScheduleNamePlaceHolder
-              )}
+              placeholder={this.props.intl.formatMessage(messages.jobScheduleNamePlaceHolder)}
               required
             />
           </div>
@@ -232,24 +220,16 @@ export default class Schedules extends Component {
               ref='job'
               options={map(jobs)}
               valueKey='id'
-              placeholder={this.props.intl.formatMessage(
-                messages.jobScheduleJobPlaceHolder
-              )}
+              placeholder={this.props.intl.formatMessage(messages.jobScheduleJobPlaceHolder)}
             />
           </div>
-          {!schedule && (
-            <div className='form-group'>
-              <label>{_('scheduleEnableAfterCreation')}</label>{' '}
-              <Toggle ref='enabled' />
-            </div>
-          )}
+          <div className='form-group'>
+            <Toggle onChange={this.toggleState('enabled')} value={enabled} />{' '}
+            <label>{_('scheduleEnableAfterCreation')}</label>
+          </div>
         </form>
         <fieldset>
-          <Scheduler
-            cronPattern={cronPattern}
-            onChange={this._updateCronPattern}
-            timezone={timezone}
-          />
+          <Scheduler cronPattern={cronPattern} onChange={this._updateCronPattern} timezone={timezone} />
           <SchedulePreview cronPattern={cronPattern} timezone={timezone} />
         </fieldset>
         <br />
@@ -264,12 +244,7 @@ export default class Schedules extends Component {
           )}
           {process.env.XOA_PLAN > 3 ? (
             <span>
-              <ActionButton
-                form='newScheduleForm'
-                handler={this._handleSubmit}
-                icon='save'
-                btnStyle='primary'
-              >
+              <ActionButton form='newScheduleForm' handler={this._handleSubmit} icon='save' btnStyle='primary'>
                 {_('saveBackupJob')}
               </ActionButton>{' '}
               <Button onClick={this._reset}>{_('selectTableReset')}</Button>

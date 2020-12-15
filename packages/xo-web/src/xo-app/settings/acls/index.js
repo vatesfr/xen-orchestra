@@ -19,11 +19,7 @@ import { addSubscriptions, connectStore } from 'utils'
 import { Container } from 'grid'
 import { error } from 'notification'
 import { injectState, provideState } from 'reaclette'
-import {
-  SelectHighLevelObject,
-  SelectRole,
-  SelectSubject,
-} from 'select-objects'
+import { SelectHighLevelObject, SelectRole, SelectSubject } from 'select-objects'
 
 import { createGetObjectsOfType, createSelector } from 'selectors'
 
@@ -43,28 +39,18 @@ const TYPES = ['VM', 'host', 'pool', 'SR', 'network']
 const ACL_COLUMNS = [
   {
     name: _('subjectName'),
-    itemRenderer: acl =>
-      acl.subject.id
-        ? renderXoItem(acl.subject)
-        : renderXoItemFromId(acl.subject),
-    sortCriteria: acl =>
-      (acl.subject.name || acl.subject.email || '').toLowerCase(),
+    itemRenderer: acl => (acl.subject.id ? renderXoItem(acl.subject) : renderXoItemFromId(acl.subject)),
+    sortCriteria: acl => (acl.subject.name || acl.subject.email || '').toLowerCase(),
   },
   {
     name: _('objectName'),
-    itemRenderer: acl =>
-      acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object),
-    sortCriteria: acl =>
-      (acl.object.name || acl.object.name_label || '').toLowerCase(),
+    itemRenderer: acl => (acl.object.id ? renderXoItem(acl.object) : renderXoItemFromId(acl.object)),
+    sortCriteria: acl => (acl.object.name || acl.object.name_label || '').toLowerCase(),
   },
   {
     name: _('roleName'),
     itemRenderer: acl => (
-      <SelectRole
-        clearable={false}
-        onChange={action => action && editAcl(acl, { action })}
-        value={acl.action}
-      />
+      <SelectRole clearable={false} onChange={action => action && editAcl(acl, { action })} value={acl.action} />
     ),
     sortCriteria: acl => (acl.action.name || '').toLowerCase(),
   },
@@ -97,26 +83,15 @@ const AclTable = decorate([
   }),
   provideState({
     computed: {
-      acls: (
-        { groups, roles, users },
-        { acls, hosts, networks, pools, srs, vms }
-      ) =>
+      acls: ({ groups, roles, users }, { acls, hosts, networks, pools, srs, vms }) =>
         filter(
           map(acls, ({ id, subject, object, action }) => ({
             id,
             subject: users[subject] || groups[subject],
-            object:
-              hosts[object] ||
-              networks[object] ||
-              pools[object] ||
-              srs[object] ||
-              vms[object],
+            object: hosts[object] || networks[object] || pools[object] || srs[object] || vms[object],
             action: roles[action],
           })),
-          ({ subject, object, action }) =>
-            subject !== undefined &&
-            object !== undefined &&
-            action !== undefined
+          ({ subject, object, action }) => subject !== undefined && object !== undefined && action !== undefined
         ),
       groups: (_, { groups }) => keyBy(groups, 'id'),
       roles: (_, { roles }) => keyBy(roles, 'id'),
@@ -124,14 +99,7 @@ const AclTable = decorate([
     },
   }),
   injectState,
-  ({ state }) => (
-    <SortedTable
-      actions={ACL_ACTIONS}
-      collection={state.acls}
-      columns={ACL_COLUMNS}
-      stateUrlParam='s'
-    />
-  ),
+  ({ state }) => <SortedTable actions={ACL_ACTIONS} collection={state.acls} columns={ACL_COLUMNS} stateUrlParam='s' />,
 ])
 
 export default class Acls extends Component {
@@ -154,10 +122,7 @@ export default class Acls extends Component {
     // If some objects need to be removed from the selected objects
     if (!newTypeFilters[type] || (!someTypeFilters && newSomeTypeFilters)) {
       this.setState({
-        objects: filter(
-          objects,
-          ({ type }) => !newSomeTypeFilters || newTypeFilters[type]
-        ),
+        objects: filter(objects, ({ type }) => !newSomeTypeFilters || newTypeFilters[type]),
       })
     }
 
@@ -168,10 +133,7 @@ export default class Acls extends Component {
       },
       () => {
         // If some objects need to be removed from the selected objects
-        if (
-          !this.state.typeFilters[type] ||
-          (!someTypeFilters && this.state.someTypeFilters)
-        ) {
+        if (!this.state.typeFilters[type] || (!someTypeFilters && this.state.someTypeFilters)) {
           this.setState({
             objects: filter(objects, this._getObjectPredicate()),
           })
@@ -183,8 +145,7 @@ export default class Acls extends Component {
   _getObjectPredicate = createSelector(
     () => this.state.typeFilters,
     () => this.state.someTypeFilters,
-    (typeFilters, someTypeFilters) => ({ type }) =>
-      !someTypeFilters || typeFilters[type]
+    (typeFilters, someTypeFilters) => ({ type }) => !someTypeFilters || typeFilters[type]
   )
 
   _selectAll = () => {
@@ -228,11 +189,7 @@ export default class Acls extends Component {
       <Container>
         <form>
           <div className='form-group'>
-            <SelectSubject
-              multi
-              onChange={this.linkState('subjects')}
-              value={subjects}
-            />
+            <SelectSubject multi onChange={this.linkState('subjects')} value={subjects} />
           </div>
           <div className='form-group'>
             <SelectHighLevelObject
@@ -256,12 +213,7 @@ export default class Acls extends Component {
                 />
               ))}
             </ButtonGroup>{' '}
-            <ActionButton
-              tooltip='Select all'
-              size='small'
-              icon='add'
-              handler={this._selectAll}
-            />
+            <ActionButton tooltip='Select all' size='small' icon='add' handler={this._selectAll} />
           </div>
           <div className='form-group'>
             <SelectRole onChange={this.linkState('action')} value={action} />

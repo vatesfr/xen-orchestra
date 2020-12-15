@@ -100,12 +100,7 @@ export class FormattedDuration extends Component {
     const parsedDuration = this._parseDuration()
     return (
       <Tooltip
-        content={getMessage(
-          every(parsedDuration, n => n === 0)
-            ? 'secondsFormat'
-            : 'durationFormat',
-          parsedDuration
-        )}
+        content={getMessage(every(parsedDuration, n => n === 0) ? 'secondsFormat' : 'durationFormat', parsedDuration)}
       >
         <span>{this._humanizeDuration()}</span>
       </Tooltip>

@@ -6,12 +6,8 @@ export default class {
   }
 
   getPatchesDifference(hostA, hostB) {
-    const patchesA = this._xo
-      .getObject(hostA)
-      .patches.map(patchId => this._xo.getObject(patchId))
-    const patchesB = this._xo
-      .getObject(hostB)
-      .patches.map(patchId => this._xo.getObject(patchId))
+    const patchesA = this._xo.getObject(hostA).patches.map(patchId => this._xo.getObject(patchId))
+    const patchesB = this._xo.getObject(hostB).patches.map(patchId => this._xo.getObject(patchId))
 
     return differenceBy(patchesA, patchesB, 'name').map(patch => patch.name)
   }

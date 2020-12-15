@@ -31,13 +31,7 @@ export default function proxyConsole(ws, vmConsole, sessionId) {
     () => {
       // Write headers.
       socket.write(
-        [
-          `CONNECT ${url.path} HTTP/1.0`,
-          `Host: ${hostname}`,
-          `Cookie: session_id=${sessionId}`,
-          '',
-          '',
-        ].join('\r\n')
+        [`CONNECT ${url.path} HTTP/1.0`, `Host: ${hostname}`, `Cookie: session_id=${sessionId}`, '', ''].join('\r\n')
       )
 
       const onSend = error => {

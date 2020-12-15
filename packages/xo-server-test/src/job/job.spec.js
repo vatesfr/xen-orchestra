@@ -128,9 +128,7 @@ describe('job', () => {
     })
 
     it('fails trying to get a job with a non existent id', async () => {
-      await expect(
-        xo.call('job.get', { id: 'non-existent-id' })
-      ).rejects.toMatchSnapshot()
+      await expect(xo.call('job.get', { id: 'non-existent-id' })).rejects.toMatchSnapshot()
     })
   })
 
@@ -187,15 +185,11 @@ describe('job', () => {
       })
       await xo.call('job.delete', { id })
       await expect(xo.call('job.get', { id })).rejects.toMatchSnapshot()
-      await expect(
-        xo.call('schedule.get', { id: scheduleId })
-      ).rejects.toMatchSnapshot()
+      await expect(xo.call('schedule.get', { id: scheduleId })).rejects.toMatchSnapshot()
     })
 
     it.skip('fails trying to delete a job with a non existent id', async () => {
-      await expect(
-        xo.call('job.delete', { id: 'non-existent-id' })
-      ).rejects.toMatchSnapshot()
+      await expect(xo.call('job.delete', { id: 'non-existent-id' })).rejects.toMatchSnapshot()
     })
   })
 
@@ -203,9 +197,7 @@ describe('job', () => {
     let id
 
     afterEach(async () => {
-      await xo
-        .call('vm.delete', { id, deleteDisks: true })
-        .catch(error => console.error(error))
+      await xo.call('vm.delete', { id, deleteDisks: true }).catch(error => console.error(error))
     })
 
     it('runs a job', async () => {
@@ -214,13 +206,10 @@ describe('job', () => {
       const jobId = await xo.createTempJob(defaultJob)
       const snapshots = xo.objects.all[config.vms.default].snapshots
       await xo.call('job.runSequence', { idSequence: [jobId] })
-      await xo.waitObjectState(
-        config.vms.default,
-        ({ snapshots: actualSnapshots }) => {
-          expect(actualSnapshots.length).toBe(snapshots.length + 1)
-          id = difference(actualSnapshots, snapshots)[0]
-        }
-      )
+      await xo.waitObjectState(config.vms.default, ({ snapshots: actualSnapshots }) => {
+        expect(actualSnapshots.length).toBe(snapshots.length + 1)
+        id = difference(actualSnapshots, snapshots)[0]
+      })
     })
   })
 })

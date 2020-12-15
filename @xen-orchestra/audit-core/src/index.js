@@ -2,8 +2,11 @@
 import 'core-js/features/symbol/async-iterator'
 
 import assert from 'assert'
+import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import hash from 'object-hash'
+
+const log = createLogger('xo:audit-core')
 
 export class Storage {
   constructor() {
@@ -25,7 +28,7 @@ export class Storage {
 //
 // http://man7.org/linux/man-pages/man3/crypt.3.html#NOTES
 const ID_TO_ALGORITHM = {
-  '5': 'sha256',
+  5: 'sha256',
 }
 
 export class AlteredRecordError extends Error {
@@ -65,8 +68,17 @@ export class AuditCore {
   @defer
   async add($defer, subject, event, data) {
     const time = Date.now()
+    $defer(await this._storage.acquireLock())
+    return this._addUnsafe({
+      data,
+      event,
+      subject,
+      time,
+    })
+  }
+
+  async _addUnsafe({ data, event, subject, time }) {
     const storage = this._storage
-    $defer(await storage.acquireLock())
 
     // delete "undefined" properties and normalize data with JSON.stringify
     const record = JSON.parse(
@@ -107,9 +119,7 @@ export class AuditCore {
       if (record === undefined) {
         throw new MissingRecordError(newest, nValid)
       }
-      if (
-        newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))
-      ) {
+      if (newest !== createHash(record, newest.slice(1, newest.indexOf('$', 1)))) {
         throw new AlteredRecordError(newest, nValid, record)
       }
       newest = record.previousId
@@ -137,6 +147,47 @@ export class AuditCore {
     assert.notStrictEqual(newest, undefined)
     for await (const { id } of this.getFrom(newest)) {
       await this._storage.del(id)
+    }
+  }
+
+  @defer
+  async deleteRangeAndRewrite($defer, newest, oldest) {
+    assert.notStrictEqual(newest, undefined)
+    assert.notStrictEqual(oldest, undefined)
+
+    const storage = this._storage
+    $defer(await storage.acquireLock())
+
+    assert.notStrictEqual(await storage.get(newest), undefined)
+    const oldestRecord = await storage.get(oldest)
+    assert.notStrictEqual(oldestRecord, undefined)
+
+    const lastId = await storage.getLastId()
+    const recentRecords = []
+    for await (const record of this.getFrom(lastId)) {
+      if (record.id === newest) {
+        break
+      }
+
+      recentRecords.push(record)
+    }
+
+    for await (const record of this.getFrom(newest)) {
+      await storage.del(record.id)
+      if (record.id === oldest) {
+        break
+      }
+    }
+
+    await storage.setLastId(oldestRecord.previousId)
+
+    for (const record of recentRecords) {
+      try {
+        await this._addUnsafe(record)
+        await storage.del(record.id)
+      } catch (error) {
+        log.error(error)
+      }
     }
   }
 }

@@ -16,6 +16,13 @@ import * as errors from 'xo-common/api-errors'
 
 const log = createLogger('xo:api')
 
+const ALLOWED_METHOD_PROPS = {
+  description: true,
+  params: true,
+  permission: true,
+  resolve: true,
+}
+
 const PERMISSIONS = {
   none: 0,
   read: 1,
@@ -31,27 +38,19 @@ const XAPI_ERROR_TO_XO_ERROR = {
   HOST_OFFLINE: ([host], getId) => errors.hostOffline({ host: getId(host) }),
   NO_HOSTS_AVAILABLE: errors.noHostsAvailable,
   NOT_SUPPORTED_DURING_UPGRADE: errors.notSupportedDuringUpgrade,
-  OPERATION_BLOCKED: ([ref, code], getId) =>
-    errors.operationBlocked({ objectId: getId(ref), code }),
-  PATCH_PRECHECK_FAILED_ISO_MOUNTED: ([patch]) =>
-    errors.patchPrecheck({ errorType: 'isoMounted', patch }),
-  PIF_VLAN_EXISTS: ([pif], getId) =>
-    errors.objectAlreadyExists({ objectId: getId(pif), objectType: 'PIF' }),
+  OPERATION_BLOCKED: ([ref, code], getId) => errors.operationBlocked({ objectId: getId(ref), code }),
+  PATCH_PRECHECK_FAILED_ISO_MOUNTED: ([patch]) => errors.patchPrecheck({ errorType: 'isoMounted', patch }),
+  PIF_VLAN_EXISTS: ([pif], getId) => errors.objectAlreadyExists({ objectId: getId(pif), objectType: 'PIF' }),
   SESSION_AUTHENTICATION_FAILED: errors.authenticationFailed,
-  VDI_IN_USE: ([vdi, operation], getId) =>
-    errors.vdiInUse({ vdi: getId(vdi), operation }),
-  VM_BAD_POWER_STATE: ([vm, expected, actual], getId) =>
-    errors.vmBadPowerState({ vm: getId(vm), expected, actual }),
+  VDI_IN_USE: ([vdi, operation], getId) => errors.vdiInUse({ vdi: getId(vdi), operation }),
+  VM_BAD_POWER_STATE: ([vm, expected, actual], getId) => errors.vmBadPowerState({ vm: getId(vm), expected, actual }),
   VM_IS_TEMPLATE: errors.vmIsTemplate,
   VM_LACKS_FEATURE: ([vm], getId) => errors.vmLacksFeature({ vm: getId(vm) }),
-  VM_LACKS_FEATURE_SHUTDOWN: ([vm], getId) =>
-    errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
-  VM_MISSING_PV_DRIVERS: ([vm], getId) =>
-    errors.vmMissingPvDrivers({ vm: getId(vm) }),
+  VM_LACKS_FEATURE_SHUTDOWN: ([vm], getId) => errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
+  VM_MISSING_PV_DRIVERS: ([vm], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) }),
 }
 
-const hasPermission = (user, permission) =>
-  PERMISSIONS[user.permission] >= PERMISSIONS[permission]
+const hasPermission = (user, permission) => PERMISSIONS[user.permission] >= PERMISSIONS[permission]
 
 function checkParams(method, params) {
   const schema = method.params
@@ -74,12 +73,10 @@ function checkParams(method, params) {
 }
 
 function checkPermission(method) {
-  /* jshint validthis: true */
-
   const { permission } = method
 
-  // No requirement.
-  if (permission === undefined) {
+  // User does not need to be authenticated.
+  if (permission === null) {
     return
   }
 
@@ -88,8 +85,7 @@ function checkPermission(method) {
     throw errors.unauthorized(permission)
   }
 
-  // The only requirement is login.
-  if (!permission) {
+  if (permission === undefined) {
     return
   }
 
@@ -166,6 +162,12 @@ export default class Api {
     if (name in methods) {
       throw new Error(`API method ${name} already exists`)
     }
+
+    Object.keys(method).forEach(prop => {
+      if (!(prop in ALLOWED_METHOD_PROPS)) {
+        throw new Error(`invalid prop ${prop} for API method ${name}`)
+      }
+    })
 
     methods[name] = method
 
@@ -296,11 +298,7 @@ export default class Api {
         result = true
       }
 
-      log.debug(
-        `${userName} | ${name}(...) [${ms(
-          Date.now() - startTime
-        )}] ==> ${kindOf(result)}`
-      )
+      log.debug(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] ==> ${kindOf(result)}`)
 
       // it's a special case in which the user is defined at the end of the call
       if (data.method === 'session.signIn') {
@@ -329,24 +327,25 @@ export default class Api {
         timestamp: now,
       })
 
-      const message = `${userName} | ${name}(${JSON.stringify(
-        data.params
-      )}) [${ms(Date.now() - startTime)}] =!> ${error}`
+      const message = `${userName} | ${name}(${JSON.stringify(data.params)}) [${ms(
+        Date.now() - startTime
+      )}] =!> ${error}`
 
-      this._logger.error(message, {
-        ...data,
-        duration: Date.now() - startTime,
-        error: serializedError,
-      })
+      // 2020-07-10: Work-around: many kinds of error can be triggered by this
+      // method, which can generates a lot of logs due to the fact that xo-web
+      // uses 5s active subscriptions to call it
+      if (name !== 'pool.listMissingPatches') {
+        this._logger.error(message, {
+          ...data,
+          duration: Date.now() - startTime,
+          error: serializedError,
+        })
+      }
 
       if (xo._config.verboseLogsOnErrors) {
         log.warn(message, { error })
       } else {
-        log.warn(
-          `${userName} | ${name}(...) [${ms(
-            Date.now() - startTime
-          )}] =!> ${error}`
-        )
+        log.warn(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] =!> ${error}`)
       }
 
       const xoError = XAPI_ERROR_TO_XO_ERROR[error.code]

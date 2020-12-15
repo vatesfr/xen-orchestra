@@ -107,10 +107,7 @@ const gc = (db, args) =>
       reject(error)
     }
     const removeListeners = () => {
-      stream
-        .removeListener('data', onData)
-        .removeListener('end', onEnd)
-        .removeListener('error', onError)
+      stream.removeListener('data', onData).removeListener('end', onEnd).removeListener('error', onError)
     }
     stream.on('data', onData).on('end', onEnd).on('error', onError)
   })
@@ -119,7 +116,7 @@ async function printLogs(db, args) {
   let stream = getLogs(db, args)
 
   if (args.json) {
-    stream = highland(stream.pipe(ndjson.serialize())).each(value => {
+    stream = highland(stream.pipe(ndjson.stringify())).each(value => {
       process.stdout.write(value)
     })
   } else {
@@ -239,12 +236,7 @@ function getArgs() {
 
   for (const field in patterns) {
     const values = patterns[field]
-    args.matchers[field] =
-      values === true
-        ? mustExists
-        : values === false
-        ? mustNotExists
-        : globMatcher(values)
+    args.matchers[field] = values === true ? mustExists : values === false ? mustNotExists : globMatcher(values)
   }
 
   // Warning: minimist makes one array of values if the same option is used many times.
@@ -304,17 +296,9 @@ export default async function main() {
     return
   }
 
-  const db = sublevel(
-    levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' }),
-    'logs',
-    {
-      valueEncoding: 'json',
-    }
-  )
+  const db = sublevel(levelup(`${config.datadir}/leveldb`, { valueEncoding: 'json' }), 'logs', {
+    valueEncoding: 'json',
+  })
 
-  return args.delete
-    ? deleteLogs(db, args)
-    : args.gc
-    ? gc(db)
-    : printLogs(db, args)
+  return args.delete ? deleteLogs(db, args) : args.gc ? gc(db) : printLogs(db, args)
 }

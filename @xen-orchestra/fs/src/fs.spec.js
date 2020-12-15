@@ -2,7 +2,6 @@
 
 import 'dotenv/config'
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import getStream from 'get-stream'
 import { forOwn, random } from 'lodash'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
@@ -91,31 +90,6 @@ handlers.forEach(url => {
       })
     })
 
-    describe('#createReadStream()', () => {
-      beforeEach(() => handler.outputFile('file', TEST_DATA))
-
-      testWithFileDescriptor('file', 'r', async ({ file, flags }) => {
-        await expect(
-          await getStream.buffer(
-            await handler.createReadStream(file, { flags })
-          )
-        ).toEqual(TEST_DATA)
-      })
-    })
-
-    describe('#createWriteStream()', () => {
-      testWithFileDescriptor('file', 'wx', async ({ file, flags }) => {
-        const stream = await handler.createWriteStream(file, { flags })
-        await fromCallback(pipeline, createTestDataStream(), stream)
-        await expect(await handler.readFile('file')).toEqual(TEST_DATA)
-      })
-
-      it('fails if parent dir is missing', async () => {
-        const error = await rejectionOf(handler.createWriteStream('dir/file'))
-        expect(error.code).toBe('ENOENT')
-      })
-    })
-
     describe('#getInfo()', () => {
       let info
       beforeAll(async () => {
@@ -152,16 +126,12 @@ handlers.forEach(url => {
 
       it('can prepend the directory to entries', async () => {
         await handler.outputFile('dir/file', '')
-        expect(await handler.list('dir', { prependDir: true })).toEqual([
-          '/dir/file',
-        ])
+        expect(await handler.list('dir', { prependDir: true })).toEqual(['/dir/file'])
       })
 
       it('can prepend the directory to entries', async () => {
         await handler.outputFile('dir/file', '')
-        expect(await handler.list('dir', { prependDir: true })).toEqual([
-          '/dir/file',
-        ])
+        expect(await handler.list('dir', { prependDir: true })).toEqual(['/dir/file'])
       })
     })
 
@@ -334,10 +304,7 @@ handlers.forEach(url => {
             return { offset, expected }
           })(),
           'increase file size': (() => {
-            const offset = random(
-              TEST_DATA_LEN - PATCH_DATA_LEN + 1,
-              TEST_DATA_LEN
-            )
+            const offset = random(TEST_DATA_LEN - PATCH_DATA_LEN + 1, TEST_DATA_LEN)
 
             const expected = Buffer.alloc(offset + PATCH_DATA_LEN)
             TEST_DATA.copy(expected)

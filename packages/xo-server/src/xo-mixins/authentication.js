@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 import { parseDuration } from '@vates/parse-duration'
@@ -13,8 +14,11 @@ const log = createLogger('xo:authentification')
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
 export default class {
-  constructor(xo, config) {
-    this._config = config.authentication
+  constructor(xo, { authentication: config }) {
+    this._defaultTokenValidity = parseDuration(config.defaultTokenValidity)
+    this._maxTokenValidity = parseDuration(config.maxTokenValidity)
+    this._throttlingDelay = parseDuration(config.throttlingDelay)
+
     this._providers = new Set()
     this._xo = xo
 
@@ -30,24 +34,22 @@ export default class {
     }))
 
     // Password authentication provider.
-    this.registerAuthenticationProvider(
-      async ({ username, password }, { ip } = {}) => {
-        if (username === undefined || password === undefined) {
-          return
-        }
-
-        const user = await xo.getUserByName(username, true)
-        if (user && (await xo.checkUserPassword(user.id, password))) {
-          return { userId: user.id }
-        }
-
-        xo.emit('xo:audit', 'signInFailed', {
-          userId: user?.id,
-          userName: username,
-          userIp: ip,
-        })
+    this.registerAuthenticationProvider(async ({ username, password }, { ip } = {}) => {
+      if (username === undefined || password === undefined) {
+        return
       }
-    )
+
+      const user = await xo.getUserByName(username, true)
+      if (user && (await xo.checkUserPassword(user.id, password))) {
+        return { userId: user.id }
+      }
+
+      xo.emit('xo:audit', 'signInFailed', {
+        userId: user?.id,
+        userName: username,
+        userIp: ip,
+      })
+    })
 
     // Token authentication provider.
     this.registerAuthenticationProvider(async ({ token: tokenId }) => {
@@ -96,7 +98,6 @@ export default class {
       try {
         // A provider can return:
         // - `undefined`/`null` if the user could not be authenticated
-        // - the identifier of the authenticated user
         // - an object containing:
         //   - `userId`
         //   - optionally `expiration` to indicate when the session is no longer
@@ -110,18 +111,10 @@ export default class {
           continue
         }
 
-        if (typeof result === 'string') {
-          return {
-            user: await this._getUser(result),
-          }
-        }
-
         const { userId, username, expiration } = result
 
         return {
-          user: await (userId !== undefined
-            ? this._xo.getUser(userId)
-            : this._xo.registerUser(undefined, username)),
+          user: await (userId !== undefined ? this._xo.getUser(userId) : this._xo.registerUser(undefined, username)),
           expiration,
         }
       } catch (error) {
@@ -133,10 +126,7 @@ export default class {
     }
   }
 
-  async authenticateUser(
-    credentials,
-    userData
-  ): Promise<{| user: Object, expiration?: number |}> {
+  async authenticateUser(credentials, userData): Promise<{| user: Object, expiration?: number |}> {
     // don't even attempt to authenticate with empty password
     const { password } = credentials
     if (password === '') {
@@ -155,11 +145,7 @@ export default class {
     const { username } = credentials
     const now = Date.now()
     let lastFailure
-    if (
-      username &&
-      (lastFailure = failures[username]) &&
-      lastFailure + 2e3 > now
-    ) {
+    if (username && (lastFailure = failures[username]) && lastFailure + this._throttlingDelay > now) {
       throw new Error('too fast authentication tries')
     }
 
@@ -175,19 +161,11 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken({
-    expiresIn = this._config.defaultTokenValidity,
-    userId,
-  }) {
+  async createAuthenticationToken({ expiresIn = this._defaultTokenValidity, userId }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
-      expiration:
-        Date.now() +
-        Math.min(
-          parseDuration(expiresIn),
-          parseDuration(this._config.maxTokenValidity)
-        ),
+      expiration: Date.now() + Math.min(expiresIn, this._maxTokenValidity),
     })
 
     await this._tokens.add(token)
@@ -204,9 +182,7 @@ export default class {
 
   async deleteAuthenticationTokens({ filter }) {
     return Promise.all(
-      (await this._tokens.get())
-        .filter(createPredicate(filter))
-        .map(({ id }) => this.deleteAuthenticationToken(id))
+      (await this._tokens.get()).filter(createPredicate(filter)).map(({ id }) => this.deleteAuthenticationToken(id))
     )
   }
 

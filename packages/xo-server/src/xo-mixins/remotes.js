@@ -34,10 +34,7 @@ export default class {
       xo.addConfigManager(
         'remotes',
         () => this._remotes.get(),
-        remotes =>
-          Promise.all(
-            mapToArray(remotes, remote => this._remotes.update(remote))
-          )
+        remotes => Promise.all(mapToArray(remotes, remote => this._remotes.update(remote)))
       )
 
       const remotes = await this._remotes.get()
@@ -55,6 +52,7 @@ export default class {
     })
   }
 
+  @synchronized
   async getRemoteHandler(remote) {
     if (typeof remote === 'string') {
       remote = await this._getRemote(remote)

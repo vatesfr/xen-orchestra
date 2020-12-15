@@ -26,15 +26,7 @@ afterEach(async () => {
 const RAW = 'raw'
 const VHD = 'vpc'
 const convert = (inputFormat, inputFile, outputFormat, outputFile) =>
-  execa('qemu-img', [
-    'convert',
-    '-f',
-    inputFormat,
-    '-O',
-    outputFormat,
-    inputFile,
-    outputFile,
-  ])
+  execa('qemu-img', ['convert', '-f', inputFormat, '-O', outputFormat, inputFile, outputFile])
 
 const createRandomStream = asyncIteratorToStream(function* (size) {
   let requested = Math.min(size, yield)
@@ -52,8 +44,7 @@ async function createRandomFile(name, size) {
   await pFromCallback(cb => pipeline(input, fs.createWriteStream(name), cb))
 }
 
-const forOwn = (object, cb) =>
-  Object.keys(object).forEach(key => cb(object[key], key, object))
+const forOwn = (object, cb) => Object.keys(object).forEach(key => cb(object[key], key, object))
 
 describe('createVhdStreamWithLength', () => {
   forOwn(
@@ -72,15 +63,11 @@ describe('createVhdStreamWithLength', () => {
         const inputVhd = `${tempDir}/input.vhd`
         await convert(RAW, inputRaw, VHD, inputVhd)
 
-        const result = await createVhdStreamWithLength(
-          await createReadStream(inputVhd)
-        )
+        const result = await createVhdStreamWithLength(await createReadStream(inputVhd))
         const { length } = result
 
         const outputVhd = `${tempDir}/output.vhd`
-        await pFromCallback(
-          pipeline.bind(undefined, result, await createWriteStream(outputVhd))
-        )
+        await pFromCallback(pipeline.bind(undefined, result, await createWriteStream(outputVhd)))
 
         // ensure the guessed length correspond to the stream length
         const { size: outputSize } = await fs.stat(outputVhd)
@@ -102,9 +89,7 @@ describe('createVhdStreamWithLength', () => {
     await convert(RAW, rawFileName, VHD, vhdName)
     const { size: vhdSize } = await fs.stat(vhdName)
     // read file footer
-    const footer = await getStream.buffer(
-      createReadStream(vhdName, { start: vhdSize - FOOTER_SIZE })
-    )
+    const footer = await getStream.buffer(createReadStream(vhdName, { start: vhdSize - FOOTER_SIZE }))
 
     // we'll override the footer
     const endOfFile = await createWriteStream(vhdName, {
@@ -118,9 +103,7 @@ describe('createVhdStreamWithLength', () => {
     const { size: longerSize } = await fs.stat(vhdName)
     // check input file has been lengthened
     expect(longerSize).toEqual(vhdSize + FOOTER_SIZE)
-    const result = await createVhdStreamWithLength(
-      await createReadStream(vhdName)
-    )
+    const result = await createVhdStreamWithLength(await createReadStream(vhdName))
     expect(result.length).toEqual(vhdSize)
     const outputFileStream = await createWriteStream(outputVhdName)
     await pFromCallback(cb => pipeline(result, outputFileStream, cb))

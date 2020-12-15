@@ -7,11 +7,7 @@ import prepareXmlRpcParams from './_prepareXmlRpcParams'
 
 const logError = error => {
   if (error.res) {
-    console.error(
-      'XML-RPC Error: %s (response status %s)',
-      error.message,
-      error.res.statusCode
-    )
+    console.error('XML-RPC Error: %s (response status %s)', error.message, error.res.statusCode)
     console.error('%s', error.body)
   }
 
@@ -43,6 +39,5 @@ export default ({ secureOptions, url: { hostname, port, protocol } }) => {
   })
   const call = promisify(client.methodCall, client)
 
-  return (method, args) =>
-    call(method, prepareXmlRpcParams(args)).then(parseResult, logError)
+  return (method, args) => call(method, prepareXmlRpcParams(args)).then(parseResult, logError)
 }

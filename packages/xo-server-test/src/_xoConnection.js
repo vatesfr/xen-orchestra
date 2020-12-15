@@ -2,8 +2,9 @@
 import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
-import { defaultsDeep, find, forOwn, pick } from 'lodash'
+import { defaultsDeep, find, forOwn, iteratee, pick } from 'lodash'
 import { fromEvent } from 'promise-toolbox'
+import { parseDuration } from '@vates/parse-duration'
 
 import config from './_config'
 import { getDefaultName } from './_defaultValues'
@@ -68,10 +69,7 @@ class XoConnection extends Xo {
   }
 
   @defer
-  async connect(
-    $defer,
-    credentials = pick(config.xoConnection, 'email', 'password')
-  ) {
+  async connect($defer, credentials = pick(config.xoConnection, 'email', 'password')) {
     await this.open()
     $defer.onFailure(() => this.close())
 
@@ -83,6 +81,15 @@ class XoConnection extends Xo {
 
   async waitObjectState(id, predicate) {
     let obj = this._objects.all[id]
+    if (typeof predicate !== 'function') {
+      const fn = iteratee(predicate)
+      predicate = () => {
+        if (!fn(obj)) {
+          throw new Error('retry')
+        }
+      }
+    }
+
     while (true) {
       try {
         await predicate(obj)
@@ -96,6 +103,12 @@ class XoConnection extends Xo {
   async createTempUser(params) {
     const id = await this.call('user.create', params)
     this._tempResourceDisposers.push('user.delete', { id })
+    return id
+  }
+
+  async createTempResourceSet(params) {
+    const { id } = await xo.call('resourceSet.create', params)
+    this._tempResourceDisposers.push('resourceSet.delete', { id })
     return id
   }
 
@@ -154,14 +167,21 @@ class XoConnection extends Xo {
     })
   }
 
+  async cloneTempVm(id) {
+    const clonedVmId = await this.call('vm.clone', {
+      full_copy: false,
+      id,
+      name: getDefaultName(),
+    })
+    this._durableResourceDisposers.push('vm.delete', { id: clonedVmId })
+    return this.getOrWaitObject(clonedVmId)
+  }
+
   async startTempVm(id, params, withXenTools = false) {
     await this.call('vm.start', { id, ...params })
     this._tempResourceDisposers.push('vm.stop', { id, force: true })
     return this.waitObjectState(id, vm => {
-      if (
-        vm.power_state !== 'Running' ||
-        (withXenTools && vm.xenTools === false)
-      ) {
+      if (vm.power_state !== 'Running' || (withXenTools && vm.xenTools === false)) {
         throw new Error('retry')
       }
     })
@@ -211,16 +231,14 @@ class XoConnection extends Xo {
       forOwn(backupsByRemote, (backupsByVm, remoteId) => {
         backups[remoteId] = []
         forOwn(backupsByVm, vmBackups => {
-          vmBackups.forEach(
-            ({ jobId: backupJobId, scheduleId: backupScheduleId, id }) => {
-              if (jobId === backupJobId && scheduleId === backupScheduleId) {
-                this._tempResourceDisposers.push('backupNg.deleteVmBackup', {
-                  id,
-                })
-                backups[remoteId].push(id)
-              }
+          vmBackups.forEach(({ jobId: backupJobId, scheduleId: backupScheduleId, id }) => {
+            if (jobId === backupJobId && scheduleId === backupScheduleId) {
+              this._tempResourceDisposers.push('backupNg.deleteVmBackup', {
+                id,
+              })
+              backups[remoteId].push(id)
             }
-          )
+          })
         })
       })
     }
@@ -278,17 +296,18 @@ afterAll(async () => {
   await xo.close()
   xo = null
 })
-afterEach(() => xo.deleteTempResources())
+afterEach(async () => {
+  jest.setTimeout(parseDuration(config.deleteTempResourcesTimeout))
+
+  await xo.deleteTempResources()
+})
 
 export { xo as default }
 
-export const testConnection = ({ credentials }) =>
-  getConnection(credentials).then(connection => connection.close())
+export const testConnection = ({ credentials }) => getConnection(credentials).then(connection => connection.close())
 
-export const testWithOtherConnection = defer(
-  async ($defer, credentials, functionToExecute) => {
-    const xoUser = await getConnection(credentials)
-    $defer(() => xoUser.close())
-    await functionToExecute(xoUser)
-  }
-)
+export const testWithOtherConnection = defer(async ($defer, credentials, functionToExecute) => {
+  const xoUser = await getConnection(credentials)
+  $defer(() => xoUser.close())
+  await functionToExecute(xoUser)
+})

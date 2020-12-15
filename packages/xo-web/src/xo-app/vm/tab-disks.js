@@ -2,7 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
-import defined from '@xen-orchestra/defined'
+import defined, { get as getDefined } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import IsoDevice from 'iso-device'
 import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
@@ -19,6 +19,7 @@ import {
   createSelector,
   createFinder,
   getCheckPermissions,
+  getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
 import { injectIntl } from 'react-intl'
@@ -31,22 +32,11 @@ import {
   noop,
   resolveResourceSet,
 } from 'utils'
-import { SelectSr, SelectVdi, SelectResourceSetsSr } from 'select-objects'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import {
-  compact,
-  every,
-  filter,
-  forEach,
-  get,
-  map,
-  some,
-  sortedUniq,
-  uniq,
-} from 'lodash'
+import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -66,9 +56,13 @@ import {
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
+import { SelectResourceSetsSr, SelectSr as SelectAnySr, SelectVdi } from 'select-objects'
 
 const compareSrs = createCompare([isSrShared])
 
+@connectStore(() => ({
+  isAdmin,
+}))
 class VdiSr extends Component {
   _getCompareContainers = createSelector(
     () => this.props.userData.vm.$pool,
@@ -80,23 +74,39 @@ class VdiSr extends Component {
     poolId => sr => sr.$pool === poolId && isSrWritable(sr)
   )
 
-  _onChangeSr = sr => migrateVdi(this.props.item.vdi, sr)
+  _onChangeSr = sr => {
+    const {
+      item: { vdi },
+      userData: { resourceSet },
+    } = this.props
+    return migrateVdi(
+      vdi,
+      sr,
+      getDefined(() => resourceSet.id)
+    )
+  }
 
   render() {
-    const sr = this.props.item.vdiSr
+    const {
+      isAdmin,
+      item: { vdiSr },
+      userData: { resourceSet },
+    } = this.props
+    const self = !isAdmin && resourceSet !== undefined
     return (
-      sr !== undefined && (
+      vdiSr !== undefined && (
         <XoSelect
           compareContainers={this._getCompareContainers()}
           compareOptions={compareSrs}
           labelProp='name_label'
           onChange={this._onChangeSr}
           predicate={this._getSrPredicate()}
+          resourceSet={self ? resourceSet : undefined}
           useLongClick
-          value={sr}
-          xoType='SR'
+          value={vdiSr}
+          xoType={self ? 'resourceSetSr' : 'SR'}
         >
-          <Sr id={sr.id} link />
+          <Sr id={vdiSr.id} link={!self} self={self} />
         </XoSelect>
       )
     )
@@ -105,33 +115,19 @@ class VdiSr extends Component {
 
 const COLUMNS_VM_PV = [
   {
-    itemRenderer: ({ vdi }) => (
-      <Text
-        value={vdi.name_label}
-        onChange={value => editVdi(vdi, { name_label: value })}
-      />
-    ),
+    itemRenderer: ({ vdi }) => <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />,
     name: _('vdiNameLabel'),
     sortCriteria: 'vdi.name_label',
-    default: true,
   },
   {
     itemRenderer: ({ vdi }) => (
-      <Text
-        value={vdi.name_description}
-        onChange={value => editVdi(vdi, { name_description: value })}
-      />
+      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
     ),
     name: _('vdiNameDescription'),
     sortCriteria: 'vdi.name_description',
   },
   {
-    itemRenderer: ({ vdi }) => (
-      <Size
-        value={defined(vdi.size, null)}
-        onChange={size => editVdi(vdi, { size })}
-      />
-    ),
+    itemRenderer: ({ vdi }) => <Size value={defined(vdi.size, null)} onChange={size => editVdi(vdi, { size })} />,
     name: _('vdiSize'),
     sortCriteria: 'vdi.size',
   },
@@ -141,17 +137,13 @@ const COLUMNS_VM_PV = [
     sortCriteria: ({ vdiSr }) => vdiSr !== undefined && vdiSr.name_label,
   },
   {
+    default: true,
     itemRenderer: vbd => <span>{vbd.device}</span>,
     name: _('vbdDevice'),
-    sortCriteria: 'device',
+    sortCriteria: vbd => +vbd.position,
   },
   {
-    itemRenderer: vbd => (
-      <Toggle
-        onChange={bootable => setBootableVbd(vbd, bootable)}
-        value={vbd.bootable}
-      />
-    ),
+    itemRenderer: vbd => <Toggle onChange={bootable => setBootableVbd(vbd, bootable)} value={vbd.bootable} />,
     name: _('vbdBootableStatus'),
     id: 'vbdBootableStatus',
   },
@@ -240,10 +232,7 @@ class NewDisk extends Component {
     )
   )
 
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
-    resolveResourceSet
-  )
+  _getResolvedResourceSet = createSelector(this._getResourceSet, resolveResourceSet)
 
   _getResourceSetDiskLimit = createSelector(this._getResourceSet, resourceSet =>
     get(resourceSet, 'limits.disk.available')
@@ -263,13 +252,12 @@ class NewDisk extends Component {
     const diskLimit = this._getResourceSetDiskLimit()
     const resourceSet = this._getResolvedResourceSet()
 
-    const SelectSr_ =
-      isAdmin || resourceSet == null ? SelectSr : SelectResourceSetsSr
+    const SelectSr = isAdmin || resourceSet == null ? SelectAnySr : SelectResourceSetsSr
 
     return (
       <form id='newDiskForm'>
         <div className='form-group'>
-          <SelectSr_
+          <SelectSr
             onChange={this.linkState('sr')}
             predicate={this._getSrPredicate()}
             required
@@ -299,19 +287,11 @@ class NewDisk extends Component {
           <div className='form-group'>
             {vm.virtualizationMode === 'pv' && (
               <span>
-                {_('vbdBootable')}{' '}
-                <Toggle
-                  onChange={this.toggleState('bootable')}
-                  value={bootable}
-                />{' '}
+                {_('vbdBootable')} <Toggle onChange={this.toggleState('bootable')} value={bootable} />{' '}
               </span>
             )}
             <span>
-              {_('vbdReadonly')}{' '}
-              <Toggle
-                onChange={this.toggleState('readOnly')}
-                value={readOnly}
-              />
+              {_('vbdReadonly')} <Toggle onChange={this.toggleState('readOnly')} value={readOnly} />
             </span>
           </div>
           <span className='pull-right'>
@@ -445,12 +425,7 @@ class AttachDisk extends Component {
               </span>
             </div>
             <span className='pull-right'>
-              <ActionButton
-                icon='connect'
-                form='attachDiskForm'
-                btnStyle='primary'
-                handler={this._addVdi}
-              >
+              <ActionButton icon='connect' form='attachDiskForm' btnStyle='primary' handler={this._addVdi}>
                 {_('vbdAttach')}
               </ActionButton>
             </span>
@@ -468,11 +443,20 @@ class AttachDisk extends Component {
   }
 }
 
-@connectStore(() => ({
-  checkPermissions: getCheckPermissions,
-  isAdmin,
-  allVbds: createGetObjectsOfType('VBD'),
+@addSubscriptions(props => ({
+  // used by getResolvedResourceSet
+  resourceSet: cb => subscribeResourceSets(resourceSets => cb(find(resourceSets, { id: props.vm.resourceSet }))),
 }))
+@connectStore(() => {
+  const getAllVbds = createGetObjectsOfType('VBD')
+
+  return (state, props) => ({
+    allVbds: getAllVbds(state, props),
+    checkPermissions: getCheckPermissions(state, props),
+    isAdmin: isAdmin(state, props),
+    resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
+  })
+})
 export default class TabDisks extends Component {
   constructor(props) {
     super(props)
@@ -501,9 +485,7 @@ export default class TabDisks extends Component {
         if (isSrShared(sr)) {
           return true
         }
-        return container === undefined
-          ? ((container = sr.$container), true)
-          : container === sr.$container
+        return container === undefined ? ((container = sr.$container), true) : container === sr.$container
       })
     }
   )
@@ -520,12 +502,14 @@ export default class TabDisks extends Component {
       newDisk: false,
     })
 
-  _migrateVdis = vdis =>
-    confirm({
+  _migrateVdis = vdis => {
+    const { resolvedResourceSet, vm } = this.props
+    return confirm({
       title: _('vdiMigrate'),
       body: (
         <MigrateVdiModalBody
-          pool={this.props.vm.$pool}
+          pool={vm.$pool}
+          resourceSet={resolvedResourceSet}
           warningBeforeMigrate={this._getGenerateWarningBeforeMigrate()}
         />
       ),
@@ -534,8 +518,17 @@ export default class TabDisks extends Component {
         return error(_('vdiMigrateNoSr'), _('vdiMigrateNoSrMessage'))
       }
 
-      return Promise.all(map(vdis, vdi => migrateVdi(vdi, sr)))
+      return Promise.all(
+        map(vdis, vdi =>
+          migrateVdi(
+            vdi,
+            sr,
+            getDefined(() => resolvedResourceSet.id)
+          )
+        )
+      )
     }, noop)
+  }
 
   _getIsVmAdmin = createSelector(
     () => this.props.checkPermissions,
@@ -547,8 +540,7 @@ export default class TabDisks extends Component {
     () => this.props.isAdmin,
     () => this.props.vm.resourceSet,
     this._getIsVmAdmin,
-    (isAdmin, resourceSet, isVmAdmin) =>
-      isAdmin || (resourceSet == null && isVmAdmin)
+    (isAdmin, resourceSet, isVmAdmin) => isAdmin || (resourceSet == null && isVmAdmin)
   )
 
   _getRequiredHost = createSelector(
@@ -574,37 +566,43 @@ export default class TabDisks extends Component {
   )
 
   _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
-    sr === undefined ||
-    isSrShared(sr) ||
-    requiredHost === undefined ||
-    sr.$container === requiredHost
+    sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
   )
 
   _getVbds = createSelector(
     () => this.props.vbds,
     () => this.props.vdis,
     () => this.props.srs,
-    (vbds, vdis, srs) =>
+    () => this.props.resolvedResourceSet,
+    (vbds, vdis, srs, resourceSet) =>
       compact(
         map(vbds, vbd => {
           let vdi
           return (
             !vbd.is_cd_drive &&
             ((vdi = vdis[vbd.VDI]),
-            vdi !== undefined && { ...vbd, vdi, vdiSr: srs[vdi.$SR] })
+            vdi !== undefined && {
+              ...vbd,
+              vdi,
+              vdiSr: defined(
+                srs[vdi.$SR],
+                find(
+                  getDefined(() => resourceSet.objectsByType.SR),
+                  { id: vdi.$SR }
+                )
+              ),
+            })
           )
         })
       )
   )
 
-  _getGenerateWarningBeforeMigrate = createSelector(
-    this._getCheckSr,
-    check => sr =>
-      check(sr) ? null : (
-        <span className='text-warning'>
-          <Icon icon='alarm' /> {_('warningVdiSr')}
-        </span>
-      )
+  _getGenerateWarningBeforeMigrate = createSelector(this._getCheckSr, check => sr =>
+    check(sr) ? null : (
+      <span className='text-warning'>
+        <Icon icon='alarm' /> {_('warningVdiSr')}
+      </span>
+    )
   )
 
   actions = [
@@ -613,8 +611,9 @@ export default class TabDisks extends Component {
       handler: deleteVbds,
       individualDisabled: vbd => vbd.attached,
       individualHandler: deleteVbd,
+      individualLabel: _('removeVdiFromVm'),
       icon: 'vdi-forget',
-      label: _('vdiForget'),
+      label: _('removeSelectedVdisFromVm'),
       level: 'danger',
     },
     {
@@ -622,14 +621,13 @@ export default class TabDisks extends Component {
       handler: selectedVbds => deleteVdis(uniq(map(selectedVbds, 'vdi'))),
       individualDisabled: vbd => vbd.attached,
       individualHandler: vbd => deleteVdi(vbd.vdi),
-      individualLabel: _('vdiRemove'),
+      individualLabel: _('destroyVdi'),
       icon: 'vdi-remove',
-      label: _('deleteSelectedVdis'),
+      label: _('destroySelectedVdis'),
       level: 'danger',
     },
     {
-      handler: selectedVbds =>
-        this._migrateVdis(uniq(map(selectedVbds, 'vdi'))),
+      handler: selectedVbds => this._migrateVdis(uniq(map(selectedVbds, 'vdi'))),
       icon: 'vdi-migrate',
       individualLabel: _('vdiMigrate'),
       label: _('migrateSelectedVdis'),
@@ -637,7 +635,7 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { allVbds, vm } = this.props
+    const { allVbds, resolvedResourceSet, vm } = this.props
 
     const { attachDisk, newDisk } = this.state
 
@@ -665,22 +663,13 @@ export default class TabDisks extends Component {
           <Col>
             {newDisk && (
               <div>
-                <NewDisk
-                  checkSr={this._getCheckSr()}
-                  vm={vm}
-                  onClose={this._toggleNewDisk}
-                />
+                <NewDisk checkSr={this._getCheckSr()} vm={vm} onClose={this._toggleNewDisk} />
                 <hr />
               </div>
             )}
             {attachDisk && (
               <div>
-                <AttachDisk
-                  checkSr={this._getCheckSr()}
-                  vm={vm}
-                  vbds={allVbds}
-                  onClose={this._toggleAttachDisk}
-                />
+                <AttachDisk checkSr={this._getCheckSr()} vm={vm} vbds={allVbds} onClose={this._toggleAttachDisk} />
                 <hr />
               </div>
             )}
@@ -699,6 +688,7 @@ export default class TabDisks extends Component {
               actions={this.actions}
               collection={this._getVbds()}
               columns={vm.virtualizationMode === 'pv' ? COLUMNS_VM_PV : COLUMNS}
+              data-resourceSet={resolvedResourceSet}
               data-vm={vm}
               individualActions={INDIVIDUAL_ACTIONS}
               shortcutsTarget='body'

@@ -1,12 +1,6 @@
 /* eslint-env jest */
 
-import {
-  AlteredRecordError,
-  AuditCore,
-  MissingRecordError,
-  NULL_ID,
-  Storage,
-} from '.'
+import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '.'
 
 const asyncIteratorToArray = async asyncIterator => {
   const array = []
@@ -88,16 +82,13 @@ describe('auditCore', () => {
   it('detects that a record is missing', async () => {
     const [newestRecord, deletedRecord] = await storeAuditRecords()
 
-    const nValidRecords = await auditCore.checkIntegrity(
-      NULL_ID,
-      newestRecord.id
-    )
+    const nValidRecords = await auditCore.checkIntegrity(NULL_ID, newestRecord.id)
     expect(nValidRecords).toBe(DATA.length)
 
     await db.del(deletedRecord.id)
-    await expect(
-      auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toEqual(new MissingRecordError(deletedRecord.id, 1))
+    await expect(auditCore.checkIntegrity(NULL_ID, newestRecord.id)).rejects.toEqual(
+      new MissingRecordError(deletedRecord.id, 1)
+    )
   })
 
   it('detects that a record has been altered', async () => {
@@ -106,9 +97,7 @@ describe('auditCore', () => {
     alteredRecord.event = ''
     await db.put(alteredRecord)
 
-    await expect(
-      auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    ).rejects.toEqual(
+    await expect(auditCore.checkIntegrity(NULL_ID, newestRecord.id)).rejects.toEqual(
       new AlteredRecordError(alteredRecord.id, 1, alteredRecord)
     )
   })

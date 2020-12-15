@@ -12,10 +12,7 @@ export async function getCurrentPermissions() {
   return /* await */ this.getPermissionsForUser(this.session.get('user_id'))
 }
 
-getCurrentPermissions.permission = ''
-
-getCurrentPermissions.description =
-  'get (explicit) permissions by object for the current user'
+getCurrentPermissions.description = 'get (explicit) permissions by object for the current user'
 
 // -------------------------------------------------------------------
 

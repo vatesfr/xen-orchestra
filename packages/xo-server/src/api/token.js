@@ -18,8 +18,6 @@ create.params = {
   },
 }
 
-create.permission = '' // sign in
-
 // -------------------------------------------------------------------
 
 // TODO: an user should be able to delete its own tokens.
@@ -50,10 +48,7 @@ export async function deleteAll({ except }) {
   })
 }
 
-deleteAll.description =
-  'delete all tokens of the current user except the current one'
-
-deleteAll.permission = ''
+deleteAll.description = 'delete all tokens of the current user except the current one'
 
 deleteAll.params = {
   except: { type: 'string', optional: true },

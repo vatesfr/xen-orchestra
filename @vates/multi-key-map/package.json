@@ -1,0 +1,28 @@
+{
+  "private": false,
+  "name": "@vates/multi-key-map",
+  "description": "Create map with values affected to multiple keys",
+  "keywords": [
+    "cache",
+    "map"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/multi-key-map",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/multi-key-map",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}

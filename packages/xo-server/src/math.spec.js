@@ -13,12 +13,7 @@ describe('mergeObjects', function () {
         { a: 1, b: 2 },
         { c: 3, d: 4 },
       ],
-      'Three sets': [
-        { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 },
-        { a: 1 },
-        { b: 2, c: 3 },
-        { d: 4, e: 5, f: 6 },
-      ],
+      'Three sets': [{ a: 1, b: 2, c: 3, d: 4, e: 5, f: 6 }, { a: 1 }, { b: 2, c: 3 }, { d: 4, e: 5, f: 6 }],
       'One set': [
         { a: 1, b: 2 },
         { a: 1, b: 2 },
@@ -99,9 +94,7 @@ describe('crossProduct', function () {
     ([product, items, cb], name) => {
       describe(`with ${name}`, () => {
         it('Crosses sets of values with a crossProduct callback', function () {
-          expect(thunkToArray(crossProduct(items, cb)).sort()).toEqual(
-            product.sort()
-          )
+          expect(thunkToArray(crossProduct(items, cb)).sort()).toEqual(product.sort())
         })
       })
     }

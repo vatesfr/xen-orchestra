@@ -5,13 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {
-  getConfig,
-  getMainConnection,
-  getVmXoTestPvId,
-  getOneHost,
-  waitObjectState,
-} from './util'
+import { getConfig, getMainConnection, getVmXoTestPvId, getOneHost, waitObjectState } from './util'
 import { map } from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -31,10 +25,7 @@ describe('vbd', () => {
     let config
     ;[xo, config] = await Promise.all([getMainConnection(), getConfig()])
 
-    serverId = await xo.call(
-      'server.add',
-      Object.assign({ autoConnect: false }, config.xenServer1)
-    )
+    serverId = await xo.call('server.add', Object.assign({ autoConnect: false }, config.xenServer1))
     await xo.call('server.connect', { id: serverId })
     await eventToPromise(xo.objects, 'finish')
 
@@ -54,9 +45,7 @@ describe('vbd', () => {
   // ------------------------------------------------------------------
 
   afterEach(async () => {
-    await Promise.all(
-      map(diskIds, diskId => xo.call('vdi.delete', { id: diskId }))
-    )
+    await Promise.all(map(diskIds, diskId => xo.call('vdi.delete', { id: diskId })))
     diskIds = []
   })
 
@@ -64,10 +53,7 @@ describe('vbd', () => {
 
   afterAll(async () => {
     jest.setTimeout(5e3)
-    await Promise.all([
-      xo.call('vm.stop', { id: vmId }),
-      xo.call('server.remove', { id: serverId }),
-    ])
+    await Promise.all([xo.call('vm.stop', { id: vmId }), xo.call('server.remove', { id: serverId })])
   })
 
   // ------------------------------------------------------------------

@@ -17,15 +17,12 @@ const COMPARATOR_FN = {
 const VM_FUNCTIONS = {
   cpuUsage: {
     name: 'VM CPU usage',
-    description:
-      'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
+    description: 'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
     unit: '%',
     createParser: (comparator, legend, threshold) => {
       const regex = /cpu[0-9]+/
       const filteredLegends = legend.filter(l => l.name.match(regex))
-      const accumulator = Object.assign(
-        ...filteredLegends.map(l => ({ [l.name]: [] }))
-      )
+      const accumulator = Object.assign(...filteredLegends.map(l => ({ [l.name]: [] })))
       const getDisplayableValue = () => {
         const means = Object.keys(accumulator).map(l => mean(accumulator[l]))
         return Math.max(...means) * 100
@@ -37,34 +34,27 @@ const VM_FUNCTIONS = {
           })
         },
         getDisplayableValue,
-        shouldAlarm: () =>
-          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        shouldAlarm: () => COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
         threshold,
       }
     },
   },
   memoryUsage: {
     name: 'VM memory usage',
-    description:
-      'Raises an alarm when the used memory % is higher/lower than the threshold',
+    description: 'Raises an alarm when the used memory % is higher/lower than the threshold',
     unit: '% used',
     createParser: (comparator, legend, threshold) => {
       const memoryBytesLegend = legend.find(l => l.name === 'memory')
-      const memoryKBytesFreeLegend = legend.find(
-        l => l.name === 'memory_internal_free'
-      )
+      const memoryKBytesFreeLegend = legend.find(l => l.name === 'memory_internal_free')
       const usedMemoryRatio = []
       const getDisplayableValue = () => mean(usedMemoryRatio) * 100
       return {
         parseRow: data => {
           const memory = data.values[memoryBytesLegend.index]
-          usedMemoryRatio.push(
-            (memory - 1024 * data.values[memoryKBytesFreeLegend.index]) / memory
-          )
+          usedMemoryRatio.push((memory - 1024 * data.values[memoryKBytesFreeLegend.index]) / memory)
         },
         getDisplayableValue,
-        shouldAlarm: () =>
-          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        shouldAlarm: () => COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
         threshold,
       }
     },
@@ -74,15 +64,12 @@ const VM_FUNCTIONS = {
 const HOST_FUNCTIONS = {
   cpuUsage: {
     name: 'host CPU usage',
-    description:
-      'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
+    description: 'Raises an alarm when the average usage of any CPU is higher/lower than the threshold',
     unit: '%',
     createParser: (comparator, legend, threshold) => {
       const regex = /^cpu[0-9]+$/
       const filteredLegends = legend.filter(l => l.name.match(regex))
-      const accumulator = Object.assign(
-        ...filteredLegends.map(l => ({ [l.name]: [] }))
-      )
+      const accumulator = Object.assign(...filteredLegends.map(l => ({ [l.name]: [] })))
       const getDisplayableValue = () => {
         const means = Object.keys(accumulator).map(l => mean(accumulator[l]))
         return Math.max(...means) * 100
@@ -94,34 +81,27 @@ const HOST_FUNCTIONS = {
           })
         },
         getDisplayableValue,
-        shouldAlarm: () =>
-          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        shouldAlarm: () => COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
         threshold,
       }
     },
   },
   memoryUsage: {
     name: 'host memory usage',
-    description:
-      'Raises an alarm when the used memory % is higher/lower than the threshold',
+    description: 'Raises an alarm when the used memory % is higher/lower than the threshold',
     unit: '% used',
     createParser: (comparator, legend, threshold) => {
       const memoryKBytesLegend = legend.find(l => l.name === 'memory_total_kib')
-      const memoryKBytesFreeLegend = legend.find(
-        l => l.name === 'memory_free_kib'
-      )
+      const memoryKBytesFreeLegend = legend.find(l => l.name === 'memory_free_kib')
       const usedMemoryRatio = []
       const getDisplayableValue = () => mean(usedMemoryRatio) * 100
       return {
         parseRow: data => {
           const memory = data.values[memoryKBytesLegend.index]
-          usedMemoryRatio.push(
-            (memory - data.values[memoryKBytesFreeLegend.index]) / memory
-          )
+          usedMemoryRatio.push((memory - data.values[memoryKBytesFreeLegend.index]) / memory)
         },
         getDisplayableValue,
-        shouldAlarm: () =>
-          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        shouldAlarm: () => COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
         threshold,
       }
     },
@@ -131,16 +111,13 @@ const HOST_FUNCTIONS = {
 const SR_FUNCTIONS = {
   storageUsage: {
     name: 'SR storage usage',
-    description:
-      'Raises an alarm when the used disk space % is higher/lower than the threshold',
+    description: 'Raises an alarm when the used disk space % is higher/lower than the threshold',
     unit: '% used',
     createGetter: (comparator, threshold) => sr => {
-      const getDisplayableValue = () =>
-        (sr.physical_utilisation * 100) / sr.physical_size
+      const getDisplayableValue = () => (sr.physical_utilisation * 100) / sr.physical_size
       return {
         getDisplayableValue,
-        shouldAlarm: () =>
-          COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
+        shouldAlarm: () => COMPARATOR_FN[comparator](getDisplayableValue(), threshold),
         threshold,
       }
     },
@@ -169,8 +146,7 @@ export const configurationSchema = {
     baseUrl: {
       type: 'string',
       title: 'Xen Orchestra URL',
-      description:
-        'URL used in alert messages to quickly get to the VMs (ex: https://xoa.company.tld/ )',
+      description: 'URL used in alert messages to quickly get to the VMs (ex: https://xoa.company.tld/ )',
     },
     hostMonitors: {
       type: 'array',
@@ -192,10 +168,7 @@ export const configurationSchema = {
           variableName: {
             title: 'Alarm Type',
             description: Object.keys(HOST_FUNCTIONS)
-              .map(
-                k =>
-                  `  * ${k} (${HOST_FUNCTIONS[k].unit}): ${HOST_FUNCTIONS[k].description}`
-              )
+              .map(k => `  * ${k} (${HOST_FUNCTIONS[k].unit}): ${HOST_FUNCTIONS[k].description}`)
               .join('\n'),
             type: 'string',
             default: Object.keys(HOST_FUNCTIONS)[0],
@@ -204,8 +177,7 @@ export const configurationSchema = {
           comparator: COMPARATOR_ENTRY,
           alarmTriggerLevel: {
             title: 'Threshold',
-            description:
-              'The direction of the crossing is given by the comparator type',
+            description: 'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 40,
           },
@@ -240,10 +212,7 @@ export const configurationSchema = {
           variableName: {
             title: 'Alarm Type',
             description: Object.keys(VM_FUNCTIONS)
-              .map(
-                k =>
-                  `  * ${k} (${VM_FUNCTIONS[k].unit}): ${VM_FUNCTIONS[k].description}`
-              )
+              .map(k => `  * ${k} (${VM_FUNCTIONS[k].unit}): ${VM_FUNCTIONS[k].description}`)
               .join('\n'),
             type: 'string',
             default: Object.keys(VM_FUNCTIONS)[0],
@@ -252,8 +221,7 @@ export const configurationSchema = {
           comparator: COMPARATOR_ENTRY,
           alarmTriggerLevel: {
             title: 'Threshold',
-            description:
-              'The direction of the crossing is given by the comparator type',
+            description: 'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 40,
           },
@@ -289,10 +257,7 @@ export const configurationSchema = {
           variableName: {
             title: 'Alarm Type',
             description: Object.keys(SR_FUNCTIONS)
-              .map(
-                k =>
-                  `  * ${k} (${SR_FUNCTIONS[k].unit}): ${SR_FUNCTIONS[k].description}`
-              )
+              .map(k => `  * ${k} (${SR_FUNCTIONS[k].unit}): ${SR_FUNCTIONS[k].description}`)
               .join('\n'),
             type: 'string',
             default: Object.keys(SR_FUNCTIONS)[0],
@@ -301,8 +266,7 @@ export const configurationSchema = {
           comparator: COMPARATOR_ENTRY,
           alarmTriggerLevel: {
             title: 'Threshold',
-            description:
-              'The direction of the crossing is given by the comparator type',
+            description: 'The direction of the crossing is given by the comparator type',
             type: 'number',
             default: 80,
           },
@@ -327,12 +291,7 @@ const clearCurrentAlarms = () =>
     delete currentAlarms[k]
   })
 
-const raiseOrLowerAlarm = (
-  alarmId,
-  shouldRaise,
-  raiseCallback,
-  lowerCallback
-) => {
+const raiseOrLowerAlarm = (alarmId, shouldRaise, raiseCallback, lowerCallback) => {
   const current = currentAlarms[alarmId]
   if (shouldRaise) {
     if (!current) {
@@ -350,9 +309,7 @@ const raiseOrLowerAlarm = (
 
 async function getServerTimestamp(xapi, host) {
   const serverLocalTime = await xapi.call('host.get_servertime', host.$ref)
-  return Math.floor(
-    utcParse('%Y%m%dT%H:%M:%SZ')(serverLocalTime).getTime() / 1000
-  )
+  return Math.floor(utcParse('%Y%m%dT%H:%M:%SZ')(serverLocalTime).getTime() / 1000)
 }
 
 class PerfAlertXoPlugin {
@@ -362,10 +319,7 @@ class PerfAlertXoPlugin {
       try {
         await this._checkMonitors()
       } catch (error) {
-        console.error(
-          '[WARN] scheduled function:',
-          (error && error.stack) || error
-        )
+        console.error('[WARN] scheduled function:', (error && error.stack) || error)
       }
     })
   }
@@ -420,17 +374,13 @@ ${monitorBodies.join('\n')}`
 
   _parseDefinition(definition) {
     const alarmId = `${definition.objectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
-    const typeFunction =
-      TYPE_FUNCTION_MAP[definition.objectType][definition.variableName]
+    const typeFunction = TYPE_FUNCTION_MAP[definition.objectType][definition.variableName]
     const parseData = (result, uuid) => {
       const parsedLegend = result.meta.legend.map((l, index) => {
         const [operation, type, uuid, name] = l.split(':')
         const parsedName = name.split('_')
         const lastComponent = parsedName[parsedName.length - 1]
-        const relatedEntity =
-          parsedName.length > 1 && lastComponent.match(/^[0-9a-f]{8}$/)
-            ? lastComponent
-            : null
+        const relatedEntity = parsedName.length > 1 && lastComponent.match(/^[0-9a-f]{8}$/) ? lastComponent : null
         return {
           operation,
           type,
@@ -463,10 +413,7 @@ ${monitorBodies.join('\n')}`
       result.data.forEach(d => parser.parseRow(d))
       return parser
     }
-    const observationPeriod =
-      definition.alarmTriggerPeriod !== undefined
-        ? definition.alarmTriggerPeriod
-        : 60
+    const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
     return {
       ...definition,
       alarmId,
@@ -485,9 +432,10 @@ ${monitorBodies.join('\n')}`
                 throw new Error('object not found')
               }
 
-              result.objectLink = `[${
-                result.object.name_label
-              }](${this._generateUrl(definition.objectType, result.object)})`
+              result.objectLink = `[${result.object.name_label}](${this._generateUrl(
+                definition.objectType,
+                result.object
+              )})`
 
               if (typeFunction.createGetter === undefined) {
                 // Stats via RRD
@@ -504,10 +452,7 @@ ${monitorBodies.join('\n')}`
                 }
               } else {
                 // Stats via XAPI
-                const getter = typeFunction.createGetter(
-                  definition.comparator,
-                  definition.alarmTriggerLevel
-                )
+                const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
                 const data = getter(result.object)
                 Object.assign(result, {
                   value: data.getDisplayableValue(),
@@ -539,19 +484,9 @@ ${monitorBodies.join('\n')}`
   }
 
   _getMonitors() {
-    return map(this._configuration.hostMonitors, def =>
-      this._parseDefinition({ ...def, objectType: 'host' })
-    )
-      .concat(
-        map(this._configuration.vmMonitors, def =>
-          this._parseDefinition({ ...def, objectType: 'vm' })
-        )
-      )
-      .concat(
-        map(this._configuration.srMonitors, def =>
-          this._parseDefinition({ ...def, objectType: 'sr' })
-        )
-      )
+    return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }))
+      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'vm' })))
+      .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'sr' })))
   }
 
   // Sample of a monitor
@@ -638,12 +573,7 @@ ${entry.listItem}
           )
         }
 
-        raiseOrLowerAlarm(
-          `${monitor.alarmId}|${entry.uuid}`,
-          entry.shouldAlarm,
-          raiseAlarm,
-          lowerAlarm
-        )
+        raiseOrLowerAlarm(`${monitor.alarmId}|${entry.uuid}`, entry.shouldAlarm, raiseAlarm, lowerAlarm)
       }
 
       raiseOrLowerAlarm(
@@ -666,10 +596,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
   }
 
   _sendAlertEmail(subjectSuffix, markdownBody) {
-    if (
-      this._configuration.toEmails !== undefined &&
-      this._xo.sendEmail !== undefined
-    ) {
+    if (this._configuration.toEmails !== undefined && this._xo.sendEmail !== undefined) {
       this._xo.sendEmail({
         to: this._configuration.toEmails,
         subject: `[Xen Orchestra] − Performance Alert ${subjectSuffix}`,
@@ -683,8 +610,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
   }
 
   async getRrd(xapiObject, secondsAgo) {
-    const host =
-      xapiObject.$type === 'host' ? xapiObject : xapiObject.$resident_on
+    const host = xapiObject.$type === 'host' ? xapiObject : xapiObject.$resident_on
     if (host == null) {
       return null
     }
@@ -704,9 +630,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
       payload.vm_uuid = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
-    return JSON5.parse(
-      await (await xapi.getResource('/rrd_updates', payload)).readAll()
-    )
+    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).readAll())
   }
 }
 
