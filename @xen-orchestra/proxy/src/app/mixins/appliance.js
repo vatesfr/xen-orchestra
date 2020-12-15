@@ -1,3 +1,4 @@
+import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import fromEvent from 'promise-toolbox/fromEvent'
 import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
@@ -8,23 +9,16 @@ import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
 
 import { deduped } from '../_deduped'
-import { disposable } from '../_disposable'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
 const { debug, warn } = createLogger('xo:proxy:appliance')
 
-const getUpdater = deduped(
-  disposable(async function* () {
-    const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
-    await updater.open()
-    try {
-      yield updater
-    } finally {
-      await updater.close()
-    }
-  })
-)
+const getUpdater = deduped(async function () {
+  const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
+  await updater.open()
+  return new Disposable(updater, () => updater.close())
+})
 
 const callUpdate = params =>
   using(
