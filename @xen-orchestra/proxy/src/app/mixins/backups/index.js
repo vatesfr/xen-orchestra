@@ -131,20 +131,16 @@ export default class Backups {
         fetchPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, paths }) => {
             const { promise, reject, resolve } = pDefer()
-            using(
-              function* () {
-                const adapter = yield app.remotes.getAdapter(remote)
-                return yield adapter.usePartitionFiles(diskId, partitionId, paths)
-              },
-              async files => {
-                const zip = new ZipFile()
-                files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
-                zip.end()
-                const { outputStream } = zip
-                resolve(outputStream)
-                await fromEvent(outputStream, 'end')
-              }
-            ).catch(error => {
+            using(async function* () {
+              const adapter = yield app.remotes.getAdapter(remote)
+              const files = yield adapter.usePartitionFiles(diskId, partitionId, paths)
+              const zip = new ZipFile()
+              files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
+              zip.end()
+              const { outputStream } = zip
+              resolve(outputStream)
+              await fromEvent(outputStream, 'end')
+            }).catch(error => {
               warn(error)
               reject(error)
             })
