@@ -10,7 +10,6 @@ import { rmdir } from 'fs-extra'
 import { debounceResource } from '../_debounceResource'
 import { decorateResult } from '../_decorateResult'
 import { deduped } from '../_deduped'
-import { disposable } from '../_disposable'
 
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
@@ -58,7 +57,7 @@ export default class Remotes {
   // FIXME: invalidate cache on remote option change
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
-  @decorateWith(disposable)
+  @decorateWith(Disposable.factory)
   *getAdapter(remote) {
     return new RemoteAdapter(yield this.getHandler(remote), {
       app: this._app,
