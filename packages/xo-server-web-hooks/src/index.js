@@ -101,25 +101,25 @@ class XoServerHooks {
 
   async test({ url }) {
     await this._makeRequest(url, 'pre', {
-        callId: '0',
-        userId: 'b4tm4n',
-        userName: 'bruce.wayne@waynecorp.com',
-        method: 'vm.start',
-        params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
-        timestamp: 0,
-      },
-      false
+      callId: '0',
+      userId: 'b4tm4n',
+      userName: 'bruce.wayne@waynecorp.com',
+      method: 'vm.start',
+      params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+      timestamp: 0,
+    },
+    false
     )
     await this._makeRequest(url, 'post', {
-        callId: '0',
-        userId: 'b4tm4n',
-        userName: 'bruce.wayne@waynecorp.com',
-        method: 'vm.start',
-        result: '',
-        timestamp: 500,
-        duration: 500,
-      },
-      false
+      callId: '0',
+      userId: 'b4tm4n',
+      userName: 'bruce.wayne@waynecorp.com',
+      method: 'vm.start',
+      result: '',
+      timestamp: 500,
+      duration: 500,
+    },
+    false
     )
   }
 }
