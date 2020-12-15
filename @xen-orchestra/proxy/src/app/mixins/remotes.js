@@ -49,15 +49,10 @@ export default class Remotes {
   // FIXME: invalidate cache on remote option change
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
-  @decorateWith(disposable)
-  async *getHandler(remote) {
+  async getHandler(remote) {
     const handler = getHandler(remote, this._config.remoteOptions)
     await handler.sync()
-    try {
-      yield handler
-    } finally {
-      await handler.forget()
-    }
+    return new Disposable(handler, () => handler.forget())
   }
 
   // FIXME: invalidate cache on remote option change
