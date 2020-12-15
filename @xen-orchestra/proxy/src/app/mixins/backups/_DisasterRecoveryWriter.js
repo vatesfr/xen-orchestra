@@ -48,17 +48,19 @@ export class DisasterRecoveryWriter {
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await xapi.VM_import(stream, sr.$ref)
+      targetVmRef = await xapi.VM_import(stream, sr.$ref, vm =>
+        Promise.all([
+          vm.add_tags('Disaster Recovery'),
+          vm.ha_restart_priority !== '' && Promise.all([vm.set_ha_restart_priority(''), vm.add_tags('HA disabled')]),
+          vm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
+        ])
+      )
       return { size: sizeContainer.size }
     })
 
     const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
-      targetVm.add_tags('Disaster Recovery'),
-      targetVm.ha_restart_priority !== '' &&
-        Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
-      targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
       targetVm.update_blocked_operations(
         'start',
         'Start operation for this vm is blocked, clone it if you want to use it.'

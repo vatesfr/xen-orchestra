@@ -47,7 +47,16 @@ export class ContinuousReplicationWriter {
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importDeltaVm(deltaExport, sr)
+      targetVmRef = await importDeltaVm(
+        {
+          __proto__: deltaExport,
+          vm: {
+            ...deltaExport.vm,
+            tags: [...deltaExport.vm.tags, 'Continuous Replication'],
+          },
+        },
+        sr
+      )
       return {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
@@ -56,7 +65,6 @@ export class ContinuousReplicationWriter {
     const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
-      targetVm.add_tags('Continuous Replication'),
       targetVm.ha_restart_priority !== '' &&
         Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
       targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
