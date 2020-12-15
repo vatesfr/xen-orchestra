@@ -1,4 +1,5 @@
 import { invalidParameters } from 'xo-common/api-errors'
+import { isEmpty } from 'lodash'
 import { getUserPublicProperties, mapToArray } from '../utils'
 
 // ===================================================================
@@ -67,6 +68,11 @@ export async function set({ id, email, password, permission, preferences }) {
     throw invalidParameters('this properties can only changed by an administrator')
   }
 
+  const user = await this.getUser(id)
+  if (!isEmpty(user.authProviders) && (email || password)) {
+    throw invalidParameters('cannot change the email or password of a third party user')
+  }
+
   await this.updateUser(id, { email, password, permission, preferences })
 }
 
@@ -83,8 +89,13 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function changePassword({ oldPassword, newPassword }) {
-  const id = this.session.get('user_id')
-  await this.changeUserPassword(id, oldPassword, newPassword)
+  const { user } = this
+
+  if (!isEmpty(user.authProviders)) {
+    throw invalidParameters('cannot change the password of a third party user')
+  }
+
+  await this.changeUserPassword(user.id, oldPassword, newPassword)
 }
 
 changePassword.description = 'change password after checking old password (user function)'

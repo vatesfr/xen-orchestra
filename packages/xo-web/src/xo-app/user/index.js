@@ -12,7 +12,7 @@ import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
-import { map } from 'lodash'
+import { isEmpty, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -333,46 +333,47 @@ export default class User extends Component {
             <Col smallSize={10}>{user.email}</Col>
           </Row>
           <br />
-          <Row>
-            <Col smallSize={2}>
-              <strong>{_('password')}</strong>
-            </Col>
-            <Col smallSize={10}>
-              <form className='form-inline' id='changePassword'>
-                <input
-                  autoComplete='off'
-                  className='form-control'
-                  onChange={this._handleOldPasswordChange}
-                  placeholder={formatMessage(messages.oldPasswordPlaceholder)}
-                  required
-                  type='password'
-                  value={oldPassword || ''}
-                />{' '}
-                <input
-                  type='password'
-                  autoComplete='off'
-                  className='form-control'
-                  onChange={this._handleNewPasswordChange}
-                  placeholder={formatMessage(messages.newPasswordPlaceholder)}
-                  required
-                  value={newPassword}
-                />{' '}
-                <input
-                  autoComplete='off'
-                  className='form-control'
-                  onChange={this._handleConfirmPasswordChange}
-                  placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
-                  required
-                  type='password'
-                  value={confirmPassword}
-                />{' '}
-                <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
-                  {_('changePasswordOk')}
-                </ActionButton>
-              </form>
-            </Col>
-          </Row>
-          <br />
+          {isEmpty(user.authProviders) && (
+            <Row className='mb-1'>
+              <Col smallSize={2}>
+                <strong>{_('password')}</strong>
+              </Col>
+              <Col smallSize={10}>
+                <form className='form-inline' id='changePassword'>
+                  <input
+                    autoComplete='off'
+                    className='form-control'
+                    onChange={this._handleOldPasswordChange}
+                    placeholder={formatMessage(messages.oldPasswordPlaceholder)}
+                    required
+                    type='password'
+                    value={oldPassword || ''}
+                  />{' '}
+                  <input
+                    type='password'
+                    autoComplete='off'
+                    className='form-control'
+                    onChange={this._handleNewPasswordChange}
+                    placeholder={formatMessage(messages.newPasswordPlaceholder)}
+                    required
+                    value={newPassword}
+                  />{' '}
+                  <input
+                    autoComplete='off'
+                    className='form-control'
+                    onChange={this._handleConfirmPasswordChange}
+                    placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
+                    required
+                    type='password'
+                    value={confirmPassword}
+                  />{' '}
+                  <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
+                    {_('changePasswordOk')}
+                  </ActionButton>
+                </form>
+              </Col>
+            </Row>
+          )}
           <Row>
             <Col smallSize={10} offset={2}>
               <Tooltip content={_('forgetTokensExplained')}>
