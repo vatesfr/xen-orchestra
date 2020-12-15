@@ -378,7 +378,6 @@ module.exports = class Vm {
     if (srRef !== undefined) {
       query.sr_id = srRef
     }
-    // FIXME
     if (onVmCreation != null) {
       ignoreErrors.call(
         this._waitObject(

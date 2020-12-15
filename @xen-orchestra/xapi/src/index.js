@@ -1,4 +1,5 @@
 const assert = require('assert')
+const defer = require('promise-toolbox/defer')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 
@@ -22,10 +23,69 @@ exports.parseDateTime = function (str, defaultValue) {
   return date.getTime()
 }
 
+const hasProps = o => {
+  // eslint-disable-next-line no-unreachable-loop
+  for (const key in o) {
+    return true
+  }
+  return false
+}
+
 class Xapi extends Base {
   constructor({ maxUncoalescedVdis, ...opts }) {
     super(opts)
     this._maxUncoalescedVdis = maxUncoalescedVdis
+
+    const genericWatchers = (this._genericWatchers = new Set())
+    const objectWatchers = (this._objectWatchers = { __proto__: null })
+
+    const onAddOrUpdate = records => {
+      if (genericWatchers.size === 0 && !hasProps(objectWatchers)) {
+        // no need to process records
+        return
+      }
+
+      Object.keys(records).forEach(id => {
+        const object = records[id]
+
+        genericWatchers.forEach(watcher => {
+          watcher(object)
+        })
+
+        if (id in objectWatchers) {
+          objectWatchers[id].resolve(object)
+          delete objectWatchers[id]
+        }
+        const ref = object.$ref
+        if (ref in objectWatchers) {
+          objectWatchers[ref].resolve(object)
+          delete objectWatchers[ref]
+        }
+      })
+    }
+    this.objects.on('add', onAddOrUpdate)
+    this.objects.on('update', onAddOrUpdate)
+  }
+
+  _waitObject(predicate) {
+    if (typeof predicate === 'function') {
+      const genericWatchers = this._genericWatchers
+
+      const { promise, resolve } = defer()
+      genericWatchers.add(function watcher(obj) {
+        if (predicate(obj)) {
+          genericWatchers.delete(watcher)
+          resolve(obj)
+        }
+      })
+      return promise
+    }
+
+    let watcher = this._objectWatchers[predicate]
+    if (watcher === undefined) {
+      watcher = this._objectWatchers[predicate] = defer()
+    }
+    return watcher.promise
   }
 }
 function mixin(mixins) {
