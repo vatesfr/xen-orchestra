@@ -171,15 +171,18 @@ export const importDeltaVm = defer(
     let suspendVdi
     if (vmRecord.power_state === 'Suspended') {
       const vdi = vdiRecords[vmRecord.suspend_VDI]
-      suspendVdi = await xapi.VDI_create({
-        ...vdi,
-        other_config: {
-          ...vdi.other_config,
-          [TAG_BASE_DELTA]: undefined,
-          [TAG_COPY_SRC]: vdi.uuid,
-        },
-        sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
-      })
+      suspendVdi = await xapi.getRecord(
+        'VDI',
+        await xapi.VDI_create({
+          ...vdi,
+          other_config: {
+            ...vdi.other_config,
+            [TAG_BASE_DELTA]: undefined,
+            [TAG_COPY_SRC]: vdi.uuid,
+          },
+          sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+        })
+      )
       $defer.onFailure(() => suspendVdi.$destroy())
     }
 
@@ -201,7 +204,7 @@ export const importDeltaVm = defer(
         },
       },
       {
-        suspend_VDI: suspendVdi?.ref,
+        suspend_VDI: suspendVdi?.$ref,
       }
     )
     $defer.onFailure.call(xapi, 'VM_destroy', vmRef)
@@ -250,15 +253,18 @@ export const importDeltaVm = defer(
           $defer.onFailure(() => newVdi.$destroy())
         }
 
-        await Promise.all(
-          Object.values(vbds[vdiRef]).map(vbd =>
-            xapi.VBD_create({
-              ...vbd,
-              VDI: newVdi.$ref,
-              VM: vmRef,
-            })
+        const vdiVbds = vbds[vdiRef]
+        if (vdiVbds !== undefined) {
+          await Promise.all(
+            Object.values(vdiVbds).map(vbd =>
+              xapi.VBD_create({
+                ...vbd,
+                VDI: newVdi.$ref,
+                VM: vmRef,
+              })
+            )
           )
-        )
+        }
 
         newVdis[vdiRef] = newVdi
       })
