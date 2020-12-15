@@ -51,37 +51,35 @@ export class Backup {
     }
 
     await using(
-      extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _)),
-      async srs => {
-        const remoteAdapters = extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))
-        await using(remoteAdapters, async adapters => {
-          const vmIds = extractIdsFromSimplePattern(job.vms)
+      Disposable.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _))),
+      Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
+      async (srs, adapters) => {
+        const vmIds = extractIdsFromSimplePattern(job.vms)
 
-          Task.info('vms', { vms: vmIds })
+        Task.info('vms', { vms: vmIds })
 
-          const remoteAdapters = {}
-          adapters.forEach(({ adapter, remoteId }) => {
-            remoteAdapters[remoteId] = adapter
-          })
-
-          const handleVm = vmUuid =>
-            Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
-              using(this._getRecord('VM', vmUuid), vm =>
-                new VmBackup({
-                  getSnapshotNameLabel,
-                  job,
-                  // remotes,
-                  remoteAdapters,
-                  schedule,
-                  settings: { ...scheduleSettings, ...settings[vmUuid] },
-                  srs,
-                  vm,
-                }).run()
-              )
-            ).catch(noop) // errors are handled by logs
-          const { concurrency } = scheduleSettings
-          await asyncMap(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
+        const remoteAdapters = {}
+        adapters.forEach(({ adapter, remoteId }) => {
+          remoteAdapters[remoteId] = adapter
         })
+
+        const handleVm = vmUuid =>
+          Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
+            using(this._getRecord('VM', vmUuid), vm =>
+              new VmBackup({
+                getSnapshotNameLabel,
+                job,
+                // remotes,
+                remoteAdapters,
+                schedule,
+                settings: { ...scheduleSettings, ...settings[vmUuid] },
+                srs,
+                vm,
+              }).run()
+            )
+          ).catch(noop) // errors are handled by logs
+        const { concurrency } = scheduleSettings
+        await asyncMap(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )
   }
