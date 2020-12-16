@@ -2698,26 +2698,6 @@
     "@webassemblyjs/wast-parser" "1.9.0"
     "@xtuc/long" "4.2.2"
 
-"@xen-orchestra/fs@^0.10.1":
-  version "0.10.4"
-  resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-0.10.4.tgz#85d9d2b538285b4dba0ac257aaa5335582aba0d2"
-  integrity sha512-3xg1cx7YcmpyBvqs/ETXwY0bC9jrXTD8abNPlftni/C5Nm8aN2WmG2GHkiyJHoiqIvx2Z6I1E8ukVsnVCXJzvw==
-  dependencies:
-    "@marsaud/smb2" "^0.15.0"
-    "@sindresorhus/df" "^3.1.1"
-    "@xen-orchestra/async-map" "^0.0.0"
-    decorator-synchronized "^0.5.0"
-    execa "^3.2.0"
-    fs-extra "^8.0.1"
-    get-stream "^5.1.0"
-    limit-concurrency-decorator "^0.4.0"
-    lodash "^4.17.4"
-    promise-toolbox "^0.15.0"
-    readable-stream "^3.0.6"
-    through2 "^3.0.0"
-    tmp "^0.1.0"
-    xo-remote-parser "^0.5.0"
-
 "@xmpp/jid@^0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@xmpp/jid/-/jid-0.0.2.tgz#0d528ca9d58dafc833665564ffe62f332a3167f2"
@@ -8167,22 +8147,6 @@ execa@^2.0.1:
     is-stream "^2.0.0"
     merge-stream "^2.0.0"
     npm-run-path "^3.0.0"
-    onetime "^5.1.0"
-    p-finally "^2.0.0"
-    signal-exit "^3.0.2"
-    strip-final-newline "^2.0.0"
-
-execa@^3.2.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/execa/-/execa-3.4.0.tgz#c08ed4550ef65d858fac269ffc8572446f37eb89"
-  integrity sha512-r9vdGQk4bmCuK1yKQu1KTwcT2zwfWdbdaXfCtAh+5nU/4fSX+JAb7vZGvI5naJrQlvONrEB20jeruESI69530g==
-  dependencies:
-    cross-spawn "^7.0.0"
-    get-stream "^5.0.0"
-    human-signals "^1.1.1"
-    is-stream "^2.0.0"
-    merge-stream "^2.0.0"
-    npm-run-path "^4.0.0"
     onetime "^5.1.0"
     p-finally "^2.0.0"
     signal-exit "^3.0.2"
@@ -18426,7 +18390,7 @@ through2@2.X, through2@^2.0.0, through2@^2.0.3, through2@~2.0.0, through2@~2.0.3
     readable-stream "~2.3.6"
     xtend "~4.0.1"
 
-through2@^3.0.0, through2@^3.0.1:
+through2@^3.0.1:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.2.tgz#99f88931cfc761ec7678b41d5d7336b5b6a07bf4"
   integrity sha512-enaDQ4MUyP2W6ZyT6EsMzqBPZaM/avg8iuo+l2d3QCs0J+6RaqkHV/2/lOwDTueBHeJ/2LG9lrLW3d5rWPucuQ==
@@ -18507,13 +18471,6 @@ tmp@^0.0.33:
   integrity sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==
   dependencies:
     os-tmpdir "~1.0.2"
-
-tmp@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.1.0.tgz#ee434a4e22543082e294ba6201dcc6eafefa2877"
-  integrity sha512-J7Z2K08jbGcdA1kkQpJSqLF6T0tdQqpR2pnSUXsIchbPdTI9v3e85cLW0d6WDhwuAleOV71j2xWs8qMPfK7nKw==
-  dependencies:
-    rimraf "^2.6.3"
 
 tmp@^0.2.1:
   version "0.2.1"
@@ -20118,13 +20075,6 @@ xo-lib@^0.8.0:
     jsonrpc-websocket-client "^0.1.2"
     lodash "^4.17.2"
     make-error "^1.0.4"
-
-xo-remote-parser@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/xo-remote-parser/-/xo-remote-parser-0.5.0.tgz#ba989cb2ada94440614f0833bc06737a4974fa15"
-  integrity sha512-MSCfV9jIfBxN1OZBTU2XV3l3gL09J8kPMr/5mTJqn3x9jPHiI67V3/kNhnDcwAlfkESIPviBlkch6utdFR38jQ==
-  dependencies:
-    lodash "^4.13.1"
 
 xok@^1.0.0:
   version "1.0.0"
