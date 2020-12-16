@@ -4,17 +4,25 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
 import Component from 'base-component'
-import renderXoItem from 'render-xo-item'
+import Icon from 'icon'
+import renderXoItem, { Network } from 'render-xo-item'
 import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
-import { createGetObjectsOfType, createGroupBy } from 'selectors'
+import {
+  createGetObject,
+  createGetObjectsOfType,
+  createGroupBy,
+  createCollectionWrapper,
+  createSelector,
+} from 'selectors'
 import { injectIntl } from 'react-intl'
 import { map } from 'lodash'
 import { Text, XoSelect } from 'editable'
 import {
+  editPool,
   installSupplementalPackOnAllHosts,
   setHostsMultipathing,
   setPoolMaster,
@@ -36,7 +44,13 @@ class PoolMaster extends Component {
     const { pool, master } = this.props
 
     return (
-      <XoSelect onChange={this._onChange} predicate={this._getPoolMasterPredicate} value={pool.master} xoType='host'>
+      <XoSelect
+        onChange={this._onChange}
+        predicate={this._getPoolMasterPredicate}
+        required
+        value={pool.master}
+        xoType='host'
+      >
         {master.name_label}
       </XoSelect>
     )
@@ -54,16 +68,26 @@ class PoolMaster extends Component {
     gpuGroups: createGetObjectsOfType('gpuGroup')
       .filter((_, { pool }) => ({ $pool: pool.id }))
       .sort(),
+    migrationNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:migrationNetwork']),
   }
 })
 export default class TabAdvanced extends Component {
+  _getMigrationNetworkPredicate = createSelector(
+    createCollectionWrapper(() => map(this.props.networks, 'id')),
+    networkIds => network => networkIds.length === 0 || networkIds.includes(network.id)
+  )
+
+  _onChangeMigrationNetwork = migrationNetwork => editPool(this.props.pool, { migrationNetwork: migrationNetwork.id })
+
+  _removeMigrationNetwork = () => editPool(this.props.pool, { migrationNetwork: null })
+
   _setRemoteSyslogHosts = () =>
     setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(() =>
       this.setState({ editRemoteSyslog: false, syslogDestination: '' })
     )
 
   render() {
-    const { hosts, gpuGroups, pool, hostsByMultipathing } = this.props
+    const { hosts, gpuGroups, pool, hostsByMultipathing, migrationNetwork } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
     const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
@@ -183,6 +207,35 @@ export default class TabAdvanced extends Component {
         <Upgrade place='poolSupplementalPacks' required={2}>
           <SelectFiles onChange={file => installSupplementalPackOnAllHosts(pool, file)} />
         </Upgrade>
+        <h3 className='mt-1 mb-1'>{_('miscLabel')}</h3>
+        <Container>
+          <Row>
+            <Col>
+              <table className='table'>
+                <tbody>
+                  <tr>
+                    <th>{_('migrationNetwork')}</th>
+                    <td>
+                      <XoSelect
+                        onChange={this._onChangeMigrationNetwork}
+                        predicate={this._getMigrationNetworkPredicate()}
+                        value={migrationNetwork}
+                        xoType='network'
+                      >
+                        {migrationNetwork !== undefined ? <Network id={migrationNetwork.id} /> : _('noValue')}
+                      </XoSelect>{' '}
+                      {migrationNetwork !== undefined && (
+                        <a role='button' onClick={this._removeMigrationNetwork}>
+                          <Icon icon='remove' />
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </Col>
+          </Row>
+        </Container>
       </div>
     )
   }

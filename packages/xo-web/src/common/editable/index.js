@@ -418,8 +418,8 @@ export class XoSelect extends Editable {
     return this.props.children || <span>{this.props.value[this.props.labelProp]}</span>
   }
 
-  _onChange = object => {
-    this.setState({ value: object }, object && this._save)
+  _onChange = value => {
+    this.setState({ value }, this._save)
   }
 
   _renderEdition() {
@@ -436,7 +436,7 @@ export class XoSelect extends Editable {
     // when this element is clicked.
     return (
       <a onBlur={this._closeEdition}>
-        <Select {...props} autoFocus disabled={saving} onChange={this._onChange} />
+        <Select {...props} autoFocus disabled={saving} onChange={this._onChange} required />
       </a>
     )
   }

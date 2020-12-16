@@ -803,6 +803,7 @@ const messages = {
   poolRemoteSyslogPlaceHolder: 'Logging host',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
+  migrationNetwork: 'Migration network',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
