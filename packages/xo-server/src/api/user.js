@@ -69,7 +69,7 @@ export async function set({ id, email, password, permission, preferences }) {
   }
 
   const user = await this.getUser(id)
-  if (!isEmpty(user.authProviders) && (email || password)) {
+  if (!isEmpty(user.authProviders) && (email !== undefined || password !== undefined)) {
     throw invalidParameters('cannot change the email or password of a third party user')
   }
 
