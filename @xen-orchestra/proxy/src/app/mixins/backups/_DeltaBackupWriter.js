@@ -150,7 +150,9 @@ export class DeltaBackupWriter {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
     })
-    await handler.outputFile(metadataFilename, metadataContent)
+    await handler.outputFile(metadataFilename, metadataContent, {
+      dirMode: backup.config.dirMode,
+    })
 
     if (!deleteFirst) {
       await deleteOldBackups()

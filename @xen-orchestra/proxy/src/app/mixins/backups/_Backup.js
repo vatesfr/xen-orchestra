@@ -67,6 +67,7 @@ export class Backup {
           Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
             using(this._getRecord('VM', vmUuid), vm =>
               new VmBackup({
+                config: this._config,
                 getSnapshotNameLabel,
                 job,
                 // remotes,

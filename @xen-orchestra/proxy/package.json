@@ -38,7 +38,7 @@
     "@xen-orchestra/async-map": "^0.0.0",
     "@xen-orchestra/backups": "^0.4.0",
     "@xen-orchestra/emit-async": "^0.0.0",
-    "@xen-orchestra/fs": "^0.10.1",
+    "@xen-orchestra/fs": "0.12.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/self-signed": "^0.1.0",
     "@xen-orchestra/template": "^0.1.0",
