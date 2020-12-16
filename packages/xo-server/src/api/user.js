@@ -1,4 +1,4 @@
-import { invalidParameters } from 'xo-common/api-errors'
+import { forbiddenOperation, invalidParameters } from 'xo-common/api-errors'
 import { isEmpty } from 'lodash'
 import { getUserPublicProperties, mapToArray } from '../utils'
 
@@ -70,7 +70,7 @@ export async function set({ id, email, password, permission, preferences }) {
 
   const user = await this.getUser(id)
   if (!isEmpty(user.authProviders) && (email !== undefined || password !== undefined)) {
-    throw invalidParameters('cannot change the email or password of a third party user')
+    throw forbiddenOperation('set password', 'cannot change the email or password of synchronized user')
   }
 
   await this.updateUser(id, { email, password, permission, preferences })
@@ -92,7 +92,7 @@ export async function changePassword({ oldPassword, newPassword }) {
   const { user } = this
 
   if (!isEmpty(user.authProviders)) {
-    throw invalidParameters('cannot change the password of a third party user')
+    throw forbiddenOperation('change password', 'synchronized users cannot change their passwords')
   }
 
   await this.changeUserPassword(user.id, oldPassword, newPassword)
