@@ -407,7 +407,7 @@ export class RemoteAdapter {
     const handler = this._handler
     input = await input
     const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = await handler.createOutputStream(tmpPath, { checksum })
+    const output = await handler.createOutputStream(tmpPath, { checksum, dirMode: this._config.backups.dirMode })
     try {
       await Promise.all([fromCallback(pump, input, output), output.checksumWritten, input.task])
       await validator(tmpPath)

@@ -15,6 +15,10 @@ resourceDebounce = '5m'
 keepAliveInterval = 10e3
 
 [backups]
+# Mode to use for newly created backup directories
+#
+# https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
+dirMode = 0o700
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 
 [backups.defaultSettings]

@@ -78,7 +78,9 @@ export class FullBackupWriter {
       return { size: sizeContainer.size }
     })
     metadata.size = sizeContainer.size
-    await handler.outputFile(metadataFilename, JSON.stringify(metadata))
+    await handler.outputFile(metadataFilename, JSON.stringify(metadata), {
+      dirMode: backup.config.dirMode,
+    })
 
     if (!deleteFirst) {
       await deleteOldBackups()
