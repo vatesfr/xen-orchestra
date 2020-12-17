@@ -333,45 +333,45 @@ export default class User extends Component {
             <Col smallSize={10}>{user.email}</Col>
           </Row>
           <br />
-            <Row >
-              <Col smallSize={2}>
-                <strong>{_('password')}</strong>
-              </Col>
-              <Col smallSize={10}>
-                <form className='form-inline' id='changePassword'>
-                  <input
-                    autoComplete='off'
-                    className='form-control'
-                    onChange={this._handleOldPasswordChange}
-                    placeholder={formatMessage(messages.oldPasswordPlaceholder)}
-                    required
-                    type='password'
-                    value={oldPassword || ''}
-                  />{' '}
-                  <input
-                    type='password'
-                    autoComplete='off'
-                    className='form-control'
-                    onChange={this._handleNewPasswordChange}
-                    placeholder={formatMessage(messages.newPasswordPlaceholder)}
-                    required
-                    value={newPassword}
-                  />{' '}
-                  <input
-                    autoComplete='off'
-                    className='form-control'
-                    onChange={this._handleConfirmPasswordChange}
-                    placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
-                    required
-                    type='password'
-                    value={confirmPassword}
-                  />{' '}
-                  <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
-                    {_('changePasswordOk')}
-                  </ActionButton>
-                </form>
-              </Col>
-            </Row>
+          <Row >
+            <Col smallSize={2}>
+              <strong>{_('password')}</strong>
+            </Col>
+            <Col smallSize={10}>
+              <form className='form-inline' id='changePassword'>
+                <input
+                  autoComplete='off'
+                  className='form-control'
+                  onChange={this._handleOldPasswordChange}
+                  placeholder={formatMessage(messages.oldPasswordPlaceholder)}
+                  required
+                  type='password'
+                  value={oldPassword || ''}
+                />{' '}
+                <input
+                  type='password'
+                  autoComplete='off'
+                  className='form-control'
+                  onChange={this._handleNewPasswordChange}
+                  placeholder={formatMessage(messages.newPasswordPlaceholder)}
+                  required
+                  value={newPassword}
+                />{' '}
+                <input
+                  autoComplete='off'
+                  className='form-control'
+                  onChange={this._handleConfirmPasswordChange}
+                  placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
+                  required
+                  type='password'
+                  value={confirmPassword}
+                />{' '}
+                <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
+                  {_('changePasswordOk')}
+                </ActionButton>
+              </form>
+            </Col>
+          </Row>
           <br />
           <Row>
             <Col smallSize={10} offset={2}>
