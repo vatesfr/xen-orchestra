@@ -19,7 +19,7 @@ import {
   createSelector,
 } from 'selectors'
 import { injectIntl } from 'react-intl'
-import { map } from 'lodash'
+import { flatMap, map } from 'lodash'
 import { Text, XoSelect } from 'editable'
 import {
   editPool,
@@ -69,12 +69,15 @@ class PoolMaster extends Component {
       .filter((_, { pool }) => ({ $pool: pool.id }))
       .sort(),
     migrationNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:migrationNetwork']),
+    pifsWithIps: createGetObjectsOfType('PIF')
+      .pick((_, { networks }) => flatMap(networks, 'PIFs'))
+      .filter([pif => pif.ip !== '']),
   }
 })
 export default class TabAdvanced extends Component {
   _getMigrationNetworkPredicate = createSelector(
-    createCollectionWrapper(() => map(this.props.networks, 'id')),
-    networkIds => network => networkIds.length === 0 || networkIds.includes(network.id)
+    createCollectionWrapper(() => map(this.props.pifsWithIps, '$network')),
+    networkIds => network => networkIds.includes(network.id)
   )
 
   _onChangeMigrationNetwork = migrationNetwork => editPool(this.props.pool, { migrationNetwork: migrationNetwork.id })

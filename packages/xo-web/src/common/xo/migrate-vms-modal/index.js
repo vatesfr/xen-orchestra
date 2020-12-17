@@ -1,5 +1,4 @@
 import BaseComponent from 'base-component'
-import defined from '@xen-orchestra/defined'
 import every from 'lodash/every'
 import flatten from 'lodash/flatten'
 import forEach from 'lodash/forEach'
@@ -182,8 +181,13 @@ export default class MigrateVmsModalBody extends BaseComponent {
     }
     const { pools, pifs } = this.props
     const pool = pools[host.$pool]
-    const defaultNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
-    const defaultMigrationNetworkId = defined(pool.otherConfig['xo:migrationNetwork'], defaultNetworkId)
+    const migrationNetwork = pool.otherConfig['xo:migrationNetwork']
+    const defaultMigrationNetworkId = find(
+      pifs,
+      pif =>
+        pif.$host === host.id &&
+        ((migrationNetwork !== undefined && pif.ip !== '' && pif.$network === migrationNetwork) || pif.management)
+    ).$network
     const defaultSrId = pool.default_SR
     const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
 
@@ -217,7 +221,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       doNotMigrateVdi,
       doNotMigrateVmVdis,
       migrationNetworkId: defaultMigrationNetworkId,
-      networkId: defaultNetworkId,
+      networkId: defaultMigrationNetworkId,
       noVdisMigration,
       smartVifMapping: true,
       srId: defaultSrConnectedToHost ? defaultSrId : undefined,
