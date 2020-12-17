@@ -3823,7 +3823,7 @@ babel-runtime@^5.8.25, babel-runtime@^5.8.3:
   dependencies:
     core-js "^1.0.0"
 
-babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
+babel-runtime@^6.18.0, babel-runtime@^6.2.0, babel-runtime@^6.22.0, babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   integrity sha1-llxwWGaOgrVde/4E/yM3vItWR/4=
@@ -7361,11 +7361,6 @@ event-stream@^3.1.7:
     split "^1.0.1"
     stream-combiner "^0.2.2"
     through "^2.3.8"
-
-event-to-promise@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/event-to-promise/-/event-to-promise-0.7.0.tgz#cb07dfcd418da2221d90f77eab713bc235e2090f"
-  integrity sha1-ywffzUGNoiIdkPd+q3E7wjXiCQ8=
 
 event-to-promise@^0.8.0:
   version "0.8.0"
@@ -11202,16 +11197,6 @@ json-parse-even-better-errors@^2.3.0:
   resolved "https://registry.yarnpkg.com/json-parse-even-better-errors/-/json-parse-even-better-errors-2.3.1.tgz#7c47805a94319928e05777405dc12e1f7a4ee02d"
   integrity sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w==
 
-json-rpc-peer@^0.13.1:
-  version "0.13.2"
-  resolved "https://registry.yarnpkg.com/json-rpc-peer/-/json-rpc-peer-0.13.2.tgz#76ef4374ab32d133017a0499b7211389e8c6d50a"
-  integrity sha1-du9DdKsy0TMBegSZtyETiejG1Qo=
-  dependencies:
-    babel-runtime "^6.23.0"
-    json-rpc-protocol "^0.11.3"
-    lodash "^4.17.4"
-    readable-stream "^2.2.9"
-
 json-rpc-peer@^0.15.0:
   version "0.15.5"
   resolved "https://registry.yarnpkg.com/json-rpc-peer/-/json-rpc-peer-0.15.5.tgz#51bc04cd4ff1c71694d9d903ce3c250d34f2d97e"
@@ -11229,13 +11214,6 @@ json-rpc-peer@^0.17.0:
     "@babel/runtime" "^7.3.4"
     json-rpc-protocol "^0.13.1"
     lodash "^4.17.4"
-
-json-rpc-protocol@^0.11.3:
-  version "0.11.4"
-  resolved "https://registry.yarnpkg.com/json-rpc-protocol/-/json-rpc-protocol-0.11.4.tgz#d1adbfa8e28e548f48d83c5d5c1bde3d2e406cac"
-  integrity sha512-m1qwEcS/gCL4kJIPxQFi+WuBtFDazU+OeyIyUWqMVQA1fptFZAlgSstVZ7dHyp8NCJkmEuipsuxJ2kWickVv7Q==
-  dependencies:
-    make-error "^1.3.0"
 
 json-rpc-protocol@^0.12.0:
   version "0.12.0"
@@ -11334,17 +11312,6 @@ jsonparse@^1.2.0:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-1.3.1.tgz#3f4dae4a91fac315f71062f8521cc239f1366280"
   integrity sha1-P02uSpH6wxX3EGL4UhzCOfE2YoA=
-
-jsonrpc-websocket-client@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/jsonrpc-websocket-client/-/jsonrpc-websocket-client-0.1.2.tgz#93ff7c4bf81146b968de535e2c8738554fcc6242"
-  integrity sha1-k/98S/gRRrlo3lNeLIc4VU/MYkI=
-  dependencies:
-    event-to-promise "^0.7.0"
-    json-rpc-peer "^0.13.1"
-    lodash "^4.15.0"
-    make-error "^1.1.1"
-    ws "^1.0.1"
 
 jsonrpc-websocket-client@^0.5.0:
   version "0.5.0"
@@ -12180,7 +12147,7 @@ make-error-cause@^1.1.1:
   dependencies:
     make-error "^1.2.0"
 
-make-error@^1, make-error@^1.0.2, make-error@^1.0.4, make-error@^1.1.1, make-error@^1.2.0, make-error@^1.2.1, make-error@^1.2.3, make-error@^1.3.0, make-error@^1.3.2, make-error@^1.3.5:
+make-error@^1, make-error@^1.0.2, make-error@^1.0.4, make-error@^1.2.0, make-error@^1.2.1, make-error@^1.2.3, make-error@^1.3.0, make-error@^1.3.2, make-error@^1.3.5:
   version "1.3.6"
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.6.tgz#2eb2e37ea9b67c4891f684a1394799af484cf7a2"
   integrity sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==
@@ -15584,7 +15551,7 @@ read-pkg@^5.2.0:
     parse-json "^5.0.0"
     type-fest "^0.6.0"
 
-"readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.2.9, readable-stream@^2.3.3, readable-stream@^2.3.5, readable-stream@^2.3.6, readable-stream@~2.3.6:
+"readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.3.3, readable-stream@^2.3.5, readable-stream@^2.3.6, readable-stream@~2.3.6:
   version "2.3.7"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.7.tgz#1eca1cf711aef814c04f62252a36a62f6cb23b57"
   integrity sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==
@@ -19168,7 +19135,7 @@ write@1.0.3:
   dependencies:
     mkdirp "^0.5.1"
 
-ws@^1.0.1, ws@^1.1.1:
+ws@^1.1.1:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.5.tgz#cbd9e6e75e09fc5d2c90015f21f0c40875e0dd51"
   integrity sha512-o3KqipXNUdS7wpQzBHSe180lBGO60SoK0yVo3CYJgb2MkobuWuBX6dhkYP5ORCLd55y+SaflMOV5fqAB53ux4w==
@@ -19286,15 +19253,6 @@ xmlrpc@^1.3.2:
   dependencies:
     sax "1.2.x"
     xmlbuilder "8.2.x"
-
-xo-lib@^0.8.0:
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/xo-lib/-/xo-lib-0.8.2.tgz#0fab6836d07278444d15ae028382a9448271119d"
-  integrity sha1-D6toNtByeERNFa4Cg4KpRIJxEZ0=
-  dependencies:
-    jsonrpc-websocket-client "^0.1.2"
-    lodash "^4.17.2"
-    make-error "^1.0.4"
 
 xok@^1.0.0:
   version "1.0.0"

@@ -3,6 +3,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
+import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import { assignWith, concat } from 'lodash'
@@ -1173,7 +1174,7 @@ revert.resolve = {
 // -------------------------------------------------------------------
 
 async function handleExport(req, res, { xapi, id, compress }) {
-  const stream = await xapi.exportVm(id, {
+  const stream = await xapi.exportVm(FAIL_ON_QUEUE, id, {
     compress,
   })
   res.on('close', () => stream.cancel())

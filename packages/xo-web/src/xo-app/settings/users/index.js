@@ -30,7 +30,12 @@ const permissions = {
 const USER_COLUMNS = [
   {
     name: _('userNameColumn'),
-    itemRenderer: user => <Editable.Text onChange={email => editUser(user, { email })} value={user.email} />,
+    itemRenderer: user =>
+      isEmpty(user.authProviders) ? (
+        <Editable.Text onChange={email => editUser(user, { email })} value={user.email} />
+      ) : (
+        user.email
+      ),
     sortCriteria: user => user.email,
   },
   {
@@ -70,7 +75,8 @@ const USER_COLUMNS = [
   },
   {
     name: _('userPasswordColumn'),
-    itemRenderer: user => <Editable.Password onChange={password => editUser(user, { password })} value='' />,
+    itemRenderer: user =>
+      isEmpty(user.authProviders) && <Editable.Password onChange={password => editUser(user, { password })} value='' />,
   },
 ]
 
