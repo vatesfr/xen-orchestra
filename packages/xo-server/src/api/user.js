@@ -67,6 +67,9 @@ export async function set({ id, email, password, permission, preferences }) {
     throw invalidParameters('this properties can only changed by an administrator')
   }
 
+  await this.updateUser(id, { email, password, permission, preferences })	
+}
+
 set.description = 'changes the properties of an existing user'
 
 set.params = {
