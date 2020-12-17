@@ -85,7 +85,7 @@ When logical volume no longer necessary:
 
 ## Mount block device
 
-> Tip: `offset` and `sizelimit` are only required on a partionned disk
+>  Tip: `offset` and `sizelimit` are only required on a partionned disk
 
 ```
 > mkdir /tmp/block-mount
