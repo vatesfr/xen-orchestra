@@ -111,6 +111,20 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
+export async function rollingUpdate({ pool }) {
+  await this.getXapi(pool).rollingPoolUpdate()
+}
+
+rollingUpdate.params = {
+  pool: { type: 'string' },
+}
+
+rollingUpdate.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
 async function handlePatchUpload(req, res, { pool }) {
   const contentLength = req.headers['content-length']
   if (!contentLength) {

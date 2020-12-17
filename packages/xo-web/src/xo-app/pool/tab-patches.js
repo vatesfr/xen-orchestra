@@ -8,8 +8,11 @@ import { alert } from 'modal'
 import { Col, Container, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { installAllPatchesOnPool, installPatches, subscribeHostMissingPatches } from 'xo'
+import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
+import { installAllPatchesOnPool, installPatches, rollingPoolUpdate, subscribeHostMissingPatches } from 'xo'
 import { isEmpty } from 'lodash'
+
+const ROLLING_POOL_UPDATES_AVAILABLE = getXoaPlan().value >= ENTERPRISE.value
 
 const MISSING_PATCH_COLUMNS = [
   {
@@ -170,6 +173,16 @@ export default class TabPatches extends Component {
         <Container>
           <Row>
             <Col className='text-xs-right'>
+              {ROLLING_POOL_UPDATES_AVAILABLE && (
+                <TabButton
+                  btnStyle='primary'
+                  disabled={isEmpty(missingPatches)}
+                  handler={rollingPoolUpdate}
+                  handlerParam={pool.id}
+                  icon='pool-rolling-update'
+                  labelId='rollingPoolUpdate'
+                />
+              )}
               <TabButton
                 btnStyle='primary'
                 data-pool={pool}

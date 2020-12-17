@@ -4,6 +4,7 @@
 
 import chalk from 'chalk'
 import execPromise from 'exec-promise'
+import FormData from 'form-data'
 import { createReadStream } from 'fs'
 import { stat } from 'fs-promise'
 import getStream from 'get-stream'
@@ -187,8 +188,17 @@ export async function upload(args) {
   let keys, key, url
   if (isObject(result) && (keys = getKeys(result)).length === 1) {
     key = keys[0]
-
     if (key === '$sendTo') {
+      const formData = new FormData()
+      if (data.tables !== undefined) {
+        for (const k in data.tables) {
+          const tables = await data.tables[k]
+          delete data.tables[k]
+          for (const l in tables) {
+            formData.append(l, Buffer.from(tables[l]), k)
+          }
+        }
+      }
       if (typeof file !== 'string') {
         // eslint-disable-next-line no-throw-literal
         throw 'file parameter should be a path'
@@ -206,16 +216,9 @@ export async function upload(args) {
           printProgress
         ),
       ])
-
+      formData.append('file', input, { filename: 'file', knownLength: length })
       try {
-        return await hrp
-          .post(url.toString(), {
-            body: input,
-            headers: {
-              'content-length': length,
-            },
-          })
-          .readAll('utf-8')
+        return await hrp.post(url.toString(), { body: formData, headers: formData.getHeaders() }).readAll('utf-8')
       } catch (e) {
         console.log('ERROR', e)
         console.log('ERROR content', await e.response.readAll('utf-8'))
