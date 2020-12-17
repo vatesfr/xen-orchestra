@@ -9,8 +9,8 @@ import { createVhdStreamWithLength } from 'vhd-lib'
 import { cancelableMap } from './_cancelableMap'
 import { CancelToken } from 'promise-toolbox'
 
-const TAG_BASE_DELTA = 'xo:base_delta'
-const TAG_COPY_SRC = 'xo:copy_of'
+export const TAG_BASE_DELTA = 'xo:base_delta'
+export const TAG_COPY_SRC = 'xo:copy_of'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 

@@ -4,7 +4,7 @@ import { formatDateTime } from '@xen-orchestra/xapi'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 
-import { importDeltaVm } from './_deltaVm'
+import { importDeltaVm, TAG_COPY_SRC } from './_deltaVm'
 import { listReplicatedVms } from './_listReplicatedVms'
 import { Task } from './_Task'
 
@@ -25,6 +25,31 @@ export class ContinuousReplicationWriter {
       },
       this.run
     )
+  }
+
+  async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
+    const sr = this._sr
+    const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(
+      vm => vm.other_config[TAG_COPY_SRC] === baseVm.uuid
+    )
+    if (replicatedVm === undefined) {
+      return baseUuidToSrcVdi.clear()
+    }
+
+    const xapi = replicatedVm.$xapi
+    const replicatedVdis = new Set(
+      await Promise.all(
+        (await replicatedVm.$getDisks()).map(async vdiRef => {
+          const otherConfig = await xapi.getField('VDI', vdiRef, 'other_config')
+          return otherConfig[TAG_COPY_SRC]
+        })
+      )
+    )
+    for (const uuid of baseUuidToSrcVdi.keys()) {
+      if (!replicatedVdis.has(uuid)) {
+        baseUuidToSrcVdi.delete(uuid)
+      }
+    }
   }
 
   async run({ timestamp, deltaExport, sizeContainers }) {

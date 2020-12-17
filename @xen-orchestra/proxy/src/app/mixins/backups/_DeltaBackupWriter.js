@@ -1,7 +1,8 @@
 import assert from 'assert'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
-import Vhd, { chainVhd } from 'vhd-lib'
+import Vhd, { chainVhd, checkVhdChain } from 'vhd-lib'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { dirname } from 'path'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
@@ -13,8 +14,8 @@ import { Task } from './_Task'
 
 export class DeltaBackupWriter {
   constructor(backup, remoteId, settings) {
+    this._adapter = backup.remoteAdapters[remoteId]
     this._backup = backup
-    this._remoteId = remoteId
     this._settings = settings
 
     this.run = Task.wrapFn(
@@ -30,15 +31,50 @@ export class DeltaBackupWriter {
     )
   }
 
-  async run({ timestamp, deltaExport, sizeContainers }) {
+  async checkBaseVdis(baseUuidToSrcVdi) {
+    const { handler } = this._adapter
     const backup = this._backup
-    const remoteId = this._remoteId
+
+    const backupDir = getVmBackupDir(backup.vm.uuid)
+    const vdisDir = `${backupDir}/vdis/${backup.job.id}`
+
+    await Promise.all(
+      Array.from(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
+        let found = false
+        try {
+          const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
+            filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
+            prependDir: true,
+          })
+          await Promise.all(
+            vhds.map(async path => {
+              try {
+                await checkVhdChain(handler, path)
+
+                const vhd = new Vhd(handler, path)
+                await vhd.readHeaderAndFooter()
+                found = found || vhd.footer.uuid.equals(packUuid(baseUuid))
+              } catch (_) {
+                await ignoreErrors.call(handler.unlink(path))
+              }
+            })
+          )
+        } catch (_) {}
+        if (!found) {
+          baseUuidToSrcVdi.delete(baseUuid)
+        }
+      })
+    )
+  }
+
+  async run({ timestamp, deltaExport, sizeContainers }) {
+    const adapter = this._adapter
+    const backup = this._backup
     const settings = this._settings
 
     const { job, scheduleId, vm } = backup
 
     const jobId = job.id
-    const adapter = backup.remoteAdapters[remoteId]
     const handler = adapter.handler
     const backupDir = getVmBackupDir(vm.uuid)
 

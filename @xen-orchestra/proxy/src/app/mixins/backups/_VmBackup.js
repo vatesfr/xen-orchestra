@@ -1,6 +1,7 @@
 import eos from 'end-of-stream'
 import findLast from 'lodash/findLast'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import keyBy from 'lodash/keyBy'
 import mapValues from 'lodash/mapValues'
 import { createLogger } from '@xen-orchestra/log'
 import { formatDateTime } from '@xen-orchestra/xapi'
@@ -61,6 +62,7 @@ export class VmBackup {
     // VM (snapshot) that is really exported
     this.exportedVm = undefined
 
+    this._fullVdisRequired = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isDelta = job.mode === 'delta'
     this._jobId = job.id
@@ -160,7 +162,9 @@ export class VmBackup {
     const { exportedVm } = this
     const baseVm = this._baseVm
 
-    const deltaExport = await exportDeltaVm(exportedVm, baseVm)
+    const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
+      fullVdisRequired: this._fullVdisRequired,
+    })
     const sizeContainers = mapValues(deltaExport.streams, watchStreamSize)
 
     const timestamp = Date.now()
@@ -281,18 +285,54 @@ export class VmBackup {
   }
 
   async _selectBaseVm() {
-    const baseVm = findLast(this._jobSnapshots, _ => 'xo:backup:exported' in _.other_config)
-    if (baseVm !== undefined) {
-      const deltaChainLength = (baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
+    const xapi = this._xapi
 
-      const fullInterval = this._settings.fullInterval
-      if (fullInterval === 0 || fullInterval > deltaChainLength) {
-        // resolve to full object
-        this._baseVm = await this._xapi.getRecord('VM', baseVm.$ref)
-      }
+    let baseVm = findLast(this._jobSnapshots, _ => 'xo:backup:exported' in _.other_config)
+    if (baseVm === undefined) {
+      return
     }
 
-    // TODO: check whether baseVm is available on targets
+    const fullInterval = this._settings.fullInterval
+    const deltaChainLength = +(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
+    if (!(fullInterval === 0 || fullInterval > deltaChainLength)) {
+      return
+    }
+
+    const srcVdis = keyBy(await xapi.getRecords('VDI', await this.vm.$getDisks()), '$ref')
+
+    // resolve full record
+    baseVm = await xapi.getRecord('VM', baseVm.$ref)
+
+    const baseUuidTosrcVdi = new Map()
+    await Promise.all(
+      (await baseVm.$getDisks()).map(async baseRef => {
+        const snapshotOf = await xapi.getField('VDI', baseRef, 'snapshot_of')
+        const srcVdi = srcVdis[snapshotOf]
+        if (srcVdi !== undefined) {
+          baseUuidTosrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
+        }
+      })
+    )
+
+    const presentBaseVdis = new Map(baseUuidTosrcVdi)
+    const writers = this._writers
+    for (let i = 0, n = writers.length; presentBaseVdis.size !== 0 && i < n; ++i) {
+      await writers[i].checkBaseVdis(presentBaseVdis, baseVm)
+    }
+
+    if (presentBaseVdis.size === 0) {
+      return
+    }
+
+    const fullVdisRequired = new Set()
+    baseUuidTosrcVdi.forEach((srcVdi, baseUuid) => {
+      if (!presentBaseVdis.has(baseUuid)) {
+        fullVdisRequired.add(srcVdi.uuid)
+      }
+    })
+
+    this._baseVm = baseVm
+    this._fullVdisRequired = fullVdisRequired
   }
 
   async run() {
