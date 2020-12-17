@@ -70,10 +70,10 @@
     "source-map-support": "^0.5.16",
     "stoppable": "^1.0.6",
     "tmp": "^0.2.1",
-    "vhd-lib": "^0.7.2",
+    "vhd-lib": "^1.0.0",
     "xdg-basedir": "^4.0.0",
     "xen-api": "^0.29.0",
-    "xo-common": "^0.3.0",
+    "xo-common": "^0.5.0",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
