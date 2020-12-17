@@ -158,8 +158,9 @@ export class VmBackup {
 
   async _copyDelta() {
     const { exportedVm } = this
+    const baseVm = this._baseVm
 
-    const deltaExport = await exportDeltaVm(exportedVm, this._baseVm)
+    const deltaExport = await exportDeltaVm(exportedVm, baseVm)
     const sizeContainers = mapValues(deltaExport.streams, watchStreamSize)
 
     const timestamp = Date.now()
@@ -183,6 +184,13 @@ export class VmBackup {
     )
 
     this._baseVm = exportedVm
+
+    if (baseVm !== undefined) {
+      await exportedVm.update_other_config(
+        'xo:backup:deltaChainLength',
+        String(+(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1)
+      )
+    }
 
     // not the case if offlineBackup
     if (exportedVm.is_a_snapshot) {
