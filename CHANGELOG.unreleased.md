@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Web hooks] Possibility to wait a response from the server before execute the job (PR [#5420](https://github.com/vatesfr/xen-orchestra/pull/5420))
+- [Web hooks] Possibility to wait a response from the server before execute the call (PR [#5420](https://github.com/vatesfr/xen-orchestra/pull/5420))
 
 ### Bug fixes
 

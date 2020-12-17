@@ -6,8 +6,8 @@ function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
     return Promise.all(
-      hooks.map(({ url, response }) =>
-        response && type === 'pre'
+      hooks.map(({ url, waitForResponse }) =>
+        waitForResponse && type === 'pre'
           ? this._waitForResponse(url, type, data).catch(error => {
               log.error("web hook didn't receive response from server", {
                 error,
@@ -100,26 +100,32 @@ class XoServerHooks {
   }
 
   async test({ url }) {
-    await this._makeRequest(url, 'pre', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
-      timestamp: 0,
-    },
-    false
+    await this._makeRequest(
+      url,
+      'pre',
+      {
+        callId: '0',
+        userId: 'b4tm4n',
+        userName: 'bruce.wayne@waynecorp.com',
+        method: 'vm.start',
+        params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+        timestamp: 0,
+      },
+      false
     )
-    await this._makeRequest(url, 'post', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      result: '',
-      timestamp: 500,
-      duration: 500,
-    },
-    false
+    await this._makeRequest(
+      url,
+      'post',
+      {
+        callId: '0',
+        userId: 'b4tm4n',
+        userName: 'bruce.wayne@waynecorp.com',
+        method: 'vm.start',
+        result: '',
+        timestamp: 500,
+        duration: 500,
+      },
+      false
     )
   }
 }
@@ -155,9 +161,9 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             title: 'URL',
             type: 'string',
           },
-          response: {
-            description: 'Waiting for the server response before execute the job. Only available on "PRE" type',
-            title: 'Response',
+          waitForResponse: {
+            description: 'Waiting for the server response before execute the call. Only available on "PRE" type',
+            title: 'Wait for response',
             type: 'boolean',
           },
         },
