@@ -333,8 +333,7 @@ export default class User extends Component {
             <Col smallSize={10}>{user.email}</Col>
           </Row>
           <br />
-          {isEmpty(user.authProviders) && (
-            <Row className='mb-1'>
+            <Row >
               <Col smallSize={2}>
                 <strong>{_('password')}</strong>
               </Col>
@@ -373,7 +372,7 @@ export default class User extends Component {
                 </form>
               </Col>
             </Row>
-          )}
+          <br />
           <Row>
             <Col smallSize={10} offset={2}>
               <Tooltip content={_('forgetTokensExplained')}>
