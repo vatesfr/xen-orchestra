@@ -70,8 +70,7 @@ const USER_COLUMNS = [
   },
   {
     name: _('userPasswordColumn'),
-    itemRenderer: user =>
-      isEmpty(user.authProviders) && <Editable.Password onChange={password => editUser(user, { password })} value='' />,
+    itemRenderer: user => <Editable.Password onChange={password => editUser(user, { password })} value='' />,
   },
 ]
 
