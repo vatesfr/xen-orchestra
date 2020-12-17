@@ -16,6 +16,7 @@
 - [VM/disks, SR/disks] Destroy/forget VDIs: improve tooltip messages (PR [#5435](https://github.com/vatesfr/xen-orchestra/pull/5435))
 - [Patches] Rolling pool update: automatically patch and restart a whole pool by live migrating running VMs back and forth as needed [#5286](https://github.com/vatesfr/xen-orchestra/issues/5286) (PR [#5430](https://github.com/vatesfr/xen-orchestra/pull/5430))
 - [Host] Replace `disabled/enabled state` by `maintenance mode` (PR [#5421](https://github.com/vatesfr/xen-orchestra/pull/5421))
+- [Health] Show duplicated MAC addresses with their VM / network
 
 ### Bug fixes
 
