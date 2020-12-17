@@ -1,5 +1,4 @@
 import { invalidParameters } from 'xo-common/api-errors'
-import { isEmpty } from 'lodash'
 import { getUserPublicProperties, mapToArray } from '../utils'
 
 // ===================================================================
@@ -67,14 +66,6 @@ export async function set({ id, email, password, permission, preferences }) {
   } else if (email || password || permission) {
     throw invalidParameters('this properties can only changed by an administrator')
   }
-
-  const user = await this.getUser(id)
-  if (!isEmpty(user.authProviders) && (email || password)) {
-    throw invalidParameters('cannot change the email or password of a third party user')
-  }
-
-  await this.updateUser(id, { email, password, permission, preferences })
-}
 
 set.description = 'changes the properties of an existing user'
 
