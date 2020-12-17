@@ -13,6 +13,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host] Fix `an error has occurred` on accessing a host's page (PR [#5417](https://github.com/vatesfr/xen-orchestra/pull/5417))
+- [Dashboard/Overview] Filter out `udev` SRs [#5423](https://github.com/vatesfr/xen-orchestra/issues/5423) (PR [#5453](https://github.com/vatesfr/xen-orchestra/pull/5453))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -30,5 +33,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-web minor
 - xo-server minor
 - xo-server-web-hooks minor

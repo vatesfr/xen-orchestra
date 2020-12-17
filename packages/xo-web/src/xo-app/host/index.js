@@ -65,7 +65,7 @@ const isRunning = host => host && host.power_state === 'Running'
   const getLogs = createGetObjectsOfType('message')
     .filter(
       createSelector(getHost, getVmController, (host, controller) => ({ $object }) =>
-        $object === host.id || $object === controller.id
+        $object === host.id || $object === (controller !== undefined && controller.id)
       )
     )
     .sort()
