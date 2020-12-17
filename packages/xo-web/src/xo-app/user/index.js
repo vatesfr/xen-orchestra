@@ -12,7 +12,7 @@ import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
-import { isEmpty, map } from 'lodash'
+import { map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -333,7 +333,7 @@ export default class User extends Component {
             <Col smallSize={10}>{user.email}</Col>
           </Row>
           <br />
-          <Row >
+          <Row>
             <Col smallSize={2}>
               <strong>{_('password')}</strong>
             </Col>
