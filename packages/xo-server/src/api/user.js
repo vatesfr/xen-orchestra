@@ -83,7 +83,7 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function changePassword({ oldPassword, newPassword }) {
-  const id = this.session.get('user_id')	  const { user } = this
+  const id = this.session.get('user_id')
   await this.changeUserPassword(id, oldPassword, newPassword)
 }
 
