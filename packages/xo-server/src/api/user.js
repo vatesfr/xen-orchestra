@@ -67,7 +67,7 @@ export async function set({ id, email, password, permission, preferences }) {
     throw invalidParameters('this properties can only changed by an administrator')
   }
 
-  await this.updateUser(id, { email, password, permission, preferences })	
+  await this.updateUser(id, { email, password, permission, preferences })
 }
 
 set.description = 'changes the properties of an existing user'
@@ -83,13 +83,8 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function changePassword({ oldPassword, newPassword }) {
-  const { user } = this
-
-  if (!isEmpty(user.authProviders)) {
-    throw invalidParameters('cannot change the password of a third party user')
-  }
-
-  await this.changeUserPassword(user.id, oldPassword, newPassword)
+  const id = this.session.get('user_id')	  const { user } = this
+  await this.changeUserPassword(id, oldPassword, newPassword)
 }
 
 changePassword.description = 'change password after checking old password (user function)'
