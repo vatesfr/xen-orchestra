@@ -44,13 +44,7 @@ class PoolMaster extends Component {
     const { pool, master } = this.props
 
     return (
-      <XoSelect
-        onChange={this._onChange}
-        predicate={this._getPoolMasterPredicate}
-        required
-        value={pool.master}
-        xoType='host'
-      >
+      <XoSelect onChange={this._onChange} predicate={this._getPoolMasterPredicate} value={pool.master} xoType='host'>
         {master.name_label}
       </XoSelect>
     )
