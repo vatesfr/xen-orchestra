@@ -8,21 +8,18 @@ function handleHook(type, data) {
     return Promise.all(
       hooks.map(({ url, waitForResponse }) =>
         waitForResponse && type === 'pre'
-          ? this._waitForResponse(url, type, data).catch(error => {
-              log.error("web hook didn't receive response from server", {
-                error,
-                webHook: { ...data, url, type },
-              })
-            })
-          : this._makeRequest(url, type, data).catch(error => {
-              log.error('web hook failed', {
-                error,
-                webHook: { ...data, url, type },
-              })
-            })
+          ? this._makeRequest(url, type, data).catch(error => setError(error, url, type, data))
+          : () => this._makeRequest(url, type, data).catch(error => setError(error, url, type, data))
       )
     )
   }
+}
+
+function setError(error, url, type, data) {
+  log.error('web hook failed', {
+    error,
+    webHook: { ...data, url, type },
+  })
 }
 
 class XoServerHooks {
@@ -34,10 +31,6 @@ class XoServerHooks {
 
     this._handlePreHook = handleHook.bind(this, 'pre')
     this._handlePostHook = handleHook.bind(this, 'post')
-  }
-
-  async _waitForResponse(url, type, data) {
-    return await this._makeRequest(url, type, data)
   }
 
   _makeRequest(url, type, data) {
