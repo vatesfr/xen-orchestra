@@ -205,8 +205,17 @@ const Updates = decorate([
       installedPackages: COMMUNITY
         ? () => ({ 'xen-orchestra': 'sources' })
         : async function () {
-            const { engine, installer, updater, npm } = await xoaUpdater.getLocalManifest()
-            return { ...engine, ...installer, ...updater, ...npm }
+            const {
+              engine,
+
+              // installer is deprecated and use as a fallback
+              installer,
+              installer2 = installer,
+
+              updater,
+              npm,
+            } = await xoaUpdater.getLocalManifest()
+            return { ...engine, ...installer2, ...updater, ...npm }
           },
       isDisconnected: (_, { xoaUpdaterState }) => xoaUpdater === 'disconnected' || xoaUpdaterState === 'error',
       isProxyConfigEdited: state => PROXY_ENTRIES.some(entry => state[entry] !== undefined),
