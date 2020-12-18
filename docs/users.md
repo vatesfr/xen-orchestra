@@ -55,9 +55,9 @@ The LDAP plugin allows you to synchronize user groups. To configure the synchron
 ![LDAP plugin group settings](./assets/ldapgroupconfig.png)
 
 - **Base and filter**: similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
-- **ID attribute**: the attribute that the plugin will use to uniquely identify each group. It must be unique across groups and must not change over time. On each synchronization, the plugin will compare LDAP groups with XO groups, try to match them based on this attribute and create/update XO groups if necessary.
+- **ID attribute**: the attribute that the plugin will use to uniquely identify each group. It must be unique across groups and must not change over time. On each synchronization, the plugin will compare LDAP groups with XO groups, then try to match them based on this attribute and create/update XO groups if necessary.
 - **Display name attribute**: the attribute that will be used as the group's name in XO.
-- **Members mapping**: this part of the configuration is used to determine which LDAP users belong to which LDAP groups. Given a LDAP directory that looks like this:
+- **Members mapping**: this part of the configuration is used to determine which LDAP users belong to which LDAP groups. Given an LDAP directory that looks like this:
 
 User:
 
