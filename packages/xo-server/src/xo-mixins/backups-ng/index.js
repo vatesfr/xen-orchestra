@@ -7,6 +7,7 @@ import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
 import safeTimeout from 'strict-timeout/safe'
+import * as util from 'util'
 import { type Pattern, createPredicate } from 'value-matcher'
 import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
@@ -308,7 +309,8 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
     result => {
       logger.error(message, {
         event: 'task.end',
-        result: serializeError(result),
+        // avoids "TypeError: Converting circular structure to JSON
+        result: util.inspect(result),
         status: 'failure',
         taskId,
       })
