@@ -61,7 +61,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ...this._createParams(path),
         Body: inputStream,
       },
-      { partSize: IDEAL_FRAGMENT_SIZE }
+      { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
     )
     if (checksum) {
       const checksum = await inputStream.checksum
