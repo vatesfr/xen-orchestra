@@ -120,13 +120,14 @@ export default class RemoteHandlerAbstract {
   }
 
   // TODO: remove method
-  async createOutputStream(file: File, { checksum = false, ...options }: Object = {}): Promise<LaxWritable> {
+  async createOutputStream(file: File, { checksum = false, dirMode, ...options }: Object = {}): Promise<LaxWritable> {
     if (typeof file === 'string') {
       file = normalizePath(file)
     }
     const path = typeof file === 'string' ? file : file.path
     const streamP = timeout.call(
       this._createOutputStream(file, {
+        dirMode,
         flags: 'wx',
         ...options,
       }),
@@ -210,11 +211,13 @@ export default class RemoteHandlerAbstract {
   async outputStream(
     input: Readable | Promise<Readable>,
     path: string,
-    { checksum = true }: { checksum?: boolean } = {}
+    { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
     path = normalizePath(path)
-    input = await input
-    return this._outputStream(await input, normalizePath(path), { checksum })
+    return this._outputStream(await input, normalizePath(path), {
+      checksum,
+      dirMode,
+    })
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
@@ -257,20 +260,24 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  async mkdir(dir: string): Promise<void> {
-    await this.__mkdir(normalizePath(dir))
+  async mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
+    await this.__mkdir(normalizePath(dir), { mode })
   }
 
-  async mktree(dir: string): Promise<void> {
-    await this._mktree(normalizePath(dir))
+  async mktree(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
+    await this._mktree(normalizePath(dir), { mode })
   }
 
   openFile(path: string, flags: string): Promise<FileDescriptor> {
     return this.__openFile(path, flags)
   }
 
-  async outputFile(file: string, data: Data, { flags = 'wx' }: { flags?: string } = {}): Promise<void> {
-    await this._outputFile(normalizePath(file), data, { flags })
+  async outputFile(
+    file: string,
+    data: Data,
+    { dirMode, flags = 'wx' }: { dirMode?: number, flags?: string } = {}
+  ): Promise<void> {
+    await this._outputFile(normalizePath(file), data, { dirMode, flags })
   }
 
   async read(file: File, buffer: Buffer, position?: number): Promise<{| bytesRead: number, buffer: Buffer |}> {
@@ -372,9 +379,9 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
 
-  async __mkdir(dir: string): Promise<void> {
+  async __mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
     try {
-      await this._mkdir(dir)
+      await this._mkdir(dir, { mode })
     } catch (error) {
       if (error == null || error.code !== 'EEXIST') {
         throw error
@@ -400,7 +407,7 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _createOutputStream(file: File, options: Object): Promise<LaxWritable> {
+  async _createOutputStream(file: File, { dirMode, ...options }: Object = {}): Promise<LaxWritable> {
     try {
       return await this._createWriteStream(file, options)
     } catch (error) {
@@ -409,7 +416,7 @@ export default class RemoteHandlerAbstract {
       }
     }
 
-    await this._mktree(dirname(file))
+    await this._mktree(dirname(file), { mode: dirMode })
     return this._createOutputStream(file, options)
   }
 
@@ -440,39 +447,42 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _mktree(dir: string): Promise<void> {
+  async _mktree(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
     try {
-      return await this.__mkdir(dir)
+      return await this.__mkdir(dir, { mode })
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
       }
     }
 
-    await this._mktree(dirname(dir))
-    return this._mktree(dir)
+    await this._mktree(dirname(dir), { mode })
+    return this._mktree(dir, { mode })
   }
 
   async _openFile(path: string, flags: string): Promise<mixed> {
     throw new Error('Not implemented')
   }
 
-  async _outputFile(file: string, data: Data, options: { flags?: string }): Promise<void> {
+  async _outputFile(file: string, data: Data, { dirMode, flags }: { dirMode?: number, flags?: string }): Promise<void> {
     try {
-      return await this._writeFile(file, data, options)
+      return await this._writeFile(file, data, { flags })
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
       }
     }
 
-    await this._mktree(dirname(file))
-    return this._outputFile(file, data, options)
+    await this._mktree(dirname(file), { mode: dirMode })
+    return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(input, path, { checksum }) {
+  async _outputStream(input: Readable, path: string, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = await this.createOutputStream(tmpPath, { checksum })
+    const output = await this.createOutputStream(tmpPath, {
+      checksum,
+      dirMode,
+    })
     try {
       input.pipe(output)
       await fromEvent(output, 'finish')

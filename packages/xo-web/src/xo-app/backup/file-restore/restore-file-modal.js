@@ -2,6 +2,7 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import ButtonGroup from 'button-group'
 import Component from 'base-component'
+import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import React from 'react'
 import Select from 'form/select'
@@ -16,6 +17,12 @@ import { listPartitions, listFiles } from 'xo'
 
 // -----------------------------------------------------------------------------
 
+const PARTITION_TYPE_NAMES = {
+  0x07: 'NTFS',
+  0x0c: 'FAT',
+  0x83: 'LINUX',
+}
+
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
 const diskOptionRenderer = disk => (
@@ -26,7 +33,8 @@ const diskOptionRenderer = disk => (
 
 const partitionOptionRenderer = partition => (
   <span>
-    {partition.name} {partition.type} {partition.size && `(${formatSize(+partition.size)})`}
+    {partition.name} {defined(PARTITION_TYPE_NAMES[partition.type], partition.type)}{' '}
+    {partition.size && `(${formatSize(+partition.size)})`}
   </span>
 )
 
@@ -117,6 +125,7 @@ export default class RestoreFileModalBody extends Component {
       backup,
       disk: undefined,
       partition: undefined,
+      partitions: undefined,
       file: undefined,
       selectedFiles: [],
       scanDiskError: false,
@@ -127,6 +136,7 @@ export default class RestoreFileModalBody extends Component {
   _onDiskChange = disk => {
     this.setState({
       partition: undefined,
+      partitions: undefined,
       file: undefined,
       selectedFiles: [],
       scanDiskError: false,

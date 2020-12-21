@@ -478,8 +478,10 @@ export async function probeHba({ host }) {
   forEach(ensureArray(xml.Devlist.BlockDevice), hbaDevice => {
     hbaDevices.push({
       hba: hbaDevice.hba.trim(),
+      id: hbaDevice.id.trim(),
       path: hbaDevice.path.trim(),
       scsiId: hbaDevice.SCSIid.trim(),
+      serial: hbaDevice.serial.trim(),
       size: +hbaDevice.size.trim(),
       vendor: hbaDevice.vendor.trim(),
     })

@@ -67,6 +67,7 @@ const GROUPED_ACTIONS = [
     handler: deleteSnapshots,
     icon: 'delete',
     label: _('deleteSnapshots'),
+    level: 'danger',
   },
 ]
 

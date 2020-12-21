@@ -3,6 +3,11 @@ import EE from 'events'
 import emitAsync from '@xen-orchestra/emit-async'
 
 const ee = new EE()
+
+// exposing emitAsync on our event emitter
+//
+// it's not required though and we could have used directly via
+// emitAsync.call(ee, event, args...)
 ee.emitAsync = emitAsync
 
 ee.on('start', async function () {
@@ -10,7 +15,7 @@ ee.on('start', async function () {
 })
 
 // similar to EventEmmiter#emit() but returns a promise which resolves when all
-// listeners have resolved
+// listeners have settled
 await ee.emitAsync('start')
 
 // by default, it will rejects as soon as one listener reject, you can customise
