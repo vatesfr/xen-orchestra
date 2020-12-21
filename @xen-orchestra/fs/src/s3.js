@@ -25,7 +25,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
       s3ForcePathStyle: true,
       secretAccessKey: password,
       signatureVersion: 'v4',
-      region: 'eu-west-3',
       httpOptions: {
         timeout: 600000,
       },
