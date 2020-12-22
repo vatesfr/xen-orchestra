@@ -14,6 +14,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   memoryFree: '{memoryFree} RAM free',
   date: 'Date',
+  time: 'Time',
   notifications: 'Notifications',
   noNotifications: 'No notifications so far.',
   notificationNew: 'NEW!',
@@ -97,6 +98,7 @@ const messages = {
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
   addCustomField: 'Add custom field',
+  editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
 
   // ----- Modals -----
