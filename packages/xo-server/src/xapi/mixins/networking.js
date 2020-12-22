@@ -1,3 +1,4 @@
+import { isEmpty } from 'lodash'
 import { makeEditObject } from '../utils'
 
 export default {
@@ -24,8 +25,36 @@ export default {
     await this._disconnectVif(this.getObject(vifId))
   },
   editVif: makeEditObject({
-    ipv4Allowed: true,
-    ipv6Allowed: true,
+    ipv4Allowed: {
+      get: true,
+      set: [
+        'ipv4Allowed',
+        function (value, vif) {
+          if (isEmpty(value) && isEmpty(vif.ipv6_allowed)) {
+            return
+          }
+
+          if (vif.locking_mode !== 'locked') {
+            return vif.set_locking_mode('locked')
+          }
+        },
+      ],
+    },
+    ipv6Allowed: {
+      get: true,
+      set: [
+        'ipv6Allowed',
+        function (value, vif) {
+          if (isEmpty(value) && isEmpty(vif.ipv6_allowed)) {
+            return
+          }
+
+          if (vif.locking_mode !== 'locked') {
+            return vif.set_locking_mode('locked')
+          }
+        },
+      ],
+    },
     lockingMode: {
       set: (value, vif) => vif.set_locking_mode(value),
     },
