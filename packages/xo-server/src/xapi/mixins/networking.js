@@ -30,11 +30,7 @@ export default {
       set: [
         'ipv4Allowed',
         function (value, vif) {
-          if (isEmpty(value) && isEmpty(vif.ipv6_allowed)) {
-            return
-          }
-
-          if (vif.locking_mode !== 'locked') {
+          if (!isEmpty(value) && vif.locking_mode !== 'locked') {
             return vif.set_locking_mode('locked')
           }
         },
@@ -45,11 +41,7 @@ export default {
       set: [
         'ipv6Allowed',
         function (value, vif) {
-          if (isEmpty(value) && isEmpty(vif.ipv6_allowed)) {
-            return
-          }
-
-          if (vif.locking_mode !== 'locked') {
+          if (!isEmpty(value) && vif.locking_mode !== 'locked') {
             return vif.set_locking_mode('locked')
           }
         },
