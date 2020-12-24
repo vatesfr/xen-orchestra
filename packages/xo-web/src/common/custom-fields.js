@@ -137,8 +137,8 @@ const CustomFields = decorate([
               <Icon icon='add' /> {_('addCustomField')}
             </span>
           ),
-        }).then(({ date, name, text, time }) =>
-          addCustomField(id, name.trim(), text !== '' ? text.trim() : `${date} ${time}Z`)
+        }).then(({ date, isDate, name, text, time }) =>
+          addCustomField(id, name.trim(), isDate ? `${date} ${time}Z` : text.trim())
         )
       },
       removeCustomField: (_, { currentTarget: { dataset } }) => (_, { object: { id } }) =>
