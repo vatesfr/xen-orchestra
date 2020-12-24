@@ -11,6 +11,9 @@ import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
+import { injectIntl } from 'react-intl'
+import { flatMap, map } from 'lodash'
+import { Text, XoSelect } from 'editable'
 import {
   createGetObject,
   createGetObjectsOfType,
@@ -18,9 +21,6 @@ import {
   createCollectionWrapper,
   createSelector,
 } from 'selectors'
-import { injectIntl } from 'react-intl'
-import { flatMap, map } from 'lodash'
-import { Text, XoSelect } from 'editable'
 import {
   editPool,
   installSupplementalPackOnAllHosts,
