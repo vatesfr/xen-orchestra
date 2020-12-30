@@ -37,7 +37,7 @@ ${name} v${version}
   info('starting')
 
   const config = await require('app-conf').load(APP_NAME, {
-    appDir: `${__dirname}/..`,
+    appDir: require('path').join(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
 
