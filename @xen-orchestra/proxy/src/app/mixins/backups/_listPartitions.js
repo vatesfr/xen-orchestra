@@ -1,6 +1,9 @@
 import fromCallback from 'promise-toolbox/fromCallback'
+import { createLogger } from '@xen-orchestra/log'
 import { createParser } from 'parse-pairs'
 import { execFile } from 'child_process'
+
+const { debug } = createLogger('xo:proxy:api')
 
 const IGNORED_PARTITION_TYPES = {
   // https://github.com/jhermsmeier/node-mbr/blob/master/lib/partition.js#L38
@@ -37,7 +40,7 @@ export const listPartitions = async devicePath => {
     // partx returns 1 since v2.33 when failing to read partitions.
     //
     // Prior versions are correctly handled by the nominal case.
-    console.debug('listPartitions', error)
+    debug('listPartitions', { error })
     return ''
   })
 
