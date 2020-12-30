@@ -9,6 +9,8 @@ import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 import { PassThrough } from 'stream'
 import { watchStreamSize } from '@xen-orchestra/backups/watchStreamSize'
 
+import { asyncMap } from '../../../_asyncMap'
+
 import { ContinuousReplicationWriter } from './_ContinuousReplicationWriter'
 import { DeltaBackupWriter } from './_DeltaBackupWriter'
 import { DisasterRecoveryWriter } from './_DisasterRecoveryWriter'
@@ -169,23 +171,21 @@ export class VmBackup {
 
     const timestamp = Date.now()
 
-    await Promise.all(
-      this._writers.map(async writer => {
-        try {
-          await writer.run({
-            deltaExport: forkDeltaExport(deltaExport),
-            sizeContainers,
-            timestamp,
-          })
-        } catch (error) {
-          warn('copy failure', {
-            error,
-            target: writer.target,
-            vm: this.vm,
-          })
-        }
-      })
-    )
+    await asyncMap(this._writers, async writer => {
+      try {
+        await writer.run({
+          deltaExport: forkDeltaExport(deltaExport),
+          sizeContainers,
+          timestamp,
+        })
+      } catch (error) {
+        warn('copy failure', {
+          error,
+          target: writer.target,
+          vm: this.vm,
+        })
+      }
+    })
 
     this._baseVm = exportedVm
 
@@ -221,23 +221,21 @@ export class VmBackup {
 
     const timestamp = Date.now()
 
-    await Promise.all(
-      this._writers.map(async writer => {
-        try {
-          await writer.run({
-            sizeContainer,
-            stream: forkStreamUnpipe(stream),
-            timestamp,
-          })
-        } catch (error) {
-          warn('copy failure', {
-            error,
-            target: writer.target,
-            vm: this.vm,
-          })
-        }
-      })
-    )
+    await asyncMap(this._writers, async writer => {
+      try {
+        await writer.run({
+          sizeContainer,
+          stream: forkStreamUnpipe(stream),
+          timestamp,
+        })
+      } catch (error) {
+        warn('copy failure', {
+          error,
+          target: writer.target,
+          vm: this.vm,
+        })
+      }
+    })
 
     const { size } = sizeContainer
     const end = Date.now()
@@ -255,7 +253,7 @@ export class VmBackup {
     const xapi = this._xapi
 
     const snapshotsRef = await xapi.getField('VM', vmRef, 'snapshots')
-    const snapshotsOtherConfig = await Promise.all(snapshotsRef.map(ref => xapi.getField('VM', ref, 'other_config')))
+    const snapshotsOtherConfig = await asyncMap(snapshotsRef, ref => xapi.getField('VM', ref, 'other_config'))
 
     const snapshots = []
     snapshotsOtherConfig.forEach((other_config, i) => {
@@ -275,13 +273,11 @@ export class VmBackup {
 
     const baseVmRef = this._baseVm?.$ref
     const xapi = this._xapi
-    await Promise.all(
-      getOldEntries(this._settings.snapshotRetention, scheduleSnapshots).map(({ $ref }) => {
-        if ($ref !== baseVmRef) {
-          return xapi.VM_destroy($ref)
-        }
-      })
-    )
+    await asyncMap(getOldEntries(this._settings.snapshotRetention, scheduleSnapshots), ({ $ref }) => {
+      if ($ref !== baseVmRef) {
+        return xapi.VM_destroy($ref)
+      }
+    })
   }
 
   async _selectBaseVm() {
@@ -304,15 +300,13 @@ export class VmBackup {
     baseVm = await xapi.getRecord('VM', baseVm.$ref)
 
     const baseUuidTosrcVdi = new Map()
-    await Promise.all(
-      (await baseVm.$getDisks()).map(async baseRef => {
-        const snapshotOf = await xapi.getField('VDI', baseRef, 'snapshot_of')
-        const srcVdi = srcVdis[snapshotOf]
-        if (srcVdi !== undefined) {
-          baseUuidTosrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
-        }
-      })
-    )
+    await asyncMap(await baseVm.$getDisks(), async baseRef => {
+      const snapshotOf = await xapi.getField('VDI', baseRef, 'snapshot_of')
+      const srcVdi = srcVdis[snapshotOf]
+      if (srcVdi !== undefined) {
+        baseUuidTosrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
+      }
+    })
 
     const presentBaseVdis = new Map(baseUuidTosrcVdi)
     const writers = this._writers

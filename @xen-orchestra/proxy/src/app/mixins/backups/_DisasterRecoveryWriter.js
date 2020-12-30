@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { formatDateTime } from '@xen-orchestra/xapi'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
@@ -36,11 +36,13 @@ export class DisasterRecoveryWriter {
     const { uuid: srUuid, $xapi: xapi } = sr
 
     // delete previous interrupted copies
-    ignoreErrors.call(asyncMap(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref)))
+    ignoreErrors.call(
+      asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref))
+    )
 
     const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
-    const deleteOldBackups = () => asyncMap(oldVms, vm => xapi.VM_destroy(vm.$ref))
+    const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
     const { deleteFirst } = settings
     if (deleteFirst) {
       await deleteOldBackups()

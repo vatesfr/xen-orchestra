@@ -1,8 +1,10 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { formatDateTime } from '@xen-orchestra/xapi'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
+
+import { asyncMap } from '../../../_asyncMap'
 
 import { importDeltaVm, TAG_COPY_SRC } from './_deltaVm'
 import { listReplicatedVms } from './_listReplicatedVms'
@@ -38,13 +40,12 @@ export class ContinuousReplicationWriter {
 
     const xapi = replicatedVm.$xapi
     const replicatedVdis = new Set(
-      await Promise.all(
-        (await replicatedVm.$getDisks()).map(async vdiRef => {
-          const otherConfig = await xapi.getField('VDI', vdiRef, 'other_config')
-          return otherConfig[TAG_COPY_SRC]
-        })
-      )
+      await asyncMap(await replicatedVm.$getDisks(), async vdiRef => {
+        const otherConfig = await xapi.getField('VDI', vdiRef, 'other_config')
+        return otherConfig[TAG_COPY_SRC]
+      })
     )
+
     for (const uuid of baseUuidToSrcVdi.keys()) {
       if (!replicatedVdis.has(uuid)) {
         baseUuidToSrcVdi.delete(uuid)
@@ -60,11 +61,13 @@ export class ContinuousReplicationWriter {
     const { uuid: srUuid, $xapi: xapi } = sr
 
     // delete previous interrupted copies
-    ignoreErrors.call(asyncMap(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref)))
+    ignoreErrors.call(
+      asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref))
+    )
 
     const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
-    const deleteOldBackups = () => asyncMap(oldVms, vm => xapi.VM_destroy(vm.$ref))
+    const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
     const { deleteFirst } = settings
     if (deleteFirst) {
       await deleteOldBackups()

@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import pump from 'pump'
@@ -14,6 +14,8 @@ import { readdir, stat } from 'fs-extra'
 import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
+
+import { asyncMap } from '../../../_asyncMap'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
@@ -37,7 +39,7 @@ const RE_VHDI = /^vhdi(\d+)$/
 async function addDirectory(files, realPath, metadataPath) {
   try {
     const subFiles = await readdir(realPath)
-    await Promise.all(subFiles.map(file => addDirectory(files, realPath + '/' + file, metadataPath + '/' + file)))
+    await asyncMap(subFiles, file => addDirectory(files, realPath + '/' + file, metadataPath + '/' + file))
   } catch (error) {
     if (error == null || error.code !== 'ENOTDIR') {
       throw error
@@ -66,7 +68,7 @@ export class RemoteAdapter {
 
   async _deleteVhd(path) {
     const handler = this._handler
-    const vhds = await asyncMap(
+    const vhds = await asyncMapSettled(
       await handler.list(dirname(path), {
         filter: isVhdFile,
         prependDir: true,
@@ -212,8 +214,8 @@ export class RemoteAdapter {
     const path = yield this.getPartition(diskId, partitionId)
 
     const files = []
-    await Promise.all(
-      paths.map(file => addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, '')))
+    await asyncMap(paths, file =>
+      addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, ''))
     )
 
     return files
@@ -222,14 +224,12 @@ export class RemoteAdapter {
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
     let mergedDataSize = 0
-    await asyncMap(backups, ({ _filename, vhds }) =>
+    await asyncMapSettled(backups, ({ _filename, vhds }) =>
       Promise.all([
         handler.unlink(_filename),
-        Promise.all(
-          Object.values(vhds).map(async _ => {
-            mergedDataSize += await this._deleteVhd(resolveRelativeFromFile(_filename, _))
-          })
-        ),
+        asyncMap(Object.values(vhds), async _ => {
+          mergedDataSize += await this._deleteVhd(resolveRelativeFromFile(_filename, _))
+        }),
       ])
     )
     return mergedDataSize
@@ -237,7 +237,7 @@ export class RemoteAdapter {
 
   async deleteFullVmBackups(backups) {
     const handler = this._handler
-    await asyncMap(backups, ({ _filename, xva }) =>
+    await asyncMapSettled(backups, ({ _filename, xva }) =>
       Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     )
   }
@@ -315,12 +315,11 @@ export class RemoteAdapter {
     const handler = this._handler
 
     const backups = { __proto__: null }
-    await Promise.all(
-      (await handler.list(BACKUP_DIR)).map(async vmUuid => {
-        const vmBackups = await this.listVmBackups(vmUuid)
-        backups[vmUuid] = vmBackups
-      })
-    )
+    await asyncMap(await handler.list(BACKUP_DIR), async vmUuid => {
+      const vmBackups = await this.listVmBackups(vmUuid)
+      backups[vmUuid] = vmBackups
+    })
+
     return backups
   }
 
@@ -329,18 +328,16 @@ export class RemoteAdapter {
       path = resolveSubpath(rootPath, path)
 
       const entriesMap = {}
-      await Promise.all(
-        (await readdir(path)).map(async name => {
-          try {
-            const stats = await stat(`${path}/${name}`)
-            entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
-          } catch (error) {
-            if (error == null || error.code !== 'ENOENT') {
-              throw error
-            }
+      await asyncMap(await readdir(path), async name => {
+        try {
+          const stats = await stat(`${path}/${name}`)
+          entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
+        } catch (error) {
+          if (error == null || error.code !== 'ENOENT') {
+            throw error
           }
-        })
-      )
+        }
+      })
 
       return entriesMap
     })
@@ -360,7 +357,7 @@ export class RemoteAdapter {
       }
 
       const results = []
-      await asyncMap(partitions, partition =>
+      await asyncMapSettled(partitions, partition =>
         partition.type === LVM_PARTITION_TYPE
           ? this._listLvmLogicalVolumes(devicePath, partition, results)
           : results.push(partition)
@@ -378,21 +375,19 @@ export class RemoteAdapter {
         filter: isMetadataFile,
         prependDir: true,
       })
-      await Promise.all(
-        files.map(async file => {
-          try {
-            const metadata = await this.readVmBackupMetadata(file)
-            if (predicate === undefined || predicate(metadata)) {
-              // inject an id usable by importVmBackupNg()
-              metadata.id = metadata._filename
+      await asyncMap(files, async file => {
+        try {
+          const metadata = await this.readVmBackupMetadata(file)
+          if (predicate === undefined || predicate(metadata)) {
+            // inject an id usable by importVmBackupNg()
+            metadata.id = metadata._filename
 
-              backups.push(metadata)
-            }
-          } catch (error) {
-            warn(`listVmBackups ${file}`, { error })
+            backups.push(metadata)
           }
-        })
-      )
+        } catch (error) {
+          warn(`listVmBackups ${file}`, { error })
+        }
+      })
     } catch (error) {
       let code
       if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
@@ -424,7 +419,7 @@ export class RemoteAdapter {
     const dir = dirname(metadata._filename)
 
     const streams = {}
-    await asyncMap(vdis, async (vdi, id) => {
+    await asyncMapSettled(vdis, async (vdi, id) => {
       streams[`${id}.vhd`] = await createSyntheticStream(handler, join(dir, vhds[id]))
     })
 

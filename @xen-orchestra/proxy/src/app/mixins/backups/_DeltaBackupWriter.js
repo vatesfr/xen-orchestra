@@ -7,6 +7,8 @@ import { dirname } from 'path'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
 
+import { asyncMap } from '../../../_asyncMap'
+
 import { checkVhd } from './_checkVhd'
 import { getVmBackupDir } from './_getVmBackupDir'
 import { packUuid } from './_packUuid'
@@ -38,33 +40,29 @@ export class DeltaBackupWriter {
     const backupDir = getVmBackupDir(backup.vm.uuid)
     const vdisDir = `${backupDir}/vdis/${backup.job.id}`
 
-    await Promise.all(
-      Array.from(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
-        let found = false
-        try {
-          const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
-            filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
-            prependDir: true,
-          })
-          await Promise.all(
-            vhds.map(async path => {
-              try {
-                await checkVhdChain(handler, path)
+    await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
+      let found = false
+      try {
+        const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
+          filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
+          prependDir: true,
+        })
+        await asyncMap(vhds, async path => {
+          try {
+            await checkVhdChain(handler, path)
 
-                const vhd = new Vhd(handler, path)
-                await vhd.readHeaderAndFooter()
-                found = found || vhd.footer.uuid.equals(packUuid(baseUuid))
-              } catch (_) {
-                await ignoreErrors.call(handler.unlink(path))
-              }
-            })
-          )
-        } catch (_) {}
-        if (!found) {
-          baseUuidToSrcVdi.delete(baseUuid)
-        }
-      })
-    )
+            const vhd = new Vhd(handler, path)
+            await vhd.readHeaderAndFooter()
+            found = found || vhd.footer.uuid.equals(packUuid(baseUuid))
+          } catch (_) {
+            await ignoreErrors.call(handler.unlink(path))
+          }
+        })
+      } catch (_) {}
+      if (!found) {
+        baseUuidToSrcVdi.delete(baseUuid)
+      }
+    })
   }
 
   async run({ timestamp, deltaExport, sizeContainers }) {

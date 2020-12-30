@@ -15,6 +15,8 @@ import { parseDuration } from '@vates/parse-duration'
 import { Xapi } from '@xen-orchestra/xapi'
 import { ZipFile } from 'yazl'
 
+import { asyncMap } from '../../../_asyncMap'
+
 import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
@@ -226,19 +228,17 @@ export default class Backups {
         listVmBackups: [
           async ({ remotes }) => {
             const backups = {}
-            await Promise.all(
-              Object.keys(remotes).map(async remoteId => {
-                try {
-                  await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
-                    backups[remoteId] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
-                      vmBackups.map(backup => formatVmBackup(backup))
-                    )
-                  })
-                } catch (error) {
-                  warn('listVmBackups', { error, remote: remotes[remoteId] })
-                }
-              })
-            )
+            await asyncMap(Object.keys(remotes), async remoteId => {
+              try {
+                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
+                  backups[remoteId] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
+                    vmBackups.map(backup => formatVmBackup(backup))
+                  )
+                })
+              } catch (error) {
+                warn('listVmBackups', { error, remote: remotes[remoteId] })
+              }
+            })
             return backups
           },
           {
@@ -282,13 +282,11 @@ export default class Backups {
     // private resource API is used exceptionally to be able to separate resource creation and release
     const partitionDisposers = {}
     const dispose = async () => {
-      await Promise.all(
-        Object.keys(partitionDisposers).map(path => {
-          const disposers = partitionDisposers[path]
-          delete partitionDisposers[path]
-          return Promise.all(disposers.map(d => d(path).catch(noop)))
-        })
-      )
+      await asyncMap(Object.keys(partitionDisposers), path => {
+        const disposers = partitionDisposers[path]
+        delete partitionDisposers[path]
+        return asyncMap(disposers, d => d(path).catch(noop))
+      })
     }
     app.hooks.once('stop', dispose)
 

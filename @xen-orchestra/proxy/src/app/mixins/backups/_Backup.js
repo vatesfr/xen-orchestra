@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import limitConcurrency from 'limit-concurrency-decorator'
 import using from 'promise-toolbox/using'
@@ -80,7 +80,7 @@ export class Backup {
             )
           ).catch(noop) // errors are handled by logs
         const { concurrency } = scheduleSettings
-        await asyncMap(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
+        await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )
   }
