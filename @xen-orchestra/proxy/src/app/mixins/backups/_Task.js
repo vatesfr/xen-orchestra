@@ -45,6 +45,7 @@ class TaskLogger {
       event: 'info',
       message,
       taskId: this.taskId,
+      timestamp: Date.now(),
     })
   }
 
@@ -68,6 +69,7 @@ class TaskLogger {
           message,
           parentId: this._parentId,
           taskId: this.taskId,
+          timestamp: Date.now(),
         })
       })
         .then(fn)
@@ -81,6 +83,7 @@ class TaskLogger {
                 result,
                 status: 'success',
                 taskId: this.taskId,
+                timestamp: Date.now(),
               })
             ).then(() => result)
           },
@@ -93,6 +96,7 @@ class TaskLogger {
                 result: serializeError(error),
                 status: 'failure',
                 taskId: this.taskId,
+                timestamp: Date.now(),
               })
             ).then(() => {
               throw error
@@ -108,6 +112,7 @@ class TaskLogger {
       event: 'warning',
       message,
       taskId: this.taskId,
+      timestamp: Date.now(),
     })
   }
 
