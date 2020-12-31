@@ -8,7 +8,6 @@ import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
 import tmp from 'tmp'
-import xml2js from 'xml2js'
 import { randomBytes } from 'crypto'
 import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
@@ -95,14 +94,6 @@ export const generateToken = (randomBytes => {
 })(promisify(randomBytes))
 
 // -------------------------------------------------------------------
-
-export const formatXml = (function () {
-  const builder = new xml2js.Builder({
-    headless: true,
-  })
-
-  return (...args) => builder.buildObject(...args)
-})()
 
 export const parseXml = (function () {
   const opts = {

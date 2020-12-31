@@ -138,7 +138,6 @@
     "ws": "^7.1.2",
     "xdg-basedir": "^4.0.0",
     "xen-api": "^0.29.0",
-    "xml2js": "^0.4.19",
     "xo-acl-resolver": "^0.4.1",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.5.0",
