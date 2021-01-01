@@ -98,9 +98,16 @@ export class DeltaBackupWriter {
     }
 
     const deleteOldBackups = () =>
-      Task.run({ name: 'merge' }, async () => ({
-        size: await adapter.deleteDeltaVmBackups(oldBackups),
-      }))
+      Task.run({ name: 'merge' }, async () => {
+        let size = 0
+        // delete sequentially from newest to oldest to avoid unnecessary merges
+        for (let i = oldBackups.length; i-- > 0; ) {
+          size += await adapter.deleteDeltaVmBackups([oldBackups[i]])
+        }
+        return {
+          size,
+        }
+      })
 
     const basename = formatFilenameDate(timestamp)
     const vhds = mapValues(
