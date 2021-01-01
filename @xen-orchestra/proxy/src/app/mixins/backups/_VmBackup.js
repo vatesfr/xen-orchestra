@@ -38,6 +38,10 @@ const forkStreamUnpipe = stream => {
   eos(proxy, _ => {
     stream.forks--
     stream.unpipe(proxy)
+
+    if (stream.forks === 0) {
+      stream.destroy(new Error('no more consumers for this stream'))
+    }
   })
   return proxy
 }
