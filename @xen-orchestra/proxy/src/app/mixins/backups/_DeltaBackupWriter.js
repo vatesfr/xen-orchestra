@@ -13,6 +13,9 @@ import { checkVhd } from './_checkVhd'
 import { getVmBackupDir } from './_getVmBackupDir'
 import { packUuid } from './_packUuid'
 import { Task } from './_Task'
+import { createLogger } from '@xen-orchestra/log'
+
+const { warn } = createLogger('xo:proxy:backups:DeltaBackupWriter')
 
 export class DeltaBackupWriter {
   constructor(backup, remoteId, settings) {
@@ -54,11 +57,14 @@ export class DeltaBackupWriter {
             const vhd = new Vhd(handler, path)
             await vhd.readHeaderAndFooter()
             found = found || vhd.footer.uuid.equals(packUuid(baseUuid))
-          } catch (_) {
+          } catch (error) {
+            warn('checkBaseVdis', { error })
             await ignoreErrors.call(handler.unlink(path))
           }
         })
-      } catch (_) {}
+      } catch (error) {
+        warn('checkBaseVdis', { error })
+      }
       if (!found) {
         baseUuidToSrcVdi.delete(baseUuid)
       }
