@@ -303,16 +303,16 @@ export class VmBackup {
     // resolve full record
     baseVm = await xapi.getRecord('VM', baseVm.$ref)
 
-    const baseUuidTosrcVdi = new Map()
+    const baseUuidToSrcVdi = new Map()
     await asyncMap(await baseVm.$getDisks(), async baseRef => {
       const snapshotOf = await xapi.getField('VDI', baseRef, 'snapshot_of')
       const srcVdi = srcVdis[snapshotOf]
       if (srcVdi !== undefined) {
-        baseUuidTosrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
+        baseUuidToSrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
       }
     })
 
-    const presentBaseVdis = new Map(baseUuidTosrcVdi)
+    const presentBaseVdis = new Map(baseUuidToSrcVdi)
     const writers = this._writers
     for (let i = 0, n = writers.length; presentBaseVdis.size !== 0 && i < n; ++i) {
       await writers[i].checkBaseVdis(presentBaseVdis, baseVm)
@@ -323,7 +323,7 @@ export class VmBackup {
     }
 
     const fullVdisRequired = new Set()
-    baseUuidTosrcVdi.forEach((srcVdi, baseUuid) => {
+    baseUuidToSrcVdi.forEach((srcVdi, baseUuid) => {
       if (!presentBaseVdis.has(baseUuid)) {
         fullVdisRequired.add(srcVdi.uuid)
       }
