@@ -5,7 +5,7 @@ require('./_composeCommands')({
     get main() {
       return require('./commands/clean-vms')
     },
-    usage: '[--force] xo-vm-backups/*',
+    usage: '[--force] [--merge] xo-vm-backups/*',
   },
   'create-symlink-index': {
     get main() {
