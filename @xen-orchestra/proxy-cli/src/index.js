@@ -11,6 +11,7 @@ import split2 from 'split2'
 import pumpify from 'pumpify'
 import { format, parse } from 'json-rpc-protocol'
 import { inspect } from 'util'
+import { join } from 'path'
 import { load as loadConfig } from 'app-conf'
 import { readChunk } from '@vates/read-chunk'
 
@@ -20,7 +21,7 @@ const parseValue = value => (value.startsWith('json:') ? JSON.parse(value.slice(
 
 async function main(argv) {
   const config = await loadConfig('xo-proxy', {
-    appDir: `${__dirname}/..`,
+    appDir: join(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
 
