@@ -18,7 +18,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     super(remote)
     const { host, path, username, password } = parse(remote.url)
     // https://www.zenko.io/blog/first-things-first-getting-started-scality-s3-server/
-    const options = {
+    this._s3 = aws({
       accessKeyId: username,
       apiVersion: '2006-03-01',
       endpoint: host,
@@ -28,8 +28,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       httpOptions: {
         timeout: 600000,
       },
-    }
-    this._s3 = aws(options).s3
+    }).s3
 
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
