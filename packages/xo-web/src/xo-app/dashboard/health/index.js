@@ -86,7 +86,6 @@ const DUPLICATE_MAC_ADDRESSES_COLUMNS = [
   {
     name: _('vifDeviceLabel'),
     itemRenderer: macAddress => map(macAddress, vif => <Row>VIF #{vif.device}</Row>),
-    sortCriteria: macAddress => macAddress[0].device,
   },
   {
     name: _('vms'),
@@ -96,7 +95,6 @@ const DUPLICATE_MAC_ADDRESSES_COLUMNS = [
           <Vm id={vif.$VM} link newTab />
         </Row>
       )),
-    sortCriteria: macAddress => macAddress[0].$VM,
   },
   {
     name: _('vifNetworkLabel'),
@@ -106,7 +104,6 @@ const DUPLICATE_MAC_ADDRESSES_COLUMNS = [
           <Network id={vif.$network} />
         </Row>
       )),
-    sortCriteria: macAddress => macAddress[0].$network,
   },
 ]
 
