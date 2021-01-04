@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup reports] Fix malformed email in case of multiple VMs (PR [#5479](https://github.com/vatesfr/xen-orchestra/pull/5479))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -27,3 +29,5 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- xo-server-backup-reports patch
