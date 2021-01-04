@@ -84,6 +84,11 @@ const DUPLICATE_MAC_ADDRESSES_COLUMNS = [
     sortCriteria: macAddress => macAddress[0].MAC,
   },
   {
+    name: _('vifDeviceLabel'),
+    itemRenderer: macAddress => map(macAddress, vif => <Row>VIF #{vif.device}</Row>),
+    sortCriteria: macAddress => macAddress[0].device,
+  },
+  {
     name: _('vms'),
     itemRenderer: macAddress =>
       map(macAddress, vif => (
@@ -626,15 +631,10 @@ export default class Health extends Component {
                 <NoObjects
                   collection={props.areObjectsFetched ? duplicateMacAddress : null}
                   emptyMessage={_('noDuplicateMacAddress')}
-                >
-                  {() => (
-                    <SortedTable
-                      collection={duplicateMacAddress}
-                      columns={DUPLICATE_MAC_ADDRESSES_COLUMNS}
-                      stateUrlParam='s_duplate_mac_address'
-                    />
-                  )}
-                </NoObjects>
+                  component={SortedTable}
+                  stateUrlParam='s_duplicate_mac_address'
+                  columns={DUPLICATE_MAC_ADDRESSES_COLUMNS}
+                />
               </CardBlock>
             </Card>
           </Col>
