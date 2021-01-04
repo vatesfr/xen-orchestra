@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { filter, flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatten, forEach, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -77,25 +77,26 @@ const AlarmColPool = connectStore(() => ({
   return <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>
 })
 
-const DUPLICATE_MAC_ADDRESS = [
+const DUPLICATE_MAC_ADDRESS_COLUMN = [
   {
     name: _('vifMacLabel'),
-    itemRenderer: vif => vif.MAC,
-    sortCriteria: vif => vif.MAC,
+    itemRenderer: macAddress => macAddress[0].MAC,
+    sortCriteria: macAddress => macAddress[0].MAC,
   },
   {
     name: _('vm'),
-    itemRenderer: vif => (
-      <Link to={`vms/${vif.$VM}`}>
-        <Vm id={vif.$VM} />
-      </Link>
-    ),
-    sortCriteria: vif => vif.$VM,
+    itemRenderer: macAddress =>
+      map(macAddress, vif => (
+        <Row>
+          <Vm id={vif.$VM} link newTab />
+        </Row>
+      )),
+    sortCriteria: vif => vif[0].$VM,
   },
   {
     name: _('vifNetworkLabel'),
-    itemRenderer: vif => <Network id={vif.$network} />,
-    sortCriteria: vif => vif.$network,
+    itemRenderer: macAddress => <Network id={macAddress[0].$network} />,
+    sortCriteria: macAddress => macAddress[0].$network,
   },
 ]
 
@@ -502,7 +503,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
-  const getVifs = createGetObjectsOfType('VIF')
+  const getVifsByMac = createGetObjectsOfType('VIF').groupBy('MAC')
 
   return {
     alertMessages: getAlertMessages,
@@ -512,7 +513,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
-    vifs: getVifs,
+    vifsByMac: getVifsByMac,
   }
 })
 export default class Health extends Component {
@@ -562,9 +563,19 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
-  _getDuplicateMACAddress = createSelector(
-    () => this._getVifs(),
-    vifs => filter(vifs, vif => filter(vifs, comparedVif => comparedVif.MAC === vif.MAC).length > 1)
+  _getDuplicateMacAddress = createSelector(
+    () => this.props.vifsByMac,
+    macAddresses => {
+      const vifsWithDuplicateMacAddresses = {}
+      let i = 0
+      forEach(macAddresses, macAddress => {
+        if (macAddress.length > 1) {
+          vifsWithDuplicateMacAddresses[Object.keys(macAddresses)[i]] = macAddress
+        }
+        i++
+      })
+      return vifsWithDuplicateMacAddresses
+    }
   )
 
   _getPoolPredicate = createSelector(
@@ -591,7 +602,7 @@ export default class Health extends Component {
   render() {
     const { props, state } = this
 
-    const duplicateMACAddress = this._getDuplicateMACAddress()
+    const duplicateMacAddress = this._getDuplicateMacAddress()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
@@ -599,6 +610,23 @@ export default class Health extends Component {
       <Container>
         <Row className='mb-1'>
           <SelectPool multi onChange={this.linkState('pools')} value={state.pools} />
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='disk' /> {_('duplicateMACAddress')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  collection={props.areObjectsFetched ? duplicateMacAddress : null}
+                  emptyMessage={_('noDuplicateMACAddress')}
+                >
+                  {() => <SortedTable collection={duplicateMacAddress} columns={DUPLICATE_MAC_ADDRESS_COLUMN} />}
+                </NoObjects>
+              </CardBlock>
+            </Card>
+          </Col>
         </Row>
         <Row>
           <Col>
@@ -704,29 +732,6 @@ export default class Health extends Component {
                   shortcutsTarget='.too-many-snapshots-vms'
                   stateUrlParam='s_too_many_snapshots_vms'
                 />
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <Card>
-              <CardHeader>
-                <Icon icon='disk' /> {_('duplicateMACAddress')}
-              </CardHeader>
-              <CardBlock>
-                <NoObjects
-                  collection={props.areObjectsFetched ? duplicateMACAddress : null}
-                  emptyMessage={_('noDuplicateMACAddress')}
-                >
-                  {() => (
-                    <Row>
-                      <Col>
-                        <SortedTable collection={duplicateMACAddress} columns={DUPLICATE_MAC_ADDRESS} />
-                      </Col>
-                    </Row>
-                  )}
-                </NoObjects>
               </CardBlock>
             </Card>
           </Col>
