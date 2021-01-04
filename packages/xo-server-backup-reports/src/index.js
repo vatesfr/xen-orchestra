@@ -172,7 +172,7 @@ const getMarkdown = (task, props) => MARKDOWN_BY_TYPE[task.data?.type]?.(task, p
 
 const toMarkdown = parts => {
   const lines = []
-  let indentLevel = 0
+  let indentLevel = -1
 
   const helper = part => {
     if (typeof part === 'string') {
@@ -395,6 +395,8 @@ class BackupReportsXoPlugin {
         vm = xo.getObject(vmId)
       } catch (e) {}
       const text = [
+        // It will ensure that it will never be in a nested list
+        '',
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
