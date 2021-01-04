@@ -7,8 +7,7 @@ export const configurationSchema = {
   properties: {
     callbackURL: {
       type: 'string',
-      description:
-        'Must be exactly the same as specified on the Google developer console.',
+      description: 'Must be exactly the same as specified on the Google developer console.',
     },
     clientID: {
       type: 'string',
@@ -53,12 +52,7 @@ class AuthGoogleXoPlugin {
         try {
           done(
             null,
-            await xo.registerUser(
-              'google',
-              conf.scope === 'email'
-                ? profile.emails[0].value
-                : profile.displayName
-            )
+            await xo.registerUser('google', conf.scope === 'email' ? profile.emails[0].value : profile.displayName)
           )
         } catch (error) {
           done(error.message)

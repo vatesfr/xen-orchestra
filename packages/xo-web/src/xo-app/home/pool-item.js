@@ -12,11 +12,7 @@ import { Text } from 'editable'
 import { addTag, editPool, getHostMissingPatches, removeTag } from 'xo'
 import { connectStore, formatSizeShort } from 'utils'
 import { flatten, map, size, uniq } from 'lodash'
-import {
-  createGetObjectsOfType,
-  createGetHostMetrics,
-  createSelector,
-} from 'selectors'
+import { createGetObjectsOfType, createGetHostMetrics, createSelector } from 'selectors'
 
 import styles from './index.css'
 
@@ -29,9 +25,9 @@ import styles from './index.css'
   )
 
   const getMissingPatches = createSelector(getPoolHosts, hosts => {
-    return Promise.all(
-      map(hosts, host => getHostMissingPatches(host))
-    ).then(patches => uniq(map(flatten(patches), 'name')))
+    return Promise.all(map(hosts, host => getHostMissingPatches(host))).then(patches =>
+      uniq(map(flatten(patches), 'name'))
+    )
   })
 
   const getHostMetrics = createGetHostMetrics(getPoolHosts)
@@ -61,29 +57,17 @@ import styles from './index.css'
 export default class PoolItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _removeTag = tag => removeTag(this.props.item.id, tag)
-  _setNameDescription = nameDescription =>
-    editPool(this.props.item, { name_description: nameDescription })
-  _setNameLabel = nameLabel =>
-    editPool(this.props.item, { name_label: nameLabel })
+  _setNameDescription = nameDescription => editPool(this.props.item, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editPool(this.props.item, { name_label: nameLabel })
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
   componentWillMount() {
-    this.props.missingPatches.then(patches =>
-      this.setState({ missingPatchCount: size(patches) })
-    )
+    this.props.missingPatches.then(patches => this.setState({ missingPatchCount: size(patches) }))
   }
 
   render() {
-    const {
-      item: pool,
-      expandAll,
-      selected,
-      hostMetrics,
-      poolHosts,
-      nSrs,
-      nVms,
-    } = this.props
+    const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
     return (
       <div className={styles.item}>
@@ -91,28 +75,17 @@ export default class PoolItem extends Component {
           <SingleLineRow>
             <Col smallSize={10} mediumSize={9} largeSize={3}>
               <EllipsisContainer>
-                <input
-                  type='checkbox'
-                  checked={selected}
-                  onChange={this._onSelect}
-                  value={pool.id}
-                />
+                <input type='checkbox' checked={selected} onChange={this._onSelect} value={pool.id} />
                 &nbsp;&nbsp;
                 <Ellipsis>
-                  <Text
-                    value={pool.name_label}
-                    onChange={this._setNameLabel}
-                    useLongClick
-                  />
+                  <Text value={pool.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
                 &nbsp;&nbsp;
                 {missingPatchCount > 0 && (
                   <span>
                     &nbsp;&nbsp;
                     <Tooltip content={_('homeMissingPatches')}>
-                      <span className='tag tag-pill tag-danger'>
-                        {missingPatchCount}
-                      </span>
+                      <span className='tag tag-pill tag-danger'>{missingPatchCount}</span>
                     </Tooltip>
                   </span>
                 )}
@@ -185,11 +158,7 @@ export default class PoolItem extends Component {
             <Col mediumSize={4} className='hidden-md-down'>
               <EllipsisContainer>
                 <Ellipsis>
-                  <Text
-                    value={pool.name_description}
-                    onChange={this._setNameDescription}
-                    useLongClick
-                  />
+                  <Text value={pool.name_description} onChange={this._setNameDescription} useLongClick />
                 </Ellipsis>
               </EllipsisContainer>
             </Col>
@@ -197,30 +166,21 @@ export default class PoolItem extends Component {
               <span>
                 <Tooltip
                   content={_('memoryLeftTooltip', {
-                    used: Math.round(
-                      (hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100
-                    ),
-                    free: formatSizeShort(
-                      hostMetrics.memoryTotal - hostMetrics.memoryUsage
-                    ),
+                    used: Math.round((hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100),
+                    free: formatSizeShort(hostMetrics.memoryTotal - hostMetrics.memoryUsage),
                   })}
                 >
                   <progress
                     style={{ margin: 0 }}
                     className='progress'
-                    value={
-                      (hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100
-                    }
+                    value={(hostMetrics.memoryUsage / hostMetrics.memoryTotal) * 100}
                     max='100'
                   />
                 </Tooltip>
               </span>
             </Col>
             <Col mediumSize={1} className={styles.itemExpandRow}>
-              <a
-                className={styles.itemExpandButton}
-                onClick={this._toggleExpanded}
-              >
+              <a className={styles.itemExpandButton} onClick={this._toggleExpanded}>
                 <Icon icon='nav' fixedWidth />
                 &nbsp;&nbsp;&nbsp;
               </a>
@@ -231,27 +191,20 @@ export default class PoolItem extends Component {
           <SingleLineRow>
             <Col mediumSize={3} className={styles.itemExpanded}>
               <span>
-                {hostMetrics.count}x <Icon icon='host' /> {nVms}x{' '}
-                <Icon icon='vm' /> {nSrs}x <Icon icon='sr' /> {hostMetrics.cpus}
-                x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)}
+                {hostMetrics.count}x <Icon icon='host' /> {nVms}x <Icon icon='vm' /> {nSrs}x <Icon icon='sr' />{' '}
+                {hostMetrics.cpus}
+                x <Icon icon='cpu' /> {formatSizeShort(hostMetrics.memoryTotal)} <Icon icon='memory' />
               </span>
             </Col>
             <Col mediumSize={4} className={styles.itemExpanded}>
               <span>
                 {_('homePoolMaster')}{' '}
-                <Link to={`/hosts/${pool.master}`}>
-                  {poolHosts && poolHosts[pool.master].name_label}
-                </Link>
+                <Link to={`/hosts/${pool.master}`}>{poolHosts && poolHosts[pool.master].name_label}</Link>
               </span>
             </Col>
             <Col mediumSize={5}>
               <span style={{ fontSize: '1.4em' }}>
-                <HomeTags
-                  type='pool'
-                  labels={pool.tags}
-                  onDelete={this._removeTag}
-                  onAdd={this._addTag}
-                />
+                <HomeTags type='pool' labels={pool.tags} onDelete={this._removeTag} onAdd={this._addTag} />
               </span>
             </Col>
           </SingleLineRow>

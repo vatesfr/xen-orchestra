@@ -1,4 +1,5 @@
 import base64url from 'base64url'
+import fastXmlParser from 'fast-xml-parser'
 import forEach from 'lodash/forEach'
 import has from 'lodash/has'
 import highland from 'highland'
@@ -7,7 +8,6 @@ import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
 import tmp from 'tmp'
-import xml2js from 'xml2js'
 import { randomBytes } from 'crypto'
 import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
@@ -18,10 +18,7 @@ import { type SimpleIdPattern } from './utils'
 // ===================================================================
 
 export function camelToSnakeCase(string) {
-  return string.replace(
-    /([a-z0-9])([A-Z])/g,
-    (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`
-  )
+  return string.replace(/([a-z0-9])([A-Z])/g, (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`)
 }
 
 // -------------------------------------------------------------------
@@ -70,15 +67,7 @@ export const firstDefined = function () {
 // -------------------------------------------------------------------
 
 export const getUserPublicProperties = user =>
-  pick(
-    user.properties || user,
-    'authProviders',
-    'id',
-    'email',
-    'groups',
-    'permission',
-    'preferences'
-  )
+  pick(user.properties || user, 'authProviders', 'id', 'email', 'groups', 'permission', 'preferences')
 
 // -------------------------------------------------------------------
 
@@ -97,8 +86,7 @@ export const getPseudoRandomBytes = n => {
   return bytes
 }
 
-export const generateUnsecureToken = (n = 32) =>
-  base64url(getPseudoRandomBytes(n))
+export const generateUnsecureToken = (n = 32) => base64url(getPseudoRandomBytes(n))
 
 // Generate a secure random Base64 string.
 export const generateToken = (randomBytes => {
@@ -107,34 +95,13 @@ export const generateToken = (randomBytes => {
 
 // -------------------------------------------------------------------
 
-export const formatXml = (function () {
-  const builder = new xml2js.Builder({
-    headless: true,
-  })
-
-  return (...args) => builder.buildObject(...args)
-})()
-
 export const parseXml = (function () {
   const opts = {
-    mergeAttrs: true,
-    explicitArray: false,
+    attributeNamePrefix: '',
+    ignoreAttributes: false,
   }
 
-  return xml => {
-    let result
-
-    // xml2js.parseString() use a callback for synchronous code.
-    xml2js.parseString(xml, opts, (error, result_) => {
-      if (error) {
-        throw error
-      }
-
-      result = result_
-    })
-
-    return result
-  }
+  return xml => fastXmlParser.parse(xml, opts)
 })()
 
 // -------------------------------------------------------------------
@@ -194,15 +161,7 @@ export function pSettle(promises) {
 
 // -------------------------------------------------------------------
 
-export {
-  pAll,
-  pDelay,
-  pFinally,
-  pFromCallback,
-  pReflect,
-  promisify,
-  promisifyAll,
-} from 'promise-toolbox'
+export { pAll, pDelay, pFinally, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
 
 // -------------------------------------------------------------------
 
@@ -238,8 +197,7 @@ export const popProperty = obj => {
 // -------------------------------------------------------------------
 
 // resolve a relative path from a file
-export const resolveRelativeFromFile = (file, path) =>
-  resolve('/', dirname(file), path).slice(1)
+export const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 // -------------------------------------------------------------------
 
@@ -279,11 +237,7 @@ export const DONE = {}
 // `DONE` provided as the fourth argument.
 //
 // Usage: map(collection, item => item + 1)
-export function map(
-  collection,
-  iteratee,
-  target = has(collection, 'length') ? [] : {}
-) {
+export function map(collection, iteratee, target = has(collection, 'length') ? [] : {}) {
   forEach(collection, (item, i) => {
     const value = iteratee(item, i, collection, DONE)
     if (value === DONE) {
@@ -311,8 +265,7 @@ export const multiKeyHash = (...args) =>
 
 // -------------------------------------------------------------------
 
-export const resolveSubpath = (root, path) =>
-  resolve(root, `./${resolve('/', path)}`)
+export const resolveSubpath = (root, path) => resolve(root, `./${resolve('/', path)}`)
 
 // -------------------------------------------------------------------
 
@@ -388,9 +341,7 @@ export const mapFilter = (collection, iteratee) => {
 
 export const splitFirst = (string, separator) => {
   const i = string.indexOf(separator)
-  return i === -1
-    ? null
-    : [string.slice(0, i), string.slice(i + separator.length)]
+  return i === -1 ? null : [string.slice(0, i), string.slice(i + separator.length)]
 }
 
 // -------------------------------------------------------------------

@@ -23,8 +23,7 @@ export default class TimezonePicker extends Component {
   componentDidMount() {
     getXoServerTimezone.then(serverTimezone => {
       this.setState({
-        timezone:
-          this.props.value || this.props.defaultValue || SERVER_TIMEZONE_TAG,
+        timezone: this.props.value || this.props.defaultValue || SERVER_TIMEZONE_TAG,
         options: [
           ...map(moment.tz.names(), value => ({ label: value, value })),
           {
@@ -45,9 +44,7 @@ export default class TimezonePicker extends Component {
   }
 
   get value() {
-    return this.state.timezone === SERVER_TIMEZONE_TAG
-      ? null
-      : this.state.timezone
+    return this.state.timezone === SERVER_TIMEZONE_TAG ? null : this.state.timezone
   }
 
   set value(value) {
@@ -63,12 +60,7 @@ export default class TimezonePicker extends Component {
       {
         timezone: (option != null && option.value) || SERVER_TIMEZONE_TAG,
       },
-      () =>
-        this.props.onChange(
-          this.state.timezone === SERVER_TIMEZONE_TAG
-            ? null
-            : this.state.timezone
-        )
+      () => this.props.onChange(this.state.timezone === SERVER_TIMEZONE_TAG ? null : this.state.timezone)
     )
   }
 

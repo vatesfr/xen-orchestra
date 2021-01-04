@@ -18,9 +18,7 @@ const deleteProperties = (object, property, properties) => {
   }
 }
 
-const generateReadme = require('handlebars').compile(
-  require('fs').readFileSync(`${__dirname}/README.md.tpl`, 'utf8')
-)
+const generateReadme = require('handlebars').compile(require('fs').readFileSync(`${__dirname}/README.md.tpl`, 'utf8'))
 
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {

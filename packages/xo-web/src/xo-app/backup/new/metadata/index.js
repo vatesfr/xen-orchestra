@@ -23,15 +23,7 @@ import {
   subscribeRemotes,
 } from 'xo'
 
-import {
-  constructPattern,
-  destructPattern,
-  FormFeedback,
-  FormGroup,
-  Input,
-  Li,
-  Ul,
-} from '../../utils'
+import { constructPattern, destructPattern, FormFeedback, FormGroup, Input, Li, Ul } from '../../utils'
 
 import ReportWhen from '../_reportWhen'
 import Schedules from '../_schedules'
@@ -54,19 +46,14 @@ const RETENTION_XO_METADATA = {
 
 const GLOBAL_SETTING_KEY = ''
 
-const setSettingsDefaultRetentions = (
-  settings,
-  { modePoolMetadata, modeXoMetadata }
-) =>
+const setSettingsDefaultRetentions = (settings, { modePoolMetadata, modeXoMetadata }) =>
   mapValues(settings, (setting, key) =>
     key !== GLOBAL_SETTING_KEY
       ? {
           retentionPoolMetadata: modePoolMetadata
             ? defined(setting.retentionPoolMetadata, DEFAULT_RETENTION)
             : undefined,
-          retentionXoMetadata: modeXoMetadata
-            ? defined(setting.retentionXoMetadata, DEFAULT_RETENTION)
-            : undefined,
+          retentionXoMetadata: modeXoMetadata ? defined(setting.retentionXoMetadata, DEFAULT_RETENTION) : undefined,
         }
       : setting
   )
@@ -99,15 +86,7 @@ export default decorate([
           return { showErrors: true }
         }
 
-        const {
-          modePoolMetadata,
-          modeXoMetadata,
-          name,
-          pools,
-          remotes,
-          schedules,
-          settings,
-        } = state
+        const { modePoolMetadata, modeXoMetadata, name, pools, remotes, schedules, settings } = state
         await createMetadataBackupJob({
           name,
           pools: modePoolMetadata ? constructPattern(pools) : undefined,
@@ -180,9 +159,7 @@ export default decorate([
       setSettings: (_, _settings) => () => ({
         _settings,
       }),
-      setGlobalSettings: ({ setSettings }, name, value) => ({
-        settings = {},
-      }) => {
+      setGlobalSettings: ({ setSettings }, name, value) => ({ settings = {} }) => {
         setSettings({
           ...settings,
           [GLOBAL_SETTING_KEY]: {
@@ -213,11 +190,9 @@ export default decorate([
 
       modePoolMetadata: ({ _modePoolMetadata }, { job }) =>
         defined(_modePoolMetadata, () => !isEmpty(destructPattern(job.pools))),
-      modeXoMetadata: ({ _modeXoMetadata }, { job }) =>
-        defined(_modeXoMetadata, () => job.xoMetadata),
+      modeXoMetadata: ({ _modeXoMetadata }, { job }) => defined(_modeXoMetadata, () => job.xoMetadata),
       name: (state, { job }) => defined(state._name, () => job.name, ''),
-      pools: ({ _pools }, { job }) =>
-        defined(_pools, () => destructPattern(job.pools)),
+      pools: ({ _pools }, { job }) => defined(_pools, () => destructPattern(job.pools)),
       retentions: ({ modePoolMetadata, modeXoMetadata }) => {
         const retentions = []
         if (modePoolMetadata) {
@@ -228,8 +203,7 @@ export default decorate([
         }
         return retentions
       },
-      schedules: ({ _schedules }, { schedules }) =>
-        defined(_schedules, schedules),
+      schedules: ({ _schedules }, { schedules }) => defined(_schedules, schedules),
       settings: ({ _settings }, { job }) =>
         // it replaces null retentions introduced by the commit
         // https://github.com/vatesfr/xen-orchestra/commit/fea5117ed83b58d3a57715b32d63d46e3004a094#diff-c02703199db2a4c217943cf8e02b91deR40
@@ -245,8 +219,7 @@ export default decorate([
             return newSetting
           })
         ),
-      remotes: ({ _remotes }, { job }) =>
-        defined(_remotes, () => destructPattern(job.remotes), []),
+      remotes: ({ _remotes }, { job }) => defined(_remotes, () => destructPattern(job.remotes), []),
       remotesPredicate: ({ remotes }) => ({ id }) => !remotes.includes(id),
 
       isJobInvalid: state =>
@@ -261,26 +234,16 @@ export default decorate([
       missingPools: state => state.modePoolMetadata && isEmpty(state.pools),
       missingRemotes: state => isEmpty(state.remotes),
       missingRetentionPoolMetadata: state =>
-        state.modePoolMetadata &&
-        every(
-          state.settings,
-          ({ retentionPoolMetadata }) => retentionPoolMetadata === 0
-        ),
+        state.modePoolMetadata && every(state.settings, ({ retentionPoolMetadata }) => retentionPoolMetadata === 0),
       missingRetentionXoMetadata: state =>
-        state.modeXoMetadata &&
-        every(
-          state.settings,
-          ({ retentionXoMetadata }) => retentionXoMetadata === 0
-        ),
+        state.modeXoMetadata && every(state.settings, ({ retentionXoMetadata }) => retentionXoMetadata === 0),
       missingSchedules: state => isEmpty(state.schedules),
     },
   }),
   injectState,
   ({ state, effects, job, remotes }) => {
     const [submitHandler, submitTitle] =
-      job === undefined
-        ? [effects.createJob, 'formCreate']
-        : [effects.editJob, 'formSave']
+      job === undefined ? [effects.createJob, 'formCreate'] : [effects.editJob, 'formSave']
     const {
       missingModes,
       missingPools,
@@ -290,10 +253,7 @@ export default decorate([
       missingSchedules,
     } = state.showErrors ? state : {}
 
-    const { reportWhen = 'failure' } = defined(
-      () => state.settings[GLOBAL_SETTING_KEY],
-      {}
-    )
+    const { reportWhen = 'failure' } = defined(() => state.settings[GLOBAL_SETTING_KEY], {})
 
     return (
       <form id={state.idForm}>
@@ -303,18 +263,10 @@ export default decorate([
               <Card>
                 <CardHeader>{_('backupName')}*</CardHeader>
                 <CardBlock>
-                  <Input
-                    onChange={effects.linkState}
-                    name='_name'
-                    value={state.name}
-                  />
+                  <Input onChange={effects.linkState} name='_name' value={state.name} />
                 </CardBlock>
               </Card>
-              <FormFeedback
-                component={Card}
-                error={missingModes}
-                message={_('missingBackupMode')}
-              >
+              <FormFeedback component={Card} error={missingModes} message={_('missingBackupMode')}>
                 <CardBlock>
                   <div className='text-xs-center'>
                     <ActionButton
@@ -339,13 +291,8 @@ export default decorate([
               <Card>
                 <CardHeader>
                   {_('remotes')}
-                  <Link
-                    className='btn btn-primary pull-right'
-                    target='_blank'
-                    to='/settings/remotes'
-                  >
-                    <Icon icon='settings' />{' '}
-                    <strong>{_('remotesSettings')}</strong>
+                  <Link className='btn btn-primary pull-right' target='_blank' to='/settings/remotes'>
+                    <Icon icon='settings' /> <strong>{_('remotesSettings')}</strong>
                   </Link>
                 </CardHeader>
                 <CardBlock>
@@ -390,11 +337,7 @@ export default decorate([
               <Card>
                 <CardHeader>{_('newBackupSettings')}</CardHeader>
                 <CardBlock>
-                  <ReportWhen
-                    onChange={effects.setReportWhen}
-                    required
-                    value={reportWhen}
-                  />
+                  <ReportWhen onChange={effects.setReportWhen} required value={reportWhen} />
                 </CardBlock>
               </Card>
             </Col>
@@ -417,9 +360,7 @@ export default decorate([
               <Schedules
                 handlerSchedules={effects.setSchedules}
                 handlerSettings={effects.setSettings}
-                missingRetentions={
-                  missingRetentionPoolMetadata || missingRetentionXoMetadata
-                }
+                missingRetentions={missingRetentionPoolMetadata || missingRetentionXoMetadata}
                 missingSchedules={missingSchedules}
                 retentions={state.retentions}
                 schedules={state.schedules}
@@ -436,19 +377,12 @@ export default decorate([
                     form={state.idForm}
                     handler={submitHandler}
                     icon='save'
-                    redirectOnSuccess={
-                      state.isJobInvalid ? undefined : '/backup'
-                    }
+                    redirectOnSuccess={state.isJobInvalid ? undefined : '/backup'}
                     size='large'
                   >
                     {_(submitTitle)}
                   </ActionButton>
-                  <ActionButton
-                    handler={effects.reset}
-                    icon='undo'
-                    className='pull-right'
-                    size='large'
-                  >
+                  <ActionButton handler={effects.reset} icon='undo' className='pull-right' size='large'>
                     {_('formReset')}
                   </ActionButton>
                 </CardBlock>

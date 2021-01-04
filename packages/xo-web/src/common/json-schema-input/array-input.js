@@ -47,15 +47,7 @@ export default class ObjectInput extends Component {
 
   render() {
     const {
-      props: {
-        depth = 0,
-        disabled,
-        label,
-        required,
-        schema,
-        uiSchema,
-        value = EMPTY_ARRAY,
-      },
+      props: { depth = 0, disabled, label, required, schema, uiSchema, value = EMPTY_ARRAY },
       state: { use },
     } = this
 
@@ -73,12 +65,7 @@ export default class ObjectInput extends Component {
         {!required && (
           <div className='checkbox'>
             <label>
-              <input
-                checked={use}
-                disabled={disabled}
-                onChange={this.linkState('use')}
-                type='checkbox'
-              />{' '}
+              <input checked={use} disabled={disabled} onChange={this.linkState('use')} type='checkbox' />{' '}
               {_('fillOptionalInformations')}
             </label>
           </div>
@@ -111,12 +98,7 @@ export default class ObjectInput extends Component {
                 </li>
               ))}
             </ul>
-            <Button
-              btnStyle='primary'
-              className='pull-right mt-1 mr-1'
-              disabled={disabled}
-              onClick={this._onAddItem}
-            >
+            <Button btnStyle='primary' className='pull-right mt-1 mr-1' disabled={disabled} onClick={this._onAddItem}>
               {_('add')}
             </Button>
           </div>

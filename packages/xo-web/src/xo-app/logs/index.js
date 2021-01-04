@@ -18,12 +18,7 @@ import { createGetObject, createSelector } from 'selectors'
 import { filter, forEach, includes, keyBy, map, orderBy } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { get } from '@xen-orchestra/defined'
-import {
-  deleteJobsLogs,
-  subscribeJobs,
-  subscribeJobsLogs,
-  subscribeBackupNgJobs,
-} from 'xo'
+import { deleteJobsLogs, subscribeJobs, subscribeJobsLogs, subscribeBackupNgJobs } from 'xo'
 
 // ===================================================================
 
@@ -43,9 +38,7 @@ class JobParam extends Component {
   render() {
     const { object, paramKey, id } = this.props
 
-    return object != null
-      ? _.keyValue(object.type || paramKey, renderXoItem(object))
-      : _.keyValue(paramKey, String(id))
+    return object != null ? _.keyValue(object.type || paramKey, renderXoItem(object)) : _.keyValue(paramKey, String(id))
   }
 }
 
@@ -93,19 +86,16 @@ const JobDataInfos = ({
   <div>
     {transferSize && transferDuration ? (
       <div>
-        <strong>{_('jobTransferredDataSize')}</strong>{' '}
-        {formatSize(transferSize)}
+        <strong>{_('jobTransferredDataSize')}</strong> {formatSize(transferSize)}
         <br />
-        <strong>{_('jobTransferredDataSpeed')}</strong>{' '}
-        {formatSpeed(transferSize, transferDuration)}
+        <strong>{_('jobTransferredDataSpeed')}</strong> {formatSpeed(transferSize, transferDuration)}
       </div>
     ) : null}
     {mergeSize && mergeDuration ? (
       <div>
         <strong>{_('jobMergedDataSize')}</strong> {formatSize(mergeSize)}
         <br />
-        <strong>{_('jobMergedDataSpeed')}</strong>{' '}
-        {formatSpeed(mergeSize, mergeDuration)}
+        <strong>{_('jobMergedDataSpeed')}</strong> {formatSpeed(mergeSize, mergeDuration)}
       </div>
     ) : null}
   </div>
@@ -124,10 +114,8 @@ const CALL_FILTER_OPTIONS = [
 const PREDICATES = {
   all: () => () => true,
   error: () => call => call.error !== undefined && !isSkippedError(call.error),
-  interrupted: isInterrupted => call =>
-    call.end === undefined && call.error === undefined && isInterrupted,
-  running: isInterrupted => call =>
-    call.end === undefined && call.error === undefined && !isInterrupted,
+  interrupted: isInterrupted => call => call.end === undefined && call.error === undefined && isInterrupted,
+  running: isInterrupted => call => call.end === undefined && call.error === undefined && !isInterrupted,
   skipped: () => call => call.error !== undefined && isSkippedError(call.error),
   success: () => call => call.end !== undefined && call.error === undefined,
 }
@@ -135,12 +123,9 @@ const PREDICATES = {
 const NO_OBJECTS_MATCH_THIS_PATTERN = 'no objects match this pattern'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
-const UNHEALTHY_VDI_CHAIN_LINK =
-  'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
+const UNHEALTHY_VDI_CHAIN_LINK = 'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
 
-const isSkippedError = error =>
-  error.message === UNHEALTHY_VDI_CHAIN_ERROR ||
-  error.message === NO_SUCH_OBJECT_ERROR
+const isSkippedError = error => error.message === UNHEALTHY_VDI_CHAIN_ERROR || error.message === NO_SUCH_OBJECT_ERROR
 
 class Log extends BaseComponent {
   state = {
@@ -171,25 +156,16 @@ class Log extends BaseComponent {
     (value, calls) => calls[value]
   )
 
-  _getFilterOptionRenderer = createSelector(
-    this._getCallsByState,
-    calls => ({ label, value }) => (
-      <span>
-        {_(label)} ({calls[value].length})
-      </span>
-    )
-  )
+  _getFilterOptionRenderer = createSelector(this._getCallsByState, calls => ({ label, value }) => (
+    <span>
+      {_(label)} ({calls[value].length})
+    </span>
+  ))
 
   render() {
     const { error } = this.props.log
     return error !== undefined ? (
-      <span
-        className={
-          error.message === NO_OBJECTS_MATCH_THIS_PATTERN
-            ? 'text-info'
-            : 'text-danger'
-        }
-      >
+      <span className={error.message === NO_OBJECTS_MATCH_THIS_PATTERN ? 'text-info' : 'text-danger'}>
         <Icon icon='alarm' /> {error.message}
       </span>
     ) : (
@@ -221,16 +197,9 @@ class Log extends BaseComponent {
             return (
               <li key={call.callKey} className='list-group-item'>
                 <strong className='text-info'>{call.method}: </strong>
-                <JobCallStateInfos
-                  end={end}
-                  error={error}
-                  isJobInterrupted={this._getIsJobInterrupted()}
-                />
+                <JobCallStateInfos end={end} error={error} isJobInterrupted={this._getIsJobInterrupted()} />
                 <br />
-                {map(call.params, (value, key) => [
-                  <JobParam id={value} paramKey={key} key={key} />,
-                  <br />,
-                ])}
+                {map(call.params, (value, key) => [<JobParam id={value} paramKey={key} key={key} />, <br />])}
                 {_.keyValue(
                   _('jobStart'),
                   <FormattedDate
@@ -259,15 +228,10 @@ class Log extends BaseComponent {
                       />
                     )}
                     <br />
-                    {_.keyValue(
-                      _('jobDuration'),
-                      <FormattedDuration duration={jobDuration} />
-                    )}
+                    {_.keyValue(_('jobDuration'), <FormattedDuration duration={jobDuration} />)}
                   </div>
                 )}
-                {returnedValue != null && (
-                  <JobDataInfos jobDuration={jobDuration} {...returnedValue} />
-                )}
+                {returnedValue != null && <JobDataInfos jobDuration={jobDuration} {...returnedValue} />}
                 {id !== undefined && (
                   <span>
                     {' '}
@@ -287,17 +251,9 @@ class Log extends BaseComponent {
                       </a>
                     </Tooltip>
                   ) : (
-                    <span
-                      className={
-                        isSkippedError(error) ? 'text-info' : 'text-danger'
-                      }
-                    >
+                    <span className={isSkippedError(error) ? 'text-info' : 'text-danger'}>
                       <Icon icon={isSkippedError(error) ? 'alarm' : 'error'} />{' '}
-                      {error.message !== undefined ? (
-                        <strong>{error.message}</strong>
-                      ) : (
-                        JSON.stringify(error)
-                      )}
+                      {error.message !== undefined ? <strong>{error.message}</strong> : JSON.stringify(error)}
                     </span>
                   ))}
               </li>
@@ -310,10 +266,7 @@ class Log extends BaseComponent {
 }
 
 const showCalls = (log, { jobs }) =>
-  alert(
-    _('jobModalTitle', { job: log.jobId }),
-    <Log log={log} job={jobs[log.jobId]} />
-  )
+  alert(_('jobModalTitle', { job: log.jobId }), <Log log={log} job={jobs[log.jobId]} />)
 
 const LOG_ACTIONS = [
   {
@@ -386,8 +339,7 @@ const LOG_COLUMNS = [
   },
   {
     name: _('jobDuration'),
-    itemRenderer: log =>
-      log.duration && <FormattedDuration duration={log.duration} />,
+    itemRenderer: log => log.duration && <FormattedDuration duration={log.duration} />,
     sortCriteria: log => log.duration,
   },
   {
@@ -396,14 +348,7 @@ const LOG_COLUMNS = [
       <span>
         {log.status === 'finished' ? (
           <span
-            className={classnames(
-              'tag',
-              log.hasErrors
-                ? 'tag-danger'
-                : log.callSkipped
-                ? 'tag-info'
-                : 'tag-success'
-            )}
+            className={classnames('tag', log.hasErrors ? 'tag-danger' : log.callSkipped ? 'tag-info' : 'tag-success')}
           >
             {_('jobFinished')}
           </span>
@@ -436,10 +381,7 @@ const Logs = decorate([
         forEach(rawLogs, (log, id) => {
           const data = log.data
           const { time } = log
-          if (
-            data.event === 'job.start' &&
-            (jobKeys === undefined || includes(jobKeys, data.key))
-          ) {
+          if (data.event === 'job.start' && (jobKeys === undefined || includes(jobKeys, data.key))) {
             logs[id] = {
               id,
               jobId: data.jobId,

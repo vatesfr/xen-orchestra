@@ -1728,8 +1728,7 @@ export default {
   usedResource: '已使用',
 
   // Original text: "Try dropping some backups here, or click to select backups to upload. Accept only .xva files."
-  importVmsList:
-    '尝试将备份文件拖拽到这里，或点击选择备份文件上传，仅支持.xva格式的文件',
+  importVmsList: '尝试将备份文件拖拽到这里，或点击选择备份文件上传，仅支持.xva格式的文件',
 
   // Original text: "No selected VMs."
   noSelectedVms: '没有选择虚拟机',
@@ -1813,12 +1812,10 @@ export default {
   importBackupMessage: '开始你的备份导入',
 
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
-  emergencyShutdownHostsModalTitle:
-    '紧急关闭主机{nHosts, plural, one {} other {s}}',
+  emergencyShutdownHostsModalTitle: '紧急关闭主机{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  emergencyShutdownHostsModalMessage:
-    '你确定要关闭 {nHosts} 主机{nHosts, plural, one {} other {s}}？',
+  emergencyShutdownHostsModalMessage: '你确定要关闭 {nHosts} 主机{nHosts, plural, one {} other {s}}？',
 
   // Original text: "Shutdown host"
   stopHostModalTitle: '关闭主机',
@@ -1833,8 +1830,7 @@ export default {
   restartHostModalMessage: '此操作将重启你的主机，你确定要继续吗？',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
-  restartHostsAgentsModalTitle:
-    '重启主机{nHosts, plural, one {} other {s}} 代理{nHosts, plural, one {} other {s}}',
+  restartHostsAgentsModalTitle: '重启主机{nHosts, plural, one {} other {s}} 代理{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
   restartHostsAgentsModalMessage:
@@ -1844,29 +1840,25 @@ export default {
   restartHostsModalTitle: '重启主机{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  restartHostsModalMessage:
-    '你确定要重启{nHosts}主机{nHosts, plural, one {} other {s}}？',
+  restartHostsModalMessage: '你确定要重启{nHosts}主机{nHosts, plural, one {} other {s}}？',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: '启动虚拟机{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?"
-  startVmsModalMessage:
-    '你确定要启动 {vms} 虚拟机{vms, plural, one {} other {s}}？',
+  startVmsModalMessage: '你确定要启动 {vms} 虚拟机{vms, plural, one {} other {s}}？',
 
   // Original text: "Stop Host{nHosts, plural, one {} other {s}}"
   stopHostsModalTitle: '停止主机{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  stopHostsModalMessage:
-    '你确定要停止{nHosts}主机{nHosts, plural, one {} other {s}}？',
+  stopHostsModalMessage: '你确定要停止{nHosts}主机{nHosts, plural, one {} other {s}}？',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
   stopVmsModalTitle: '停止虚拟机{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {vms} VM{vms, plural, one {} other {s}}?"
-  stopVmsModalMessage:
-    '你确定要停止{vms}虚拟机{vms, plural, one {} other {s}}？',
+  stopVmsModalMessage: '你确定要停止{vms}虚拟机{vms, plural, one {} other {s}}？',
 
   // Original text: "Restart VM"
   restartVmModalTitle: '重新启动虚拟机',
@@ -1884,15 +1876,13 @@ export default {
   restartVmsModalTitle: '重新启动虚拟机{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage:
-    '你确定要重新启动{vms}虚拟机{vms, plural, one {} other {s}}？',
+  restartVmsModalMessage: '你确定要重新启动{vms}虚拟机{vms, plural, one {} other {s}}？',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
   snapshotVmsModalTitle: '执行虚拟机快照{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage:
-    '你确定要执行虚拟机{vms}快照{vms, plural, one {} other {s}}？',
+  snapshotVmsModalMessage: '你确定要执行虚拟机{vms}快照{vms, plural, one {} other {s}}？',
 
   // Original text: "Delete VM"
   deleteVmModalTitle: '删除虚拟机',
@@ -1904,8 +1894,7 @@ export default {
   deleteVmModalMessage: '你确定要删除此虚拟机？所有的虚拟机磁盘将被删除',
 
   // Original text: "Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
-  deleteVmsModalMessage:
-    '你确定要删除 {vms}虚拟机{vms, plural, one {} other {s}}？所有的虚拟机磁盘将被删除',
+  deleteVmsModalMessage: '你确定要删除 {vms}虚拟机{vms, plural, one {} other {s}}？所有的虚拟机磁盘将被删除',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: '迁移虚拟机',
@@ -1977,29 +1966,25 @@ export default {
   existingSrModalTitle: '之前存储库的使用情况',
 
   // Original text: "This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingSrModalText:
-    '这条路径之前已经被一台XenServer主机用来连接存储。如果你选择继续创建存储库，所有的数据将丢失。',
+  existingSrModalText: '这条路径之前已经被一台XenServer主机用来连接存储。如果你选择继续创建存储库，所有的数据将丢失。',
 
   // Original text: "Previous LUN Usage"
   existingLunModalTitle: '之前LUN使用情况',
 
   // Original text: "This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
-  existingLunModalText:
-    '这个LUN之前已经被一台XenServer主机使用。如果你选择继续创建存储库，所有的数据将丢失。',
+  existingLunModalText: '这个LUN之前已经被一台XenServer主机使用。如果你选择继续创建存储库，所有的数据将丢失。',
 
   // Original text: "Replace current registration?"
   alreadyRegisteredModal: '替换当前的注册？',
 
   // Original text: "Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?"
-  alreadyRegisteredModalText:
-    '你的XO设备已经注册给{email}，你确定要删除并替换这个注册信息？',
+  alreadyRegisteredModalText: '你的XO设备已经注册给{email}，你确定要删除并替换这个注册信息？',
 
   // Original text: "Ready for trial?"
   trialReadyModal: '准备试用？',
 
   // Original text: "During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!"
-  trialReadyModalText:
-    '在试用期内，XOA需要Internet连接才能正常使用，如果您正式付费将不受此限制',
+  trialReadyModalText: '在试用期内，XOA需要Internet连接才能正常使用，如果您正式付费将不受此限制',
 
   // Original text: "Host"
   serverHost: '主机',
@@ -2176,8 +2161,7 @@ export default {
   noUpdaterSubscribe: '请考虑订购或在15天内免费试用所有功能',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
-  noUpdaterWarning:
-    '由于相关依赖关系的问题，手动更新将跑坏你当前的安全，请小心使用',
+  noUpdaterWarning: '由于相关依赖关系的问题，手动更新将跑坏你当前的安全，请小心使用',
 
   // Original text: "Current version:"
   currentVersion: '当前版本',
@@ -2192,8 +2176,7 @@ export default {
   trialStartButton: '开始试用',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil:
-    '你可以使用试用版本直到{date, date, medium}。更新你的设备来获取',
+  trialAvailableUntil: '你可以使用试用版本直到{date, date, medium}。更新你的设备来获取',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
   trialConsumed: '你的使用已经结束，联系我们或下载免费版本',
@@ -2223,8 +2206,7 @@ export default {
   promptUpgradeReloadTitle: '更新成功',
 
   // Original text: "Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?"
-  promptUpgradeReloadMessage:
-    '你的XOA已经成功更新，你的浏览器必须重新加载，你要现在重新加载吗？',
+  promptUpgradeReloadMessage: '你的XOA已经成功更新，你的浏览器必须重新加载，你要现在重新加载吗？',
 
   // Original text: "Xen Orchestra from the sources"
   disclaimerTitle: 'Xen Orchestra 源码版',

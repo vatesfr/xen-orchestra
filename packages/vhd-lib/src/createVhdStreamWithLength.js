@@ -67,8 +67,7 @@ export default async function createVhdStreamWithLength(stream) {
   const footerOffset =
     firstAndLastBlocks !== undefined
       ? firstAndLastBlocks.lastSector * SECTOR_SIZE +
-        Math.ceil(header.blockSize / SECTOR_SIZE / 8 / SECTOR_SIZE) *
-          SECTOR_SIZE +
+        Math.ceil(header.blockSize / SECTOR_SIZE / 8 / SECTOR_SIZE) * SECTOR_SIZE +
         header.blockSize
       : Math.ceil(streamPosition / SECTOR_SIZE) * SECTOR_SIZE
 

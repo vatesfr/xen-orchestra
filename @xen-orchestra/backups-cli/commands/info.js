@@ -10,9 +10,7 @@ const sum = values => values.reduce((a, b) => a + b)
 
 module.exports = async function info(vmDirs) {
   const jsonFiles = (
-    await asyncMap(vmDirs, async vmDir =>
-      (await readdir2(vmDir)).filter(_ => _.endsWith('.json'))
-    )
+    await asyncMap(vmDirs, async vmDir => (await readdir2(vmDir)).filter(_ => _.endsWith('.json')))
   ).flat()
 
   const hashes = { __proto__: null }
@@ -39,9 +37,7 @@ module.exports = async function info(vmDirs) {
           size:
             json.length +
             (await (metadata.mode === 'delta'
-              ? asyncMap(Object.values(metadata.vhds), _ =>
-                  getSize(resolve(jsonDir, _))
-                ).then(sum)
+              ? asyncMap(Object.values(metadata.vhds), _ => getSize(resolve(jsonDir, _))).then(sum)
               : getSize(resolve(jsonDir, metadata.xva)))),
         }
       } catch (error) {

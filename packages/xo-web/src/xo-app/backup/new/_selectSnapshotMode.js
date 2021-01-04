@@ -38,11 +38,7 @@ const SelectSnapshotMode = decorate([
     computed: {
       idSelect: generateId,
       value: (_, { checkpointSnapshot, offlineSnapshot }) =>
-        checkpointSnapshot
-          ? 'checkpointSnapshot'
-          : offlineSnapshot
-          ? 'offlineSnapshot'
-          : '',
+        checkpointSnapshot ? 'checkpointSnapshot' : offlineSnapshot ? 'offlineSnapshot' : '',
     },
   }),
   injectState,

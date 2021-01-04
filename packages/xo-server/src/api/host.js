@@ -1,14 +1,30 @@
+import assert from 'assert'
 import { format } from 'json-rpc-peer'
+
+// ===================================================================
+
+export function setMaintenanceMode({ host, maintenance }) {
+  const xapi = this.getXapi(host)
+
+  return maintenance ? xapi.clearHost({ $ref: host._xapiRef }) : xapi.enableHost(host._xapiId)
+}
+
+setMaintenanceMode.description = 'manage the maintenance mode'
+
+setMaintenanceMode.params = {
+  id: { type: 'string' },
+  maintenance: { type: 'boolean' },
+}
+
+setMaintenanceMode.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
 
 // ===================================================================
 
 export async function getSchedulerGranularity({ host }) {
   try {
-    return await this.getXapi(host).getField(
-      'host',
-      host._xapiRef,
-      'sched_gran'
-    )
+    return await this.getXapi(host).getField('host', host._xapiRef, 'sched_gran')
   } catch (e) {
     // This method is supported on XCP-ng >= 8.2 only.
     if (e.code === 'MESSAGE_METHOD_UNKNOWN') {
@@ -31,12 +47,7 @@ getSchedulerGranularity.resolve = {
 // ===================================================================
 
 export async function setSchedulerGranularity({ host, schedulerGranularity }) {
-  await this.getXapi(host).setField(
-    'host',
-    host._xapiRef,
-    'sched_gran',
-    schedulerGranularity
-  )
+  await this.getXapi(host).setField('host', host._xapiRef, 'sched_gran', schedulerGranularity)
 }
 
 setSchedulerGranularity.description = 'set scheduler granularity of a host'
@@ -68,14 +79,10 @@ export async function set({
     iscsiIqn !== undefined &&
       (host.iscsi_iqn !== undefined
         ? host.set_iscsi_iqn(iscsiIqn)
-        : host.update_other_config(
-            'iscsi_iqn',
-            iscsiIqn === '' ? null : iscsiIqn
-          )),
+        : host.update_other_config('iscsi_iqn', iscsiIqn === '' ? null : iscsiIqn)),
     nameDescription !== undefined && host.set_name_description(nameDescription),
     nameLabel !== undefined && host.set_name_label(nameLabel),
-    multipathing !== undefined &&
-      host.$xapi.setHostMultipathing(host.$id, multipathing),
+    multipathing !== undefined && host.$xapi.setHostMultipathing(host.$id, multipathing),
   ])
 }
 
@@ -384,5 +391,28 @@ installCertificate.params = {
 }
 
 installCertificate.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+export async function setControlDomainMemory({ host, memory }) {
+  assert(!host.enabled)
+
+  const controlDomain = this.getXapiObject(host.controlDomain, 'VM-controller')
+
+  const xapi = controlDomain.$xapi
+  await xapi.call('VM.set_memory_limits', controlDomain.$ref, controlDomain.memory_static_min, memory, memory, memory)
+  await xapi.rebootHost(host._xapiId)
+}
+
+setControlDomainMemory.description = "Set host's control domain memory and restart the host"
+
+setControlDomainMemory.params = {
+  id: { type: 'string' },
+  memory: { type: 'number' },
+}
+
+setControlDomainMemory.resolve = {
   host: ['id', 'host', 'administrate'],
 }

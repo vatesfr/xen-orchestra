@@ -3,10 +3,7 @@ import escapeRegExp from 'lodash/escapeRegExp'
 const compareLengthDesc = (a, b) => b.length - a.length
 
 export function compileTemplate(pattern, rules) {
-  const matches = Object.keys(rules)
-    .sort(compareLengthDesc)
-    .map(escapeRegExp)
-    .join('|')
+  const matches = Object.keys(rules).sort(compareLengthDesc).map(escapeRegExp).join('|')
   const regExp = new RegExp(`\\\\(?:\\\\|${matches})|${matches}`, 'g')
   return (...params) =>
     pattern.replace(regExp, match => {

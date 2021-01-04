@@ -34,13 +34,9 @@ const SelectCoresPerSocket = decorate([
   provideState({
     computed: {
       isValidValue: (state, { maxVcpus, value }) =>
-        value == null ||
-        (maxVcpus % value === 0 &&
-          !state.valueExceedsCoresLimit &&
-          !state.valueExceedsSocketsLimit),
+        value == null || (maxVcpus % value === 0 && !state.valueExceedsCoresLimit && !state.valueExceedsSocketsLimit),
       valueExceedsCoresLimit: (state, { maxCores, value }) => value > maxCores,
-      valueExceedsSocketsLimit: (state, { maxCores, maxVcpus, value }) =>
-        maxVcpus / value > MAX_VM_SOCKETS,
+      valueExceedsSocketsLimit: (state, { maxCores, maxVcpus, value }) => maxVcpus / value > MAX_VM_SOCKETS,
       options: ({ isValidValue }, { maxCores, maxVcpus, value }) => {
         const options = []
 
@@ -53,11 +49,7 @@ const SelectCoresPerSocket = decorate([
         // cores per socket must be a divisor of the max vCPUs and must not exceed the cores and sockets limit
         // e.g: with maxCores = 4, maxSockets = 16 and maxVCPUS = 6
         // 2 cores per socket is a valid value and 4 cores per socket isn't a valid value
-        for (
-          let coresPerSocket = maxCores;
-          coresPerSocket >= minCores;
-          coresPerSocket--
-        ) {
+        for (let coresPerSocket = maxCores; coresPerSocket >= minCores; coresPerSocket--) {
           if (maxVcpus % coresPerSocket === 0) {
             options.push({
               label: _('vmSocketsWithCoresPerSocket', {

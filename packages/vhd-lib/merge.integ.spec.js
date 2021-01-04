@@ -67,9 +67,7 @@ test('blocks can be moved', async () => {
   await newVhd._freeFirstBlockSpace(8000000)
   const recoveredFileName = `${tempDir}/recovered`
   await recoverRawContent(vhdFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(
-    await fs.readFile(rawFileName)
-  )
+  expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(rawFileName))
 })
 
 test('the BAT MSB is not used for sign', async () => {
@@ -101,13 +99,7 @@ test('the BAT MSB is not used for sign', async () => {
       const entry = vhd._getBatEntry(i)
       if (entry !== 0xffffffff) {
         const block = (await vhd2._readBlock(i)).data
-        await fs.write(
-          recoveredFile,
-          block,
-          0,
-          block.length,
-          vhd2.header.blockSize * i
-        )
+        await fs.write(recoveredFile, block, 0, block.length, vhd2.header.blockSize * i)
       }
     }
   } finally {
@@ -155,10 +147,7 @@ test('writeData in 2 non-overlaping operations', async () => {
   await newVhd.readBlockAllocationTable()
   const splitPointSectors = 2
   await newVhd.writeData(0, randomData.slice(0, splitPointSectors * 512))
-  await newVhd.writeData(
-    splitPointSectors,
-    randomData.slice(splitPointSectors * 512)
-  )
+  await newVhd.writeData(splitPointSectors, randomData.slice(splitPointSectors * 512))
   await recoverRawContent(emptyFileName, recoveredFileName, originalSize)
   expect(await fs.readFile(recoveredFileName)).toEqual(randomData)
 })
@@ -179,10 +168,7 @@ test('writeData in 2 overlaping operations', async () => {
   const endFirstWrite = 3
   const startSecondWrite = 2
   await newVhd.writeData(0, randomData.slice(0, endFirstWrite * 512))
-  await newVhd.writeData(
-    startSecondWrite,
-    randomData.slice(startSecondWrite * 512)
-  )
+  await newVhd.writeData(startSecondWrite, randomData.slice(startSecondWrite * 512))
   await recoverRawContent(emptyFileName, recoveredFileName, originalSize)
   expect(await fs.readFile(recoveredFileName)).toEqual(randomData)
 })
@@ -201,9 +187,7 @@ test('BAT can be extended and blocks moved', async () => {
   await newVhd.readBlockAllocationTable()
   await newVhd.ensureBatSize(2000)
   await recoverRawContent(vhdFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(
-    await fs.readFile(rawFileName)
-  )
+  expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(rawFileName))
 })
 
 test('coalesce works with empty parent files', async () => {
@@ -214,12 +198,7 @@ test('coalesce works with empty parent files', async () => {
   const recoveredFileName = `${tempDir}/recovered`
   await createRandomFile(rawFileName, mbOfRandom)
   await convertFromRawToVhd(rawFileName, vhdFileName)
-  await execa('qemu-img', [
-    'create',
-    '-fvpc',
-    emptyFileName,
-    mbOfRandom + 1 + 'M',
-  ])
+  await execa('qemu-img', ['create', '-fvpc', emptyFileName, mbOfRandom + 1 + 'M'])
   await checkFile(vhdFileName)
   await checkFile(emptyFileName)
   const handler = getHandler({ url: 'file://' })
@@ -229,9 +208,7 @@ test('coalesce works with empty parent files', async () => {
   await checkFile(emptyFileName)
   await vhdMerge(handler, emptyFileName, handler, vhdFileName)
   await recoverRawContent(emptyFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(
-    await fs.readFile(rawFileName)
-  )
+  expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(rawFileName))
 })
 
 test('coalesce works in normal cases', async () => {
@@ -245,21 +222,10 @@ test('coalesce works in normal cases', async () => {
   const recoveredFileName = `${tempDir}/recovered`
   await createRandomFile(randomFileName, mbOfRandom)
   await createRandomFile(smallRandomFileName, Math.ceil(mbOfRandom / 2))
-  await execa('qemu-img', [
-    'create',
-    '-fvpc',
-    parentFileName,
-    mbOfRandom + 1 + 'M',
-  ])
+  await execa('qemu-img', ['create', '-fvpc', parentFileName, mbOfRandom + 1 + 'M'])
   await convertFromRawToVhd(randomFileName, child1FileName)
   const handler = getHandler({ url: 'file://' })
-  await execa('vhd-util', [
-    'snapshot',
-    '-n',
-    child2FileName,
-    '-p',
-    child1FileName,
-  ])
+  await execa('vhd-util', ['snapshot', '-n', child2FileName, '-p', child1FileName])
   const vhd = new Vhd(handler, child2FileName)
   await vhd.readHeaderAndFooter()
   await vhd.readBlockAllocationTable()
@@ -293,9 +259,7 @@ test('coalesce works in normal cases', async () => {
   } finally {
     await fs.close(fd)
   }
-  expect(await fs.readFile(recoveredFileName)).toEqual(
-    await fs.readFile(random2FileName)
-  )
+  expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(random2FileName))
 })
 
 test.only('createSyntheticStream passes vhd-util check', async () => {
@@ -310,9 +274,7 @@ test.only('createSyntheticStream passes vhd-util check', async () => {
   const stream = await createSyntheticStream(handler, vhdFileName)
   const expectedVhdSize = (await fs.stat(vhdFileName)).size
   expect(stream.length).toEqual((await fs.stat(vhdFileName)).size)
-  await pFromCallback(cb =>
-    pipeline(stream, fs.createWriteStream(recoveredVhdFileName), cb)
-  )
+  await pFromCallback(cb => pipeline(stream, fs.createWriteStream(recoveredVhdFileName), cb))
   await checkFile(recoveredVhdFileName)
   const stats = await fs.stat(recoveredVhdFileName)
   expect(stats.size).toEqual(expectedVhdSize)

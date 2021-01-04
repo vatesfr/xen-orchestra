@@ -1,12 +1,6 @@
 /* eslint-env jest */
 
-import {
-  config,
-  getOrWaitCdVbdPosition,
-  rejectionOf,
-  waitObjectState,
-  xo,
-} from './../util'
+import { config, getOrWaitCdVbdPosition, rejectionOf, waitObjectState, xo } from './../util'
 
 // ===================================================================
 

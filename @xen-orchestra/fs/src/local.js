@@ -12,8 +12,7 @@ import RemoteHandlerAbstract from './abstract'
 function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags = 0) {
   // we are stuck on linux x86_64 because of int64 representation and syscall numbers
   function wrapOffset(offsetIn) {
-    if (offsetIn == null)
-      return 0
+    if (offsetIn == null) return 0
     const offsetInBuffer = new Uint32Array(2)
     new DataView(offsetInBuffer.buffer).setBigUint64(0, BigInt(offsetIn), true)
     return offsetInBuffer
@@ -21,7 +20,15 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
 
   // https://man7.org/linux/man-pages/man2/copy_file_range.2.html
   const SYS_copy_file_range = 326
-  const [copied, _, errno] = Syscall6(SYS_copy_file_range, fdIn, wrapOffset(offsetIn), fdOut, wrapOffset(offsetOut), dataLen, flags)
+  const [copied, _, errno] = Syscall6(
+    SYS_copy_file_range,
+    fdIn,
+    wrapOffset(offsetIn),
+    fdOut,
+    wrapOffset(offsetOut),
+    dataLen,
+    flags
+  )
   if (copied === -1) {
     throw new Error('Error no ' + errno)
   }
@@ -92,9 +99,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _getSize(file) {
-    const stats = await fs.stat(
-      this._getFilePath(typeof file === 'string' ? file : file.path)
-    )
+    const stats = await fs.stat(this._getFilePath(typeof file === 'string' ? file : file.path))
     return stats.size
   }
 
@@ -102,8 +107,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return fs.readdir(this._getFilePath(dir))
   }
 
-  _mkdir(dir) {
-    return fs.mkdir(this._getFilePath(dir))
+  _mkdir(dir, { mode }) {
+    return fs.mkdir(this._getFilePath(dir), { mode })
   }
 
   async _openFile(path, flags) {
@@ -134,13 +139,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     const needsClose = typeof file === 'string'
     file = needsClose ? await fs.open(this._getFilePath(file), 'r') : file.fd
     try {
-      return await fs.read(
-        file,
-        buffer,
-        0,
-        buffer.length,
-        position === undefined ? null : position
-      )
+      return await fs.read(file, buffer, 0, buffer.length, position === undefined ? null : position)
     } finally {
       if (needsClose) {
         await fs.close(file)

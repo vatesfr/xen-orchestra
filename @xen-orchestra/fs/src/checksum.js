@@ -27,9 +27,7 @@ const ID_TO_ALGORITHM = invert(ALGORITHM_TO_ID)
 //    const checksumStream = source.pipe(createChecksumStream())
 //    checksumStream.resume() // make the data flow without an output
 //    console.log(await checksumStream.checksum)
-export const createChecksumStream = (
-  algorithm: string = 'md5'
-): Transform & { checksum: Promise<string> } => {
+export const createChecksumStream = (algorithm: string = 'md5'): Transform & { checksum: Promise<string> } => {
   const algorithmId = ALGORITHM_TO_ID[algorithm]
 
   if (!algorithmId) {
@@ -60,10 +58,7 @@ export const validChecksumOfReadStream = (
   stream: Readable,
   expectedChecksum: string
 ): Readable & { checksumVerified: Promise<void> } => {
-  const algorithmId = expectedChecksum.slice(
-    1,
-    expectedChecksum.indexOf('$', 1)
-  )
+  const algorithmId = expectedChecksum.slice(1, expectedChecksum.indexOf('$', 1))
 
   if (!algorithmId) {
     throw new Error(`unknown algorithm: ${algorithmId}`)
@@ -82,11 +77,7 @@ export const validChecksumOfReadStream = (
         const checksum = `$${algorithmId}$$${hash.digest('hex')}`
 
         callback(
-          checksum !== expectedChecksum
-            ? new Error(
-                `Bad checksum (${checksum}), expected: ${expectedChecksum}`
-              )
-            : null
+          checksum !== expectedChecksum ? new Error(`Bad checksum (${checksum}), expected: ${expectedChecksum}`) : null
         )
       }
     )

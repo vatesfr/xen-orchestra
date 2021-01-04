@@ -14,13 +14,7 @@ import {
   PLATFORM_WI2K,
 } from './_constants'
 
-export function createFooter(
-  size,
-  timestamp,
-  geometry,
-  dataOffset,
-  diskType = DISK_TYPE_FIXED
-) {
+export function createFooter(size, timestamp, geometry, dataOffset, diskType = DISK_TYPE_FIXED) {
   const footer = fuFooter.pack({
     cookie: FOOTER_COOKIE,
     features: 2,

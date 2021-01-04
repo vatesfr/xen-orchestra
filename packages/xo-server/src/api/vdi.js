@@ -11,8 +11,7 @@ import { parseSize } from '../utils'
 export async function delete_({ vdi }) {
   const resourceSet = reduce(
     vdi.$VBDs,
-    (resourceSet, vbd) =>
-      resourceSet || this.getObject(this.getObject(vbd, 'VBD').VM).resourceSet,
+    (resourceSet, vbd) => resourceSet || this.getObject(this.getObject(vbd, 'VBD').VM).resourceSet,
     undefined
   )
 
@@ -47,33 +46,20 @@ export const set = defer(async function ($defer, params) {
     const size = parseSize(params.size)
 
     if (size < vdi.size) {
-      throw invalidParameters(
-        `cannot set new size (${size}) below the current size (${vdi.size})`
-      )
+      throw invalidParameters(`cannot set new size (${size}) below the current size (${vdi.size})`)
     }
 
     const vbds = vdi.$VBDs
     if (
       vbds.length === 1 &&
-      (resourceSetId = xapi.xo.getData(
-        this.getObject(vbds[0], 'VBD').VM,
-        'resourceSet'
-      )) !== undefined
+      (resourceSetId = xapi.xo.getData(this.getObject(vbds[0], 'VBD').VM, 'resourceSet')) !== undefined
     ) {
       if (this.user.permission !== 'admin') {
         await this.checkResourceSetConstraints(resourceSetId, this.user.id)
       }
 
-      await this.allocateLimitsInResourceSet(
-        { disk: size - vdi.size },
-        resourceSetId
-      )
-      $defer.onFailure(() =>
-        this.releaseLimitsInResourceSet(
-          { disk: size - vdi.size },
-          resourceSetId
-        )
-      )
+      await this.allocateLimitsInResourceSet({ disk: size - vdi.size }, resourceSetId)
+      $defer.onFailure(() => this.releaseLimitsInResourceSet({ disk: size - vdi.size }, resourceSetId))
     } else {
       await this.checkPermissions(this.user.id, [[vdi.$SR, 'operate']])
     }

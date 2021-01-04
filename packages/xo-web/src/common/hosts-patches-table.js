@@ -10,11 +10,7 @@ import Link from './link'
 import SortedTable from './sorted-table'
 import TabButton from './tab-button'
 import { connectStore } from './utils'
-import {
-  createGetObjectsOfType,
-  createFilter,
-  createSelector,
-} from './selectors'
+import { createGetObjectsOfType, createFilter, createSelector } from './selectors'
 import { installAllPatchesOnPool, subscribeHostMissingPatches } from './xo'
 
 // ===================================================================
@@ -22,9 +18,7 @@ import { installAllPatchesOnPool, subscribeHostMissingPatches } from './xo'
 const MISSING_PATCHES_COLUMNS = [
   {
     name: _('srHost'),
-    itemRenderer: host => (
-      <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>
-    ),
+    itemRenderer: host => <Link to={`/hosts/${host.id}`}>{host.name_label}</Link>,
     sortCriteria: host => host.name_label,
   },
   {
@@ -34,9 +28,7 @@ const MISSING_PATCHES_COLUMNS = [
   },
   {
     name: _('hostMissingPatches'),
-    itemRenderer: (host, { missingPatches }) => (
-      <Link to={`/hosts/${host.id}/patches`}>{missingPatches[host.id]}</Link>
-    ),
+    itemRenderer: (host, { missingPatches }) => <Link to={`/hosts/${host.id}/patches`}>{missingPatches[host.id]}</Link>,
     sortCriteria: (host, { missingPatches }) => missingPatches[host.id],
   },
 ]
@@ -100,9 +92,7 @@ class HostsPatchesTable extends Component {
       pools[host.$pool] = true
     })
 
-    return Promise.all(
-      map(keys(pools), pool => installAllPatchesOnPool({ pool }))
-    )
+    return Promise.all(map(keys(pools), pool => installAllPatchesOnPool({ pool })))
   }
 
   componentDidMount() {
@@ -123,13 +113,7 @@ class HostsPatchesTable extends Component {
   }
 
   render() {
-    const {
-      buttonsGroupContainer,
-      container,
-      displayPools,
-      pools,
-      useTabButton,
-    } = this.props
+    const { buttonsGroupContainer, container, displayPools, pools, useTabButton } = this.props
 
     const hosts = this._getHosts()
     const noPatches = isEmpty(hosts)
@@ -143,11 +127,7 @@ class HostsPatchesTable extends Component {
         {!noPatches ? (
           <SortedTable
             collection={hosts}
-            columns={
-              displayPools
-                ? POOLS_MISSING_PATCHES_COLUMNS
-                : MISSING_PATCHES_COLUMNS
-            }
+            columns={displayPools ? POOLS_MISSING_PATCHES_COLUMNS : MISSING_PATCHES_COLUMNS}
             userData={{
               missingPatches: this.state.missingPatches,
               pools,
@@ -190,20 +170,13 @@ class HostsPatchesTableByPool extends Component {
 
 // ===================================================================
 const HostsPatches = props =>
-  props.displayPools ? (
-    <HostsPatchesTableByPool {...props} />
-  ) : (
-    <HostsPatchesTable {...props} />
-  )
+  props.displayPools ? <HostsPatchesTableByPool {...props} /> : <HostsPatchesTable {...props} />
 
 HostsPatches.propTypes = {
   buttonsGroupContainer: PropTypes.func.isRequired,
   container: PropTypes.any,
   displayPools: PropTypes.bool,
-  hosts: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.object),
-    PropTypes.objectOf(PropTypes.object),
-  ]).isRequired,
+  hosts: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.objectOf(PropTypes.object)]).isRequired,
   useTabButton: PropTypes.bool,
 }
 

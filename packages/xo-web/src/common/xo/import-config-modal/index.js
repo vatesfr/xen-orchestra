@@ -17,11 +17,7 @@ export default class ImportConfigModalBody extends Component {
     return (
       <div>
         <p>{_('importConfigEnterPassphrase')}</p>
-        <Password
-          autoFocus
-          onChange={this.linkState('passphrase')}
-          value={this.state.passphrase}
-        />
+        <Password autoFocus onChange={this.linkState('passphrase')} value={this.state.passphrase} />
       </div>
     )
   }

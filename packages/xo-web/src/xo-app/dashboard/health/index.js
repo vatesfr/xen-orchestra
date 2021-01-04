@@ -2,13 +2,13 @@ import _ from 'intl'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
 import fromCallback from 'promise-toolbox/fromCallback'
+import { get as getDefined } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import Upgrade from 'xoa-upgrade'
 import xml2js from 'xml2js'
 import { Sr } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
@@ -42,11 +42,7 @@ const SrColContainer = connectStore(() => ({
   container: createGetObject(),
 }))(
   ({ container }) =>
-    container !== undefined && (
-      <Link to={`${container.type}s/${container.id}`}>
-        {container.name_label}
-      </Link>
-    )
+    container !== undefined && <Link to={`${container.type}s/${container.id}`}>{container.name_label}</Link>
 )
 
 const VmColContainer = connectStore(() => ({
@@ -112,14 +108,7 @@ const SR_COLUMNS = [
             free: formatSize(sr.size - sr.physical_usage),
           })}
         >
-          <meter
-            value={(sr.physical_usage / sr.size) * 100}
-            min='0'
-            max='100'
-            optimum='40'
-            low='80'
-            high='90'
-          />
+          <meter value={(sr.physical_usage / sr.size) * 100} min='0' max='100' optimum='40' low='80' high='90' />
         </Tooltip>
       ),
     sortCriteria: sr => sr.physical_usage / sr.size,
@@ -216,13 +205,8 @@ const AttachedVdisTable = decorate([
     srs: createGetObjectsOfType('SR'),
     vbds: createGetObjectsOfType('VBD').pick(
       createSelector(
-        createFilter(
-          createGetObjectsOfType('VM-controller'),
-          (_, props) => props.poolPredicate
-        ),
-        createCollectionWrapper(vmControllers =>
-          flatten(map(vmControllers, '$VBDs'))
-        )
+        createFilter(createGetObjectsOfType('VM-controller'), (_, props) => props.poolPredicate),
+        createCollectionWrapper(vmControllers => flatten(map(vmControllers, '$VBDs')))
       )
     ),
     vdis: createGetObjectsOfType('VDI'),
@@ -250,10 +234,7 @@ const AttachedVdisTable = decorate([
         itemRenderer: ({ vdi }) => (
           <span>
             {vdi.name_label}
-            {vdi.type === 'VDI-snapshot' && [
-              ' ',
-              <Icon icon='vm-snapshot' key='1' />,
-            ]}
+            {vdi.type === 'VDI-snapshot' && [' ', <Icon icon='vm-snapshot' key='1' />]}
           </span>
         ),
         sortCriteria: ({ vdi }) => vdi.name_label,
@@ -266,9 +247,7 @@ const AttachedVdisTable = decorate([
       {
         name: _('vdiPool'),
         itemRenderer: ({ pool }) =>
-          pool === undefined ? null : (
-            <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>
-          ),
+          pool === undefined ? null : <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>,
         sortCriteria: ({ pool }) => pool != null && pool.name_label,
       },
       {
@@ -278,8 +257,7 @@ const AttachedVdisTable = decorate([
       },
       {
         name: _('vdiSr'),
-        itemRenderer: ({ sr }) =>
-          sr === undefined ? null : <Sr id={sr.id} link spaceLeft={false} />,
+        itemRenderer: ({ sr }) => (sr === undefined ? null : <Sr id={sr.id} link spaceLeft={false} />),
         sortCriteria: ({ sr }) => sr != null && sr.name_label,
       },
     ],
@@ -346,9 +324,7 @@ const VM_ACTIONS = [
 const TOO_MANY_SNAPSHOT_COLUMNS = [
   {
     name: _('vmNameLabel'),
-    itemRenderer: vm => (
-      <Link to={`vms/${vm.id}/snapshots`}>{vm.name_label}</Link>
-    ),
+    itemRenderer: vm => <Link to={`vms/${vm.id}/snapshots`}>{vm.name_label}</Link>,
     sortCriteria: vm => vm.name_label,
   },
   {
@@ -365,6 +341,42 @@ const TOO_MANY_SNAPSHOT_COLUMNS = [
     name: _('numberOfSnapshots'),
     itemRenderer: vm => vm.snapshots.length,
     sortOrder: 'desc',
+  },
+]
+
+const GUEST_TOOLS_COLUMNS = [
+  {
+    name: _('vmNameLabel'),
+    itemRenderer: vm => <Link to={`vms/${vm.id}`}>{vm.name_label}</Link>,
+    sortCriteria: vm => vm.name_label,
+  },
+  {
+    name: _('vmNameDescription'),
+    itemRenderer: vm => vm.name_description,
+    sortCriteria: vm => vm.name_description,
+  },
+  {
+    name: _('vmContainer'),
+    itemRenderer: vm => <VmColContainer id={vm.$container} />,
+  },
+  {
+    default: true,
+    name: _('guestToolStatusColumn'),
+    itemRenderer: vm => {
+      if (!vm.pvDriversDetected) {
+        return _('noToolsDetected')
+      }
+      if (!vm.managementAgentDetected) {
+        return _('managementAgentNotDetected')
+      }
+
+      const version = getDefined(() => vm.pvDriversVersion.split('.')[0]) > 0 ? vm.pvDriversVersion : ''
+
+      return _('managementAgentOutOfDate', {
+        version,
+      })
+    },
+    sortCriteria: vm => (!vm.pvDriversDetected ? 0 : !vm.managementAgentDetected ? 1 : 2),
   },
 ]
 
@@ -438,10 +450,8 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getSrs = createGetObjectsOfType('SR')
   const getOrphanVdis = createSort(
     createFilter(
-      createSelector(
-        createGetObjectsOfType('VDI'),
-        createGetObjectsOfType('VDI-snapshot'),
-        (vdis, snapshotVdis) => Object.assign({}, vdis, snapshotVdis)
+      createSelector(createGetObjectsOfType('VDI'), createGetObjectsOfType('VDI-snapshot'), (vdis, snapshotVdis) =>
+        Object.assign({}, vdis, snapshotVdis)
       ),
       createSelector(getSrs, srs => vdi => {
         if (vdi.$VBDs.length !== 0 || !HANDLED_VDI_TYPES.has(vdi.VDI_type)) {
@@ -465,10 +475,11 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getTooManySnapshotsVms = createGetObjectsOfType('VM')
     .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT])
     .sort()
+  const getGuestToolsVms = createGetObjectsOfType('VM')
+    .filter([vm => vm.power_state === 'Running' && (!vm.managementAgentDetected || !vm.pvDriversUpToDate)])
+    .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
-  const getAlertMessages = createGetObjectsOfType('message').filter([
-    message => message.name === 'ALARM',
-  ])
+  const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
 
   return {
     alertMessages: getAlertMessages,
@@ -476,6 +487,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
     tooManySnapshotsVms: getTooManySnapshotsVms,
+    guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
   }
 })
@@ -504,9 +516,7 @@ export default class Health extends Component {
 
         const [, value, xml] = matches
         return fromCallback(xml2js.parseString, xml).then(result => {
-          const object = mapValues(result && result.variable, value =>
-            get(value, '[0].$.value')
-          )
+          const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
           if (!object || !object.name) {
             return
           }
@@ -530,31 +540,20 @@ export default class Health extends Component {
 
   _getPoolPredicate = createSelector(
     createSelector(() => this.state.pools, resolveIds),
-    poolIds =>
-      isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
+    poolIds => (isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool))
   )
 
   _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
 
-  _getOrphanVdis = createFilter(
-    () => this.props.orphanVdis,
-    this._getPoolPredicate
-  )
+  _getOrphanVdis = createFilter(() => this.props.orphanVdis, this._getPoolPredicate)
 
-  _getOrphanVmSnapshots = createFilter(
-    () => this.props.orphanVmSnapshots,
-    this._getPoolPredicate
-  )
+  _getOrphanVmSnapshots = createFilter(() => this.props.orphanVmSnapshots, this._getPoolPredicate)
 
-  _getTooManySnapshotsVms = createFilter(
-    () => this.props.tooManySnapshotsVms,
-    this._getPoolPredicate
-  )
+  _getTooManySnapshotsVms = createFilter(() => this.props.tooManySnapshotsVms, this._getPoolPredicate)
 
-  _getAlertMessages = createFilter(
-    () => this.props.alertMessages,
-    this._getPoolPredicate
-  )
+  _getGuestToolsVms = createFilter(() => this.props.guestToolsVms, this._getPoolPredicate)
+
+  _getAlertMessages = createFilter(() => this.props.alertMessages, this._getPoolPredicate)
 
   _getMessages = createFilter(() => this.state.messages, this._getPoolPredicate)
 
@@ -564,14 +563,10 @@ export default class Health extends Component {
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
-    return process.env.XOA_PLAN > 3 ? (
+    return (
       <Container>
         <Row className='mb-1'>
-          <SelectPool
-            multi
-            onChange={this.linkState('pools')}
-            value={state.pools}
-          />
+          <SelectPool multi onChange={this.linkState('pools')} value={state.pools} />
         </Row>
         <Row>
           <Col>
@@ -580,10 +575,7 @@ export default class Health extends Component {
                 <Icon icon='disk' /> {_('srStatePanel')}
               </CardHeader>
               <CardBlock>
-                <NoObjects
-                  collection={props.areObjectsFetched ? userSrs : null}
-                  emptyMessage={_('noSrs')}
-                >
+                <NoObjects collection={props.areObjectsFetched ? userSrs : null} emptyMessage={_('noSrs')}>
                   {() => (
                     <Row>
                       <Col>
@@ -651,11 +643,7 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   actions={VM_ACTIONS}
-                  collection={
-                    props.areObjectsFetched
-                      ? this._getOrphanVmSnapshots()
-                      : null
-                  }
+                  collection={props.areObjectsFetched ? this._getOrphanVmSnapshots() : null}
                   columns={VM_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
@@ -677,16 +665,34 @@ export default class Health extends Component {
                   <Icon icon='info' /> <em>{_('tooManySnapshotsTip')}</em>
                 </p>
                 <NoObjects
-                  collection={
-                    props.areObjectsFetched
-                      ? this._getTooManySnapshotsVms()
-                      : null
-                  }
+                  collection={props.areObjectsFetched ? this._getTooManySnapshotsVms() : null}
                   columns={TOO_MANY_SNAPSHOT_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noTooManySnapshotsObject')}
                   shortcutsTarget='.too-many-snapshots-vms'
                   stateUrlParam='s_too_many_snapshots_vms'
+                />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row className='guest-tools-vms'>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='administration' /> {_('guestToolStatus')}
+              </CardHeader>
+              <CardBlock>
+                <p>
+                  <Icon icon='info' /> <em>{_('guestToolStatusTip')}</em>
+                </p>
+                <NoObjects
+                  collection={props.areObjectsFetched ? this._getGuestToolsVms() : null}
+                  columns={GUEST_TOOLS_COLUMNS}
+                  component={SortedTable}
+                  emptyMessage={_('noGuestToolStatusObject')}
+                  shortcutsTarget='.guest-tools-vms'
+                  stateUrlParam='s_guest_tools_vms'
                 />
               </CardBlock>
             </Card>
@@ -700,9 +706,7 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={
-                    props.areObjectsFetched ? this._getAlertMessages() : null
-                  }
+                  collection={props.areObjectsFetched ? this._getAlertMessages() : null}
                   emptyMessage={_('noAlarms')}
                 >
                   {() => (
@@ -718,10 +722,6 @@ export default class Health extends Component {
             </Card>
           </Col>
         </Row>
-      </Container>
-    ) : (
-      <Container>
-        <Upgrade place='health' available={4} />
       </Container>
     )
   }

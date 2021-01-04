@@ -62,14 +62,7 @@ export default decorate([
             mapPoolsSrs: {},
             pools: [],
           },
-          render: props => (
-            <ResourceForm
-              install
-              multi
-              poolPredicate={isTemplateInstalled}
-              {...props}
-            />
-          ),
+          render: props => <ResourceForm install multi poolPredicate={isTemplateInstalled} {...props} />,
           header: (
             <span>
               <Icon icon='add-vm' /> {name}
@@ -86,20 +79,13 @@ export default decorate([
                 namespace,
                 id,
                 version,
-                sr: defined(
-                  resourceParams.mapPoolsSrs[pool.id],
-                  pool.default_SR
-                ),
+                sr: defined(resourceParams.mapPoolsSrs[pool.id], pool.default_SR),
               })
               const oldTemplates = filter(
                 templates,
-                template =>
-                  pool.$pool === template.$pool &&
-                  template.other['xo:resource:namespace'] === namespace
+                template => pool.$pool === template.$pool && template.other['xo:resource:namespace'] === namespace
               )
-              await Promise.all(
-                oldTemplates.map(template => pureDeleteVm(template))
-              )
+              await Promise.all(oldTemplates.map(template => pureDeleteVm(template)))
             })
           )
           success(_('hubImportNotificationTitle'), _('successfulInstall'))
@@ -115,9 +101,7 @@ export default decorate([
           defaultValue: {
             pool: undefined,
           },
-          render: props => (
-            <ResourceForm poolPredicate={isPoolCreated} {...props} />
-          ),
+          render: props => <ResourceForm poolPredicate={isPoolCreated} {...props} />,
           header: (
             <span>
               <Icon icon='add-vm' /> {name}
@@ -128,9 +112,7 @@ export default decorate([
         const { $pool } = resourceParams.pool
         const template = find(installedTemplates, { $pool })
         if (template !== undefined) {
-          this.props.router.push(
-            `/vms/new?pool=${$pool}&template=${template.id}`
-          )
+          this.props.router.push(`/vms/new?pool=${$pool}&template=${template.id}`)
         } else {
           throw new Error(`can't find template for pool: ${$pool}`)
         }
@@ -141,14 +123,7 @@ export default decorate([
           defaultValue: {
             pools: [],
           },
-          render: props => (
-            <ResourceForm
-              delete
-              multi
-              poolPredicate={isPoolCreated}
-              {...props}
-            />
-          ),
+          render: props => <ResourceForm delete multi poolPredicate={isPoolCreated} {...props} />,
           header: (
             <span>
               <Icon icon='vm-delete' /> {name}
@@ -214,10 +189,7 @@ export default decorate([
                       {startCase(key)}
                       <span className='pull-right'>
                         {typeof value === 'boolean' ? (
-                          <Icon
-                            color={value ? 'green' : 'red'}
-                            icon={value ? 'true' : 'false'}
-                          />
+                          <Icon color={value ? 'green' : 'red'} icon={value ? 'true' : 'false'} />
                         ) : key.toLowerCase().endsWith('size') ? (
                           <strong>{formatSize(value)}</strong>
                         ) : (
@@ -251,33 +223,18 @@ export default decorate([
             }}
           />
         ),
-      installedTemplates: (_, { id, templates }) =>
-        filter(templates, ['other.xo:resource:xva:id', id]),
+      installedTemplates: (_, { id, templates }) => filter(templates, ['other.xo:resource:xva:id', id]),
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
-        pools.every(
-          pool =>
-            installedTemplates.find(template => template.$pool === pool.id) !==
-            undefined
-        ),
+        pools.every(pool => installedTemplates.find(template => template.$pool === pool.id) !== undefined),
       isTemplateInstalled: ({ installedTemplates }) => pool =>
-        installedTemplates.find(template => template.$pool === pool.id) ===
-        undefined,
+        installedTemplates.find(template => template.$pool === pool.id) === undefined,
       isPoolCreated: ({ installedTemplates }) => pool =>
-        installedTemplates.find(template => template.$pool === pool.id) !==
-        undefined,
+        installedTemplates.find(template => template.$pool === pool.id) !== undefined,
     },
   }),
   injectState,
-  ({
-    effects,
-    hubInstallingResources,
-    id,
-    name,
-    size,
-    state,
-    totalDiskSize,
-  }) => (
+  ({ effects, hubInstallingResources, id, name, size, state, totalDiskSize }) => (
     <Card shadow>
       <CardHeader>
         {name}
@@ -296,13 +253,7 @@ export default decorate([
       </CardHeader>
       <CardBlock>
         {state.description}
-        <ActionButton
-          className='pull-right'
-          color='light'
-          handler={effects.showDescription}
-          icon='info'
-          size='small'
-        >
+        <ActionButton className='pull-right' color='light' handler={effects.showDescription} icon='info' size='small'>
           {_('moreDetails')}
         </ActionButton>
         <div>

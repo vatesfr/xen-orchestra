@@ -7,13 +7,7 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Container, Row, Col } from 'grid'
-import {
-  startContainer,
-  stopContainer,
-  pauseContainer,
-  unpauseContainer,
-  restartContainer,
-} from 'xo'
+import { startContainer, stopContainer, pauseContainer, unpauseContainer, restartContainer } from 'xo'
 
 const CONTAINER_COLUMNS = [
   {

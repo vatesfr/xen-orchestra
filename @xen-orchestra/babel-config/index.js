@@ -38,18 +38,11 @@ const configs = {
 
 const getConfig = (key, ...args) => {
   const config = configs[key]
-  return config === undefined
-    ? {}
-    : typeof config === 'function'
-    ? config(...args)
-    : config
+  return config === undefined ? {} : typeof config === 'function' ? config(...args) : config
 }
 
 // some plugins must be used in a specific order
-const pluginsOrder = [
-  '@babel/plugin-proposal-decorators',
-  '@babel/plugin-proposal-class-properties',
-]
+const pluginsOrder = ['@babel/plugin-proposal-decorators', '@babel/plugin-proposal-class-properties']
 
 module.exports = function (pkg, plugins, presets) {
   plugins === undefined && (plugins = {})

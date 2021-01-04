@@ -5,13 +5,7 @@ import { createGzip } from 'zlib'
 import { createSchedule } from '@xen-orchestra/cron'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
-import {
-  AlteredRecordError,
-  AuditCore,
-  MissingRecordError,
-  NULL_ID,
-  Storage,
-} from '@xen-orchestra/audit-core'
+import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '@xen-orchestra/audit-core'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -134,10 +128,7 @@ class Db extends Storage {
         ++count
         db.del(key, cb)
       }
-      db.createKeyStream()
-        .on('data', deleteEntry)
-        .on('end', cb)
-        .on('error', reject)
+      db.createKeyStream().on('data', deleteEntry).on('end', cb).on('error', reject)
     })
   }
 }
@@ -162,13 +153,10 @@ class AuditXoPlugin {
     this._cleaners = []
     this._xo = xo
 
-    const { enabled = true, schedule: { cron = '0 6 * * *', timezone } = {} } =
-      staticConfig.lastHashUpload ?? {}
+    const { enabled = true, schedule: { cron = '0 6 * * *', timezone } = {} } = staticConfig.lastHashUpload ?? {}
 
     if (enabled) {
-      this._uploadLastHashJob = createSchedule(cron, timezone).createJob(() =>
-        this._uploadLastHash().catch(log.error)
-      )
+      this._uploadLastHashJob = createSchedule(cron, timezone).createJob(() => this._uploadLastHash().catch(log.error))
     }
 
     this._auditCore = undefined
@@ -212,8 +200,7 @@ class AuditXoPlugin {
     }
 
     const checkIntegrity = this._checkIntegrity.bind(this)
-    checkIntegrity.description =
-      'Check records integrity between oldest and newest'
+    checkIntegrity.description = 'Check records integrity between oldest and newest'
     checkIntegrity.permission = 'admin'
     checkIntegrity.params = {
       newest: { type: 'string', optional: true },
@@ -221,8 +208,7 @@ class AuditXoPlugin {
     }
 
     const generateFingerprint = this._generateFingerprint.bind(this)
-    generateFingerprint.description =
-      'Generate a fingerprint of the chain oldest-newest'
+    generateFingerprint.description = 'Generate a fingerprint of the chain oldest-newest'
     generateFingerprint.permission = 'admin'
     generateFingerprint.params = {
       newest: { type: 'string', optional: true },
@@ -240,8 +226,7 @@ class AuditXoPlugin {
     clean.description = 'Clean audit database'
 
     const deleteRange = this._deleteRangeAndRewrite.bind(this)
-    deleteRange.description =
-      'Delete a range of records and rewrite the records chain'
+    deleteRange.description = 'Delete a range of records and rewrite the records chain'
     deleteRange.permission = 'admin'
     deleteRange.params = {
       newest: { type: 'string' },
@@ -331,18 +316,11 @@ class AuditXoPlugin {
             'content-disposition': 'attachment',
             'content-type': 'application/x-gzip',
           })
-          return fromCallback(
-            pipeline,
-            this._getRecordsStream(),
-            createGzip(),
-            res
-          )
+          return fromCallback(pipeline, this._getRecordsStream(), createGzip(), res)
         },
         undefined,
         {
-          suffix: `/audit-records-${new Date()
-            .toISOString()
-            .replace(/:/g, '_')}.ndjson.gz`,
+          suffix: `/audit-records-${new Date().toISOString().replace(/:/g, '_')}.ndjson.gz`,
         }
       )
       .then($getFrom => ({
@@ -448,13 +426,11 @@ class AuditXoPlugin {
   }
 }
 
-AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(
-  async function* (id) {
-    for await (const record of this._auditCore.getFrom(id)) {
-      yield JSON.stringify(record)
-      yield '\n'
-    }
+AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(async function* (id) {
+  for await (const record of this._auditCore.getFrom(id)) {
+    yield JSON.stringify(record)
+    yield '\n'
   }
-)
+})
 
 export default opts => new AuditXoPlugin(opts)

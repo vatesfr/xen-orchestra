@@ -1,10 +1,7 @@
 import createTransport from './transports/console'
 import LEVELS, { resolve } from './levels'
 
-const symbol =
-  typeof Symbol !== 'undefined'
-    ? Symbol.for('@xen-orchestra/log')
-    : '@@@xen-orchestra/log'
+const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 if (!(symbol in global)) {
   // the default behavior, without requiring `configure` is to avoid
   // logging anything unless it's a real error
@@ -64,9 +61,7 @@ prototype.wrap = function (message, fn) {
     try {
       const result = fn.apply(this, arguments)
       const then = result != null && result.then
-      return typeof then === 'function'
-        ? then.call(result, warnAndRethrow)
-        : result
+      return typeof then === 'function' ? then.call(result, warnAndRethrow) : result
     } catch (error) {
       warnAndRethrow(error)
     }

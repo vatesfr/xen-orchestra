@@ -60,5 +60,4 @@ export const get = (accessor: (input: ?any) => any, arg: ?any) => {
 //   _ => new ProxyAgent(_)
 // )
 // ```
-export const ifDef = (value: ?any, thenFn: (value: any) => any) =>
-  value !== undefined ? thenFn(value) : value
+export const ifDef = (value: ?any, thenFn: (value: any) => any) => (value !== undefined ? thenFn(value) : value)

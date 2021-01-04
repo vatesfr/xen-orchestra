@@ -5,11 +5,7 @@ import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { Col } from 'grid'
 import { connectStore } from 'utils'
-import {
-  createCollectionWrapper,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
+import { createCollectionWrapper, createGetObjectsOfType, createSelector } from 'selectors'
 import { flatten, forEach, isEmpty, map, uniq } from 'lodash'
 import { getPatchesDifference } from 'xo'
 import { SelectHost } from 'select-objects'
@@ -44,10 +40,7 @@ import { SelectHost } from 'select-objects'
 export default class AddHostsModal extends BaseComponent {
   get value() {
     const { nHostsMissingPatches, nPoolMissingPatches } = this.state
-    if (
-      process.env.XOA_PLAN < 2 &&
-      (nHostsMissingPatches > 0 || nPoolMissingPatches > 0)
-    ) {
+    if (process.env.XOA_PLAN < 2 && (nHostsMissingPatches > 0 || nPoolMissingPatches > 0)) {
       return {}
     }
 
@@ -73,18 +66,10 @@ export default class AddHostsModal extends BaseComponent {
     this.setState({
       hosts,
       nHostsMissingPatches: uniq(
-        flatten(
-          await Promise.all(
-            map(hosts, ({ id: hostId }) => getPatchesDifference(hostId, master))
-          )
-        )
+        flatten(await Promise.all(map(hosts, ({ id: hostId }) => getPatchesDifference(hostId, master))))
       ).length,
       nPoolMissingPatches: uniq(
-        flatten(
-          await Promise.all(
-            map(hosts, ({ id: hostId }) => getPatchesDifference(master, hostId))
-          )
-        )
+        flatten(await Promise.all(map(hosts, ({ id: hostId }) => getPatchesDifference(master, hostId))))
       ).length,
     })
   }
@@ -100,15 +85,10 @@ export default class AddHostsModal extends BaseComponent {
             <SelectHost
               multi={canMulti}
               onChange={
-                canMulti
-                  ? this._onChangeHosts
-                  : host =>
-                      this._onChangeHosts(host !== null ? [host] : undefined)
+                canMulti ? this._onChangeHosts : host => this._onChangeHosts(host !== null ? [host] : undefined)
               }
               predicate={this._getHostPredicate()}
-              value={
-                canMulti ? hosts : hosts !== undefined ? hosts[0] : undefined
-              }
+              value={canMulti ? hosts : hosts !== undefined ? hosts[0] : undefined}
             />
           </Col>
         </SingleLineRow>

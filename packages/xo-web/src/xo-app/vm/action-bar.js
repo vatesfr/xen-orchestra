@@ -4,17 +4,7 @@ import React from 'react'
 import { addSubscriptions, connectStore } from 'utils'
 import { find, includes } from 'lodash'
 import { createSelector, getCheckPermissions, getUser } from 'selectors'
-import {
-  cloneVm,
-  copyVm,
-  exportVm,
-  migrateVm,
-  restartVm,
-  snapshotVm,
-  startVm,
-  stopVm,
-  subscribeResourceSets,
-} from 'xo'
+import { cloneVm, copyVm, exportVm, migrateVm, restartVm, snapshotVm, startVm, stopVm, subscribeResourceSets } from 'xo'
 
 const vmActionBarByState = {
   Running: ({ vm, isSelfUser, canAdministrate }) => (
@@ -36,10 +26,7 @@ const vmActionBarByState = {
           handler={migrateVm}
           icon='vm-migrate'
           label={_('migrateVmLabel')}
-          pending={
-            includes(vm.current_operations, 'migrate_send') ||
-            includes(vm.current_operations, 'pool_migrate')
-          }
+          pending={includes(vm.current_operations, 'migrate_send') || includes(vm.current_operations, 'pool_migrate')}
         />
       )}
       <Action
@@ -87,10 +74,7 @@ const vmActionBarByState = {
           handler={migrateVm}
           icon='vm-migrate'
           label={_('migrateVmLabel')}
-          pending={
-            includes(vm.current_operations, 'migrate_send') ||
-            includes(vm.current_operations, 'pool_migrate')
-          }
+          pending={includes(vm.current_operations, 'migrate_send') || includes(vm.current_operations, 'pool_migrate')}
         />
       )}
       {!isSelfUser && (
@@ -184,8 +168,7 @@ const VmActionBar = addSubscriptions(() => ({
     const _getIsSelfUser = createSelector(
       () => resourceSets,
       resourceSets => {
-        const vmResourceSet =
-          vm.resourceSet && find(resourceSets, { id: vm.resourceSet })
+        const vmResourceSet = vm.resourceSet && find(resourceSets, { id: vm.resourceSet })
 
         return vmResourceSet && includes(vmResourceSet.subjects, userId)
       }
@@ -202,13 +185,7 @@ const VmActionBar = addSubscriptions(() => ({
       return <p>No action bar for state {vm.power_state}</p>
     }
 
-    return (
-      <ActionBar
-        vm={vm}
-        isSelfUser={_getIsSelfUser()}
-        canAdministrate={_getCanAdministrate()}
-      />
-    )
+    return <ActionBar vm={vm} isSelfUser={_getIsSelfUser()} canAdministrate={_getCanAdministrate()} />
   })
 )
 export default VmActionBar

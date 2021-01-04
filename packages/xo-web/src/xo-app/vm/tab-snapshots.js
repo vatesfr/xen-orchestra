@@ -11,15 +11,7 @@ import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, isEmpty } from 'lodash'
 import { Container, Row, Col } from 'grid'
-import {
-  copyVm,
-  deleteSnapshot,
-  deleteSnapshots,
-  exportVm,
-  editVm,
-  revertSnapshot,
-  snapshotVm,
-} from 'xo'
+import { copyVm, deleteSnapshot, deleteSnapshots, exportVm, editVm, revertSnapshot, snapshotVm } from 'xo'
 
 const COLUMNS = [
   {
@@ -49,10 +41,7 @@ const COLUMNS = [
   {
     itemRenderer: snapshot => (
       <div>
-        <Text
-          onChange={value => editVm(snapshot, { name_label: value })}
-          value={snapshot.name_label}
-        />{' '}
+        <Text onChange={value => editVm(snapshot, { name_label: value })} value={snapshot.name_label} />{' '}
         {/* checkpoint snapshots are in a Suspended state */}
         {snapshot.power_state === 'Suspended' && (
           <Tooltip content={_('snapshotMemorySaved')}>
@@ -66,10 +55,7 @@ const COLUMNS = [
   },
   {
     itemRenderer: snapshot => (
-      <Text
-        onChange={value => editVm(snapshot, { name_description: value })}
-        value={snapshot.name_description}
-      />
+      <Text onChange={value => editVm(snapshot, { name_description: value })} value={snapshot.name_description} />
     ),
     name: _('snapshotDescription'),
     sortCriteria: _ => _.name_description,
@@ -81,6 +67,7 @@ const GROUPED_ACTIONS = [
     handler: deleteSnapshots,
     icon: 'delete',
     label: _('deleteSnapshots'),
+    level: 'danger',
   },
 ]
 
@@ -155,8 +142,7 @@ export default class TabSnapshot extends Component {
               <h4>{_('noSnapshots')}</h4>
               <p>
                 <em>
-                  <Icon icon='info' size={1} /> {_('tipLabel')}{' '}
-                  {_('tipCreateSnapshotLabel')}
+                  <Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}
                 </em>
               </p>
             </Col>

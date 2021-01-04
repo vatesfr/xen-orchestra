@@ -41,18 +41,11 @@ const ACTION = {
 export default {
   pack: (object, buffer = undefined, offset = 0) => {
     const { type } = object
-    return get(ACTION, type, `Invalid action type: ${type}`).pack(
-      object,
-      buffer,
-      offset
-    )
+    return get(ACTION, type, `Invalid action type: ${type}`).pack(object, buffer, offset)
   },
 
   unpack: (buffer, offset = 0) => {
     const type = buffer.readUInt16BE(offset + of.offsets.actionHeader.type)
-    return get(ACTION, type, `Invalid action type: ${type}`).unpack(
-      buffer,
-      offset
-    )
+    return get(ACTION, type, `Invalid action type: ${type}`).unpack(buffer, offset)
   },
 }

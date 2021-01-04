@@ -5,22 +5,14 @@ import defined from '@xen-orchestra/defined'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
-import {
-  AvailableTemplateVars,
-  DEFAULT_CLOUD_CONFIG_TEMPLATE,
-} from 'cloud-config'
+import { AvailableTemplateVars, DEFAULT_CLOUD_CONFIG_TEMPLATE } from 'cloud-config'
 import { Container, Col } from 'grid'
 import { find } from 'lodash'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { Text } from 'editable'
 import { Textarea as DebounceTextarea } from 'debounce-input-decorator'
-import {
-  createCloudConfig,
-  deleteCloudConfigs,
-  editCloudConfig,
-  subscribeCloudConfigs,
-} from 'xo'
+import { createCloudConfig, deleteCloudConfigs, editCloudConfig, subscribeCloudConfigs } from 'xo'
 
 // ===================================================================
 
@@ -31,9 +23,7 @@ const COLUMNS = [
     sortCriteria: _ => _.id.slice(4, 8),
   },
   {
-    itemRenderer: ({ id, name }) => (
-      <Text value={name} onChange={name => editCloudConfig(id, { name })} />
-    ),
+    itemRenderer: ({ id, name }) => <Text value={name} onChange={name => editCloudConfig(id, { name })} />,
     sortCriteria: 'name',
     name: _('formName'),
     default: true,
@@ -80,22 +70,13 @@ export default decorate([
         ...state,
         ...initialParams,
       }),
-      createCloudConfig: ({ reset }) => async ({
-        name,
-        template = DEFAULT_CLOUD_CONFIG_TEMPLATE,
-      }) => {
+      createCloudConfig: ({ reset }) => async ({ name, template = DEFAULT_CLOUD_CONFIG_TEMPLATE }) => {
         await createCloudConfig({ name, template })
         reset()
       },
-      editCloudConfig: ({ reset }) => async (
-        { name, template, cloudConfigToEditId },
-        { cloudConfigs }
-      ) => {
+      editCloudConfig: ({ reset }) => async ({ name, template, cloudConfigToEditId }, { cloudConfigs }) => {
         const oldCloudConfig = find(cloudConfigs, { id: cloudConfigToEditId })
-        if (
-          oldCloudConfig.name !== name ||
-          oldCloudConfig.template !== template
-        ) {
+        if (oldCloudConfig.name !== name || oldCloudConfig.template !== template) {
           await editCloudConfig(cloudConfigToEditId, { name, template })
         }
         reset()
@@ -111,9 +92,7 @@ export default decorate([
       formId: generateId,
       inputNameId: generateId,
       inputTemplateId: generateId,
-      isInvalid: ({ name, template }) =>
-        name.trim() === '' ||
-        (template !== undefined && template.trim() === ''),
+      isInvalid: ({ name, template }) => name.trim() === '' || (template !== undefined && template.trim() === ''),
     },
   }),
   injectState,
@@ -169,11 +148,7 @@ export default decorate([
               {_('formCreate')}
             </ActionButton>
           )}
-          <ActionButton
-            className='pull-right'
-            handler={effects.reset}
-            icon='cancel'
-          >
+          <ActionButton className='pull-right' handler={effects.reset} icon='cancel'>
             {_('formCancel')}
           </ActionButton>
         </form>

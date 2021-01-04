@@ -62,8 +62,7 @@ const HEADER = (
             <Icon icon='menu-backup-restore' /> {_('backupRestorePage')}
           </NavLink>
           <NavLink to='/backup/file-restore'>
-            <Icon icon='menu-backup-file-restore' />{' '}
-            {_('backupFileRestorePage')}
+            <Icon icon='menu-backup-file-restore' /> {_('backupFileRestorePage')}
           </NavLink>
           <HealthNavTab />
         </NavTabs>

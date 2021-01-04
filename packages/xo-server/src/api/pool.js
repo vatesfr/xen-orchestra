@@ -78,8 +78,7 @@ export function listMissingPatches({ host }) {
   return this.getXapi(host).listMissingPatches(host._xapiId)
 }
 
-listMissingPatches.description =
-  'return an array of missing new patches in the host'
+listMissingPatches.description = 'return an array of missing new patches in the host'
 
 listMissingPatches.params = {
   host: { type: 'string' },
@@ -109,6 +108,20 @@ installPatches.resolve = {
 }
 
 installPatches.description = 'Install patches on hosts'
+
+// -------------------------------------------------------------------
+
+export async function rollingUpdate({ pool }) {
+  await this.getXapi(pool).rollingPoolUpdate()
+}
+
+rollingUpdate.params = {
+  pool: { type: 'string' },
+}
+
+rollingUpdate.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
 
 // -------------------------------------------------------------------
 
@@ -224,8 +237,7 @@ export async function installSupplementalPack({ pool }) {
   }
 }
 
-installSupplementalPack.description =
-  'installs supplemental pack from ISO file on all hosts'
+installSupplementalPack.description = 'installs supplemental pack from ISO file on all hosts'
 
 installSupplementalPack.params = {
   pool: { type: 'string' },

@@ -8,19 +8,8 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Wizard, { Section } from 'wizard'
 import { addSubscriptions, connectStore } from 'utils'
-import {
-  createBondedNetwork,
-  createNetwork,
-  createPrivateNetwork,
-  getBondModes,
-  subscribePlugins,
-} from 'xo'
-import {
-  isAdmin,
-  createGetObject,
-  createGetObjectsOfType,
-  getIsPoolAdmin,
-} from 'selectors'
+import { createBondedNetwork, createNetwork, createPrivateNetwork, getBondModes, subscribePlugins } from 'xo'
+import { isAdmin, createGetObject, createGetObjectsOfType, getIsPoolAdmin } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { linkState } from 'reaclette-utils'
@@ -47,9 +36,7 @@ const EMPTY = {
   vlan: '',
 }
 
-const LineItem = ({ children }) => (
-  <div className={styles.lineItem}>{children}</div>
-)
+const LineItem = ({ children }) => <div className={styles.lineItem}>{children}</div>
 
 const Item = ({ label, children, className }) => (
   <span className={styles.item}>
@@ -99,10 +86,7 @@ const NewNetwork = decorate([
     effects: {
       addPool() {
         const { state } = this
-        state.networks = [
-          ...state.networks,
-          { pool: undefined, pif: undefined },
-        ]
+        state.networks = [...state.networks, { pool: undefined, pif: undefined }]
       },
       onChangeNetwork(_, key, pool, pif) {
         const networks = [...this.state.networks]
@@ -118,8 +102,7 @@ const NewNetwork = decorate([
       initialize: async () => ({ bondModes: await getBondModes() }),
       linkState,
       onChangeMode: (_, bondMode) => ({ bondMode }),
-      onChangePif: (_, value) => ({ bonded }) =>
-        bonded ? { pifs: value } : { pif: value },
+      onChangePif: (_, value) => ({ bonded }) => (bonded ? { pifs: value } : { pif: value }),
       onChangeEncapsulation(_, encapsulation) {
         return { encapsulation: encapsulation.value }
       },
@@ -153,8 +136,7 @@ const NewNetwork = decorate([
       },
     },
     computed: {
-      disableAddPool: ({ networks }, { nPools }) =>
-        networks.length >= nPools - 1,
+      disableAddPool: ({ networks }, { nPools }) => networks.length >= nPools - 1,
       modeOptions: ({ bondModes }) =>
         bondModes !== undefined
           ? bondModes.map(mode => ({
@@ -163,31 +145,17 @@ const NewNetwork = decorate([
             }))
           : [],
       hostPredicate: ({ networks }, { pool }) => host =>
-        host.$pool === pool.id ||
-        networks.some(
-          ({ pool }) => pool !== undefined && pool.id === host.$pool
-        ),
-      pifPredicate: (_, { pool }) => pif =>
-        !pif.isBondSlave &&
-        pif.vlan === -1 &&
-        pif.$host === (pool && pool.master),
-      pifPredicateSdnController: (_, { pool }) => pif =>
-        canSupportPrivateNetwork(pool, pif),
-      networkPifPredicate: ({ networks }) => (pif, key) =>
-        canSupportPrivateNetwork(networks[key].pool, pif),
-      networkPoolPredicate: ({ networks }, { pool: rootPool }) => (
-        pool,
-        index
-      ) =>
+        host.$pool === pool.id || networks.some(({ pool }) => pool !== undefined && pool.id === host.$pool),
+      pifPredicate: (_, { pool }) => pif => !pif.isBondSlave && pif.vlan === -1 && pif.$host === (pool && pool.master),
+      pifPredicateSdnController: (_, { pool }) => pif => canSupportPrivateNetwork(pool, pif),
+      networkPifPredicate: ({ networks }) => (pif, key) => canSupportPrivateNetwork(networks[key].pool, pif),
+      networkPoolPredicate: ({ networks }, { pool: rootPool }) => (pool, index) =>
         pool.id !== rootPool.id &&
         !networks.some(
-          ({ pool: networksPool = {} }, networksIndex) =>
-            pool.id === networksPool.id && index !== networksIndex
+          ({ pool: networksPool = {} }, networksIndex) => pool.id === networksPool.id && index !== networksIndex
         ),
       isSdnControllerLoaded: (state, { plugins = [] }) =>
-        plugins.some(
-          plugin => plugin.name === 'sdn-controller' && plugin.loaded
-        ),
+        plugins.some(plugin => plugin.name === 'sdn-controller' && plugin.loaded),
     },
   }),
   injectState,
@@ -309,15 +277,10 @@ const NewNetwork = decorate([
               <Wizard>
                 <Section icon='network' title='newNetworkType'>
                   <div>
-                    <Toggle onChange={effects.toggleBonded} value={bonded} />{' '}
-                    <label>{_('bondedNetwork')}</label>
+                    <Toggle onChange={effects.toggleBonded} value={bonded} /> <label>{_('bondedNetwork')}</label>
                   </div>
                   <div>
-                    <Toggle
-                      disabled={!isSdnControllerLoaded}
-                      onChange={effects.togglePrivate}
-                      value={isPrivate}
-                    />{' '}
+                    <Toggle disabled={!isSdnControllerLoaded} onChange={effects.togglePrivate} value={isPrivate} />{' '}
                     <label>{_('privateNetwork')}</label>
                     <div>
                       <em>
@@ -335,9 +298,7 @@ const NewNetwork = decorate([
                     <SelectPif
                       multi={bonded}
                       onChange={effects.onChangePif}
-                      predicate={
-                        isPrivate ? pifPredicateSdnController : pifPredicate
-                      }
+                      predicate={isPrivate ? pifPredicateSdnController : pifPredicate}
                       required={bonded || isPrivate}
                       value={bonded ? pifs : pif}
                     />
@@ -379,10 +340,7 @@ const NewNetwork = decorate([
                           ]}
                           value={encapsulation}
                         />
-                        <Toggle
-                          onChange={effects.toggleEncrypted}
-                          value={encrypted}
-                        />{' '}
+                        <Toggle onChange={effects.toggleEncrypted} value={encrypted} />{' '}
                         <label>{_('newNetworkEncrypted')}</label>
                         <div>
                           <em>
@@ -390,11 +348,7 @@ const NewNetwork = decorate([
                           </em>
                         </div>
                         <label>{_('newNetworkPreferredCenter')}</label>
-                        <SelectHost
-                          onChange={effects.onChangeCenter}
-                          predicate={hostPredicate}
-                          value={networkCenter}
-                        />
+                        <SelectHost onChange={effects.onChangeCenter} predicate={hostPredicate} value={networkCenter} />
                         <div>
                           <em>
                             <Icon icon='info' /> {_('preferredCenterTip')}
@@ -407,13 +361,9 @@ const NewNetwork = decorate([
                                 <Item label={_('homeTypePool')}>
                                   <span className={styles.inlineSelect}>
                                     <SelectPool
-                                      onChange={value =>
-                                        effects.onChangeNetwork(key, value)
-                                      }
+                                      onChange={value => effects.onChangeNetwork(key, value)}
                                       value={pool}
-                                      predicate={pool =>
-                                        state.networkPoolPredicate(pool, key)
-                                      }
+                                      predicate={pool => state.networkPoolPredicate(pool, key)}
                                       required
                                     />
                                   </span>
@@ -421,37 +371,22 @@ const NewNetwork = decorate([
                                 <Item label={_('pif')}>
                                   <span className={styles.inlineSelect}>
                                     <SelectPif
-                                      onChange={value =>
-                                        effects.onChangeNetwork(
-                                          key,
-                                          undefined,
-                                          value
-                                        )
-                                      }
+                                      onChange={value => effects.onChangeNetwork(key, undefined, value)}
                                       value={pif}
-                                      predicate={pif =>
-                                        state.networkPifPredicate(pif, key)
-                                      }
+                                      predicate={pif => state.networkPifPredicate(pif, key)}
                                       required
                                     />
                                   </span>
                                 </Item>
                                 <Item>
-                                  <Button
-                                    onClick={effects.onDeletePool}
-                                    data-position={key}
-                                  >
+                                  <Button onClick={effects.onDeletePool} data-position={key}>
                                     <Icon icon='new-vm-remove' />
                                   </Button>
                                 </Item>
                               </LineItem>
                             </div>
                           ))}
-                          <ActionButton
-                            handler={effects.addPool}
-                            disabled={state.disableAddPool}
-                            icon='add'
-                          >
+                          <ActionButton handler={effects.addPool} disabled={state.disableAddPool} icon='add'>
                             {_('addPool')}
                           </ActionButton>
                         </div>
@@ -461,12 +396,7 @@ const NewNetwork = decorate([
                         {bonded ? (
                           <div>
                             <label>{_('newNetworkBondMode')}</label>
-                            <Select
-                              onChange={effects.onChangeMode}
-                              options={modeOptions}
-                              required
-                              value={bondMode}
-                            />
+                            <Select onChange={effects.onChangeMode} options={modeOptions} required value={bondMode} />
                           </div>
                         ) : (
                           <div>
@@ -475,9 +405,7 @@ const NewNetwork = decorate([
                               className='form-control'
                               name='vlan'
                               onChange={effects.linkState}
-                              placeholder={formatMessage(
-                                messages.newNetworkDefaultVlan
-                              )}
+                              placeholder={formatMessage(messages.newNetworkDefaultVlan)}
                               type='text'
                               value={vlan}
                             />

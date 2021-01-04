@@ -12,7 +12,7 @@ import { Text } from 'editable'
 import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
-import { map } from 'lodash'
+import { isEmpty, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
@@ -113,8 +113,7 @@ class DefaultFilterPicker extends Component {
     this.setState({ options })
   }
 
-  _handleDefaultFilter = value =>
-    setDefaultHomeFilter(this.props.type, value && value.value).catch(noop)
+  _handleDefaultFilter = value => setDefaultHomeFilter(this.props.type, value && value.value).catch(noop)
 
   componentWillMount() {
     this._computeOptions(this.props)
@@ -156,10 +155,7 @@ class UserFilters extends Component {
   _removeFilter = ({ name, type }) => removeCustomFilter(type, name)
 
   render() {
-    const {
-      defaultHomeFilters,
-      filters: customFiltersByType,
-    } = getUserPreferences(this.props.user)
+    const { defaultHomeFilters, filters: customFiltersByType } = getUserPreferences(this.props.user)
 
     return (
       <Container>
@@ -173,8 +169,7 @@ class UserFilters extends Component {
                   return
                 }
 
-                const customFilters =
-                  customFiltersByType && customFiltersByType[type]
+                const customFilters = customFiltersByType && customFiltersByType[type]
                 const defaultFilter = getDefaultFilter(defaultHomeFilters, type)
 
                 return (
@@ -191,22 +186,12 @@ class UserFilters extends Component {
                       <Row key={name} className='pb-1'>
                         <Col mediumSize={4}>
                           <div className='input-group'>
-                            <Text
-                              onChange={newName =>
-                                editCustomFilter(type, name, { newName })
-                              }
-                              value={name}
-                            />
+                            <Text onChange={newName => editCustomFilter(type, name, { newName })} value={name} />
                           </div>
                         </Col>
                         <Col mediumSize={7}>
                           <div className='input-group'>
-                            <Text
-                              onChange={newValue =>
-                                editCustomFilter(type, name, { newValue })
-                              }
-                              value={filter}
-                            />
+                            <Text onChange={newValue => editCustomFilter(type, name, { newValue })} value={filter} />
                           </div>
                         </Col>
                         <Col mediumSize={1}>
@@ -278,11 +263,7 @@ const SshKeys = addSubscriptions({
       <Card>
         <CardHeader>
           <Icon icon='ssh-key' /> {_('sshKeys')}
-          <ActionButton
-            className='btn-success pull-right'
-            icon='add'
-            handler={addSshKey}
-          >
+          <ActionButton className='btn-success pull-right' icon='add' handler={addSshKey}>
             {_('newSshKey')}
           </ActionButton>
         </CardHeader>
@@ -317,10 +298,7 @@ export default class User extends Component {
   _handleSavePassword = () => {
     const { oldPassword, newPassword, confirmPassword } = this.state
     if (newPassword !== confirmPassword) {
-      return alert(
-        _('confirmationPasswordError'),
-        _('confirmationPasswordErrorBody')
-      )
+      return alert(_('confirmationPasswordError'), _('confirmationPasswordErrorBody'))
     }
     return changePassword(oldPassword, newPassword).then(() =>
       this.setState({
@@ -331,12 +309,9 @@ export default class User extends Component {
     )
   }
 
-  _handleOldPasswordChange = event =>
-    this.setState({ oldPassword: event.target.value })
-  _handleNewPasswordChange = event =>
-    this.setState({ newPassword: event.target.value })
-  _handleConfirmPasswordChange = event =>
-    this.setState({ confirmPassword: event.target.value })
+  _handleOldPasswordChange = event => this.setState({ oldPassword: event.target.value })
+  _handleNewPasswordChange = event => this.setState({ newPassword: event.target.value })
+  _handleConfirmPasswordChange = event => this.setState({ confirmPassword: event.target.value })
 
   render() {
     const { lang, user } = this.props
@@ -358,61 +333,51 @@ export default class User extends Component {
             <Col smallSize={10}>{user.email}</Col>
           </Row>
           <br />
-          <Row>
-            <Col smallSize={2}>
-              <strong>{_('password')}</strong>
-            </Col>
-            <Col smallSize={10}>
-              <form className='form-inline' id='changePassword'>
-                <input
-                  autoComplete='off'
-                  className='form-control'
-                  onChange={this._handleOldPasswordChange}
-                  placeholder={formatMessage(messages.oldPasswordPlaceholder)}
-                  required
-                  type='password'
-                  value={oldPassword || ''}
-                />{' '}
-                <input
-                  type='password'
-                  autoComplete='off'
-                  className='form-control'
-                  onChange={this._handleNewPasswordChange}
-                  placeholder={formatMessage(messages.newPasswordPlaceholder)}
-                  required
-                  value={newPassword}
-                />{' '}
-                <input
-                  autoComplete='off'
-                  className='form-control'
-                  onChange={this._handleConfirmPasswordChange}
-                  placeholder={formatMessage(
-                    messages.confirmPasswordPlaceholder
-                  )}
-                  required
-                  type='password'
-                  value={confirmPassword}
-                />{' '}
-                <ActionButton
-                  icon='save'
-                  form='changePassword'
-                  btnStyle='primary'
-                  handler={this._handleSavePassword}
-                >
-                  {_('changePasswordOk')}
-                </ActionButton>
-              </form>
-            </Col>
-          </Row>
-          <br />
+          {isEmpty(user.authProviders) && (
+            <Row className='mb-1'>
+              <Col smallSize={2}>
+                <strong>{_('password')}</strong>
+              </Col>
+              <Col smallSize={10}>
+                <form className='form-inline' id='changePassword'>
+                  <input
+                    autoComplete='off'
+                    className='form-control'
+                    onChange={this._handleOldPasswordChange}
+                    placeholder={formatMessage(messages.oldPasswordPlaceholder)}
+                    required
+                    type='password'
+                    value={oldPassword || ''}
+                  />{' '}
+                  <input
+                    type='password'
+                    autoComplete='off'
+                    className='form-control'
+                    onChange={this._handleNewPasswordChange}
+                    placeholder={formatMessage(messages.newPasswordPlaceholder)}
+                    required
+                    value={newPassword}
+                  />{' '}
+                  <input
+                    autoComplete='off'
+                    className='form-control'
+                    onChange={this._handleConfirmPasswordChange}
+                    placeholder={formatMessage(messages.confirmPasswordPlaceholder)}
+                    required
+                    type='password'
+                    value={confirmPassword}
+                  />{' '}
+                  <ActionButton icon='save' form='changePassword' btnStyle='primary' handler={this._handleSavePassword}>
+                    {_('changePasswordOk')}
+                  </ActionButton>
+                </form>
+              </Col>
+            </Row>
+          )}
           <Row>
             <Col smallSize={10} offset={2}>
               <Tooltip content={_('forgetTokensExplained')}>
-                <ActionButton
-                  btnStyle='danger'
-                  handler={signOutFromEverywhereElse}
-                  icon='disconnect'
-                >
+                <ActionButton btnStyle='danger' handler={signOutFromEverywhereElse} icon='disconnect'>
                   {_('forgetTokens')}
                 </ActionButton>
               </Tooltip>
@@ -424,12 +389,7 @@ export default class User extends Component {
               <strong>{_('language')}</strong>
             </Col>
             <Col smallSize={10}>
-              <select
-                className='form-control'
-                onChange={this.handleSelectLang}
-                value={lang}
-                style={{ width: '10em' }}
-              >
+              <select className='form-control' onChange={this.handleSelectLang} value={lang} style={{ width: '10em' }}>
                 <option value='en'>English</option>
                 <option value='es'>Español</option>
                 <option value='fr'>Français</option>

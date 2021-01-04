@@ -26,18 +26,11 @@ const OFFSETS = of.offsets.instruction
 export default {
   pack: (object, buffer = undefined, offset = 0) => {
     const { type } = object
-    return get(INSTRUCTION, type, `Invalid instruction type: ${type}`).pack(
-      object,
-      buffer,
-      offset
-    )
+    return get(INSTRUCTION, type, `Invalid instruction type: ${type}`).pack(object, buffer, offset)
   },
 
   unpack: (buffer = undefined, offset = 0) => {
     const type = buffer.readUInt16BE(offset + OFFSETS.type)
-    return get(INSTRUCTION, type, `Invalid instruction type: ${type}`).unpack(
-      buffer,
-      offset
-    )
+    return get(INSTRUCTION, type, `Invalid instruction type: ${type}`).unpack(buffer, offset)
   },
 }

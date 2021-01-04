@@ -13,15 +13,7 @@ const PAD_LENGTH = 3
 
 export default {
   pack: object => {
-    const {
-      header,
-      datapath_id: did,
-      n_buffers: nBufs,
-      n_tables: nTables,
-      capabilities,
-      reserved,
-      ports,
-    } = object
+    const { header, datapath_id: did, n_buffers: nBufs, n_tables: nTables, capabilities, reserved, ports } = object
     assert(header.type === of.type.featuresReply)
 
     header.length = of.sizes.switchFeatures + ports.length * of.sizes.port
@@ -49,11 +41,7 @@ export default {
     assert(header.type === of.type.featuresReply)
 
     const object = { header }
-    object.datapath_id = buffer.toString(
-      'hex',
-      offset + OFFSETS.datapathId,
-      offset + OFFSETS.datapathId + 8
-    )
+    object.datapath_id = buffer.toString('hex', offset + OFFSETS.datapathId, offset + OFFSETS.datapathId + 8)
     object.n_buffers = buffer.readUInt32BE(offset + OFFSETS.nBuffers)
     object.n_tables = buffer.readUInt8(offset + OFFSETS.nTables)
 
@@ -63,9 +51,7 @@ export default {
     object.ports = []
     const nPorts = (header.length - of.sizes.switchFeatures) / of.sizes.port
     for (let i = 0; i < nPorts; ++i) {
-      object.ports.push(
-        ofPort.unpack(buffer, offset + OFFSETS.ports + i * of.sizes.port)
-      )
+      object.ports.push(ofPort.unpack(buffer, offset + OFFSETS.ports + i * of.sizes.port))
     }
 
     return object

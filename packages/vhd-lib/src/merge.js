@@ -27,25 +27,16 @@ export default concurrency(2)(async function merge(
       const childVhd = new Vhd(childHandler, childFd)
 
       // Reading footer and header.
-      await Promise.all([
-        parentVhd.readHeaderAndFooter(),
-        childVhd.readHeaderAndFooter(),
-      ])
+      await Promise.all([parentVhd.readHeaderAndFooter(), childVhd.readHeaderAndFooter()])
 
       assert(childVhd.header.blockSize === parentVhd.header.blockSize)
 
       const parentDiskType = parentVhd.footer.diskType
-      assert(
-        parentDiskType === DISK_TYPE_DIFFERENCING ||
-          parentDiskType === DISK_TYPE_DYNAMIC
-      )
+      assert(parentDiskType === DISK_TYPE_DIFFERENCING || parentDiskType === DISK_TYPE_DYNAMIC)
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPE_DIFFERENCING)
 
       // Read allocation table of child/parent.
-      await Promise.all([
-        parentVhd.readBlockAllocationTable(),
-        childVhd.readBlockAllocationTable(),
-      ])
+      await Promise.all([parentVhd.readBlockAllocationTable(), childVhd.readBlockAllocationTable()])
 
       const { maxTableEntries } = childVhd.header
 
@@ -53,10 +44,7 @@ export default concurrency(2)(async function merge(
 
       // finds first allocated block for the 2 following loops
       let firstBlock = 0
-      while (
-        firstBlock < maxTableEntries &&
-        !childVhd.containsBlock(firstBlock)
-      ) {
+      while (firstBlock < maxTableEntries && !childVhd.containsBlock(firstBlock)) {
         ++firstBlock
       }
 
@@ -75,7 +63,7 @@ export default concurrency(2)(async function merge(
           ++block
         }
 
-        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block,childFd, parentFd )
+        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block, childFd, parentFd)
         onProgress({
           total: nBlocks,
           done: i + 1,

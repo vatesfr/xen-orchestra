@@ -43,10 +43,7 @@ export addSubscriptions from './add-subscriptions'
 // ===================================================================
 
 export const getVirtualizationModeLabel = vm => {
-  const virtualizationMode =
-    vm.virtualizationMode === 'hvm' && vm.pvDriversDetected
-      ? 'pvhvm'
-      : vm.virtualizationMode
+  const virtualizationMode = vm.virtualizationMode === 'hvm' && vm.pvDriversDetected ? 'pvhvm' : vm.virtualizationMode
 
   return VIRTUALIZATION_MODE_LABEL[virtualizationMode]
 }
@@ -98,8 +95,7 @@ const _normalizeMapStateToProps = mapper => {
         }
 
         if (every(result, isFunction)) {
-          indirection = (state, props) =>
-            mapValues(result, selector => selector(state, props))
+          indirection = (state, props) => mapValues(result, selector => selector(state, props))
           return indirection(state, props)
         }
       }
@@ -117,12 +113,7 @@ const _normalizeMapStateToProps = mapper => {
 }
 
 export const connectStore = (mapStateToProps, opts = {}) => {
-  const connector = connect(
-    _normalizeMapStateToProps(mapStateToProps),
-    actions,
-    undefined,
-    opts
-  )
+  const connector = connect(_normalizeMapStateToProps(mapStateToProps), actions, undefined, opts)
 
   return Component => {
     const ConnectedComponent = connector(Component)
@@ -222,14 +213,11 @@ function safeHumanFormat(value, opts) {
   }
 }
 
-export const formatSize = bytes =>
-  bytes != null ? safeHumanFormat(bytes, { scale: 'binary', unit: 'B' }) : 'N/D'
+export const formatSize = bytes => (bytes != null ? safeHumanFormat(bytes, { scale: 'binary', unit: 'B' }) : 'N/D')
 
-export const formatSizeShort = bytes =>
-  safeHumanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
+export const formatSizeShort = bytes => safeHumanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
 
-export const formatSizeRaw = bytes =>
-  humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
+export const formatSizeRaw = bytes => humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 
 export const formatSpeed = (bytes, milliseconds) =>
   safeHumanFormat((bytes * 1e3) / milliseconds, {
@@ -247,8 +235,7 @@ const timeScale = new humanFormat.Scale({
   d: 86400 * 1e3,
   y: 2592000 * 1e3,
 })
-export const formatTime = milliseconds =>
-  safeHumanFormat(milliseconds, { scale: timeScale, decimals: 0 })
+export const formatTime = milliseconds => safeHumanFormat(milliseconds, { scale: timeScale, decimals: 0 })
 
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
@@ -360,8 +347,7 @@ export const resolveResourceSet = resourceSet => {
   return resolvedSet
 }
 
-export const resolveResourceSets = resourceSets =>
-  map(resourceSets, resolveResourceSet)
+export const resolveResourceSets = resourceSets => map(resourceSets, resolveResourceSet)
 
 // ===================================================================
 
@@ -398,8 +384,7 @@ export const htmlFileToStream = file => {
 
 // ===================================================================
 
-export const resolveId = value =>
-  value != null && typeof value === 'object' && 'id' in value ? value.id : value
+export const resolveId = value => (value != null && typeof value === 'object' && 'id' in value ? value.id : value)
 
 export const resolveIds = params => {
   for (const key in params) {
@@ -510,8 +495,7 @@ export const ShortDate = ({ timestamp }) => (
 
 export const findLatestPack = (packs, hostsVersions) => {
   const checkVersion = version =>
-    !version ||
-    every(hostsVersions, hostVersion => versionSatisfies(hostVersion, version))
+    !version || every(hostsVersions, hostVersion => versionSatisfies(hostVersion, version))
 
   let latestPack = { version: '0' }
   forEach(packs, pack => {
@@ -535,11 +519,7 @@ export const findLatestPack = (packs, hostsVersions) => {
 export const isLatestXosanPackInstalled = (latestXosanPack, hosts) =>
   latestXosanPack !== undefined &&
   every(hosts, host =>
-    some(
-      host.supplementalPacks,
-      ({ name, version }) =>
-        name === 'XOSAN' && version === latestXosanPack.version
-    )
+    some(host.supplementalPacks, ({ name, version }) => name === 'XOSAN' && version === latestXosanPack.version)
   )
 
 // ===================================================================
@@ -570,8 +550,7 @@ export const createBlobFromString = str =>
 
 // Format a date in ISO 8601 in a safe way to be used in filenames
 // (even on Windows).
-export const safeDateFormat = ms =>
-  new Date(ms).toISOString().replace(/:/g, '_')
+export const safeDateFormat = ms => new Date(ms).toISOString().replace(/:/g, '_')
 
 // ===================================================================
 
@@ -612,8 +591,7 @@ export const createCompare = criterias => (...items) => {
 
 // ===================================================================
 
-export const createCompareContainers = poolId =>
-  createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
+export const createCompareContainers = poolId => createCompare([c => c.$pool === poolId, c => c.type === 'pool'])
 
 // ===================================================================
 
@@ -631,26 +609,17 @@ export const hasLicenseRestrictions = host => {
 export const adminOnly = Component =>
   connectStore({
     _isAdmin: isAdmin,
-  })(({ _isAdmin, ...props }) =>
-    _isAdmin ? <Component {...props} /> : <NotFound />
-  )
+  })(({ _isAdmin, ...props }) => (_isAdmin ? <Component {...props} /> : <NotFound />))
 
 // ===================================================================
 
 export const TryXoa = ({ page }) => (
-  <a
-    href={`https://xen-orchestra.com/#/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=${page}`}
-  >
-    {_('tryXoa')}
-  </a>
+  <a href={`https://xen-orchestra.com/#/xoa?pk_campaign=xoa_source_upgrade&pk_kwd=${page}`}>{_('tryXoa')}</a>
 )
 
 // ===================================================================
 
-export const getDetachedBackupsOrSnapshots = (
-  backupsOrSnapshots,
-  { jobs, schedules, vms }
-) => {
+export const getDetachedBackupsOrSnapshots = (backupsOrSnapshots, { jobs, schedules, vms }) => {
   if (jobs === undefined || schedules === undefined) {
     return []
   }

@@ -9,10 +9,7 @@ export default class Workers {
     app.on('start', () => {
       process.env.XO_CONFIG = JSON.stringify(config)
 
-      this._worker = new Worker(
-        require.resolve('./worker'),
-        config.workerOptions
-      )
+      this._worker = new Worker(require.resolve('./worker'), config.workerOptions)
     })
     app.on('stop', () => this._worker.end())
   }

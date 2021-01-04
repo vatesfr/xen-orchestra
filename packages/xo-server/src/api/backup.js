@@ -45,45 +45,36 @@ scanFiles.params = {
 
 // -------------------------------------------------------------------
 
-function handleFetchFiles(
-  req,
-  res,
-  { remote, disk, partition, paths, format: archiveFormat }
-) {
-  return this.fetchFilesInDiskBackup(remote, disk, partition, paths).then(
-    files => {
-      res.setHeader('content-disposition', 'attachment')
-      res.setHeader('content-type', 'application/octet-stream')
+function handleFetchFiles(req, res, { remote, disk, partition, paths, format: archiveFormat }) {
+  return this.fetchFilesInDiskBackup(remote, disk, partition, paths).then(files => {
+    res.setHeader('content-disposition', 'attachment')
+    res.setHeader('content-type', 'application/octet-stream')
 
-      const nFiles = paths.length
+    const nFiles = paths.length
 
-      // Send lone file directly
-      if (nFiles === 1) {
-        files[0].pipe(res)
-        return
-      }
-
-      const archive = archiver(archiveFormat)
-      archive.on('error', error => {
-        log.error(error)
-        res.end(format.error(0, error))
-      })
-
-      forEach(files, file => {
-        archive.append(file, { name: basename(file.path) })
-      })
-      archive.finalize()
-
-      archive.pipe(res)
+    // Send lone file directly
+    if (nFiles === 1) {
+      files[0].pipe(res)
+      return
     }
-  )
+
+    const archive = archiver(archiveFormat)
+    archive.on('error', error => {
+      log.error(error)
+      res.end(format.error(0, error))
+    })
+
+    forEach(files, file => {
+      archive.append(file, { name: basename(file.path) })
+    })
+    archive.finalize()
+
+    archive.pipe(res)
+  })
 }
 
 export async function fetchFiles({ format = 'zip', ...params }) {
-  const fileName =
-    params.paths.length > 1
-      ? `restore_${new Date().toJSON()}.${format}`
-      : basename(params.paths[0])
+  const fileName = params.paths.length > 1 ? `restore_${new Date().toJSON()}.${format}` : basename(params.paths[0])
 
   return this.registerHttpRequest(
     handleFetchFiles,

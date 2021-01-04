@@ -59,11 +59,7 @@ export default class UniqueIndex {
   // -----------------------------------------------------------------
 
   _onAdd(items) {
-    const {
-      computeHash,
-      _itemByHash: itemByHash,
-      _keysToHash: keysToHash,
-    } = this
+    const { computeHash, _itemByHash: itemByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {
       const value = items[key]
@@ -78,11 +74,7 @@ export default class UniqueIndex {
   }
 
   _onUpdate(items) {
-    const {
-      computeHash,
-      _itemByHash: itemByHash,
-      _keysToHash: keysToHash,
-    } = this
+    const { computeHash, _itemByHash: itemByHash, _keysToHash: keysToHash } = this
 
     for (const key in items) {
       const value = items[key]

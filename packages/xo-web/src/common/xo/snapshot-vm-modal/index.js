@@ -80,11 +80,7 @@ export default class SnapshotVmModalBody extends BaseComponent {
         <Row>
           <Col>
             <label>
-              <input
-                type='checkbox'
-                onChange={this.linkState('saveMemory')}
-                checked={this.state.saveMemory}
-              />{' '}
+              <input type='checkbox' onChange={this.linkState('saveMemory')} checked={this.state.saveMemory} />{' '}
               {_('snapshotSaveMemory')}
             </label>
           </Col>

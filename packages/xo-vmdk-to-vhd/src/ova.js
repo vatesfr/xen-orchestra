@@ -87,9 +87,7 @@ const RESOURCE_TYPE_TO_HANDLER = {
 }
 
 function parseTarHeader(header, stringDeserializer) {
-  const fileName = stringDeserializer(header.slice(0, 100), 'ascii').split(
-    '\0'
-  )[0]
+  const fileName = stringDeserializer(header.slice(0, 100), 'ascii').split('\0')[0]
   if (fileName.length === 0) {
     return null
   }
@@ -130,9 +128,7 @@ export const ensureArray = value => {
 
 const allocationUnitsToFactor = unit => {
   const intValue = unit.match(/\^([0-9]+)$/)
-  return intValue != null
-    ? Math.pow(2, intValue[1])
-    : MEMORY_UNIT_TO_FACTOR[unit.charAt(0).toLowerCase()]
+  return intValue != null ? Math.pow(2, intValue[1]) : MEMORY_UNIT_TO_FACTOR[unit.charAt(0).toLowerCase()]
 }
 
 const filterDisks = disks => {
@@ -180,20 +176,15 @@ async function parseOVF(fileFragment, stringDeserializer) {
         data.nameLabel = hardware.System.VirtualSystemIdentifier
         data.descriptionLabel =
           (system.AnnotationSection && system.AnnotationSection.Annotation) ||
-          (system.OperatingSystemSection &&
-            system.OperatingSystemSection.Description)
+          (system.OperatingSystemSection && system.OperatingSystemSection.Description)
 
         // Get disks.
         forEach(ensureArray(disks), disk => {
-          const file = find(
-            ensureArray(files),
-            file => file.id === disk.fileRef
-          )
+          const file = find(ensureArray(files), file => file.id === disk.fileRef)
           const unit = disk.capacityAllocationUnits
 
           data.disks[disk.diskId] = {
-            capacity:
-              disk.capacity * ((unit && allocationUnitsToFactor(unit)) || 1),
+            capacity: disk.capacity * ((unit && allocationUnitsToFactor(unit)) || 1),
             path: file && file.href,
             compression: file && file.compression,
           }
@@ -229,10 +220,7 @@ async function parseGzipFromEnd(start, end, fileSlice, header) {
   let currentDeflatedPos = 0
   const inflate = new pako.Inflate()
   while (currentDeflatedPos < header.fileSize) {
-    const slice = fileSlice.slice(
-      currentDeflatedPos,
-      currentDeflatedPos + GZIP_CHUNK_SIZE
-    )
+    const slice = fileSlice.slice(currentDeflatedPos, currentDeflatedPos + GZIP_CHUNK_SIZE)
     const compressed = await slice.read()
     inflate.push(compressed, pako.Z_SYNC_FLUSH)
     const chunk = inflate.result.slice()
@@ -261,55 +249,37 @@ async function parseGzipFromEnd(start, end, fileSlice, header) {
  * @param skipVmdk if true avoid parsing the VMDK file tables
  * @returns {Promise<{tables: {}}>}
  */
-export async function parseOVAFile(
-  parsableFile,
-  stringDeserializer,
-  skipVmdk = false
-) {
+export async function parseOVAFile(parsableFile, stringDeserializer, skipVmdk = false) {
   let offset = 0
   const HEADER_SIZE = 512
   let data = { tables: {} }
   while (true) {
-    const header = parseTarHeader(
-      await parsableFile.slice(offset, offset + HEADER_SIZE).read(),
-      stringDeserializer
-    )
+    const header = parseTarHeader(await parsableFile.slice(offset, offset + HEADER_SIZE).read(), stringDeserializer)
     offset += HEADER_SIZE
     if (header === null) {
       break
     }
-    if (
-      !(
-        header.fileName.startsWith('PaxHeader/') ||
-        header.fileName.startsWith('.')
-      )
-    ) {
+    const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
+    fileSlice.fileName = header.fileName
+    if (!(header.fileName.startsWith('PaxHeader/') || header.fileName.startsWith('.'))) {
       if (header.fileName.toLowerCase().endsWith('.ovf')) {
-        const res = await parseOVF(
-          parsableFile.slice(offset, offset + header.fileSize),
-          stringDeserializer
-        )
+        const res = await parseOVF(fileSlice, stringDeserializer)
         data = { ...data, ...res }
       }
       if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk')) {
-        const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
-        const readFile = async (start, end) =>
-          fileSlice.slice(start, end).read()
-        data.tables[header.fileName] = suppressUnhandledRejection(
-          readVmdkGrainTable(readFile)
-        )
+        const readFile = async (start, end) => fileSlice.slice(start, end).read()
+        readFile.fileName = header.fileName
+        data.tables[header.fileName] = suppressUnhandledRejection(readVmdkGrainTable(readFile))
       }
     }
     if (!skipVmdk && header.fileName.toLowerCase().endsWith('.vmdk.gz')) {
-      const fileSlice = parsableFile.slice(offset, offset + header.fileSize)
       let forwardsInflater = new pako.Inflate()
 
       const readFile = async (start, end) => {
         // if next read is further down the stream than previous read, re-uses the previous zstream
         async function parseGzipFromStart(start, end, fileSlice) {
           const chunks = []
-          const resultStart = () =>
-            forwardsInflater.strm.total_out - forwardsInflater.result.length
+          const resultStart = () => forwardsInflater.strm.total_out - forwardsInflater.result.length
           if (forwardsInflater.result != null && start < resultStart()) {
             // the block we are reading starts before the last decompressed chunk, reset stream
             forwardsInflater = new pako.Inflate()
@@ -357,9 +327,8 @@ export async function parseOVAFile(
           return parseGzipFromEnd(start, end, fileSlice, header)
         }
       }
-      data.tables[header.fileName] = suppressUnhandledRejection(
-        readVmdkGrainTable(readFile)
-      )
+      readFile.fileName = header.fileName
+      data.tables[header.fileName] = suppressUnhandledRejection(readVmdkGrainTable(readFile))
     }
     offset += Math.ceil(header.fileSize / 512) * 512
   }

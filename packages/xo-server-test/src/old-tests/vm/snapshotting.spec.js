@@ -21,10 +21,7 @@ describe('snapshotting', () => {
       name_label: 'vmTest',
       name_description: 'creating a vm',
       template: config.templatesId.centOS,
-      VIFs: [
-        { network: config.labPoolNetworkId },
-        { network: config.labPoolNetworkId },
-      ],
+      VIFs: [{ network: config.labPoolNetworkId }, { network: config.labPoolNetworkId }],
       VDIs: [
         {
           device: '0',

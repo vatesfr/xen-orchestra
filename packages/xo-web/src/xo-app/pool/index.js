@@ -10,12 +10,7 @@ import { Text } from 'editable'
 import { editPool } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, routes } from 'utils'
-import {
-  createGetObject,
-  createGetObjectMessages,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
+import { createGetObject, createGetObjectMessages, createGetObjectsOfType, createSelector } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
 import TabGeneral from './tab-general'
@@ -37,14 +32,10 @@ import TabPatches from './tab-patches'
 @connectStore(() => {
   const getPool = createGetObject()
 
-  const getMaster = createGetObject(
-    (state, props) => getPool(state, props).master
-  )
+  const getMaster = createGetObject((state, props) => getPool(state, props).master)
 
   const getNetworks = createGetObjectsOfType('network')
-    .filter(
-      createSelector(getPool, ({ id }) => network => network.$pool === id)
-    )
+    .filter(createSelector(getPool, ({ id }) => network => network.$pool === id))
     .sort()
 
   const getHosts = createGetObjectsOfType('host')
@@ -79,10 +70,8 @@ import TabPatches from './tab-patches'
   }
 })
 export default class Pool extends Component {
-  _setNameDescription = nameDescription =>
-    editPool(this.props.pool, { name_description: nameDescription })
-  _setNameLabel = nameLabel =>
-    editPool(this.props.pool, { name_label: nameLabel })
+  _setNameDescription = nameDescription => editPool(this.props.pool, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editPool(this.props.pool, { name_label: nameLabel })
 
   header() {
     const { pool } = this.props
@@ -94,17 +83,13 @@ export default class Pool extends Component {
         <Row>
           <Col mediumSize={6} className='header-title'>
             <h2>
-              <Icon icon='pool' />{' '}
-              <Text value={pool.name_label} onChange={this._setNameLabel} />
+              <Icon icon='pool' /> <Text value={pool.name_label} onChange={this._setNameLabel} />
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {pool.uuid}
             </Copiable>
             <span>
-              <Text
-                value={pool.name_description}
-                onChange={this._setNameDescription}
-              />
+              <Text value={pool.name_description} onChange={this._setNameDescription} />
             </span>
           </Col>
           <Col mediumSize={6}>
@@ -116,24 +101,12 @@ export default class Pool extends Component {
         <Row>
           <Col>
             <NavTabs>
-              <NavLink to={`/pools/${pool.id}/general`}>
-                {_('generalTabName')}
-              </NavLink>
-              <NavLink to={`/pools/${pool.id}/stats`}>
-                {_('statsTabName')}
-              </NavLink>
-              <NavLink to={`/pools/${pool.id}/network`}>
-                {_('networkTabName')}
-              </NavLink>
-              <NavLink to={`/pools/${pool.id}/patches`}>
-                {_('patchesTabName')}
-              </NavLink>
-              <NavLink to={`/pools/${pool.id}/logs`}>
-                {_('logsTabName')}
-              </NavLink>
-              <NavLink to={`/pools/${pool.id}/advanced`}>
-                {_('advancedTabName')}
-              </NavLink>
+              <NavLink to={`/pools/${pool.id}/general`}>{_('generalTabName')}</NavLink>
+              <NavLink to={`/pools/${pool.id}/stats`}>{_('statsTabName')}</NavLink>
+              <NavLink to={`/pools/${pool.id}/network`}>{_('networkTabName')}</NavLink>
+              <NavLink to={`/pools/${pool.id}/patches`}>{_('patchesTabName')}</NavLink>
+              <NavLink to={`/pools/${pool.id}/logs`}>{_('logsTabName')}</NavLink>
+              <NavLink to={`/pools/${pool.id}/advanced`}>{_('advancedTabName')}</NavLink>
             </NavTabs>
           </Col>
         </Row>
@@ -146,17 +119,7 @@ export default class Pool extends Component {
     if (!pool) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = Object.assign(
-      pick(this.props, [
-        'hosts',
-        'logs',
-        'master',
-        'networks',
-        'nVms',
-        'pool',
-        'srs',
-      ])
-    )
+    const childProps = Object.assign(pick(this.props, ['hosts', 'logs', 'master', 'networks', 'nVms', 'pool', 'srs']))
     return (
       <Page header={this.header()} title={pool.name_label}>
         {cloneElement(this.props.children, childProps)}

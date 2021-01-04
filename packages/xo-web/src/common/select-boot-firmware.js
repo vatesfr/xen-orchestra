@@ -19,11 +19,7 @@ const SelectBootFirmware = decorate([
   provideState({
     effects: {
       handleBootFirmwareChange(__, { target: { value } }) {
-        if (
-          value !== '' &&
-          this.props.host !== undefined &&
-          versionSatisfies(this.props.host.version, '~8.0')
-        ) {
+        if (value !== '' && this.props.host !== undefined && versionSatisfies(this.props.host.version, '~8.0')) {
           // Guest UEFI boot is provided in CH/XCP-ng 8.0 as an experimental feature.
           // https://docs.citrix.com/en-us/citrix-hypervisor/8-0/downloads/citrix-hypervisor-8.0.pdf#page=10
           confirm({
@@ -38,11 +34,7 @@ const SelectBootFirmware = decorate([
   }),
   injectState,
   ({ effects, value }) => (
-    <select
-      className='form-control'
-      onChange={effects.handleBootFirmwareChange}
-      value={value}
-    >
+    <select className='form-control' onChange={effects.handleBootFirmwareChange} value={value}>
       <option value=''>{_('vmDefaultBootFirmwareLabel')}</option>
       {VM_BOOT_FIRMWARES.map(val => (
         <option key={val} value={val}>

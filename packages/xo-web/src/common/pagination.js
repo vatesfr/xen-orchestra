@@ -44,15 +44,7 @@ export default class Pagination extends React.PureComponent {
   _onClick = this._onClick.bind(this)
 
   render() {
-    const {
-      ariaLabel,
-      ellipsis,
-      maxButtons,
-      next,
-      pages,
-      prev,
-      value,
-    } = this.props
+    const { ariaLabel, ellipsis, maxButtons, next, pages, prev, value } = this.props
     const onClick = this._onClick
 
     let min, max
@@ -60,10 +52,7 @@ export default class Pagination extends React.PureComponent {
       min = 1
       max = pages
     } else {
-      min = Math.max(
-        1,
-        Math.min(value - Math.floor(maxButtons / 2), pages - maxButtons + 1)
-      )
+      min = Math.max(1, Math.min(value - Math.floor(maxButtons / 2), pages - maxButtons + 1))
       max = min + maxButtons - 1
     }
 
@@ -77,12 +66,7 @@ export default class Pagination extends React.PureComponent {
     }
     for (let page = min; page <= max; ++page) {
       pageButtons.push(
-        <PageItem
-          active={page === value}
-          key={page}
-          onClick={onClick}
-          value={page}
-        >
+        <PageItem active={page === value} key={page} onClick={onClick} value={page}>
           {page}
         </PageItem>
       )
@@ -98,23 +82,13 @@ export default class Pagination extends React.PureComponent {
       <nav aria-label={ariaLabel}>
         <ul className='pagination'>
           {prev && (
-            <PageItem
-              aria-label='Previous'
-              disabled={value === 1}
-              onClick={onClick}
-              value={value - 1}
-            >
+            <PageItem aria-label='Previous' disabled={value === 1} onClick={onClick} value={value - 1}>
               ‹
             </PageItem>
           )}
           {pageButtons}
           {next && (
-            <PageItem
-              aria-label='Next'
-              disabled={value === pages}
-              onClick={onClick}
-              value={value + 1}
-            >
+            <PageItem aria-label='Next' disabled={value === pages} onClick={onClick} value={value + 1}>
               ›
             </PageItem>
           )}

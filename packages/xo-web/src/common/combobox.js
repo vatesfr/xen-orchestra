@@ -12,10 +12,7 @@ import Component from './base-component'
 export default class Combobox extends Component {
   static propTypes = {
     disabled: PropTypes.bool,
-    options: PropTypes.oneOfType([
-      PropTypes.arrayOf(PropTypes.string),
-      PropTypes.objectOf(PropTypes.string),
-    ]),
+    options: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string), PropTypes.objectOf(PropTypes.string)]),
     onChange: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
   }
@@ -42,12 +39,7 @@ export default class Combobox extends Component {
     return (
       <div className='input-group'>
         <div className='input-group-btn'>
-          <DropdownButton
-            bsStyle='secondary'
-            disabled={props.disabled}
-            id='selectInput'
-            title=''
-          >
+          <DropdownButton bsStyle='secondary' disabled={props.disabled} id='selectInput' title=''>
             {map(options, option => (
               <MenuItem key={option} onClick={() => this._setText(option)}>
                 {option}

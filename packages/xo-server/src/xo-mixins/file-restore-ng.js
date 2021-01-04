@@ -32,22 +32,12 @@ const IGNORED_PARTITION_TYPES = {
   0x82: true, // swap
 }
 
-const PARTITION_TYPE_NAMES = {
-  0x07: 'NTFS',
-  0x0c: 'FAT',
-  0x83: 'linux',
-}
-
 const RE_VHDI = /^vhdi(\d+)$/
 
 async function addDirectory(zip, realPath, metadataPath) {
   try {
     const files = await readdir(realPath)
-    await Promise.all(
-      files.map(file =>
-        addDirectory(zip, realPath + '/' + file, metadataPath + '/' + file)
-      )
-    )
+    await Promise.all(files.map(file => addDirectory(zip, realPath + '/' + file, metadataPath + '/' + file)))
   } catch (error) {
     if (error == null || error.code !== 'ENOTDIR') {
       throw error
@@ -58,12 +48,7 @@ async function addDirectory(zip, realPath, metadataPath) {
 
 const parsePartxLine = createPairsParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
-  valueTransform: (value, key) =>
-    key === 'start' || key === 'size'
-      ? +value
-      : key === 'type'
-      ? PARTITION_TYPE_NAMES[+value] || value
-      : value,
+  valueTransform: (value, key) => (key === 'start' || key === 'size' || key === 'type' ? +value : value),
 })
 
 const listLvmLogicalVolumes = compose(
@@ -88,29 +73,27 @@ const listLvmLogicalVolumes = compose(
   return results
 })
 
-const mountLvmPhysicalVolume = dedupeUnmountWithArgs(
-  async (devicePath, partition) => {
-    const args = []
-    if (partition !== undefined) {
-      args.push('-o', partition.start * 512)
-    }
-    args.push('--show', '-f', devicePath)
-    const path = (await execa('losetup', args)).stdout.trim()
-    await execa('pvscan', ['--cache', path])
-
-    return {
-      path,
-      unmount: async () => {
-        try {
-          const vgNames = await pvs('vg_name', path)
-          await execa('vgchange', ['-an', ...vgNames])
-        } finally {
-          await execa('losetup', ['-d', path])
-        }
-      },
-    }
+const mountLvmPhysicalVolume = dedupeUnmountWithArgs(async (devicePath, partition) => {
+  const args = []
+  if (partition !== undefined) {
+    args.push('-o', partition.start * 512)
   }
-)
+  args.push('--show', '-f', devicePath)
+  const path = (await execa('losetup', args)).stdout.trim()
+  await execa('pvscan', ['--cache', path])
+
+  return {
+    path,
+    unmount: async () => {
+      try {
+        const vgNames = await pvs('vg_name', path)
+        await execa('vgchange', ['-an', ...vgNames])
+      } finally {
+        await execa('losetup', ['-d', path])
+      }
+    },
+  }
+})
 
 const mountPartition = compose(
   defer,
@@ -129,11 +112,7 @@ const mountPartition = compose(
   $defer.onFailure(rmdir, path)
 
   const mount = options =>
-    execa('mount', [
-      `--options=${options.join(',')}`,
-      `--source=${devicePath}`,
-      `--target=${path}`,
-    ])
+    execa('mount', [`--options=${options.join(',')}`, `--source=${devicePath}`, `--target=${path}`])
 
   // `norecovery` option is used for ext3/ext4/xfs, if it fails it might be
   // another fs, try without
@@ -185,13 +164,26 @@ export default class BackupNgFileRestore {
   }
 
   @defer
-  async fetchBackupNgPartitionFiles(
-    $defer,
-    remoteId,
-    diskId,
-    partitionId,
-    paths
-  ) {
+  async fetchBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, paths) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      return app.callProxyMethod(
+        proxy,
+        'backup.fetchPartitionFiles',
+        {
+          disk: diskId,
+          remote: {
+            url,
+            options,
+          },
+          partition: partitionId,
+          paths,
+        },
+        { assertType: 'stream' }
+      )
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer.onFailure(disk.unmount)
 
@@ -201,34 +193,59 @@ export default class BackupNgFileRestore {
     const zip = new ZipFile()
     await Promise.all(
       paths.map(file =>
-        addDirectory(
-          zip,
-          resolveSubpath(partition.path, file),
-          normalize('./' + file).replace(/\/+$/, '')
-        )
+        addDirectory(zip, resolveSubpath(partition.path, file), normalize('./' + file).replace(/\/+$/, ''))
       )
     )
     zip.end()
-    return zip.outputStream.on('end', () =>
-      partition.unmount().then(disk.unmount)
-    )
+    return zip.outputStream.on('end', () => partition.unmount().then(disk.unmount))
   }
 
   @defer
   async listBackupNgDiskPartitions($defer, remoteId, diskId) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const stream = await app.callProxyMethod(
+        proxy,
+        'backup.listDiskPartitions',
+        {
+          disk: diskId,
+          remote: {
+            url,
+            options,
+          },
+        },
+        { assertType: 'iterator' }
+      )
+
+      const partitions = []
+      for await (const partition of stream) {
+        partitions.push(partition)
+      }
+      return partitions
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer(disk.unmount)
     return this._listPartitions(disk.path)
   }
 
   @defer
-  async listBackupNgPartitionFiles(
-    $defer,
-    remoteId,
-    diskId,
-    partitionId,
-    path
-  ) {
+  async listBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, path) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      return app.callProxyMethod(proxy, 'backup.listPartitionFiles', {
+        disk: diskId,
+        remote: {
+          url,
+          options,
+        },
+        partition: partitionId,
+        path,
+      })
+    }
+
     const disk = await this._mountDisk(remoteId, diskId)
     $defer(disk.unmount)
 
@@ -263,19 +280,14 @@ export default class BackupNgFileRestore {
   }
 
   async _listPartitions(devicePath, inspectLvmPv = true) {
-    const { stdout } = await execa('partx', [
-      '--bytes',
-      '--output=NR,START,SIZE,NAME,UUID,TYPE',
-      '--pairs',
-      devicePath,
-    ])
+    const { stdout } = await execa('partx', ['--bytes', '--output=NR,START,SIZE,NAME,UUID,TYPE', '--pairs', devicePath])
 
     const promises = []
     const partitions = []
     splitLines(stdout).forEach(line => {
       const partition = parsePartxLine(line)
-      let { type } = partition
-      if (type == null || (type = +type) in IGNORED_PARTITION_TYPES) {
+      const { type } = partition
+      if (type == null || type in IGNORED_PARTITION_TYPES) {
         return
       }
 
@@ -343,8 +355,7 @@ export default class BackupNgFileRestore {
 
     if (partitionId.includes('/')) {
       const [pvId, vgName, lvName] = partitionId.split('/')
-      const lvmPartition =
-        pvId !== '' ? await this._findPartition(devicePath, pvId) : undefined
+      const lvmPartition = pvId !== '' ? await this._findPartition(devicePath, pvId) : undefined
 
       const pv = await mountLvmPhysicalVolume(devicePath, lvmPartition)
 
@@ -361,17 +372,12 @@ export default class BackupNgFileRestore {
       unmountQueue.push(() => execa('vgchange', ['-an', vgName]))
 
       const partition = await mountPartition(
-        (await lvs(['lv_name', 'lv_path'], vgName)).find(
-          _ => _.lv_name === lvName
-        ).lv_path
+        (await lvs(['lv_name', 'lv_path'], vgName)).find(_ => _.lv_name === lvName).lv_path
       )
       unmountQueue.push(partition.unmount)
       return { __proto__: partition, unmount }
     }
 
-    return mountPartition(
-      devicePath,
-      await this._findPartition(devicePath, partitionId)
-    )
+    return mountPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 }
