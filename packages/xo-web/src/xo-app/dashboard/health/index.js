@@ -77,25 +77,30 @@ const AlarmColPool = connectStore(() => ({
   return <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>
 })
 
-const DUPLICATE_MAC_ADDRESS_COLUMN = [
+const DUPLICATE_MAC_ADDRESSES_COLUMNS = [
   {
     name: _('vifMacLabel'),
     itemRenderer: macAddress => macAddress[0].MAC,
     sortCriteria: macAddress => macAddress[0].MAC,
   },
   {
-    name: _('vm'),
+    name: _('vms'),
     itemRenderer: macAddress =>
       map(macAddress, vif => (
         <Row>
           <Vm id={vif.$VM} link newTab />
         </Row>
       )),
-    sortCriteria: vif => vif[0].$VM,
+    sortCriteria: macAddress => macAddress[0].$VM,
   },
   {
     name: _('vifNetworkLabel'),
-    itemRenderer: macAddress => <Network id={macAddress[0].$network} />,
+    itemRenderer: macAddress =>
+      map(macAddress, vif => (
+        <Row>
+          <Network id={vif.$network} />
+        </Row>
+      )),
     sortCriteria: macAddress => macAddress[0].$network,
   },
 ]
@@ -615,14 +620,20 @@ export default class Health extends Component {
           <Col>
             <Card>
               <CardHeader>
-                <Icon icon='disk' /> {_('duplicateMACAddress')}
+                <Icon icon='disk' /> {_('duplicateMacAddress')}
               </CardHeader>
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? duplicateMacAddress : null}
-                  emptyMessage={_('noDuplicateMACAddress')}
+                  emptyMessage={_('noDuplicateMacAddress')}
                 >
-                  {() => <SortedTable collection={duplicateMacAddress} columns={DUPLICATE_MAC_ADDRESS_COLUMN} />}
+                  {() => (
+                    <SortedTable
+                      collection={duplicateMacAddress}
+                      columns={DUPLICATE_MAC_ADDRESSES_COLUMNS}
+                      stateUrlParam='s_duplate_mac_address'
+                    />
+                  )}
                 </NoObjects>
               </CardBlock>
             </Card>
