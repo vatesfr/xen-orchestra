@@ -436,8 +436,8 @@ If you are using HA, maintenance mode will be required before doing any reboot o
 
 Maintenance mode will trigger two actions internally:
 
-- disabling the host (no new VMs could start on it)
-- evacuate VMs that can be evacuated ("agile" VMs, which could be live migrated)
+* disabling the host (no new VMs could start on it)
+* evacuate VMs that can be evacuated ("agile" VMs, which could be live migrated)
 
 It's perfect if you want to shutdown the host for hardware replacement, or if you want to do some other operations without disrupting your production.
 
