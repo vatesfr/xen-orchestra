@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.54.0** (2020-12-29)
+
+![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
 
 ### Highlights
 
@@ -29,7 +31,7 @@
 
 ## **5.53.1** (2020-12-10)
 
-![Channel: latest](https://badgen.net/badge/channel/latest/yellow)
+![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Bug fixes
 
@@ -38,8 +40,8 @@
 
 ### Released packages
 
-- @xen-orchestra/upload-ova patch
-- xo-server minor
+- @xen-orchestra/upload-ova 0.1.4
+- xo-server 5.72.0
 
 ## **5.53.0** (2020-11-30)
 
@@ -76,8 +78,6 @@
 - xo-web 5.75.0
 
 ## **5.52.0** (2020-10-30)
-
-![Channel: stable](https://badgen.net/badge/channel/stable/green)
 
 ### Highlights
 
