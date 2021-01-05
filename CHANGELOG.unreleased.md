@@ -13,6 +13,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/network] Change VIF's locking mode automatically to `locked` when adding allowed IPs (PR [#5472](https://github.com/vatesfr/xen-orchestra/pull/5472))
+
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
