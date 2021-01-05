@@ -1,4 +1,3 @@
-import { isEmpty } from 'lodash'
 import { makeEditObject } from '../utils'
 
 export default {
