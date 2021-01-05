@@ -6,7 +6,7 @@ function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
     return Promise.all(
-      hooks.map(({ url, waitForResponse }) => {
+      hooks.map(({ url, waitForResponse = false }) => {
         const makeRequest = () =>
           this._makeRequest(url, type, data).catch(error => {
             log.error('web hook failed', {
