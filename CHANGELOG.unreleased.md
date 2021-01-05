@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [backup] improve merge speed after backup when using SMB3.1.1 or NFS4.2 (PR [#5331](https://github.com/vatesfr/xen-orchestra/pull/5331))
+- [backup] improve merge speed after backup when using SMB3.1.1 or NFS4.2 (PR [#5481](https://github.com/vatesfr/xen-orchestra/pull/5481))
 
 ### Bug fixes
 
