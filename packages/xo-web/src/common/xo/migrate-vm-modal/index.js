@@ -1,4 +1,5 @@
 import BaseComponent from 'base-component'
+import defined from '@xen-orchestra/defined'
 import every from 'lodash/every'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -142,15 +143,24 @@ export default class MigrateVmModalBody extends BaseComponent {
     }
 
     const { pifs, pools, vbds, vm } = this.props
-    const intraPool = vm.$pool === host.$pool
+    // Migration network depends on the host
     const migrationNetwork = pools[host.$pool].otherConfig['xo:migrationNetwork']
-    const defaultMigrationNetworkId = find(
-      pifs,
-      pif =>
-        pif.$host === host.id &&
-        ((migrationNetwork !== undefined && pif.ip !== '' && pif.$network === migrationNetwork) || pif.management)
+    let defaultPif
+    const defaultMigrationNetworkId = defined(
+      find(pifs, pif => {
+        if (pif.$host === host.id) {
+          if (migrationNetwork !== undefined && pif.ip !== '' && pif.$network === migrationNetwork) {
+            return pif
+          }
+          if (defaultPif === undefined && pif.management) {
+            defaultPif = pif
+          }
+        }
+      }),
+      defaultPif
     ).$network
 
+    const intraPool = vm.$pool === host.$pool
     // Intra-pool
     if (intraPool) {
       let doNotMigrateVdis
