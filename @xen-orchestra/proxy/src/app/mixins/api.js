@@ -53,6 +53,7 @@ export default class Api {
       try {
         body = parse(body)
       } catch (error) {
+        warn('body parse error', { error })
         ctx.body = format.error(null, new JsonRpcError(error.message, error.code))
         return
       }
