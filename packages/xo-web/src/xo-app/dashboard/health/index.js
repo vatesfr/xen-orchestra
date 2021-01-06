@@ -84,26 +84,16 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
     sortCriteria: macAddress => macAddress[0].MAC,
   },
   {
-    name: _('vifDeviceLabel'),
-    itemRenderer: macAddress => map(macAddress, vif => <Row>VIF #{vif.device}</Row>),
-  },
-  {
-    name: _('vms'),
-    itemRenderer: macAddress =>
-      map(macAddress, vif => (
-        <Row>
-          <Vm id={vif.$VM} link newTab />
-        </Row>
-      )),
-  },
-  {
-    name: _('vifNetworkLabel'),
-    itemRenderer: macAddress =>
-      map(macAddress, vif => (
-        <Row>
-          <Network id={vif.$network} />
-        </Row>
-      )),
+    name: _('Vifs'),
+    itemRenderer: macAddress => (
+      <Col>
+        {map(macAddress, vif => (
+          <Row>
+            {_('Vif')} #{vif.device} {_('on')} <Vm id={vif.$VM} link /> (<Network id={vif.$network} />)
+          </Row>
+        ))}
+      </Col>
+    ),
   },
 ]
 
