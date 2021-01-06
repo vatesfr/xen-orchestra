@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, forEach, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -80,14 +80,14 @@ const AlarmColPool = connectStore(() => ({
 const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
   {
     name: _('vifMacLabel'),
-    itemRenderer: macAddress => macAddress[0].MAC,
-    sortCriteria: macAddress => macAddress[0].MAC,
+    itemRenderer: macAddress => macAddress,
+    sortCriteria: macAddress => macAddress,
   },
   {
     name: _('Vifs'),
-    itemRenderer: macAddress => (
+    itemRenderer: (macAddress, { vifsByMac }) => (
       <Col>
-        {map(macAddress, vif => (
+        {map(vifsByMac[macAddress], vif => (
           <Row>
             {_('VifOnVm', { vifDevice: vif.device })} <Vm id={vif.$VM} link /> (<Network id={vif.$network} />)
           </Row>
@@ -560,18 +560,16 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
-  _getDuplicatedMacAddress = createSelector(
+  _getDuplicatedMacAddresses = createSelector(
     () => this.props.vifsByMac,
-    macAddresses => {
-      const vifsWithDuplicatedMacAddresses = {}
-      let i = 0
-      forEach(macAddresses, macAddress => {
-        if (macAddress.length > 1) {
-          vifsWithDuplicatedMacAddresses[Object.keys(macAddresses)[i]] = macAddress
+    vifsByMac => {
+      const duplicatedMacAddresses = []
+      for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
+        if (vifs.length > 1) {
+          duplicatedMacAddresses.push(macAddress)
         }
-        i++
-      })
-      return vifsWithDuplicatedMacAddresses
+      }
+      return duplicatedMacAddresses
     }
   )
 
@@ -599,7 +597,7 @@ export default class Health extends Component {
   render() {
     const { props, state } = this
 
-    const duplicatedMacAddress = this._getDuplicatedMacAddress()
+    const duplicatedMacAddresses = this._getDuplicatedMacAddresses()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
@@ -720,15 +718,16 @@ export default class Health extends Component {
           <Col>
             <Card>
               <CardHeader>
-                <Icon icon='network' /> {_('duplicatedMacAddress')}
+                <Icon icon='network' /> {_('duplicatedMacAddresses')}
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  collection={props.areObjectsFetched ? duplicatedMacAddress : null}
+                  collection={props.areObjectsFetched ? duplicatedMacAddresses : null}
                   columns={DUPLICATED_MAC_ADDRESSES_COLUMNS}
                   component={SortedTable}
-                  emptyMessage={_('noDuplicatedMacAddress')}
-                  stateUrlParam='s_duplicated_mac_address'
+                  data-vifsByMac={this.props.vifsByMac}
+                  emptyMessage={_('noDuplicatedMacAddresses')}
+                  stateUrlParam='s_duplicated_mac_addresses'
                 />
               </CardBlock>
             </Card>
