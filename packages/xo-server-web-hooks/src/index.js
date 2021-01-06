@@ -51,7 +51,7 @@ class XoServerHooks {
     //         method: 'vm.start',
     //         type: 'pre',
     //         url: 'https://my-domain.net/xo-hooks?action=vm.start',
-    //         response: false
+    //         waitForResponse: false
     //       },
     //       ...
     //     ],
