@@ -59,12 +59,14 @@ export default class {
       )
 
       if (!(await usersDb.exists())) {
-        const { email = 'admin@admin.net', password = 'admin' } = await XenStore.read('vm-data/admin-account')
+        const key = 'vm-data/admin-account'
+        const { email = 'admin@admin.net', password = 'admin' } = await XenStore.read(key)
           .then(JSON.parse)
           .catch(() => ({}))
 
         await this.createUser({ email, password, permission: 'admin' })
         log.info(`Default user created: ${email} with password ${password}`)
+        ignoreErrors.call(XenStore.rm(key))
       }
     })
   }
