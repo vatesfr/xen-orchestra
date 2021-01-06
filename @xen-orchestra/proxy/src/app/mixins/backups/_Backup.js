@@ -10,6 +10,7 @@ import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFr
 import { PoolMetadataBackup } from './_PoolMetadataBackup'
 import { Task } from './_Task'
 import { VmBackup } from './_VmBackup'
+import { XoMetadataBackup } from './_XoMetadataBackup'
 
 const noop = Function.prototype
 
@@ -103,33 +104,59 @@ export class Backup {
         if (adapters.length === 0) {
           return
         }
-        if (settings.retentionPoolMetadata !== 0) {
-          await asyncMapSettled(
-            pools,
-            async pool =>
-              pool !== undefined &&
-              runTask(
-                {
-                  name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
-                  data: {
-                    id: pool.$id,
-                    pool,
-                    poolMaster: await ignoreErrors.call(pool.$xapi.getRecord('host', pool.master)),
-                    type: 'pool',
+
+        const promises = []
+        if (pools.length !== 0 && settings.retentionPoolMetadata !== 0) {
+          promises.push(
+            ...asyncMapSettled(
+              pools,
+              async pool =>
+                pool !== undefined &&
+                runTask(
+                  {
+                    name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
+                    data: {
+                      id: pool.$id,
+                      pool,
+                      poolMaster: await ignoreErrors.call(pool.$xapi.getRecord('host', pool.master)),
+                      type: 'pool',
+                    },
                   },
-                },
-                () =>
-                  new PoolMetadataBackup({
-                    config: this._config,
-                    job,
-                    pool,
-                    remoteAdapters: getAdaptersByRemote(adapters),
-                    schedule,
-                    settings,
-                  }).run()
-              )
+                  () =>
+                    new PoolMetadataBackup({
+                      config: this._config,
+                      job,
+                      pool,
+                      remoteAdapters: getAdaptersByRemote(adapters),
+                      schedule,
+                      settings,
+                    }).run()
+                )
+            )
           )
         }
+
+        if (job.xoMetadata !== undefined) {
+          promises.push(
+            runTask(
+              {
+                name: `Starting XO metadata backup. (${job.id})`,
+                data: {
+                  type: 'xo',
+                },
+              },
+              () =>
+                new XoMetadataBackup({
+                  config: this._config,
+                  job,
+                  remoteAdapters: getAdaptersByRemote(adapters),
+                  schedule,
+                  settings,
+                }).run()
+            )
+          )
+        }
+        await Promise.all(promises)
       }
     )
   }
