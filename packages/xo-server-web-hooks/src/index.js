@@ -153,7 +153,7 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             type: 'string',
           },
           waitForResponse: {
-            description: 'Waiting for the server response before execute the call. Only available on "PRE" type',
+            description: 'Waiting for the server response before executing the call. Only available on "PRE" type',
             title: 'Wait for response',
             type: 'boolean',
           },
