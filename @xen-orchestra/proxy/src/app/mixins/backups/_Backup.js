@@ -1,15 +1,27 @@
 import asyncMapSettled from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import limitConcurrency from 'limit-concurrency-decorator'
 import using from 'promise-toolbox/using'
 import { compileTemplate } from '@xen-orchestra/template'
 import { decorateWith } from '@vates/decorate-with'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
 
+import { PoolMetadataBackup } from './_PoolMetadataBackup'
 import { Task } from './_Task'
 import { VmBackup } from './_VmBackup'
 
 const noop = Function.prototype
+
+const getAdaptersByRemote = adapters => {
+  const adaptersByRemote = {}
+  adapters.forEach(({ adapter, remoteId }) => {
+    adaptersByRemote[remoteId] = adapter
+  })
+  return adaptersByRemote
+}
+
+const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
 export class Backup {
   constructor({
@@ -36,7 +48,93 @@ export class Backup {
     })
   }
 
-  async run() {
+  run() {
+    const type = this._job.type
+    if (type === 'backup') {
+      return this._runVmBackup()
+    } else if (type === 'metadataBackup') {
+      return this._runMetadataBackup()
+    } else {
+      throw new Error(`No runner for the backup type ${type}`)
+    }
+  }
+
+  async _runMetadataBackup() {
+    const job = this._job
+    const schedule = this._schedule
+
+    const settings = {
+      ...this._config.defaultSettings.metadata,
+      ...job.settings[''],
+      ...job.settings[schedule.id],
+    }
+
+    await using(
+      Disposable.all(
+        extractIdsFromSimplePattern(job.pools).map(id =>
+          this._getRecord('pool', id).catch(error => {
+            // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
+            runTask(
+              {
+                name: 'get pool record',
+                data: { type: 'pool', id },
+              },
+              () => Promise.reject(error)
+            )
+          })
+        )
+      ),
+      Disposable.all(
+        extractIdsFromSimplePattern(job.remotes).map(id =>
+          this._getAdapter(id).catch(error => {
+            // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
+            runTask(
+              {
+                name: 'get remote adapter',
+                data: { type: 'remote', id },
+              },
+              () => Promise.reject(error)
+            )
+          })
+        )
+      ),
+      async (pools, adapters) => {
+        adapters = adapters.filter(_ => _ !== undefined)
+        if (adapters.length === 0) {
+          return
+        }
+        if (settings.retentionPoolMetadata !== 0) {
+          await asyncMapSettled(
+            pools,
+            async pool =>
+              pool !== undefined &&
+              runTask(
+                {
+                  name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
+                  data: {
+                    id: pool.$id,
+                    pool,
+                    poolMaster: await ignoreErrors.call(pool.$xapi.getRecord('host', pool.master)),
+                    type: 'pool',
+                  },
+                },
+                () =>
+                  new PoolMetadataBackup({
+                    config: this._config,
+                    job,
+                    pool,
+                    remoteAdapters: getAdaptersByRemote(adapters),
+                    schedule,
+                    settings,
+                  }).run()
+              )
+          )
+        }
+      }
+    )
+  }
+
+  async _runVmBackup() {
     const job = this._job
 
     // FIXME: proper SimpleIdPattern handling
@@ -45,7 +143,7 @@ export class Backup {
 
     const { settings } = job
     const scheduleSettings = {
-      ...this._config.defaultSettings,
+      ...this._config.defaultSettings.vm,
       ...settings[''],
       ...settings[schedule.id],
     }

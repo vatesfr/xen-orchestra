@@ -64,7 +64,6 @@ Content-Type: application/json
 {"id":"task5"}
 ```
 
-
 ##### Binary response
 
 ```http
@@ -120,6 +119,7 @@ declare namespace backup {
   }
   interface MetadataBackupJob {
     id: string
+    name: string
     pools?: SimpleIdPattern
     remotes: SimpleIdPattern
     settings: Settings
@@ -147,8 +147,8 @@ declare namespace backup {
     job: BackupJob | MetadataBackupJob
     remotes: { [id: string]: Remote }
     schedule: Schedule
-    xapis: { [id: string]: Xapi }
-    recordToXapi: { [recordUuid: string]: string }
+    xapis?: { [id: string]: Xapi }
+    recordToXapi?: { [recordUuid: string]: string }
     streamLogs: boolean = false
   }): string
 }

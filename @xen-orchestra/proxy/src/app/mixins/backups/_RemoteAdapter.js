@@ -235,6 +235,14 @@ export class RemoteAdapter {
     return mergedDataSize
   }
 
+  async deleteOldMetadataBackups(dir, retention) {
+    const handler = this.handler
+    let list = await handler.list(dir)
+    list.sort()
+    list = list.filter(timestamp => /^\d{8}T\d{6}Z$/.test(timestamp)).slice(0, -retention)
+    await asyncMapSettled(list, timestamp => handler.rmtree(`${dir}/${timestamp}`))
+  }
+
   async deleteFullVmBackups(backups) {
     const handler = this._handler
     await asyncMapSettled(backups, ({ _filename, xva }) =>
