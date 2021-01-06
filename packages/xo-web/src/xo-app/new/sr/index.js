@@ -19,6 +19,7 @@ import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 import { SelectHost } from 'select-objects'
+import { Sr } from 'render-xo-item'
 import { createFilter, createGetObjectsOfType, createSelector, getObject } from 'selectors'
 import {
   createSrExt,
@@ -209,6 +210,7 @@ export default class New extends Component {
 
     this.state = {
       description: undefined,
+      existingSrs: undefined,
       host: hostId && getObject(store.getState(), hostId),
       iqn: undefined,
       iqns: undefined,
@@ -222,19 +224,85 @@ export default class New extends Component {
       path: undefined,
       paths: undefined,
       type: undefined,
-      unused: undefined,
       usage: undefined,
-      used: undefined,
       zfsPools: undefined,
     }
-    this.getHostSrs = createFilter(
-      () => this.props.srs,
-      createSelector(
-        () => this.state.host,
-        ({ $pool, id }) => sr => sr.$container === $pool || sr.$container === id
-      ),
-      true
+  }
+
+  getHostSrs = createFilter(
+    () => this.props.srs,
+    createSelector(
+      () => this.state.host,
+      host => host !== undefined && (sr => sr.$container === host.$pool || sr.$container === host.id)
     )
+  )
+
+  getUsedSrs = createFilter(
+    this.getHostSrs,
+    createSelector(
+      () => this.state.existingSrs,
+      existingSrs => existingSrs !== undefined && (sr => existingSrs.some(({ uuid }) => uuid === sr.uuid))
+    )
+  )
+
+  getUnusedSrs = createFilter(
+    () => this.state.existingSrs,
+    createSelector(this.getUsedSrs, usedSrs => existingSr => !(existingSr.uuid in usedSrs))
+  )
+
+  getDeviceConfig = () => {
+    const { device, localPath, password, port, server, username, zfsLocation } = this.refs
+    const { iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
+
+    let deviceConfig
+    switch (type) {
+      case 'ext':
+        deviceConfig = { device }
+        break
+      case 'iscsi':
+        deviceConfig = {
+          target: iqn.ip,
+          targetIQN: iqn.iqn,
+          SCSIid: lun.scsiId,
+        }
+        if (port.value) {
+          deviceConfig.port = +port.value
+        }
+        if (username && password) {
+          deviceConfig.chapuser = username
+          deviceConfig.chappassword = password
+        }
+        break
+      case 'lvm':
+        deviceConfig = { device }
+        break
+      case 'nfs':
+        deviceConfig = { server: server.value, serverpath: path }
+        if (nfsVersion) {
+          deviceConfig.nfsVersion = nfsVersion
+        }
+        if (nfsOptions) {
+          deviceConfig.options = nfsOptions
+        }
+        break
+      case 'hba':
+        deviceConfig = { SCSIid: scsiId }
+        break
+      case 'zfs':
+        deviceConfig = { location: zfsLocation.value }
+        break
+      case 'local':
+        deviceConfig = { location: localPath.value, legacy_mode: 'true' }
+        break
+      case 'nfsiso':
+        deviceConfig = { location: `${server.value}:${path}` }
+        break
+      case 'smb':
+        deviceConfig = { location: server.value, type: 'cifs', username, cifspassword: password }
+        break
+    }
+
+    return deviceConfig
   }
 
   _handleSubmit = async () => {
@@ -341,14 +409,13 @@ export default class New extends Component {
   _handleSrTypeSelection = async event => {
     const type = event.target.value
     this.setState({
+      existingSrs: undefined,
       hbaDevices: undefined,
       iqns: undefined,
       paths: undefined,
       summary: includes(['ext', 'lvm', 'local', 'smb', 'hba', 'zfs'], type),
       type,
-      unused: undefined,
       usage: undefined,
-      used: undefined,
     })
     await this._probe(this.state.host, type)
   }
@@ -399,15 +466,11 @@ export default class New extends Component {
         username && username.value,
         password && password.value
       )
-      const srIds = map(this.getHostSrs(), sr => sr.id)
-      const used = filter(list, item => includes(srIds, item.id))
-      const unused = filter(list, item => !includes(srIds, item.id))
       this.setState({
+        existingSrs: list,
         lun,
         usage: true,
-        used,
-        unused,
-        summary: used.length <= 0,
+        summary: true,
       })
     } catch (err) {
       error('iSCSI Error', err.message || String(err))
@@ -463,16 +526,11 @@ export default class New extends Component {
 
     try {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const list = await probeSrNfsExists(host.id, server.value, path)
-      const srIds = map(this.getHostSrs(), sr => sr.id)
-      const used = filter(list, item => includes(srIds, item.id))
-      const unused = filter(list, item => !includes(srIds, item.id))
       this.setState({
+        existingSrs: await probeSrNfsExists(host.id, server.value, path),
         path,
         usage: true,
-        used,
-        unused,
-        summary: used.length <= 0,
+        summary: true,
       })
     } catch (err) {
       error('NFS Error', err.message || String(err))
@@ -520,7 +578,7 @@ export default class New extends Component {
 
     const method = type === 'nfsiso' ? reattachSrIso : reattachSr
     try {
-      await method(host.id, uuid, name, description, type)
+      await method(host.id, uuid, name, description, type, this.getDeviceConfig())
     } catch (err) {
       error('Reattach', err.message || String(err))
     }
@@ -556,12 +614,13 @@ export default class New extends Component {
       paths,
       summary,
       type,
-      unused,
       usage,
-      used,
       zfsPools,
     } = this.state
     const { formatMessage } = this.props.intl
+
+    const used = this.getUsedSrs()
+    const unused = this.getUnusedSrs()
 
     return (
       <Page header={this._renderHeader()}>
@@ -616,7 +675,7 @@ export default class New extends Component {
               {host && (
                 <fieldset>
                   {(type === 'nfs' || type === 'nfsiso') && [
-                    <fieldset>
+                    <fieldset key='nfsServer'>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <div className='input-group'>
                         <input
@@ -632,7 +691,7 @@ export default class New extends Component {
                         </span>
                       </div>
                     </fieldset>,
-                    <fieldset>
+                    <fieldset key='nfsVersion'>
                       <label htmlFor='selectNfsVersion'>{_('newSrNfs')}</label>
                       <select
                         className='form-control'
@@ -648,7 +707,7 @@ export default class New extends Component {
                         ))}
                       </select>
                     </fieldset>,
-                    <fieldset>
+                    <fieldset key='nfsOptions'>
                       <label>{_('newSrNfsOptions')}</label>
                       <input
                         className='form-control'
@@ -835,8 +894,8 @@ export default class New extends Component {
             <Section icon='shown' title='newSrUsage'>
               {usage && (
                 <div>
-                  {map(unused, (sr, key) => (
-                    <p key={key}>
+                  {map(unused, sr => (
+                    <p key={sr.uuid}>
                       {sr.uuid}
                       <span className='pull-right'>
                         <ActionButton
@@ -849,9 +908,9 @@ export default class New extends Component {
                       </span>
                     </p>
                   ))}
-                  {map(used, (sr, key) => (
-                    <p key={key}>
-                      {sr.uuid}
+                  {map(used, sr => (
+                    <p key={sr.id}>
+                      <Sr id={sr.id} link />
                       <span className='pull-right'>
                         {/* FIXME Goes to sr view */}
                         <a className='btn btn-warning'>{_('newSrInUse')}</a>

@@ -1,5 +1,5 @@
 import asyncMap from '@xen-orchestra/async-map'
-import { some } from 'lodash'
+import { filter, some } from 'lodash'
 
 import ensureArray from '../_ensureArray'
 import { asInteger } from '../xapi/utils'
@@ -807,7 +807,7 @@ probeNfsExists.resolve = {
 // -------------------------------------------------------------------
 // This function helps to reattach a forgotten NFS/iSCSI SR
 
-export async function reattach({ host, uuid, nameLabel, nameDescription, type }) {
+export async function reattach({ host, uuid, nameLabel, nameDescription, type, deviceConfig }) {
   const xapi = this.getXapi(host)
 
   if (type === 'iscsi') {
@@ -815,6 +815,20 @@ export async function reattach({ host, uuid, nameLabel, nameDescription, type })
   }
 
   const srRef = await xapi.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
+
+  if (deviceConfig !== undefined) {
+    const hosts = filter(xapi.objects.all, object => object.$type === 'host')
+    await Promise.all(
+      hosts.map(async host => {
+        const pbdRef = await xapi.call('PBD.create', {
+          host: host.$ref,
+          SR: srRef,
+          device_config: deviceConfig,
+        })
+        await xapi.call('PBD.plug', pbdRef)
+      })
+    )
+  }
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -826,6 +840,7 @@ reattach.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   type: { type: 'string' },
+  deviceConfig: { type: 'object', optional: true },
 }
 
 reattach.resolve = {

@@ -2269,8 +2269,8 @@ export const probeSrHbaExists = (host, scsiId) => _call('sr.probeHbaExists', { h
 
 export const probeZfs = host => _call('sr.probeZfs', { host: resolveId(host) })
 
-export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
-  _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
+export const reattachSr = (host, uuid, nameLabel, nameDescription, type, deviceConfig) =>
+  _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type, deviceConfig })
 
 export const reattachSrIso = (host, uuid, nameLabel, nameDescription, type) =>
   _call('sr.reattachIso', { host, uuid, nameLabel, nameDescription, type })
