@@ -89,7 +89,7 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
       <Col>
         {map(macAddress, vif => (
           <Row>
-            {_('Vif')} #{vif.device} {_('on')} <Vm id={vif.$VM} link /> (<Network id={vif.$network} />)
+            {_('VifOnVm', { vifDevice: vif.device })} <Vm id={vif.$VM} link /> (<Network id={vif.$network} />)
           </Row>
         ))}
       </Col>
