@@ -36,8 +36,10 @@
     "readable-stream": "^3.0.6",
     "through2": "^4.0.2",
     "tmp": "^0.2.1",
-    "syscall": "^0.2.0",
     "xo-remote-parser": "^0.6.0"
+  },
+  "optionalDependencies": {
+    "syscall": "^0.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

@@ -1,9 +1,15 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
 import { fromEvent } from 'promise-toolbox'
-import { Syscall6 } from 'syscall'
 
 import RemoteHandlerAbstract from './abstract'
+
+let Syscall6 = null
+try {
+  Syscall6 = require('syscall').Syscall6
+} catch (er) {
+  // let it go
+}
 
 /**
  * @returns the number of byte effectively copied, needs to be called in a loop!
@@ -20,7 +26,7 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
 
   // https://man7.org/linux/man-pages/man2/copy_file_range.2.html
   const SYS_copy_file_range = 326
-  const [copied, _, errno] = Syscall6(
+  const [copied, , errno] = Syscall6(
     SYS_copy_file_range,
     fdIn,
     wrapOffset(offsetIn),
@@ -36,9 +42,9 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
 }
 
 export default class LocalHandler extends RemoteHandlerAbstract {
-  constructor(remote: any, options: Object = {}) {
+  constructor(remote: any, options: Object = { noCopyFileRange: false }) {
     super(remote, options)
-    this._canFallocate = true
+    this._useCopyFileRange = options.noCopyFileRange && !!Syscall6
   }
 
   get type() {
@@ -129,6 +135,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
    * @returns {Promise<void>}
    */
   async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
+    if (!this._useCopyFileRange) {
+      return super.copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen)
+    }
     let copied = 0
     do {
       copied += await copyFileRangeSyscall(fdIn.fd, offsetIn + copied, fdOut.fd, offsetOut + copied, dataLen - copied)
