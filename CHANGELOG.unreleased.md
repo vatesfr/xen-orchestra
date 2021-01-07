@@ -12,7 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/network] Change VIF's locking mode automatically to `locked` when adding allowed IPs (PR [#5472](https://github.com/vatesfr/xen-orchestra/pull/5472))
-
+- [Backup Reports] Don't hide errors during plugin test [#5486](https://github.com/vatesfr/xen-orchestra/issues/5486) (PR [#5491](https://github.com/vatesfr/xen-orchestra/pull/5491))
 
 ### Packages to release
 
@@ -31,4 +31,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-backup-reports patch
 - xo-server patch
