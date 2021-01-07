@@ -44,7 +44,7 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
 export default class LocalHandler extends RemoteHandlerAbstract {
   constructor(remote: any, options: Object = { noCopyFileRange: false }) {
     super(remote, options)
-    this._useCopyFileRange = options.noCopyFileRange && !!Syscall6
+    this._useCopyFileRange = !options.noCopyFileRange && Syscall6
   }
 
   get type() {
@@ -127,21 +127,47 @@ export default class LocalHandler extends RemoteHandlerAbstract {
    *  - flags is fixed to 0
    *  - will not return until copy is finished.
    *
-   * @param fdIn read open file descriptor
+   * @param inputFile read open file descriptor
    * @param offsetIn either start offset in the source file
-   * @param fdOut write open file descriptor (not append!)
+   * @param outputFile write open file descriptor (not append!)
    * @param offsetOut offset in the target file
    * @param dataLen how long to copy
    * @returns {Promise<void>}
    */
-  async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
+  async copyFileRange(inputFile, offsetIn, outputFile, offsetOut, dataLen) {
     if (!this._useCopyFileRange) {
-      return super.copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen)
+      return super.copyFileRange(inputFile, offsetIn, outputFile, offsetOut, dataLen)
     }
-    let copied = 0
-    do {
-      copied += await copyFileRangeSyscall(fdIn.fd, offsetIn + copied, fdOut.fd, offsetOut + copied, dataLen - copied)
-    } while (dataLen - copied > 0)
+    const outputFileNeedsClosing = typeof outputFile === 'string'
+    const inputFileNeedsClosing = typeof inputFile === 'string'
+    if (inputFileNeedsClosing) {
+      inputFile = await this.open(this._getFilePath(inputFile), 'r')
+    }
+    try {
+      if (outputFileNeedsClosing) {
+        outputFile = await this.open(this._getFilePath(outputFile), 'w')
+      }
+      try {
+        let copied = 0
+        do {
+          copied += await copyFileRangeSyscall(
+            inputFile.fd,
+            offsetIn + copied,
+            outputFile.fd,
+            offsetOut + copied,
+            dataLen - copied
+          )
+        } while (dataLen - copied > 0)
+      } finally {
+        if (outputFileNeedsClosing) {
+          await this.closeFile(outputFile)
+        }
+      }
+    } finally {
+      if (inputFileNeedsClosing) {
+        await this.closeFile(inputFile)
+      }
+    }
   }
 
   async _read(file, buffer, position) {

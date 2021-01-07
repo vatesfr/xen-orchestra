@@ -342,7 +342,7 @@ export default class Vhd {
     )
   }
 
-  async coalesceBlock(child, blockId, childFd, parentFd) {
+  async coalesceBlock(child, blockId) {
     const childBlockAddress = child._getBlockOffsetBytes(blockId)
     const bitmap = (await child._readBlock(blockId, true)).bitmap
 
@@ -372,9 +372,9 @@ export default class Vhd {
       const isFullBlock = i === 0 && endSector === sectorsPerBlock
       if (isFullBlock) {
         await this._handler.copyFileRange(
-          childFd,
+          child._path,
           childBlockAddress,
-          parentFd,
+          this._path,
           await this._getAddressOrAllocate(blockId),
           this.fullBlockSize
         )

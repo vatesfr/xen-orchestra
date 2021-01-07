@@ -63,7 +63,7 @@ export default concurrency(2)(async function merge(
           ++block
         }
 
-        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block, childFd, parentFd)
+        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block)
         onProgress({
           total: nBlocks,
           done: i + 1,
