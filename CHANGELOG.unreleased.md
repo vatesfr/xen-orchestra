@@ -12,7 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/network] Change VIF's locking mode automatically to `locked` when adding allowed IPs (PR [#5472](https://github.com/vatesfr/xen-orchestra/pull/5472))
-
+- [Host/stats] Show interfaces name in the graph `Network throughput` instead of a preformatted pif numbering [PR [#5483](https://github.com/vatesfr/xen-orchestra/pull/5483)]
 
 ### Packages to release
 
@@ -32,3 +32,4 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server patch
+- xo-web patch
