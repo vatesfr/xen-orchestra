@@ -127,9 +127,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
    *  - flags is fixed to 0
    *  - will not return until copy is finished.
    *
-   * @param inputFile read open file descriptor
+   * @param inputFile source file
    * @param offsetIn either start offset in the source file
-   * @param outputFile write open file descriptor (not append!)
+   * @param outputFile target file
    * @param offsetOut offset in the target file
    * @param dataLen how long to copy
    * @returns {Promise<void>}
