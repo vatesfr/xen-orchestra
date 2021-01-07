@@ -51,7 +51,7 @@ export class PoolMetadataBackup {
 
     await asyncMapSettled(
       this.remoteAdapters,
-      async (adapter, remoteId) =>
+      (adapter, remoteId) =>
         Task.run(
           {
             name: `Starting metadata backup for the pool (${pool.$id}) for the remote (${remoteId}). (${job.id})`,

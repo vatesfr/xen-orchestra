@@ -39,7 +39,7 @@ export class XoMetadataBackup {
 
     await asyncMapSettled(
       this.remoteAdapters,
-      async (adapter, remoteId) =>
+      (adapter, remoteId) =>
         Task.run(
           {
             name: `Starting XO metadata backup for the remote (${remoteId}). (${job.id})`,
