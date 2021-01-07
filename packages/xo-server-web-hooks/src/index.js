@@ -7,14 +7,13 @@ function handleHook(type, data) {
   if (hooks !== undefined) {
     return Promise.all(
       hooks.map(({ url, waitForResponse = false }) => {
-        const makeRequest = () =>
-          this._makeRequest(url, type, data).catch(error => {
-            log.error('web hook failed', {
-              error,
-              webHook: { ...data, url, type },
-            })
+        const promise = this._makeRequest(url, type, data).catch(error => {
+          log.error('web hook failed', {
+            error,
+            webHook: { ...data, url, type },
           })
-        return waitForResponse && type === 'pre' ? makeRequest() : void makeRequest()
+        })
+        return waitForResponse && type === 'pre' && promise
       })
     )
   }
@@ -91,33 +90,23 @@ class XoServerHooks {
   }
 
   async test({ url }) {
-    await this._makeRequest(
-      url,
-      'pre',
-      {
-        callId: '0',
-        userId: 'b4tm4n',
-        userName: 'bruce.wayne@waynecorp.com',
-        method: 'vm.start',
-        params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
-        timestamp: 0,
-      },
-      false
-    )
-    await this._makeRequest(
-      url,
-      'post',
-      {
-        callId: '0',
-        userId: 'b4tm4n',
-        userName: 'bruce.wayne@waynecorp.com',
-        method: 'vm.start',
-        result: '',
-        timestamp: 500,
-        duration: 500,
-      },
-      false
-    )
+    await this._makeRequest(url, 'pre', {
+      callId: '0',
+      userId: 'b4tm4n',
+      userName: 'bruce.wayne@waynecorp.com',
+      method: 'vm.start',
+      params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+      timestamp: 0,
+    })
+    await this._makeRequest(url, 'post', {
+      callId: '0',
+      userId: 'b4tm4n',
+      userName: 'bruce.wayne@waynecorp.com',
+      method: 'vm.start',
+      result: '',
+      timestamp: 500,
+      duration: 500,
+    })
   }
 }
 
