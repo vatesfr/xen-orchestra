@@ -3,13 +3,13 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
+import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
 import { forEach } from 'lodash'
 import { Toggle } from 'form'
 import { CpuLineChart, MemoryLineChart, PifLineChart, LoadLineChart } from 'xo-line-chart'
-import { connectStore } from '../../common/utils'
-import { createGetObjectsOfType } from '../../common/selectors'
 
 @connectStore(() => ({
   pifs: createGetObjectsOfType('PIF'),
