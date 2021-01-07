@@ -4,6 +4,7 @@ import tmp from 'tmp'
 import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
+import { JsonRpcError } from 'json-rpc-protocol'
 import { parseDuration } from '@vates/parse-duration'
 import { rmdir } from 'fs-extra'
 
@@ -34,7 +35,10 @@ export default class Remotes {
         ],
 
         test: [
-          ({ remote }) => using(this.getHandler(remote), handler => handler.test()),
+          ({ remote }) =>
+            using(this.getHandler(remote), handler => handler.test()).catch(error => {
+              throw new JsonRpcError(error.message, error.code)
+            }),
           {
             params: {
               remote: { type: 'object' },
