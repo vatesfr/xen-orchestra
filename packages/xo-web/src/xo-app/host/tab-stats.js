@@ -5,9 +5,9 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
+import { forEach } from 'lodash'
 import { Toggle } from 'form'
 import { CpuLineChart, MemoryLineChart, PifLineChart, LoadLineChart } from 'xo-line-chart'
-import { forEach, groupBy, sortBy } from 'lodash'
 import { connectStore } from '../../common/utils'
 import { createGetObjectsOfType } from '../../common/selectors'
 
@@ -38,37 +38,31 @@ export default class HostStats extends Component {
       if (cancelled) {
         return
       }
+      const statsPifs = stats.stats.pifs
+      const { host, pifs } = this.props
 
-      const rx = stats.stats.pifs.rx
-      const tx = stats.stats.pifs.tx
-      const usedPif = {}
-
-      forEach(this.props.host.PIFs, currentPif => {
-        if (this.props.pifs[currentPif]) {
-          usedPif[currentPif] = this.props.pifs[currentPif]
+      const deviceName = []
+      forEach(host.PIFs, currentPif => {
+        if (pifs[currentPif]) {
+          if (!deviceName.includes(pifs[currentPif].device)) {
+            deviceName.push(pifs[currentPif].device)
+          }
         }
       })
 
-      const sortedPifs = sortBy(usedPif, ['device'])
+      for (const [signal, pifs] of Object.entries(statsPifs)) {
+        forEach(pifs, (pif, i) => {
+          if (signal === 'rx') {
+            delete statsPifs.rx[i]
+            statsPifs.rx[deviceName[i]] = pif
+          }
+          if (signal === 'tx') {
+            delete statsPifs.tx[i]
+            statsPifs.tx[deviceName[i]] = pif
+          }
+        })
+      }
 
-      const deviceName = Object.keys(groupBy(sortedPifs, 'device'))
-
-      const reformatedRx = {}
-      const reformatedTx = {}
-
-      let i = 0
-      forEach(rx, rxPif => {
-        reformatedRx[deviceName[i]] = rxPif
-        i++
-      })
-      i = 0
-      forEach(tx, txPif => {
-        reformatedTx[deviceName[i]] = txPif
-        i++
-      })
-
-      const reformatedPifs = { rx: reformatedRx, tx: reformatedTx }
-      stats.stats.pifs = reformatedPifs
       this.cancel = null
 
       clearTimeout(this.timeout)
