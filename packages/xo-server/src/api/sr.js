@@ -816,19 +816,19 @@ export async function reattach({ host, uuid, nameLabel, nameDescription, type, d
 
   const srRef = await xapi.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
 
-  if (deviceConfig !== undefined) {
-    const hosts = filter(xapi.objects.all, object => object.$type === 'host')
-    await Promise.all(
-      hosts.map(async host => {
-        const pbdRef = await xapi.call('PBD.create', {
-          host: host.$ref,
-          SR: srRef,
-          device_config: deviceConfig,
-        })
-        await xapi.call('PBD.plug', pbdRef)
+  // XenCenter SR reattach:
+  // https://github.com/xenserver/xenadmin/blob/90e6cb0dc950ce747b7b6b689b0ad00cf28898d2/XenModel/Actions/SR/SrReattachAction.cs#L77-L99
+  const hosts = filter(xapi.objects.all, object => object.$type === 'host')
+  await Promise.all(
+    hosts.map(async host => {
+      const pbdRef = await xapi.call('PBD.create', {
+        host: host.$ref,
+        SR: srRef,
+        device_config: deviceConfig,
       })
-    )
-  }
+      await xapi.call('PBD.plug', pbdRef)
+    })
+  )
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -840,7 +840,7 @@ reattach.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   type: { type: 'string' },
-  deviceConfig: { type: 'object', optional: true },
+  deviceConfig: { type: 'object' },
 }
 
 reattach.resolve = {
