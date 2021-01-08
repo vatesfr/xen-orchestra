@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Web hooks] Possibility to wait a response from the server before continuing [#4948](https://github.com/vatesfr/xen-orchestra/issues/4948) (PR [#5420](https://github.com/vatesfr/xen-orchestra/pull/5420))
+- [XOA/update] Add a link to the channel's changelog (PR [#5494](https://github.com/vatesfr/xen-orchestra/pull/5494))
 
 ### Bug fixes
 
@@ -36,4 +37,5 @@
 
 - xo-server-backup-reports patch
 - xo-server minor
+- xo-web minor
 - xo-server-web-hooks minor
