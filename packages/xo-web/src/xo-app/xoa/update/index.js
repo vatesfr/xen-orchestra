@@ -182,6 +182,8 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
+      changelogUrl: ({ consolidatedChannel }) =>
+        `https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#${encodeURIComponent(consolidatedChannel)}`,
       channelsFormId: generateId,
       channels: COMMUNITY ? () => ({}) : () => xoaUpdater.getReleaseChannels(),
       channelsOptions: ({ channels }) =>
@@ -368,13 +370,7 @@ const Updates = decorate([
                       </div>
                     )}
                     <p>
-                      <a
-                        href={`https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#${encodeURIComponent(
-                          state.consolidatedChannel
-                        )}`}
-                        rel='noopener noreferrer'
-                        target='_blank'
-                      >
+                      <a href={state.changelogUrl} rel='noopener noreferrer' target='_blank'>
                         {_('changelog')}
                       </a>
                     </p>
