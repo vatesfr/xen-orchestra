@@ -11,6 +11,7 @@ import Tooltip from 'tooltip'
 import Upgrade from 'xoa-upgrade'
 import UserError from 'user-error'
 import ZstdChecker from 'zstd-checker'
+import { addSubscriptions, connectStore, generateRandomId, resolveId, resolveIds } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { constructSmartPattern, destructSmartPattern } from 'smart-backup'
 import { Container, Col, Row } from 'grid'
@@ -22,8 +23,7 @@ import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
 import { Number } from 'form'
 import { renderXoItemFromId, Remote } from 'render-xo-item'
-import { SelectProxy, SelectRemote, SelectSr, SelectVm } from 'select-objects'
-import { addSubscriptions, connectStore, generateRandomId, resolveId, resolveIds } from 'utils'
+import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
   createBackupNgJob,
   createSchedule,
@@ -34,13 +34,14 @@ import {
   isSrWritable,
   subscribeRemotes,
 } from 'xo'
-import { flatten, includes, isEmpty, keyBy, map, mapValues, max, omit, some } from 'lodash'
+import { flatten, includes, isEmpty, map, mapValues, max, omit, some } from 'lodash'
 
 import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
 import Schedules from './schedules'
 import SmartBackup from './smart-backup'
 import SelectSnapshotMode from './_selectSnapshotMode'
+import { RemoteProxy, RemoteProxyWarning } from './_remoteProxy'
 
 import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import { canDeltaBackup, constructPattern, destructPattern, FormFeedback, FormGroup, Input, Li, Ul } from './../utils'
@@ -196,33 +197,6 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     vms: preSelectedVmIds,
   }
 }
-
-const RemoteProxyWarning = decorate([
-  addSubscriptions({
-    remotes: cb =>
-      subscribeRemotes(remotes => {
-        cb(keyBy(remotes, 'id'))
-      }),
-  }),
-  provideState({
-    computed: {
-      showWarning: (_, { id, proxyId, remotes = {} }) => {
-        const remote = remotes[id]
-        if (proxyId === null) {
-          proxyId = undefined
-        }
-        return remote !== undefined && remote.proxy !== proxyId
-      },
-    },
-  }),
-  injectState,
-  ({ state }) =>
-    state.showWarning ? (
-      <Tooltip content={_('remoteNotCompatibleWithSelectedProxy')}>
-        <Icon icon='alarm' color='text-danger' />
-      </Tooltip>
-    ) : null,
-])
 
 const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   <ActionButton
@@ -536,8 +510,8 @@ const New = decorate([
         return getInitialState()
       },
       setCompression: (_, compression) => ({ compression }),
-      setProxy(_, proxy) {
-        this.state._proxyId = resolveId(proxy)
+      setProxy(_, id) {
+        this.state._proxyId = id
       },
       toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
         _displayAdvancedSettings: !displayAdvancedSettings,
@@ -595,7 +569,6 @@ const New = decorate([
       formId: generateId,
       inputConcurrencyId: generateId,
       inputFullIntervalId: generateId,
-      inputProxyId: generateId,
       inputTimeoutId: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
@@ -896,12 +869,7 @@ const New = decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
-                  <FormGroup>
-                    <label htmlFor={state.inputProxyId}>
-                      <strong>{_('proxy')}</strong>
-                    </label>
-                    <SelectProxy id={state.inputProxyId} onChange={effects.setProxy} value={state.proxyId} />
-                  </FormGroup>
+                  <RemoteProxy onChange={effects.setProxy} value={state.proxyId} />
                   <ReportWhen
                     onChange={effects.setReportWhen}
                     required
