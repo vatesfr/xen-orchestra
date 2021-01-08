@@ -1,5 +1,4 @@
 import createLogger from '@xen-orchestra/log'
-import emitAsync from '@xen-orchestra/emit-async'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import mixin from '@xen-orchestra/mixin'
@@ -20,8 +19,6 @@ const log = createLogger('xo:xo')
 export default class Xo extends EventEmitter {
   constructor(config) {
     super()
-
-    this.emitAsync = emitAsync
 
     // a lot of mixins adds listener for start/stop/… events
     this.setMaxListeners(0)

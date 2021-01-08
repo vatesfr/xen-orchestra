@@ -13,7 +13,9 @@ function handleHook(type, data) {
             webHook: { ...data, url, type },
           })
         })
-        return waitForResponse && type === 'pre' && promise
+        if (waitForResponse && type === 'pre') {
+          return promise
+        }
       })
     )
   }

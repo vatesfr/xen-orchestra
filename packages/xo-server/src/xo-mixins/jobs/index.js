@@ -3,6 +3,9 @@
 import type { Pattern } from 'value-matcher'
 
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
+import emitAsync from '@xen-orchestra/emit-async'
+
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
@@ -17,6 +20,8 @@ import { type Schedule } from '../scheduling'
 import executeCall from './execute-call'
 
 // ===================================================================
+
+const log = createLogger('xo:api')
 
 export type Job = {
   id: string,
@@ -305,12 +310,12 @@ export default class Jobs {
 
         session = app.createUserConnection()
         session.set('user_id', job.userId)
-
         if (type === 'backup') {
-          await app.emitAsync(
+          await emitAsync.call(
+            app,
             {
               onError(error) {
-                console.warn(error)
+                log.warn('backup:preCall listener failure', { error })
               },
             },
             'backup:preCall',
