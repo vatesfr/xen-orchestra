@@ -40,8 +40,8 @@
 
 ### Released packages
 
-- @xen-orchestra/upload-ova patch
-- xo-server minor
+- @xen-orchestra/upload-ova 0.1.4
+- xo-server 5.72.0
 
 ## **5.53.0** (2020-11-30)
 

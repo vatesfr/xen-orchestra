@@ -7,10 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Web hooks] Possibility to wait a response from the server before continuing [#4948](https://github.com/vatesfr/xen-orchestra/issues/4948) (PR [#5420](https://github.com/vatesfr/xen-orchestra/pull/5420))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/network] Change VIF's locking mode automatically to `locked` when adding allowed IPs (PR [#5472](https://github.com/vatesfr/xen-orchestra/pull/5472))
+- [Backup Reports] Don't hide errors during plugin test [#5486](https://github.com/vatesfr/xen-orchestra/issues/5486) (PR [#5491](https://github.com/vatesfr/xen-orchestra/pull/5491))
 - [Backup reports] Fix malformed sent email in case of multiple VMs (PR [#5479](https://github.com/vatesfr/xen-orchestra/pull/5479))
 
 ### Packages to release
@@ -31,3 +35,5 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-backup-reports patch
+- xo-server minor
+- xo-server-web-hooks minor
