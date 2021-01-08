@@ -35,7 +35,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-web-hooks minor
 - xo-server-backup-reports patch
 - xo-server minor
 - xo-web minor
+- xo-server-web-hooks minor
