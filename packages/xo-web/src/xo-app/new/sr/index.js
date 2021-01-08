@@ -1,7 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import filter from 'lodash/filter'
 import Icon from 'icon'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import includes from 'lodash/includes'
@@ -37,8 +36,6 @@ import {
   probeSrHba,
   probeSrHbaExists,
   probeZfs,
-  reattachSrIso,
-  reattachSr,
 } from 'xo'
 
 // ===================================================================
@@ -250,62 +247,7 @@ export default class New extends Component {
     createSelector(this.getUsedSrs, usedSrs => existingSr => !(existingSr.uuid in usedSrs))
   )
 
-  getDeviceConfig = () => {
-    const { device, localPath, password, port, server, username, zfsLocation } = this.refs
-    const { iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
-
-    let deviceConfig
-    switch (type) {
-      case 'ext':
-        deviceConfig = { device }
-        break
-      case 'iscsi':
-        deviceConfig = {
-          target: iqn.ip,
-          targetIQN: iqn.iqn,
-          SCSIid: lun.scsiId,
-        }
-        if (port.value) {
-          deviceConfig.port = +port.value
-        }
-        if (username && password) {
-          deviceConfig.chapuser = username
-          deviceConfig.chappassword = password
-        }
-        break
-      case 'lvm':
-        deviceConfig = { device }
-        break
-      case 'nfs':
-        deviceConfig = { server: server.value, serverpath: path }
-        if (nfsVersion) {
-          deviceConfig.nfsVersion = nfsVersion
-        }
-        if (nfsOptions) {
-          deviceConfig.options = nfsOptions
-        }
-        break
-      case 'hba':
-        deviceConfig = { SCSIid: scsiId }
-        break
-      case 'zfs':
-        deviceConfig = { location: zfsLocation.value }
-        break
-      case 'local':
-        deviceConfig = { location: localPath.value, legacy_mode: 'true' }
-        break
-      case 'nfsiso':
-        deviceConfig = { location: `${server.value}:${path}` }
-        break
-      case 'smb':
-        deviceConfig = { location: server.value, type: 'cifs', username, cifspassword: password }
-        break
-    }
-
-    return deviceConfig
-  }
-
-  _handleSubmit = async () => {
+  _handleSubmit = async srUuid => {
     const { description, device, localPath, name, password, port, server, username, zfsLocation } = this.refs
     const { host, iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
 
@@ -318,40 +260,45 @@ export default class New extends Component {
           server.value,
           path,
           nfsVersion !== '' ? nfsVersion : undefined,
-          nfsOptions
+          nfsOptions,
+          srUuid
         ),
       hba: async () => {
-        const previous = await probeSrHbaExists(host.id, scsiId)
-        if (previous && previous.length > 0) {
-          try {
-            await confirm({
-              title: _('existingLunModalTitle'),
-              body: <p>{_('existingLunModalText')}</p>,
-            })
-          } catch (error) {
-            return
+        if (srUuid === undefined) {
+          const previous = await probeSrHbaExists(host.id, scsiId)
+          if (previous && previous.length > 0) {
+            try {
+              await confirm({
+                title: _('existingLunModalTitle'),
+                body: <p>{_('existingLunModalText')}</p>,
+              })
+            } catch (error) {
+              return
+            }
           }
         }
-        return createSrHba(host.id, name.value, description.value, scsiId)
+        return createSrHba(host.id, name.value, description.value, scsiId, srUuid)
       },
       iscsi: async () => {
-        const previous = await probeSrIscsiExists(
-          host.id,
-          iqn.ip,
-          iqn.iqn,
-          lun.scsiId,
-          +port.value,
-          username && username.value,
-          password && password.value
-        )
-        if (previous && previous.length > 0) {
-          try {
-            await confirm({
-              title: _('existingLunModalTitle'),
-              body: <p>{_('existingLunModalText')}</p>,
-            })
-          } catch (error) {
-            return
+        if (srUuid === undefined) {
+          const previous = await probeSrIscsiExists(
+            host.id,
+            iqn.ip,
+            iqn.iqn,
+            lun.scsiId,
+            +port.value,
+            username && username.value,
+            password && password.value
+          )
+          if (previous && previous.length > 0) {
+            try {
+              await confirm({
+                title: _('existingLunModalTitle'),
+                body: <p>{_('existingLunModalText')}</p>,
+              })
+            } catch (error) {
+              return
+            }
           }
         }
         return createSrIscsi(
@@ -363,7 +310,8 @@ export default class New extends Component {
           lun.scsiId,
           +port.value,
           username && username.value,
-          password && password.value
+          password && password.value,
+          srUuid
         )
       },
       lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
@@ -378,7 +326,8 @@ export default class New extends Component {
           `${server.value}:${path}`,
           'nfs',
           username && username.value,
-          password && password.value
+          password && password.value,
+          srUuid
         ),
       smb: () =>
         createSrIso(
@@ -388,7 +337,8 @@ export default class New extends Component {
           server.value,
           'smb',
           username && username.value,
-          password && password.value
+          password && password.value,
+          srUuid
         ),
     }
 
@@ -561,26 +511,6 @@ export default class New extends Component {
         loading: loading - 1,
         ...probeResult,
       }))
-    }
-  }
-
-  _reattach = async uuid => {
-    const { host, type } = this.state
-
-    let { name, description } = this.refs
-
-    name = name.value.trim()
-    description = description.value.trim()
-    if (isEmpty(name) || isEmpty(description)) {
-      error('Missing General Parameters', 'Please complete General Information')
-      return
-    }
-
-    const method = type === 'nfsiso' ? reattachSrIso : reattachSr
-    try {
-      await method(host.id, uuid, name, description, type, this.getDeviceConfig())
-    } catch (err) {
-      error('Reattach', err.message || String(err))
     }
   }
 
@@ -900,7 +830,7 @@ export default class New extends Component {
                       <span className='pull-right'>
                         <ActionButton
                           btnStyle='primary'
-                          handler={this._reattach}
+                          handler={this._handleSubmit}
                           handlerParam={sr.uuid}
                           icon='connect'
                           tooltip={_('reattachNewSrTooltip')}
