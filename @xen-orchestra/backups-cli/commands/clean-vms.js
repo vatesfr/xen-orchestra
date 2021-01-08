@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // assigned when options are parsed by the main function
-let force
+let force, merge
 
 // -----------------------------------------------------------------------------
 
@@ -41,9 +41,9 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain) {
     .forEach(parent => {
       console.warn('  ', parent)
     })
-  force && console.warn('  merging…')
+  merge && console.warn('  merging…')
   console.warn('')
-  if (force) {
+  if (merge) {
     // `mergeVhd` does not work with a stream, either
     // - make it accept a stream
     // - or create synthetic VHD which is not a stream
@@ -309,14 +309,16 @@ module.exports = async function main(args) {
   const opts = getopts(args, {
     alias: {
       force: 'f',
+      merge: 'm',
     },
-    boolean: ['force'],
+    boolean: ['force', 'merge'],
     default: {
       force: false,
+      merge: false,
     },
   })
 
-  ;({ force } = opts)
+  ;({ force, merge } = opts)
   await asyncMap(opts._, async vmDir => {
     vmDir = resolve(vmDir)
 
