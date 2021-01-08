@@ -340,7 +340,7 @@ const Updates = decorate([
               <CardBlock>
                 <form id={state.channelsFormId} className='form'>
                   <fieldset disabled={COMMUNITY}>
-                    <div className='form-group'>
+                    <div className='form-group mb-1'>
                       <Select
                         disabled={COMMUNITY}
                         isLoading={state.channelsOptions === undefined}
@@ -351,23 +351,33 @@ const Updates = decorate([
                         simpleValue
                         value={state.isUnlistedChannel ? UNLISTED_CHANNEL_VALUE : state.consolidatedChannel}
                       />
-                      <br />
-                      {state.isUnlistedChannel && (
-                        <div className='form-group'>
-                          <DebounceInput
-                            autoFocus
-                            className='form-control'
-                            debounceTimeout={500}
-                            name='channel'
-                            onChange={effects.linkState}
-                            placeholder={formatMessage(messages.unlistedChannelName)}
-                            required
-                            type='text'
-                            value={state.consolidatedChannel}
-                          />
-                        </div>
-                      )}
-                    </div>{' '}
+                    </div>
+                    {state.isUnlistedChannel && (
+                      <div className='form-group mb-1'>
+                        <DebounceInput
+                          autoFocus
+                          className='form-control'
+                          debounceTimeout={500}
+                          name='channel'
+                          onChange={effects.linkState}
+                          placeholder={formatMessage(messages.unlistedChannelName)}
+                          required
+                          type='text'
+                          value={state.consolidatedChannel}
+                        />
+                      </div>
+                    )}
+                    <p>
+                      <a
+                        href={`https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#${encodeURIComponent(
+                          state.consolidatedChannel
+                        )}`}
+                        rel='noopener noreferrer'
+                        target='_blank'
+                      >
+                        {_('changelog')}
+                      </a>
+                    </p>
                     <ActionButton
                       btnStyle='primary'
                       form={state.channelsFormId}
