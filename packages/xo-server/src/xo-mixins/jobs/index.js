@@ -21,7 +21,7 @@ import executeCall from './execute-call'
 
 // ===================================================================
 
-const log = createLogger('xo:api')
+const log = createLogger('xo:jobs')
 
 export type Job = {
   id: string,
