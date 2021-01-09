@@ -34,7 +34,11 @@ export default class Remotes {
         ],
 
         test: [
-          ({ remote }) => using(this.getHandler(remote), handler => handler.test()),
+          ({ remote }) =>
+            using(this.getHandler(remote), handler => handler.test()).catch(error => ({
+              success: false,
+              error: error.message ?? String(error),
+            })),
           {
             params: {
               remote: { type: 'object' },
