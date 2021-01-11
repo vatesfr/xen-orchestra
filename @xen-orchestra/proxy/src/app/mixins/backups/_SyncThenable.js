@@ -30,7 +30,7 @@ export class SyncThenable {
   // unwrap if it's a SyncThenable
   static tryUnwrap(value) {
     if (value instanceof this) {
-      if (value.rejected) {
+      if (value.then === rejectedThen) {
         throw value.value
       }
       return value.value
