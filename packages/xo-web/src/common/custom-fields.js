@@ -19,9 +19,8 @@ import { Toggle } from './form'
 
 const CUSTOM_FIELDS_KEY_PREFIX = 'XenCenter.CustomFields.'
 const DATE_FORMAT = 'YYYY-MM-DD'
+const PATTERN_DATE_TIME_UTC = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}Z$/
 const TIME_FORMAT = 'HH:mm:ss'
-
-const isInvalidDate = value => new Date(value).toString() === 'Invalid Date'
 
 const CustomFieldModal = decorate([
   provideState({
@@ -33,7 +32,7 @@ const CustomFieldModal = decorate([
           [name]: value,
         })
       },
-      toggleType() {
+      toggleDate() {
         const { props } = this
         props.onChange({
           ...props.value,
@@ -46,8 +45,9 @@ const CustomFieldModal = decorate([
   ({ effects, value, update = false }) => (
     <Container>
       <SingleLineRow>
-        <Col>
-          <Toggle onChange={effects.toggleType} value={value.isDate} disabled={update} /> <label>{_('date')}</label>
+        <Col size={6}>{_('date')}</Col>
+        <Col size={6}>
+          <Toggle onChange={effects.toggleDate} value={value.isDate} disabled={update} />
         </Col>
       </SingleLineRow>
       <SingleLineRow>
@@ -68,7 +68,9 @@ const CustomFieldModal = decorate([
       {value.isDate ? (
         [
           <SingleLineRow className='mt-1' key='date'>
-            <Col size={6}>{_('date')}</Col>
+            <Col size={6}>
+              {_('date')} {_('utc')}
+            </Col>
             <Col size={6}>
               <input
                 className='form-control'
@@ -82,7 +84,9 @@ const CustomFieldModal = decorate([
             </Col>
           </SingleLineRow>,
           <SingleLineRow className='mt-1' key='time'>
-            <Col size={6}>{_('time')}</Col>
+            <Col size={6}>
+              {_('time')} {_('utc')}
+            </Col>
             <Col size={6}>
               <input
                 className='form-control'
@@ -122,7 +126,7 @@ const CustomFields = decorate([
   provideState({
     effects: {
       addCustomField: () => (state, { object: { id } }) => {
-        const dateTime = moment()
+        const dateTime = moment.utc()
         return form({
           component: CustomFieldModal,
           defaultValue: {
@@ -144,15 +148,16 @@ const CustomFields = decorate([
       removeCustomField: (_, { currentTarget: { dataset } }) => (_, { object: { id } }) =>
         removeCustomField(id, dataset.name),
       setCustomField: (effects, { name, value }) => (state, { object: { id } }) => {
-        const isDate = !isInvalidDate(value)
+        const isDate = PATTERN_DATE_TIME_UTC.test(value)
+        const dateTime = isDate ? moment(value).utc() : undefined
         return form({
           render: props => <CustomFieldModal {...props} update />,
           defaultValue: isDate
             ? {
-                date: moment(value).format(DATE_FORMAT),
+                date: dateTime.format(DATE_FORMAT),
                 isDate,
                 name,
-                time: moment(value).format(TIME_FORMAT),
+                time: dateTime.format(TIME_FORMAT),
               }
             : {
                 isDate,
@@ -184,7 +189,7 @@ const CustomFields = decorate([
           const name = key.substring(CUSTOM_FIELDS_KEY_PREFIX.length)
           return (
             <div className='mb-1' key={key}>
-              {name}: {isInvalidDate(value) ? value : moment(value).format(`${DATE_FORMAT} ${TIME_FORMAT}`)}{' '}
+              {`${name}: ${value} `}
               <ActionButton
                 btnStyle='primary'
                 data-name={name}

@@ -13,6 +13,7 @@ const messages = {
   errorNoSuchItem: 'No such item',
   errorUnknownItem: 'Unknown {type}',
   memoryFree: '{memoryFree} RAM free',
+  utc: 'UTC',
   date: 'Date',
   time: 'Time',
   notifications: 'Notifications',
