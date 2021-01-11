@@ -108,7 +108,7 @@ export class Backup {
         const promises = []
         if (pools.length !== 0 && settings.retentionPoolMetadata !== 0) {
           promises.push(
-            ...asyncMapSettled(
+            asyncMapSettled(
               pools,
               async pool =>
                 pool !== undefined &&
