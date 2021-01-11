@@ -84,7 +84,7 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
     sortCriteria: macAddress => macAddress,
   },
   {
-    name: _('Vifs'),
+    name: _('vifs'),
     itemRenderer: (macAddress, { vifsByMac }) => (
       <div>
         {map(vifsByMac[macAddress], vif => (
