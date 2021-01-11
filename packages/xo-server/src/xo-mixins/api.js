@@ -1,4 +1,6 @@
 import createLogger from '@xen-orchestra/log'
+import emitAsync from '@xen-orchestra/emit-async'
+
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
@@ -261,7 +263,16 @@ export default class Api {
       timestamp: Date.now(),
     }
 
-    xo.emit('xo:preCall', data)
+    await emitAsync.call(
+      xo,
+      {
+        onError(error) {
+          log.warn('xo:preCall listener failure', { error })
+        },
+      },
+      'xo:preCall',
+      data
+    )
 
     try {
       await checkPermission.call(context, method)

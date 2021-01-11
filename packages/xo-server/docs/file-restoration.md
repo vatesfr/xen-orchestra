@@ -80,12 +80,12 @@ When logical volumes no longer necessary:
 When logical volume no longer necessary:
 
 ```
-> vgchange -ay debian-vg
+> vgchange -an debian-vg
 ```
 
 ## Mount block device
 
->  Tip: `offset` and `sizelimit` are only required on a partionned disk
+> Tip: `offset` and `sizelimit` are only required on a partionned disk
 
 ```
 > mkdir /tmp/block-mount
