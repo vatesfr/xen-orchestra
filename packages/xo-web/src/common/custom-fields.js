@@ -92,6 +92,7 @@ const CustomFieldModal = decorate([
                 className='form-control'
                 name='time'
                 onChange={effects.onChange}
+                pattern='\d{2}:\d{2}:\d{2}'
                 required
                 step='1'
                 type='time'
@@ -126,15 +127,15 @@ const CustomFields = decorate([
   provideState({
     effects: {
       addCustomField: () => (state, { object: { id } }) => {
-        const dateTime = moment.utc()
+        const dateTimeUtc = moment.utc()
         return form({
           component: CustomFieldModal,
           defaultValue: {
-            date: dateTime.format(DATE_FORMAT),
+            date: dateTimeUtc.format(DATE_FORMAT),
             isDate: false,
             name: '',
             text: '',
-            time: dateTime.format(TIME_FORMAT),
+            time: dateTimeUtc.format(TIME_FORMAT),
           },
           header: (
             <span>
@@ -149,15 +150,15 @@ const CustomFields = decorate([
         removeCustomField(id, dataset.name),
       setCustomField: (effects, { name, value }) => (state, { object: { id } }) => {
         const isDate = PATTERN_DATE_TIME_UTC.test(value)
-        const dateTime = isDate ? moment(value).utc() : undefined
+        const dateTimeUtc = isDate ? moment(value).utc() : undefined
         return form({
           render: props => <CustomFieldModal {...props} update />,
           defaultValue: isDate
             ? {
-                date: dateTime.format(DATE_FORMAT),
+                date: dateTimeUtc.format(DATE_FORMAT),
                 isDate,
                 name,
-                time: dateTime.format(TIME_FORMAT),
+                time: dateTimeUtc.format(TIME_FORMAT),
               }
             : {
                 isDate,
