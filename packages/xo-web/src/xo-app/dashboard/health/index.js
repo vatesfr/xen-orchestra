@@ -84,13 +84,13 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
     sortCriteria: macAddress => macAddress,
   },
   {
-    name: _('Vifs'),
+    name: _('vifs'),
     itemRenderer: (macAddress, { vifsByMac }) => (
       <div>
         {map(vifsByMac[macAddress], vif => (
           <Row key={vif.id}>
             <Col>
-              {_('VifOnVm', { vifDevice: vif.device, vm: <Vm id={vif.$VM} link /> })} (<Network id={vif.$network} />)
+              {_('vifOnVm', { vifDevice: vif.device })} <Vm id={vif.$VM} link /> (<Network id={vif.$network} />)
             </Col>
           </Row>
         ))}
