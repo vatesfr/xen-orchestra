@@ -1,4 +1,5 @@
 import kindOf from 'kindof'
+import { isEqual } from 'lodash'
 
 // Tests that two collections (arrays or objects) have strictly equals
 // values (items or properties)
@@ -25,6 +26,13 @@ const shallowEqual = (c1, c2) => {
     }
 
     return true
+  }
+
+  if (type === 'set') {
+    if (isEqual(c1, c2)) {
+      return true
+    }
+    return false
   }
 
   if (type !== 'object') {

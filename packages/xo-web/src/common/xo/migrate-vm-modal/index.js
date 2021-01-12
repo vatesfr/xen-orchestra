@@ -150,9 +150,9 @@ export default class MigrateVmModalBody extends BaseComponent {
       find(pifs, pif => {
         if (pif.$host === host.id) {
           if (migrationNetwork !== undefined && pif.ip !== '' && pif.$network === migrationNetwork) {
-            return pif
+            return true
           }
-          if (defaultPif === undefined && pif.management) {
+          if (pif.management) {
             defaultPif = pif
           }
         }

@@ -70,8 +70,8 @@ class PoolMaster extends Component {
 })
 export default class TabAdvanced extends Component {
   _getMigrationNetworkPredicate = createSelector(
-    createCollectionWrapper(() => map(this.props.pifsWithIps, '$network')),
-    networkIds => network => networkIds.includes(network.id)
+    createCollectionWrapper(() => new Set(map(this.props.pifsWithIps, '$network').sort())),
+    networkIds => network => networkIds.has(network.id)
   )
 
   _onChangeMigrationNetwork = migrationNetwork => editPool(this.props.pool, { migrationNetwork: migrationNetwork.id })
