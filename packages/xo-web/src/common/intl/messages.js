@@ -1382,7 +1382,7 @@ const messages = {
   deleteOrphanedVdi: 'Delete orphaned snapshot VDI',
   deleteSelectedOrphanedVdis: 'Delete selected orphaned snapshot VDIs',
   vdisOnControlDomain: 'VDIs attached to Control Domain',
-  VifOnVm: 'VIF #{vifDevice} on',
+  VifOnVm: 'VIF #{vifDevice, number} on {vm}',
   Vifs: 'VIFs',
   vmNameLabel: 'Name',
   vmNameDescription: 'Description',

@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatten, get, includes, isArray, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -90,7 +90,7 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
         {map(vifsByMac[macAddress], vif => (
           <Row key={vif.id}>
             <Col>
-              {_('VifOnVm', { vifDevice: vif.device })} <Vm id={vif.$VM} link /> (<Network id={vif.$network} />)
+              {_('VifOnVm', { vifDevice: vif.device, vm: <Vm id={vif.$VM} link /> })} (<Network id={vif.$network} />)
             </Col>
           </Row>
         ))}
@@ -562,22 +562,32 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
-  _getDuplicatedMacAddresses = createSelector(
-    () => this.props.vifsByMac,
-    vifsByMac => {
-      const duplicatedMacAddresses = []
-      for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
-        if (vifs.length > 1) {
-          duplicatedMacAddresses.push(macAddress)
+  _getDuplicatedMacAddresses = createCollectionWrapper(
+    createSelector(
+      () => this._getVifsByMac(),
+      vifsByMac => {
+        const duplicatedMacAddresses = []
+        for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
+          if (vifs.length > 1) {
+            duplicatedMacAddresses.push(macAddress)
+          }
         }
+        return duplicatedMacAddresses.sort()
       }
-      return duplicatedMacAddresses
-    }
+    )
   )
 
   _getPoolPredicate = createSelector(
     createSelector(() => this.state.pools, resolveIds),
-    poolIds => (isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool))
+    poolIds =>
+      isEmpty(poolIds)
+        ? undefined
+        : item => {
+            if (isArray(item)) {
+              return item.find(element => includes(poolIds, element.$pool)) !== undefined ? true : false
+            }
+            return includes(poolIds, item.$pool)
+          }
   )
 
   _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
@@ -594,7 +604,7 @@ export default class Health extends Component {
 
   _getMessages = createFilter(() => this.state.messages, this._getPoolPredicate)
 
-  _getVifs = createFilter(() => this.props.vifs, this._getPoolPredicate)
+  _getVifsByMac = createFilter(() => this.props.vifsByMac, this._getPoolPredicate)
 
   render() {
     const { props, state } = this
