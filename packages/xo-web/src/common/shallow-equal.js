@@ -29,10 +29,7 @@ const shallowEqual = (c1, c2) => {
   }
 
   if (type === 'set') {
-    if (isEqual(c1, c2)) {
-      return true
-    }
-    return false
+    return isEqual(c1, c2)
   }
 
   if (type !== 'object') {
