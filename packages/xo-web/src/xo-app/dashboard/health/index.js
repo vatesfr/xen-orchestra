@@ -90,7 +90,7 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
         {vifsByMac[macAddress].map(vif => (
           <Row key={vif.id}>
             <Col>
-              {_('vifOnVm', { vifDevice: vif.device, vm: <Vm id={vif.$VM} link /> })} (<Network id={vif.$network} />)
+              {_('vifOnVmWithNetwork', { vifDevice: vif.device, vm: <Vm id={vif.$VM} link />, <Network id={vif.$network} /> })}
             </Col>
           </Row>
         ))}
