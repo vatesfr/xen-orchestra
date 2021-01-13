@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, get, includes, isArray, isEmpty, map, mapValues } from 'lodash'
+import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -91,9 +91,9 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
           <Row key={vif.id}>
             <Col>
               {_('vifOnVmWithNetwork', {
+                network: <Network id={vif.$network} />,
                 vifDevice: vif.device,
                 vm: <Vm id={vif.$VM} link />,
-                network: <Network id={vif.$network} />,
               })}
             </Col>
           </Row>
@@ -581,17 +581,11 @@ export default class Health extends Component {
     )
   )
 
+  _getPoolIds = createSelector(() => this.state.pools, resolveIds)
+
   _getPoolPredicate = createSelector(
     createSelector(() => this.state.pools, resolveIds),
-    poolIds =>
-      isEmpty(poolIds)
-        ? undefined
-        : item => {
-            if (isArray(item)) {
-              return item.some(element => includes(poolIds, element.$pool))
-            }
-            return includes(poolIds, item.$pool)
-          }
+    poolIds => (isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool))
   )
 
   _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
@@ -608,7 +602,12 @@ export default class Health extends Component {
 
   _getMessages = createFilter(() => this.state.messages, this._getPoolPredicate)
 
-  _getVifsByMac = createFilter(() => this.props.vifsByMac, this._getPoolPredicate)
+  _getVifsByMac = createFilter(
+    () => this.props.vifsByMac,
+    createSelector(this._getPoolIds, poolIds =>
+      isEmpty(poolIds) ? undefined : vifs => vifs.some(vif => poolIds.includes(vif.$pool))
+    )
+  )
 
   render() {
     const { props, state } = this
