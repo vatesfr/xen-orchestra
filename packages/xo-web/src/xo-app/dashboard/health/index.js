@@ -583,9 +583,8 @@ export default class Health extends Component {
 
   _getPoolIds = createSelector(() => this.state.pools, resolveIds)
 
-  _getPoolPredicate = createSelector(
-    createSelector(() => this.state.pools, resolveIds),
-    poolIds => (isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool))
+  _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
+    isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
 
   _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
