@@ -90,7 +90,11 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
         {vifsByMac[macAddress].map(vif => (
           <Row key={vif.id}>
             <Col>
-              {_('vifOnVmWithNetwork', { vifDevice: vif.device, vm: <Vm id={vif.$VM} link />, network: <Network id={vif.$network} /> })}
+              {_('vifOnVmWithNetwork', {
+                vifDevice: vif.device,
+                vm: <Vm id={vif.$VM} link />,
+                network: <Network id={vif.$network} />,
+              })}
             </Col>
           </Row>
         ))}
@@ -583,11 +587,11 @@ export default class Health extends Component {
       isEmpty(poolIds)
         ? undefined
         : item => {
-          if (isArray(item)) {
-            return item.find(element => includes(poolIds, element.$pool)) !== undefined ? true : false
+            if (isArray(item)) {
+              return item.some(element => includes(poolIds, element.$pool))
+            }
+            return includes(poolIds, item.$pool)
           }
-          return includes(poolIds, item.$pool)
-        }
   )
 
   _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
