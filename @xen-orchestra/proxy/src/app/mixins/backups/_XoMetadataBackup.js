@@ -4,7 +4,7 @@ import { asyncMap } from '../../../_asyncMap'
 
 import { Task } from './_Task'
 
-const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
+export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {

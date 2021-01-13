@@ -5,7 +5,7 @@ import { asyncMap } from '../../../_asyncMap'
 import { forkStreamUnpipe } from './_forkStreamUnpipe'
 import { Task } from './_Task'
 
-const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
+export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 const PATH_DB_DUMP = '/pool/xmldbdump'
 
 export class PoolMetadataBackup {

@@ -208,6 +208,54 @@ export default class Backups {
             },
           },
         ],
+        listXoMetadataBackups: [
+          async ({ remotes }) => {
+            const backupsByRemote = {}
+            await asyncMap(Object.keys(remotes), async remoteId => {
+              try {
+                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
+                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups(remoteId)
+                })
+              } catch (error) {
+                warn('listXoMetadataBackups', { error, remote: remotes[remoteId] })
+              }
+            })
+            return backupsByRemote
+          },
+          {
+            description: 'list XO metadata backups',
+            params: {
+              remotes: {
+                type: 'object',
+                additionalProperties: { type: 'object' },
+              },
+            },
+          },
+        ],
+        listPoolMetadataBackups: [
+          async ({ remotes }) => {
+            const backupsByRemote = {}
+            await asyncMap(Object.keys(remotes), async remoteId => {
+              try {
+                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
+                  backupsByRemote[remoteId] = await adapter.listPoolMetadataBackups(remoteId)
+                })
+              } catch (error) {
+                warn('listPoolMetadataBackups', { error, remote: remotes[remoteId] })
+              }
+            })
+            return backupsByRemote
+          },
+          {
+            description: 'list pool metadata backups',
+            params: {
+              remotes: {
+                type: 'object',
+                additionalProperties: { type: 'object' },
+              },
+            },
+          },
+        ],
         listPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, path }) =>
             using(app.remotes.getAdapter(remote), adapter => adapter.listPartitionFiles(diskId, partitionId, path)),
