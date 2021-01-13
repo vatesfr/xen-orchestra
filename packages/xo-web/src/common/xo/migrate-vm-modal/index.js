@@ -1,5 +1,4 @@
 import BaseComponent from 'base-component'
-import defined from '@xen-orchestra/defined'
 import every from 'lodash/every'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -13,7 +12,7 @@ import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
-import { getDefaultNetworkForVif } from '../utils'
+import { getDefaultNetworkForVif, getDefaultNetworkMigration } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
 import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
 
@@ -143,23 +142,6 @@ export default class MigrateVmModalBody extends BaseComponent {
     }
 
     const { pifs, pools, vbds, vm } = this.props
-    // Migration network depends on the host
-    const migrationNetwork = pools[host.$pool].otherConfig['xo:migrationNetwork']
-    let defaultPif
-    const defaultMigrationNetworkId = defined(
-      find(pifs, pif => {
-        if (pif.$host === host.id) {
-          if (migrationNetwork !== undefined && pif.ip !== '' && pif.$network === migrationNetwork) {
-            return true
-          }
-          if (pif.management) {
-            defaultPif = pif
-          }
-        }
-      }),
-      defaultPif
-    ).$network
-
     const intraPool = vm.$pool === host.$pool
     // Intra-pool
     if (intraPool) {
@@ -181,7 +163,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         host,
         intraPool,
         mapVifsNetworks: undefined,
-        migrationNetworkId: defaultMigrationNetworkId,
+        migrationNetworkId: getDefaultNetworkMigration(host, pools, pifs),
         targetSrs: {},
       })
       return
@@ -208,7 +190,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       host,
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
-      migrationNetworkId: defaultMigrationNetworkId,
+      migrationNetworkId: getDefaultNetworkMigration(host, pools, pifs),
       targetSrs: { mainSr: pools[host.$pool].default_SR },
     })
   }
