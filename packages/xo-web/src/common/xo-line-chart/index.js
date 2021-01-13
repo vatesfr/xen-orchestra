@@ -74,17 +74,18 @@ const makeLabelInterpolationFnc = (intl, nValues, endTimestamp, interval) => {
 }
 
 // Supported series: xvds, vifs, pifs.
-const buildSeries = ({ stats, addSumSeries }) => {
+const buildSeries = ({ stats, label, addSumSeries }) => {
   let series = []
 
   for (const io in stats) {
     const ioData = stats[io]
-    for (const deviceName in ioData) {
-      const data = ioData[deviceName]
+    for (const letter in ioData) {
+      const data = ioData[letter]
+
       // See xo-stats.js, data can be null.
       if (data) {
         series.push({
-          name: `${deviceName} (${io})`,
+          name: `${label}${letter} (${io})`,
           data,
         })
       }
@@ -374,7 +375,7 @@ export const PifLineChart = injectIntl(({ addSumSeries, data, options = {}, intl
     <ChartistGraph
       type='Line'
       data={{
-        series: buildSeries({ addSumSeries, stats }),
+        series: buildSeries({ addSumSeries, stats, label: 'eth' }),
       }}
       options={{
         ...makeOptions({

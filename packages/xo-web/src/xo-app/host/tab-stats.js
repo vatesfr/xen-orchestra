@@ -3,17 +3,11 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
-import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
-import { createGetObjectsOfType } from 'selectors'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
-import { forEach } from 'lodash'
 import { Toggle } from 'form'
 import { CpuLineChart, MemoryLineChart, PifLineChart, LoadLineChart } from 'xo-line-chart'
 
-@connectStore(() => ({
-  pifs: createGetObjectsOfType('PIF'),
-}))
 export default class HostStats extends Component {
   state = {
     granularity: DEFAULT_GRANULARITY,
@@ -37,30 +31,6 @@ export default class HostStats extends Component {
     fetchStats(host, 'host', this.state.granularity).then(stats => {
       if (cancelled) {
         return
-      }
-      const statsPifs = stats.stats.pifs
-      const { host, pifs } = this.props
-
-      const deviceName = []
-      forEach(host.PIFs, currentPif => {
-        if (pifs[currentPif]) {
-          if (!deviceName.includes(pifs[currentPif].device)) {
-            deviceName.push(pifs[currentPif].device)
-          }
-        }
-      })
-
-      for (const [signal, pifs] of Object.entries(statsPifs)) {
-        forEach(pifs, (pif, i) => {
-          if (signal === 'rx') {
-            delete statsPifs.rx[i]
-            statsPifs.rx[deviceName[i]] = pif
-          }
-          if (signal === 'tx') {
-            delete statsPifs.tx[i]
-            statsPifs.tx[deviceName[i]] = pif
-          }
-        })
       }
 
       this.cancel = null
