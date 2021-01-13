@@ -32,7 +32,6 @@ export default class HostStats extends Component {
       if (cancelled) {
         return
       }
-
       this.cancel = null
 
       clearTimeout(this.timeout)
