@@ -62,9 +62,7 @@ export default class {
       throw new Error('cannot get handler to proxy remote')
     }
 
-    if (!remote.enabled) {
-      throw new Error('remote is disabled')
-    }
+    await this.assertEnabledRemote(remote)
 
     const { id } = remote
     const handlers = this._handlers
@@ -88,6 +86,9 @@ export default class {
 
   async testRemote(remoteId) {
     const remote = await this._getRemote(remoteId)
+
+    await this.assertEnabledRemote(remote)
+
     const { readRate, writeRate, ...answer } =
       remote.proxy !== undefined
         ? await this._xo.callProxyMethod(remote.proxy, 'remote.test', {
@@ -148,6 +149,16 @@ export default class {
       throw noSuchObject(id, 'remote')
     }
     return remote.properties
+  }
+
+  async assertEnabledRemote(remote) {
+    if (typeof remote === 'string') {
+      remote = await this._getRemote(remote)
+    }
+
+    if (!remote.enabled) {
+      throw new Error('remote is disabled')
+    }
   }
 
   getRemoteWithCredentials(id) {
