@@ -19,7 +19,7 @@ import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 import { SelectHost } from 'select-objects'
 import { Sr } from 'render-xo-item'
-import { createFilter, createGetObjectsOfType, createSelector, getObject } from 'selectors'
+import { createCollectionWrapper, createFilter, createGetObjectsOfType, createSelector, getObject } from 'selectors'
 import {
   createSrExt,
   createSrIso,
@@ -234,11 +234,24 @@ export default class New extends Component {
     )
   )
 
-  getUsedSrs = createFilter(
-    this.getHostSrs,
+  getUsedSrs = createCollectionWrapper(
     createSelector(
+      this.getHostSrs,
       () => this.state.existingSrs,
-      existingSrs => existingSrs !== undefined && (sr => existingSrs.some(({ uuid }) => uuid === sr.uuid))
+      (hostSrs, existingSrs) => {
+        if (existingSrs === undefined) {
+          return
+        }
+
+        const usedSrs = []
+        existingSrs.forEach(({ uuid }) => {
+          if (uuid in hostSrs) {
+            usedSrs.push(hostSrs[uuid])
+          }
+        })
+
+        return usedSrs
+      }
     )
   )
 

@@ -1,4 +1,5 @@
 import createLogger from '@xen-orchestra/log'
+import defer from 'golike-defer'
 import { filter, forEach, groupBy } from 'lodash'
 
 import { mapToArray } from '../../utils'
@@ -113,9 +114,11 @@ export default {
     return (await this.barrier(srRef)).uuid
   },
 
-  // This function helps to reattach a forgotten NFS/iSCSI SR
-  async reattachSr({ uuid, nameLabel, nameDescription, type, deviceConfig }) {
+  // This function helps to reattach a forgotten NFS/iSCSI/HBA SR
+  @defer
+  async reattachSr($defer, { uuid, nameLabel, nameDescription, type, deviceConfig }) {
     const srRef = await this.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
+    $defer.onFailure(() => this.forgetSr(srRef))
 
     // XenCenter SR reattach:
     // https://github.com/xenserver/xenadmin/blob/90e6cb0dc950ce747b7b6b689b0ad00cf28898d2/XenModel/Actions/SR/SrReattachAction.cs#L77-L99
