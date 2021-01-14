@@ -309,7 +309,7 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
     result => {
       logger.error(message, {
         event: 'task.end',
-        result: serializeError({ message: result.message }),
+        result: serializeError(result),
         status: 'failure',
         taskId,
       })
