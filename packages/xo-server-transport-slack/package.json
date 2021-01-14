@@ -33,7 +33,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "promise-toolbox": "^0.15.0",
+    "promise-toolbox": "^0.16.0",
     "slack-node": "^0.1.8"
   },
   "devDependencies": {

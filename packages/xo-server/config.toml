@@ -137,7 +137,7 @@ ignoreVmSnapshotResources = false
 [xapiOptions]
 # The duration XO will wait for a host to be live before assuming it failed to
 # restart
-restartHostTimeout = '5 minutes'
+restartHostTimeout = '20 minutes'
 maxUncoalescedVdis = 1
 vdiExportConcurrency = 12
 vmExportConcurrency = 2

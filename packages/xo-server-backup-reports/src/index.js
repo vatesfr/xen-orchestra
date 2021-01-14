@@ -172,7 +172,7 @@ const getMarkdown = (task, props) => MARKDOWN_BY_TYPE[task.data?.type]?.(task, p
 
 const toMarkdown = parts => {
   const lines = []
-  let indentLevel = 0
+  let indentLevel = -1
 
   const helper = part => {
     if (typeof part === 'string') {
@@ -193,7 +193,13 @@ const toMarkdown = parts => {
 class BackupReportsXoPlugin {
   constructor(xo) {
     this._xo = xo
-    this._report = this._report.bind(this)
+    this._eventListener = async (...args) => {
+      try {
+        this._report(...args)
+      } catch (error) {
+        logger.warn(error)
+      }
+    }
   }
 
   configure({ toMails, toXmpp }) {
@@ -202,7 +208,7 @@ class BackupReportsXoPlugin {
   }
 
   load() {
-    this._xo.on('job:terminated', this._report)
+    this._xo.on('job:terminated', this._eventListener)
   }
 
   test({ runId }) {
@@ -210,50 +216,46 @@ class BackupReportsXoPlugin {
   }
 
   unload() {
-    this._xo.removeListener('job:terminated', this._report)
+    this._xo.removeListener('job:terminated', this._eventListener)
   }
 
   async _report(runJobId, { type, status } = {}, force) {
     const xo = this._xo
-    try {
-      if (type === 'call') {
-        return this._legacyVmHandler(status)
-      }
-
-      const log = await xo.getBackupNgLogs(runJobId)
-      if (log === undefined) {
-        throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
-      }
-
-      const reportWhen = log.data.reportWhen
-      if (
-        !force &&
-        (reportWhen === 'never' ||
-          // Handle improper value introduced by:
-          // https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
-          reportWhen === 'Never' ||
-          (reportWhen === 'failure' && log.status === 'success'))
-      ) {
-        return
-      }
-
-      const [job, schedule] = await Promise.all([
-        await xo.getJob(log.jobId),
-        await xo.getSchedule(log.scheduleId).catch(error => {
-          logger.warn(error)
-        }),
-      ])
-
-      if (job.type === 'backup') {
-        return this._ngVmHandler(log, job, schedule, force)
-      } else if (job.type === 'metadataBackup') {
-        return this._metadataHandler(log, job, schedule, force)
-      }
-
-      throw new Error(`Unknown backup job type: ${job.type}`)
-    } catch (error) {
-      logger.warn(error)
+    if (type === 'call') {
+      return this._legacyVmHandler(status)
     }
+
+    const log = await xo.getBackupNgLogs(runJobId)
+    if (log === undefined) {
+      throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
+    }
+
+    const reportWhen = log.data.reportWhen
+    if (
+      !force &&
+      (reportWhen === 'never' ||
+        // Handle improper value introduced by:
+        // https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
+        reportWhen === 'Never' ||
+        (reportWhen === 'failure' && log.status === 'success'))
+    ) {
+      return
+    }
+
+    const [job, schedule] = await Promise.all([
+      await xo.getJob(log.jobId),
+      await xo.getSchedule(log.scheduleId).catch(error => {
+        logger.warn(error)
+      }),
+    ])
+
+    if (job.type === 'backup') {
+      return this._ngVmHandler(log, job, schedule, force)
+    } else if (job.type === 'metadataBackup') {
+      return this._metadataHandler(log, job, schedule, force)
+    }
+
+    throw new Error(`Unknown backup job type: ${job.type}`)
   }
 
   async _metadataHandler(log, { name: jobName }, schedule, force) {
@@ -395,6 +397,8 @@ class BackupReportsXoPlugin {
         vm = xo.getObject(vmId)
       } catch (e) {}
       const text = [
+        // It will ensure that it will never be in a nested list
+        '',
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
         `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,

@@ -65,12 +65,14 @@ export default class {
 
       // Add servers in XenStore
       if (servers.length === 0) {
-        const xenStoreServers = await XenStore.read('vm-data/xen-servers')
+        const key = 'vm-data/xen-servers'
+        const xenStoreServers = await XenStore.read(key)
           .then(JSON.parse)
           .catch(() => [])
         for (const server of xenStoreServers) {
           servers.push(await this.registerXenServer(server))
         }
+        ignoreErrors.call(XenStore.rm(key))
       }
 
       // Connects to existing servers.

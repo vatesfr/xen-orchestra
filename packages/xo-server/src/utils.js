@@ -1,4 +1,5 @@
 import base64url from 'base64url'
+import fastXmlParser from 'fast-xml-parser'
 import forEach from 'lodash/forEach'
 import has from 'lodash/has'
 import highland from 'highland'
@@ -7,7 +8,6 @@ import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
 import tmp from 'tmp'
-import xml2js from 'xml2js'
 import { randomBytes } from 'crypto'
 import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
@@ -95,34 +95,13 @@ export const generateToken = (randomBytes => {
 
 // -------------------------------------------------------------------
 
-export const formatXml = (function () {
-  const builder = new xml2js.Builder({
-    headless: true,
-  })
-
-  return (...args) => builder.buildObject(...args)
-})()
-
 export const parseXml = (function () {
   const opts = {
-    mergeAttrs: true,
-    explicitArray: false,
+    attributeNamePrefix: '',
+    ignoreAttributes: false,
   }
 
-  return xml => {
-    let result
-
-    // xml2js.parseString() use a callback for synchronous code.
-    xml2js.parseString(xml, opts, (error, result_) => {
-      if (error) {
-        throw error
-      }
-
-      result = result_
-    })
-
-    return result
-  }
+  return xml => fastXmlParser.parse(xml, opts)
 })()
 
 // -------------------------------------------------------------------
