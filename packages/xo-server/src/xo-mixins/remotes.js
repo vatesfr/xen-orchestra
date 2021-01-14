@@ -58,11 +58,13 @@ export default class {
       remote = await this._getRemote(remote)
     }
 
+    if (remote.proxy !== undefined) {
+      throw new Error('cannot get handler to proxy remote')
+    }
+
     if (!remote.enabled) {
       throw new Error('remote is disabled')
     }
-
-    await this.assertEnabledRemote(remote)
 
     const { id } = remote
     const handlers = this._handlers
