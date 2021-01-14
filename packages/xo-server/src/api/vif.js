@@ -72,13 +72,13 @@ export async function set({
   resourceSet,
   txChecksumming,
 }) {
+  const isNetworkChanged = network !== undefined && network.id !== vif.$network
+
   // - If allowed IPs were explicitly passed: use them
   // - Else if the network is changing: remove the existing allowed IPs
   // - Else: use the old IPs
-  const newIpv4Addresses =
-    allowedIpv4Addresses ?? (network === undefined || network.id === vif.$network ? vif.allowedIpv4Addresses : [])
-  const newIpv6Addresses =
-    allowedIpv6Addresses ?? (network === undefined || network.id === vif.$network ? vif.allowedIpv6Addresses : [])
+  const newIpv4Addresses = allowedIpv4Addresses ?? (isNetworkChanged ? [] : vif.allowedIpv4Addresses)
+  const newIpv6Addresses = allowedIpv6Addresses ?? (isNetworkChanged ? [] : vif.allowedIpv6Addresses)
 
   const oldIpAddresses = vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
   const newIpAddresses = newIpv4Addresses.concat(newIpv6Addresses)
@@ -87,7 +87,7 @@ export async function set({
     await this.checkPermissions(this.user.id, [[network?.id ?? vif.$network, 'operate']])
   }
 
-  if (network || mac) {
+  if (isNetworkChanged || mac) {
     const networkId = network?.id
     if (networkId !== undefined && this.user.permission !== 'admin') {
       if (resourceSet !== undefined) {
@@ -113,7 +113,10 @@ export async function set({
       currently_attached: attached,
       ipv4_allowed: newIpv4Addresses,
       ipv6_allowed: newIpv6Addresses,
-      locking_mode: lockingMode ?? vif.lockingMode,
+      // - If locking mode has explicitly passed: use it
+      // - Else if the network is changing: config it to 'network_default'
+      // - Else: use the old locking mode
+      locking_mode: lockingMode ?? (isNetworkChanged ? 'network_default' : vif.lockingMode),
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
       qos_algorithm_params: rateLimit != null ? { kbps: String(rateLimit) } : undefined,
       other_config: {
