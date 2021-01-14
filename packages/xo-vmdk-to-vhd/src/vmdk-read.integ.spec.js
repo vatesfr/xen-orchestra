@@ -25,6 +25,15 @@ function createFileAccessor(file) {
   }
 }
 
+function bufferToArray(buffer) {
+  const view = new DataView(buffer)
+  const res = []
+  for (let i = 0; i < buffer.byteLength; i += 4) {
+    res.push(view.getUint32(i, true))
+  }
+  return res
+}
+
 jest.setTimeout(10000)
 
 const initialDir = process.cwd()
@@ -48,8 +57,8 @@ test('VMDKDirectParser reads OK', async () => {
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
   const parser = new VMDKDirectParser(
     createReadStream(fileName),
-    data.grainLogicalAddressList,
-    data.grainFileOffsetList
+    bufferToArray(data.grainLogicalAddressList),
+    bufferToArray(data.grainFileOffsetList)
   )
   const header = await parser.readHeader()
   const harvested = []

@@ -54,7 +54,7 @@
     "@xen-orchestra/log": "^0.2.0",
     "async-iterator-to-stream": "^1.1.0",
     "lodash": "^4.17.19",
-    "promise-toolbox": "^0.15.0",
+    "promise-toolbox": "^0.16.0",
     "readable-stream": "^3.5.0",
     "xo-common": "^0.5.0"
   },
