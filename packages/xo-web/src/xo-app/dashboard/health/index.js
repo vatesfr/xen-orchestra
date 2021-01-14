@@ -80,7 +80,7 @@ const AlarmColPool = connectStore(() => ({
 const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
   {
     name: _('vifMacLabel'),
-    itemRenderer: macAddress => macAddress,
+    itemRenderer: macAddress => <pre>{macAddress}</pre>,
     sortCriteria: macAddress => macAddress,
   },
   {
@@ -581,7 +581,7 @@ export default class Health extends Component {
     )
   )
 
-  _getPoolIds = createSelector(() => this.state.pools, resolveIds)
+  _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
 
   _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
     isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
