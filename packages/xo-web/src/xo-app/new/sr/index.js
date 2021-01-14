@@ -240,7 +240,7 @@ export default class New extends Component {
       () => this.state.existingSrs,
       (hostSrs, existingSrs) => {
         if (existingSrs === undefined) {
-          return
+          return []
         }
 
         const usedSrs = []
