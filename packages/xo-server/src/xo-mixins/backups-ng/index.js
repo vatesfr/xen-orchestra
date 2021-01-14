@@ -309,8 +309,7 @@ const wrapTask = async <T>(opts: any, task: Promise<T>): Promise<T> => {
     result => {
       logger.error(message, {
         event: 'task.end',
-        // avoids "TypeError: Converting circular structure to JSON
-        result: util.inspect(result),
+        result: serializeError({ message: result.message }),
         status: 'failure',
         taskId,
       })
