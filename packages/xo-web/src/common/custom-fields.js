@@ -22,7 +22,7 @@ const DATE_FORMAT = 'YYYY-MM-DD'
 const PATTERN_DATE_TIME_UTC = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}Z$/
 const TIME_FORMAT = 'HH:mm:ss'
 
-const checkParamsAndcallMethod = (method, id, { date, isDate, name, text, time }) => {
+const checkParamsAndCallMethod = (method, id, { date, isDate, name, text, time }) => {
   name = name.trim()
   const value = isDate ? `${date} ${time}Z` : text.trim()
   if (name === '' || value === '') {
@@ -147,7 +147,7 @@ const CustomFields = decorate([
               <Icon icon='add' /> {_('addCustomField')}
             </span>
           ),
-        }).then(params => checkParamsAndcallMethod(addCustomField, id, params))
+        }).then(params => checkParamsAndCallMethod(addCustomField, id, params))
       },
       removeCustomField: (_, { currentTarget: { dataset } }) => (_, { object: { id } }) =>
         removeCustomField(id, dataset.name),
@@ -173,7 +173,7 @@ const CustomFields = decorate([
               <Icon icon='edit' /> {_('editCustomField')}
             </span>
           ),
-        }).then(params => checkParamsAndcallMethod(setCustomField, id, params))
+        }).then(params => checkParamsAndCallMethod(setCustomField, id, params))
       },
     },
     computed: {
