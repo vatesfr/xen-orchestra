@@ -109,7 +109,7 @@
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pretty-format": "^26.4.2",
-    "promise-toolbox": "^0.15.0",
+    "promise-toolbox": "^0.16.0",
     "proxy-agent": "^4.0.0",
     "pug": "^3.0.0",
     "pump": "^3.0.0",
