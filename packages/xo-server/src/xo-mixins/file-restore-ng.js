@@ -166,11 +166,7 @@ export default class BackupNgFileRestore {
   @defer
   async fetchBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, paths) {
     const app = this._app
-    const remote = await app.getRemoteWithCredentials(remoteId)
-
-    await app.assertEnabledRemote(remote)
-
-    const { proxy, url, options } = remote
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
       return app.callProxyMethod(
         proxy,
@@ -207,11 +203,7 @@ export default class BackupNgFileRestore {
   @defer
   async listBackupNgDiskPartitions($defer, remoteId, diskId) {
     const app = this._app
-    const remote = await app.getRemoteWithCredentials(remoteId)
-
-    await app.assertEnabledRemote(remote)
-
-    const { proxy, url, options } = remote
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
       const stream = await app.callProxyMethod(
         proxy,
@@ -241,11 +233,7 @@ export default class BackupNgFileRestore {
   @defer
   async listBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, path) {
     const app = this._app
-    const remote = await app.getRemoteWithCredentials(remoteId)
-
-    await app.assertEnabledRemote(remote)
-
-    const { proxy, url, options } = remote
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
       return app.callProxyMethod(proxy, 'backup.listPartitionFiles', {
         disk: diskId,

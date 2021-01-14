@@ -555,9 +555,6 @@ export default class BackupNg {
           await waitAll([
             asyncMap(remoteIds, async id => {
               const remote = await app.getRemoteWithCredentials(id)
-
-              await app.assertEnabledRemote(remote)
-
               if (remote.proxy !== proxyId) {
                 throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
               }
@@ -784,11 +781,7 @@ export default class BackupNg {
   async deleteVmBackupNg(id: string): Promise<void> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const remote = await app.getRemoteWithCredentials(remoteId)
-
-    await app.assertEnabledRemote(remote)
-
-    const { proxy, url, options } = remote
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
       await app.callProxyMethod(proxy, 'backup.deleteVmBackup', {
         filename: metadataFilename,
@@ -826,11 +819,7 @@ export default class BackupNg {
     const sr = xapi.getObject(srId)
 
     const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const remote = await app.getRemoteWithCredentials(remoteId)
-
-    await app.assertEnabledRemote(remote)
-
-    const { proxy, url, options } = remote
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
       const { allowUnauthorized, host, password, username } = await app.getXenServer(app.getXenServerIdByObject(sr.$id))
       return app.callProxyMethod(proxy, 'backup.importVmBackup', {
@@ -893,11 +882,7 @@ export default class BackupNg {
     const app = this._app
     const backupsByVm = {}
     try {
-      const remote = await app.getRemoteWithCredentials(remoteId)
-
-      await app.assertEnabledRemote(remote)
-
-      const { proxy, url, options } = remote
+      const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
       if (proxy !== undefined) {
         const { [remoteId]: backupsByVm } = await app.callProxyMethod(proxy, 'backup.listVmBackups', {
           remotes: {
