@@ -97,11 +97,6 @@ export async function set({
       }
     }
 
-    // - If locking mode has explicitly passed: use it
-    // - Else if the network is changing: config it to 'network_default'
-    // - Else: use the old locking mode
-    lockingMode = lockingMode ?? (isNetworkChanged ? 'network_default' : vif.lockingMode)
-
     const xapi = this.getXapi(vif)
 
     const vm = xapi.getObject(vif.$VM)
@@ -118,7 +113,10 @@ export async function set({
       currently_attached: attached,
       ipv4_allowed: newIpv4Addresses,
       ipv6_allowed: newIpv6Addresses,
-      locking_mode: lockingMode,
+      // - If locking mode has explicitly passed: use it
+      // - Else if the network is changing: config it to 'network_default'
+      // - Else: use the old locking mode
+      locking_mode: lockingMode ?? (isNetworkChanged ? 'network_default' : vif.lockingMode),
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
       qos_algorithm_params: rateLimit != null ? { kbps: String(rateLimit) } : undefined,
       other_config: {
