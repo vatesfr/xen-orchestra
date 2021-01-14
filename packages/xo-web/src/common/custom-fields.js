@@ -22,7 +22,7 @@ const DATE_FORMAT = 'YYYY-MM-DD'
 const PATTERN_DATE_TIME_UTC = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}Z$/
 const TIME_FORMAT = 'HH:mm:ss'
 
-const call = (method, id, { date, isDate, name, text, time }) => {
+const checkParamsAndcallMethod = (method, id, { date, isDate, name, text, time }) => {
   name = name.trim()
   const value = isDate ? `${date} ${time}Z` : text.trim()
   if (name === '' || value === '') {
@@ -56,10 +56,10 @@ const CustomFieldModal = decorate([
       <SingleLineRow>
         <Col size={6}>{_('date')}</Col>
         <Col size={6}>
-          <Toggle onChange={effects.toggleDate} value={value.isDate} disabled={update} />
+          <Toggle onChange={effects.toggleDate} value={value.isDate} />
         </Col>
       </SingleLineRow>
-      <SingleLineRow>
+      <SingleLineRow className='mt-1'>
         <Col size={6}>{_('name')}</Col>
         <Col size={6}>
           <input
@@ -77,9 +77,7 @@ const CustomFieldModal = decorate([
       {value.isDate ? (
         [
           <SingleLineRow className='mt-1' key='date'>
-            <Col size={6}>
-              {_('date')} {_('utc')}
-            </Col>
+            <Col size={6}>{_('utcDate')}</Col>
             <Col size={6}>
               <input
                 className='form-control'
@@ -93,9 +91,7 @@ const CustomFieldModal = decorate([
             </Col>
           </SingleLineRow>,
           <SingleLineRow className='mt-1' key='time'>
-            <Col size={6}>
-              {_('time')} {_('utc')}
-            </Col>
+            <Col size={6}>{_('utcTime')}</Col>
             <Col size={6}>
               <input
                 className='form-control'
@@ -151,7 +147,7 @@ const CustomFields = decorate([
               <Icon icon='add' /> {_('addCustomField')}
             </span>
           ),
-        }).then(params => call(addCustomField, id, params))
+        }).then(params => checkParamsAndcallMethod(addCustomField, id, params))
       },
       removeCustomField: (_, { currentTarget: { dataset } }) => (_, { object: { id } }) =>
         removeCustomField(id, dataset.name),
@@ -177,7 +173,7 @@ const CustomFields = decorate([
               <Icon icon='edit' /> {_('editCustomField')}
             </span>
           ),
-        }).then(params => call(setCustomField, id, params))
+        }).then(params => checkParamsAndcallMethod(setCustomField, id, params))
       },
     },
     computed: {
@@ -195,7 +191,7 @@ const CustomFields = decorate([
           const name = key.substring(CUSTOM_FIELDS_KEY_PREFIX.length)
           return (
             <div className='mb-1' key={key}>
-              {`${name}: ${value} `}
+              {_('keyValue', { key: name, value })}{' '}
               <ActionButton
                 btnStyle='primary'
                 data-name={name}
