@@ -86,6 +86,7 @@
     "iterable-backoff": "^0.1.0",
     "jest-worker": "^26.3.0",
     "js-yaml": "^3.10.0",
+    "json-stringify-safe": "^5.0.1",
     "json-rpc-peer": "^0.17.0",
     "json5": "^2.0.1",
     "kindof": "^2.0.0",
