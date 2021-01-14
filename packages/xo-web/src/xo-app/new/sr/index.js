@@ -257,7 +257,7 @@ export default class New extends Component {
 
   getUnusedSrs = createFilter(
     () => this.state.existingSrs,
-    createSelector(this.getUsedSrs, usedSrs => existingSr => !(existingSr.uuid in usedSrs))
+    createSelector(this.getUsedSrs, usedSrs => existingSr => !usedSrs.some(sr => sr.uuid === existingSr.uuid))
   )
 
   _handleSubmit = async srUuid => {
