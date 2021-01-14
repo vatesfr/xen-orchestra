@@ -33,7 +33,7 @@ const shallowEqual = (c1, c2) => {
     }
 
     for (const v of c1) {
-      if (c2.has(v)) {
+      if (!c2.has(v)) {
         return false
       }
     }
