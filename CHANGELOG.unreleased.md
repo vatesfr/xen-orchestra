@@ -9,6 +9,8 @@
 
 - [Web hooks] Possibility to wait a response from the server before continuing [#4948](https://github.com/vatesfr/xen-orchestra/issues/4948) (PR [#5420](https://github.com/vatesfr/xen-orchestra/pull/5420))
 - [XOA/update] Add a link to the channel's changelog (PR [#5494](https://github.com/vatesfr/xen-orchestra/pull/5494))
+- Assign custom date-time fields on pools, hosts, SRs, and VMs in advanced tab [#4730](https://github.com/vatesfr/xen-orchestra/issues/4730) (PR [#5473](https://github.com/vatesfr/xen-orchestra/pull/5473))
+- [Health] Show duplicated MAC addresses with their VIFs, VMs and networks [#5448](https://github.com/vatesfr/xen-orchestra/issues/5448) (PR [#5468](https://github.com/vatesfr/xen-orchestra/pull/5468))
 
 ### Bug fixes
 
@@ -17,6 +19,8 @@
 - [VM/network] Change VIF's locking mode automatically to `locked` when adding allowed IPs (PR [#5472](https://github.com/vatesfr/xen-orchestra/pull/5472))
 - [Backup Reports] Don't hide errors during plugin test [#5486](https://github.com/vatesfr/xen-orchestra/issues/5486) (PR [#5491](https://github.com/vatesfr/xen-orchestra/pull/5491))
 - [Backup reports] Fix malformed sent email in case of multiple VMs (PR [#5479](https://github.com/vatesfr/xen-orchestra/pull/5479))
+- [Restore/metadata] Ignore disabled remotes on listing backups (PR [#5504](https://github.com/vatesfr/xen-orchestra/pull/5504))
+- [VM/network] Change VIF's locking mode automatically to `network_default` when changing network (PR [#5500](https://github.com/vatesfr/xen-orchestra/pull/5500))
 
 ### Packages to release
 
