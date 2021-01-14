@@ -37,7 +37,7 @@
     "exec-promise": "^0.7.0",
     "inquirer": "^7.0.0",
     "ldapts": "^2.2.1",
-    "promise-toolbox": "^0.15.0"
+    "promise-toolbox": "^0.16.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
