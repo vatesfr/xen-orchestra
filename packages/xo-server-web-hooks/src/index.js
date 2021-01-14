@@ -6,14 +6,17 @@ function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
     return Promise.all(
-      hooks.map(({ url }) =>
-        this._makeRequest(url, type, data).catch(error => {
+      hooks.map(({ url, waitForResponse = false }) => {
+        const promise = this._makeRequest(url, type, data).catch(error => {
           log.error('web hook failed', {
             error,
             webHook: { ...data, url, type },
           })
         })
-      )
+        if (waitForResponse && type === 'pre') {
+          return promise
+        }
+      })
     )
   }
 }
@@ -48,7 +51,8 @@ class XoServerHooks {
     //       {
     //         method: 'vm.start',
     //         type: 'pre',
-    //         url: 'https://my-domain.net/xo-hooks?action=vm.start'
+    //         url: 'https://my-domain.net/xo-hooks?action=vm.start',
+    //         waitForResponse: false
     //       },
     //       ...
     //     ],
@@ -138,6 +142,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             // configuration schema: https://i.imgur.com/CpvAwPM.png
             title: 'URL',
             type: 'string',
+          },
+          waitForResponse: {
+            description: 'Waiting for the server response before executing the call. Only available on "PRE" type',
+            title: 'Wait for response',
+            type: 'boolean',
           },
         },
         required: ['method', 'type', 'url'],

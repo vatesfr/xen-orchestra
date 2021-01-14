@@ -48,6 +48,53 @@ LDAP Filters allow you to properly match your user. It's not an easy task to alw
 
 After finishing the configuration, you can try to log in with your LDAP username and password. Finally, right after your initial successful log in, your account will be visible in the user list of Xen Orchestra.
 
+#### Groups
+
+The LDAP plugin allows you to synchronize user groups. To configure the synchronization, check the checkbox next to **Synchronize groups** and fill out the configuration:
+
+![LDAP plugin group settings](./assets/ldapgroupconfig.png)
+
+- **Base and filter**: similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
+- **ID attribute**: the attribute that the plugin will use to uniquely identify each group. It must be unique across groups and must not change over time. On each synchronization, the plugin will compare LDAP groups with XO groups, then try to match them based on this attribute and create/update XO groups if necessary.
+- **Display name attribute**: the attribute that will be used as the group's name in XO.
+- **Members mapping**: this part of the configuration is used to determine which LDAP users belong to which LDAP groups. Given an LDAP directory that looks like this:
+
+User:
+
+```
+objectClass: Person
+cn: Bruce Wayne
+uid: 347
+...
+```
+
+Group:
+
+```
+objectClass: Group
+cn: heroes
+displayName: Heroes
+gid: 456
+member: 347
+member: 348
+...
+```
+
+The plugin needs to know that Bruce Wayne belongs to the heroes group. To do so, you need to set 2 entries in the configuration:
+
+- **Group attribute**, which is the name of the *group* attribute that is used to list users within a group. In this example, it would be `member`.
+- **User attribute**, which is the name of the *user* attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
+
+Save the configuration and you're good to go. From now on, every time an LDAP user logs into XO, the plugin will automatically create or update that user's groups and add them to those groups. If you need to import all the groups at once, you can do so from Settings > Groups > Synchronize LDAP Groups. This can be useful if you want to assign ACLs on groups without having to wait for a member of the group to log in.
+
+:::tip
+Importing the groups doesn't import their members. The users will still be imported one by one when they log in for the first time.
+:::
+
+:::tip
+You can find the LDAP users by entering this filter in the users table: `authProviders:ldap?`.
+:::
+
 ### SAML
 
 This plugin allows SAML users to authenticate to Xen-Orchestra.

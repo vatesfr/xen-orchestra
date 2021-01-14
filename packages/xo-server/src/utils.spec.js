@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { camelToSnakeCase, diffItems, extractProperty, formatXml, generateToken, parseSize, pSettle } from './utils'
+import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, pSettle } from './utils'
 
 // ===================================================================
 
@@ -44,23 +44,6 @@ describe('extractProperty()', function () {
 
     expect(extractProperty(obj, 'prop')).toBe(value)
     expect(obj.prop).not.toBeDefined()
-  })
-})
-
-// -------------------------------------------------------------------
-
-describe('formatXml()', function () {
-  it('formats a JS object to an XML string', function () {
-    expect(
-      formatXml({
-        foo: {
-          bar: [{ $: { baz: 'plop' } }, { $: { baz: 'plip' } }],
-        },
-      })
-    ).toBe(`<foo>
-  <bar baz="plop"/>
-  <bar baz="plip"/>
-</foo>`)
   })
 })
 

@@ -99,6 +99,18 @@ Putting it altogether and putting our values and UUID's into the command, it wil
 xo-cr-seed https://root:password@xen1.company.tld 4a21c1cd-e8bd-4466-910a-f7524ecc07b1 https://root:password@xen2.company.tld 5aaf86ca-ae06-4a4e-b6e1-d04f0609e64d 90d11a94-a88f-4a84-b7c1-ed207d3de2f9 369a26f0-da77-41ab-a998-fa6b02c69b9a
 ```
 
+:::warning
+If the username or the password for your XCP-ng/XenServer hosts contains special characters, they must use [percent encoding](https://en.wikipedia.org/wiki/Percent-encoding).
+
+An easy way to do this with Node in command line:
+
+```
+> node -p 'encodeURIComponent(process.argv[1])' -- 'password with special chars :#@'
+password%20with%20special%20chars%20%3A%23%40
+```
+
+:::
+
 ### Finished
 
 Your backup job should now be working correctly! Manually run the job the first time to check if everything is OK. Then, enable the job. **Now, only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**

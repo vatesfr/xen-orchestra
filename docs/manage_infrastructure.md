@@ -422,6 +422,29 @@ It works even if the VM is running, because we'll automatically export a snapsho
 
 In the VM "Snapshots" tab, you can also export a snapshot like you export a VM.
 
+## Hosts management
+
+Outside updates (see next section), you can also do host management via Xen Orchestra. Basic operations are supported, like reboot, shutdown and so on.
+
+But there's also some specific things, like Maintenance mode.
+
+### Maintenance mode
+
+:::warning
+If you are using HA, maintenance mode will be required before doing any reboot or update. NEVER forget to enable maintenance in HA!
+:::
+
+Maintenance mode will trigger two actions internally:
+
+* disabling the host (no new VMs could start on it)
+* evacuate VMs that can be evacuated ("agile" VMs, which could be live migrated)
+
+It's perfect if you want to shutdown the host for hardware replacement, or if you want to do some other operations without disrupting your production.
+
+![](./assets/maintenancemode.png)
+
+Note that maintenance mode will be **automatically exited after a host reboot**.
+
 ## Hosts updates
 
 Patching a host manually can be time consuming (and boring). That's why we provide the high level feature of downloading and applying all missing patches automatically.
