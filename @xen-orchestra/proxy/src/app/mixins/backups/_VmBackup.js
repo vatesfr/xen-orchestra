@@ -81,6 +81,14 @@ export class VmBackup {
     // Settings for this specific run (job, schedule, VM)
     this._settings = settings
 
+    if(this.vm.tags.includes('xo-offline-backup')){
+      this._settings.offlineSnapshot = true
+    }
+
+    if(this.vm.tags.includes('xo-memory-backup')){
+      this._settings.checkpointSnapshot = true
+    }
+
     // Create writers
     {
       const writers = []
