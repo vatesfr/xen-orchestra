@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Host/stats] Show interfaces name in the graph `Network throughput` instead of a preformatted pif numbering [PR [#5483](https://github.com/vatesfr/xen-orchestra/pull/5483)]
+- [Host/stats] Show interfaces' names in graph "Network throughput" instead of PIFs' indices (PR [#5483](https://github.com/vatesfr/xen-orchestra/pull/5483))
 
 ### Bug fixes
 
