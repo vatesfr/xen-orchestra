@@ -12,7 +12,7 @@ import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
-import { getDefaultNetworkForVif, getDefaultNetworkMigration } from '../utils'
+import { getDefaultNetworkForVif, getDefaultMigrationNetwork } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
 import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
 
@@ -163,7 +163,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         host,
         intraPool,
         mapVifsNetworks: undefined,
-        migrationNetworkId: getDefaultNetworkMigration(host, pools, pifs),
+        migrationNetworkId: getDefaultMigrationNetwork(host, pools, pifs),
         targetSrs: {},
       })
       return
@@ -190,7 +190,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       host,
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
-      migrationNetworkId: getDefaultNetworkMigration(host, pools, pifs),
+      migrationNetworkId: getDefaultMigrationNetwork(host, pools, pifs),
       targetSrs: { mainSr: pools[host.$pool].default_SR },
     })
   }

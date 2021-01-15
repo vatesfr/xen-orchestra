@@ -12,7 +12,7 @@ import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
-import { flatMap, map } from 'lodash'
+import { map } from 'lodash'
 import { Text, XoSelect } from 'editable'
 import {
   createGetObject,
@@ -63,14 +63,19 @@ class PoolMaster extends Component {
       .filter((_, { pool }) => ({ $pool: pool.id }))
       .sort(),
     migrationNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:migrationNetwork']),
-    pifsWithIps: createGetObjectsOfType('PIF')
-      .pick((_, { networks }) => flatMap(networks, 'PIFs'))
-      .filter([pif => pif.ip !== '']),
   }
 })
 export default class TabAdvanced extends Component {
   _getMigrationNetworkPredicate = createSelector(
-    createCollectionWrapper(() => new Set(map(this.props.pifsWithIps, '$network').sort())),
+    createCollectionWrapper(() => {
+      const networkIds = new Set()
+      this.props.pifs.forEach(pif => {
+        if (pif.ip !== '') {
+          networkIds.add(pif.$network)
+        }
+      })
+      return networkIds
+    }),
     networkIds => network => networkIds.has(network.id)
   )
 

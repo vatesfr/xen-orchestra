@@ -11,6 +11,7 @@ import { editPool } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, routes } from 'utils'
 import { createGetObject, createGetObjectMessages, createGetObjectsOfType, createSelector } from 'selectors'
+import { flatMap } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabGeneral from './tab-general'
@@ -36,6 +37,10 @@ import TabPatches from './tab-patches'
 
   const getNetworks = createGetObjectsOfType('network')
     .filter(createSelector(getPool, ({ id }) => network => network.$pool === id))
+    .sort()
+
+  const getPifs = createGetObjectsOfType('PIF')
+    .pick(createSelector(getNetworks, networks => flatMap(networks, 'PIFs')))
     .sort()
 
   const getHosts = createGetObjectsOfType('host')
@@ -64,6 +69,7 @@ import TabPatches from './tab-patches'
       master: getMaster(state, props),
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
+      pifs: getPifs(state, props),
       pool,
       srs: getPoolSrs(state, props),
     }
@@ -119,7 +125,9 @@ export default class Pool extends Component {
     if (!pool) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = Object.assign(pick(this.props, ['hosts', 'logs', 'master', 'networks', 'nVms', 'pool', 'srs']))
+    const childProps = Object.assign(
+      pick(this.props, ['hosts', 'logs', 'master', 'networks', 'nVms', 'pifs', 'pool', 'srs'])
+    )
     return (
       <Page header={this.header()} title={pool.name_label}>
         {cloneElement(this.props.children, childProps)}

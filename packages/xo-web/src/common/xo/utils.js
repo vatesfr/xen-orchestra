@@ -24,7 +24,7 @@ export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
   return destNetworkId
 }
 
-export const getDefaultNetworkMigration = (destHost, pools, pifs) => {
+export const getDefaultMigrationNetwork = (destHost, pools, pifs) => {
   const migrationNetwork = pools[destHost.$pool].otherConfig['xo:migrationNetwork']
   let defaultPif
   return defined(
