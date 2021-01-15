@@ -316,3 +316,12 @@ This is how it currently works in Xen Orchestra. But sometimes, you also want to
 :::
 
 If you job contains 50 VMs for example, you could specify a sequential backup with a limit of "25 at once" (enter 25 in the concurrency field). This means at 3 AM, we'll do 25 snapshots (2 at a time), then exports. As soon as the first VM backup is completely finished (snapshot removed), then we'll start the 26th and so on, to always keep a max of 25x VM backups going in parallel.
+
+## Backup modifier tags
+
+When a backup job is configured using Normal snapshot mode, it's possible to use VM tags to apply a different snapshot mode to individual VMs.
+
+- **xo-offline-backup** to apply offline snapshotting mode (VM with be shut down prior to snapshot)
+- **xo-memory-backup** to apply RAM-enabled snapshotting
+
+For example, you could have a regular backup job with 10 VMs configured with Normal snapshotting, including two which are database servers. Since database servers are generally more sensitive to being restored from snapshots, you could apply the **xo-memory-backup** tag to those two VMs and only those will be backed up in RAM-enabled mode. This will avoid the need to manage a separate backup job and schedule.
