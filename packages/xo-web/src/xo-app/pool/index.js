@@ -3,6 +3,7 @@ import Copiable from 'copiable'
 import Icon from 'icon'
 import PoolActionBar from './action-bar'
 import Page from '../page'
+import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
@@ -10,7 +11,6 @@ import { editPool } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, routes } from 'utils'
 import { createGetObject, createGetObjectMessages, createGetObjectsOfType, createSelector } from 'selectors'
-import { flatMap, pick } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabGeneral from './tab-general'
@@ -39,7 +39,7 @@ import TabPatches from './tab-patches'
     .sort()
 
   const getPifs = createGetObjectsOfType('PIF')
-    .pick(createSelector(getNetworks, networks => flatMap(networks, 'PIFs')))
+    .filter(createSelector(getPool, ({ id }) => _ => _.$pool === id))
     .sort()
 
   const getHosts = createGetObjectsOfType('host')
