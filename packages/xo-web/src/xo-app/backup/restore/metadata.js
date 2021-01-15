@@ -10,16 +10,11 @@ import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { flatMap, forOwn, reduce, toArray } from 'lodash'
+import { filter, flatMap, forOwn, reduce } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { noop } from 'utils'
-import {
-  deleteMetadataBackups,
-  listMetadataBackups,
-  restoreMetadataBackup,
-  subscribeRemotes,
-} from 'xo'
+import { deleteMetadataBackups, listMetadataBackups, restoreMetadataBackup, subscribeRemotes } from 'xo'
 
 import Logs from '../../logs/restore-metadata'
 
@@ -49,21 +44,9 @@ const bulkRestore = entries => {
   const nMetadataBackups = entries.length
   return confirm({
     title: _('bulkRestoreMetadataBackupTitle', { nMetadataBackups }),
-    body: (
-      <RestoreMetadataBackupsBulkModalBody
-        nMetadataBackups={nMetadataBackups}
-      />
-    ),
+    body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} />,
     icon: 'restore',
-  }).then(
-    latest =>
-      Promise.all(
-        entries.map(({ first, last }) =>
-          restoreMetadataBackup(latest ? last : first)
-        )
-      ),
-    noop
-  )
+  }).then(latest => Promise.all(entries.map(({ first, last }) => restoreMetadataBackup(latest ? last : first))), noop)
 }
 
 const delete_ = entry =>
@@ -89,17 +72,10 @@ const bulkDelete = entries => {
     strongConfirm: {
       messageId: 'bulkDeleteMetadataBackupsConfirmText',
       values: {
-        nMetadataBackups: reduce(
-          entries,
-          (sum, entry) => sum + entry.backups.length,
-          0
-        ),
+        nMetadataBackups: reduce(entries, (sum, entry) => sum + entry.backups.length, 0),
       },
     },
-  }).then(
-    () => deleteMetadataBackups(flatMap(entries, ({ backups }) => backups)),
-    noop
-  )
+  }).then(() => deleteMetadataBackups(flatMap(entries, ({ backups }) => backups)), noop)
 }
 
 // ---------------------------------------------------------------------------
@@ -174,7 +150,7 @@ export default decorate([
   addSubscriptions({
     remotes: cb =>
       subscribeRemotes(remotes => {
-        cb(toArray(remotes))
+        cb(filter(remotes, { enabled: true }))
       }),
   }),
   provideState({
@@ -193,12 +169,11 @@ export default decorate([
       // }
       async backups(_, { remotes = [] }) {
         if (remotes.length === 0) {
-          return
+          // NoObjects displays a spinner when collection is undefined
+          return {}
         }
 
-        const { xo: xoType, pool: poolType } = await listMetadataBackups(
-          remotes
-        )
+        const { xo: xoType, pool: poolType } = await listMetadataBackups(remotes)
 
         const collection = {}
         forOwn(xoType, entries =>

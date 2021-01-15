@@ -123,16 +123,12 @@ handlers.forEach(url => {
 
       it('can prepend the directory to entries', async () => {
         await handler.outputFile('dir/file', '')
-        expect(await handler.list('dir', { prependDir: true })).toEqual([
-          '/dir/file',
-        ])
+        expect(await handler.list('dir', { prependDir: true })).toEqual(['/dir/file'])
       })
 
       it('can prepend the directory to entries', async () => {
         await handler.outputFile('dir/file', '')
-        expect(await handler.list('dir', { prependDir: true })).toEqual([
-          '/dir/file',
-        ])
+        expect(await handler.list('dir', { prependDir: true })).toEqual(['/dir/file'])
       })
     })
 
@@ -305,10 +301,7 @@ handlers.forEach(url => {
             return { offset, expected }
           })(),
           'increase file size': (() => {
-            const offset = random(
-              TEST_DATA_LEN - PATCH_DATA_LEN + 1,
-              TEST_DATA_LEN
-            )
+            const offset = random(TEST_DATA_LEN - PATCH_DATA_LEN + 1, TEST_DATA_LEN)
 
             const expected = Buffer.alloc(offset + PATCH_DATA_LEN)
             TEST_DATA.copy(expected)

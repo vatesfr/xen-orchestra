@@ -36,11 +36,7 @@ export default class Collection extends EventEmitter {
     }
 
     const { Model } = this
-    map(
-      models,
-      model => (model instanceof Model ? model.properties : model),
-      models
-    )
+    map(models, model => (model instanceof Model ? model.properties : model), models)
 
     models = await this._add(models, opts)
     this.emit('add', models)

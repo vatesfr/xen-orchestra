@@ -8,17 +8,13 @@ import { isLatestXosanPackInstalled, connectStore, findLatestPack } from 'utils'
 
 @connectStore(
   {
-    hosts: createGetObjectsOfType('host').filter((_, { pool }) => host =>
-      host.$pool === pool.id
-    ),
+    hosts: createGetObjectsOfType('host').filter((_, { pool }) => host => host.$pool === pool.id),
   },
   { withRef: true }
 )
 export default class UpdateXosanPacksModal extends Component {
   componentDidMount() {
-    this.componentWillUnmount = subscribeResourceCatalog(catalog =>
-      this.setState({ catalog })
-    )
+    this.componentWillUnmount = subscribeResourceCatalog(catalog => this.setState({ catalog }))
   }
 
   get value() {

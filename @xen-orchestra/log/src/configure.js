@@ -47,10 +47,7 @@ const createTransport = config => {
   return transport
 }
 
-const symbol =
-  typeof Symbol !== 'undefined'
-    ? Symbol.for('@xen-orchestra/log')
-    : '@@@xen-orchestra/log'
+const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 
 const { env } = process
 global[symbol] = createTransport({

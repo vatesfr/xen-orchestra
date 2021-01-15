@@ -55,9 +55,7 @@ const FETCH_FN_BY_TYPE = {
 }
 
 const keepNLastItems = (stats, n) =>
-  Array.isArray(stats)
-    ? stats.splice(0, stats.length - n)
-    : forOwn(stats, metrics => keepNLastItems(metrics, n))
+  Array.isArray(stats) ? stats.splice(0, stats.length - n) : forOwn(stats, metrics => keepNLastItems(metrics, n))
 
 export const fetchStats = async (objOrId, type, { granularity, keep }) => {
   const stats = await FETCH_FN_BY_TYPE[type](objOrId, granularity)

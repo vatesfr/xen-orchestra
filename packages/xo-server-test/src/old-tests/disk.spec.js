@@ -25,10 +25,7 @@ describe('disk', () => {
     xo = await getMainConnection()
 
     const config = await getConfig()
-    serverId = await xo.call(
-      'server.add',
-      Object.assign({ autoConnect: false }, config.xenServer1)
-    )
+    serverId = await xo.call('server.add', Object.assign({ autoConnect: false }, config.xenServer1))
     await xo.call('server.connect', { id: serverId })
     await eventToPromise(xo.objects, 'finish')
     srId = await getSrId(xo)
@@ -37,9 +34,7 @@ describe('disk', () => {
   // -----------------------------------------------------------------
 
   afterEach(async () => {
-    await Promise.all(
-      map(diskIds, diskId => xo.call('vdi.delete', { id: diskId }))
-    )
+    await Promise.all(map(diskIds, diskId => xo.call('vdi.delete', { id: diskId })))
     diskIds = []
   })
 

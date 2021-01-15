@@ -39,9 +39,7 @@ CardHeader.propTypes = {
   className: PropTypes.string,
 }
 
-export const CardBlock = ({ children, className }) => (
-  <div className={`card-block ${className || ''}`}>{children}</div>
-)
+export const CardBlock = ({ children, className }) => <div className={`card-block ${className || ''}`}>{children}</div>
 
 CardBlock.propTypes = {
   className: PropTypes.string,

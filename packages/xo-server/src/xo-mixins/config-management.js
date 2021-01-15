@@ -38,9 +38,7 @@ export default class ConfigManagement {
       managers = subset
     }
 
-    let config = JSON.stringify(
-      await mapValues(managers, ({ exporter }, key) => exporter())::pAll()
-    )
+    let config = JSON.stringify(await mapValues(managers, ({ exporter }, key) => exporter())::pAll())
 
     if (passphrase !== undefined) {
       config = Buffer.from(

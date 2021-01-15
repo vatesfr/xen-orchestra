@@ -31,15 +31,10 @@ function createFileAccessor(file) {
       start = start < 0 ? fileLength + start : start
       end = end < 0 ? fileLength + end : end
     }
-    const result = await getStream.buffer(
-      createReadStream(file, { start, end: end - 1 })
-    )
+    const result = await getStream.buffer(createReadStream(file, { start, end: end - 1 }))
     // crazy stuff to get a browser-compatible ArrayBuffer from a node buffer
     // https://stackoverflow.com/a/31394257/72637
-    return result.buffer.slice(
-      result.byteOffset,
-      result.byteOffset + result.byteLength
-    )
+    return result.buffer.slice(result.byteOffset, result.byteOffset + result.byteLength)
   }
 }
 
@@ -51,43 +46,18 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
   const reconvertedFromVmdk = 'from-vhd-by-vbox.raw'
   const dataSize = 100 * 1024 * 1024 // this number is an integer head/cylinder/count equation solution
   try {
-    await execa(
-      'base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName,
-      [],
-      { shell: true }
-    )
-    await execa(
-      'python /usr/share/pyshared/VMDKstream.py ' +
-        inputRawFileName +
-        ' ' +
-        vmdkFileName,
-      [],
-      { shell: true }
-    )
+    await execa('base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName, [], { shell: true })
+    await execa('python /usr/share/pyshared/VMDKstream.py ' + inputRawFileName + ' ' + vmdkFileName, [], {
+      shell: true,
+    })
     const result = await readVmdkGrainTable(createFileAccessor(vmdkFileName))
     const pipe = (
-      await vmdkToVhd(
-        createReadStream(vmdkFileName),
-        result.grainLogicalAddressList,
-        result.grainFileOffsetList
-      )
+      await vmdkToVhd(createReadStream(vmdkFileName), result.grainLogicalAddressList, result.grainFileOffsetList)
     ).pipe(createWriteStream(vhdFileName))
     await eventToPromise(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
-    await execa('qemu-img', [
-      'convert',
-      '-fvmdk',
-      '-Oraw',
-      vmdkFileName,
-      reconvertedFromVmdk,
-    ])
-    await execa('qemu-img', [
-      'convert',
-      '-fvpc',
-      '-Oraw',
-      vhdFileName,
-      reconvertedFromVhd,
-    ])
+    await execa('qemu-img', ['convert', '-fvmdk', '-Oraw', vmdkFileName, reconvertedFromVmdk])
+    await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdFileName, reconvertedFromVhd])
     await execa('qemu-img', ['compare', inputRawFileName, vhdFileName])
     await execa('qemu-img', ['compare', vmdkFileName, vhdFileName])
   } catch (error) {

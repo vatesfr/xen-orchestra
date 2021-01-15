@@ -161,10 +161,7 @@ describe('user', () => {
         await testConnection({
           credentials: {
             email: data.email === undefined ? SIMPLE_USER.email : data.email,
-            password:
-              data.password === undefined
-                ? SIMPLE_USER.password
-                : data.password,
+            password: data.password === undefined ? SIMPLE_USER.password : data.password,
           },
         })
       }
@@ -189,9 +186,7 @@ describe('user', () => {
         })
         await xo.createTempUser(SIMPLE_USER)
 
-        await testWithOtherConnection(SIMPLE_USER, xo =>
-          expect(xo.call('user.set', data)).rejects.toMatchSnapshot()
-        )
+        await testWithOtherConnection(SIMPLE_USER, xo => expect(xo.call('user.set', data)).rejects.toMatchSnapshot())
       }
     )
 
@@ -208,9 +203,7 @@ describe('user', () => {
         const id = await xo.createTempUser(data)
         const { email, password } = data
         await testWithOtherConnection({ email, password }, xo =>
-          expect(
-            xo.call('user.set', { id, permission: 'user' })
-          ).rejects.toMatchSnapshot()
+          expect(xo.call('user.set', { id, permission: 'user' })).rejects.toMatchSnapshot()
         )
       }
     )
@@ -248,9 +241,7 @@ describe('user', () => {
     })
 
     it('fails trying to delete a user with a nonexistent user', async () => {
-      await expect(
-        xo.call('user.delete', { id: 'nonexistentId' })
-      ).rejects.toMatchSnapshot()
+      await expect(xo.call('user.delete', { id: 'nonexistentId' })).rejects.toMatchSnapshot()
     })
 
     it('fails trying to delete itself', async () => {

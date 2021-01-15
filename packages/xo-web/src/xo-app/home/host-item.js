@@ -12,20 +12,8 @@ import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import {
-  addTag,
-  editHost,
-  fetchHostStats,
-  removeTag,
-  startHost,
-  stopHost,
-} from 'xo'
-import {
-  connectStore,
-  formatSizeShort,
-  hasLicenseRestrictions,
-  osFamily,
-} from 'utils'
+import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost } from 'xo'
+import { connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetHostState,
@@ -58,24 +46,15 @@ export default class HostItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _fetchStats = () => fetchHostStats(this.props.item.id)
   _removeTag = tag => removeTag(this.props.item.id, tag)
-  _setNameDescription = nameDescription =>
-    editHost(this.props.item, { name_description: nameDescription })
-  _setNameLabel = nameLabel =>
-    editHost(this.props.item, { name_label: nameLabel })
+  _setNameDescription = nameDescription => editHost(this.props.item, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editHost(this.props.item, { name_label: nameLabel })
   _start = () => startHost(this.props.item)
   _stop = () => stopHost(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
   render() {
-    const {
-      container,
-      expandAll,
-      item: host,
-      nVms,
-      selected,
-      state,
-    } = this.props
+    const { container, expandAll, item: host, nVms, selected, state } = this.props
 
     return (
       <div className={styles.item}>
@@ -83,12 +62,7 @@ export default class HostItem extends Component {
           <SingleLineRow>
             <Col smallSize={10} mediumSize={9} largeSize={3}>
               <EllipsisContainer>
-                <input
-                  type='checkbox'
-                  checked={selected}
-                  onChange={this._onSelect}
-                  value={host.id}
-                />
+                <input type='checkbox' checked={selected} onChange={this._onSelect} value={host.id} />
                 &nbsp;&nbsp;
                 <Tooltip
                   content={
@@ -108,17 +82,11 @@ export default class HostItem extends Component {
                 </Tooltip>
                 &nbsp;&nbsp;
                 <Ellipsis>
-                  <Text
-                    value={host.name_label}
-                    onChange={this._setNameLabel}
-                    useLongClick
-                  />
+                  <Text value={host.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
                 &nbsp;
                 {container && host.id === container.master && (
-                  <span className='tag tag-pill tag-info'>
-                    {_('pillMaster')}
-                  </span>
+                  <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
                 )}
                 &nbsp;
                 {this.props.needsRestart && (
@@ -171,17 +139,9 @@ export default class HostItem extends Component {
                     </span>
                   )}
                 </span>
-                <Icon
-                  className='text-info'
-                  icon={host.os_version && osFamily(host.os_version.distro)}
-                  fixedWidth
-                />{' '}
+                <Icon className='text-info' icon={host.os_version && osFamily(host.os_version.distro)} fixedWidth />{' '}
                 <Ellipsis>
-                  <Text
-                    value={host.name_description}
-                    onChange={this._setNameDescription}
-                    useLongClick
-                  />
+                  <Text value={host.name_description} onChange={this._setNameDescription} useLongClick />
                 </Ellipsis>
               </EllipsisContainer>
             </Col>
@@ -189,9 +149,7 @@ export default class HostItem extends Component {
               <span>
                 <Tooltip
                   content={_('memoryLeftTooltip', {
-                    used: Math.round(
-                      (host.memory.usage / host.memory.size) * 100
-                    ),
+                    used: Math.round((host.memory.usage / host.memory.size) * 100),
                     free: formatSizeShort(host.memory.size - host.memory.usage),
                   })}
                 >
@@ -209,20 +167,11 @@ export default class HostItem extends Component {
             </Col>
             {container && (
               <Col mediumSize={2} className='hidden-sm-down'>
-                <Link to={`/${container.type}s/${container.id}`}>
-                  {container.name_label}
-                </Link>
+                <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
               </Col>
             )}
-            <Col
-              mediumSize={1}
-              offset={container ? undefined : 2}
-              className={styles.itemExpandRow}
-            >
-              <a
-                className={styles.itemExpandButton}
-                onClick={this._toggleExpanded}
-              >
+            <Col mediumSize={1} offset={container ? undefined : 2} className={styles.itemExpandRow}>
+              <a className={styles.itemExpandButton} onClick={this._toggleExpanded}>
                 <Icon icon='nav' fixedWidth />
                 &nbsp;&nbsp;&nbsp;
               </a>
@@ -231,25 +180,15 @@ export default class HostItem extends Component {
         </BlockLink>
         {(this.state.expanded || expandAll) && (
           <Row>
-            <Col
-              mediumSize={2}
-              className={styles.itemExpanded}
-              style={{ marginTop: '0.3rem' }}
-            >
+            <Col mediumSize={2} className={styles.itemExpanded} style={{ marginTop: '0.3rem' }}>
               <span>
-                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp;{' '}
-                {formatSizeShort(host.memory.size)} <Icon icon='memory' />{' '}
+                {host.cpus.cores}x <Icon icon='cpu' /> &nbsp; {formatSizeShort(host.memory.size)} <Icon icon='memory' />{' '}
                 &nbsp; v{host.version.slice(0, 3)}
               </span>
             </Col>
             <Col mediumSize={4}>
               <span style={{ fontSize: '1.4em' }}>
-                <HomeTags
-                  type='host'
-                  labels={host.tags}
-                  onDelete={this._removeTag}
-                  onAdd={this._addTag}
-                />
+                <HomeTags type='host' labels={host.tags} onDelete={this._removeTag} onAdd={this._addTag} />
               </span>
             </Col>
             <Col mediumSize={6} className={styles.itemExpanded}>

@@ -69,10 +69,7 @@ class XoConnection extends Xo {
   }
 
   @defer
-  async connect(
-    $defer,
-    credentials = pick(config.xoConnection, 'email', 'password')
-  ) {
+  async connect($defer, credentials = pick(config.xoConnection, 'email', 'password')) {
     await this.open()
     $defer.onFailure(() => this.close())
 
@@ -184,10 +181,7 @@ class XoConnection extends Xo {
     await this.call('vm.start', { id, ...params })
     this._tempResourceDisposers.push('vm.stop', { id, force: true })
     return this.waitObjectState(id, vm => {
-      if (
-        vm.power_state !== 'Running' ||
-        (withXenTools && vm.xenTools === false)
-      ) {
+      if (vm.power_state !== 'Running' || (withXenTools && vm.xenTools === false)) {
         throw new Error('retry')
       }
     })
@@ -237,16 +231,14 @@ class XoConnection extends Xo {
       forOwn(backupsByRemote, (backupsByVm, remoteId) => {
         backups[remoteId] = []
         forOwn(backupsByVm, vmBackups => {
-          vmBackups.forEach(
-            ({ jobId: backupJobId, scheduleId: backupScheduleId, id }) => {
-              if (jobId === backupJobId && scheduleId === backupScheduleId) {
-                this._tempResourceDisposers.push('backupNg.deleteVmBackup', {
-                  id,
-                })
-                backups[remoteId].push(id)
-              }
+          vmBackups.forEach(({ jobId: backupJobId, scheduleId: backupScheduleId, id }) => {
+            if (jobId === backupJobId && scheduleId === backupScheduleId) {
+              this._tempResourceDisposers.push('backupNg.deleteVmBackup', {
+                id,
+              })
+              backups[remoteId].push(id)
             }
-          )
+          })
         })
       })
     }
@@ -312,13 +304,10 @@ afterEach(async () => {
 
 export { xo as default }
 
-export const testConnection = ({ credentials }) =>
-  getConnection(credentials).then(connection => connection.close())
+export const testConnection = ({ credentials }) => getConnection(credentials).then(connection => connection.close())
 
-export const testWithOtherConnection = defer(
-  async ($defer, credentials, functionToExecute) => {
-    const xoUser = await getConnection(credentials)
-    $defer(() => xoUser.close())
-    await functionToExecute(xoUser)
-  }
-)
+export const testWithOtherConnection = defer(async ($defer, credentials, functionToExecute) => {
+  const xoUser = await getConnection(credentials)
+  $defer(() => xoUser.close())
+  await functionToExecute(xoUser)
+})

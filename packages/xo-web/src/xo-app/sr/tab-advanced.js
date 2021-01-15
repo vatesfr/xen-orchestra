@@ -6,6 +6,7 @@ import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
 import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr } from 'xo'
@@ -41,21 +42,14 @@ const UnhealthyVdiChains = flowRight(
     chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr),
   })),
   connectStore(() => ({
-    vdis: createGetObjectsOfType('VDI').pick(
-      createSelector((_, props) => props.chains, keys)
-    ),
+    vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains, keys)),
   }))
 )(({ chains, vdis }) =>
   isEmpty(vdis) ? null : (
     <div>
       <hr />
       <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
-      <SortedTable
-        collection={vdis}
-        columns={COLUMNS}
-        stateUrlParam='s_unhealthy_vdis'
-        userData={chains}
-      />
+      <SortedTable collection={vdis} columns={COLUMNS} stateUrlParam='s_unhealthy_vdis' userData={chains} />
     </div>
   )
 )
@@ -64,13 +58,7 @@ export default ({ sr }) => (
   <Container>
     <Row>
       <Col className='text-xs-right'>
-        <TabButton
-          btnStyle='danger'
-          handler={deleteSr}
-          handlerParam={sr}
-          icon='sr-remove'
-          labelId='srRemoveButton'
-        />
+        <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
       </Col>
     </Row>
     <Row>
@@ -80,6 +68,12 @@ export default ({ sr }) => (
             <tr>
               <th>{_('provisioning')}</th>
               <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
+            </tr>
+            <tr>
+              <th>{_('customFields')}</th>
+              <td>
+                <CustomFields object={sr.id} />
+              </td>
             </tr>
           </tbody>
         </table>

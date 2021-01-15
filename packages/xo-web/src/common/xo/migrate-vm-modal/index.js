@@ -14,12 +14,7 @@ import { Col } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
-import {
-  createGetObjectsOfType,
-  createPicker,
-  createSelector,
-  getObject,
-} from '../../selectors'
+import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
 
 import { isSrShared, isSrWritable } from '../'
 
@@ -80,12 +75,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     this._getSrPredicate = createSelector(
       () => this.state.host,
-      host =>
-        host
-          ? sr =>
-              isSrWritable(sr) &&
-              (sr.$container === host.id || sr.$container === host.$pool)
-          : false
+      host => (host ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool) : false)
     )
 
     this._getTargetNetworkPredicate = createSelector(
@@ -163,9 +153,7 @@ export default class MigrateVmModalBody extends BaseComponent {
         const _doNotMigrateVdi = {}
         forEach(vbds, vbd => {
           if (vbd.VDI != null) {
-            _doNotMigrateVdi[vbd.VDI] = isSrShared(
-              this._getObject(this._getObject(vbd.VDI).$SR)
-            )
+            _doNotMigrateVdi[vbd.VDI] = isSrShared(this._getObject(this._getObject(vbd.VDI).$SR))
           }
         })
         doNotMigrateVdis = every(_doNotMigrateVdi)
@@ -184,10 +172,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     // Inter-pool
     const { networks, pifs, vifs } = this.props
-    const defaultMigrationNetworkId = find(
-      pifs,
-      pif => pif.$host === host.id && pif.management
-    ).$network
+    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
 
     const defaultNetwork = invoke(() => {
       // First PIF with an IP.
@@ -199,8 +184,7 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     const defaultNetworksForVif = {}
     forEach(vifs, vif => {
-      defaultNetworksForVif[vif.id] =
-        getDefaultNetworkForVif(vif, host, pifs, networks) || defaultNetwork
+      defaultNetworksForVif[vif.id] = getDefaultNetworkForVif(vif, host, pifs, networks) || defaultNetwork
     })
 
     this.setState({
@@ -220,20 +204,12 @@ export default class MigrateVmModalBody extends BaseComponent {
 
   _selectMigrationNetwork = migrationNetwork =>
     this.setState({
-      migrationNetworkId:
-        migrationNetwork == null ? undefined : migrationNetwork.id,
+      migrationNetworkId: migrationNetwork == null ? undefined : migrationNetwork.id,
     })
 
   render() {
     const { vdis, vifs, networks } = this.props
-    const {
-      doNotMigrateVdis,
-      host,
-      intraPool,
-      mapVifsNetworks,
-      migrationNetworkId,
-      targetSrs,
-    } = this.state
+    const { doNotMigrateVdis, host, intraPool, mapVifsNetworks, migrationNetworkId, targetSrs } = this.state
     return (
       <div>
         <div className={styles.block}>
@@ -293,9 +269,7 @@ export default class MigrateVmModalBody extends BaseComponent {
                   <span className={styles.listTitle}>{_('migrateVmVif')}</span>
                 </Col>
                 <Col size={6}>
-                  <span className={styles.listTitle}>
-                    {_('migrateVmNetwork')}
-                  </span>
+                  <span className={styles.listTitle}>{_('migrateVmNetwork')}</span>
                 </Col>
               </SingleLineRow>
               {map(vifs, vif => (

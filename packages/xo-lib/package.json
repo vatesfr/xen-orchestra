@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-lib",
-  "version": "0.9.0",
+  "version": "0.10.1",
   "license": "AGPL-3.0-or-later",
   "description": "Library to connect to XO-Server",
   "keywords": [

@@ -17,16 +17,7 @@ import { Input as DebounceInput } from 'debounce-input-decorator'
 import { renderXoItemFromId } from 'render-xo-item'
 import { SelectNetwork } from 'select-objects'
 import { Text } from 'editable'
-import {
-  some,
-  findIndex,
-  forEach,
-  includes,
-  isEmpty,
-  isObject,
-  keys,
-  map,
-} from 'lodash'
+import { some, findIndex, forEach, includes, isEmpty, isObject, keys, map } from 'lodash'
 import { createIpPool, deleteIpPool, setIpPool, subscribeIpPools } from 'xo'
 
 const FULL_WIDTH = { width: '100%' }
@@ -89,11 +80,7 @@ class IpsCell extends BaseComponent {
                     </strong>
                   </Col>
                   <Col mediumSize={1} offset={6}>
-                    <ActionRowButton
-                      handler={this._deleteIp}
-                      handlerParam={ip}
-                      icon='delete'
-                    />
+                    <ActionRowButton handler={this._deleteIp} handlerParam={ip} icon='delete' />
                   </Col>
                 </Row>
               )
@@ -108,17 +95,10 @@ class IpsCell extends BaseComponent {
                   {!isEmpty(addressVifs) ? (
                     map(addressVifs, (vifId, index) => {
                       const vif = vifs[vifId] && vifs[vifId][0]
-                      const network =
-                        vif &&
-                        networks[vif.$network] &&
-                        networks[vif.$network][0]
+                      const network = vif && networks[vif.$network] && networks[vif.$network][0]
                       return (
                         <span key={index} className='mr-1'>
-                          {network && vif ? (
-                            `${network.name_label} #${vif.device}`
-                          ) : (
-                            <em>{_('ipPoolUnknownVif')}</em>
-                          )}
+                          {network && vif ? `${network.name_label} #${vif.device}` : <em>{_('ipPoolUnknownVif')}</em>}
                         </span>
                       )
                     })
@@ -127,11 +107,7 @@ class IpsCell extends BaseComponent {
                   )}
                 </Col>
                 <Col mediumSize={1}>
-                  <ActionRowButton
-                    handler={this._deleteIp}
-                    handlerParam={ip}
-                    icon='delete'
-                  />
+                  <ActionRowButton handler={this._deleteIp} handlerParam={ip} icon='delete' />
                 </Col>
               </Row>
             )
@@ -140,11 +116,7 @@ class IpsCell extends BaseComponent {
           <Col>
             {showNewIpForm ? (
               <form id='newIpForm' className='form-inline'>
-                <ActionButton
-                  btnStyle='danger'
-                  handler={this.toggleState('showNewIpForm')}
-                  icon='remove'
-                />{' '}
+                <ActionButton btnStyle='danger' handler={this.toggleState('showNewIpForm')} icon='remove' />{' '}
                 <DebounceInput
                   autoFocus
                   onChange={this.linkState('newIps')}
@@ -153,20 +125,10 @@ class IpsCell extends BaseComponent {
                   required
                   value={newIps || ''}
                 />{' '}
-                <ActionButton
-                  form='newIpForm'
-                  icon='save'
-                  btnStyle='primary'
-                  handler={this._addIps}
-                />
+                <ActionButton form='newIpForm' icon='save' btnStyle='primary' handler={this._addIps} />
               </form>
             ) : (
-              <ActionButton
-                btnStyle='success'
-                size='small'
-                handler={this.toggleState('showNewIpForm')}
-                icon='add'
-              />
+              <ActionButton btnStyle='success' size='small' handler={this.toggleState('showNewIpForm')} icon='add' />
             )}
           </Col>
         </Row>
@@ -199,8 +161,7 @@ class NetworksCell extends BaseComponent {
     }
   }
 
-  _toggleNewNetworks = () =>
-    this.setState({ showNewNetworkForm: !this.state.showNewNetworkForm })
+  _toggleNewNetworks = () => this.setState({ showNewNetworkForm: !this.state.showNewNetworkForm })
   _getNetworkPredicate = createSelector(
     () => this.props.ipPool && this.props.ipPool.networks,
     networks => network => !includes(networks, network.id)
@@ -216,12 +177,7 @@ class NetworksCell extends BaseComponent {
           <Row key={networkId}>
             <Col mediumSize={11}>{renderXoItemFromId(networkId)}</Col>
             <Col mediumSize={1}>
-              <ActionRowButton
-                handler={this._deleteNetwork}
-                handlerParam={networkId}
-                icon='delete'
-                size='small'
-              />
+              <ActionRowButton handler={this._deleteNetwork} handlerParam={networkId} icon='delete' size='small' />
             </Col>
           </Row>
         ))}
@@ -238,22 +194,12 @@ class NetworksCell extends BaseComponent {
                 />
               </Col>
               <Col mediumSize={2}>
-                <ActionButton
-                  form='newNetworkForm'
-                  icon='save'
-                  btnStyle='primary'
-                  handler={this._addNetworks}
-                />
+                <ActionButton form='newNetworkForm' icon='save' btnStyle='primary' handler={this._addNetworks} />
               </Col>
             </form>
           ) : (
             <Col>
-              <ActionButton
-                btnStyle='success'
-                size='small'
-                handler={this._toggleNewNetworks}
-                icon='add'
-              />
+              <ActionButton btnStyle='success' size='small' handler={this._toggleNewNetworks} icon='add' />
             </Col>
           )}
         </Row>
@@ -299,9 +245,7 @@ export default class Ips extends BaseComponent {
 
   _onChangeIpPoolName = (ipPool, name) => {
     if (some(this.props.ipPools, { name })) {
-      throw new Error(
-        this.props.intl.formatMessage(messages.ipPoolNameAlreadyExists)
-      )
+      throw new Error(this.props.intl.formatMessage(messages.ipPoolNameAlreadyExists))
     }
 
     return setIpPool(ipPool, { name })
@@ -311,12 +255,7 @@ export default class Ips extends BaseComponent {
     {
       default: true,
       name: _('ipPoolName'),
-      itemRenderer: ipPool => (
-        <Text
-          onChange={name => this._onChangeIpPoolName(ipPool, name)}
-          value={ipPool.name}
-        />
-      ),
+      itemRenderer: ipPool => <Text onChange={name => this._onChangeIpPoolName(ipPool, name)} value={ipPool.name} />,
       sortCriteria: ipPool => ipPool.name,
     },
     {
@@ -331,11 +270,7 @@ export default class Ips extends BaseComponent {
       name: '',
       itemRenderer: ipPool => (
         <span className='pull-right'>
-          <ActionButton
-            handler={deleteIpPool}
-            handlerParam={ipPool.id}
-            icon='delete'
-          />
+          <ActionButton handler={deleteIpPool} handlerParam={ipPool.id} icon='delete' />
         </span>
       ),
     },
@@ -419,11 +354,7 @@ export default class Ips extends BaseComponent {
             <em>{_('ipsNoIpPool')}</em>
           </p>
         ) : (
-          <SortedTable
-            collection={ipPools}
-            columns={this._ipColumns}
-            stateUrlParam='s'
-          />
+          <SortedTable collection={ipPools} columns={this._ipColumns} stateUrlParam='s' />
         )}
       </div>
     )

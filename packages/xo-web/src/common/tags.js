@@ -46,13 +46,7 @@ class SelectExistingTag extends Component {
   }
 
   render() {
-    return (
-      <SelectTag
-        multi
-        onChange={this.linkState('tags')}
-        value={this.state.tags}
-      />
-    )
+    return <SelectTag multi onChange={this.linkState('tags')} value={this.state.tags} />
   }
 }
 
@@ -138,12 +132,7 @@ export default class Tags extends Component {
         <Icon icon='tags' />{' '}
         <span>
           {map(labels.sort(), (label, index) => (
-            <Tag
-              label={label}
-              onDelete={deleteTag}
-              key={index}
-              onClick={onClick}
-            />
+            <Tag label={label} onDelete={deleteTag} key={index} onClick={onClick} />
           ))}
         </span>
         {(onAdd || onChange) && !this.state.editing ? (
@@ -151,19 +140,9 @@ export default class Tags extends Component {
             <Icon icon='add-tag' />
           </span>
         ) : (
-          <span
-            className='form-inline'
-            onBlur={this._closeEditionIfUnfocused}
-            onFocus={this._focus}
-          >
+          <span className='form-inline' onBlur={this._closeEditionIfUnfocused} onFocus={this._focus}>
             <span className='input-group'>
-              <input
-                autoFocus
-                className='form-control'
-                onKeyDown={this._onKeyDown}
-                style={INPUT_STYLE}
-                type='text'
-              />
+              <input autoFocus className='form-control' onKeyDown={this._onKeyDown} style={INPUT_STYLE} type='text' />
               <span className='input-group-btn'>
                 <Tooltip content={_('selectExistingTags')}>
                   <ActionButton handler={this._selectExistingTags} icon='add' />
@@ -179,17 +158,11 @@ export default class Tags extends Component {
 
 export const Tag = ({ type, label, onDelete, onClick }) => (
   <span style={TAG_STYLE}>
-    <span
-      onClick={onClick && (() => onClick(label))}
-      style={onClick && LINK_STYLE}
-    >
+    <span onClick={onClick && (() => onClick(label))} style={onClick && LINK_STYLE}>
       {label}
     </span>{' '}
     {onDelete ? (
-      <span
-        onClick={onDelete && (() => onDelete(label))}
-        style={REMOVE_TAG_STYLE}
-      >
+      <span onClick={onDelete && (() => onDelete(label))} style={REMOVE_TAG_STYLE}>
         <Icon icon='remove-tag' />
       </span>
     ) : (

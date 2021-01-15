@@ -1,4 +1,6 @@
 import createLogger from '@xen-orchestra/log'
+import emitAsync from '@xen-orchestra/emit-async'
+
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
@@ -38,27 +40,19 @@ const XAPI_ERROR_TO_XO_ERROR = {
   HOST_OFFLINE: ([host], getId) => errors.hostOffline({ host: getId(host) }),
   NO_HOSTS_AVAILABLE: errors.noHostsAvailable,
   NOT_SUPPORTED_DURING_UPGRADE: errors.notSupportedDuringUpgrade,
-  OPERATION_BLOCKED: ([ref, code], getId) =>
-    errors.operationBlocked({ objectId: getId(ref), code }),
-  PATCH_PRECHECK_FAILED_ISO_MOUNTED: ([patch]) =>
-    errors.patchPrecheck({ errorType: 'isoMounted', patch }),
-  PIF_VLAN_EXISTS: ([pif], getId) =>
-    errors.objectAlreadyExists({ objectId: getId(pif), objectType: 'PIF' }),
+  OPERATION_BLOCKED: ([ref, code], getId) => errors.operationBlocked({ objectId: getId(ref), code }),
+  PATCH_PRECHECK_FAILED_ISO_MOUNTED: ([patch]) => errors.patchPrecheck({ errorType: 'isoMounted', patch }),
+  PIF_VLAN_EXISTS: ([pif], getId) => errors.objectAlreadyExists({ objectId: getId(pif), objectType: 'PIF' }),
   SESSION_AUTHENTICATION_FAILED: errors.authenticationFailed,
-  VDI_IN_USE: ([vdi, operation], getId) =>
-    errors.vdiInUse({ vdi: getId(vdi), operation }),
-  VM_BAD_POWER_STATE: ([vm, expected, actual], getId) =>
-    errors.vmBadPowerState({ vm: getId(vm), expected, actual }),
+  VDI_IN_USE: ([vdi, operation], getId) => errors.vdiInUse({ vdi: getId(vdi), operation }),
+  VM_BAD_POWER_STATE: ([vm, expected, actual], getId) => errors.vmBadPowerState({ vm: getId(vm), expected, actual }),
   VM_IS_TEMPLATE: errors.vmIsTemplate,
   VM_LACKS_FEATURE: ([vm], getId) => errors.vmLacksFeature({ vm: getId(vm) }),
-  VM_LACKS_FEATURE_SHUTDOWN: ([vm], getId) =>
-    errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
-  VM_MISSING_PV_DRIVERS: ([vm], getId) =>
-    errors.vmMissingPvDrivers({ vm: getId(vm) }),
+  VM_LACKS_FEATURE_SHUTDOWN: ([vm], getId) => errors.vmLacksFeature({ vm: getId(vm), feature: 'shutdown' }),
+  VM_MISSING_PV_DRIVERS: ([vm], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) }),
 }
 
-const hasPermission = (user, permission) =>
-  PERMISSIONS[user.permission] >= PERMISSIONS[permission]
+const hasPermission = (user, permission) => PERMISSIONS[user.permission] >= PERMISSIONS[permission]
 
 function checkParams(method, params) {
   const schema = method.params
@@ -269,7 +263,16 @@ export default class Api {
       timestamp: Date.now(),
     }
 
-    xo.emit('xo:preCall', data)
+    await emitAsync.call(
+      xo,
+      {
+        onError(error) {
+          log.warn('xo:preCall listener failure', { error })
+        },
+      },
+      'xo:preCall',
+      data
+    )
 
     try {
       await checkPermission.call(context, method)
@@ -306,11 +309,7 @@ export default class Api {
         result = true
       }
 
-      log.debug(
-        `${userName} | ${name}(...) [${ms(
-          Date.now() - startTime
-        )}] ==> ${kindOf(result)}`
-      )
+      log.debug(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] ==> ${kindOf(result)}`)
 
       // it's a special case in which the user is defined at the end of the call
       if (data.method === 'session.signIn') {
@@ -339,9 +338,9 @@ export default class Api {
         timestamp: now,
       })
 
-      const message = `${userName} | ${name}(${JSON.stringify(
-        data.params
-      )}) [${ms(Date.now() - startTime)}] =!> ${error}`
+      const message = `${userName} | ${name}(${JSON.stringify(data.params)}) [${ms(
+        Date.now() - startTime
+      )}] =!> ${error}`
 
       // 2020-07-10: Work-around: many kinds of error can be triggered by this
       // method, which can generates a lot of logs due to the fact that xo-web
@@ -357,11 +356,7 @@ export default class Api {
       if (xo._config.verboseLogsOnErrors) {
         log.warn(message, { error })
       } else {
-        log.warn(
-          `${userName} | ${name}(...) [${ms(
-            Date.now() - startTime
-          )}] =!> ${error}`
-        )
+        log.warn(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] =!> ${error}`)
       }
 
       const xoError = XAPI_ERROR_TO_XO_ERROR[error.code]

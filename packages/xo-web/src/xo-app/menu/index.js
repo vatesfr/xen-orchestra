@@ -26,16 +26,7 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import {
-  every,
-  forEach,
-  identity,
-  isEmpty,
-  isEqual,
-  map,
-  pick,
-  some,
-} from 'lodash'
+import { every, forEach, identity, isEmpty, isEqual, map, pick, some } from 'lodash'
 
 import styles from './index.css'
 
@@ -49,9 +40,7 @@ const returnTrue = () => true
       isAdmin,
       isPoolAdmin: getIsPoolAdmin,
       nHosts: getHosts.count(),
-      nTasks: createGetObjectsOfType('task').count([
-        task => task.status === 'pending',
-      ]),
+      nTasks: createGetObjectsOfType('task').count([task => task.status === 'pending']),
       pools: createGetObjectsOfType('pool'),
       srs: createGetObjectsOfType('SR'),
       status: getStatus,
@@ -90,12 +79,7 @@ export default class Menu extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (
-      !isEqual(
-        Object.keys(prevProps.hosts).sort(),
-        Object.keys(this.props.hosts).sort()
-      )
-    ) {
+    if (!isEqual(Object.keys(prevProps.hosts).sort(), Object.keys(this.props.hosts).sort())) {
       this._updateMissingPatchesSubscriptions()
     }
   }
@@ -104,9 +88,7 @@ export default class Menu extends Component {
     () => this.props.isAdmin,
     () => this.props.permissions,
     (isAdmin, permissions) =>
-      isAdmin
-        ? returnTrue
-        : ({ id }) => permissions && permissions[id] && permissions[id].operate
+      isAdmin ? returnTrue : ({ id }) => permissions && permissions[id] && permissions[id].operate
   )
 
   _getNoOperatablePools = createSelector(
@@ -170,17 +152,7 @@ export default class Menu extends Component {
   }
 
   render() {
-    const {
-      isAdmin,
-      isPoolAdmin,
-      nTasks,
-      status,
-      user,
-      pools,
-      nHosts,
-      srs,
-      xoaState,
-    } = this.props
+    const { isAdmin, isPoolAdmin, nTasks, status, user, pools, nHosts, srs, xoaState } = this.props
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
@@ -294,9 +266,7 @@ export default class Menu extends Component {
         icon: 'menu-xoa',
         label: 'xoa',
         extra: [
-          !isAdmin || xoaState === 'upToDate' ? null : (
-            <UpdateTag key='update' />
-          ),
+          !isAdmin || xoaState === 'upToDate' ? null : <UpdateTag key='update' />,
           noNotifications ? null : <NotificationTag key='notification' />,
         ],
         subMenu: [
@@ -452,9 +422,7 @@ export default class Menu extends Component {
         icon: 'menu-new',
         label: 'newMenu',
         subMenu: [
-          (isAdmin ||
-            (isPoolAdmin && process.env.XOA_PLAN > 3) ||
-            !noResourceSets) && {
+          (isAdmin || (isPoolAdmin && process.env.XOA_PLAN > 3) || !noResourceSets) && {
             to: '/vms/new',
             icon: 'menu-new-vm',
             label: 'newVmPage',
@@ -476,12 +444,7 @@ export default class Menu extends Component {
     /* eslint-enable object-property-newline */
 
     return (
-      <div
-        className={classNames(
-          'xo-menu',
-          this.state.collapsed && styles.collapsed
-        )}
-      >
+      <div className={classNames('xo-menu', this.state.collapsed && styles.collapsed)}>
         <ul className='nav nav-sidebar nav-pills nav-stacked' ref='content'>
           <li>
             <span>
@@ -496,75 +459,36 @@ export default class Menu extends Component {
               <Icon icon='menu-collapse' size='lg' fixedWidth />
             </a>
           </li>
-          {map(
-            items,
-            (item, index) => item && <MenuLinkItem key={index} item={item} />
-          )}
+          {map(items, (item, index) => item && <MenuLinkItem key={index} item={item} />)}
           <li>&nbsp;</li>
           <li>&nbsp;</li>
           {(isAdmin || +process.env.XOA_PLAN === 5) && (
             <li className='nav-item xo-menu-item'>
-              <Link
-                className='nav-link'
-                style={{ display: 'flex' }}
-                to='/about'
-              >
+              <Link className='nav-link' style={{ display: 'flex' }} to='/about'>
                 {+process.env.XOA_PLAN === 5 ? (
                   <span>
-                    <span
-                      className={classNames(
-                        styles.hiddenCollapsed,
-                        'text-warning'
-                      )}
-                    >
-                      <Icon icon='alarm' size='lg' fixedWidth />{' '}
-                      {_('noSupport')}
+                    <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
+                      <Icon icon='alarm' size='lg' fixedWidth /> {_('noSupport')}
                     </span>
-                    <span
-                      className={classNames(
-                        styles.hiddenUncollapsed,
-                        'text-warning'
-                      )}
-                    >
+                    <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
                       <Icon icon='alarm' size='lg' fixedWidth />
                     </span>
                   </span>
                 ) : +process.env.XOA_PLAN === 1 ? (
                   <span>
-                    <span
-                      className={classNames(
-                        styles.hiddenCollapsed,
-                        'text-warning'
-                      )}
-                    >
-                      <Icon icon='info' size='lg' fixedWidth />{' '}
-                      {_('freeUpgrade')}
+                    <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
+                      <Icon icon='info' size='lg' fixedWidth /> {_('freeUpgrade')}
                     </span>
-                    <span
-                      className={classNames(
-                        styles.hiddenUncollapsed,
-                        'text-warning'
-                      )}
-                    >
+                    <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
                       <Icon icon='info' size='lg' fixedWidth />
                     </span>
                   </span>
                 ) : (
                   <span>
-                    <span
-                      className={classNames(
-                        styles.hiddenCollapsed,
-                        'text-success'
-                      )}
-                    >
+                    <span className={classNames(styles.hiddenCollapsed, 'text-success')}>
                       <Icon icon='info' size='lg' fixedWidth /> {getXoaPlan()}
                     </span>
-                    <span
-                      className={classNames(
-                        styles.hiddenUncollapsed,
-                        'text-success'
-                      )}
-                    >
+                    <span className={classNames(styles.hiddenUncollapsed, 'text-success')}>
                       <Icon icon='info' size='lg' fixedWidth />
                     </span>
                   </span>
@@ -599,8 +523,7 @@ export default class Menu extends Component {
             status === 'disconnected' && (
               <li className='nav-item text-xs-center xo-menu-item'>
                 <a className='nav-link' onClick={this._connect} href='#'>
-                  <Icon icon='alarm' size='lg' fixedWidth />{' '}
-                  {_('statusDisconnected')}
+                  <Icon icon='alarm' size='lg' fixedWidth /> {_('statusDisconnected')}
                 </a>
               </li>
             )
@@ -618,11 +541,7 @@ const MenuLinkItem = props => {
 
   return (
     <li className='nav-item xo-menu-item'>
-      <Link
-        activeClassName='active'
-        className={classNames('nav-link', styles.centerCollapsed)}
-        to={to}
-      >
+      <Link activeClassName='active' className={classNames('nav-link', styles.centerCollapsed)} to={to}>
         <Icon
           className={classNames((pill || _extra) && styles.hiddenCollapsed)}
           icon={`${icon}`}
@@ -636,9 +555,7 @@ const MenuLinkItem = props => {
         </span>
         {pill > 0 && <span className='tag tag-pill tag-primary'>{pill}</span>}
         <span className={styles.hiddenUncollapsed}>{_extra}</span>
-        <span className={styles.hiddenCollapsed}>
-          {extra !== undefined && extra.map(identity)}
-        </span>
+        <span className={styles.hiddenCollapsed}>{extra !== undefined && extra.map(identity)}</span>
       </Link>
       {subMenu && <SubMenu items={subMenu} />}
     </li>
@@ -654,8 +571,7 @@ const SubMenu = props => {
           item && (
             <li key={index} className='nav-item xo-menu-item'>
               <Link activeClassName='active' className='nav-link' to={item.to}>
-                <Icon icon={`${item.icon}`} size='lg' fixedWidth />{' '}
-                {_(item.label)} {item.extra}
+                <Icon icon={`${item.icon}`} size='lg' fixedWidth /> {_(item.label)} {item.extra}
               </Link>
             </li>
           )

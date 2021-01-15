@@ -10,13 +10,7 @@ import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
 
 import JobsTable from '../backup/overview/tab-jobs'
 
-const legacyJobKey = [
-  'continuousReplication',
-  'deltaBackup',
-  'disasterRecovery',
-  'backup',
-  'rollingSnapshot',
-]
+const legacyJobKey = ['continuousReplication', 'deltaBackup', 'disasterRecovery', 'backup', 'rollingSnapshot']
 
 const BackupTab = decorate([
   adminOnly,
@@ -26,12 +20,9 @@ const BackupTab = decorate([
   }),
   provideState({
     computed: {
-      haveLegacyBackups: (_, { legacyJobs }) =>
-        some(legacyJobs, job => legacyJobKey.includes(job.key)),
-      jobIds: ({ predicate }, { jobs }) =>
-        filter(jobs, predicate).map(_ => _.id),
-      predicate: (_, { vm }) => ({ vms }) =>
-        vms !== undefined && createPredicate(omit(vms, 'power_state'))(vm),
+      haveLegacyBackups: (_, { legacyJobs }) => some(legacyJobs, job => legacyJobKey.includes(job.key)),
+      jobIds: ({ predicate }, { jobs }) => filter(jobs, predicate).map(_ => _.id),
+      predicate: (_, { vm }) => ({ vms }) => vms !== undefined && createPredicate(omit(vms, 'power_state'))(vm),
     },
   }),
   injectState,
@@ -44,13 +35,7 @@ const BackupTab = decorate([
           </div>
         )}
         <div className='mt-1'>
-          <a
-            href={`#/backup/overview?s=${encodeURIComponent(
-              `id: |(${jobIds.join(' ')})`
-            )}`}
-          >
-            {_('goToBackupPage')}
-          </a>
+          <a href={`#/backup/overview?s=${encodeURIComponent(`id: |(${jobIds.join(' ')})`)}`}>{_('goToBackupPage')}</a>
         </div>
         <div className='mt-2'>
           <JobsTable main={false} predicate={predicate} />

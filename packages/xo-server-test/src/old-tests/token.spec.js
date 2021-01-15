@@ -44,9 +44,7 @@ describe('token', () => {
           token,
         })
 
-        expect(
-          (await rejectionOf(testConnection({ credentials: { token } }))).code
-        ).toBe(3)
+        expect((await rejectionOf(testConnection({ credentials: { token } }))).code).toBe(3)
       })
     )
   })

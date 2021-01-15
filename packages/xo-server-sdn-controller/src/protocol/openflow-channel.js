@@ -250,12 +250,8 @@ export class OpenFlowChannel extends EventEmitter {
     const ofType = message.header.type
     switch (ofType) {
       case ofProtocol.type.hello:
-        this._sendPacket(
-          this._syncMessage(ofProtocol.type.hello, message.header.xid)
-        )
-        this._sendPacket(
-          this._syncMessage(ofProtocol.type.featuresRequest, message.header.xid)
-        )
+        this._sendPacket(this._syncMessage(ofProtocol.type.hello, message.header.xid))
+        this._sendPacket(this._syncMessage(ofProtocol.type.featuresRequest, message.header.xid))
         break
       case ofProtocol.type.error:
         {
@@ -268,9 +264,7 @@ export class OpenFlowChannel extends EventEmitter {
         }
         break
       case ofProtocol.type.echoRequest:
-        this._sendPacket(
-          this._syncMessage(ofProtocol.type.echoReply, message.header.xid)
-        )
+        this._sendPacket(this._syncMessage(ofProtocol.type.echoReply, message.header.xid))
         break
       case ofProtocol.type.packetIn:
         log.debug('PACKET_IN')
@@ -279,12 +273,7 @@ export class OpenFlowChannel extends EventEmitter {
         {
           const { datapath_id: dpid, capabilities, ports } = message
           log.debug('FEATURES_REPLY', { dpid, capabilities, ports })
-          this._sendPacket(
-            this._syncMessage(
-              ofProtocol.type.getConfigRequest,
-              message.header.xid
-            )
-          )
+          this._sendPacket(this._syncMessage(ofProtocol.type.getConfigRequest, message.header.xid))
         }
         break
       case ofProtocol.type.getConfigReply:
@@ -307,11 +296,7 @@ export class OpenFlowChannel extends EventEmitter {
   }
 
   _addFlow(match, instructions) {
-    const packet = this._flowModMessage(
-      ofProtocol.flowModCommand.add,
-      match,
-      instructions
-    )
+    const packet = this._flowModMessage(ofProtocol.flowModCommand.add, match, instructions)
     this._sendPacket(packet)
   }
 
@@ -374,10 +359,7 @@ export class OpenFlowChannel extends EventEmitter {
       return
     }
 
-    this._socket = await this._tlsHelper.connect(
-      this.host.address,
-      OPENFLOW_PORT
-    )
+    this._socket = await this._tlsHelper.connect(this.host.address, OPENFLOW_PORT)
 
     const deleteSocket = () => {
       this._socket = undefined

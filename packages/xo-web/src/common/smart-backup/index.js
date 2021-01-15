@@ -8,10 +8,7 @@ export const destructPattern = (pattern, valueTransform = identity) =>
     values: valueTransform((pattern.__not || pattern).__or),
   }
 
-export const constructPattern = (
-  { not, values } = EMPTY_OBJECT,
-  valueTransform = identity
-) => {
+export const constructPattern = ({ not, values } = EMPTY_OBJECT, valueTransform = identity) => {
   if (values == null || !values.length) {
     return
   }
@@ -24,20 +21,11 @@ export const constructPattern = (
 
 export const destructSmartPattern = (pattern, valueTransform = identity) =>
   pattern && {
-    values: valueTransform(
-      pattern.__and !== undefined ? pattern.__and[0].__or : pattern.__or
-    ),
-    notValues: valueTransform(
-      pattern.__and !== undefined
-        ? pattern.__and[1].__not.__or
-        : get(pattern, '__not.__or')
-    ),
+    values: valueTransform(pattern.__and !== undefined ? pattern.__and[0].__or : pattern.__or),
+    notValues: valueTransform(pattern.__and !== undefined ? pattern.__and[1].__not.__or : get(pattern, '__not.__or')),
   }
 
-export const constructSmartPattern = (
-  { values, notValues } = EMPTY_OBJECT,
-  valueTransform = identity
-) => {
+export const constructSmartPattern = ({ values, notValues } = EMPTY_OBJECT, valueTransform = identity) => {
   const valuesExist = !isEmpty(values)
   const notValuesExist = !isEmpty(notValues)
 

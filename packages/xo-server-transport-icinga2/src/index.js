@@ -82,17 +82,12 @@ class XoServerIcinga2 {
     serverUrl.pathname = '/v1/actions/process-check-result'
     this._url = serverUrl.href
 
-    this._filter =
-      configuration.filter !== undefined ? configuration.filter : ''
+    this._filter = configuration.filter !== undefined ? configuration.filter : ''
     this._acceptUnauthorized = configuration.acceptUnauthorized
   }
 
   load() {
-    this._unset = this._xo.defineProperty(
-      'sendIcinga2Status',
-      this._sendIcinga2Status,
-      this
-    )
+    this._unset = this._xo.defineProperty('sendIcinga2Status', this._sendIcinga2Status, this)
   }
 
   unload() {
@@ -101,8 +96,7 @@ class XoServerIcinga2 {
 
   test() {
     return this._sendIcinga2Status({
-      message:
-        'The server-icinga2 plugin for Xen Orchestra server seems to be working fine, nicely done :)',
+      message: 'The server-icinga2 plugin for Xen Orchestra server seems to be working fine, nicely done :)',
       status: 'OK',
     })
   }

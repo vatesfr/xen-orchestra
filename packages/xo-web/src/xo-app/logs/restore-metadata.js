@@ -18,11 +18,7 @@ import { subscribeBackupNgLogs } from 'xo'
 
 import { STATUS_LABELS, LOG_FILTERS, LogDate } from './utils'
 
-const showError = error =>
-  alert(
-    _('logError'),
-    <pre>{JSON.stringify(error, null, 2).replace(/\\n/g, '\n')}</pre>
-  )
+const showError = error => alert(_('logError'), <pre>{JSON.stringify(error, null, 2).replace(/\\n/g, '\n')}</pre>)
 
 const COLUMNS = [
   {
@@ -46,8 +42,7 @@ const COLUMNS = [
           {data.pool.name_label || data.poolMaster.name_label}
         </Copiable>
       ),
-    sortCriteria: ({ data }) =>
-      data.pool !== undefined ? data.pool.uuid : data.jobId,
+    sortCriteria: ({ data }) => (data.pool !== undefined ? data.pool.uuid : data.jobId),
   },
   {
     name: _('logsBackupTime'),
@@ -63,10 +58,7 @@ const COLUMNS = [
   },
   {
     name: _('jobDuration'),
-    itemRenderer: task =>
-      task.end !== undefined && (
-        <FormattedDuration duration={task.end - task.start} />
-      ),
+    itemRenderer: task => task.end !== undefined && <FormattedDuration duration={task.end - task.start} />,
     sortCriteria: task => task.end - task.start,
   },
   {
@@ -119,10 +111,7 @@ export default decorate([
     pools: createGetObjectsOfType('pool'),
   }),
   addSubscriptions({
-    logs: cb =>
-      subscribeBackupNgLogs(logs =>
-        cb(logs && filter(logs, log => log.message === 'metadataRestore'))
-      ),
+    logs: cb => subscribeBackupNgLogs(logs => cb(logs && filter(logs, log => log.message === 'metadataRestore'))),
   }),
   ({ logs, pools }) => (
     <Card>

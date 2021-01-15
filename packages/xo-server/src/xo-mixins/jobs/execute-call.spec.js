@@ -107,9 +107,7 @@ describe('resolveParamsVector', function () {
     ([expectedResult, entry, context], name) => {
       describe(`with ${name}`, () => {
         it('Resolves params vector', () => {
-          expect(resolveParamsVector.call(context, entry)).toEqual(
-            expectedResult
-          )
+          expect(resolveParamsVector.call(context, entry)).toEqual(expectedResult)
         })
       })
     }

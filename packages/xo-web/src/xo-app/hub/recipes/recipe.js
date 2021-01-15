@@ -64,18 +64,11 @@ export default decorate([
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
-        const filter = new ComplexMatcher.Property(
-          'tags',
-          new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`, 'i')
-        )
+        const filter = new ComplexMatcher.Property('tags', new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`, 'i'))
 
         success(
           _('recipeCreatedSuccessfully'),
-          <ButtonLink
-            btnStyle='success'
-            size='small'
-            to={`/home?s=${encodeURIComponent(filter)}`}
-          >
+          <ButtonLink btnStyle='success' size='small' to={`/home?s=${encodeURIComponent(filter)}`}>
             {_('recipeViewCreatedVms')}
           </ButtonLink>,
           8e3
@@ -95,12 +88,7 @@ export default decorate([
           }}
         />
         <hr />
-        <ActionButton
-          block
-          handler={effects.create}
-          icon='deploy'
-          pending={recipeCreatingResources[RECIPE_INFO.id]}
-        >
+        <ActionButton block handler={effects.create} icon='deploy' pending={recipeCreatingResources[RECIPE_INFO.id]}>
           {_('create')}
         </ActionButton>
       </CardBlock>

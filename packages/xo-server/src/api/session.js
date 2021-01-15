@@ -27,10 +27,7 @@ signIn.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
-export const signInWithPassword = deprecate(
-  signIn,
-  'use session.signIn() instead'
-)
+export const signInWithPassword = deprecate(signIn, 'use session.signIn() instead')
 
 signInWithPassword.params = {
   email: { type: 'string' },
@@ -60,9 +57,7 @@ signOut.description = 'sign out the user from the current session'
 export async function getUser() {
   const userId = this.session.get('user_id')
 
-  return userId === undefined
-    ? null
-    : getUserPublicProperties(await this.getUser(userId))
+  return userId === undefined ? null : getUserPublicProperties(await this.getUser(userId))
 }
 
 getUser.description = 'return the currently connected user'

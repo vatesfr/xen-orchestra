@@ -37,10 +37,10 @@
     "golike-defer": "^0.4.1",
     "jest": "^24.8.0",
     "lodash": "^4.17.11",
-    "promise-toolbox": "^0.15.0",
+    "promise-toolbox": "^0.16.0",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.5.0",
-    "xo-lib": "^0.9.0"
+    "xo-lib": "^0.10.1"
   },
   "scripts": {
     "dev-test": "jest --bail --watch",

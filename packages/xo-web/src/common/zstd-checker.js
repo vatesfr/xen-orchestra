@@ -8,18 +8,13 @@ import Icon from './icon'
 import Link from './link'
 import Tooltip from './tooltip'
 import { connectStore } from './utils'
-import {
-  createCollectionWrapper,
-  createGetObjectsOfType,
-  createSelector,
-} from './selectors'
+import { createCollectionWrapper, createGetObjectsOfType, createSelector } from './selectors'
 
 @connectStore({
-  containers: createSelector(
-    createGetObjectsOfType('pool'),
-    createGetObjectsOfType('host'),
-    (pools, hosts) => ({ ...pools, ...hosts })
-  ),
+  containers: createSelector(createGetObjectsOfType('pool'), createGetObjectsOfType('host'), (pools, hosts) => ({
+    ...pools,
+    ...hosts,
+  })),
   vms: createGetObjectsOfType('VM').pick((_, props) => props.vms),
 })
 export default class ZstdChecker extends Component {
@@ -58,11 +53,7 @@ export default class ZstdChecker extends Component {
     const nVmsWithoutZstd = this._getVmsWithoutZstd().length
     return nVmsWithoutZstd > 0 ? (
       <Tooltip content={_('notSupportedZstdTooltip')}>
-        <Link
-          className='text-warning'
-          target='_blank'
-          to={this._getVmsWithoutZstdLink()}
-        >
+        <Link className='text-warning' target='_blank' to={this._getVmsWithoutZstdLink()}>
           <Icon icon='alarm' />{' '}
           {_('notSupportedZstdWarning', {
             nVms: nVmsWithoutZstd,

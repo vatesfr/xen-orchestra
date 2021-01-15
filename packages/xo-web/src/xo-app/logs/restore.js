@@ -34,10 +34,8 @@ const COLUMNS = [
   },
   {
     name: _('logsJobName'),
-    itemRenderer: ({ data: { jobId } }, { jobs }) =>
-      get(() => jobs[jobId].name),
-    sortCriteria: ({ data: { jobId } }, { jobs }) =>
-      get(() => jobs[jobId].name),
+    itemRenderer: ({ data: { jobId } }, { jobs }) => get(() => jobs[jobId].name),
+    sortCriteria: ({ data: { jobId } }, { jobs }) => get(() => jobs[jobId].name),
   },
   {
     name: _('logsBackupTime'),
@@ -49,9 +47,7 @@ const COLUMNS = [
     itemRenderer: ({ id, vm, status }) => (
       <div>
         {vm !== undefined && <Vm id={vm.id} link newTab />}
-        {vm === undefined && status === 'success' && (
-          <span className='text-warning'>{_('logsVmNotFound')}</span>
-        )}{' '}
+        {vm === undefined && status === 'success' && <span className='text-warning'>{_('logsVmNotFound')}</span>}{' '}
         <span style={{ fontSize: '0.5em' }} className='text-muted'>
           {id}
         </span>
@@ -68,17 +64,13 @@ const COLUMNS = [
   },
   {
     name: _('jobDuration'),
-    itemRenderer: log =>
-      log.end !== undefined && (
-        <FormattedDuration duration={log.end - log.start} />
-      ),
+    itemRenderer: log => log.end !== undefined && <FormattedDuration duration={log.end - log.start} />,
     sortCriteria: log => log.end - log.start,
   },
   {
     name: _('labelSr'),
     itemRenderer: ({ data: { srId } }) => <Sr id={srId} link newTab />,
-    sortCriteria: ({ data: { srId } }, { srs }) =>
-      get(() => srs[srId].name_label),
+    sortCriteria: ({ data: { srId } }, { srs }) => get(() => srs[srId].name_label),
   },
   {
     name: _('jobStatus'),
@@ -107,25 +99,18 @@ const COLUMNS = [
   },
   {
     name: _('labelSize'),
-    itemRenderer: ({ dataSize }) =>
-      dataSize !== undefined && formatSize(dataSize),
+    itemRenderer: ({ dataSize }) => dataSize !== undefined && formatSize(dataSize),
     sortCriteria: 'dataSize',
   },
   {
     name: _('labelSpeed'),
     itemRenderer: task => {
       const duration = task.end - task.start
-      return (
-        task.dataSize !== undefined &&
-        duration > 0 &&
-        formatSpeed(task.dataSize, duration)
-      )
+      return task.dataSize !== undefined && duration > 0 && formatSpeed(task.dataSize, duration)
     },
     sortCriteria: task => {
       const duration = task.end - task.start
-      return (
-        task.dataSize !== undefined && duration > 0 && task.dataSize / duration
-      )
+      return task.dataSize !== undefined && duration > 0 && task.dataSize / duration
     },
   },
 ]
@@ -133,8 +118,7 @@ const COLUMNS = [
 const ROW_TRANSFORM = (task, { vms }) => {
   let vm, dataSize
   if (task.status === 'success') {
-    const result = task.tasks.find(({ message }) => message === 'transfer')
-      .result
+    const result = task.tasks.find(({ message }) => message === 'transfer').result
     dataSize = result.size
     vm = vms && vms[result.id]
   }
@@ -152,10 +136,7 @@ export default decorate([
     vms: createGetObjectsOfType('VM'),
   }),
   addSubscriptions({
-    logs: cb =>
-      subscribeBackupNgLogs(logs =>
-        cb(logs && filter(logs, log => log.message === 'restore'))
-      ),
+    logs: cb => subscribeBackupNgLogs(logs => cb(logs && filter(logs, log => log.message === 'restore'))),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   ({ logs, jobs, srs, vms }) => (

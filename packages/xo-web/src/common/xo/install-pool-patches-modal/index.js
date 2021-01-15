@@ -24,12 +24,8 @@ import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
     const getPool = createGetObject((_, props) => props.pool)
     return {
       pool: getPool,
-      poolMaster: createGetObject(
-        createSelector(getPool, ({ master }) => master)
-      ),
-      vbds: createGetObjectsOfType('VBD').filter(
-        createSelector(getPool, ({ id }) => vbd => vbd.$pool === id)
-      ),
+      poolMaster: createGetObject(createSelector(getPool, ({ master }) => master)),
+      vbds: createGetObjectsOfType('VBD').filter(createSelector(getPool, ({ id }) => vbd => vbd.$pool === id)),
     }
   },
   { withRef: true }
@@ -40,12 +36,7 @@ export default class InstallPoolPatchesModalBody extends Component {
     createCollectionWrapper(vbds => {
       const vmIds = []
       forEach(vbds, vbd => {
-        if (
-          vbd.is_cd_drive &&
-          vbd.VDI !== undefined &&
-          vbd.attached &&
-          !vmIds.includes(vbd.VM)
-        ) {
+        if (vbd.is_cd_drive && vbd.VDI !== undefined && vbd.attached && !vmIds.includes(vbd.VM)) {
           vmIds.push(vbd.VM)
         }
       })
@@ -67,8 +58,7 @@ export default class InstallPoolPatchesModalBody extends Component {
 
   render() {
     const { pool, poolMaster } = this.props
-    const needDefaultSr =
-      poolMaster.productBrand !== 'XCP-ng' && pool.default_SR === undefined
+    const needDefaultSr = poolMaster.productBrand !== 'XCP-ng' && pool.default_SR === undefined
     const someCdsInserted = this._getNVmsWithCds() > 0
 
     return (
@@ -94,11 +84,7 @@ export default class InstallPoolPatchesModalBody extends Component {
                   value={this.state.sr}
                 />
                 <span className='input-group-btn'>
-                  <ActionButton
-                    handler={setDefaultSr}
-                    handlerParam={this.state.sr}
-                    icon='save'
-                  >
+                  <ActionButton handler={setDefaultSr} handlerParam={this.state.sr} icon='save'>
                     {_('formOk')}
                   </ActionButton>
                 </span>
@@ -110,8 +96,7 @@ export default class InstallPoolPatchesModalBody extends Component {
           <SingleLineRow className='mt-1'>
             <Tooltip content={this._getTooltip()}>
               <Col size={6}>
-                <Icon icon='alarm' />{' '}
-                {_('vmsHaveCds', { nVms: this._getNVmsWithCds() })}
+                <Icon icon='alarm' /> {_('vmsHaveCds', { nVms: this._getNVmsWithCds() })}
               </Col>
             </Tooltip>
             <Col size={6}>

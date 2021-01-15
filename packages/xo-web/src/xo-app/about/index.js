@@ -17,8 +17,7 @@ const HEADER = (
     <Row>
       <Col mediumSize={12}>
         <h2>
-          <Icon icon='menu-about' />{' '}
-          {_('aboutXoaPlan', { xoaPlan: getXoaPlan() })}
+          <Icon icon='menu-about' /> {_('aboutXoaPlan', { xoaPlan: getXoaPlan() })}
         </h2>
       </Col>
     </Row>
@@ -45,10 +44,7 @@ export default class About extends Component {
             <Row>
               <Col mediumSize={6}>
                 <Icon icon='host' size={4} />
-                <Copiable
-                  tagName='h4'
-                  data={`xo-server ${this.state.serverVersion}`}
-                >
+                <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
                   xo-server {this.state.serverVersion || 'unknown'}
                 </Copiable>
                 <p className='text-muted'>{_('xenOrchestraServer')}</p>
@@ -127,9 +123,7 @@ export default class About extends Component {
               <Row>
                 <Col>
                   <h2 className='text-success'>{_('proSupportIncluded')}</h2>
-                  <a href='https://xen-orchestra.com/#!/member/products'>
-                    {_('xoAccount')}
-                  </a>
+                  <a href='https://xen-orchestra.com/#!/member/products'>{_('xoAccount')}</a>
                 </Col>
               </Row>
               <Row>

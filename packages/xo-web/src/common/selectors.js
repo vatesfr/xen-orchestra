@@ -23,11 +23,7 @@ import {
 
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
-import {
-  EMPTY_ARRAY,
-  EMPTY_OBJECT,
-  getDetachedBackupsOrSnapshots,
-} from './utils'
+import { EMPTY_ARRAY, EMPTY_OBJECT, getDetachedBackupsOrSnapshots } from './utils'
 
 // ===================================================================
 
@@ -163,11 +159,9 @@ export const createFilter = (collection, predicate) =>
     )
   )
 
-export const createFinder = (collection, predicate) =>
-  _create2(collection, predicate, find)
+export const createFinder = (collection, predicate) => _create2(collection, predicate, find)
 
-export const createGroupBy = (collection, getter) =>
-  _create2(collection, getter, groupBy)
+export const createGroupBy = (collection, getter) => _create2(collection, getter, groupBy)
 
 export const createPager = (array, page, n = 25) =>
   _create2(
@@ -184,9 +178,7 @@ export const createSort = (collection, getter = 'name_label', order = 'asc') =>
   _create2(collection, getter, order, orderBy)
 
 export const createSumBy = (itemsSelector, iterateeSelector) =>
-  _create2(itemsSelector, iterateeSelector, (items, iteratee) =>
-    map(items, iteratee).reduce(add, 0)
-  )
+  _create2(itemsSelector, iterateeSelector, (items, iteratee) => map(items, iteratee).reduce(add, 0))
 
 export const createTop = (collection, iteratee, n) =>
   _create2(
@@ -207,8 +199,7 @@ export const createTop = (collection, iteratee, n) =>
 
 export const areObjectsFetched = state => state.objects.fetched
 
-const _getId = (state, { routeParams, id }) =>
-  routeParams ? routeParams.id : id
+const _getId = (state, { routeParams, id }) => (routeParams ? routeParams.id : id)
 
 export const getLang = state => state.lang
 
@@ -226,8 +217,7 @@ export const getCheckPermissions = invoke(() => {
       objects = objects.all
       const getObject = id => objects[id] || EMPTY_OBJECT
 
-      return (id, permission) =>
-        checkPermissions(permissions, getObject, id, permission)
+      return (id, permission) => checkPermissions(permissions, getObject, id, permission)
     }
   )
 
@@ -266,12 +256,7 @@ const _getPermissionsPredicate = invoke(() => {
         }
         let allowed = cache[id]
         if (allowed === undefined) {
-          allowed = cache[id] = checkPermissions(
-            permissions,
-            getObject,
-            id,
-            'view'
-          )
+          allowed = cache[id] = checkPermissions(permissions, getObject, id, 'view')
         }
         return allowed
       }
@@ -302,11 +287,7 @@ export const isAdmin = (...args) => {
 // Common selector creators.
 
 // Creates an object selector from an id selector.
-export const createGetObject = (idSelector = _getId) => (
-  state,
-  props,
-  useResourceSet
-) => {
+export const createGetObject = (idSelector = _getId) => (state, props, useResourceSet) => {
   const object = state.objects.all[idSelector(state, props)]
   if (!object) {
     return
@@ -355,16 +336,9 @@ export const createSortForType = invoke(() => {
   const getOrders = type => ordersByType[type]
 
   const autoSelector = (type, fn) =>
-    typeof type === 'function'
-      ? (state, props) => fn(type(state, props))
-      : [fn(type)]
+    typeof type === 'function' ? (state, props) => fn(type(state, props)) : [fn(type)]
 
-  return (type, collection) =>
-    createSort(
-      collection,
-      autoSelector(type, getIteratees),
-      autoSelector(type, getOrders)
-    )
+  return (type, collection) => createSort(collection, autoSelector(type, getIteratees), autoSelector(type, getOrders))
 })
 
 // Add utility methods to a collection selector.
@@ -396,17 +370,13 @@ const _extendCollectionSelector = (selector, objectsType) => {
 
   // count, groupBy and sort can be chained.
   const _addFilter = selector => {
-    selector.filter = predicate =>
-      _addCount(_addGroupBy(_addSort(createFilter(selector, predicate))))
+    selector.filter = predicate => _addCount(_addGroupBy(_addSort(createFilter(selector, predicate))))
     return selector
   }
   _addFilter(selector)
 
   // filter, groupBy and sort can be chained.
-  selector.pick = idsSelector =>
-    _addFind(
-      _addFilter(_addGroupBy(_addSort(createPicker(selector, idsSelector))))
-    )
+  selector.pick = idsSelector => _addFind(_addFilter(_addGroupBy(_addSort(createPicker(selector, idsSelector)))))
 
   return selector
 }
@@ -430,23 +400,15 @@ const _extendCollectionSelector = (selector, objectsType) => {
 export const createGetObjectsOfType = type => {
   const getObjects =
     typeof type === 'function'
-      ? (state, props) =>
-          state.objects.byType[type(state, props)] || EMPTY_OBJECT
+      ? (state, props) => state.objects.byType[type(state, props)] || EMPTY_OBJECT
       : state => state.objects.byType[type] || EMPTY_OBJECT
 
-  return _extendCollectionSelector(
-    createFilter(getObjects, _getPermissionsPredicate),
-    type
-  )
+  return _extendCollectionSelector(createFilter(getObjects, _getPermissionsPredicate), type)
 }
 
 export const createGetTags = collectionSelectors => {
   if (!collectionSelectors) {
-    collectionSelectors = [
-      createGetObjectsOfType('host'),
-      createGetObjectsOfType('pool'),
-      createGetObjectsOfType('VM'),
-    ]
+    collectionSelectors = [createGetObjectsOfType('host'), createGetObjectsOfType('pool'), createGetObjectsOfType('VM')]
   }
 
   const getTags = create(collectionSelectors, (...collections) => {
@@ -469,17 +431,11 @@ export const createGetTags = collectionSelectors => {
   return _extendCollectionSelector(getTags, 'tag')
 }
 
-export const createGetVmLastShutdownTime = (
-  getVmId = (_, { vm }) => (vm != null ? vm.id : undefined)
-) =>
+export const createGetVmLastShutdownTime = (getVmId = (_, { vm }) => (vm != null ? vm.id : undefined)) =>
   create(getVmId, createGetObjectsOfType('message'), (vmId, messages) => {
     let max = null
     forEach(messages, message => {
-      if (
-        message.$object === vmId &&
-        message.name === 'VM_SHUTDOWN' &&
-        (max === null || message.time > max)
-      ) {
+      if (message.$object === vmId && message.name === 'VM_SHUTDOWN' && (max === null || message.time > max)) {
         max = message.time
       }
     })
@@ -508,11 +464,7 @@ export const createDoesHostNeedRestart = hostSelector => {
     .find(
       create(hostSelector, host => ({ guidance, time, upgrade }) =>
         time > host.startTime &&
-        (upgrade ||
-          some(
-            guidance,
-            action => action === 'restartHost' || action === 'restartXapi'
-          ))
+        (upgrade || some(guidance, action => action === 'restartHost' || action === 'restartXapi'))
       )
     )
 
@@ -546,12 +498,8 @@ export const createGetHostMetrics = hostSelector =>
 export const createGetVmDisks = vmSelector =>
   createGetObjectsOfType('VDI').pick(
     create(
-      createGetObjectsOfType('VBD').pick(
-        (state, props) => vmSelector(state, props).$VBDs
-      ),
-      _createCollectionWrapper(vbds =>
-        map(vbds, vbd => (vbd.is_cd_drive ? undefined : vbd.VDI))
-      )
+      createGetObjectsOfType('VBD').pick((state, props) => vmSelector(state, props).$VBDs),
+      _createCollectionWrapper(vbds => map(vbds, vbd => (vbd.is_cd_drive ? undefined : vbd.VDI)))
     )
   )
 
@@ -563,9 +511,7 @@ export const getIsPoolAdmin = create(
 
 export const getLoneSnapshots = create(
   create(
-    createFilter(createGetObjectsOfType('VM-snapshot'), [
-      ({ other }) => other['xo:backup:job'] !== undefined,
-    ]),
+    createFilter(createGetObjectsOfType('VM-snapshot'), [({ other }) => other['xo:backup:job'] !== undefined]),
     backupSnapshots =>
       map(backupSnapshots, snapshot => {
         const other = snapshot.other
@@ -577,12 +523,8 @@ export const getLoneSnapshots = create(
         }
       })
   ),
-  _createCollectionWrapper((_, { jobs }) =>
-    jobs === undefined ? undefined : keyBy(jobs, 'id')
-  ),
-  _createCollectionWrapper((_, { schedules }) =>
-    schedules === undefined ? undefined : keyBy(schedules, 'id')
-  ),
+  _createCollectionWrapper((_, { jobs }) => (jobs === undefined ? undefined : keyBy(jobs, 'id'))),
+  _createCollectionWrapper((_, { schedules }) => (schedules === undefined ? undefined : keyBy(schedules, 'id'))),
   createGetObjectsOfType('VM'),
   _createCollectionWrapper((snapshots, jobs, schedules, vms) =>
     getDetachedBackupsOrSnapshots(snapshots, { jobs, schedules, vms })
@@ -630,9 +572,7 @@ export const getResolvedResourceSets = create(
   createGetObjectsOfType('SR'),
   createGetObjectsOfType('VM-template'),
   (resourceSets, networks, srs, vms) =>
-    map(resourceSets, resourceSet =>
-      _getResolvedResourceSet(resourceSet, networks, srs, vms)
-    )
+    map(resourceSets, resourceSet => _getResolvedResourceSet(resourceSet, networks, srs, vms))
 )
 
 export const createGetHostState = getHost =>
@@ -641,11 +581,5 @@ export const createGetHostState = getHost =>
     (state, props) => getHost(state, props).enabled,
     (state, props) => getHost(state, props).current_operations,
     (powerState, enabled, operations) =>
-      powerState !== 'Running'
-        ? powerState
-        : !isEmpty(operations)
-        ? 'Busy'
-        : !enabled
-        ? 'Disabled'
-        : 'Running'
+      powerState !== 'Running' ? powerState : !isEmpty(operations) ? 'Busy' : !enabled ? 'Disabled' : 'Running'
   )

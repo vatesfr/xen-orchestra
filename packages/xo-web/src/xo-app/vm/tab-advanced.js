@@ -15,40 +15,13 @@ import Tooltip from 'tooltip'
 import { error } from 'notification'
 import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
+import { CustomFields } from 'custom-fields'
 import { injectState, provideState } from 'reaclette'
-import {
-  Number,
-  Select as EditableSelect,
-  Size,
-  Text,
-  XoSelect,
-} from 'editable'
+import { Number, Select as EditableSelect, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
-import {
-  SelectResourceSet,
-  SelectRole,
-  SelectSubject,
-  SelectVgpuType,
-} from 'select-objects'
-import {
-  addSubscriptions,
-  connectStore,
-  formatSize,
-  getVirtualizationModeLabel,
-  noop,
-  osFamily,
-} from 'utils'
-import {
-  every,
-  filter,
-  find,
-  isEmpty,
-  keyBy,
-  map,
-  times,
-  some,
-  uniq,
-} from 'lodash'
+import { SelectResourceSet, SelectRole, SelectSubject, SelectVgpuType } from 'select-objects'
+import { addSubscriptions, connectStore, formatSize, getVirtualizationModeLabel, noop, osFamily } from 'utils'
+import { every, filter, find, isEmpty, keyBy, map, times, some, uniq } from 'lodash'
 import {
   addAcl,
   changeVirtualizationMode,
@@ -76,12 +49,7 @@ import {
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
-import {
-  createGetObject,
-  createGetObjectsOfType,
-  createSelector,
-  isAdmin,
-} from 'selectors'
+import { createGetObject, createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 
 import BootOrder from './boot-order'
 
@@ -115,23 +83,12 @@ const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
   }))
 
   const getVbds = createGetObjectsOfType('VBD').pick((_, { vm }) => vm.$VBDs)
-  const getVdis = createGetObjectsOfType('VDI').pick(
-    createSelector(getVbds, vbds => map(vbds, 'VDI'))
-  )
-  const getSrs = createGetObjectsOfType('SR').pick(
-    createSelector(getVdis, vdis => uniq(map(vdis, '$SR')))
-  )
-  const getSrsContainers = createSelector(getSrs, srs =>
-    uniq(map(srs, '$container'))
-  )
+  const getVdis = createGetObjectsOfType('VDI').pick(createSelector(getVbds, vbds => map(vbds, 'VDI')))
+  const getSrs = createGetObjectsOfType('SR').pick(createSelector(getVdis, vdis => uniq(map(vdis, '$SR'))))
+  const getSrsContainers = createSelector(getSrs, srs => uniq(map(srs, '$container')))
 
-  const getAffinityHostPredicate = createSelector(
-    getSrsContainers,
-    containers => host =>
-      every(
-        containers,
-        container => container === host.$pool || container === host.id
-      )
+  const getAffinityHostPredicate = createSelector(getSrsContainers, containers => host =>
+    every(containers, container => container === host.$pool || container === host.id)
   )
 
   return {
@@ -140,8 +97,7 @@ const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
   }
 })
 class AffinityHost extends Component {
-  _editAffinityHost = host =>
-    editVm(this.props.vm, { affinityHost: host.id || null })
+  _editAffinityHost = host => editVm(this.props.vm, { affinityHost: host.id || null })
 
   render() {
     const { affinityHost, affinityHostPredicate } = this.props
@@ -245,10 +201,7 @@ class NewVgpu extends Component {
         <Row>
           <Col size={6}>{_('vmSelectVgpuType')}</Col>
           <Col size={6}>
-            <SelectVgpuType
-              onChange={this.linkState('vgpuType')}
-              predicate={this._getPredicate()}
-            />
+            <SelectVgpuType onChange={this.linkState('vgpuType')} predicate={this._getPredicate()} />
           </Col>
         </Row>
       </Container>
@@ -262,9 +215,7 @@ class Vgpus extends Component {
       icon: 'gpu',
       title: _('vmAddVgpu'),
       body: <NewVgpu vm={this.props.vm} />,
-    }).then(({ vgpuType }) =>
-      createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup })
-    )
+    }).then(({ vgpuType }) => createVgpu(this.props.vm, { vgpuType, gpuGroup: vgpuType.gpuGroup }))
 
   render() {
     const { vgpus, vm } = this.props
@@ -273,27 +224,13 @@ class Vgpus extends Component {
       <div>
         {map(vgpus, vgpu => (
           <span key={vgpu.id} className='mb-1'>
-            {!isVmRunning(vm) && (
-              <ActionButton
-                handler={deleteVgpu}
-                handlerParam={vgpu}
-                icon='delete'
-                size='small'
-              />
-            )}{' '}
+            {!isVmRunning(vm) && <ActionButton handler={deleteVgpu} handlerParam={vgpu} icon='delete' size='small' />}{' '}
             {renderXoItem(vgpu)}
           </span>
         ))}
         {isEmpty(vgpus) && (
           <span>
-            {!isVmRunning(vm) && (
-              <ActionButton
-                handler={this._createVgpu}
-                icon='add'
-                size='small'
-              />
-            )}{' '}
-            {_('vmVgpuNone')}
+            {!isVmRunning(vm) && <ActionButton handler={this._createVgpu} icon='add' size='small' />} {_('vmVgpuNone')}
           </span>
         )}
       </div>
@@ -338,8 +275,7 @@ class AddAclsModal extends Component {
   _getPredicate = createSelector(
     () => this.props.acls,
     () => this.props.vm,
-    (acls, object) => ({ id: subject, permission }) =>
-      permission !== 'admin' && !some(acls, { object, subject })
+    (acls, object) => ({ id: subject, permission }) => permission !== 'admin' && !some(acls, { object, subject })
   )
 
   render() {
@@ -380,19 +316,9 @@ const Acls = decorate([
               return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
             }
 
-            return (
-              Promise.all(
-                map(subjects, subject =>
-                  addAcl({ subject, object: vm, action })
-                )
-              ),
-              noop
-            )
+            return Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action }))), noop
           })
-          .catch(
-            err =>
-              err && error(_('addAclsErrorTitle'), err.message || String(err))
-          ),
+          .catch(err => err && error(_('addAclsErrorTitle'), err.message || String(err))),
       removeAcl: (_, { currentTarget: { dataset } }) => (_, { vm: object }) =>
         removeAcl({
           action: dataset.action,
@@ -419,17 +345,9 @@ const Acls = decorate([
       {resolvedAcls.slice(0, 5).map(({ subject, action }) => (
         <Row key={`${subject.id}.${action}`}>
           <Col>
-            <span>{renderXoItem(subject)}</span>{' '}
-            <span className={`tag tag-pill tag-${LEVELS[action]}`}>
-              {action}
-            </span>{' '}
+            <span>{renderXoItem(subject)}</span> <span className={`tag tag-pill tag-${LEVELS[action]}`}>{action}</span>{' '}
             <Tooltip content={_('removeAcl')}>
-              <a
-                data-action={action}
-                data-subject={subject.id}
-                onClick={effects.removeAcl}
-                role='button'
-              >
+              <a data-action={action} data-subject={subject.id} onClick={effects.removeAcl} role='button'>
                 <Icon icon='remove' />
               </a>
             </Tooltip>
@@ -439,21 +357,13 @@ const Acls = decorate([
       {resolvedAcls.length > 5 && (
         <Row>
           <Col>
-            <Link to={`settings/acls?s=object:${vm}`}>
-              {_('moreAcls', { nAcls: resolvedAcls.length - 5 })}
-            </Link>
+            <Link to={`settings/acls?s=object:${vm}`}>{_('moreAcls', { nAcls: resolvedAcls.length - 5 })}</Link>
           </Col>
         </Row>
       )}
       <Row>
         <Col>
-          <ActionButton
-            btnStyle='primary'
-            handler={effects.addAcls}
-            icon='add'
-            size='small'
-            tooltip={_('vmAddAcls')}
-          />
+          <ActionButton btnStyle='primary' handler={effects.addAcls} icon='add' size='small' tooltip={_('vmAddAcls')} />
         </Col>
       </Row>
     </Container>
@@ -473,9 +383,7 @@ const NIC_TYPE_OPTIONS = [
 
 @connectStore(() => {
   const getVgpus = createGetObjectsOfType('vgpu').pick((_, { vm }) => vm.$VGPUs)
-  const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(
-    createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup'))
-  )
+  const getGpuGroup = createGetObjectsOfType('gpuGroup').pick(createSelector(getVgpus, vgpus => map(vgpus, 'gpuGroup')))
 
   return {
     gpuGroup: getGpuGroup,
@@ -501,10 +409,7 @@ export default class TabAdvanced extends Component {
   _getCpuMask = createSelector(
     this._getCpuMaskOptions,
     () => this.props.vm.cpuMask,
-    (options, cpuMask) =>
-      cpuMask !== undefined
-        ? options.filter(({ value }) => cpuMask.includes(value))
-        : undefined
+    (options, cpuMask) => (cpuMask !== undefined ? options.filter(({ value }) => cpuMask.includes(value)) : undefined)
   )
 
   _getIsStopBlocked = createSelector(
@@ -520,16 +425,14 @@ export default class TabAdvanced extends Component {
       ),
     })
 
-  _onChangeCpuMask = cpuMask =>
-    editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
+  _onChangeCpuMask = cpuMask => editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
   _handleBootFirmware = value =>
     editVm(this.props.vm, {
       hvmBootFirmware: value !== '' ? value : null,
     })
 
-  _onNicTypeChange = value =>
-    editVm(this.props.vm, { nicType: value === '' ? null : value })
+  _onNicTypeChange = value => editVm(this.props.vm, { nicType: value === '' ? null : value })
 
   render() {
     const { container, isAdmin, vgpus, vm, vmPool } = this.props
@@ -671,8 +574,7 @@ export default class TabAdvanced extends Component {
                   <th>{_('virtualizationMode')}</th>
                   <td>
                     {_(getVirtualizationModeLabel(vm))}{' '}
-                    {(vm.virtualizationMode === 'pv' ||
-                      vm.virtualizationMode === 'hvm') && (
+                    {(vm.virtualizationMode === 'pv' || vm.virtualizationMode === 'hvm') && (
                       <ActionButton
                         btnStyle='danger'
                         disabled={vm.power_state !== 'Halted'}
@@ -692,20 +594,14 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('pvArgsLabel')}</th>
                     <td>
-                      <Text
-                        value={vm.PV_args}
-                        onChange={value => editVm(vm, { PV_args: value })}
-                      />
+                      <Text value={vm.PV_args} onChange={value => editVm(vm, { PV_args: value })} />
                     </td>
                   </tr>
                 )}
                 <tr>
                   <th>{_('startDelayLabel')}</th>
                   <td>
-                    <Number
-                      value={vm.startDelay}
-                      onChange={value => editVm(vm, { startDelay: value })}
-                    />
+                    <Number value={vm.startDelay} onChange={value => editVm(vm, { startDelay: value })} />
                   </td>
                 </tr>
                 <tr>
@@ -744,19 +640,14 @@ export default class TabAdvanced extends Component {
                       onChange={value => editVm(vm, { cpuCap: value })}
                       nullable
                     >
-                      {vm.cpuCap == null
-                        ? _('defaultCpuCap', { value: XEN_DEFAULT_CPU_CAP })
-                        : vm.cpuCap}
+                      {vm.cpuCap == null ? _('defaultCpuCap', { value: XEN_DEFAULT_CPU_CAP }) : vm.cpuCap}
                     </Number>
                   </td>
                 </tr>
                 <tr>
                   <th>{_('autoPowerOn')}</th>
                   <td>
-                    <Toggle
-                      value={Boolean(vm.auto_poweron)}
-                      onChange={value => editVm(vm, { auto_poweron: value })}
-                    />
+                    <Toggle value={Boolean(vm.auto_poweron)} onChange={value => editVm(vm, { auto_poweron: value })} />
                   </td>
                 </tr>
                 <tr>
@@ -775,19 +666,13 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('protectFromShutdown')}</th>
                   <td>
-                    <Toggle
-                      value={this._getIsStopBlocked()}
-                      onChange={this._onChangeBlockStop}
-                    />
+                    <Toggle value={this._getIsStopBlocked()} onChange={this._onChangeBlockStop} />
                   </td>
                 </tr>
                 <tr>
                   <th>{_('windowsUpdateTools')}</th>
                   <td>
-                    <Toggle
-                      value={vm.hasVendorDevice}
-                      onChange={value => editVm(vm, { hasVendorDevice: value })}
-                    />
+                    <Toggle value={vm.hasVendorDevice} onChange={value => editVm(vm, { hasVendorDevice: value })} />
                   </td>
                 </tr>
                 {vm.virtualizationMode === 'hvm' && (
@@ -807,9 +692,7 @@ export default class TabAdvanced extends Component {
                   <td>
                     <select
                       className='form-control'
-                      onChange={event =>
-                        editVm(vm, { high_availability: getEventValue(event) })
-                      }
+                      onChange={event => editVm(vm, { high_availability: getEventValue(event) })}
                       value={vm.high_availability}
                     >
                       {map(this.state.vmsHaValues, vmsHaValue => (
@@ -854,9 +737,7 @@ export default class TabAdvanced extends Component {
                     <td>
                       <Toggle
                         value={vm.vga === 'std'}
-                        onChange={value =>
-                          editVm(vm, { vga: value ? 'std' : 'cirrus' })
-                        }
+                        onChange={value => editVm(vm, { vga: value ? 'std' : 'cirrus' })}
                       />
                     </td>
                   </tr>
@@ -867,9 +748,7 @@ export default class TabAdvanced extends Component {
                     <td>
                       <select
                         className='form-control'
-                        onChange={event =>
-                          editVm(vm, { videoram: +getEventValue(event) })
-                        }
+                        onChange={event => editVm(vm, { videoram: +getEventValue(event) })}
                         value={vm.videoram}
                       >
                         {map(XEN_VIDEORAM_VALUES, val => (
@@ -886,17 +765,19 @@ export default class TabAdvanced extends Component {
                     <th>{_('vmBootFirmware')}</th>
                     <td>
                       <SelectBootFirmware
-                        host={
-                          vm.power_state === 'Running'
-                            ? vm.$container
-                            : get(() => vmPool.master)
-                        }
+                        host={vm.power_state === 'Running' ? vm.$container : get(() => vmPool.master)}
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <th>{_('customFields')}</th>
+                  <td>
+                    <CustomFields object={vm.id} />
+                  </td>
+                </tr>
               </tbody>
             </table>
             <br />
@@ -906,18 +787,11 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('vmCpuLimitsLabel')}</th>
                   <td>
-                    <Number
-                      value={vm.CPUs.number}
-                      onChange={CPUs => editVm(vm, { CPUs })}
-                    />
-                    /
+                    <Number value={vm.CPUs.number} onChange={CPUs => editVm(vm, { CPUs })} />/
                     {vm.power_state === 'Running' ? (
                       vm.CPUs.max
                     ) : (
-                      <Number
-                        value={vm.CPUs.max}
-                        onChange={cpusMax => editVm(vm, { cpusMax })}
-                      />
+                      <Number value={vm.CPUs.max} onChange={cpusMax => editVm(vm, { cpusMax })} />
                     )}
                   </td>
                 </tr>
@@ -934,9 +808,7 @@ export default class TabAdvanced extends Component {
                       Static: {formatSize(vm.memory.static[0])}/
                       <Size
                         value={defined(vm.memory.static[1], null)}
-                        onChange={memoryStaticMax =>
-                          editVm(vm, { memoryStaticMax })
-                        }
+                        onChange={memoryStaticMax => editVm(vm, { memoryStaticMax })}
                       />
                     </p>
                     <p>
@@ -970,10 +842,7 @@ export default class TabAdvanced extends Component {
                       _('unknownOsName')
                     ) : (
                       <span>
-                        <Icon
-                          className='text-info'
-                          icon={osFamily(vm.os_version.distro)}
-                        />
+                        <Icon className='text-info' icon={osFamily(vm.os_version.distro)} />
                         &nbsp;
                         {vm.os_version.name}
                       </span>
@@ -982,10 +851,7 @@ export default class TabAdvanced extends Component {
                 </tr>
                 <tr>
                   <th>{_('osKernel')}</th>
-                  <td>
-                    {(vm.os_version && vm.os_version.uname) ||
-                      _('unknownOsKernel')}
-                  </td>
+                  <td>{(vm.os_version && vm.os_version.uname) || _('unknownOsKernel')}</td>
                 </tr>
               </tbody>
             </table>
@@ -995,11 +861,7 @@ export default class TabAdvanced extends Component {
               <tbody>
                 <tr>
                   <th>{_('originalTemplate')}</th>
-                  <td>
-                    {vm.other.base_template_name
-                      ? vm.other.base_template_name
-                      : _('unknownOriginalTemplate')}
-                  </td>
+                  <td>{vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</td>
                 </tr>
                 <tr>
                   <th>{_('resourceSet')}</th>
