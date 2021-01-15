@@ -61,11 +61,13 @@ export class Backup {
   }
 
   async _runMetadataBackup() {
+    const config = this._config
     const job = this._job
     const schedule = this._schedule
 
     const settings = {
-      ...this._config.defaultSettings.metadata,
+      ...config.defaultSettings,
+      ...config.metadata.defaultSettings,
       ...job.settings[''],
       ...job.settings[schedule.id],
     }
@@ -124,7 +126,7 @@ export class Backup {
                   },
                   () =>
                     new PoolMetadataBackup({
-                      config: this._config,
+                      config,
                       job,
                       pool,
                       remoteAdapters: getAdaptersByRemote(adapters),
@@ -147,7 +149,7 @@ export class Backup {
               },
               () =>
                 new XoMetadataBackup({
-                  config: this._config,
+                  config,
                   job,
                   remoteAdapters: getAdaptersByRemote(adapters),
                   schedule,
@@ -168,9 +170,11 @@ export class Backup {
     const getSnapshotNameLabel = this._getSnapshotNameLabel
     const schedule = this._schedule
 
+    const config = this._config
     const { settings } = job
     const scheduleSettings = {
-      ...this._config.defaultSettings.vm,
+      ...config.defaultSettings,
+      ...config.vm.defaultSettings,
       ...settings[''],
       ...settings[schedule.id],
     }
@@ -192,7 +196,7 @@ export class Backup {
           Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
             using(this._getRecord('VM', vmUuid), vm =>
               new VmBackup({
-                config: this._config,
+                config,
                 getSnapshotNameLabel,
                 job,
                 // remotes,

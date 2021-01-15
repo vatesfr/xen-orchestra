@@ -21,12 +21,14 @@ keepAliveInterval = 10e3
 dirMode = 0o700
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 
-[backups.defaultSettings.metadata]
+[backups.defaultSettings]
 reportWhen = 'failure'
+
+[backups.metadata.defaultSettings]
 retentionPoolMetadata = 0
 retentionXoMetadata = 0
 
-[backups.defaultSettings.vm]
+[backups.vm.defaultSettings]
 bypassVdiChainsCheck = false
 checkpointSnapshot = false
 concurrency = 2
@@ -35,7 +37,6 @@ exportRetention = 0
 fullInterval = 0
 offlineBackup = false
 offlineSnapshot = false
-reportWhen = 'failure'
 snapshotRetention = 0
 timeout = 0
 vmTimeout = 0
