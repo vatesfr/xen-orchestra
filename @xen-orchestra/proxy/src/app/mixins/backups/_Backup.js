@@ -138,7 +138,7 @@ export class Backup {
           )
         }
 
-        if (job.xoMetadata !== undefined) {
+        if (job.xoMetadata !== undefined && settings.retentionXoMetadata !== 0) {
           promises.push(
             runTask(
               {
