@@ -46,12 +46,12 @@
     "nice-pipe": "0.0.0",
     "pretty-ms": "^7.0.0",
     "progress-stream": "^2.0.0",
-    "promise-toolbox": "^0.15.0",
+    "promise-toolbox": "^0.16.0",
     "pump": "^3.0.0",
     "pw": "^0.0.4",
     "strip-indent": "^3.0.0",
     "xdg-basedir": "^4.0.0",
-    "xo-lib": "^0.10.0"
+    "xo-lib": "^0.10.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
