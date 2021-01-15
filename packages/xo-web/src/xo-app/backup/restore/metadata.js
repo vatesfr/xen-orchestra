@@ -10,7 +10,7 @@ import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { flatMap, forOwn, reduce, toArray } from 'lodash'
+import { filter, flatMap, forOwn, reduce } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { noop } from 'utils'
@@ -150,7 +150,7 @@ export default decorate([
   addSubscriptions({
     remotes: cb =>
       subscribeRemotes(remotes => {
-        cb(toArray(remotes))
+        cb(filter(remotes, { enabled: true }))
       }),
   }),
   provideState({
@@ -169,7 +169,8 @@ export default decorate([
       // }
       async backups(_, { remotes = [] }) {
         if (remotes.length === 0) {
-          return
+          // NoObjects displays a spinner when collection is undefined
+          return {}
         }
 
         const { xo: xoType, pool: poolType } = await listMetadataBackups(remotes)
