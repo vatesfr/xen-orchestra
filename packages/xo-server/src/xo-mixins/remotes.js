@@ -87,7 +87,8 @@ export default class {
   }
 
   async testRemote(remoteId) {
-    const remote = await this._getRemote(remoteId)
+    const remote = await this.getRemoteWithCredentials(remoteId)
+
     const { readRate, writeRate, ...answer } =
       remote.proxy !== undefined
         ? await this._xo.callProxyMethod(remote.proxy, 'remote.test', {
@@ -150,8 +151,12 @@ export default class {
     return remote.properties
   }
 
-  getRemoteWithCredentials(id) {
-    return this._getRemote(id)
+  async getRemoteWithCredentials(id) {
+    const remote = await this._getRemote(id)
+    if (!remote.enabled) {
+      throw new Error('remote is disabled')
+    }
+    return remote
   }
 
   getRemote(id) {

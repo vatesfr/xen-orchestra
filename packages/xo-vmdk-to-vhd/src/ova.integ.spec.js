@@ -74,11 +74,19 @@ test('An ova file is parsed correctly', async () => {
   expect(data).toEqual(expectedResult)
 })
 
+function arrayToBuffer(array) {
+  const output = new DataView(new ArrayBuffer(array.length * 4))
+  array.forEach((e, i) => {
+    output.setUint32(i * 4, e, true)
+  })
+  return output.buffer
+}
+
 const expectedResult = {
   tables: {
     [vmdkFileName]: {
-      grainFileOffsetList: [65536, 115712],
-      grainLogicalAddressList: [0, 65536],
+      grainFileOffsetList: arrayToBuffer([65536, 115712]),
+      grainLogicalAddressList: arrayToBuffer([0, 65536]),
     },
   },
   disks: {
