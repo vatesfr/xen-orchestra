@@ -157,6 +157,8 @@ declare namespace backup {
     recordToXapi?: { [recordUuid: string]: string }
     streamLogs: boolean = false
   }): string
+
+  function restoreMetadataBackup(_: { backupId: string; remote: Remote; xapi: Xapi }): ReadableStream
 }
 
 declare namespace task {

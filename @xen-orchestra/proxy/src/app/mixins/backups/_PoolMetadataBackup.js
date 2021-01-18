@@ -6,7 +6,7 @@ import { DIR_XO_POOL_METADATA_BACKUPS } from './_RemoteAdapter'
 import { forkStreamUnpipe } from './_forkStreamUnpipe'
 import { Task } from './_Task'
 
-const PATH_DB_DUMP = '/pool/xmldbdump'
+export const PATH_DB_DUMP = '/pool/xmldbdump'
 
 export class PoolMetadataBackup {
   constructor({ config, job, pool, remoteAdapters, schedule, settings }) {
