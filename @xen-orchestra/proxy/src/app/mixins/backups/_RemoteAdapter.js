@@ -387,7 +387,7 @@ export class RemoteAdapter {
             metadata.id = metadata._filename
 
             // a backup size is a sum of all its VHDs' size
-            // a VHD size is a sum of all the VHDs' chain size
+            // a VHD size is a sum of the VHDs' chain size
             if (metadata.mode === 'delta') {
               for (const vhdRef in metadata.vdis) {
                 const vdiUuid = metadata.vdis[vhdRef].$snapshot_of$uuid
