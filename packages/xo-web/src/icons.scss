@@ -141,6 +141,10 @@
     @extend .fa;
     @extend .fa-download;
   }
+  &-upload {
+    @extend .fa;
+    @extend .fa-upload;
+  }
   &-shortcuts {
     @extend .fa;
     @extend .fa-keyboard-o;
@@ -627,6 +631,13 @@
     &-patch-update {
       @extend .fa;
       @extend .fa-download;
+    }
+  }
+
+  &-pool {
+    &-rolling-update {
+      @extend .fa;
+      @extend .fa-angle-double-down;
     }
   }
 

@@ -15,12 +15,7 @@ import Tooltip from 'tooltip'
 import { isVmRunning, resolveUrl } from 'xo'
 import { Col, Container, Row } from 'grid'
 import { confirm, form } from 'modal'
-import {
-  CpuSparkLines,
-  MemorySparkLines,
-  NetworkSparkLines,
-  XvdSparkLines,
-} from 'xo-sparklines'
+import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, XvdSparkLines } from 'xo-sparklines'
 
 class SendToClipboard extends Component {
   state = { value: this.props.clipboard }
@@ -54,11 +49,7 @@ export default class TabConsole extends Component {
   state = { clipboard: '', scale: 1 }
 
   componentWillReceiveProps(props) {
-    if (
-      isVmRunning(this.props.vm) &&
-      !isVmRunning(props.vm) &&
-      this.state.minimalLayout
-    ) {
+    if (isVmRunning(this.props.vm) && !isVmRunning(props.vm) && this.state.minimalLayout) {
       this._toggleMinimalLayout()
     }
   }
@@ -99,9 +90,7 @@ export default class TabConsole extends Component {
   }
 
   _openSsh = (username = 'root') => {
-    window.location = `ssh://${encodeURIComponent(username)}@${
-      this.props.vm.mainIpAddress
-    }`
+    window.location = `ssh://${encodeURIComponent(username)}@${this.props.vm.mainIpAddress}`
   }
 
   _openSshMore = async () => {
@@ -111,12 +100,7 @@ export default class TabConsole extends Component {
       header: _('sshUsernameLabel'),
       render: ({ value, onChange }) => (
         <div>
-          <input
-            type='text'
-            className='form-control'
-            onChange={onChange}
-            value={value}
-          />
+          <input type='text' className='form-control' onChange={onChange} value={value} />
         </div>
       ),
     })
@@ -145,26 +129,22 @@ export default class TabConsole extends Component {
           <Row className='text-xs-center'>
             <Col mediumSize={3}>
               <p>
-                <Icon icon='cpu' size={2} />{' '}
-                <CpuSparkLines data={statsOverview} />
+                <Icon icon='cpu' size={2} /> <CpuSparkLines data={statsOverview} />
               </p>
             </Col>
             <Col mediumSize={3}>
               <p>
-                <Icon icon='memory' size={2} />{' '}
-                <MemorySparkLines data={statsOverview} />
+                <Icon icon='memory' size={2} /> <MemorySparkLines data={statsOverview} />
               </p>
             </Col>
             <Col mediumSize={3}>
               <p>
-                <Icon icon='network' size={2} />{' '}
-                <NetworkSparkLines data={statsOverview} />
+                <Icon icon='network' size={2} /> <NetworkSparkLines data={statsOverview} />
               </p>
             </Col>
             <Col mediumSize={3}>
               <p>
-                <Icon icon='disk' size={2} />{' '}
-                <XvdSparkLines data={statsOverview} />
+                <Icon icon='disk' size={2} /> <XvdSparkLines data={statsOverview} />
               </p>
             </Col>
           </Row>
@@ -202,9 +182,7 @@ export default class TabConsole extends Component {
               <span className='input-group-btn'>
                 <ActionButton
                   handler={this._openSsh}
-                  tooltip={
-                    canSsh ? _('sshRootTooltip') : _('sshNeedClientTools')
-                  }
+                  tooltip={canSsh ? _('sshRootTooltip') : _('sshNeedClientTools')}
                   disabled={!canSsh}
                   icon='remote'
                 >
@@ -214,9 +192,7 @@ export default class TabConsole extends Component {
               <span className='input-group-btn'>
                 <ActionButton
                   handler={this._openSshMore}
-                  tooltip={
-                    canSsh ? _('sshUserTooltip') : _('sshNeedClientTools')
-                  }
+                  tooltip={canSsh ? _('sshUserTooltip') : _('sshNeedClientTools')}
                   disabled={!canSsh}
                   icon='remote'
                 >
@@ -224,11 +200,7 @@ export default class TabConsole extends Component {
                 </ActionButton>
               </span>
               <span className='input-group-btn'>
-                <ActionButton
-                  handler={this._sendCtrlAltDel}
-                  tooltip={_('ctrlAltDelButtonLabel')}
-                  icon='vm-keyboard'
-                />
+                <ActionButton handler={this._sendCtrlAltDel} tooltip={_('ctrlAltDelButtonLabel')} icon='vm-keyboard' />
               </span>
             </div>
           </Col>
@@ -244,11 +216,7 @@ export default class TabConsole extends Component {
             />
           </Col>
           <Col mediumSize={1}>
-            <Tooltip
-              content={
-                minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')
-              }
-            >
+            <Tooltip content={minimalLayout ? _('showHeaderTooltip') : _('hideHeaderTooltip')}>
               <Button onClick={this._toggleMinimalLayout}>
                 <Icon icon={minimalLayout ? 'caret' : 'caret-up'} />
               </Button>

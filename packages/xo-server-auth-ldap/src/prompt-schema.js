@@ -7,10 +7,7 @@ const EMPTY_OBJECT = Object.freeze({ __proto__: null })
 
 const _extractValue = ({ value }) => value
 
-export const confirm = (
-  message,
-  { default: defaultValue = null } = EMPTY_OBJECT
-) =>
+export const confirm = (message, { default: defaultValue = null } = EMPTY_OBJECT) =>
   prompt({
     default: defaultValue,
     message,
@@ -20,11 +17,7 @@ export const confirm = (
 
 export const input = (
   message,
-  {
-    default: defaultValue = null,
-    filter = undefined,
-    validate = undefined,
-  } = EMPTY_OBJECT
+  { default: defaultValue = null, filter = undefined, validate = undefined } = EMPTY_OBJECT
 ) =>
   prompt({
     default: defaultValue,
@@ -34,11 +27,7 @@ export const input = (
     validate,
   }).then(_extractValue)
 
-export const list = (
-  message,
-  choices,
-  { default: defaultValue = null } = EMPTY_OBJECT
-) =>
+export const list = (message, choices, { default: defaultValue = null } = EMPTY_OBJECT) =>
   prompt({
     default: defaultValue,
     choices,
@@ -49,11 +38,7 @@ export const list = (
 
 export const password = (
   message,
-  {
-    default: defaultValue = null,
-    filter = undefined,
-    validate = undefined,
-  } = EMPTY_OBJECT
+  { default: defaultValue = null, filter = undefined, validate = undefined } = EMPTY_OBJECT
 ) =>
   prompt({
     default: defaultValue,
@@ -78,11 +63,7 @@ const promptByType = {
 
     const itemSchema = schema.items
     const promptItem = async () => {
-      items[i] = await promptGeneric(
-        itemSchema,
-        defaultValue[i],
-        path ? `${path} [${i}]` : `[${i}]`
-      )
+      items[i] = await promptGeneric(itemSchema, defaultValue[i], path ? `${path} [${i}]` : `[${i}]`)
 
       ++i
     }
@@ -142,9 +123,7 @@ const promptByType = {
       })
 
     const promptProperty = async (schema, name) => {
-      const subpath = path
-        ? `${path} > ${schema.title || name}`
-        : schema.title || name
+      const subpath = path ? `${path} > ${schema.title || name}` : schema.title || name
 
       if (
         required[name] ||
@@ -152,11 +131,7 @@ const promptByType = {
           default: Boolean(defaultValue && name in defaultValue),
         }))
       ) {
-        value[name] = await promptGeneric(
-          schema,
-          defaultValue && defaultValue[name],
-          subpath
-        )
+        value[name] = await promptGeneric(schema, defaultValue && defaultValue[name], subpath)
       }
     }
 

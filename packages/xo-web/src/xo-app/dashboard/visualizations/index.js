@@ -7,12 +7,7 @@ import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
-import {
-  createFilter,
-  createGetObjectsOfType,
-  createPicker,
-  createSelector,
-} from 'selectors'
+import { createFilter, createGetObjectsOfType, createPicker, createSelector } from 'selectors'
 import { connectStore, formatSize } from 'utils'
 
 // ===================================================================
@@ -67,14 +62,8 @@ const DATA_RENDERERS = {
       }
     )
 
-    return createSelector(
-      getVms,
-      createGetObjectsOfType('VBD'),
-      createGetObjectsOfType('VDI'),
-      (vms, vbds, vdis) =>
-        mapValues(getVdisByVmSelectors(vms), (getVdis, vmId) =>
-          getVdis(vms[vmId], vbds, vdis)
-        )
+    return createSelector(getVms, createGetObjectsOfType('VBD'), createGetObjectsOfType('VDI'), (vms, vbds, vdis) =>
+      mapValues(getVdisByVmSelectors(vms), (getVdis, vmId) => getVdis(vms[vmId], vbds, vdis))
     )
   })
 
@@ -116,11 +105,7 @@ export default class Visualizations extends Component {
       <Container>
         <Row>
           <Col>
-            <XoParallelChart
-              dataSet={this._getData()}
-              labels={DATA_LABELS}
-              renderers={DATA_RENDERERS}
-            />
+            <XoParallelChart dataSet={this._getData()} labels={DATA_LABELS} renderers={DATA_RENDERERS} />
           </Col>
         </Row>
       </Container>

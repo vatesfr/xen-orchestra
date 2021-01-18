@@ -82,13 +82,6 @@ export default class TabLogs extends Component {
       )
     }
 
-    return (
-      <SortedTable
-        actions={LOG_ACTIONS}
-        collection={logs}
-        columns={LOG_COLUMNS}
-        stateUrlParam='s_logs'
-      />
-    )
+    return <SortedTable actions={LOG_ACTIONS} collection={logs} columns={LOG_COLUMNS} stateUrlParam='s_logs' />
   }
 }

@@ -327,8 +327,7 @@ export default {
   homeDisplayedItems: '{displayed, number}x {icon} (w {total, number})',
 
   // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems:
-    '{selected, number}x {icon} wybrane {selected, plural, one {} other {s}} (w {total, number})',
+  homeSelectedItems: '{selected, number}x {icon} wybrane {selected, plural, one {} other {s}} (w {total, number})',
 
   // Original text: "More"
   homeMore: 'Więcej',
@@ -562,19 +561,16 @@ export default {
   deleteBackupSchedule: 'Usuń zadanie kopii zapasowej',
 
   // Original text: "Are you sure you want to delete this backup job?"
-  deleteBackupScheduleQuestion:
-    'Jesteś pewny że chcesz usunąć zadanie kopii zapasowej?',
+  deleteBackupScheduleQuestion: 'Jesteś pewny że chcesz usunąć zadanie kopii zapasowej?',
 
   // Original text: "Enable immediately after creation"
   scheduleEnableAfterCreation: 'Enable immediately after creation',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
-  scheduleEditMessage:
-    'Edytujesz harmonogram{name} ({id}). Zapisanie zastąpi poprzedni stan harmonogramu',
+  scheduleEditMessage: 'Edytujesz harmonogram{name} ({id}). Zapisanie zastąpi poprzedni stan harmonogramu',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage:
-    'Edytujesz zadanie {name} ({id}). Zapisanie zastąpi poprzednie zadanie',
+  jobEditMessage: 'Edytujesz zadanie {name} ({id}). Zapisanie zastąpi poprzednie zadanie',
 
   // Original text: "No scheduled jobs."
   noScheduledJobs: 'Brak zaplanowanych zadań',
@@ -613,8 +609,7 @@ export default {
   localRemoteWarningTitle: 'Local remote selected',
 
   // Original text: "Warning: local remotes will use limited XOA disk space. Only for advanced users."
-  localRemoteWarningMessage:
-    'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
+  localRemoteWarningMessage: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.',
 
   // Original text: "VMs"
   editBackupVmsTitle: 'VMs',
@@ -968,8 +963,7 @@ export default {
   pluginConfigurationPresetTitle: 'Wstępnie zdefiniowana konfiguracja',
 
   // Original text: "Choose a predefined configuration."
-  pluginConfigurationChoosePreset:
-    'Wybierz wstępnie zdefiniowaną konfigurację.',
+  pluginConfigurationChoosePreset: 'Wybierz wstępnie zdefiniowaną konfigurację.',
 
   // Original text: "Apply"
   applyPluginPreset: 'Akceptuj',
@@ -1521,8 +1515,7 @@ export default {
   tipLabel: 'Wskazówka:',
 
   // Original text: "non-US keyboard could have issues with console: switch your own layout to US."
-  tipConsoleLabel:
-    'non-US keyboard could have issues with console: switch your own layout to US.',
+  tipConsoleLabel: 'non-US keyboard could have issues with console: switch your own layout to US.',
 
   // Original text: "Hide infos"
   hideHeaderTooltip: 'Ukryj informacje',
@@ -1705,8 +1698,7 @@ export default {
   vifLockedNetwork: 'Sieć zablokowana',
 
   // Original text: "Network locked and no IPs are allowed for this interface"
-  vifLockedNetworkNoIps:
-    'Sieć zablokowana i żadne IPs nie są dopuszczone do tego interfejsu',
+  vifLockedNetworkNoIps: 'Sieć zablokowana i żadne IPs nie są dopuszczone do tego interfejsu',
 
   // Original text: "Network not locked"
   vifUnLockedNetwork: 'Sieć niezablokowana',
@@ -1868,8 +1860,7 @@ export default {
   templateDelete: 'Usuń szablon',
 
   // Original text: "Delete VM template{templates, plural, one {} other {s}}"
-  templateDeleteModalTitle:
-    'Usuń szablon VM{templates, plural, one {} other {s}} de VMs',
+  templateDeleteModalTitle: 'Usuń szablon VM{templates, plural, one {} other {s}} de VMs',
 
   // Original text: "Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?"
   templateDeleteModalBody: 'Jesteś pewien że chcesz usunąć?',
@@ -2218,8 +2209,7 @@ export default {
   deleteResourceSetWarning: 'Delete resource set',
 
   // Original text: "Are you sure you want to delete this resource set?"
-  deleteResourceSetQuestion:
-    'Are you sure you want to delete this resource set?',
+  deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',
 
   // Original text: "Missing objects:"
   resourceSetMissingObjects: 'Brakujące obiekty:',
@@ -2246,8 +2236,7 @@ export default {
   noHostsAvailable: 'Brak dostępnych hostów.',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription:
-    'VMs created from this resource set shall run on the following hosts.',
+  availableHostsDescription: 'VMs created from this resource set shall run on the following hosts.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Maximum CPUs',
@@ -2280,8 +2269,7 @@ export default {
   resourceSetNew: 'Nowy',
 
   // Original text: "Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files."
-  importVmsList:
-    'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',
+  importVmsList: 'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.',
 
   // Original text: "No selected VMs."
   noSelectedVms: 'No selected VMs.',
@@ -2410,8 +2398,7 @@ export default {
   vmsToBackup: 'VMs do kopii zapasowej',
 
   // Original text: "Emergency shutdown Host{nHosts, plural, one {} other {s}}"
-  emergencyShutdownHostsModalTitle:
-    'Wyłączenie awaryjne hosta {nHosts, plural, one {} other {s}}',
+  emergencyShutdownHostsModalTitle: 'Wyłączenie awaryjne hosta {nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?"
   emergencyShutdownHostsModalMessage:
@@ -2437,8 +2424,7 @@ export default {
   restartHostModalMessage: 'To zrestartuje twojego hosta. Chcesz kontynuować?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
-  restartHostsAgentsModalTitle:
-    'Zrestartuj hosta{nHosts, plural, one {} other {s}}',
+  restartHostsAgentsModalTitle: 'Zrestartuj hosta{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?"
   restartHostsAgentsModalMessage:
@@ -2448,29 +2434,25 @@ export default {
   restartHostsModalTitle: 'Restart hosta{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  restartHostsModalMessage:
-    'Czy na pewno chcesz zrestartować {nHosts} Host{nHosts, plural, one {} other {s}}?',
+  restartHostsModalMessage: 'Czy na pewno chcesz zrestartować {nHosts} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
   startVmsModalTitle: 'Uruchom VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?"
-  startVmsModalMessage:
-    'Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?',
+  startVmsModalMessage: 'Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Stop Host{nHosts, plural, one {} other {s}}"
   stopHostsModalTitle: 'Zatrzymaj hosta{nHosts, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  stopHostsModalMessage:
-    'Jesteś pewny że chcesz zatrzymać {nHosts} Host{nHosts, plural, one {} other {s}}?',
+  stopHostsModalMessage: 'Jesteś pewny że chcesz zatrzymać {nHosts} Host{nHosts, plural, one {} other {s}}?',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
   stopVmsModalTitle: 'Zatrzymaj VM {vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {vms} VM{vms, plural, one {} other {s}}?"
-  stopVmsModalMessage:
-    'Jesteś pewien że chcesz zatrzymać {vms} VM{vms, plural, one {} other {s}}?',
+  stopVmsModalMessage: 'Jesteś pewien że chcesz zatrzymać {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Restart VM"
   restartVmModalTitle: 'Restart VM',
@@ -2488,15 +2470,13 @@ export default {
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage:
-    'Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?',
+  restartVmsModalMessage: 'Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to snapshot {vms} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage:
-    'Jesteś pewny że chcesz zrobić snapshot {vms} VM{vms, plural, one {} other {s}}?',
+  snapshotVmsModalMessage: 'Jesteś pewny że chcesz zrobić snapshot {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
@@ -2509,8 +2489,7 @@ export default {
   deleteVmModalTitle: 'Usuń VM',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage:
-    'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
+  deleteVmModalMessage: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Migruj VM',
@@ -2561,8 +2540,7 @@ export default {
   deleteVdiModalTitle: 'Usuń VDI',
 
   // Original text: "Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST"
-  deleteVdiModalMessage:
-    'Jesteś pewien że chcesz usunąć dysk? Wszystkie dane na dysku zostaną utracone',
+  deleteVdiModalMessage: 'Jesteś pewien że chcesz usunąć dysk? Wszystkie dane na dysku zostaną utracone',
 
   // Original text: "Revert your VM"
   revertVmModalTitle: 'Revert your VM',
@@ -2590,8 +2568,7 @@ export default {
   importBackupModalSelectBackup: 'Wybierz swój backup…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning:
-    'Are you sure you want to remove all orphaned snapshot VDIs?',
+  removeAllOrphanedModalWarning: 'Are you sure you want to remove all orphaned snapshot VDIs?',
 
   // Original text: "Remove all logs"
   removeAllLogsModalTitle: 'Usuń wszystkie logi',
@@ -2830,8 +2807,7 @@ export default {
   availableIn: 'This feature is available starting from {plan} Edition',
 
   // Original text: "This feature is not available in your version, contact your administrator to know more."
-  notAvailable:
-    'This feature is not available in your version, contact your administrator to know more.',
+  notAvailable: 'This feature is not available in your version, contact your administrator to know more.',
 
   // Original text: "Updates"
   updateTitle: 'Aktualizuj',
@@ -2879,8 +2855,7 @@ export default {
   noUpdaterCommunity: 'No updater available for Community Edition',
 
   // Original text: "Please consider subscribe and try it with all features for free during 15 days on"
-  considerSubscribe:
-    'Please consider subscribe and try it with all features for free during 15 days on',
+  considerSubscribe: 'Please consider subscribe and try it with all features for free during 15 days on',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning:
@@ -2896,23 +2871,19 @@ export default {
   editRegistration: 'Edit registration',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration:
-    'Please, take time to register in order to enjoy your trial.',
+  trialRegistration: 'Please, take time to register in order to enjoy your trial.',
 
   // Original text: "Start trial"
   trialStartButton: 'Start trial',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil:
-    'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
+  trialAvailableUntil: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed:
-    'Twoja wersja demonstracyjna właśnie się zakończyła. Skontaktuj się z nami żeby pobrać darmową wersję',
+  trialConsumed: 'Twoja wersja demonstracyjna właśnie się zakończyła. Skontaktuj się z nami żeby pobrać darmową wersję',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked:
-    'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
+  trialLocked: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.',
 
   // Original text: "No update information available"
   noUpdateInfo: 'No update information available',
@@ -2943,16 +2914,13 @@ export default {
   disclaimerTitle: 'Xen Orchestra z źródeł',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1:
-    'Używasz XO z źródeł!. To dobre rozwiązanie tylko do prywatnego/nieprodukcyjnego użytku',
+  disclaimerText1: 'Używasz XO z źródeł!. To dobre rozwiązanie tylko do prywatnego/nieprodukcyjnego użytku',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2:
-    "If you are a company, it's better to use it with our appliance + pro support included:",
+  disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3:
-    'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText3: 'This version is not bundled with any support nor updates. Use it with caution.',
 
   // Original text: "Connect PIF"
   connectPif: 'Connect PIF',
@@ -3006,8 +2974,7 @@ export default {
   pwdChangeError: 'Nieprawidłowe hasło',
 
   // Original text: "The old password provided is incorrect. Your password has not been changed."
-  pwdChangeErrorBody:
-    'The old password provided is incorrect. Your password has not been changed.',
+  pwdChangeErrorBody: 'The old password provided is incorrect. Your password has not been changed.',
 
   // Original text: "OK"
   changePasswordOk: 'OK',
@@ -3043,8 +3010,7 @@ export default {
   deleteSshKeyConfirm: 'Usuń klucz SSH',
 
   // Original text: "Are you sure you want to delete the SSH key {title}?"
-  deleteSshKeyConfirmMessage:
-    'Are you sure you want to delete the SSH key {title}?',
+  deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
 
   // Original text: "Others"
   others: 'Inne',

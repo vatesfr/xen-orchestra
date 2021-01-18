@@ -543,8 +543,7 @@ export default {
   runJob: 'Iniciar tarefa',
 
   // Original text: "One shot running started. See overview for logs."
-  runJobVerbose:
-    'O backup manual foi executado. Clique em Visão Geral para ver os Logs',
+  runJobVerbose: 'O backup manual foi executado. Clique em Visão Geral para ver os Logs',
 
   // Original text: "Started"
   jobStarted: 'Iniciado',
@@ -559,8 +558,7 @@ export default {
   deleteBackupSchedule: 'Remover tarefa de backup',
 
   // Original text: "Are you sure you want to delete this backup job?"
-  deleteBackupScheduleQuestion:
-    'Você tem certeza que você quer deletar esta tarefa de backup?',
+  deleteBackupScheduleQuestion: 'Você tem certeza que você quer deletar esta tarefa de backup?',
 
   // Original text: "Enable immediately after creation"
   scheduleEnableAfterCreation: 'Ativar imediatamente após criação',
@@ -570,8 +568,7 @@ export default {
     'Você esta editando o Agendamento {name} ({id}). Este procedimento irá substituir o agendamento atual.',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage:
-    'Você esta editando a Tarefa {name} ({id}). Este procedimento irá substituir a tarefa atual.',
+  jobEditMessage: 'Você esta editando a Tarefa {name} ({id}). Este procedimento irá substituir a tarefa atual.',
 
   // Original text: "No scheduled jobs."
   noScheduledJobs: 'Sem agendamentos',
@@ -946,8 +943,7 @@ export default {
   purgePluginConfiguration: 'Configuração de limpeza do plugin',
 
   // Original text: "Are you sure you want to purge this configuration ?"
-  purgePluginConfigurationQuestion:
-    'Você tem certeza que deseja executar esta configuração?',
+  purgePluginConfigurationQuestion: 'Você tem certeza que deseja executar esta configuração?',
 
   // Original text: "Edit"
   editPluginConfiguration: 'Editar',
@@ -959,8 +955,7 @@ export default {
   pluginConfigurationSuccess: 'Configuração do Plugin',
 
   // Original text: "Plugin configuration successfully saved!"
-  pluginConfigurationChanges:
-    'Configuração do plugin foi efetuada com sucesso!',
+  pluginConfigurationChanges: 'Configuração do plugin foi efetuada com sucesso!',
 
   // Original text: 'Predefined configuration'
   pluginConfigurationPresetTitle: undefined,
@@ -1846,8 +1841,7 @@ export default {
   vmHomeNamePlaceholder: 'Faça um longo clique para adicionar um nome',
 
   // Original text: "Long click to add a description"
-  vmHomeDescriptionPlaceholder:
-    'Faça um longo clique para adicionar uma descrição',
+  vmHomeDescriptionPlaceholder: 'Faça um longo clique para adicionar uma descrição',
 
   // Original text: "Click to add a name"
   vmViewNamePlaceholder: 'Clique para adicionar um nome',
@@ -2240,8 +2234,7 @@ export default {
   noHostsAvailable: 'Sem hosts disponiveis',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription:
-    'VMs criadas a partir desse conjunto de recursos deve ser executado nos hosts indicados.',
+  availableHostsDescription: 'VMs criadas a partir desse conjunto de recursos deve ser executado nos hosts indicados.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Limite de CPUs',
@@ -2413,8 +2406,7 @@ export default {
   stopHostModalTitle: 'Desligar host',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage:
-    'O host será desligado. Você tem certeza que deseja continuar?',
+  stopHostModalMessage: 'O host será desligado. Você tem certeza que deseja continuar?',
 
   // Original text: 'Add host'
   addHostModalTitle: undefined,
@@ -2426,8 +2418,7 @@ export default {
   restartHostModalTitle: 'Reiniciar host',
 
   // Original text: "This will restart your host. Do you want to continue?"
-  restartHostModalMessage:
-    'O host será reiniciado. Você tem certeza que deseja continuar?',
+  restartHostModalMessage: 'O host será reiniciado. Você tem certeza que deseja continuar?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
   restartHostsAgentsModalTitle: undefined,
@@ -2445,8 +2436,7 @@ export default {
   startVmsModalTitle: 'Iniciar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?"
-  startVmsModalMessage:
-    'Você tem certeza que deseja iniciar {vms} VM{vms, plural, one {} other {s}}?',
+  startVmsModalMessage: 'Você tem certeza que deseja iniciar {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: 'Stop Host{nHosts, plural, one {} other {s}}'
   stopHostsModalTitle: undefined,
@@ -2458,8 +2448,7 @@ export default {
   stopVmsModalTitle: 'Parar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {vms} VM{vms, plural, one {} other {s}}?"
-  stopVmsModalMessage:
-    'Você tem certeza que deseja parar {vms} VM{vms, plural, one {} other {s}}?',
+  stopVmsModalMessage: 'Você tem certeza que deseja parar {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Restart VM"
   restartVmModalTitle: 'Reiniciar VM',
@@ -2477,8 +2466,7 @@ export default {
   restartVmsModalTitle: 'Reiniciar VM{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage:
-    'Você tem certeza que deseja reiniciar {vms} VM{vms, plural, one {} other {s}}?',
+  restartVmsModalMessage: 'Você tem certeza que deseja reiniciar {vms} VM{vms, plural, one {} other {s}}?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
@@ -2498,8 +2486,7 @@ export default {
   deleteVmModalTitle: 'Deletar VM',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage:
-    'Você tem certeza que deseja deletar esta VM? Todos os discos de VM serão removidos',
+  deleteVmModalMessage: 'Você tem certeza que deseja deletar esta VM? Todos os discos de VM serão removidos',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Migrar VM',
@@ -2577,15 +2564,13 @@ export default {
   importBackupModalSelectBackup: 'Selecionar backup…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning:
-    'Você tem certeza que deseja remover todos as VDIs orfãs?',
+  removeAllOrphanedModalWarning: 'Você tem certeza que deseja remover todos as VDIs orfãs?',
 
   // Original text: "Remove all logs"
   removeAllLogsModalTitle: 'Remover todos os logs',
 
   // Original text: "Are you sure you want to remove all logs?"
-  removeAllLogsModalWarning:
-    'Você tem certeza que deseja remover todos os logs?',
+  removeAllLogsModalWarning: 'Você tem certeza que deseja remover todos os logs?',
 
   // Original text: "This operation is definitive."
   definitiveMessageModal: 'Esta operação é definitiva.',
@@ -2862,12 +2847,10 @@ export default {
   upgrade: 'Atualização (Upgrade)',
 
   // Original text: "No updater available for Community Edition"
-  noUpdaterCommunity:
-    'Nenhuma atualização disponível para a versão Community Edition',
+  noUpdaterCommunity: 'Nenhuma atualização disponível para a versão Community Edition',
 
   // Original text: "Please consider subscribe and try it with all features for free during 15 days on"
-  noUpdaterSubscribe:
-    'Oi, inscreva-se e venha testar todos nossos recursos e serviços gratuitamente por 15 dias!',
+  noUpdaterSubscribe: 'Oi, inscreva-se e venha testar todos nossos recursos e serviços gratuitamente por 15 dias!',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning:
@@ -2883,8 +2866,7 @@ export default {
   editRegistration: undefined,
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration:
-    'Por favor, tome seu tempo para se registrar a fim de desfrutar do seu período de teste (trial)',
+  trialRegistration: 'Por favor, tome seu tempo para se registrar a fim de desfrutar do seu período de teste (trial)',
 
   // Original text: "Start trial"
   trialStartButton: 'Iniciar teste (trial)',
@@ -2929,16 +2911,13 @@ export default {
   disclaimerTitle: 'Xen Orchestra versão Open-Source',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1:
-    'Você está usando XO Open-Source! Isso é ótimo para um uso pessoal / sem fins lucrativos.',
+  disclaimerText1: 'Você está usando XO Open-Source! Isso é ótimo para um uso pessoal / sem fins lucrativos.',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2:
-    'Se você é uma empresa, é melhor usá-lo com o nosso sistema appliance + suporte pro inclusos:',
+  disclaimerText2: 'Se você é uma empresa, é melhor usá-lo com o nosso sistema appliance + suporte pro inclusos:',
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3:
-    'Esta versão não está vinculada a qualquer tipo de suporte nem atualizações. Use-a com cuidado.',
+  disclaimerText3: 'Esta versão não está vinculada a qualquer tipo de suporte nem atualizações. Use-a com cuidado.',
 
   // Original text: "Connect PIF"
   connectPif: 'Conectar PIF',

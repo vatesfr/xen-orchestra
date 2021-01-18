@@ -56,12 +56,16 @@ export default decorate([
           name,
           options = remote.options || '',
           password = remote.password,
-          path = remote.path,
           port = remote.port,
           proxyId = remote.proxy,
           type = remote.type,
           username = remote.username,
         } = state
+        let { path = remote.path } = state
+        if (type === 's3') {
+          const { parsedPath, bucket = parsedPath.split('/')[0], directory = parsedPath.split('/')[1] } = state
+          path = bucket + '/' + directory
+        }
         return editRemote(remote, {
           name,
           url: format({
@@ -96,8 +100,6 @@ export default decorate([
           path,
           port,
           proxyId,
-          bucket,
-          directory,
           type = 'nfs',
           username,
         } = state
@@ -109,6 +111,7 @@ export default decorate([
           type,
         }
         if (type === 's3') {
+          const { bucket, directory } = state
           urlParams.path = bucket + '/' + directory
         }
         username && (urlParams.username = username)
@@ -123,14 +126,12 @@ export default decorate([
         }
 
         const url = format(urlParams)
-        return createRemote(
-          name,
-          url,
-          options !== '' ? options : undefined,
-          proxyId === null ? undefined : proxyId
-        )
+        return createRemote(name, url, options !== '' ? options : undefined, proxyId === null ? undefined : proxyId)
           .then(reset)
           .catch(err => error('Create Remote', err.message || String(err)))
+      },
+      setSecretKey(_, { target: { value } }) {
+        this.state.password = value
       },
     },
     computed: {
@@ -150,9 +151,9 @@ export default decorate([
       password = remote.password || '',
       parsedPath,
       path = parsedPath || '',
-      parsedBucket = parsedPath && parsedPath.split('/')[0],
+      parsedBucket = parsedPath != null && parsedPath.split('/')[0],
       bucket = parsedBucket || '',
-      parsedDirectory,
+      parsedDirectory = parsedPath != null && parsedPath.split('/')[1],
       directory = parsedDirectory || '',
       port = remote.port,
       proxyId = remote.proxy,
@@ -173,20 +174,10 @@ export default decorate([
               required
               value={type}
             >
-              {map(remoteTypes, (label, key) =>
-                _({ key }, label, message => (
-                  <option value={key}>{message}</option>
-                ))
-              )}
+              {map(remoteTypes, (label, key) => _({ key }, label, message => <option value={key}>{message}</option>))}
             </select>
-            {type === 'smb' && (
-              <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>
-            )}
-            {type === 's3' && (
-              <em className='text-warning'>
-                Backup to Amazon S3 is a BETA feature
-              </em>
-            )}
+            {type === 'smb' && <em className='text-warning'>{_('remoteSmbWarningMessage')}</em>}
+            {type === 's3' && <em className='text-warning'>Backup to Amazon S3 is a BETA feature</em>}
           </div>
           <div className='form-group'>
             <input
@@ -211,9 +202,7 @@ export default decorate([
                   name='path'
                   onChange={effects.linkState}
                   pattern='^(([^/]+)+(/[^/]+)*)?$'
-                  placeholder={formatMessage(
-                    messages.remoteLocalPlaceHolderPath
-                  )}
+                  placeholder={formatMessage(messages.remoteLocalPlaceHolderPath)}
                   required
                   type='text'
                   value={path}
@@ -259,9 +248,7 @@ export default decorate([
                   className='form-control'
                   name='options'
                   onChange={effects.linkState}
-                  placeholder={formatMessage(
-                    messages.remoteNfsPlaceHolderOptions
-                  )}
+                  placeholder={formatMessage(messages.remoteNfsPlaceHolderOptions)}
                   type='text'
                   value={options}
                 />
@@ -277,9 +264,7 @@ export default decorate([
                   name='host'
                   onChange={effects.linkState}
                   pattern='^[^\\/]+\\[^\\/]+$'
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderAddressShare
-                  )}
+                  placeholder={formatMessage(messages.remoteSmbPlaceHolderAddressShare)}
                   required
                   type='text'
                   value={host}
@@ -290,9 +275,7 @@ export default decorate([
                   name='path'
                   onChange={effects.linkState}
                   pattern='^([^\\/]+(\\[^\\/]+)*)?$'
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderRemotePath
-                  )}
+                  placeholder={formatMessage(messages.remoteSmbPlaceHolderRemotePath)}
                   type='text'
                   value={path}
                 />
@@ -302,9 +285,7 @@ export default decorate([
                   className='form-control'
                   name='username'
                   onChange={effects.linkState}
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderUsername
-                  )}
+                  placeholder={formatMessage(messages.remoteSmbPlaceHolderUsername)}
                   required
                   type='text'
                   value={username}
@@ -314,9 +295,7 @@ export default decorate([
                 <Password
                   name='password'
                   onChange={effects.linkState}
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderPassword
-                  )}
+                  placeholder={formatMessage(messages.remoteSmbPlaceHolderPassword)}
                   required
                   value={password}
                 />
@@ -326,9 +305,7 @@ export default decorate([
                   className='form-control'
                   onChange={effects.linkState}
                   name='domain'
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderDomain
-                  )}
+                  placeholder={formatMessage(messages.remoteSmbPlaceHolderDomain)}
                   required
                   type='text'
                   value={domain}
@@ -340,9 +317,7 @@ export default decorate([
                   className='form-control'
                   name='options'
                   onChange={effects.linkState}
-                  placeholder={formatMessage(
-                    messages.remoteSmbPlaceHolderOptions
-                  )}
+                  placeholder={formatMessage(messages.remoteSmbPlaceHolderOptions)}
                   type='text'
                   value={options}
                 />
@@ -370,9 +345,7 @@ export default decorate([
                   onChange={effects.linkState}
                   // https://stackoverflow.com/a/58248645/72637
                   pattern='(?!^(\d{1,3}\.){3}\d{1,3}$)(^[a-z0-9]([a-z0-9-]*(\.[a-z0-9])?)*$)'
-                  placeholder={formatMessage(
-                    messages.remoteS3PlaceHolderBucket
-                  )}
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderBucket)}
                   required
                   type='text'
                   value={bucket}
@@ -384,9 +357,7 @@ export default decorate([
                   name='directory'
                   onChange={effects.linkState}
                   pattern='^(([^/]+)+(/[^/]+)*)?$'
-                  placeholder={formatMessage(
-                    messages.remoteS3PlaceHolderDirectory
-                  )}
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderDirectory)}
                   required
                   type='text'
                   value={directory}
@@ -407,11 +378,11 @@ export default decorate([
                 <input
                   className='form-control'
                   name='password'
-                  onChange={effects.linkState}
-                  placeholder='Secret access key'
+                  onChange={effects.setSecretKey}
+                  placeholder='Paste secret here to change it'
+                  autoComplete='off'
                   required
                   type='text'
-                  value={password}
                 />
               </div>
             </fieldset>
@@ -420,22 +391,13 @@ export default decorate([
             <ActionButton
               btnStyle='primary'
               form={state.formId}
-              handler={
-                state.remote === undefined
-                  ? effects.createRemote
-                  : effects.editRemote
-              }
+              handler={state.remote === undefined ? effects.createRemote : effects.editRemote}
               icon='save'
               type='submit'
             >
               {_('savePluginConfiguration')}
             </ActionButton>
-            <ActionButton
-              className='pull-right'
-              handler={effects.reset}
-              icon='reset'
-              type='reset'
-            >
+            <ActionButton className='pull-right' handler={effects.reset} icon='reset' type='reset'>
               {_('formReset')}
             </ActionButton>
           </div>

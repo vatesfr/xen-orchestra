@@ -12,11 +12,7 @@ export function getLockingModeValues() {
 
 // TODO: move into vm and rename to removeInterface
 async function delete_({ vif }) {
-  this.allocIpAddresses(
-    vif.id,
-    null,
-    vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
-  )::ignoreErrors()
+  this.allocIpAddresses(vif.id, null, vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses))::ignoreErrors()
 
   await this.getXapi(vif).deleteVif(vif._xapiId)
 }
@@ -73,24 +69,39 @@ export async function set({
   mac,
   network,
   rateLimit,
+  resourceSet,
   txChecksumming,
 }) {
-  const oldIpAddresses = vif.allowedIpv4Addresses.concat(
-    vif.allowedIpv6Addresses
-  )
-  const newIpAddresses = []
-  {
-    const { push } = newIpAddresses
-    push.apply(newIpAddresses, allowedIpv4Addresses || vif.allowedIpv4Addresses)
-    push.apply(newIpAddresses, allowedIpv6Addresses || vif.allowedIpv6Addresses)
+  const isNetworkChanged = network !== undefined && network.id !== vif.$network
+
+  // - If allowed IPs were explicitly passed: use them
+  // - Else if the network is changing: remove the existing allowed IPs
+  // - Else: use the old IPs
+  const newIpv4Addresses = allowedIpv4Addresses ?? (isNetworkChanged ? [] : vif.allowedIpv4Addresses)
+  const newIpv6Addresses = allowedIpv6Addresses ?? (isNetworkChanged ? [] : vif.allowedIpv6Addresses)
+
+  const oldIpAddresses = vif.allowedIpv4Addresses.concat(vif.allowedIpv6Addresses)
+  const newIpAddresses = newIpv4Addresses.concat(newIpv6Addresses)
+
+  if (lockingMode !== undefined) {
+    await this.checkPermissions(this.user.id, [[network?.id ?? vif.$network, 'operate']])
   }
 
-  if (network || mac) {
+  if (isNetworkChanged || mac) {
+    const networkId = network?.id
+    if (networkId !== undefined && this.user.permission !== 'admin') {
+      if (resourceSet !== undefined) {
+        await this.checkResourceSetConstraints(resourceSet, this.user.id, [networkId])
+      } else {
+        await this.checkPermissions(this.user.id, [[networkId, 'operate']])
+      }
+    }
+
     const xapi = this.getXapi(vif)
 
     const vm = xapi.getObject(vif.$VM)
     mac == null && (mac = vif.MAC)
-    network = xapi.getObject((network && network.id) || vif.$network)
+    network = xapi.getObject(networkId ?? vif.$network)
     attached == null && (attached = vif.attached)
 
     await this.allocIpAddresses(vif.id, null, oldIpAddresses)
@@ -100,14 +111,16 @@ export async function set({
     const newVif = await xapi.createVif(vm.$id, network.$id, {
       mac,
       currently_attached: attached,
-      ipv4_allowed: newIpAddresses,
-      locking_mode: lockingMode,
+      ipv4_allowed: newIpv4Addresses,
+      ipv6_allowed: newIpv6Addresses,
+      // - If locking mode has explicitly passed: use it
+      // - Else if the network is changing: config it to 'network_default'
+      // - Else: use the old locking mode
+      locking_mode: lockingMode ?? (isNetworkChanged ? 'network_default' : vif.lockingMode),
       qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
-      qos_algorithm_params:
-        rateLimit != null ? { kbps: String(rateLimit) } : undefined,
+      qos_algorithm_params: rateLimit != null ? { kbps: String(rateLimit) } : undefined,
       other_config: {
-        'ethtool-tx':
-          txChecksumming !== undefined ? String(txChecksumming) : undefined,
+        'ethtool-tx': txChecksumming !== undefined ? String(txChecksumming) : undefined,
       },
     })
 
@@ -116,10 +129,7 @@ export async function set({
     return
   }
 
-  const [addAddresses, removeAddresses] = diffItems(
-    newIpAddresses,
-    oldIpAddresses
-  )
+  const [addAddresses, removeAddresses] = diffItems(newIpAddresses, oldIpAddresses)
   await this.allocIpAddresses(vif.id, addAddresses, removeAddresses)
 
   return this.getXapi(vif).editVif(vif._xapiId, {
@@ -156,6 +166,7 @@ set.params = {
     optional: true,
     type: ['number', 'null'],
   },
+  resourceSet: { type: 'string', optional: true },
   txChecksumming: {
     type: 'boolean',
     optional: true,
@@ -164,5 +175,5 @@ set.params = {
 
 set.resolve = {
   vif: ['id', 'VIF', 'operate'],
-  network: ['network', 'network', 'operate'],
+  network: ['network', 'network', false],
 }

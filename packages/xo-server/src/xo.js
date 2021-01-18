@@ -5,14 +5,7 @@ import mixin from '@xen-orchestra/mixin'
 import { createClient as createRedisClient } from 'redis'
 import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
-import {
-  forEach,
-  includes,
-  isEmpty,
-  iteratee,
-  map as mapToArray,
-  stubTrue,
-} from 'lodash'
+import { forEach, includes, isEmpty, iteratee, map as mapToArray, stubTrue } from 'lodash'
 
 import mixins from './xo-mixins'
 import Connection from './connection'
@@ -71,8 +64,7 @@ export default class Xo extends EventEmitter {
 
     if (
       type != null &&
-      ((typeof type === 'string' && type !== obj.type) ||
-        !includes(type, obj.type)) // Array
+      ((typeof type === 'string' && type !== obj.type) || !includes(type, obj.type)) // Array
     ) {
       throw noSuchObject(key, type)
     }
@@ -181,11 +173,7 @@ export default class Xo extends EventEmitter {
     return url
   }
 
-  async registerHttpRequestHandler(
-    url,
-    fn,
-    { data = undefined, persistent = true } = {}
-  ) {
+  async registerHttpRequestHandler(url, fn, { data = undefined, persistent = true } = {}) {
     const { _httpRequestWatchers: watchers } = this
 
     if (url in watchers) {

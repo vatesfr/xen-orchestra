@@ -14,12 +14,7 @@ import { Container, Col, Row } from 'grid'
 import { Toggle, SizeInput } from 'form'
 import { SelectPif, SelectPool } from 'select-objects'
 import { filter, forEach, groupBy, isEmpty, map, pickBy, some } from 'lodash'
-import {
-  createFilter,
-  createGetObjectsOfType,
-  createSelector,
-  createSort,
-} from 'selectors'
+import { createFilter, createGetObjectsOfType, createSelector, createSort } from 'selectors'
 import {
   addSubscriptions,
   isLatestXosanPackInstalled,
@@ -57,9 +52,7 @@ const DEFAULT_MEMORY = 2 * 1024 * 1024 * 1024 // 2 GiB
 
 const XOSAN_SR_COLUMNS = [
   {
-    itemRenderer: sr => (
-      <Sr id={sr.id} container={false} spaceLeft={false} link />
-    ),
+    itemRenderer: sr => <Sr id={sr.id} container={false} spaceLeft={false} link />,
     name: _('xosanName'),
     sortCriteria: 'name_label',
   },
@@ -82,11 +75,7 @@ const XOSAN_SR_COLUMNS = [
             free: formatSize(sr.size - sr.physical_usage),
           })}
         >
-          <progress
-            className='progress'
-            max='100'
-            value={(sr.physical_usage / sr.size) * 100}
-          />
+          <progress className='progress' max='100' value={(sr.physical_usage / sr.size) * 100} />
         </Tooltip>
       ),
     name: _('xosanUsedSpace'),
@@ -142,8 +131,7 @@ export default class NewXosan extends Component {
       }
     )
 
-  _updateXosanPacks = pool =>
-    updateXosanPacks(pool).then(() => this._checkPacks(pool))
+  _updateXosanPacks = pool => updateXosanPacks(pool).then(() => this._checkPacks(pool))
 
   _selectPool = pool => {
     this.setState({
@@ -173,10 +161,7 @@ export default class NewXosan extends Component {
       this.setState({
         suggestion: 0,
         suggestions: !srsOnSameHost
-          ? await computeXosanPossibleOptions(
-              selectedSrs,
-              customBrickSize ? brickSize : undefined
-            )
+          ? await computeXosanPossibleOptions(selectedSrs, customBrickSize ? brickSize : undefined)
           : [],
       })
     }
@@ -206,11 +191,7 @@ export default class NewXosan extends Component {
         () => this.props.srs,
         createSelector(this._getHosts, hosts => sr => {
           let host
-          return (
-            sr.SR_type === 'lvm' &&
-            (host = hosts[sr.$container]) !== undefined &&
-            host.power_state === 'Running'
-          )
+          return sr.SR_type === 'lvm' && (host = hosts[sr.$container]) !== undefined && host.power_state === 'Running'
         })
       ),
       this._getPbdsBySr,
@@ -259,9 +240,7 @@ export default class NewXosan extends Component {
   )
 
   _getLatestTemplate = createSelector(
-    createFilter(() => this.props.catalog && map(this.props.catalog.xosan), [
-      ({ type }) => type === 'xva',
-    ]),
+    createFilter(() => this.props.catalog && map(this.props.catalog.xosan), [({ type }) => type === 'xva']),
     _findLatestTemplate
   )
 
@@ -307,9 +286,7 @@ export default class NewXosan extends Component {
       return (
         <em>
           {_('xosanSourcesDisclaimer', {
-            link: (
-              <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>
-            ),
+            link: <a href='https://xen-orchestra.com'>https://xen-orchestra.com</a>,
           })}
         </em>
       )
@@ -344,10 +321,7 @@ export default class NewXosan extends Component {
       )
     }
 
-    const hostsNeedRestart =
-      pool != null &&
-      hostsNeedRestartByPool !== undefined &&
-      hostsNeedRestartByPool[pool.id]
+    const hostsNeedRestart = pool != null && hostsNeedRestartByPool !== undefined && hostsNeedRestartByPool[pool.id]
     const architecture = suggestions != null && suggestions[suggestion]
 
     return (
@@ -358,11 +332,7 @@ export default class NewXosan extends Component {
               <Icon icon='info' />{' '}
               {_('xosanXcpngWarning', {
                 link: (
-                  <a
-                    href='https://xcp-ng.org/docs/storage.html#xosanv2'
-                    rel='noopener noreferrer'
-                    target='_blank'
-                  >
+                  <a href='https://xcp-ng.org/docs/storage.html#xosanv2' rel='noopener noreferrer' target='_blank'>
                     https://xcp-ng.org/docs/storage.html
                   </a>
                 ),
@@ -372,17 +342,11 @@ export default class NewXosan extends Component {
         )}
         <Row className='mb-1'>
           <Col size={4}>
-            <SelectPool
-              onChange={this._selectPool}
-              predicate={poolPredicate}
-              value={pool}
-            />
+            <SelectPool onChange={this._selectPool} predicate={poolPredicate} value={pool} />
           </Col>
           <Col size={4}>
             <SelectPif
-              disabled={
-                pool == null || needsUpdate || !isEmpty(hostsNeedRestart)
-              }
+              disabled={pool == null || needsUpdate || !isEmpty(hostsNeedRestart)}
               onChange={this.linkState('pif')}
               predicate={this._getPifPredicate()}
               value={pif}
@@ -397,12 +361,7 @@ export default class NewXosan extends Component {
               <Col>
                 <Icon icon='error' /> {_('xosanNeedPack')}
                 <br />
-                <ActionButton
-                  btnStyle='success'
-                  handler={this._updateXosanPacks}
-                  handlerParam={pool}
-                  icon='export'
-                >
+                <ActionButton btnStyle='success' handler={this._updateXosanPacks} handlerParam={pool} icon='export'>
                   {_('xosanInstallIt')}
                 </ActionButton>
               </Col>
@@ -424,7 +383,7 @@ export default class NewXosan extends Component {
             </Row>
           ) : (
             [
-              <Row>
+              <Row key='lvm-srs'>
                 <Col>
                   <SortedTable
                     collection={this._getLvmSrs()}
@@ -435,7 +394,7 @@ export default class NewXosan extends Component {
                   />
                 </Col>
               </Row>,
-              <Row>
+              <Row key='warning'>
                 <Col>
                   {srsOnSameHost && (
                     <span className='text-danger'>
@@ -444,7 +403,7 @@ export default class NewXosan extends Component {
                   )}
                 </Col>
               </Row>,
-              <Row>
+              <Row key='suggestions'>
                 <Col>
                   {!isEmpty(suggestions) && (
                     <div>
@@ -460,35 +419,29 @@ export default class NewXosan extends Component {
                           </tr>
                         </thead>
                         <tbody>
-                          {map(
-                            suggestions,
-                            (
-                              { layout, redundancy, capacity, availableSpace },
-                              index
-                            ) => (
-                              <tr key={index}>
-                                <td>
-                                  <input
-                                    checked={+suggestion === index}
-                                    name={`suggestion_${pool.id}`}
-                                    onChange={this.linkState('suggestion')}
-                                    type='radio'
-                                    value={index}
-                                  />
-                                </td>
-                                <td>{layout}</td>
-                                <td>{redundancy}</td>
-                                <td>{capacity}</td>
-                                <td>
-                                  {availableSpace === 0 ? (
-                                    <strong className='text-danger'>0</strong>
-                                  ) : (
-                                    formatSize(availableSpace)
-                                  )}
-                                </td>
-                              </tr>
-                            )
-                          )}
+                          {map(suggestions, ({ layout, redundancy, capacity, availableSpace }, index) => (
+                            <tr key={index}>
+                              <td>
+                                <input
+                                  checked={+suggestion === index}
+                                  name={`suggestion_${pool.id}`}
+                                  onChange={this.linkState('suggestion')}
+                                  type='radio'
+                                  value={index}
+                                />
+                              </td>
+                              <td>{layout}</td>
+                              <td>{redundancy}</td>
+                              <td>{capacity}</td>
+                              <td>
+                                {availableSpace === 0 ? (
+                                  <strong className='text-danger'>0</strong>
+                                ) : (
+                                  formatSize(availableSpace)
+                                )}
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                       {architecture.layout === 'disperse' && (
@@ -510,10 +463,7 @@ export default class NewXosan extends Component {
                         width={600}
                       />
                       <hr />
-                      <Toggle
-                        onChange={this.toggleState('showAdvanced')}
-                        value={this.state.showAdvanced}
-                      />{' '}
+                      <Toggle onChange={this.toggleState('showAdvanced')} value={this.state.showAdvanced} />{' '}
                       {_('xosanAdvanced')}{' '}
                       {this.state.showAdvanced && (
                         <Container className='mb-1'>
@@ -522,10 +472,7 @@ export default class NewXosan extends Component {
                           </SingleLineRow>
                           <SingleLineRow>
                             <Col size={1}>
-                              <Toggle
-                                onChange={this.linkState('useVlan')}
-                                value={useVlan}
-                              />
+                              <Toggle onChange={this.linkState('useVlan')} value={useVlan} />
                             </Col>
                             <Col size={3}>
                               <input
@@ -543,10 +490,7 @@ export default class NewXosan extends Component {
                           </SingleLineRow>
                           <SingleLineRow>
                             <Col size={1}>
-                              <Toggle
-                                onChange={this.linkState('customIpRange')}
-                                value={customIpRange}
-                              />
+                              <Toggle onChange={this.linkState('customIpRange')} value={customIpRange} />
                             </Col>
                             <Col size={3}>
                               <input
@@ -582,11 +526,7 @@ export default class NewXosan extends Component {
                           <SingleLineRow>
                             <Col size={4}>
                               <label>{_('xosanMemorySize')}</label>
-                              <SizeInput
-                                value={memorySize}
-                                onChange={this.linkState('memorySize')}
-                                required
-                              />
+                              <SizeInput value={memorySize} onChange={this.linkState('memorySize')} required />
                             </Col>
                           </SingleLineRow>
                         </Container>
@@ -596,7 +536,7 @@ export default class NewXosan extends Component {
                   )}
                 </Col>
               </Row>,
-              <Row>
+              <Row key='new-xosan'>
                 <Col>
                   <ActionButton
                     btnStyle='success'

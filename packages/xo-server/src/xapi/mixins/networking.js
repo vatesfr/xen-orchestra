@@ -1,5 +1,3 @@
-import { isEmpty } from '../../utils'
-
 import { makeEditObject } from '../utils'
 
 export default {
@@ -31,13 +29,8 @@ export default {
       set: [
         'ipv4Allowed',
         function (value, vif) {
-          const lockingMode =
-            isEmpty(value) && isEmpty(vif.ipv6_allowed)
-              ? 'network_default'
-              : 'locked'
-
-          if (lockingMode !== vif.locking_mode) {
-            return vif.set_locking_mode(lockingMode)
+          if (value.length !== 0 && vif.locking_mode !== 'locked') {
+            return vif.set_locking_mode('locked')
           }
         },
       ],
@@ -47,13 +40,8 @@ export default {
       set: [
         'ipv6Allowed',
         function (value, vif) {
-          const lockingMode =
-            isEmpty(value) && isEmpty(vif.ipv4_allowed)
-              ? 'network_default'
-              : 'locked'
-
-          if (lockingMode !== vif.locking_mode) {
-            return vif.set_locking_mode(lockingMode)
+          if (value.length !== 0 && vif.locking_mode !== 'locked') {
+            return vif.set_locking_mode('locked')
           }
         },
       ],
@@ -81,17 +69,12 @@ export default {
       set: (value, vif) =>
         Promise.all([
           vif.set_qos_algorithm_type(value === null ? '' : 'ratelimit'),
-          vif.update_qos_algorithm_params(
-            'kbps',
-            value === null ? null : String(value)
-          ),
+          vif.update_qos_algorithm_params('kbps', value === null ? null : String(value)),
         ]),
     },
 
     txChecksumming: {
-      // we supposed that removing `ethtool-tx` from the `other_config` will disable the functionality
-      set: (value, vif) =>
-        vif.update_other_config('ethtool-tx', value ? 'true' : null),
+      set: (value, vif) => vif.update_other_config('ethtool-tx', value === null ? null : String(value)),
     },
   }),
 }

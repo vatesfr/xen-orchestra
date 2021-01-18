@@ -12,15 +12,7 @@ import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { every, filter, find, forEach, isEmpty, map } from 'lodash'
 import { get } from '@xen-orchestra/defined'
-import {
-  addSubscriptions,
-  adminOnly,
-  connectStore,
-  cowSet,
-  formatSize,
-  ShortDate,
-  TryXoa,
-} from 'utils'
+import { addSubscriptions, adminOnly, connectStore, cowSet, formatSize, ShortDate, TryXoa } from 'utils'
 import {
   deleteSr,
   getLicenses,
@@ -56,9 +48,7 @@ const XOSAN_COLUMNS = [
         return null
       }
 
-      const pbdsDetached = every(map(sr.pbds, 'attached'))
-        ? null
-        : _('xosanPbdsDetached')
+      const pbdsDetached = every(map(sr.pbds, 'attached')) ? null : _('xosanPbdsDetached')
       const badStatus = every(status[sr.id])
         ? null
         : _('xosanBadStatus', {
@@ -88,10 +78,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('xosanPool'),
-    itemRenderer: sr =>
-      sr.pool == null ? null : (
-        <Link to={`/pools/${sr.pool.id}`}>{sr.pool.name_label}</Link>
-      ),
+    itemRenderer: sr => (sr.pool == null ? null : <Link to={`/pools/${sr.pool.id}`}>{sr.pool.name_label}</Link>),
     sortCriteria: sr => sr.pool && sr.pool.name_label,
   },
   {
@@ -127,11 +114,7 @@ const XOSAN_COLUMNS = [
             free: formatSize(sr.size - sr.physical_usage),
           })}
         >
-          <progress
-            className='progress'
-            max='100'
-            value={(sr.physical_usage * 100) / sr.size}
-          />
+          <progress className='progress' max='100' value={(sr.physical_usage * 100) / sr.size} />
         </Tooltip>
       ) : null,
     sortCriteria: sr => (sr.physical_usage * 100) / sr.size,
@@ -149,8 +132,7 @@ const XOSAN_COLUMNS = [
       if (license === undefined) {
         return (
           <span className='text-danger'>
-            {_('xosanUnknownSr')}{' '}
-            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+            {_('xosanUnknownSr')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
           </span>
         )
       }
@@ -159,8 +141,7 @@ const XOSAN_COLUMNS = [
       if (license === null) {
         return (
           <span className='text-danger'>
-            {_('xosanMultipleLicenses')}{' '}
-            <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+            {_('xosanMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
           </span>
         )
       }
@@ -174,26 +155,20 @@ const XOSAN_COLUMNS = [
             '✔'
           ) : expired ? (
             <span>
-              {_('licenseHasExpired')}{' '}
-              {isAdmin && (
-                <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
-              )}
+              {_('licenseHasExpired')} {isAdmin && <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>}
             </span>
           ) : (
             <span className={expiresSoon && 'text-danger'}>
               {_('xosanLicenseExpiresDate', {
                 date: <ShortDate timestamp={license.expires} />,
               })}{' '}
-              {expiresSoon && isAdmin && (
-                <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>
-              )}
+              {expiresSoon && isAdmin && <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>}
             </span>
           )}
         </span>
       ) : (
         <span>
-          {_('xosanNoLicense')}{' '}
-          <Link to='/xoa/licenses'>{_('xosanUnlockNow')}</Link>
+          {_('xosanNoLicense')} <Link to='/xoa/licenses'>{_('xosanUnlockNow')}</Link>
         </span>
       )
     },
@@ -223,9 +198,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 
   const getPbdsBySr = createGetObjectsOfType('PBD').groupBy('SR')
   const getXosanSrs = createSelector(
-    createGetObjectsOfType('SR').filter([
-      sr => sr.shared && sr.SR_type === 'xosan',
-    ]),
+    createGetObjectsOfType('SR').filter([sr => sr.shared && sr.SR_type === 'xosan']),
     getPbdsBySr,
     getPools,
     getHosts,
@@ -235,52 +208,37 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
         pbds: pbdsBySr[sr.id],
         pool: find(pools, { id: sr.$pool }),
         hosts: map(pbdsBySr[sr.id], ({ host }) => find(hosts, ['id', host])),
-        config:
-          sr.other_config['xo:xosan_config'] &&
-          JSON.parse(sr.other_config['xo:xosan_config']),
+        config: sr.other_config['xo:xosan_config'] && JSON.parse(sr.other_config['xo:xosan_config']),
       }))
     }
   )
 
-  const getIsMasterOfflineByPool = createSelector(
-    getHostsByPool,
-    getPools,
-    (hostsByPool, pools) => {
-      const isMasterOfflineByPool = {}
-      forEach(pools, pool => {
-        const poolMaster = find(hostsByPool[pool.id], { id: pool.master })
-        isMasterOfflineByPool[pool.id] =
-          poolMaster && poolMaster.power_state !== 'Running'
-      })
-    }
-  )
+  const getIsMasterOfflineByPool = createSelector(getHostsByPool, getPools, (hostsByPool, pools) => {
+    const isMasterOfflineByPool = {}
+    forEach(pools, pool => {
+      const poolMaster = find(hostsByPool[pool.id], { id: pool.master })
+      isMasterOfflineByPool[pool.id] = poolMaster && poolMaster.power_state !== 'Running'
+    })
+  })
 
   // Hosts whose toolstack hasn't been restarted since XOSAN-pack installation
-  const getHostsNeedRestartByPool = createSelector(
-    getHostsByPool,
-    getPools,
-    (hostsByPool, pools) => {
-      const hostsNeedRestartByPool = {}
-      forEach(pools, pool => {
-        hostsNeedRestartByPool[pool.id] = filter(
-          hostsByPool[pool.id],
-          host =>
-            host.power_state === 'Running' &&
-            pool.xosanPackInstallationTime !== null &&
-            pool.xosanPackInstallationTime > host.agentStartTime
-        )
-      })
+  const getHostsNeedRestartByPool = createSelector(getHostsByPool, getPools, (hostsByPool, pools) => {
+    const hostsNeedRestartByPool = {}
+    forEach(pools, pool => {
+      hostsNeedRestartByPool[pool.id] = filter(
+        hostsByPool[pool.id],
+        host =>
+          host.power_state === 'Running' &&
+          pool.xosanPackInstallationTime !== null &&
+          pool.xosanPackInstallationTime > host.agentStartTime
+      )
+    })
 
-      return hostsNeedRestartByPool
-    }
-  )
+    return hostsNeedRestartByPool
+  })
 
-  const getPoolPredicate = createSelector(
-    getXosanSrs,
-    getHosts,
-    (srs, hosts) => pool =>
-      hosts[pool.master].productBrand !== 'XCP-ng' &&
-      every(srs, sr => sr.$pool !== pool.id)
+  const getPoolPredicate = createSelector(getXosanSrs, getHosts, (srs, hosts) => pool =>
+    hosts[pool.master].productBrand !== 'XCP-ng' && every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {
@@ -299,9 +257,7 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
 })
 export default class Xosan extends Component {
   componentDidMount() {
-    this._updateLicenses().then(() =>
-      this._subscribeVolumeInfo(this.props.xosanSrs)
-    )
+    this._updateLicenses().then(() => this._subscribeVolumeInfo(this.props.xosanSrs))
   }
 
   componentWillReceiveProps({ pools, xosanSrs }) {
@@ -332,10 +288,7 @@ export default class Xosan extends Component {
     const canAdminXosan = sr => {
       const license = licensesByXosan[sr.id]
 
-      return (
-        license !== undefined &&
-        (license.expires === undefined || license.expires > now)
-      )
+      return license !== undefined && (license.expires === undefined || license.expires > now)
     }
 
     const unsubscriptions = []
@@ -353,8 +306,7 @@ export default class Xosan extends Component {
         )
       )
     })
-    this.unsubscribeVolumeInfo = () =>
-      forEach(unsubscriptions, unsubscribe => unsubscribe())
+    this.unsubscribeVolumeInfo = () => forEach(unsubscriptions, unsubscribe => unsubscribe())
   }
 
   _getLicensesByXosan = createSelector(
@@ -392,8 +344,7 @@ export default class Xosan extends Component {
 
   _onSrCreationStarted = () => this.setState({ showNewXosanForm: false })
 
-  _isXosanRegistered = () =>
-    get(() => this.props.catalog._namespaces.xosan.registered)
+  _isXosanRegistered = () => get(() => this.props.catalog._namespaces.xosan.registered)
 
   _toggleShowNewXosanForm = () => {
     if (this.state.showNewXosanForm) {
@@ -409,14 +360,7 @@ export default class Xosan extends Component {
   }
 
   render() {
-    const {
-      hostsNeedRestartByPool,
-      isAdmin,
-      poolPredicate,
-      pools,
-      xoaRegistration,
-      xosanSrs,
-    } = this.props
+    const { hostsNeedRestartByPool, isAdmin, poolPredicate, pools, xoaRegistration, xosanSrs } = this.props
     const { licenseError } = this.state
     const error = this._getError()
 
@@ -452,9 +396,7 @@ export default class Xosan extends Component {
                           poolPredicate={poolPredicate}
                           onSrCreationFinished={this._updateLicenses}
                           onSrCreationStarted={this._onSrCreationStarted}
-                          notRegistered={
-                            get(() => xoaRegistration.state) !== 'registered'
-                          }
+                          notRegistered={get(() => xoaRegistration.state) !== 'registered'}
                         />
                       ) : (
                         <em>{_('statusLoading')}</em>
@@ -471,9 +413,7 @@ export default class Xosan extends Component {
                 licenseError !== undefined && (
                   <Row>
                     <Col>
-                      <em className='text-danger'>
-                        {_('xosanGetLicensesError')}
-                      </em>
+                      <em className='text-danger'>{_('xosanGetLicensesError')}</em>
                     </Col>
                   </Row>
                 ),

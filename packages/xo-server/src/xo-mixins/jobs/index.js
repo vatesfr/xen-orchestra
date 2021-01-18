@@ -3,6 +3,9 @@
 import type { Pattern } from 'value-matcher'
 
 import asyncMap from '@xen-orchestra/async-map'
+import createLogger from '@xen-orchestra/log'
+import emitAsync from '@xen-orchestra/emit-async'
+
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
@@ -17,6 +20,8 @@ import { type Schedule } from '../scheduling'
 import executeCall from './execute-call'
 
 // ===================================================================
+
+const log = createLogger('xo:jobs')
 
 export type Job = {
   id: string,
@@ -198,10 +203,7 @@ export default class Jobs {
 
   async getJob(id: string, type?: string): Promise<Job> {
     let job = await this._jobs.first(id)
-    if (
-      job === undefined ||
-      (type !== undefined && job.properties.type !== type)
-    ) {
+    if (job === undefined || (type !== undefined && job.properties.type !== type)) {
       throw noSuchObject(id, 'job')
     }
 
@@ -266,6 +268,24 @@ export default class Jobs {
     })
 
     const app = this._app
+    const user = await app.getUser(job.userId).catch(error => {
+      if (!noSuchObject.is(error)) {
+        throw error
+      }
+    })
+    const data = {
+      callId: Math.random().toString(36).slice(2),
+      method: 'backupNg.runJob',
+      params: {
+        id: job.id,
+        schedule: schedule?.id,
+        settings: job.settings,
+        vms: job.vms,
+      },
+      timestamp: Date.now(),
+      userId: job.userId,
+      userName: user?.name ?? '(unknown user)',
+    }
     try {
       const runningJobs = this._runningJobs
 
@@ -290,6 +310,18 @@ export default class Jobs {
 
         session = app.createUserConnection()
         session.set('user_id', job.userId)
+        if (type === 'backup') {
+          await emitAsync.call(
+            app,
+            {
+              onError(error) {
+                log.warn('backup:preCall listener failure', { error })
+              },
+            },
+            'backup:preCall',
+            data
+          )
+        }
 
         const status = await executor({
           app,
@@ -310,6 +342,16 @@ export default class Jobs {
           },
           true
         )
+
+        const now = Date.now()
+        type === 'backup' &&
+          app.emit('backup:postCall', {
+            ...data,
+            duration: now - data.timestamp,
+            // Result of runJobSequence()
+            result: true,
+            timestamp: now,
+          })
 
         app.emit('job:terminated', runJobId, {
           type: job.type,
@@ -333,6 +375,14 @@ export default class Jobs {
         },
         true
       )
+      const now = Date.now()
+      type === 'backup' &&
+        app.emit('backup:postCall', {
+          ...data,
+          duration: now - data.timestamp,
+          error: serializeError(error),
+          timestamp: now,
+        })
       app.emit('job:terminated', runJobId, {
         type: job.type,
       })
@@ -340,14 +390,8 @@ export default class Jobs {
     }
   }
 
-  async runJobSequence(
-    idSequence: Array<string>,
-    schedule?: Schedule,
-    data?: any
-  ) {
-    const jobs = await Promise.all(
-      mapToArray(idSequence, id => this.getJob(id))
-    )
+  async runJobSequence(idSequence: Array<string>, schedule?: Schedule, data?: any) {
+    const jobs = await Promise.all(mapToArray(idSequence, id => this.getJob(id)))
 
     for (const job of jobs) {
       await this._runJob(job, schedule, data)

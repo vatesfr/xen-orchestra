@@ -28,9 +28,7 @@ const Support = decorate([
     },
     computed: {
       stdoutSupportTunnel: (_, { tunnelState }) =>
-        tunnelState === undefined
-          ? undefined
-          : { __html: ansiUp.ansi_to_html(tunnelState.stdout) },
+        tunnelState === undefined ? undefined : { __html: ansiUp.ansi_to_html(tunnelState.stdout) },
     },
   }),
   injectState,
@@ -49,12 +47,7 @@ const Support = decorate([
       )}
       <Row className='mb-1'>
         <Col>
-          <ActionButton
-            btnStyle='primary'
-            disabled={COMMUNITY}
-            handler={reportOnSupportPanel}
-            icon='ticket'
-          >
+          <ActionButton btnStyle='primary' disabled={COMMUNITY} handler={reportOnSupportPanel} icon='ticket'>
             {_('createSupportTicket')}
           </ActionButton>
         </Col>
@@ -64,12 +57,7 @@ const Support = decorate([
           <Card>
             <CardHeader>{_('xoaCheck')}</CardHeader>
             <CardBlock>
-              <ActionButton
-                btnStyle='success'
-                disabled={COMMUNITY}
-                handler={effects.checkXoa}
-                icon='diagnosis'
-              >
+              <ActionButton btnStyle='success' disabled={COMMUNITY} handler={effects.checkXoa} icon='diagnosis'>
                 {_('checkXoa')}
               </ActionButton>
               <hr />
@@ -88,21 +76,11 @@ const Support = decorate([
               <Row>
                 <Col>
                   {open ? (
-                    <ActionButton
-                      btnStyle='primary'
-                      disabled={COMMUNITY}
-                      handler={closeTunnel}
-                      icon='remove'
-                    >
+                    <ActionButton btnStyle='primary' disabled={COMMUNITY} handler={closeTunnel} icon='remove'>
                       {_('closeTunnel')}
                     </ActionButton>
                   ) : (
-                    <ActionButton
-                      btnStyle='success'
-                      disabled={COMMUNITY}
-                      handler={openTunnel}
-                      icon='open-tunnel'
-                    >
+                    <ActionButton btnStyle='success' disabled={COMMUNITY} handler={openTunnel} icon='open-tunnel'>
                       {_('openTunnel')}
                     </ActionButton>
                   )}

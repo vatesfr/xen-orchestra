@@ -4,8 +4,10 @@ import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, formatSize } from 'utils'
@@ -13,11 +15,8 @@ import { createGetObjectsOfType } from 'selectors'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, filter, map, keyBy } from 'lodash'
-import {
-  subscribeBackupNgJobs,
-  subscribeBackupNgLogs,
-  subscribeMetadataBackupJobs,
-} from 'xo'
+import { withRouter } from 'react-router'
+import { subscribeBackupNgJobs, subscribeBackupNgLogs, subscribeMetadataBackupJobs } from 'xo'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
@@ -30,8 +29,7 @@ const LI_STYLE = {
   whiteSpace: 'nowrap',
 }
 
-const showTasks = id =>
-  alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
+const showTasks = id => alert(<LogAlertHeader id={id} />, <LogAlertBody id={id} />)
 
 export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
   const { className, label } = STATUS_LABELS[log.status]
@@ -49,10 +47,44 @@ export const LogStatus = ({ log, tooltip = _('logDisplayDetails') }) => {
   )
 }
 
+const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
+const GoToJob = decorate([
+  withRouter,
+  provideState({
+    effects: {
+      goTo() {
+        const { jobId, location, router, scrollIntoJobs } = this.props
+        router.replace({
+          ...location,
+          query: { ...location.query, s: `id:${jobId}` },
+        })
+        scrollIntoJobs()
+      },
+    },
+  }),
+  injectState,
+  ({ effects, children }) => (
+    <Tooltip content={_('goToThisJob')}>
+      <p onClick={effects.goTo} style={CURSOR_POINTER_STYLE}>
+        {children}
+      </p>
+    </Tooltip>
+  ),
+])
+
+GoToJob.propTypes = {
+  jobId: PropTypes.string.isRequired,
+  scrollIntoJobs: PropTypes.func.isRequired,
+}
+
 const COLUMNS = [
   {
     name: _('jobId'),
-    itemRenderer: log => log.jobId.slice(4, 8),
+    itemRenderer: (log, { scrollIntoJobs }) => (
+      <GoToJob jobId={log.jobId} scrollIntoJobs={scrollIntoJobs}>
+        {log.jobId.slice(4, 8)}
+      </GoToJob>
+    ),
     sortCriteria: log => log.jobId,
   },
   {
@@ -75,10 +107,7 @@ const COLUMNS = [
   },
   {
     name: _('jobDuration'),
-    itemRenderer: log =>
-      log.end !== undefined && (
-        <FormattedDuration duration={log.end - log.start} />
-      ),
+    itemRenderer: log => log.end !== undefined && <FormattedDuration duration={log.end - log.start} />,
     sortCriteria: log => log.end - log.start,
   },
   {
@@ -106,16 +135,10 @@ const COLUMNS = [
             if (operationTask.status !== 'success') {
               return
             }
-            if (
-              operationTask.message === 'transfer' &&
-              vmTransferSize === undefined
-            ) {
+            if (operationTask.message === 'transfer' && vmTransferSize === undefined) {
               vmTransferSize = operationTask.result.size
             }
-            if (
-              operationTask.message === 'merge' &&
-              vmMergeSize === undefined
-            ) {
+            if (operationTask.message === 'merge' && vmMergeSize === undefined) {
               vmMergeSize = operationTask.result.size
             }
 
@@ -129,16 +152,8 @@ const COLUMNS = [
       })
       return (
         <ul style={UL_STYLE}>
-          {transferSize > 0 && (
-            <li style={LI_STYLE}>
-              {_.keyValue(_('labelTransfer'), formatSize(transferSize))}
-            </li>
-          )}
-          {mergeSize > 0 && (
-            <li style={LI_STYLE}>
-              {_.keyValue(_('labelMerge'), formatSize(mergeSize))}
-            </li>
-          )}
+          {transferSize > 0 && <li style={LI_STYLE}>{_.keyValue(_('labelTransfer'), formatSize(transferSize))}</li>}
+          {mergeSize > 0 && <li style={LI_STYLE}>{_.keyValue(_('labelMerge'), formatSize(mergeSize))}</li>}
         </ul>
       )
     },
@@ -150,13 +165,9 @@ export default decorate([
     vms: createGetObjectsOfType('VM'),
   }),
   addSubscriptions({
-    logs: cb =>
-      subscribeBackupNgLogs(logs =>
-        cb(logs && filter(logs, log => log.message === 'backup'))
-      ),
+    logs: cb => subscribeBackupNgLogs(logs => cb(logs && filter(logs, log => log.message === 'backup'))),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
-    metadataJobs: cb =>
-      subscribeMetadataBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
+    metadataJobs: cb => subscribeMetadataBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   provideState({
     computed: {
@@ -167,9 +178,7 @@ export default decorate([
             ? {
                 ...log,
                 // "vmNames" can contains undefined entries
-                vmNames: map(log.tasks, ({ data }) =>
-                  get(() => vms[data.id].name_label)
-                ),
+                vmNames: map(log.tasks, ({ data }) => get(() => vms[data.id].name_label)),
               }
             : log
         ),
@@ -177,7 +186,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ state, jobs }) => (
+  ({ state, scrollIntoJobs, jobs }) => (
     <Card>
       <CardHeader>
         <Icon icon='logs' /> {_('logTitle')}
@@ -188,6 +197,7 @@ export default decorate([
           columns={COLUMNS}
           component={SortedTable}
           data-jobs={state.jobs}
+          data-scrollIntoJobs={scrollIntoJobs}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
           stateUrlParam='s_logs'

@@ -47,9 +47,7 @@ export default class Logs {
   }
 
   getLogger(namespace) {
-    return this._app
-      .getStore('logs')
-      .then(store => new LevelDbLogger(store, namespace))
+    return this._app.getStore('logs').then(store => new LevelDbLogger(store, namespace))
   }
 
   async getLogs(namespace) {

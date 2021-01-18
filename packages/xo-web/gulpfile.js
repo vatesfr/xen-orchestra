@@ -295,10 +295,7 @@ gulp.task(function copyAssets() {
   )
 })
 
-gulp.task(
-  'build',
-  gulp.parallel('buildPages', 'buildScripts', 'buildStyles', 'copyAssets')
-)
+gulp.task('build', gulp.parallel('buildPages', 'buildScripts', 'buildStyles', 'copyAssets'))
 
 // -------------------------------------------------------------------
 

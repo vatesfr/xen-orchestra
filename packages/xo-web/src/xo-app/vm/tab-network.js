@@ -21,38 +21,23 @@ import { injectIntl } from 'react-intl'
 import { isIp, isIpV4 } from 'ip-utils'
 import { Number, Text, XoSelect } from 'editable'
 import { provideState, injectState } from 'reaclette'
+import { addSubscriptions, connectStore, EMPTY_ARRAY, noop, resolveResourceSet } from 'utils'
 import {
-  addSubscriptions,
-  connectStore,
-  EMPTY_ARRAY,
-  noop,
-  resolveResourceSet,
-} from 'utils'
-import {
-  SelectNetwork,
+  SelectNetwork as SelectAnyNetwork,
   SelectIp,
   SelectResourceSetIp,
   SelectResourceSetsNetwork,
 } from 'select-objects'
 import { Select, Toggle } from 'form'
-import {
-  concat,
-  every,
-  find,
-  includes,
-  isEmpty,
-  keys,
-  map,
-  pick,
-  remove,
-  some,
-} from 'lodash'
+import { concat, every, find, includes, isEmpty, keys, map, pick, remove, some } from 'lodash'
 
 import {
   createFinder,
   createGetObject,
   createGetObjectsOfType,
   createSelector,
+  getCheckPermissions,
+  getResolvedResourceSet,
   isAdmin,
 } from 'selectors'
 
@@ -72,22 +57,39 @@ import {
   subscribeResourceSets,
 } from 'xo'
 
+@addSubscriptions(props => ({
+  resourceSet: cb => subscribeResourceSets(resourceSets => cb(find(resourceSets, { id: props.resourceSet }))),
+}))
+@connectStore((state, props) => ({
+  isAdmin: isAdmin(state, props),
+  resolvedResourceSet: getResolvedResourceSet(
+    state,
+    props,
+    props.resourceSet !== undefined // to get objects as a self user
+  ),
+}))
 class VifNetwork extends BaseComponent {
   _getNetworkPredicate = createSelector(
     () => this.props.vif.$pool,
     vifPoolId => network => network.$pool === vifPoolId
   )
 
-  render() {
-    const { network } = this.props
+  _onChangeNetwork = network => {
+    const { resourceSet, vif } = this.props
+    return setVif(vif, { network, resourceSet: get(() => resourceSet.id) })
+  }
 
+  render() {
+    const { isAdmin, network, resolvedResourceSet } = this.props
+    const self = !isAdmin && resolvedResourceSet !== undefined
     return (
       network !== undefined && (
         <XoSelect
-          onChange={network => setVif(this.props.vif, { network })}
+          onChange={this._onChangeNetwork}
           predicate={this._getNetworkPredicate()}
+          resourceSet={self ? resolvedResourceSet : undefined}
           value={network}
-          xoType='network'
+          xoType={self ? 'resourceSetNetwork' : 'network'}
         >
           {network.name_label}
         </XoSelect>
@@ -96,27 +98,18 @@ class VifNetwork extends BaseComponent {
   }
 }
 
+@connectStore({
+  isAdmin,
+})
 @addSubscriptions({
   ipPools: subscribeIpPools,
   resourceSets: subscribeResourceSets,
 })
+@injectIntl
 class VifAllowedIps extends BaseComponent {
-  _saveIp = (ipIndex, newIp) => {
-    if (!isIp(newIp.id)) {
-      throw new Error('Not a valid IP')
-    }
-    const vif = this.props.item
-    const { allowedIpv4Addresses, allowedIpv6Addresses } = vif
-    if (isIpV4(newIp.id)) {
-      allowedIpv4Addresses[ipIndex] = newIp.id
-    } else {
-      allowedIpv6Addresses[ipIndex - allowedIpv4Addresses.length] = newIp.id
-    }
-    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
-  }
   _addIp = ip => {
-    this._toggleNewIp()
     if (!isIp(ip.id)) {
+      error(_('addIpError'), _('invalidIp'))
       return
     }
     const vif = this.props.item
@@ -126,7 +119,9 @@ class VifAllowedIps extends BaseComponent {
     } else {
       allowedIpv6Addresses = [...allowedIpv6Addresses, ip.id]
     }
-    setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
+    return setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses }).catch(err => {
+      error(_('addIpError'), err.message)
+    })
   }
   _deleteIp = ipIndex => {
     const vif = this.props.item
@@ -134,10 +129,7 @@ class VifAllowedIps extends BaseComponent {
     if (ipIndex < allowedIpv4Addresses.length) {
       remove(allowedIpv4Addresses, (_, i) => i === ipIndex)
     } else {
-      remove(
-        allowedIpv6Addresses,
-        (_, i) => i === ipIndex - allowedIpv4Addresses.length
-      )
+      remove(allowedIpv6Addresses, (_, i) => i === ipIndex - allowedIpv4Addresses.length)
     }
     setVif(vif, { allowedIpv4Addresses, allowedIpv6Addresses })
   }
@@ -156,17 +148,10 @@ class VifAllowedIps extends BaseComponent {
         const isNotUsed = every(ips, vifIp => vifIp !== selectedIp.id)
         let enoughResources
         if (resourceSetId) {
-          const resourceSet = find(
-            resourceSets,
-            set => set.id === resourceSetId
-          )
-          const ipPool = find(ipPools, ipPool =>
-            includes(keys(ipPool.addresses), selectedIp.id)
-          )
-          const ipPoolLimits =
-            resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
-          enoughResources =
-            resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
+          const resourceSet = find(resourceSets, set => set.id === resourceSetId)
+          const ipPool = find(ipPools, ipPool => includes(keys(ipPool.addresses), selectedIp.id))
+          const ipPoolLimits = resourceSet && resourceSet.limits[`ipPool:${ipPool.id}`]
+          enoughResources = resourceSet && ipPool && (!ipPoolLimits || ipPoolLimits.available)
         }
         return isNotUsed && (!resourceSetId || enoughResources)
       }
@@ -174,16 +159,42 @@ class VifAllowedIps extends BaseComponent {
   )
   _getIsNetworkAllowed = createSelector(
     () => this.props.item.$network,
-    vifNetworkId => ipPool =>
-      find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
+    vifNetworkId => ipPool => find(ipPool.networks, ipPoolNetwork => ipPoolNetwork === vifNetworkId)
   )
 
-  _toggleNewIp = () =>
-    this.setState({ showNewIpForm: !this.state.showNewIpForm })
+  _hideIpInputs = () =>
+    this.setState({
+      showIpSelector: false,
+      showIpInput: false,
+    })
+
+  _onKeyDown = async event => {
+    const { key, target } = event
+
+    if (key === 'Enter') {
+      if (target.value != null) {
+        target.disabled = true
+        await this._addIp({ id: target.value })
+        target.disabled = false
+        target.value = ''
+      }
+    } else if (key === 'Escape' || key === 'Esc') {
+      this._hideIpInputs()
+    } else {
+      return
+    }
+
+    event.preventDefault()
+  }
 
   render() {
-    const { showNewIpForm } = this.state
-    const { resourceSet, item: vif } = this.props
+    const { showIpSelector, showIpInput } = this.state
+    const {
+      intl: { formatMessage },
+      isAdmin,
+      item: vif,
+      resourceSet,
+    } = this.props
 
     if (!vif) {
       return null
@@ -209,32 +220,17 @@ class VifAllowedIps extends BaseComponent {
         ) : (
           map(this._getIps(), (ip, ipIndex) => (
             <Row>
-              <Col size={10}>
-                <XoSelect
-                  containerPredicate={this._getIsNetworkAllowed()}
-                  onChange={newIp => this._saveIp(ipIndex, newIp)}
-                  predicate={this._getIpPredicate()}
-                  resourceSetId={resourceSet}
-                  value={ip}
-                  xoType={resourceSet ? 'resourceSetIp' : 'ip'}
-                >
-                  {ip}
-                </XoSelect>
-              </Col>
+              <Col size={10}>{ip}</Col>
               <Col size={1}>
-                <ActionRowButton
-                  handler={this._deleteIp}
-                  handlerParam={ipIndex}
-                  icon='delete'
-                />
+                <ActionRowButton handler={this._deleteIp} handlerParam={ipIndex} icon='delete' />
               </Col>
             </Row>
           ))
         )}
         <Row>
           <Col size={10}>
-            {showNewIpForm ? (
-              <span onBlur={this._toggleNewIp}>
+            {showIpSelector && (
+              <span onBlur={this._hideIpInputs}>
                 {resourceSet ? (
                   <SelectResourceSetIp
                     autoFocus
@@ -242,6 +238,7 @@ class VifAllowedIps extends BaseComponent {
                     onChange={this._addIp}
                     predicate={this._getIpPredicate()}
                     resourceSetId={resourceSet}
+                    value={null}
                   />
                 ) : (
                   <SelectIp
@@ -249,21 +246,43 @@ class VifAllowedIps extends BaseComponent {
                     containerPredicate={this._getIsNetworkAllowed()}
                     onChange={this._addIp}
                     predicate={this._getIpPredicate()}
+                    value={null}
                   />
                 )}
               </span>
-            ) : (
-              <ActionButton
-                btnStyle='success'
-                size='small'
-                handler={this._toggleNewIp}
-                icon='add'
+            )}
+            {showIpInput && (
+              <input
+                autoFocus
+                onBlur={this._hideIpInputs}
+                onKeyDown={this._onKeyDown}
+                placeholder={formatMessage(messages.addAllowedIp)}
               />
-            )}{' '}
-            {warningMessage !== undefined && (
-              <Tooltip content={warningMessage}>
-                <Icon icon='error' />
-              </Tooltip>
+            )}
+            {!showIpSelector && !showIpInput && (
+              <span>
+                <ActionButton
+                  btnStyle='success'
+                  size='small'
+                  handler={this.toggleState('showIpSelector')}
+                  icon='add'
+                  tooltip={_('selectIpFromIpPool')}
+                />{' '}
+                {isAdmin && (
+                  <ActionButton
+                    btnStyle='primary'
+                    size='small'
+                    handler={this.toggleState('showIpInput')}
+                    icon='edit'
+                    tooltip={_('enterIp')}
+                  />
+                )}{' '}
+                {warningMessage !== undefined && (
+                  <Tooltip content={warningMessage}>
+                    <Icon icon='error' />
+                  </Tooltip>
+                )}
+              </span>
             )}
           </Col>
         </Row>
@@ -272,12 +291,19 @@ class VifAllowedIps extends BaseComponent {
   }
 }
 
+@connectStore(() => ({
+  checkPermissions: getCheckPermissions,
+}))
 class VifStatus extends BaseComponent {
   componentDidMount() {
-    getLockingModeValues().then(lockingModeValues =>
-      this.setState({ lockingModeValues })
-    )
+    getLockingModeValues().then(lockingModeValues => this.setState({ lockingModeValues }))
   }
+
+  _getCanEditVifLockingMode = createSelector(
+    () => this.props.checkPermissions,
+    () => this.props.vif.$network,
+    (checkPermissions, networkId) => checkPermissions(networkId, 'operate')
+  )
 
   _getIps = createSelector(
     () => this.props.vif.allowedIpv4Addresses || EMPTY_ARRAY,
@@ -293,7 +319,7 @@ class VifStatus extends BaseComponent {
 
     if (lockingMode === 'disabled') {
       return (
-        <Tooltip content={_('vifDisabledNetwork')}>
+        <Tooltip content={_('vifLockingModeDisabled')}>
           <Icon icon='vif-disable' />
         </Tooltip>
       )
@@ -301,7 +327,7 @@ class VifStatus extends BaseComponent {
 
     if (lockingMode === 'unlocked') {
       return (
-        <Tooltip content={_('vifUnLockedNetwork')}>
+        <Tooltip content={_('vifLockingModeUnlocked')}>
           <Icon icon='unlock' />
         </Tooltip>
       )
@@ -309,7 +335,7 @@ class VifStatus extends BaseComponent {
 
     if (lockingMode === 'locked') {
       return (
-        <Tooltip content={_('vifLockedNetwork')}>
+        <Tooltip content={_('vifLockingModeLocked')}>
           <Icon icon='lock' />
         </Tooltip>
       )
@@ -325,7 +351,7 @@ class VifStatus extends BaseComponent {
     }
     if (network.defaultIsLocked) {
       return (
-        <Tooltip content={_('vifLockedNetwork')}>
+        <Tooltip content={_('networkDefaultLockingModeDisabled')}>
           <StackedIcons
             icons={[
               { icon: 'vif-disable', size: 1 },
@@ -336,7 +362,7 @@ class VifStatus extends BaseComponent {
       )
     }
     return (
-      <Tooltip content={_('vifUnLockedNetwork')}>
+      <Tooltip content={_('networkDefaultLockingModeUnlocked')}>
         <StackedIcons
           icons={[
             { icon: 'unlock', size: 1 },
@@ -369,28 +395,29 @@ class VifStatus extends BaseComponent {
           state={vif.attached}
         />{' '}
         {this._getNetworkStatus()}{' '}
-        {isLockingModeEdition ? (
-          <select
-            className='form-control'
-            onBlur={this.toggleState('isLockingModeEdition')}
-            onChange={this._onChangeVif}
-            value={vif.lockingMode}
-          >
-            {map(this.state.lockingModeValues, lockingMode => (
-              <option key={lockingMode} value={lockingMode}>
-                {lockingMode}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <ActionButton
-            btnStyle='primary'
-            icon='edit'
-            handler={this.toggleState('isLockingModeEdition')}
-            size='small'
-            tooltip={_('editVifLockingMode')}
-          />
-        )}
+        {this._getCanEditVifLockingMode() &&
+          (isLockingModeEdition ? (
+            <select
+              className='form-control'
+              onBlur={this.toggleState('isLockingModeEdition')}
+              onChange={this._onChangeVif}
+              value={vif.lockingMode}
+            >
+              {map(this.state.lockingModeValues, lockingMode => (
+                <option key={lockingMode} value={lockingMode}>
+                  {lockingMode}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <ActionButton
+              btnStyle='primary'
+              icon='edit'
+              handler={this.toggleState('isLockingModeEdition')}
+              size='small'
+              tooltip={_('editVifLockingMode')}
+            />
+          ))}
       </div>
     )
   }
@@ -457,13 +484,7 @@ class NewAclRuleForm extends BaseComponent {
   }
 
   get value() {
-    return pick(this.state, [
-      'allow',
-      'protocol',
-      'port',
-      'ipRange',
-      'direction',
-    ])
+    return pick(this.state, ['allow', 'protocol', 'port', 'ipRange', 'direction'])
   }
 
   render() {
@@ -552,16 +573,13 @@ class NewAclRuleForm extends BaseComponent {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRuleRow extends Component {
   render() {
     const { rule, vif, plugins } = this.props
     const ruleObj = JSON.parse(rule)
-    const sdnControllerLoaded = plugins.some(
-      plugin => plugin.name === 'sdn-controller' && plugin.loaded
-    )
+    const sdnControllerLoaded = plugins.some(plugin => plugin.name === 'sdn-controller' && plugin.loaded)
 
     return (
       <tr>
@@ -577,11 +595,7 @@ class AclRuleRow extends Component {
             handlerParam={{ ...ruleObj, vif }}
             icon='delete'
             level='danger'
-            tooltip={
-              sdnControllerLoaded
-                ? _('deleteRule')
-                : _('sdnControllerNotLoaded')
-            }
+            tooltip={sdnControllerLoaded ? _('deleteRule') : _('sdnControllerNotLoaded')}
           />
         </td>
       </tr>
@@ -589,9 +603,8 @@ class AclRuleRow extends Component {
   }
 }
 
-@addSubscriptions({
-  plugins: subscribePlugins,
-})
+@connectStore({ isAdmin })
+@addSubscriptions(({ isAdmin }) => isAdmin && { plugins: subscribePlugins })
 class AclRulesRows extends BaseComponent {
   _newAclRule(vif) {
     return confirm({
@@ -600,10 +613,7 @@ class AclRulesRows extends BaseComponent {
       body: <NewAclRuleForm />,
     }).then(({ allow, protocol, port, ipRange, direction }) => {
       const hasProtocol = protocol != null
-      const usePort =
-        hasProtocol &&
-        USABLE_PORT_PROTOCOL.includes(protocol) &&
-        port !== undefined
+      const usePort = hasProtocol && USABLE_PORT_PROTOCOL.includes(protocol) && port !== undefined
 
       return addAclRule({
         allow,
@@ -624,9 +634,7 @@ class AclRulesRows extends BaseComponent {
   render() {
     const { vif, plugins = [] } = this.props
     const { showRules } = this.state
-    const sdnControllerLoaded = plugins.some(
-      plugin => plugin.name === 'sdn-controller' && plugin.loaded
-    )
+    const sdnControllerLoaded = plugins.some(plugin => plugin.name === 'sdn-controller' && plugin.loaded)
     const rules = this._getRules()
     const rulesToSee = rules !== undefined
 
@@ -649,9 +657,7 @@ class AclRulesRows extends BaseComponent {
           handlerParam={vif}
           icon='add'
           size='small'
-          tooltip={
-            sdnControllerLoaded ? _('addRule') : _('sdnControllerNotLoaded')
-          }
+          tooltip={sdnControllerLoaded ? _('addRule') : _('sdnControllerNotLoaded')}
         />
         {showRules && rulesToSee && (
           <table className='table'>
@@ -700,8 +706,8 @@ const COLUMNS = [
     sortCriteria: 'MTU',
   },
   {
-    itemRenderer: (vif, userData) => (
-      <VifNetwork vif={vif} network={userData.networks[vif.$network]} />
+    itemRenderer: (vif, { networks, resourceSet }) => (
+      <VifNetwork vif={vif} network={networks[vif.$network]} resourceSet={resourceSet} />
     ),
     name: _('vifNetworkLabel'),
     sortCriteria: (vif, userData) => userData.networks[vif.$network].name_label,
@@ -724,12 +730,7 @@ const COLUMNS = [
         ? _('noIpRecord')
         : map(ips, ip => (
             <Tooltip content={_('copyToClipboard')}>
-              <span
-                className='tag tag-info tag-ip'
-                key={ip}
-                onClick={() => copy(ip)}
-                style={{ cursor: 'pointer' }}
-              >
+              <span className='tag tag-info tag-ip' key={ip} onClick={() => copy(ip)} style={{ cursor: 'pointer' }}>
                 {ip}
               </span>
             </Tooltip>
@@ -746,9 +747,7 @@ const COLUMNS = [
     name: _('vifAclRules'),
   },
   {
-    itemRenderer: (vif, userData) => (
-      <VifStatus vif={vif} network={userData.networks[vif.$network]} />
-    ),
+    itemRenderer: (vif, userData) => <VifStatus vif={vif} network={userData.networks[vif.$network]} />,
     name: _('vifStatusLabel'),
   },
 ]
@@ -790,18 +789,13 @@ const FILTERS = {
   resourceSets: subscribeResourceSets,
 })
 @connectStore(() => {
-  const getHostMaster = createGetObject(
-    (_, props) => props.pool && props.pool.master
-  )
+  const getHostMaster = createGetObject((_, props) => props.pool && props.pool.master)
   const getPifs = createGetObjectsOfType('PIF').pick((state, props) => {
     const hostMaster = getHostMaster(state, props)
     return hostMaster && hostMaster.$PIFs
   })
   const getDefaultNetwork = createGetObject(
-    createSelector(
-      createFinder(getPifs, [pif => pif.management]),
-      pif => pif && pif.$network
-    )
+    createSelector(createFinder(getPifs, [pif => pif.management]), pif => pif && pif.$network)
   )
   return {
     defaultNetwork: getDefaultNetwork,
@@ -860,10 +854,7 @@ class NewVif extends BaseComponent {
     )
   )
 
-  _getResolvedResourceSet = createSelector(
-    this._getResourceSet,
-    resolveResourceSet
-  )
+  _getResolvedResourceSet = createSelector(this._getResourceSet, resolveResourceSet)
 
   render() {
     const formatMessage = this.props.intl.formatMessage
@@ -871,13 +862,12 @@ class NewVif extends BaseComponent {
     const { mac, network } = this.state
     const resourceSet = this._getResolvedResourceSet()
 
-    const Select_ =
-      isAdmin || resourceSet == null ? SelectNetwork : SelectResourceSetsNetwork
+    const SelectNetwork = isAdmin || resourceSet == null ? SelectAnyNetwork : SelectResourceSetsNetwork
 
     return (
       <form id='newVifForm'>
         <div className='form-group'>
-          <Select_
+          <SelectNetwork
             onChange={this._selectNetwork}
             predicate={this._getNetworkPredicate()}
             required
@@ -897,12 +887,7 @@ class NewVif extends BaseComponent {
             ({_('vifMacAutoGenerate')})
           </div>
           <span className='pull-right'>
-            <ActionButton
-              form='newVifForm'
-              icon='add'
-              btnStyle='primary'
-              handler={this._createVif}
-            >
+            <ActionButton form='newVifForm' icon='add' btnStyle='primary' handler={this._createVif}>
               {_('vifCreate')}
             </ActionButton>
           </span>
@@ -913,17 +898,17 @@ class NewVif extends BaseComponent {
 }
 
 @connectStore(() => {
-  const getVifs = createGetObjectsOfType('VIF').pick(
-    (_, props) => props.vm.VIFs
-  )
-  const getNetworksId = createSelector(getVifs, vifs =>
-    map(vifs, vif => vif.$network)
-  )
+  const getVifs = createGetObjectsOfType('VIF').pick((_, props) => props.vm.VIFs)
+  const getNetworksId = createSelector(getVifs, vifs => map(vifs, vif => vif.$network))
   const getNetworks = createGetObjectsOfType('network').pick(getNetworksId)
 
   return (state, props) => ({
     vifs: getVifs(state, props),
-    networks: getNetworks(state, props),
+    networks: getNetworks(
+      state,
+      props,
+      props.vm.resourceSet !== undefined // to get networks as a self user
+    ),
   })
 })
 export default class TabNetwork extends BaseComponent {
@@ -957,12 +942,7 @@ export default class TabNetwork extends BaseComponent {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButton
-              btnStyle='primary'
-              handler={this._toggleNewVif}
-              icon='add'
-              labelId='vifCreateDeviceButton'
-            />
+            <TabButton btnStyle='primary' handler={this._toggleNewVif} icon='add' labelId='vifCreateDeviceButton' />
           </Col>
         </Row>
         {newVif && (
@@ -979,6 +959,7 @@ export default class TabNetwork extends BaseComponent {
               columns={COLUMNS}
               data-ipsByDevice={this._getIpsByDevice()}
               data-networks={networks}
+              data-resourceSet={vm.resourceSet}
               filters={FILTERS}
               groupedActions={GROUPED_ACTIONS}
               individualActions={INDIVIDUAL_ACTIONS}

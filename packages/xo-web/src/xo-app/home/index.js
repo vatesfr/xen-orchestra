@@ -1,5 +1,4 @@
 import * as ComplexMatcher from 'complex-matcher'
-import * as homeFilters from 'home-filters'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
@@ -8,6 +7,7 @@ import classNames from 'classnames'
 import Component from 'base-component'
 import cookies from 'js-cookie'
 import defined, { get } from '@xen-orchestra/defined'
+import homeFilters from 'home-filters'
 import Icon from 'icon'
 import invoke from 'invoke'
 import Link from 'link'
@@ -20,6 +20,7 @@ import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import {
   ceil,
+  compact,
   debounce,
   differenceBy,
   escapeRegExp,
@@ -38,6 +39,7 @@ import {
   pickBy,
   size,
   some,
+  sumBy,
   uniq,
 } from 'lodash'
 import {
@@ -64,15 +66,11 @@ import {
   subscribeResourceSets,
   subscribeServers,
   suspendVms,
+  ITEMS_PER_PAGE_OPTIONS,
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { createPredicate } from 'value-matcher'
-import {
-  SelectHost,
-  SelectPool,
-  SelectResourceSet,
-  SelectTag,
-} from 'select-objects'
+import { SelectHost, SelectPool, SelectResourceSet, SelectTag } from 'select-objects'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import {
   areObjectsFetched,
@@ -86,12 +84,7 @@ import {
   getUser,
   isAdmin,
 } from 'selectors'
-import {
-  DropdownButton,
-  MenuItem,
-  OverlayTrigger,
-  Popover,
-} from 'react-bootstrap-4/lib'
+import { DropdownButton, MenuItem, OverlayTrigger, Popover } from 'react-bootstrap-4/lib'
 import { Select } from 'form'
 
 import styles from './index.css'
@@ -102,7 +95,6 @@ import TemplateItem from './template-item'
 import SrItem from './sr-item'
 
 const DEFAULT_ITEMS_PER_PAGE = 20
-const ITEMS_PER_PAGE_OPTIONS = [20, 50, 100]
 
 const OPTIONS = {
   host: {
@@ -206,6 +198,11 @@ const OPTIONS = {
     showResourceSetsSelector: true,
     sortOptions: [
       { labelId: 'homeSortByCpus', sortBy: 'CPUs.number', sortOrder: 'desc' },
+      {
+        labelId: 'sortByDisksUsage',
+        sortBy: 'vdisUsage',
+        sortOrder: 'desc',
+      },
       { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
       {
         labelId: 'homeSortByPowerstate',
@@ -235,13 +232,11 @@ const OPTIONS = {
     filters: homeFilters.pool,
     getActions: noop,
     Item: PoolItem,
-    sortOptions: [
-      { labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' },
-    ],
+    sortOptions: [{ labelId: 'homeSortByName', sortBy: 'name_label', sortOrder: 'asc' }],
   },
   'VM-template': {
     defaultFilter: '',
-    filters: homeFilters.vmTemplate,
+    filters: homeFilters['VM-template'],
     mainActions: [
       {
         handler: vms => copyVms(vms, 'VM-template'),
@@ -339,10 +334,7 @@ const POWER_STATE_VM = [
 ]
 
 @connectStore(() => {
-  const noServersConnected = invoke(
-    createGetObjectsOfType('host'),
-    hosts => state => isEmpty(hosts(state))
-  )
+  const noServersConnected = invoke(createGetObjectsOfType('host'), hosts => state => isEmpty(hosts(state)))
 
   return {
     noServersConnected,
@@ -356,13 +348,7 @@ class NoObjectsWithoutServers extends Component {
   }
 
   render() {
-    const {
-      isAdmin,
-      isPoolAdmin,
-      noRegisteredServers,
-      noResourceSets,
-      noServersConnected,
-    } = this.props
+    const { isAdmin, isPoolAdmin, noRegisteredServers, noResourceSets, noServersConnected } = this.props
 
     if (noServersConnected && isAdmin) {
       return (
@@ -372,17 +358,9 @@ class NoObjectsWithoutServers extends Component {
             <CardBlock>
               <Link to='/settings/servers'>
                 <Icon icon='pool' size={4} />
-                <h4>
-                  {noRegisteredServers
-                    ? _('homeAddServer')
-                    : _('homeConnectServer')}
-                </h4>
+                <h4>{noRegisteredServers ? _('homeAddServer') : _('homeConnectServer')}</h4>
               </Link>
-              <p className='text-muted'>
-                {noRegisteredServers
-                  ? _('homeWelcomeText')
-                  : _('homeConnectServerText')}
-              </p>
+              <p className='text-muted'>{noRegisteredServers ? _('homeWelcomeText') : _('homeConnectServerText')}</p>
               <br />
               <br />
               <h3>{_('homeHelp')}</h3>
@@ -420,9 +398,7 @@ class NoObjectsWithoutServers extends Component {
       <CenterPanel>
         <Card shadow>
           <CardHeader>{_('homeNoVms')}</CardHeader>
-          {(isAdmin ||
-            (isPoolAdmin && process.env.XOA_PLAN > 3) ||
-            !noResourceSets) && (
+          {(isAdmin || (isPoolAdmin && process.env.XOA_PLAN > 3) || !noResourceSets) && (
             <CardBlock>
               <Row>
                 <Col>
@@ -449,9 +425,7 @@ class NoObjectsWithoutServers extends Component {
                         <Icon icon='backup' size={4} />
                         <h4>{_('homeRestoreBackup')}</h4>
                       </Link>
-                      <p className='text-muted'>
-                        {_('homeRestoreBackupMessage')}
-                      </p>
+                      <p className='text-muted'>{_('homeRestoreBackupMessage')}</p>
                     </Col>
                   </Row>
                 </div>
@@ -469,39 +443,56 @@ const NoObjectsWithServers = addSubscriptions({
 })(NoObjectsWithoutServers)
 
 const NoObjects = props =>
-  props.isAdmin ? (
-    <NoObjectsWithServers {...props} />
-  ) : (
-    <NoObjectsWithoutServers {...props} />
+  props.isAdmin ? <NoObjectsWithServers {...props} /> : <NoObjectsWithoutServers {...props} />
+
+@connectStore(() => {
+  const getType = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const getContainers = createSelector(
+    createGetObjectsOfType('host'),
+    createGetObjectsOfType('pool'),
+    (hosts, pools) => ({ ...hosts, ...pools })
+  )
+  const getItems = createSelector(getContainers, createGetObjectsOfType(getType), (containers, items) =>
+    mapValues(items, item => ({
+      ...item,
+      container: containers[item.$container || item.$pool],
+    }))
+  )
+  // VMs are handled separately because we need to inject their 'vdisUsage'
+  const getVms = createSelector(
+    getContainers,
+    createGetObjectsOfType('VM'),
+    createGetObjectsOfType('VBD'),
+    createGetObjectsOfType('VDI'),
+    (containers, vms, vbds, vdis) =>
+      mapValues(vms, vm => ({
+        ...vm,
+        container: containers[vm.$container || vm.$pool],
+        vdisUsage: sumBy(compact(map(vm.$VBDs, vbdId => get(() => vdis[vbds[vbdId].VDI]))), 'usage'),
+      }))
   )
 
-@addSubscriptions({
-  jobs: subscribeBackupNgJobs,
-  noResourceSets: cb => subscribeResourceSets(data => cb(isEmpty(data))),
-})
-@connectStore(() => {
-  const type = (_, props) => props.location.query.t || DEFAULT_TYPE
+  return (state, props) => {
+    const type = getType(state, props)
 
-  return {
-    areObjectsFetched,
-    isAdmin,
-    isPoolAdmin: getIsPoolAdmin,
-    items: createSelector(
-      createSelector(
-        createGetObjectsOfType('host'),
-        createGetObjectsOfType('pool'),
-        (hosts, pools) => ({ ...hosts, ...pools })
-      ),
-      createGetObjectsOfType(type),
-      (containers, items) =>
-        mapValues(items, item => ({
-          ...item,
-          container: containers[item.$container || item.$pool],
-        }))
-    ),
-    type,
-    user: getUser,
+    return {
+      areObjectsFetched: areObjectsFetched(state, props),
+      isAdmin: isAdmin(state, props),
+      isPoolAdmin: getIsPoolAdmin(state, props),
+      items: type === 'VM' ? getVms(state, props) : getItems(state, props),
+      type,
+      user: getUser(state, props),
+    }
   }
+})
+@addSubscriptions(({ isAdmin }) => {
+  const noResourceSets = cb => subscribeResourceSets(data => cb(isEmpty(data)))
+  return isAdmin
+    ? {
+        jobs: subscribeBackupNgJobs,
+        noResourceSets,
+      }
+    : { noResourceSets }
 })
 export default class Home extends Component {
   static contextTypes = {
@@ -509,10 +500,7 @@ export default class Home extends Component {
   }
 
   state = {
-    homeItemsPerPage: +defined(
-      cookies.get('homeItemsPerPage'),
-      DEFAULT_ITEMS_PER_PAGE
-    ),
+    homeItemsPerPage: +defined(cookies.get('homeItemsPerPage'), DEFAULT_ITEMS_PER_PAGE),
     selectedItems: {},
   }
 
@@ -539,10 +527,7 @@ export default class Home extends Component {
       (this._visibleItemsRecomputations || 0) <
       (this._visibleItemsRecomputations = this._getVisibleItems.recomputations())
     ) {
-      const newSelectedItems = pick(
-        selectedItems,
-        map(this._getVisibleItems(), 'id')
-      )
+      const newSelectedItems = pick(selectedItems, map(this._getVisibleItems(), 'id'))
       if (size(newSelectedItems) < this._getNumberOfSelectedItems()) {
         this.setState({ selectedItems: newSelectedItems })
       }
@@ -550,9 +535,7 @@ export default class Home extends Component {
   }
 
   _getNumberOfItems = createCounter(() => this.props.items)
-  _getNumberOfSelectedItems = createCounter(() => this.state.selectedItems, [
-    identity,
-  ])
+  _getNumberOfSelectedItems = createCounter(() => this.state.selectedItems, [identity])
 
   _setNItemsPerPage(nItems) {
     this.setState({ homeItemsPerPage: nItems })
@@ -653,9 +636,7 @@ export default class Home extends Component {
 
     let properties
     try {
-      properties = ComplexMatcher.getPropertyClausesStrings(
-        ComplexMatcher.parse(filter)
-      )
+      properties = ComplexMatcher.getPropertyClausesStrings(ComplexMatcher.parse(filter))
     } catch (_) {
       properties = {}
     }
@@ -692,10 +673,7 @@ export default class Home extends Component {
     }
   )
 
-  _getFilterFunction = createSelector(
-    this._getParsedFilter,
-    filter => filter !== undefined && filter.createPredicate()
-  )
+  _getFilterFunction = createSelector(this._getParsedFilter, filter => filter !== undefined && filter.createPredicate())
 
   // Optionally can take the props to be able to use it in
   // componentWillReceiveProps().
@@ -732,14 +710,10 @@ export default class Home extends Component {
         }
 
         const backedUpVms = uniq(
-          flatMap(jobs, job =>
-            filter(filteredItems, createPredicate(omit(job.vms, 'power_state')))
-          )
+          flatMap(jobs, job => filter(filteredItems, createPredicate(omit(job.vms, 'power_state'))))
         )
 
-        return backup === 'true'
-          ? backedUpVms
-          : differenceBy(map(filteredItems), backedUpVms, 'id')
+        return backup === 'true' ? backedUpVms : differenceBy(map(filteredItems), backedUpVms, 'id')
       }
     ),
     createSelector(
@@ -765,9 +739,7 @@ export default class Home extends Component {
     })
   }
 
-  _tick = isCriteria => (
-    <Icon icon={isCriteria ? 'success' : undefined} fixedWidth />
-  )
+  _tick = isCriteria => <Icon icon={isCriteria ? 'success' : undefined} fixedWidth />
 
   // High level filters --------------------------------------------------------
 
@@ -784,9 +756,7 @@ export default class Home extends Component {
         'power_state',
         powerStates.length === 0
           ? undefined
-          : new ComplexMatcher.Or(
-              powerStates.map(_ => new ComplexMatcher.String(_.value))
-            )
+          : new ComplexMatcher.Or(powerStates.map(_ => new ComplexMatcher.String(_.value)))
       )
     )
 
@@ -798,9 +768,7 @@ export default class Home extends Component {
         ? ComplexMatcher.setPropertyClause(
             filter,
             '$pool',
-            new ComplexMatcher.Or(
-              map(pools, pool => new ComplexMatcher.String(pool.id))
-            )
+            new ComplexMatcher.Or(map(pools, pool => new ComplexMatcher.String(pool.id)))
           )
         : ComplexMatcher.setPropertyClause(filter, '$pool', undefined)
     )
@@ -813,9 +781,7 @@ export default class Home extends Component {
         ? ComplexMatcher.setPropertyClause(
             filter,
             '$container',
-            new ComplexMatcher.Or(
-              map(hosts, host => new ComplexMatcher.String(host.id))
-            )
+            new ComplexMatcher.Or(map(hosts, host => new ComplexMatcher.String(host.id)))
           )
         : ComplexMatcher.setPropertyClause(filter, '$container', undefined)
     )
@@ -828,13 +794,7 @@ export default class Home extends Component {
         ? ComplexMatcher.setPropertyClause(
             filter,
             'tags',
-            new ComplexMatcher.Or(
-              map(
-                tags,
-                tag =>
-                  new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`, 'i')
-              )
-            )
+            new ComplexMatcher.Or(map(tags, tag => new ComplexMatcher.RegExp(`^${escapeRegExp(tag.id)}$`, 'i')))
           )
         : ComplexMatcher.setPropertyClause(filter, 'tags', undefined)
     )
@@ -847,9 +807,7 @@ export default class Home extends Component {
         ? ComplexMatcher.setPropertyClause(
             filter,
             'resourceSet',
-            new ComplexMatcher.Or(
-              map(resourceSets, set => new ComplexMatcher.String(set.id))
-            )
+            new ComplexMatcher.Or(map(resourceSets, set => new ComplexMatcher.String(set.id)))
           )
         : ComplexMatcher.setPropertyClause(filter, 'resourceSet', undefined)
     )
@@ -873,9 +831,7 @@ export default class Home extends Component {
   _getIsAllSelected = createSelector(
     () => this.state.selectedItems,
     this._getVisibleItems,
-    (selectedItems, visibleItems) =>
-      size(visibleItems) > 0 &&
-      size(filter(selectedItems)) === size(visibleItems)
+    (selectedItems, visibleItems) => size(visibleItems) > 0 && size(filter(selectedItems)) === size(visibleItems)
   )
   _getIsSomeSelected = createSelector(() => this.state.selectedItems, some)
   _toggleMaster = () => {
@@ -909,10 +865,7 @@ export default class Home extends Component {
           break
         case 'NAV_UP':
           this.setState({
-            highlighted:
-              this.state.highlighted > 0
-                ? this.state.highlighted - 1
-                : items.length - 1,
+            highlighted: this.state.highlighted > 0 ? this.state.highlighted - 1 : items.length - 1,
           })
           break
         case 'SELECT': {
@@ -941,12 +894,7 @@ export default class Home extends Component {
 
   _getBackupFilter = createSelector(
     () => this.props.location.query.backup,
-    backup =>
-      backup === undefined
-        ? 'all'
-        : backup === 'true'
-        ? 'backedUpVms'
-        : 'notBackedUpVms'
+    backup => (backup === undefined ? 'all' : backup === 'true' ? 'backedUpVms' : 'notBackedUpVms')
   )
 
   _setBackupFilter = backupFilter => {
@@ -955,8 +903,7 @@ export default class Home extends Component {
       pathname,
       query: {
         ...query,
-        backup:
-          backupFilter === 'all' ? undefined : backupFilter === 'backedUpVms',
+        backup: backupFilter === 'all' ? undefined : backupFilter === 'backedUpVms',
         p: 1,
         s_backup: undefined,
       },
@@ -993,42 +940,26 @@ export default class Home extends Component {
       <Container>
         <Row className={styles.itemRowHeader}>
           <Col mediumSize={3}>
-            <DropdownButton
-              id='typeMenu'
-              bsStyle='info'
-              title={TYPES[this._getType()]}
-            >
+            <DropdownButton id='typeMenu' bsStyle='info' title={TYPES[this._getType()]}>
               {this._typesDropdownItems}
             </DropdownButton>
           </Col>
           <Col mediumSize={6}>
             <div className='input-group'>
               <span className='input-group-btn'>
-                <DropdownButton
-                  id='filter'
-                  bsStyle='info'
-                  title={_('homeFilters')}
-                >
-                  <MenuItem onClick={this._addCustomFilter}>
-                    {_('filterSaveAs')}
-                  </MenuItem>
+                <DropdownButton id='filter' bsStyle='info' title={_('homeFilters')}>
+                  <MenuItem onClick={this._addCustomFilter}>{_('filterSaveAs')}</MenuItem>
                   <MenuItem divider />
                   {!isEmpty(customFilters) && [
                     map(customFilters, (filter, name) => (
-                      <MenuItem
-                        key={`custom-${name}`}
-                        onClick={() => this._setFilter(filter)}
-                      >
+                      <MenuItem key={`custom-${name}`} onClick={() => this._setFilter(filter)}>
                         {name}
                       </MenuItem>
                     )),
                     <MenuItem key='divider' divider />,
                   ]}
                   {map(filters, (filter, label) => (
-                    <MenuItem
-                      key={label}
-                      onClick={() => this._setFilter(filter)}
-                    >
+                    <MenuItem key={label} onClick={() => this._setFilter(filter)}>
                       {_(label)}
                     </MenuItem>
                   ))}
@@ -1058,9 +989,7 @@ export default class Home extends Component {
               </span>
             </div>
           </Col>
-          {(isAdmin ||
-            (isPoolAdmin && process.env.XOA_PLAN > 3) ||
-            !noResourceSets) && (
+          {(isAdmin || (isPoolAdmin && process.env.XOA_PLAN > 3) || !noResourceSets) && (
             <Col mediumSize={3} className='text-xs-right'>
               <Link className='btn btn-success' to='/vms/new'>
                 <Icon icon='vm-new' /> {_('homeNewVm')}
@@ -1099,34 +1028,21 @@ export default class Home extends Component {
                   <div className='btn-group'>
                     {map(mainActions, (action, key) => (
                       <Tooltip content={action.tooltip} key={key}>
-                        <ActionButton
-                          {...action}
-                          handlerParam={this._getSelectedItemsIds()}
-                        />
+                        <ActionButton {...action} handlerParam={this._getSelectedItemsIds()} />
                       </Tooltip>
                     ))}
                   </div>
                 )}
                 {otherActions && (
-                  <DropdownButton
-                    bsStyle='secondary'
-                    id='advanced'
-                    title={_('homeMore')}
-                  >
+                  <DropdownButton bsStyle='secondary' id='advanced' title={_('homeMore')}>
                     {map(otherActions, (action, key) => (
                       <MenuItem
                         key={key}
                         onClick={() => {
-                          action.handler(
-                            this._getSelectedItemsIds(),
-                            action.params,
-                            this.props,
-                            this.context
-                          )
+                          action.handler(this._getSelectedItemsIds(), action.params, this.props, this.context)
                         }}
                       >
-                        <Icon icon={action.icon} fixedWidth />{' '}
-                        {_(action.labelId)}
+                        <Icon icon={action.icon} fixedWidth /> {_(action.labelId)}
                       </MenuItem>
                     ))}
                   </DropdownButton>
@@ -1140,18 +1056,13 @@ export default class Home extends Component {
                     rootClose
                     placement='bottom'
                     overlay={
-                      <Popover
-                        className={styles.selectObject}
-                        id='powerStatePopover'
-                      >
+                      <Popover className={styles.selectObject} id='powerStatePopover'>
                         <Select
                           autoFocus
                           multi
                           onChange={this._updateSelectedPowerStates}
                           openOnFocus
-                          options={
-                            type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST
-                          }
+                          options={type === 'VM' ? POWER_STATE_VM : POWER_STATE_HOST}
                           value={selectedPowerStates}
                         />
                       </Popover>
@@ -1162,16 +1073,13 @@ export default class Home extends Component {
                     </Button>
                   </OverlayTrigger>
                 )}
-                {type === 'VM' && (
+                {isAdmin && type === 'VM' && (
                   <OverlayTrigger
                     trigger='click'
                     rootClose
                     placement='bottom'
                     overlay={
-                      <Popover
-                        className={styles.selectObject}
-                        id='backupPopover'
-                      >
+                      <Popover className={styles.selectObject} id='backupPopover'>
                         <Select
                           autoFocus
                           onChange={this._setBackupFilter}
@@ -1196,12 +1104,7 @@ export default class Home extends Component {
                     placement='bottom'
                     overlay={
                       <Popover className={styles.selectObject} id='poolPopover'>
-                        <SelectPool
-                          autoFocus
-                          multi
-                          onChange={this._updateSelectedPools}
-                          value={selectedPools}
-                        />
+                        <SelectPool autoFocus multi onChange={this._updateSelectedPools} value={selectedPools} />
                       </Popover>
                     }
                   >
@@ -1217,12 +1120,7 @@ export default class Home extends Component {
                     placement='bottom'
                     overlay={
                       <Popover className={styles.selectObject} id='HostPopover'>
-                        <SelectHost
-                          autoFocus
-                          multi
-                          onChange={this._updateSelectedHosts}
-                          value={selectedHosts}
-                        />
+                        <SelectHost autoFocus multi onChange={this._updateSelectedHosts} value={selectedHosts} />
                       </Popover>
                     }
                   >
@@ -1258,10 +1156,7 @@ export default class Home extends Component {
                     rootClose
                     placement='bottom'
                     overlay={
-                      <Popover
-                        className={styles.selectObject}
-                        id='resourceSetPopover'
-                      >
+                      <Popover className={styles.selectObject} id='resourceSetPopover'>
                         <SelectResourceSet
                           autoFocus
                           multi
@@ -1276,29 +1171,13 @@ export default class Home extends Component {
                     </Button>
                   </OverlayTrigger>
                 )}
-                <DropdownButton
-                  bsStyle='link'
-                  id='sort'
-                  title={_('homeSortBy')}
-                >
-                  {map(
-                    options.sortOptions,
-                    ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
-                      <MenuItem
-                        key={key}
-                        data-sort-by={_sortBy}
-                        data-sort-order={sortOrder}
-                        onClick={this._setSort}
-                      >
-                        {this._tick(_sortBy === sortBy)}
-                        {_sortBy === sortBy ? (
-                          <strong>{_(labelId)}</strong>
-                        ) : (
-                          _(labelId)
-                        )}
-                      </MenuItem>
-                    )
-                  )}
+                <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
+                  {map(options.sortOptions, ({ labelId, sortBy: _sortBy, sortOrder }, key) => (
+                    <MenuItem key={key} data-sort-by={_sortBy} data-sort-order={sortOrder} onClick={this._setSort}>
+                      {this._tick(_sortBy === sortBy)}
+                      {_sortBy === sortBy ? <strong>{_(labelId)}</strong> : _(labelId)}
+                    </MenuItem>
+                  ))}
                 </DropdownButton>
               </div>
             )}
@@ -1309,10 +1188,7 @@ export default class Home extends Component {
             </Button>{' '}
             <DropdownButton bsStyle='info' title={homeItemsPerPage}>
               {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
-                <MenuItem
-                  key={nItems}
-                  onClick={() => this._setNItemsPerPage(nItems)}
-                >
+                <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
                   {nItems}
                 </MenuItem>
               ))}
@@ -1350,45 +1226,24 @@ export default class Home extends Component {
     const nItems = this._getNumberOfItems()
 
     if (nItems < 1) {
-      return (
-        <NoObjects
-          isAdmin={isAdmin}
-          isPoolAdmin={isPoolAdmin}
-          noResourceSets={noResourceSets}
-        />
-      )
+      return <NoObjects isAdmin={isAdmin} isPoolAdmin={isPoolAdmin} noResourceSets={noResourceSets} />
     }
 
     const filteredItems = this._getFilteredItems()
     const visibleItems = this._getVisibleItems()
     const { Item } = OPTIONS[type]
-    const {
-      expandAll,
-      highlighted,
-      homeItemsPerPage,
-      selectedItems,
-    } = this.state
+    const { expandAll, highlighted, homeItemsPerPage, selectedItems } = this.state
 
     // Necessary because indeterminate cannot be used as an attribute
     if (this.refs.masterCheckbox) {
-      this.refs.masterCheckbox.indeterminate =
-        this._getIsSomeSelected() && !this._getIsAllSelected()
+      this.refs.masterCheckbox.indeterminate = this._getIsSomeSelected() && !this._getIsAllSelected()
     }
 
     return (
       <Page header={this._renderHeader()}>
-        <Shortcuts
-          handler={this._getShortcutsHandler()}
-          isolate
-          name='Home'
-          targetNodeSelector='body'
-        />
+        <Shortcuts handler={this._getShortcutsHandler()} isolate name='Home' targetNodeSelector='body' />
         <div>
-          {backup !== undefined && (
-            <h5>
-              {backup === 'true' ? _('backedUpVms') : _('notBackedUpVms')}
-            </h5>
-          )}
+          {backup !== undefined && <h5>{backup === 'true' ? _('backedUpVms') : _('notBackedUpVms')}</h5>}
           <div className={styles.itemContainer}>
             {isEmpty(filteredItems) ? (
               <p className='text-xs-center mt-1'>
@@ -1398,12 +1253,7 @@ export default class Home extends Component {
               </p>
             ) : (
               map(visibleItems, (item, index) => (
-                <div
-                  key={item.id}
-                  className={
-                    highlighted === index ? styles.highlight : undefined
-                  }
-                >
+                <div key={item.id} className={highlighted === index ? styles.highlight : undefined}>
                   <Item
                     expandAll={expandAll}
                     item={item}

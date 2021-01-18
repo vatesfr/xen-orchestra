@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 // assigned when options are parsed by the main function
-let force
+let force, merge
 
 // -----------------------------------------------------------------------------
 
 const assert = require('assert')
 const flatten = require('lodash/flatten')
 const getopts = require('getopts')
+const limitConcurrency = require('limit-concurrency-decorator').default
 const lockfile = require('proper-lockfile')
 const pipe = require('promise-toolbox/pipe')
 const { default: Vhd, mergeVhd } = require('vhd-lib')
@@ -26,7 +27,7 @@ const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
 //
 // the whole chain will be merged into parent, parent will be renamed to child
 // and all the others will deleted
-async function mergeVhdChain(chain) {
+const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain) {
   assert(chain.length >= 2)
 
   let child = chain[0]
@@ -40,9 +41,9 @@ async function mergeVhdChain(chain) {
     .forEach(parent => {
       console.warn('  ', parent)
     })
-  force && console.warn('  merging…')
+  merge && console.warn('  merging…')
   console.warn('')
-  if (force) {
+  if (merge) {
     // `mergeVhd` does not work with a stream, either
     // - make it accept a stream
     // - or create synthetic VHD which is not a stream
@@ -87,7 +88,7 @@ async function mergeVhdChain(chain) {
       return force && handler.unlink(child)
     }),
   ])
-}
+})
 
 const listVhds = pipe([
   vmDir => vmDir + '/vdis',
@@ -114,9 +115,7 @@ async function handleVm(vmDir) {
         const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
         vhdParents[path] = parent
         if (parent in vhdChildren) {
-          const error = new Error(
-            'this script does not support multiple VHD children'
-          )
+          const error = new Error('this script does not support multiple VHD children')
           error.parent = parent
           error.child1 = vhdChildren[parent]
           error.child2 = path
@@ -223,11 +222,7 @@ async function handleVm(vmDir) {
       } else {
         console.warn('Error while checking backup', json)
         const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
-        console.warn(
-          '  %i/%i missing VHDs',
-          missingVhds.length,
-          linkedVhds.length
-        )
+        console.warn('  %i/%i missing VHDs', missingVhds.length, linkedVhds.length)
         missingVhds.forEach(vhd => {
           console.warn('  ', vhd)
         })
@@ -314,14 +309,16 @@ module.exports = async function main(args) {
   const opts = getopts(args, {
     alias: {
       force: 'f',
+      merge: 'm',
     },
-    boolean: ['force'],
+    boolean: ['force', 'merge'],
     default: {
       force: false,
+      merge: false,
     },
   })
 
-  ;({ force } = opts)
+  ;({ force, merge } = opts)
   await asyncMap(opts._, async vmDir => {
     vmDir = resolve(vmDir)
 

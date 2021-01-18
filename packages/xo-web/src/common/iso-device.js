@@ -8,15 +8,10 @@ import Icon from 'icon'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { isAdmin } from 'selectors'
-import { SelectVdi, SelectResourceSetsVdi } from './select-objects'
 import { addSubscriptions, connectStore, resolveResourceSet } from './utils'
 import { ejectCd, insertCd, subscribeResourceSets } from './xo'
-import {
-  createGetObjectsOfType,
-  createFinder,
-  createGetObject,
-  createSelector,
-} from './selectors'
+import { createGetObjectsOfType, createFinder, createGetObject, createSelector } from './selectors'
+import { SelectResourceSetsVdi, SelectVdi as SelectAnyVdi } from './select-objects'
 
 const vdiPredicate = vdi => !vdi.missing
 
@@ -92,11 +87,11 @@ export default class IsoDevice extends Component {
     const { cdDrive, isAdmin, mountedIso } = this.props
     const resourceSet = this._getResolvedResourceSet()
     const useResourceSet = !(isAdmin || resourceSet === undefined)
-    const SelectVdi_ = useResourceSet ? SelectResourceSetsVdi : SelectVdi
+    const SelectVdi = useResourceSet ? SelectResourceSetsVdi : SelectAnyVdi
 
     return (
       <div className='input-group'>
-        <SelectVdi_
+        <SelectVdi
           onChange={this._handleInsert}
           predicate={vdiPredicate}
           resourceSet={useResourceSet ? resourceSet : undefined}
@@ -104,18 +99,11 @@ export default class IsoDevice extends Component {
           value={mountedIso}
         />
         <span className='input-group-btn'>
-          <ActionButton
-            disabled={!mountedIso}
-            handler={this._handleEject}
-            icon='vm-eject'
-          />
+          <ActionButton disabled={!mountedIso} handler={this._handleEject} icon='vm-eject' />
         </span>
         {mountedIso && !cdDrive.device && (
           <Tooltip content={_('cdDriveNotInstalled')}>
-            <a
-              className='text-warning btn btn-link'
-              onClick={this._showWarning}
-            >
+            <a className='text-warning btn btn-link' onClick={this._showWarning}>
               <Icon icon='alarm' size='lg' />
             </a>
           </Tooltip>

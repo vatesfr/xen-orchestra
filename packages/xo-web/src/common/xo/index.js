@@ -9,24 +9,8 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
-import {
-  filter,
-  forEach,
-  get,
-  includes,
-  isEmpty,
-  isEqual,
-  map,
-  once,
-  size,
-  sortBy,
-  throttle,
-} from 'lodash'
-import {
-  forbiddenOperation,
-  noHostsAvailable,
-  vmIsTemplate,
-} from 'xo-common/api-errors'
+import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
+import { forbiddenOperation, noHostsAvailable, vmIsTemplate } from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -50,6 +34,10 @@ import {
 } from '../store/actions'
 
 import parseNdJson from './_parseNdJson'
+
+// ===================================================================
+
+export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
 
 // ===================================================================
 
@@ -106,23 +94,22 @@ connect()
 
 const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 
-const _call = (method, params) => {
-  let promise = _signIn.then(() => xo.call(method, params))
-
-  if (process.env.NODE_ENV !== 'production') {
-    promise = promise::tap(null, error => {
-      console.error('XO error', {
-        method,
-        params,
-        code: error.code,
-        message: error.message,
-        data: error.data,
+const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
+  ? async (method, params) => {
+      await _signIn
+      // eslint-disable-next-line no-console
+      console.debug('API call', method, params)
+      return tap.call(xo.call(method, params), null, error => {
+        console.error('XO error', {
+          method,
+          params,
+          code: error.code,
+          message: error.message,
+          data: error.data,
+        })
       })
-    })
-  }
-
-  return promise
-}
+    }
+  : (method, params) => _signIn.then(() => xo.call(method, params))
 
 // ===================================================================
 
@@ -161,9 +148,7 @@ export const connectStore = store => {
     Object.assign(updates, notification.params.items)
     sendUpdates()
   })
-  subscribePermissions(permissions =>
-    store.dispatch(updatePermissions(permissions))
-  )
+  subscribePermissions(permissions => store.dispatch(updatePermissions(permissions)))
 
   // work around to keep the user in Redux store up to date
   //
@@ -186,9 +171,14 @@ const createSubscription = cb => {
   const delay = 5e3 // 5s
   const clearCacheDelay = 6e5 // 10m
 
+  // contains active and lazy subscribers
   const subscribers = Object.create(null)
+  const hasSubscribers = () => Object.keys(subscribers).length !== 0
+
+  // only counts active subscribers
+  let nActiveSubscribers = 0
+
   let cache
-  let n = 0
   let nextId = 0
   let timeout
 
@@ -220,7 +210,7 @@ const createSubscription = cb => {
         result => {
           running = false
 
-          if (n === 0) {
+          if (nActiveSubscribers === 0) {
             return uninstall()
           }
 
@@ -242,7 +232,7 @@ const createSubscription = cb => {
         error => {
           running = false
 
-          if (n === 0) {
+          if (nActiveSubscribers === 0) {
             return uninstall()
           }
 
@@ -259,23 +249,46 @@ const createSubscription = cb => {
       asap(() => cb(cache))
     }
 
-    if (n++ === 0) {
+    if (nActiveSubscribers++ === 0) {
       run()
     }
 
     return once(() => {
       delete subscribers[id]
 
-      if (--n === 0) {
+      if (--nActiveSubscribers === 0) {
         uninstall()
       }
     })
   }
 
   subscribe.forceRefresh = () => {
-    if (n) {
+    if (hasSubscribers()) {
       run()
     }
+  }
+
+  subscribe.lazy = cb => {
+    const id = nextId++
+    subscribers[id] = cb
+
+    if (cache !== undefined) {
+      asap(() => cb(cache))
+    }
+
+    // trigger an initial run if necessary
+    if (nActiveSubscribers === 0) {
+      run()
+    }
+
+    return once(() => {
+      delete subscribers[id]
+
+      // schedule cache deletion if necessary
+      if (nActiveSubscribers === 0) {
+        uninstall()
+      }
+    })
   }
 
   return subscribe
@@ -289,35 +302,23 @@ export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
 export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 
-export const subscribeJobsLogs = createSubscription(() =>
-  _call('log.get', { namespace: 'jobs' })
-)
+export const subscribeJobsLogs = createSubscription(() => _call('log.get', { namespace: 'jobs' }))
 
-export const subscribeApiLogs = createSubscription(() =>
-  _call('log.get', { namespace: 'api' })
-)
+export const subscribeApiLogs = createSubscription(() => _call('log.get', { namespace: 'api' }))
 
-export const subscribePermissions = createSubscription(() =>
-  _call('acl.getCurrentPermissions')
-)
+export const subscribePermissions = createSubscription(() => _call('acl.getCurrentPermissions'))
 
 export const subscribePlugins = createSubscription(() => _call('plugin.get'))
 
 export const subscribeRemotes = createSubscription(() => _call('remote.getAll'))
 
-export const subscribeRemotesInfo = createSubscription(() =>
-  _call('remote.getAllInfo')
-)
+export const subscribeRemotesInfo = createSubscription(() => _call('remote.getAllInfo'))
 
 export const subscribeProxies = createSubscription(() => _call('proxy.getAll'))
 
-export const subscribeResourceSets = createSubscription(() =>
-  _call('resourceSet.getAll')
-)
+export const subscribeResourceSets = createSubscription(() => _call('resourceSet.getAll'))
 
-export const subscribeSchedules = createSubscription(() =>
-  _call('schedule.getAll')
-)
+export const subscribeSchedules = createSubscription(() => _call('schedule.getAll'))
 
 export const subscribeServers = createSubscription(
   invoke(fpSortBy('host'), sort => () => _call('server.getAll').then(sort))
@@ -343,24 +344,18 @@ export const subscribeGroups = createSubscription(() =>
   })
 )
 
-export const subscribeRoles = createSubscription(
-  invoke(sortBy('name'), sort => () => _call('role.getAll').then(sort))
-)
+export const subscribeRoles = createSubscription(invoke(sortBy('name'), sort => () => _call('role.getAll').then(sort)))
 
 export const subscribeIpPools = createSubscription(() => _call('ipPool.getAll'))
 
-export const subscribeResourceCatalog = createSubscription(() =>
-  _call('cloud.getResourceCatalog')
-)
+export const subscribeResourceCatalog = createSubscription(() => _call('cloud.getResourceCatalog'))
 
 export const subscribeHubResourceCatalog = createSubscription(() =>
   _call('cloud.getResourceCatalog', { filters: { hub: true } })
 )
 
 const getNotificationCookie = () => {
-  const notificationCookie = cookies.get(
-    `notifications:${store.getState().user.id}`
-  )
+  const notificationCookie = cookies.get(`notifications:${store.getState().user.id}`)
   return notificationCookie === undefined ? {} : JSON.parse(notificationCookie)
 }
 
@@ -372,11 +367,7 @@ const setNotificationCookie = (id, changes) => {
       delete notifications[id][key]
     }
   })
-  cookies.set(
-    `notifications:${store.getState().user.id}`,
-    JSON.stringify(notifications),
-    { expires: 9999 }
-  )
+  cookies.set(`notifications:${store.getState().user.id}`, JSON.stringify(notifications), { expires: 9999 })
 }
 
 export const dismissNotification = id => {
@@ -386,25 +377,20 @@ export const dismissNotification = id => {
 
 export const subscribeNotifications = createSubscription(async () => {
   const { user, xoaUpdaterState } = store.getState()
-  if (
-    +process.env.XOA_PLAN === 5 ||
-    xoaUpdaterState === 'disconnected' ||
-    xoaUpdaterState === 'error'
-  ) {
+  if (+process.env.XOA_PLAN === 5 || xoaUpdaterState === 'disconnected' || xoaUpdaterState === 'error') {
     return []
   }
 
   let notifications
   try {
-    notifications = await updater._call('getMessages')
+    const now = Date.now()
+    notifications = (await updater._call('getMessages')).filter(({ expires }) => expires == null || expires > now)
   } catch (err) {
     return []
   }
   const notificationCookie = getNotificationCookie()
   return map(
-    user != null && user.permission === 'admin'
-      ? notifications
-      : filter(notifications, { level: 'warning' }),
+    user != null && user.permission === 'admin' ? notifications : filter(notifications, { level: 'warning' }),
     notification => ({
       ...notification,
       read: !!get(notificationCookie, `${notification.id}.read`),
@@ -412,23 +398,41 @@ export const subscribeNotifications = createSubscription(async () => {
   )
 })
 
+const checkSchedulerGranularitySubscriptions = {}
+export const subscribeSchedulerGranularity = (host, cb) => {
+  if (checkSchedulerGranularitySubscriptions[host] === undefined) {
+    checkSchedulerGranularitySubscriptions[host] = createSubscription(() =>
+      _call('host.getSchedulerGranularity', { host })
+    )
+  }
+
+  return checkSchedulerGranularitySubscriptions[host](cb)
+}
+subscribeSchedulerGranularity.forceRefresh = host => {
+  if (host === undefined) {
+    forEach(checkSchedulerGranularitySubscriptions, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = checkSchedulerGranularitySubscriptions[host]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
+
 const checkSrCurrentStateSubscriptions = {}
 export const subscribeCheckSrCurrentState = (pool, cb) => {
   const poolId = resolveId(pool)
 
   if (!checkSrCurrentStateSubscriptions[poolId]) {
-    checkSrCurrentStateSubscriptions[poolId] = createSubscription(() =>
-      _call('xosan.checkSrCurrentState', { poolId })
-    )
+    checkSrCurrentStateSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrCurrentState', { poolId }))
   }
 
   return checkSrCurrentStateSubscriptions[poolId](cb)
 }
 subscribeCheckSrCurrentState.forceRefresh = pool => {
   if (pool === undefined) {
-    forEach(checkSrCurrentStateSubscriptions, subscription =>
-      subscription.forceRefresh()
-    )
+    forEach(checkSrCurrentStateSubscriptions, subscription => subscription.forceRefresh())
     return
   }
 
@@ -443,9 +447,7 @@ export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
 
   if (missingPatchesByHost[hostId] == null) {
-    missingPatchesByHost[hostId] = createSubscription(() =>
-      getHostMissingPatches(host)
-    )
+    missingPatchesByHost[hostId] = createSubscription(() => getHostMissingPatches(host))
   }
 
   return missingPatchesByHost[hostId](cb)
@@ -471,9 +473,7 @@ export const subscribeVolumeInfo = ({ sr, infoType }, cb) => {
   }
 
   if (volumeInfoBySr[sr][infoType] == null) {
-    volumeInfoBySr[sr][infoType] = createSubscription(() =>
-      _call('xosan.getVolumeInfo', { sr, infoType })
-    )
+    volumeInfoBySr[sr][infoType] = createSubscription(() => _call('xosan.getVolumeInfo', { sr, infoType }))
   }
 
   return volumeInfoBySr[sr][infoType](cb)
@@ -497,9 +497,7 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   sr = resolveId(sr)
   let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
-    subscription = createSubscription(() =>
-      _call('sr.getUnhealthyVdiChainsLength', { sr })
-    )
+    subscription = createSubscription(() => _call('sr.getUnhealthyVdiChainsLength', { sr }))
     unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
   }
   return subscription
@@ -556,14 +554,10 @@ export const addServer = (host, username, password, label, allowUnauthorized) =>
     label,
     password,
     username,
-  })::tap(subscribeServers.forceRefresh, () =>
-    error(_('serverError'), _('serverAddFailed'))
-  )
+  })::tap(subscribeServers.forceRefresh, () => error(_('serverError'), _('serverAddFailed')))
 
 export const editServer = (server, props) =>
-  _call('server.set', { ...props, id: resolveId(server) })::tap(
-    subscribeServers.forceRefresh
-  )
+  _call('server.set', { ...props, id: resolveId(server) })::tap(subscribeServers.forceRefresh)
 
 export const enableServer = server =>
   _call('server.enable', { id: resolveId(server) })
@@ -575,19 +569,14 @@ export const enableServer = server =>
     ::pFinally(subscribeServers.forceRefresh)
 
 export const disableServer = server =>
-  _call('server.disable', { id: resolveId(server) })::tap(
-    subscribeServers.forceRefresh
-  )
+  _call('server.disable', { id: resolveId(server) })::tap(subscribeServers.forceRefresh)
 
 export const removeServer = server =>
-  _call('server.remove', { id: resolveId(server) })::tap(
-    subscribeServers.forceRefresh
-  )
+  _call('server.remove', { id: resolveId(server) })::tap(subscribeServers.forceRefresh)
 
 // Pool --------------------------------------------------------------
 
-export const editPool = (pool, props) =>
-  _call('pool.set', { id: resolveId(pool), ...props })
+export const editPool = (pool, props) => _call('pool.set', { id: resolveId(pool), ...props })
 
 export const getPatchesDifference = (source, target) =>
   _call('pool.getPatchesDifference', {
@@ -636,18 +625,12 @@ export const addHostsToPool = pool =>
         throw error
       }
 
-      error(
-        _('addHostsErrorTitle', { nHosts: hosts.length }),
-        _('addHostNotHomogeneousErrorMessage')
-      )
+      error(_('addHostsErrorTitle', { nHosts: hosts.length }), _('addHostNotHomogeneousErrorMessage'))
     })
   })
 
 export const enableAdvancedLiveTelemetry = async host => {
-  const isConfiguredToReceiveStreaming = await _call(
-    'netdata.isConfiguredToReceiveStreaming',
-    { host: host.id }
-  )
+  const isConfiguredToReceiveStreaming = await _call('netdata.isConfiguredToReceiveStreaming', { host: host.id })
   if (!isConfiguredToReceiveStreaming) {
     await _call('netdata.configureXoaToReceiveData')
   }
@@ -658,10 +641,7 @@ export const enableAdvancedLiveTelemetry = async host => {
 }
 
 export const isNetDataInstalledOnHost = async host => {
-  const isNetDataInstalledOnHost = await _call(
-    'netdata.isNetDataInstalledOnHost',
-    { host: host.id }
-  )
+  const isNetDataInstalledOnHost = await _call('netdata.isNetDataInstalledOnHost', { host: host.id })
   if (!isNetDataInstalledOnHost) {
     return false
   }
@@ -692,8 +672,7 @@ export const forgetHost = host =>
     }),
   }).then(() => _call('host.forget', { host: resolveId(host) }))
 
-export const setDefaultSr = sr =>
-  _call('pool.setDefaultSr', { sr: resolveId(sr) })
+export const setDefaultSr = sr => _call('pool.setDefaultSr', { sr: resolveId(sr) })
 
 export const setPoolMaster = host =>
   confirm({
@@ -705,27 +684,24 @@ export const setPoolMaster = host =>
 
 // Host --------------------------------------------------------------
 
-export const editHost = (host, props) =>
-  _call('host.set', { ...props, id: resolveId(host) })
+export const setSchedulerGranularity = (host, schedulerGranularity) =>
+  _call('host.setSchedulerGranularity', {
+    host,
+    schedulerGranularity,
+  })::tap(() => subscribeSchedulerGranularity.forceRefresh(host))
+
+export const editHost = (host, props) => _call('host.set', { ...props, id: resolveId(host) })
 
 import MultipathingModalBody from './multipathing-modal' // eslint-disable-line import/first
-export const setHostsMultipathing = ({
-  host,
-  hosts = [host],
-  multipathing,
-}) => {
+export const setHostsMultipathing = ({ host, hosts = [host], multipathing }) => {
   const ids = resolveIds(hosts)
   return confirm({
     title: _(multipathing ? 'enableMultipathing' : 'disableMultipathing'),
     body: <MultipathingModalBody hostIds={ids} />,
-  }).then(
-    () => Promise.all(map(ids, id => editHost(id, { multipathing }))),
-    noop
-  )
+  }).then(() => Promise.all(map(ids, id => editHost(id, { multipathing }))), noop)
 }
 
-export const fetchHostStats = (host, granularity) =>
-  _call('host.stats', { host: resolveId(host), granularity })
+export const fetchHostStats = (host, granularity) => _call('host.stats', { host: resolveId(host), granularity })
 
 export const setRemoteSyslogHost = (host, syslogDestination) =>
   _call('host.setRemoteSyslogHost', {
@@ -744,10 +720,7 @@ export const restartHost = (host, force = false) =>
     () =>
       _call('host.restart', { id: resolveId(host), force }).catch(error => {
         if (noHostsAvailable.is(error)) {
-          alert(
-            _('noHostsAvailableErrorTitle'),
-            _('noHostsAvailableErrorMessage')
-          )
+          alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
         }
       }),
     noop
@@ -760,28 +733,25 @@ export const restartHosts = (hosts, force = false) => {
     body: _('restartHostsModalMessage', { nHosts }),
   }).then(
     () =>
-      Promise.all(
-        map(hosts, host =>
-          _call('host.restart', { id: resolveId(host), force })::reflect()
-        )
-      ).then(results => {
-        const nbErrors = filter(results, result => !result.isFulfilled()).length
-        if (nbErrors) {
-          return alert(
-            _('failHostBulkRestartTitle'),
-            _('failHostBulkRestartMessage', {
-              failedHosts: nbErrors,
-              totalHosts: results.length,
-            })
-          )
+      Promise.all(map(hosts, host => _call('host.restart', { id: resolveId(host), force })::reflect())).then(
+        results => {
+          const nbErrors = filter(results, result => !result.isFulfilled()).length
+          if (nbErrors) {
+            return alert(
+              _('failHostBulkRestartTitle'),
+              _('failHostBulkRestartMessage', {
+                failedHosts: nbErrors,
+                totalHosts: results.length,
+              })
+            )
+          }
         }
-      }),
+      ),
     noop
   )
 }
 
-export const restartHostAgent = host =>
-  _call('host.restart_agent', { id: resolveId(host) })
+export const restartHostAgent = host => _call('host.restart_agent', { id: resolveId(host) })
 
 export const restartHostsAgents = hosts => {
   const nHosts = size(hosts)
@@ -804,31 +774,34 @@ export const stopHosts = hosts => {
   return confirm({
     title: _('stopHostsModalTitle', { nHosts }),
     body: _('stopHostsModalMessage', { nHosts }),
-  }).then(
-    () =>
-      Promise.all(
-        map(hosts, host => _call('host.stop', { id: resolveId(host) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(hosts, host => _call('host.stop', { id: resolveId(host) }))), noop)
 }
 
-export const enableHost = host => _call('host.enable', { id: resolveId(host) })
-
-export const disableHost = host =>
-  _call('host.disable', { id: resolveId(host) })
+export const toggleMaintenanceMode = async host => {
+  if (host.enabled) {
+    try {
+      await confirm({
+        title: _('maintenanceHostModalTitle'),
+        body: _('maintenanceHostModalMessage'),
+      })
+    } catch (error) {
+      return
+    }
+  }
+  return _call('host.setMaintenanceMode', { id: resolveId(host), maintenance: host.enabled })
+}
 
 export const getHostMissingPatches = async host => {
   const hostId = resolveId(host)
+  host = getObject(store.getState(), hostId)
+
+  if (host.power_state !== 'Running') {
+    return []
+  }
   if (host.productBrand !== 'XCP-ng') {
     const patches = await _call('pool.listMissingPatches', { host: hostId })
     // Hide paid patches to XS-free users
-    return host.license_params.sku_type !== 'free'
-      ? patches
-      : filter(patches, { paid: false })
-  }
-  if (host.power_state !== 'Running') {
-    return []
+    return host.license_params.sku_type !== 'free' ? patches : filter(patches, { paid: false })
   }
   try {
     return await _call('pool.listMissingPatches', { host: hostId })
@@ -850,10 +823,7 @@ export const emergencyShutdownHosts = hosts => {
   return confirm({
     title: _('emergencyShutdownHostsModalTitle', { nHosts }),
     body: _('emergencyShutdownHostsModalMessage', { nHosts }),
-  }).then(
-    () => Promise.all(map(hosts, host => emergencyShutdownHost(host))),
-    noop
-  )
+  }).then(() => Promise.all(map(hosts, host => emergencyShutdownHost(host))), noop)
 }
 
 export const isHostTimeConsistentWithXoaTime = host => {
@@ -867,6 +837,10 @@ export const isHyperThreadingEnabledHost = host =>
   _call('host.isHyperThreadingEnabled', {
     id: resolveId(host),
   })
+
+export const installCertificateOnHost = (id, props) => _call('host.installCertificate', { id, ...props })
+
+export const setControlDomainMemory = (id, memory) => _call('host.setControlDomainMemory', { id, memory })
 
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
@@ -898,88 +872,70 @@ export const installAllPatchesOnPool = ({ pool }) => {
     title: _('installPoolPatches'),
     icon: 'host-patch-update',
   }).then(
-    () =>
-      _call('pool.installPatches', { pool: poolId })::tap(() =>
-        subscribeHostMissingPatches.forceRefresh()
-      ),
+    () => _call('pool.installPatches', { pool: poolId })::tap(() => subscribeHostMissingPatches.forceRefresh()),
     noop
   )
 }
 
-export const installSupplementalPack = (host, file) => {
-  info(
-    _('supplementalPackInstallStartedTitle'),
-    _('supplementalPackInstallStartedMessage')
+export const rollingPoolUpdate = poolId =>
+  confirm({
+    body: _('rollingPoolUpdateMessage'),
+    title: _('rollingPoolUpdate'),
+    icon: 'pool-rolling-update',
+  }).then(
+    () => _call('pool.rollingUpdate', { pool: poolId })::tap(() => subscribeHostMissingPatches.forceRefresh()),
+    noop
   )
 
-  return _call('host.installSupplementalPack', { host: resolveId(host) }).then(
-    ({ $sendTo }) =>
-      post($sendTo, file)
-        .then(res => {
-          if (res.status !== 200) {
-            throw new Error('installing supplemental pack failed')
-          }
+export const installSupplementalPack = (host, file) => {
+  info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
 
-          success(
-            _('supplementalPackInstallSuccessTitle'),
-            _('supplementalPackInstallSuccessMessage')
-          )
-        })
-        .catch(err => {
-          error(
-            _('supplementalPackInstallErrorTitle'),
-            _('supplementalPackInstallErrorMessage')
-          )
-          throw err
-        })
+  return _call('host.installSupplementalPack', { host: resolveId(host) }).then(({ $sendTo }) =>
+    post($sendTo, file)
+      .then(res => {
+        if (res.status !== 200) {
+          throw new Error('installing supplemental pack failed')
+        }
+
+        success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
+      })
+      .catch(err => {
+        error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
+        throw err
+      })
   )
 }
 
 export const installSupplementalPackOnAllHosts = (pool, file) => {
-  info(
-    _('supplementalPackInstallStartedTitle'),
-    _('supplementalPackInstallStartedMessage')
-  )
+  info(_('supplementalPackInstallStartedTitle'), _('supplementalPackInstallStartedMessage'))
 
-  return _call('pool.installSupplementalPack', { pool: resolveId(pool) }).then(
-    ({ $sendTo }) =>
-      post($sendTo, file)
-        .then(res => {
-          if (res.status !== 200) {
-            throw new Error('installing supplemental pack failed')
-          }
+  return _call('pool.installSupplementalPack', { pool: resolveId(pool) }).then(({ $sendTo }) =>
+    post($sendTo, file)
+      .then(res => {
+        if (res.status !== 200) {
+          throw new Error('installing supplemental pack failed')
+        }
 
-          success(
-            _('supplementalPackInstallSuccessTitle'),
-            _('supplementalPackInstallSuccessMessage')
-          )
-        })
-        .catch(err => {
-          error(
-            _('supplementalPackInstallErrorTitle'),
-            _('supplementalPackInstallErrorMessage')
-          )
-          throw err
-        })
+        success(_('supplementalPackInstallSuccessTitle'), _('supplementalPackInstallSuccessMessage'))
+      })
+      .catch(err => {
+        error(_('supplementalPackInstallErrorTitle'), _('supplementalPackInstallErrorMessage'))
+        throw err
+      })
   )
 }
 
 // Containers --------------------------------------------------------
 
-export const pauseContainer = (vm, container) =>
-  _call('docker.pause', { vm: resolveId(vm), container })
+export const pauseContainer = (vm, container) => _call('docker.pause', { vm: resolveId(vm), container })
 
-export const restartContainer = (vm, container) =>
-  _call('docker.restart', { vm: resolveId(vm), container })
+export const restartContainer = (vm, container) => _call('docker.restart', { vm: resolveId(vm), container })
 
-export const startContainer = (vm, container) =>
-  _call('docker.start', { vm: resolveId(vm), container })
+export const startContainer = (vm, container) => _call('docker.start', { vm: resolveId(vm), container })
 
-export const stopContainer = (vm, container) =>
-  _call('docker.stop', { vm: resolveId(vm), container })
+export const stopContainer = (vm, container) => _call('docker.stop', { vm: resolveId(vm), container })
 
-export const unpauseContainer = (vm, container) =>
-  _call('docker.unpause', { vm: resolveId(vm), container })
+export const unpauseContainer = (vm, container) => _call('docker.unpause', { vm: resolveId(vm), container })
 
 // VM ----------------------------------------------------------------
 
@@ -993,8 +949,7 @@ const chooseActionToUnblockForbiddenStartVm = props =>
     ...props,
   })
 
-const cloneAndStartVm = async (vm, host) =>
-  _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
+const cloneAndStartVm = async (vm, host) => _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
 export const startVm = async (vm, host) => {
   if (host === true) {
@@ -1061,10 +1016,7 @@ export const startVms = vms =>
         return
       }
 
-      return error(
-        _('failedVmsErrorTitle'),
-        _('failedVmsErrorMessage', { nVms: nErrors })
-      )
+      return error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
     }
 
     const choice = await chooseActionToUnblockForbiddenStartVm({
@@ -1073,24 +1025,15 @@ export const startVms = vms =>
     }).catch(noop)
 
     if (nErrors !== 0) {
-      error(
-        _('failedVmsErrorTitle'),
-        _('failedVmsErrorMessage', { nVms: nErrors })
-      )
+      error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
     }
 
     if (choice === 'clone') {
-      return Promise.all(
-        map(forbiddenStart, async id =>
-          cloneAndStartVm(getObject(store.getState(), id))
-        )
-      )
+      return Promise.all(map(forbiddenStart, async id => cloneAndStartVm(getObject(store.getState(), id))))
     }
 
     if (choice === 'force') {
-      return Promise.all(
-        map(forbiddenStart, id => _call('vm.start', { id, force: true }))
-      )
+      return Promise.all(map(forbiddenStart, id => _call('vm.start', { id, force: true })))
     }
   }, noop)
 
@@ -1104,13 +1047,7 @@ export const stopVms = (vms, force = false) =>
   confirm({
     title: _('stopVmsModalTitle', { vms: vms.length }),
     body: _('stopVmsModalMessage', { vms: vms.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(vms, vm => _call('vm.stop', { id: resolveId(vm), force }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(vms, vm => _call('vm.stop', { id: resolveId(vm), force }))), noop)
 
 export const suspendVm = vm => _call('vm.suspend', { id: resolveId(vm) })
 
@@ -1118,11 +1055,7 @@ export const suspendVms = vms =>
   confirm({
     title: _('suspendVmsModalTitle', { vms: vms.length }),
     body: _('suspendVmsModalMessage', { vms: vms.length }),
-  }).then(
-    () =>
-      Promise.all(map(vms, vm => _call('vm.suspend', { id: resolveId(vm) }))),
-    noop
-  )
+  }).then(() => Promise.all(map(vms, vm => _call('vm.suspend', { id: resolveId(vm) }))), noop)
 
 export const pauseVm = vm => _call('vm.pause', { id: resolveId(vm) })
 
@@ -1132,8 +1065,7 @@ export const pauseVms = vms =>
     body: _('pauseVmsModalMessage', { vms: vms.length }),
   }).then(() => Promise.all(map(vms, pauseVm)), noop)
 
-export const recoveryStartVm = vm =>
-  _call('vm.recoveryStart', { id: resolveId(vm) })
+export const recoveryStartVm = vm => _call('vm.recoveryStart', { id: resolveId(vm) })
 
 export const restartVm = (vm, force = false) =>
   confirm({
@@ -1145,19 +1077,9 @@ export const restartVms = (vms, force = false) =>
   confirm({
     title: _('restartVmsModalTitle', { vms: vms.length }),
     body: _('restartVmsModalMessage', { vms: vms.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(vms, vmId => _call('vm.restart', { id: resolveId(vmId), force }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(vms, vmId => _call('vm.restart', { id: resolveId(vmId), force }))), noop)
 
-export const cloneVm = (
-  { id, name_label: nameLabel },
-  fullCopy = false,
-  name
-) =>
+export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false, name) =>
   _call('vm.clone', {
     id,
     name: name === undefined ? `${nameLabel}_clone` : name,
@@ -1172,17 +1094,11 @@ export const copyVms = (vms, type) => {
     body: <CopyVmsModalBody vms={_vms} type={type} />,
   }).then(({ compress, copyMode, names, sr }) => {
     if (copyMode === 'fastClone') {
-      return Promise.all(
-        _vms.map((vm, index) => cloneVm({ id: vm }, false, names[index]))
-      )
+      return Promise.all(_vms.map((vm, index) => cloneVm({ id: vm }, false, names[index])))
     }
 
     if (sr !== undefined) {
-      return Promise.all(
-        _vms.map((vm, index) =>
-          _call('vm.copy', { vm, sr, compress, name: names[index] })
-        )
-      )
+      return Promise.all(_vms.map((vm, index) => _call('vm.copy', { vm, sr, compress, name: names[index] })))
     }
     error(_('copyVmsNoTargetSr'), _('copyVmsNoTargetSrMessage'))
   }, noop)
@@ -1214,8 +1130,7 @@ export const changeVirtualizationMode = vm =>
     })
   )
 
-export const createKubernetesCluster = params =>
-  _call('xoa.recipe.createKubernetesCluster', params)
+export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
 export const deleteTemplates = templates =>
   confirm({
@@ -1300,13 +1215,13 @@ export const snapshotVms = vms =>
     icon: 'memory',
     title: _('snapshotVmsModalTitle', { vms: vms.length }),
     body: <SnapshotVmModalBody vms={vms} />,
-  }).then(
-    ({ names, saveMemory, descriptions }) =>
-      Promise.all(
-        map(vms, vm => snapshotVm(vm, names[vm], saveMemory, descriptions[vm]))
-      ),
-    noop
-  )
+  })
+    .then(
+      ({ names, saveMemory, descriptions }) =>
+        Promise.all(map(vms, vm => snapshotVm(vm, names[vm], saveMemory, descriptions[vm]))),
+      noop
+    )
+    .catch(e => error(_('snapshotError'), e.message))
 
 export const deleteSnapshot = vm =>
   confirm({
@@ -1318,11 +1233,7 @@ export const deleteSnapshots = vms =>
   confirm({
     title: _('deleteSnapshotsModalTitle', { nVms: vms.length }),
     body: _('deleteSnapshotsModalMessage', { nVms: vms.length }),
-  }).then(
-    () =>
-      Promise.all(map(vms, vm => _call('vm.delete', { id: resolveId(vm) }))),
-    noop
-  )
+  }).then(() => Promise.all(map(vms, vm => _call('vm.delete', { id: resolveId(vm) }))), noop)
 
 import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
 export const migrateVm = async (vm, host) => {
@@ -1344,11 +1255,7 @@ export const migrateVm = async (vm, host) => {
     await _call('vm.migrate', { vm: vm.id, ...params })
   } catch (error) {
     // https://developer-docs.citrix.com/projects/citrix-hypervisor-management-api/en/latest/api-ref-autogen-errors/#vmincompatiblewiththishost
-    if (
-      error != null &&
-      error.data !== undefined &&
-      error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST'
-    ) {
+    if (error != null && error.data !== undefined && error.data.code === 'VM_INCOMPATIBLE_WITH_THIS_HOST') {
       // Retry with force.
       try {
         await confirm({
@@ -1374,25 +1281,16 @@ export const migrateVms = vms =>
       return
     }
     if (!params.targetHost) {
-      return error(
-        _('migrateVmNoTargetHost'),
-        _('migrateVmNoTargetHostMessage')
-      )
+      return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
 
-    const {
-      mapVmsMapVdisSrs,
-      mapVmsMapVifsNetworks,
-      mapVmsMigrationNetwork,
-      targetHost,
-      vms,
-    } = params
+    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, targetHost, vms } = params
     Promise.all(
       map(vms, ({ id }) =>
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
-          migrationNetwork: mapVmsMigrationNetwork[id],
+          migrationNetwork,
           targetHost,
           vm: id,
         })
@@ -1421,13 +1319,10 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
     )
   )
 
-export const getCloudInitConfig = template =>
-  _call('vm.getCloudInitConfig', { template })
+export const getCloudInitConfig = template => _call('vm.getCloudInitConfig', { template })
 
 export const pureDeleteVm = (vm, props) =>
-  _call('vm.delete', { id: resolveId(vm), ...props })::tap(
-    subscribeResourceSets.forceRefresh
-  )
+  _call('vm.delete', { id: resolveId(vm), ...props })::tap(subscribeResourceSets.forceRefresh)
 
 export const deleteVm = (vm, retryWithForce = true) =>
   confirm({
@@ -1454,16 +1349,9 @@ export const deleteVms = vms =>
       messageId: 'deleteVmsConfirmText',
       values: { nVms: vms.length },
     },
-  }).then(
-    () =>
-      Promise.all(
-        map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) }))), noop)
 
-export const importBackup = ({ remote, file, sr }) =>
-  _call('vm.importBackup', resolveIds({ remote, file, sr }))
+export const importBackup = ({ remote, file, sr }) => _call('vm.importBackup', resolveIds({ remote, file, sr }))
 
 export const importDeltaBackup = ({ remote, file, sr, mapVdisSrs }) =>
   _call(
@@ -1485,24 +1373,18 @@ export const revertSnapshot = snapshot =>
     if (snapshotBefore) {
       await _call('vm.snapshot', { id: snapshot.$snapshot_of })
     }
-    await _call('vm.revert', { snapshot: snapshot.id })::tap(
-      subscribeResourceSets.forceRefresh
-    )
+    await _call('vm.revert', { snapshot: snapshot.id })::tap(subscribeResourceSets.forceRefresh)
     success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
   }, noop)
 
 export const editVm = (vm, props) =>
   _call('vm.set', { ...props, id: resolveId(vm) })
     .catch(err => {
-      error(
-        _('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }),
-        err.message
-      )
+      error(_('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
     })
     ::tap(subscribeResourceSets.forceRefresh)
 
-export const fetchVmStats = (vm, granularity) =>
-  _call('vm.stats', { id: resolveId(vm), granularity })
+export const fetchVmStats = (vm, granularity) => _call('vm.stats', { id: resolveId(vm), granularity })
 
 export const getVmsHaValues = () => _call('vm.getHaValues')
 
@@ -1510,26 +1392,32 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
   const { name } = file
 
   info(_('startVmImport'), name)
+  const formData = new FormData()
   if (data !== undefined && data.tables !== undefined) {
     for (const k in data.tables) {
-      data.tables[k] = await data.tables[k]
+      const tables = await data.tables[k]
+      delete data.tables[k]
+      for (const l in tables) {
+        const blob = new Blob([tables[l]])
+        formData.append(l, blob, k)
+      }
     }
   }
-  return _call('vm.import', { type, data, sr: resolveId(sr) }).then(
-    ({ $sendTo }) =>
-      post($sendTo, file)
-        .then(res => {
-          if (res.status !== 200) {
-            throw res.status
-          }
-          success(_('vmImportSuccess'), name)
-          return res.json().then(body => body.result)
-        })
-        .catch(err => {
-          error(_('vmImportFailed'), name)
-          throw err
-        })
-  )
+  return _call('vm.import', { type, data, sr: resolveId(sr) }).then(async ({ $sendTo }) => {
+    formData.append('file', file)
+    return post($sendTo, formData)
+      .then(res => {
+        if (res.status !== 200) {
+          throw res.status
+        }
+        success(_('vmImportSuccess'), name)
+        return res.json().then(body => body.result)
+      })
+      .catch(err => {
+        error(_('vmImportFailed'), name)
+        throw err
+      })
+  })
 }
 
 import ImportVdiModalBody from './import-vdi-modal' // eslint-disable-line import/first
@@ -1548,19 +1436,18 @@ export const importVdi = async vdi => {
   const { name } = file
   info(_('startVdiImport'), name)
 
-  return _call('disk.importContent', { id: resolveId(vdi) }).then(
-    ({ $sendTo }) =>
-      post($sendTo, file)
-        .then(res => {
-          if (res.status !== 200) {
-            throw res.status
-          }
-          success(_('vdiImportSuccess'), name)
-          return res.json().then(body => body.result)
-        })
-        .catch(err => {
-          error(_('vdiImportFailed'), err)
-        })
+  return _call('disk.importContent', { id: resolveId(vdi) }).then(({ $sendTo }) =>
+    post($sendTo, file)
+      .then(res => {
+        if (res.status !== 200) {
+          throw res.status
+        }
+        success(_('vdiImportSuccess'), name)
+        return res.json().then(body => body.result)
+      })
+      .catch(err => {
+        error(_('vdiImportFailed'), err)
+      })
   )
 }
 
@@ -1574,6 +1461,15 @@ export const importVms = (vms, sr) =>
   ).then(ids => ids.filter(_ => _ !== undefined))
 
 const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+  const formData = new FormData()
+  if (vmdkData !== undefined) {
+    for (const l of ['grainLogicalAddressList', 'grainFileOffsetList']) {
+      const table = await vmdkData[l]
+      delete vmdkData[l]
+      const blob = new Blob([table])
+      formData.append(l, blob, file.name)
+    }
+  }
   const res = await _call('disk.import', {
     description,
     name,
@@ -1581,11 +1477,11 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     type,
     vmdkData,
   })
-  const result = await post(res.$sendTo, file)
+  formData.append('file', file)
+  const result = await post(res.$sendTo, formData)
   if (result.status !== 200) {
     throw result.status
   }
-  success(_('diskImportSuccess'), name)
   const body = await result.json()
   await body.result
 }
@@ -1609,20 +1505,16 @@ export const exportVm = vm =>
   }).then(compress => {
     const id = resolveId(vm)
     info(_('startVmExport'), id)
-    return _call('vm.export', { vm: id, compress }).then(
-      ({ $getFrom: url }) => {
-        window.open(`.${url}`)
-      }
-    )
+    return _call('vm.export', { vm: id, compress }).then(({ $getFrom: url }) => {
+      window.open(`.${url}`)
+    })
   })
 
 export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
-  return _call('disk.exportContent', { id: resolveId(vdi) }).then(
-    ({ $getFrom: url }) => {
-      window.open(`.${url}`)
-    }
-  )
+  return _call('disk.exportContent', { id: resolveId(vdi) }).then(({ $getFrom: url }) => {
+    window.open(`.${url}`)
+  })
 }
 
 export const insertCd = (vm, cd, force = false) =>
@@ -1649,8 +1541,7 @@ export const attachDiskToVm = (vdi, vm, { bootable, mode, position }) =>
     vm: resolveId(vm),
   })
 
-export const createVgpu = (vm, { gpuGroup, vgpuType }) =>
-  _call('vm.createVgpu', resolveIds({ vm, gpuGroup, vgpuType }))
+export const createVgpu = (vm, { gpuGroup, vgpuType }) => _call('vm.createVgpu', resolveIds({ vm, gpuGroup, vgpuType }))
 
 export const deleteVgpu = vgpu => _call('vm.deleteVgpu', resolveIds({ vgpu }))
 
@@ -1680,8 +1571,7 @@ export const createDisk = (name, size, sr, { vm, bootable, mode, position }) =>
 
 // VDI ---------------------------------------------------------------
 
-export const editVdi = (vdi, props) =>
-  _call('vdi.set', { ...props, id: resolveId(vdi) })
+export const editVdi = (vdi, props) => _call('vdi.set', { ...props, id: resolveId(vdi) })
 
 export const deleteVdi = vdi =>
   confirm({
@@ -1693,13 +1583,7 @@ export const deleteVdis = vdis =>
   confirm({
     title: _('deleteVdisModalTitle', { nVdis: vdis.length }),
     body: _('deleteVdisModalMessage', { nVdis: vdis.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(vdis, vdi => _call('vdi.delete', { id: resolveId(vdi) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(vdis, vdi => _call('vdi.delete', { id: resolveId(vdi) }))), noop)
 
 export const deleteOrphanedVdis = vdis =>
   confirm({
@@ -1710,32 +1594,26 @@ export const deleteOrphanedVdis = vdis =>
         <p>{_('definitiveMessageModal')}</p>
       </div>
     ),
-  }).then(
-    () => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))),
-    noop
-  )
+  }).then(() => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))), noop)
 
-export const migrateVdi = (vdi, sr) =>
-  _call('vdi.migrate', { id: resolveId(vdi), sr_id: resolveId(sr) })
+export const migrateVdi = (vdi, sr, resourceSet) =>
+  _call('vdi.migrate', {
+    id: resolveId(vdi),
+    resourceSet,
+    sr_id: resolveId(sr),
+  })
 
 // VBD ---------------------------------------------------------------
 
 export const connectVbd = vbd => _call('vbd.connect', { id: resolveId(vbd) })
 
-export const disconnectVbd = vbd =>
-  _call('vbd.disconnect', { id: resolveId(vbd) })
+export const disconnectVbd = vbd => _call('vbd.disconnect', { id: resolveId(vbd) })
 
 export const disconnectVbds = vbds =>
   confirm({
     title: _('disconnectVbdsModalTitle', { nVbds: vbds.length }),
     body: _('disconnectVbdsModalMessage', { nVbds: vbds.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(vbds, vbd => _call('vbd.disconnect', { id: resolveId(vbd) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(vbds, vbd => _call('vbd.disconnect', { id: resolveId(vbd) }))), noop)
 
 export const deleteVbd = vbd => _call('vbd.delete', { id: resolveId(vbd) })
 
@@ -1743,29 +1621,19 @@ export const deleteVbds = vbds =>
   confirm({
     title: _('deleteVbdsModalTitle', { nVbds: vbds.length }),
     body: _('deleteVbdsModalMessage', { nVbds: vbds.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(vbds, vbd => _call('vbd.delete', { id: resolveId(vbd) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(vbds, vbd => _call('vbd.delete', { id: resolveId(vbd) }))), noop)
 
-export const editVbd = (vbd, props) =>
-  _call('vbd.set', { ...props, id: resolveId(vbd) })
+export const editVbd = (vbd, props) => _call('vbd.set', { ...props, id: resolveId(vbd) })
 
-export const setBootableVbd = (vbd, bootable) =>
-  _call('vbd.setBootable', { vbd: resolveId(vbd), bootable })
+export const setBootableVbd = (vbd, bootable) => _call('vbd.setBootable', { vbd: resolveId(vbd), bootable })
 
 // VIF ---------------------------------------------------------------
 
-export const createVmInterface = (vm, network, mac) =>
-  _call('vm.createInterface', resolveIds({ vm, network, mac }))
+export const createVmInterface = (vm, network, mac) => _call('vm.createInterface', resolveIds({ vm, network, mac }))
 
 export const connectVif = vif => _call('vif.connect', { id: resolveId(vif) })
 
-export const disconnectVif = vif =>
-  _call('vif.disconnect', { id: resolveId(vif) })
+export const disconnectVif = vif => _call('vif.disconnect', { id: resolveId(vif) })
 
 export const deleteVif = vif => _call('vif.delete', { id: resolveId(vif) })
 
@@ -1773,25 +1641,11 @@ export const deleteVifs = vifs =>
   confirm({
     title: _('deleteVifsModalTitle', { nVifs: vifs.length }),
     body: _('deleteVifsModalMessage', { nVifs: vifs.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(vifs, vif => _call('vif.delete', { id: resolveId(vif) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(vifs, vif => _call('vif.delete', { id: resolveId(vif) }))), noop)
 
 export const setVif = (
   vif,
-  {
-    allowedIpv4Addresses,
-    allowedIpv6Addresses,
-    lockingMode,
-    mac,
-    network,
-    rateLimit,
-    txChecksumming,
-  }
+  { allowedIpv4Addresses, allowedIpv6Addresses, lockingMode, mac, network, rateLimit, resourceSet, txChecksumming }
 ) =>
   _call('vif.set', {
     allowedIpv4Addresses,
@@ -1801,19 +1655,13 @@ export const setVif = (
     mac,
     network: resolveId(network),
     rateLimit,
+    resourceSet,
     txChecksumming,
   })
 
 export const getLockingModeValues = () => _call('vif.getLockingModeValues')
 
-export const addAclRule = ({
-  allow,
-  protocol = undefined,
-  port = undefined,
-  ipRange = '',
-  direction,
-  vif,
-}) =>
+export const addAclRule = ({ allow, protocol = undefined, port = undefined, ipRange = '', direction, vif }) =>
   _call('sdnController.addRule', {
     allow,
     protocol,
@@ -1823,13 +1671,7 @@ export const addAclRule = ({
     vifId: resolveId(vif),
   })
 
-export const deleteAclRule = ({
-  protocol = undefined,
-  port = undefined,
-  ipRange = '',
-  direction,
-  vif,
-}) =>
+export const deleteAclRule = ({ protocol = undefined, port = undefined, ipRange = '', direction, vif }) =>
   _call('sdnController.deleteRule', {
     protocol,
     port,
@@ -1840,18 +1682,15 @@ export const deleteAclRule = ({
 
 // Network -----------------------------------------------------------
 
-export const editNetwork = (network, props) =>
-  _call('network.set', { ...props, id: resolveId(network) })
+export const editNetwork = (network, props) => _call('network.set', { ...props, id: resolveId(network) })
 
 export const getBondModes = () => _call('network.getBondModes')
 export const createNetwork = params => _call('network.create', params)
-export const createBondedNetwork = params =>
-  _call('network.createBonded', params)
+export const createBondedNetwork = params => _call('network.createBonded', params)
 export const createPrivateNetwork = ({ preferredCenter, ...params }) =>
   _call('sdnController.createPrivateNetwork', {
     ...params,
-    preferredCenterId:
-      preferredCenter !== null ? resolveId(preferredCenter) : undefined,
+    preferredCenterId: preferredCenter !== null ? resolveId(preferredCenter) : undefined,
   })
 
 export const deleteNetwork = network =>
@@ -1884,13 +1723,7 @@ export const deletePifs = pifs =>
   confirm({
     title: _('deletePifs'),
     body: _('deletePifsConfirm', { nPifs: pifs.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(pifs, pif => _call('pif.delete', { pif: resolveId(pif) }))), noop)
 
 export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
   _call('pif.reconfigureIp', {
@@ -1904,8 +1737,7 @@ export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
 
 export const getIpv4ConfigModes = () => _call('pif.getIpv4ConfigurationModes')
 
-export const editPif = (pif, { vlan }) =>
-  _call('pif.editPif', { pif: resolveId(pif), vlan })
+export const editPif = (pif, { vlan }) => _call('pif.editPif', { pif: resolveId(pif), vlan })
 
 export const scanHostPifs = hostId => _call('host.scanPifs', { host: hostId })
 
@@ -1922,8 +1754,7 @@ export const deleteSr = sr =>
     ),
   }).then(() => _call('sr.destroy', { id: resolveId(sr) }), noop)
 
-export const fetchSrStats = (sr, granularity) =>
-  _call('sr.stats', { id: resolveId(sr), granularity })
+export const fetchSrStats = (sr, granularity) => _call('sr.stats', { id: resolveId(sr), granularity })
 
 export const forgetSr = sr =>
   confirm({
@@ -1934,10 +1765,7 @@ export const forgetSrs = srs =>
   confirm({
     title: _('srsForgetModalTitle'),
     body: _('srsForgetModalMessage'),
-  }).then(
-    () => Promise.all(map(resolveIds(srs), id => _call('sr.forget', { id }))),
-    noop
-  )
+  }).then(() => Promise.all(map(resolveIds(srs), id => _call('sr.forget', { id }))), noop)
 
 export const reconnectAllHostsSr = sr =>
   confirm({
@@ -1948,11 +1776,7 @@ export const reconnectAllHostsSrs = srs =>
   confirm({
     title: _('srReconnectAllModalTitle'),
     body: _('srReconnectAllModalMessage'),
-  }).then(
-    () =>
-      Promise.all(resolveIds(srs), id => _call('sr.connectAllPbds', { id })),
-    noop
-  )
+  }).then(() => Promise.all(resolveIds(srs), id => _call('sr.connectAllPbds', { id })), noop)
 
 export const disconnectAllHostsSr = sr =>
   confirm({
@@ -1963,11 +1787,7 @@ export const disconnectAllHostsSrs = srs =>
   confirm({
     title: _('srDisconnectAllModalTitle'),
     body: _('srsDisconnectAllModalMessage'),
-  }).then(
-    () =>
-      Promise.all(resolveIds(srs), id => _call('sr.disconnectAllPbds', { id })),
-    noop
-  )
+  }).then(() => Promise.all(resolveIds(srs), id => _call('sr.disconnectAllPbds', { id })), noop)
 
 export const editSr = (sr, { nameDescription, nameLabel }) =>
   _call('sr.set', {
@@ -1977,15 +1797,13 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
   })
 
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
-export const rescanSrs = srs =>
-  Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
+export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
 
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = pbd => _call('pbd.connect', { id: resolveId(pbd) })
 
-export const disconnectPbd = pbd =>
-  _call('pbd.disconnect', { id: resolveId(pbd) })
+export const disconnectPbd = pbd => _call('pbd.disconnect', { id: resolveId(pbd) })
 
 export const deletePbd = pbd => _call('pbd.delete', { id: resolveId(pbd) })
 
@@ -1993,8 +1811,7 @@ export const deletePbds = pbds => Promise.all(map(pbds, deletePbd))
 
 // Messages ----------------------------------------------------------
 
-export const deleteMessage = message =>
-  _call('message.delete', { id: resolveId(message) })
+export const deleteMessage = message => _call('message.delete', { id: resolveId(message) })
 
 export const deleteMessages = logs =>
   confirm({
@@ -2004,11 +1821,17 @@ export const deleteMessages = logs =>
 
 // Tags --------------------------------------------------------------
 
-export const addTag = (object, tag) =>
-  _call('tag.add', { id: resolveId(object), tag })
+export const addTag = (object, tag) => _call('tag.add', { id: resolveId(object), tag })
 
-export const removeTag = (object, tag) =>
-  _call('tag.remove', { id: resolveId(object), tag })
+export const removeTag = (object, tag) => _call('tag.remove', { id: resolveId(object), tag })
+
+// Custom fields ------------------------------------------------------------------------
+
+export const addCustomField = (id, name, value) => _call('customField.add', { id, name, value })
+
+export const removeCustomField = (id, name) => _call('customField.remove', { id, name })
+
+export const setCustomField = (id, name, value) => _call('customField.set', { id, name, value })
 
 // Tasks --------------------------------------------------------------
 
@@ -2018,51 +1841,32 @@ export const cancelTasks = tasks =>
   confirm({
     title: _('cancelTasksModalTitle', { nTasks: tasks.length }),
     body: _('cancelTasksModalMessage', { nTasks: tasks.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(tasks, task => _call('task.cancel', { id: resolveId(task) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(tasks, task => _call('task.cancel', { id: resolveId(task) }))), noop)
 
-export const destroyTask = task =>
-  _call('task.destroy', { id: resolveId(task) })
+export const destroyTask = task => _call('task.destroy', { id: resolveId(task) })
 
 export const destroyTasks = tasks =>
   confirm({
     title: _('destroyTasksModalTitle', { nTasks: tasks.length }),
     body: _('destroyTasksModalMessage', { nTasks: tasks.length }),
-  }).then(
-    () =>
-      Promise.all(
-        map(tasks, task => _call('task.destroy', { id: resolveId(task) }))
-      ),
-    noop
-  )
+  }).then(() => Promise.all(map(tasks, task => _call('task.destroy', { id: resolveId(task) }))), noop)
 
 // Jobs -------------------------------------------------------------
 
-export const createJob = job =>
-  _call('job.create', { job })::tap(subscribeJobs.forceRefresh)
+export const createJob = job => _call('job.create', { job })::tap(subscribeJobs.forceRefresh)
 
-export const deleteJob = job =>
-  _call('job.delete', { id: resolveId(job) })::tap(subscribeJobs.forceRefresh)
+export const deleteJob = job => _call('job.delete', { id: resolveId(job) })::tap(subscribeJobs.forceRefresh)
 
 export const deleteJobs = jobs =>
   confirm({
     title: _('deleteJobsModalTitle', { nJobs: jobs.length }),
     body: _('deleteJobsModalMessage', { nJobs: jobs.length }),
   }).then(
-    () =>
-      Promise.all(
-        map(jobs, job => _call('job.delete', { id: resolveId(job) }))
-      )::tap(subscribeJobs.forceRefresh),
+    () => Promise.all(map(jobs, job => _call('job.delete', { id: resolveId(job) })))::tap(subscribeJobs.forceRefresh),
     noop
   )
 
-export const editJob = job =>
-  _call('job.set', { job })::tap(subscribeJobs.forceRefresh)
+export const editJob = job => _call('job.set', { job })::tap(subscribeJobs.forceRefresh)
 
 export const getJob = id => _call('job.get', { id })
 
@@ -2082,13 +1886,8 @@ export const cancelJob = ({ id, name, runId }) =>
 
 // Backup/Schedule ---------------------------------------------------------
 
-export const createSchedule = (
-  jobId,
-  { cron, enabled, name = undefined, timezone = undefined }
-) =>
-  _call('schedule.create', { jobId, cron, enabled, name, timezone })::tap(
-    subscribeSchedules.forceRefresh
-  )
+export const createSchedule = (jobId, { cron, enabled, name = undefined, timezone = undefined }) =>
+  _call('schedule.create', { jobId, cron, enabled, name, timezone })::tap(subscribeSchedules.forceRefresh)
 
 export const deleteBackupSchedule = async schedule => {
   await confirm({
@@ -2109,9 +1908,7 @@ export const migrateBackupSchedule = id =>
   }).then(() => _call('backupNg.migrateLegacyJob', { id: resolveId(id) }))
 
 export const deleteSchedule = schedule =>
-  _call('schedule.delete', { id: resolveId(schedule) })::tap(
-    subscribeSchedules.forceRefresh
-  )
+  _call('schedule.delete', { id: resolveId(schedule) })::tap(subscribeSchedules.forceRefresh)
 
 export const deleteSchedules = schedules =>
   confirm({
@@ -2120,9 +1917,7 @@ export const deleteSchedules = schedules =>
   }).then(() =>
     Promise.all(
       map(schedules, schedule =>
-        _call('schedule.delete', { id: resolveId(schedule) })::tap(
-          subscribeSchedules.forceRefresh
-        )
+        _call('schedule.delete', { id: resolveId(schedule) })::tap(subscribeSchedules.forceRefresh)
       )
     )
   )
@@ -2130,9 +1925,7 @@ export const deleteSchedules = schedules =>
 export const disableSchedule = id => editSchedule({ id, enabled: false })
 
 export const editSchedule = ({ id, jobId, cron, enabled, name, timezone }) =>
-  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(
-    subscribeSchedules.forceRefresh
-  )
+  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(subscribeSchedules.forceRefresh)
 
 export const enableSchedule = id => editSchedule({ id, enabled: true })
 
@@ -2140,9 +1933,7 @@ export const getSchedule = id => _call('schedule.get', { id })
 
 // Backup NG ---------------------------------------------------------
 
-export const subscribeBackupNgJobs = createSubscription(() =>
-  _call('backupNg.getAllJobs')
-)
+export const subscribeBackupNgJobs = createSubscription(() => _call('backupNg.getAllJobs'))
 
 export const subscribeBackupNgLogs = createSubscription(async () => {
   const { $getFrom } = await _call('backupNg.getAllLogs', { ndjson: true })
@@ -2156,20 +1947,13 @@ export const subscribeBackupNgLogs = createSubscription(async () => {
   return logs
 })
 
-export const subscribeMetadataBackupJobs = createSubscription(() =>
-  _call('metadataBackup.getAllJobs')
-)
+export const subscribeMetadataBackupJobs = createSubscription(() => _call('metadataBackup.getAllJobs'))
 
-export const createBackupNgJob = props =>
-  _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
+export const createBackupNgJob = props => _call('backupNg.createJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
-export const getSuggestedExcludedTags = () =>
-  _call('backupNg.getSuggestedExcludedTags')
+export const getSuggestedExcludedTags = () => _call('backupNg.getSuggestedExcludedTags')
 
-export const deleteBackupJobs = async ({
-  backupIds = [],
-  metadataBackupIds = [],
-}) => {
+export const deleteBackupJobs = async ({ backupIds = [], metadataBackupIds = [] }) => {
   const nJobs = backupIds.length + metadataBackupIds.length
   if (nJobs === 0) {
     return
@@ -2187,26 +1971,23 @@ export const deleteBackupJobs = async ({
   const promises = []
   if (backupIds.length !== 0) {
     promises.push(
-      Promise.all(
-        backupIds.map(id => _call('backupNg.deleteJob', { id: resolveId(id) }))
-      )::tap(subscribeBackupNgJobs.forceRefresh)
+      Promise.all(backupIds.map(id => _call('backupNg.deleteJob', { id: resolveId(id) })))::tap(
+        subscribeBackupNgJobs.forceRefresh
+      )
     )
   }
   if (metadataBackupIds.length !== 0) {
     promises.push(
-      Promise.all(
-        metadataBackupIds.map(id =>
-          _call('metadataBackup.deleteJob', { id: resolveId(id) })
-        )
-      )::tap(subscribeMetadataBackupJobs.forceRefresh)
+      Promise.all(metadataBackupIds.map(id => _call('metadataBackup.deleteJob', { id: resolveId(id) })))::tap(
+        subscribeMetadataBackupJobs.forceRefresh
+      )
     )
   }
 
   return Promise.all(promises)::tap(subscribeSchedules.forceRefresh)
 }
 
-export const editBackupNgJob = props =>
-  _call('backupNg.editJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
+export const editBackupNgJob = props => _call('backupNg.editJob', props)::tap(subscribeBackupNgJobs.forceRefresh)
 
 export const getBackupNgJob = id => _call('backupNg.getJob', { id })
 
@@ -2221,8 +2002,7 @@ export const runBackupNgJob = ({ force, ...params }) => {
   return _call('backupNg.runJob', params)
 }
 
-export const listVmBackups = remotes =>
-  _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
+export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
 export const restoreBackup = (backup, sr, startOnRestore) => {
   const promise = _call('backupNg.importVmBackup', {
@@ -2237,8 +2017,7 @@ export const restoreBackup = (backup, sr, startOnRestore) => {
   return promise
 }
 
-export const deleteBackup = backup =>
-  _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
+export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
 export const deleteBackups = async backups => {
   // delete sequentially from newest to oldest
@@ -2258,11 +2037,9 @@ export const editMetadataBackupJob = props =>
     ::tap(subscribeMetadataBackupJobs.forceRefresh)
     ::tap(subscribeSchedules.forceRefresh)
 
-export const runMetadataBackupJob = params =>
-  _call('metadataBackup.runJob', params)
+export const runMetadataBackupJob = params => _call('metadataBackup.runJob', params)
 
-export const listMetadataBackups = remotes =>
-  _call('metadataBackup.list', { remotes: resolveIds(remotes) })
+export const listMetadataBackups = remotes => _call('metadataBackup.list', { remotes: resolveIds(remotes) })
 
 export const restoreMetadataBackup = backup =>
   _call('metadataBackup.restore', {
@@ -2294,11 +2071,9 @@ export const unloadPlugin = id =>
     error(_('pluginError'), (err && err.message) || _('unknownPluginError'))
   )
 
-export const enablePluginAutoload = id =>
-  _call('plugin.enableAutoload', { id })::tap(subscribePlugins.forceRefresh)
+export const enablePluginAutoload = id => _call('plugin.enableAutoload', { id })::tap(subscribePlugins.forceRefresh)
 
-export const disablePluginAutoload = id =>
-  _call('plugin.disableAutoload', { id })::tap(subscribePlugins.forceRefresh)
+export const disablePluginAutoload = id => _call('plugin.disableAutoload', { id })::tap(subscribePlugins.forceRefresh)
 
 export const configurePlugin = (id, configuration) =>
   _call('plugin.configure', { id, configuration })::tap(
@@ -2306,16 +2081,14 @@ export const configurePlugin = (id, configuration) =>
       info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
       subscribePlugins.forceRefresh()
     },
-    err =>
-      error(
-        _('pluginError'),
-        JSON.stringify(err.data) || _('unknownPluginError')
-      )
+    err => error(_('pluginError'), JSON.stringify(err.data) || _('unknownPluginError'))
   )
 
 export const getPlugin = async id => {
-  const plugins = await _call('plugin.get')
-  return plugins.find(plugin => plugin.id === id)
+  const { user } = store.getState()
+  if (user != null && user.permission === 'admin') {
+    return (await _call('plugin.get')).find(plugin => plugin.id === id)
+  }
 }
 
 export const purgePluginConfiguration = async id => {
@@ -2335,14 +2108,9 @@ export const sendUsageReport = () => _call('plugin.usageReport.send')
 // Resource set ------------------------------------------------------
 
 export const createResourceSet = (name, { subjects, objects, limits } = {}) =>
-  _call('resourceSet.create', { name, subjects, objects, limits })::tap(
-    subscribeResourceSets.forceRefresh
-  )
+  _call('resourceSet.create', { name, subjects, objects, limits })::tap(subscribeResourceSets.forceRefresh)
 
-export const editResourceSet = (
-  id,
-  { name, subjects, objects, limits, ipPools } = {}
-) =>
+export const editResourceSet = (id, { name, subjects, objects, limits, ipPools } = {}) =>
   _call('resourceSet.set', {
     id,
     name,
@@ -2363,21 +2131,16 @@ export const deleteResourceSet = async id => {
 }
 
 export const recomputeResourceSetsLimits = () =>
-  _call('resourceSet.recomputeAllLimits')::tap(
-    subscribeResourceSets.forceRefresh
-  )
+  _call('resourceSet.recomputeAllLimits')::tap(subscribeResourceSets.forceRefresh)
 
-export const getResourceSet = id =>
-  _call('resourceSet.get', { id: resolveId(id) })
+export const getResourceSet = id => _call('resourceSet.get', { id: resolveId(id) })
 
 // Remote ------------------------------------------------------------
 
 export const getRemotes = () => _call('remote.getAll')
 
 export const getRemote = remote =>
-  _call('remote.get', resolveIds({ id: remote }))::tap(null, err =>
-    error(_('getRemote'), err.message || String(err))
-  )
+  _call('remote.get', resolveIds({ id: remote }))::tap(null, err => error(_('getRemote'), err.message || String(err)))
 
 export const createRemote = (name, url, options, proxy) =>
   _call('remote.create', {
@@ -2390,9 +2153,7 @@ export const createRemote = (name, url, options, proxy) =>
   })
 
 export const deleteRemote = remote =>
-  _call('remote.delete', { id: resolveId(remote) })::tap(
-    subscribeRemotes.forceRefresh
-  )
+  _call('remote.delete', { id: resolveId(remote) })::tap(subscribeRemotes.forceRefresh)
 
 export const deleteRemotes = remotes =>
   confirm({
@@ -2400,23 +2161,17 @@ export const deleteRemotes = remotes =>
     body: _('deleteRemotesModalMessage', { nRemotes: remotes.length }),
   }).then(
     () =>
-      Promise.all(
-        map(remotes, remote =>
-          _call('remote.delete', { id: resolveId(remote) })
-        )
-      )::tap(subscribeRemotes.forceRefresh),
+      Promise.all(map(remotes, remote => _call('remote.delete', { id: resolveId(remote) })))::tap(
+        subscribeRemotes.forceRefresh
+      ),
     noop
   )
 
 export const enableRemote = remote =>
-  _call('remote.set', { id: resolveId(remote), enabled: true })::tap(() =>
-    testRemote(remote).catch(noop)
-  )
+  _call('remote.set', { id: resolveId(remote), enabled: true })::tap(() => testRemote(remote).catch(noop))
 
 export const disableRemote = remote =>
-  _call('remote.set', { id: resolveId(remote), enabled: false })::tap(
-    subscribeRemotes.forceRefresh
-  )
+  _call('remote.set', { id: resolveId(remote), enabled: false })::tap(subscribeRemotes.forceRefresh)
 
 export const editRemote = (remote, { name, options, proxy, url }) =>
   _call('remote.set', {
@@ -2434,16 +2189,12 @@ export const listRemote = async remote =>
   remote.proxy === undefined
     ? _call('remote.list', {
         id: remote.id,
-      })::tap(subscribeRemotes.forceRefresh, err =>
-        error(_('listRemote'), err.message || String(err))
-      )
+      })::tap(subscribeRemotes.forceRefresh, err => error(_('listRemote'), err.message || String(err)))
     : []
 
 export const listRemoteBackups = async remote =>
   remote.proxy === undefined
-    ? _call('backup.list', { remote: remote.id })::tap(null, err =>
-        error(_('listRemote'), err.message || String(err))
-      )
+    ? _call('backup.list', { remote: remote.id })::tap(null, err => error(_('listRemote'), err.message || String(err)))
     : []
 
 export const testRemote = remote =>
@@ -2453,51 +2204,35 @@ export const testRemote = remote =>
 
 // File restore  ----------------------------------------------------
 
-export const scanDisk = (remote, disk) =>
-  _call('backup.scanDisk', resolveIds({ remote, disk }))
+export const scanDisk = (remote, disk) => _call('backup.scanDisk', resolveIds({ remote, disk }))
 
 export const scanFiles = (remote, disk, path, partition) =>
   _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))
 
 export const fetchFiles = (remote, disk, partition, paths, format) =>
-  _call(
-    'backup.fetchFiles',
-    resolveIds({ remote, disk, partition, paths, format })
-  ).then(({ $getFrom: url }) => {
+  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths, format })).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
 
 // File restore NG  ----------------------------------------------------
 
-export const listPartitions = (remote, disk) =>
-  _call('backupNg.listPartitions', resolveIds({ remote, disk }))
+export const listPartitions = (remote, disk) => _call('backupNg.listPartitions', resolveIds({ remote, disk }))
 
 export const listFiles = (remote, disk, path, partition) =>
   _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
 
 export const fetchFilesNg = (remote, disk, partition, paths) =>
-  _call(
-    'backupNg.fetchFiles',
-    resolveIds({ remote, disk, partition, paths })
-  ).then(({ $getFrom: url }) => {
+  _call('backupNg.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
 
 // -------------------------------------------------------------------
 
-export const probeSrNfs = (host, server) =>
-  _call('sr.probeNfs', { host, server })
+export const probeSrNfs = (host, server) => _call('sr.probeNfs', { host, server })
 
-export const probeSrNfsExists = (host, server, serverPath) =>
-  _call('sr.probeNfsExists', { host, server, serverPath })
+export const probeSrNfsExists = (host, server, serverPath) => _call('sr.probeNfsExists', { host, server, serverPath })
 
-export const probeSrIscsiIqns = (
-  host,
-  target,
-  port = undefined,
-  chapUser = undefined,
-  chapPassword
-) => {
+export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = undefined, chapPassword) => {
   const params = { host, target }
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
@@ -2505,13 +2240,7 @@ export const probeSrIscsiIqns = (
   return _call('sr.probeIscsiIqns', params)
 }
 
-export const probeSrIscsiLuns = (
-  host,
-  target,
-  targetIqn,
-  chapUser = undefined,
-  chapPassword
-) => {
+export const probeSrIscsiLuns = (host, target, targetIqn, chapUser = undefined, chapPassword) => {
   const params = { host, target, targetIqn }
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
@@ -2536,16 +2265,9 @@ export const probeSrIscsiExists = (
 
 export const probeSrHba = host => _call('sr.probeHba', { host })
 
-export const probeSrHbaExists = (host, scsiId) =>
-  _call('sr.probeHbaExists', { host, scsiId })
+export const probeSrHbaExists = (host, scsiId) => _call('sr.probeHbaExists', { host, scsiId })
 
 export const probeZfs = host => _call('sr.probeZfs', { host: resolveId(host) })
-
-export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
-  _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
-
-export const reattachSrIso = (host, uuid, nameLabel, nameDescription, type) =>
-  _call('sr.reattachIso', { host, uuid, nameLabel, nameDescription, type })
 
 export const createSrNfs = (
   host,
@@ -2554,11 +2276,13 @@ export const createSrNfs = (
   server,
   serverPath,
   nfsVersion = undefined,
-  nfsOptions
+  nfsOptions,
+  srUuid
 ) => {
   const params = { host, nameLabel, nameDescription, server, serverPath }
   nfsVersion && (params.nfsVersion = nfsVersion)
   nfsOptions && (params.nfsOptions = nfsOptions)
+  srUuid && (params.srUuid = srUuid)
   return _call('sr.createNfs', params)
 }
 
@@ -2571,17 +2295,22 @@ export const createSrIscsi = (
   scsiId,
   port = undefined,
   chapUser = undefined,
-  chapPassword = undefined
+  chapPassword = undefined,
+  srUuid
 ) => {
   const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId }
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
+  srUuid && (params.srUuid = srUuid)
   return _call('sr.createIscsi', params)
 }
 
-export const createSrHba = (host, nameLabel, nameDescription, scsiId) =>
-  _call('sr.createHba', { host, nameLabel, nameDescription, scsiId })
+export const createSrHba = (host, nameLabel, nameDescription, scsiId, srUuid) => {
+  const params = { host, nameLabel, nameDescription, scsiId }
+  srUuid && (params.srUuid = srUuid)
+  return _call('sr.createHba', params)
+}
 
 export const createSrIso = (
   host,
@@ -2590,11 +2319,13 @@ export const createSrIso = (
   path,
   type,
   user = undefined,
-  password = undefined
+  password = undefined,
+  srUuid
 ) => {
-  const params = { host, nameLabel, nameDescription, path, type }
+  const params = { host, nameLabel, nameDescription, path, type, srUuid }
   user && (params.user = user)
   password && (params.password = password)
+  srUuid && (params.srUuid = srUuid)
   return _call('sr.createIso', params)
 }
 
@@ -2605,7 +2336,7 @@ export const createSrExt = (host, nameLabel, nameDescription, device) =>
   _call('sr.createExt', { host, nameLabel, nameDescription, device })
 
 export const createSrZfs = (host, nameLabel, nameDescription, location) =>
-  _call('sr.createFile', {
+  _call('sr.createZfs', {
     host: resolveId(host),
     nameDescription,
     nameLabel,
@@ -2640,9 +2371,7 @@ export const deleteJobsLogs = async ids => {
 // Logs
 
 export const deleteApiLog = log =>
-  _call('log.delete', { namespace: 'api', id: resolveId(log) })::tap(
-    subscribeApiLogs.forceRefresh
-  )
+  _call('log.delete', { namespace: 'api', id: resolveId(log) })::tap(subscribeApiLogs.forceRefresh)
 
 export const deleteApiLogs = logs =>
   confirm({
@@ -2653,18 +2382,12 @@ export const deleteApiLogs = logs =>
 // Acls, users, groups ----------------------------------------------------------
 
 export const addAcl = ({ subject, object, action }) =>
-  _call(
-    'acl.add',
-    resolveIds({ subject, object, action })
-  )::tap(subscribeAcls.forceRefresh, err =>
+  _call('acl.add', resolveIds({ subject, object, action }))::tap(subscribeAcls.forceRefresh, err =>
     error('Add ACL', err.message || String(err))
   )
 
 export const removeAcl = ({ subject, object, action }) =>
-  _call(
-    'acl.remove',
-    resolveIds({ subject, object, action })
-  )::tap(subscribeAcls.forceRefresh, err =>
+  _call('acl.remove', resolveIds({ subject, object, action }))::tap(subscribeAcls.forceRefresh, err =>
     error('Remove ACL', err.message || String(err))
   )
 
@@ -2675,22 +2398,14 @@ export const removeAcls = acls =>
   }).then(
     () =>
       Promise.all(
-        map(acls, ({ subject, object, action }) =>
-          _call('acl.remove', resolveIds({ subject, object, action }))
-        )
-      )::tap(subscribeAcls.forceRefresh, err =>
-        error('Remove ACLs', err.message || String(err))
-      ),
+        map(acls, ({ subject, object, action }) => _call('acl.remove', resolveIds({ subject, object, action })))
+      )::tap(subscribeAcls.forceRefresh, err => error('Remove ACLs', err.message || String(err))),
     noop
   )
 
 export const editAcl = (
   { subject, object, action },
-  {
-    subject: newSubject = subject,
-    object: newObject = object,
-    action: newAction = action,
-  }
+  { subject: newSubject = subject, object: newObject = object, action: newAction = action }
 ) =>
   _call('acl.remove', resolveIds({ subject, object, action }))
     .then(() =>
@@ -2703,9 +2418,7 @@ export const editAcl = (
         })
       )
     )
-    ::tap(subscribeAcls.forceRefresh, err =>
-      error('Edit ACL', err.message || String(err))
-    )
+    ::tap(subscribeAcls.forceRefresh, err => error('Edit ACL', err.message || String(err)))
 
 export const createGroup = name =>
   _call('group.create', { name })::tap(subscribeGroups.forceRefresh, err =>
@@ -2713,9 +2426,7 @@ export const createGroup = name =>
   )
 
 export const setGroupName = (group, name) =>
-  _call('group.set', resolveIds({ group, name }))::tap(
-    subscribeGroups.forceRefresh
-  )
+  _call('group.set', resolveIds({ group, name }))::tap(subscribeGroups.forceRefresh)
 
 export const deleteGroup = group =>
   confirm({
@@ -2723,28 +2434,31 @@ export const deleteGroup = group =>
     body: <p>{_('deleteGroupConfirm')}</p>,
   }).then(
     () =>
-      _call(
-        'group.delete',
-        resolveIds({ id: group })
-      )::tap(subscribeGroups.forceRefresh, err =>
+      _call('group.delete', resolveIds({ id: group }))::tap(subscribeGroups.forceRefresh, err =>
+        error(_('deleteGroup'), err.message || String(err))
+      ),
+    noop
+  )
+
+export const deleteGroups = groups =>
+  confirm({
+    title: _('deleteGroupsModalTitle', { nGroups: groups.length }),
+    body: <p>{_('deleteGroupsModalMessage', { nGroups: groups.length })}</p>,
+  }).then(
+    () =>
+      Promise.all(groups.map(({ id }) => _call('group.delete', { id })))::tap(subscribeGroups.forceRefresh, err =>
         error(_('deleteGroup'), err.message || String(err))
       ),
     noop
   )
 
 export const removeUserFromGroup = (user, group) =>
-  _call(
-    'group.removeUser',
-    resolveIds({ id: group, userId: user })
-  )::tap(subscribeGroups.forceRefresh, err =>
+  _call('group.removeUser', resolveIds({ id: group, userId: user }))::tap(subscribeGroups.forceRefresh, err =>
     error(_('removeUserFromGroup'), err.message || String(err))
   )
 
 export const addUserToGroup = (user, group) =>
-  _call(
-    'group.addUser',
-    resolveIds({ id: group, userId: user })
-  )::tap(subscribeGroups.forceRefresh, err =>
+  _call('group.addUser', resolveIds({ id: group, userId: user }))::tap(subscribeGroups.forceRefresh, err =>
     error('Add User', err.message || String(err))
   )
 
@@ -2753,9 +2467,7 @@ export const createUser = (email, password, permission) =>
     email,
     password,
     permission,
-  })::tap(subscribeUsers.forceRefresh, err =>
-    error('Create user', err.message || String(err))
-  )
+  })::tap(subscribeUsers.forceRefresh, err => error('Create user', err.message || String(err)))
 
 export const deleteUser = user =>
   confirm({
@@ -2764,9 +2476,7 @@ export const deleteUser = user =>
   }).then(() =>
     _call('user.delete', {
       id: resolveId(user),
-    })::tap(subscribeUsers.forceRefresh, err =>
-      error(_('deleteUser'), err.message || String(err))
-    )
+    })::tap(subscribeUsers.forceRefresh, err => error(_('deleteUser'), err.message || String(err)))
   )
 
 export const deleteUsers = users =>
@@ -2775,21 +2485,16 @@ export const deleteUsers = users =>
     body: <p>{_('deleteUsersModalMessage', { nUsers: users.length })}</p>,
   }).then(
     () =>
-      Promise.all(
-        map(resolveIds(users), id => _call('user.delete', { id }))
-      )::tap(subscribeUsers.forceRefresh, err =>
+      Promise.all(map(resolveIds(users), id => _call('user.delete', { id })))::tap(subscribeUsers.forceRefresh, err =>
         error(_('deleteUser'), err.message || String(err))
       ),
     noop
   )
 
 export const editUser = (user, { email, password, permission }) =>
-  _call('user.set', { id: resolveId(user), email, password, permission })::tap(
-    subscribeUsers.forceRefresh
-  )
+  _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
 
-const _signOutFromEverywhereElse = () =>
-  _call('token.deleteAll', { except: cookies.get('token') })
+const _signOutFromEverywhereElse = () => _call('token.deleteAll', { except: cookies.get('token') })
 
 export const signOutFromEverywhereElse = () =>
   _signOutFromEverywhereElse().then(
@@ -2815,27 +2520,35 @@ const _setUserPreferences = preferences =>
   })::tap(subscribeCurrentUser.forceRefresh)
 
 import NewSshKeyModalBody from './new-ssh-key-modal' // eslint-disable-line import/first
-export const addSshKey = key => {
+export const addSshKey = async key => {
   const { preferences } = xo.user
   const otherKeys = (preferences && preferences.sshKeys) || []
-  if (key) {
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, key],
-    })
-  }
-  return confirm({
-    icon: 'ssh-key',
-    title: _('newSshKeyModalTitle'),
-    body: <NewSshKeyModalBody />,
-  }).then(newKey => {
-    if (!newKey.title || !newKey.key) {
+
+  if (key === undefined) {
+    try {
+      key = await confirm({
+        icon: 'ssh-key',
+        title: _('newSshKeyModalTitle'),
+        body: <NewSshKeyModalBody />,
+      })
+    } catch (err) {
+      return
+    }
+
+    if (!key.title || !key.key) {
       error(_('sshKeyErrorTitle'), _('sshKeyErrorMessage'))
       return
     }
-    return _setUserPreferences({
-      sshKeys: [...otherKeys, newKey],
-    })
-  }, noop)
+  }
+
+  if (otherKeys.some(otherKey => otherKey.key === key.key)) {
+    error(_('sshKeyErrorTitle'), _('sshKeyAlreadyExists'))
+    return
+  }
+
+  return _setUserPreferences({
+    sshKeys: [...otherKeys, key],
+  })
 }
 
 export const deleteSshKey = key =>
@@ -2847,10 +2560,7 @@ export const deleteSshKey = key =>
   }).then(() => {
     const { preferences } = xo.user
     return _setUserPreferences({
-      sshKeys: filter(
-        preferences && preferences.sshKeys,
-        k => k.key !== resolveId(key)
-      ),
+      sshKeys: filter(preferences && preferences.sshKeys, k => k.key !== resolveId(key)),
     })
   }, noop)
 
@@ -2888,10 +2598,7 @@ export const deleteSshKeys = keys =>
     const { preferences } = xo.user
     const keyIds = resolveIds(keys)
     return _setUserPreferences({
-      sshKeys: filter(
-        preferences && preferences.sshKeys,
-        sshKey => !includes(keyIds, sshKey.key)
-      ),
+      sshKeys: filter(preferences && preferences.sshKeys, sshKey => !includes(keyIds, sshKey.key)),
     })
   }, noop)
 
@@ -2905,10 +2612,7 @@ export const addCustomFilter = (type, value) => {
     body: <AddUserFilterModalBody user={user} type={type} value={value} />,
   }).then(name => {
     if (name.length === 0) {
-      return error(
-        _('saveNewUserFilterErrorTitle'),
-        _('saveNewUserFilterErrorBody')
-      )
+      return error(_('saveNewUserFilterErrorTitle'), _('saveNewUserFilterErrorBody'))
     }
 
     const { preferences } = user
@@ -2967,7 +2671,7 @@ export const setDefaultHomeFilter = (type, name) => {
   return _setUserPreferences({
     defaultHomeFilters: {
       ...defaultFilters,
-      [type]: name,
+      [type]: name === null ? undefined : name,
     },
   })
 }
@@ -2987,9 +2691,7 @@ export const createIpPool = ({ name, ips, networks }) => {
 }
 
 export const deleteIpPool = ipPool =>
-  _call('ipPool.delete', { id: resolveId(ipPool) })::tap(
-    subscribeIpPools.forceRefresh
-  )
+  _call('ipPool.delete', { id: resolveId(ipPool) })::tap(subscribeIpPools.forceRefresh)
 
 export const setIpPool = (ipPool, { name, addresses, networks }) =>
   _call('ipPool.set', {
@@ -3001,12 +2703,9 @@ export const setIpPool = (ipPool, { name, addresses, networks }) =>
 
 // Cloud configs --------------------------------------------------------------------
 
-export const subscribeCloudConfigs = createSubscription(() =>
-  _call('cloudConfig.getAll')
-)
+export const subscribeCloudConfigs = createSubscription(() => _call('cloudConfig.getAll'))
 
-export const createCloudConfig = props =>
-  _call('cloudConfig.create', props)::tap(subscribeCloudConfigs.forceRefresh)
+export const createCloudConfig = props => _call('cloudConfig.create', props)::tap(subscribeCloudConfigs.forceRefresh)
 
 export const deleteCloudConfigs = ids => {
   const { length } = ids
@@ -3020,22 +2719,19 @@ export const deleteCloudConfigs = ids => {
     body: <p>{_('confirmDeleteCloudConfigsBody', vars)}</p>,
   }).then(
     () =>
-      Promise.all(
-        ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) }))
-      )::tap(subscribeCloudConfigs.forceRefresh),
+      Promise.all(ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) })))::tap(
+        subscribeCloudConfigs.forceRefresh
+      ),
     noop
   )
 }
 
 export const editCloudConfig = (cloudConfig, props) =>
-  _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(
-    subscribeCloudConfigs.forceRefresh
-  )
+  _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(subscribeCloudConfigs.forceRefresh)
 
 // XO SAN ----------------------------------------------------------------------
 
-export const getVolumeInfo = (xosanSr, infoType) =>
-  _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
+export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
 
 export const createXosanSR = ({
   template,
@@ -3066,39 +2762,24 @@ export const createXosanSR = ({
   return promise
 }
 
-export const addXosanBricks = (xosansr, lvmsrs, brickSize) =>
-  _call('xosan.addBricks', { xosansr, lvmsrs, brickSize })
+export const addXosanBricks = (xosansr, lvmsrs, brickSize) => _call('xosan.addBricks', { xosansr, lvmsrs, brickSize })
 
-export const replaceXosanBrick = (
-  xosansr,
-  previousBrick,
-  newLvmSr,
-  brickSize,
-  onSameVM = false
-) =>
-  _call(
-    'xosan.replaceBrick',
-    resolveIds({ xosansr, previousBrick, newLvmSr, brickSize, onSameVM })
-  )
+export const replaceXosanBrick = (xosansr, previousBrick, newLvmSr, brickSize, onSameVM = false) =>
+  _call('xosan.replaceBrick', resolveIds({ xosansr, previousBrick, newLvmSr, brickSize, onSameVM }))
 
-export const removeXosanBricks = (xosansr, bricks) =>
-  _call('xosan.removeBricks', { xosansr, bricks })
+export const removeXosanBricks = (xosansr, bricks) => _call('xosan.removeBricks', { xosansr, bricks })
 
 export const computeXosanPossibleOptions = (lvmSrs, brickSize) =>
   _call('xosan.computeXosanPossibleOptions', { lvmSrs, brickSize })
 
 export const registerXosan = () =>
-  _call('cloud.registerResource', { namespace: 'xosan' })::tap(
-    subscribeResourceCatalog.forceRefresh
-  )
+  _call('cloud.registerResource', { namespace: 'xosan' })::tap(subscribeResourceCatalog.forceRefresh)
 
-export const fixHostNotInXosanNetwork = (xosanSr, host) =>
-  _call('xosan.fixHostNotInNetwork', { xosanSr, host })
+export const fixHostNotInXosanNetwork = (xosanSr, host) => _call('xosan.fixHostNotInNetwork', { xosanSr, host })
 
 // XOSAN packs -----------------------------------------------------------------
 
-export const getResourceCatalog = ({ filters } = {}) =>
-  _call('cloud.getResourceCatalog', { filters })
+export const getResourceCatalog = ({ filters } = {}) => _call('cloud.getResourceCatalog', { filters })
 
 export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
 
@@ -3133,14 +2814,11 @@ export const updateXosanPacks = pool =>
 
 // Licenses --------------------------------------------------------------------
 
-export const getLicenses = ({ productType } = {}) =>
-  _call('xoa.licenses.getAll', { productType })
+export const getLicenses = ({ productType } = {}) => _call('xoa.licenses.getAll', { productType })
 
-export const getLicense = (productId, boundObjectId) =>
-  _call('xoa.licenses.get', { productId, boundObjectId })
+export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get', { productId, boundObjectId })
 
-export const unlockXosan = (licenseId, srId) =>
-  _call('xosan.unlock', { licenseId, sr: srId })
+export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseId, sr: srId })
 
 export const selfBindLicense = ({ id, plan, oldXoaId }) =>
   confirm({
@@ -3152,22 +2830,16 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
     },
     icon: 'unlock',
   })
-    .then(
-      () => _call('xoa.licenses.bindToSelf', { licenseId: id, oldXoaId }),
-      noop
-    )
+    .then(() => _call('xoa.licenses.bindToSelf', { licenseId: id, oldXoaId }), noop)
     ::tap(subscribeSelfLicenses.forceRefresh)
 
-export const subscribeSelfLicenses = createSubscription(() =>
-  _call('xoa.licenses.getSelf')
-)
+export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
 // Support --------------------------------------------------------------------
 
 export const checkXoa = () => _call('xoa.check')
 
-export const closeTunnel = () =>
-  _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)
+export const closeTunnel = () => _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)
 
 export const openTunnel = () =>
   _call('xoa.supportTunnel.open')::tap(() => {
@@ -3177,22 +2849,15 @@ export const openTunnel = () =>
     setTimeout(subscribeTunnelState.forceRefresh, 1000)
   })
 
-export const subscribeTunnelState = createSubscription(() =>
-  _call('xoa.supportTunnel.getState')
-)
+export const subscribeTunnelState = createSubscription(() => _call('xoa.supportTunnel.getState'))
 
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
-export const createProxyTrialLicense = () =>
-  _call('xoa.licenses.createProxyTrial')
+export const createProxyTrialLicense = () => _call('xoa.licenses.createProxyTrial')
 
-export const deployProxyAppliance = (
-  license,
-  sr,
-  { network, proxy, ...props } = {}
-) =>
+export const deployProxyAppliance = (license, sr, { network, proxy, ...props } = {}) =>
   _call('proxy.deploy', {
     license: resolveId(license),
     network: resolveId(network),
@@ -3208,35 +2873,25 @@ export const editProxyAppliance = (proxy, { vm, ...props }) =>
     ...props,
   })::tap(subscribeProxies.forceRefresh)
 
-const _forgetProxyAppliance = proxy =>
-  _call('proxy.unregister', { id: resolveId(proxy) })
+const _forgetProxyAppliance = proxy => _call('proxy.unregister', { id: resolveId(proxy) })
 export const forgetProxyAppliances = proxies =>
   confirm({
     title: _('forgetProxyApplianceTitle', { n: proxies.length }),
     body: _('forgetProxyApplianceMessage', { n: proxies.length }),
-  }).then(() =>
-    Promise.all(map(proxies, _forgetProxyAppliance))::tap(
-      subscribeProxies.forceRefresh
-    )
-  )
+  }).then(() => Promise.all(map(proxies, _forgetProxyAppliance))::tap(subscribeProxies.forceRefresh))
 
-const _destroyProxyAppliance = proxy =>
-  _call('proxy.destroy', { id: resolveId(proxy) })
+const _destroyProxyAppliance = proxy => _call('proxy.destroy', { id: resolveId(proxy) })
 export const destroyProxyAppliances = proxies =>
   confirm({
     title: _('destroyProxyApplianceTitle', { n: proxies.length }),
     body: _('destroyProxyApplianceMessage', { n: proxies.length }),
-  }).then(() =>
-    Promise.all(map(proxies, _destroyProxyAppliance))::tap(
-      subscribeProxies.forceRefresh
-    )
-  )
+  }).then(() => Promise.all(map(proxies, _destroyProxyAppliance))::tap(subscribeProxies.forceRefresh))
 
-export const upgradeProxyAppliance = proxy =>
-  _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
+export const upgradeProxyAppliance = proxy => _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
 
-export const getProxyApplianceUpdaterState = id =>
-  _call('proxy.getApplianceUpdaterState', { id })
+export const getProxyApplianceUpdaterState = id => _call('proxy.getApplianceUpdaterState', { id })
+
+export const updateProxyApplianceSettings = (id, props) => _call('proxy.updateApplianceSettings', { id, ...props })
 
 const PROXY_HEALTH_CHECK_COMMON_ERRORS_CODE = new Set([
   'ECONNREFUSED',
@@ -3296,8 +2951,15 @@ export const exportAuditRecords = () =>
     window.open(`.${url}`)
   })
 
-export const checkAuditRecordsIntegrity = (oldest, newest) =>
-  _call('audit.checkIntegrity', { oldest, newest })
+export const checkAuditRecordsIntegrity = (oldest, newest) => _call('audit.checkIntegrity', { oldest, newest })
 
-export const generateAuditFingerprint = oldest =>
-  _call('audit.generateFingerprint', { oldest })
+export const generateAuditFingerprint = oldest => _call('audit.generateFingerprint', { oldest })
+
+// LDAP ------------------------------------------------------------------------
+
+export const synchronizeLdapGroups = () =>
+  confirm({
+    title: _('syncLdapGroups'),
+    body: _('syncLdapGroupsWarning'),
+    icon: 'refresh',
+  }).then(() => _call('ldap.synchronizeGroups')::tap(subscribeGroups.forceRefresh), noop)

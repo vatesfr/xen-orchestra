@@ -231,8 +231,7 @@ export default {
   homeWelcomeText: 'Hozzáadása your XenServer kiszolgálók or pools',
 
   // Original text: "Some XenServers have been registered but are not connected"
-  homeConnectServerText:
-    'Some XenServers have been registered but are not Kapcsolódva',
+  homeConnectServerText: 'Some XenServers have been registered but are not Kapcsolódva',
 
   // Original text: "Want some help?"
   homeHelp: 'Segítségre van szüksége?',
@@ -364,8 +363,7 @@ export default {
   homeDisplayedItems: '{displayed, number}x {icon} (on {total, number})',
 
   // Original text: "{selected, number}x {icon} selected (on {total, number})"
-  homeSelectedItems:
-    '{selected, number}x {icon} kiválasztott (on {total, number})',
+  homeSelectedItems: '{selected, number}x {icon} kiválasztott (on {total, number})',
 
   // Original text: "More"
   homeMore: 'Több',
@@ -620,8 +618,7 @@ export default {
   runJob: 'Feladat futtatása',
 
   // Original text: "One shot running started. See overview for logs."
-  runJobVerbose:
-    'Sikeresen elindítva. A logokat kérjük mindneképp nézze meg az eredményekhez.',
+  runJobVerbose: 'Sikeresen elindítva. A logokat kérjük mindneképp nézze meg az eredményekhez.',
 
   // Original text: "Started"
   jobStarted: 'Elindítva',
@@ -636,19 +633,16 @@ export default {
   deleteBackupSchedule: 'Mentési feladat eltávolítása',
 
   // Original text: "Are you sure you want to delete this backup job?"
-  deleteBackupScheduleQuestion:
-    'Biztos benne, hogy törli ezt a mentési feladatot?',
+  deleteBackupScheduleQuestion: 'Biztos benne, hogy törli ezt a mentési feladatot?',
 
   // Original text: "Enable immediately after creation"
   scheduleEnableAfterCreation: 'Létrehozás utáni bekapcsolás engedélyezése',
 
   // Original text: "You are editing Schedule {name} ({id}). Saving will override previous schedule state."
-  scheduleEditMessage:
-    'A következő Időzítést szerkeszti: {név} ({id}). A mentés felülírja az előző állapotot.',
+  scheduleEditMessage: 'A következő Időzítést szerkeszti: {név} ({id}). A mentés felülírja az előző állapotot.',
 
   // Original text: "You are editing job {name} ({id}). Saving will override previous job state."
-  jobEditMessage:
-    'A következő Feladatot szerkeszti:  {név} ({id}). A mentés felülírja az előző állapotot.',
+  jobEditMessage: 'A következő Feladatot szerkeszti:  {név} ({id}). A mentés felülírja az előző állapotot.',
 
   // Original text: "No scheduled jobs."
   noScheduledJobs: 'Nincsenek időzített feladatok.',
@@ -678,8 +672,7 @@ export default {
   jobUserNotFound: 'A feladat létrehozója már nem érhető el a rendszerben',
 
   // Original text: "This backup's creator no longer exists"
-  backupUserNotFound:
-    'A mentési feladat létrehozója már nem érhető el a rendszerben',
+  backupUserNotFound: 'A mentési feladat létrehozója már nem érhető el a rendszerben',
 
   // Original text: "Backup owner"
   backupOwner: 'Mentés tulajdonosa',
@@ -704,8 +697,7 @@ export default {
     'Figyelmeztetés: lokális távoli mentés korlátozott rendszer helyet használ. Kizárólag haladó felhasználóknak ajánlott, ha biztos benne, hogy ez a szervere elérhetőségét nem befolyásolja!.',
 
   // Original text: "Warning: this feature works only with XenServer 6.5 or newer."
-  backupVersionWarning:
-    'Figyelmeztetés: 6.5 vagy újabb Xen támogatás szükséges!',
+  backupVersionWarning: 'Figyelmeztetés: 6.5 vagy újabb Xen támogatás szükséges!',
 
   // Original text: "VMs"
   editBackupVmsTitle: 'VPS-ek',
@@ -1338,19 +1330,16 @@ export default {
   noHostsAvailableErrorTitle: 'Hiba a kiszolgáló újraindítása közben',
 
   // Original text: "Some VMs cannot be migrated before restarting this host. Please try force reboot."
-  noHostsAvailableErrorMessage:
-    'Some VMs cannot be migrated before restarting this Host. Please try force Restart.',
+  noHostsAvailableErrorMessage: 'Some VMs cannot be migrated before restarting this Host. Please try force Restart.',
 
   // Original text: "Error while restarting hosts"
   failHostBulkRestartTitle: 'Hiba lépett fel a kiszolgálók újraindítása közben',
 
   // Original text: "{failedHosts}/{totalHosts} host{failedHosts, plural, one {} other {s}} could not be restarted."
-  failHostBulkRestartMessage:
-    '{failedhosts}/{totalHosts} Kiszolgáló újraindítása nem sikerült.',
+  failHostBulkRestartMessage: '{failedhosts}/{totalHosts} Kiszolgáló újraindítása nem sikerült.',
 
   // Original text: "Reboot to apply updates"
-  rebootUpdateHostLabel:
-    'A változtatások életbe lépéséhez újraindítás szükséges',
+  rebootUpdateHostLabel: 'A változtatások életbe lépéséhez újraindítás szükséges',
 
   // Original text: "Emergency mode"
   emergencyModeLabel: 'Vészhelyzet üzem',
@@ -1446,15 +1435,13 @@ export default {
   supplementalPackInstallErrorTitle: 'Installation error',
 
   // Original text: "The installation of the supplemental pack failed."
-  supplementalPackInstallErrorMessage:
-    'The installation of the supplemental pack failed.',
+  supplementalPackInstallErrorMessage: 'The installation of the supplemental pack failed.',
 
   // Original text: "Installation success"
   supplementalPackInstallSuccessTitle: 'Installation success',
 
   // Original text: "Supplemental pack successfully installed."
-  supplementalPackInstallSuccessMessage:
-    'Supplemental pack successfully installed.',
+  supplementalPackInstallSuccessMessage: 'Supplemental pack successfully installed.',
 
   // Original text: "Add a network"
   networkCreateButton: 'Add a Hálózat',
@@ -1914,8 +1901,7 @@ export default {
   vifLockedNetwork: 'Hálózat zárolva',
 
   // Original text: "Network locked and no IPs are allowed for this interface"
-  vifLockedNetworkNoIps:
-    'Hálózat zárolva és nincsenek engedélyezve IP címek ehhez az interfészhez',
+  vifLockedNetworkNoIps: 'Hálózat zárolva és nincsenek engedélyezve IP címek ehhez az interfészhez',
 
   // Original text: "Network not locked"
   vifUnLockedNetwork: 'Hálózat nincs zárolva',
@@ -1936,8 +1922,7 @@ export default {
   snapshotCreateButton: 'Új Pillanatkép',
 
   // Original text: "Just click on the snapshot button to create one!"
-  tipCreateSnapshotLabel:
-    'Csak kattintson a Pillanatkép gombra új pillanatkép készítéséhez!',
+  tipCreateSnapshotLabel: 'Csak kattintson a Pillanatkép gombra új pillanatkép készítéséhez!',
 
   // Original text: "Revert VM to this snapshot"
   revertSnapshot: 'VPS visszaállítása erre a pillanatképre',
@@ -2084,8 +2069,7 @@ export default {
   templateDelete: 'Sablon törlése',
 
   // Original text: "Delete VM template{templates, plural, one {} other {s}}"
-  templateDeleteModalTitle:
-    'VPS sablon{Templates, plural, one {} other {ok}} törlése',
+  templateDeleteModalTitle: 'VPS sablon{Templates, plural, one {} other {ok}} törlése',
 
   // Original text: "Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?"
   templateDeleteModalBody:
@@ -2185,8 +2169,7 @@ export default {
   statsDashboardGenericErrorTitle: 'Statisztikák hiba',
 
   // Original text: "There is no stats available for:"
-  statsDashboardGenericErrorMessage:
-    'Jelenleg nincs elérhető statisztika a következőhöz:',
+  statsDashboardGenericErrorMessage: 'Jelenleg nincs elérhető statisztika a következőhöz:',
 
   // Original text: "No selected metric"
   noSelectedMetric: 'Nincs kiválasztott mérőszám',
@@ -2252,8 +2235,7 @@ export default {
   newVmCreateNewVmOn2: 'VPS létrehozása a következőn: {select1} vagy {select2}',
 
   // Original text: "You have no permission to create a VM"
-  newVmCreateNewVmNoPermission:
-    'Sajnáljuk, nincs jogosultsága új VPS készítéséhez',
+  newVmCreateNewVmNoPermission: 'Sajnáljuk, nincs jogosultsága új VPS készítéséhez',
 
   // Original text: "Infos"
   newVmInfoPanel: 'Információk',
@@ -2463,8 +2445,7 @@ export default {
   noHostsAvailable: 'Nincs elérhető kiszolgáló.',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription:
-    'Ezzel az erőforrás készlettel létrehozott VPS-ek a következő kiszolgálókon tudnak futni.',
+  availableHostsDescription: 'Ezzel az erőforrás készlettel létrehozott VPS-ek a következő kiszolgálókon tudnak futni.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Maximum CPU',
@@ -2585,8 +2566,7 @@ export default {
   restoreBackups: 'Adatmentések Visszaállítása',
 
   // Original text: "Click on a VM to display restore options"
-  restoreBackupsInfo:
-    'Kattintson egy VPS-re a visszaállítási lehetőségek megtekintéséhez',
+  restoreBackupsInfo: 'Kattintson egy VPS-re a visszaállítási lehetőségek megtekintéséhez',
 
   // Original text: "Enabled"
   remoteEnabled: 'Bekapcsolva',
@@ -2676,8 +2656,7 @@ export default {
   emergencyShutdownHostsModalTitle: 'Vészhelyzet Kiszolgáló Lekapcsolás',
 
   // Original text: "Are you sure you want to shutdown {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  emergencyShutdownHostsModalMessage:
-    'Biztos benne, hogy lekapcsolja ezeket a kiszolgálókat?',
+  emergencyShutdownHostsModalMessage: 'Biztos benne, hogy lekapcsolja ezeket a kiszolgálókat?',
 
   // Original text: "Shutdown host"
   stopHostModalTitle: 'Kiszolgáló Leállítása',
@@ -2690,15 +2669,13 @@ export default {
   addHostModalTitle: 'Kiszolgáló Hozzáadása',
 
   // Original text: "Are you sure you want to add {host} to {pool}?"
-  addHostModalMessage:
-    'Biztos benne, hogy hozzádja a(z) {Host} kiszolgálót a következő poolhoz: {pool}?',
+  addHostModalMessage: 'Biztos benne, hogy hozzádja a(z) {Host} kiszolgálót a következő poolhoz: {pool}?',
 
   // Original text: "Restart host"
   restartHostModalTitle: 'Kiszolgáló Újraindítása',
 
   // Original text: "This will restart your host. Do you want to continue?"
-  restartHostModalMessage:
-    'Ez újra fogja indítani a Kiszolgálót. Biztosan folytatja?',
+  restartHostModalMessage: 'Ez újra fogja indítani a Kiszolgálót. Biztosan folytatja?',
 
   // Original text: "Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}"
   restartHostsAgentsModalTitle: 'Kiszolgáló(k) Újraindítása',
@@ -2722,8 +2699,7 @@ export default {
   stopHostsModalTitle: 'Kiszolgáló Leállítása',
 
   // Original text: "Are you sure you want to stop {nHosts} Host{nHosts, plural, one {} other {s}}?"
-  stopHostsModalMessage:
-    'Biztos benne, hogy leállítja? Ha ez a master, a kapcsolat elveszhet!',
+  stopHostsModalMessage: 'Biztos benne, hogy leállítja? Ha ez a master, a kapcsolat elveszhet!',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
   stopVmsModalTitle: 'VPS Leállítás',
@@ -2759,15 +2735,13 @@ export default {
   deleteVmsModalTitle: 'VPS Törlés',
 
   // Original text: "Are you sure you want to delete {vms} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
-  deleteVmsModalMessage:
-    'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
+  deleteVmsModalMessage: 'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
 
   // Original text: "Delete VM"
   deleteVmModalTitle: 'VPS Törlés',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage:
-    'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
+  deleteVmModalMessage: 'Biztos benne, hogy törli a VPS-t? ÖSSZES VPS DISZK ELTÁVOLÍTÁSRA KERÜL!',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'VPS Migrálása',
@@ -2788,12 +2762,10 @@ export default {
   migrateVmsSelectSr: 'Válasszon cél Adattárolót:',
 
   // Original text: "Select a destination SR for local disks:"
-  migrateVmsSelectSrIntraPool:
-    'Válasszon egy cél Adattárolót a helyi diszkek számára:',
+  migrateVmsSelectSrIntraPool: 'Válasszon egy cél Adattárolót a helyi diszkek számára:',
 
   // Original text: "Select a network on which to connect each VIF:"
-  migrateVmsSelectNetwork:
-    'Válasszon egy Hálózatot amelyekhez csatlakoztasson minden VIF-et:',
+  migrateVmsSelectNetwork: 'Válasszon egy Hálózatot amelyekhez csatlakoztasson minden VIF-et:',
 
   // Original text: "Smart mapping"
   migrateVmsSmartMapping: 'Okos feltérképezés',
@@ -2814,15 +2786,13 @@ export default {
   migrateVmNoTargetHost: 'Nincs cél Kiszolgáló',
 
   // Original text: "A target host is required to migrate a VM"
-  migrateVmNoTargetHostMessage:
-    'Egy cél Kiszolgáló szükséges a VPS migráláshoz!',
+  migrateVmNoTargetHostMessage: 'Egy cél Kiszolgáló szükséges a VPS migráláshoz!',
 
   // Original text: "Delete VDI"
   deleteVdiModalTitle: 'VDI Törlése',
 
   // Original text: "Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST"
-  deleteVdiModalMessage:
-    'Biztos benne, hogy törli a VPS diszkjét? ÖSSZES ADAT ELTÁVOLÍTÁSRA KERÜL!',
+  deleteVdiModalMessage: 'Biztos benne, hogy törli a VPS diszkjét? ÖSSZES ADAT ELTÁVOLÍTÁSRA KERÜL!',
 
   // Original text: "Revert your VM"
   revertVmModalTitle: 'VPS Visszaállítása',
@@ -2831,8 +2801,7 @@ export default {
   deleteSnapshotModalTitle: 'Pillanatkép Törlése',
 
   // Original text: "Are you sure you want to delete this snapshot?"
-  deleteSnapshotModalMessage:
-    'Biztos benne, hogy törli a kiválasztott Pillanatképet?',
+  deleteSnapshotModalMessage: 'Biztos benne, hogy törli a kiválasztott Pillanatképet?',
 
   // Original text: "Are you sure you want to revert this VM to the snapshot state? This operation is irreversible."
   revertVmModalMessage:
@@ -2851,8 +2820,7 @@ export default {
   importBackupModalSelectBackup: 'Válasszon mentést…',
 
   // Original text: "Are you sure you want to remove all orphaned snapshot VDIs?"
-  removeAllOrphanedModalWarning:
-    'Biztos benne, hogy Eltávolítja az összes árvány hagyott Pillanatkép VDI-t?',
+  removeAllOrphanedModalWarning: 'Biztos benne, hogy Eltávolítja az összes árvány hagyott Pillanatkép VDI-t?',
 
   // Original text: "Remove all logs"
   removeAllLogsModalTitle: 'Összes Log Eltávolítása',
@@ -2943,8 +2911,7 @@ export default {
   copyVm: 'VPS Másolás',
 
   // Original text: "Are you sure you want to copy this VM to {SR}?"
-  copyVmConfirm:
-    'Biztos benne, hogy a VPS-t a következő Adattárolóra másolja? {Storage}?',
+  copyVmConfirm: 'Biztos benne, hogy a VPS-t a következő Adattárolóra másolja? {Storage}?',
 
   // Original text: "Name"
   copyVmName: 'Név',
@@ -2974,8 +2941,7 @@ export default {
   detachHostModalTitle: 'Detach Host',
 
   // Original text: "Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST."
-  detachHostModalMessage:
-    'Biztos benne?? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND RESTART THE HOST.',
+  detachHostModalMessage: 'Biztos benne?? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND RESTART THE HOST.',
 
   // Original text: "Detach"
   detachHost: 'Detach',
@@ -3035,8 +3001,7 @@ export default {
   addHostNoHost: 'Nincs Kiszolgáló',
 
   // Original text: "No host selected to be added"
-  addHostNoHostMessage:
-    'Nincs Kiszolgáló kiválasztva amihez hozzá lehetne adni',
+  addHostNoHostMessage: 'Nincs Kiszolgáló kiválasztva amihez hozzá lehetne adni',
 
   // Original text: "Xen Orchestra"
   xenOrchestra: 'CLOUDXO',
@@ -3114,8 +3079,7 @@ export default {
   availableIn: 'This feature is available Starting from {plan} Edition',
 
   // Original text: "This feature is not available in your version, contact your administrator to know more."
-  notAvailable:
-    'This feature is not available in your Version, contact your administrator to know more.',
+  notAvailable: 'This feature is not available in your Version, contact your administrator to know more.',
 
   // Original text: "Updates"
   updateTitle: 'UpDates',
@@ -3163,8 +3127,7 @@ export default {
   noUpdaterCommunity: 'No upDate available for Community Edition',
 
   // Original text: "Please consider subscribe and try it with all features for free during 15 days on {link}."
-  considerSubscribe:
-    'Please consider subscribe and try it with all features for free during 15 days on {link}.',
+  considerSubscribe: 'Please consider subscribe and try it with all features for free during 15 days on {link}.',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
   noUpdaterWarning:
@@ -3180,23 +3143,19 @@ export default {
   editRegistration: 'Szerkesztés registration',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
-  trialRegistration:
-    'Please, take time to register in order to enjoy your trial.',
+  trialRegistration: 'Please, take time to register in order to enjoy your trial.',
 
   // Original text: "Start trial"
   trialStartButton: 'Elindít trial',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil:
-    'You can use a trial Verzió until {date, Dátum, medium}. Upgrade your appliance to get it.',
+  trialAvailableUntil: 'You can use a trial Verzió until {date, Dátum, medium}. Upgrade your appliance to get it.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
-  trialConsumed:
-    'Your trial has been ended. Contact us or downgrade to Free Verzió',
+  trialConsumed: 'Your trial has been ended. Contact us or downgrade to Free Verzió',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked:
-    'Your xoa-upDátumr service appears to be down. Your XOA cannot run fully without reaching this service.',
+  trialLocked: 'Your xoa-upDátumr service appears to be down. Your XOA cannot run fully without reaching this service.',
 
   // Original text: "No update information available"
   noUpdateInfo: 'No upDátum information available',
@@ -3227,16 +3186,13 @@ export default {
   disclaimerTitle: 'Xen Orchestra from the sources',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1:
-    "You are using XO from the sources! That's great for a personal/non-profit használat.",
+  disclaimerText1: "You are using XO from the sources! That's great for a personal/non-profit használat.",
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2:
-    "If you are a company, it's better to use it with our appliance + pro support included:",
+  disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
 
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
-  disclaimerText3:
-    'This Verzió is not bundled with any support nor upDates. Use it with caution.',
+  disclaimerText3: 'This Verzió is not bundled with any support nor upDates. Use it with caution.',
 
   // Original text: "Connect PIF"
   connectPif: 'Csatlakozás PIF',
@@ -3290,8 +3246,7 @@ export default {
   pwdChangeError: 'Helytelen jelszó',
 
   // Original text: "The old password provided is incorrect. Your password has not been changed."
-  pwdChangeErrorBody:
-    'A megadott régi jelszó helytelen, így a jelszó NEM lett megváltoztatva!',
+  pwdChangeErrorBody: 'A megadott régi jelszó helytelen, így a jelszó NEM lett megváltoztatva!',
 
   // Original text: "OK"
   changePasswordOk: 'OK',
@@ -3327,8 +3282,7 @@ export default {
   deleteSshKeyConfirm: 'SSH kulcs törlése',
 
   // Original text: "Are you sure you want to delete the SSH key {title}?"
-  deleteSshKeyConfirmMessage:
-    'Biztos benne, hogy törli a(z) {title} SSH kulcsot?',
+  deleteSshKeyConfirmMessage: 'Biztos benne, hogy törli a(z) {title} SSH kulcsot?',
 
   // Original text: "Others"
   others: 'Egyebek',
@@ -3481,8 +3435,7 @@ export default {
   noConfigFile: 'Nincs kiválasztott konfigurációs fájl',
 
   // Original text: "Try dropping a config file here, or click to select a config file to upload."
-  importTip:
-    'Try dropping a config file here, or click to choose a config file to upload.',
+  importTip: 'Try dropping a config file here, or click to choose a config file to upload.',
 
   // Original text: "Config"
   config: 'Konfiguráció',
@@ -3503,15 +3456,13 @@ export default {
   downloadConfig: 'Download current config',
 
   // Original text: "No config import available for Community Edition"
-  noConfigImportCommunity:
-    'No config import available for Community Szerkesztésion',
+  noConfigImportCommunity: 'No config import available for Community Szerkesztésion',
 
   // Original text: "Reconnect all hosts"
   srReconnectAllModalTitle: 'Reconnect all hosts',
 
   // Original text: "This will reconnect this SR to all its hosts."
-  srReconnectAllModalMessage:
-    'This will reconnecting this Storage to all its hosts.',
+  srReconnectAllModalMessage: 'This will reconnecting this Storage to all its hosts.',
 
   // Original text: "This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR)."
   srsReconnectAllModalMessage:
@@ -3521,8 +3472,7 @@ export default {
   srDisconnectAllModalTitle: 'Lecsatlakozás all kiszolgálók',
 
   // Original text: "This will disconnect this SR from all its hosts."
-  srDisconnectAllModalMessage:
-    'This will Lecsatlakozás this Adattároló from all its kiszolgálók.',
+  srDisconnectAllModalMessage: 'This will Lecsatlakozás this Adattároló from all its kiszolgálók.',
 
   // Original text: "This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR)."
   srsDisconnectAllModalMessage:
@@ -3535,8 +3485,7 @@ export default {
   srsForgetModalTitle: 'Elfelejt kiválasztott Adattárolók',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage:
-    "Biztos benne, hogyi to Elfelejt this Adattároló? VDIs on this storage won't be Eltávolításd.",
+  srForgetModalMessage: "Biztos benne, hogyi to Elfelejt this Adattároló? VDIs on this storage won't be Eltávolításd.",
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
   srsForgetModalMessage:

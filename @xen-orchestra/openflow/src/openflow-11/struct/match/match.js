@@ -35,58 +35,26 @@ export default {
 
     if (object.dl_src !== undefined) {
       if (object.dl_src_mask !== undefined) {
-        addressParser.stringToEth(
-          object.dl_src_mask,
-          buffer,
-          offset + OFFSETS.dlSrcMask
-        )
+        addressParser.stringToEth(object.dl_src_mask, buffer, offset + OFFSETS.dlSrcMask)
       } else {
-        buffer.fill(
-          0x00,
-          offset + OFFSETS.dlSrcMask,
-          offset + OFFSETS.dlSrcMask + of.ethAddrLen
-        )
+        buffer.fill(0x00, offset + OFFSETS.dlSrcMask, offset + OFFSETS.dlSrcMask + of.ethAddrLen)
       }
       addressParser.stringToEth(object.dl_src, buffer, offset + OFFSETS.dlSrc)
     } else {
-      buffer.fill(
-        0x00,
-        offset + OFFSETS.dlSrc,
-        offset + OFFSETS.dlSrc + of.ethAddrLen
-      )
-      buffer.fill(
-        0xff,
-        offset + OFFSETS.dlSrcMask,
-        offset + OFFSETS.dlSrcMask + of.ethAddrLen
-      )
+      buffer.fill(0x00, offset + OFFSETS.dlSrc, offset + OFFSETS.dlSrc + of.ethAddrLen)
+      buffer.fill(0xff, offset + OFFSETS.dlSrcMask, offset + OFFSETS.dlSrcMask + of.ethAddrLen)
     }
 
     if (object.dl_dst !== undefined) {
       if (object.dl_dst_mask !== undefined) {
-        addressParser.stringToEth(
-          object.dl_dst_mask,
-          buffer,
-          offset + OFFSETS.dlDstMask
-        )
+        addressParser.stringToEth(object.dl_dst_mask, buffer, offset + OFFSETS.dlDstMask)
       } else {
-        buffer.fill(
-          0x00,
-          offset + OFFSETS.dlDstMask,
-          offset + OFFSETS.dlDstMask + of.ethAddrLen
-        )
+        buffer.fill(0x00, offset + OFFSETS.dlDstMask, offset + OFFSETS.dlDstMask + of.ethAddrLen)
       }
       addressParser.stringToEth(object.dl_dst, buffer, offset + OFFSETS.dlDst)
     } else {
-      buffer.fill(
-        0x00,
-        offset + OFFSETS.dlDst,
-        offset + OFFSETS.dlDst + of.ethAddrLen
-      )
-      buffer.fill(
-        0xff,
-        offset + OFFSETS.dlDstMask,
-        offset + OFFSETS.dlDstMask + of.ethAddrLen
-      )
+      buffer.fill(0x00, offset + OFFSETS.dlDst, offset + OFFSETS.dlDst + of.ethAddrLen)
+      buffer.fill(0xff, offset + OFFSETS.dlDstMask, offset + OFFSETS.dlDstMask + of.ethAddrLen)
     }
 
     let dlVlan = 0
@@ -133,58 +101,26 @@ export default {
 
     if (object.nw_src !== undefined) {
       if (object.nw_src_mask !== undefined) {
-        addressParser.stringToip4(
-          object.nw_src_mask,
-          buffer,
-          offset + OFFSETS.nwSrcMask
-        )
+        addressParser.stringToip4(object.nw_src_mask, buffer, offset + OFFSETS.nwSrcMask)
       } else {
-        buffer.fill(
-          0x00,
-          offset + OFFSETS.nwSrcMask,
-          offset + OFFSETS.nwSrcMask + IP4_ADDR_LEN
-        )
+        buffer.fill(0x00, offset + OFFSETS.nwSrcMask, offset + OFFSETS.nwSrcMask + IP4_ADDR_LEN)
       }
       addressParser.stringToip4(object.nw_src, buffer, offset + OFFSETS.nwSrc)
     } else {
-      buffer.fill(
-        0x00,
-        offset + OFFSETS.nwSrc,
-        offset + OFFSETS.nwSrc + IP4_ADDR_LEN
-      )
-      buffer.fill(
-        0xff,
-        offset + OFFSETS.nwSrcMask,
-        offset + OFFSETS.nwSrcMask + IP4_ADDR_LEN
-      )
+      buffer.fill(0x00, offset + OFFSETS.nwSrc, offset + OFFSETS.nwSrc + IP4_ADDR_LEN)
+      buffer.fill(0xff, offset + OFFSETS.nwSrcMask, offset + OFFSETS.nwSrcMask + IP4_ADDR_LEN)
     }
 
     if (object.nw_dst !== undefined) {
       if (object.nw_dst_mask !== undefined) {
-        addressParser.stringToip4(
-          object.nw_dst_mask,
-          buffer,
-          offset + OFFSETS.nwDstMask
-        )
+        addressParser.stringToip4(object.nw_dst_mask, buffer, offset + OFFSETS.nwDstMask)
       } else {
-        buffer.fill(
-          0x00,
-          offset + OFFSETS.nwDstMask,
-          offset + OFFSETS.nwDstMask + IP4_ADDR_LEN
-        )
+        buffer.fill(0x00, offset + OFFSETS.nwDstMask, offset + OFFSETS.nwDstMask + IP4_ADDR_LEN)
       }
       addressParser.stringToip4(object.nw_dst, buffer, offset + OFFSETS.nwDst)
     } else {
-      buffer.fill(
-        0x00,
-        offset + OFFSETS.nwDst,
-        offset + OFFSETS.nwDst + IP4_ADDR_LEN
-      )
-      buffer.fill(
-        0xff,
-        offset + OFFSETS.nwDstMask,
-        offset + OFFSETS.nwDstMask + IP4_ADDR_LEN
-      )
+      buffer.fill(0x00, offset + OFFSETS.nwDst, offset + OFFSETS.nwDst + IP4_ADDR_LEN)
+      buffer.fill(0xff, offset + OFFSETS.nwDstMask, offset + OFFSETS.nwDstMask + IP4_ADDR_LEN)
     }
 
     let tpSrc = 0
@@ -230,29 +166,12 @@ export default {
           offset + OFFSETS.metadataMask + METADATA_LENGTH
         )
       } else {
-        buffer.fill(
-          0x00,
-          offset + OFFSETS.metadataMask,
-          offset + OFFSETS.metadataMask + METADATA_LENGTH
-        )
+        buffer.fill(0x00, offset + OFFSETS.metadataMask, offset + OFFSETS.metadataMask + METADATA_LENGTH)
       }
-      buffer.copy(
-        object.metadata,
-        0,
-        offset + OFFSETS.metadata,
-        offset + OFFSETS.metadata + METADATA_LENGTH
-      )
+      buffer.copy(object.metadata, 0, offset + OFFSETS.metadata, offset + OFFSETS.metadata + METADATA_LENGTH)
     } else {
-      buffer.fill(
-        0x00,
-        offset + OFFSETS.metadata,
-        offset + OFFSETS.metadata + METADATA_LENGTH
-      )
-      buffer.fill(
-        0xff,
-        offset + OFFSETS.metadataMask,
-        offset + OFFSETS.metadataMask + METADATA_LENGTH
-      )
+      buffer.fill(0x00, offset + OFFSETS.metadata, offset + OFFSETS.metadata + METADATA_LENGTH)
+      buffer.fill(0xff, offset + OFFSETS.metadataMask, offset + OFFSETS.metadataMask + METADATA_LENGTH)
     }
 
     buffer.writeUInt32BE(wildcards, offset + OFFSETS.wildcards)
@@ -270,28 +189,20 @@ export default {
 
     // Wildcards indicate which value to use for the match.
     // if `wildcards & of.wildcards.<value>` === 0 then `value` is not wildcarded and must be used.
-    const wildcards = (object.wildcards = buffer.readUInt32BE(
-      offset + OFFSETS.wildcards
-    ))
+    const wildcards = (object.wildcards = buffer.readUInt32BE(offset + OFFSETS.wildcards))
     if ((wildcards & WILDCARDS.inPort) === 0) {
       object.in_port = buffer.readUInt32BE(offset + OFFSETS.inPort)
     }
 
     if (!addressParser.isEthMaskAll(buffer, offset + OFFSETS.dlSrcMask)) {
       if (!addressParser.isEthMaskNone(buffer, offset + OFFSETS.dlSrcMask)) {
-        object.dl_src_mask = addressParser.ethToString(
-          buffer,
-          offset + OFFSETS.dlSrcMask
-        )
+        object.dl_src_mask = addressParser.ethToString(buffer, offset + OFFSETS.dlSrcMask)
       }
       object.dl_src = addressParser.ethToString(buffer, offset + OFFSETS.dlSrc)
     }
     if (!addressParser.isEthMaskAll(buffer, offset + OFFSETS.dlDstMask)) {
       if (!addressParser.isEthMaskNone(buffer, offset + OFFSETS.dlDstMask)) {
-        object.dl_dst_mask = addressParser.ethToString(
-          buffer,
-          offset + OFFSETS.dlDstMask
-        )
+        object.dl_dst_mask = addressParser.ethToString(buffer, offset + OFFSETS.dlDstMask)
       }
       object.dl_dst = addressParser.ethToString(buffer, offset + OFFSETS.dlDst)
     }
@@ -315,19 +226,13 @@ export default {
 
     if (!addressParser.isIp4MaskAll(buffer, offset + OFFSETS.nwSrcMask)) {
       if (!addressParser.isIp4MaskNone(buffer, offset + OFFSETS.nwSrcMask)) {
-        object.nw_src_mask = addressParser.ip4ToString(
-          buffer,
-          offset + OFFSETS.nwSrcMask
-        )
+        object.nw_src_mask = addressParser.ip4ToString(buffer, offset + OFFSETS.nwSrcMask)
       }
       object.nw_src = addressParser.ip4ToString(buffer, offset + OFFSETS.nwSrc)
     }
     if (!addressParser.isIp4MaskAll(buffer, offset + OFFSETS.nwDstMask)) {
       if (!addressParser.isIp4MaskNone(buffer, offset + OFFSETS.nwDstMask)) {
-        object.nw_dst_mask = addressParser.ip4ToString(
-          buffer,
-          offset + OFFSETS.nwDstMask
-        )
+        object.nw_dst_mask = addressParser.ip4ToString(buffer, offset + OFFSETS.nwDstMask)
       }
       object.nw_dst = addressParser.ip4ToString(buffer, offset + OFFSETS.nwDst)
     }
@@ -361,12 +266,7 @@ export default {
         )
       }
       object.metadata = Buffer.alloc(METADATA_LENGTH)
-      buffer.copy(
-        object.metadata,
-        0,
-        offset + OFFSETS.metadata,
-        offset + OFFSETS.metadata + METADATA_LENGTH
-      )
+      buffer.copy(object.metadata, 0, offset + OFFSETS.metadata, offset + OFFSETS.metadata + METADATA_LENGTH)
     }
 
     return object

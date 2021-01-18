@@ -1,6 +1,6 @@
 {
   "name": "xo-server-backup-reports",
-  "version": "0.16.6",
+  "version": "0.16.7",
   "license": "AGPL-3.0-or-later",
   "description": "Backup reports plugin for XO-Server",
   "keywords": [
@@ -38,7 +38,7 @@
   "dependencies": {
     "@xen-orchestra/defined": "^0.0.0",
     "@xen-orchestra/log": "^0.2.0",
-    "human-format": "^0.10.0",
+    "human-format": "^0.11.0",
     "lodash": "^4.13.1",
     "moment-timezone": "^0.5.13"
   },

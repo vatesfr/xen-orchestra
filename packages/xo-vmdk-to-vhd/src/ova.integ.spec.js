@@ -47,10 +47,7 @@ export class NodeParsableFile extends ParsableFile {
     )
     // crazy stuff to get a browser-compatible ArrayBuffer from a node buffer
     // https://stackoverflow.com/a/31394257/72637
-    return result.buffer.slice(
-      result.byteOffset,
-      result.byteOffset + result.byteLength
-    )
+    return result.buffer.slice(result.byteOffset, result.byteOffset + result.byteLength)
   }
 }
 
@@ -60,33 +57,36 @@ test('An ova file is parsed correctly', async () => {
   await writeFile(ovfName, xmlContent)
   const rawFileName = 'random-data'
   await exec(`base64 /dev/urandom | head -c 104448 > ${rawFileName}`)
-  await exec(
-    `rm -f ${vmdkFileName} && python /usr/share/pyshared/VMDKstream.py ${rawFileName} ${vmdkFileName}`
-  )
+  await exec(`rm -f ${vmdkFileName} && python /usr/share/pyshared/VMDKstream.py ${rawFileName} ${vmdkFileName}`)
   const ovaName = `test.ova`
   await exec(`tar cf ${ovaName} ${ovfName} ${vmdkFileName}`)
-  const vmdkParsableFile = new NodeParsableFile(
-    vmdkFileName,
-    (await stat(vmdkFileName)).size
-  )
+  const vmdkParsableFile = new NodeParsableFile(vmdkFileName, (await stat(vmdkFileName)).size)
   const directGrainTableFetch = await readVmdkGrainTable(async (start, end) =>
     vmdkParsableFile.slice(start, end).read()
   )
   expect(directGrainTableFetch).toEqual(expectedResult.tables[vmdkFileName])
-  const data = await parseOVAFile(
-    new NodeParsableFile(ovaName),
-    (buffer, encoder) => {
-      return Buffer.from(buffer).toString(encoder)
-    }
-  )
+  const data = await parseOVAFile(new NodeParsableFile(ovaName), (buffer, encoder) => {
+    return Buffer.from(buffer).toString(encoder)
+  })
+  for (const fileName in data.tables) {
+    data.tables[fileName] = await data.tables[fileName]
+  }
   expect(data).toEqual(expectedResult)
 })
+
+function arrayToBuffer(array) {
+  const output = new DataView(new ArrayBuffer(array.length * 4))
+  array.forEach((e, i) => {
+    output.setUint32(i * 4, e, true)
+  })
+  return output.buffer
+}
 
 const expectedResult = {
   tables: {
     [vmdkFileName]: {
-      grainFileOffsetList: [65536, 115712],
-      grainLogicalAddressList: [0, 65536],
+      grainFileOffsetList: arrayToBuffer([65536, 115712]),
+      grainLogicalAddressList: arrayToBuffer([0, 65536]),
     },
   },
   disks: {

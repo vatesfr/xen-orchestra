@@ -48,23 +48,12 @@ const BORDERS = {
 const Issues = ({ issues }) => (
   <Container>
     {map(issues, issue => (
-      <Row
-        key={issue.key || issue.code}
-        className='alert alert-danger mb-1'
-        role='alert'
-      >
+      <Row key={issue.key || issue.code} className='alert alert-danger mb-1' role='alert'>
         <Col>
-          <Icon icon='error' />{' '}
-          <strong>{_(ISSUE_CODE_TO_MESSAGE[issue.code], issue.params)}</strong>
+          <Icon icon='error' /> <strong>{_(ISSUE_CODE_TO_MESSAGE[issue.code], issue.params)}</strong>
           {issue.fix && (
             <Tooltip content={issue.fix.title}>
-              <ActionButton
-                btnStyle='danger'
-                className='ml-1'
-                handler={issue.fix.action}
-                icon='fix'
-                size='small'
-              >
+              <ActionButton btnStyle='danger' className='ml-1' handler={issue.fix.action} icon='fix' size='small'>
                 {_('xosanFixIssue')}
               </ActionButton>
             </Tooltip>
@@ -97,10 +86,7 @@ class Node extends Component {
     })
 
     if (sr == null || brickSize == null) {
-      return error(
-        _('xosanReplaceBrickErrorTitle'),
-        _('xosanReplaceBrickErrorMessage')
-      )
+      return error(_('xosanReplaceBrickErrorTitle'), _('xosanReplaceBrickErrorMessage'))
     }
 
     await replaceXosanBrick(this.props.sr, brick, sr, brickSize, onSameVm)
@@ -109,11 +95,7 @@ class Node extends Component {
   _getSizeUsage = createSelector(
     () => this.props.node.statusDetail,
     statusDetail => ({
-      used: String(
-        Math.round(
-          100 - (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100
-        )
-      ),
+      used: String(Math.round(100 - (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100)),
       free: formatSize(+statusDetail.sizeFree),
     })
   )
@@ -121,11 +103,7 @@ class Node extends Component {
   _getInodesUsage = createSelector(
     () => this.props.node.statusDetail,
     statusDetail => ({
-      used: String(
-        Math.round(
-          100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100
-        )
-      ),
+      used: String(Math.round(100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100)),
       free: formatSize(+statusDetail.inodesFree),
     })
   )
@@ -134,28 +112,14 @@ class Node extends Component {
     const { srs } = this.props
     const { showAdvanced } = this.state
 
-    const {
-      config,
-      heal,
-      size,
-      status,
-      statusDetail,
-      uuid,
-      vm,
-    } = this.props.node
+    const { config, heal, size, status, statusDetail, uuid, vm } = this.props.node
 
     return (
       <Collapse
         buttonText={
           <span>
             <Icon
-              color={
-                heal
-                  ? heal.status === 'Connected'
-                    ? 'text-success'
-                    : 'text-warning'
-                  : 'text-danger'
-              }
+              color={heal ? (heal.status === 'Connected' ? 'text-success' : 'text-warning') : 'text-danger'}
               icon='disk'
             />{' '}
             {srs[config.underlyingSr].name_label}
@@ -174,12 +138,7 @@ class Node extends Component {
                   <Link to={`/vms/${config.vm.id}`}>{vm.name_label}</Link>
                   {vm.power_state !== 'Running' && (
                     <Tooltip content={_('xosanRun')}>
-                      <ActionButton
-                        handler={startVm}
-                        handlerParam={vm}
-                        icon='vm-start'
-                        size='small'
-                      />
+                      <ActionButton handler={startVm} handlerParam={vm} icon='vm-start' size='small' />
                     </Tooltip>
                   )}
                 </span>
@@ -190,16 +149,11 @@ class Node extends Component {
               )}
             </Field>
             <Field title={_('xosanUnderlyingStorage')}>
-              <Link to={`/srs/${config.underlyingSr}`}>
-                {srs[config.underlyingSr].name_label}
-              </Link>
+              <Link to={`/srs/${config.underlyingSr}`}>{srs[config.underlyingSr].name_label}</Link>
               {' - '}
-              {size != null &&
-                _('xosanUnderlyingStorageUsage', { usage: formatSize(size) })}
+              {size != null && _('xosanUnderlyingStorageUsage', { usage: formatSize(size) })}
             </Field>
-            <Field title={_('xosanStatus')}>
-              {heal ? heal.status : 'unknown'}
-            </Field>
+            <Field title={_('xosanStatus')}>{heal ? heal.status : 'unknown'}</Field>
             {statusDetail && (
               <Field title={_('xosanUsedSpace')}>
                 <span
@@ -209,16 +163,11 @@ class Node extends Component {
                     height: '1em',
                   }}
                 >
-                  <Tooltip
-                    content={_('spaceLeftTooltip', this._getSizeUsage())}
-                  >
+                  <Tooltip content={_('spaceLeftTooltip', this._getSizeUsage())}>
                     <progress
                       className='progress'
                       max='100'
-                      value={
-                        100 -
-                        (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100
-                      }
+                      value={100 - (+statusDetail.sizeFree / +statusDetail.sizeTotal) * 100}
                     />
                   </Tooltip>
                 </span>
@@ -240,11 +189,7 @@ class Node extends Component {
             <Row className='mt-1'>
               <Col>
                 <h3>
-                  <Toggle
-                    iconSize={1}
-                    onChange={this.toggleState('showAdvanced')}
-                    value={showAdvanced}
-                  />{' '}
+                  <Toggle iconSize={1} onChange={this.toggleState('showAdvanced')} value={showAdvanced} />{' '}
                   {_('xosanAdvanced')}
                 </h3>
               </Col>
@@ -266,18 +211,11 @@ class Node extends Component {
                         height: '1em',
                       }}
                     >
-                      <Tooltip
-                        content={_('spaceLeftTooltip', this._getInodesUsage())}
-                      >
+                      <Tooltip content={_('spaceLeftTooltip', this._getInodesUsage())}>
                         <progress
                           className='progress'
                           max='100'
-                          value={
-                            100 -
-                            (+statusDetail.inodesFree /
-                              +statusDetail.inodesTotal) *
-                              100
-                          }
+                          value={100 - (+statusDetail.inodesFree / +statusDetail.inodesTotal) * 100}
                         />
                       </Tooltip>
                     </span>
@@ -360,8 +298,7 @@ class Node extends Component {
 @addSubscriptions(({ sr }) => {
   const subscriptions = {}
   forEach(INFO_TYPES, infoType => {
-    subscriptions[`${infoType}_`] = cb =>
-      subscribeVolumeInfo({ sr, infoType }, cb)
+    subscriptions[`${infoType}_`] = cb => subscribeVolumeInfo({ sr, infoType }, cb)
   })
 
   subscriptions.plugins = subscribePlugins
@@ -384,12 +321,7 @@ export default class TabXosan extends Component {
     const { srs, brickSize } = await confirm({
       icon: 'add',
       title: _('xosanAddSubvolume'),
-      body: (
-        <AddSubvolumeModalBody
-          sr={this.props.sr}
-          subvolumeSize={this._getSubvolumeSize()}
-        />
-      ),
+      body: <AddSubvolumeModalBody sr={this.props.sr} subvolumeSize={this._getSubvolumeSize()} />,
     })
 
     if (brickSize == null || (srs && srs.length) !== this._getSubvolumeSize()) {
@@ -420,12 +352,8 @@ export default class TabXosan extends Component {
     info => (info && info.commandStatus ? info.result : null)
   )
 
-  _getSubvolumeSize = createSelector(
-    this._getStrippedVolumeInfo,
-    strippedVolumeInfo =>
-      strippedVolumeInfo
-        ? +strippedVolumeInfo.disperseCount || +strippedVolumeInfo.replicaCount
-        : null
+  _getSubvolumeSize = createSelector(this._getStrippedVolumeInfo, strippedVolumeInfo =>
+    strippedVolumeInfo ? +strippedVolumeInfo.disperseCount || +strippedVolumeInfo.replicaCount : null
   )
 
   // TODO: uncomment when implementing subvolume deletion
@@ -476,16 +404,7 @@ export default class TabXosan extends Component {
     () => this.props.status_,
     () => this.props.statusDetail_,
     this._getStrippedVolumeInfo,
-    (
-      xosanConfig,
-      vms,
-      vdis,
-      vbds,
-      heal,
-      status,
-      statusDetail,
-      strippedVolumeInfo
-    ) => {
+    (xosanConfig, vms, vdis, vbds, heal, status, statusDetail, strippedVolumeInfo) => {
       const nodes = xosanConfig && xosanConfig.nodes
 
       const brickByName = {}
@@ -513,8 +432,7 @@ export default class TabXosan extends Component {
           brickByName[brick.name] = brickByName[brick.name] || {}
           brickByName[brick.name].info = brick
           brickByName[brick.name].uuid = brick.hostUuid
-          brickByUuid[brick.hostUuid] =
-            brickByUuid[brick.hostUuid] || brickByName[brick.name]
+          brickByUuid[brick.hostUuid] = brickByUuid[brick.hostUuid] || brickByName[brick.name]
         })
       }
 
@@ -523,8 +441,7 @@ export default class TabXosan extends Component {
           brickByName[brick.name] = brickByName[brick.name] || {}
           brickByName[brick.name].heal = brick
           brickByName[brick.name].uuid = brick.hostUuid
-          brickByUuid[brick.hostUuid] =
-            brickByUuid[brick.hostUuid] || brickByName[brick.name]
+          brickByUuid[brick.hostUuid] = brickByUuid[brick.hostUuid] || brickByName[brick.name]
         })
       }
 
@@ -546,17 +463,13 @@ export default class TabXosan extends Component {
     }
   )
 
-  _getOrderedBrickList = createSelector(
-    this._getConfig,
-    this._getBrickByName,
-    (xosanConfig, brickByName) => {
-      if (!xosanConfig || !xosanConfig.nodes) {
-        return
-      }
-
-      return map(xosanConfig.nodes, node => brickByName[node.brickName])
+  _getOrderedBrickList = createSelector(this._getConfig, this._getBrickByName, (xosanConfig, brickByName) => {
+    if (!xosanConfig || !xosanConfig.nodes) {
+      return
     }
-  )
+
+    return map(xosanConfig.nodes, node => brickByName[node.brickName])
+  })
 
   _getIssues = createSelector(
     this._getOrderedBrickList,
@@ -572,30 +485,21 @@ export default class TabXosan extends Component {
       if (
         reduce(
           orderedBrickList,
-          (hasStopped, node) =>
-            hasStopped || (node.vm && node.vm.power_state !== 'Running'),
+          (hasStopped, node) => hasStopped || (node.vm && node.vm.power_state !== 'Running'),
           false
         )
       ) {
         issues.push({ code: 'VMS_DOWN' })
       }
 
-      if (
-        reduce(
-          orderedBrickList,
-          (hasNotFound, node) => hasNotFound || node.vm === undefined,
-          false
-        )
-      ) {
+      if (reduce(orderedBrickList, (hasNotFound, node) => hasNotFound || node.vm === undefined, false)) {
         issues.push({ code: 'VMS_NOT_FOUND' })
       }
 
       if (
         reduce(
           orderedBrickList,
-          (hasFileToHeal, node) =>
-            hasFileToHeal ||
-            (node.heal && node.heal.file && node.heal.file.length !== 0),
+          (hasFileToHeal, node) => hasFileToHeal || (node.heal && node.heal.file && node.heal.file.length !== 0),
           false
         )
       ) {
@@ -620,16 +524,7 @@ export default class TabXosan extends Component {
 
   render() {
     const { license, licenseError, showAdvanced } = this.state
-    const {
-      heal_,
-      info_,
-      sr,
-      status_,
-      statusDetail_,
-      vbds,
-      vdis,
-      isAdmin,
-    } = this.props
+    const { heal_, info_, sr, status_, statusDetail_, vbds, vdis, isAdmin } = this.props
 
     const missingXoaPlugin = this._getMissingXoaPlugin()
     if (missingXoaPlugin !== undefined) {
@@ -637,30 +532,21 @@ export default class TabXosan extends Component {
     }
 
     const xosanConfig = this._getConfig()
-    if (
-      (license === undefined && licenseError === undefined) ||
-      xosanConfig === undefined
-    ) {
+    if ((license === undefined && licenseError === undefined) || xosanConfig === undefined) {
       return <em>{_('statusLoading')}</em>
     }
 
-    if (
-      licenseError !== undefined &&
-      licenseError.message !== 'No license found'
-    ) {
+    if (licenseError !== undefined && licenseError.message !== 'No license found') {
       return <span className='text-danger'>{_('xosanCheckLicenseError')}</span>
     }
 
     if (
       licenseError !== undefined ||
-      (license !== undefined &&
-        license.productId !== 'xosan' &&
-        license.productId !== 'xosan.trial')
+      (license !== undefined && license.productId !== 'xosan' && license.productId !== 'xosan.trial')
     ) {
       return (
         <span className='text-danger'>
-          {_('xosanAdminNoLicenseDisclaimer')}{' '}
-          {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
+          {_('xosanAdminNoLicenseDisclaimer')} {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
         </span>
       )
     }
@@ -668,8 +554,7 @@ export default class TabXosan extends Component {
     if (license.expires < Date.now()) {
       return (
         <span className='text-danger'>
-          {_('xosanAdminExpiredLicenseDisclaimer')}{' '}
-          {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
+          {_('xosanAdminExpiredLicenseDisclaimer')} {isAdmin && <Link to='/xoa/licenses'>{_('licensesManage')}</Link>}
         </span>
       )
     }
@@ -690,13 +575,7 @@ export default class TabXosan extends Component {
               <Icon
                 icon='sr'
                 size='lg'
-                color={
-                  status_
-                    ? status_.commandStatus
-                      ? 'text-success'
-                      : status_.error
-                    : 'text-info'
-                }
+                color={status_ ? (status_.commandStatus ? 'text-success' : status_.error) : 'text-info'}
               />
             </h2>
           </Col>
@@ -705,13 +584,7 @@ export default class TabXosan extends Component {
               <Icon
                 icon='health'
                 size='lg'
-                color={
-                  heal_
-                    ? heal_.commandStatus
-                      ? 'text-success'
-                      : heal_.error
-                    : 'text-info'
-                }
+                color={heal_ ? (heal_.commandStatus ? 'text-success' : heal_.error) : 'text-info'}
               />
             </h2>
           </Col>
@@ -721,11 +594,7 @@ export default class TabXosan extends Component {
                 icon='settings'
                 size='lg'
                 color={
-                  statusDetail_
-                    ? statusDetail_.commandStatus
-                      ? 'text-success'
-                      : statusDetail_.error
-                    : 'text-info'
+                  statusDetail_ ? (statusDetail_.commandStatus ? 'text-success' : statusDetail_.error) : 'text-info'
                 }
               />
             </h2>
@@ -735,13 +604,7 @@ export default class TabXosan extends Component {
               <Icon
                 icon='info'
                 size='lg'
-                color={
-                  info_
-                    ? info_.commandStatus
-                      ? 'text-success'
-                      : info_.error
-                    : 'text-info'
-                }
+                color={info_ ? (info_.commandStatus ? 'text-success' : info_.error) : 'text-info'}
               />
             </h2>
           </Col>
@@ -769,11 +632,7 @@ export default class TabXosan extends Component {
         ))}
         <Row>
           <Col>
-            <ActionButton
-              btnStyle='success'
-              handler={this._addSubvolume}
-              icon='add'
-            >
+            <ActionButton btnStyle='success' handler={this._addSubvolume} icon='add'>
               {_('xosanAddSubvolume')}
             </ActionButton>
             <hr />
@@ -806,11 +665,7 @@ export default class TabXosan extends Component {
         <Row>
           <Col>
             <h2>
-              <Toggle
-                iconSize={1}
-                onChange={this.toggleState('showAdvanced')}
-                value={showAdvanced}
-              />{' '}
+              <Toggle iconSize={1} onChange={this.toggleState('showAdvanced')} value={showAdvanced} />{' '}
               {_('xosanAdvanced')}
             </h2>
             {strippedVolumeInfo && showAdvanced && (
@@ -820,24 +675,12 @@ export default class TabXosan extends Component {
                   <Field title='Name'>{strippedVolumeInfo.name}</Field>
                   <Field title='Status'>{strippedVolumeInfo.statusStr}</Field>
                   <Field title='Type'>{strippedVolumeInfo.typeStr}</Field>
-                  <Field title='Brick Count'>
-                    {strippedVolumeInfo.brickCount}
-                  </Field>
-                  <Field title='Stripe Count'>
-                    {strippedVolumeInfo.stripeCount}
-                  </Field>
-                  <Field title='Replica Count'>
-                    {strippedVolumeInfo.replicaCount}
-                  </Field>
-                  <Field title='Arbiter Count'>
-                    {strippedVolumeInfo.arbiterCount}
-                  </Field>
-                  <Field title='Disperse Count'>
-                    {strippedVolumeInfo.disperseCount}
-                  </Field>
-                  <Field title='Redundancy Count'>
-                    {strippedVolumeInfo.redundancyCount}
-                  </Field>
+                  <Field title='Brick Count'>{strippedVolumeInfo.brickCount}</Field>
+                  <Field title='Stripe Count'>{strippedVolumeInfo.stripeCount}</Field>
+                  <Field title='Replica Count'>{strippedVolumeInfo.replicaCount}</Field>
+                  <Field title='Arbiter Count'>{strippedVolumeInfo.arbiterCount}</Field>
+                  <Field title='Disperse Count'>{strippedVolumeInfo.disperseCount}</Field>
+                  <Field title='Redundancy Count'>{strippedVolumeInfo.redundancyCount}</Field>
                 </Container>
                 <h3 className='mt-1'>{_('xosanVolumeOptions')}</h3>
                 <Container>

@@ -1,20 +1,8 @@
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
-import {
-  extractProperty,
-  forEach,
-  isEmpty,
-  mapFilter,
-  mapToArray,
-  parseXml,
-} from './utils'
-import {
-  getVmDomainType,
-  isHostRunning,
-  isVmRunning,
-  parseDateTime,
-} from './xapi'
+import { extractProperty, forEach, isEmpty, mapFilter, mapToArray, parseXml } from './utils'
+import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
 import { useUpdateSystem } from './xapi/utils'
 
 // ===================================================================
@@ -101,13 +89,10 @@ const getVmGuestToolsProps = vm => {
 
   return {
     // Linux VMs don't have the flag "feature-static-ip-setting"
-    managementAgentDetected:
-      hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
+    managementAgentDetected: hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
     pvDriversDetected,
     pvDriversVersion: hasPvVersion ? `${major}.${minor}` : undefined,
-    pvDriversUpToDate: pvDriversDetected
-      ? guestMetrics.PV_drivers_up_to_date
-      : undefined,
+    pvDriversUpToDate: pvDriversDetected ? guestMetrics.PV_drivers_up_to_date : undefined,
   }
 }
 
@@ -117,15 +102,15 @@ const TRANSFORMS = {
   pool(obj) {
     const cpuInfo = obj.cpu_info
     return {
+      current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
       master: link(obj, 'master'),
       tags: obj.tags,
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
-      xosanPackInstallationTime: toTimestamp(
-        obj.other_config.xosan_pack_installation_time
-      ),
+      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
+      otherConfig: obj.other_config,
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
@@ -147,12 +132,10 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  host(obj) {
-    const {
-      $metrics: metrics,
-      other_config: otherConfig,
-      software_version: softwareVersion,
-    } = obj
+  host(obj, dependents) {
+    dependents[obj.metrics] = obj.$id
+
+    const { $metrics: metrics, other_config: otherConfig, software_version: softwareVersion } = obj
 
     const isRunning = isHostRunning(obj)
     let supplementalPacks
@@ -189,7 +172,11 @@ const TRANSFORMS = {
       address: obj.address,
       bios_strings: obj.bios_strings,
       build: softwareVersion.build_number,
+      chipset_info: {
+        iommu: obj.chipset_info.iommu !== undefined ? obj.chipset_info.iommu === 'true' : undefined,
+      },
       enabled: Boolean(obj.enabled),
+      controlDomain: link(obj, 'control_domain'),
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
@@ -224,6 +211,7 @@ const TRANSFORMS = {
         }
       })(),
       multipathing: otherConfig.multipathing === 'true',
+      otherConfig,
       patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
@@ -245,15 +233,18 @@ const TRANSFORMS = {
       agentStartTime: toTimestamp(otherConfig.agent_start_time),
       rebootRequired:
         softwareVersion.product_brand === 'XCP-ng'
-          ? toTimestamp(otherConfig.boot_time) <
-            +otherConfig.rpm_patch_installation_time
+          ? toTimestamp(otherConfig.boot_time) < +otherConfig.rpm_patch_installation_time
           : !isEmpty(obj.updates_requiring_reboot),
       tags: obj.tags,
       version: softwareVersion.product_version,
       productBrand: softwareVersion.product_brand,
-      hvmCapable: obj.capabilities.some(capability =>
-        capability.startsWith('hvm')
-      ),
+      hvmCapable: obj.capabilities.some(capability => capability.startsWith('hvm')),
+
+      // Only exists on XCP-ng/CH >= 8.2
+      certificates: obj.$certificates?.map(({ fingerprint, not_after }) => ({
+        fingerprint,
+        notAfter: toTimestamp(not_after),
+      })),
 
       // TODO: dedupe.
       PIFs: link(obj, 'PIFs'),
@@ -281,11 +272,7 @@ const TRANSFORMS = {
     dependents[obj.guest_metrics] = obj.$id
     dependents[obj.metrics] = obj.$id
 
-    const {
-      $guest_metrics: guestMetrics,
-      $metrics: metrics,
-      other_config: otherConfig,
-    } = obj
+    const { $guest_metrics: guestMetrics, $metrics: metrics, other_config: otherConfig } = obj
 
     const domainType = getVmDomainType(obj)
     const isHvm = domainType === 'hvm'
@@ -356,10 +343,7 @@ const TRANSFORMS = {
       boot: obj.HVM_boot_params,
       CPUs: {
         max: +obj.VCPUs_max,
-        number:
-          isRunning && metrics && xenTools
-            ? +metrics.VCPUs_number
-            : +obj.VCPUs_at_startup,
+        number: isRunning && metrics && xenTools ? +metrics.VCPUs_number : +obj.VCPUs_at_startup,
       },
       current_operations: currentOperations,
       docker: (function () {
@@ -374,11 +358,7 @@ const TRANSFORMS = {
           }
         }
 
-        const {
-          docker_ps: process,
-          docker_info: info,
-          docker_version: version,
-        } = otherConfig
+        const { docker_ps: process, docker_info: info, docker_version: version } = otherConfig
 
         return {
           enabled: true,
@@ -525,6 +505,7 @@ const TRANSFORMS = {
       physical_usage: +obj.physical_utilisation,
 
       allocationStrategy: ALLOCATION_BY_TYPE[srType],
+      current_operations: obj.current_operations,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
@@ -536,10 +517,7 @@ const TRANSFORMS = {
       other_config: obj.other_config,
       sm_config: obj.sm_config,
 
-      $container:
-        obj.shared || !obj.$PBDs[0]
-          ? link(obj, 'pool')
-          : link(obj.$PBDs[0], 'host'),
+      $container: obj.shared || !obj.$PBDs[0] ? link(obj, 'pool') : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
     }
   },
@@ -553,10 +531,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       host: link(obj, 'host'),
       SR: link(obj, 'SR'),
-      device_config: sensitiveValues.replace(
-        obj.device_config,
-        '* obfuscated *'
-      ),
+      device_config: sensitiveValues.replace(obj.device_config, '* obfuscated *'),
       otherConfig: obj.other_config,
     }
   },
@@ -608,6 +583,8 @@ const TRANSFORMS = {
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
       usage: +obj.physical_utilisation,
+      VDI_type: obj.type,
+      current_operations: obj.current_operations,
 
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs'),
@@ -658,7 +635,7 @@ const TRANSFORMS = {
       other_config: obj.other_config,
 
       // See: https://xapi-project.github.io/xen-api/networking.html
-      txChecksumming: txChecksumming === 'true' || txChecksumming === 'on',
+      txChecksumming: !(txChecksumming === 'false' || txChecksumming === 'off'),
 
       // in kB/s
       rateLimit: (() => {
@@ -681,6 +658,7 @@ const TRANSFORMS = {
     return {
       automatic: obj.other_config?.automatic === 'true',
       bridge: obj.bridge,
+      current_operations: obj.current_operations,
       defaultIsLocked: obj.default_locking_mode === 'disabled',
       MTU: +obj.MTU,
       name_description: obj.name_description,
@@ -717,6 +695,7 @@ const TRANSFORMS = {
       progress: +obj.progress,
       result: obj.result,
       status: obj.status,
+      xapiRef: obj.$ref,
 
       $host: link(obj, 'resident_on'),
     }

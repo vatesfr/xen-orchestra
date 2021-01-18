@@ -15,12 +15,7 @@ import { createGetObjectsOfType, getLoneSnapshots } from 'selectors'
 import { flatMapDepth, keyBy, map, toArray } from 'lodash'
 import { FormattedDate, FormattedRelative, FormattedTime } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import {
-  addSubscriptions,
-  connectStore,
-  getDetachedBackupsOrSnapshots,
-  noop,
-} from 'utils'
+import { addSubscriptions, connectStore, getDetachedBackupsOrSnapshots, noop } from 'utils'
 import {
   deleteBackups,
   deleteSnapshot,
@@ -178,9 +173,7 @@ const Health = decorate([
         return fetchBackupList()
       },
       async fetchBackupList() {
-        this.state.backupsByRemote = await listVmBackups(
-          toArray(await getRemotes())
-        )
+        this.state.backupsByRemote = await listVmBackups(toArray(await getRemotes()))
       },
     },
     computed: {
@@ -192,10 +185,7 @@ const Health = decorate([
         return getDetachedBackupsOrSnapshots(
           flatMapDepth(
             backupsByRemote,
-            backupsByVm =>
-              map(backupsByVm, (vmBackups, vmId) =>
-                vmBackups.map(backup => ({ ...backup, vmId }))
-              ),
+            backupsByVm => map(backupsByVm, (vmBackups, vmId) => vmBackups.map(backup => ({ ...backup, vmId }))),
             2
           ),
           { jobs, schedules, vms }
@@ -204,14 +194,7 @@ const Health = decorate([
     },
   }),
   injectState,
-  ({
-    effects: { fetchBackupList },
-    jobs,
-    legacySnapshots,
-    loneSnapshots,
-    state: { detachedBackups },
-    vms,
-  }) => (
+  ({ effects: { fetchBackupList }, jobs, legacySnapshots, loneSnapshots, state: { detachedBackups }, vms }) => (
     <Container>
       <Row className='detached-backups'>
         <Col>
@@ -221,11 +204,7 @@ const Health = decorate([
             </CardHeader>
             <CardBlock>
               <div className='mb-1'>
-                <ActionButton
-                  btnStyle='primary'
-                  handler={fetchBackupList}
-                  icon='refresh'
-                >
+                <ActionButton btnStyle='primary' handler={fetchBackupList} icon='refresh'>
                   {_('refreshBackupList')}
                 </ActionButton>
               </div>

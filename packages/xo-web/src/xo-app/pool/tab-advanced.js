@@ -9,6 +9,7 @@ import SelectFiles from 'select-files'
 import Upgrade from 'xoa-upgrade'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
+import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType, createGroupBy } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { map } from 'lodash'
@@ -35,12 +36,7 @@ class PoolMaster extends Component {
     const { pool, master } = this.props
 
     return (
-      <XoSelect
-        onChange={this._onChange}
-        predicate={this._getPoolMasterPredicate}
-        value={pool.master}
-        xoType='host'
-      >
+      <XoSelect onChange={this._onChange} predicate={this._getPoolMasterPredicate} value={pool.master} xoType='host'>
         {master.name_label}
       </XoSelect>
     )
@@ -54,9 +50,7 @@ class PoolMaster extends Component {
     .sort()
   return {
     hosts: getHosts,
-    hostsByMultipathing: createGroupBy(getHosts, () => ({ multipathing }) =>
-      multipathing ? 'enabled' : 'disabled'
-    ),
+    hostsByMultipathing: createGroupBy(getHosts, () => ({ multipathing }) => (multipathing ? 'enabled' : 'disabled')),
     gpuGroups: createGetObjectsOfType('gpuGroup')
       .filter((_, { pool }) => ({ $pool: pool.id }))
       .sort(),
@@ -64,10 +58,7 @@ class PoolMaster extends Component {
 })
 export default class TabAdvanced extends Component {
   _setRemoteSyslogHosts = () =>
-    setRemoteSyslogHosts(
-      this.props.hosts,
-      this.state.syslogDestination
-    ).then(() =>
+    setRemoteSyslogHosts(this.props.hosts, this.state.syslogDestination).then(() =>
       this.setState({ editRemoteSyslog: false, syslogDestination: '' })
     )
 
@@ -75,10 +66,7 @@ export default class TabAdvanced extends Component {
     const { hosts, gpuGroups, pool, hostsByMultipathing } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
-    const {
-      enabled: hostsEnabledMultipathing,
-      disabled: hostsDisabledMultipathing,
-    } = hostsByMultipathing
+    const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
     return (
       <div>
         <Container>
@@ -89,16 +77,18 @@ export default class TabAdvanced extends Component {
                 <tbody>
                   <tr>
                     <th>{_('poolHaStatus')}</th>
-                    <td>
-                      {pool.HA_enabled
-                        ? _('poolHaEnabled')
-                        : _('poolHaDisabled')}
-                    </td>
+                    <td>{pool.HA_enabled ? _('poolHaEnabled') : _('poolHaDisabled')}</td>
                   </tr>
                   <tr>
                     <th>{_('setpoolMaster')}</th>
                     <td>
                       <PoolMaster pool={pool} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('customFields')}</th>
+                    <td>
+                      <CustomFields object={pool.id} />
                     </td>
                   </tr>
                   <tr>
@@ -110,9 +100,7 @@ export default class TabAdvanced extends Component {
                             <span>{`${host.name_label}: `}</span>
                             <Text
                               value={host.logging.syslog_destination || ''}
-                              onChange={value =>
-                                setRemoteSyslogHost(host, value)
-                              }
+                              onChange={value => setRemoteSyslogHost(host, value)}
                             />
                           </li>
                         ))}
@@ -125,17 +113,12 @@ export default class TabAdvanced extends Component {
                         {_('poolEditAll')}
                       </ActionRowButton>
                       {editRemoteSyslog && (
-                        <form
-                          id='formRemoteSyslog'
-                          className='form-inline mt-1'
-                        >
+                        <form id='formRemoteSyslog' className='form-inline mt-1'>
                           <div className='form-group'>
                             <input
                               className='form-control'
                               onChange={this.linkState('syslogDestination')}
-                              placeholder={this.props.intl.formatMessage(
-                                messages.poolRemoteSyslogPlaceHolder
-                              )}
+                              placeholder={this.props.intl.formatMessage(messages.poolRemoteSyslogPlaceHolder)}
                               type='text'
                               value={state.syslogDestination}
                             />
@@ -198,9 +181,7 @@ export default class TabAdvanced extends Component {
         </div>
         <h3 className='mt-1 mb-1'>{_('supplementalPackPoolNew')}</h3>
         <Upgrade place='poolSupplementalPacks' required={2}>
-          <SelectFiles
-            onChange={file => installSupplementalPackOnAllHosts(pool, file)}
-          />
+          <SelectFiles onChange={file => installSupplementalPackOnAllHosts(pool, file)} />
         </Upgrade>
       </div>
     )

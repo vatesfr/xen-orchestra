@@ -33,8 +33,7 @@ const Header = ({ isAdmin }) => (
             </NavLink>
           )}
           <NavLink to='/xoa/notifications'>
-            <Icon icon='menu-notification' /> {_('notificationsPage')}{' '}
-            <NotificationTag />
+            <Icon icon='menu-notification' /> {_('notificationsPage')} <NotificationTag />
           </NavLink>
           {isAdmin && (
             <NavLink to='/xoa/support'>

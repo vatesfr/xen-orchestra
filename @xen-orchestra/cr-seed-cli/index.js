@@ -32,14 +32,7 @@ ${cliName} v${pkg.version}
     )
   }
 
-  const [
-    srcXapiUrl,
-    srcSnapshotUuid,
-    tgtXapiUrl,
-    tgtVmUuid,
-    jobId,
-    scheduleId,
-  ] = args
+  const [srcXapiUrl, srcSnapshotUuid, tgtXapiUrl, tgtVmUuid, jobId, scheduleId] = args
 
   const srcXapi = new Xapi({
     allowUnauthorized: true,
@@ -70,16 +63,10 @@ ${cliName} v${pkg.version}
     'xo:backup:vm': srcVm.uuid,
   }
 
-  const [srcDisks, tgtDisks] = await Promise.all([
-    srcXapi.getVmDisks(srcSnapshot),
-    tgtXapi.getVmDisks(tgtVm),
-  ])
+  const [srcDisks, tgtDisks] = await Promise.all([srcXapi.getVmDisks(srcSnapshot), tgtXapi.getVmDisks(tgtVm)])
   const userDevices = Object.keys(tgtDisks)
 
-  const tgtSr = await tgtXapi.getRecord(
-    'SR',
-    tgtDisks[Object.keys(tgtDisks)[0]].SR
-  )
+  const tgtSr = await tgtXapi.getRecord('SR', tgtDisks[Object.keys(tgtDisks)[0]].SR)
 
   await Promise.all([
     srcSnapshot.update_other_config(metadata),
@@ -90,10 +77,7 @@ ${cliName} v${pkg.version}
       'xo:backup:sr': tgtSr.uuid,
       'xo:copy_of': srcSnapshotUuid,
     }),
-    tgtVm.update_blocked_operations(
-      'start',
-      'Start operation for this vm is blocked, clone it if you want to use it.'
-    ),
+    tgtVm.update_blocked_operations('start', 'Start operation for this vm is blocked, clone it if you want to use it.'),
     Promise.all(
       userDevices.map(userDevice => {
         const srcDisk = srcDisks[userDevice]

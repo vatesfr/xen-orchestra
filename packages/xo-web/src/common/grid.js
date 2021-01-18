@@ -55,9 +55,7 @@ Container.propTypes = {
 }
 
 // Only columns can be children of a row.
-export const Row = ({ children, className }) => (
-  <div className={`${className || ''} row`}>{children}</div>
-)
+export const Row = ({ children, className }) => <div className={`${className || ''} row`}>{children}</div>
 
 Row.propTypes = {
   className: PropTypes.string,

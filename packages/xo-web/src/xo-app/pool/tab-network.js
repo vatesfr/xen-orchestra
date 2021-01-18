@@ -10,33 +10,18 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import some from 'lodash/some'
 import SortedTable from 'sorted-table'
-import Tooltip from 'tooltip'
+import Tooltip, { conditionalTooltip } from 'tooltip'
 import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
 import { Toggle } from 'form'
-import {
-  createFinder,
-  createGetObject,
-  createGetObjectsOfType,
-  createSelector,
-} from 'selectors'
-import {
-  connectPif,
-  deleteNetwork,
-  disconnectPif,
-  editNetwork,
-  editPif,
-} from 'xo'
+import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
+import { connectPif, deleteNetwork, disconnectPif, editNetwork, editPif } from 'xo'
 
 // =============================================================================
 
-const _conditionalTooltip = (component, tooltip) =>
-  tooltip ? <Tooltip content={tooltip}>{component}</Tooltip> : component
-
-const _createGetPifs = () =>
-  createGetObjectsOfType('PIF').pick((_, props) => props.network.PIFs)
+const _createGetPifs = () => createGetObjectsOfType('PIF').pick((_, props) => props.network.PIFs)
 
 const _createGetDefaultPif = () =>
   createFinder(
@@ -54,9 +39,7 @@ const _createGetDefaultPif = () =>
 
 @connectStore(() => ({
   isBonded: createSelector(
-    createGetObjectsOfType('PIF').pick(
-      (_, props) => props && props.network.PIFs
-    ),
+    createGetObjectsOfType('PIF').pick((_, props) => props && props.network.PIFs),
     pifs => some(pifs, 'isBondMaster')
   ),
 }))
@@ -69,9 +52,7 @@ class Name extends Component {
     return (
       <span>
         <Text value={network.name_label} onChange={this._editName} />{' '}
-        {isBonded && (
-          <span className='tag tag-pill tag-info'>{_('pillBonded')}</span>
-        )}
+        {isBonded && <span className='tag tag-pill tag-info'>{_('pillBonded')}</span>}
       </span>
     )
   }
@@ -80,30 +61,24 @@ class Name extends Component {
 // -----------------------------------------------------------------------------
 
 class AutomaticNetwork extends Component {
-  _editAutomaticNetwork = automatic =>
-    editNetwork(this.props.network, { automatic })
+  _editAutomaticNetwork = automatic => editNetwork(this.props.network, { automatic })
 
   render() {
     const { network } = this.props
 
-    return (
-      <Toggle onChange={this._editAutomaticNetwork} value={network.automatic} />
-    )
+    return <Toggle onChange={this._editAutomaticNetwork} value={network.automatic} />
   }
 }
 
 // -----------------------------------------------------------------------------
 
 class Description extends Component {
-  _editDescription = value =>
-    editNetwork(this.props.network, { name_description: value })
+  _editDescription = value => editNetwork(this.props.network, { name_description: value })
 
   render() {
     const { network } = this.props
 
-    return (
-      <Text value={network.name_description} onChange={this._editDescription} />
-    )
+    return <Text value={network.name_description} onChange={this._editDescription} />
   }
 }
 
@@ -141,11 +116,9 @@ class Vlan extends BaseComponent {
 
     return (
       <span>
-        {
-          <Number value={defaultPif.vlan} onChange={this._editPif}>
-            {defaultPif.vlan === -1 ? 'None' : defaultPif.vlan}
-          </Number>
-        }
+        <Number value={defaultPif.vlan} onChange={this._editPif}>
+          {defaultPif.vlan === -1 ? 'None' : defaultPif.vlan}
+        </Number>
       </span>
     )
   }
@@ -155,9 +128,7 @@ class Vlan extends BaseComponent {
 
 @connectStore(() => ({
   isInUse: createSelector(
-    createGetObjectsOfType('VIF').pick(
-      (_, props) => props && props.network.VIFs
-    ),
+    createGetObjectsOfType('VIF').pick((_, props) => props && props.network.VIFs),
     vifs => some(vifs, 'attached')
   ),
 }))
@@ -169,13 +140,9 @@ class ToggleDefaultLockingMode extends Component {
 
   render() {
     const { isInUse, network } = this.props
-    return _conditionalTooltip(
-      <Toggle
-        disabled={isInUse}
-        onChange={this._editDefaultIsLocked}
-        value={network.defaultIsLocked}
-      />,
-      isInUse && _('networkInUse')
+    return conditionalTooltip(
+      <Toggle disabled={isInUse} onChange={this._editDefaultIsLocked} value={network.defaultIsLocked} />,
+      isInUse ? _('networkInUse') : undefined
     )
   }
 }
@@ -187,10 +154,7 @@ class ToggleDefaultLockingMode extends Component {
   const host = createGetObject(createSelector(pif, pif => pif.$host))
   const disableUnplug = createSelector(
     pif,
-    pif =>
-      pif.attached &&
-      !pif.isBondMaster &&
-      (pif.management || pif.disallowUnplug)
+    pif => pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
   )
 
   return { host, pif, disableUnplug }
@@ -207,13 +171,9 @@ class PifItem extends Component {
         <td>{pif.mac}</td>
         <td>
           {pif.carrier ? (
-            <span className='tag tag-success'>
-              {_('poolNetworkPifAttached')}
-            </span>
+            <span className='tag tag-success'>{_('poolNetworkPifAttached')}</span>
           ) : (
-            <span className='tag tag-default'>
-              {_('poolNetworkPifDetached')}
-            </span>
+            <span className='tag tag-default'>{_('poolNetworkPifDetached')}</span>
           )}
         </td>
         <td className='text-xs-right'>
@@ -240,11 +200,7 @@ class PifsItem extends BaseComponent {
     return (
       <div>
         <Tooltip content={showPifs ? _('hidePifs') : _('showPifs')}>
-          <Button
-            size='small'
-            className='mb-1 pull-right'
-            onClick={this.toggleState('showPifs')}
-          >
+          <Button size='small' className='mb-1 pull-right' onClick={this.toggleState('showPifs')}>
             <Icon icon={showPifs ? 'hidden' : 'shown'} />
           </Button>
         </Tooltip>
@@ -275,15 +231,12 @@ class PifsItem extends BaseComponent {
 // -----------------------------------------------------------------------------
 
 @connectStore(() => {
-  const disablePifUnplug = pif =>
-    pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
+  const disablePifUnplug = pif => pif.attached && !pif.isBondMaster && (pif.management || pif.disallowUnplug)
 
   const getDisableNetworkDelete = createSelector(
     _createGetPifs(),
     (_, props) => props && props.network.name_label,
-    (pifs, nameLabel) =>
-      nameLabel === 'Host internal management network' ||
-      some(pifs, disablePifUnplug)
+    (pifs, nameLabel) => nameLabel === 'Host internal management network' || some(pifs, disablePifUnplug)
   )
 
   return {
@@ -350,12 +303,12 @@ const NETWORKS_COLUMNS = [
   },
   {
     name: _('poolNetworkPif'),
-    itemRenderer: network =>
-      !isEmpty(network.PIFs) && <PifsItem network={network} />,
+    itemRenderer: network => !isEmpty(network.PIFs) && <PifsItem network={network} />,
   },
   {
     name: _('poolNetworkAutomatic'),
     itemRenderer: network => <AutomaticNetwork network={network} />,
+    tooltip: _('networkAutomaticTooltip'),
   },
   {
     name: '',
@@ -374,21 +327,13 @@ export default class TabNetworks extends Component {
       <Container>
         <Row>
           <Col className='text-xs-right'>
-            <TabButtonLink
-              icon='add'
-              labelId='networkCreateButton'
-              to={`new/network?pool=${this.props.pool.id}`}
-            />
+            <TabButtonLink icon='add' labelId='networkCreateButton' to={`new/network?pool=${this.props.pool.id}`} />
           </Col>
         </Row>
         <Row>
           <Col>
             {!isEmpty(networks) ? (
-              <SortedTable
-                collection={networks}
-                columns={NETWORKS_COLUMNS}
-                stateUrlParam='s'
-              />
+              <SortedTable collection={networks} columns={NETWORKS_COLUMNS} stateUrlParam='s' />
             ) : (
               <h4 className='text-xs-center'>{_('poolNoNetwork')}</h4>
             )}

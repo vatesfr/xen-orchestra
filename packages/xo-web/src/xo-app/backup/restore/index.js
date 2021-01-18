@@ -10,28 +10,10 @@ import { addSubscriptions, formatSize, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
-import {
-  filter,
-  find,
-  flatMap,
-  forEach,
-  keyBy,
-  map,
-  reduce,
-  orderBy,
-  toArray,
-} from 'lodash'
-import {
-  deleteBackups,
-  listVmBackups,
-  restoreBackup,
-  subscribeBackupNgJobs,
-  subscribeRemotes,
-} from 'xo'
+import { cloneDeep, filter, find, flatMap, forEach, map, reduce, orderBy } from 'lodash'
+import { deleteBackups, listVmBackups, restoreBackup, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
 
-import RestoreBackupsModalBody, {
-  RestoreBackupsBulkModalBody,
-} from './restore-backups-modal-body'
+import RestoreBackupsModalBody, { RestoreBackupsBulkModalBody } from './restore-backups-modal-body'
 import DeleteBackupsModalBody from './delete-backups-modal-body'
 
 import RestoreLegacy from '../restore-legacy'
@@ -88,8 +70,7 @@ const BACKUPS_COLUMNS = [
   },
   {
     name: _('labelSize'),
-    itemRenderer: ({ size }) =>
-      size !== undefined && size !== 0 && formatSize(size),
+    itemRenderer: ({ size }) => size !== undefined && size !== 0 && formatSize(size),
     sortCriteria: 'size',
   },
   {
@@ -117,46 +98,12 @@ export default class Restore extends Component {
   }
 
   componentWillReceiveProps(props) {
-    if (
-      props.remotes !== this.props.remotes ||
-      props.jobs !== this.props.jobs
-    ) {
+    if (props.remotes !== this.props.remotes || props.jobs !== this.props.jobs) {
       this._refreshBackupList(props.remotes, props.jobs)
     }
   }
 
-  _refreshBackupList = async (
-    _remotes = this.props.remotes,
-    jobs = this.props.jobs
-  ) => {
-    const remotes = keyBy(filter(_remotes, { enabled: true }), 'id')
-    const backupsByRemote = await listVmBackups(toArray(remotes))
-
-    const backupDataByVm = {}
-    forEach(backupsByRemote, (backups, remoteId) => {
-      const remote = remotes[remoteId]
-      forEach(backups, (vmBackups, vmId) => {
-        if (vmBackups.length === 0) {
-          return
-        }
-
-        if (backupDataByVm[vmId] === undefined) {
-          backupDataByVm[vmId] = { backups: [] }
-        }
-
-        backupDataByVm[vmId].backups.push(
-          ...map(vmBackups, bkp => {
-            const job = find(jobs, { id: bkp.jobId })
-            return {
-              ...bkp,
-              remote,
-              jobName: job && job.name,
-            }
-          })
-        )
-      })
-    })
-    // TODO: perf
+  _sortBackupList = backupDataByVm => {
     let first, last
     forEach(backupDataByVm, (data, vmId) => {
       first = { timestamp: Infinity }
@@ -184,9 +131,54 @@ export default class Restore extends Component {
       backupDataByVm[vmId].backups = orderBy(backups, 'timestamp', 'desc')
     })
 
-    this.setState({ backupDataByVm })
+    return backupDataByVm
   }
 
+  _refreshBackupListOnRemote = async (remote, jobs) => {
+    const remoteId = remote.id
+    const backupsByRemote = await listVmBackups([remoteId])
+    const { backupDataByVm } = this.state
+    const remoteBackupDataByVm = {}
+    forEach(backupsByRemote[remoteId], (vmBackups, vmId) => {
+      if (vmBackups.length === 0) {
+        return
+      }
+
+      const backupData = backupDataByVm[vmId]
+      remoteBackupDataByVm[vmId] = backupData === undefined ? { backups: [] } : cloneDeep(backupData)
+
+      remoteBackupDataByVm[vmId].backups.push(
+        ...map(vmBackups, bkp => {
+          const job = find(jobs, { id: bkp.jobId })
+          return {
+            ...bkp,
+            remote,
+            jobName: job && job.name,
+          }
+        })
+      )
+    })
+
+    this.setState(({ backupDataByVm }) => ({
+      backupDataByVm: {
+        ...backupDataByVm,
+        ...this._sortBackupList(remoteBackupDataByVm),
+      },
+    }))
+  }
+
+  _refreshBackupList = (remotes = this.props.remotes, jobs = this.props.jobs) =>
+    new Promise((resolve, reject) => {
+      this.setState({ backupDataByVm: {} }, () =>
+        Promise.all(
+          map(filter(remotes, { enabled: true }), remote =>
+            this._refreshBackupListOnRemote(remote, jobs).catch(() =>
+              error(_('remoteLoadBackupsFailure'), _('remoteLoadBackupsFailureMessage', { name: remote.name }))
+            )
+          )
+        ).then(resolve, reject)
+      )
+    })
   // Actions -------------------------------------------------------------------
 
   _restore = data =>
@@ -222,19 +214,12 @@ export default class Restore extends Component {
     })
       .then(({ sr, latest, start }) => {
         if (sr == null) {
-          error(
-            _(
-              'restoreVmBackupsBulkErrorTitle',
-              'restoreVmBackupsBulkErrorMessage'
-            )
-          )
+          error(_('restoreVmBackupsBulkErrorTitle', 'restoreVmBackupsBulkErrorMessage'))
           return
         }
 
         const prop = latest ? 'last' : 'first'
-        return Promise.all(
-          map(datas, data => restoreBackup(data[prop], sr, start))
-        )
+        return Promise.all(map(datas, data => restoreBackup(data[prop], sr, start)))
       }, noop)
       .then(() => this._refreshBackupList())
 
@@ -279,11 +264,7 @@ export default class Restore extends Component {
           <RestoreLegacy />
           <div className='mt-1 mb-1'>
             <h3>{_('restore')}</h3>
-            <ActionButton
-              btnStyle='primary'
-              handler={this._refreshBackupList}
-              icon='refresh'
-            >
+            <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
               {_('refreshBackupList')}
             </ActionButton>{' '}
             <ButtonLink to='backup/restore/metadata'>

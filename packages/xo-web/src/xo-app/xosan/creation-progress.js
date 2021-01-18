@@ -90,9 +90,7 @@ export default class CreationProgress extends Component {
       }
 
       const previousMilestone = this._milestones[state]
-      const stepLength =
-        (this._milestones[state + 1] || TOTAL_ESTIMATED_DURATION) -
-        previousMilestone
+      const stepLength = (this._milestones[state + 1] || TOTAL_ESTIMATED_DURATION) - previousMilestone
 
       return previousMilestone + intermediateProgress * stepLength
     }
@@ -116,11 +114,7 @@ export default class CreationProgress extends Component {
           ({state + 1}/{states.length}) {_(`xosanState_${states[state]}`)}
         </Col>
         <Col size={6}>
-          <progress
-            className='progress'
-            max={TOTAL_ESTIMATED_DURATION}
-            value={this._getMainProgress()}
-          />
+          <progress className='progress' max={TOTAL_ESTIMATED_DURATION} value={this._getMainProgress()} />
         </Col>
       </Row>
     )

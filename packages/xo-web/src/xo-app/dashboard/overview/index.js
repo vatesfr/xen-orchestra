@@ -9,7 +9,6 @@ import Link, { BlockLink } from 'link'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ResourceSetQuotas from 'resource-set-quotas'
-import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
@@ -72,20 +71,20 @@ class PatchesCard extends Component {
 
 @connectStore({
   hosts: createGetObjectsOfType('host'),
+  isAdmin,
   pools: createGetObjectsOfType('pool'),
-  srs: createGetObjectsOfType('SR').filter([isSrWritable]),
+  srs: createGetObjectsOfType('SR').filter([sr => isSrWritable(sr) && sr.SR_type !== 'udev']),
   vms: createGetObjectsOfType('VM'),
-  alarmMessages: createGetObjectsOfType('message').filter([
-    message => message.name === 'ALARM',
-  ]),
-  tasks: createGetObjectsOfType('task').filter([
-    task => task.status === 'pending',
-  ]),
+  alarmMessages: createGetObjectsOfType('message').filter([message => message.name === 'ALARM']),
+  tasks: createGetObjectsOfType('task').filter([task => task.status === 'pending']),
 })
-@addSubscriptions({
-  plugins: subscribePlugins,
-  users: subscribeUsers,
-})
+@addSubscriptions(
+  ({ isAdmin }) =>
+    isAdmin && {
+      plugins: subscribePlugins,
+      users: subscribeUsers,
+    }
+)
 @injectIntl
 class DefaultCard extends Component {
   _getPoolWisePredicate = createSelector(
@@ -97,9 +96,7 @@ class DefaultCard extends Component {
     this._getPoolWisePredicate,
     createCollectionWrapper(() => map(this.state.hosts, 'id')),
     (poolWisePredicate, hostsIds) => item =>
-      isEmpty(hostsIds)
-        ? poolWisePredicate(item)
-        : includes(hostsIds, item.$container || item.$host)
+      isEmpty(hostsIds) ? poolWisePredicate(item) : includes(hostsIds, item.$container || item.$host)
   )
 
   _onPoolsChange = pools => {
@@ -107,9 +104,7 @@ class DefaultCard extends Component {
     const poolIds = map(pools, 'id')
     this.setState({
       pools,
-      hosts: isEmpty(pools)
-        ? hosts
-        : filter(hosts, host => includes(poolIds, host.$pool)),
+      hosts: isEmpty(pools) ? hosts : filter(hosts, host => includes(poolIds, host.$pool)),
     })
   }
 
@@ -135,13 +130,9 @@ class DefaultCard extends Component {
 
   _getVmsNumber = createCounter(this._getVms)
 
-  _getAlarmMessagesNumber = createCounter(
-    createFilter(() => this.props.alarmMessages, this._getPoolWisePredicate)
-  )
+  _getAlarmMessagesNumber = createCounter(createFilter(() => this.props.alarmMessages, this._getPoolWisePredicate))
 
-  _getTasksNumber = createCounter(
-    createFilter(() => this.props.tasks, this._getPredicate)
-  )
+  _getTasksNumber = createCounter(createFilter(() => this.props.tasks, this._getPredicate))
 
   _getHostMetrics = createGetHostMetrics(this._getHosts)
 
@@ -192,11 +183,7 @@ class DefaultCard extends Component {
     (plugins = []) => {
       let count = 0
       for (const { id, loaded } of plugins) {
-        if (
-          (id === 'usage-report' || id === 'transport-email') &&
-          loaded &&
-          ++count === 2
-        ) {
+        if ((id === 'usage-report' || id === 'transport-email') && loaded && ++count === 2) {
           return true
         }
       }
@@ -223,11 +210,7 @@ class DefaultCard extends Component {
       <Container>
         <Row>
           <Col mediumSize={6}>
-            <SelectPool
-              multi
-              onChange={this._onPoolsChange}
-              value={state.pools}
-            />
+            <SelectPool multi onChange={this._onPoolsChange} value={state.pools} />
           </Col>
           <Col mediumSize={6}>
             <SelectHost
@@ -286,14 +269,8 @@ class DefaultCard extends Component {
               <CardBlock className='dashboardItem'>
                 <ChartistGraph
                   data={{
-                    labels: [
-                      formatMessage(messages.usedMemory),
-                      formatMessage(messages.totalMemory),
-                    ],
-                    series: [
-                      hostMetrics.memoryUsage,
-                      hostMetrics.memoryTotal - hostMetrics.memoryUsage,
-                    ],
+                    labels: [formatMessage(messages.usedMemory), formatMessage(messages.totalMemory)],
+                    series: [hostMetrics.memoryUsage, hostMetrics.memoryTotal - hostMetrics.memoryUsage],
                   }}
                   options={PIE_GRAPH_OPTIONS}
                   type='Pie'
@@ -316,10 +293,7 @@ class DefaultCard extends Component {
                 <div className='ct-chart dashboardItem'>
                   <ChartistGraph
                     data={{
-                      labels: [
-                        formatMessage(messages.usedVCpus),
-                        formatMessage(messages.totalCpus),
-                      ],
+                      labels: [formatMessage(messages.usedVCpus), formatMessage(messages.totalCpus)],
                       series: [vmMetrics.vcpus, hostMetrics.cpus],
                     }}
                     options={{
@@ -349,14 +323,8 @@ class DefaultCard extends Component {
                   <BlockLink to='/dashboard/health'>
                     <ChartistGraph
                       data={{
-                        labels: [
-                          formatMessage(messages.usedSpace),
-                          formatMessage(messages.totalSpace),
-                        ],
-                        series: [
-                          srMetrics.srUsage,
-                          srMetrics.srTotal - srMetrics.srUsage,
-                        ],
+                        labels: [formatMessage(messages.usedSpace), formatMessage(messages.totalSpace)],
+                        series: [srMetrics.srUsage, srMetrics.srTotal - srMetrics.srUsage],
                       }}
                       options={PIE_GRAPH_OPTIONS}
                       type='Pie'
@@ -381,10 +349,7 @@ class DefaultCard extends Component {
               </CardHeader>
               <CardBlock>
                 <p className={styles.bigCardContent}>
-                  <Link
-                    to='/dashboard/health'
-                    className={nAlarmMessages > 0 ? 'text-warning' : ''}
-                  >
+                  <Link to='/dashboard/health' className={nAlarmMessages > 0 ? 'text-warning' : ''}>
                     {nAlarmMessages}
                   </Link>
                 </p>
@@ -410,11 +375,7 @@ class DefaultCard extends Component {
               </CardHeader>
               <CardBlock>
                 <p className={styles.bigCardContent}>
-                  {props.isAdmin ? (
-                    <Link to='/settings/users'>{nUsers}</Link>
-                  ) : (
-                    <p>{nUsers}</p>
-                  )}
+                  {props.isAdmin ? <Link to='/settings/users'>{nUsers}</Link> : <p>{nUsers}</p>}
                 </p>
               </CardBlock>
             </Card>
@@ -435,11 +396,7 @@ class DefaultCard extends Component {
                         formatMessage(messages.vmStateHalted),
                         formatMessage(messages.vmStateOther),
                       ],
-                      series: [
-                        vmMetrics.running,
-                        vmMetrics.halted,
-                        vmMetrics.other,
-                      ],
+                      series: [vmMetrics.running, vmMetrics.halted, vmMetrics.other],
                     }}
                     options={{ showLabel: false }}
                     type='Pie'
@@ -465,10 +422,7 @@ class DefaultCard extends Component {
                     style={{ strokeWidth: '30px' }}
                     data={{
                       labels: map(topSrs, 'name_label'),
-                      series: map(
-                        topSrs,
-                        sr => (sr.physical_usage / sr.size) * 100
-                      ),
+                      series: map(topSrs, sr => (sr.physical_usage / sr.size) * 100),
                     }}
                     options={{
                       showLabel: false,
@@ -491,12 +445,7 @@ class DefaultCard extends Component {
                   <Icon icon='menu-dashboard-stats' /> {_('dashboardReport')}
                 </CardHeader>
                 <CardBlock className='text-xs-center'>
-                  <ActionButton
-                    btnStyle='primary'
-                    disabled={!canSendTheReport}
-                    handler={sendUsageReport}
-                    icon=''
-                  >
+                  <ActionButton btnStyle='primary' disabled={!canSendTheReport} handler={sendUsageReport} icon=''>
                     {_('dashboardSendReport')}
                   </ActionButton>
                   <br />
@@ -544,26 +493,24 @@ export default class Overview extends Component {
     }
 
     return (
-      <Upgrade place='dashboard' required={3}>
-        <Container>
-          {showResourceSets ? (
-            map(props.resourceSets, resourceSet => (
-              <Row key={resourceSet.id}>
-                <Card>
-                  <CardHeader>
-                    <Icon icon='menu-self-service' /> {resourceSet.name}
-                  </CardHeader>
-                  <CardBlock>
-                    <ResourceSetQuotas limits={resourceSet.limits} />
-                  </CardBlock>
-                </Card>
-              </Row>
-            ))
-          ) : (
-            <DefaultCard isAdmin={props.isAdmin} />
-          )}
-        </Container>
-      </Upgrade>
+      <Container>
+        {showResourceSets ? (
+          map(props.resourceSets, resourceSet => (
+            <Row key={resourceSet.id}>
+              <Card>
+                <CardHeader>
+                  <Icon icon='menu-self-service' /> {resourceSet.name}
+                </CardHeader>
+                <CardBlock>
+                  <ResourceSetQuotas limits={resourceSet.limits} />
+                </CardBlock>
+              </Card>
+            </Row>
+          ))
+        ) : (
+          <DefaultCard isAdmin={props.isAdmin} />
+        )}
+      </Container>
     )
   }
 }

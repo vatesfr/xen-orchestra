@@ -70,9 +70,7 @@ export default ({ hosts, nVms, pool, srs }) => (
           {_('poolRamUsage', {
             used: formatSizeShort(sumBy(hosts, 'memory.usage')),
             total: formatSizeShort(sumBy(hosts, 'memory.size')),
-            free: formatSizeShort(
-              sumBy(hosts, host => host.memory.size - host.memory.usage)
-            ),
+            free: formatSizeShort(sumBy(hosts, host => host.memory.size - host.memory.usage)),
           })}
         </h5>
       </Col>
@@ -80,9 +78,7 @@ export default ({ hosts, nVms, pool, srs }) => (
     <Row className='text-xs-center'>
       <Col>
         {_('poolMaster')}{' '}
-        <Link to={`/hosts/${pool.master}`}>
-          {find(hosts, host => host.id === pool.master).name_label}
-        </Link>
+        <Link to={`/hosts/${pool.master}`}>{find(hosts, host => host.id === pool.master).name_label}</Link>
       </Col>
     </Row>
     <Row className='text-xs-center'>

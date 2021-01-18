@@ -5,13 +5,7 @@ import { createGzip } from 'zlib'
 import { createSchedule } from '@xen-orchestra/cron'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
-import {
-  AlteredRecordError,
-  AuditCore,
-  MissingRecordError,
-  NULL_ID,
-  Storage,
-} from '@xen-orchestra/audit-core'
+import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '@xen-orchestra/audit-core'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -19,6 +13,8 @@ const DEFAULT_BLOCKED_LIST = {
   'acl.get': true,
   'acl.getCurrentPermissions': true,
   'audit.checkIntegrity': true,
+  'audit.clean': true,
+  'audit.deleteRange': true,
   'audit.generateFingerprint': true,
   'audit.getRecords': true,
   'backup.list': true,
@@ -114,6 +110,27 @@ class Db extends Storage {
   getLastId() {
     return this.get(LAST_ID)
   }
+
+  async clean() {
+    const db = this._db
+
+    // delete first so that a new chain can be constructed even if anything else fails
+    await db.del(LAST_ID)
+
+    return new Promise((resolve, reject) => {
+      let count = 1
+      const cb = () => {
+        if (--count === 0) {
+          resolve()
+        }
+      }
+      const deleteEntry = key => {
+        ++count
+        db.del(key, cb)
+      }
+      db.createKeyStream().on('data', deleteEntry).on('end', cb).on('error', reject)
+    })
+  }
 }
 
 export const configurationSchema = {
@@ -136,13 +153,10 @@ class AuditXoPlugin {
     this._cleaners = []
     this._xo = xo
 
-    const { enabled = true, schedule: { cron = '0 6 * * *', timezone } = {} } =
-      staticConfig.lastHashUpload ?? {}
+    const { enabled = true, schedule: { cron = '0 6 * * *', timezone } = {} } = staticConfig.lastHashUpload ?? {}
 
     if (enabled) {
-      this._uploadLastHashJob = createSchedule(cron, timezone).createJob(() =>
-        this._uploadLastHash().catch(log.error)
-      )
+      this._uploadLastHashJob = createSchedule(cron, timezone).createJob(() => this._uploadLastHash().catch(log.error))
     }
 
     this._auditCore = undefined
@@ -186,8 +200,7 @@ class AuditXoPlugin {
     }
 
     const checkIntegrity = this._checkIntegrity.bind(this)
-    checkIntegrity.description =
-      'Check records integrity between oldest and newest'
+    checkIntegrity.description = 'Check records integrity between oldest and newest'
     checkIntegrity.permission = 'admin'
     checkIntegrity.params = {
       newest: { type: 'string', optional: true },
@@ -195,8 +208,7 @@ class AuditXoPlugin {
     }
 
     const generateFingerprint = this._generateFingerprint.bind(this)
-    generateFingerprint.description =
-      'Generate a fingerprint of the chain oldest-newest'
+    generateFingerprint.description = 'Generate a fingerprint of the chain oldest-newest'
     generateFingerprint.permission = 'admin'
     generateFingerprint.params = {
       newest: { type: 'string', optional: true },
@@ -209,10 +221,24 @@ class AuditXoPlugin {
       cleaners.push(() => uploadLastHashJob.stop())
     }
 
+    const clean = this._storage.clean.bind(this._storage)
+    clean.permission = 'admin'
+    clean.description = 'Clean audit database'
+
+    const deleteRange = this._deleteRangeAndRewrite.bind(this)
+    deleteRange.description = 'Delete a range of records and rewrite the records chain'
+    deleteRange.permission = 'admin'
+    deleteRange.params = {
+      newest: { type: 'string' },
+      oldest: { type: 'string', optional: true },
+    }
+
     cleaners.push(
       this._xo.addApiMethods({
         audit: {
           checkIntegrity,
+          clean,
+          deleteRange,
           exportRecords,
           generateFingerprint,
           getRecords,
@@ -290,18 +316,11 @@ class AuditXoPlugin {
             'content-disposition': 'attachment',
             'content-type': 'application/x-gzip',
           })
-          return fromCallback(
-            pipeline,
-            this._getRecordsStream(),
-            createGzip(),
-            res
-          )
+          return fromCallback(pipeline, this._getRecordsStream(), createGzip(), res)
         },
         undefined,
         {
-          suffix: `/audit-records-${new Date()
-            .toISOString()
-            .replace(/:/g, '_')}.ndjson.gz`,
+          suffix: `/audit-records-${new Date().toISOString().replace(/:/g, '_')}.ndjson.gz`,
         }
       )
       .then($getFrom => ({
@@ -312,32 +331,51 @@ class AuditXoPlugin {
   // See www-xo#344
   async _uploadLastHash() {
     const xo = this._xo
+
+    // In case of non-existent XOA plugin
+    if (xo.audit === undefined) {
+      return
+    }
+
+    const lastRecordId = await this._storage.getLastId()
+    if (lastRecordId === undefined) {
+      return
+    }
+
     const chain = await xo.audit.getLastChain()
 
-    let lastHash, integrityCheckSuccess
+    let lastValidHash
     if (chain !== null) {
       const hashes = chain.hashes
-      lastHash = hashes[hashes.length - 1]
+      lastValidHash = hashes[hashes.length - 1]
+
+      if (lastValidHash === lastRecordId) {
+        return
+      }
 
       // check the integrity of all stored hashes
-      integrityCheckSuccess = await Promise.all(
-        hashes.map((oldest, key) =>
-          oldest !== lastHash
-            ? this._checkIntegrity({ oldest, newest: hashes[key + 1] })
-            : true
-        )
-      ).then(
-        () => true,
-        () => false
-      )
+      try {
+        for (let i = 0; i < hashes.length - 1; ++i) {
+          await this._checkIntegrity({
+            oldest: hashes[i],
+            newest: hashes[i + 1],
+          })
+        }
+      } catch (error) {
+        if (!missingAuditRecord.is(error) && !alteredAuditRecord.is(error)) {
+          throw error
+        }
+
+        lastValidHash = undefined
+      }
     }
 
     // generate a valid fingerprint of all stored records in case of a failure integrity check
     const { oldest, newest, error } = await this._generateFingerprint({
-      oldest: integrityCheckSuccess ? lastHash : undefined,
+      oldest: lastValidHash,
     })
 
-    if (chain === null || !integrityCheckSuccess || error !== undefined) {
+    if (lastValidHash === undefined || error !== undefined) {
       await xo.audit.startNewChain({ oldest, newest })
     } else {
       await xo.audit.extendLastChain({ oldest, newest })
@@ -379,15 +417,20 @@ class AuditXoPlugin {
       throw error
     }
   }
-}
 
-AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(
-  async function* (id) {
-    for await (const record of this._auditCore.getFrom(id)) {
-      yield JSON.stringify(record)
-      yield '\n'
+  async _deleteRangeAndRewrite({ newest, oldest = newest }) {
+    await this._auditCore.deleteRangeAndRewrite(newest, oldest)
+    if (this._uploadLastHashJob !== undefined) {
+      await this._uploadLastHash()
     }
   }
-)
+}
+
+AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(async function* (id) {
+  for await (const record of this._auditCore.getFrom(id)) {
+    yield JSON.stringify(record)
+    yield '\n'
+  }
+})
 
 export default opts => new AuditXoPlugin(opts)

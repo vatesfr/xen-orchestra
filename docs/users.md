@@ -48,6 +48,53 @@ LDAP Filters allow you to properly match your user. It's not an easy task to alw
 
 After finishing the configuration, you can try to log in with your LDAP username and password. Finally, right after your initial successful log in, your account will be visible in the user list of Xen Orchestra.
 
+#### Groups
+
+The LDAP plugin allows you to synchronize user groups. To configure the synchronization, check the checkbox next to **Synchronize groups** and fill out the configuration:
+
+![LDAP plugin group settings](./assets/ldapgroupconfig.png)
+
+- **Base and filter**: similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
+- **ID attribute**: the attribute that the plugin will use to uniquely identify each group. It must be unique across groups and must not change over time. On each synchronization, the plugin will compare LDAP groups with XO groups, then try to match them based on this attribute and create/update XO groups if necessary.
+- **Display name attribute**: the attribute that will be used as the group's name in XO.
+- **Members mapping**: this part of the configuration is used to determine which LDAP users belong to which LDAP groups. Given an LDAP directory that looks like this:
+
+User:
+
+```
+objectClass: Person
+cn: Bruce Wayne
+uid: 347
+...
+```
+
+Group:
+
+```
+objectClass: Group
+cn: heroes
+displayName: Heroes
+gid: 456
+member: 347
+member: 348
+...
+```
+
+The plugin needs to know that Bruce Wayne belongs to the heroes group. To do so, you need to set 2 entries in the configuration:
+
+- **Group attribute**, which is the name of the *group* attribute that is used to list users within a group. In this example, it would be `member`.
+- **User attribute**, which is the name of the *user* attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
+
+Save the configuration and you're good to go. From now on, every time an LDAP user logs into XO, the plugin will automatically create or update that user's groups and add them to those groups. If you need to import all the groups at once, you can do so from Settings > Groups > Synchronize LDAP Groups. This can be useful if you want to assign ACLs on groups without having to wait for a member of the group to log in.
+
+:::tip
+Importing the groups doesn't import their members. The users will still be imported one by one when they log in for the first time.
+:::
+
+:::tip
+You can find the LDAP users by entering this filter in the users table: `authProviders:ldap?`.
+:::
+
 ### SAML
 
 This plugin allows SAML users to authenticate to Xen-Orchestra.
@@ -277,6 +324,34 @@ Self-service is a major step in the Cloud. Combine it with our [Cloudinit compat
 Now, your authorized users can create VMs with their SSH keys, grow template disks if needed, etc. Everything is inside a "sandbox" (the resource set) you defined earlier!
 
 ![](https://pbs.twimg.com/media/CYMt2cJUkAAWCPg.png)
+
+## Audit log
+
+XO Audit Log is a plugin that records all important actions performed by users and provides the administrators an overview of each action. This gives them an idea of the users behavior regarding their infrastructure in order to track suspicious activities.
+
+### How does it work?
+
+XO Audit Log listens to important actions performed by users and stores them in the XOA database using the [hash chain structure](https://en.wikipedia.org/wiki/Hash_chain).
+
+### Trustability of the records
+
+Stored records are secured by:
+
+- structure: records are chained using the hash chain structure which means that each record is linked to its parent in a cryptographically secure way. This structure prevents the alteration of old records.
+
+- hash upload: the hash chain structure has limits, it does not protect from the rewrite of recent/all records. To reduce this risk, the Audit log plugin regularly uploads the last record hash to our database after checking the integrity of the whole record chain. This functionality keeps the records safe by notifying users in case of alteration of the records.
+
+### Configuration
+
+The recording of the users' actions is disabled by default. To enable it:
+
+1. go into `settings/plugins`
+2. expand the `audit` configuration
+3. toggle active and save the configuration
+
+![](./assets/audit_log_configuration.png)
+
+Now, the audit plugin will record users' actions and upload the last record in the chain every day at **06:00 AM (UTC)**.
 
 ## Debugging
 

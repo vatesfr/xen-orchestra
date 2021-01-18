@@ -68,11 +68,7 @@ export default class DeleteBackupsModalBody extends Component {
           ))}
         </div>
         <div>
-          <Toggle
-            iconSize={1}
-            onChange={this._selectAll}
-            value={this._getAllSelected()}
-          />{' '}
+          <Toggle iconSize={1} onChange={this._selectAll} value={this._getAllSelected()} />{' '}
           {_('deleteVmBackupsSelectAll')}
         </div>
       </div>

@@ -92,10 +92,7 @@ module.exports = {
         collapsable: false, // optional, defaults to true
         sidebarDepth: 1, // optional, defaults to 1
         children: [
-          [
-            'https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#changelog',
-            'Changelog',
-          ],
+          ['https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#changelog', 'Changelog'],
           ['/code_of_conduct', 'Code of Conduct'],
           ['/contributing', 'Contributing'],
           ['/licenses', 'Licenses'],

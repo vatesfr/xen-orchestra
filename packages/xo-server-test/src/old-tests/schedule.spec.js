@@ -5,13 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {
-  getConfig,
-  getMainConnection,
-  getSchedule,
-  jobTest,
-  scheduleTest,
-} from './util'
+import { getConfig, getMainConnection, getSchedule, jobTest, scheduleTest } from './util'
 import eventToPromise from 'event-to-promise'
 import { map } from 'lodash'
 
@@ -37,20 +31,13 @@ describe('schedule', () => {
   // -----------------------------------------------------------------
 
   afterAll(async () => {
-    await Promise.all([
-      xo.call('job.delete', { id: jobId }),
-      xo.call('server.remove', { id: serverId }),
-    ])
+    await Promise.all([xo.call('job.delete', { id: jobId }), xo.call('server.remove', { id: serverId })])
   })
 
   // -----------------------------------------------------------------
 
   afterEach(async () => {
-    await Promise.all(
-      map(scheduleIds, scheduleId =>
-        xo.call('schedule.delete', { id: scheduleId })
-      )
-    )
+    await Promise.all(map(scheduleIds, scheduleId => xo.call('schedule.delete', { id: scheduleId })))
     scheduleIds = []
   })
 
