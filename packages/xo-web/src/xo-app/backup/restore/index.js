@@ -109,7 +109,8 @@ export default class Restore extends Component {
       first = { timestamp: Infinity }
       last = { timestamp: 0 }
       const count = {}
-      let size = 0
+      let fullSize = 0
+      let deltaSize = 0
       forEach(data.backups, backup => {
         if (backup.timestamp > last.timestamp) {
           last = backup
@@ -120,11 +121,15 @@ export default class Restore extends Component {
         count[backup.mode] = (count[backup.mode] || 0) + 1
 
         if (backup.size !== undefined) {
-          size += backup.size
+          if (backup.mode === 'full') {
+            fullSize += backup.size
+          } else if (backup.size > deltaSize) {
+            deltaSize = backup.size
+          }
         }
       })
 
-      Object.assign(data, { first, last, count, id: vmId, size })
+      Object.assign(data, { first, last, count, id: vmId, size: fullSize + deltaSize })
     })
 
     forEach(backupDataByVm, ({ backups }, vmId) => {
