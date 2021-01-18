@@ -371,45 +371,23 @@ export class RemoteAdapter {
     const backups = []
 
     try {
-      const files = (
-        await handler.list(`${BACKUP_DIR}/${vmUuid}`, {
-          filter: isMetadataFile,
-          prependDir: true,
-        })
-      ).sort()
-
-      const chainSizeByVdi = {}
-      for (const file of files) {
+      const files = await handler.list(`${BACKUP_DIR}/${vmUuid}`, {
+        filter: isMetadataFile,
+        prependDir: true,
+      })
+      await asyncMap(files, async file => {
         try {
           const metadata = await this.readVmBackupMetadata(file)
           if (predicate === undefined || predicate(metadata)) {
             // inject an id usable by importVmBackupNg()
             metadata.id = metadata._filename
 
-            // a backup size is a sum of all its VHDs' size
-            // a VHD size is a sum of the VHDs' chain size
-            if (metadata.mode === 'delta') {
-              for (const vhdRef in metadata.vdis) {
-                const vdiUuid = metadata.vdis[vhdRef].$snapshot_of$uuid
-                const vhdPath = metadata.vhds[vhdRef]
-
-                if (chainSizeByVdi[vdiUuid] === undefined) {
-                  chainSizeByVdi[vdiUuid] = 0
-                }
-                if (metadata.size === undefined) {
-                  metadata.size = 0
-                }
-
-                metadata.size += chainSizeByVdi[vdiUuid] += await handler.getSize(`${BACKUP_DIR}/${vmUuid}/${vhdPath}`)
-              }
-            }
-
             backups.push(metadata)
           }
         } catch (error) {
           warn(`listVmBackups ${file}`, { error })
         }
-      }
+      })
     } catch (error) {
       let code
       if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {

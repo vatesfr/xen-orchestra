@@ -129,7 +129,7 @@ export class DeltaBackupWriter {
     )
 
     const metadataFilename = `${backupDir}/${basename}.json`
-    const metadataContent = JSON.stringify({
+    const metadataContent = {
       jobId,
       mode: job.mode,
       scheduleId,
@@ -141,14 +141,14 @@ export class DeltaBackupWriter {
       vhds,
       vm,
       vmSnapshot: this._backup.exportedVm,
-    })
+    }
 
     const { deleteFirst } = settings
     if (deleteFirst) {
       await deleteOldBackups()
     }
 
-    await Task.run({ name: 'transfer' }, async () => {
+    const { size } = await Task.run({ name: 'transfer' }, async () => {
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
           const path = `${backupDir}/${vhds[id]}`
@@ -197,7 +197,8 @@ export class DeltaBackupWriter {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
     })
-    await handler.outputFile(metadataFilename, metadataContent, {
+    metadataContent.size = size
+    await handler.outputFile(metadataFilename, JSON.stringify(metadataContent), {
       dirMode: backup.config.dirMode,
     })
 
