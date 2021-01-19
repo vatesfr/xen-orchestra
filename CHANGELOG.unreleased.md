@@ -24,6 +24,7 @@
 - [VM/network] Change VIF's locking mode automatically to `network_default` when changing network (PR [#5500](https://github.com/vatesfr/xen-orchestra/pull/5500))
 - [Backup/S3] Fix `TimeoutError: Connection timed out after 120000ms` (PR [#5456](https://github.com/vatesfr/xen-orchestra/pull/5456))
 - [New SR/reattach SR] Fix SR not being properly reattached to hosts [#4546](https://github.com/vatesfr/xen-orchestra/issues/4546) (PR [#5488](https://github.com/vatesfr/xen-orchestra/pull/5488))
+- [Home/pool] Missing patches warning: fix 1 patch showing as missing in case of error [#4922](https://github.com/vatesfr/xen-orchestra/issues/4922)
 
 ### Packages to release
 

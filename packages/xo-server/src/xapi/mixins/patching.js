@@ -151,7 +151,13 @@ export default {
   // list all yum updates available for a XCP-ng host
   // (hostObject) → { uuid: patchObject }
   async _listXcpUpdates(host) {
-    return JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'check_update', {}))
+    const result = JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'check_update', {}))
+
+    if (result.error != null) {
+      throw new Error(result.error)
+    }
+
+    return result
   },
 
   // list all patches provided by Citrix for this host version regardless
@@ -306,11 +312,12 @@ export default {
     // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
     for (const host of hosts) {
-      const update = await this.call('host.call_plugin', host.$ref, 'updater.py', 'update', {})
+      const result = JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'update', {}))
 
-      if (JSON.parse(update).exit !== 0) {
-        throw new Error('Update install failed')
+      if (result.exit !== 0) {
+        throw new Error(result.stderr)
       } else {
+        log.debug(result.stdout)
         await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
       }
     }
