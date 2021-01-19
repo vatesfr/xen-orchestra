@@ -18,11 +18,16 @@ const runHook = async (emitter, hook) => {
 }
 
 export default class Hooks extends EventEmitter {
-  constructor(xo, { config }) {
+  constructor(app) {
     super()
 
-    // `debounceResource` opens a listener on each method call
-    this.setMaxListeners(config.maxHooksListeners)
+    // work-around cyclic mixin dependency with Config
+    setImmediate(() => {
+      // `debounceResource` opens a listener on each method call
+      app.config.watch('maxHooksListeners', n => {
+        this.setMaxListeners(n)
+      })
+    })
   }
 
   // Run *clean* async listeners.

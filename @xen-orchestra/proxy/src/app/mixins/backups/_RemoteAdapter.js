@@ -8,7 +8,6 @@ import { basename, dirname, join, normalize, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
-import { parseDuration } from '@vates/parse-duration'
 import { readdir, stat } from 'fs-extra'
 
 import { debounceResource } from '../../_debounceResource'
@@ -52,13 +51,12 @@ async function addDirectory(files, realPath, metadataPath) {
 }
 
 function getDebouncedResource(resource) {
-  return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
+  return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
 }
 
 export class RemoteAdapter {
-  constructor(handler, { app, config }) {
+  constructor(handler, { app }) {
     this._app = app
-    this._config = config
     this._handler = handler
   }
 
@@ -402,7 +400,10 @@ export class RemoteAdapter {
     const handler = this._handler
     input = await input
     const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = await handler.createOutputStream(tmpPath, { checksum, dirMode: this._config.backups.dirMode })
+    const output = await handler.createOutputStream(tmpPath, {
+      checksum,
+      dirMode: this._app.config.get('backups.dirMode'),
+    })
     try {
       await Promise.all([fromCallback(pump, input, output), output.checksumWritten, input.task])
       await validator(tmpPath)
