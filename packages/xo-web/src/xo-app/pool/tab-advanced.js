@@ -67,15 +67,20 @@ class PoolMaster extends Component {
 })
 export default class TabAdvanced extends Component {
   _getMigrationNetworkPredicate = createSelector(
-    createCollectionWrapper(() => {
-      const networkIds = new Set()
-      this.props.pifs.forEach(pif => {
-        if (pif.ip !== '') {
-          networkIds.add(pif.$network)
+    createCollectionWrapper(
+      createSelector(
+        () => this.props.pifs,
+        pifs => {
+          const networkIds = new Set()
+          pifs.forEach(pif => {
+            if (pif.ip !== '') {
+              networkIds.add(pif.$network)
+            }
+          })
+          return networkIds
         }
-      })
-      return networkIds
-    }),
+      )
+    ),
     networkIds => network => networkIds.has(network.id)
   )
 
@@ -216,7 +221,7 @@ export default class TabAdvanced extends Component {
               <table className='table'>
                 <tbody>
                   <tr>
-                    <th>{_('migrationNetwork')}</th>
+                    <th>{_('defaultMigrationNetwork')}</th>
                     <td>
                       <XoSelect
                         onChange={this._onChangeMigrationNetwork}
