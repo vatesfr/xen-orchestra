@@ -39,7 +39,7 @@ import TabPatches from './tab-patches'
     .sort()
 
   const getPifs = createGetObjectsOfType('PIF')
-    .filter(createSelector(getPool, ({ id }) => _ => _.$pool === id))
+    .filter(createSelector(getPool, ({ id }) => pif => pif.$pool === id))
     .sort()
 
   const getHosts = createGetObjectsOfType('host')
