@@ -456,7 +456,7 @@ const NoObjects = props =>
     mapValues(items, item => ({
       ...item,
       container: containers[item.$container || item.$pool],
-      usage: item.size > 0 ? item.physical_usage / item.size : item.physical_usage,
+      usage: item.size > 0 ? item.physical_usage / item.size : 0,
     }))
   )
   // VMs are handled separately because we need to inject their 'vdisUsage'
