@@ -103,6 +103,7 @@ export default class {
         writeRate,
       }
       await this._updateRemote(remoteId, {
+        error: '',
         benchmarks:
           remote.benchmarks !== undefined
             ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks
