@@ -109,6 +109,10 @@ export default class {
             ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks
             : [benchmark],
       })
+    } else {
+      await this._updateRemote(remoteId, {
+        error: answer.error,
+      })
     }
 
     return answer
