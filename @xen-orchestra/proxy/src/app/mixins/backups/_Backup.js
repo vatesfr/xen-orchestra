@@ -14,7 +14,6 @@ const noop = Function.prototype
 export class Backup {
   constructor({
     app,
-    config,
     getConnectedXapi,
     job,
 
@@ -22,6 +21,9 @@ export class Backup {
     remotes,
     schedule,
   }) {
+    // don't change config during backup execution
+    const config = app.config.get('backups')
+
     this._app = app
     this._config = config
     this._getConnectedXapi = getConnectedXapi

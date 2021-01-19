@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const APP_NAME = 'xo-proxy'
+const APP_DIR = require('path').join(__dirname, '..')
 
 // -------------------------------------------------------------------
 
@@ -37,7 +38,7 @@ ${name} v${version}
   info('starting')
 
   const config = await require('app-conf').load(APP_NAME, {
-    appDir: require('path').join(__dirname, '..'),
+    appDir: APP_DIR,
     ignoreUnknownFormats: true,
   })
 
@@ -121,6 +122,7 @@ ${name} v${version}
 
   const App = require('./app').default
   const app = new App({
+    appDir: APP_DIR,
     appName: APP_NAME,
     config,
     httpServer,

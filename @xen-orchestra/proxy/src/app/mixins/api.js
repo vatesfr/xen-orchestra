@@ -24,15 +24,7 @@ const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable
 })
 
 export default class Api {
-  constructor(
-    app,
-    {
-      config: {
-        api: { keepAliveInterval },
-      },
-      httpServer,
-    }
-  ) {
+  constructor(app, { httpServer }) {
     this._ajv = new Ajv({ allErrors: true })
     this._methods = { __proto__: null }
 
@@ -86,6 +78,7 @@ export default class Api {
         const stream = ndJsonStream(body.id, result)
         ctx.body = stream
 
+        const keepAliveInterval = app.config.get('api.keepAliveInterval')
         if (keepAliveInterval !== 0) {
           // In the wild, long term HTTP requests with period of inactivity often
           // breaks, send some data every 10s to keep it opened.
