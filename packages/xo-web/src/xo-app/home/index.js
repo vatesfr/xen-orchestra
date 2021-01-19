@@ -292,7 +292,7 @@ const OPTIONS = {
       { labelId: 'homeSortByShared', sortBy: isSrShared, sortOrder: 'desc' },
       {
         labelId: 'homeSortByUsage',
-        sortBy: 'physical_usage',
+        sortBy: 'usage',
         sortOrder: 'desc',
       },
       { labelId: 'homeSortByType', sortBy: 'SR_type', sortOrder: 'asc' },
@@ -456,6 +456,7 @@ const NoObjects = props =>
     mapValues(items, item => ({
       ...item,
       container: containers[item.$container || item.$pool],
+      usage: item.size > 0 ? (item.physical_usage / item.size) * 100 : item.physical_usage,
     }))
   )
   // VMs are handled separately because we need to inject their 'vdisUsage'
