@@ -7,6 +7,8 @@ import { compileTemplate } from '@xen-orchestra/template'
 import { decorateWith } from '@vates/decorate-with'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
 
+import { asyncMap } from '../../../_asyncMap'
+
 import { PoolMetadataBackup } from './_PoolMetadataBackup'
 import { Task } from './_Task'
 import { VmBackup } from './_VmBackup'
@@ -115,7 +117,7 @@ export class Backup {
         const promises = []
         if (pools.length !== 0 && settings.retentionPoolMetadata !== 0) {
           promises.push(
-            asyncMapSettled(pools, async pool =>
+            asyncMap(pools, async pool =>
               runTask(
                 {
                   name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
