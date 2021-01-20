@@ -2,6 +2,7 @@
 
 import assert from 'assert'
 import contentType from 'content-type'
+import CSON from 'cson-parser'
 import fromCallback from 'promise-toolbox/fromCallback'
 import fs from 'fs'
 import getopts from 'getopts'
@@ -16,6 +17,13 @@ import { load as loadConfig } from 'app-conf'
 import { readChunk } from '@vates/read-chunk'
 
 import pkg from '../package.json'
+
+const FORMATS = {
+  __proto__: null,
+
+  cson: CSON.parse,
+  json: JSON.parse,
+}
 
 const parseValue = value => (value.startsWith('json:') ? JSON.parse(value.slice(5)) : value)
 
@@ -46,7 +54,7 @@ async function main(argv) {
     Call a method of the API and display its result.
 
   xo-proxy-cli [--file | -f] <file>
-    Read a JSON file containing an object with \`method\` and \`params\`
+    Read a CSON or JSON file containing an object with \`method\` and \`params\`
     properties and call the API method.
 
 ${pkg.name} v${pkg.version}`
@@ -124,12 +132,11 @@ ${pkg.name} v${pkg.version}`
   if (file !== '') {
     let data = fs.readFileSync(file, 'utf8')
     const ext = extname(file).slice(1).toLowerCase()
-    data =
-      ext === 'json'
-        ? JSON.parse(data)
-        : (() => {
-            throw new Error(`unsupported file: ${file}`)
-          })()
+    const parse = FORMATS[ext]
+    if (parse === undefined) {
+      throw new Error(`unsupported file: ${file}`)
+    }
+    data = parse(data)
 
     return call(data.method, data.params)
   } else {
