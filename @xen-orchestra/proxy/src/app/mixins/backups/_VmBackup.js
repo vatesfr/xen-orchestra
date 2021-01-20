@@ -1,4 +1,3 @@
-import eos from 'end-of-stream'
 import findLast from 'lodash/findLast'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import keyBy from 'lodash/keyBy'
@@ -6,7 +5,6 @@ import mapValues from 'lodash/mapValues'
 import { createLogger } from '@xen-orchestra/log'
 import { formatDateTime } from '@xen-orchestra/xapi'
 import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
-import { PassThrough } from 'stream'
 import { watchStreamSize } from '@xen-orchestra/backups/watchStreamSize'
 
 import { asyncMap } from '../../../_asyncMap'
@@ -15,36 +13,11 @@ import { ContinuousReplicationWriter } from './_ContinuousReplicationWriter'
 import { DeltaBackupWriter } from './_DeltaBackupWriter'
 import { DisasterRecoveryWriter } from './_DisasterRecoveryWriter'
 import { exportDeltaVm } from './_deltaVm'
+import { forkStreamUnpipe } from './_forkStreamUnpipe'
 import { FullBackupWriter } from './_FullBackupWriter'
 import { Task } from './_Task'
 
 const { debug, warn } = createLogger('xo:proxy:backups:VmBackup')
-
-// create a new readable stream from an existing one which may be piped later
-//
-// in case of error in the new readable stream, it will simply be unpiped
-// from the original one
-const forkStreamUnpipe = stream => {
-  const { forks = 0 } = stream
-  stream.forks = forks + 1
-
-  const proxy = new PassThrough()
-  stream.pipe(proxy)
-  eos(stream, error => {
-    if (error !== undefined) {
-      proxy.destroy(error)
-    }
-  })
-  eos(proxy, _ => {
-    stream.forks--
-    stream.unpipe(proxy)
-
-    if (stream.forks === 0) {
-      stream.destroy(new Error('no more consumers for this stream'))
-    }
-  })
-  return proxy
-}
 
 const forkDeltaExport = deltaExport =>
   Object.create(deltaExport, {
