@@ -475,53 +475,50 @@ export default class metadataBackup {
         params.job.xoMetadata = await app.exportConfig()
       }
 
-      try {
-        const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
-          assertType: 'iterator',
-        })
+      const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
+        assertType: 'iterator',
+      })
 
-        const localTaskIds = { __proto__: null }
-        for await (const log of logsStream) {
-          const { event, message, taskId } = log
+      const localTaskIds = { __proto__: null }
+      for await (const log of logsStream) {
+        const { event, message, taskId } = log
 
-          const common = {
-            data: log.data,
-            event: 'task.' + event,
-            result: log.result,
-            status: log.status,
+        const common = {
+          data: log.data,
+          event: 'task.' + event,
+          result: log.result,
+          status: log.status,
+        }
+
+        if (event === 'start') {
+          const { parentId } = log
+          if (parentId === undefined) {
+            // ignore root task (already handled by runJob)
+            localTaskIds[taskId] = runJobId
+          } else {
+            common.parentId = localTaskIds[parentId]
+            localTaskIds[taskId] = logger.notice(message, common)
           }
-
-          if (event === 'start') {
-            const { parentId } = log
-            if (parentId === undefined) {
-              // ignore root task (already handled by runJob)
-              localTaskIds[taskId] = runJobId
-            } else {
-              common.parentId = localTaskIds[parentId]
-              localTaskIds[taskId] = logger.notice(message, common)
+        } else {
+          const localTaskId = localTaskIds[taskId]
+          if (localTaskId === runJobId) {
+            if (event === 'end') {
+              if (log.status === 'failure') {
+                throw log.result
+              }
+              return log.result
             }
           } else {
-            const localTaskId = localTaskIds[taskId]
-            if (localTaskId === runJobId) {
-              if (event === 'end') {
-                if (log.status === 'failure') {
-                  throw log.result
-                }
-                return log.result
-              }
-            } else {
-              common.taskId = localTaskId
-              logger.notice(message, common)
-            }
+            common.taskId = localTaskId
+            logger.notice(message, common)
           }
         }
-        return
-      } finally {
-        remoteIds.forEach(id => {
-          this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, id)
-          this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, id)
-        })
       }
+      remoteIds.forEach(id => {
+        this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, id)
+        this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, id)
+      })
+      return
     }
 
     cancelToken.throwIfRequested()
