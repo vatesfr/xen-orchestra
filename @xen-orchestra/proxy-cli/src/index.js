@@ -138,7 +138,7 @@ ${pkg.name} v${pkg.version}`
     }
     data = parse(data)
 
-    return call(data.method, data.params)
+    await call(data.method, data.params)
   } else {
     const method = args[0]
     const params = {}
@@ -151,7 +151,7 @@ ${pkg.name} v${pkg.version}`
       params[param.slice(0, j)] = parseValue(param.slice(j + 1))
     }
 
-    return call(method, params)
+    await call(method, params)
   }
 }
 main(process.argv.slice(2)).then(
