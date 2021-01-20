@@ -327,63 +327,6 @@ export class RemoteAdapter {
     return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
-  async listXoMetadataBackups(remoteId) {
-    const handler = this._handler
-    const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
-
-    const backups = []
-    await asyncMapSettled(safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMapSettled(safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
-        try {
-          backups.push({
-            id: `${remoteId}${backupDir}`,
-            ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
-          })
-        } catch (error) {
-          warn(`listXoMetadataBackups ${backupDir}`, { error })
-        }
-      })
-    )
-
-    return backups.sort(compareTimestamp)
-  }
-
-  async listPoolMetadataBackups(remoteId) {
-    const handler = this._handler
-    const safeReaddir = createSafeReaddir(handler, 'listPoolMetadataBackups')
-
-    const backupsByPool = {}
-    await asyncMapSettled(safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMapSettled(safeReaddir(scheduleDir), poolId => {
-        const backups = backupsByPool[poolId] ?? (backupsByPool[poolId] = [])
-        return asyncMapSettled(safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
-          try {
-            backups.push({
-              id: `${remoteId}${backupDir}`,
-              ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
-            })
-          } catch (error) {
-            warn(`listPoolMetadataBackups ${backupDir}`, {
-              error,
-            })
-          }
-        })
-      })
-    )
-
-    // delete empty entries and sort backups
-    Object.keys(backupsByPool).forEach(poolId => {
-      const backups = backupsByPool[poolId]
-      if (backups.length === 0) {
-        delete backupsByPool[poolId]
-      } else {
-        backups.sort(compareTimestamp)
-      }
-    })
-
-    return backupsByPool
-  }
-
   async listAllVmBackups() {
     const handler = this._handler
 
@@ -439,6 +382,42 @@ export class RemoteAdapter {
     })
   }
 
+  async listPoolMetadataBackups(remoteId) {
+    const handler = this._handler
+    const safeReaddir = createSafeReaddir(handler, 'listPoolMetadataBackups')
+
+    const backupsByPool = {}
+    await asyncMap(safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), scheduleDir =>
+      asyncMap(safeReaddir(scheduleDir), poolId => {
+        const backups = backupsByPool[poolId] ?? (backupsByPool[poolId] = [])
+        return asyncMap(safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
+          try {
+            backups.push({
+              id: `${remoteId}${backupDir}`,
+              ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
+            })
+          } catch (error) {
+            warn(`listPoolMetadataBackups ${backupDir}`, {
+              error,
+            })
+          }
+        })
+      })
+    )
+
+    // delete empty entries and sort backups
+    Object.keys(backupsByPool).forEach(poolId => {
+      const backups = backupsByPool[poolId]
+      if (backups.length === 0) {
+        delete backupsByPool[poolId]
+      } else {
+        backups.sort(compareTimestamp)
+      }
+    })
+
+    return backupsByPool
+  }
+
   async listVmBackups(vmUuid, predicate) {
     const handler = this._handler
     const backups = []
@@ -467,6 +446,27 @@ export class RemoteAdapter {
         throw error
       }
     }
+
+    return backups.sort(compareTimestamp)
+  }
+
+  async listXoMetadataBackups(remoteId) {
+    const handler = this._handler
+    const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
+
+    const backups = []
+    await asyncMap(safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), scheduleDir =>
+      asyncMap(safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
+        try {
+          backups.push({
+            id: `${remoteId}${backupDir}`,
+            ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
+          })
+        } catch (error) {
+          warn(`listXoMetadataBackups ${backupDir}`, { error })
+        }
+      })
+    )
 
     return backups.sort(compareTimestamp)
   }
