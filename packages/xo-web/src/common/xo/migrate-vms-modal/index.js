@@ -275,7 +275,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             {intraPool && <i>{_('optionalEntry')}</i>}
           </div>
         )}
-        {host && (!intraPool || !noVdisMigration) && (
+        {host && (!noVdisMigration || migrationNetworkId != null) && (
           <div key='sr' style={LINE_STYLE}>
             <SingleLineRow>
               <Col size={6}>
@@ -297,7 +297,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
                 )}
               </Col>
               <Col size={6}>
-                <SelectSr onChange={this._selectSr} predicate={this._getSrPredicate()} value={srId} />
+                <SelectSr onChange={this._selectSr} predicate={this._getSrPredicate()} required value={srId} />
               </Col>
             </SingleLineRow>
           </div>
