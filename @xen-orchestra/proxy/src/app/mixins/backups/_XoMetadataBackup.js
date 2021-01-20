@@ -1,5 +1,6 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
+
+import { asyncMap } from '../../../_asyncMap'
 
 import { Task } from './_Task'
 
@@ -7,17 +8,17 @@ const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {
-    this.config = config
-    this.job = job
-    this.remoteAdapters = remoteAdapters
-    this.schedule = schedule
-    this.settings = settings
+    this._config = config
+    this._job = job
+    this._remoteAdapters = remoteAdapters
+    this._schedule = schedule
+    this._settings = settings
   }
 
   async run() {
     const timestamp = Date.now()
 
-    const { job, schedule } = this
+    const { _job: job, _schedule: schedule } = this
     const scheduleDir = `${DIR_XO_CONFIG_BACKUPS}/${schedule.id}`
     const dir = `${scheduleDir}/${formatFilenameDate(timestamp)}`
 
@@ -37,9 +38,9 @@ export class XoMetadataBackup {
     )
     const metaDataFileName = `${dir}/metadata.json`
 
-    await asyncMapSettled(
-      this.remoteAdapters,
-      (adapter, remoteId) =>
+    await asyncMap(
+      Object.entries(this.remoteAdapters),
+      ([remoteId, adapter]) =>
         Task.run(
           {
             name: `Starting XO metadata backup for the remote (${remoteId}). (${job.id})`,
@@ -50,12 +51,12 @@ export class XoMetadataBackup {
           },
           async () => {
             const handler = adapter.handler
-            const dirMode = this.config.dirMode
+            const dirMode = this._config.dirMode
             await handler.outputFile(fileName, data, { dirMode })
             await handler.outputFile(metaDataFileName, metadata, {
               dirMode,
             })
-            await adapter.deleteOldMetadataBackups(scheduleDir, this.settings.retentionXoMetadata)
+            await adapter.deleteOldMetadataBackups(scheduleDir, this._settings.retentionXoMetadata)
           }
         ).catch(() => {}) // errors are handled by logs
     )

@@ -101,40 +101,41 @@ export class Backup {
           })
         )
       ),
-      async (pools, adapters) => {
+      async (pools, remoteAdapters) => {
         // remove adapters that failed (already handled)
-        adapters = adapters.filter(_ => _ !== undefined)
-        if (adapters.length === 0) {
+        remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
+        if (remoteAdapters.length === 0) {
           return
         }
+        remoteAdapters = getAdaptersByRemote(remoteAdapters)
+
+        // remove pools that failed (already handled)
+        pools = pools.filter(_ => _ !== undefined)
 
         const promises = []
         if (pools.length !== 0 && settings.retentionPoolMetadata !== 0) {
           promises.push(
-            asyncMapSettled(
-              pools,
-              async pool =>
-                pool !== undefined &&
-                runTask(
-                  {
-                    name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
-                    data: {
-                      id: pool.$id,
-                      pool,
-                      poolMaster: await ignoreErrors.call(pool.$xapi.getRecord('host', pool.master)),
-                      type: 'pool',
-                    },
+            asyncMapSettled(pools, async pool =>
+              runTask(
+                {
+                  name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
+                  data: {
+                    id: pool.$id,
+                    pool,
+                    poolMaster: await ignoreErrors.call(pool.$xapi.getRecord('host', pool.master)),
+                    type: 'pool',
                   },
-                  () =>
-                    new PoolMetadataBackup({
-                      config,
-                      job,
-                      pool,
-                      remoteAdapters: getAdaptersByRemote(adapters),
-                      schedule,
-                      settings,
-                    }).run()
-                )
+                },
+                () =>
+                  new PoolMetadataBackup({
+                    config,
+                    job,
+                    pool,
+                    remoteAdapters,
+                    schedule,
+                    settings,
+                  }).run()
+              )
             )
           )
         }
@@ -152,7 +153,7 @@ export class Backup {
                 new XoMetadataBackup({
                   config,
                   job,
-                  remoteAdapters: getAdaptersByRemote(adapters),
+                  remoteAdapters,
                   schedule,
                   settings,
                 }).run()
@@ -183,18 +184,15 @@ export class Backup {
     await using(
       Disposable.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _))),
       Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
-      async (srs, adapters) => {
+      async (srs, remoteAdapters) => {
         const vmIds = extractIdsFromSimplePattern(job.vms)
 
         Task.info('vms', { vms: vmIds })
 
-        const remoteAdapters = {}
-        adapters.forEach(({ adapter, remoteId }) => {
-          remoteAdapters[remoteId] = adapter
-        })
+        remoteAdapters = getAdaptersByRemote(remoteAdapters)
 
         const handleVm = vmUuid =>
-          Task.run({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
+          runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
             using(this._getRecord('VM', vmUuid), vm =>
               new VmBackup({
                 config,
@@ -208,7 +206,7 @@ export class Backup {
                 vm,
               }).run()
             )
-          ).catch(noop) // errors are handled by logs
+          )
         const { concurrency } = scheduleSettings
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
