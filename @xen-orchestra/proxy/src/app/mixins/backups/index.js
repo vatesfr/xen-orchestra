@@ -224,9 +224,9 @@ export default class Backups {
         listPoolMetadataBackups: [
           async ({ remotes }) => {
             const backupsByRemote = {}
-            await asyncMap(Object.keys(remotes), async remoteId => {
+            await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
               try {
-                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
+                await using(app.remotes.getAdapter(remote), async adapter => {
                   backupsByRemote[remoteId] = await adapter.listPoolMetadataBackups(remoteId)
                 })
               } catch (error) {
@@ -237,30 +237,6 @@ export default class Backups {
           },
           {
             description: 'list pool metadata backups',
-            params: {
-              remotes: {
-                type: 'object',
-                additionalProperties: { type: 'object' },
-              },
-            },
-          },
-        ],
-        listXoMetadataBackups: [
-          async ({ remotes }) => {
-            const backupsByRemote = {}
-            await asyncMap(Object.keys(remotes), async remoteId => {
-              try {
-                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
-                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups(remoteId)
-                })
-              } catch (error) {
-                warn('listXoMetadataBackups', { error, remote: remotes[remoteId] })
-              }
-            })
-            return backupsByRemote
-          },
-          {
-            description: 'list XO metadata backups',
             params: {
               remotes: {
                 type: 'object',
@@ -299,6 +275,30 @@ export default class Backups {
           () => Object.keys(runningJobs),
           {
             description: 'returns a list of running jobs',
+          },
+        ],
+        listXoMetadataBackups: [
+          async ({ remotes }) => {
+            const backupsByRemote = {}
+            await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
+              try {
+                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
+                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups(remoteId)
+                })
+              } catch (error) {
+                warn('listXoMetadataBackups', { error, remote: remotes[remoteId] })
+              }
+            })
+            return backupsByRemote
+          },
+          {
+            description: 'list XO metadata backups',
+            params: {
+              remotes: {
+                type: 'object',
+                additionalProperties: { type: 'object' },
+              },
+            },
           },
         ],
         run: [
