@@ -387,10 +387,10 @@ export class RemoteAdapter {
     const safeReaddir = createSafeReaddir(handler, 'listPoolMetadataBackups')
 
     const backupsByPool = {}
-    await asyncMap(safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMap(safeReaddir(scheduleDir), poolId => {
+    await asyncMap(await safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), async scheduleDir =>
+      asyncMap(await safeReaddir(scheduleDir), async poolId => {
         const backups = backupsByPool[poolId] ?? (backupsByPool[poolId] = [])
-        return asyncMap(safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
+        return asyncMap(await safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
           try {
             backups.push({
               id: `${remoteId}${backupDir}`,
@@ -455,8 +455,8 @@ export class RemoteAdapter {
     const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
 
     const backups = []
-    await asyncMap(safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMap(safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
+    await asyncMap(await safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), async scheduleDir =>
+      asyncMap(await safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
         try {
           backups.push({
             id: `${remoteId}${backupDir}`,
