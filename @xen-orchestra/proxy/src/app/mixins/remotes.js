@@ -4,7 +4,6 @@ import tmp from 'tmp'
 import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
-import { parseDuration } from '@vates/parse-duration'
 import { rmdir } from 'fs-extra'
 
 import { debounceResource } from '../_debounceResource'
@@ -14,13 +13,12 @@ import { deduped } from '../_deduped'
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
 function getDebouncedResource(resource) {
-  return debounceResource(resource, this._app.hooks, parseDuration(this._config.resourceDebounce))
+  return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
 }
 
 export default class Remotes {
-  constructor(app, { config }) {
+  constructor(app) {
     this._app = app
-    this._config = config
 
     app.api.addMethods({
       remote: {
@@ -53,7 +51,7 @@ export default class Remotes {
   @decorateResult(getDebouncedResource)
   @decorateWith(deduped, remote => [remote.url])
   async getHandler(remote) {
-    const handler = getHandler(remote, this._config.remoteOptions)
+    const handler = getHandler(remote, this._app.config.get('remoteOptions'))
 
     if (!__DEV__ && handler.type === 'file') {
       throw new Error('Local remotes are disabled in proxies')
@@ -68,10 +66,7 @@ export default class Remotes {
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(Disposable.factory)
   *getAdapter(remote) {
-    return new RemoteAdapter(yield this.getHandler(remote), {
-      app: this._app,
-      config: this._config,
-    })
+    return new RemoteAdapter(yield this.getHandler(remote), { app: this._app })
   }
 
   async getTempMountDir() {

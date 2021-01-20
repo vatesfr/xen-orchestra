@@ -11,7 +11,6 @@ import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
-import { parseDuration } from '@vates/parse-duration'
 import { Xapi } from '@xen-orchestra/xapi'
 import { ZipFile } from 'yazl'
 
@@ -31,10 +30,8 @@ const noop = Function.prototype
 const { warn } = createLogger('xo:proxy:backups')
 
 export default class Backups {
-  constructor(app, { config: { backups: config, resourceDebounce, xapiOptions: globalXapiOptions } }) {
+  constructor(app) {
     this._app = app
-    this._globalXapiOptions = globalXapiOptions
-    this._resourceDebounce = resourceDebounce
 
     // clean any LVM volumes that might have not been properly
     // unmounted
@@ -47,7 +44,6 @@ export default class Backups {
       new Backup({
         ...rest,
         app,
-        config,
         getConnectedXapi: id => this.getXapi(xapis[id]),
       }).run()
 
@@ -337,13 +333,13 @@ export default class Backups {
 
   // FIXME: invalidate cache on options change
   @decorateResult(function (resource) {
-    return debounceResource(resource, this._app.hooks, parseDuration(this._resourceDebounce))
+    return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
   })
   @decorateWith(deduped, ({ url }) => [url])
   @decorateWith(Disposable.factory)
   async *getXapi({ credentials: { username: user, password }, ...opts }) {
     const xapi = new Xapi({
-      ...this._globalXapiOptions,
+      ...this._app.config.get('xapiOptions'),
       ...opts,
       auth: {
         user,
