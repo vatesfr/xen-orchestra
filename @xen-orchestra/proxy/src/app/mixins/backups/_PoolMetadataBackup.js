@@ -51,7 +51,7 @@ export class PoolMetadataBackup {
     const metaDataFileName = `${dir}/metadata.json`
 
     await asyncMap(
-      Object.entries(this.remoteAdapters),
+      Object.entries(this._remoteAdapters),
       ([remoteId, adapter]) =>
         Task.run(
           {
