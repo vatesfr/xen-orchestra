@@ -102,6 +102,7 @@ export class Backup {
         )
       ),
       async (pools, adapters) => {
+        // remove adapters that failed (already handled)
         adapters = adapters.filter(_ => _ !== undefined)
         if (adapters.length === 0) {
           return
