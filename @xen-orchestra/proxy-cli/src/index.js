@@ -116,7 +116,7 @@ ${pkg.name} v${pkg.version}`
       } else if (raw && typeof result === 'string') {
         stdout.write(result)
       } else {
-        process.stdout.write(inspect(result, { colors: true, depth: null }))
+        stdout.write(inspect(result, { colors: true, depth: null }))
         stdout.write('\n')
       }
     } catch (error) {
