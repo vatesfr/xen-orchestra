@@ -57,6 +57,9 @@ async function main(argv) {
     Read a CSON or JSON file containing an object with \`method\` and \`params\`
     properties and call the API method.
 
+    The file can also contain an array containing multiple calls, which will be
+    run in sequence.
+
 ${pkg.name} v${pkg.version}`
     )
   }
@@ -137,8 +140,16 @@ ${pkg.name} v${pkg.version}`
       throw new Error(`unsupported file: ${file}`)
     }
     data = parse(data)
+    if (!Array.isArray(data)) {
+      data = [data]
+    }
 
-    await call(data.method, data.params)
+    for (let i = 0, n = data.length; i < n; ++i) {
+      process.stderr.write(`\n${i}-th call...\n`)
+
+      const { method, params } = data[i]
+      await call(method, params)
+    }
   } else {
     const method = args[0]
     const params = {}
