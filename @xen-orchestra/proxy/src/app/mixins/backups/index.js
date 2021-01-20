@@ -208,27 +208,16 @@ export default class Backups {
             },
           },
         ],
-        listXoMetadataBackups: [
-          async ({ remotes }) => {
-            const backupsByRemote = {}
-            await asyncMap(Object.keys(remotes), async remoteId => {
-              try {
-                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
-                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups(remoteId)
-                })
-              } catch (error) {
-                warn('listXoMetadataBackups', { error, remote: remotes[remoteId] })
-              }
-            })
-            return backupsByRemote
-          },
+        listPartitionFiles: [
+          ({ disk: diskId, remote, partition: partitionId, path }) =>
+            using(app.remotes.getAdapter(remote), adapter => adapter.listPartitionFiles(diskId, partitionId, path)),
           {
-            description: 'list XO metadata backups',
+            description: 'list partition files',
             params: {
-              remotes: {
-                type: 'object',
-                additionalProperties: { type: 'object' },
-              },
+              disk: { type: 'string' },
+              partition: { type: 'string', optional: true },
+              path: { type: 'string' },
+              remote: { type: 'object' },
             },
           },
         ],
@@ -256,16 +245,27 @@ export default class Backups {
             },
           },
         ],
-        listPartitionFiles: [
-          ({ disk: diskId, remote, partition: partitionId, path }) =>
-            using(app.remotes.getAdapter(remote), adapter => adapter.listPartitionFiles(diskId, partitionId, path)),
+        listXoMetadataBackups: [
+          async ({ remotes }) => {
+            const backupsByRemote = {}
+            await asyncMap(Object.keys(remotes), async remoteId => {
+              try {
+                await using(app.remotes.getAdapter(remotes[remoteId]), async adapter => {
+                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups(remoteId)
+                })
+              } catch (error) {
+                warn('listXoMetadataBackups', { error, remote: remotes[remoteId] })
+              }
+            })
+            return backupsByRemote
+          },
           {
-            description: 'list partition files',
+            description: 'list XO metadata backups',
             params: {
-              disk: { type: 'string' },
-              partition: { type: 'string', optional: true },
-              path: { type: 'string' },
-              remote: { type: 'object' },
+              remotes: {
+                type: 'object',
+                additionalProperties: { type: 'object' },
+              },
             },
           },
         ],
