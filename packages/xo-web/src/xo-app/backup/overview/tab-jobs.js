@@ -301,7 +301,7 @@ class JobsTable extends React.Component {
 
           return (
             <Ul>
-              {proxyId !== undefined && <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} />)}</Li>}
+              {proxyId !== undefined && <Li>{_.keyValue(_('proxy'), <Proxy id={proxyId} key={proxyId} />)}</Li>}
               {reportWhen !== undefined && <Li>{_.keyValue(_('reportWhen'), reportWhen)}</Li>}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
               {timeout !== undefined && <Li>{_.keyValue(_('timeout'), timeout / 3600e3)} hours</Li>}

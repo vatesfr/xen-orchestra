@@ -17,7 +17,7 @@ import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
-import { getDefaultNetworkForVif } from '../utils'
+import { getDefaultNetworkForVif, getDefaultMigrationNetwork } from '../utils'
 import { SelectHost, SelectNetwork, SelectSr } from '../../select-objects'
 import { connectStore, createCompare } from '../../utils'
 import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
@@ -180,7 +180,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       return
     }
     const { pools, pifs } = this.props
-    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
+    const defaultMigrationNetworkId = getDefaultMigrationNetwork(host, pools, pifs)
     const defaultSrId = pools[host.$pool].default_SR
     const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
 

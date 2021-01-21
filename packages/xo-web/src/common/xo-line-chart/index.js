@@ -375,7 +375,7 @@ export const PifLineChart = injectIntl(({ addSumSeries, data, options = {}, intl
     <ChartistGraph
       type='Line'
       data={{
-        series: buildSeries({ addSumSeries, stats, label: 'Pif' }),
+        series: buildSeries({ addSumSeries, stats, label: 'eth' }),
       }}
       options={{
         ...makeOptions({
