@@ -17,10 +17,11 @@ import { deduped } from '../../_deduped'
 import { asyncMap } from '../../../_asyncMap'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
-import { DIR_XO_CONFIG_BACKUPS } from './_XoMetadataBackup'
-import { DIR_XO_POOL_METADATA_BACKUPS } from './_PoolMetadataBackup'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
 import { lvs, pvs } from './_lvm'
+
+export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
+export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 

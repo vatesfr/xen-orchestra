@@ -139,13 +139,15 @@ declare namespace backup {
 
   function importVmBackup(_: { backupId: string; remote: Remote; srUuid: string; xapi: Xapi }): string
 
-  function listPoolMetadataBackups(_: { remotes: { [id: string]: Remote } }): object
+  function listPoolMetadataBackups(_: {
+    remotes: { [id: string]: Remote }
+  }): { [remoteId: string]: { [poolUuid: string]: object[] } }
 
   function listVmBackups(_: {
     remotes: { [remoteId: string]: Remote }
   }): { [remoteId: string]: { [vmUuid: string]: object[] } }
 
-  function listXoMetadataBackups(_: { remotes: { [id: string]: Remote } }): object
+  function listXoMetadataBackups(_: { remotes: { [id: string]: Remote } }): { [remoteId: string]: object[] }
 
   function run(_: {
     job: BackupJob | MetadataBackupJob

@@ -2,9 +2,8 @@ import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 
 import { asyncMap } from '../../../_asyncMap'
 
+import { DIR_XO_CONFIG_BACKUPS } from './_RemoteAdapter'
 import { Task } from './_Task'
-
-export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {
