@@ -244,6 +244,18 @@ export class RemoteAdapter {
     return mergedDataSize
   }
 
+  async deleteMetadataBackup(id) {
+    const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
+    const metadataDirReg = 'xo-(config|pool-metadata)-backups'
+    const timestampReg = '\\d{8}T\\d{6}Z'
+    const regexp = new RegExp(`^${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
+    if (!regexp.test(id)) {
+      throw new Error(`The id (${id}) not correspond to a metadata folder`)
+    }
+
+    await this._handler.rmtree(id)
+  }
+
   async deleteOldMetadataBackups(dir, retention) {
     const handler = this.handler
     let list = await handler.list(dir)

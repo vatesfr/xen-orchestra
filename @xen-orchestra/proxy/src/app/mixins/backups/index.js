@@ -119,6 +119,16 @@ export default class Backups {
 
     app.api.addMethods({
       backup: {
+        deleteMetadataBackup: [
+          ({ id, remote }) => using(app.remotes.getAdapter(remote), adapter => adapter.deleteMetadataBackup(id)),
+          {
+            description: 'delete Metadata backup',
+            params: {
+              id: { type: 'string' },
+              remote: { type: 'object' },
+            },
+          },
+        ],
         deleteVmBackup: [
           ({ filename, remote }) => using(app.remotes.getAdapter(remote), adapter => adapter.deleteVmBackup(filename)),
           {
