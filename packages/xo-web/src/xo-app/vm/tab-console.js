@@ -110,7 +110,7 @@ export default class TabConsole extends Component {
     this._openSsh(username)
   }
 
-  _openRdp = (username = 'root') => {
+  _openRdp = () => {
     window.location = `rdp://${this.props.vm.mainIpAddress}`
   }
 
