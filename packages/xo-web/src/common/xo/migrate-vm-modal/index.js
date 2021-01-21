@@ -224,7 +224,7 @@ export default class MigrateVmModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {host && !doNotMigrateVdis && (
+        {host && (!doNotMigrateVdis || migrationNetworkId != null) && (
           <div className={styles.groupBlock}>
             <SingleLineRow>
               <Col size={12}>
