@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatMap, flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -494,9 +494,8 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
       })
     )
   )
-  const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
-    .filter([snapshot => !snapshot.$snapshot_of])
-    .sort()
+  const getVmSnapshots = createGetObjectsOfType('VM-snapshot')
+  const getOrphanVmSnapshots = getVmSnapshots.filter([snapshot => !snapshot.$snapshot_of]).sort()
   const MAX_HEALTHY_SNAPSHOT_COUNT = 5
   const getTooManySnapshotsVms = createGetObjectsOfType('VM')
     .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT])
@@ -506,7 +505,14 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
-  const getVifsByMac = createGetObjectsOfType('VIF').groupBy('MAC')
+  const getVifsByMac = createGetObjectsOfType('VIF')
+    .filter(
+      createSelector(
+        createCollectionWrapper(createSelector(getVmSnapshots, vmSnapshots => new Set(flatMap(vmSnapshots, 'VIFs')))),
+        snapshotVifs => vif => !snapshotVifs.has(vif.id)
+      )
+    )
+    .groupBy('MAC')
 
   return {
     alertMessages: getAlertMessages,
