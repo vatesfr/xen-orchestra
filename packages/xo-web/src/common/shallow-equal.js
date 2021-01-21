@@ -1,6 +1,6 @@
 import kindOf from 'kindof'
 
-// Tests that two collections (arrays or objects) have strictly equals
+// Tests that two collections (arrays, sets or objects) have strictly equals
 // values (items or properties)
 const shallowEqual = (c1, c2) => {
   if (c1 === c2) {
@@ -20,6 +20,20 @@ const shallowEqual = (c1, c2) => {
 
     for (let i = 0; i < length; ++i) {
       if (c1[i] !== c2[i]) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  if (type === 'set') {
+    if (c1.size !== c2.size) {
+      return false
+    }
+
+    for (const v of c1) {
+      if (!c2.has(v)) {
         return false
       }
     }

@@ -12,6 +12,7 @@
 - Assign custom date-time fields on pools, hosts, SRs, and VMs in advanced tab [#4730](https://github.com/vatesfr/xen-orchestra/issues/4730) (PR [#5473](https://github.com/vatesfr/xen-orchestra/pull/5473))
 - [Health] Show duplicated MAC addresses with their VIFs, VMs and networks [#5448](https://github.com/vatesfr/xen-orchestra/issues/5448) (PR [#5468](https://github.com/vatesfr/xen-orchestra/pull/5468))
 - [Host/stats] Show interfaces' names in graph "Network throughput" instead of PIFs' indices (PR [#5483](https://github.com/vatesfr/xen-orchestra/pull/5483))
+- [Pool/advanced] Ability to define default migration network [#3788](https://github.com/vatesfr/xen-orchestra/issues/3788#issuecomment-743207834) (PR [#5465](https://github.com/vatesfr/xen-orchestra/pull/5465))
 - [Proxy] Ability to run metadata backups (PR [#5499](https://github.com/vatesfr/xen-orchestra/pull/5499))
 
 ### Bug fixes
@@ -27,6 +28,7 @@
 - [New SR/reattach SR] Fix SR not being properly reattached to hosts [#4546](https://github.com/vatesfr/xen-orchestra/issues/4546) (PR [#5488](https://github.com/vatesfr/xen-orchestra/pull/5488))
 - [Home/pool] Missing patches warning: fix 1 patch showing as missing in case of error [#4922](https://github.com/vatesfr/xen-orchestra/issues/4922)
 - [Proxy/remote] Fix error not updated on remote test (PR [#5514](https://github.com/vatesfr/xen-orchestra/pull/5514))
+- [Home/SR] Sort SR usage in % instead of bytes [#5463](https://github.com/vatesfr/xen-orchestra/issues/5463) (PR [#5513](https://github.com/vatesfr/xen-orchestra/pull/5513))
 
 ### Packages to release
 
