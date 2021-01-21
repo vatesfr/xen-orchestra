@@ -33,6 +33,7 @@ type Settings = {|
 type MetadataBackupJob = {
   ...$Exact<Job>,
   pools?: SimpleIdPattern,
+  proxy?: string,
   remotes: SimpleIdPattern,
   settings: $Dict<Settings>,
   type: METADATA_BACKUP_JOB_TYPE,
