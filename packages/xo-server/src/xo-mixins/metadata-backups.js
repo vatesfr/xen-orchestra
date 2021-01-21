@@ -809,10 +809,80 @@ export default class metadataBackup {
   async restoreMetadataBackup(id: string) {
     const app = this._app
     const logger = this._logger
-    const message = 'metadataRestore'
     const [remoteId, dir, ...path] = id.split('/')
-    const handler = await app.getRemoteHandler(remoteId)
     const metadataFolder = `${dir}/${path.join('/')}`
+
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      let xapi
+      if (dir === DIR_XO_POOL_METADATA_BACKUPS) {
+        const poolUuid = path[1]
+        const { allowUnauthorized, host, password, username } = await app.getXenServer(
+          app.getXenServerIdByObject(poolUuid)
+        )
+        xapi = {
+          allowUnauthorized,
+          credentials: {
+            username,
+            password,
+          },
+          url: host,
+        }
+      }
+
+      const logsStream = await app.callProxyMethod(
+        proxy,
+        'backup.restoreMetadataBackup',
+        {
+          backupId: metadataFolder,
+          remote: { url, options },
+          xapi,
+        },
+        {
+          assertType: 'iterator',
+        }
+      )
+
+      let rootTaskId
+      const localTaskIds = { __proto__: null }
+      for await (const log of logsStream) {
+        const { event, message, taskId } = log
+
+        const common = {
+          data: log.data,
+          event: 'task.' + event,
+          result: log.result,
+          status: log.status,
+        }
+
+        if (event === 'start') {
+          const { parentId } = log
+          if (parentId === undefined) {
+            rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
+          } else {
+            common.parentId = localTaskIds[parentId]
+            localTaskIds[taskId] = logger.notice(message, common)
+          }
+        } else {
+          const localTaskId = localTaskIds[taskId]
+          if (localTaskId === rootTaskId && dir === DIR_XO_CONFIG_BACKUPS && log.status === 'success') {
+            try {
+              await app.importConfig(log.result)
+            } catch (error) {
+              common.result = serializeError(error)
+              common.status = 'failure'
+            }
+          }
+
+          common.taskId = localTaskId
+          logger.notice(message, common)
+        }
+      }
+      return
+    }
+
+    const message = 'metadataRestore'
+    const handler = await app.getRemoteHandler(remoteId)
 
     const taskId = logger.notice(message, {
       event: 'task.start',
