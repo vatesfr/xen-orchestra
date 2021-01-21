@@ -15,6 +15,7 @@
 - [Pool/advanced] Ability to define default migration network [#3788](https://github.com/vatesfr/xen-orchestra/issues/3788#issuecomment-743207834) (PR [#5465](https://github.com/vatesfr/xen-orchestra/pull/5465))
 - [Proxy] Ability to run metadata backups (PR [#5499](https://github.com/vatesfr/xen-orchestra/pull/5499))
 - [Metadata backups] Ability to link a backup to a proxy (PR [#4206](https://github.com/vatesfr/xen-orchestra/pull/4206))
+- [VM/console] Ability to open RDP session [#5495](https://github.com/vatesfr/xen-orchestra/issues/5495) (PR [#5523](https://github.com/vatesfr/xen-orchestra/pull/5523))
 
 ### Bug fixes
 
