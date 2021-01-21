@@ -49,7 +49,7 @@
     "pw": "^0.0.4",
     "strip-indent": "^3.0.0",
     "xdg-basedir": "^4.0.0",
-    "xo-lib": "^0.10.0",
+    "xo-lib": "^0.10.1",
     "xo-vmdk-to-vhd": "^2.0.0"
   },
   "devDependencies": {
