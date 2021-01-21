@@ -38,6 +38,10 @@ import TabPatches from './tab-patches'
     .filter(createSelector(getPool, ({ id }) => network => network.$pool === id))
     .sort()
 
+  const getPifs = createGetObjectsOfType('PIF')
+    .filter(createSelector(getPool, ({ id }) => pif => pif.$pool === id))
+    .sort()
+
   const getHosts = createGetObjectsOfType('host')
     .filter(createSelector(getPool, ({ id }) => obj => obj.$pool === id))
     .sort()
@@ -64,6 +68,7 @@ import TabPatches from './tab-patches'
       master: getMaster(state, props),
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
+      pifs: getPifs(state, props),
       pool,
       srs: getPoolSrs(state, props),
     }
@@ -119,7 +124,9 @@ export default class Pool extends Component {
     if (!pool) {
       return <h1>{_('statusLoading')}</h1>
     }
-    const childProps = Object.assign(pick(this.props, ['hosts', 'logs', 'master', 'networks', 'nVms', 'pool', 'srs']))
+    const childProps = Object.assign(
+      pick(this.props, ['hosts', 'logs', 'master', 'networks', 'nVms', 'pifs', 'pool', 'srs'])
+    )
     return (
       <Page header={this.header()} title={pool.name_label}>
         {cloneElement(this.props.children, childProps)}
