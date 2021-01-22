@@ -15,6 +15,7 @@
 - [Pool/advanced] Ability to define default migration network [#3788](https://github.com/vatesfr/xen-orchestra/issues/3788#issuecomment-743207834) (PR [#5465](https://github.com/vatesfr/xen-orchestra/pull/5465))
 - [Proxy] Ability to run metadata backups (PR [#5499](https://github.com/vatesfr/xen-orchestra/pull/5499))
 - [Metadata backups] Ability to link a backup to a proxy (PR [#4206](https://github.com/vatesfr/xen-orchestra/pull/4206))
+- [Proxy] Improve upgrade feedback (PR [#5525](https://github.com/vatesfr/xen-orchestra/pull/5525))
 
 ### Bug fixes
 
