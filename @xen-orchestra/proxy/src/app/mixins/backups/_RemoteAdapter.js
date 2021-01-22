@@ -383,7 +383,7 @@ export class RemoteAdapter {
     })
   }
 
-  async listPoolMetadataBackups(remoteId) {
+  async listPoolMetadataBackups() {
     const handler = this._handler
     const safeReaddir = createSafeReaddir(handler, 'listPoolMetadataBackups')
 
@@ -394,7 +394,7 @@ export class RemoteAdapter {
         return asyncMap(await safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
           try {
             backups.push({
-              id: `${remoteId}${backupDir}`,
+              id: backupDir,
               ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
             })
           } catch (error) {
@@ -451,7 +451,7 @@ export class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
-  async listXoMetadataBackups(remoteId) {
+  async listXoMetadataBackups() {
     const handler = this._handler
     const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
 
@@ -460,7 +460,7 @@ export class RemoteAdapter {
       asyncMap(await safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
         try {
           backups.push({
-            id: `${remoteId}${backupDir}`,
+            id: backupDir,
             ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
           })
         } catch (error) {

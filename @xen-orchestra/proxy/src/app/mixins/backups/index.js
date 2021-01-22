@@ -227,7 +227,7 @@ export default class Backups {
             await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
               try {
                 await using(app.remotes.getAdapter(remote), async adapter => {
-                  backupsByRemote[remoteId] = await adapter.listPoolMetadataBackups(remoteId)
+                  backupsByRemote[remoteId] = await adapter.listPoolMetadataBackups()
                 })
               } catch (error) {
                 warn('listPoolMetadataBackups', { error, remote })
@@ -283,7 +283,7 @@ export default class Backups {
             await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
               try {
                 await using(app.remotes.getAdapter(remote), async adapter => {
-                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups(remoteId)
+                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups()
                 })
               } catch (error) {
                 warn('listXoMetadataBackups', { error, remote })
