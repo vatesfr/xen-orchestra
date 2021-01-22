@@ -87,6 +87,7 @@ const messages = {
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
   advancedSettings: 'Advanced settings',
+  forceUpgrade: 'Force upgrade',
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
   installedCertificates: 'Installed certificates',
@@ -2362,6 +2363,7 @@ const messages = {
   httpProxyPlaceholder: 'protocol://username:password@address:port',
   proxyUpgradesError: 'Unable to check upgrades availability',
   proxyApplianceSettingsInfo: 'Leave the field empty and click on OK to remove the existing configuration',
+  proxyUpToDate: 'Your proxy is up-to-date',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
