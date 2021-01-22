@@ -665,6 +665,12 @@ export default class metadataBackup {
           },
         },
       })
+
+      // inject the remote id on the backup which is needed for restoreMetadataBackup()
+      backups.forEach(backup => {
+        backup.id = `${remoteId}${backup.id}`
+      })
+
       return backups
     }
 
@@ -705,7 +711,7 @@ export default class metadataBackup {
     const app = this._app
     const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
-      const { [remoteId]: backups } = await app.callProxyMethod(proxy, 'backup.listPoolMetadataBackups', {
+      const { [remoteId]: backupsByPool } = await app.callProxyMethod(proxy, 'backup.listPoolMetadataBackups', {
         remotes: {
           [remoteId]: {
             url,
@@ -713,7 +719,15 @@ export default class metadataBackup {
           },
         },
       })
-      return backups
+
+      // inject the remote id on the backup which is needed for restoreMetadataBackup()
+      Object.values(backupsByPool).forEach(backups =>
+        backups.forEach(backup => {
+          backup.id = `${remoteId}${backup.id}`
+        })
+      )
+
+      return backupsByPool
     }
 
     const handler = await this._app.getRemoteHandler(remoteId)
