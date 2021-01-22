@@ -221,6 +221,30 @@ export default class Backups {
             },
           },
         ],
+        listPoolMetadataBackups: [
+          async ({ remotes }) => {
+            const backupsByRemote = {}
+            await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
+              try {
+                await using(app.remotes.getAdapter(remote), async adapter => {
+                  backupsByRemote[remoteId] = await adapter.listPoolMetadataBackups()
+                })
+              } catch (error) {
+                warn('listPoolMetadataBackups', { error, remote })
+              }
+            })
+            return backupsByRemote
+          },
+          {
+            description: 'list pool metadata backups',
+            params: {
+              remotes: {
+                type: 'object',
+                additionalProperties: { type: 'object' },
+              },
+            },
+          },
+        ],
         listVmBackups: [
           async ({ remotes }) => {
             const backups = {}
@@ -251,6 +275,30 @@ export default class Backups {
           () => Object.keys(runningJobs),
           {
             description: 'returns a list of running jobs',
+          },
+        ],
+        listXoMetadataBackups: [
+          async ({ remotes }) => {
+            const backupsByRemote = {}
+            await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
+              try {
+                await using(app.remotes.getAdapter(remote), async adapter => {
+                  backupsByRemote[remoteId] = await adapter.listXoMetadataBackups()
+                })
+              } catch (error) {
+                warn('listXoMetadataBackups', { error, remote })
+              }
+            })
+            return backupsByRemote
+          },
+          {
+            description: 'list XO metadata backups',
+            params: {
+              remotes: {
+                type: 'object',
+                additionalProperties: { type: 'object' },
+              },
+            },
           },
         ],
         run: [
