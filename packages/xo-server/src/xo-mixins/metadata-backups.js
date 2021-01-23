@@ -654,7 +654,28 @@ export default class metadataBackup {
   //   scheduleName,
   //   timestamp
   // }]
-  async _listXoMetadataBackups(remoteId, handler) {
+  async _listXoMetadataBackups(remoteId) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const { [remoteId]: backups } = await app.callProxyMethod(proxy, 'backup.listXoMetadataBackups', {
+        remotes: {
+          [remoteId]: {
+            url,
+            options,
+          },
+        },
+      })
+
+      // inject the remote id on the backup which is needed for restoreMetadataBackup()
+      backups.forEach(backup => {
+        backup.id = `${remoteId}${backup.id}`
+      })
+
+      return backups
+    }
+
+    const handler = await this._app.getRemoteHandler(remoteId)
     const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
 
     const backups = []
@@ -687,7 +708,30 @@ export default class metadataBackup {
   //     poolMaster,
   //   }]
   // }
-  async _listPoolMetadataBackups(remoteId, handler) {
+  async _listPoolMetadataBackups(remoteId) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const { [remoteId]: backupsByPool } = await app.callProxyMethod(proxy, 'backup.listPoolMetadataBackups', {
+        remotes: {
+          [remoteId]: {
+            url,
+            options,
+          },
+        },
+      })
+
+      // inject the remote id on the backup which is needed for restoreMetadataBackup()
+      Object.values(backupsByPool).forEach(backups =>
+        backups.forEach(backup => {
+          backup.id = `${remoteId}${backup.id}`
+        })
+      )
+
+      return backupsByPool
+    }
+
+    const handler = await this._app.getRemoteHandler(remoteId)
     const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
 
     const backupsByPool = {}
@@ -731,18 +775,14 @@ export default class metadataBackup {
   //    }
   //  }
   async listMetadataBackups(remoteIds: string[]) {
-    const app = this._app
-
     const xo = {}
     const pool = {}
     await Promise.all(
       remoteIds.map(async remoteId => {
         try {
-          const handler = await app.getRemoteHandler(remoteId)
-
           const [xoList, poolList] = await Promise.all([
-            this._listXoMetadataBackups(remoteId, handler),
-            this._listPoolMetadataBackups(remoteId, handler),
+            this._listXoMetadataBackups(remoteId),
+            this._listPoolMetadataBackups(remoteId),
           ])
           if (xoList.length !== 0) {
             xo[remoteId] = xoList
