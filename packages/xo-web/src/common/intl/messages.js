@@ -1068,7 +1068,7 @@ const messages = {
   sshUsernameLabel: 'SSH user name',
   remoteNeedClientTools: 'No IP address reported by client tools',
   rdp: 'RDP',
-  rdpRootTooltip: 'Connect using external RDP tool as root',
+  rdpRootTooltip: 'Connect using external RDP tool',
 
   // ----- VM container tab -----
   containerName: 'Name',

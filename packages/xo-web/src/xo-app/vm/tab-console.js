@@ -208,7 +208,7 @@ export default class TabConsole extends Component {
                   handler={this._openRdp}
                   tooltip={canSshOrRdp ? _('rdpRootTooltip') : _('remoteNeedClientTools')}
                   disabled={!canSshOrRdp}
-                  icon='remote'
+                  icon='rdp'
                 >
                   {_('rdp')}
                 </ActionButton>
