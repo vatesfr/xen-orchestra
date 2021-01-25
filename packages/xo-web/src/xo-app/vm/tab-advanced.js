@@ -427,19 +427,11 @@ export default class TabAdvanced extends Component {
 
   _onChangeCpuMask = cpuMask => editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
-  _handleBootFirmware = value => {
-    if (value === 'secureboot') {
-      editVm(this.props.vm, {
-        secureboot: 'true',
-        hvmBootFirmware: 'uefi',
-      })
-      return
-    }
+  _handleBootFirmware = value =>
     editVm(this.props.vm, {
-      secureboot: 'false',
+      secureBoot: false,
       hvmBootFirmware: value !== '' ? value : null,
     })
-  }
 
   _onNicTypeChange = value => editVm(this.props.vm, { nicType: value === '' ? null : value })
 
@@ -777,6 +769,17 @@ export default class TabAdvanced extends Component {
                         host={vm.power_state === 'Running' ? vm.$container : get(() => vmPool.master)}
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
+                      />
+                    </td>
+                  </tr>
+                )}
+                {vm.boot.firmware === 'uefi' && (
+                  <tr>
+                    <th>Secure boot</th>
+                    <td>
+                      <Toggle
+                        value={vm.secureboot === 'true' ? true : false}
+                        onChange={value => editVm(vm, { secureBoot: value })}
                       />
                     </td>
                   </tr>
