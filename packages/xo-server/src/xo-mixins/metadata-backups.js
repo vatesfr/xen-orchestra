@@ -926,7 +926,7 @@ export default class metadataBackup {
     const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
     if (proxy !== undefined) {
       await app.callProxyMethod(proxy, 'backup.deleteMetadataBackup', {
-        id: metadataFolder,
+        backupId: metadataFolder,
         remote: { url, options },
       })
     } else {
