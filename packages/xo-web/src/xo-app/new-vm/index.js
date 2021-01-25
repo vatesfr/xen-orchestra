@@ -453,6 +453,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       copyHostBiosStrings:
         state.hvmBootFirmware !== 'uefi' && !this._templateHasBiosStrings() && state.copyHostBiosStrings,
+      secureBoot: state.secureBoot,
       share: state.share,
       cloudConfig,
       networkConfig: this._isCoreOs() ? undefined : networkConfig,
@@ -1481,6 +1482,7 @@ export default class NewVm extends BaseComponent {
       nameLabels,
       namePattern,
       nbVms,
+      secureBoot,
       seqStart,
       share,
       showAdvanced,
@@ -1685,6 +1687,13 @@ export default class NewVm extends BaseComponent {
                   onChange={this._handleBootFirmware}
                   value={hvmBootFirmware}
                 />
+              </Item>
+            </SectionContent>
+          ),
+          hvmBootFirmware === 'uefi' && (
+            <SectionContent>
+              <Item label={_('secureBoot')}>
+                <Toggle onChange={value => this._setState({ secureBoot: value })} value={secureBoot} />
               </Item>
             </SectionContent>
           ),
