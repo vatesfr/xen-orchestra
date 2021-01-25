@@ -15,6 +15,7 @@
 - [Pool/advanced] Ability to define default migration network [#3788](https://github.com/vatesfr/xen-orchestra/issues/3788#issuecomment-743207834) (PR [#5465](https://github.com/vatesfr/xen-orchestra/pull/5465))
 - [Metadata backups] Ability to link a backup to a proxy (PR [#4206](https://github.com/vatesfr/xen-orchestra/pull/4206))
 - [Proxy] Support metadata backups (PRs [#5499](https://github.com/vatesfr/xen-orchestra/pull/5499) [#5517](https://github.com/vatesfr/xen-orchestra/pull/5517))
+- [VM] Secure boot can be managed from the UI [#5502](https://github.com/vatesfr/xen-orchestra/issues/5502) (PR [#5527](https://github.com/vatesfr/xen-orchestra/pull/5527))
 
 ### Bug fixes
 
