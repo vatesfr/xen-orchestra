@@ -10,7 +10,7 @@ import { satisfies as versionSatisfies } from 'semver'
 import { connectStore, noop } from './utils'
 
 // XAPI values should be lowercased
-const VM_BOOT_FIRMWARES = ['bios', 'uefi']
+const VM_BOOT_FIRMWARES = ['bios', 'uefi', 'secureboot']
 
 const SelectBootFirmware = decorate([
   connectStore({

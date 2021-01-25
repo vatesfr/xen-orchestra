@@ -427,10 +427,19 @@ export default class TabAdvanced extends Component {
 
   _onChangeCpuMask = cpuMask => editVm(this.props.vm, { cpuMask: map(cpuMask, 'value') })
 
-  _handleBootFirmware = value =>
+  _handleBootFirmware = value => {
+    if (value === 'secureboot') {
+      editVm(this.props.vm, {
+        secureboot: 'true',
+        hvmBootFirmware: 'uefi',
+      })
+      return
+    }
     editVm(this.props.vm, {
+      secureboot: 'false',
       hvmBootFirmware: value !== '' ? value : null,
     })
+  }
 
   _onNicTypeChange = value => editVm(this.props.vm, { nicType: value === '' ? null : value })
 
