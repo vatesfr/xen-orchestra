@@ -24,10 +24,24 @@ import { Backup } from './_Backup'
 import { importDeltaVm } from './_deltaVm'
 import { Task } from './_Task'
 import { Readable } from 'stream'
+import { RestoreMetadataBackup } from './_RestoreMetadataBackup'
 
 const noop = Function.prototype
 
 const { warn } = createLogger('xo:proxy:backups')
+
+const runWithLogs = (runner, args) =>
+  new Readable({
+    objectMode: true,
+    read() {
+      this._read = noop
+
+      runner(args, log => this.push(log)).then(
+        () => this.push(null),
+        error => this.emit('error', error)
+      )
+    },
+  })
 
 export default class Backups {
   constructor(app) {
@@ -102,19 +116,6 @@ export default class Backups {
         // do not rethrow, everything is handled via logging
       }
     })(run)
-
-    const runWithLogs = args =>
-      new Readable({
-        objectMode: true,
-        read() {
-          this._read = noop
-
-          run(args, log => this.push(log)).then(
-            () => this.push(null),
-            error => this.emit('error', error)
-          )
-        },
-      })
 
     app.api.addMethods({
       backup: {
@@ -301,8 +302,37 @@ export default class Backups {
             },
           },
         ],
+        restoreMetadataBackup: [
+          ({ backupId, remote, xapi: xapiOptions }) =>
+            using(app.remotes.getHandler(remote), xapiOptions && this.getXapi(xapiOptions), (handler, xapi) =>
+              runWithLogs(
+                async (args, onLog) =>
+                  Task.run(
+                    {
+                      name: 'metadataRestore',
+                      data: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
+                      onLog,
+                    },
+                    () =>
+                      new RestoreMetadataBackup({
+                        backupId,
+                        handler,
+                        xapi,
+                      }).run()
+                  ).catch(() => {}) // errors are handled by logs
+              )
+            ),
+          {
+            description: 'restore a metadata backup',
+            params: {
+              backupId: { type: 'string' },
+              remote: { type: 'object' },
+              xapi: { type: 'object', optional: true },
+            },
+          },
+        ],
         run: [
-          ({ streamLogs = false, ...rest }) => (streamLogs ? runWithLogs(rest) : run(rest)),
+          ({ streamLogs = false, ...rest }) => (streamLogs ? runWithLogs(run, rest) : run(rest)),
           {
             description: 'run a backup job',
             params: {
