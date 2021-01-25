@@ -1193,6 +1193,7 @@ const messages = {
   deleteSnapshots: 'Remove selected snapshots',
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
+  secureBoot: 'Secure boot',
   snapshotDate: 'Creation date',
   snapshotError: 'Snapshot error',
   snapshotName: 'Name',

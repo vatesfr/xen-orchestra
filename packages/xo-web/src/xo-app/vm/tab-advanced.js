@@ -775,7 +775,7 @@ export default class TabAdvanced extends Component {
                 )}
                 {vm.boot.firmware === 'uefi' && (
                   <tr>
-                    <th>Secure boot</th>
+                    <th>{_('secureBoot')}</th>
                     <td>
                       <Toggle
                         value={vm.secureBoot === 'true' ? true : false}
