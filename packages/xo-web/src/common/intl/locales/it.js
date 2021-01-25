@@ -2681,7 +2681,7 @@ export default {
   sshUsernameLabel: 'Nome utente SSH',
 
   // Original text: 'No IP address reported by client tools'
-  sshNeedClientTools: 'Nessun indirizzo IP segnalato dagli strumenti client',
+  remoteNeedClientTools: 'Nessun indirizzo IP segnalato dagli strumenti client',
 
   // Original text: 'Name'
   containerName: 'Nome',

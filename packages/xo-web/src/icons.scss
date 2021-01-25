@@ -742,6 +742,10 @@
     @extend .fa;
     @extend .fa-times;
   }
+  &-rdp {
+    @extend .fa;
+    @extend .fa-exchange;
+  }
   &-minus {
     @extend .fa;
     @extend .fa-minus;
