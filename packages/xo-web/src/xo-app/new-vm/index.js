@@ -1696,7 +1696,7 @@ export default class NewVm extends BaseComponent {
           hvmBootFirmware === 'uefi' && (
             <SectionContent>
               <Item label={_('secureBoot')}>
-                <Toggle onChange={value => this._setState({ secureBoot: value })} value={secureBoot} />
+                <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
               </Item>
             </SectionContent>
           ),
