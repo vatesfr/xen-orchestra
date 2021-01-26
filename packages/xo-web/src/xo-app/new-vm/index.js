@@ -316,6 +316,7 @@ export default class NewVm extends BaseComponent {
         nbVms: NB_VMS_MIN,
         VDIs: [],
         VIFs: [],
+        secureBoot: false,
         seqStart: 1,
         share: false,
         tags: [],
@@ -552,6 +553,8 @@ export default class NewVm extends BaseComponent {
           SR: this._getDefaultSr(template),
         }
       }),
+      // settings
+      secureBoot: template.secureBoot,
     })
 
     if (this._isCoreOs()) {
