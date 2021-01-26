@@ -392,13 +392,15 @@ export default class {
       xapi.once('eventFetchingError', function eventFetchingErrorListener() {
         const timeout = setTimeout(() => {
           xapi.xo.uninstall()
+
+          // switch server status from connected to connecting
           delete serverIdsByPool[poolId]
         }, this._xapiMarkDisconnectedDelay)
         xapi.once('eventFetchingSuccess', () => {
           xapi.once('eventFetchingError', eventFetchingErrorListener)
           if (serverIdsByPool[poolId] === undefined) {
-            xapi.xo.install()
             serverIdsByPool[poolId] = server.id
+            xapi.xo.install()
           } else {
             clearTimeout(timeout)
           }
