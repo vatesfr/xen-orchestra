@@ -958,7 +958,6 @@ export class Xapi extends EventEmitter {
           )
           this._lastEventFetchedTimestamp = Date.now()
           this._watchEventsError = undefined
-
           this.emit('eventFetchingSuccess')
         } catch (error) {
           const code = error?.code
