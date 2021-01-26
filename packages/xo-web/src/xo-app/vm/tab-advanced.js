@@ -777,10 +777,7 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('secureBoot')}</th>
                     <td>
-                      <Toggle
-                        value={vm.secureBoot === 'true' ? true : false}
-                        onChange={value => editVm(vm, { secureBoot: value })}
-                      />
+                      <Toggle value={vm.secureBoot} onChange={value => editVm(vm, { secureBoot: value })} />
                     </td>
                   </tr>
                 )}
