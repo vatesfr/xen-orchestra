@@ -449,6 +449,7 @@ const setUpProxies = (express, opts, xo) => {
   const proxy = createProxyServer({
     changeOrigin: true,
     ignorePath: true,
+    xfwd: true,
   }).on('error', (error, req, res) => {
     // `res` can be either a `ServerResponse` or a `Socket` (which does not have
     // `writeHead`)

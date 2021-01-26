@@ -110,10 +110,14 @@ export default class TabConsole extends Component {
     this._openSsh(username)
   }
 
+  _openRdp = () => {
+    window.location = `rdp://${this.props.vm.mainIpAddress}`
+  }
+
   render() {
     const { statsOverview, vm } = this.props
     const { minimalLayout, scale } = this.state
-    const canSsh = vm.mainIpAddress !== undefined
+    const canSshOrRdp = vm.mainIpAddress !== undefined
 
     if (!isVmRunning(vm)) {
       return (
@@ -182,8 +186,8 @@ export default class TabConsole extends Component {
               <span className='input-group-btn'>
                 <ActionButton
                   handler={this._openSsh}
-                  tooltip={canSsh ? _('sshRootTooltip') : _('sshNeedClientTools')}
-                  disabled={!canSsh}
+                  tooltip={canSshOrRdp ? _('sshRootTooltip') : _('remoteNeedClientTools')}
+                  disabled={!canSshOrRdp}
                   icon='remote'
                 >
                   {_('sshRootLabel')}
@@ -192,11 +196,21 @@ export default class TabConsole extends Component {
               <span className='input-group-btn'>
                 <ActionButton
                   handler={this._openSshMore}
-                  tooltip={canSsh ? _('sshUserTooltip') : _('sshNeedClientTools')}
-                  disabled={!canSsh}
+                  tooltip={canSshOrRdp ? _('sshUserTooltip') : _('remoteNeedClientTools')}
+                  disabled={!canSshOrRdp}
                   icon='remote'
                 >
                   {_('sshUserLabel')}
+                </ActionButton>
+              </span>
+              <span className='input-group-btn'>
+                <ActionButton
+                  handler={this._openRdp}
+                  tooltip={canSshOrRdp ? _('rdpRootTooltip') : _('remoteNeedClientTools')}
+                  disabled={!canSshOrRdp}
+                  icon='rdp'
+                >
+                  {_('rdp')}
                 </ActionButton>
               </span>
               <span className='input-group-btn'>
