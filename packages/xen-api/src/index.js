@@ -5,7 +5,7 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
-import { cancelable, defer, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout, TimeoutError } from 'promise-toolbox'
+import { cancelable, defer, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
 import coalesceCalls from './_coalesceCalls'
@@ -958,23 +958,16 @@ export class Xapi extends EventEmitter {
           )
           this._lastEventFetchedTimestamp = Date.now()
           this._watchEventsError = undefined
+
+          this.emit('eventFetchingSuccess')
         } catch (error) {
           const code = error?.code
           if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
             // eslint-disable-next-line no-labels
             continue mainLoop
-          } else if (error instanceof TimeoutError) {
-            this._watchEventsError = error
-            console.warn('_watchEvents', error)
-
-            const objectsByRef = this._objectsByRef
-            for (const ref in objectsByRef) {
-              this._removeRecordFromCache(objectsByRef[ref].$type, ref)
-            }
-            // eslint-disable-next-line no-labels
-            continue mainLoop
           }
 
+          this.emit('eventFetchingError', error)
           this._watchEventsError = error
           console.warn('_watchEvents', error)
           await pDelay(this._eventPollDelay)

@@ -389,6 +389,22 @@ export default class {
 
       this.updateXenServer(id, { error: null })::ignoreErrors()
 
+      xapi.once('eventFetchingError', function eventFetchingErrorListener() {
+        const timeout = setTimeout(() => {
+          xapi.xo.uninstall()
+          delete serverIdsByPool[poolId]
+        }, this._xapiMarkDisconnectedDelay)
+        xapi.once('eventFetchingSuccess', () => {
+          xapi.once('eventFetchingError', eventFetchingErrorListener)
+          if (serverIdsByPool[poolId] === undefined) {
+            xapi.xo.install()
+            serverIdsByPool[poolId] = server.id
+          } else {
+            clearTimeout(timeout)
+          }
+        })
+      })
+
       xapi.once('disconnected', () => {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
