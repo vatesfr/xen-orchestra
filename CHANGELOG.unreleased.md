@@ -31,7 +31,7 @@
 - [Proxy/remote] Fix error not updated on remote test (PR [#5514](https://github.com/vatesfr/xen-orchestra/pull/5514))
 - [Home/SR] Sort SR usage in % instead of bytes [#5463](https://github.com/vatesfr/xen-orchestra/issues/5463) (PR [#5513](https://github.com/vatesfr/xen-orchestra/pull/5513))
 - [VM migration] Fix `SR_NOT_ATTACHED` error when migration network is selected (PR [#5516](https://github.com/vatesfr/xen-orchestra/pull/5516))
-- [Servers] Clean ghost objects when the pool's master is unreachable [#5475](https://github.com/vatesfr/xen-orchestra/issues/5475) (PR [#5526](https://github.com/vatesfr/xen-orchestra/pull/5526))
+- [Servers] Hide pool's objects if its master is unreachable [#5475](https://github.com/vatesfr/xen-orchestra/issues/5475) (PR [#5526](https://github.com/vatesfr/xen-orchestra/pull/5526))
 
 ### Packages to release
 
