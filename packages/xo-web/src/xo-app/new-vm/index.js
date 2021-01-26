@@ -830,7 +830,7 @@ export default class NewVm extends BaseComponent {
 
   _getRedirectionUrl = id => (this.state.state.multipleVms ? '/home' : `/vms/${id}`)
 
-  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value })
+  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value, secureBoot: false })
 
   // MAIN ------------------------------------------------------------------------
 
