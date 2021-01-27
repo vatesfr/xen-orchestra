@@ -7,7 +7,7 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { FormattedDate, injectIntl } from 'react-intl'
+import { FormattedDate, FormattedRelative, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { connectStore, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
@@ -104,6 +104,21 @@ const COLUMNS = [
     ),
     name: _('progress'),
     sortCriteria: 'progress',
+  },
+  {
+    itemRenderer: task => <FormattedRelative value={task.created * 1000} />,
+    name: _('taskStarted'),
+    sortCriteria: 'created',
+  },
+  {
+    itemRenderer: task => {
+      // [NEED TO TEST]
+      const now = Date.now()
+      const timeNeeded = (now - task.created * 1000) / (task.progress * 100)
+      const finishedIn = now + timeNeeded
+      return <FormattedRelative value={finishedIn} />
+    },
+    name: _('taskEstimatedEnd'),
   },
 ]
 
