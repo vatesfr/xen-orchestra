@@ -1066,7 +1066,9 @@ const messages = {
   sshUserTooltip: 'Connect using external SSH tool as user…',
   sshUserLabel: 'SSH as…',
   sshUsernameLabel: 'SSH user name',
-  sshNeedClientTools: 'No IP address reported by client tools',
+  remoteNeedClientTools: 'No IP address reported by client tools',
+  rdp: 'RDP',
+  rdpRootTooltip: 'Connect using external RDP tool',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1193,6 +1195,7 @@ const messages = {
   deleteSnapshots: 'Remove selected snapshots',
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
+  secureBoot: 'Secure boot',
   snapshotDate: 'Creation date',
   snapshotError: 'Snapshot error',
   snapshotName: 'Name',
