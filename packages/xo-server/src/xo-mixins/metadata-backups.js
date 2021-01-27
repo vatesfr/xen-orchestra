@@ -476,10 +476,11 @@ export default class metadataBackup {
         params.job.xoMetadata = await app.exportConfig()
       }
 
-      const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
-        assertType: 'iterator',
-      })
       try {
+        const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
+          assertType: 'iterator',
+        })
+
         const localTaskIds = { __proto__: null }
         for await (const log of logsStream) {
           const { event, message, taskId } = log
