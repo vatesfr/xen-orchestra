@@ -920,20 +920,29 @@ export default class metadataBackup {
   }
 
   async deleteMetadataBackup(id: string) {
-    const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-    const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-    const timestampReg = '\\d{8}T\\d{6}Z'
-
-    const regexp = new RegExp(`^/?${uuidReg}/${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-
-    if (!regexp.test(id)) {
-      throw new Error(`The id (${id}) not correspond to a metadata folder`)
-    }
     const app = this._app
     const [remoteId, ...path] = id.split('/')
+    const metadataFolder = path.join('/')
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      await app.callProxyMethod(proxy, 'backup.deleteMetadataBackup', {
+        backupId: metadataFolder,
+        remote: { url, options },
+      })
+    } else {
+      const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
+      const metadataDirReg = 'xo-(config|pool-metadata)-backups'
+      const timestampReg = '\\d{8}T\\d{6}Z'
 
-    const handler = await app.getRemoteHandler(remoteId)
-    await handler.rmtree(path.join('/'))
+      const regexp = new RegExp(`^/?${uuidReg}/${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
+
+      if (!regexp.test(id)) {
+        throw new Error(`The id (${id}) not correspond to a metadata folder`)
+      }
+
+      const handler = await app.getRemoteHandler(remoteId)
+      await handler.rmtree(metadataFolder)
+    }
 
     if (path[0] === 'xo-config-backups') {
       this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
