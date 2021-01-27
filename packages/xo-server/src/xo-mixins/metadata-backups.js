@@ -515,6 +515,7 @@ export default class metadataBackup {
             }
           }
         }
+        return
       } finally {
         remoteIds.forEach(id => {
           this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, id)
