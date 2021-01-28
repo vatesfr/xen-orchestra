@@ -11,7 +11,7 @@ import { compileTemplate } from '@xen-orchestra/template'
 import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
 import { isEmpty, mapValues, some, omit } from 'lodash'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject, runningJobs } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
 import { parseDuration } from '@vates/parse-duration'
 import { timeout } from 'promise-toolbox'
@@ -143,6 +143,21 @@ export default class Proxy {
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
     return this._db.update(proxy).then(extractProperties).then(omitToken)
+  }
+
+  async upgradeProxyAppliance(id, force = false) {
+    if (!force) {
+      const stream = await this.callProxyMethod(id, 'backup.listRunningJobs', undefined, { assertType: 'iterator' })
+      const ids = []
+      for await (const id of stream) {
+        ids.push(id)
+      }
+      if (ids.length !== 0) {
+        throw runningJobs({ ids })
+      }
+    }
+
+    return this.updateProxyAppliance(id, { upgrade: true })
   }
 
   async updateProxyAppliance(id, { httpProxy, upgrade = false }) {

@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Proxy] Ask for a confirmation before upgrade a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -27,3 +29,7 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- xo-common minor
+- xo-web minor
+- xo-server minor

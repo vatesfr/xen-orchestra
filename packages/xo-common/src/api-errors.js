@@ -200,3 +200,10 @@ export const notEnoughResources = create(24, data => ({
   data, // [{ resourceSet, resourceType, available, requested }]
   message: 'not enough resources in resource set',
 }))
+
+export const runningJobs = create(25, ({ ids }) => ({
+  data: {
+    ids,
+  },
+  message: 'running jobs',
+}))

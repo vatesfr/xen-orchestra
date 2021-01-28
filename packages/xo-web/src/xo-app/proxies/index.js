@@ -7,7 +7,9 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
+import { confirm } from 'modal'
 import { provideState, injectState } from 'reaclette'
+import { runningJobs } from 'xo-common/api-errors'
 import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
@@ -202,7 +204,26 @@ const Proxies = decorate([
         return fetchProxyUpgrades([await deployProxy(proxy)])
       },
       async upgradeAppliance({ fetchProxyUpgrades }, id) {
-        await upgradeProxyAppliance(id)
+        try {
+          await upgradeProxyAppliance(id)
+        } catch (error) {
+          if (!runningJobs.is(error)) {
+            throw error
+          }
+
+          try {
+            await confirm({
+              title: _('upgrade'),
+              body: _('proxyRunningBackupsMessage', {
+                nJobs: error.data.ids.length,
+              }),
+            })
+          } catch (_) {
+            return
+          }
+
+          await upgradeProxyAppliance(id, { force: true })
+        }
         return fetchProxyUpgrades([id])
       },
     },
