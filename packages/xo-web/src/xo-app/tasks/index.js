@@ -112,9 +112,13 @@ const COLUMNS = [
   },
   {
     itemRenderer: task => {
-      // [NEED TO TEST]
       const now = Date.now()
-      const timeNeeded = (now - task.created * 1000) / (task.progress * 100)
+      const { progress } = task
+      if(progress === 0 || progress === 1 ){
+        return
+      }
+      const elapsed = (now - task.created * 1000)
+      const timeNeeded = elapsed / progress - elapsed
       const finishedIn = now + timeNeeded
       return <FormattedRelative value={finishedIn} />
     },
