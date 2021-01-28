@@ -74,6 +74,14 @@ const INDIVIDUAL_ACTIONS = [
     level: 'primary',
   },
   {
+    collapsed: true,
+    disabled: ({ vmUuid }) => vmUuid === undefined,
+    handler: (proxy, { upgradeAppliance }) => upgradeAppliance(proxy.id),
+    icon: 'upgrade',
+    label: _('forceUpgrade'),
+    level: 'primary',
+  },
+  {
     handler: ({ id }, { router }) =>
       router.push({
         pathname: '/settings/remotes',
@@ -144,16 +152,7 @@ const COLUMNS = [
         state === 'updater-upgraded' ||
         state === 'installer-upgraded'
       ) {
-        return (
-          <ActionButton
-            disabled={proxy.vmUuid === undefined}
-            handler={upgradeAppliance}
-            handlerParam={proxy.id}
-            icon='upgrade'
-          >
-            {_('upgrade')}
-          </ActionButton>
-        )
+        return <p className='text-success'>{_('proxyUpToDate')}</p>
       }
 
       return (
