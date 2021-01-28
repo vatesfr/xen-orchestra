@@ -115,7 +115,7 @@ const COLUMNS = [
       const now = Date.now()
       const { progress } = task
       if(progress === 0 || progress === 1 ){
-        return
+        return // not yet started or already finished
       }
       const elapsed = (now - task.created * 1000)
       const timeNeeded = elapsed / progress - elapsed
