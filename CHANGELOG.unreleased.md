@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Task] Display age and estimated duration [#4083](https://xcp-ng.org/forum/topic/4083/task-list-enhancement) (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
+- [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
 
 ### Bug fixes
 
