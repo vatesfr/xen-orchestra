@@ -16,6 +16,7 @@
 - [Metadata backups] Ability to link a backup to a proxy (PR [#4206](https://github.com/vatesfr/xen-orchestra/pull/4206))
 - [Proxy] Support metadata backups (PRs [#5499](https://github.com/vatesfr/xen-orchestra/pull/5499) [#5517](https://github.com/vatesfr/xen-orchestra/pull/5517))
 - [VM/console] Add button to connect to the VM via the local RDP client [#5495](https://github.com/vatesfr/xen-orchestra/issues/5495) (PR [#5523](https://github.com/vatesfr/xen-orchestra/pull/5523))
+- [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
 
 ### Bug fixes
 
