@@ -2836,8 +2836,17 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
 // Support --------------------------------------------------------------------
-
-export const checkXoa = () => _call('xoa.check')
+let promise
+export const checkXoa = () => {
+  // Debounce for 2 minutes
+  if(promise === undefined){
+    promise = _call('xoa.check')
+    setTimeout(() => {
+      promise = undefined
+    }, 120000)
+  }
+  return promise
+}
 
 export const closeTunnel = () => _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)
 
