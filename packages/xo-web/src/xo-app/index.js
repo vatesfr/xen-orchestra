@@ -117,15 +117,20 @@ const BODY_STYLE = {
   }
 })
 @provideState({
-  initialState: () => ({ checkXoaCall: 0}),
+  initialState: () => ({ checkXoaCount: 0 }),
   effects: {
-    addOneCheckXoaCall(){
-      this.state += 1
-    }
+    refreshXoaStatus() {
+      this.state.checkXoaCount += 1
+    },
   },
   computed: {
-    checkXoa: (state,props) => checkXoa
-  }
+    xoaStatus: (state, props) => {
+      return {
+        count: state.checkXoaCount,
+        checkXoa,
+      }
+    },
+  },
 })
 export default class XoApp extends Component {
   static contextTypes = {
