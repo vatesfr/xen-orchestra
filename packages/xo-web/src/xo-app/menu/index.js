@@ -61,9 +61,6 @@ const returnTrue = () => true
 @injectState
 export default class Menu extends Component {
   componentWillMount() {
-    this._setXoaStatus()
-    this.props.effects.refreshXoaStatus()
-
     const updateCollapsed = () => {
       this.setState({ collapsed: window.innerWidth < 1200 })
     }
@@ -84,9 +81,6 @@ export default class Menu extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.state.checkXoaCount !== this.state.checkXoaCount) {
-      this._setXoaStatus()
-    }
     if (!isEqual(Object.keys(prevProps.hosts).sort(), Object.keys(this.props.hosts).sort())) {
       this._updateMissingPatchesSubscriptions()
     }
@@ -159,24 +153,12 @@ export default class Menu extends Component {
     this._unsubscribeMissingPatches = () => forEach(unsubs, unsub => unsub())
   }
 
-  _setXoaStatus = () => {
-    const { xoaStatus, checkXoaCount } = this.props.state
-    xoaStatus.checkXoa().then(status =>
-      this.setState({
-        xoaStatus: status,
-        checkXoaCount,
-      })
-    )
-  }
-
-  _xoaStatusWarning = () => includes(this.state.xoaStatus, '✖')
-
   render() {
-    const { isAdmin, isPoolAdmin, nTasks, status, user, pools, nHosts, srs, xoaState } = this.props
+    const { isAdmin, isPoolAdmin, nTasks, state, status, user, pools, nHosts, srs, xoaState } = this.props
+    const { xoaStatus } = state
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
-    const xoaStatusWarning = this._xoaStatusWarning()
 
     const missingPatchesWarning = this._hasMissingPatches() ? (
       <Tooltip content={_('homeMissingPatches')}>
@@ -483,7 +465,7 @@ export default class Menu extends Component {
           {map(items, (item, index) => item && <MenuLinkItem key={index} item={item} />)}
           <li>&nbsp;</li>
           <li>&nbsp;</li>
-          {xoaStatusWarning && (
+          {xoaStatus !== undefined && includes(xoaStatus, '✖') && (
             <li className='nav-item xo-menu-item'>
               <Link className='nav-link' style={{ display: 'flex' }} to='/xoa/support'>
                 <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
