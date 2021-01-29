@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Proxy] Ask for a confirmation before upgrade a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
+- [Proxy] Ask for a confirmation before upgrading a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
 
 ### Bug fixes
 
