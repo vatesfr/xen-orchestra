@@ -27,6 +27,7 @@ import { constructPattern, destructPattern, FormFeedback, FormGroup, Input, Li, 
 
 import ReportWhen from '../_reportWhen'
 import Schedules from '../_schedules'
+import { RemoteProxy, RemoteProxyWarning } from '../_remoteProxy'
 
 // A retention can be:
 // - number: set by user
@@ -63,6 +64,7 @@ const getInitialState = () => ({
   _modeXoMetadata: undefined,
   _name: undefined,
   _pools: undefined,
+  _proxyId: undefined,
   _remotes: undefined,
   _schedules: undefined,
   _settings: undefined,
@@ -86,10 +88,11 @@ export default decorate([
           return { showErrors: true }
         }
 
-        const { modePoolMetadata, modeXoMetadata, name, pools, remotes, schedules, settings } = state
+        const { modePoolMetadata, modeXoMetadata, name, pools, proxyId, remotes, schedules, settings } = state
         await createMetadataBackupJob({
           name,
           pools: modePoolMetadata ? constructPattern(pools) : undefined,
+          proxy: proxyId === null ? undefined : state.proxyId,
           remotes: constructPattern(remotes),
           schedules: mapValues(schedules, ({ id, ...schedule }) => schedule),
           settings: setSettingsDefaultRetentions(settings, {
@@ -134,11 +137,12 @@ export default decorate([
           }),
         ])
 
-        const { modePoolMetadata, modeXoMetadata, name, pools, remotes } = state
+        const { modePoolMetadata, modeXoMetadata, name, pools, proxyId, remotes } = state
         await editMetadataBackupJob({
           id: props.job.id,
           name,
           pools: modePoolMetadata ? constructPattern(pools) : null,
+          proxy: proxyId,
           remotes: constructPattern(remotes),
           settings: setSettingsDefaultRetentions(settings, {
             modePoolMetadata,
@@ -150,6 +154,9 @@ export default decorate([
 
       linkState,
       reset: () => getInitialState,
+      setProxy(_, id) {
+        this.state._proxyId = id
+      },
       setPools: (_, _pools) => () => ({
         _pools,
       }),
@@ -220,7 +227,12 @@ export default decorate([
           })
         ),
       remotes: ({ _remotes }, { job }) => defined(_remotes, () => destructPattern(job.remotes), []),
-      remotesPredicate: ({ remotes }) => ({ id }) => !remotes.includes(id),
+      remotesPredicate: ({ proxyId, remotes }) => remote => {
+        if (proxyId === null) {
+          proxyId = undefined
+        }
+        return !remotes.includes(remote.id) && remote.value.proxy === proxyId
+      },
 
       isJobInvalid: state =>
         state.missingModes ||
@@ -238,6 +250,7 @@ export default decorate([
       missingRetentionXoMetadata: state =>
         state.modeXoMetadata && every(state.settings, ({ retentionXoMetadata }) => retentionXoMetadata === 0),
       missingSchedules: state => isEmpty(state.schedules),
+      proxyId: (state, props) => defined(state._proxyId, () => props.job.proxy),
     },
   }),
   injectState,
@@ -317,7 +330,7 @@ export default decorate([
                       <Ul>
                         {state.remotes.map((id, key) => (
                           <Li key={id}>
-                            <Remote id={id} />
+                            <Remote id={id} /> <RemoteProxyWarning id={id} proxyId={state.proxyId} />
                             <div className='pull-right'>
                               <ActionButton
                                 btnStyle='danger'
@@ -337,6 +350,7 @@ export default decorate([
               <Card>
                 <CardHeader>{_('newBackupSettings')}</CardHeader>
                 <CardBlock>
+                  <RemoteProxy onChange={effects.setProxy} value={state.proxyId} />
                   <ReportWhen onChange={effects.setReportWhen} required value={reportWhen} />
                 </CardBlock>
               </Card>

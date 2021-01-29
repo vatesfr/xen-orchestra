@@ -1,4 +1,5 @@
-import { forEach, includes, map } from 'lodash'
+import defined from '@xen-orchestra/defined'
+import { find, forEach, includes, map } from 'lodash'
 
 export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
   const originNetwork = networks[vif.$network]
@@ -21,4 +22,22 @@ export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
   })
 
   return destNetworkId
+}
+
+export const getDefaultMigrationNetwork = (destHost, pools, pifs) => {
+  const migrationNetwork = pools[destHost.$pool].otherConfig['xo:migrationNetwork']
+  let defaultPif
+  return defined(
+    find(pifs, pif => {
+      if (pif.$host === destHost.id) {
+        if (migrationNetwork !== undefined && pif.ip !== '' && pif.$network === migrationNetwork) {
+          return true
+        }
+        if (pif.management) {
+          defaultPif = pif
+        }
+      }
+    }),
+    defaultPif
+  ).$network
 }

@@ -1366,6 +1366,14 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
+"@marsaud/smb2@^0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.15.0.tgz#151eaa0d0a5e3fc8929d7dc872c2bed397b444dd"
+  integrity sha512-8y6Gvr8FUMNrRxoQ3luNJWB8y0JKu+8WO6NnT1kyIZaWMa94iIvFTmyKmu40wRrZ2W4bqh1gTJYp7E99NO4usQ==
+  dependencies:
+    ntlm "~0.1.1"
+    readable-stream "^3.0.6"
+
 "@marsaud/smb2@^0.17.2":
   version "0.17.2"
   resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.17.2.tgz#5cc028f24f1fff7aa9012b221e36ffbf90a43367"
@@ -1462,6 +1470,11 @@
   integrity sha512-MZPUxrmFubI36XS1DI3qmI0YdN1gks62JtFZvxR67ljjSNCeK6U08Zx4msEWOXuofgqUt6zPHSi1H9fbjR/NRA==
   dependencies:
     "@sinonjs/commons" "^1.7.0"
+
+"@sullux/aws-sdk@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@sullux/aws-sdk/-/aws-sdk-1.0.5.tgz#6d0377024b286f8732250a832a895ef32f764099"
+  integrity sha512-5Dq9Wjg7UsLyMz87vyGgW2+Ykcz1mJVSNNEwu096L5G1xS1+37dBzV8ibq91DOLQ22pMs8HgFpmzqTgyZy4cOw==
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
@@ -2073,6 +2086,27 @@
     "@webassemblyjs/ast" "1.9.0"
     "@webassemblyjs/wast-parser" "1.9.0"
     "@xtuc/long" "4.2.2"
+
+"@xen-orchestra/fs@0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-0.12.0.tgz#0b925d73d202a363c7483bc62b42bedac5708f1e"
+  integrity sha512-HA0D4KD6PKDY+klzo33L4zZAdbJ9xzWnM/QsibWgpSd2GqRAz06VxpSQMxJ9OYxuIn8YzWQNOkBOsADpL/Ao1A==
+  dependencies:
+    "@marsaud/smb2" "^0.15.0"
+    "@sindresorhus/df" "^3.1.1"
+    "@xen-orchestra/async-map" "^0.0.0"
+    aws-sdk "^2.686.0"
+    decorator-synchronized "^0.5.0"
+    execa "^4.0.2"
+    fs-extra "^9.0.0"
+    get-stream "^6.0.0"
+    limit-concurrency-decorator "^0.4.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.15.0"
+    readable-stream "^3.0.6"
+    through2 "^4.0.2"
+    tmp "^0.2.1"
+    xo-remote-parser "^0.6.0"
 
 "@xmpp/jid@^0.0.2":
   version "0.0.2"
@@ -7550,7 +7584,7 @@ execa@^2.0.1:
     signal-exit "^3.0.2"
     strip-final-newline "^2.0.0"
 
-execa@^4.0.0, execa@^4.1.0:
+execa@^4.0.0, execa@^4.0.2, execa@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-4.1.0.tgz#4e5491ad1572f2f17a77d388c6c857135b22847a"
   integrity sha512-j5W0//W7f8UxAn8hXVnwG8tLwdiUy4FJLcSupCg6maBYZDpyBvTApK7KyuI4bKj8KOh1r2YH+6ucuYtJv1bTZA==

@@ -17,7 +17,7 @@ import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import Tooltip from '../../tooltip'
 import { Col } from '../../grid'
-import { getDefaultNetworkForVif } from '../utils'
+import { getDefaultNetworkForVif, getDefaultMigrationNetwork } from '../utils'
 import { SelectHost, SelectNetwork, SelectSr } from '../../select-objects'
 import { connectStore, createCompare } from '../../utils'
 import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
@@ -180,7 +180,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       return
     }
     const { pools, pifs } = this.props
-    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
+    const defaultMigrationNetworkId = getDefaultMigrationNetwork(host, pools, pifs)
     const defaultSrId = pools[host.$pool].default_SR
     const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
 
@@ -275,7 +275,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
             {intraPool && <i>{_('optionalEntry')}</i>}
           </div>
         )}
-        {host && (!intraPool || !noVdisMigration) && (
+        {host && (!noVdisMigration || migrationNetworkId != null) && (
           <div key='sr' style={LINE_STYLE}>
             <SingleLineRow>
               <Col size={6}>
@@ -297,7 +297,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
                 )}
               </Col>
               <Col size={6}>
-                <SelectSr onChange={this._selectSr} predicate={this._getSrPredicate()} value={srId} />
+                <SelectSr onChange={this._selectSr} predicate={this._getSrPredicate()} required value={srId} />
               </Col>
             </SingleLineRow>
           </div>
