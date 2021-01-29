@@ -124,13 +124,9 @@ const BODY_STYLE = {
     },
   },
   computed: {
-    xoaStatus: async (state, props) => {
+    xoaStatus: async ({ checkXoaCount }, props) => {
       console.log('new refresh')
-      const status = {
-        count: state.checkXoaCount,
-        xoa: await checkXoa(),
-      }
-      return status.xoa
+      return await checkXoa()
     },
   },
 })
