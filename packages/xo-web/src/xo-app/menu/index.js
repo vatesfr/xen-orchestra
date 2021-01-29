@@ -5,6 +5,7 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
+import { injectState } from 'reaclette'
 import { UpdateTag } from '../xoa/update'
 import { NotificationTag } from '../xoa/notifications'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
@@ -59,6 +60,8 @@ const returnTrue = () => true
 })
 export default class Menu extends Component {
   componentWillMount() {
+    console.log(this.props)
+    console.log(this.state)
     const updateCollapsed = () => {
       this.setState({ collapsed: window.innerWidth < 1200 })
     }

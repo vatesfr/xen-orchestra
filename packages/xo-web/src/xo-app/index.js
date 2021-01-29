@@ -10,9 +10,11 @@ import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
+import { checkXoa } from 'xo'
 import { connectStore, getXoaPlan, routes } from 'utils'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
+import { provideState } from 'reaclette'
 import { ShortcutManager } from 'react-shortcuts'
 import { ThemeProvider } from 'styled-components'
 import { TooltipViewer } from 'tooltip'
@@ -112,6 +114,17 @@ const BODY_STYLE = {
     trial: state.xoaTrialState,
     registerNeeded: state.xoaUpdaterState === 'registerNeeded',
     signedUp: !!state.user,
+  }
+})
+@provideState({
+  initialState: () => ({ checkXoaCall: 0}),
+  effects: {
+    addOneCheckXoaCall(){
+      this.state += 1
+    }
+  },
+  computed: {
+    checkXoa: (state,props) => checkXoa
   }
 })
 export default class XoApp extends Component {
