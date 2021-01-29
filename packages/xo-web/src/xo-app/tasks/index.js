@@ -89,7 +89,6 @@ const COMMON = [
 
 const COLUMNS = [
   {
-    default: true,
     itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
     sortCriteria: (task, userData) => {
@@ -106,21 +105,21 @@ const COLUMNS = [
     sortCriteria: 'progress',
   },
   {
+    default: true,
     itemRenderer: task => <FormattedRelative value={task.created * 1000} />,
     name: _('taskStarted'),
     sortCriteria: 'created',
+    sortOrder: 'desc',
   },
   {
     itemRenderer: task => {
-      const now = Date.now()
+      const started = task.created * 1000
       const { progress } = task
-      if(progress === 0 || progress === 1 ){
+
+      if (progress === 0 || progress === 1) {
         return // not yet started or already finished
       }
-      const elapsed = (now - task.created * 1000)
-      const timeNeeded = elapsed / progress - elapsed
-      const finishedIn = now + timeNeeded
-      return <FormattedRelative value={finishedIn} />
+      return <FormattedRelative value={started + (Date.now() - started) / progress} />
     },
     name: _('taskEstimatedEnd'),
   },
