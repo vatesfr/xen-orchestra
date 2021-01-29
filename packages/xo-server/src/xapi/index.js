@@ -10,7 +10,7 @@ import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
-import { cancelable, defer, fromEvent, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -105,7 +105,7 @@ export default class Xapi extends XapiBase {
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
 
-    const waitStreamEnd = async stream => fromEvent(await stream, 'end')
+    const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
     this._exportVdi = concurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
     this.exportVm = concurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
 
