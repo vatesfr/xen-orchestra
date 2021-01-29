@@ -375,10 +375,22 @@ class BackupReportsXoPlugin {
       })
     }
 
-    const failedVmsText = []
-    const skippedVmsText = []
-    const successfulVmsText = []
-    const interruptedVmsText = []
+    const failedVmsText = {
+      default: [],
+      compact: [],
+    }
+    const skippedVmsText = {
+      default: [],
+      compact: [],
+    }
+    const successfulVmsText = {
+      default: [],
+      compact: [],
+    }
+    const interruptedVmsText = {
+      default: [],
+      compact: [],
+    }
     const nagiosText = []
 
     let globalMergeSize = 0
@@ -501,32 +513,39 @@ class BackupReportsXoPlugin {
       if (taskLog.result !== undefined) {
         if (taskLog.status === 'skipped') {
           ++nSkipped
-          skippedVmsText.push(
+          const common = [
             ...text,
             `- **Reason**: ${
               taskLog.result.message === UNHEALTHY_VDI_CHAIN_ERROR
                 ? UNHEALTHY_VDI_CHAIN_MESSAGE
                 : taskLog.result.message
-            }`
-          )
+            }`,
+          ]
+          skippedVmsText.default.push(...common)
+          skippedVmsText.compact.push(...common)
           nagiosText.push(`[(Skipped) ${vm !== undefined ? vm.name_label : 'undefined'} : ${taskLog.result.message} ]`)
         } else {
           ++nFailures
-          failedVmsText.push(...text, `- **Error**: ${taskLog.result.message}`)
+          const common = [...text, `- **Error**: ${taskLog.result.message}`]
+          failedVmsText.default.push(...common)
+          failedVmsText.compact.push(...common)
 
           nagiosText.push(`[(Failed) ${vm !== undefined ? vm.name_label : 'undefined'} : ${taskLog.result.message} ]`)
         }
       } else {
         if (taskLog.status === 'failure') {
           ++nFailures
-          failedVmsText.push(...text, ...subText)
+          failedVmsText.default.push(...text, ...subText)
+          failedVmsText.compact.push(...text)
           nagiosText.push(`[${vm !== undefined ? vm.name_label : 'undefined'}: (failed)[${failedSubTasks.toString()}]]`)
         } else if (taskLog.status === 'interrupted') {
           ++nInterrupted
-          interruptedVmsText.push(...text, ...subText)
+          interruptedVmsText.default.push(...text, ...subText)
+          interruptedVmsText.compact.push(...text)
           nagiosText.push(`[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`)
         } else {
-          successfulVmsText.push(...text, ...subText)
+          successfulVmsText.default.push(...text, ...subText)
+          successfulVmsText.compact.push(...text)
         }
       }
     }
@@ -546,27 +565,37 @@ class BackupReportsXoPlugin {
       ...getWarningsMarkdown(log.warnings),
       '',
     ]
+    const slackMarkdown = [...markdown]
 
     if (nFailures !== 0) {
-      markdown.push('---', '', `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`, '', ...failedVmsText)
+      const common = ['---', '', `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`, '']
+      markdown.push(...common, ...failedVmsText.default)
+      slackMarkdown.push(...common, ...failedVmsText.compact)
     }
 
     if (nSkipped !== 0) {
-      markdown.push('---', '', `## ${nSkipped} Skipped`, '', ...skippedVmsText)
+      const common = ['---', '', `## ${nSkipped} Skipped`, '']
+      markdown.push(...common, ...skippedVmsText.default)
+      slackMarkdown.push(...common, ...skippedVmsText.compact)
     }
 
     if (nInterrupted !== 0) {
-      markdown.push('---', '', `## ${nInterrupted} Interrupted`, '', ...interruptedVmsText)
+      const common = ['---', '', `## ${nInterrupted} Interrupted`, '']
+      markdown.push(...common, ...interruptedVmsText.default)
+      slackMarkdown.push(...common, ...interruptedVmsText.compact)
     }
 
     if (nSuccesses !== 0 && (force || reportWhen !== 'failure')) {
-      markdown.push('---', '', `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`, '', ...successfulVmsText)
+      const common = ['---', '', `## ${nSuccesses} Success${nSuccesses === 1 ? '' : 'es'}`, '']
+      markdown.push(...common, ...successfulVmsText.default)
+      slackMarkdown.push(...common, ...successfulVmsText.compact)
     }
 
     markdown.push('---', '', `*${pkg.name} v${pkg.version}*`)
     return this._sendReport({
       mailReceivers,
       markdown: toMarkdown(markdown),
+      slackMarkdown: toMarkdown(slackMarkdown),
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
       success: log.status === 'success',
       nagiosMarkdown:
@@ -578,7 +607,7 @@ class BackupReportsXoPlugin {
     })
   }
 
-  _sendReport({ mailReceivers, markdown, nagiosMarkdown, subject, success }) {
+  _sendReport({ mailReceivers, markdown, slackMarkdown = markdown, nagiosMarkdown, subject, success }) {
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
@@ -598,7 +627,7 @@ class BackupReportsXoPlugin {
         }),
       xo.sendSlackMessage !== undefined &&
         xo.sendSlackMessage({
-          message: markdown,
+          message: slackMarkdown,
         }),
       xo.sendPassiveCheck !== undefined &&
         xo.sendPassiveCheck({
