@@ -2836,6 +2836,7 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
 // Support --------------------------------------------------------------------
+
 export const checkXoa = () => _call('xoa.check')
 
 export const closeTunnel = () => _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)
