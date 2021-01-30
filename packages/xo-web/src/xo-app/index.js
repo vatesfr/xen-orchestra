@@ -124,7 +124,7 @@ const BODY_STYLE = {
     },
   },
   computed: {
-    xoaStatus: async ({ checkXoaCount }, props) => await checkXoa(),
+    xoaStatus:  ({ checkXoaCount }) => checkXoa(),
   },
 })
 export default class XoApp extends Component {
