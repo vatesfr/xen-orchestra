@@ -63,6 +63,7 @@ describe('parseXml()', () => {
     </patch>
   </patches>
 </patchdata>`
+  const buf = Buffer.from(str)
   const result = {
     patchdata: {
       patches: {
@@ -96,6 +97,10 @@ describe('parseXml()', () => {
 
   it('supports strings', () => {
     expect(parseXml(str)).toEqual(result)
+  })
+
+  it('supports buffers', () => {
+    expect(parseXml(buf)).toEqual(result)
   })
 })
 
