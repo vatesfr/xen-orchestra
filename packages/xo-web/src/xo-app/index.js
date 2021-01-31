@@ -11,7 +11,7 @@ import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { checkXoa } from 'xo'
-import { connectStore, getXoaPlan, routes } from 'utils'
+import { connectStore, getXoaPlan, noop, routes } from 'utils'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
 import { provideState } from 'reaclette'
@@ -124,7 +124,11 @@ const BODY_STYLE = {
     },
   },
   computed: {
-    xoaStatus:  ({ checkXoaCount }) => checkXoa(),
+    xoaStatus: ({ checkXoaCount }) => {
+      // To avoid aggressive minification whish would remove destructuration
+      noop(checkXoaCount)
+      return checkXoa()
+    },
   },
 })
 export default class XoApp extends Component {
