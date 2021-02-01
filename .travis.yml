@@ -15,7 +15,6 @@ addons:
 before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash
   - export PATH="$HOME/.yarn/bin:$PATH"
-  - wget https://dl.min.io/server/minio/release/linux-amd64/minio
 
 cache:
   yarn: true
