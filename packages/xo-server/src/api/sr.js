@@ -123,7 +123,7 @@ disconnectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createIso({ host, nameLabel, nameDescription, path, type, user, password }) {
+export async function createIso({ host, nameLabel, nameDescription, path, type, user, password, srUuid }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {}
@@ -137,6 +137,17 @@ export async function createIso({ host, nameLabel, nameDescription, path, type, 
   }
 
   deviceConfig.location = path
+
+  // Reattach
+  if (srUuid !== undefined) {
+    return xapi.reattachSr({
+      uuid: srUuid,
+      nameLabel,
+      nameDescription,
+      type,
+      deviceConfig,
+    })
+  }
 
   const srRef = await xapi.call(
     'SR.create',
@@ -163,6 +174,7 @@ createIso.params = {
   type: { type: 'string' },
   user: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
+  srUuid: { type: 'string', optional: true },
 }
 
 createIso.resolve = {
@@ -174,7 +186,16 @@ createIso.resolve = {
 
 // This functions creates a NFS SR
 
-export async function createNfs({ host, nameLabel, nameDescription, server, serverPath, nfsVersion, nfsOptions }) {
+export async function createNfs({
+  host,
+  nameLabel,
+  nameDescription,
+  server,
+  serverPath,
+  nfsVersion,
+  nfsOptions,
+  srUuid,
+}) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
@@ -190,6 +211,17 @@ export async function createNfs({ host, nameLabel, nameDescription, server, serv
   //  if NFS options given
   if (nfsOptions) {
     deviceConfig.options = nfsOptions
+  }
+
+  // Reattach
+  if (srUuid !== undefined) {
+    return xapi.reattachSr({
+      uuid: srUuid,
+      nameLabel,
+      nameDescription,
+      type: 'nfs',
+      deviceConfig,
+    })
   }
 
   const srRef = await xapi.call(
@@ -217,6 +249,7 @@ createNfs.params = {
   serverPath: { type: 'string' },
   nfsVersion: { type: 'string', optional: true },
   nfsOptions: { type: 'string', optional: true },
+  srUuid: { type: 'string', optional: true },
 }
 
 createNfs.resolve = {
@@ -228,11 +261,22 @@ createNfs.resolve = {
 
 // This functions creates an HBA SR
 
-export async function createHba({ host, nameLabel, nameDescription, scsiId }) {
+export async function createHba({ host, nameLabel, nameDescription, scsiId, srUuid }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
     SCSIid: scsiId,
+  }
+
+  // Reattach
+  if (srUuid !== undefined) {
+    return xapi.reattachSr({
+      uuid: srUuid,
+      nameLabel,
+      nameDescription,
+      type: 'hba',
+      deviceConfig,
+    })
   }
 
   const srRef = await xapi.call(
@@ -257,6 +301,7 @@ createHba.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   scsiId: { type: 'string' },
+  srUuid: { type: 'string', optional: true },
 }
 
 createHba.resolve = {
@@ -514,6 +559,7 @@ export async function createIscsi({
   scsiId,
   chapUser,
   chapPassword,
+  srUuid,
 }) {
   const xapi = this.getXapi(host)
 
@@ -532,6 +578,17 @@ export async function createIscsi({
   //  if we give another port than default iSCSI
   if (port) {
     deviceConfig.port = asInteger(port)
+  }
+
+  // Reattach
+  if (srUuid !== undefined) {
+    return xapi.reattachSr({
+      uuid: srUuid,
+      nameLabel,
+      nameDescription,
+      type: 'lvmoiscsi',
+      deviceConfig,
+    })
   }
 
   const srRef = await xapi.call(
@@ -561,6 +618,7 @@ createIscsi.params = {
   scsiId: { type: 'string' },
   chapUser: { type: 'string', optional: true },
   chapPassword: { type: 'string', optional: true },
+  srUuid: { type: 'string', optional: true },
 }
 
 createIscsi.resolve = {
@@ -801,62 +859,6 @@ probeNfsExists.params = {
 }
 
 probeNfsExists.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-// This function helps to reattach a forgotten NFS/iSCSI SR
-
-export async function reattach({ host, uuid, nameLabel, nameDescription, type }) {
-  const xapi = this.getXapi(host)
-
-  if (type === 'iscsi') {
-    type = 'lvmoiscsi' // the internal XAPI name
-  }
-
-  const srRef = await xapi.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
-
-  const sr = await xapi.call('SR.get_record', srRef)
-  return sr.uuid
-}
-
-reattach.params = {
-  host: { type: 'string' },
-  uuid: { type: 'string' },
-  nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
-  type: { type: 'string' },
-}
-
-reattach.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-
-// -------------------------------------------------------------------
-// This function helps to reattach a forgotten ISO SR
-
-export async function reattachIso({ host, uuid, nameLabel, nameDescription, type }) {
-  const xapi = this.getXapi(host)
-
-  if (type === 'iscsi') {
-    type = 'lvmoiscsi' // the internal XAPI name
-  }
-
-  const srRef = await xapi.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'iso', true, {})
-
-  const sr = await xapi.call('SR.get_record', srRef)
-  return sr.uuid
-}
-
-reattachIso.params = {
-  host: { type: 'string' },
-  uuid: { type: 'string' },
-  nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
-  type: { type: 'string' },
-}
-
-reattachIso.resolve = {
   host: ['host', 'host', 'administrate'],
 }
 

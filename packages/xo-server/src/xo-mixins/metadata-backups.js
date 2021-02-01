@@ -33,6 +33,7 @@ type Settings = {|
 type MetadataBackupJob = {
   ...$Exact<Job>,
   pools?: SimpleIdPattern,
+  proxy?: string,
   remotes: SimpleIdPattern,
   settings: $Dict<Settings>,
   type: METADATA_BACKUP_JOB_TYPE,
@@ -425,6 +426,105 @@ export default class metadataBackup {
       throw new Error('no retentions corresponding to the metadata modes found')
     }
 
+    const proxyId = job.proxy
+    if (proxyId !== undefined) {
+      const app = this._app
+
+      const recordToXapi = {}
+      const servers = new Set()
+      const handleRecord = uuid => {
+        const serverId = app.getXenServerIdByObject(uuid)
+        recordToXapi[uuid] = serverId
+        servers.add(serverId)
+      }
+      poolIds.forEach(handleRecord)
+
+      const remotes = {}
+      const xapis = {}
+      await waitAll([
+        asyncMap(remoteIds, async id => {
+          const remote = await app.getRemoteWithCredentials(id)
+          if (remote.proxy !== proxyId) {
+            throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
+          }
+
+          remotes[id] = remote
+        }),
+        asyncMap([...servers], async id => {
+          const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
+          xapis[id] = {
+            allowUnauthorized,
+            credentials: {
+              username,
+              password,
+            },
+            url: host,
+          }
+        }),
+      ])
+
+      const params = {
+        job,
+        recordToXapi,
+        remotes,
+        schedule,
+        streamLogs: true,
+        xapis,
+      }
+
+      if (job.xoMetadata) {
+        params.job.xoMetadata = await app.exportConfig()
+      }
+
+      try {
+        const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
+          assertType: 'iterator',
+        })
+
+        const localTaskIds = { __proto__: null }
+        for await (const log of logsStream) {
+          const { event, message, taskId } = log
+
+          const common = {
+            data: log.data,
+            event: 'task.' + event,
+            result: log.result,
+            status: log.status,
+          }
+
+          if (event === 'start') {
+            const { parentId } = log
+            if (parentId === undefined) {
+              // ignore root task (already handled by runJob)
+              localTaskIds[taskId] = runJobId
+            } else {
+              common.parentId = localTaskIds[parentId]
+              localTaskIds[taskId] = logger.notice(message, common)
+            }
+          } else {
+            const localTaskId = localTaskIds[taskId]
+            if (localTaskId === runJobId) {
+              if (event === 'end') {
+                if (log.status === 'failure') {
+                  throw log.result
+                }
+                return log.result
+              }
+            } else {
+              common.taskId = localTaskId
+              logger.notice(message, common)
+            }
+          }
+        }
+        return
+      } finally {
+        remoteIds.forEach(id => {
+          this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, id)
+          this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, id)
+        })
+      }
+    }
+
     cancelToken.throwIfRequested()
 
     const app = this._app
@@ -557,7 +657,28 @@ export default class metadataBackup {
   //   scheduleName,
   //   timestamp
   // }]
-  async _listXoMetadataBackups(remoteId, handler) {
+  async _listXoMetadataBackups(remoteId) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const { [remoteId]: backups } = await app.callProxyMethod(proxy, 'backup.listXoMetadataBackups', {
+        remotes: {
+          [remoteId]: {
+            url,
+            options,
+          },
+        },
+      })
+
+      // inject the remote id on the backup which is needed for restoreMetadataBackup()
+      backups.forEach(backup => {
+        backup.id = `${remoteId}${backup.id}`
+      })
+
+      return backups
+    }
+
+    const handler = await this._app.getRemoteHandler(remoteId)
     const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
 
     const backups = []
@@ -590,7 +711,30 @@ export default class metadataBackup {
   //     poolMaster,
   //   }]
   // }
-  async _listPoolMetadataBackups(remoteId, handler) {
+  async _listPoolMetadataBackups(remoteId) {
+    const app = this._app
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      const { [remoteId]: backupsByPool } = await app.callProxyMethod(proxy, 'backup.listPoolMetadataBackups', {
+        remotes: {
+          [remoteId]: {
+            url,
+            options,
+          },
+        },
+      })
+
+      // inject the remote id on the backup which is needed for restoreMetadataBackup()
+      Object.values(backupsByPool).forEach(backups =>
+        backups.forEach(backup => {
+          backup.id = `${remoteId}${backup.id}`
+        })
+      )
+
+      return backupsByPool
+    }
+
+    const handler = await this._app.getRemoteHandler(remoteId)
     const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
 
     const backupsByPool = {}
@@ -634,18 +778,14 @@ export default class metadataBackup {
   //    }
   //  }
   async listMetadataBackups(remoteIds: string[]) {
-    const app = this._app
-
     const xo = {}
     const pool = {}
     await Promise.all(
       remoteIds.map(async remoteId => {
         try {
-          const handler = await app.getRemoteHandler(remoteId)
-
           const [xoList, poolList] = await Promise.all([
-            this._listXoMetadataBackups(remoteId, handler),
-            this._listPoolMetadataBackups(remoteId, handler),
+            this._listXoMetadataBackups(remoteId),
+            this._listPoolMetadataBackups(remoteId),
           ])
           if (xoList.length !== 0) {
             xo[remoteId] = xoList
@@ -672,10 +812,80 @@ export default class metadataBackup {
   async restoreMetadataBackup(id: string) {
     const app = this._app
     const logger = this._logger
-    const message = 'metadataRestore'
     const [remoteId, dir, ...path] = id.split('/')
-    const handler = await app.getRemoteHandler(remoteId)
     const metadataFolder = `${dir}/${path.join('/')}`
+
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      let xapi
+      if (dir === DIR_XO_POOL_METADATA_BACKUPS) {
+        const poolUuid = path[1]
+        const { allowUnauthorized, host, password, username } = await app.getXenServer(
+          app.getXenServerIdByObject(poolUuid)
+        )
+        xapi = {
+          allowUnauthorized,
+          credentials: {
+            username,
+            password,
+          },
+          url: host,
+        }
+      }
+
+      const logsStream = await app.callProxyMethod(
+        proxy,
+        'backup.restoreMetadataBackup',
+        {
+          backupId: metadataFolder,
+          remote: { url, options },
+          xapi,
+        },
+        {
+          assertType: 'iterator',
+        }
+      )
+
+      let rootTaskId
+      const localTaskIds = { __proto__: null }
+      for await (const log of logsStream) {
+        const { event, message, taskId } = log
+
+        const common = {
+          data: log.data,
+          event: 'task.' + event,
+          result: log.result,
+          status: log.status,
+        }
+
+        if (event === 'start') {
+          const { parentId } = log
+          if (parentId === undefined) {
+            rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
+          } else {
+            common.parentId = localTaskIds[parentId]
+            localTaskIds[taskId] = logger.notice(message, common)
+          }
+        } else {
+          const localTaskId = localTaskIds[taskId]
+          if (localTaskId === rootTaskId && dir === DIR_XO_CONFIG_BACKUPS && log.status === 'success') {
+            try {
+              await app.importConfig(log.result)
+            } catch (error) {
+              common.result = serializeError(error)
+              common.status = 'failure'
+            }
+          }
+
+          common.taskId = localTaskId
+          logger.notice(message, common)
+        }
+      }
+      return
+    }
+
+    const message = 'metadataRestore'
+    const handler = await app.getRemoteHandler(remoteId)
 
     const taskId = logger.notice(message, {
       event: 'task.start',
@@ -713,20 +923,29 @@ export default class metadataBackup {
   }
 
   async deleteMetadataBackup(id: string) {
-    const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-    const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-    const timestampReg = '\\d{8}T\\d{6}Z'
-
-    const regexp = new RegExp(`^/?${uuidReg}/${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-
-    if (!regexp.test(id)) {
-      throw new Error(`The id (${id}) not correspond to a metadata folder`)
-    }
     const app = this._app
     const [remoteId, ...path] = id.split('/')
+    const metadataFolder = path.join('/')
+    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    if (proxy !== undefined) {
+      await app.callProxyMethod(proxy, 'backup.deleteMetadataBackup', {
+        backupId: metadataFolder,
+        remote: { url, options },
+      })
+    } else {
+      const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
+      const metadataDirReg = 'xo-(config|pool-metadata)-backups'
+      const timestampReg = '\\d{8}T\\d{6}Z'
 
-    const handler = await app.getRemoteHandler(remoteId)
-    await handler.rmtree(path.join('/'))
+      const regexp = new RegExp(`^/?${uuidReg}/${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
+
+      if (!regexp.test(id)) {
+        throw new Error(`The id (${id}) not correspond to a metadata folder`)
+      }
+
+      const handler = await app.getRemoteHandler(remoteId)
+      await handler.rmtree(metadataFolder)
+    }
 
     if (path[0] === 'xo-config-backups') {
       this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)

@@ -10,12 +10,12 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import xml2js from 'xml2js'
-import { Sr } from 'render-xo-item'
+import { Network, Sr, Vm } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatMap, flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -76,6 +76,32 @@ const AlarmColPool = connectStore(() => ({
   }
   return <Link to={`pools/${pool.id}`}>{pool.name_label}</Link>
 })
+
+const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
+  {
+    name: _('vifMacLabel'),
+    itemRenderer: macAddress => <pre>{macAddress}</pre>,
+    sortCriteria: macAddress => macAddress,
+  },
+  {
+    name: _('vifs'),
+    itemRenderer: (macAddress, { vifsByMac }) => (
+      <div>
+        {vifsByMac[macAddress].map(vif => (
+          <Row key={vif.id}>
+            <Col>
+              {_('vifOnVmWithNetwork', {
+                network: <Network id={vif.$network} />,
+                vifDevice: vif.device,
+                vm: <Vm id={vif.$VM} link />,
+              })}
+            </Col>
+          </Row>
+        ))}
+      </div>
+    ),
+  },
+]
 
 const SR_COLUMNS = [
   {
@@ -471,15 +497,17 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
+  const getVms = createGetObjectsOfType('VM')
   const MAX_HEALTHY_SNAPSHOT_COUNT = 5
-  const getTooManySnapshotsVms = createGetObjectsOfType('VM')
-    .filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT])
-    .sort()
-  const getGuestToolsVms = createGetObjectsOfType('VM')
+  const getTooManySnapshotsVms = getVms.filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT]).sort()
+  const getGuestToolsVms = getVms
     .filter([vm => vm.power_state === 'Running' && (!vm.managementAgentDetected || !vm.pvDriversUpToDate)])
     .sort()
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
+  const getVifsByMac = createGetObjectsOfType('VIF')
+    .pick(createCollectionWrapper(createSelector(getVms, vms => flatMap(vms, 'VIFs').sort())))
+    .groupBy('MAC')
 
   return {
     alertMessages: getAlertMessages,
@@ -489,6 +517,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
+    vifsByMac: getVifsByMac,
   }
 })
 export default class Health extends Component {
@@ -538,9 +567,25 @@ export default class Health extends Component {
 
   _getSrUrl = sr => `srs/${sr.id}`
 
-  _getPoolPredicate = createSelector(
-    createSelector(() => this.state.pools, resolveIds),
-    poolIds => (isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool))
+  _getDuplicatedMacAddresses = createCollectionWrapper(
+    createSelector(
+      () => this._getVifsByMac(),
+      vifsByMac => {
+        const duplicatedMacAddresses = []
+        for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
+          if (vifs.length > 1) {
+            duplicatedMacAddresses.push(macAddress)
+          }
+        }
+        return duplicatedMacAddresses.sort()
+      }
+    )
+  )
+
+  _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
+
+  _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
+    isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
 
   _getUserSrs = createFilter(() => this.props.userSrs, this._getPoolPredicate)
@@ -557,9 +602,17 @@ export default class Health extends Component {
 
   _getMessages = createFilter(() => this.state.messages, this._getPoolPredicate)
 
+  _getVifsByMac = createFilter(
+    () => this.props.vifsByMac,
+    createSelector(this._getPoolIds, poolIds =>
+      isEmpty(poolIds) ? undefined : vifs => vifs.some(vif => poolIds.includes(vif.$pool))
+    )
+  )
+
   render() {
     const { props, state } = this
 
+    const duplicatedMacAddresses = this._getDuplicatedMacAddresses()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
@@ -671,6 +724,25 @@ export default class Health extends Component {
                   emptyMessage={_('noTooManySnapshotsObject')}
                   shortcutsTarget='.too-many-snapshots-vms'
                   stateUrlParam='s_too_many_snapshots_vms'
+                />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='network' /> {_('duplicatedMacAddresses')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  collection={props.areObjectsFetched ? duplicatedMacAddresses : null}
+                  columns={DUPLICATED_MAC_ADDRESSES_COLUMNS}
+                  component={SortedTable}
+                  data-vifsByMac={this.props.vifsByMac}
+                  emptyMessage={_('noDuplicatedMacAddresses')}
+                  stateUrlParam='s_duplicated_mac_addresses'
                 />
               </CardBlock>
             </Card>

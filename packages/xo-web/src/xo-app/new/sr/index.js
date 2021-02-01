@@ -1,7 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import filter from 'lodash/filter'
 import Icon from 'icon'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import includes from 'lodash/includes'
@@ -19,7 +18,8 @@ import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 import { SelectHost } from 'select-objects'
-import { createFilter, createGetObjectsOfType, createSelector, getObject } from 'selectors'
+import { Sr } from 'render-xo-item'
+import { createCollectionWrapper, createFilter, createGetObjectsOfType, createSelector, getObject } from 'selectors'
 import {
   createSrExt,
   createSrIso,
@@ -36,8 +36,6 @@ import {
   probeSrHba,
   probeSrHbaExists,
   probeZfs,
-  reattachSrIso,
-  reattachSr,
 } from 'xo'
 
 // ===================================================================
@@ -209,6 +207,7 @@ export default class New extends Component {
 
     this.state = {
       description: undefined,
+      existingSrs: undefined,
       host: hostId && getObject(store.getState(), hostId),
       iqn: undefined,
       iqns: undefined,
@@ -222,22 +221,46 @@ export default class New extends Component {
       path: undefined,
       paths: undefined,
       type: undefined,
-      unused: undefined,
       usage: undefined,
-      used: undefined,
       zfsPools: undefined,
     }
-    this.getHostSrs = createFilter(
-      () => this.props.srs,
-      createSelector(
-        () => this.state.host,
-        ({ $pool, id }) => sr => sr.$container === $pool || sr.$container === id
-      ),
-      true
-    )
   }
 
-  _handleSubmit = async () => {
+  getHostSrs = createFilter(
+    () => this.props.srs,
+    createSelector(
+      () => this.state.host,
+      host => host !== undefined && (sr => sr.$container === host.$pool || sr.$container === host.id)
+    )
+  )
+
+  getUsedSrs = createCollectionWrapper(
+    createSelector(
+      this.getHostSrs,
+      () => this.state.existingSrs,
+      (hostSrs, existingSrs) => {
+        if (existingSrs === undefined) {
+          return []
+        }
+
+        const usedSrs = []
+        existingSrs.forEach(({ uuid }) => {
+          if (uuid in hostSrs) {
+            usedSrs.push(hostSrs[uuid])
+          }
+        })
+
+        return usedSrs
+      }
+    )
+  )
+
+  getUnusedSrs = createFilter(
+    () => this.state.existingSrs,
+    createSelector(this.getUsedSrs, usedSrs => existingSr => !usedSrs.some(sr => sr.uuid === existingSr.uuid))
+  )
+
+  _handleSubmit = async srUuid => {
     const { description, device, localPath, name, password, port, server, username, zfsLocation } = this.refs
     const { host, iqn, lun, nfsOptions, nfsVersion, path, scsiId, type } = this.state
 
@@ -250,40 +273,45 @@ export default class New extends Component {
           server.value,
           path,
           nfsVersion !== '' ? nfsVersion : undefined,
-          nfsOptions
+          nfsOptions,
+          srUuid
         ),
       hba: async () => {
-        const previous = await probeSrHbaExists(host.id, scsiId)
-        if (previous && previous.length > 0) {
-          try {
-            await confirm({
-              title: _('existingLunModalTitle'),
-              body: <p>{_('existingLunModalText')}</p>,
-            })
-          } catch (error) {
-            return
+        if (srUuid === undefined) {
+          const previous = await probeSrHbaExists(host.id, scsiId)
+          if (previous && previous.length > 0) {
+            try {
+              await confirm({
+                title: _('existingLunModalTitle'),
+                body: <p>{_('existingLunModalText')}</p>,
+              })
+            } catch (error) {
+              return
+            }
           }
         }
-        return createSrHba(host.id, name.value, description.value, scsiId)
+        return createSrHba(host.id, name.value, description.value, scsiId, srUuid)
       },
       iscsi: async () => {
-        const previous = await probeSrIscsiExists(
-          host.id,
-          iqn.ip,
-          iqn.iqn,
-          lun.scsiId,
-          +port.value,
-          username && username.value,
-          password && password.value
-        )
-        if (previous && previous.length > 0) {
-          try {
-            await confirm({
-              title: _('existingLunModalTitle'),
-              body: <p>{_('existingLunModalText')}</p>,
-            })
-          } catch (error) {
-            return
+        if (srUuid === undefined) {
+          const previous = await probeSrIscsiExists(
+            host.id,
+            iqn.ip,
+            iqn.iqn,
+            lun.scsiId,
+            +port.value,
+            username && username.value,
+            password && password.value
+          )
+          if (previous && previous.length > 0) {
+            try {
+              await confirm({
+                title: _('existingLunModalTitle'),
+                body: <p>{_('existingLunModalText')}</p>,
+              })
+            } catch (error) {
+              return
+            }
           }
         }
         return createSrIscsi(
@@ -295,7 +323,8 @@ export default class New extends Component {
           lun.scsiId,
           +port.value,
           username && username.value,
-          password && password.value
+          password && password.value,
+          srUuid
         )
       },
       lvm: () => createSrLvm(host.id, name.value, description.value, device.value),
@@ -310,7 +339,8 @@ export default class New extends Component {
           `${server.value}:${path}`,
           'nfs',
           username && username.value,
-          password && password.value
+          password && password.value,
+          srUuid
         ),
       smb: () =>
         createSrIso(
@@ -320,7 +350,8 @@ export default class New extends Component {
           server.value,
           'smb',
           username && username.value,
-          password && password.value
+          password && password.value,
+          srUuid
         ),
     }
 
@@ -341,14 +372,13 @@ export default class New extends Component {
   _handleSrTypeSelection = async event => {
     const type = event.target.value
     this.setState({
+      existingSrs: undefined,
       hbaDevices: undefined,
       iqns: undefined,
       paths: undefined,
       summary: includes(['ext', 'lvm', 'local', 'smb', 'hba', 'zfs'], type),
       type,
-      unused: undefined,
       usage: undefined,
-      used: undefined,
     })
     await this._probe(this.state.host, type)
   }
@@ -399,15 +429,11 @@ export default class New extends Component {
         username && username.value,
         password && password.value
       )
-      const srIds = map(this.getHostSrs(), sr => sr.id)
-      const used = filter(list, item => includes(srIds, item.id))
-      const unused = filter(list, item => !includes(srIds, item.id))
       this.setState({
+        existingSrs: list,
         lun,
         usage: true,
-        used,
-        unused,
-        summary: used.length <= 0,
+        summary: true,
       })
     } catch (err) {
       error('iSCSI Error', err.message || String(err))
@@ -463,16 +489,11 @@ export default class New extends Component {
 
     try {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
-      const list = await probeSrNfsExists(host.id, server.value, path)
-      const srIds = map(this.getHostSrs(), sr => sr.id)
-      const used = filter(list, item => includes(srIds, item.id))
-      const unused = filter(list, item => !includes(srIds, item.id))
       this.setState({
+        existingSrs: await probeSrNfsExists(host.id, server.value, path),
         path,
         usage: true,
-        used,
-        unused,
-        summary: used.length <= 0,
+        summary: true,
       })
     } catch (err) {
       error('NFS Error', err.message || String(err))
@@ -506,26 +527,6 @@ export default class New extends Component {
     }
   }
 
-  _reattach = async uuid => {
-    const { host, type } = this.state
-
-    let { name, description } = this.refs
-
-    name = name.value.trim()
-    description = description.value.trim()
-    if (isEmpty(name) || isEmpty(description)) {
-      error('Missing General Parameters', 'Please complete General Information')
-      return
-    }
-
-    const method = type === 'nfsiso' ? reattachSrIso : reattachSr
-    try {
-      await method(host.id, uuid, name, description, type)
-    } catch (err) {
-      error('Reattach', err.message || String(err))
-    }
-  }
-
   _renderHeader() {
     return (
       <Container>
@@ -556,12 +557,13 @@ export default class New extends Component {
       paths,
       summary,
       type,
-      unused,
       usage,
-      used,
       zfsPools,
     } = this.state
     const { formatMessage } = this.props.intl
+
+    const used = this.getUsedSrs()
+    const unused = this.getUnusedSrs()
 
     return (
       <Page header={this._renderHeader()}>
@@ -616,7 +618,7 @@ export default class New extends Component {
               {host && (
                 <fieldset>
                   {(type === 'nfs' || type === 'nfsiso') && [
-                    <fieldset>
+                    <fieldset key='nfsServer'>
                       <label htmlFor='srServer'>{_('newSrServer')}</label>
                       <div className='input-group'>
                         <input
@@ -632,7 +634,7 @@ export default class New extends Component {
                         </span>
                       </div>
                     </fieldset>,
-                    <fieldset>
+                    <fieldset key='nfsVersion'>
                       <label htmlFor='selectNfsVersion'>{_('newSrNfs')}</label>
                       <select
                         className='form-control'
@@ -648,7 +650,7 @@ export default class New extends Component {
                         ))}
                       </select>
                     </fieldset>,
-                    <fieldset>
+                    <fieldset key='nfsOptions'>
                       <label>{_('newSrNfsOptions')}</label>
                       <input
                         className='form-control'
@@ -835,13 +837,13 @@ export default class New extends Component {
             <Section icon='shown' title='newSrUsage'>
               {usage && (
                 <div>
-                  {map(unused, (sr, key) => (
-                    <p key={key}>
+                  {map(unused, sr => (
+                    <p key={sr.uuid}>
                       {sr.uuid}
                       <span className='pull-right'>
                         <ActionButton
                           btnStyle='primary'
-                          handler={this._reattach}
+                          handler={this._handleSubmit}
                           handlerParam={sr.uuid}
                           icon='connect'
                           tooltip={_('reattachNewSrTooltip')}
@@ -849,9 +851,9 @@ export default class New extends Component {
                       </span>
                     </p>
                   ))}
-                  {map(used, (sr, key) => (
-                    <p key={key}>
-                      {sr.uuid}
+                  {map(used, sr => (
+                    <p key={sr.id}>
+                      <Sr id={sr.id} link />
                       <span className='pull-right'>
                         {/* FIXME Goes to sr view */}
                         <a className='btn btn-warning'>{_('newSrInUse')}</a>

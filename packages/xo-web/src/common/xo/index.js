@@ -2269,12 +2269,6 @@ export const probeSrHbaExists = (host, scsiId) => _call('sr.probeHbaExists', { h
 
 export const probeZfs = host => _call('sr.probeZfs', { host: resolveId(host) })
 
-export const reattachSr = (host, uuid, nameLabel, nameDescription, type) =>
-  _call('sr.reattach', { host, uuid, nameLabel, nameDescription, type })
-
-export const reattachSrIso = (host, uuid, nameLabel, nameDescription, type) =>
-  _call('sr.reattachIso', { host, uuid, nameLabel, nameDescription, type })
-
 export const createSrNfs = (
   host,
   nameLabel,
@@ -2282,11 +2276,13 @@ export const createSrNfs = (
   server,
   serverPath,
   nfsVersion = undefined,
-  nfsOptions
+  nfsOptions,
+  srUuid
 ) => {
   const params = { host, nameLabel, nameDescription, server, serverPath }
   nfsVersion && (params.nfsVersion = nfsVersion)
   nfsOptions && (params.nfsOptions = nfsOptions)
+  srUuid && (params.srUuid = srUuid)
   return _call('sr.createNfs', params)
 }
 
@@ -2299,22 +2295,37 @@ export const createSrIscsi = (
   scsiId,
   port = undefined,
   chapUser = undefined,
-  chapPassword = undefined
+  chapPassword = undefined,
+  srUuid
 ) => {
   const params = { host, nameLabel, nameDescription, target, targetIqn, scsiId }
   port && (params.port = port)
   chapUser && (params.chapUser = chapUser)
   chapPassword && (params.chapPassword = chapPassword)
+  srUuid && (params.srUuid = srUuid)
   return _call('sr.createIscsi', params)
 }
 
-export const createSrHba = (host, nameLabel, nameDescription, scsiId) =>
-  _call('sr.createHba', { host, nameLabel, nameDescription, scsiId })
+export const createSrHba = (host, nameLabel, nameDescription, scsiId, srUuid) => {
+  const params = { host, nameLabel, nameDescription, scsiId }
+  srUuid && (params.srUuid = srUuid)
+  return _call('sr.createHba', params)
+}
 
-export const createSrIso = (host, nameLabel, nameDescription, path, type, user = undefined, password = undefined) => {
-  const params = { host, nameLabel, nameDescription, path, type }
+export const createSrIso = (
+  host,
+  nameLabel,
+  nameDescription,
+  path,
+  type,
+  user = undefined,
+  password = undefined,
+  srUuid
+) => {
+  const params = { host, nameLabel, nameDescription, path, type, srUuid }
   user && (params.user = user)
   password && (params.password = password)
+  srUuid && (params.srUuid = srUuid)
   return _call('sr.createIso', params)
 }
 

@@ -316,6 +316,7 @@ export default class NewVm extends BaseComponent {
         nbVms: NB_VMS_MIN,
         VDIs: [],
         VIFs: [],
+        secureBoot: false,
         seqStart: 1,
         share: false,
         tags: [],
@@ -453,6 +454,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       copyHostBiosStrings:
         state.hvmBootFirmware !== 'uefi' && !this._templateHasBiosStrings() && state.copyHostBiosStrings,
+      secureBoot: state.secureBoot,
       share: state.share,
       cloudConfig,
       networkConfig: this._isCoreOs() ? undefined : networkConfig,
@@ -551,6 +553,8 @@ export default class NewVm extends BaseComponent {
           SR: this._getDefaultSr(template),
         }
       }),
+      // settings
+      secureBoot: template.secureBoot,
     })
 
     if (this._isCoreOs()) {
@@ -829,7 +833,7 @@ export default class NewVm extends BaseComponent {
 
   _getRedirectionUrl = id => (this.state.state.multipleVms ? '/home' : `/vms/${id}`)
 
-  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value })
+  _handleBootFirmware = value => this._setState({ hvmBootFirmware: value, secureBoot: false })
 
   // MAIN ------------------------------------------------------------------------
 
@@ -1481,6 +1485,7 @@ export default class NewVm extends BaseComponent {
       nameLabels,
       namePattern,
       nbVms,
+      secureBoot,
       seqStart,
       share,
       showAdvanced,
@@ -1685,6 +1690,13 @@ export default class NewVm extends BaseComponent {
                   onChange={this._handleBootFirmware}
                   value={hvmBootFirmware}
                 />
+              </Item>
+            </SectionContent>
+          ),
+          hvmBootFirmware === 'uefi' && (
+            <SectionContent>
+              <Item label={_('secureBoot')}>
+                <Toggle onChange={this._toggleState('secureBoot')} value={secureBoot} />
               </Item>
             </SectionContent>
           ),
