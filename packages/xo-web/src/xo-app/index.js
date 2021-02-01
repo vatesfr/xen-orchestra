@@ -124,11 +124,15 @@ const BODY_STYLE = {
     },
   },
   computed: {
-    xoaStatus: ({ checkXoaCount }) => {
-      // To avoid aggressive minification whish would remove destructuration
-      noop(checkXoaCount)
-      return checkXoa()
+    xoaStatus: {
+      get({ checkXoaCount }) {
+        // To avoid aggressive minification shish would remove destructuration
+        noop(checkXoaCount)
+        return getXoaPlan() === 'Community' ? '' : checkXoa()
+      },
+      placeholder: '',
     },
+    xoaWarning: ({ xoaStatus }) => xoaStatus.includes('✖'),
   },
 })
 export default class XoApp extends Component {

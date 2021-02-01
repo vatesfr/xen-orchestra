@@ -56,7 +56,7 @@ const Support = decorate([
               <hr />
               <pre
                 dangerouslySetInnerHTML={{
-                  __html: ansiUp.ansi_to_html(COMMUNITY | (xoaStatus === undefined) ? '' : xoaStatus),
+                  __html: ansiUp.ansi_to_html(xoaStatus),
                 }}
               />
             </CardBlock>
