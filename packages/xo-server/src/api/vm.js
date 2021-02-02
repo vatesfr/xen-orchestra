@@ -626,6 +626,8 @@ set.params = {
 
   startDelay: { type: 'integer', optional: true },
 
+  secureBoot: { type: 'boolean', optional: true },
+
   // set the VM network interface controller
   nicType: { type: ['string', 'null'], optional: true },
 

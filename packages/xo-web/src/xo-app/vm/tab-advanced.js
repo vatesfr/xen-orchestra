@@ -429,6 +429,7 @@ export default class TabAdvanced extends Component {
 
   _handleBootFirmware = value =>
     editVm(this.props.vm, {
+      secureBoot: false,
       hvmBootFirmware: value !== '' ? value : null,
     })
 
@@ -769,6 +770,14 @@ export default class TabAdvanced extends Component {
                         onChange={this._handleBootFirmware}
                         value={defined(() => vm.boot.firmware, '')}
                       />
+                    </td>
+                  </tr>
+                )}
+                {vm.boot.firmware === 'uefi' && (
+                  <tr>
+                    <th>{_('secureBoot')}</th>
+                    <td>
+                      <Toggle value={vm.secureBoot} onChange={value => editVm(vm, { secureBoot: value })} />
                     </td>
                   </tr>
                 )}

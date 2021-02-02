@@ -12,7 +12,7 @@ import invoke from '../../invoke'
 import SingleLineRow from '../../single-line-row'
 import { Col } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
-import { getDefaultNetworkForVif } from '../utils'
+import { getDefaultNetworkForVif, getDefaultMigrationNetwork } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
 import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
 
@@ -141,9 +141,8 @@ export default class MigrateVmModalBody extends BaseComponent {
       return
     }
 
-    const { pools, vbds, vm } = this.props
+    const { pifs, pools, vbds, vm } = this.props
     const intraPool = vm.$pool === host.$pool
-
     // Intra-pool
     if (intraPool) {
       let doNotMigrateVdis
@@ -164,15 +163,14 @@ export default class MigrateVmModalBody extends BaseComponent {
         host,
         intraPool,
         mapVifsNetworks: undefined,
-        migrationNetworkId: undefined,
+        migrationNetworkId: getDefaultMigrationNetwork(host, pools, pifs),
         targetSrs: {},
       })
       return
     }
 
     // Inter-pool
-    const { networks, pifs, vifs } = this.props
-    const defaultMigrationNetworkId = find(pifs, pif => pif.$host === host.id && pif.management).$network
+    const { networks, vifs } = this.props
 
     const defaultNetwork = invoke(() => {
       // First PIF with an IP.
@@ -192,7 +190,7 @@ export default class MigrateVmModalBody extends BaseComponent {
       host,
       intraPool,
       mapVifsNetworks: defaultNetworksForVif,
-      migrationNetworkId: defaultMigrationNetworkId,
+      migrationNetworkId: getDefaultMigrationNetwork(host, pools, pifs),
       targetSrs: { mainSr: pools[host.$pool].default_SR },
     })
   }
@@ -226,7 +224,7 @@ export default class MigrateVmModalBody extends BaseComponent {
             </Col>
           </SingleLineRow>
         </div>
-        {host && !doNotMigrateVdis && (
+        {host && (!doNotMigrateVdis || migrationNetworkId != null) && (
           <div className={styles.groupBlock}>
             <SingleLineRow>
               <Col size={12}>

@@ -8,12 +8,15 @@ import keys from 'lodash/keys'
 import multiKeyHashInt from 'multikey-hash'
 import pick from 'lodash/pick'
 import tmp from 'tmp'
+import { createLogger } from '@xen-orchestra/log'
 import { randomBytes } from 'crypto'
 import { dirname, resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
 import { type SimpleIdPattern } from './utils'
+
+const log = createLogger('xo:server:utils')
 
 // ===================================================================
 
@@ -101,7 +104,14 @@ export const parseXml = (function () {
     ignoreAttributes: false,
   }
 
-  return xml => fastXmlParser.parse(xml, opts)
+  return xml => {
+    try {
+      return fastXmlParser.parse(Buffer.isBuffer(xml) ? xml.toString() : xml, opts, true)
+    } catch (error) {
+      log.warn('parseXml', { error, xml })
+      return ''
+    }
+  }
 })()
 
 // -------------------------------------------------------------------

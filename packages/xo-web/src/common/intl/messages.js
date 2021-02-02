@@ -87,6 +87,7 @@ const messages = {
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
   advancedSettings: 'Advanced settings',
+  forceUpgrade: 'Force upgrade',
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
   installedCertificates: 'Installed certificates',
@@ -806,6 +807,7 @@ const messages = {
   poolRemoteSyslogPlaceHolder: 'Logging host',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
+  defaultMigrationNetwork: 'Default migration network',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
@@ -1065,7 +1067,9 @@ const messages = {
   sshUserTooltip: 'Connect using external SSH tool as user…',
   sshUserLabel: 'SSH as…',
   sshUsernameLabel: 'SSH user name',
-  sshNeedClientTools: 'No IP address reported by client tools',
+  remoteNeedClientTools: 'No IP address reported by client tools',
+  rdp: 'RDP',
+  rdpRootTooltip: 'Connect using external RDP tool',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1192,6 +1196,7 @@ const messages = {
   deleteSnapshots: 'Remove selected snapshots',
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
+  secureBoot: 'Secure boot',
   snapshotDate: 'Creation date',
   snapshotError: 'Snapshot error',
   snapshotName: 'Name',
@@ -2361,6 +2366,7 @@ const messages = {
   httpProxyPlaceholder: 'protocol://username:password@address:port',
   proxyUpgradesError: 'Unable to check upgrades availability',
   proxyApplianceSettingsInfo: 'Leave the field empty and click on OK to remove the existing configuration',
+  proxyUpToDate: 'Your proxy is up-to-date',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
