@@ -67,6 +67,10 @@ class Xapi extends Base {
     this.objects.on('update', onAddOrUpdate)
   }
 
+  async _getOrWaitObject(idOrUuidOrRef) {
+    return this.getObject(idOrUuidOrRef) ?? this._waitObject(idOrUuidOrRef)
+  }
+
   _waitObject(predicate) {
     if (typeof predicate === 'function') {
       const genericWatchers = this._genericWatchers

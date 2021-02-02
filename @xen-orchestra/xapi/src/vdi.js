@@ -7,6 +7,16 @@ module.exports = class Vdi {
     return extractOpaqueRef(await this.callAsync('VDI.clone', vdiRef))
   }
 
+  async snapshot(vdiRef, nameLabel) {
+    const snap = await this._getOrWaitObject(extractOpaqueRef(await this.callAsync('VDI.snapshot', vdiRef)))
+
+    if (nameLabel) {
+      await snap.set_name_label(nameLabel)
+    }
+
+    return snap
+  }
+
   async destroy(vdiRef) {
     await this.callAsync('VDI.destroy', vdiRef)
   }

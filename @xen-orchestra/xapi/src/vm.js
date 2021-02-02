@@ -402,6 +402,54 @@ module.exports = class Vm {
     }
   }
 
+  @defer
+  async customSnapshot($defer, vmRef, nameLabel) {
+    const vm = await this.getRecord('VM', vmRef)
+    if (nameLabel === undefined) {
+      nameLabel = vm.name_label
+    }
+
+    // 1. Create the VM.
+    const customVmRef = await this.VM_create({
+      ...vm,
+      affinity: undefined,
+      ha_always_run: false,
+      is_a_template: false,
+      name_label: nameLabel,
+      other_config: {
+        ...vm.other_config,
+        snapshot_of: vm.uuid,
+      },
+    })
+    $defer.onFailure.call(this, 'VM_destroy', customVmRef)
+
+    // 2. Create VDIs & VBDs.
+    await asyncMap(vm.$VBDs, async vbd => {
+      let vdi
+      if (vbd.type === 'Disk' && (vdi = vbd.$VDI) !== undefined && !vdi.name_label.startsWith('[NOBAK]')) {
+        const snap = await this.VDI_snapshot(vdi.$ref)
+        $defer.onFailure.call(this, 'VDI_destroy', snap.$ref)
+
+        await this.VBD_create({
+          ...vbd,
+          VDI: snap.$ref,
+          VM: customVmRef,
+        })
+      }
+    })
+
+    // 3. Create VIFs
+    await asyncMap(vm.$VIFs, async vif =>
+      this.VIF_create({
+        ...vif,
+        VM: customVmRef,
+        network: vif.network,
+      })
+    )
+
+    return customVmRef
+  }
+
   @cancelable
   async snapshot($cancelToken, vmRef, nameLabel) {
     const vm = await this.getRecord('VM', vmRef)
