@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM migration] Fix `VIF_NOT_IN_MAP` error
+- [VM migration] Fix `VIF_NOT_IN_MAP` error (PR [5544](https://github.com/vatesfr/xen-orchestra/pull/5544))
 
 ### Packages to release
 
