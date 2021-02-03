@@ -173,12 +173,13 @@ export default class RemoteHandlerAbstract {
 
   // write a stream to a file using a temporary file
   async outputStream(
+    cancelToken,
     input: Readable | Promise<Readable>,
     path: string,
     { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
     path = normalizePath(path)
-    return this._outputStream(await input, normalizePath(path), {
+    return this._outputStream(cancelToken, await input, normalizePath(path), {
       checksum,
       dirMode,
     })
@@ -475,11 +476,18 @@ export default class RemoteHandlerAbstract {
     return checksumStream
   }
 
-  async _outputStream(input: Readable, path: string, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
+  async _outputStream(
+    cancelToken,
+    input: Readable,
+    path: string,
+    { checksum, dirMode }: { checksum?: boolean, dirMode?: number }
+  ) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
-
     const output = await this._createOutputStreamChecksum(tmpPath, { checksum })
     try {
+      cancelToken.promise.then(reason => {
+        input.destroy(reason)
+      })
       input.pipe(output)
       await fromEvent(output, 'finish')
       await output.checksumWritten
