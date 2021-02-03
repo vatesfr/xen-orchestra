@@ -420,15 +420,17 @@ module.exports = class Vm {
       : this.callAsync('VM.start_on', vmRef, hostRef, false, false)
   }
 
-  shutdown(vmRef, { hard = false } = {}) {
-    return this.callAsync(`VM.${hard ? 'hard' : 'clean'}_shutdown`, vmRef)
+  @cancelable
+  shutdown($cancelToken, vmRef, { hard = false } = {}) {
+    return this.callAsync($cancelToken, `VM.${hard ? 'hard' : 'clean'}_shutdown`, vmRef)
   }
 
+  @cancelable
   @defer
-  async offlineSnapshot($defer, vmRef, nameLabel) {
+  async offlineSnapshot($defer, $cancelToken, vmRef, nameLabel) {
     // 1. Stop the VM.
     try {
-      await this.VM_shutdown(vmRef)
+      await this.VM_shutdown($cancelToken, vmRef)
       $defer.call(this, 'VM_start', vmRef)
     } catch (error) {
       if (error.code !== 'VM_BAD_POWER_STATE') {
@@ -453,7 +455,7 @@ module.exports = class Vm {
       }
     })
 
-    return this.VM_snapshot(vmRef, nameLabel)
+    return this.VM_snapshot($cancelToken, vmRef, nameLabel)
   }
 
   @cancelable
