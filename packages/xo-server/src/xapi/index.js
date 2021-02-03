@@ -1136,7 +1136,8 @@ export default class Xapi extends XapiBase {
     const vifsMap = {}
     if (vm.$pool !== host.$pool) {
       const defaultNetworkRef = find(host.$PIFs, pif => pif.management).$network.$ref
-      for (const vif of vm.$VIFs) {
+      const vifs = flatMap(vm.$snapshots, '$VIFs').concat(vm.$VIFs)
+      for (const vif of vifs) {
         vifsMap[vif.$ref] =
           mapVifsNetworks && mapVifsNetworks[vif.$id]
             ? hostXapi.getObject(mapVifsNetworks[vif.$id]).$ref
