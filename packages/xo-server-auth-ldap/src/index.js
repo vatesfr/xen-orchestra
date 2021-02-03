@@ -433,7 +433,6 @@ class AuthLdap {
           if (xoUser === undefined) {
             continue
           }
-
           // If the user exists in XO, should be a member of the LDAP-provided
           // group but isn't: add it
           const userIdIndex = xoGroupMembers.findIndex(id => id === xoUser.id)
