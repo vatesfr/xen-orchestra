@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM migration] Fix `VIF_NOT_IN_MAP` error
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -27,3 +29,5 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- xo-server patch
