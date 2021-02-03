@@ -278,21 +278,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
     let listedObjects = {}
     do {
-      listedObjects = await this._s3
-        .listObjectsV2({
-          ...listParams,
-          ContinuationToken: listedObjects.NextContinuationToken,
-        })
-        .promise()
+      listedObjects = await this._s3.listObjectsV2({
+        ...listParams,
+        ContinuationToken: listedObjects.NextContinuationToken,
+      })
       if (listedObjects.Contents.length === 0) {
         return
       }
-      await this._s3
-        .deleteObjects({
-          Bucket: this._bucket,
-          Delete: { Objects: listedObjects.Contents.map(({ Key }) => ({ Key })) },
-        })
-        .promise()
+      await this._s3.deleteObjects({
+        Bucket: this._bucket,
+        Delete: { Objects: listedObjects.Contents.map(({ Key }) => ({ Key })) },
+      })
     } while (listedObjects.IsTruncated)
   }
 }
