@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [LDAP] Group synchronization: fix users not added to groups in some cases
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
