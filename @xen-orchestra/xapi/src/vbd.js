@@ -69,6 +69,7 @@ module.exports = class Vbd {
   }
 
   async disconnect(ref) {
+    // TODO: check if VBD is attached before
     try {
       await this.call('VBD.unplug_force', ref)
     } catch (error) {
