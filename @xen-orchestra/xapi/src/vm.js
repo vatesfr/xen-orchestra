@@ -1,3 +1,4 @@
+const assert = require('assert')
 const asyncMap = require('@xen-orchestra/async-map').default
 const cancelable = require('promise-toolbox/cancelable')
 const defer = require('golike-defer').default
@@ -13,7 +14,7 @@ const extractOpaqueRef = require('./_extractOpaqueRef')
 const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
 
-const { debug, warn } = createLogger('xo:xapi:vm')
+const { warn } = createLogger('xo:xapi:vm')
 
 const BIOS_STRINGS_KEYS = new Set([
   'baseboard-asset-tag',
@@ -402,45 +403,10 @@ module.exports = class Vm {
     }
   }
 
-  async start(vmRef, hostRef, force = false) {
-    const nameLabel = await this.getField('VM', vmRef, 'name_label')
-    debug(`Starting VM ${nameLabel}`)
-
-    if (force) {
-      await this.setFieldEntry('VM', vmRef, 'blocked_operations', 'start', null)
-    }
-
-    return hostRef === undefined
-      ? this.call(
-          'VM.start',
-          vmRef,
-          false, // Start paused?
-          false // Skip pre-boot checks?
-        )
-      : this.callAsync('VM.start_on', vmRef, hostRef, false, false)
-  }
-
-  @cancelable
-  shutdown($cancelToken, vmRef, { hard = false } = {}) {
-    return this.callAsync($cancelToken, `VM.${hard ? 'hard' : 'clean'}_shutdown`, vmRef)
-  }
-
   @cancelable
   @defer
-  async offlineSnapshot($defer, $cancelToken, vmRef, nameLabel) {
-    // 1. Stop the VM.
-    try {
-      await this.VM_shutdown($cancelToken, vmRef)
-      $defer.call(this, 'VM_start', vmRef)
-    } catch (error) {
-      if (error.code !== 'VM_BAD_POWER_STATE') {
-        throw error
-      }
-    }
-
-    // 2. Block start operation.
-    await this.setFieldEntry('VM', vmRef, 'blocked_operations', 'start', 'Offline snapshot in progress...')
-    $defer.call(this, 'setFieldEntry', 'VM', vmRef, 'blocked_operations', 'start', null)
+  async customSnapshot($defer, $cancelToken, vmRef, nameLabel) {
+    assert.strictEqual(await this.getField('VM', vmRef, 'power_state'), 'Halted')
 
     // 3. Destroy VBDs attached to VDIs which their name labels start with [NOBAK].
     await asyncMap(this.getField('VM', vmRef, 'VBDs'), async vbdRef => {
