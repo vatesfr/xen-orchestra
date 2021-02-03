@@ -408,7 +408,6 @@ module.exports = class Vm {
   async customSnapshot($defer, $cancelToken, vmRef, nameLabel) {
     assert.strictEqual(await this.getField('VM', vmRef, 'power_state'), 'Halted')
 
-    // 3. Destroy VBDs attached to VDIs which their name labels start with [NOBAK].
     await asyncMap(this.getField('VM', vmRef, 'VBDs'), async vbdRef => {
       const vbd = this.getObject(vbdRef)
       if (
