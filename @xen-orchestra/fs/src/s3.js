@@ -5,6 +5,7 @@ import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
 import { createChecksumStream } from './checksum'
+import CancelToken from 'promise-toolbox/CancelToken'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -51,7 +52,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _outputStream(cancelToken, input, path, { checksum }) {
+  async _outputStream(input, path, { checksum, cancelToken = CancelToken.none }) {
+    cancelToken.promise.then(reason => {
+      input.destroy(reason)
+    })
     let inputStream = input
     if (checksum) {
       const checksumStream = createChecksumStream()

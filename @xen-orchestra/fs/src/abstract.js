@@ -4,6 +4,7 @@
 import getStream from 'get-stream'
 
 import asyncMap from '@xen-orchestra/async-map'
+import CancelToken from 'promise-toolbox/CancelToken'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
@@ -173,15 +174,15 @@ export default class RemoteHandlerAbstract {
 
   // write a stream to a file using a temporary file
   async outputStream(
-    cancelToken,
     input: Readable | Promise<Readable>,
     path: string,
-    { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
+    { checksum = true, dirMode, cancelToken = CancelToken.none }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
     path = normalizePath(path)
-    return this._outputStream(cancelToken, await input, normalizePath(path), {
+    return this._outputStream(await input, normalizePath(path), {
       checksum,
       dirMode,
+      cancelToken,
     })
   }
 
@@ -477,10 +478,9 @@ export default class RemoteHandlerAbstract {
   }
 
   async _outputStream(
-    cancelToken,
     input: Readable,
     path: string,
-    { checksum, dirMode }: { checksum?: boolean, dirMode?: number }
+    { checksum, dirMode, cancelToken = CancelToken.none }: { checksum?: boolean, dirMode?: number }
   ) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this._createOutputStreamChecksum(tmpPath, { checksum })

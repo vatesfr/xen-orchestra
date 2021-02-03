@@ -1,7 +1,7 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { ignoreErrors, timeout } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
@@ -309,7 +309,7 @@ export default class metadataBackup {
           await waitAll([
             (async () => {
               return timeout.call(
-                handler.outputStream(cancelToken, stream, fileName).catch(error => {
+                handler.outputStream(stream, fileName, { cancelToken }).catch(error => {
                   stream.destroy()
                   if (error.message !== 'aborted') {
                     throw error
