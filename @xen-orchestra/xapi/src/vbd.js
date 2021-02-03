@@ -1,4 +1,5 @@
 const identity = require('lodash/identity')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 
 const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
@@ -65,5 +66,21 @@ module.exports = class Vbd {
     if (isVmRunning(powerState)) {
       await this.callAsync('VBD.plug', vbdRef)
     }
+  }
+
+  async disconnect(ref) {
+    try {
+      await this.call('VBD.unplug_force', ref)
+    } catch (error) {
+      if (error.code === 'VBD_NOT_UNPLUGGABLE') {
+        await this.setField('VBD', ref, 'unpluggable', true)
+        await this.call('VBD.unplug_force', ref)
+      }
+    }
+  }
+
+  async destroy(ref) {
+    await ignoreErrors.call(this.VBD_disconnect(ref))
+    await this.call('VBD.destroy', ref)
   }
 }
