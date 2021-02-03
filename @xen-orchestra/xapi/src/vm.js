@@ -405,6 +405,7 @@ module.exports = class Vm {
 
   @cancelable
   @defer
+  // this method ignores VDIs which their names start with '[NOBAK]'
   async customSnapshot($defer, $cancelToken, vmRef, nameLabel) {
     assert.strictEqual(await this.getField('VM', vmRef, 'power_state'), 'Halted')
 
