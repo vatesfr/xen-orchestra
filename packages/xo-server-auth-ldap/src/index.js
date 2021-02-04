@@ -424,6 +424,7 @@ class AuthLdap {
           } = await client.search(this._searchBase, {
             scope: 'sub',
             filter: `(${escape(membersMapping.userAttribute)}=${escape(memberId)})`,
+            sizeLimit: 1,
           })
           if (ldapUser === undefined) {
             continue
