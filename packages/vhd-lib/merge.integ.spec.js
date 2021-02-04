@@ -11,7 +11,7 @@ import { pFromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 import { randomBytes } from 'crypto'
 
-import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './'
+import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from '.'
 
 import { SECTOR_SIZE } from './src/_constants'
 
