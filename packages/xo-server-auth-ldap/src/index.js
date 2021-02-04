@@ -418,8 +418,19 @@ class AuthLdap {
 
         const xoGroupMembers = xoGroup.users === undefined ? [] : xoGroup.users.slice(0)
 
-        for (const ldapId of ldapGroupMembers) {
-          const xoUser = xoUsers.find(user => user.authProviders.ldap.id === ldapId)
+        for (const memberId of ldapGroupMembers) {
+          const {
+            searchEntries: [ldapUser],
+          } = await client.search(this._searchBase, {
+            scope: 'sub',
+            filter: `(${escape(membersMapping.userAttribute)}=${escape(memberId)})`,
+            sizeLimit: 1,
+          })
+          if (ldapUser === undefined) {
+            continue
+          }
+
+          const xoUser = xoUsers.find(user => user.authProviders.ldap.id === ldapUser[this._userIdAttribute])
           if (xoUser === undefined) {
             continue
           }
