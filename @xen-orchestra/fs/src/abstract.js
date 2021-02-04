@@ -174,8 +174,8 @@ export default class RemoteHandlerAbstract {
 
   // write a stream to a file using a temporary file
   async outputStream(
-    input: Readable | Promise<Readable>,
     path: string,
+    input: Readable | Promise<Readable>,
     { checksum = true, dirMode, cancelToken = CancelToken.none }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
     path = normalizePath(path)

@@ -1325,7 +1325,7 @@ export default class BackupNg {
                   parentId: taskId,
                   result: () => ({ size: xva.size }),
                 },
-                handler.outputStream(fork, dataFilename, {
+                handler.outputStream(dataFilename, fork, {
                   dirMode,
                 })
               )
@@ -1663,7 +1663,7 @@ export default class BackupNg {
                     }
 
                     // FIXME: should only be renamed after the metadata file has been written
-                    await handler.outputStream(fork.streams[`${id}.vhd`](), path, {
+                    await handler.outputStream(path, fork.streams[`${id}.vhd`](), {
                       // no checksum for VHDs, because they will be invalidated by
                       // merges and chainings
                       checksum: false,

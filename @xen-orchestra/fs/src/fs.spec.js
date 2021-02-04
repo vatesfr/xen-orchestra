@@ -82,7 +82,7 @@ handlers.forEach(url => {
 
     describe('#outputStream()', () => {
       it('creates parent dir if missing', async () => {
-        await handler.outputStream(createTestDataStream(), 'dir/file')
+        await handler.outputStream('dir/file', createTestDataStream())
         await expect(await handler.readFile('dir/file')).toEqual(TEST_DATA)
       })
     })

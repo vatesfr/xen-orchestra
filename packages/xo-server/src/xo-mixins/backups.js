@@ -548,7 +548,7 @@ export default class {
     const sizeStream = createSizeStream()
 
     try {
-      await Promise.all([handler.outputStream(sizeStream, backupFullPath), stream.task])
+      await Promise.all([handler.outputStream(backupFullPath, sizeStream), stream.task])
     } catch (error) {
       // Remove new backup. (corrupt).
       await handler.unlink(backupFullPath)::ignoreErrors()
@@ -788,7 +788,7 @@ export default class {
 
     sourceStream.pipe(sizeStream)
 
-    await Promise.all([sourceStream.task, handler.outputStream(sizeStream, file)])
+    await Promise.all([sourceStream.task, handler.outputStream(file, sizeStream)])
 
     return {
       transferSize: sizeStream.size,
