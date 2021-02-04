@@ -1,25 +1,25 @@
 ### Deploy new appliance
 
-First step, you have to deploy a new appliance. All needed information [here](installation.md)
+First step, you have to deploy a new appliance. All needed information is [here](installation.md)
 
 ### Export configuration
 
-For export your current configuration you have to go to **Settings** -> **Config**.
-Here you will see a named button **_Dowload current config_**. Click on it, then an export modal will appear.
+To export your current configuration, navigate to **Settings** -> **Config**.
+Here you will see a button labeled **_Download current config_**. Click on it, then an export modal will appear.
 
 ![](./assets/exportModal.png)
 
-You can set passphrase to encrypt the exported configuration.
+You can set a passphrase to encrypt the exported configuration.
 
 ### Import configuration
 
-Now its time to import your configuration to the new appliance.
-Go to **Settings** -> **Config** of your new appliance. Here you have a **_import_** section where you can drag and drop your exported configuration.
+Now it's time to import your configuration to the new appliance.
+Go to the **Settings** -> **Config** page of your new appliance. Here you have an **_import_** section where you can drag and drop your exported configuration file.
 
 ![](./assets/importModal.png)
 
-When your configuration are loaded, click to import. New modal will appear for ask you the passphrase to decrypte your configuration. If you didn't set passphrase when you was exporting your configuration, let it empty.
+When your configuration is loaded, click to import. A new modal will appear to ask you the passphrase to decrypt your configuration. If you didn't set a passphrase when you exported your configuration, leave it empty.
 
 ### Advanced users
 
-If you set some configuration on `/etc/xo-server` unfortunately you will have to migrate manually this configuration on the new appliance.
+If you made custom adjustments to the `/etc/xo-server` config file on your previous appliance, unfortunately you will have to recreate these modifications on the new appliance.
