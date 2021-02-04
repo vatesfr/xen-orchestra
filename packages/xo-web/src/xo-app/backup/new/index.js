@@ -34,7 +34,7 @@ import {
   isSrWritable,
   subscribeRemotes,
 } from 'xo'
-import { flatten, includes, isEmpty, map, mapValues, max, omit, some } from 'lodash'
+import { flatten, includes, isEmpty, map, mapValues, omit, some } from 'lodash'
 
 import NewSchedule from './new-schedule'
 import ReportWhen from './_reportWhen'
@@ -143,6 +143,7 @@ const normalizeSettings = ({ copyMode, exportMode, offlineBackupActive, settings
   settings.map(setting =>
     defined(setting.copyRetention, setting.exportRetention, setting.snapshotRetention) !== undefined
       ? {
+          ...setting,
           copyRetention: copyMode ? setting.copyRetention : undefined,
           exportRetention: exportMode ? setting.exportRetention : undefined,
           snapshotRetention: snapshotMode && !offlineBackupActive ? setting.snapshotRetention : undefined,
@@ -160,8 +161,7 @@ const destructVmsPattern = pattern =>
       }
 
 // isRetentionLow returns the expected result when the 'fullInterval' is undefined.
-const isRetentionLow = (settings, retention) =>
-  retention < RETENTION_LIMIT || settings.getIn(['', 'fullInterval']) < RETENTION_LIMIT
+const isRetentionLow = (fullInterval, retention) => retention < RETENTION_LIMIT || fullInterval < RETENTION_LIMIT
 
 const checkRetentions = (schedule, { copyMode, exportMode, snapshotMode }) =>
   (!copyMode && !exportMode && !snapshotMode) ||
@@ -432,7 +432,13 @@ const New = decorate([
             <NewSchedule
               missingRetentions={!checkRetentions(props.value, modes)}
               modes={modes}
-              showRetentionWarning={deltaMode && !isRetentionLow(settings, props.value.exportRetention)}
+              showRetentionWarning={
+                deltaMode &&
+                !isRetentionLow(
+                  defined(props.value.fullInterval, settings.getIn(['', 'fullInterval'])),
+                  props.value.exportRetention
+                )
+              }
               {...props}
             />
           ),
@@ -466,7 +472,7 @@ const New = decorate([
       },
       saveSchedule: (
         _,
-        { copyRetention, cron, enabled = true, exportRetention, id, name, snapshotRetention, timezone }
+        { copyRetention, cron, enabled = true, exportRetention, fullInterval, id, name, snapshotRetention, timezone }
       ) => ({ propSettings, schedules, settings = propSettings }) => ({
         schedules: {
           ...schedules,
@@ -480,8 +486,9 @@ const New = decorate([
           },
         },
         settings: settings.set(id, {
-          exportRetention,
           copyRetention,
+          exportRetention,
+          fullInterval,
           snapshotRetention,
         }),
       }),
@@ -617,12 +624,21 @@ const New = decorate([
           get(() => hostsById[$container].version) || get(() => hostsById[poolsById[$container].master].version)
         ),
       selectedVmIds: state => resolveIds(state.vms),
-      showRetentionWarning: ({ deltaMode, propSettings, settings = propSettings, schedules }) =>
-        deltaMode &&
-        !isRetentionLow(
-          settings,
-          defined(max(Object.keys(schedules).map(key => settings.getIn([key, 'exportRetention']))), 0)
-        ),
+      showRetentionWarning: ({ deltaMode, propSettings, settings = propSettings, schedules }) => {
+        if (!deltaMode) {
+          return false
+        }
+
+        const globalFullInterval = settings.getIn(['', 'fullInterval'])
+        return some(
+          Object.keys(schedules),
+          key =>
+            !isRetentionLow(
+              defined(settings.getIn([key, 'fullInterval']), globalFullInterval),
+              settings.getIn([key, 'exportRetention'])
+            )
+        )
+      },
       srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
       remotePredicate: ({ proxyId, remotes }) => remote => {
         if (proxyId === null) {
@@ -634,6 +650,7 @@ const New = decorate([
         Map(get(() => job.settings)).map(setting =>
           defined(setting.copyRetention, setting.exportRetention, setting.snapshotRetention)
             ? {
+                ...setting,
                 copyRetention: defined(setting.copyRetention, DEFAULT_RETENTION),
                 exportRetention: defined(setting.exportRetention, DEFAULT_RETENTION),
                 snapshotRetention: defined(setting.snapshotRetention, DEFAULT_RETENTION),

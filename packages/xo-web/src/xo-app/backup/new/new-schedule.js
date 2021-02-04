@@ -15,6 +15,7 @@ import { FormGroup, Input } from './../utils'
 const New = decorate([
   provideState({
     computed: {
+      forceFullInterval: (_, { value }) => value.fullInterval === 1,
       formId: generateId,
       idInputName: generateId,
     },
@@ -49,6 +50,11 @@ const New = decorate([
       setName: ({ setSchedule }, { target: { value } }) => () => {
         setSchedule({
           name: value.trim() === '' ? null : value,
+        })
+      },
+      toggleForceFullInterval({ setSchedule }) {
+        setSchedule({
+          fullInterval: this.state.forceFullInterval ? undefined : 1,
         })
       },
     },
@@ -97,6 +103,12 @@ const New = decorate([
             <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
           </FormGroup>
         )}
+        <FormGroup>
+          <label>
+            <strong>{_('forceFullBackupInterval')}</strong>{' '}
+            <input checked={state.forceFullInterval} onChange={effects.toggleForceFullInterval} type='checkbox' />
+          </label>
+        </FormGroup>
         <Scheduler onChange={effects.setCronTimezone} cronPattern={schedule.cron} timezone={schedule.timezone} />
         <SchedulePreview cronPattern={schedule.cron} timezone={schedule.timezone} />
       </CardBlock>

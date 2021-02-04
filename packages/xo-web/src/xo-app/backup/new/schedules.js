@@ -76,6 +76,11 @@ export default decorate([
             sortCriteria: 'timezone',
             name: _('scheduleTimezone'),
           },
+          {
+            itemRenderer: schedule => (schedule.fullInterval === 1 ? _('stateEnabled') : _('stateDisabled')),
+            sortCriteria: 'fullInterval',
+            name: _('forceFullBackupInterval'),
+          },
         ]
 
         if (state.exportMode) {
