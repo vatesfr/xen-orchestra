@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup/restore] Allow backup restore to any licence even if xoa isn't registered
+- [Backup/restore] Allow backup restore to any licence even if xoa isn't registered (PR [#5547](https://github.com/vatesfr/xen-orchestra/pull/5547))
 
 ### Bug fixes
 
