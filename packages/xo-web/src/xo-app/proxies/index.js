@@ -215,7 +215,7 @@ const Proxies = decorate([
             await confirm({
               title: _('upgrade'),
               body: _('proxyRunningBackupsMessage', {
-                nJobs: error.data.ids.length,
+                nJobs: error.data.actual.length,
               }),
             })
           } catch (_) {
