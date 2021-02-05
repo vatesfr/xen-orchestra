@@ -148,8 +148,8 @@ deploy.resolve = {
   sr: ['sr', 'SR', 'administrate'],
 }
 
-export function upgradeAppliance({ id, force }) {
-  return this.upgradeProxyAppliance(id, force)
+export function upgradeAppliance({ id, ignoreRunningJobs }) {
+  return this.upgradeProxyAppliance(id, ignoreRunningJobs)
 }
 
 upgradeAppliance.permission = 'admin'
@@ -157,7 +157,7 @@ upgradeAppliance.params = {
   id: {
     type: 'string',
   },
-  force: {
+  ignoreRunningJobs: {
     type: 'boolean',
     optional: true,
   },

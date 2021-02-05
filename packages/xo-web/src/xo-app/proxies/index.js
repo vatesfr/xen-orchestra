@@ -8,8 +8,8 @@ import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
 import { confirm } from 'modal'
+import { incorrectState } from 'xo-common/api-errors'
 import { provideState, injectState } from 'reaclette'
-import { runningJobs } from 'xo-common/api-errors'
 import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
@@ -207,7 +207,7 @@ const Proxies = decorate([
         try {
           await upgradeProxyAppliance(id)
         } catch (error) {
-          if (!runningJobs.is(error)) {
+          if (!incorrectState.is(error)) {
             throw error
           }
 
@@ -222,7 +222,7 @@ const Proxies = decorate([
             return
           }
 
-          await upgradeProxyAppliance(id, { force: true })
+          await upgradeProxyAppliance(id, { ignoreRunningJobs: true })
         }
         return fetchProxyUpgrades([id])
       },
