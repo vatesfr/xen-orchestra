@@ -2837,6 +2837,8 @@ export const subscribeSelfLicenses = createSubscription(() => _call('xoa.license
 
 // Support --------------------------------------------------------------------
 
+export const clearXoaCheckCache = () => _call('xoa.clearCheckCache')
+
 export const checkXoa = () => _call('xoa.check')
 
 export const closeTunnel = () => _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)

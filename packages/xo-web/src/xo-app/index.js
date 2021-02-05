@@ -10,7 +10,7 @@ import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
-import { checkXoa } from 'xo'
+import { checkXoa, clearXoaCheckCache } from 'xo'
 import { connectStore, getXoaPlan, noop, routes } from 'utils'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
@@ -119,6 +119,10 @@ const BODY_STYLE = {
 @provideState({
   initialState: () => ({ checkXoaCount: 0 }),
   effects: {
+    async forceRefreshXoaStatus() {
+      await clearXoaCheckCache()
+      await this.effects.refreshXoaStatus()
+    },
     refreshXoaStatus() {
       this.state.checkXoaCount += 1
     },
