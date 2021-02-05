@@ -427,6 +427,7 @@ const messages = {
   taskMergedDataSize: 'Merge size',
   taskMergedDataSpeed: 'Merge speed',
   taskError: 'Error',
+  taskEstimatedEnd: 'Estimated end',
   taskReason: 'Reason',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
