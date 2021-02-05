@@ -8,7 +8,7 @@ import { pipeline } from 'readable-stream'
 
 import { createReadableRawStream, createReadableSparseStream } from './'
 
-import { createFooter } from './src/_createFooterHeader'
+import { createFooter } from './_createFooterHeader'
 
 let tempDir = null
 
