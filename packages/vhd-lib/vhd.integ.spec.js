@@ -93,11 +93,11 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   const blockSize = Math.pow(2, 16)
   const blocks = [
     {
-      logicalAddressBytes: blockSize * 3,
+      logicalAddressBytes: 3,
       data: Buffer.alloc(blockSize, 'azerzaerazeraze', 'ascii'),
     },
     {
-      logicalAddressBytes: blockSize * 100,
+      logicalAddressBytes: 100,
       data: Buffer.alloc(blockSize, 'gdfslkdfguer', 'ascii'),
     },
   ]
