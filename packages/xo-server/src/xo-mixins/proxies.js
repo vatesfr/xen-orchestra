@@ -153,7 +153,7 @@ export default class Proxy {
         ids.push(id)
       }
       if (ids.length !== 0) {
-        throw incorrectState({ actual: ids, expected: [], property: 'runningJobs' })
+        throw incorrectState({ actual: ids, expected: [], object: 'runningJobs' })
       }
     }
 
