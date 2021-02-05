@@ -130,7 +130,7 @@ const BODY_STYLE = {
   computed: {
     xoaStatus: {
       get({ checkXoaCount }) {
-        // To avoid aggressive minification shish would remove destructuration
+        // To avoid aggressive minification which would remove destructuration
         noop(checkXoaCount)
         return getXoaPlan() === 'Community' ? '' : checkXoa()
       },
