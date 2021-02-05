@@ -190,11 +190,11 @@ export const notEnoughResources = create(24, data => ({
   message: 'not enough resources in resource set',
 }))
 
-export const incorrectState = create(25, ({ actual, expected, property }) => ({
+export const incorrectState = create(25, ({ actual, expected, object }) => ({
   data: {
     actual,
     expected,
-    property,
+    object,
   },
   message: 'incorrect state',
 }))
