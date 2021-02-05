@@ -1,5 +1,17 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [LDAP] "Synchronize LDAP groups" button: fix imported LDAP users not being correctly added or removed from groups in some cases (PR [#5545](https://github.com/vatesfr/xen-orchestra/pull/5545))
+- [VM migration] Fix `VIF_NOT_IN_MAP` error (PR [5544](https://github.com/vatesfr/xen-orchestra/pull/5544))
+
+### Released packages
+
+- xo-server-auth-ldap 0.10.2
+- xo-server 5.74.1
+
 ## **5.55.0** (2021-01-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
