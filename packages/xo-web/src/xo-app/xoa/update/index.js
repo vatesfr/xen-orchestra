@@ -173,7 +173,7 @@ const Updates = decorate([
           ? confirm({
               title: _('upgradeWarningTitle'),
               body: <p>{_('upgradeWarningMessage')}</p>,
-            }).then(() => xoaUpdater.upgrade())
+            }).then(() => xoaUpdater.upgrade().then(() => this.effects.forceRefreshXoaStatus()))
           : xoaUpdater.upgrade()
       },
     },
@@ -308,7 +308,7 @@ const Updates = decorate([
                       </a>
                     </p>
                   )}
-                  <ActionButton btnStyle='info' handler={effects.update} icon='refresh'>
+                  <ActionButton btnStyle='info' handler={effects.forceRefreshXoaStatus} icon='refresh'>
                     {_('refresh')}
                   </ActionButton>{' '}
                   <ActionButton
