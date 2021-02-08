@@ -66,8 +66,8 @@ export default class Remotes {
   *getAdapter(remote) {
     const app = this._app
     return new RemoteAdapter(yield this.getHandler(remote), {
-      app,
       addDisposeListener: app.backups.addDisposeListener,
+      app,
     })
   }
 }
