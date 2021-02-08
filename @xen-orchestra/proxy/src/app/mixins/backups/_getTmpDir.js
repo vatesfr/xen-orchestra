@@ -3,7 +3,7 @@ import fromCallback from 'promise-toolbox/fromCallback'
 import tmp from 'tmp'
 import { rmdir } from 'fs-extra'
 
-export const getTempMountDir = async () => {
+export const getTmpDir = async () => {
   const mountDir = await fromCallback(tmp.dir)
   return new Disposable(mountDir, () => rmdir(mountDir))
 }
