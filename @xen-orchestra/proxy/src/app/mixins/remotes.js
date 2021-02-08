@@ -10,7 +10,8 @@ import { deduped } from '../_deduped'
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
 function getDebouncedResource(resource) {
-  return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
+  const app = this._app
+  return debounceResource(resource, app.backups.addDisposeListener, app.config.getDuration('resourceDebounce'))
 }
 
 export default class Remotes {
@@ -63,6 +64,10 @@ export default class Remotes {
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(Disposable.factory)
   *getAdapter(remote) {
-    return new RemoteAdapter(yield this.getHandler(remote), { app: this._app })
+    const app = this._app
+    return new RemoteAdapter(yield this.getHandler(remote), {
+      app,
+      addDisposeListener: app.backups.addDisposeListener,
+    })
   }
 }

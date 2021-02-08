@@ -63,11 +63,12 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
   })
 
 function getDebouncedResource(resource) {
-  return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
+  return debounceResource(resource, this._addDisposeListener, this._app.config.getDuration('resourceDebounce'))
 }
 
 export class RemoteAdapter {
-  constructor(handler, { app }) {
+  constructor(handler, { addDisposeListener, app }) {
+    this._addDisposeListener = addDisposeListener
     this._app = app
     this._handler = handler
   }

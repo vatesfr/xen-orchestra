@@ -54,6 +54,13 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
+    // dispose created resources on stop
+    this.addDisposeListener = dispose => {
+      const hooks = this._app.hooks
+      hooks.on('stop', dispose)
+      return () => hooks.removeListener('stop', dispose)
+    }
+
     let run = ({ xapis, ...rest }) =>
       new Backup({
         ...rest,
@@ -422,7 +429,7 @@ export default class Backups {
 
   // FIXME: invalidate cache on options change
   @decorateResult(function (resource) {
-    return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
+    return debounceResource(resource, this.addDisposeListener, this._app.config.getDuration('resourceDebounce'))
   })
   @decorateWith(deduped, ({ url }) => [url])
   @decorateWith(Disposable.factory)

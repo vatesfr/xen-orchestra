@@ -1,6 +1,6 @@
 import Disposable from 'promise-toolbox/Disposable'
 
-export async function debounceResource(pDisposable, hooks, delay = 0) {
+export async function debounceResource(pDisposable, addDisposeListener = dispose => Function.prototype, delay = 0) {
   if (delay === 0) {
     return pDisposable
   }
@@ -12,13 +12,13 @@ export async function debounceResource(pDisposable, hooks, delay = 0) {
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId)
       timeoutId = undefined
-      hooks.removeListener('stop', onStop)
+      removeDisposeListener()
 
       return disposable.dispose()
     }
   }
 
-  const onStop = () => {
+  const removeDisposeListener = addDisposeListener(() => {
     const shouldDisposeNow = timeoutId !== undefined
     if (shouldDisposeNow) {
       return disposeWrapper()
@@ -26,8 +26,7 @@ export async function debounceResource(pDisposable, hooks, delay = 0) {
       // will dispose ASAP
       delay = 0
     }
-  }
-  hooks.on('stop', onStop)
+  })
 
   return new Disposable(disposable.value, () => {
     timeoutId = setTimeout(disposeWrapper, delay)
