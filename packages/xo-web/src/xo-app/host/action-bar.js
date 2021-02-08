@@ -10,11 +10,19 @@ import {
   stopHost,
 } from 'xo'
 
+const _restartHostAgent = ({ host, fetchStats }) => {
+  //  Don't fetch host stats because there is no connection to the host during reboot.
+  fetchStats(null)
+  setTimeout(fetchStats, 300e3)
+
+  return restartHostAgent(host)
+}
+
 const hostActionBarByState = {
-  Running: ({ host }) => (
-    <ActionBar display='icon' handlerParam={host}>
+  Running: props => (
+    <ActionBar display='icon' handlerParam={props}>
       <Action handler={stopHost} icon='host-stop' label={_('stopHostLabel')} />
-      <Action handler={restartHostAgent} icon='host-restart-agent' label={_('restartHostAgent')} />
+      <Action handler={_restartHostAgent} icon='host-restart-agent' label={_('restartHostAgent')} />
       <Action handler={emergencyShutdownHost} icon='host-emergency-shutdown' label={_('emergencyModeLabel')} />
       <Action handler={restartHost} icon='host-reboot' label={_('rebootHostLabel')} />
     </ActionBar>
@@ -26,13 +34,13 @@ const hostActionBarByState = {
   ),
 }
 
-const HostActionBar = ({ host }) => {
+const HostActionBar = ({ host, fetchStats }) => {
   const ActionBar = hostActionBarByState[host.power_state]
 
   if (!ActionBar) {
     return <p>No action bar for state {host.power_state}</p>
   }
 
-  return <ActionBar host={host} />
+  return <ActionBar host={host} fetchStats={fetchStats} />
 }
 export default HostActionBar
