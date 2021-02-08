@@ -14,6 +14,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host] Restart toolstack: Fix `ECONNREFUSED` error (PR [#5553](https://github.com/vatesfr/xen-orchestra/pull/5553))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
