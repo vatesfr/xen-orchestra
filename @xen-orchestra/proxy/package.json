@@ -69,7 +69,6 @@
     "pump": "^3.0.0",
     "source-map-support": "^0.5.16",
     "stoppable": "^1.0.6",
-    "tmp": "^0.2.1",
     "vhd-lib": "^1.0.0",
     "xdg-basedir": "^4.0.0",
     "xen-api": "^0.29.0",
