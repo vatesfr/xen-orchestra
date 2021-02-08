@@ -17,6 +17,7 @@ import { deduped } from '../../_deduped'
 import { asyncMap } from '../../../_asyncMap'
 
 import { BACKUP_DIR } from './_getVmBackupDir'
+import { getTmpDir } from './_getTmpDir'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
 import { lvs, pvs } from './_lvm'
 
@@ -177,7 +178,7 @@ export class RemoteAdapter {
       }
     }
 
-    const path = yield this._app.remotes.getTempMountDir()
+    const path = yield getTmpDir()
     const mount = options => {
       return fromCallback(execFile, 'mount', [
         `--options=${options.join(',')}`,
@@ -291,7 +292,7 @@ export class RemoteAdapter {
     const handler = this._handler
 
     const diskPath = handler._getFilePath('/' + diskId)
-    const mountDir = yield this._app.remotes.getTempMountDir()
+    const mountDir = yield getTmpDir()
     await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
     try {
       let max = 0

@@ -1,10 +1,7 @@
 import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
-import tmp from 'tmp'
 import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
-import { rmdir } from 'fs-extra'
 
 import { debounceResource } from '../_debounceResource'
 import { decorateResult } from '../_decorateResult'
@@ -67,10 +64,5 @@ export default class Remotes {
   @decorateWith(Disposable.factory)
   *getAdapter(remote) {
     return new RemoteAdapter(yield this.getHandler(remote), { app: this._app })
-  }
-
-  async getTempMountDir() {
-    const mountDir = await fromCallback(tmp.dir)
-    return new Disposable(mountDir, () => rmdir(mountDir))
   }
 }
