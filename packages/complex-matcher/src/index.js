@@ -16,8 +16,14 @@ const RAW_STRING_CHARS = (() => {
   add('.')
   add('0', '9')
   add('_')
+  add('É')
+  add('é')
+  add('Ö')
+  add('ö')
   add('A', 'Z')
   add('a', 'z')
+  add('Ä', 'Å')
+  add('ä', 'å')
   return chars
 })()
 const isRawString = string => {
