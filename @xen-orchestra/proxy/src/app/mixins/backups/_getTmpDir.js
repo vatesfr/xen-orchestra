@@ -4,6 +4,6 @@ import tmp from 'tmp'
 import { rmdir } from 'fs-extra'
 
 export const getTmpDir = async () => {
-  const mountDir = await fromCallback(tmp.dir)
-  return new Disposable(mountDir, () => rmdir(mountDir))
+  const tmpDir = await fromCallback(tmp.dir)
+  return new Disposable(tmpDir, () => rmdir(tmpDir))
 }
