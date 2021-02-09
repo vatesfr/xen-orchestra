@@ -105,6 +105,7 @@ export default class Xapi extends XapiBase {
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
 
+    //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
     this._exportVdi = concurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
     this.exportVm = concurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
