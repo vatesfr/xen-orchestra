@@ -8,14 +8,14 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
+- [Proxy] Ask for a confirmation before upgrading a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
 - [XOA] Add warning message in the menu if "XOA check" reports any problems (PR [#5534](https://github.com/vatesfr/xen-orchestra/pull/5534))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [LDAP] "Synchronize LDAP groups" button: fix imported LDAP users not being correctly added or removed from groups in some cases (PR [#5545](https://github.com/vatesfr/xen-orchestra/pull/5545))
-- [VM migration] Fix `VIF_NOT_IN_MAP` error (PR [5544](https://github.com/vatesfr/xen-orchestra/pull/5544))
+- [VM/Snapshot export] Fix `Error: no available place in queue` on canceling an export via browser then starting a new one when the concurrency threshold is reached [#5535](https://github.com/vatesfr/xen-orchestra/issues/5535) (PR [#5538](https://github.com/vatesfr/xen-orchestra/pull/5538))
 
 ### Packages to release
 
@@ -34,6 +34,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-auth-ldap patch
-- xo-server patch
+- xo-common minor
+- xo-server minor
 - xo-web minor
