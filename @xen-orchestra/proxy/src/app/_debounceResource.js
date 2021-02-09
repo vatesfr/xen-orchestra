@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 
 const disposers = new Set()
@@ -14,12 +14,13 @@ export async function debounceResource(pDisposable, delay) {
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId)
       timeoutId = undefined
+      disposers.delete(disposer)
 
       return disposable.dispose()
     }
   }
 
-  disposers.add(() => {
+  const disposer = () => {
     const shouldDisposeNow = timeoutId !== undefined
     if (shouldDisposeNow) {
       return disposeWrapper()
@@ -27,14 +28,15 @@ export async function debounceResource(pDisposable, delay) {
       // will dispose ASAP
       delay = 0
     }
-  })
+  }
+  disposers.add(disposer)
 
   return new Disposable(disposable.value, () => {
     timeoutId = setTimeout(disposeWrapper, delay)
   })
 }
 debounceResource.flushAll = () =>
-  asyncMap(disposers, dispose => {
+  asyncMapSettled(disposers, dispose => {
     disposers.delete(dispose)
     return dispose()
   })
