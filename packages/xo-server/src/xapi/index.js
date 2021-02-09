@@ -1804,6 +1804,7 @@ export default class Xapi extends XapiBase {
         await vbd.set_unpluggable(true)
         return this.call('VBD.unplug_force', vbd.$ref)
       }
+      throw error
     }
   }
 
