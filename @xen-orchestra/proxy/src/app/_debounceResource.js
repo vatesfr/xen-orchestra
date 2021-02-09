@@ -18,7 +18,7 @@ export const createDebounceResource = defaultDelay => {
       if (timeoutId !== undefined) {
         clearTimeout(timeoutId)
         timeoutId = undefined
-        flushers.delete(disposer)
+        flushers.delete(flusher)
 
         try {
           await disposable.dispose()
@@ -28,7 +28,7 @@ export const createDebounceResource = defaultDelay => {
       }
     }
 
-    const disposer = () => {
+    const flusher = () => {
       const shouldDisposeNow = timeoutId !== undefined
       if (shouldDisposeNow) {
         return disposeWrapper()
@@ -37,7 +37,7 @@ export const createDebounceResource = defaultDelay => {
         delay = 0
       }
     }
-    flushers.add(disposer)
+    flushers.add(flusher)
 
     return new Disposable(disposable.value, () => {
       timeoutId = setTimeout(disposeWrapper, delay)
