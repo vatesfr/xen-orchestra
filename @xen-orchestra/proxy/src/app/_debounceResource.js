@@ -1,6 +1,7 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import { createLogger } from '@xen-orchestra/log/dist'
+
+import { asyncMap } from '../_asyncMap'
 
 const { warn } = createLogger('xo:proxy:debounceResource')
 
@@ -46,7 +47,7 @@ export const createDebounceResource = defaultDelay => {
   debounceResource.flushAll = () => {
     const currentFlushers = [...flushers]
     flushers.clear()
-    return asyncMapSettled(currentFlushers, flush => flush())
+    return asyncMap(currentFlushers, flush => flush())
   }
 
   return debounceResource
