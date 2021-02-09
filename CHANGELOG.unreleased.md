@@ -8,14 +8,12 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [backup] improve merge speed after backup when using SMB3.1.1 or NFS4.2 (PR [#5481](https://github.com/vatesfr/xen-orchestra/pull/5481))
+- [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
+- [Proxy] Ask for a confirmation before upgrading a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [VM/network] Change VIF's locking mode automatically to `locked` when adding allowed IPs (PR [#5472](https://github.com/vatesfr/xen-orchestra/pull/5472))
-- [Backup Reports] Don't hide errors during plugin test [#5486](https://github.com/vatesfr/xen-orchestra/issues/5486) (PR [#5491](https://github.com/vatesfr/xen-orchestra/pull/5491))
-- [Backup reports] Fix malformed sent email in case of multiple VMs (PR [#5479](https://github.com/vatesfr/xen-orchestra/pull/5479))
 
 ### Packages to release
 
@@ -36,5 +34,6 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib minor
+- xo-common minor
 - xo-server minor
 - xo-web minor
