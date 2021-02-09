@@ -1,42 +1,53 @@
 import asyncMapSettled from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
+import { createLogger } from '@xen-orchestra/log/dist'
 
-const disposers = new Set()
-export async function debounceResource(pDisposable, delay) {
-  if (delay === 0) {
-    return pDisposable
-  }
+const { warn } = createLogger('xo:proxy:debounceResource')
 
-  const disposable = await pDisposable
-
-  let timeoutId
-  const disposeWrapper = () => {
-    if (timeoutId !== undefined) {
-      clearTimeout(timeoutId)
-      timeoutId = undefined
-      disposers.delete(disposer)
-
-      return disposable.dispose()
+export const createDebounceResource = delay => {
+  const flushers = new Set()
+  async function debounceResource(pDisposable) {
+    if (delay === 0) {
+      return pDisposable
     }
-  }
 
-  const disposer = () => {
-    const shouldDisposeNow = timeoutId !== undefined
-    if (shouldDisposeNow) {
-      return disposeWrapper()
-    } else {
-      // will dispose ASAP
-      delay = 0
+    const disposable = await pDisposable
+
+    let timeoutId
+    const disposeWrapper = async () => {
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId)
+        timeoutId = undefined
+        flushers.delete(disposer)
+
+        try {
+          await disposable.dispose()
+        } catch (error) {
+          warn(error)
+        }
+      }
     }
-  }
-  disposers.add(disposer)
 
-  return new Disposable(disposable.value, () => {
-    timeoutId = setTimeout(disposeWrapper, delay)
-  })
+    const disposer = () => {
+      const shouldDisposeNow = timeoutId !== undefined
+      if (shouldDisposeNow) {
+        return disposeWrapper()
+      } else {
+        // will dispose ASAP
+        delay = 0
+      }
+    }
+    flushers.add(disposer)
+
+    return new Disposable(disposable.value, () => {
+      timeoutId = setTimeout(disposeWrapper, delay)
+    })
+  }
+  debounceResource.flushAll = () => {
+    const currentFlushers = [...flushers]
+    flushers.clear()
+    return asyncMapSettled(currentFlushers, dispose => dispose())
+  }
+
+  return debounceResource
 }
-debounceResource.flushAll = () =>
-  asyncMapSettled([...disposers], dispose => {
-    disposers.delete(dispose)
-    return dispose()
-  })
