@@ -3,15 +3,13 @@ import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
 import { getHandler } from '@xen-orchestra/fs'
 
-import { debounceResource } from '../_debounceResource'
 import { decorateResult } from '../_decorateResult'
 import { deduped } from '../_deduped'
 
 import { RemoteAdapter } from './backups/_RemoteAdapter'
 
 function getDebouncedResource(resource) {
-  const app = this._app
-  return debounceResource(resource, app.backups.addDisposeListener, app.config.getDuration('resourceDebounce'))
+  return this._app.debounceResource(resource)
 }
 
 export default class Remotes {
@@ -66,7 +64,7 @@ export default class Remotes {
   *getAdapter(remote) {
     const app = this._app
     return new RemoteAdapter(yield this.getHandler(remote), {
-      addDisposeListener: app.backups.addDisposeListener,
+      debounceResource: app.debounceResource.bind(app),
       app,
     })
   }
