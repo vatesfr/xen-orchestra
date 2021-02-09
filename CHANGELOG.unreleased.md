@@ -7,6 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
+- [Proxy] Ask for a confirmation before upgrading a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,4 +33,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server patch
+- xo-common minor
+- xo-server minor
+- xo-web minor

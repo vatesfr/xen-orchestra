@@ -100,17 +100,6 @@ export const vmIsTemplate = create(12, ({ vm }) => ({
   message: 'VM is a template',
 }))
 
-// TODO: We should probably create a more generic error which gathers all incorrect state errors.
-// e.g.:
-// incorrectState {
-//   data: {
-//     objectId: 'af43e227-3deb-4822-a79b-968825de72eb',
-//     property: 'power_state',
-//     actual: 'Running',
-//     expected: 'Halted'
-//   },
-//   message: 'incorrect state'
-// }
 export const vmBadPowerState = create(13, ({ vm, expected, actual }) => ({
   data: {
     objectId: vm,
@@ -199,4 +188,13 @@ export const alteredAuditRecord = create(23, ({ id, record, nValid }) => ({
 export const notEnoughResources = create(24, data => ({
   data, // [{ resourceSet, resourceType, available, requested }]
   message: 'not enough resources in resource set',
+}))
+
+export const incorrectState = create(25, ({ actual, expected, object }) => ({
+  data: {
+    actual,
+    expected,
+    object,
+  },
+  message: 'incorrect state',
 }))
