@@ -4,9 +4,9 @@ import { createLogger } from '@xen-orchestra/log/dist'
 
 const { warn } = createLogger('xo:proxy:debounceResource')
 
-export const createDebounceResource = delay => {
+export const createDebounceResource = defaultDelay => {
   const flushers = new Set()
-  async function debounceResource(pDisposable) {
+  async function debounceResource(pDisposable, delay = defaultDelay) {
     if (delay === 0) {
       return pDisposable
     }
