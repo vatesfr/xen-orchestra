@@ -464,7 +464,7 @@ export default class Menu extends Component {
           {map(items, (item, index) => item && <MenuLinkItem key={index} item={item} />)}
           <li>&nbsp;</li>
           <li>&nbsp;</li>
-          {state.xoaWarning && (
+          {state.isXoaStatusOk && (
             <li className='nav-item xo-menu-item'>
               <Link className='nav-link' style={{ display: 'flex' }} to='/xoa/support'>
                 <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
