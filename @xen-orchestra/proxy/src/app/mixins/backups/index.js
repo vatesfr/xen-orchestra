@@ -53,13 +53,6 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    // dispose created resources on stop
-    this.addDisposeListener = dispose => {
-      const hooks = this._app.hooks
-      hooks.on('stop', dispose)
-      return () => hooks.removeListener('stop', dispose)
-    }
-
     let run = ({ xapis, ...rest }) =>
       new Backup({
         ...rest,
