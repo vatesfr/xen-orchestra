@@ -68,7 +68,7 @@ module.exports = class Vbd {
     }
   }
 
-  async disconnect(ref) {
+  async unplug(ref) {
     // TODO: check if VBD is attached before
     try {
       await this.call('VBD.unplug_force', ref)
@@ -83,7 +83,7 @@ module.exports = class Vbd {
   }
 
   async destroy(ref) {
-    await ignoreErrors.call(this.VBD_disconnect(ref))
+    await ignoreErrors.call(this.VBD_unplug(ref))
     await this.call('VBD.destroy', ref)
   }
 }
