@@ -46,7 +46,7 @@ export const createDebounceResource = defaultDelay => {
   debounceResource.flushAll = () => {
     const currentFlushers = [...flushers]
     flushers.clear()
-    return asyncMapSettled(currentFlushers, dispose => dispose())
+    return asyncMapSettled(currentFlushers, flush => flush())
   }
 
   return debounceResource
