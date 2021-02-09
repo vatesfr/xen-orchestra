@@ -73,10 +73,12 @@ module.exports = class Vbd {
     try {
       await this.call('VBD.unplug_force', ref)
     } catch (error) {
-      if (error.code === 'VBD_NOT_UNPLUGGABLE') {
-        await this.setField('VBD', ref, 'unpluggable', true)
-        await this.call('VBD.unplug_force', ref)
+      if (error.code !== 'VBD_NOT_UNPLUGGABLE') {
+        throw error
       }
+
+      await this.setField('VBD', ref, 'unpluggable', true)
+      await this.call('VBD.unplug_force', ref)
     }
   }
 

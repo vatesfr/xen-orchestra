@@ -1,6 +1,7 @@
 const assert = require('assert')
 const asyncMap = require('@xen-orchestra/async-map').default
 const cancelable = require('promise-toolbox/cancelable')
+const CancelToken = require('promise-toolbox/CancelToken')
 const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
@@ -403,10 +404,9 @@ module.exports = class Vm {
     }
   }
 
-  @cancelable
   @defer
   // this method ignores VDIs which their names start with '[NOBAK]'
-  async customSnapshot($defer, $cancelToken, vmRef, nameLabel) {
+  async customSnapshot($defer, vmRef, { cancelToken = CancelToken.none, nameLabel } = {}) {
     assert.strictEqual(await this.getField('VM', vmRef, 'power_state'), 'Halted')
 
     await asyncMap(this.getField('VM', vmRef, 'VBDs'), async vbdRef => {
@@ -421,7 +421,7 @@ module.exports = class Vm {
       }
     })
 
-    return this.VM_snapshot($cancelToken, vmRef, nameLabel)
+    return this.VM_snapshot(cancelToken, vmRef, nameLabel)
   }
 
   @cancelable
