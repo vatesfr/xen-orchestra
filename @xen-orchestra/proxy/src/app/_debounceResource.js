@@ -36,7 +36,7 @@ export async function debounceResource(pDisposable, delay) {
   })
 }
 debounceResource.flushAll = () =>
-  asyncMapSettled(disposers, dispose => {
+  asyncMapSettled([...disposers], dispose => {
     disposers.delete(dispose)
     return dispose()
   })
