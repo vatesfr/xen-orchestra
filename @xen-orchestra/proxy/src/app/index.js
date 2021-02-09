@@ -42,9 +42,7 @@ export default class App {
     })
 
     // dispose all created resources on stop
-    this.hooks.once('stop', () => {
-      debounceResource.flushAll().catch(() => {})
-    })
+    this.hooks.once('stop', () => debounceResource.flushAll().catch(() => {}))
   }
 
   debounceResource(pDisposable) {
