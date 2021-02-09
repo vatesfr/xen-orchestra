@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [XOA] Add warning message in the menu if `xoa.check` meet any problems (PR [#5534](https://github.com/vatesfr/xen-orchestra/pull/5534))
+- [XOA] Add warning message in the menu if "XOA check" reports any problems (PR [#5534](https://github.com/vatesfr/xen-orchestra/pull/5534))
 - [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
 
 ### Bug fixes
