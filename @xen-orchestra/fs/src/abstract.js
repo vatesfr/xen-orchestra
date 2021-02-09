@@ -358,7 +358,6 @@ export default class RemoteHandlerAbstract {
           const cloneStart = process.hrtime()
           await this.copyFileRange(fd1, 0, fd2, 0, data.byteLength)
           cloneDuration = process.hrtime(cloneStart)
-          console.log('cloneDuration', cloneDuration)
         } finally {
           await this._closeFile(fd2)
         }
