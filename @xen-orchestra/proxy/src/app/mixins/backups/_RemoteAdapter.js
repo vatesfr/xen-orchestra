@@ -66,9 +66,9 @@ function getDebouncedResource(resource) {
 }
 
 export class RemoteAdapter {
-  constructor(handler, { debounceResource, app }) {
+  constructor(handler, { debounceResource, dirMode }) {
     this._debounceResource = debounceResource
-    this._app = app
+    this._dirMode = dirMode
     this._handler = handler
   }
 
@@ -491,7 +491,7 @@ export class RemoteAdapter {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await handler.createOutputStream(tmpPath, {
       checksum,
-      dirMode: this._app.config.get('backups.dirMode'),
+      dirMode: this._dirMode,
     })
     try {
       await Promise.all([fromCallback(pump, input, output), output.checksumWritten, input.task])

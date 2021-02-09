@@ -65,7 +65,7 @@ export default class Remotes {
     const app = this._app
     return new RemoteAdapter(yield this.getHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
-      app,
+      dirMode: app.config.get('backups.dirMode'),
     })
   }
 }
