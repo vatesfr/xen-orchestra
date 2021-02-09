@@ -56,7 +56,16 @@ export default class Backups {
     let run = ({ xapis, ...rest }) =>
       new Backup({
         ...rest,
-        app,
+
+        // don't change config during backup execution
+        config: app.config.get('backups'),
+        getAdapter: Disposable.factory(function* (remoteId) {
+          const adapter = yield app.remotes.getAdapter(this._remotes[remoteId])
+          return {
+            adapter,
+            remoteId,
+          }
+        }),
         getConnectedXapi: id => this.getXapi(xapis[id]),
       }).run()
 
