@@ -14,6 +14,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/Snapshot export] Fix `Error: no available place in queue` on canceling an export via browser then starting a new one when the concurrency threshold is reached [#5535](https://github.com/vatesfr/xen-orchestra/issues/5535) (PR [#5538](https://github.com/vatesfr/xen-orchestra/pull/5538))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
