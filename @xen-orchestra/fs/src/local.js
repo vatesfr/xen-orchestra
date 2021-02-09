@@ -134,9 +134,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
    * @param dataLen how long to copy
    * @returns {Promise<void>}
    */
-  async copyFileRange(inputFile, offsetIn, outputFile, offsetOut, dataLen) {
+  async _copyFileRange(inputFile, offsetIn, outputFile, offsetOut, dataLen) {
     if (!this._useCopyFileRange) {
-      return super.copyFileRange(inputFile, offsetIn, outputFile, offsetOut, dataLen)
+      return super._copyFileRange(inputFile, offsetIn, outputFile, offsetOut, dataLen)
     }
     const outputFileNeedsClosing = typeof outputFile === 'string'
     const inputFileNeedsClosing = typeof inputFile === 'string'

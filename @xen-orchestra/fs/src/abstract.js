@@ -299,6 +299,11 @@ export default class RemoteHandlerAbstract {
    * @returns {Promise<void>}
    */
   async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
+    const normalize = fd => (typeof fd === 'string' ? normalizePath(fd) : fd)
+    return this._copyFileRange(normalize(fdIn), offsetIn, normalize(fdOut), offsetOut, dataLen)
+  }
+
+  async _copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
     // default implementation goes through the network
     const buffer = Buffer.alloc(dataLen)
     await this._read(fdIn, buffer, offsetIn)
