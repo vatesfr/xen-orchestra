@@ -1,7 +1,5 @@
-const assert = require('assert')
 const asyncMap = require('@xen-orchestra/async-map').default
 const cancelable = require('promise-toolbox/cancelable')
-const CancelToken = require('promise-toolbox/CancelToken')
 const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
@@ -405,28 +403,23 @@ module.exports = class Vm {
   }
 
   @defer
-  // this method ignores VDIs which their names start with '[NOBAK]'
-  async customSnapshot($defer, vmRef, { cancelToken = CancelToken.none, nameLabel } = {}) {
-    assert.strictEqual(await this.getField('VM', vmRef, 'power_state'), 'Halted')
-
-    await asyncMap(this.getField('VM', vmRef, 'VBDs'), async vbdRef => {
-      const vbd = this.getObject(vbdRef)
-      if (
-        vbd.type === 'Disk' &&
-        isValidRef(vbd.VDI) &&
-        (await this.getField('VDI', vbd.VDI, 'name_label')).startsWith('[NOBAK]')
-      ) {
-        await this.VBD_destroy(vbdRef)
-        $defer.call(this, 'VBD_create', vbd)
-      }
-    })
-
-    return this.VM_snapshot(cancelToken, vmRef, nameLabel)
-  }
-
   @cancelable
-  async snapshot($cancelToken, vmRef, nameLabel) {
+  async snapshot($cancelToken, $defer, vmRef, nameLabel) {
     const vm = await this.getRecord('VM', vmRef)
+    if (vm.power_state === 'Halted' && this._ignoreNobakVdis) {
+      await asyncMap(vm.VBDs, async vbdRef => {
+        const vbd = this.getObject(vbdRef)
+        if (
+          vbd.type === 'Disk' &&
+          isValidRef(vbd.VDI) &&
+          (await this.getField('VDI', vbd.VDI, 'name_label')).startsWith('[NOBAK]')
+        ) {
+          await this.VBD_destroy(vbdRef)
+          $defer.call(this, 'VBD_create', vbd)
+        }
+      })
+    }
+
     if (nameLabel === undefined) {
       nameLabel = vm.name_label
     }

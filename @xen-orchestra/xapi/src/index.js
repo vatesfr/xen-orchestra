@@ -32,8 +32,9 @@ const hasProps = o => {
 }
 
 class Xapi extends Base {
-  constructor({ maxUncoalescedVdis, ...opts }) {
+  constructor({ ignoreNobakVdis, maxUncoalescedVdis, ...opts }) {
     super(opts)
+    this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
 
     const genericWatchers = (this._genericWatchers = new Set())
