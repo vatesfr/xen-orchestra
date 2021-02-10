@@ -219,7 +219,7 @@ export class Backup {
 
   @decorateWith(Disposable.factory)
   *_getAdapter(remoteId) {
-    const adapter = yield this._app.remotes.getAdapter(this._remotes[remoteId])
+    const adapter = yield this._app.backups.getAdapter(this._remotes[remoteId])
     return {
       adapter,
       remoteId,
