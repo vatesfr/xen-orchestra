@@ -38,12 +38,18 @@ export class Backup {
     schedule,
   }) {
     this._config = config
-    this._getAdapter = getAdapter
     this._getConnectedXapi = getConnectedXapi
     this._job = job
     this._recordToXapi = recordToXapi
     this._remotes = remotes
     this._schedule = schedule
+
+    this._getAdapter = Disposable.factory(function* (remoteId) {
+      return {
+        adapter: yield getAdapter(remotes[remoteId]),
+        remoteId,
+      }
+    })
 
     this._getSnapshotNameLabel = compileTemplate(config.snapshotNameLabelTpl, {
       '{job.name}': job.name,

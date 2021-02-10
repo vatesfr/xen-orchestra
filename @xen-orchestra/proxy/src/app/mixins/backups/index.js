@@ -60,13 +60,9 @@ export default class Backups {
 
         // don't change config during backup execution
         config: app.config.get('backups'),
-        getAdapter: Disposable.factory(function* (remoteId) {
-          const adapter = yield app.remotes.getAdapter(this._remotes[remoteId])
-          return {
-            adapter,
-            remoteId,
-          }
-        }),
+
+        // we passe getAdapter in order to mutualize the adapter resources usage
+        getAdapter: this.getAdapter.bind(this),
         getConnectedXapi: id => this.getXapi(xapis[id]),
       }).run()
 
