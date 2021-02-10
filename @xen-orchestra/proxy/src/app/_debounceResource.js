@@ -46,7 +46,7 @@ export const createDebounceResource = defaultDelay => {
   }
   debounceResource.flushAll = () => {
     // iterate on a sync way in order to not remove a flusher added on processing flushers
-    const promise = asyncMap(flushers)
+    const promise = asyncMap(flushers, flush => flush())
     flushers.clear()
     return promise
   }
