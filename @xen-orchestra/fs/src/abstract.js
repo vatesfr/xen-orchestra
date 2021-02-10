@@ -426,7 +426,7 @@ export default class RemoteHandlerAbstract {
   // Methods that can be called by private methods to avoid parallel limit on public methods
 
   async __closeFile(fd: FileDescriptor): Promise<void> {
-    await timeout.call(this._closeFile(fd), this._timeout)
+    await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
 
   async __mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
