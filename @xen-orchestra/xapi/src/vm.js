@@ -406,6 +406,7 @@ module.exports = class Vm {
   @cancelable
   async snapshot($cancelToken, $defer, vmRef, nameLabel) {
     const vm = await this.getRecord('VM', vmRef)
+    // cannot unplug VBDs on Running, Paused and Suspended VMs
     if (vm.power_state === 'Halted' && this._ignoreNobakVdis) {
       await asyncMap(vm.VBDs, async vbdRef => {
         const vbd = this.getObject(vbdRef)
