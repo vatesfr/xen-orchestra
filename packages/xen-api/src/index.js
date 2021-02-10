@@ -958,6 +958,7 @@ export class Xapi extends EventEmitter {
           )
           this._lastEventFetchedTimestamp = Date.now()
           this._watchEventsError = undefined
+          this.emit('eventFetchingSuccess')
         } catch (error) {
           const code = error?.code
           if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
@@ -965,6 +966,7 @@ export class Xapi extends EventEmitter {
             continue mainLoop
           }
 
+          this.emit('eventFetchingError', error)
           this._watchEventsError = error
           console.warn('_watchEvents', error)
           await pDelay(this._eventPollDelay)
