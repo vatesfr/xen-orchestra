@@ -41,11 +41,12 @@ export default class App {
       noop(this[name])
     })
 
-    const debounceResource = (this.debounceResource = createDebounceResource(
-      this.config.getDuration('resourceDebounce')
-    ))
-
-    // dispose all created resources on stop
+    const debounceResource = createDebounceResource()
+    this.config.watchDuration('resourceDebounce', delay => {
+      debounceResource.defaultDelay = delay
+    })
     this.hooks.once('stop', debounceResource.flushAll)
+
+    this.debounceResource = debounceResource
   }
 }

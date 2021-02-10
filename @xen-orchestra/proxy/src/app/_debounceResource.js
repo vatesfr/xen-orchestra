@@ -5,9 +5,9 @@ import { asyncMap } from '../_asyncMap'
 
 const { warn } = createLogger('xo:proxy:debounceResource')
 
-export const createDebounceResource = defaultDelay => {
+export const createDebounceResource = () => {
   const flushers = new Set()
-  async function debounceResource(pDisposable, delay = defaultDelay) {
+  async function debounceResource(pDisposable, delay = debounceResource.defaultDelay) {
     if (delay === 0) {
       return pDisposable
     }
