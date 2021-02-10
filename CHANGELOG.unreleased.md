@@ -10,12 +10,14 @@
 - [backup] improve merge speed after backup when using SMB3.1.1 or NFS4.2 (PR [#5481](https://github.com/vatesfr/xen-orchestra/pull/5481))
 - [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
 - [Proxy] Ask for a confirmation before upgrading a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
+- [Backup/restore] Allow backup restore to any licence even if XOA isn't registered (PR [#5547](https://github.com/vatesfr/xen-orchestra/pull/5547))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/Snapshot export] Fix `Error: no available place in queue` on canceling an export via browser then starting a new one when the concurrency threshold is reached [#5535](https://github.com/vatesfr/xen-orchestra/issues/5535) (PR [#5538](https://github.com/vatesfr/xen-orchestra/pull/5538))
+- [Servers] Hide pool's objects if its master is unreachable [#5475](https://github.com/vatesfr/xen-orchestra/issues/5475) (PR [#5526](https://github.com/vatesfr/xen-orchestra/pull/5526))
 
 ### Packages to release
 
@@ -36,6 +38,7 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib minor
+- xen-api patch
 - xo-common minor
 - xo-server minor
 - xo-web minor
