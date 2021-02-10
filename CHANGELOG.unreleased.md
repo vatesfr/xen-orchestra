@@ -7,11 +7,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup/restore] Allow backup restore to any licence even if xoa isn't registered (PR [#5547](https://github.com/vatesfr/xen-orchestra/pull/5547))
+- [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
+- [Proxy] Ask for a confirmation before upgrading a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
+- [Backup/restore] Allow backup restore to any licence even if XOA isn't registered (PR [#5547](https://github.com/vatesfr/xen-orchestra/pull/5547))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [VM/Snapshot export] Fix `Error: no available place in queue` on canceling an export via browser then starting a new one when the concurrency threshold is reached [#5535](https://github.com/vatesfr/xen-orchestra/issues/5535) (PR [#5538](https://github.com/vatesfr/xen-orchestra/pull/5538))
 
 ### Packages to release
 
@@ -30,4 +34,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-common minor
+- xo-server minor
 - xo-web minor
