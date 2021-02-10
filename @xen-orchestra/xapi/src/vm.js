@@ -409,7 +409,7 @@ module.exports = class Vm {
     // cannot unplug VBDs on Running, Paused and Suspended VMs
     if (vm.power_state === 'Halted' && this._ignoreNobakVdis) {
       await asyncMap(vm.VBDs, async vbdRef => {
-        const vbd = this.getObject(vbdRef)
+        const vbd = await this.getRecord('VBD', vbdRef)
         if (
           vbd.type === 'Disk' &&
           isValidRef(vbd.VDI) &&
