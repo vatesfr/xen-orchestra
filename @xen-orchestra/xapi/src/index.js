@@ -33,6 +33,8 @@ const hasProps = o => {
 
 class Xapi extends Base {
   constructor({ ignoreNobakVdis, maxUncoalescedVdis, ...opts }) {
+    assert.notStrictEqual(ignoreNobakVdis, undefined)
+
     super(opts)
     this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
