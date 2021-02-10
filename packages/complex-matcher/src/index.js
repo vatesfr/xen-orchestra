@@ -2,39 +2,18 @@ import { escapeRegExp, isPlainObject, some } from 'lodash'
 
 // ===================================================================
 
-const RAW_STRING_CHARS = (() => {
-  const chars = { __proto__: null }
-  const add = (a, b = a) => {
-    let i = a.charCodeAt(0)
-    const j = b.charCodeAt(0)
-    while (i <= j) {
-      chars[String.fromCharCode(i++)] = true
-    }
-  }
-  add('$')
-  add('-')
-  add('.')
-  add('0', '9')
-  add('_')
-  add('É')
-  add('é')
-  add('Ö')
-  add('ö')
-  add('A', 'Z')
-  add('a', 'z')
-  add('Ä', 'Å')
-  add('ä', 'å')
-  return chars
-})()
-const isRawString = string => {
-  const { length } = string
-  for (let i = 0; i < length; ++i) {
-    if (!(string[i] in RAW_STRING_CHARS)) {
-      return false
-    }
-  }
-  return true
+const RAW_STRING_SYMBOLS = {
+  __proto__: null,
+  _: true,
+  '-': true,
+  '.': true,
+  $: true,
 }
+
+const isRawStringChar = c =>
+  (c >= '0' && c <= '9') || c in RAW_STRING_SYMBOLS || !(c === c.toUpperCase() && c === c.toLowerCase())
+
+const isRawString = string => [...string].every(isRawStringChar)
 
 // -------------------------------------------------------------------
 
@@ -465,7 +444,7 @@ const parser = P.grammar({
   globPattern: new P((input, pos, end) => {
     let value = ''
     let c
-    while (pos < end && ((c = input[pos]) === '*' || c in RAW_STRING_CHARS)) {
+    while (pos < end && ((c = input[pos]) === '*' || isRawStringChar(c))) {
       ++pos
       value += c
     }
@@ -492,7 +471,7 @@ const parser = P.grammar({
   rawString: new P((input, pos, end) => {
     let value = ''
     let c
-    while (pos < end && RAW_STRING_CHARS[(c = input[pos])]) {
+    while (pos < end && isRawStringChar((c = input[pos]))) {
       ++pos
       value += c
     }
