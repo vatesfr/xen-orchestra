@@ -1,35 +1,55 @@
 import Disposable from 'promise-toolbox/Disposable'
+import { createLogger } from '@xen-orchestra/log/dist'
 
-export async function debounceResource(pDisposable, hooks, delay = 0) {
-  if (delay === 0) {
-    return pDisposable
-  }
+import { asyncMap } from '../_asyncMap'
 
-  const disposable = await pDisposable
+const { warn } = createLogger('xo:proxy:debounceResource')
 
-  let timeoutId
-  const disposeWrapper = () => {
-    if (timeoutId !== undefined) {
-      clearTimeout(timeoutId)
-      timeoutId = undefined
-      hooks.removeListener('stop', onStop)
-
-      return disposable.dispose()
+export const createDebounceResource = defaultDelay => {
+  const flushers = new Set()
+  async function debounceResource(pDisposable, delay = defaultDelay) {
+    if (delay === 0) {
+      return pDisposable
     }
-  }
 
-  const onStop = () => {
-    const shouldDisposeNow = timeoutId !== undefined
-    if (shouldDisposeNow) {
-      return disposeWrapper()
-    } else {
-      // will dispose ASAP
-      delay = 0
+    const disposable = await pDisposable
+
+    let timeoutId
+    const disposeWrapper = async () => {
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId)
+        timeoutId = undefined
+        flushers.delete(flusher)
+
+        try {
+          await disposable.dispose()
+        } catch (error) {
+          warn(error)
+        }
+      }
     }
-  }
-  hooks.on('stop', onStop)
 
-  return new Disposable(disposable.value, () => {
-    timeoutId = setTimeout(disposeWrapper, delay)
-  })
+    const flusher = () => {
+      const shouldDisposeNow = timeoutId !== undefined
+      if (shouldDisposeNow) {
+        return disposeWrapper()
+      } else {
+        // will dispose ASAP
+        delay = 0
+      }
+    }
+    flushers.add(flusher)
+
+    return new Disposable(disposable.value, () => {
+      timeoutId = setTimeout(disposeWrapper, delay)
+    })
+  }
+  debounceResource.flushAll = () => {
+    // iterate on a sync way in order to not remove a flusher added on processing flushers
+    const promise = asyncMap(flushers, flush => flush())
+    flushers.clear()
+    return promise
+  }
+
+  return debounceResource
 }

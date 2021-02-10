@@ -8,7 +8,6 @@
 authenticationToken = ''
 
 datadir = '/var/lib/xo-proxy/data'
-maxHooksListeners = 0
 resourceDebounce = '5m'
 
 [api]

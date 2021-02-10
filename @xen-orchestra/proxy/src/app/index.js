@@ -1,6 +1,7 @@
 import camelCase from 'lodash/camelCase'
 
 import mixins from './mixins'
+import { createDebounceResource } from './_debounceResource'
 
 const { defineProperties, defineProperty, keys } = Object
 const noop = Function.prototype
@@ -39,5 +40,12 @@ export default class App {
     keys(descriptors).forEach(name => {
       noop(this[name])
     })
+
+    const debounceResource = (this.debounceResource = createDebounceResource(
+      this.config.getDuration('resourceDebounce')
+    ))
+
+    // dispose all created resources on stop
+    this.hooks.once('stop', debounceResource.flushAll)
   }
 }

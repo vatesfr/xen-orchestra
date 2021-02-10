@@ -16,7 +16,6 @@ import { ZipFile } from 'yazl'
 
 import { asyncMap } from '../../../_asyncMap'
 
-import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
 
@@ -422,7 +421,7 @@ export default class Backups {
 
   // FIXME: invalidate cache on options change
   @decorateResult(function (resource) {
-    return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
+    return this._app.debounceResource(resource)
   })
   @decorateWith(deduped, ({ url }) => [url])
   @decorateWith(Disposable.factory)

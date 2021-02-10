@@ -10,7 +10,6 @@ import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { readdir, stat } from 'fs-extra'
 
-import { debounceResource } from '../../_debounceResource'
 import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
 
@@ -63,11 +62,12 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
   })
 
 function getDebouncedResource(resource) {
-  return debounceResource(resource, this._app.hooks, this._app.config.getDuration('resourceDebounce'))
+  return this._debounceResource(resource)
 }
 
 export class RemoteAdapter {
-  constructor(handler, { app }) {
+  constructor(handler, { debounceResource, app }) {
+    this._debounceResource = debounceResource
     this._app = app
     this._handler = handler
   }
