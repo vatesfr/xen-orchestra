@@ -348,5 +348,11 @@ handlers.forEach(url => {
         }
       )
     })
+    describe('#open()', () => {
+      it('can do an open/close cycle without crashing', async () => {
+        const file = await handler.openFile('write', 'w')
+        expect(await handler.closeFile(file)).not.toThrow()
+      })
+    })
   })
 })
