@@ -6,12 +6,6 @@ import { getHandler } from '@xen-orchestra/fs'
 import { decorateResult } from '../_decorateResult'
 import { deduped } from '../_deduped'
 
-import { RemoteAdapter } from './backups/_RemoteAdapter'
-
-function getDebouncedResource(resource) {
-  return this._app.debounceResource(resource)
-}
-
 export default class Remotes {
   constructor(app) {
     this._app = app
@@ -44,7 +38,9 @@ export default class Remotes {
   }
 
   // FIXME: invalidate cache on remote option change
-  @decorateResult(getDebouncedResource)
+  @decorateResult(function (resource) {
+    return this._app.debounceResource(resource)
+  })
   @decorateWith(deduped, remote => [remote.url])
   async getHandler(remote) {
     const handler = getHandler(remote, this._app.config.get('remoteOptions'))
@@ -55,17 +51,5 @@ export default class Remotes {
 
     await handler.sync()
     return new Disposable(handler, () => handler.forget())
-  }
-
-  // FIXME: invalidate cache on remote option change
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, remote => [remote.url])
-  @decorateWith(Disposable.factory)
-  *getAdapter(remote) {
-    const app = this._app
-    return new RemoteAdapter(yield this.getHandler(remote), {
-      debounceResource: app.debounceResource.bind(app),
-      dirMode: app.config.get('backups.dirMode'),
-    })
   }
 }

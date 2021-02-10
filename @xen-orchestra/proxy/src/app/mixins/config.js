@@ -1,4 +1,5 @@
 import get from 'lodash/get'
+import identity from 'lodash/identity'
 import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { watch } from 'app-conf'
@@ -40,12 +41,19 @@ export default class Config {
   }
 
   watch(path, cb) {
+    // internal arg
+    const processor = arguments.length > 2 ? arguments[2] : identity
+
     let prev
     const watcher = config => {
-      const value = get(config, path)
-      if (value !== prev) {
-        prev = value
-        cb(value)
+      try {
+        const value = processor(get(config, path))
+        if (value !== prev) {
+          prev = value
+          cb(value)
+        }
+      } catch (error) {
+        warn('watch', { error, path })
       }
     }
 
@@ -55,5 +63,9 @@ export default class Config {
     const watchers = this._watchers
     watchers.add(watcher)
     return () => watchers.delete(watcher)
+  }
+
+  watchDuration(path, cb) {
+    return this.watch(path, cb, parseDuration)
   }
 }
