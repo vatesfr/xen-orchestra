@@ -5,7 +5,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, formatSize, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
@@ -259,28 +258,26 @@ export default class Restore extends Component {
 
   render() {
     return (
-      <Upgrade place='restoreBackup' available={2}>
-        <div>
-          <RestoreLegacy />
-          <div className='mt-1 mb-1'>
-            <h3>{_('restore')}</h3>
-            <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
-              {_('refreshBackupList')}
-            </ActionButton>{' '}
-            <ButtonLink to='backup/restore/metadata'>
-              <Icon icon='database' /> {_('metadata')}
-            </ButtonLink>
-          </div>
-          <SortedTable
-            actions={this._actions}
-            collection={this.state.backupDataByVm}
-            columns={BACKUPS_COLUMNS}
-            stateUrlParam='s'
-          />
-          <br />
-          <Logs />
+      <div>
+        <RestoreLegacy />
+        <div className='mt-1 mb-1'>
+          <h3>{_('restore')}</h3>
+          <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
+            {_('refreshBackupList')}
+          </ActionButton>{' '}
+          <ButtonLink to='backup/restore/metadata'>
+            <Icon icon='database' /> {_('metadata')}
+          </ButtonLink>
         </div>
-      </Upgrade>
+        <SortedTable
+          actions={this._actions}
+          collection={this.state.backupDataByVm}
+          columns={BACKUPS_COLUMNS}
+          stateUrlParam='s'
+        />
+        <br />
+        <Logs />
+      </div>
     )
   }
 }

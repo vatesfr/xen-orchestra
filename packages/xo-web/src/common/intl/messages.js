@@ -87,6 +87,7 @@ const messages = {
   unknown: 'Unknown',
   upgradesAvailable: 'Upgrades available',
   advancedSettings: 'Advanced settings',
+  forceUpgrade: 'Force upgrade',
   txChecksumming: 'TX checksumming',
   unknownSize: 'Unknown size',
   installedCertificates: 'Installed certificates',
@@ -426,6 +427,7 @@ const messages = {
   taskMergedDataSize: 'Merge size',
   taskMergedDataSpeed: 'Merge speed',
   taskError: 'Error',
+  taskEstimatedEnd: 'Estimated end',
   taskReason: 'Reason',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
@@ -1066,7 +1068,9 @@ const messages = {
   sshUserTooltip: 'Connect using external SSH tool as user…',
   sshUserLabel: 'SSH as…',
   sshUsernameLabel: 'SSH user name',
-  sshNeedClientTools: 'No IP address reported by client tools',
+  remoteNeedClientTools: 'No IP address reported by client tools',
+  rdp: 'RDP',
+  rdpRootTooltip: 'Connect using external RDP tool',
 
   // ----- VM container tab -----
   containerName: 'Name',
@@ -1193,6 +1197,7 @@ const messages = {
   deleteSnapshots: 'Remove selected snapshots',
   copySnapshot: 'Create a VM from this snapshot',
   exportSnapshot: 'Export this snapshot',
+  secureBoot: 'Secure boot',
   snapshotDate: 'Creation date',
   snapshotError: 'Snapshot error',
   snapshotName: 'Name',
@@ -2362,6 +2367,9 @@ const messages = {
   httpProxyPlaceholder: 'protocol://username:password@address:port',
   proxyUpgradesError: 'Unable to check upgrades availability',
   proxyApplianceSettingsInfo: 'Leave the field empty and click on OK to remove the existing configuration',
+  proxyUpToDate: 'Your proxy is up-to-date',
+  proxyRunningBackupsMessage:
+    'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

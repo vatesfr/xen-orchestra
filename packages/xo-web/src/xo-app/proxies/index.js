@@ -7,6 +7,8 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
+import { confirm } from 'modal'
+import { incorrectState } from 'xo-common/api-errors'
 import { provideState, injectState } from 'reaclette'
 import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
@@ -71,6 +73,14 @@ const INDIVIDUAL_ACTIONS = [
     handler: proxy => updateApplianceSettings(proxy),
     icon: 'settings',
     label: _('updateProxyApplianceSettings'),
+    level: 'primary',
+  },
+  {
+    collapsed: true,
+    disabled: ({ vmUuid }) => vmUuid === undefined,
+    handler: (proxy, { upgradeAppliance }) => upgradeAppliance(proxy.id),
+    icon: 'upgrade',
+    label: _('forceUpgrade'),
     level: 'primary',
   },
   {
@@ -144,16 +154,7 @@ const COLUMNS = [
         state === 'updater-upgraded' ||
         state === 'installer-upgraded'
       ) {
-        return (
-          <ActionButton
-            disabled={proxy.vmUuid === undefined}
-            handler={upgradeAppliance}
-            handlerParam={proxy.id}
-            icon='upgrade'
-          >
-            {_('upgrade')}
-          </ActionButton>
-        )
+        return <p className='text-success'>{_('proxyUpToDate')}</p>
       }
 
       return (
@@ -203,7 +204,26 @@ const Proxies = decorate([
         return fetchProxyUpgrades([await deployProxy(proxy)])
       },
       async upgradeAppliance({ fetchProxyUpgrades }, id) {
-        await upgradeProxyAppliance(id)
+        try {
+          await upgradeProxyAppliance(id)
+        } catch (error) {
+          if (!incorrectState.is(error)) {
+            throw error
+          }
+
+          try {
+            await confirm({
+              title: _('upgrade'),
+              body: _('proxyRunningBackupsMessage', {
+                nJobs: error.data.actual.length,
+              }),
+            })
+          } catch (_) {
+            return
+          }
+
+          await upgradeProxyAppliance(id, { ignoreRunningJobs: true })
+        }
         return fetchProxyUpgrades([id])
       },
     },
