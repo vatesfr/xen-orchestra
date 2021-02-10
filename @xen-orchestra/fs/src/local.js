@@ -44,7 +44,7 @@ function copyFileRangeSyscall(fdIn, offsetIn, fdOut, offsetOut, dataLen, flags =
 export default class LocalHandler extends RemoteHandlerAbstract {
   constructor(remote: any, options: Object = { noCopyFileRange: false }) {
     super(remote, options)
-    this._useCopyFileRange = !options.noCopyFileRange && Syscall6
+    this._useCopyFileRange = !options.noCopyFileRange && Syscall6 != null
   }
 
   get type() {
