@@ -164,7 +164,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
     if (fileSize < MIN_PART_SIZE) {
       const resultBuffer = Buffer.alloc(Math.max(fileSize, position + buffer.length))
-      const fileContent = (await this._s3.getObject(uploadParams)).Body
+      const fileContent = fileSize ? (await this._s3.getObject(uploadParams)).Body : Buffer.alloc(0)
       fileContent.copy(resultBuffer)
       buffer.copy(resultBuffer, position)
       await this._s3.putObject({ ...uploadParams, Body: resultBuffer })
