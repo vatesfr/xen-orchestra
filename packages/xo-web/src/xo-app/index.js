@@ -136,7 +136,7 @@ const BODY_STYLE = {
       },
       placeholder: '',
     },
-    isXoaStatusOk: ({ xoaStatus }) => xoaStatus.includes('✖'),
+    isXoaStatusOk: ({ xoaStatus }) => !xoaStatus.includes('✖'),
   },
 })
 export default class XoApp extends Component {

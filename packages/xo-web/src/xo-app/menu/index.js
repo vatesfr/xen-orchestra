@@ -31,6 +31,10 @@ import { every, forEach, identity, isEmpty, isEqual, map, pick, some } from 'lod
 
 import styles from './index.css'
 
+const DISPLAYFLEX = {
+  display: 'flex',
+}
+
 const returnTrue = () => true
 
 @connectStore(
@@ -464,9 +468,9 @@ export default class Menu extends Component {
           {map(items, (item, index) => item && <MenuLinkItem key={index} item={item} />)}
           <li>&nbsp;</li>
           <li>&nbsp;</li>
-          {state.isXoaStatusOk && (
+          {!state.isXoaStatusOk && (
             <li className='nav-item xo-menu-item'>
-              <Link className='nav-link' style={{ display: 'flex' }} to='/xoa/support'>
+              <Link className='nav-link' style={DISPLAYFLEX} to='/xoa/support'>
                 <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
                   <Icon icon='diagnosis' size='lg' fixedWidth /> {_('checkXoa')}
                 </span>
