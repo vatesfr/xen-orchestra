@@ -60,7 +60,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {
-    return fs.close(fd.fd)
+    return fs.close(fd)
   }
 
   async _createReadStream(file, options) {
