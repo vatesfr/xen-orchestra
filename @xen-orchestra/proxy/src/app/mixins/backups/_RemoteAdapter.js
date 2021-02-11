@@ -223,7 +223,7 @@ export class RemoteAdapter {
   }
 
   @decorateWith(Disposable.factory)
-  async *usePartitionFiles(diskId, partitionId, paths) {
+  async *_usePartitionFiles(diskId, partitionId, paths) {
     const path = yield this.getPartition(diskId, partitionId)
 
     const files = []
@@ -238,7 +238,7 @@ export class RemoteAdapter {
     const { promise, reject, resolve } = pDefer()
     using(
       async function* () {
-        const files = yield this.usePartitionFiles(diskId, partitionId, paths)
+        const files = yield this._usePartitionFiles(diskId, partitionId, paths)
         const zip = new ZipFile()
         files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
         zip.end()
