@@ -1247,8 +1247,14 @@ export const migrateVm = async (vm, host) => {
     return
   }
 
-  if (!params.targetHost) {
+  const { mapVdisSrs, migrationNetwork, sr, targetHost } = params
+
+  if (!targetHost) {
     return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+  }
+
+  if (migrationNetwork !== undefined && sr === undefined && mapVdisSrs === undefined) {
+    return error(_('migrateVmNoSr'), _('migrateVmNoSrMessage'))
   }
 
   try {
