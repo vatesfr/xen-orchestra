@@ -57,7 +57,12 @@ export default class Backups {
     let run = ({ xapis, ...rest }) =>
       new Backup({
         ...rest,
-        app,
+
+        // don't change config during backup execution
+        config: app.config.get('backups'),
+
+        // pass getAdapter in order to mutualize the adapter resources usage
+        getAdapter: this.getAdapter.bind(this),
         getConnectedXapi: id => this.getXapi(xapis[id]),
       }).run()
 

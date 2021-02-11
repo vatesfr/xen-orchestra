@@ -28,7 +28,8 @@ const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled
 
 export class Backup {
   constructor({
-    app,
+    config,
+    getAdapter,
     getConnectedXapi,
     job,
 
@@ -36,16 +37,19 @@ export class Backup {
     remotes,
     schedule,
   }) {
-    // don't change config during backup execution
-    const config = app.config.get('backups')
-
-    this._app = app
     this._config = config
     this._getConnectedXapi = getConnectedXapi
     this._job = job
     this._recordToXapi = recordToXapi
     this._remotes = remotes
     this._schedule = schedule
+
+    this._getAdapter = Disposable.factory(function* (remoteId) {
+      return {
+        adapter: yield getAdapter(remotes[remoteId]),
+        remoteId,
+      }
+    })
 
     this._getSnapshotNameLabel = compileTemplate(config.snapshotNameLabelTpl, {
       '{job.name}': job.name,
@@ -215,15 +219,6 @@ export class Backup {
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )
-  }
-
-  @decorateWith(Disposable.factory)
-  *_getAdapter(remoteId) {
-    const adapter = yield this._app.backups.getAdapter(this._remotes[remoteId])
-    return {
-      adapter,
-      remoteId,
-    }
   }
 
   @decorateWith(Disposable.factory)
