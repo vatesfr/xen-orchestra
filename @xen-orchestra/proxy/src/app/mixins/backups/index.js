@@ -61,7 +61,7 @@ export default class Backups {
         // don't change config during backup execution
         config: app.config.get('backups'),
 
-        // passe getAdapter in order to mutualize the adapter resources usage
+        // pass getAdapter in order to mutualize the adapter resources usage
         getAdapter: this.getAdapter.bind(this),
         getConnectedXapi: id => this.getXapi(xapis[id]),
       }).run()
