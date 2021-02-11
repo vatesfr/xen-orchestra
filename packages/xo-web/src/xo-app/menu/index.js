@@ -31,7 +31,7 @@ import { every, forEach, identity, isEmpty, isEqual, map, pick, some } from 'lod
 
 import styles from './index.css'
 
-const DISPLAYFLEX = {
+const LINK_STYLE = {
   display: 'flex',
 }
 
