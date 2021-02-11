@@ -11,7 +11,7 @@ import {
 } from 'xo'
 
 const _restartHostAgent = ({ host, fetchStats }) => {
-  //  Don't fetch host stats because there is no connection to the host during reboot.
+  //  Don't fetch host stats because there is no connection to the host during restart toolstack.
   fetchStats(null)
   setTimeout(fetchStats, 300e3)
 
