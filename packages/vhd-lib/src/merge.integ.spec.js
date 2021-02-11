@@ -13,7 +13,7 @@ import { randomBytes } from 'crypto'
 
 import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './'
 
-import { SECTOR_SIZE } from './src/_constants'
+import { SECTOR_SIZE } from './_constants'
 
 let tempDir = null
 
