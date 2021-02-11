@@ -402,9 +402,25 @@ module.exports = class Vm {
     }
   }
 
+  @defer
   @cancelable
-  async snapshot($cancelToken, vmRef, nameLabel) {
+  async snapshot($cancelToken, $defer, vmRef, nameLabel) {
     const vm = await this.getRecord('VM', vmRef)
+    // cannot unplug VBDs on Running, Paused and Suspended VMs
+    if (vm.power_state === 'Halted' && this._ignoreNobakVdis) {
+      await asyncMap(vm.VBDs, async vbdRef => {
+        const vbd = await this.getRecord('VBD', vbdRef)
+        if (
+          vbd.type === 'Disk' &&
+          isValidRef(vbd.VDI) &&
+          (await this.getField('VDI', vbd.VDI, 'name_label')).startsWith('[NOBAK]')
+        ) {
+          await this.VBD_destroy(vbdRef)
+          $defer.call(this, 'VBD_create', vbd)
+        }
+      })
+    }
+
     if (nameLabel === undefined) {
       nameLabel = vm.name_label
     }
