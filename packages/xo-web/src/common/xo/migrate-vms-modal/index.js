@@ -180,11 +180,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
       return
     }
     const { pools, pifs } = this.props
-    const defaultMigrationNetworkId = getDefaultMigrationNetwork(host, pools, pifs)
+    const intraPool = every(this.props.vms, vm => vm.$pool === host.$pool)
+    const defaultMigrationNetworkId = getDefaultMigrationNetwork(intraPool, host, pools, pifs)
     const defaultSrId = pools[host.$pool].default_SR
     const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
 
-    const intraPool = every(this.props.vms, vm => vm.$pool === host.$pool)
     const doNotMigrateVmVdis = {}
     const doNotMigrateVdi = {}
     let noVdisMigration = false
