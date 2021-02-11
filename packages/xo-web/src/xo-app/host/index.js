@@ -118,7 +118,6 @@ export default class Host extends Component {
 
   loop(host = this.props.host) {
     if (host == null) {
-      clearTimeout(this.timeout)
       return
     }
 
@@ -252,7 +251,7 @@ export default class Host extends Component {
           </Col>
           <Col mediumSize={6}>
             <div className='text-xs-center'>
-              <HostActionBar host={host} fetchStats={this.loop} />
+              <HostActionBar host={host} />
             </div>
           </Col>
         </Row>

@@ -342,10 +342,13 @@ export default class Api {
         Date.now() - startTime
       )}] =!> ${error}`
 
-      // 2020-07-10: Work-around: many kinds of error can be triggered by this
-      // method, which can generates a lot of logs due to the fact that xo-web
-      // uses 5s active subscriptions to call it
-      if (name !== 'pool.listMissingPatches') {
+      // 2020-07-10: Work-around: many kinds of error can be triggered by
+      // 'pool.listMissingPatches' method, which can generates a lot of logs due to the fact that xo-web
+      // uses 5s active subscriptions to call it.
+      // 2021-02-11: Work-around: ECONNREFUSED error can be triggered by
+      // 'host.stats' method because there is no connection to the host during restart toolstack
+      // and the xo-web uses loop/setTimeout to call it
+      if (name !== 'pool.listMissingPatches' || name !== 'host.stats') {
         this._logger.error(message, {
           ...data,
           duration: Date.now() - startTime,
