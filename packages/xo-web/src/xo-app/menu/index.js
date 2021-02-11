@@ -470,7 +470,7 @@ export default class Menu extends Component {
           <li>&nbsp;</li>
           {!state.isXoaStatusOk && (
             <li className='nav-item xo-menu-item'>
-              <Link className='nav-link' style={DISPLAYFLEX} to='/xoa/support'>
+              <Link className='nav-link' style={LINK_STYLE} to='/xoa/support'>
                 <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
                   <Icon icon='diagnosis' size='lg' fixedWidth /> {_('checkXoa')}
                 </span>
