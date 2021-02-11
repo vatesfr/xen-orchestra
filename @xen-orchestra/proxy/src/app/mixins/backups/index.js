@@ -2,9 +2,7 @@ import assert from 'assert'
 import defer from 'golike-defer'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
 import mapValues from 'lodash/mapValues'
-import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { decorateWith } from '@vates/decorate-with'
@@ -12,7 +10,6 @@ import { execFile } from 'child_process'
 import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
-import { ZipFile } from 'yazl'
 
 import { asyncMap } from '../../../_asyncMap'
 
@@ -145,25 +142,8 @@ export default class Backups {
           },
         ],
         fetchPartitionFiles: [
-          ({ disk: diskId, remote, partition: partitionId, paths }) => {
-            const { promise, reject, resolve } = pDefer()
-            using(
-              async function* () {
-                const adapter = yield this.getAdapter(remote)
-                const files = yield adapter.usePartitionFiles(diskId, partitionId, paths)
-                const zip = new ZipFile()
-                files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
-                zip.end()
-                const { outputStream } = zip
-                resolve(outputStream)
-                await fromEvent(outputStream, 'end')
-              }.bind(this)
-            ).catch(error => {
-              warn(error)
-              reject(error)
-            })
-            return promise
-          },
+          ({ disk: diskId, remote, partition: partitionId, paths }) =>
+            using(this.getAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths)),
           {
             description: 'fetch files from partition',
             params: {

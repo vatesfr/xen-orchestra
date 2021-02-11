@@ -1,6 +1,8 @@
 import asyncMapSettled from '@xen-orchestra/async-map'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
+import fromEvent from 'promise-toolbox/fromEvent'
+import pDefer from 'promise-toolbox/defer'
 import pump from 'pump'
 import using from 'promise-toolbox/using'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
@@ -9,6 +11,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { readdir, stat } from 'fs-extra'
+import { ZipFile } from 'yazl'
 
 import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
@@ -220,7 +223,7 @@ export class RemoteAdapter {
   }
 
   @decorateWith(Disposable.factory)
-  async *usePartitionFiles(diskId, partitionId, paths) {
+  async *_usePartitionFiles(diskId, partitionId, paths) {
     const path = yield this.getPartition(diskId, partitionId)
 
     const files = []
@@ -229,6 +232,25 @@ export class RemoteAdapter {
     )
 
     return files
+  }
+
+  fetchPartitionFiles(diskId, partitionId, paths) {
+    const { promise, reject, resolve } = pDefer()
+    using(
+      async function* () {
+        const files = yield this._usePartitionFiles(diskId, partitionId, paths)
+        const zip = new ZipFile()
+        files.forEach(({ realPath, metadataPath }) => zip.addFile(realPath, metadataPath))
+        zip.end()
+        const { outputStream } = zip
+        resolve(outputStream)
+        await fromEvent(outputStream, 'end')
+      }.bind(this)
+    ).catch(error => {
+      warn(error)
+      reject(error)
+    })
+    return promise
   }
 
   async deleteDeltaVmBackups(backups) {
