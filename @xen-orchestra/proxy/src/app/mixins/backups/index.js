@@ -142,8 +142,8 @@ export default class Backups {
         fetchPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, paths }) => {
             const { promise, reject, resolve } = pDefer()
-            using
-              .call(this, async function* () {
+            using(
+              async function* () {
                 const adapter = yield this.getAdapter(remote)
                 const files = yield adapter.usePartitionFiles(diskId, partitionId, paths)
                 const zip = new ZipFile()
@@ -152,11 +152,11 @@ export default class Backups {
                 const { outputStream } = zip
                 resolve(outputStream)
                 await fromEvent(outputStream, 'end')
-              })
-              .catch(error => {
-                warn(error)
-                reject(error)
-              })
+              }.bind(this)
+            ).catch(error => {
+              warn(error)
+              reject(error)
+            })
             return promise
           },
           {
