@@ -662,8 +662,6 @@ export async function probeIscsiIqns({ host, target: targetIp, port, chapUser, c
     }
 
     xml = parseXml(error.params[2])
-    console.log(error.params)
-    console.log(xml)
   }
 
   const targets = []
@@ -726,6 +724,9 @@ export async function probeIscsiLuns({ host, target: targetIp, port, targetIqn, 
     }
 
     xml = parseXml(error.params[2])
+
+    console.log(error.params)
+    console.log(xml)
   }
 
   const luns = []
