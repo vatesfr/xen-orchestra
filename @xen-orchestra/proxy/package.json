@@ -28,7 +28,7 @@
     "scripts/"
   ],
   "engines": {
-    "node": ">=8.10"
+    "node": ">=12"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
