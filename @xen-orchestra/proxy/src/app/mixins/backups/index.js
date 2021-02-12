@@ -20,6 +20,7 @@ import { Task } from './_Task'
 import { Readable } from 'stream'
 import { RemoteAdapter } from './_RemoteAdapter'
 import { RestoreMetadataBackup } from './_RestoreMetadataBackup'
+import { DurablePartition } from './_DurablePartition'
 
 const noop = Function.prototype
 
@@ -317,35 +318,14 @@ export default class Backups {
       },
     })
 
-    const getPartition = Disposable.factory(function* ({ disk, partition, remote }) {
-      const adapter = yield this.getAdapter(remote)
-      return yield adapter.getPartition(disk, partition)
-    })
-
-    // private resource API is used exceptionally to be able to separate resource creation and release
-    const partitionDisposers = {}
-    const dispose = async () => {
-      await asyncMap(Object.keys(partitionDisposers), path => {
-        const disposers = partitionDisposers[path]
-        delete partitionDisposers[path]
-        return asyncMap(disposers, d => d(path).catch(noop))
-      })
-    }
-    app.hooks.once('stop', dispose)
+    const durablePartition = new DurablePartition()
+    app.hooks.once('stop', () => durablePartition.flushAll())
 
     app.api.addMethods({
       backup: {
         mountPartition: [
-          async props => {
-            const { value: path, dispose } = await getPartition(props)
-
-            if (partitionDisposers[path] === undefined) {
-              partitionDisposers[path] = []
-            }
-            partitionDisposers[path].push(dispose)
-
-            return path
-          },
+          async ({ disk, partition, remote }) =>
+            using(this.getAdapter(remote), adapter => durablePartition.mount(adapter, disk, partition)),
           {
             description: 'mount a partition',
             params: {
@@ -356,17 +336,7 @@ export default class Backups {
           },
         ],
         unmountPartition: [
-          async ({ path }) => {
-            const disposers = partitionDisposers[path]
-            if (disposers === undefined) {
-              throw new Error(`No partition corresponding to the path ${path} found`)
-            }
-
-            await disposers.pop()()
-            if (disposers.length === 0) {
-              delete partitionDisposers[path]
-            }
-          },
+          async ({ path }) => durablePartition.unmount(path),
           {
             description: 'unmount a partition',
             params: {
