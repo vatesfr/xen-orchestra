@@ -364,10 +364,10 @@ export default class RemoteHandlerAbstract {
           await this.copyFileRange(fd1, 0, fd2, 0, data.byteLength)
           cloneDuration = process.hrtime(cloneStart)
         } finally {
-          await this._closeFile(fd2)
+          await this.closeFile(fd2)
         }
       } finally {
-        await this._closeFile(fd1)
+        await this.closeFile(fd1)
       }
 
       step = 'read'
