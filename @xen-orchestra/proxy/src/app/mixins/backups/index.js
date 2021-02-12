@@ -1,4 +1,3 @@
-import assert from 'assert'
 import defer from 'golike-defer'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
@@ -7,7 +6,6 @@ import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
-import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { Xapi } from '@xen-orchestra/xapi'
 
@@ -17,7 +15,7 @@ import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
 
 import { Backup } from './_Backup'
-import { importDeltaVm } from './_deltaVm'
+import { ImportVmBackup } from './_ImportVmBackup'
 import { Task } from './_Task'
 import { Readable } from 'stream'
 import { RemoteAdapter } from './_RemoteAdapter'
@@ -156,34 +154,9 @@ export default class Backups {
         ],
         importVmBackup: [
           defer(($defer, { backupId, remote, srUuid, xapi: xapiOpts }) =>
-            using(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) => {
-              const srRef = await xapi.call('SR.get_by_uuid', srUuid)
-
-              const metadata = await adapter.readVmBackupMetadata(backupId)
-              let vmRef
-              if (metadata.mode === 'full') {
-                vmRef = await xapi.VM_import(await adapter.readFullVmBackup(metadata), srRef)
-              } else {
-                assert.strictEqual(metadata.mode, 'delta')
-
-                vmRef = await importDeltaVm(
-                  await adapter.readDeltaVmBackup(metadata),
-                  await xapi.getRecord('SR', srRef),
-                  { detectBase: false }
-                )
-              }
-
-              await Promise.all([
-                xapi.call('VM.add_tags', vmRef, 'restored from backup'),
-                xapi.call(
-                  'VM.set_name_label',
-                  vmRef,
-                  `${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
-                ),
-              ])
-
-              return xapi.getField('VM', vmRef, 'uuid')
-            })
+            using(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) =>
+              new ImportVmBackup({ adapter, backupId, srUuid, xapi }).run()
+            )
           ),
           {
             description: 'create a new VM from a backup',
