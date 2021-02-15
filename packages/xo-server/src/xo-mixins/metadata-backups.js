@@ -862,13 +862,15 @@ export default class metadataBackup {
           const { parentId } = log
           if (parentId === undefined) {
             rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
+            this._runningMetadataRestores.add(rootTaskId)
           } else {
             common.parentId = localTaskIds[parentId]
             localTaskIds[taskId] = logger.notice(message, common)
           }
         } else {
           const localTaskId = localTaskIds[taskId]
-          if (localTaskId === rootTaskId && dir === DIR_XO_CONFIG_BACKUPS && log.status === 'success') {
+          const isRootTask = localTaskId === rootTaskId
+          if (isRootTask && dir === DIR_XO_CONFIG_BACKUPS && log.status === 'success') {
             try {
               await app.importConfig(log.result)
             } catch (error) {
@@ -879,6 +881,9 @@ export default class metadataBackup {
 
           common.taskId = localTaskId
           logger.notice(message, common)
+          if (isRootTask) {
+            this._runningMetadataRestores.delete(localTaskId)
+          }
         }
       }
       return
