@@ -8,7 +8,9 @@ import {
   NumberNode,
   NumberOrStringNode,
   parse,
+  Property,
   setPropertyClause,
+  StringNode,
 } from './'
 
 it('getPropertyClausesStrings', () => {
@@ -41,6 +43,10 @@ describe('parse', () => {
     expect(node.match(32)).toBe(false)
     expect(node.match('32')).toBe(true)
     expect(node.toString()).toBe('"32"')
+  })
+
+  it('supports non-ASCII letters in raw strings', () => {
+    expect(parse('åäöé:ÅÄÖÉ')).toStrictEqual(new Property('åäöé', new StringNode('ÅÄÖÉ')))
   })
 })
 
