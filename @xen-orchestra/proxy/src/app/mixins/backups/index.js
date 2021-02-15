@@ -154,10 +154,28 @@ export default class Backups {
           },
         ],
         importVmBackup: [
-          defer(($defer, { backupId, remote, srUuid, xapi: xapiOpts }) =>
-            using(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) =>
-              new ImportVmBackup({ adapter, backupId, srUuid, xapi }).run()
-            )
+          defer(($defer, { backupId, remote, srUuid, streamLogs, xapi: xapiOpts }) =>
+            using(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) => {
+              const metadata = await adapter.readVmBackupMetadata(backupId)
+              const run = () => new ImportVmBackup({ adapter, metadata, srUuid, xapi }).run()
+              return streamLogs
+                ? runWithLogs(
+                    async (args, onLog) =>
+                      Task.run(
+                        {
+                          data: {
+                            jobId: metadata.jobId,
+                            srId: srUuid,
+                            time: metadata.timestamp,
+                          },
+                          name: 'restore',
+                          onLog,
+                        },
+                        run
+                      ).catch(() => {}) // errors are handled by logs
+                  )
+                : run()
+            })
           ),
           {
             description: 'create a new VM from a backup',
@@ -165,6 +183,7 @@ export default class Backups {
               backupId: { type: 'string' },
               remote: { type: 'object' },
               srUuid: { type: 'string' },
+              streamLogs: { type: 'boolean', optional: true },
               xapi: { type: 'object' },
             },
           },
