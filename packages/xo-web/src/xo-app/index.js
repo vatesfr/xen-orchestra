@@ -132,15 +132,12 @@ const BODY_STYLE = {
       get({ checkXoaCount }) {
         // To avoid aggressive minification which would remove destructuration
         noop(checkXoaCount)
-        return getXoaPlan() === 'Community'
-          ? ''
-          : checkXoa().catch(() => {
-              throw new Error('XOA Plugin not registered')
-            })
+        return getXoaPlan() === 'Community' ? '' : checkXoa().catch(() => 'XOA plugin not loaded')
       },
       placeholder: '',
     },
     isXoaStatusOk: ({ xoaStatus }) => !xoaStatus.includes('✖'),
+    xoaRegistered: ({ xoaStatus }) => xoaStatus !== 'XOA plugin not loaded',
   },
 })
 export default class XoApp extends Component {

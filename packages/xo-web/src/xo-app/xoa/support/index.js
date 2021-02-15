@@ -27,7 +27,7 @@ const Support = decorate([
   injectState,
   ({
     effects,
-    state: { stdoutSupportTunnel, xoaStatus },
+    state: { stdoutSupportTunnel, xoaRegistered, xoaStatus },
     tunnelState: { open, stdout } = { open: false, stdout: '' },
   }) => (
     <Container>
@@ -40,7 +40,12 @@ const Support = decorate([
       )}
       <Row className='mb-1'>
         <Col>
-          <ActionButton btnStyle='primary' disabled={COMMUNITY} handler={reportOnSupportPanel} icon='ticket'>
+          <ActionButton
+            btnStyle='primary'
+            disabled={COMMUNITY || !xoaRegistered}
+            handler={reportOnSupportPanel}
+            icon='ticket'
+          >
             {_('createSupportTicket')}
           </ActionButton>
         </Col>
@@ -50,7 +55,12 @@ const Support = decorate([
           <Card>
             <CardHeader>{_('xoaCheck')}</CardHeader>
             <CardBlock>
-              <ActionButton btnStyle='success' disabled={COMMUNITY} handler={effects.refreshXoaStatus} icon='diagnosis'>
+              <ActionButton
+                btnStyle='success'
+                disabled={COMMUNITY || !xoaRegistered}
+                handler={effects.refreshXoaStatus}
+                icon='diagnosis'
+              >
                 {_('checkXoa')}
               </ActionButton>
               <hr />
@@ -69,11 +79,21 @@ const Support = decorate([
               <Row>
                 <Col>
                   {open ? (
-                    <ActionButton btnStyle='primary' disabled={COMMUNITY} handler={closeTunnel} icon='remove'>
+                    <ActionButton
+                      btnStyle='primary'
+                      disabled={COMMUNITY || !xoaRegistered}
+                      handler={closeTunnel}
+                      icon='remove'
+                    >
                       {_('closeTunnel')}
                     </ActionButton>
                   ) : (
-                    <ActionButton btnStyle='success' disabled={COMMUNITY} handler={openTunnel} icon='open-tunnel'>
+                    <ActionButton
+                      btnStyle='success'
+                      disabled={COMMUNITY || !xoaRegistered}
+                      handler={openTunnel}
+                      icon='open-tunnel'
+                    >
                       {_('openTunnel')}
                     </ActionButton>
                   )}
