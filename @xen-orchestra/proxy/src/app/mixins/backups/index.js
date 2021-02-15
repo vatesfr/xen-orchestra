@@ -154,7 +154,7 @@ export default class Backups {
           },
         ],
         importVmBackup: [
-          defer(($defer, { backupId, remote, srUuid, streamLogs, xapi: xapiOpts }) =>
+          defer(($defer, { backupId, remote, srUuid, streamLogs = false, xapi: xapiOpts }) =>
             using(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) => {
               const metadata = await adapter.readVmBackupMetadata(backupId)
               const run = () => new ImportVmBackup({ adapter, metadata, srUuid, xapi }).run()
