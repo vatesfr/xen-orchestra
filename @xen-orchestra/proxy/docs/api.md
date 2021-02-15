@@ -137,7 +137,13 @@ declare namespace backup {
     url: string
   }
 
-  function importVmBackup(_: { backupId: string; remote: Remote; srUuid: string; xapi: Xapi }): string
+  function importVmBackup(_: {
+    backupId: string
+    remote: Remote
+    srUuid: string
+    xapi: Xapi
+    streamLogs: boolean = false
+  }): string
 
   function listPoolMetadataBackups(_: {
     remotes: { [id: string]: Remote }
