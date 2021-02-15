@@ -35,6 +35,7 @@ module.exports = {
           ['/supported_hosts', 'Host Compatibility List'],
           ['/installation', 'Installation'],
           ['/configuration', 'Configuration'],
+          ['/migrate_to_new_xoa', 'Migrate to new XOA'],
           ['/updater', 'Updates'],
           ['/architecture', 'Architecture'],
           ['/troubleshooting', 'Troubleshooting'],

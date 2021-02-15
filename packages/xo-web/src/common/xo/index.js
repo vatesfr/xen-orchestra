@@ -2887,7 +2887,8 @@ export const destroyProxyAppliances = proxies =>
     body: _('destroyProxyApplianceMessage', { n: proxies.length }),
   }).then(() => Promise.all(map(proxies, _destroyProxyAppliance))::tap(subscribeProxies.forceRefresh))
 
-export const upgradeProxyAppliance = proxy => _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
+export const upgradeProxyAppliance = (proxy, props) =>
+  _call('proxy.upgradeAppliance', { id: resolveId(proxy), ...props })
 
 export const getProxyApplianceUpdaterState = id => _call('proxy.getApplianceUpdaterState', { id })
 
