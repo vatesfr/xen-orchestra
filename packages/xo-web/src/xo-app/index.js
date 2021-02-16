@@ -10,7 +10,7 @@ import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
-import { checkXoa, clearXoaCheckCache } from 'xo'
+import { checkXoa, clearXoaCheckCache, getPlugin } from 'xo'
 import { connectStore, getXoaPlan, noop, routes } from 'utils'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
@@ -132,12 +132,12 @@ const BODY_STYLE = {
       get({ checkXoaCount }) {
         // To avoid aggressive minification which would remove destructuration
         noop(checkXoaCount)
-        return getXoaPlan() === 'Community' ? '' : checkXoa().catch(() => 'XOA plugin not loaded')
+        return getXoaPlan() === 'Community' ? '' : checkXoa().catch(() => 'XOA plugin not available')
       },
       placeholder: '',
     },
     isXoaStatusOk: ({ xoaStatus }) => !xoaStatus.includes('✖'),
-    xoaRegistered: ({ xoaStatus }) => xoaStatus !== 'XOA plugin not loaded',
+    xoaRegistered: async () => (await getPlugin('xoa')).loaded,
   },
 })
 export default class XoApp extends Component {
