@@ -43,9 +43,10 @@ export default class Remotes {
   })
   @decorateWith(deduped, remote => [remote.url])
   async getHandler(remote) {
-    const handler = getHandler(remote, this._app.config.get('remoteOptions'))
+    const { config } = this._app
+    const handler = getHandler(remote, config.get('remoteOptions'))
 
-    if (!__DEV__ && handler.type === 'file') {
+    if (config.get('remotes.disableFileRemotes') && handler.type === 'file') {
       throw new Error('Local remotes are disabled in proxies')
     }
 
