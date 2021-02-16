@@ -123,15 +123,14 @@ export default class MigrateVmsModalBody extends BaseComponent {
     // Map VM --> ( Map VDI --> SR )
     const mapVmsMapVdisSrs = {}
     forEach(vbdsByVm, (vbds, vm) => {
-      // 16-02-2021: If network migration is defined, the map VDI --> SR is required
-      if (doNotMigrateVmVdis[vm] && migrationNetworkId === undefined) {
-        return
-      }
+      // 16-02-2021: Always build map VDI -> SR: to not migrate VDIs to the wrong SRs.
+      // Intra pool: the VDI will be migrated to the selected SR if it's on local SR.
+      // Different pool: all VDIs will be migrated to the selected SR.
       const mapVdisSrs = {}
       forEach(vbds, vbd => {
         const vdi = vbd.VDI
         if (!vbd.is_cd_drive && vdi) {
-          mapVdisSrs[vdi] = doNotMigrateVdi[vdi] ? this._getObject(vdi).$SR : srId
+          mapVdisSrs[vdi] = doNotMigrateVmVdis[vm] || doNotMigrateVdi[vdi] ? this._getObject(vdi).$SR : srId
         }
       })
       mapVmsMapVdisSrs[vm] = mapVdisSrs
