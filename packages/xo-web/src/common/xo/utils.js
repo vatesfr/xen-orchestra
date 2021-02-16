@@ -26,10 +26,6 @@ export const getDefaultNetworkForVif = (vif, destHost, pifs, networks) => {
 
 export const getDefaultMigrationNetwork = (intraPool, destHost, pools, pifs) => {
   const migrationNetwork = pools[destHost.$pool].otherConfig['xo:migrationNetwork']
-  if (intraPool) {
-    return migrationNetwork
-  }
-
   let defaultPif
   return defined(
     find(pifs, pif => {
@@ -42,6 +38,6 @@ export const getDefaultMigrationNetwork = (intraPool, destHost, pools, pifs) => 
         }
       }
     }),
-    defaultPif
+    intraPool ? {} : defaultPif
   ).$network
 }
