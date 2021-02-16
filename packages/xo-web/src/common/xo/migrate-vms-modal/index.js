@@ -121,11 +121,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
     const { doNotMigrateVdi, doNotMigrateVmVdis, migrationNetworkId, networkId, smartVifMapping, srId } = this.state
 
     // Map VM --> ( Map VDI --> SR )
+    // 16-02-2021: Always build map VDI -> SR: to not migrate VDIs to the wrong SRs.
+    // Intra pool: the VDI will be migrated to the selected SR if it's on local SR.
+    // Different pool: all VDIs will be migrated to the selected SR.
     const mapVmsMapVdisSrs = {}
     forEach(vbdsByVm, (vbds, vm) => {
-      // 16-02-2021: Always build map VDI -> SR: to not migrate VDIs to the wrong SRs.
-      // Intra pool: the VDI will be migrated to the selected SR if it's on local SR.
-      // Different pool: all VDIs will be migrated to the selected SR.
       const mapVdisSrs = {}
       forEach(vbds, vbd => {
         const vdi = vbd.VDI
