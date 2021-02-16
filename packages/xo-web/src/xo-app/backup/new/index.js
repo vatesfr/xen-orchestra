@@ -139,13 +139,13 @@ const ThinProvisionedTip = ({ label }) => (
 
 const normalizeTagValues = values => resolveIds(values).map(value => [value])
 
-const normalizeSettings = ({ copyMode, exportMode, offlineBackupActive, settings, snapshotMode }) =>
+const normalizeSettings = ({ copyMode, deltaMode, exportMode, offlineBackupActive, settings, snapshotMode }) =>
   settings.map(setting =>
     defined(setting.copyRetention, setting.exportRetention, setting.snapshotRetention) !== undefined
       ? {
-          ...setting,
           copyRetention: copyMode ? setting.copyRetention : undefined,
           exportRetention: exportMode ? setting.exportRetention : undefined,
+          fullInterval: deltaMode ? setting.fullInterval : undefined,
           snapshotRetention: snapshotMode && !offlineBackupActive ? setting.snapshotRetention : undefined,
         }
       : setting
@@ -244,6 +244,7 @@ const New = decorate([
         if (!isEmpty(state.schedules)) {
           schedules = mapValues(state.schedules, ({ id, ...schedule }) => schedule)
           settings = normalizeSettings({
+            deltaMode: state.deltaMode,
             offlineBackupActive: state.offlineBackupActive,
             settings: state.settings,
             exportMode: state.exportMode,
@@ -338,6 +339,7 @@ const New = decorate([
           compression: state.compression,
           proxy: state.proxyId,
           settings: normalizeSettings({
+            deltaMode: state.deltaMode,
             offlineBackupActive: state.offlineBackupActive,
             settings: settings || state.propSettings,
             exportMode: state.exportMode,
