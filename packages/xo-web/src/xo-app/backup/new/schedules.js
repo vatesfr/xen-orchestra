@@ -79,7 +79,7 @@ export default decorate([
           {
             itemRenderer: schedule => (schedule.fullInterval === 1 ? _('stateEnabled') : _('stateDisabled')),
             sortCriteria: 'fullInterval',
-            name: _('forceFullBackupInterval'),
+            name: _('forceFullBackups'),
           },
         ]
 
