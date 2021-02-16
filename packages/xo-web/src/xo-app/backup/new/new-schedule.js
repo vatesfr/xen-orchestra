@@ -15,7 +15,7 @@ import { FormGroup, Input } from './../utils'
 const New = decorate([
   provideState({
     computed: {
-      forceFullBackups: (_, { value }) => value.fullInterval === 1,
+      forceFullBackup: (_, { value }) => value.fullInterval === 1,
       formId: generateId,
       idInputName: generateId,
     },
@@ -52,9 +52,9 @@ const New = decorate([
           name: value.trim() === '' ? null : value,
         })
       },
-      toggleForceFullBackups({ setSchedule }) {
+      toggleForceFullBackup({ setSchedule }) {
         setSchedule({
-          fullInterval: this.state.forceFullBackups ? undefined : 1,
+          fullInterval: this.state.forceFullBackup ? undefined : 1,
         })
       },
     },
@@ -105,8 +105,8 @@ const New = decorate([
         )}
         <FormGroup>
           <label>
-            <strong>{_('forceFullBackups')}</strong>{' '}
-            <input checked={state.forceFullBackups} onChange={effects.toggleForceFullBackups} type='checkbox' />
+            <strong>{_('forceFullBackup')}</strong>{' '}
+            <input checked={state.forceFullBackup} onChange={effects.toggleForceFullBackup} type='checkbox' />
           </label>
         </FormGroup>
         <Scheduler onChange={effects.setCronTimezone} cronPattern={schedule.cron} timezone={schedule.timezone} />

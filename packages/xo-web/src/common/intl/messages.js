@@ -506,7 +506,7 @@ const messages = {
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
-  forceFullBackups: 'Force full backups',
+  forceFullBackup: 'Force full backup',
   timeoutUnit: 'In hours',
   dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require an Enterprise plan',
   crRequiresPremiumPlan: 'CR requires a Premium plan',
