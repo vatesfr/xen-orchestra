@@ -1,5 +1,7 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
+import http from 'http'
+import https from 'https'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -13,12 +15,14 @@ const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
 const MAX_PARTS_COUNT = 10000
 const MAX_OBJECT_SIZE = 1024 * 1024 * 1024 * 1024 * 5 // 5TB
 const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the smallest fragment size that still allows a 5TB upload in 10000 fragments, about 524MB
+
+const USE_SSL = true
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
     const { host, path, username, password } = parse(remote.url)
     // https://www.zenko.io/blog/first-things-first-getting-started-scality-s3-server/
-    this._s3 = aws({
+    const params = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
       endpoint: host,
@@ -26,9 +30,19 @@ export default class S3Handler extends RemoteHandlerAbstract {
       secretAccessKey: password,
       signatureVersion: 'v4',
       httpOptions: {
+        // long timeout helps big backups
         timeout: 600000,
       },
-    }).s3
+    }
+    if (!USE_SSL) {
+      // remove @sullux/aws-sdk ssl agent
+      params.httpOptions.agent = new http.Agent()
+      params.sslEnabled = false
+    } else {
+      // this replaces @sullux/aws-sdk agent, whose activation of keepalive seems to provoke resource exhaustion
+      params.httpOptions.agent = new https.Agent()
+    }
+    this._s3 = aws(params).s3
 
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
