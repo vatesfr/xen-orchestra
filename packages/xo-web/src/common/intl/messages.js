@@ -2369,6 +2369,8 @@ const messages = {
   proxyUpgradesError: 'Unable to check upgrades availability',
   proxyApplianceSettingsInfo: 'Leave the field empty and click on OK to remove the existing configuration',
   proxyUpToDate: 'Your proxy is up-to-date',
+  proxyRunningBackupsMessage:
+    'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
