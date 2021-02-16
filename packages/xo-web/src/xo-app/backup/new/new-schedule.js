@@ -103,12 +103,14 @@ const New = decorate([
             <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
           </FormGroup>
         )}
-        <FormGroup>
-          <label>
-            <strong>{_('forceFullBackup')}</strong>{' '}
-            <input checked={state.forceFullBackup} onChange={effects.toggleForceFullBackup} type='checkbox' />
-          </label>
-        </FormGroup>
+        {modes.deltaMode && (
+          <FormGroup>
+            <label>
+              <strong>{_('forceFullBackup')}</strong>{' '}
+              <input checked={state.forceFullBackup} onChange={effects.toggleForceFullBackup} type='checkbox' />
+            </label>
+          </FormGroup>
+        )}
         <Scheduler onChange={effects.setCronTimezone} cronPattern={schedule.cron} timezone={schedule.timezone} />
         <SchedulePreview cronPattern={schedule.cron} timezone={schedule.timezone} />
       </CardBlock>

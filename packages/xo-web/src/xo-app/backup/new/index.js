@@ -425,7 +425,7 @@ const New = decorate([
         { copyMode, exportMode, deltaMode, propSettings, settings = propSettings, snapshotMode },
         { intl: { formatMessage } }
       ) => {
-        const modes = { copyMode, exportMode, snapshotMode }
+        const modes = { copyMode, deltaMode, exportMode, snapshotMode }
         const schedule = await form({
           defaultValue: storedSchedule,
           render: props => (
