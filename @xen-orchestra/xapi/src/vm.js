@@ -32,7 +32,7 @@ const BIOS_STRINGS_KEYS = new Set([
 ])
 const cleanBiosStrings = biosStrings => {
   if (biosStrings !== undefined) {
-    biosStrings = pickBy(biosStrings, (value, key) => value !== '' && BIOS_STRINGS_KEYS.hash(key))
+    biosStrings = pickBy(biosStrings, (value, key) => value !== '' && BIOS_STRINGS_KEYS.has(key))
 
     if (Object.keys(biosStrings).length !== 0) {
       return biosStrings
