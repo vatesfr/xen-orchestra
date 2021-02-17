@@ -308,7 +308,7 @@ const Updates = decorate([
                       </a>
                     </p>
                   )}
-                  <ActionButton btnStyle='info' handler={effects.forceRefreshXoaStatus} icon='refresh'>
+                  <ActionButton btnStyle='info' handler={effects.update} icon='refresh'>
                     {_('refresh')}
                   </ActionButton>{' '}
                   <ActionButton
