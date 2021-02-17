@@ -29,7 +29,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import { CancelToken, ignoreErrors, pFinally, timeout } from 'promise-toolbox'
+import { CancelToken, ignoreErrors, timeout } from 'promise-toolbox'
 import Vhd, { chainVhd, checkVhdChain, createSyntheticStream as createVhdReadStream } from 'vhd-lib'
 
 import type Logger from '../logs/loggers/abstract'
@@ -820,53 +820,102 @@ export default class BackupNg {
 
     const { metadataFilename, remoteId } = parseVmBackupId(id)
     const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      const { allowUnauthorized, host, password, username } = await app.getXenServer(app.getXenServerIdByObject(sr.$id))
-      return app.callProxyMethod(proxy, 'backup.importVmBackup', {
-        backupId: metadataFilename,
-        remote: {
-          url,
-          options,
-        },
-        srUuid: sr.uuid,
-        xapi: {
-          allowUnauthorized,
-          credentials: {
-            username,
-            password,
-          },
-          url: host,
-        },
-      })
-    }
 
-    const handler = await app.getRemoteHandler(remoteId)
-    const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
-
-    const importer = importers[metadata.mode]
-    if (importer === undefined) {
-      throw new Error(`no importer for backup mode ${metadata.mode}`)
-    }
-
-    const { jobId, timestamp: time } = metadata
+    let rootTaskId
     const logger = this._logger
-    return wrapTaskFn(
-      {
-        data: {
-          jobId,
-          srId,
-          time,
-        },
-        logger,
-        message: 'restore',
-      },
-      taskId => {
-        this._runningRestores.add(taskId)
-        return importer(handler, metadataFilename, metadata, xapi, sr, taskId, logger)::pFinally(() => {
-          this._runningRestores.delete(taskId)
-        })
+    try {
+      if (proxy !== undefined) {
+        const { allowUnauthorized, host, password, username } = await app.getXenServer(
+          app.getXenServerIdByObject(sr.$id)
+        )
+
+        const params = {
+          backupId: metadataFilename,
+          remote: {
+            url,
+            options,
+          },
+          srUuid: sr.uuid,
+          streamLogs: true,
+          xapi: {
+            allowUnauthorized,
+            credentials: {
+              username,
+              password,
+            },
+            url: host,
+          },
+        }
+
+        try {
+          const logsStream = await app.callProxyMethod(proxy, 'backup.importVmBackup', params, {
+            assertType: 'iterator',
+          })
+
+          const localTaskIds = { __proto__: null }
+          for await (const log of logsStream) {
+            const { event, message, taskId } = log
+
+            const common = {
+              data: log.data,
+              event: 'task.' + event,
+              result: log.result,
+              status: log.status,
+            }
+
+            if (event === 'start') {
+              const { parentId } = log
+              if (parentId === undefined) {
+                rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
+                this._runningRestores.add(rootTaskId)
+              } else {
+                common.parentId = localTaskIds[parentId]
+                localTaskIds[taskId] = logger.notice(message, common)
+              }
+            } else {
+              common.taskId = localTaskIds[taskId]
+              logger.notice(message, common)
+            }
+          }
+
+          return
+        } catch (error) {
+          if (invalidParameters.is(error)) {
+            delete params.streamLogs
+            return app.callProxyMethod(proxy, 'backup.importVmBackup', params)
+          }
+          throw error
+        }
       }
-    )()
+
+      const handler = await app.getRemoteHandler(remoteId)
+      const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
+
+      const importer = importers[metadata.mode]
+      if (importer === undefined) {
+        throw new Error(`no importer for backup mode ${metadata.mode}`)
+      }
+
+      const { jobId, timestamp: time } = metadata
+      return wrapTaskFn(
+        {
+          data: {
+            jobId,
+            srId,
+            time,
+          },
+          logger,
+          message: 'restore',
+        },
+        taskId => {
+          rootTaskId = taskId
+          this._runningRestores.add(taskId)
+          return importer(handler, metadataFilename, metadata, xapi, sr, taskId, logger)
+        }
+      )()
+    } finally {
+      this._runningRestores.delete(rootTaskId)
+    }
   }
 
   @decorateWith(
