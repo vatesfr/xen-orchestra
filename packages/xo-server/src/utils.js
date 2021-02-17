@@ -105,8 +105,6 @@ export const parseXml = (function () {
     // Don't parse values to avoid trim error
     parseNodeValue: false,
     parseAttributeValue: false,
-    // To prevent using trim function after each parse
-    trimValues: true,
   }
 
   return xml => {
