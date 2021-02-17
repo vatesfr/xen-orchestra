@@ -367,7 +367,6 @@ async function glusterCmd(glusterEndpoint, cmd, ignoreError = false) {
   }
   if (result.exit === 0) {
     const cliOut = result.parsed.cliOutput
-    // TODO: check if cliOut.opRet and cliOut.opErrno are strings or numbers because 'parseXml' function has changed
     // we have found cases where opErrno is !=0 and opRet was 0, albeit the operation was an error.
     result.commandStatus = cliOut.opRet.trim() === '0' && cliOut.opErrno.trim() === '0'
     result.error = findErrorMessage(result)
