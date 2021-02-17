@@ -119,6 +119,26 @@ export default class RemoteHandlerAbstract {
     await this.__closeFile(fd)
   }
 
+  /**
+   * Copy a range from one file to the other, kernel side, server side or with a reflink if possible.
+   *
+   * Slightly different from the copy_file_range linux system call:
+   *  - offsets are mandatory (because some remote handlers don't have a current pointer for files)
+   *  - flags is fixed to 0
+   *  - will not return until copy is finished.
+   *
+   * @param fdIn read open file descriptor
+   * @param offsetIn either start offset in the source file
+   * @param fdOut write open file descriptor (not append!)
+   * @param offsetOut offset in the target file
+   * @param dataLen how long to copy
+   * @returns {Promise<void>}
+   */
+  async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
+    const normalize = fd => (typeof fd === 'string' ? normalizePath(fd) : fd)
+    return this._copyFileRange(normalize(fdIn), offsetIn, normalize(fdOut), offsetOut, dataLen)
+  }
+
   // TODO: remove method
   async createOutputStream(file: File, { checksum = false, dirMode, ...options }: Object = {}): Promise<LaxWritable> {
     if (typeof file === 'string') {
@@ -283,32 +303,6 @@ export default class RemoteHandlerAbstract {
   async read(file: File, buffer: Buffer, position?: number): Promise<{| bytesRead: number, buffer: Buffer |}> {
     return this._read(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
-  /**
-   * Copy a range from one file to the other, kernel side, server side or with a reflink if possible.
-   *
-   * Slightly different from the copy_file_range linux system call:
-   *  - offsets are mandatory (because some remote handlers don't have a current pointer for files)
-   *  - flags is fixed to 0
-   *  - will not return until copy is finished.
-   *
-   * @param fdIn read open file descriptor
-   * @param offsetIn either start offset in the source file
-   * @param fdOut write open file descriptor (not append!)
-   * @param offsetOut offset in the target file
-   * @param dataLen how long to copy
-   * @returns {Promise<void>}
-   */
-  async copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
-    const normalize = fd => (typeof fd === 'string' ? normalizePath(fd) : fd)
-    return this._copyFileRange(normalize(fdIn), offsetIn, normalize(fdOut), offsetOut, dataLen)
-  }
-
-  async _copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
-    // default implementation goes through the network
-    const buffer = Buffer.alloc(dataLen)
-    await this._read(fdIn, buffer, offsetIn)
-    await this._write(fdOut, buffer, offsetOut)
-  }
 
   async readFile(file: string, { flags = 'r' }: { flags?: string } = {}): Promise<Buffer> {
     return this._readFile(normalizePath(file), { flags })
@@ -455,6 +449,13 @@ export default class RemoteHandlerAbstract {
 
   async _closeFile(fd: mixed): Promise<void> {
     throw new Error('Not implemented')
+  }
+
+  async _copyFileRange(fdIn, offsetIn, fdOut, offsetOut, dataLen) {
+    // default implementation goes through the network
+    const buffer = Buffer.alloc(dataLen)
+    await this._read(fdIn, buffer, offsetIn)
+    await this._write(fdOut, buffer, offsetOut)
   }
 
   async _createOutputStream(file: File, { dirMode, ...options }: Object = {}): Promise<LaxWritable> {
