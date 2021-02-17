@@ -66,7 +66,7 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
 
 const compose = (...fns) => value => fns.reduceRight((value, fn) => fn(value), value)
 
-const dedupedWithKey = keyFn => factory => deduped(factory, keyFn)
+const dedupedWithKeyFn = keyFn => factory => deduped(factory, keyFn)
 const debounceResourceFactory = factory =>
   function () {
     return this._debounceResource(factory.apply(this, arguments))
@@ -317,7 +317,7 @@ export class RemoteAdapter {
 
   getDisk = compose(
     debounceResourceFactory,
-    dedupedWithKey(diskId => [diskId]),
+    dedupedWithKeyFn(diskId => [diskId]),
     Disposable.factory
   )(async function* (diskId) {
     const handler = this._handler
