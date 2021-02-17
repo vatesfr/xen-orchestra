@@ -15,6 +15,7 @@ import { FormGroup, Input } from './../utils'
 const New = decorate([
   provideState({
     computed: {
+      forceFullBackup: (_, { value }) => value.fullInterval === 1,
       formId: generateId,
       idInputName: generateId,
     },
@@ -49,6 +50,11 @@ const New = decorate([
       setName: ({ setSchedule }, { target: { value } }) => () => {
         setSchedule({
           name: value.trim() === '' ? null : value,
+        })
+      },
+      toggleForceFullBackup({ setSchedule }) {
+        setSchedule({
+          fullInterval: this.state.forceFullBackup ? undefined : 1,
         })
       },
     },
@@ -95,6 +101,14 @@ const New = decorate([
               <strong>{_('snapshotRetention')}</strong>
             </label>
             <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
+          </FormGroup>
+        )}
+        {modes.deltaMode && (
+          <FormGroup>
+            <label>
+              <strong>{_('forceFullBackup')}</strong>{' '}
+              <input checked={state.forceFullBackup} onChange={effects.toggleForceFullBackup} type='checkbox' />
+            </label>
           </FormGroup>
         )}
         <Scheduler onChange={effects.setCronTimezone} cronPattern={schedule.cron} timezone={schedule.timezone} />
