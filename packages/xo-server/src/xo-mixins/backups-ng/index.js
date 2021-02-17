@@ -880,8 +880,7 @@ export default class BackupNg {
 
           return
         } catch (error) {
-          // XO API invalid parameters error
-          if (error.code === 10) {
+          if (invalidParameters.is(error)) {
             delete params.streamLogs
             return app.callProxyMethod(proxy, 'backup.importVmBackup', params)
           }
