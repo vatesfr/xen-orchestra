@@ -79,12 +79,11 @@ E.g., adding a new server:
 
 The return value is the identifier of this new server in XO.
 
-Parameters (except `true` and `false` which are correctly parsed as
-booleans) are assumed to be strings, for other types, you may use JSON
-encoding by prefixing with `json:`:
+Because command lines are usually untyped, parameters (except `true` and `false` which are considered as
+booleans) are assumed as strings by default, other types must be encoded as JSON and prefixed by `json:`:
 
 ```
-> xo-cli foo.bar baz='json:[1, 2, 3]'
+> xo-cli method string=foo number=json:42 array=json:'["item1", "item2"]'
 ```
 
 ##### Configuration export
