@@ -278,6 +278,7 @@ export default class Jobs {
       method: 'backupNg.runJob',
       params: {
         id: job.id,
+        proxy: job.proxy,
         schedule: schedule?.id,
         settings: job.settings,
         vms: job.vms,
