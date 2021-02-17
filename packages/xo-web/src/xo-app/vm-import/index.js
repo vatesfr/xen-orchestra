@@ -230,7 +230,7 @@ export default class Import extends Component {
         let func
         let type
 
-        if (extIndex >= 0 && (type = name.slice(extIndex + 1)) && (func = FORMAT_TO_HANDLER[type])) {
+        if (extIndex >= 0 && (type = name.slice(extIndex + 1).toLowerCase()) && (func = FORMAT_TO_HANDLER[type])) {
           push(parseFile(file, type, func))
         }
       })

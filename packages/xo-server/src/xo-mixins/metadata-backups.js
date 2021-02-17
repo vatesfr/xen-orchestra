@@ -806,109 +806,113 @@ export default class metadataBackup {
     const metadataFolder = `${dir}/${path.join('/')}`
 
     const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      let xapi
-      if (dir === DIR_XO_POOL_METADATA_BACKUPS) {
-        const poolUuid = path[1]
-        const { allowUnauthorized, host, password, username } = await app.getXenServer(
-          app.getXenServerIdByObject(poolUuid)
-        )
-        xapi = {
-          allowUnauthorized,
-          credentials: {
-            username,
-            password,
-          },
-          url: host,
-        }
-      }
 
-      const logsStream = await app.callProxyMethod(
-        proxy,
-        'backup.restoreMetadataBackup',
-        {
-          backupId: metadataFolder,
-          remote: { url, options },
-          xapi,
-        },
-        {
-          assertType: 'iterator',
-        }
-      )
-
-      let rootTaskId
-      const localTaskIds = { __proto__: null }
-      for await (const log of logsStream) {
-        const { event, message, taskId } = log
-
-        const common = {
-          data: log.data,
-          event: 'task.' + event,
-          result: log.result,
-          status: log.status,
-        }
-
-        if (event === 'start') {
-          const { parentId } = log
-          if (parentId === undefined) {
-            rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
-          } else {
-            common.parentId = localTaskIds[parentId]
-            localTaskIds[taskId] = logger.notice(message, common)
-          }
-        } else {
-          const localTaskId = localTaskIds[taskId]
-          if (localTaskId === rootTaskId && dir === DIR_XO_CONFIG_BACKUPS && log.status === 'success') {
-            try {
-              await app.importConfig(log.result)
-            } catch (error) {
-              common.result = serializeError(error)
-              common.status = 'failure'
-            }
-          }
-
-          common.taskId = localTaskId
-          logger.notice(message, common)
-        }
-      }
-      return
-    }
-
-    const message = 'metadataRestore'
-    const handler = await app.getRemoteHandler(remoteId)
-
-    const taskId = logger.notice(message, {
-      event: 'task.start',
-      data: JSON.parse(String(await handler.readFile(`${metadataFolder}/metadata.json`))),
-    })
+    let rootTaskId
     try {
-      this._runningMetadataRestores.add(taskId)
+      if (proxy !== undefined) {
+        let xapi
+        if (dir === DIR_XO_POOL_METADATA_BACKUPS) {
+          const poolUuid = path[1]
+          const { allowUnauthorized, host, password, username } = await app.getXenServer(
+            app.getXenServerIdByObject(poolUuid)
+          )
+          xapi = {
+            allowUnauthorized,
+            credentials: {
+              username,
+              password,
+            },
+            url: host,
+          }
+        }
 
-      let result
-      if (dir === DIR_XO_CONFIG_BACKUPS) {
-        result = await app.importConfig(await handler.readFile(`${metadataFolder}/data.json`))
-      } else {
-        result = await app
-          .getXapi(path[1])
-          .importPoolMetadata(await handler.createReadStream(`${metadataFolder}/data`), true)
+        const logsStream = await app.callProxyMethod(
+          proxy,
+          'backup.restoreMetadataBackup',
+          {
+            backupId: metadataFolder,
+            remote: { url, options },
+            xapi,
+          },
+          {
+            assertType: 'iterator',
+          }
+        )
+
+        const localTaskIds = { __proto__: null }
+        for await (const log of logsStream) {
+          const { event, message, taskId } = log
+
+          const common = {
+            data: log.data,
+            event: 'task.' + event,
+            result: log.result,
+            status: log.status,
+          }
+
+          if (event === 'start') {
+            const { parentId } = log
+            if (parentId === undefined) {
+              rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
+              this._runningMetadataRestores.add(rootTaskId)
+            } else {
+              common.parentId = localTaskIds[parentId]
+              localTaskIds[taskId] = logger.notice(message, common)
+            }
+          } else {
+            const localTaskId = localTaskIds[taskId]
+            if (localTaskId === rootTaskId && dir === DIR_XO_CONFIG_BACKUPS && log.status === 'success') {
+              try {
+                await app.importConfig(log.result)
+              } catch (error) {
+                common.result = serializeError(error)
+                common.status = 'failure'
+              }
+            }
+
+            common.taskId = localTaskId
+            logger.notice(message, common)
+          }
+        }
+        return
       }
 
-      logger.notice(message, {
-        event: 'task.end',
-        result,
-        status: 'success',
-        taskId,
+      const message = 'metadataRestore'
+      const handler = await app.getRemoteHandler(remoteId)
+
+      rootTaskId = logger.notice(message, {
+        event: 'task.start',
+        data: JSON.parse(String(await handler.readFile(`${metadataFolder}/metadata.json`))),
       })
-    } catch (error) {
-      logger.error(message, {
-        event: 'task.end',
-        result: serializeError(error),
-        status: 'failure',
-        taskId,
-      })
-      throw error
+      try {
+        this._runningMetadataRestores.add(rootTaskId)
+
+        let result
+        if (dir === DIR_XO_CONFIG_BACKUPS) {
+          result = await app.importConfig(await handler.readFile(`${metadataFolder}/data.json`))
+        } else {
+          result = await app
+            .getXapi(path[1])
+            .importPoolMetadata(await handler.createReadStream(`${metadataFolder}/data`), true)
+        }
+
+        logger.notice(message, {
+          event: 'task.end',
+          result,
+          status: 'success',
+          taskId: rootTaskId,
+        })
+      } catch (error) {
+        logger.error(message, {
+          event: 'task.end',
+          result: serializeError(error),
+          status: 'failure',
+          taskId: rootTaskId,
+        })
+        throw error
+      }
     } finally {
-      this._runningMetadataRestores.delete(taskId)
+      this._runningMetadataRestores.delete(rootTaskId)
     }
   }
 
