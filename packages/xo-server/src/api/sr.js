@@ -523,11 +523,12 @@ export async function probeHba({ host }) {
   forEach(ensureArray(xml.Devlist.BlockDevice), hbaDevice => {
     hbaDevices.push({
       hba: hbaDevice.hba.trim(),
-      id: hbaDevice.id.trim(),
+      // TODO: check if 'id' is a string or number
+      id: typeof hbaDevice.id === 'string' ? hbaDevice.id.trim() : hbaDevice.id,
       path: hbaDevice.path.trim(),
       scsiId: hbaDevice.SCSIid.trim(),
       serial: hbaDevice.serial.trim(),
-      size: +hbaDevice.size.trim(),
+      size: hbaDevice.size,
       vendor: hbaDevice.vendor.trim(),
     })
   })
@@ -729,10 +730,10 @@ export async function probeIscsiLuns({ host, target: targetIp, port, targetIqn, 
   const luns = []
   forEach(ensureArray(xml['iscsi-target'].LUN), lun => {
     luns.push({
-      id: lun.LUNid.trim(),
+      id: lun.LUNid,
       vendor: lun.vendor.trim(),
       serial: lun.serial.trim(),
-      size: lun.size?.trim(),
+      size: lun.size,
       scsiId: lun.SCSIid.trim(),
     })
   })
