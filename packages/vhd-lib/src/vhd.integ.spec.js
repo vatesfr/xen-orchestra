@@ -105,7 +105,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   const stream = await createReadableSparseStream(
     fileSize,
     blockSize,
-    blocks.map(b => b.logicalAddressBytes),
+    blocks.map(b => b.logicalAddressBytes / blockSize),
     blocks
   )
   expect(stream.length).toEqual(4197888)
