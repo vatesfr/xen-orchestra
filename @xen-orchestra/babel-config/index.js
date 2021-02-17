@@ -23,14 +23,22 @@ const configs = {
 
       shippedProposals: true,
       targets: (() => {
+        const targets = {}
+
+        if (pkg.browserslist !== undefined) {
+          targets.browsers = pkg.browserslist
+        }
+
         let node = (pkg.engines || {}).node
         if (node !== undefined) {
           const trimChars = '^=>~'
           while (trimChars.includes(node[0])) {
             node = node.slice(1)
           }
+          targets.node = node
         }
-        return { browsers: pkg.browserslist, node }
+
+        return targets
       })(),
     }
   },
