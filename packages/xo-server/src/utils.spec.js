@@ -104,18 +104,34 @@ describe('parseXml()', () => {
     <size>10995116277760</size>
     <SCSIid>36589cfc000000581d40d6d5140d9b9da</SCSIid>
   </LUN>
+  <LUN>
+    <vendor>TrueNAS</vendor>
+    <serial>9eaa394581f3004</serial>
+    <LUNid>56</LUNid>
+    <size>10995116277761</size>
+    <SCSIid>36589cfc000000581d40d6d5140d9b9df</SCSIid>
+  </LUN>
 </iscsi-target>`
 
   const bufB = Buffer.from(strB)
   const resultB = {
     'iscsi-target': {
-      LUN: {
-        vendor: 'TrueNAS',
-        serial: '9eaa394581f3003',
-        LUNid: '55',
-        size: '10995116277760',
-        SCSIid: '36589cfc000000581d40d6d5140d9b9da',
-      },
+      LUN: [
+        {
+          vendor: 'TrueNAS',
+          serial: '9eaa394581f3003',
+          LUNid: '55',
+          size: '10995116277760',
+          SCSIid: '36589cfc000000581d40d6d5140d9b9da',
+        },
+        {
+          vendor: 'TrueNAS',
+          serial: '9eaa394581f3004',
+          LUNid: '56',
+          size: '10995116277761',
+          SCSIid: '36589cfc000000581d40d6d5140d9b9df',
+        },
+      ],
     },
   }
 
