@@ -64,6 +64,14 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
     return []
   })
 
+const compose = (...fns) => value => fns.reduceRight((value, fn) => fn(value), value)
+
+const dedupedWithKey = keyFn => factory => deduped(factory, keyFn)
+const debounceResourceFactory = factory =>
+  function () {
+    return this._debounceResource(factory.apply(this, arguments))
+  }
+
 function getDebouncedResource(resource) {
   return this._debounceResource(resource)
 }
@@ -307,10 +315,11 @@ export class RemoteAdapter {
     }
   }
 
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, diskId => [diskId])
-  @decorateWith(Disposable.factory)
-  async *getDisk(diskId) {
+  getDisk = compose(
+    debounceResourceFactory,
+    dedupedWithKey(diskId => [diskId]),
+    Disposable.factory
+  )(async function* (diskId) {
     const handler = this._handler
 
     const diskPath = handler._getFilePath('/' + diskId)
@@ -338,7 +347,7 @@ export class RemoteAdapter {
     } finally {
       await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
     }
-  }
+  })
 
   // partitionId values:
   //
