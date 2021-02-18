@@ -122,7 +122,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
 
     // Map VM --> ( Map VDI --> SR )
     // 2021-02-16: Always build map VDI -> SR: to not migrate VDIs to the wrong SRs.
-    // Intra pool: the VDI will be migrated to the selected SR if it's on local SR.
+    // Intra pool: the VDI will be migrated to the selected SR if it's on a local SR.
     // Different pool: all VDIs will be migrated to the selected SR.
     const mapVmsMapVdisSrs = {}
     forEach(vbdsByVm, (vbds, vm) => {
