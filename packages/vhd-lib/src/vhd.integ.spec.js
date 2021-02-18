@@ -8,7 +8,7 @@ import { pipeline } from 'readable-stream'
 
 import { createReadableRawStream, createReadableSparseStream } from './'
 
-import { createFooter } from './src/_createFooterHeader'
+import { createFooter } from './_createFooterHeader'
 
 let tempDir = null
 
@@ -105,7 +105,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   const stream = await createReadableSparseStream(
     fileSize,
     blockSize,
-    blocks.map(b => b.logicalAddressBytes),
+    blocks.map(b => b.logicalAddressBytes / blockSize),
     blocks
   )
   expect(stream.length).toEqual(4197888)

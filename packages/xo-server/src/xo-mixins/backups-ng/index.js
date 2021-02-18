@@ -12,6 +12,7 @@ import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
+import { invalidParameters } from 'xo-common/api-errors'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
 import {
@@ -631,8 +632,7 @@ export default class BackupNg {
             }
             return
           } catch (error) {
-            // XO API invalid parameters error
-            if (error.code === 10) {
+            if (invalidParameters.is(error)) {
               delete params.streamLogs
               return app.callProxyMethod(proxyId, 'backup.run', params)
             }
@@ -1374,7 +1374,7 @@ export default class BackupNg {
                   parentId: taskId,
                   result: () => ({ size: xva.size }),
                 },
-                handler.outputStream(fork, dataFilename, {
+                handler.outputStream(dataFilename, fork, {
                   dirMode,
                 })
               )
@@ -1712,7 +1712,7 @@ export default class BackupNg {
                     }
 
                     // FIXME: should only be renamed after the metadata file has been written
-                    await handler.outputStream(fork.streams[`${id}.vhd`](), path, {
+                    await handler.outputStream(path, fork.streams[`${id}.vhd`](), {
                       // no checksum for VHDs, because they will be invalidated by
                       // merges and chainings
                       checksum: false,

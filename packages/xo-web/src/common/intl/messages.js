@@ -1718,6 +1718,8 @@ const messages = {
   migrateVmNetwork: 'Network',
   migrateVmNoTargetHost: 'No target host',
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
+  migrateVmNoSr: 'SR required',
+  migrateVmNoSrMessage: 'A destination SR is required',
   migrateVmNoDefaultSrError: 'No default SR',
   migrateVmNotConnectedDefaultSrError: 'Default SR not connected to host',
   chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR (optional)',
