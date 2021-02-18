@@ -286,19 +286,15 @@ export default class Tasks extends Component {
       <Page header={HEADER} title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}>
         <Container>
           <Row className='mb-1'>
-            <Col mediumSize={8}>
+            <Col mediumSize={12}>
               <SelectPool multi onChange={this.linkState('pools')} />
             </Col>
-            <Col mediumSize={4}>
-              <div ref={container => this.setState({ container })} />
-            </Col>
           </Row>
-          <Row>
+          <Row className='mb-1'>
             <Col>
               <SortedTable
                 collection={this._getTasks()}
                 columns={COLUMNS}
-                filterContainer={() => this.state.container}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'
