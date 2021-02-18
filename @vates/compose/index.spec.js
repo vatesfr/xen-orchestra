@@ -36,4 +36,19 @@ describe('compose()', () => {
       )(5)
     ).toBe(21)
   })
+
+  it('first function receives this and all args', () => {
+    expect.assertions(2)
+
+    const expectedArgs = [Math.random(), Math.random()]
+    const expectedThis = {}
+    compose(
+      function (...args) {
+        expect(this).toBe(expectedThis)
+        expect(args).toEqual(expectedArgs)
+      },
+      // add a second function to use the one function special case
+      Function.prototype
+    ).apply(expectedThis, expectedArgs)
+  })
 })

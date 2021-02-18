@@ -11,6 +11,19 @@ console.log(f(5))
 // → 21
 ```
 
+The first function is called with the context and all arguments of the composed function:
+
+```js
+const add = (x, y) => x + y
+const mul3 = x => x * 3
+
+// const f = (x, y) => mul3(add(x, y))
+const f = compose(add, mul3)
+
+console.log(f(4, 5))
+// → 27
+```
+
 Functions may also be passed in an array:
 
 ```js
