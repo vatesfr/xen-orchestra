@@ -8,12 +8,10 @@ import using from 'promise-toolbox/using'
 import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
 import { basename, dirname, join, normalize, resolve } from 'path'
 import { createLogger } from '@xen-orchestra/log'
-import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
 import { readdir, stat } from 'fs-extra'
 import { ZipFile } from 'yazl'
 
-import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
 
 import { asyncMap } from '../../../_asyncMap'
@@ -64,9 +62,10 @@ const createSafeReaddir = (handler, methodName) => (path, options) =>
     return []
   })
 
-function getDebouncedResource(resource) {
-  return this._debounceResource(resource)
-}
+const debounceResourceFactory = factory =>
+  function () {
+    return this._debounceResource(factory.apply(this, arguments))
+  }
 
 export class RemoteAdapter {
   constructor(handler, { debounceResource, dirMode }) {
@@ -130,9 +129,9 @@ export class RemoteAdapter {
     return partition
   }
 
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, (devicePath, pvId, vgName) => [devicePath, pvId, vgName])
-  @decorateWith(Disposable.factory)
+  _getLvmLogicalVolumes = Disposable.factory(this._getLvmLogicalVolumes)
+  _getLvmLogicalVolumes = deduped(this._getLvmLogicalVolumes, (devicePath, pvId, vgName) => [devicePath, pvId, vgName])
+  _getLvmLogicalVolumes = debounceResourceFactory(this._getLvmLogicalVolumes)
   async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
     yield this._getLvmPhysicalVolume(devicePath, pvId && (await this._findPartition(devicePath, pvId)))
 
@@ -144,9 +143,9 @@ export class RemoteAdapter {
     }
   }
 
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, (devicePath, partition) => [devicePath, partition?.id])
-  @decorateWith(Disposable.factory)
+  _getLvmPhysicalVolume = Disposable.factory(this._getLvmPhysicalVolume)
+  _getLvmPhysicalVolume = deduped(this._getLvmPhysicalVolume, (devicePath, partition) => [devicePath, partition?.id])
+  _getLvmPhysicalVolume = debounceResourceFactory(this._getLvmPhysicalVolume)
   async *_getLvmPhysicalVolume(devicePath, partition) {
     const args = []
     if (partition !== undefined) {
@@ -167,9 +166,9 @@ export class RemoteAdapter {
     }
   }
 
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, (devicePath, partition) => [devicePath, partition?.id])
-  @decorateWith(Disposable.factory)
+  _getPartition = Disposable.factory(this._getPartition)
+  _getPartition = deduped(this._getPartition, (devicePath, partition) => [devicePath, partition?.id])
+  _getPartition = debounceResourceFactory(this._getPartition)
   async *_getPartition(devicePath, partition) {
     const options = ['loop', 'ro']
 
@@ -222,7 +221,7 @@ export class RemoteAdapter {
     })
   }
 
-  @decorateWith(Disposable.factory)
+  _usePartitionFiles = Disposable.factory(this._usePartitionFiles)
   async *_usePartitionFiles(diskId, partitionId, paths) {
     const path = yield this.getPartition(diskId, partitionId)
 
@@ -307,9 +306,9 @@ export class RemoteAdapter {
     }
   }
 
-  @decorateResult(getDebouncedResource)
-  @decorateWith(deduped, diskId => [diskId])
-  @decorateWith(Disposable.factory)
+  getDisk = Disposable.factory(this.getDisk)
+  getDisk = deduped(this.getDisk, diskId => [diskId])
+  getDisk = debounceResourceFactory(this.getDisk)
   async *getDisk(diskId) {
     const handler = this._handler
 
@@ -346,7 +345,7 @@ export class RemoteAdapter {
   // - `<partitionId>`: partitioned disk
   // - `<pvId>/<vgName>/<lvName>`: LVM on a partitioned disk
   // - `/<vgName>/lvName>`: LVM on a raw disk
-  @decorateWith(Disposable.factory)
+  getPartition = Disposable.factory(this.getPartition)
   async *getPartition(diskId, partitionId) {
     const devicePath = yield this.getDisk(diskId)
     if (partitionId === undefined) {
