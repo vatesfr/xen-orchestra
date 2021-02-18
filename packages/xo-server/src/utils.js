@@ -102,6 +102,8 @@ export const parseXml = (function () {
   const opts = {
     attributeNamePrefix: '',
     ignoreAttributes: false,
+    parseNodeValue: false,
+    parseAttributeValue: false,
   }
 
   return xml => {
