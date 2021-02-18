@@ -1,11 +1,11 @@
 {
   "private": false,
-  "name": "@vates/decorate-result",
-  "description": "Creates a decorator from a result transformer",
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/decorate-result",
+  "name": "@vates/transform-result",
+  "description": "Applies passed transformer to the result returned by the wrapped function",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/transform-result",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "@vates/decorate-result",
+    "directory": "@vates/transform-result",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
