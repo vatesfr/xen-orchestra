@@ -760,7 +760,7 @@ class SortedTable extends Component {
       <TableFilter filters={props.filters} onChange={this._setFilter} ref='filterInput' value={this._getFilter()} />
     )
 
-    const filterPerPage = (
+    const filterItemsPerPage = (
       <Portal container={() => props.itemsPerPage()}>
         <DropdownButton bsStyle='info' title={itemsPerPage}>
           {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
@@ -885,9 +885,9 @@ class SortedTable extends Component {
             </Col>
             <Col mediumSize={1} className='pull-right'>
               {props.itemsPerPage ? (
-                <Portal container={() => props.itemsPerPage()}>{filterPerPage}</Portal>
+                <Portal container={() => props.itemsPerPage()}>{filterItemsPerPage}</Portal>
               ) : (
-                { filterPerPage }
+                { filterItemsPerPage }
               )}
             </Col>
           </SingleLineRow>
