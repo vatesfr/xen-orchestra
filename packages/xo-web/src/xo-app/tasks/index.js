@@ -278,7 +278,7 @@ export default class Tasks extends Component {
   )
 
   render() {
-    const { props, state } = this
+    const { props } = this
     const { intl, nTasks, pools } = props
     const { formatMessage } = intl
 
@@ -302,7 +302,7 @@ export default class Tasks extends Component {
                 collection={this._getTasks()}
                 columns={COLUMNS}
                 filterContainer={() => this.state.container}
-                itemsPerPage={() => state.itemsPerPage}
+                itemsPerPage={() => this.state.itemsPerPage}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'
