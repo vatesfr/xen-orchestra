@@ -50,7 +50,12 @@ const Support = decorate([
           <Card>
             <CardHeader>{_('xoaCheck')}</CardHeader>
             <CardBlock>
-              <ActionButton btnStyle='success' disabled={COMMUNITY} handler={effects.refreshXoaStatus} icon='diagnosis'>
+              <ActionButton
+                btnStyle='success'
+                disabled={COMMUNITY}
+                handler={effects.forceRefreshXoaStatus}
+                icon='diagnosis'
+              >
                 {_('checkXoa')}
               </ActionButton>
               <hr />
