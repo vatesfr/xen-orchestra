@@ -221,7 +221,7 @@ export class Backup {
     )
   }
 
-  @decorateWith(Disposable.factory)
+  _getRecord = Disposable.factory(this._getRecord)
   async *_getRecord(type, uuid) {
     const xapiId = this._recordToXapi[uuid]
     if (xapiId === undefined) {
