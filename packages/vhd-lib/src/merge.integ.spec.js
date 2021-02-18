@@ -11,9 +11,9 @@ import { pFromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 import { randomBytes } from 'crypto'
 
-import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './'
+import Vhd, { chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './index'
 
-import { SECTOR_SIZE } from './src/_constants'
+import { SECTOR_SIZE } from './_constants'
 
 let tempDir = null
 

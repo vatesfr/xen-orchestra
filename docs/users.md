@@ -82,8 +82,8 @@ member: 348
 
 The plugin needs to know that Bruce Wayne belongs to the heroes group. To do so, you need to set 2 entries in the configuration:
 
-- **Group attribute**, which is the name of the *group* attribute that is used to list users within a group. In this example, it would be `member`.
-- **User attribute**, which is the name of the *user* attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
+- **Group attribute**, which is the name of the _group_ attribute that is used to list users within a group. In this example, it would be `member`.
+- **User attribute**, which is the name of the _user_ attribute that is used to reference users in groups. In this example, it would be `uid` since `347`, `348`, etc. are user `uid`s.
 
 Save the configuration and you're good to go. From now on, every time an LDAP user logs into XO, the plugin will automatically create or update that user's groups and add them to those groups. If you need to import all the groups at once, you can do so from Settings > Groups > Synchronize LDAP Groups. This can be useful if you want to assign ACLs on groups without having to wait for a member of the group to log in.
 

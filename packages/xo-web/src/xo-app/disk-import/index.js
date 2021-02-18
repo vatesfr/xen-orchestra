@@ -37,7 +37,11 @@ const DiskImport = decorate([
             const { name } = file
             const extIndex = name.lastIndexOf('.')
             let type
-            if (extIndex >= 0 && (type = name.slice(extIndex + 1)) && (type === 'vmdk' || type === 'vhd')) {
+            if (
+              extIndex >= 0 &&
+              (type = name.slice(extIndex + 1).toLowerCase()) &&
+              (type === 'vmdk' || type === 'vhd')
+            ) {
               let vmdkData
               if (type === 'vmdk') {
                 const parsed = await readCapacityAndGrainTable(async (start, end) => {
