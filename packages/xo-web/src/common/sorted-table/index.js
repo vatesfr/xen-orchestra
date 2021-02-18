@@ -761,15 +761,13 @@ class SortedTable extends Component {
     )
 
     const filterItemsPerPage = (
-      <Portal container={() => props.itemsPerPage()}>
-        <DropdownButton bsStyle='info' title={itemsPerPage}>
-          {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
-            <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
-              {nItems}
-            </MenuItem>
-          ))}
-        </DropdownButton>
-      </Portal>
+      <DropdownButton bsStyle='info' title={itemsPerPage}>
+        {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+          <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
+            {nItems}
+          </MenuItem>
+        ))}
+      </DropdownButton>
     )
 
     const userData = this._getUserData()
@@ -887,7 +885,7 @@ class SortedTable extends Component {
               {props.itemsPerPage ? (
                 <Portal container={() => props.itemsPerPage()}>{filterItemsPerPage}</Portal>
               ) : (
-                { filterItemsPerPage }
+                filterItemsPerPage
               )}
             </Col>
           </SingleLineRow>
