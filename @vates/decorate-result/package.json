@@ -1,0 +1,24 @@
+{
+  "private": false,
+  "name": "@vates/decorate-result",
+  "description": "Creates a decorator from a result transformer",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/decorate-result",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/decorate-result",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "1.1.1",
+  "engines": {
+    "node": ">=7.6"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}
