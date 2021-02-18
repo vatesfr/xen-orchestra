@@ -18,4 +18,12 @@ describe('compose()', () => {
   it('accepts functions in an array', () => {
     expect(compose([add2, mul3])(5)).toBe(21)
   })
+
+  it('can apply from right to left', () => {
+    expect(compose({ right: true }, add2, mul3)(5)).toBe(17)
+  })
+
+  it('accepts options with functions in an array', () => {
+    expect(compose({ right: true }, [add2, mul3])(5)).toBe(17)
+  })
 })
