@@ -302,6 +302,24 @@ When the power outage is over, all you need to do is:
 1.  Start your host.
 2.  All your VMs can be resumed, your RAM is preserved and therefore your VMs will be in the exact same state as they were before the power outage.
 
+## Terraform provider
+
+Terraform is a cloud/platform agnostic tool for building, changing, and versioning infrastructure. Terraform can manage existing and popular service providers as well as custom in-house solutions (like Xen Orchestra). It can manage resources through their entire lifecycle or even manage infrastructure it didn't initially create.
+
+We sponsored a developper to build a [Xen Orchestra provider for Terraform](https://registry.terraform.io/providers/terra-farm/xenorchestra/latest), so you can use it as a central point for your whole virtualized infrastructure. The source code is [available on Github](https://github.com/terra-farm/terraform-provider-xenorchestra/), and contributions are welcome!
+
+:::tip
+Don't miss [our blog post series about it](https://xen-orchestra.com/blog/author/ddelnano/), writen by Dom Del Nano, the original developper of this provider!
+:::
+
+It works with few steps:
+
+1. Install terraform
+2. Create a VM template for the new VM
+3. Provision the VM with terraform and its XO provider
+
+From there, you can even manage your existing resources with Terraform!
+
 ## Recipes
 
 :::tip
