@@ -1,25 +1,21 @@
 import _, { messages } from 'intl'
 import Collapse from 'collapse'
 import Component from 'base-component'
-import cookies from 'js-cookie'
 import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import { FormattedDate, FormattedRelative, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { connectStore, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
 import { differenceBy, flatMap, flatten, forOwn, groupBy, isEmpty, keys, map, some, toArray } from 'lodash'
 import { createFilter, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
-import { cancelTask, cancelTasks, destroyTask, destroyTasks, ITEMS_PER_PAGE_OPTIONS } from 'xo'
+import { cancelTask, cancelTasks, destroyTask, destroyTasks } from 'xo'
 
 import Page from '../page'
-
-const DEFAULT_ITEMS_PER_PAGE = 10
 
 const HEADER = (
   <Container>
@@ -247,7 +243,6 @@ const GROUPED_ACTIONS = [
 export default class Tasks extends Component {
   state = {
     finishedTasks: [],
-    itemsPerPage: +defined(cookies.get(`${this.props.location.pathname}-s`), DEFAULT_ITEMS_PER_PAGE),
   }
 
   componentWillReceiveProps(props) {
@@ -282,16 +277,9 @@ export default class Tasks extends Component {
     )
   )
 
-  _setNItemsPerPage = itemsPerPage => {
-    const { location } = this.props
-    this.setState({ itemsPerPage })
-    cookies.set(`${location.pathname}-s`, itemsPerPage)
-  }
-
   render() {
     const { props, state } = this
     const { intl, nTasks, pools } = props
-    const { itemsPerPage } = state
     const { formatMessage } = intl
 
     return (
@@ -304,14 +292,8 @@ export default class Tasks extends Component {
             <Col mediumSize={4}>
               <div ref={container => this.setState({ container })} />
             </Col>
-            <Col mediumSize={1} className='pull-right'>
-              <DropdownButton bsStyle='info' title={itemsPerPage}>
-                {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
-                  <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
-                    {nItems}
-                  </MenuItem>
-                ))}
-              </DropdownButton>
+            <Col mediumSize={1}>
+              <div ref={itemsPerPage => this.setState({ itemsPerPage })} />
             </Col>
           </Row>
           <Row>
@@ -320,7 +302,7 @@ export default class Tasks extends Component {
                 collection={this._getTasks()}
                 columns={COLUMNS}
                 filterContainer={() => this.state.container}
-                itemsPerPage={itemsPerPage}
+                itemsPerPage={() => state.itemsPerPage}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'

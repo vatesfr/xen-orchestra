@@ -272,7 +272,7 @@ class SortedTable extends Component {
     ),
     groupedActions: actionsShape,
     individualActions: actionsShape,
-    itemPerPage: PropTypes.number,
+    itemPerPage: PropTypes.func,
     onSelect: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
@@ -760,6 +760,18 @@ class SortedTable extends Component {
       <TableFilter filters={props.filters} onChange={this._setFilter} ref='filterInput' value={this._getFilter()} />
     )
 
+    const filterPerPage = (
+      <Portal container={() => props.itemsPerPage()}>
+        <DropdownButton bsStyle='info' title={itemsPerPage}>
+          {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+            <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
+              {nItems}
+            </MenuItem>
+          ))}
+        </DropdownButton>
+      </Portal>
+    )
+
     const userData = this._getUserData()
 
     return (
@@ -872,14 +884,10 @@ class SortedTable extends Component {
               {filterContainer ? <Portal container={() => filterContainer()}>{filterInstance}</Portal> : filterInstance}
             </Col>
             <Col mediumSize={1} className='pull-right'>
-              {!props.itemsPerPage && (
-                <DropdownButton bsStyle='info' title={itemsPerPage}>
-                  {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
-                    <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
-                      {nItems}
-                    </MenuItem>
-                  ))}
-                </DropdownButton>
+              {props.itemsPerPage ? (
+                <Portal container={() => props.itemsPerPage()}>{filterPerPage}</Portal>
+              ) : (
+                { filterPerPage }
               )}
             </Col>
           </SingleLineRow>
