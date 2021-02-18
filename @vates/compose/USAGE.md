@@ -10,3 +10,9 @@ const f = compose(add2, mul3)
 console.log(f(5))
 // → 21
 ```
+
+Functions may also be passed in an array:
+
+```js
+const f = compose([add2, mul3])
+```
