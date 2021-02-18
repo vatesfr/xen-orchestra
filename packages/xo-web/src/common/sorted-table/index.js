@@ -761,7 +761,7 @@ class SortedTable extends Component {
     )
 
     const filterItemsPerPage = (
-      <DropdownButton bsStyle='info' title={itemsPerPage}>
+      <DropdownButton bsStyle='info' id='itemsPerPage' title={itemsPerPage}>
         {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
           <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
             {nItems}
