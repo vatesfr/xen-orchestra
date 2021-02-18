@@ -42,7 +42,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @vates/decorate-result minor
+- @vates/transform-result minor
 - @xen-orchestra/fs minor
 - xen-api patch
 - xo-common minor
