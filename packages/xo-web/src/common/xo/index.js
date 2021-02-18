@@ -1254,8 +1254,8 @@ export const migrateVm = async (vm, host) => {
   }
 
   // Workaround to prevent VM's VDIs from unexpectedly migrating to the default SR
-  // if migration network is defined, the SR or the map VDI -> SR is required.
-  if (migrationNetwork !== undefined && sr === undefined && mapVdisSrs === undefined) {
+  // if migration network is defined, the SR is required.
+  if (migrationNetwork !== undefined && sr === undefined) {
     return error(_('migrateVmNoSr'), _('migrateVmNoSrMessage'))
   }
 
