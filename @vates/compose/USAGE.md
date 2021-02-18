@@ -22,6 +22,9 @@ Options can be passed as first parameters:
 ```js
 const f = compose(
   {
+    // compose async functions
+    async: true,
+
     // compose from right to left
     right: true,
   },

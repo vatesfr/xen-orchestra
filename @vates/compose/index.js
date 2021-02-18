@@ -1,6 +1,6 @@
 'use strict'
 
-const defaultOpts = { right: false }
+const defaultOpts = { async: false, right: false }
 
 exports.compose = function compose(opts, fns) {
   if (Array.isArray(opts)) {
@@ -28,10 +28,17 @@ exports.compose = function compose(opts, fns) {
     fns.reverse()
   }
 
-  return function (value) {
-    for (let i = 0; i < n; ++i) {
-      value = fns[i](value)
-    }
-    return value
-  }
+  return opts.async
+    ? async function (value) {
+        for (let i = 0; i < n; ++i) {
+          value = await fns[i](value)
+        }
+        return value
+      }
+    : function (value) {
+        for (let i = 0; i < n; ++i) {
+          value = fns[i](value)
+        }
+        return value
+      }
 }

@@ -26,4 +26,14 @@ describe('compose()', () => {
   it('accepts options with functions in an array', () => {
     expect(compose({ right: true }, [add2, mul3])(5)).toBe(17)
   })
+
+  it('can compose async functions', async () => {
+    expect(
+      await compose(
+        { async: true },
+        async x => x + 2,
+        async x => x * 3
+      )(5)
+    ).toBe(21)
+  })
 })
