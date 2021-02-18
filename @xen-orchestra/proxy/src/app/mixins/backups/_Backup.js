@@ -4,7 +4,6 @@ import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import limitConcurrency from 'limit-concurrency-decorator'
 import using from 'promise-toolbox/using'
 import { compileTemplate } from '@xen-orchestra/template'
-import { decorateWith } from '@vates/decorate-with'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
 
 import { asyncMap } from '../../../_asyncMap'
