@@ -1,0 +1,24 @@
+{
+  "private": false,
+  "name": "@vates/compose",
+  "description": "Compose functions from left to right",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/compose",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/compose",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=6.5"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}
