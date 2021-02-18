@@ -7,7 +7,7 @@
 ### Bug fixes
 
 - [LDAP] "Synchronize LDAP groups" button: fix imported LDAP users not being correctly added or removed from groups in some cases (PR [#5545](https://github.com/vatesfr/xen-orchestra/pull/5545))
-- [VM migration] Fix `VIF_NOT_IN_MAP` error (PR [5544](https://github.com/vatesfr/xen-orchestra/pull/5544))
+- [VM migration] Fix `VIF_NOT_IN_MAP` error (PR [#5544](https://github.com/vatesfr/xen-orchestra/pull/5544))
 
 ### Released packages
 
