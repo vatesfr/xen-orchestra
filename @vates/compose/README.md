@@ -29,6 +29,27 @@ console.log(f(5))
 // → 21
 ```
 
+Functions may also be passed in an array:
+
+```js
+const f = compose([add2, mul3])
+```
+
+Options can be passed as first parameters:
+
+```js
+const f = compose(
+  {
+    // compose async functions
+    async: true,
+
+    // compose from right to left
+    right: true,
+  },
+  [add2, mul3]
+)
+```
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
