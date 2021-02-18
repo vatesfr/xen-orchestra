@@ -272,6 +272,7 @@ class SortedTable extends Component {
     ),
     groupedActions: actionsShape,
     individualActions: actionsShape,
+    itemPerPage: PropTypes.number,
     onSelect: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
@@ -871,13 +872,15 @@ class SortedTable extends Component {
               {filterContainer ? <Portal container={() => filterContainer()}>{filterInstance}</Portal> : filterInstance}
             </Col>
             <Col mediumSize={1} className='pull-right'>
-              <DropdownButton bsStyle='info' title={itemsPerPage}>
-                {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
-                  <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
-                    {nItems}
-                  </MenuItem>
-                ))}
-              </DropdownButton>
+              {!props.itemsPerPage && (
+                <DropdownButton bsStyle='info' title={itemsPerPage}>
+                  {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+                    <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
+                      {nItems}
+                    </MenuItem>
+                  ))}
+                </DropdownButton>
+              )}
             </Col>
           </SingleLineRow>
         </Container>
