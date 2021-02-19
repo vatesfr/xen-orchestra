@@ -2,7 +2,7 @@
   "private": false,
   "name": "@vates/disposable",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/disposable",
-  "description": "Resource management",
+  "description": "Utilities for disposables",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
     "directory": "@vates/disposable",
