@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // assigned when options are parsed by the main function
-let force, merge
+let merge, remove
 
 // -----------------------------------------------------------------------------
 
@@ -80,12 +80,12 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain) {
   }
 
   await Promise.all([
-    force && fs.rename(parent, child),
+    remove && fs.rename(parent, child),
     asyncMap(children.slice(0, -1), child => {
       console.warn('Unused VHD', child)
-      force && console.warn('  deleting…')
+      remove && console.warn('  deleting…')
       console.warn('')
-      return force && handler.unlink(child)
+      return remove && handler.unlink(child)
     }),
   ])
 })
@@ -127,9 +127,9 @@ async function handleVm(vmDir) {
       console.warn('Error while checking VHD', path)
       console.warn('  ', error)
       if (error != null && error.code === 'ERR_ASSERTION') {
-        force && console.warn('  deleting…')
+        remove && console.warn('  deleting…')
         console.warn('')
-        force && (await handler.unlink(path))
+        remove && (await handler.unlink(path))
       }
     }
   })
@@ -155,9 +155,9 @@ async function handleVm(vmDir) {
 
         console.warn('Error while checking VHD', vhd)
         console.warn('  missing parent', parent)
-        force && console.warn('  deleting…')
+        remove && console.warn('  deleting…')
         console.warn('')
-        force && deletions.push(handler.unlink(vhd))
+        remove && deletions.push(handler.unlink(vhd))
       }
     }
 
@@ -205,9 +205,9 @@ async function handleVm(vmDir) {
       } else {
         console.warn('Error while checking backup', json)
         console.warn('  missing file', linkedXva)
-        force && console.warn('  deleting…')
+        remove && console.warn('  deleting…')
         console.warn('')
-        force && (await handler.unlink(json))
+        remove && (await handler.unlink(json))
       }
     } else if (mode === 'delta') {
       const linkedVhds = (() => {
@@ -226,9 +226,9 @@ async function handleVm(vmDir) {
         missingVhds.forEach(vhd => {
           console.warn('  ', vhd)
         })
-        force && console.warn('  deleting…')
+        remove && console.warn('  deleting…')
         console.warn('')
-        force && (await handler.unlink(json))
+        remove && (await handler.unlink(json))
       }
     }
   })
@@ -266,9 +266,9 @@ async function handleVm(vmDir) {
       }
 
       console.warn('Unused VHD', vhd)
-      force && console.warn('  deleting…')
+      remove && console.warn('  deleting…')
       console.warn('')
-      force && unusedVhdsDeletion.push(handler.unlink(vhd))
+      remove && unusedVhdsDeletion.push(handler.unlink(vhd))
     }
 
     toCheck.forEach(vhd => {
@@ -287,17 +287,17 @@ async function handleVm(vmDir) {
     unusedVhdsDeletion,
     asyncMap(unusedXvas, path => {
       console.warn('Unused XVA', path)
-      force && console.warn('  deleting…')
+      remove && console.warn('  deleting…')
       console.warn('')
-      return force && handler.unlink(path)
+      return remove && handler.unlink(path)
     }),
     asyncMap(xvaSums, path => {
       // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
       if (!xvas.has(path.slice(0, -'.checksum'.length))) {
         console.warn('Unused XVA checksum', path)
-        force && console.warn('  deleting…')
+        remove && console.warn('  deleting…')
         console.warn('')
-        return force && handler.unlink(path)
+        return remove && handler.unlink(path)
       }
     }),
   ])
@@ -308,17 +308,17 @@ async function handleVm(vmDir) {
 module.exports = async function main(args) {
   const opts = getopts(args, {
     alias: {
-      force: 'f',
+      remove: 'r',
       merge: 'm',
     },
-    boolean: ['force', 'merge'],
+    boolean: ['merge', 'remove'],
     default: {
-      force: false,
       merge: false,
+      remove: false,
     },
   })
 
-  ;({ force, merge } = opts)
+  ;({ remove, merge } = opts)
   await asyncMap(opts._, async vmDir => {
     vmDir = resolve(vmDir)
 

@@ -10,7 +10,7 @@ import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
-import { cancelable, defer, fromEvent, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -105,7 +105,8 @@ export default class Xapi extends XapiBase {
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
 
-    const waitStreamEnd = async stream => fromEvent(await stream, 'end')
+    //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
+    const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
     this._exportVdi = concurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
     this.exportVm = concurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
 
@@ -1136,7 +1137,13 @@ export default class Xapi extends XapiBase {
     const vifsMap = {}
     if (vm.$pool !== host.$pool) {
       const defaultNetworkRef = find(host.$PIFs, pif => pif.management).$network.$ref
-      for (const vif of vm.$VIFs) {
+      // Add snapshots' VIFs which VM has no VIFs on these devices
+      const vmVifs = vm.$VIFs
+      const vifDevices = new Set(mapToArray(vmVifs, 'device'))
+      const vifs = flatMap(vm.$snapshots, '$VIFs')
+        .filter(vif => !vifDevices.has(vif.device))
+        .concat(vmVifs)
+      for (const vif of vifs) {
         vifsMap[vif.$ref] =
           mapVifsNetworks && mapVifsNetworks[vif.$id]
             ? hostXapi.getObject(mapVifsNetworks[vif.$id]).$ref
@@ -1797,6 +1804,7 @@ export default class Xapi extends XapiBase {
         await vbd.set_unpluggable(true)
         return this.call('VBD.unplug_force', vbd.$ref)
       }
+      throw error
     }
   }
 

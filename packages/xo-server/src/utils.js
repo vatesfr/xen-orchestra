@@ -102,11 +102,13 @@ export const parseXml = (function () {
   const opts = {
     attributeNamePrefix: '',
     ignoreAttributes: false,
+    parseNodeValue: false,
+    parseAttributeValue: false,
   }
 
   return xml => {
     try {
-      return fastXmlParser.parse(xml, opts, true)
+      return fastXmlParser.parse(Buffer.isBuffer(xml) ? xml.toString() : xml, opts, true)
     } catch (error) {
       log.warn('parseXml', { error, xml })
       return ''
