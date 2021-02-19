@@ -277,6 +277,10 @@ export default class Tasks extends Component {
     )
   )
 
+  _itemsPerPageContainer = () => this.itemsPerPage
+
+  _setItemsPerPage = element => (this.itemsPerPage = element)
+
   render() {
     const { props } = this
     const { intl, nTasks, pools } = props
@@ -293,7 +297,7 @@ export default class Tasks extends Component {
               <div ref={container => this.setState({ container })} />
             </Col>
             <Col mediumSize={1}>
-              <div ref={itemsPerPage => this.setState({ itemsPerPage })} />
+              <div ref={this._setItemsPerPage} />
             </Col>
           </Row>
           <Row>
@@ -302,7 +306,7 @@ export default class Tasks extends Component {
                 collection={this._getTasks()}
                 columns={COLUMNS}
                 filterContainer={() => this.state.container}
-                itemsPerPage={() => this.state.itemsPerPage}
+                itemsPerPageContainer={this._itemsPerPageContainer}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'

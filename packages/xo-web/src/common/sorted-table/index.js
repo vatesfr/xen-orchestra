@@ -272,7 +272,7 @@ class SortedTable extends Component {
     ),
     groupedActions: actionsShape,
     individualActions: actionsShape,
-    itemPerPage: PropTypes.func,
+    itemsPerPageContainer: PropTypes.func,
     onSelect: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
@@ -736,7 +736,15 @@ class SortedTable extends Component {
 
   render() {
     const { props, state } = this
-    const { actions, filterContainer, individualActions, onSelect, paginationContainer, shortcutsTarget } = props
+    const {
+      actions,
+      filterContainer,
+      individualActions,
+      itemsPerPageContainer,
+      onSelect,
+      paginationContainer,
+      shortcutsTarget,
+    } = props
     const { all, itemsPerPage } = state
     const groupedActions = this._getGroupedActions()
 
@@ -882,8 +890,8 @@ class SortedTable extends Component {
               {filterContainer ? <Portal container={() => filterContainer()}>{filterInstance}</Portal> : filterInstance}
             </Col>
             <Col mediumSize={1} className='pull-right'>
-              {props.itemsPerPage ? (
-                <Portal container={() => props.itemsPerPage()}>{filterItemsPerPage}</Portal>
+              {itemsPerPageContainer !== undefined ? (
+                <Portal container={() => itemsPerPageContainer()}>{filterItemsPerPage}</Portal>
               ) : (
                 filterItemsPerPage
               )}
