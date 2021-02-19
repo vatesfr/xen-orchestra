@@ -24,7 +24,6 @@
   "dependencies": {
     "@vates/multi-key-map": "^0.1.0",
     "@xen-orchestra/log": "^0.2.0",
-    "ensure-array": "^1.0.0",
-    "promise-toolbox": "^0.16.0"
+    "ensure-array": "^1.0.0"
   }
 }

@@ -1,4 +1,3 @@
-const Disposable = require('promise-toolbox/Disposable')
 const { createLogger } = require('@xen-orchestra/log/dist')
 
 const asyncMap = (arrayLike, mapFn, thisArg) => Promise.all(Array.from(arrayLike, mapFn, thisArg))
@@ -44,7 +43,7 @@ exports.createDebounceResource = () => {
       dispose() {
         timeoutId = setTimeout(disposeWrapper, delay)
       },
-      value: disposable.value, 
+      value: disposable.value,
     }
   }
   debounceResource.flushAll = () => {

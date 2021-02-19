@@ -1,4 +1,3 @@
-const Disposable = require('promise-toolbox/Disposable')
 const ensureArray = require('ensure-array')
 const { MultiKeyMap } = require('@vates/multi-key-map')
 
@@ -29,7 +28,10 @@ exports.deduped = (factory, keyFn = (...args) => args) =>
                 return dispose()
               }
             }
-            return () => new Disposable(value, disposeWrapper)
+            return async () => ({
+              dispose: disposeWrapper,
+              value,
+            })
           })
         )
         states.set(keys, state)
