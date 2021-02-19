@@ -10,12 +10,12 @@ const { createVhdStreamWithLength } = require('vhd-lib')
 const { asyncMap } = require('./asyncMap')
 const { cancelableMap } = require('./_cancelableMap')
 
-export const TAG_BASE_DELTA = 'xo:base_delta'
-export const TAG_COPY_SRC = 'xo:copy_of'
+const TAG_BASE_DELTA = 'xo:base_delta'
+const TAG_COPY_SRC = 'xo:copy_of'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
-export const exportDeltaVm = async function (
+const exportDeltaVm = async function (
   vm,
   baseVm,
   {
@@ -136,7 +136,7 @@ export const exportDeltaVm = async function (
   )
 }
 
-export const importDeltaVm = defer(
+const importDeltaVm = defer(
   async ($defer, deltaVm, sr, { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {} } = {}) => {
     const { version } = deltaVm
     if (compareVersions(version, '1.0.0') < 0) {
@@ -334,3 +334,8 @@ export const importDeltaVm = defer(
     return vmRef
   }
 )
+
+exports.exportDeltaVm = exportDeltaVm
+exports.importDeltaVm = importDeltaVm
+exports.TAG_BASE_DELTA = TAG_BASE_DELTA
+exports.TAG_COPY_SRC = TAG_COPY_SRC
