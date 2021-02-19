@@ -5,6 +5,7 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
+import { injectState } from 'reaclette'
 import { UpdateTag } from '../xoa/update'
 import { NotificationTag } from '../xoa/notifications'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
@@ -29,6 +30,10 @@ import {
 import { every, forEach, identity, isEmpty, isEqual, map, pick, some } from 'lodash'
 
 import styles from './index.css'
+
+const LINK_STYLE = {
+  display: 'flex',
+}
 
 const returnTrue = () => true
 
@@ -57,6 +62,7 @@ const returnTrue = () => true
   permissions: subscribePermissions,
   resourceSets: subscribeResourceSets,
 })
+@injectState
 export default class Menu extends Component {
   componentWillMount() {
     const updateCollapsed = () => {
@@ -152,7 +158,7 @@ export default class Menu extends Component {
   }
 
   render() {
-    const { isAdmin, isPoolAdmin, nTasks, status, user, pools, nHosts, srs, xoaState } = this.props
+    const { isAdmin, isPoolAdmin, nTasks, state, status, user, pools, nHosts, srs, xoaState } = this.props
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
@@ -462,6 +468,18 @@ export default class Menu extends Component {
           {map(items, (item, index) => item && <MenuLinkItem key={index} item={item} />)}
           <li>&nbsp;</li>
           <li>&nbsp;</li>
+          {!state.isXoaStatusOk && (
+            <li className='nav-item xo-menu-item'>
+              <Link className='nav-link' style={LINK_STYLE} to='/xoa/support'>
+                <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
+                  <Icon icon='diagnosis' size='lg' fixedWidth /> {_('checkXoa')}
+                </span>
+                <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
+                  <Icon icon='diagnosis' size='lg' fixedWidth />
+                </span>
+              </Link>
+            </li>
+          )}
           {(isAdmin || +process.env.XOA_PLAN === 5) && (
             <li className='nav-item xo-menu-item'>
               <Link className='nav-link' style={{ display: 'flex' }} to='/about'>
