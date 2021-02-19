@@ -28,7 +28,7 @@ exports.deduped = (factory, keyFn = (...args) => args) =>
                 return dispose()
               }
             }
-            return async () => ({
+            return () => ({
               dispose: disposeWrapper,
               value,
             })
