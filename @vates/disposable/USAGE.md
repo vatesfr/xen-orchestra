@@ -2,7 +2,7 @@
 import { debounceResource } from '@vates/disposable/debounceResource'
 import { deduped } from '@vates/disposable/deduped'
 
-// the connection will be established once at the first call, then, it will be shared with the next calls
+// the connection with the passed host will be established once at the first call, then, it will be shared with the next calls
 const getConnection = deduped(function (host)) {
   const connection = new Connection(host)
   return new Disposabe(connection, () => connection.close())
