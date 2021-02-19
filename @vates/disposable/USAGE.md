@@ -1,5 +1,13 @@
 This library contains utilities for disposables as defined by the [`promise-toolbox` library](https://github.com/JsCommunity/promise-toolbox#resource-management).
 
+### `deduped(fn, keyFn)`
+
+Creates a new function that wraps `fn` and instead of creating new disposables at each call, returns copies of the same one when `keyFn` returns the same keys.
+
+Those copies contains the same value and can be disposed independently, the source disposable will only be disposed when all copies are disposed.
+
+`keyFn` is called with the same context and arguments as the wrapping function and must returns an array of keys which will be used to identify which disposables should be grouped together.
+
 ```js
 import { deduped } from '@vates/disposable/deduped'
 
