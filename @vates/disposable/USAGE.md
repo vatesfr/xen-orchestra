@@ -37,7 +37,7 @@ using(debounceResource(getConnection(host), 10e3), connection => {})
 
 ### `debounceResource.flushAll()`
 
-Disposes all delayed disposers and cancels the delaying of the disposables that are in usage
+Disposes all delayed disposers and cancels the delaying of the disposables that are in usage.
 
 ```js
 import { createDebounceResource } from '@vates/disposable/debounceResource'
