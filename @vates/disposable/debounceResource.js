@@ -40,9 +40,12 @@ exports.createDebounceResource = () => {
     }
     flushers.add(flusher)
 
-    return new Disposable(disposable.value, () => {
-      timeoutId = setTimeout(disposeWrapper, delay)
-    })
+    return {
+      dispose() {
+        timeoutId = setTimeout(disposeWrapper, delay)
+      },
+      value: disposable.value, 
+    }
   }
   debounceResource.flushAll = () => {
     // iterate on a sync way in order to not remove a flusher added on processing flushers
