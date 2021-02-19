@@ -1,4 +1,4 @@
-This examples use the library [promise-toolbox/resource-management](https://github.com/JsCommunity/promise-toolbox#resource-management)
+This library contains utilities for disposables as defined by the [`promise-toolbox` library](https://github.com/JsCommunity/promise-toolbox#resource-management).
 
 ```js
 import { deduped } from '@vates/disposable/deduped'
