@@ -9,6 +9,6 @@ const getConnection = deduped(function (host)) {
 }, host => [host])
 
 
-// it will wait 10e3 after the call of the disposer
+// it will wait for 10e3 before calling the disposer
 using(debounceResource(getConnection(host), 10e3), connection => {})
 ```
