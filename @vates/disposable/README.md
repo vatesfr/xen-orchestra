@@ -16,18 +16,24 @@ Installation of the [npm package](https://npmjs.org/package/@vates/disposable):
 
 ## Usage
 
+This examples use the library [promise-toolbox/resource-management](https://github.com/JsCommunity/promise-toolbox#resource-management)
+
 ```js
-import { debounceResource } from '@vates/disposable/debounceResource'
 import { deduped } from '@vates/disposable/deduped'
 
-// the connection will be established once at the first call, then, its result will be shared with the next calls
+// the connection with the passed host will be established once at the first call, then, it will be shared with the next calls
 const getConnection = deduped(function (host)) {
   const connection = new Connection(host)
   return new Disposabe(connection, () => connection.close())
 }, host => [host])
+```
 
+```js
+import { createDebounceResource } from '@vates/disposable/debounceResource'
 
-// it will wait 10e3 after the call of the disposer
+const debounceResource = createDebounceResource()
+
+// it will wait for 10 seconds before calling the disposer
 using(debounceResource(getConnection(host), 10e3), connection => {})
 ```
 
