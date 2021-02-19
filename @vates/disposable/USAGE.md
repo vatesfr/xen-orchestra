@@ -22,7 +22,7 @@ const getConnection = deduped(async function (host)) {
 
 ### `debounceResource(disposable, delay)`
 
-Creates a new disposable with the same value but with a delayed disposer.
+Creates a new disposable with the same value and with a delayed disposer.
 
 On calling this disposer, the source disposable will be disposed when the `delay` is passed.
 
