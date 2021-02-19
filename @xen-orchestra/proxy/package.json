@@ -33,6 +33,7 @@
   "dependencies": {
     "@iarna/toml": "^2.2.0",
     "@vates/decorate-with": "^0.0.1",
+    "@vates/disposable": "^0.0.0",
     "@vates/multi-key-map": "^0.1.0",
     "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/async-map": "^0.0.0",

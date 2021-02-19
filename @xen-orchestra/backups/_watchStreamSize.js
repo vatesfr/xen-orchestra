@@ -1,4 +1,4 @@
-exports.watchStreamSize = stream => {
+const watchStreamSize = stream => {
   const container = { size: 0 }
   stream.on('data', data => {
     container.size += data.length
@@ -6,3 +6,5 @@ exports.watchStreamSize = stream => {
   stream.pause()
   return container
 }
+
+exports.watchStreamSize = watchStreamSize

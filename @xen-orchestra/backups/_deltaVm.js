@@ -1,15 +1,14 @@
-import compareVersions from 'compare-versions'
-import defer from 'golike-defer'
-import find from 'lodash/find'
-import groupBy from 'lodash/groupBy'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import omit from 'lodash/omit'
-import { createVhdStreamWithLength } from 'vhd-lib'
+const compareVersions = require('compare-versions')
+const defer = require('golike-defer').default
+const find = require('lodash/find')
+const groupBy = require('lodash/groupBy')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const omit = require('lodash/omit')
+const { CancelToken } = require('promise-toolbox')
+const { createVhdStreamWithLength } = require('vhd-lib')
 
-import { asyncMap } from '../../../_asyncMap'
-
-import { cancelableMap } from './_cancelableMap'
-import { CancelToken } from 'promise-toolbox'
+const { asyncMap } = require('./asyncMap')
+const { cancelableMap } = require('./_cancelableMap')
 
 export const TAG_BASE_DELTA = 'xo:base_delta'
 export const TAG_COPY_SRC = 'xo:copy_of'

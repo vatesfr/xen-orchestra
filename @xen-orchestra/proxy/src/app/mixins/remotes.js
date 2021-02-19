@@ -1,10 +1,10 @@
 import Disposable from 'promise-toolbox/Disposable'
 import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
+import { deduped } from '@vates/disposable/deduped'
 import { getHandler } from '@xen-orchestra/fs'
 
 import { decorateResult } from '../_decorateResult'
-import { deduped } from '../_deduped'
 
 export default class Remotes {
   constructor(app) {

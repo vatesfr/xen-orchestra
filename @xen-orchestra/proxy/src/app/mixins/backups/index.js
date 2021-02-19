@@ -3,24 +3,22 @@ import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import mapValues from 'lodash/mapValues'
 import using from 'promise-toolbox/using'
+import { asyncMap } from '@xen-orchestra/backups/asyncMap'
+import { Backup } from '@xen-orchestra/backups/backup'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { decorateWith } from '@vates/decorate-with'
+import { deduped } from '@vates/disposable/deduped'
+import { DurablePartition } from '@xen-orchestra/backups/DurablePartition'
 import { execFile } from 'child_process'
 import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
+import { ImportVmBackup } from '@xen-orchestra/backups/importVmBackup'
+import { Readable } from 'stream'
+import { RemoteAdapter } from '@xen-orchestra/backups/remoteAdapter'
+import { RestoreMetadataBackup } from '@xen-orchestra/backups/restoreMetadataBackup'
+import { Task } from '@xen-orchestra/backups/task'
 import { Xapi } from '@xen-orchestra/xapi'
 
-import { asyncMap } from '../../../_asyncMap'
-
 import { decorateResult } from '../../_decorateResult'
-import { deduped } from '../../_deduped'
-
-import { Backup } from './_Backup'
-import { ImportVmBackup } from './_ImportVmBackup'
-import { Task } from './_Task'
-import { Readable } from 'stream'
-import { RemoteAdapter } from './_RemoteAdapter'
-import { RestoreMetadataBackup } from './_RestoreMetadataBackup'
-import { DurablePartition } from './_DurablePartition'
 
 const noop = Function.prototype
 

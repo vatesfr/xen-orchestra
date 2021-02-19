@@ -14082,7 +14082,7 @@ parse-node-version@^1.0.0:
   resolved "https://registry.yarnpkg.com/parse-node-version/-/parse-node-version-1.0.1.tgz#e2b5dbede00e7fa9bc363607f53327e8b073189b"
   integrity sha512-3YHlOa/JgH6Mnpr05jP9eDG254US9ek25LyIxZlDItp2iJtwyaXQb57lBYLdT3MowkUFYEV2XXNAYIPlESvJlA==
 
-parse-pairs@^1.0.0:
+parse-pairs@^1.0.0, parse-pairs@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/parse-pairs/-/parse-pairs-1.1.0.tgz#1974ba9588caf29b8ab8a1b855f3c75558f5176e"
   integrity sha512-eqERRqqrwe45MkmHpl9qMr44kEhfcMcowbu1AJdJU1RBa6YJ4PlGFKmcJ00YaeBMYDUtGGnFoe5OfYaVwb3xXQ==

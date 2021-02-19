@@ -1,11 +1,11 @@
-import eos from 'end-of-stream'
-import { PassThrough } from 'stream'
+const eos = require('end-of-stream')
+const { PassThrough } = require('stream')
 
 // create a new readable stream from an existing one which may be piped later
 //
 // in case of error in the new readable stream, it will simply be unpiped
 // from the original one
-export const forkStreamUnpipe = stream => {
+const forkStreamUnpipe = stream => {
   const { forks = 0 } = stream
   stream.forks = forks + 1
 
@@ -26,3 +26,5 @@ export const forkStreamUnpipe = stream => {
   })
   return proxy
 }
+
+exports.forkStreamUnpipe = forkStreamUnpipe

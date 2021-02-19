@@ -5,10 +5,9 @@ import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
 import using from 'promise-toolbox/using'
 import { createLogger } from '@xen-orchestra/log/dist'
+import { deduped } from '@vates/disposable/deduped'
 import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
-
-import { deduped } from '../_deduped'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 

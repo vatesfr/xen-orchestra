@@ -1,21 +1,20 @@
-import findLast from 'lodash/findLast'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import keyBy from 'lodash/keyBy'
-import mapValues from 'lodash/mapValues'
-import { createLogger } from '@xen-orchestra/log'
-import { formatDateTime } from '@xen-orchestra/xapi'
-import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
-import { watchStreamSize } from '@xen-orchestra/backups/watchStreamSize'
+const findLast = require('lodash/findLast')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const keyBy = require('lodash/keyBy')
+const mapValues = require('lodash/mapValues')
+const { createLogger } = require('@xen-orchestra/log')
+const { formatDateTime } = require('@xen-orchestra/xapi')
 
-import { asyncMap } from '../../../_asyncMap'
-
-import { ContinuousReplicationWriter } from './_ContinuousReplicationWriter'
-import { DeltaBackupWriter } from './_DeltaBackupWriter'
-import { DisasterRecoveryWriter } from './_DisasterRecoveryWriter'
-import { exportDeltaVm } from './_deltaVm'
-import { forkStreamUnpipe } from './_forkStreamUnpipe'
-import { FullBackupWriter } from './_FullBackupWriter'
-import { Task } from './_Task'
+const { asyncMap } = require('./asyncMap')
+const { ContinuousReplicationWriter } = require('./_ContinuousReplicationWriter')
+const { DeltaBackupWriter } = require('./_DeltaBackupWriter')
+const { DisasterRecoveryWriter } = require('./_DisasterRecoveryWriter')
+const { exportDeltaVm } = require('./_deltaVm')
+const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
+const { FullBackupWriter } = require('./_FullBackupWriter')
+const { getOldEntries } = require('./_getOldEntries')
+const { Task } = require('./task')
+const { watchStreamSize } = require('./_watchStreamSize')
 
 const { debug, warn } = createLogger('xo:proxy:backups:VmBackup')
 

@@ -6,7 +6,7 @@ function rejectedThen(_, cb) {
   return typeof cb === 'function' ? SyncThenable.fromFunction(cb, this.value) : this
 }
 
-export class SyncThenable {
+class SyncThenable {
   static resolve(value) {
     if (value != null && typeof value.then === 'function') {
       return value
@@ -43,3 +43,5 @@ export class SyncThenable {
     this.value = value
   }
 }
+
+exports.SyncThenable = SyncThenable

@@ -1,7 +1,7 @@
-import { DIR_XO_POOL_METADATA_BACKUPS } from './_RemoteAdapter'
-import { PATH_DB_DUMP } from './_PoolMetadataBackup'
+const { DIR_XO_POOL_METADATA_BACKUPS } = require('./remoteAdapter')
+const { PATH_DB_DUMP } = require('./_PoolMetadataBackup')
 
-export class RestoreMetadataBackup {
+class RestoreMetadataBackup {
   constructor({ backupId, handler, xapi }) {
     this._backupId = backupId
     this._handler = handler
@@ -22,3 +22,5 @@ export class RestoreMetadataBackup {
     }
   }
 }
+
+exports.RestoreMetadataBackup = RestoreMetadataBackup

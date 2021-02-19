@@ -1,7 +1,6 @@
 import Disposable from 'promise-toolbox/Disposable'
+import { asyncMap } from '@xen-orchestra/backups/asyncMap'
 import { createLogger } from '@xen-orchestra/log/dist'
-
-import { asyncMap } from '../_asyncMap'
 
 const { warn } = createLogger('xo:proxy:debounceResource')
 

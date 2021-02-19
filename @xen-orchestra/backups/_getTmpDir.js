@@ -1,11 +1,11 @@
-import Disposable from 'promise-toolbox/Disposable'
-import { join } from 'path'
-import { mkdir, rmdir } from 'fs-extra'
-import { tmpdir } from 'os'
+const Disposable = require('promise-toolbox/Disposable')
+const { join } = require('path')
+const { mkdir, rmdir } = require('fs-extra')
+const { tmpdir } = require('os')
 
 const MAX_ATTEMPTS = 3
 
-export const getTmpDir = async () => {
+const getTmpDir = async () => {
   for (let i = 0; true; ++i) {
     const path = join(tmpdir(), Math.random().toString(36).slice(2))
     try {
@@ -18,3 +18,5 @@ export const getTmpDir = async () => {
     }
   }
 }
+
+exports.getTmpDir = getTmpDir
