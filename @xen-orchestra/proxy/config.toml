@@ -71,5 +71,10 @@ timeout = 600e3
 disableFileRemotes = true
 
 [xapiOptions]
+# VDIs with `[NOBAK]` flag can be ignored while snapshotting an halted VM.
+#
+# This is disabled by default for the time being but will be turned on after enough testing.
+ignoreNobakVdis = false
+
 maxUncoalescedVdis = 1
 watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM']
