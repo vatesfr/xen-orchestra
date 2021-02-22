@@ -11,7 +11,9 @@ console.log(f(5))
 // → 21
 ```
 
-The first function is called with the context and all arguments of the composed function:
+> The call context (`this`) of the composed function is forwarded to all functions.
+
+The first function is called with all arguments of the composed function:
 
 ```js
 const add = (x, y) => x + y
