@@ -1,7 +1,7 @@
 import camelCase from 'lodash/camelCase'
+import { createDebounceResource } from '@vates/disposable/debounceResource'
 
 import mixins from './mixins'
-import { createDebounceResource } from './_debounceResource'
 
 const { defineProperties, defineProperty, keys } = Object
 const noop = Function.prototype
