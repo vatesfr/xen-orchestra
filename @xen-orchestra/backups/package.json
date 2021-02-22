@@ -10,14 +10,30 @@
   },
   "version": "0.4.0",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=14.5"
   },
   "scripts": {
     "postversion": "npm publish --access public"
   },
   "dependencies": {
+    "@vates/multi-key-map": "^0.1.0",
+    "@vates/disposable": "^0.0.0",
+    "@xen-orchestra/async-map": "^0.0.0",
+    "@xen-orchestra/log": "^0.2.0",
+    "@xen-orchestra/template": "^0.1.0",
+    "@xen-orchestra/xapi": "^0.4.1",
+    "compare-versions": "^3.6.0",
     "d3-time-format": "^3.0.0",
-    "fs-extra": "^9.0.0"
+    "end-of-stream": "^1.4.4",
+    "ensure-array": "^1.0.0",
+    "fs-extra": "^9.0.0",
+    "golike-defer": "^0.4.1",
+    "limit-concurrency-decorator": "^0.4.0",
+    "lodash": "^4.17.20",
+    "node-zone": "^0.4.0",
+    "parse-pairs": "^1.1.0",
+    "promise-toolbox": "^0.16.0",
+    "vhd-lib": "^1.0.0"
   },
   "license": "AGPL-3.0-or-later",
   "author": {

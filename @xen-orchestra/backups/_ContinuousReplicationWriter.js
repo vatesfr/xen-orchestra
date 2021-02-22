@@ -1,16 +1,15 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import { formatDateTime } from '@xen-orchestra/xapi'
-import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
-import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
+const asyncMapSettled = require('@xen-orchestra/async-map').default
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { formatDateTime } = require('@xen-orchestra/xapi')
 
-import { asyncMap } from '../../../_asyncMap'
+const { asyncMap } = require('./asyncMap')
+const { formatFilenameDate } = require('./_filenameDate')
+const { getOldEntries } = require('./_getOldEntries')
+const { importDeltaVm, TAG_COPY_SRC } = require('./_deltaVm')
+const { listReplicatedVms } = require('./_listReplicatedVms')
+const { Task } = require('./task')
 
-import { importDeltaVm, TAG_COPY_SRC } from './_deltaVm'
-import { listReplicatedVms } from './_listReplicatedVms'
-import { Task } from './_Task'
-
-export class ContinuousReplicationWriter {
+exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
   constructor(backup, sr, settings) {
     this._backup = backup
     this._settings = settings

@@ -1,10 +1,10 @@
-import assert from 'assert'
-import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
+const assert = require('assert')
 
-import { importDeltaVm } from './_deltaVm'
-import { Task } from './_Task'
+const { formatFilenameDate } = require('./_filenameDate')
+const { importDeltaVm } = require('./_deltaVm')
+const { Task } = require('./task')
 
-export class ImportVmBackup {
+exports.ImportVmBackup = class ImportVmBackup {
   constructor({ adapter, metadata, srUuid, xapi }) {
     this._adapter = adapter
     this._metadata = metadata

@@ -14082,7 +14082,7 @@ parse-node-version@^1.0.0:
   resolved "https://registry.yarnpkg.com/parse-node-version/-/parse-node-version-1.0.1.tgz#e2b5dbede00e7fa9bc363607f53327e8b073189b"
   integrity sha512-3YHlOa/JgH6Mnpr05jP9eDG254US9ek25LyIxZlDItp2iJtwyaXQb57lBYLdT3MowkUFYEV2XXNAYIPlESvJlA==
 
-parse-pairs@^1.0.0:
+parse-pairs@^1.0.0, parse-pairs@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/parse-pairs/-/parse-pairs-1.1.0.tgz#1974ba9588caf29b8ab8a1b855f3c75558f5176e"
   integrity sha512-eqERRqqrwe45MkmHpl9qMr44kEhfcMcowbu1AJdJU1RBa6YJ4PlGFKmcJ00YaeBMYDUtGGnFoe5OfYaVwb3xXQ==
@@ -19757,7 +19757,7 @@ yargs@~3.10.0:
     decamelize "^1.0.0"
     window-size "0.1.0"
 
-yazl@^2.4.3, yazl@^2.5.1:
+yazl@^2.4.3:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/yazl/-/yazl-2.5.1.tgz#a3d65d3dd659a5b0937850e8609f22fffa2b5c35"
   integrity sha512-phENi2PLiHnHb6QBVot+dJnaAZ0xosj7p3fWl+znIjBDlnMI2PsZCJZ306BPTFOaHf5qdDEI8x5qFrSOBN5vrw==

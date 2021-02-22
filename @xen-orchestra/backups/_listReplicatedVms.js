@@ -5,7 +5,7 @@ const getReplicatedVmDatetime = vm => {
 
 const compareReplicatedVmDatetime = (a, b) => (getReplicatedVmDatetime(a) < getReplicatedVmDatetime(b) ? -1 : 1)
 
-export const listReplicatedVms = (xapi, scheduleOrJobId, srUuid, vmUuid) => {
+exports.listReplicatedVms = function listReplicatedVms(xapi, scheduleOrJobId, srUuid, vmUuid) {
   const { all } = xapi.objects
   const vms = {}
   for (const key in all) {
