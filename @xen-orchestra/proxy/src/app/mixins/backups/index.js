@@ -5,6 +5,7 @@ import mapValues from 'lodash/mapValues'
 import using from 'promise-toolbox/using'
 import { asyncMap } from '@xen-orchestra/backups/asyncMap'
 import { Backup } from '@xen-orchestra/backups/Backup'
+import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
@@ -18,7 +19,6 @@ import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBac
 import { Task } from '@xen-orchestra/backups/task'
 import { Xapi } from '@xen-orchestra/xapi'
 
-import { decorateResult } from '../../_decorateResult'
 
 const noop = Function.prototype
 
@@ -366,7 +366,7 @@ export default class Backups {
   }
 
   // FIXME: invalidate cache on remote option change
-  @decorateResult(function (resource) {
+  @decorateWith(compose, function (resource) {
     return this._app.debounceResource(resource)
   })
   @decorateWith(deduped, remote => [remote.url])
@@ -380,7 +380,7 @@ export default class Backups {
   }
 
   // FIXME: invalidate cache on options change
-  @decorateResult(function (resource) {
+  @decorateWith(compose, function (resource) {
     return this._app.debounceResource(resource)
   })
   @decorateWith(deduped, ({ url }) => [url])

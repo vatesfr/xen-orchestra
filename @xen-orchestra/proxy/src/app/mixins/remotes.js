@@ -1,10 +1,10 @@
 import Disposable from 'promise-toolbox/Disposable'
 import using from 'promise-toolbox/using'
+import { compose } from '@vates/compose'
 import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
 import { getHandler } from '@xen-orchestra/fs'
 
-import { decorateResult } from '../_decorateResult'
 
 export default class Remotes {
   constructor(app) {
@@ -38,7 +38,7 @@ export default class Remotes {
   }
 
   // FIXME: invalidate cache on remote option change
-  @decorateResult(function (resource) {
+  @decorateWith(compose, function (resource) {
     return this._app.debounceResource(resource)
   })
   @decorateWith(deduped, remote => [remote.url])
