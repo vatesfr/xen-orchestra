@@ -32,14 +32,14 @@ exports.compose = function compose(opts, fns) {
     ? async function () {
         let value = await fns[0].apply(this, arguments)
         for (let i = 1; i < n; ++i) {
-          value = await fns[i](value)
+          value = await fns[i].call(this, value)
         }
         return value
       }
     : function () {
         let value = fns[0].apply(this, arguments)
         for (let i = 1; i < n; ++i) {
-          value = fns[i](value)
+          value = fns[i].call(this, value)
         }
         return value
       }
