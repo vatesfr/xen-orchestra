@@ -3,6 +3,7 @@ import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import mapValues from 'lodash/mapValues'
 import using from 'promise-toolbox/using'
+import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log/dist'
 import { decorateWith } from '@vates/decorate-with'
 import { execFile } from 'child_process'
@@ -11,7 +12,6 @@ import { Xapi } from '@xen-orchestra/xapi'
 
 import { asyncMap } from '../../../_asyncMap'
 
-import { decorateResult } from '../../_decorateResult'
 import { deduped } from '../../_deduped'
 
 import { Backup } from './_Backup'
@@ -368,7 +368,7 @@ export default class Backups {
   }
 
   // FIXME: invalidate cache on remote option change
-  @decorateResult(function (resource) {
+  @decorateWith(compose, function (resource) {
     return this._app.debounceResource(resource)
   })
   @decorateWith(deduped, remote => [remote.url])
@@ -382,7 +382,7 @@ export default class Backups {
   }
 
   // FIXME: invalidate cache on options change
-  @decorateResult(function (resource) {
+  @decorateWith(compose, function (resource) {
     return this._app.debounceResource(resource)
   })
   @decorateWith(deduped, ({ url }) => [url])
