@@ -206,6 +206,7 @@ export const importDeltaVm = defer(
         },
       },
       {
+        bios_strings: vmRecord.bios_strings,
         suspend_VDI: suspendVdi?.$ref,
       }
     )
