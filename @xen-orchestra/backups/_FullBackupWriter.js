@@ -4,7 +4,7 @@ const { getVmBackupDir } = require('./_getVmBackupDir')
 const { isValidXva } = require('./isValidXva')
 const { Task } = require('./task')
 
-class FullBackupWriter {
+exports.FullBackupWriter = class FullBackupWriter {
   constructor(backup, remoteId, settings) {
     this._backup = backup
     this._remoteId = remoteId
@@ -88,5 +88,3 @@ class FullBackupWriter {
     // TODO: run cleanup?
   }
 }
-
-exports.FullBackupWriter = FullBackupWriter

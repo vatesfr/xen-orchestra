@@ -20,7 +20,10 @@ const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')
 const { lvs, pvs } = require('./_lvm')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
+exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
+
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
+exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
@@ -65,7 +68,7 @@ const debounceResourceFactory = factory =>
     return this._debounceResource(factory.apply(this, arguments))
   }
 
-class RemoteAdapter {
+exports.RemoteAdapter = class RemoteAdapter {
   constructor(handler, { debounceResource, dirMode }) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
@@ -550,7 +553,3 @@ class RemoteAdapter {
     return Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
   }
 }
-
-exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
-exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
-exports.RemoteAdapter = RemoteAdapter

@@ -1,5 +1,5 @@
 const PARSE_UUID_RE = /-/g
 
-const packUuid = uuid => Buffer.from(uuid.replace(PARSE_UUID_RE, ''), 'hex')
-
-exports.packUuid = packUuid
+exports.packUuid = function packUuid(uuid) {
+  return Buffer.from(uuid.replace(PARSE_UUID_RE, ''), 'hex')
+}

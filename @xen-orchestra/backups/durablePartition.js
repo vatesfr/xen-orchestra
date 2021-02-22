@@ -1,6 +1,6 @@
 const { asyncMap } = require('./asyncMap')
 
-class DurablePartition {
+exports.DurablePartition = class DurablePartition {
   // private resource API is used exceptionally to be able to separate resource creation and release
   #partitionDisposers = {}
 
@@ -38,5 +38,3 @@ class DurablePartition {
     }
   }
 }
-
-exports.DurablePartition = DurablePartition

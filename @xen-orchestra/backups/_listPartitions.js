@@ -23,6 +23,7 @@ const IGNORED_PARTITION_TYPES = {
 }
 
 const LVM_PARTITION_TYPE = 0x8e
+exports.LVM_PARTITION_TYPE = LVM_PARTITION_TYPE
 
 const parsePartxLine = createParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
@@ -30,7 +31,7 @@ const parsePartxLine = createParser({
 })
 
 // returns an empty array in case of a non-partitioned disk
-const listPartitions = async devicePath => {
+exports.listPartitions = async function listPartitions(devicePath) {
   const parts = await fromCallback(execFile, 'partx', [
     '--bytes',
     '--output=NR,START,SIZE,NAME,UUID,TYPE',
@@ -49,6 +50,3 @@ const listPartitions = async devicePath => {
     .map(parsePartxLine)
     .filter(({ type }) => type != null && !(type in IGNORED_PARTITION_TYPES))
 }
-
-exports.LVM_PARTITION_TYPE = LVM_PARTITION_TYPE
-exports.listPartitions = listPartitions

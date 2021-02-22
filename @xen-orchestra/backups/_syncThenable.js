@@ -43,5 +43,4 @@ class SyncThenable {
     this.value = value
   }
 }
-
 exports.SyncThenable = SyncThenable

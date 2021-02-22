@@ -9,7 +9,7 @@ const { importDeltaVm, TAG_COPY_SRC } = require('./_deltaVm')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 const { Task } = require('./task')
 
-class ContinuousReplicationWriter {
+exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
   constructor(backup, sr, settings) {
     this._backup = backup
     this._settings = settings
@@ -115,5 +115,3 @@ class ContinuousReplicationWriter {
     }
   }
 }
-
-exports.ContinuousReplicationWriter = ContinuousReplicationWriter

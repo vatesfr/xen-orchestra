@@ -19,6 +19,7 @@ const serializeError = error =>
         stack: error.stack,
       }
     : error
+exports.serializeError = serializeError
 
 class TaskLogger {
   constructor(logFn, parentId) {
@@ -170,6 +171,4 @@ const Task = {
     }
   },
 }
-
-exports.serializeError = serializeError
 exports.Task = Task

@@ -25,7 +25,7 @@ const forkDeltaExport = deltaExport =>
     },
   })
 
-class VmBackup {
+exports.VmBackup = class VmBackup {
   constructor({ config, getSnapshotNameLabel, job, remoteAdapters, remotes, schedule, settings, srs, vm }) {
     this.config = config
     this.job = job
@@ -348,5 +348,3 @@ class VmBackup {
     }
   }
 }
-
-exports.VmBackup = VmBackup

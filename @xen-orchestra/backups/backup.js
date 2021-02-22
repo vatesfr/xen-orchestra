@@ -24,7 +24,7 @@ const getAdaptersByRemote = adapters => {
 
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
-class Backup {
+exports.Backup = class Backup {
   constructor({
     config,
     getAdapter,
@@ -230,5 +230,3 @@ class Backup {
     return xapi.getRecordByUuid(type, uuid)
   }
 }
-
-exports.Backup = Backup

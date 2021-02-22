@@ -16,7 +16,7 @@ const { Task } = require('./task')
 
 const { warn } = createLogger('xo:proxy:backups:DeltaBackupWriter')
 
-class DeltaBackupWriter {
+exports.DeltaBackupWriter = class DeltaBackupWriter {
   constructor(backup, remoteId, settings) {
     this._adapter = backup.remoteAdapters[remoteId]
     this._backup = backup
@@ -208,5 +208,3 @@ class DeltaBackupWriter {
     // TODO: run cleanup?
   }
 }
-
-exports.DeltaBackupWriter = DeltaBackupWriter

@@ -3,7 +3,7 @@ const { DIR_XO_CONFIG_BACKUPS } = require('./remoteAdapter')
 const { formatFilenameDate } = require('./_filenameDate')
 const { Task } = require('./task')
 
-class XoMetadataBackup {
+exports.XoMetadataBackup = class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {
     this._config = config
     this._job = job
@@ -59,5 +59,3 @@ class XoMetadataBackup {
     )
   }
 }
-
-exports.XoMetadataBackup = XoMetadataBackup

@@ -7,7 +7,7 @@ const { getOldEntries } = require('./_getOldEntries')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 const { Task } = require('./task')
 
-class DisasterRecoveryWriter {
+exports.DisasterRecoveryWriter = class DisasterRecoveryWriter {
   constructor(backup, sr, settings) {
     this._backup = backup
     this._settings = settings
@@ -83,5 +83,3 @@ class DisasterRecoveryWriter {
     }
   }
 }
-
-exports.DisasterRecoveryWriter = DisasterRecoveryWriter

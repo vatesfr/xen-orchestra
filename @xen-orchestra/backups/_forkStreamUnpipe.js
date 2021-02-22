@@ -5,7 +5,7 @@ const { PassThrough } = require('stream')
 //
 // in case of error in the new readable stream, it will simply be unpiped
 // from the original one
-const forkStreamUnpipe = stream => {
+exports.forkStreamUnpipe = function forkStreamUnpipe(stream) {
   const { forks = 0 } = stream
   stream.forks = forks + 1
 
@@ -26,5 +26,3 @@ const forkStreamUnpipe = stream => {
   })
   return proxy
 }
-
-exports.forkStreamUnpipe = forkStreamUnpipe

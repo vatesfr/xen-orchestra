@@ -5,7 +5,7 @@ const { tmpdir } = require('os')
 
 const MAX_ATTEMPTS = 3
 
-const getTmpDir = async () => {
+exports.getTmpDir = async function getTmpDir() {
   for (let i = 0; true; ++i) {
     const path = join(tmpdir(), Math.random().toString(36).slice(2))
     try {
@@ -18,5 +18,3 @@ const getTmpDir = async () => {
     }
   }
 }
-
-exports.getTmpDir = getTmpDir

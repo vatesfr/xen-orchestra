@@ -4,7 +4,7 @@ const { formatFilenameDate } = require('./_filenameDate')
 const { importDeltaVm } = require('./_deltaVm')
 const { Task } = require('./task')
 
-class ImportVmBackup {
+exports.ImportVmBackup = class ImportVmBackup {
   constructor({ adapter, metadata, srUuid, xapi }) {
     this._adapter = adapter
     this._metadata = metadata
@@ -57,5 +57,3 @@ class ImportVmBackup {
     ).catch(() => {}) // errors are handled by logs
   }
 }
-
-exports.ImportVmBackup = ImportVmBackup
