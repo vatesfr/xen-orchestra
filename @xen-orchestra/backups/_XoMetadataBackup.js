@@ -1,5 +1,5 @@
 const { asyncMap } = require('./asyncMap')
-const { DIR_XO_CONFIG_BACKUPS } = require('./remoteAdapter')
+const { DIR_XO_CONFIG_BACKUPS } = require('./RemoteAdapter')
 const { formatFilenameDate } = require('./_filenameDate')
 const { Task } = require('./task')
 
