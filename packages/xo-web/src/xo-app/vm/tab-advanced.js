@@ -21,7 +21,7 @@ import { Number, Select as EditableSelect, Size, Text, XoSelect } from 'editable
 import { Select, Toggle } from 'form'
 import { SelectResourceSet, SelectRole, SelectSubject, SelectVgpuType } from 'select-objects'
 import { addSubscriptions, connectStore, formatSize, getVirtualizationModeLabel, noop, osFamily } from 'utils'
-import { every, filter, find, isEmpty, keyBy, map, times, some, uniq } from 'lodash'
+import { compact, every, filter, find, isEmpty, keyBy, map, times, some, uniq } from 'lodash'
 import {
   addAcl,
   changeVirtualizationMode,
@@ -332,10 +332,17 @@ const Acls = decorate([
         if (users === undefined || groups === undefined) {
           return []
         }
-        return rawAcls.map(({ subject, ...acl }) => ({
-          ...acl,
-          subject: defined(users[subject], groups[subject]),
-        }))
+        return compact(
+          rawAcls.map(({ subject: subjectId, ...acl }) => {
+            const subject = defined(users[subjectId], groups[subjectId])
+            return (
+              subject !== undefined && {
+                ...acl,
+                subject,
+              }
+            )
+          })
+        )
       },
     },
   }),
