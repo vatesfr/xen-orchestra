@@ -1130,7 +1130,7 @@ export default class Xapi extends XapiBase {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
         vdis[vdi.$ref] =
-          mapVdisSrs && mapVdisSrs[vdi.$id]
+          mapVdisSrs !== undefined && mapVdisSrs[vdi.$id] !== undefined
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
             : intersection(vdi.$SR.$PBDs, hostPbds).length === 0
             ? getDefaultSrRef()
