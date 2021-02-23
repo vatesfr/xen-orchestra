@@ -7,6 +7,7 @@ import { createDebounceResource } from '@vates/disposable/debounceResource'
 import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
 import { forEach, includes, isEmpty, iteratee, map as mapToArray, stubTrue } from 'lodash'
+import { parseDuration } from '@vates/parse-duration'
 
 import mixins from './xo-mixins'
 import Connection from './connection'
@@ -49,7 +50,7 @@ export default class Xo extends EventEmitter {
     this.on('start', () => this._watchObjects())
 
     const debounceResource = createDebounceResource()
-    debounceResource.defaultDelay = config.resourceCacheDelay
+    debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
     this.once('stop', debounceResource.flushAll)
 
     this.debounceResource = debounceResource
