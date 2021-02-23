@@ -42,7 +42,7 @@ export default class App {
     })
 
     const debounceResource = createDebounceResource()
-    this.config.watchDuration('resourceDebounce', delay => {
+    this.config.watchDuration('resourceCacheDelay', delay => {
       debounceResource.defaultDelay = delay
     })
     this.hooks.once('stop', debounceResource.flushAll)
