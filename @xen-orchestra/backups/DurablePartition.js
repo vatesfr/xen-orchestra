@@ -1,6 +1,6 @@
-import { asyncMap } from '../../../_asyncMap'
+const { asyncMap } = require('./asyncMap')
 
-export class DurablePartition {
+exports.DurablePartition = class DurablePartition {
   // private resource API is used exceptionally to be able to separate resource creation and release
   #partitionDisposers = {}
 

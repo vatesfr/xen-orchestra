@@ -1,28 +1,29 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
-import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
-import pDefer from 'promise-toolbox/defer'
-import pump from 'pump'
-import using from 'promise-toolbox/using'
-import Vhd, { createSyntheticStream, mergeVhd } from 'vhd-lib'
-import { basename, dirname, join, normalize, resolve } from 'path'
-import { createLogger } from '@xen-orchestra/log'
-import { execFile } from 'child_process'
-import { readdir, stat } from 'fs-extra'
-import { ZipFile } from 'yazl'
+const asyncMapSettled = require('@xen-orchestra/async-map').default
+const Disposable = require('promise-toolbox/Disposable')
+const fromCallback = require('promise-toolbox/fromCallback')
+const fromEvent = require('promise-toolbox/fromEvent')
+const pDefer = require('promise-toolbox/defer')
+const pump = require('pump')
+const using = require('promise-toolbox/using')
+const { basename, dirname, join, normalize, resolve } = require('path')
+const { createLogger } = require('@xen-orchestra/log')
+const { createSyntheticStream, mergeVhd, default: Vhd } = require('vhd-lib')
+const { deduped } = require('@vates/disposable/deduped')
+const { execFile } = require('child_process')
+const { readdir, stat } = require('fs-extra')
+const { ZipFile } = require('yazl')
 
-import { deduped } from '../../_deduped'
+const { asyncMap } = require('./asyncMap')
+const { BACKUP_DIR } = require('./_getVmBackupDir')
+const { getTmpDir } = require('./_getTmpDir')
+const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')
+const { lvs, pvs } = require('./_lvm')
 
-import { asyncMap } from '../../../_asyncMap'
+const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
+exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
 
-import { BACKUP_DIR } from './_getVmBackupDir'
-import { getTmpDir } from './_getTmpDir'
-import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions'
-import { lvs, pvs } from './_lvm'
-
-export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
-export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
+const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
+exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 
 const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
 
@@ -67,7 +68,7 @@ const debounceResourceFactory = factory =>
     return this._debounceResource(factory.apply(this, arguments))
   }
 
-export class RemoteAdapter {
+exports.RemoteAdapter = class RemoteAdapter {
   constructor(handler, { debounceResource, dirMode }) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode

@@ -1,4 +1,4 @@
-function extractIdsFromSimplePattern(pattern) {
+exports.extractIdsFromSimplePattern = function extractIdsFromSimplePattern(pattern) {
   if (pattern === undefined) {
     return []
   }
@@ -27,4 +27,3 @@ function extractIdsFromSimplePattern(pattern) {
 
   throw new Error('invalid pattern')
 }
-exports.extractIdsFromSimplePattern = extractIdsFromSimplePattern

@@ -1,5 +1,6 @@
-import Zone from 'node-zone'
-import { SyncThenable } from './_SyncThenable'
+const Zone = require('node-zone')
+
+const { SyncThenable } = require('./_syncThenable')
 
 const logAfterEnd = () => {
   throw new Error('task has already ended')
@@ -8,7 +9,7 @@ const logAfterEnd = () => {
 // Create a serializable object from an error.
 //
 // Otherwise some fields might be non-enumerable and missing from logs.
-export const serializeError = error =>
+const serializeError = error =>
   error instanceof Error
     ? {
         ...error, // Copy enumerable properties.
@@ -18,6 +19,7 @@ export const serializeError = error =>
         stack: error.stack,
       }
     : error
+exports.serializeError = serializeError
 
 class TaskLogger {
   constructor(logFn, parentId) {
@@ -130,7 +132,7 @@ const $$task = Symbol('current task logger')
 
 const getCurrent = () => Zone.current.data[$$task]
 
-export const Task = {
+const Task = {
   info(message, data) {
     const task = getCurrent()
     if (task !== undefined) {
@@ -169,3 +171,4 @@ export const Task = {
     }
   },
 }
+exports.Task = Task

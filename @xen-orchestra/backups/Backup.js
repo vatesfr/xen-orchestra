@@ -1,17 +1,16 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
-import Disposable from 'promise-toolbox/Disposable'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import limitConcurrency from 'limit-concurrency-decorator'
-import using from 'promise-toolbox/using'
-import { compileTemplate } from '@xen-orchestra/template'
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern'
+const asyncMapSettled = require('@xen-orchestra/async-map').default
+const Disposable = require('promise-toolbox/Disposable')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const limitConcurrency = require('limit-concurrency-decorator').default
+const using = require('promise-toolbox/using')
+const { compileTemplate } = require('@xen-orchestra/template')
 
-import { asyncMap } from '../../../_asyncMap'
-
-import { PoolMetadataBackup } from './_PoolMetadataBackup'
-import { Task } from './_Task'
-import { VmBackup } from './_VmBackup'
-import { XoMetadataBackup } from './_XoMetadataBackup'
+const { asyncMap } = require('./asyncMap')
+const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern')
+const { PoolMetadataBackup } = require('./_PoolMetadataBackup')
+const { Task } = require('./task')
+const { VmBackup } = require('./_VmBackup')
+const { XoMetadataBackup } = require('./_XoMetadataBackup')
 
 const noop = Function.prototype
 
@@ -25,7 +24,7 @@ const getAdaptersByRemote = adapters => {
 
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
-export class Backup {
+exports.Backup = class Backup {
   constructor({
     config,
     getAdapter,

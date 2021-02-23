@@ -1,23 +1,22 @@
-import assert from 'assert'
-import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
-import Vhd, { chainVhd, checkVhdChain } from 'vhd-lib'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import { dirname } from 'path'
-import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
-import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
+const assert = require('assert')
+const map = require('lodash/map')
+const mapValues = require('lodash/mapValues')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { chainVhd, checkVhdChain, default: Vhd } = require('vhd-lib')
+const { createLogger } = require('@xen-orchestra/log')
+const { dirname } = require('path')
 
-import { asyncMap } from '../../../_asyncMap'
-
-import { checkVhd } from './_checkVhd'
-import { getVmBackupDir } from './_getVmBackupDir'
-import { packUuid } from './_packUuid'
-import { Task } from './_Task'
-import { createLogger } from '@xen-orchestra/log'
+const { asyncMap } = require('./asyncMap')
+const { checkVhd } = require('./_checkVhd')
+const { formatFilenameDate } = require('./_filenameDate')
+const { getOldEntries } = require('./_getOldEntries')
+const { getVmBackupDir } = require('./_getVmBackupDir')
+const { packUuid } = require('./_packUuid')
+const { Task } = require('./task')
 
 const { warn } = createLogger('xo:proxy:backups:DeltaBackupWriter')
 
-export class DeltaBackupWriter {
+exports.DeltaBackupWriter = class DeltaBackupWriter {
   constructor(backup, remoteId, settings) {
     this._adapter = backup.remoteAdapters[remoteId]
     this._backup = backup

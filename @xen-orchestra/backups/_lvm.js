@@ -1,6 +1,6 @@
-import fromCallback from 'promise-toolbox/fromCallback'
-import { createParser } from 'parse-pairs'
-import { execFile } from 'child_process'
+const fromCallback = require('promise-toolbox/fromCallback')
+const { createParser } = require('parse-pairs')
+const { execFile } = require('child_process')
 
 // ===================================================================
 
@@ -25,5 +25,5 @@ const makeFunction = command => async (fields, ...args) => {
     .map(Array.isArray(fields) ? parse : line => parse(line)[fields])
 }
 
-export const lvs = makeFunction('lvs')
-export const pvs = makeFunction('pvs')
+exports.lvs = makeFunction('lvs')
+exports.pvs = makeFunction('pvs')

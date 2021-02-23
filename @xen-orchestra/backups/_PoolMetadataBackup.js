@@ -1,14 +1,13 @@
-import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
+const { asyncMap } = require('./asyncMap')
+const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter')
+const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
+const { formatFilenameDate } = require('./_filenameDate')
+const { Task } = require('./task')
 
-import { asyncMap } from '../../../_asyncMap'
+const PATH_DB_DUMP = '/pool/xmldbdump'
+exports.PATH_DB_DUMP = PATH_DB_DUMP
 
-import { DIR_XO_POOL_METADATA_BACKUPS } from './_RemoteAdapter'
-import { forkStreamUnpipe } from './_forkStreamUnpipe'
-import { Task } from './_Task'
-
-export const PATH_DB_DUMP = '/pool/xmldbdump'
-
-export class PoolMetadataBackup {
+exports.PoolMetadataBackup = class PoolMetadataBackup {
   constructor({ config, job, pool, remoteAdapters, schedule, settings }) {
     this._config = config
     this._job = job

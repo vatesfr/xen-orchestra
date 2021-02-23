@@ -1,11 +1,10 @@
-import { formatFilenameDate } from '@xen-orchestra/backups/filenameDate'
-import { isValidXva } from '@xen-orchestra/backups/isValidXva'
-import { getOldEntries } from '@xen-orchestra/backups/getOldEntries'
+const { formatFilenameDate } = require('./_filenameDate')
+const { getOldEntries } = require('./_getOldEntries')
+const { getVmBackupDir } = require('./_getVmBackupDir')
+const { isValidXva } = require('./isValidXva')
+const { Task } = require('./task')
 
-import { getVmBackupDir } from './_getVmBackupDir'
-import { Task } from './_Task'
-
-export class FullBackupWriter {
+exports.FullBackupWriter = class FullBackupWriter {
   constructor(backup, remoteId, settings) {
     this._backup = backup
     this._remoteId = remoteId

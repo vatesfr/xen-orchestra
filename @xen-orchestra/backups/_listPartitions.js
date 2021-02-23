@@ -1,7 +1,7 @@
-import fromCallback from 'promise-toolbox/fromCallback'
-import { createLogger } from '@xen-orchestra/log'
-import { createParser } from 'parse-pairs'
-import { execFile } from 'child_process'
+const fromCallback = require('promise-toolbox/fromCallback')
+const { createLogger } = require('@xen-orchestra/log')
+const { createParser } = require('parse-pairs')
+const { execFile } = require('child_process')
 
 const { debug } = createLogger('xo:proxy:api')
 
@@ -22,7 +22,8 @@ const IGNORED_PARTITION_TYPES = {
   0x82: true, // swap
 }
 
-export const LVM_PARTITION_TYPE = 0x8e
+const LVM_PARTITION_TYPE = 0x8e
+exports.LVM_PARTITION_TYPE = LVM_PARTITION_TYPE
 
 const parsePartxLine = createParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
@@ -30,7 +31,7 @@ const parsePartxLine = createParser({
 })
 
 // returns an empty array in case of a non-partitioned disk
-export const listPartitions = async devicePath => {
+exports.listPartitions = async function listPartitions(devicePath) {
   const parts = await fromCallback(execFile, 'partx', [
     '--bytes',
     '--output=NR,START,SIZE,NAME,UUID,TYPE',
