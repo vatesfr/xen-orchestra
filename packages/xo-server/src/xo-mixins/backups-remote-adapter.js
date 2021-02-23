@@ -17,7 +17,7 @@ export default class BackupsRemoteAdapter {
   })
   @decorateWith(deduped, remote => [remote.url])
   @decorateWith(Disposable.factory)
-  async getBackupsRemoteAdapter(remote) {
+  async *getBackupsRemoteAdapter(remote) {
     const app = this._app
     return new RemoteAdapter(await app.getRemoteHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
