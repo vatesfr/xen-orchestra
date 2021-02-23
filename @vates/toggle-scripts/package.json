@@ -1,0 +1,41 @@
+{
+  "private": false,
+  "name": "@vates/toggle-scripts",
+  "description": "Easily enable/disable scripts in package.json",
+  "keywords": [
+    "dev",
+    "disable",
+    "enable",
+    "lifecycle",
+    "npm",
+    "package.json",
+    "pinst",
+    "postinstall",
+    "script",
+    "scripts",
+    "toggle"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/toggle-scripts",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/toggle-scripts",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=6"
+  },
+  "files": [
+    "index.j"
+  ],
+  "bin": "./index.js",
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}
