@@ -12,6 +12,7 @@ import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
+import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
@@ -965,37 +966,13 @@ export default class BackupNg {
       await Promise.all(
         entries.map(async vmUuid => {
           // $FlowFixMe don't know what is the problem (JFT)
-          const backups = await this._listVmBackups(handler, vmUuid)
+          const backups = await this._listVmBackups(handler, remoteId, vmUuid)
 
           if (backups.length === 0) {
             return
           }
 
-          backupsByVm[vmUuid] = backups.map(backup => ({
-            disks:
-              backup.vhds === undefined
-                ? []
-                : Object.keys(backup.vhds).map(vdiId => {
-                    const vdi = backup.vdis[vdiId]
-                    return {
-                      id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
-                      name: vdi.name_label,
-                      uuid: vdi.uuid,
-                    }
-                  }),
-
-            // inject an id usable by importVmBackupNg()
-            id: `${remoteId}/${backup._filename}`,
-            jobId: backup.jobId,
-            mode: backup.mode,
-            scheduleId: backup.scheduleId,
-            size: backup.size,
-            timestamp: backup.timestamp,
-            vm: {
-              name_description: backup.vm.name_description,
-              name_label: backup.vm.name_label,
-            },
-          }))
+          backupsByVm[vmUuid] = backups.map(backup => formatVmBackup(backup))
         })
       )
     } catch (error) {
@@ -1349,7 +1326,7 @@ export default class BackupNg {
 
               const oldBackups: MetadataFull[] = (getOldEntries(
                 exportRetention - 1,
-                await this._listVmBackups(handler, vm, _ => _.mode === 'full' && _.scheduleId === scheduleId)
+                await this._listVmBackups(handler, remoteId, vm, _ => _.mode === 'full' && _.scheduleId === scheduleId)
               ): any)
 
               const deleteOldBackups = () =>
@@ -1646,7 +1623,7 @@ export default class BackupNg {
 
               const oldBackups: MetadataDelta[] = (getOldEntries(
                 exportRetention - 1,
-                await this._listVmBackups(handler, vm, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
+                await this._listVmBackups(handler, remoteId, vm, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
               ): any)
 
               // FIXME: implement optimized multiple VHDs merging with synthetic
@@ -1897,6 +1874,7 @@ export default class BackupNg {
 
   async _listVmBackups(
     handler: RemoteHandler,
+    remoteId,
     vm: Object | string,
     predicate?: Metadata => boolean
   ): Promise<Metadata[]> {
@@ -1924,6 +1902,7 @@ export default class BackupNg {
               Object.defineProperty(metadata, '_filename', {
                 value: path,
               })
+              metadata.id = `${remoteId}/${path}`
               backups.push(metadata)
             }
           } catch (error) {
