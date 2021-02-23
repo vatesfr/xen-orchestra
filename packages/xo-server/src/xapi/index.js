@@ -15,7 +15,22 @@ import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import { Xapi as XapiBase, NULL_REF } from 'xen-api'
-import { every, filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, uniq } from 'lodash'
+import {
+  every,
+  filter,
+  find,
+  flatMap,
+  flatten,
+  groupBy,
+  identity,
+  includes,
+  intersection,
+  isEmpty,
+  noop,
+  omit,
+  once,
+  uniq,
+} from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
@@ -1097,15 +1112,29 @@ export default class Xapi extends XapiBase {
       force = false,
     }
   ) {
+    const getDefaultSrRef = once(() => {
+      if (sr !== undefined) {
+        return hostXapi.getObject(sr).$ref
+      }
+      const defaultSr = host.$pool.$default_SR
+      if (defaultSr === undefined) {
+        throw new Error(`This operation requires a default SR to be set on the pool ${host.$pool.name_label}`)
+      }
+      return defaultSr.$ref
+    })
     // VDIs/SRs mapping
-    const srRef = hostXapi.getObject(sr).$ref
     const vdis = {}
+    const hostPbds = host.$PBDs
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
         vdis[vdi.$ref] =
-          mapVdisSrs && mapVdisSrs[vdi.$id] ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref : srRef ?? vdi.$SR.$ref
+          mapVdisSrs && mapVdisSrs[vdi.$id]
+            ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
+            : intersection(vdi.$SR.$PBDs, hostPbds).length === 0
+            ? getDefaultSrRef()
+            : vdi.$SR.$ref
       }
     }
 
