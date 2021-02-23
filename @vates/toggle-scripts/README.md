@@ -22,8 +22,8 @@ Usage: toggle-scripts options...
   Easily enable/disable scripts in package.json
 
   Options
-    +<script>    Enable the script <script>, ie prefix it with `_`
-    -<script>    Disable the script <script>, ie remove the prefix `_`
+    +<script>    Enable the script <script>, ie remove the prefix `_`
+    -<script>    Disable the script <script>, ie prefix it with `_`
 
   Examples
     toggle-scripts +postinstall +preuninstall

@@ -19,8 +19,8 @@ if (pkgPath === undefined) {
   ${description}
 
   Options
-    +<script>    Enable the script <script>, ie prefix it with \`_\`
-    -<script>    Disable the script <script>, ie remove the prefix \`_\`
+    +<script>    Enable the script <script>, ie remove the prefix \`_\`
+    -<script>    Disable the script <script>, ie prefix it with \`_\`
 
   Examples
     ${bin} +postinstall +preuninstall
