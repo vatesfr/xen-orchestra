@@ -3,9 +3,12 @@ import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import mixin from '@xen-orchestra/mixin'
 import { createClient as createRedisClient } from 'redis'
+import { createDebounceResource } from '@vates/disposable/debounceResource'
 import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
 import { forEach, includes, isEmpty, iteratee, map as mapToArray, stubTrue } from 'lodash'
+import { ifDef } from '@xen-orchestra/defined'
+import { parseDuration } from '@vates/parse-duration'
 
 import mixins from './xo-mixins'
 import Connection from './connection'
@@ -46,6 +49,12 @@ export default class Xo extends EventEmitter {
     }
 
     this.on('start', () => this._watchObjects())
+
+    const debounceResource = createDebounceResource()
+    debounceResource.defaultDelay = ifDef(config.resourceDebounce, parseDuration)
+    this.once('stop', debounceResource.flushAll)
+
+    this.debounceResource = debounceResource
   }
 
   // -----------------------------------------------------------------
