@@ -5,6 +5,7 @@ import { createParser as createPairsParser } from 'parse-pairs'
 import { decorateWith } from '@vates/decorate-with'
 import { normalize } from 'path'
 import { readdir, rmdir, stat } from 'fs-extra'
+import { using } from 'promise-toolbox'
 import { ZipFile } from 'yazl'
 
 import { dedupeUnmount } from '../_dedupeUnmount'
@@ -200,19 +201,18 @@ export default class BackupNgFileRestore {
     return zip.outputStream.on('end', () => partition.unmount().then(disk.unmount))
   }
 
-  @defer
-  async listBackupNgDiskPartitions($defer, remoteId, diskId) {
+  async listBackupNgDiskPartitions(remoteId, diskId) {
     const app = this._app
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
+    const remote = await app.getRemoteWithCredentials(remoteId)
+    if (remote.proxy !== undefined) {
       const stream = await app.callProxyMethod(
-        proxy,
+        remote.proxy,
         'backup.listDiskPartitions',
         {
           disk: diskId,
           remote: {
-            url,
-            options,
+            url: remote.url,
+            options: remote.options,
           },
         },
         { assertType: 'iterator' }
@@ -223,11 +223,9 @@ export default class BackupNgFileRestore {
         partitions.push(partition)
       }
       return partitions
+    } else {
+      return using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPartitions(diskId))
     }
-
-    const disk = await this._mountDisk(remoteId, diskId)
-    $defer(disk.unmount)
-    return this._listPartitions(disk.path)
   }
 
   @defer
