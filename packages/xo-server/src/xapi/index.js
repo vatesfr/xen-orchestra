@@ -24,7 +24,6 @@ import {
   groupBy,
   identity,
   includes,
-  intersection,
   isEmpty,
   noop,
   omit,
@@ -1122,9 +1121,20 @@ export default class Xapi extends XapiBase {
       }
       return defaultSr.$ref
     })
+
+    const hostPbds = new Set(host.PBDs)
+    const connectedSrs = new Map()
+    const isConnectedSr = sr => {
+      let isConnected = connectedSrs.get(sr.$ref)
+      if (isConnected === undefined) {
+        isConnected = sr.PBDs.find(ref => hostPbds.has(ref))
+        connectedSrs.set(sr.$ref, isConnected)
+      }
+      return isConnected !== undefined
+    }
+
     // VDIs/SRs mapping
     const vdis = {}
-    const hostPbds = host.$PBDs
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
@@ -1132,9 +1142,9 @@ export default class Xapi extends XapiBase {
         vdis[vdi.$ref] =
           mapVdisSrs !== undefined && mapVdisSrs[vdi.$id] !== undefined
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-            : intersection(vdi.$SR.$PBDs, hostPbds).length === 0
-            ? getDefaultSrRef()
-            : vdi.$SR.$ref
+            : isConnectedSr(vdi.$SR)
+            ? vdi.$SR.$ref
+            : getDefaultSrRef()
       }
     }
 
