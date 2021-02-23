@@ -67,7 +67,7 @@ exports.FullBackupWriter = class FullBackupWriter {
     }
 
     await Task.run({ name: 'transfer' }, async () => {
-      await adapter.outputStream(stream, dataFilename, {
+      await adapter.outputStream(dataFilename, stream, {
         validator: tmpPath => {
           if (handler._getFilePath !== undefined) {
             return isValidXva(handler._getFilePath('/' + tmpPath))

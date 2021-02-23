@@ -173,7 +173,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
             await checkVhd(handler, parentPath)
           }
 
-          await adapter.outputStream(deltaExport.streams[`${id}.vhd`], path, {
+          await adapter.outputStream(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,

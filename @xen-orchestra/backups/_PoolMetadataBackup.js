@@ -62,7 +62,7 @@ exports.PoolMetadataBackup = class PoolMetadataBackup {
           },
           async () => {
             // forkStreamUnpipe should be used in a sync way, do not wait for a promise before using it
-            await adapter.outputStream(forkStreamUnpipe(stream), fileName, { checksum: false })
+            await adapter.outputStream(fileName, forkStreamUnpipe(stream), { checksum: false })
             await adapter.handler.outputFile(metaDataFileName, metadata, {
               dirMode: this._config.dirMode,
             })
