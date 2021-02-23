@@ -26,7 +26,7 @@
 - [New SR] Fix `lun.LUNid.trim is not a function` error [#5497](https://github.com/vatesfr/xen-orchestra/issues/5497) (PR [#5581](https://github.com/vatesfr/xen-orchestra/pull/5581))
 - [Home/vm] Bulk intra pool migration: fix VM VDIs on a shared SR wrongly migrated to the default SR (PR [#3987](https://github.com/vatesfr/xen-orchestra/pull/3987))
 - [Select] Display the option on multiple lines if needed (PR [#5580](https://github.com/vatesfr/xen-orchestra/pull/5580))
-- [VM/advance] Fix 'an error has occurred' in advanced tab [#5592](https://github.com/vatesfr/xen-orchestra/issues/5592) (PR [#5604](https://github.com/vatesfr/xen-orchestra/pull/5604))
+- [VM/advanced] Fix `an error has occurred` in `Misc` section [#5592](https://github.com/vatesfr/xen-orchestra/issues/5592) (PR [#5604](https://github.com/vatesfr/xen-orchestra/pull/5604))
 
 ### Packages to release
 
