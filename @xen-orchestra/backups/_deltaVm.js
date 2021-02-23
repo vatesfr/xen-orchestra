@@ -212,6 +212,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       },
     },
     {
+      bios_strings: vmRecord.bios_strings,
       suspend_VDI: suspendVdi?.$ref,
     }
   )
