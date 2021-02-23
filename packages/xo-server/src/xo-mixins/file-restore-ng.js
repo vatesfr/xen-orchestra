@@ -4,7 +4,7 @@ import splitLines from 'split-lines'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { decorateWith } from '@vates/decorate-with'
 import { normalize } from 'path'
-import { readdir, rmdir, stat } from 'fs-extra'
+import { readdir, rmdir } from 'fs-extra'
 import { using } from 'promise-toolbox'
 import { ZipFile } from 'yazl'
 
@@ -228,44 +228,20 @@ export default class BackupNgFileRestore {
     }
   }
 
-  @defer
-  async listBackupNgPartitionFiles($defer, remoteId, diskId, partitionId, path) {
+  async listBackupNgPartitionFiles(remoteId, diskId, partitionId, path) {
     const app = this._app
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      return app.callProxyMethod(proxy, 'backup.listPartitionFiles', {
-        disk: diskId,
-        remote: {
-          url,
-          options,
-        },
-        partition: partitionId,
-        path,
-      })
-    }
-
-    const disk = await this._mountDisk(remoteId, diskId)
-    $defer(disk.unmount)
-
-    const partition = await this._mountPartition(disk.path, partitionId)
-    $defer(partition.unmount)
-
-    path = resolveSubpath(partition.path, path)
-
-    const entriesMap = {}
-    await Promise.all(
-      (await readdir(path)).map(async name => {
-        try {
-          const stats = await stat(`${path}/${name}`)
-          entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
-        } catch (error) {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-        }
-      })
-    )
-    return entriesMap
+    const remote = await app.getRemoteWithCredentials(remoteId)
+    return remote.proxy !== undefined
+      ? app.callProxyMethod(remote.proxy, 'backup.listPartitionFiles', {
+          disk: diskId,
+          remote: {
+            url: remote.url,
+            options: remote.options,
+          },
+          partition: partitionId,
+          path,
+        })
+      : using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPartitionFiles(diskId, partitionId, path))
   }
 
   async _findPartition(devicePath, partitionId) {
