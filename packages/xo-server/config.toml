@@ -5,7 +5,7 @@
 datadir = '/var/lib/xo-server/data'
 
 # Delay for which a resource is cached
-resourceDebounce = '5m'
+resourceCacheDelay = '5m'
 
 # Should users be created on first sign in?
 #
