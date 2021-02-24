@@ -1127,7 +1127,7 @@ export default class Xapi extends XapiBase {
     const isConnectedSr = sr => {
       let isConnected = connectedSrs.get(sr.$ref)
       if (isConnected === undefined) {
-        isConnected = sr.PBDs.find(ref => hostPbds.has(ref))
+        isConnected = sr.PBDs.some(ref => hostPbds.has(ref))
         connectedSrs.set(sr.$ref, isConnected)
       }
       return isConnected !== undefined
