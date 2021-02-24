@@ -37,7 +37,6 @@ exports.Backup = class Backup {
     this._config = config
     this._getRecord = getConnectedRecord
     this._job = job
-    this._remotes = remotes
     this._schedule = schedule
 
     this._getAdapter = Disposable.factory(function* (remoteId) {
