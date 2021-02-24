@@ -1106,7 +1106,7 @@ export default class Xapi extends XapiBase {
     {
       migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
       sr,
-      mapVdisSrs,
+      mapVdisSrs = {},
       mapVifsNetworks,
       force = false,
     }
@@ -1139,8 +1139,11 @@ export default class Xapi extends XapiBase {
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
+        // - If SR was explicitly passed: use it
+        // - Else if VDI SR is reachable from the destination host: use it
+        // - Else: use the default SR for this migration or default SR for this pool
         vdis[vdi.$ref] =
-          mapVdisSrs !== undefined && mapVdisSrs[vdi.$id] !== undefined
+          mapVdisSrs[vdi.$id] !== undefined
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
             : isConnectedSr(vdi.$SR)
             ? vdi.$SR.$ref
