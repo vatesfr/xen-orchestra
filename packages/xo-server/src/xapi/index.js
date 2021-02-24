@@ -1140,7 +1140,7 @@ export default class Xapi extends XapiBase {
     // - Else: use the migration main SR or the pool's default SR (error if none of them is defined)
     // For VDI-snapshot:
     // - If VDI-snapshot is an orphan snapshot: same logic as a VDI
-    // - Else: don't add it to the map (VDI -> SR). It will be managed By the XAPI (snapshot will be migrated to the same SR as an active VDI)
+    // - Else: don't add it to the map (VDI -> SR). It will be managed by the XAPI (snapshot will be migrated to the same SR as its parent active VDI)
     const vdis = {}
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
