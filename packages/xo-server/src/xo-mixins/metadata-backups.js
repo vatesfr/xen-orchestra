@@ -18,8 +18,6 @@ const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
-const compareTimestamp = (a, b) => a.timestamp - b.timestamp
-
 const DEFAULT_RETENTION = 0
 
 type ReportWhen = 'always' | 'failure' | 'never'
@@ -53,14 +51,6 @@ const logInstantFailureTask = (logger, { data, error, message, parentId }) => {
     taskId,
   })
 }
-
-const createSafeReaddir = (handler, methodName) => (path, options) =>
-  handler.list(path, options).catch(error => {
-    if (error?.code !== 'ENOENT') {
-      log.warn(`${methodName} ${path}`, { error })
-    }
-    return []
-  })
 
 const deleteOldBackups = (handler, dir, retention, handleError) =>
   handler.list(dir).then(list => {
@@ -659,43 +649,28 @@ export default class metadataBackup {
   // }]
   async _listXoMetadataBackups(remoteId) {
     const app = this._app
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      const { [remoteId]: backups } = await app.callProxyMethod(proxy, 'backup.listXoMetadataBackups', {
+    const remote = await app.getRemoteWithCredentials(remoteId)
+
+    let backups
+    if (remote.proxy !== undefined) {
+      ;({ [remoteId]: backups } = await app.callProxyMethod(remote.proxy, 'backup.listXoMetadataBackups', {
         remotes: {
           [remoteId]: {
-            url,
-            options,
+            url: remote.url,
+            options: remote.options,
           },
         },
-      })
-
-      // inject the remote id on the backup which is needed for restoreMetadataBackup()
-      backups.forEach(backup => {
-        backup.id = `${remoteId}${backup.id}`
-      })
-
-      return backups
+      }))
+    } else {
+      backups = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listXoMetadataBackups())
     }
 
-    const handler = await this._app.getRemoteHandler(remoteId)
-    const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
+    // inject the remote id on the backup which is needed for restoreMetadataBackup()
+    backups.forEach(backup => {
+      backup.id = `${remoteId}${backup.id}`
+    })
 
-    const backups = []
-    await asyncMap(safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMap(safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
-        try {
-          backups.push({
-            id: `${remoteId}${backupDir}`,
-            ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
-          })
-        } catch (error) {
-          log.warn(`listXoMetadataBackups ${backupDir}`, { error })
-        }
-      })
-    )
-
-    return backups.sort(compareTimestamp)
+    return backups
   }
 
   // poolBackups
