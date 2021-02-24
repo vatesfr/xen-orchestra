@@ -1,6 +1,6 @@
 const { dirname } = require('path')
 
-exports.formatVmBackup = backup => {
+exports.formatVmBackup = function formatVmBackup(backup) {
   return {
     disks:
       backup.vhds === undefined
