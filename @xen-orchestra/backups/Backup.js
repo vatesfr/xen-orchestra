@@ -25,15 +25,7 @@ const getAdaptersByRemote = adapters => {
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
 exports.Backup = class Backup {
-  constructor({
-    config,
-    getAdapter,
-    getConnectedRecord,
-    job,
-
-    remotes,
-    schedule,
-  }) {
+  constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
     this._getRecord = getConnectedRecord
     this._job = job
@@ -41,7 +33,7 @@ exports.Backup = class Backup {
 
     this._getAdapter = Disposable.factory(function* (remoteId) {
       return {
-        adapter: yield getAdapter(remotes[remoteId]),
+        adapter: yield getAdapter(remoteId),
         remoteId,
       }
     })
