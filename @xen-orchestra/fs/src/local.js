@@ -1,6 +1,6 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
-import { fromEvent } from 'promise-toolbox'
+import { fromEvent, retry } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -92,7 +92,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _readFile(file, options) {
-    return fs.readFile(this._getFilePath(file), options)
+    return retry(() => fs.readFile(this._getFilePath(file), options), {
+      tries: 2,
+      when: { code: 'EAGAIN' },
+    })
   }
 
   async _rename(oldPath, newPath) {
