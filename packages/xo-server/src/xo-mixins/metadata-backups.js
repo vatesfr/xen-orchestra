@@ -2,6 +2,7 @@
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout, using } from 'promise-toolbox'
+import { getMetadataBackupTypeFromId } from '@xen-orchestra/backups/getMedataBackupTypeFromId'
 import { parseDuration } from '@vates/parse-duration'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
@@ -877,17 +878,16 @@ export default class metadataBackup {
     const backupId = path.join('/')
     const remote = await app.getRemoteWithCredentials(remoteId)
 
-    let backupType
     if (remote.proxy !== undefined) {
-      backupType = await app.callProxyMethod(remote.proxy, 'backup.deleteMetadataBackup', {
+      await app.callProxyMethod(remote.proxy, 'backup.deleteMetadataBackup', {
         backupId,
         remote: { url: remote.url, options: remote.options },
       })
     } else {
-      backupType = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId))
+      await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId))
     }
 
-    if (backupType === 'xo-config-backups') {
+    if (getMetadataBackupTypeFromId(backupId) === 'xo-config-backups') {
       this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
     } else {
       this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
