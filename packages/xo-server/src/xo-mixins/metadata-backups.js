@@ -889,7 +889,7 @@ export default class metadataBackup {
       await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId))
     }
 
-    if (parseMetadataBackupId(backupId).type === 'xo-config-backups') {
+    if (parseMetadataBackupId(backupId).type === 'xoConfig') {
       this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
     } else {
       this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
