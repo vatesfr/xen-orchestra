@@ -1137,7 +1137,7 @@ export default class Xapi extends XapiBase {
     // For VDI:
     // - If SR was explicitly passed: use it
     // - Else if VDI SR is reachable from the destination host: use it
-    // - Else: use the migration main SR or the pool's default SR
+    // - Else: use the migration main SR or the pool's default SR (error if none of them is defined)
     // For VDI-snapshot:
     // - If VDI-snapshot is an orphan snapshot: same logic as a VDI
     // - Else: don't add it to the map (VDI -> SR). It will be managed By the XAPI (snapshot will be migrated to the same SR as an active VDI)
