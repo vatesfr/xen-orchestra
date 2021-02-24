@@ -28,17 +28,15 @@ exports.Backup = class Backup {
   constructor({
     config,
     getAdapter,
-    getConnectedXapi,
+    getConnectedRecord,
     job,
 
-    recordToXapi,
     remotes,
     schedule,
   }) {
     this._config = config
-    this._getConnectedXapi = getConnectedXapi
+    this._getRecord = getConnectedRecord
     this._job = job
-    this._recordToXapi = recordToXapi
     this._remotes = remotes
     this._schedule = schedule
 
@@ -217,16 +215,5 @@ exports.Backup = class Backup {
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )
-  }
-
-  _getRecord = Disposable.factory(this._getRecord)
-  async *_getRecord(type, uuid) {
-    const xapiId = this._recordToXapi[uuid]
-    if (xapiId === undefined) {
-      throw new Error('no XAPI associated to ' + uuid)
-    }
-
-    const xapi = yield this._getConnectedXapi(xapiId)
-    return xapi.getRecordByUuid(type, uuid)
   }
 }

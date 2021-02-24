@@ -47,7 +47,7 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = ({ xapis, ...rest }) =>
+    let run = ({ recordToXapi, xapis, ...rest }) =>
       new Backup({
         ...rest,
 
@@ -56,7 +56,15 @@ export default class Backups {
 
         // pass getAdapter in order to mutualize the adapter resources usage
         getAdapter: this.getAdapter.bind(this),
-        getConnectedXapi: id => this.getXapi(xapis[id]),
+        getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
+          const xapiId = recordToXapi[uuid]
+          if (xapiId === undefined) {
+            throw new Error('no XAPI associated to ' + uuid)
+          }
+
+          const xapi = yield this.getXapi(xapis[xapiId])
+          return xapi.getRecordByUuid(type, uuid)
+        }),
       }).run()
 
     const runningJobs = { __proto__: null }
