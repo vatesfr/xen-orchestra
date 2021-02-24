@@ -1124,28 +1124,32 @@ export default class Xapi extends XapiBase {
 
     const hostPbds = new Set(host.PBDs)
     const connectedSrs = new Map()
-    const isConnectedSr = sr => {
+    const isSrConnected = sr => {
       let isConnected = connectedSrs.get(sr.$ref)
       if (isConnected === undefined) {
         isConnected = sr.PBDs.some(ref => hostPbds.has(ref))
         connectedSrs.set(sr.$ref, isConnected)
       }
-      return isConnected !== undefined
+      return isConnected
     }
 
     // VDIs/SRs mapping
+    // For VDI:
     // - If SR was explicitly passed: use it
     // - Else if VDI SR is reachable from the destination host: use it
-    // - Else: use the default SR for migration or default SR for pool
+    // - Else: use the main SR for migration or default SR for pool
+    // For VDI-snapshot:
+    // - If it's an orphan snapshot: same logic as a VDI
+    // - Else: don't add it to the map (VDI -> SR), it will be migrated to the same SR as active VDI (managed By XAPI)
     const vdis = {}
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
-      if (vbd.type === 'Disk') {
+      if (vbd.type === 'Disk' && vdi.$snapshot_of === undefined) {
         vdis[vdi.$ref] =
           mapVdisSrs[vdi.$id] !== undefined
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
-            : isConnectedSr(vdi.$SR)
+            : isSrConnected(vdi.$SR)
             ? vdi.$SR.$ref
             : getDefaultSrRef()
       }
