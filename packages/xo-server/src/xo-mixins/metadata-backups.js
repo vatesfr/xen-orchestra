@@ -793,7 +793,7 @@ export default class metadataBackup {
     let rootTaskId
     const localTaskIds = { __proto__: null }
     const onLog = async log => {
-      if (type === 'xoConfig' && log.parentId === undefined && log.status === 'success') {
+      if (type === 'xoConfig' && log.taskId === rootTaskId && log.status === 'success') {
         try {
           await app.importConfig(log.result)
 
