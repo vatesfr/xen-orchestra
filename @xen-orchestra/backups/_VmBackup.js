@@ -13,7 +13,7 @@ const { exportDeltaVm } = require('./_deltaVm')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
 const { FullBackupWriter } = require('./_FullBackupWriter')
 const { getOldEntries } = require('./_getOldEntries')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 const { watchStreamSize } = require('./_watchStreamSize')
 
 const { debug, warn } = createLogger('xo:proxy:backups:VmBackup')

@@ -5,7 +5,7 @@ const { formatDateTime } = require('@xen-orchestra/xapi')
 const { formatFilenameDate } = require('./_filenameDate')
 const { getOldEntries } = require('./_getOldEntries')
 const { listReplicatedVms } = require('./_listReplicatedVms')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 exports.DisasterRecoveryWriter = class DisasterRecoveryWriter {
   constructor(backup, sr, settings) {

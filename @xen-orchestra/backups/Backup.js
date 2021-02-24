@@ -8,7 +8,7 @@ const { compileTemplate } = require('@xen-orchestra/template')
 const { asyncMap } = require('./asyncMap')
 const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern')
 const { PoolMetadataBackup } = require('./_PoolMetadataBackup')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 const { VmBackup } = require('./_VmBackup')
 const { XoMetadataBackup } = require('./_XoMetadataBackup')
 

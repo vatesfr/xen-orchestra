@@ -2,7 +2,7 @@ const { asyncMap } = require('./asyncMap')
 const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
 const { formatFilenameDate } = require('./_filenameDate')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
 exports.PATH_DB_DUMP = PATH_DB_DUMP
