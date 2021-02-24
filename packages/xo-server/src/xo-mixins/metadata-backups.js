@@ -874,29 +874,20 @@ export default class metadataBackup {
   async deleteMetadataBackup(id: string) {
     const app = this._app
     const [remoteId, ...path] = id.split('/')
-    const metadataFolder = path.join('/')
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      await app.callProxyMethod(proxy, 'backup.deleteMetadataBackup', {
-        backupId: metadataFolder,
-        remote: { url, options },
+    const backupId = path.join('/')
+    const remote = await app.getRemoteWithCredentials(remoteId)
+
+    let backupType
+    if (remote.proxy !== undefined) {
+      backupType = await app.callProxyMethod(remote.proxy, 'backup.deleteMetadataBackup', {
+        backupId,
+        remote: { url: remote.url, options: remote.options },
       })
     } else {
-      const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-      const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-      const timestampReg = '\\d{8}T\\d{6}Z'
-
-      const regexp = new RegExp(`^/?${uuidReg}/${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-
-      if (!regexp.test(id)) {
-        throw new Error(`The id (${id}) not correspond to a metadata folder`)
-      }
-
-      const handler = await app.getRemoteHandler(remoteId)
-      await handler.rmtree(metadataFolder)
+      backupType = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId))
     }
 
-    if (path[0] === 'xo-config-backups') {
+    if (backupType === 'xo-config-backups') {
       this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
     } else {
       this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)

@@ -271,12 +271,15 @@ exports.RemoteAdapter = class RemoteAdapter {
     const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
     const metadataDirReg = 'xo-(config|pool-metadata)-backups'
     const timestampReg = '\\d{8}T\\d{6}Z'
-    const regexp = new RegExp(`^${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-    if (!regexp.test(backupId)) {
+    const regExpResult = new RegExp(`^(${metadataDirReg})/${uuidReg}(/${uuidReg})?/${timestampReg}$`).exec(backupId)
+    if (regExpResult === null) {
       throw new Error(`The id (${backupId}) not correspond to a metadata folder`)
     }
 
     await this._handler.rmtree(backupId)
+
+    // `xo-server` needs to identify the type of the deleted backup to be able to invalidate the appropriate listing cache
+    return regExpResult[1]
   }
 
   async deleteOldMetadataBackups(dir, retention) {
