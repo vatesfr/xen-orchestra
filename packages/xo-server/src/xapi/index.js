@@ -1137,15 +1137,19 @@ export default class Xapi extends XapiBase {
     // For VDI:
     // - If SR was explicitly passed: use it
     // - Else if VDI SR is reachable from the destination host: use it
-    // - Else: use the main SR for migration or default SR for pool
+    // - Else: use the migration main SR or the pool's default SR
     // For VDI-snapshot:
-    // - If it's an orphan snapshot: same logic as a VDI
-    // - Else: don't add it to the map (VDI -> SR), it will be migrated to the same SR as active VDI (managed By XAPI)
+    // - If VDI-snapshot is an orphan snapshot: same logic as a VDI
+    // - Else: don't add it to the map (VDI -> SR). It will be managed By the XAPI (snapshot will be migrated to the same SR as an active VDI)
     const vdis = {}
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
-      const vdi = vbd.$VDI
-      if (vbd.type === 'Disk' && vdi.$snapshot_of === undefined) {
+      if (vbd.type === 'Disk') {
+        const vdi = vbd.$VDI
+        // Ignore VDI snapshots which have a parent
+        if (vdi.$snapshot_of !== undefined) {
+          continue
+        }
         vdis[vdi.$ref] =
           mapVdisSrs[vdi.$id] !== undefined
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
