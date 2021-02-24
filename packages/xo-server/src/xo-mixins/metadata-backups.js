@@ -1,7 +1,7 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { fromEvent, ignoreErrors, timeout, using } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
@@ -713,58 +713,28 @@ export default class metadataBackup {
   // }
   async _listPoolMetadataBackups(remoteId) {
     const app = this._app
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      const { [remoteId]: backupsByPool } = await app.callProxyMethod(proxy, 'backup.listPoolMetadataBackups', {
+    const remote = await app.getRemoteWithCredentials(remoteId)
+
+    let backupsByPool
+    if (remote.proxy !== undefined) {
+      ;({ [remoteId]: backupsByPool } = await app.callProxyMethod(remote.proxy, 'backup.listPoolMetadataBackups', {
         remotes: {
           [remoteId]: {
-            url,
-            options,
+            url: remote.url,
+            options: remote.options,
           },
         },
-      })
-
-      // inject the remote id on the backup which is needed for restoreMetadataBackup()
-      Object.values(backupsByPool).forEach(backups =>
-        backups.forEach(backup => {
-          backup.id = `${remoteId}${backup.id}`
-        })
-      )
-
-      return backupsByPool
+      }))
+    } else {
+      backupsByPool = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPoolMetadataBackups())
     }
 
-    const handler = await this._app.getRemoteHandler(remoteId)
-    const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
-
-    const backupsByPool = {}
-    await asyncMap(safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMap(safeReaddir(scheduleDir), poolId => {
-        const backups = backupsByPool[poolId] ?? (backupsByPool[poolId] = [])
-        return asyncMap(safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
-          try {
-            backups.push({
-              id: `${remoteId}${backupDir}`,
-              ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
-            })
-          } catch (error) {
-            log.warn(`listPoolMetadataBackups ${backupDir}`, {
-              error,
-            })
-          }
-        })
+    // inject the remote id on the backup which is needed for restoreMetadataBackup()
+    Object.values(backupsByPool).forEach(backups =>
+      backups.forEach(backup => {
+        backup.id = `${remoteId}${backup.id}`
       })
     )
-
-    // delete empty entries and sort backups
-    Object.keys(backupsByPool).forEach(poolId => {
-      const backups = backupsByPool[poolId]
-      if (backups.length === 0) {
-        delete backupsByPool[poolId]
-      } else {
-        backups.sort(compareTimestamp)
-      }
-    })
 
     return backupsByPool
   }
