@@ -10,8 +10,8 @@ const mapKeys = (object, iteratee) => {
   return result
 }
 
-const pkgPath = process.env.npm_package_json
-if (pkgPath === undefined) {
+const args = process.argv.slice(2)
+if (args.length === 0) {
   const { description, name, version } = require('./package.json')
   const bin = 'toggle-scripts'
   process.stdout.write(`Usage: ${bin} options...
@@ -32,7 +32,7 @@ ${name} v${version}
 }
 
 const plan = { __proto__: null }
-for (const arg of process.argv.slice(2)) {
+for (const arg of args) {
   const action = arg[0]
   const script = arg.slice(1)
 
@@ -45,6 +45,7 @@ for (const arg of process.argv.slice(2)) {
   }
 }
 
+const pkgPath = process.env.npm_package_json || './package.json'
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
 pkg.scripts = mapKeys(pkg.scripts, (name, scripts) => {
   const newName = plan[name]
