@@ -1134,14 +1134,14 @@ export default class Xapi extends XapiBase {
     }
 
     // VDIs/SRs mapping
+    // - If SR was explicitly passed: use it
+    // - Else if VDI SR is reachable from the destination host: use it
+    // - Else: use the default SR for this migration or default SR for this pool
     const vdis = {}
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
       const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
-        // - If SR was explicitly passed: use it
-        // - Else if VDI SR is reachable from the destination host: use it
-        // - Else: use the default SR for this migration or default SR for this pool
         vdis[vdi.$ref] =
           mapVdisSrs[vdi.$id] !== undefined
             ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
