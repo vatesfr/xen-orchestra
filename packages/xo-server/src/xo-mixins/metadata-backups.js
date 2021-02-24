@@ -791,6 +791,30 @@ export default class metadataBackup {
     const { type, poolUuid } = parseMetadataBackupId(backupId)
 
     let rootTaskId
+    const localTaskIds = { __proto__: null }
+    const onLog = async log => {
+      if (type === 'xoConfig' && log.parentId === undefined && log.status === 'success') {
+        try {
+          await app.importConfig(log.result)
+
+          // don't log the XO config
+          log.result = undefined
+        } catch (error) {
+          log.result = serializeError(error)
+          log.status = 'failure'
+        }
+      }
+
+      handleLog(log, {
+        logger,
+        localTaskIds,
+        handleRootTaskId: id => {
+          this._runningMetadataRestores.add(id)
+          rootTaskId = id
+        },
+      })
+    }
+
     try {
       if (remote.proxy !== undefined) {
         let xapi
@@ -820,46 +844,16 @@ export default class metadataBackup {
             assertType: 'iterator',
           }
         )
-
-        const localTaskIds = { __proto__: null }
         for await (const log of logsStream) {
-          if (type === 'xoConfig' && log.parentId === undefined && log.status === 'success') {
-            try {
-              await app.importConfig(log.result)
-
-              // don't log the XO config
-              log.result = undefined
-            } catch (error) {
-              log.result = serializeError(error)
-              log.status = 'failure'
-            }
-          }
-
-          handleLog(log, {
-            logger,
-            localTaskIds,
-            handleRootTaskId: id => {
-              this._runningMetadataRestores.add(id)
-              rootTaskId = id
-            },
-          })
+          onLog(log)
         }
       } else {
         const handler = await app.getRemoteHandler(remoteId)
-        const localTaskIds = { __proto__: null }
         await Task.run(
           {
             name: 'metadataRestore',
             data: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
-            onLog: log =>
-              handleLog(log, {
-                logger,
-                localTaskIds,
-                handleRootTaskId: id => {
-                  this._runningMetadataRestores.add(id)
-                  rootTaskId = id
-                },
-              }),
+            onLog,
           },
           async () =>
             new RestoreMetadataBackup({
