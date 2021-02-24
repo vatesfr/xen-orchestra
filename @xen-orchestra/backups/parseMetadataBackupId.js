@@ -1,27 +1,23 @@
-const POOL_METADATA_BACKUP_TYPE = 'xo-pool-metadata-backups'
-exports.POOL_METADATA_BACKUP_TYPE = POOL_METADATA_BACKUP_TYPE
-
-const XO_METADATA_BACKUP_TYPE = 'xo-config-backups'
-exports.XO_METADATA_BACKUP_TYPE = XO_METADATA_BACKUP_TYPE
+import { DIR_XO_CONFIG_BACKUPS, DIR_XO_POOL_METADATA_BACKUPS } from './RemoteAdapter'
 
 exports.parseMetadataBackupId = function parseMetadataBackupId(backupId) {
-  const [type, ...rest] = backupId.split('/')
-  if (type === XO_METADATA_BACKUP_TYPE) {
+  const [dir, ...rest] = backupId.split('/')
+  if (dir === DIR_XO_CONFIG_BACKUPS) {
     const [scheduleId, timestamp] = rest
     return {
+      type: 'xoConfig',
       scheduleId,
       timestamp,
-      type,
     }
-  } else if (type === POOL_METADATA_BACKUP_TYPE) {
+  } else if (dir === DIR_XO_POOL_METADATA_BACKUPS) {
     const [scheduleId, poolUuid, timestamp] = rest
     return {
+      type: 'pool',
       poolUuid,
       scheduleId,
       timestamp,
-      type,
     }
   }
 
-  throw new Error(`not supported backup type (${type})`)
+  throw new Error(`not supported backup dir (${dir})`)
 }

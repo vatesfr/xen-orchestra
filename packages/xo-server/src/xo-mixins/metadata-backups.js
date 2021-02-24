@@ -3,7 +3,7 @@ import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout, using } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
-import { parseMetadataBackupId, XO_METADATA_BACKUP_TYPE } from '@xen-orchestra/backups/parseMetadataBackupId'
+import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
 import { Task } from '@xen-orchestra/backups/Task'
 
@@ -823,7 +823,7 @@ export default class metadataBackup {
 
         const localTaskIds = { __proto__: null }
         for await (const log of logsStream) {
-          if (type === XO_METADATA_BACKUP_TYPE && log.parentId === undefined && log.status === 'success') {
+          if (type === 'xoConfig' && log.parentId === undefined && log.status === 'success') {
             try {
               await app.importConfig(log.result)
 
