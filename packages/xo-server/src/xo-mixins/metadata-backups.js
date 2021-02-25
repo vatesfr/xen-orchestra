@@ -39,7 +39,7 @@ type MetadataBackupJob = {
   xoMetadata?: boolean,
 }
 
-const handleLog = (log, { rootTaskId, logger, localTaskIds, handleRootTaskId }) => {
+const handleLog = (log, { runJobId, logger, localTaskIds, handleRootTaskId }) => {
   const { event, message, parentId, taskId } = log
 
   const common = {
@@ -49,12 +49,12 @@ const handleLog = (log, { rootTaskId, logger, localTaskIds, handleRootTaskId }) 
     status: log.status,
   }
 
-  // ignore root task (already logged)
-  if (rootTaskId !== undefined) {
+  // ignore root task (already handled by runJob)
+  if (runJobId !== undefined) {
     if (event === 'start' && parentId === undefined) {
-      localTaskIds[taskId] = rootTaskId
+      localTaskIds[taskId] = runJobId
       return
-    } else if (event === 'end' && localTaskIds[taskId] === rootTaskId) {
+    } else if (event === 'end' && localTaskIds[taskId] === runJobId) {
       if (log.status === 'failure') {
         throw log.result
       }
@@ -184,8 +184,12 @@ export default class metadataBackup {
       throw new Error('no retentions corresponding to the metadata modes found')
     }
 
-    const proxyId = job.proxy
     const app = this._app
+    if (job.xoMetadata) {
+      job.xoMetadata = await app.exportConfig()
+    }
+
+    const proxyId = job.proxy
     try {
       if (proxyId !== undefined) {
         const recordToXapi = {}
@@ -230,10 +234,6 @@ export default class metadataBackup {
           xapis,
         }
 
-        if (job.xoMetadata) {
-          params.job.xoMetadata = await app.exportConfig()
-        }
-
         const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
           assertType: 'iterator',
         })
@@ -243,7 +243,7 @@ export default class metadataBackup {
         let result
         for await (const log of logsStream) {
           result = handleLog(log, {
-            rootTaskId: runJobId,
+            runJobId,
             logger,
             localTaskIds,
           })
@@ -258,7 +258,7 @@ export default class metadataBackup {
             name: 'backup run',
             onLog: log =>
               handleLog(log, {
-                rootTaskId: runJobId,
+                runJobId,
                 logger,
                 localTaskIds,
               }),
