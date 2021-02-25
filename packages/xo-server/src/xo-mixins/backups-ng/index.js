@@ -943,7 +943,7 @@ export default class BackupNg {
           },
         }))
       } else {
-        backupsByVm = await using(app.getBackupsRemoteAdapter(), adapter =>
+        backupsByVm = await using(app.getBackupsRemoteAdapter(remoteId), adapter =>
           adapter.listAllVmBackups({ formatBackups: true })
         )
       }
