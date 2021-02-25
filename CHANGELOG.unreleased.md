@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] During CR/delta backups, bios_strings are restored similarly to DR/full backups
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -28,4 +30,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
+- xo-server patch
