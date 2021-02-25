@@ -279,7 +279,7 @@ export default class Tasks extends Component {
 
   _itemsPerPageContainer = () => this.itemsPerPage
 
-  _setItemsPerPage = element => (this.itemsPerPage = element)
+  _setItemsPerPageContainer = element => (this.itemsPerPage = element)
 
   render() {
     const { props } = this
@@ -297,7 +297,7 @@ export default class Tasks extends Component {
               <div ref={container => this.setState({ container })} />
             </Col>
             <Col mediumSize={1}>
-              <div ref={this._setItemsPerPage} />
+              <div ref={this._setItemsPerPageContainer} />
             </Col>
           </Row>
           <Row>

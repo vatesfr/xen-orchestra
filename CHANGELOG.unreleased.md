@@ -15,7 +15,7 @@
 
 - [LDAP] "Synchronize LDAP groups" button: fix imported LDAP users not being correctly added or removed from groups in some cases (PR [#5545](https://github.com/vatesfr/xen-orchestra/pull/5545))
 - [VM migration] Fix `VIF_NOT_IN_MAP` error (PR [5544](https://github.com/vatesfr/xen-orchestra/pull/5544))
-- [Task] Fix the dropdown `item per page` position (PR [#5584](https://github.com/vatesfr/xen-orchestra/pull/5584))
+- [Task] Fix the items-per-page dropdown position (PR [#5584](https://github.com/vatesfr/xen-orchestra/pull/5584))
 
 ### Packages to release
 
