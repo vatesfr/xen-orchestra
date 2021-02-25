@@ -165,6 +165,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
       migrationNetwork: migrationNetworkId,
+      sr: srId,
       targetHost: host.id,
       vms,
     }
