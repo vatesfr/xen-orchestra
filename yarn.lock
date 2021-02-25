@@ -8706,6 +8706,11 @@ golike-defer@^0.4.1:
   resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.4.1.tgz#7a1cd435d61e461305805d980b133a0f3db4e1cc"
   integrity sha512-x8cq/Fvu32T8cnco3CBDRF+/M2LFmfSIysKfecX09uIK3cFdHcEKBTPlPnEO6lwrdxfjkOIU6dIw3EIlEJeS1A==
 
+golike-defer@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.5.1.tgz#64ead6f3ba71ca3318e9a9de2bd316debe057b8a"
+  integrity sha512-8PBDAYO7tTGWBt2BGJ25s1sSVl2orsgdrrZ9zPyHOus1BvbIuqTRZyNaczPNzyXCfH+IJLildTXPZXvUxEkvgA==
+
 good-listener@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/good-listener/-/good-listener-1.2.2.tgz#d53b30cdf9313dffb7dc9a0d477096aa6d145c50"
