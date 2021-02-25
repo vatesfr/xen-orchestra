@@ -65,7 +65,7 @@ export default class Backups {
 
           const xapi = yield this.getXapi(xapis[xapiId])
           return xapi.getRecordByUuid(type, uuid)
-        }),
+        }).bind(this),
       }).run()
 
     const runningJobs = { __proto__: null }
