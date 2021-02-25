@@ -277,9 +277,9 @@ export default class Tasks extends Component {
     )
   )
 
-  _itemsPerPageContainer = () => this.itemsPerPage
+  _itemsPerPageContainer = () => this.state.itemsPerPageContainer
 
-  _setItemsPerPageContainer = element => (this.itemsPerPage = element)
+  _setItemsPerPageContainer = itemsPerPageContainer => this.setState({ itemsPerPageContainer })
 
   render() {
     const { props } = this
