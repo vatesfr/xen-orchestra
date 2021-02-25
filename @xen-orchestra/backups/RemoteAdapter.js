@@ -18,7 +18,7 @@ const { BACKUP_DIR } = require('./_getVmBackupDir')
 const { getTmpDir } = require('./_getTmpDir')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')
 const { lvs, pvs } = require('./_lvm')
-const { formatVmBackup } = require('./formatVmBackup')
+const { formatVmBackup } = require('./_formatVmBackup')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
