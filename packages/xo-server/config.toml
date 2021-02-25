@@ -104,7 +104,6 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 
-
 [backups.defaultSettings]
 reportWhen = 'failure'
 
