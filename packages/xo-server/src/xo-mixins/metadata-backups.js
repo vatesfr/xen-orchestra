@@ -21,8 +21,6 @@ const log = createLogger('xo:xo-mixins:metadata-backups')
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
-const DEFAULT_RETENTION = 0
-
 type ReportWhen = 'always' | 'failure' | 'never'
 
 type Settings = {|
