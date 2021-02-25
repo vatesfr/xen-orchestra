@@ -247,9 +247,7 @@ export default class Backups {
             await asyncMap(Object.keys(remotes), async remoteId => {
               try {
                 await using(this.getAdapter(remotes[remoteId]), async adapter => {
-                  backups[remoteId] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
-                    vmBackups.map(backup => formatVmBackup(backup))
-                  )
+                  backups[remoteId] = await adapter.listAllVmBackups({ formatBackups: true })
                 })
               } catch (error) {
                 warn('listVmBackups', { error, remote: remotes[remoteId] })
