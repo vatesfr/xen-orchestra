@@ -27,7 +27,7 @@
     "end-of-stream": "^1.4.4",
     "ensure-array": "^1.0.0",
     "fs-extra": "^9.0.0",
-    "golike-defer": "^0.4.1",
+    "golike-defer": "^0.5.1",
     "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.20",
     "node-zone": "^0.4.0",

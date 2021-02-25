@@ -34,7 +34,7 @@
     "@vates/parse-duration": "^0.1.0",
     "app-conf": "^0.8.0",
     "babel-plugin-lodash": "^3.2.11",
-    "golike-defer": "^0.4.1",
+    "golike-defer": "^0.5.1",
     "jest": "^24.8.0",
     "lodash": "^4.17.11",
     "promise-toolbox": "^0.16.0",
