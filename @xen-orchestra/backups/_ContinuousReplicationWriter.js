@@ -7,7 +7,7 @@ const { formatFilenameDate } = require('./_filenameDate')
 const { getOldEntries } = require('./_getOldEntries')
 const { importDeltaVm, TAG_COPY_SRC } = require('./_deltaVm')
 const { listReplicatedVms } = require('./_listReplicatedVms')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
   constructor(backup, sr, settings) {

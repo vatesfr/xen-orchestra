@@ -8,7 +8,7 @@
 authenticationToken = ''
 
 datadir = '/var/lib/xo-proxy/data'
-resourceDebounce = '5m'
+resourceCacheDelay = '5m'
 
 [api]
 keepAliveInterval = 10e3

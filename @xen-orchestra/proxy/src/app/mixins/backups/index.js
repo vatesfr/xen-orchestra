@@ -16,9 +16,8 @@ import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
-import { Task } from '@xen-orchestra/backups/task'
+import { Task } from '@xen-orchestra/backups/Task'
 import { Xapi } from '@xen-orchestra/xapi'
-
 
 const noop = Function.prototype
 
@@ -48,7 +47,7 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = ({ xapis, ...rest }) =>
+    let run = ({ recordToXapi, remotes, xapis, ...rest }) =>
       new Backup({
         ...rest,
 
@@ -56,8 +55,17 @@ export default class Backups {
         config: app.config.get('backups'),
 
         // pass getAdapter in order to mutualize the adapter resources usage
-        getAdapter: this.getAdapter.bind(this),
-        getConnectedXapi: id => this.getXapi(xapis[id]),
+        getAdapter: remoteId => this.getAdapter(remotes[remoteId]),
+
+        getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
+          const xapiId = recordToXapi[uuid]
+          if (xapiId === undefined) {
+            throw new Error('no XAPI associated to ' + uuid)
+          }
+
+          const xapi = yield this.getXapi(xapis[xapiId])
+          return xapi.getRecordByUuid(type, uuid)
+        }).bind(this),
       }).run()
 
     const runningJobs = { __proto__: null }

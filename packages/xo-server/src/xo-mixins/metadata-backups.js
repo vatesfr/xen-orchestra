@@ -1,8 +1,11 @@
 // @flow
 import asyncMap from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { fromEvent, ignoreErrors, timeout, using } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
+import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
+import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
+import { Task } from '@xen-orchestra/backups/Task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { waitAll } from '../_waitAll'
@@ -17,8 +20,6 @@ const log = createLogger('xo:xo-mixins:metadata-backups')
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
-
-const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
 const DEFAULT_RETENTION = 0
 
@@ -54,14 +55,6 @@ const logInstantFailureTask = (logger, { data, error, message, parentId }) => {
   })
 }
 
-const createSafeReaddir = (handler, methodName) => (path, options) =>
-  handler.list(path, options).catch(error => {
-    if (error?.code !== 'ENOENT') {
-      log.warn(`${methodName} ${path}`, { error })
-    }
-    return []
-  })
-
 const deleteOldBackups = (handler, dir, retention, handleError) =>
   handler.list(dir).then(list => {
     list.sort()
@@ -73,6 +66,30 @@ const deleteOldBackups = (handler, dir, retention, handleError) =>
       })
     )
   }, handleError)
+
+const handleLog = (log, { logger, localTaskIds, handleRootTaskId }) => {
+  const { event, message, taskId } = log
+
+  const common = {
+    data: log.data,
+    event: 'task.' + event,
+    result: log.result,
+    status: log.status,
+  }
+
+  if (event === 'start') {
+    const { parentId } = log
+    if (parentId === undefined) {
+      handleRootTaskId((localTaskIds[taskId] = logger.notice(message, common)))
+    } else {
+      common.parentId = localTaskIds[parentId]
+      localTaskIds[taskId] = logger.notice(message, common)
+    }
+  } else {
+    common.taskId = localTaskIds[taskId]
+    logger.notice(message, common)
+  }
+}
 
 // metadata.json
 //
@@ -659,43 +676,28 @@ export default class metadataBackup {
   // }]
   async _listXoMetadataBackups(remoteId) {
     const app = this._app
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      const { [remoteId]: backups } = await app.callProxyMethod(proxy, 'backup.listXoMetadataBackups', {
+    const remote = await app.getRemoteWithCredentials(remoteId)
+
+    let backups
+    if (remote.proxy !== undefined) {
+      ;({ [remoteId]: backups } = await app.callProxyMethod(remote.proxy, 'backup.listXoMetadataBackups', {
         remotes: {
           [remoteId]: {
-            url,
-            options,
+            url: remote.url,
+            options: remote.options,
           },
         },
-      })
-
-      // inject the remote id on the backup which is needed for restoreMetadataBackup()
-      backups.forEach(backup => {
-        backup.id = `${remoteId}${backup.id}`
-      })
-
-      return backups
+      }))
+    } else {
+      backups = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listXoMetadataBackups())
     }
 
-    const handler = await this._app.getRemoteHandler(remoteId)
-    const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
+    // inject the remote id on the backup which is needed for restoreMetadataBackup()
+    backups.forEach(backup => {
+      backup.id = `${remoteId}${backup.id}`
+    })
 
-    const backups = []
-    await asyncMap(safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMap(safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
-        try {
-          backups.push({
-            id: `${remoteId}${backupDir}`,
-            ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
-          })
-        } catch (error) {
-          log.warn(`listXoMetadataBackups ${backupDir}`, { error })
-        }
-      })
-    )
-
-    return backups.sort(compareTimestamp)
+    return backups
   }
 
   // poolBackups
@@ -713,58 +715,28 @@ export default class metadataBackup {
   // }
   async _listPoolMetadataBackups(remoteId) {
     const app = this._app
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      const { [remoteId]: backupsByPool } = await app.callProxyMethod(proxy, 'backup.listPoolMetadataBackups', {
+    const remote = await app.getRemoteWithCredentials(remoteId)
+
+    let backupsByPool
+    if (remote.proxy !== undefined) {
+      ;({ [remoteId]: backupsByPool } = await app.callProxyMethod(remote.proxy, 'backup.listPoolMetadataBackups', {
         remotes: {
           [remoteId]: {
-            url,
-            options,
+            url: remote.url,
+            options: remote.options,
           },
         },
-      })
-
-      // inject the remote id on the backup which is needed for restoreMetadataBackup()
-      Object.values(backupsByPool).forEach(backups =>
-        backups.forEach(backup => {
-          backup.id = `${remoteId}${backup.id}`
-        })
-      )
-
-      return backupsByPool
+      }))
+    } else {
+      backupsByPool = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPoolMetadataBackups())
     }
 
-    const handler = await this._app.getRemoteHandler(remoteId)
-    const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
-
-    const backupsByPool = {}
-    await asyncMap(safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), scheduleDir =>
-      asyncMap(safeReaddir(scheduleDir), poolId => {
-        const backups = backupsByPool[poolId] ?? (backupsByPool[poolId] = [])
-        return asyncMap(safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
-          try {
-            backups.push({
-              id: `${remoteId}${backupDir}`,
-              ...JSON.parse(String(await handler.readFile(`${backupDir}/metadata.json`))),
-            })
-          } catch (error) {
-            log.warn(`listPoolMetadataBackups ${backupDir}`, {
-              error,
-            })
-          }
-        })
+    // inject the remote id on the backup which is needed for restoreMetadataBackup()
+    Object.values(backupsByPool).forEach(backups =>
+      backups.forEach(backup => {
+        backup.id = `${remoteId}${backup.id}`
       })
     )
-
-    // delete empty entries and sort backups
-    Object.keys(backupsByPool).forEach(poolId => {
-      const backups = backupsByPool[poolId]
-      if (backups.length === 0) {
-        delete backupsByPool[poolId]
-      } else {
-        backups.sort(compareTimestamp)
-      }
-    })
 
     return backupsByPool
   }
@@ -812,17 +784,41 @@ export default class metadataBackup {
   async restoreMetadataBackup(id: string) {
     const app = this._app
     const logger = this._logger
-    const [remoteId, dir, ...path] = id.split('/')
-    const metadataFolder = `${dir}/${path.join('/')}`
+    const [remoteId, ...path] = id.split('/')
+    const backupId = path.join('/')
 
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    const remote = await app.getRemoteWithCredentials(remoteId)
+    const { type, poolUuid } = parseMetadataBackupId(backupId)
 
     let rootTaskId
+    const localTaskIds = { __proto__: null }
+    const onLog = async log => {
+      if (type === 'xoConfig' && log.taskId === rootTaskId && log.status === 'success') {
+        try {
+          await app.importConfig(log.result)
+
+          // don't log the XO config
+          log.result = undefined
+        } catch (error) {
+          log.result = serializeError(error)
+          log.status = 'failure'
+        }
+      }
+
+      handleLog(log, {
+        logger,
+        localTaskIds,
+        handleRootTaskId: id => {
+          this._runningMetadataRestores.add(id)
+          rootTaskId = id
+        },
+      })
+    }
+
     try {
-      if (proxy !== undefined) {
+      if (remote.proxy !== undefined) {
         let xapi
-        if (dir === DIR_XO_POOL_METADATA_BACKUPS) {
-          const poolUuid = path[1]
+        if (poolUuid !== undefined) {
           const { allowUnauthorized, host, password, username } = await app.getXenServer(
             app.getXenServerIdByObject(poolUuid)
           )
@@ -837,89 +833,35 @@ export default class metadataBackup {
         }
 
         const logsStream = await app.callProxyMethod(
-          proxy,
+          remote.proxy,
           'backup.restoreMetadataBackup',
           {
-            backupId: metadataFolder,
-            remote: { url, options },
+            backupId,
+            remote: { url: remote.url, options: remote.options },
             xapi,
           },
           {
             assertType: 'iterator',
           }
         )
-
-        const localTaskIds = { __proto__: null }
         for await (const log of logsStream) {
-          const { event, message, taskId } = log
-
-          const common = {
-            data: log.data,
-            event: 'task.' + event,
-            result: log.result,
-            status: log.status,
-          }
-
-          if (event === 'start') {
-            const { parentId } = log
-            if (parentId === undefined) {
-              rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
-              this._runningMetadataRestores.add(rootTaskId)
-            } else {
-              common.parentId = localTaskIds[parentId]
-              localTaskIds[taskId] = logger.notice(message, common)
-            }
-          } else {
-            const localTaskId = localTaskIds[taskId]
-            if (localTaskId === rootTaskId && dir === DIR_XO_CONFIG_BACKUPS && log.status === 'success') {
-              try {
-                await app.importConfig(log.result)
-              } catch (error) {
-                common.result = serializeError(error)
-                common.status = 'failure'
-              }
-            }
-
-            common.taskId = localTaskId
-            logger.notice(message, common)
-          }
+          onLog(log)
         }
-        return
-      }
-
-      const message = 'metadataRestore'
-      const handler = await app.getRemoteHandler(remoteId)
-
-      rootTaskId = logger.notice(message, {
-        event: 'task.start',
-        data: JSON.parse(String(await handler.readFile(`${metadataFolder}/metadata.json`))),
-      })
-      try {
-        this._runningMetadataRestores.add(rootTaskId)
-
-        let result
-        if (dir === DIR_XO_CONFIG_BACKUPS) {
-          result = await app.importConfig(await handler.readFile(`${metadataFolder}/data.json`))
-        } else {
-          result = await app
-            .getXapi(path[1])
-            .importPoolMetadata(await handler.createReadStream(`${metadataFolder}/data`), true)
-        }
-
-        logger.notice(message, {
-          event: 'task.end',
-          result,
-          status: 'success',
-          taskId: rootTaskId,
-        })
-      } catch (error) {
-        logger.error(message, {
-          event: 'task.end',
-          result: serializeError(error),
-          status: 'failure',
-          taskId: rootTaskId,
-        })
-        throw error
+      } else {
+        const handler = await app.getRemoteHandler(remoteId)
+        await Task.run(
+          {
+            name: 'metadataRestore',
+            data: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
+            onLog,
+          },
+          async () =>
+            new RestoreMetadataBackup({
+              backupId,
+              handler,
+              xapi: poolUuid !== undefined ? await app.getXapi(poolUuid) : undefined,
+            }).run()
+        )
       }
     } finally {
       this._runningMetadataRestores.delete(rootTaskId)
@@ -929,29 +871,19 @@ export default class metadataBackup {
   async deleteMetadataBackup(id: string) {
     const app = this._app
     const [remoteId, ...path] = id.split('/')
-    const metadataFolder = path.join('/')
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      await app.callProxyMethod(proxy, 'backup.deleteMetadataBackup', {
-        backupId: metadataFolder,
-        remote: { url, options },
+    const backupId = path.join('/')
+    const remote = await app.getRemoteWithCredentials(remoteId)
+
+    if (remote.proxy !== undefined) {
+      await app.callProxyMethod(remote.proxy, 'backup.deleteMetadataBackup', {
+        backupId,
+        remote: { url: remote.url, options: remote.options },
       })
     } else {
-      const uuidReg = '\\w{8}(-\\w{4}){3}-\\w{12}'
-      const metadataDirReg = 'xo-(config|pool-metadata)-backups'
-      const timestampReg = '\\d{8}T\\d{6}Z'
-
-      const regexp = new RegExp(`^/?${uuidReg}/${metadataDirReg}/${uuidReg}(/${uuidReg})?/${timestampReg}`)
-
-      if (!regexp.test(id)) {
-        throw new Error(`The id (${id}) not correspond to a metadata folder`)
-      }
-
-      const handler = await app.getRemoteHandler(remoteId)
-      await handler.rmtree(metadataFolder)
+      await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId))
     }
 
-    if (path[0] === 'xo-config-backups') {
+    if (parseMetadataBackupId(backupId).type === 'xoConfig') {
       this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
     } else {
       this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)

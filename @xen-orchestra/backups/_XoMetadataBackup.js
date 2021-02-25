@@ -1,7 +1,7 @@
 const { asyncMap } = require('./asyncMap')
 const { DIR_XO_CONFIG_BACKUPS } = require('./RemoteAdapter')
 const { formatFilenameDate } = require('./_filenameDate')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 exports.XoMetadataBackup = class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {

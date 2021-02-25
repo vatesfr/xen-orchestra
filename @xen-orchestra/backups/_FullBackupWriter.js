@@ -2,7 +2,7 @@ const { formatFilenameDate } = require('./_filenameDate')
 const { getOldEntries } = require('./_getOldEntries')
 const { getVmBackupDir } = require('./_getVmBackupDir')
 const { isValidXva } = require('./isValidXva')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 exports.FullBackupWriter = class FullBackupWriter {
   constructor(backup, remoteId, settings) {
@@ -67,7 +67,7 @@ exports.FullBackupWriter = class FullBackupWriter {
     }
 
     await Task.run({ name: 'transfer' }, async () => {
-      await adapter.outputStream(stream, dataFilename, {
+      await adapter.outputStream(dataFilename, stream, {
         validator: tmpPath => {
           if (handler._getFilePath !== undefined) {
             return isValidXva(handler._getFilePath('/' + tmpPath))

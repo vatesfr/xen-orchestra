@@ -2,7 +2,7 @@ const { asyncMap } = require('./asyncMap')
 const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
 const { formatFilenameDate } = require('./_filenameDate')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
 exports.PATH_DB_DUMP = PATH_DB_DUMP
@@ -62,7 +62,7 @@ exports.PoolMetadataBackup = class PoolMetadataBackup {
           },
           async () => {
             // forkStreamUnpipe should be used in a sync way, do not wait for a promise before using it
-            await adapter.outputStream(forkStreamUnpipe(stream), fileName, { checksum: false })
+            await adapter.outputStream(fileName, forkStreamUnpipe(stream), { checksum: false })
             await adapter.handler.outputFile(metaDataFileName, metadata, {
               dirMode: this._config.dirMode,
             })

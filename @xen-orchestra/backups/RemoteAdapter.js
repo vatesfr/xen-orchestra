@@ -507,7 +507,7 @@ exports.RemoteAdapter = class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
-  async outputStream(input, path, { checksum = true, validator = noop } = {}) {
+  async outputStream(path, input, { checksum = true, validator = noop } = {}) {
     const handler = this._handler
     input = await input
     const tmpPath = `${dirname(path)}/.${basename(path)}`

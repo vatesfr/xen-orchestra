@@ -12,7 +12,7 @@ const { formatFilenameDate } = require('./_filenameDate')
 const { getOldEntries } = require('./_getOldEntries')
 const { getVmBackupDir } = require('./_getVmBackupDir')
 const { packUuid } = require('./_packUuid')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 const { warn } = createLogger('xo:proxy:backups:DeltaBackupWriter')
 
@@ -173,7 +173,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
             await checkVhd(handler, parentPath)
           }
 
-          await adapter.outputStream(deltaExport.streams[`${id}.vhd`], path, {
+          await adapter.outputStream(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
