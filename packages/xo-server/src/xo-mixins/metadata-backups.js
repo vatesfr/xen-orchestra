@@ -1,7 +1,8 @@
 // @flow
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
-import { fromEvent, ignoreErrors, timeout, using } from 'promise-toolbox'
+import { Backup } from '@xen-orchestra/backups/Backup'
+import { using } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
@@ -11,15 +12,13 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { handleBackupLog } from '../_handleBackupLog'
 import { waitAll } from '../_waitAll'
 import { type Xapi } from '../xapi'
-import { safeDateFormat, serializeError, type SimpleIdPattern, unboxIdsFromPattern } from '../utils'
+import { serializeError, type SimpleIdPattern, unboxIdsFromPattern } from '../utils'
 
 import { type Executor, type Job } from './jobs'
 import { type Schedule } from './scheduling'
 
 const log = createLogger('xo:xo-mixins:metadata-backups')
 
-const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
-const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
 
 const DEFAULT_RETENTION = 0
@@ -42,31 +41,41 @@ type MetadataBackupJob = {
   xoMetadata?: boolean,
 }
 
-const logInstantFailureTask = (logger, { data, error, message, parentId }) => {
-  const taskId = logger.notice(message, {
-    data,
-    event: 'task.start',
-    parentId,
-  })
-  logger.error(message, {
-    event: 'task.end',
-    result: serializeError(error),
-    status: 'failure',
-    taskId,
-  })
-}
+const handleLog = (log, { rootTaskId, logger, localTaskIds, handleRootTaskId }) => {
+  const { event, message, parentId, taskId } = log
 
-const deleteOldBackups = (handler, dir, retention, handleError) =>
-  handler.list(dir).then(list => {
-    list.sort()
-    list = list.filter(timestamp => /^\d{8}T\d{6}Z$/.test(timestamp)).slice(0, -retention)
-    return Promise.all(
-      list.map(timestamp => {
-        const backupDir = `${dir}/${timestamp}`
-        return handler.rmtree(backupDir).catch(error => handleError(error, backupDir))
-      })
-    )
-  }, handleError)
+  const common = {
+    data: log.data,
+    event: 'task.' + event,
+    result: log.result,
+    status: log.status,
+  }
+
+  // ignore root task (already logged)
+  if (rootTaskId !== undefined) {
+    if (event === 'start' && parentId === undefined) {
+      localTaskIds[taskId] = rootTaskId
+      return
+    } else if (event === 'end' && localTaskIds[taskId] === rootTaskId) {
+      if (log.status === 'failure') {
+        throw log.result
+      }
+      return log.result
+    }
+  }
+
+  if (event === 'start') {
+    if (parentId === undefined) {
+      handleRootTaskId((localTaskIds[taskId] = logger.notice(message, common)))
+    } else {
+      common.parentId = localTaskIds[parentId]
+      localTaskIds[taskId] = logger.notice(message, common)
+    }
+  } else {
+    common.taskId = localTaskIds[taskId]
+    logger.notice(message, common)
+  }
+}
 
 // metadata.json
 //
@@ -122,14 +131,13 @@ export default class metadataBackup {
     return this._runningMetadataRestores
   }
 
-  constructor(app: any, { backup }) {
+  constructor(app: any, { backups }) {
     this._app = app
-    this._backupOptions = backup
+    this._backupOptions = backups
     this._logger = undefined
     this._runningMetadataRestores = new Set()
-    this._poolMetadataTimeout = parseDuration(backup.poolMetadataTimeout)
 
-    const debounceDelay = parseDuration(backup.listingDebounce)
+    const debounceDelay = parseDuration(backups.listingDebounce)
     this._listXoMetadataBackups = debounceWithKey(this._listXoMetadataBackups, debounceDelay, remoteId => remoteId)
     this._listPoolMetadataBackups = debounceWithKey(this._listPoolMetadataBackups, debounceDelay, remoteId => remoteId)
 
@@ -138,250 +146,6 @@ export default class metadataBackup {
 
       app.registerJobExecutor(METADATA_BACKUP_JOB_TYPE, this._executor.bind(this))
     })
-  }
-
-  async _backupXo({ handlers, job, logger, retention, runJobId, schedule }) {
-    const app = this._app
-
-    const timestamp = Date.now()
-    const taskId = logger.notice(`Starting XO metadata backup. (${job.id})`, {
-      data: {
-        type: 'xo',
-      },
-      event: 'task.start',
-      parentId: runJobId,
-    })
-
-    try {
-      const scheduleDir = `${DIR_XO_CONFIG_BACKUPS}/${schedule.id}`
-      const dir = `${scheduleDir}/${safeDateFormat(timestamp)}`
-
-      const data = await app.exportConfig()
-      const fileName = `${dir}/data.json`
-
-      const metadata = JSON.stringify(
-        {
-          jobId: job.id,
-          jobName: job.name,
-          scheduleId: schedule.id,
-          scheduleName: schedule.name,
-          timestamp,
-        },
-        null,
-        2
-      )
-      const metaDataFileName = `${dir}/metadata.json`
-
-      await asyncMapSettled(handlers, async (handler, remoteId) => {
-        const subTaskId = logger.notice(`Starting XO metadata backup for the remote (${remoteId}). (${job.id})`, {
-          data: {
-            id: remoteId,
-            type: 'remote',
-          },
-          event: 'task.start',
-          parentId: taskId,
-        })
-
-        try {
-          const { dirMode } = this._backupOptions
-          await Promise.all([
-            handler.outputFile(fileName, data, { dirMode }),
-            handler.outputFile(metaDataFileName, metadata, {
-              dirMode,
-            }),
-          ])
-
-          await deleteOldBackups(handler, scheduleDir, retention, (error, backupDir) => {
-            logger.warning(
-              backupDir !== undefined
-                ? `unable to delete the folder ${backupDir}`
-                : `unable to list backups for the remote (${remoteId})`,
-              {
-                event: 'task.warning',
-                taskId: subTaskId,
-                data: {
-                  error,
-                },
-              }
-            )
-          })
-
-          logger.notice(`Backuping XO metadata for the remote (${remoteId}) is a success. (${job.id})`, {
-            event: 'task.end',
-            status: 'success',
-            taskId: subTaskId,
-          })
-
-          this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
-        } catch (error) {
-          await handler.rmtree(dir).catch(error => {
-            logger.warning(`unable to delete the folder ${dir}`, {
-              event: 'task.warning',
-              taskId: subTaskId,
-              data: {
-                error,
-              },
-            })
-          })
-
-          logger.error(`Backuping XO metadata for the remote (${remoteId}) has failed. (${job.id})`, {
-            event: 'task.end',
-            result: serializeError(error),
-            status: 'failure',
-            taskId: subTaskId,
-          })
-        }
-      })
-
-      logger.notice(`Backuping XO metadata is a success. (${job.id})`, {
-        event: 'task.end',
-        status: 'success',
-        taskId,
-      })
-    } catch (error) {
-      logger.error(`Backuping XO metadata has failed. (${job.id})`, {
-        event: 'task.end',
-        result: serializeError(error),
-        status: 'failure',
-        taskId,
-      })
-    }
-  }
-
-  async _backupPool(poolId, { cancelToken, handlers, job, logger, retention, runJobId, schedule, xapi }) {
-    const poolMaster = await xapi.getRecord('host', xapi.pool.master)::ignoreErrors()
-    const timestamp = Date.now()
-    const taskId = logger.notice(`Starting metadata backup for the pool (${poolId}). (${job.id})`, {
-      data: {
-        id: poolId,
-        pool: xapi.pool,
-        poolMaster,
-        type: 'pool',
-      },
-      event: 'task.start',
-      parentId: runJobId,
-    })
-
-    try {
-      const poolDir = `${DIR_XO_POOL_METADATA_BACKUPS}/${schedule.id}/${poolId}`
-      const dir = `${poolDir}/${safeDateFormat(timestamp)}`
-
-      // TODO: export the metadata only once then split the stream between remotes
-      const stream = await xapi.exportPoolMetadata(cancelToken)
-      const fileName = `${dir}/data`
-
-      const metadata = JSON.stringify(
-        {
-          jobId: job.id,
-          jobName: job.name,
-          pool: xapi.pool,
-          poolMaster,
-          scheduleId: schedule.id,
-          scheduleName: schedule.name,
-          timestamp,
-        },
-        null,
-        2
-      )
-      const metaDataFileName = `${dir}/metadata.json`
-
-      await asyncMapSettled(handlers, async (handler, remoteId) => {
-        const subTaskId = logger.notice(
-          `Starting metadata backup for the pool (${poolId}) for the remote (${remoteId}). (${job.id})`,
-          {
-            data: {
-              id: remoteId,
-              type: 'remote',
-            },
-            event: 'task.start',
-            parentId: taskId,
-          }
-        )
-
-        let outputStream
-        try {
-          const { dirMode } = this._backupOptions
-          await waitAll([
-            (async () => {
-              outputStream = await handler.createOutputStream(fileName, {
-                dirMode,
-              })
-
-              // 'readable-stream/pipeline' not call the callback when an error throws
-              // from the readable stream
-              stream.pipe(outputStream)
-              return timeout.call(
-                fromEvent(stream, 'end').catch(error => {
-                  if (error.message !== 'aborted') {
-                    throw error
-                  }
-                }),
-                this._poolMetadataTimeout
-              )
-            })(),
-            handler.outputFile(metaDataFileName, metadata, {
-              dirMode,
-            }),
-          ])
-
-          await deleteOldBackups(handler, poolDir, retention, (error, backupDir) => {
-            logger.warning(
-              backupDir !== undefined
-                ? `unable to delete the folder ${backupDir}`
-                : `unable to list backups for the remote (${remoteId})`,
-              {
-                event: 'task.warning',
-                taskId: subTaskId,
-                data: {
-                  error,
-                },
-              }
-            )
-          })
-
-          logger.notice(`Backuping pool metadata (${poolId}) for the remote (${remoteId}) is a success. (${job.id})`, {
-            event: 'task.end',
-            status: 'success',
-            taskId: subTaskId,
-          })
-
-          this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, remoteId)
-        } catch (error) {
-          if (outputStream !== undefined) {
-            outputStream.destroy()
-          }
-          await handler.rmtree(dir).catch(error => {
-            logger.warning(`unable to delete the folder ${dir}`, {
-              event: 'task.warning',
-              taskId: subTaskId,
-              data: {
-                error,
-              },
-            })
-          })
-
-          logger.error(`Backuping pool metadata (${poolId}) for the remote (${remoteId}) has failed. (${job.id})`, {
-            event: 'task.end',
-            result: serializeError(error),
-            status: 'failure',
-            taskId: subTaskId,
-          })
-        }
-      })
-
-      logger.notice(`Backuping pool metadata (${poolId}) is a success. (${job.id})`, {
-        event: 'task.end',
-        status: 'success',
-        taskId,
-      })
-    } catch (error) {
-      logger.error(`Backuping pool metadata (${poolId}) has failed. (${job.id})`, {
-        event: 'task.end',
-        result: serializeError(error),
-        status: 'failure',
-        taskId,
-      })
-    }
   }
 
   async _executor({ cancelToken, job: job_, logger, runJobId, schedule }): Executor {
@@ -403,13 +167,15 @@ export default class metadataBackup {
 
     let { retentionXoMetadata, retentionPoolMetadata } = job.settings[schedule.id] || {}
 
+    const metadataDefaultSettings = this._backupOptions.metadata.defaultSettings
+
     // it also replaces null retentions introduced by the commit
     // https://github.com/vatesfr/xen-orchestra/commit/fea5117ed83b58d3a57715b32d63d46e3004a094#diff-c02703199db2a4c217943cf8e02b91deR40
     if (retentionXoMetadata == null) {
-      retentionXoMetadata = DEFAULT_RETENTION
+      retentionXoMetadata = metadataDefaultSettings.retentionXoMetadata
     }
     if (retentionPoolMetadata == null) {
-      retentionPoolMetadata = DEFAULT_RETENTION
+      retentionPoolMetadata = metadataDefaultSettings.retentionPoolMetadata
     }
 
     if (
@@ -421,182 +187,100 @@ export default class metadataBackup {
     }
 
     const proxyId = job.proxy
-    if (proxyId !== undefined) {
-      const app = this._app
+    const app = this._app
+    try {
+      if (proxyId !== undefined) {
+        const recordToXapi = {}
+        const servers = new Set()
+        const handleRecord = uuid => {
+          const serverId = app.getXenServerIdByObject(uuid)
+          recordToXapi[uuid] = serverId
+          servers.add(serverId)
+        }
+        poolIds.forEach(handleRecord)
 
-      const recordToXapi = {}
-      const servers = new Set()
-      const handleRecord = uuid => {
-        const serverId = app.getXenServerIdByObject(uuid)
-        recordToXapi[uuid] = serverId
-        servers.add(serverId)
-      }
-      poolIds.forEach(handleRecord)
+        const remotes = {}
+        const xapis = {}
+        await waitAll([
+          asyncMap(remoteIds, async id => {
+            const remote = await app.getRemoteWithCredentials(id)
+            if (remote.proxy !== proxyId) {
+              throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
+            }
 
-      const remotes = {}
-      const xapis = {}
-      await waitAll([
-        asyncMapSettled(remoteIds, async id => {
-          const remote = await app.getRemoteWithCredentials(id)
-          if (remote.proxy !== proxyId) {
-            throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
-          }
+            remotes[id] = remote
+          }),
+          asyncMap([...servers], async id => {
+            const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
+            xapis[id] = {
+              allowUnauthorized,
+              credentials: {
+                username,
+                password,
+              },
+              url: host,
+            }
+          }),
+        ])
 
-          remotes[id] = remote
-        }),
-        asyncMapSettled([...servers], async id => {
-          const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
-          xapis[id] = {
-            allowUnauthorized,
-            credentials: {
-              username,
-              password,
-            },
-            url: host,
-          }
-        }),
-      ])
+        const params = {
+          job,
+          recordToXapi,
+          remotes,
+          schedule,
+          streamLogs: true,
+          xapis,
+        }
 
-      const params = {
-        job,
-        recordToXapi,
-        remotes,
-        schedule,
-        streamLogs: true,
-        xapis,
-      }
+        if (job.xoMetadata) {
+          params.job.xoMetadata = await app.exportConfig()
+        }
 
-      if (job.xoMetadata) {
-        params.job.xoMetadata = await app.exportConfig()
-      }
-
-      try {
         const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
           assertType: 'iterator',
         })
 
         const localTaskIds = { __proto__: null }
+
+        let result
         for await (const log of logsStream) {
-          const { event, message, taskId } = log
-
-          const common = {
-            data: log.data,
-            event: 'task.' + event,
-            result: log.result,
-            status: log.status,
-          }
-
-          if (event === 'start') {
-            const { parentId } = log
-            if (parentId === undefined) {
-              // ignore root task (already handled by runJob)
-              localTaskIds[taskId] = runJobId
-            } else {
-              common.parentId = localTaskIds[parentId]
-              localTaskIds[taskId] = logger.notice(message, common)
-            }
-          } else {
-            const localTaskId = localTaskIds[taskId]
-            if (localTaskId === runJobId) {
-              if (event === 'end') {
-                if (log.status === 'failure') {
-                  throw log.result
-                }
-                return log.result
-              }
-            } else {
-              common.taskId = localTaskId
-              logger.notice(message, common)
-            }
-          }
-        }
-        return
-      } finally {
-        remoteIds.forEach(id => {
-          this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, id)
-          this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, id)
-        })
-      }
-    }
-
-    cancelToken.throwIfRequested()
-
-    const app = this._app
-
-    const handlers = {}
-    await Promise.all(
-      remoteIds.map(id =>
-        app.getRemoteHandler(id).then(
-          handler => {
-            handlers[id] = handler
-          },
-          error => {
-            logInstantFailureTask(logger, {
-              data: {
-                type: 'remote',
-                id,
-              },
-              error,
-              message: `unable to get the handler for the remote (${id})`,
-              parentId: runJobId,
-            })
-          }
-        )
-      )
-    )
-
-    if (Object.keys(handlers).length === 0) {
-      return
-    }
-
-    const promises = []
-    if (job.xoMetadata && retentionXoMetadata !== 0) {
-      promises.push(
-        this._backupXo({
-          handlers,
-          job,
-          logger,
-          retention: retentionXoMetadata,
-          runJobId,
-          schedule,
-        })
-      )
-    }
-
-    if (!isEmptyPools && retentionPoolMetadata !== 0) {
-      poolIds.forEach(id => {
-        let xapi
-        try {
-          xapi = this._app.getXapi(id)
-        } catch (error) {
-          logInstantFailureTask(logger, {
-            data: {
-              type: 'pool',
-              id,
-            },
-            error,
-            message: `unable to get the xapi associated to the pool (${id})`,
-            parentId: runJobId,
+          result = handleLog(log, {
+            rootTaskId: runJobId,
+            logger,
+            localTaskIds,
           })
         }
-        if (xapi !== undefined) {
-          promises.push(
-            this._backupPool(id, {
-              cancelToken,
-              handlers,
+        return result
+      } else {
+        cancelToken.throwIfRequested()
+
+        const localTaskIds = { __proto__: null }
+        return Task.run(
+          {
+            name: 'backup run',
+            onLog: log =>
+              handleLog(log, {
+                rootTaskId: runJobId,
+                logger,
+                localTaskIds,
+              }),
+          },
+          async () =>
+            new Backup({
+              config: this._backupOptions,
+              getAdapter: async remoteId => app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
+              getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
               job,
-              logger,
-              retention: retentionPoolMetadata,
-              runJobId,
               schedule,
-              xapi,
-            })
-          )
-        }
+            }).run()
+        )
+      }
+    } finally {
+      remoteIds.forEach(id => {
+        this._listPoolMetadataBackups(REMOVE_CACHE_ENTRY, id)
+        this._listXoMetadataBackups(REMOVE_CACHE_ENTRY, id)
       })
     }
-
-    return Promise.all(promises)
   }
 
   async createMetadataBackupJob(
