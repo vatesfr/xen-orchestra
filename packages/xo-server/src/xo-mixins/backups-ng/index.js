@@ -1003,28 +1003,28 @@ export default class BackupNg {
   }
 
   // High:
-  // - [ ] in case of merge failure
-  //       1. delete (or isolate) the tainted VHD
-  //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
   // - [ ] in case of failure, correctly clean VHDs for all VDIs
   //
   // Low:
-  // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
   // - [ ] size of the path? (base64url(parseUuid(uuid)))
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
-  // - [ ] detect and gc uncomplete replications
-  // - [ ] attach VDIs ASAP to be able to clean them in case of interruption
   // - [ ] orphan VDIs on the source side
   //
   // Triage:
-  // - [ ] logs
   //
   // Done:
   //
+  // - [x] display queued VMs
+  // - [x] detect and gc uncomplete replications
+  // - x ] attach VDIs ASAP to be able to clean them in case of interruption
+  // - [x] logs
+  // - [x] in case of merge failure
+  //       1. delete (or isolate) the tainted VHD
+  //       2. next run should be a full
   // - [x] files (.tmp) should be renamed at the end of job
   // - [x] detect full remote
   // - [x] can the snapshot and export retention be different? → Yes
