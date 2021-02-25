@@ -19,7 +19,7 @@ exports.XoMetadataBackup = class XoMetadataBackup {
     const scheduleDir = `${DIR_XO_CONFIG_BACKUPS}/${schedule.id}`
     const dir = `${scheduleDir}/${formatFilenameDate(timestamp)}`
 
-    const data = JSON.stringify(job.xoMetadata, null, 2)
+    const data = job.xoMetadata
     const fileName = `${dir}/data.json`
 
     const metadata = JSON.stringify(
