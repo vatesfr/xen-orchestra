@@ -332,10 +332,12 @@ const Acls = decorate([
         if (users === undefined || groups === undefined) {
           return []
         }
-        return rawAcls.map(({ subject, ...acl }) => ({
-          ...acl,
-          subject: defined(users[subject], groups[subject]),
-        }))
+        return rawAcls
+          .map(({ subject, ...acl }) => ({
+            ...acl,
+            subject: defined(users[subject], groups[subject]),
+          }))
+          .filter(({ subject }) => subject !== undefined)
       },
     },
   }),
