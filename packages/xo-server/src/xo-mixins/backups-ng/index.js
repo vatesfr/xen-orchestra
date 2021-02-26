@@ -12,6 +12,7 @@ import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { invalidParameters } from 'xo-common/api-errors'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
@@ -30,7 +31,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import { CancelToken, ignoreErrors, timeout } from 'promise-toolbox'
+import { CancelToken, ignoreErrors, timeout, using } from 'promise-toolbox'
 import Vhd, { chainVhd, checkVhdChain, createSyntheticStream as createVhdReadStream } from 'vhd-lib'
 
 import type Logger from '../logs/loggers/abstract'
@@ -781,27 +782,17 @@ export default class BackupNg {
   async deleteVmBackupNg(id: string): Promise<void> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      await app.callProxyMethod(proxy, 'backup.deleteVmBackup', {
+    const remote = await app.getRemoteWithCredentials(remoteId)
+    if (remote.proxy !== undefined) {
+      await app.callProxyMethod(remote.proxy, 'backup.deleteVmBackup', {
         filename: metadataFilename,
         remote: {
-          url,
-          options,
+          url: remote.url,
+          options: remote.options,
         },
       })
     } else {
-      const handler = await app.getRemoteHandler(remoteId)
-      const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
-      metadata._filename = metadataFilename
-
-      if (metadata.mode === 'delta') {
-        await this._deleteDeltaVmBackups(handler, [metadata])
-      } else if (metadata.mode === 'full') {
-        await this._deleteFullVmBackups(handler, [metadata])
-      } else {
-        throw new Error(`no deleter for backup mode ${metadata.mode}`)
-      }
+      await using(app.getBackupsRemoteAdapter(remoteId), adapter => adapter.deleteVmBackup(metadataFilename))
     }
 
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
@@ -929,79 +920,35 @@ export default class BackupNg {
   )
   async _listVmBackupsOnRemote(remoteId: string) {
     const app = this._app
-    const backupsByVm = {}
     try {
-      const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-      if (proxy !== undefined) {
-        const { [remoteId]: backupsByVm } = await app.callProxyMethod(proxy, 'backup.listVmBackups', {
+      const remote = await app.getRemoteWithCredentials(remoteId)
+
+      let backupsByVm
+      if (remote.proxy !== undefined) {
+        ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
           remotes: {
             [remoteId]: {
-              url,
-              options,
+              url: remote.url,
+              options: remote.options,
             },
           },
-        })
-
-        // inject the remote id on the backup which is needed for importVmBackupNg()
-        forOwn(backupsByVm, backups =>
-          backups.forEach(backup => {
-            backup.id = `${remoteId}${backup.id}`
-          })
+        }))
+      } else {
+        backupsByVm = await using(app.getBackupsRemoteAdapter(remote), async adapter =>
+          formatVmBackups(await adapter.listAllVmBackups())
         )
-        return backupsByVm
       }
 
-      const handler = await app.getRemoteHandler(remoteId)
-
-      const entries = (
-        await handler.list(BACKUP_DIR).catch(error => {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-          return []
-        })
-      ).filter(name => name !== 'index.json')
-
-      await Promise.all(
-        entries.map(async vmUuid => {
-          // $FlowFixMe don't know what is the problem (JFT)
-          const backups = await this._listVmBackups(handler, vmUuid)
-
-          if (backups.length === 0) {
-            return
-          }
-
-          backupsByVm[vmUuid] = backups.map(backup => ({
-            disks:
-              backup.vhds === undefined
-                ? []
-                : Object.keys(backup.vhds).map(vdiId => {
-                    const vdi = backup.vdis[vdiId]
-                    return {
-                      id: `${dirname(backup._filename)}/${backup.vhds[vdiId]}`,
-                      name: vdi.name_label,
-                      uuid: vdi.uuid,
-                    }
-                  }),
-
-            // inject an id usable by importVmBackupNg()
-            id: `${remoteId}/${backup._filename}`,
-            jobId: backup.jobId,
-            mode: backup.mode,
-            scheduleId: backup.scheduleId,
-            size: backup.size,
-            timestamp: backup.timestamp,
-            vm: {
-              name_description: backup.vm.name_description,
-              name_label: backup.vm.name_label,
-            },
-          }))
+      // inject the remote id on the backup which is needed for importVmBackupNg()
+      forOwn(backupsByVm, backups =>
+        backups.forEach(backup => {
+          backup.id = `${remoteId}${backup.id}`
         })
       )
+      return backupsByVm
     } catch (error) {
       log.warn(`listVmBackups for remote ${remoteId}:`, { error })
     }
-    return backupsByVm
   }
 
   async listVmBackupsNg(remotes: string[], _forceRefresh = false) {
@@ -1026,28 +973,28 @@ export default class BackupNg {
   }
 
   // High:
-  // - [ ] in case of merge failure
-  //       1. delete (or isolate) the tainted VHD
-  //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
   // - [ ] in case of failure, correctly clean VHDs for all VDIs
   //
   // Low:
-  // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
   // - [ ] size of the path? (base64url(parseUuid(uuid)))
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
-  // - [ ] detect and gc uncomplete replications
-  // - [ ] attach VDIs ASAP to be able to clean them in case of interruption
   // - [ ] orphan VDIs on the source side
   //
   // Triage:
-  // - [ ] logs
   //
   // Done:
   //
+  // - [x] display queued VMs
+  // - [x] detect and gc uncomplete replications
+  // - x ] attach VDIs ASAP to be able to clean them in case of interruption
+  // - [x] logs
+  // - [x] in case of merge failure
+  //       1. delete (or isolate) the tainted VHD
+  //       2. next run should be a full
   // - [x] files (.tmp) should be renamed at the end of job
   // - [x] detect full remote
   // - [x] can the snapshot and export retention be different? → Yes
@@ -1349,7 +1296,7 @@ export default class BackupNg {
 
               const oldBackups: MetadataFull[] = (getOldEntries(
                 exportRetention - 1,
-                await this._listVmBackups(handler, vm, _ => _.mode === 'full' && _.scheduleId === scheduleId)
+                await this._listVmBackups(handler, remoteId, vm, _ => _.mode === 'full' && _.scheduleId === scheduleId)
               ): any)
 
               const deleteOldBackups = () =>
@@ -1646,7 +1593,7 @@ export default class BackupNg {
 
               const oldBackups: MetadataDelta[] = (getOldEntries(
                 exportRetention - 1,
-                await this._listVmBackups(handler, vm, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
+                await this._listVmBackups(handler, remoteId, vm, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
               ): any)
 
               // FIXME: implement optimized multiple VHDs merging with synthetic
@@ -1897,6 +1844,7 @@ export default class BackupNg {
 
   async _listVmBackups(
     handler: RemoteHandler,
+    remoteId,
     vm: Object | string,
     predicate?: Metadata => boolean
   ): Promise<Metadata[]> {
@@ -1924,6 +1872,7 @@ export default class BackupNg {
               Object.defineProperty(metadata, '_filename', {
                 value: path,
               })
+              metadata.id = `${remoteId}/${path}`
               backups.push(metadata)
             }
           } catch (error) {

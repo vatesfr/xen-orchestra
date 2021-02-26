@@ -43,7 +43,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _outputStream(input, path, { checksum }) {
+  async _outputStream(path, input, { checksum }) {
     let inputStream = input
     if (checksum) {
       const checksumStream = createChecksumStream()
