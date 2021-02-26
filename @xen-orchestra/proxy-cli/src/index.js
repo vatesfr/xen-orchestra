@@ -64,25 +64,26 @@ ${pkg.name} v${pkg.version}`
     )
   }
 
-  const call = async (method, params) => {
-    const request = {
-      body: format.request(0, method, params),
-      headers: {
-        'content-type': 'application/json',
-        cookie: `authenticationToken=${token}`,
-      },
-      pathname: '/api/v1',
-      protocol: 'https:',
-      rejectUnauthorized: false,
-    }
-    if (host !== '') {
-      request.host = host
-    } else {
-      request.hostname = hostname
-      request.port = port
-    }
+  const baseRequest = {
+    headers: {
+      'content-type': 'application/json',
+      cookie: `authenticationToken=${token}`,
+    },
+    pathname: '/api/v1',
+    protocol: 'https:',
+    rejectUnauthorized: false,
+  }
+  if (host !== '') {
+    baseRequest.host = host
+  } else {
+    baseRequest.hostname = hostname
+    baseRequest.port = port
+  }
 
-    const response = await hrp.post(request)
+  const call = async (method, params) => {
+    const response = await hrp.post(baseRequest, {
+      body: format.request(0, method, params),
+    })
 
     const { stdout } = process
 
