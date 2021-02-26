@@ -306,7 +306,7 @@ export default class Tasks extends Component {
                 collection={this._getTasks()}
                 columns={COLUMNS}
                 filterContainer={() => this.state.container}
-                itemsPerPageContainer={this._itemsPerPageContainer}
+                itemsPerPageContainer={this._getItemsPerPageContainer}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'
