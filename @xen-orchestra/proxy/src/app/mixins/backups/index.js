@@ -1,7 +1,6 @@
 import defer from 'golike-defer'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
-import mapValues from 'lodash/mapValues'
 import using from 'promise-toolbox/using'
 import { asyncMap } from '@xen-orchestra/backups/asyncMap'
 import { Backup } from '@xen-orchestra/backups/Backup'
@@ -11,7 +10,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition'
 import { execFile } from 'child_process'
-import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
@@ -247,9 +246,7 @@ export default class Backups {
             await asyncMap(Object.keys(remotes), async remoteId => {
               try {
                 await using(this.getAdapter(remotes[remoteId]), async adapter => {
-                  backups[remoteId] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
-                    vmBackups.map(backup => formatVmBackup(backup))
-                  )
+                  backups[remoteId] = formatVmBackups(await adapter.listAllVmBackups())
                 })
               } catch (error) {
                 warn('listVmBackups', { error, remote: remotes[remoteId] })

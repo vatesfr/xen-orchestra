@@ -1,6 +1,7 @@
+const mapValues = require('lodash/mapValues')
 const { dirname } = require('path')
 
-exports.formatVmBackup = function formatVmBackup(backup) {
+function formatVmBackup(backup) {
   return {
     disks:
       backup.vhds === undefined
@@ -25,4 +26,9 @@ exports.formatVmBackup = function formatVmBackup(backup) {
       name_label: backup.vm.name_label,
     },
   }
+}
+
+// format all backups as returned by RemoteAdapter#listAllVmBackups()
+exports.formatVmBackups = function formatVmBackups(backupsByVM) {
+  return mapValues(backupsByVM, backups => backups.map(formatVmBackup))
 }

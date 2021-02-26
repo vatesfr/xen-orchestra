@@ -12,7 +12,7 @@ import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
-import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { invalidParameters } from 'xo-common/api-errors'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
@@ -31,7 +31,7 @@ import {
   sum,
   values,
 } from 'lodash'
-import { CancelToken, ignoreErrors, timeout } from 'promise-toolbox'
+import { CancelToken, ignoreErrors, timeout, using } from 'promise-toolbox'
 import Vhd, { chainVhd, checkVhdChain, createSyntheticStream as createVhdReadStream } from 'vhd-lib'
 
 import type Logger from '../logs/loggers/abstract'
@@ -930,55 +930,35 @@ export default class BackupNg {
   )
   async _listVmBackupsOnRemote(remoteId: string) {
     const app = this._app
-    const backupsByVm = {}
     try {
       const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+
+      let backupsByVm
       if (proxy !== undefined) {
-        const { [remoteId]: backupsByVm } = await app.callProxyMethod(proxy, 'backup.listVmBackups', {
+        ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(proxy, 'backup.listVmBackups', {
           remotes: {
             [remoteId]: {
               url,
               options,
             },
           },
-        })
-
-        // inject the remote id on the backup which is needed for importVmBackupNg()
-        forOwn(backupsByVm, backups =>
-          backups.forEach(backup => {
-            backup.id = `${remoteId}${backup.id}`
-          })
+        }))
+      } else {
+        backupsByVm = await using(app.getBackupsRemoteAdapter(remoteId), async adapter =>
+          formatVmBackups(await adapter.listAllVmBackups())
         )
-        return backupsByVm
       }
 
-      const handler = await app.getRemoteHandler(remoteId)
-
-      const entries = (
-        await handler.list(BACKUP_DIR).catch(error => {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-          return []
-        })
-      ).filter(name => name !== 'index.json')
-
-      await Promise.all(
-        entries.map(async vmUuid => {
-          // $FlowFixMe don't know what is the problem (JFT)
-          const backups = await this._listVmBackups(handler, remoteId, vmUuid)
-
-          if (backups.length === 0) {
-            return
-          }
-
-          backupsByVm[vmUuid] = backups.map(backup => formatVmBackup(backup))
+      // inject the remote id on the backup which is needed for importVmBackupNg()
+      forOwn(backupsByVm, backups =>
+        backups.forEach(backup => {
+          backup.id = `${remoteId}${backup.id}`
         })
       )
+      return backupsByVm
     } catch (error) {
       log.warn(`listVmBackups for remote ${remoteId}:`, { error })
     }
-    return backupsByVm
   }
 
   async listVmBackupsNg(remotes: string[], _forceRefresh = false) {
