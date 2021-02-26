@@ -18,7 +18,6 @@ const { BACKUP_DIR } = require('./_getVmBackupDir')
 const { getTmpDir } = require('./_getTmpDir')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')
 const { lvs, pvs } = require('./_lvm')
-const { formatVmBackup } = require('./_formatVmBackup')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -364,12 +363,12 @@ exports.RemoteAdapter = class RemoteAdapter {
     return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
-  async listAllVmBackups({ formatBackups } = {}) {
+  async listAllVmBackups() {
     const handler = this._handler
 
     const backups = { __proto__: null }
     await asyncMap(await handler.list(BACKUP_DIR), async vmUuid => {
-      const vmBackups = await this.listVmBackups(vmUuid, undefined, { formatBackups })
+      const vmBackups = await this.listVmBackups(vmUuid)
       backups[vmUuid] = vmBackups
     })
 
@@ -455,7 +454,7 @@ exports.RemoteAdapter = class RemoteAdapter {
     return backupsByPool
   }
 
-  async listVmBackups(vmUuid, predicate, { formatBackups = false } = {}) {
+  async listVmBackups(vmUuid, predicate) {
     const handler = this._handler
     const backups = []
 
@@ -471,7 +470,7 @@ exports.RemoteAdapter = class RemoteAdapter {
             // inject an id usable by importVmBackupNg()
             metadata.id = metadata._filename
 
-            backups.push(formatBackups ? formatVmBackup(metadata) : metadata)
+            backups.push(metadata)
           }
         } catch (error) {
           warn(`listVmBackups ${file}`, { error })

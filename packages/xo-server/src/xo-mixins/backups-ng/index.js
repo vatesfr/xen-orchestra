@@ -12,6 +12,7 @@ import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { invalidParameters } from 'xo-common/api-errors'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
@@ -943,8 +944,8 @@ export default class BackupNg {
           },
         }))
       } else {
-        backupsByVm = await using(app.getBackupsRemoteAdapter(remoteId), adapter =>
-          adapter.listAllVmBackups({ formatBackups: true })
+        backupsByVm = await using(app.getBackupsRemoteAdapter(remoteId), async adapter =>
+          formatVmBackups(await adapter.listAllVmBackups())
         )
       }
 

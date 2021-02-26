@@ -10,6 +10,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition'
 import { execFile } from 'child_process'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
@@ -245,7 +246,7 @@ export default class Backups {
             await asyncMap(Object.keys(remotes), async remoteId => {
               try {
                 await using(this.getAdapter(remotes[remoteId]), async adapter => {
-                  backups[remoteId] = await adapter.listAllVmBackups({ formatBackups: true })
+                  backups[remoteId] = formatVmBackups(await adapter.listAllVmBackups())
                 })
               } catch (error) {
                 warn('listVmBackups', { error, remote: remotes[remoteId] })
