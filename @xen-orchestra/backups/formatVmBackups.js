@@ -1,6 +1,6 @@
 const mapValues = require('lodash/mapValues')
 
-const formatVmBackup = require('./_formatVmBackup')
+const { formatVmBackup } = require('./_formatVmBackup')
 
 // format all backups as returned by RemoteAdapter#listAllVmBackups()
 exports.formatVmBackups = function formatVmBackups(backupsByVM) {
