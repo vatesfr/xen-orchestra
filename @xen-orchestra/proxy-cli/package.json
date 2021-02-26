@@ -1,0 +1,68 @@
+{
+  "private": false,
+  "name": "@xen-orchestra/proxy-cli",
+  "version": "0.2.0",
+  "license": "AGPL-3.0-or-later",
+  "description": "",
+  "keywords": [
+    "backup",
+    "proxy",
+    "xen-orchestra",
+    "xo"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/proxy-cli",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/proxy-cli",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "preferGlobal": true,
+  "main": "dist/",
+  "bin": {
+    "xo-proxy-cli": "dist/index.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=8.10"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.0",
+    "@vates/read-chunk": "^0.1.1",
+    "app-conf": "^0.9.0",
+    "content-type": "^1.0.4",
+    "cson-parser": "^4.0.7",
+    "getopts": "^2.2.3",
+    "http-request-plus": "^0.9.1",
+    "json-rpc-protocol": "^0.13.1",
+    "promise-toolbox": "^0.15.1",
+    "pump": "^3.0.0",
+    "pumpify": "^2.0.1",
+    "split2": "^3.1.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.7.4",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "babel-plugin-lodash": "^3.3.2",
+    "cross-env": "^7.0.2",
+    "rimraf": "^3.0.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "postversion": "npm publish --access public",
+    "prebuild": "yarn run clean",
+    "predev": "yarn run prebuild",
+    "prepublishOnly": "yarn run build"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}

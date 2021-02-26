@@ -10,9 +10,11 @@ import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
-import { connectStore, getXoaPlan, routes } from 'utils'
+import { checkXoa, clearXoaCheckCache } from 'xo'
+import { connectStore, getXoaPlan, noop, routes } from 'utils'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
+import { provideState } from 'reaclette'
 import { ShortcutManager } from 'react-shortcuts'
 import { ThemeProvider } from 'styled-components'
 import { TooltipViewer } from 'tooltip'
@@ -113,6 +115,29 @@ const BODY_STYLE = {
     registerNeeded: state.xoaUpdaterState === 'registerNeeded',
     signedUp: !!state.user,
   }
+})
+@provideState({
+  initialState: () => ({ checkXoaCount: 0 }),
+  effects: {
+    async forceRefreshXoaStatus() {
+      await clearXoaCheckCache()
+      await this.effects.refreshXoaStatus()
+    },
+    refreshXoaStatus() {
+      this.state.checkXoaCount += 1
+    },
+  },
+  computed: {
+    xoaStatus: {
+      get({ checkXoaCount }) {
+        // To avoid aggressive minification which would remove destructuration
+        noop(checkXoaCount)
+        return getXoaPlan() === 'Community' ? '' : checkXoa().catch(() => 'XOA status not available')
+      },
+      placeholder: '',
+    },
+    isXoaStatusOk: ({ xoaStatus }) => !xoaStatus.includes('✖'),
+  },
 })
 export default class XoApp extends Component {
   static contextTypes = {
@@ -227,8 +252,10 @@ export default class XoApp extends Component {
 
   render() {
     const { signedUp, trial, registerNeeded } = this.props
+    const { pathname } = this.context.router.location
     // If we are under expired or unstable trial (signed up only)
-    const blocked = signedUp && blockXoaAccess(trial) && !this.context.router.location.pathname.startsWith('/xoa/')
+    const blocked =
+      signedUp && blockXoaAccess(trial) && !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
     const plan = getXoaPlan()
 
     return (

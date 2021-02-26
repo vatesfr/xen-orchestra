@@ -10,7 +10,7 @@ import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
-import { cancelable, defer, fromEvent, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -105,7 +105,8 @@ export default class Xapi extends XapiBase {
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._restartHostTimeout = parseDuration(restartHostTimeout)
 
-    const waitStreamEnd = async stream => fromEvent(await stream, 'end')
+    //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
+    const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
     this._exportVdi = concurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
     this.exportVm = concurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
 
@@ -1105,7 +1106,7 @@ export default class Xapi extends XapiBase {
     {
       migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
       sr,
-      mapVdisSrs,
+      mapVdisSrs = {},
       mapVifsNetworks,
       force = false,
     }
@@ -1121,14 +1122,40 @@ export default class Xapi extends XapiBase {
       return defaultSr.$ref
     })
 
+    const hostPbds = new Set(host.PBDs)
+    const connectedSrs = new Map()
+    const isSrConnected = sr => {
+      let isConnected = connectedSrs.get(sr.$ref)
+      if (isConnected === undefined) {
+        isConnected = sr.PBDs.some(ref => hostPbds.has(ref))
+        connectedSrs.set(sr.$ref, isConnected)
+      }
+      return isConnected
+    }
+
     // VDIs/SRs mapping
+    // For VDI:
+    // - If SR was explicitly passed: use it
+    // - Else if VDI SR is reachable from the destination host: use it
+    // - Else: use the migration main SR or the pool's default SR (error if none of them is defined)
+    // For VDI-snapshot:
+    // - If VDI-snapshot is an orphan snapshot: same logic as a VDI
+    // - Else: don't add it to the map (VDI -> SR). It will be managed by the XAPI (snapshot will be migrated to the same SR as its parent active VDI)
     const vdis = {}
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
-      const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
+        const vdi = vbd.$VDI
+        // Ignore VDI snapshots which have a parent
+        if (vdi.$snapshot_of !== undefined) {
+          continue
+        }
         vdis[vdi.$ref] =
-          mapVdisSrs && mapVdisSrs[vdi.$id] ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref : getDefaultSrRef()
+          mapVdisSrs[vdi.$id] !== undefined
+            ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
+            : isSrConnected(vdi.$SR)
+            ? vdi.$SR.$ref
+            : getDefaultSrRef()
       }
     }
 
@@ -1803,6 +1830,7 @@ export default class Xapi extends XapiBase {
         await vbd.set_unpluggable(true)
         return this.call('VBD.unplug_force', vbd.$ref)
       }
+      throw error
     }
   }
 

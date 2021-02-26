@@ -1,0 +1,101 @@
+{
+  "private": true,
+  "name": "@xen-orchestra/proxy",
+  "version": "0.11.0",
+  "license": "AGPL-3.0-or-later",
+  "description": "",
+  "keywords": [
+    "backup",
+    "proxy",
+    "xen-orchestra",
+    "xo"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/proxy",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/proxy",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "preferGlobal": true,
+  "main": "dist/",
+  "bin": {
+    "xo-proxy": "dist/index.js"
+  },
+  "files": [
+    "config.toml",
+    "dist/",
+    "scripts/"
+  ],
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.0",
+    "@vates/compose": "^2.0.0",
+    "@vates/decorate-with": "^0.0.1",
+    "@vates/disposable": "^0.1.0",
+    "@vates/parse-duration": "^0.1.0",
+    "@xen-orchestra/backups": "^0.6.0",
+    "@xen-orchestra/emit-async": "^0.0.0",
+    "@xen-orchestra/fs": "^0.13.0",
+    "@xen-orchestra/log": "^0.2.0",
+    "@xen-orchestra/self-signed": "^0.1.0",
+    "@xen-orchestra/xapi": "^0.4.1",
+    "ajv": "^6.10.0",
+    "app-conf": "^0.9.0",
+    "async-iterator-to-stream": "^1.1.0",
+    "compare-versions": "^3.4.0",
+    "fs-extra": "^8.1.0",
+    "get-stream": "^5.1.0",
+    "getopts": "^2.2.3",
+    "golike-defer": "^0.5.1",
+    "http-server-plus": "^0.11.0",
+    "json-rpc-protocol": "^0.13.1",
+    "jsonrpc-websocket-client": "^0.5.0",
+    "koa": "^2.5.1",
+    "koa-compress": "^3.0.0",
+    "koa-helmet": "^5.1.0",
+    "koa-router": "^7.4.0",
+    "lodash": "^4.17.10",
+    "ms": "^2.1.2",
+    "node-zone": "^0.4.0",
+    "parse-pairs": "^1.0.0",
+    "promise-toolbox": "^0.17.0",
+    "source-map-support": "^0.5.16",
+    "stoppable": "^1.0.6",
+    "xdg-basedir": "^4.0.0",
+    "xo-common": "^0.6.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-decorators": "^7.0.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.7.4",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@vates/toggle-scripts": "^1.0.0",
+    "babel-plugin-transform-dev": "^2.0.1",
+    "cross-env": "^7.0.2",
+    "index-modules": "^0.3.0",
+    "rimraf": "^3.0.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "clean": "rimraf dist/",
+    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "_postinstall": "./scripts/systemd-service-installer",
+    "postpack": "toggle-scripts -postinstall -preuninstall",
+    "prebuild": "yarn run clean && index-modules --cjs-lazy src/app/mixins",
+    "predev": "yarn run prebuild",
+    "prepack": "toggle-scripts +postinstall +preuninstall",
+    "prepublishOnly": "yarn run build",
+    "_preuninstall": "./scripts/systemd-service-installer",
+    "start": "./dist/index.js"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}

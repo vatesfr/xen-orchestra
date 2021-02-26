@@ -1,6 +1,6 @@
 {
   "name": "xo-server-auth-ldap",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "license": "AGPL-3.0-or-later",
   "description": "LDAP authentication plugin for XO-Server",
   "keywords": [
@@ -37,7 +37,7 @@
     "exec-promise": "^0.7.0",
     "inquirer": "^7.0.0",
     "ldapts": "^2.2.1",
-    "promise-toolbox": "^0.16.0"
+    "promise-toolbox": "^0.17.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

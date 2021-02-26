@@ -1247,8 +1247,16 @@ export const migrateVm = async (vm, host) => {
     return
   }
 
-  if (!params.targetHost) {
+  const { migrationNetwork, sr, targetHost } = params
+
+  if (!targetHost) {
     return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+  }
+
+  // Workaround to prevent VM's VDIs from unexpectedly migrating to the default SR
+  // if migration network is defined, the SR is required.
+  if (migrationNetwork !== undefined && sr === undefined) {
+    return error(_('migrateVmNoSr'), _('migrateVmNoSrMessage'))
   }
 
   try {
@@ -1284,13 +1292,14 @@ export const migrateVms = vms =>
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
 
-    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, targetHost, vms } = params
+    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, sr, targetHost, vms } = params
     Promise.all(
       map(vms, ({ id }) =>
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
           migrationNetwork,
+          sr,
           targetHost,
           vm: id,
         })
@@ -2837,6 +2846,8 @@ export const subscribeSelfLicenses = createSubscription(() => _call('xoa.license
 
 // Support --------------------------------------------------------------------
 
+export const clearXoaCheckCache = () => _call('xoa.clearCheckCache')
+
 export const checkXoa = () => _call('xoa.check')
 
 export const closeTunnel = () => _call('xoa.supportTunnel.close')::tap(subscribeTunnelState.forceRefresh)
@@ -2887,7 +2898,8 @@ export const destroyProxyAppliances = proxies =>
     body: _('destroyProxyApplianceMessage', { n: proxies.length }),
   }).then(() => Promise.all(map(proxies, _destroyProxyAppliance))::tap(subscribeProxies.forceRefresh))
 
-export const upgradeProxyAppliance = proxy => _call('proxy.upgradeAppliance', { id: resolveId(proxy) })
+export const upgradeProxyAppliance = (proxy, props) =>
+  _call('proxy.upgradeAppliance', { id: resolveId(proxy), ...props })
 
 export const getProxyApplianceUpdaterState = id => _call('proxy.getApplianceUpdaterState', { id })
 

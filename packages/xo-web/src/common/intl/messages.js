@@ -506,6 +506,7 @@ const messages = {
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
   fullBackupInterval: 'Full backup interval',
+  forceFullBackup: 'Force full backup',
   timeoutUnit: 'In hours',
   dbAndDrRequireEnterprisePlan: 'Delta Backup and DR require an Enterprise plan',
   crRequiresPremiumPlan: 'CR requires a Premium plan',
@@ -1717,6 +1718,8 @@ const messages = {
   migrateVmNetwork: 'Network',
   migrateVmNoTargetHost: 'No target host',
   migrateVmNoTargetHostMessage: 'A target host is required to migrate a VM',
+  migrateVmNoSr: 'SR required',
+  migrateVmNoSrMessage: 'A destination SR is required',
   migrateVmNoDefaultSrError: 'No default SR',
   migrateVmNotConnectedDefaultSrError: 'Default SR not connected to host',
   chooseSrForEachVdisModalSelectSr: 'For each VDI, select an SR (optional)',
@@ -2368,6 +2371,8 @@ const messages = {
   proxyUpgradesError: 'Unable to check upgrades availability',
   proxyApplianceSettingsInfo: 'Leave the field empty and click on OK to remove the existing configuration',
   proxyUpToDate: 'Your proxy is up-to-date',
+  proxyRunningBackupsMessage:
+    'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

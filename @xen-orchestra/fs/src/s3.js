@@ -43,7 +43,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _outputStream(input, path, { checksum }) {
+  async _outputStream(path, input, { checksum }) {
     let inputStream = input
     if (checksum) {
       const checksumStream = createChecksumStream()
@@ -152,10 +152,19 @@ export default class S3Handler extends RemoteHandlerAbstract {
       file = file.fd
     }
     const uploadParams = this._createParams(file)
-    const fileSize = +(await this._s3.headObject(uploadParams)).ContentLength
+    let fileSize
+    try {
+      fileSize = +(await this._s3.headObject(uploadParams)).ContentLength
+    } catch (e) {
+      if (e.code === 'NotFound') {
+        fileSize = 0
+      } else {
+        throw e
+      }
+    }
     if (fileSize < MIN_PART_SIZE) {
       const resultBuffer = Buffer.alloc(Math.max(fileSize, position + buffer.length))
-      const fileContent = (await this._s3.getObject(uploadParams)).Body
+      const fileContent = fileSize !== 0 ? (await this._s3.getObject(uploadParams)).Body : Buffer.alloc(0)
       fileContent.copy(resultBuffer)
       buffer.copy(resultBuffer, position)
       await this._s3.putObject({ ...uploadParams, Body: resultBuffer })
