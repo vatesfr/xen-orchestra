@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from 'assert'
+import colors from 'ansi-colors'
 import contentType from 'content-type'
 import CSON from 'cson-parser'
 import fromCallback from 'promise-toolbox/fromCallback'
@@ -84,7 +85,7 @@ ${pkg.name} v${pkg.version}`
   }
   const call = async ({ method, params }) => {
     if (callPath.length !== 0) {
-      process.stderr.write(`\ncall #${callPath.join('.')}\n`)
+      process.stderr.write(`\n${colors.bold(`--- call #${callPath.join('.')}`)} ---\n\n`)
     }
 
     const response = await hrp.post(baseRequest, {
