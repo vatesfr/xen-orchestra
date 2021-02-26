@@ -49,7 +49,7 @@
     "@xen-orchestra/self-signed": "^0.1.0",
     "@xen-orchestra/template": "^0.1.0",
     "ajv": "^6.1.1",
-    "app-conf": "^0.8.0",
+    "app-conf": "^0.9.0",
     "archiver": "^5.0.0",
     "async-iterator-to-stream": "^1.0.1",
     "base64url": "^3.0.0",
