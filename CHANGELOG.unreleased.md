@@ -7,14 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] During CR/delta backups, bios_strings are restored similarly to DR/full backups
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [VM/advanced] Fix `an error has occurred` in `Misc` section [#5592](https://github.com/vatesfr/xen-orchestra/issues/5592) (PR [#5604](https://github.com/vatesfr/xen-orchestra/pull/5604))
-- [Task] Fix the items-per-page dropdown position (PR [#5584](https://github.com/vatesfr/xen-orchestra/pull/5584))
 
 ### Packages to release
 
@@ -32,6 +27,3 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-
-- xo-server minor
-- xo-web patch
