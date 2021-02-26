@@ -272,15 +272,15 @@ export default class Jobs {
 
     const app = this._app
     try {
+      let executor = this._executors[type]
+      if (executor === undefined) {
+        throw new Error(`cannot run job (${id}): no executor for type ${type}`)
+      }
+
       const runningJobs = this._runningJobs
 
       if (id in runningJobs) {
         throw new Error(`the job (${id}) is already running`)
-      }
-
-      let executor = this._executors[type]
-      if (executor === undefined) {
-        throw new Error(`cannot run job (${id}): no executor for type ${type}`)
       }
 
       // runId is a temporary property used to check if the report is sent after the server interruption
