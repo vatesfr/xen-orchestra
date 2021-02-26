@@ -12,7 +12,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors'
 import { isEmpty, mapValues, some, omit } from 'lodash'
-import { NULL_REF } from 'xen-api'
+import { NULL_REF } from '@xen-orchestra/xapi'
 import { parseDuration } from '@vates/parse-duration'
 import { timeout } from 'promise-toolbox'
 

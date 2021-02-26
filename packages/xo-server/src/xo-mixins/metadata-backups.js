@@ -8,6 +8,7 @@ import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBac
 import { Task } from '@xen-orchestra/backups/Task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
+import { handleBackupLog } from '../_handleBackupLog'
 import { waitAll } from '../_waitAll'
 import { type Xapi } from '../xapi'
 import { safeDateFormat, serializeError, type SimpleIdPattern, unboxIdsFromPattern } from '../utils'
@@ -66,30 +67,6 @@ const deleteOldBackups = (handler, dir, retention, handleError) =>
       })
     )
   }, handleError)
-
-const handleLog = (log, { logger, localTaskIds, handleRootTaskId }) => {
-  const { event, message, taskId } = log
-
-  const common = {
-    data: log.data,
-    event: 'task.' + event,
-    result: log.result,
-    status: log.status,
-  }
-
-  if (event === 'start') {
-    const { parentId } = log
-    if (parentId === undefined) {
-      handleRootTaskId((localTaskIds[taskId] = logger.notice(message, common)))
-    } else {
-      common.parentId = localTaskIds[parentId]
-      localTaskIds[taskId] = logger.notice(message, common)
-    }
-  } else {
-    common.taskId = localTaskIds[taskId]
-    logger.notice(message, common)
-  }
-}
 
 // metadata.json
 //
@@ -805,7 +782,7 @@ export default class metadataBackup {
         }
       }
 
-      handleLog(log, {
+      handleBackupLog(log, {
         logger,
         localTaskIds,
         handleRootTaskId: id => {

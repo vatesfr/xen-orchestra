@@ -1,7 +1,7 @@
 import deferrable from 'golike-defer'
 import { find, gte, includes, isEmpty, lte, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
-import { NULL_REF } from 'xen-api'
+import { NULL_REF } from '@xen-orchestra/xapi'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 

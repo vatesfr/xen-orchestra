@@ -6,7 +6,7 @@ import execa from 'execa'
 import fs from 'fs-extra'
 import map from 'lodash/map'
 import { tap, delay } from 'promise-toolbox'
-import { NULL_REF } from 'xen-api'
+import { NULL_REF } from '@xen-orchestra/xapi'
 import { invalidParameters } from 'xo-common/api-errors'
 import { includes, remove, filter, find, range } from 'lodash'
 
