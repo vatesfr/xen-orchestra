@@ -921,20 +921,20 @@ export default class BackupNg {
   async _listVmBackupsOnRemote(remoteId: string) {
     const app = this._app
     try {
-      const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+      const remote = await app.getRemoteWithCredentials(remoteId)
 
       let backupsByVm
-      if (proxy !== undefined) {
-        ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(proxy, 'backup.listVmBackups', {
+      if (remote.proxy !== undefined) {
+        ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
           remotes: {
             [remoteId]: {
-              url,
-              options,
+              url: remote.url,
+              options: remote.options,
             },
           },
         }))
       } else {
-        backupsByVm = await using(app.getBackupsRemoteAdapter(remoteId), async adapter =>
+        backupsByVm = await using(app.getBackupsRemoteAdapter(remote), async adapter =>
           formatVmBackups(await adapter.listAllVmBackups())
         )
       }
