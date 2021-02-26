@@ -269,6 +269,8 @@ export default class Jobs {
       key: job.key,
       type,
     })
+
+    const app = this._app
     try {
       const runningJobs = this._runningJobs
 
@@ -289,8 +291,6 @@ export default class Jobs {
         this.updateJob({ id, runId: null })::ignoreErrors()
         delete runningJobs[id]
       })
-
-      const app = this._app
 
       if (type === 'backup') {
         const hookData = {
@@ -389,6 +389,8 @@ export default class Jobs {
         },
         true
       )
+      app.emit('job:terminated', runJobId, { type })
+      throw error
     }
   }
 
