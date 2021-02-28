@@ -1,4 +1,4 @@
-const asyncMap = require('@xen-orchestra/async-map').default
+const asyncMap = require('@xen-orchestra/async-map')
 const cancelable = require('promise-toolbox/cancelable')
 const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')

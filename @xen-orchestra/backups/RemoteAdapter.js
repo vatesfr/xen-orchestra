@@ -1,4 +1,4 @@
-const asyncMapSettled = require('@xen-orchestra/async-map').default
+const asyncMapSettled = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const fromCallback = require('promise-toolbox/fromCallback')
 const fromEvent = require('promise-toolbox/fromEvent')

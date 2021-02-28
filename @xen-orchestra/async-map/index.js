@@ -9,11 +9,11 @@
 //   (V1, K) => MaybePromise<V2>
 // ): Promise<V2[]>
 
-import map from 'lodash/map'
+const map = require('lodash/map')
 
 // Similar to map() + Promise.all() but wait for all promises to
 // settle before rejecting (with the first error)
-const asyncMap = (collection, iteratee) => {
+module.exports = function asyncMap(collection, iteratee) {
   let then
   if (collection != null && typeof (then = collection.then) === 'function') {
     return then.call(collection, collection => asyncMap(collection, iteratee))
@@ -39,5 +39,3 @@ const asyncMap = (collection, iteratee) => {
     return values
   })
 }
-
-export { asyncMap as default }
