@@ -1,7 +1,7 @@
 const assert = require('assert')
 const defer = require('promise-toolbox/defer')
 const { utcFormat, utcParse } = require('d3-time-format')
-const { Xapi: Base, NULL_REF } = require('xen-api')
+const { Xapi: Base } = require('xen-api')
 
 // VDI formats. (Raw is not available for delta vdi.)
 exports.VDI_FORMAT_RAW = 'raw'
@@ -117,4 +117,3 @@ mixin({
   VM: require('./vm'),
 })
 exports.Xapi = Xapi
-exports.NULL_REF = NULL_REF

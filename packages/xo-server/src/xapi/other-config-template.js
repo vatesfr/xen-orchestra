@@ -1,4 +1,4 @@
-import { NULL_REF } from '@xen-orchestra/xapi'
+import { NULL_REF } from 'xen-api'
 
 const OTHER_CONFIG_TEMPLATE = {
   actions_after_crash: 'restart',
