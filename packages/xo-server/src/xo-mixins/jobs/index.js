@@ -2,7 +2,7 @@
 
 import type { Pattern } from 'value-matcher'
 
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import emitAsync from '@xen-orchestra/emit-async'
 

@@ -1,4 +1,4 @@
-const asyncMapSettled = require('@xen-orchestra/async-map')
+const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const fromCallback = require('promise-toolbox/fromCallback')
 const fromEvent = require('promise-toolbox/fromEvent')
@@ -13,7 +13,6 @@ const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
 const { ZipFile } = require('yazl')
 
-const { asyncMap } = require('./asyncMap')
 const { BACKUP_DIR } = require('./_getVmBackupDir')
 const { getTmpDir } = require('./_getTmpDir')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')

@@ -1,10 +1,10 @@
-const asyncMap = require('@xen-orchestra/async-map')
 const cancelable = require('promise-toolbox/cancelable')
 const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pRetry = require('promise-toolbox/retry')
+const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { NULL_REF } = require('xen-api')
 
@@ -286,7 +286,7 @@ module.exports = class Vm {
     ])
     // must be done before destroying the VM
     const disks = (
-      await asyncMap(this.getRecords('VBD', vm.VBDs), async vbd => {
+      await asyncMap(await this.getRecords('VBD', vm.VBDs), async vbd => {
         let vdiRef
         if (vbd.type === 'Disk' && isValidRef((vdiRef = vbd.VDI))) {
           return vdiRef
@@ -304,7 +304,7 @@ module.exports = class Vm {
             pRetry(
               async () => {
                 // list VMs connected to this VDI
-                const vmRefs = await asyncMap(this.getField('VDI', vdiRef, 'VBDs'), vbdRef =>
+                const vmRefs = await asyncMap(await this.getField('VDI', vdiRef, 'VBDs'), vbdRef =>
                   this.getField('VBD', vbdRef, 'VM')
                 )
                 if (vmRefs.every(_ => _ === vmRef)) {

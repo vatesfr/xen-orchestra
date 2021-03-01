@@ -1,4 +1,5 @@
-const { asyncMap } = require('./asyncMap')
+const { asyncMap } = require('@xen-orchestra/async-map')
+
 const { DIR_XO_CONFIG_BACKUPS } = require('./RemoteAdapter')
 const { formatFilenameDate } = require('./_filenameDate')
 const { Task } = require('./Task')

@@ -2,7 +2,7 @@
 
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'

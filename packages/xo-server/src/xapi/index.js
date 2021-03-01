@@ -1,6 +1,6 @@
 /* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import concurrency from 'limit-concurrency-decorator'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'

@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'

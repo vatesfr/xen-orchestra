@@ -4,10 +4,10 @@ const find = require('lodash/find')
 const groupBy = require('lodash/groupBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const omit = require('lodash/omit')
+const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')
 const { createVhdStreamWithLength } = require('vhd-lib')
 
-const { asyncMap } = require('./asyncMap')
 const { cancelableMap } = require('./_cancelableMap')
 
 const TAG_BASE_DELTA = 'xo:base_delta'

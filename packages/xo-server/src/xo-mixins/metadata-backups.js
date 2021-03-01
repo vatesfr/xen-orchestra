@@ -1,5 +1,5 @@
 // @flow
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout, using } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'

@@ -1,41 +1,65 @@
-// type MaybePromise<T> = Promise<T> | T
-//
-// declare export function asyncMap<T1, T2>(
-//   collection: MaybePromise<T1[]>,
-//   (T1, number) => MaybePromise<T2>
-// ): Promise<T2[]>
-// declare export function asyncMap<K, V1, V2>(
-//   collection: MaybePromise<{ [K]: V1 }>,
-//   (V1, K) => MaybePromise<V2>
-// ): Promise<V2[]>
+const wrapCall = require('promise-toolbox/wrapCall')
 
-const map = require('lodash/map')
+/**
+ * Similar to Promise.all + Array#map but supports all iterables and does not trigger ESLint array-callback-return
+ *
+ * WARNING: Does not handle plain objects
+ *
+ * @template Item,This
+ * @param {Iterable<Item>} arrayLike
+ * @param {(this: This, item: Item) => (Item | PromiseLike<Item>)} mapFn
+ * @param {This} [thisArg]
+ * @returns {Promise<Item[]>}
+ */
+exports.asyncMap = function asyncMap(iterable, mapFn, thisArg = iterable) {
+  return Promise.all(Array.from(iterable, mapFn, thisArg))
+}
 
-// Similar to map() + Promise.all() but wait for all promises to
-// settle before rejecting (with the first error)
-module.exports = function asyncMap(collection, iteratee) {
-  let then
-  if (collection != null && typeof (then = collection.then) === 'function') {
-    return then.call(collection, collection => asyncMap(collection, iteratee))
-  }
-
-  let errorContainer
-  const onError = error => {
-    if (errorContainer === undefined) {
-      errorContainer = { error }
+/**
+ * Like `asyncMap` but wait for all promises to settle before rejecting
+ *
+ * @template Item,This
+ * @param {Iterable<Item>} iterable
+ * @param {(this: This, item: Item) => (Item | PromiseLike<Item>)} mapFn
+ * @param {This} [thisArg]
+ * @returns {Promise<Item[]>}
+ */
+exports.asyncMapSettled = function asyncMapSettled(iterable, mapFn, thisArg = iterable) {
+  return new Promise((resolve, reject) => {
+    const onError = e => {
+      if (result !== undefined) {
+        error = e
+        result = undefined
+      }
+      if (--n === 0) {
+        this.reject(error)
+      }
     }
-  }
-
-  return Promise.all(
-    map(collection, (item, key, collection) =>
-      new Promise(resolve => {
-        resolve(iteratee(item, key, collection))
-      }).catch(onError)
-    )
-  ).then(values => {
-    if (errorContainer !== undefined) {
-      throw errorContainer.error
+    const onValue = (i, value) => {
+      const hasError = result !== undefined
+      if (!hasError) {
+        result[i] = value
+      }
+      if (--n === 0) {
+        if (hasError) {
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      }
     }
-    return values
+
+    let n = 0
+    for (const item of iterable) {
+      const i = n++
+      wrapCall(mapFn, item, thisArg).then(value => onValue(i, value), onError)
+    }
+
+    if (n === 0) {
+      return resolve([])
+    }
+
+    let error
+    let result = new Array(n)
   })
 }

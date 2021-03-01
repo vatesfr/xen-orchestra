@@ -1,5 +1,5 @@
 import assert from 'assert'
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import execa from 'execa'
