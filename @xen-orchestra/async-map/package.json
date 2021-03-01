@@ -26,7 +26,8 @@
   "preferGlobal": false,
   "bin": {},
   "files": [
-    "*.js"
+    "index.js",
+    "legacy.js"
   ],
   "engines": {
     "node": ">=6"
