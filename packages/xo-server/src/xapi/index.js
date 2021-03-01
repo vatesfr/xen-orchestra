@@ -14,7 +14,8 @@ import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'pro
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
-import { Xapi as XapiBase, NULL_REF } from 'xen-api'
+import { NULL_REF } from 'xen-api'
+import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import {
   every,
   filter,
