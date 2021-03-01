@@ -478,7 +478,7 @@ export default class BackupNg {
           const remotes = {}
           const xapis = {}
           await waitAll([
-            asyncMap(remoteIds, async id => {
+            asyncMapSettled(remoteIds, async id => {
               const remote = await app.getRemoteWithCredentials(id)
               if (remote.proxy !== proxyId) {
                 throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
@@ -486,7 +486,7 @@ export default class BackupNg {
 
               remotes[id] = remote
             }),
-            asyncMap([...servers], async id => {
+            asyncMapSettled([...servers], async id => {
               const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
               xapis[id] = {
                 allowUnauthorized,
@@ -657,7 +657,7 @@ export default class BackupNg {
             },
           })
         }
-        await asyncMap(vms, handleVm)
+        await asyncMapSettled(vms, handleVm)
 
         remotes.forEach(({ id }) => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
       }
@@ -676,7 +676,7 @@ export default class BackupNg {
     if (schedules !== undefined) {
       const { id, settings } = job
       const tmpIds = Object.keys(schedules)
-      await asyncMap(tmpIds, async (tmpId: string) => {
+      await asyncMapSettled(tmpIds, async (tmpId: string) => {
         // $FlowFixMe don't know what is the problem (JFT)
         const schedule = schedules[tmpId]
         schedule.jobId = id
@@ -694,7 +694,7 @@ export default class BackupNg {
     const [schedules] = await Promise.all([app.getAllSchedules(), app.getJob(id, 'backup')])
     await Promise.all([
       app.removeJob(id),
-      asyncMap(schedules, schedule => {
+      asyncMapSettled(schedules, schedule => {
         if (schedule.id === id) {
           app.deleteSchedule(schedule.id)
         }
@@ -1091,7 +1091,7 @@ export default class BackupNg {
       )
 
       // delete unused snapshots
-      await asyncMap(snapshotsToDelete, vm => {
+      await asyncMapSettled(snapshotsToDelete, vm => {
         // snapshot and baseSnapshot should not be deleted right now
         if (vm !== exported && vm !== baseSnapshot) {
           return xapi.deleteVm(vm)
@@ -1198,7 +1198,7 @@ export default class BackupNg {
               const fork = forkExport()
 
               // remove incomplete XVAs
-              await asyncMap(
+              await asyncMapSettled(
                 handler.list(vmDir, {
                   filter: filename => isHiddenFile(filename) && isXva(filename),
                   prependDir: true,
@@ -1376,13 +1376,13 @@ export default class BackupNg {
           })
         }
 
-        await asyncMap(remotes, ({ handler }) => {
-          return asyncMap(vdis, async vdi => {
+        await asyncMapSettled(remotes, ({ handler }) => {
+          return asyncMapSettled(vdis, async vdi => {
             const snapshotOf = vdi.$snapshot_of
             const dir = `${vmDir}/vdis/${jobId}/${snapshotOf.uuid}`
             const files = await handler.list(dir, { filter: isVhd }).catch(_ => [])
             let full = true
-            await asyncMap(files, async file => {
+            await asyncMapSettled(files, async file => {
               if (file[0] !== '.') {
                 try {
                   const path = `${dir}/${file}`
@@ -1547,7 +1547,7 @@ export default class BackupNg {
                   parentId: taskId,
                   result: size => ({ size }),
                 },
-                asyncMap(
+                asyncMapSettled(
                   fork.vdis,
                   defer(async ($defer, vdi, id) => {
                     const path = `${vmDir}/${metadata.vhds[id]}`
@@ -1697,12 +1697,12 @@ export default class BackupNg {
   }
 
   async _deleteDeltaVmBackups(handler: RemoteHandler, backups: MetadataDelta[]): Promise<number> {
-    return asyncMap(backups, async backup => {
+    return asyncMapSettled(backups, async backup => {
       const filename = ((backup._filename: any): string)
 
       await handler.unlink(filename)
 
-      return asyncMap(backup.vhds, _ =>
+      return asyncMapSettled(backup.vhds, _ =>
         // $FlowFixMe injected $defer param
         this._deleteVhd(handler, resolveRelativeFromFile(filename, _))
       ).then(sum)
@@ -1719,22 +1719,25 @@ export default class BackupNg {
   // FIXME: synchronize by job/VDI, otherwise it can cause issues with the merge
   @defer
   async _deleteVhd($defer: any, handler: RemoteHandler, path: string): Promise<number> {
-    const vhds = await asyncMap(await handler.list(dirname(path), { filter: isVhd, prependDir: true }), async path => {
-      try {
-        const vhd = new Vhd(handler, path)
-        await vhd.readHeaderAndFooter()
-        return {
-          footer: vhd.footer,
-          header: vhd.header,
-          path,
+    const vhds = await asyncMapSettled(
+      await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
+      async path => {
+        try {
+          const vhd = new Vhd(handler, path)
+          await vhd.readHeaderAndFooter()
+          return {
+            footer: vhd.footer,
+            header: vhd.header,
+            path,
+          }
+        } catch (error) {
+          // Do not fail on corrupted VHDs (usually uncleaned temporary files),
+          // they are probably inconsequent to the backup process and should not
+          // fail it.
+          log.warn(`BackupNg#_deleteVhd ${path}`, { error })
         }
-      } catch (error) {
-        // Do not fail on corrupted VHDs (usually uncleaned temporary files),
-        // they are probably inconsequent to the backup process and should not
-        // fail it.
-        log.warn(`BackupNg#_deleteVhd ${path}`, { error })
       }
-    })
+    )
     const base = basename(path)
     const child = vhds.find(_ => _ !== undefined && _.header.parentUnicodeName === base)
     if (child === undefined) {

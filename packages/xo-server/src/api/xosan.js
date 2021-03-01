@@ -397,10 +397,10 @@ const createNetworkAndInsertHosts = defer(async function ($defer, xapi, pif, vla
     pif,
     address: networkPrefix + hostIpLastNumber++,
   }))
-  await asyncMap(addresses, addressAndPif => reconfigurePifIP(xapi, addressAndPif.pif, addressAndPif.address))
+  await asyncMapSettled(addresses, addressAndPif => reconfigurePifIP(xapi, addressAndPif.pif, addressAndPif.address))
   const master = xapi.pool.$master
   const otherAddresses = addresses.filter(addr => addr.pif.$host !== master)
-  await asyncMap(otherAddresses, async address => {
+  await asyncMapSettled(otherAddresses, async address => {
     const result = await callPlugin(xapi, master, 'run_ping', {
       address: address.address,
     })
@@ -437,7 +437,7 @@ async function getOrCreateSshKey(xapi) {
 }
 
 const _probePoolAndWaitForPresence = defer(async function ($defer, glusterEndpoint, addresses) {
-  await asyncMap(addresses, async address => {
+  await asyncMapSettled(addresses, async address => {
     await glusterCmd(glusterEndpoint, 'peer probe ' + address)
     $defer.onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + address, true))
   })
@@ -587,7 +587,7 @@ export const createSR = defer(async function (
     const firstVM = await this::_importGlusterVM(xapi, template, firstSr)
     $defer.onFailure(() => xapi.deleteVm(firstVM, true))
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 2 }
-    const copiedVms = await asyncMap(srsObjects.slice(1), sr =>
+    const copiedVms = await asyncMapSettled(srsObjects.slice(1), sr =>
       copyVm(xapi, firstVM, sr)::tap(({ vm }) => $defer.onFailure(() => xapi.deleteVm(vm)))
     )
     const vmsAndSrs = [
@@ -610,7 +610,7 @@ export const createSR = defer(async function (
       })
       arbiter.arbiter = true
     }
-    const ipAndHosts = await asyncMap(vmsAndSrs, vmAndSr =>
+    const ipAndHosts = await asyncMapSettled(vmsAndSrs, vmAndSr =>
       _prepareGlusterVm(xapi, vmAndSr.sr, vmAndSr.vm, xosanNetwork, networkPrefix + vmIpLastNumber++, {
         maxDiskSize: brickSize,
         memorySize,
