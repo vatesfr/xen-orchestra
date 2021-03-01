@@ -36,7 +36,7 @@ exports.asyncMapSettled = function asyncMapSettled(iterable, mapFn, thisArg = it
       }
     }
     const onValue = (i, value) => {
-      const hasError = result !== undefined
+      const hasError = result === undefined
       if (!hasError) {
         result[i] = value
       }
