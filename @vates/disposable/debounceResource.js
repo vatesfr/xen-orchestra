@@ -1,5 +1,5 @@
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { createLogger } = require('@xen-orchestra/log/dist')
+const { createLogger } = require('@xen-orchestra/log')
 
 const { warn } = createLogger('vates:disposable:debounceResource')
 
