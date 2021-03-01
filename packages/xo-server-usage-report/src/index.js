@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
@@ -334,7 +334,7 @@ async function getHostsStats({ runningHosts, xo }) {
 
 async function getSrsStats({ xo, xoObjects }) {
   return orderBy(
-    await asyncMap(
+    await asyncMapSettled(
       filter(xoObjects, obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0),
       async sr => {
         const totalSpace = sr.size / gibPower

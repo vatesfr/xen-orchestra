@@ -2,7 +2,7 @@
 
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
@@ -1710,7 +1710,7 @@ export default class BackupNg {
   }
 
   async _deleteFullVmBackups(handler: RemoteHandler, backups: MetadataFull[]): Promise<void> {
-    await asyncMap(backups, ({ _filename, xva }) => {
+    await asyncMapSettled(backups, ({ _filename, xva }) => {
       _filename = ((_filename: any): string)
       return Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     })
@@ -1751,7 +1751,7 @@ export default class BackupNg {
   }
 
   async _deleteVms(xapi: Xapi, vms: Vm[]): Promise<void> {
-    await asyncMap(vms, vm => xapi.deleteVm(vm))
+    await asyncMapSettled(vms, vm => xapi.deleteVm(vm))
   }
 
   async _listVmBackups(

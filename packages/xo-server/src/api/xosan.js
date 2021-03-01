@@ -1,5 +1,5 @@
 import assert from 'assert'
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import execa from 'execa'
@@ -146,7 +146,7 @@ function createVolumeInfoTypes() {
     }
 
     const topTypes = ['open', 'read', 'write', 'opendir', 'readdir']
-    return asyncMap(topTypes, async type => ({
+    return asyncMapSettled(topTypes, async type => ({
       type,
       result: await this::sshInfoType(`top xosan ${type}`, parseTop)(sr),
     }))
@@ -1119,11 +1119,11 @@ export const removeBricks = defer(async function ($defer, { xosansr, bricks }) {
     const dict = _getIPToVMDict(xapi, xosansr.id)
     const brickVMs = map(bricks, b => dict[b])
     await glusterCmd(glusterEndpoint, `volume remove-brick xosan ${bricks.join(' ')} force`)
-    await asyncMap(ips, ip => glusterCmd(glusterEndpoint, 'peer detach ' + ip, true))
+    await asyncMapSettled(ips, ip => glusterCmd(glusterEndpoint, 'peer detach ' + ip, true))
     remove(data.nodes, node => ips.includes(node.vm.ip))
     await xapi.xo.setData(xosansr.id, 'xosan_config', data)
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr._xapiId).$ref)
-    await asyncMap(brickVMs, vm => xapi.deleteVm(vm.vm, true))
+    await asyncMapSettled(brickVMs, vm => xapi.deleteVm(vm.vm, true))
   } finally {
     delete CURRENT_POOL_OPERATIONS[xapi.pool.$id]
   }
