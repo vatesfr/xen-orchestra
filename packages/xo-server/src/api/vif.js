@@ -174,6 +174,6 @@ set.params = {
 }
 
 set.resolve = {
-  vif: ['id', 'VIF', 'operate'],
+  vif: ['id', 'VIF', 'administrate'],
   network: ['network', 'network', false],
 }
