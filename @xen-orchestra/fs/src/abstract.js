@@ -3,7 +3,7 @@
 // $FlowFixMe
 import getStream from 'get-stream'
 
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
@@ -522,7 +522,7 @@ export default class RemoteHandlerAbstract {
     }
 
     const files = await this._list(dir)
-    await asyncMap(files, file =>
+    await asyncMapSettled(files, file =>
       this._unlink(`${dir}/${file}`).catch(error => {
         if (error.code === 'EISDIR') {
           return this._rmtree(`${dir}/${file}`)

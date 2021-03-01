@@ -1,5 +1,5 @@
 import * as multiparty from 'multiparty'
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import defer from 'golike-defer'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
@@ -377,7 +377,7 @@ const delete_ = defer(async function (
     $defer.onFailure(() => this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors())
   }
 
-  await asyncMap(vm.snapshots, async id => {
+  await asyncMapSettled(vm.snapshots, async id => {
     const { resourceSet } = this.getObject(id)
     if (resourceSet !== undefined) {
       await this.setVmResourceSet(id, null)

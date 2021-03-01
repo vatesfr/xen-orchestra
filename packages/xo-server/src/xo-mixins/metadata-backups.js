@@ -1,5 +1,5 @@
 // @flow
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import { fromEvent, ignoreErrors, timeout, using } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
@@ -195,7 +195,7 @@ export default class metadataBackup {
       )
       const metaDataFileName = `${dir}/metadata.json`
 
-      await asyncMap(handlers, async (handler, remoteId) => {
+      await asyncMapSettled(handlers, async (handler, remoteId) => {
         const subTaskId = logger.notice(`Starting XO metadata backup for the remote (${remoteId}). (${job.id})`, {
           data: {
             id: remoteId,
@@ -308,7 +308,7 @@ export default class metadataBackup {
       )
       const metaDataFileName = `${dir}/metadata.json`
 
-      await asyncMap(handlers, async (handler, remoteId) => {
+      await asyncMapSettled(handlers, async (handler, remoteId) => {
         const subTaskId = logger.notice(
           `Starting metadata backup for the pool (${poolId}) for the remote (${remoteId}). (${job.id})`,
           {
@@ -459,7 +459,7 @@ export default class metadataBackup {
       const remotes = {}
       const xapis = {}
       await waitAll([
-        asyncMap(remoteIds, async id => {
+        asyncMapSettled(remoteIds, async id => {
           const remote = await app.getRemoteWithCredentials(id)
           if (remote.proxy !== proxyId) {
             throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
@@ -467,7 +467,7 @@ export default class metadataBackup {
 
           remotes[id] = remote
         }),
-        asyncMap([...servers], async id => {
+        asyncMapSettled([...servers], async id => {
           const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
           xapis[id] = {
             allowUnauthorized,
@@ -634,7 +634,7 @@ export default class metadataBackup {
     })
 
     const { id: jobId, settings } = job
-    await asyncMap(schedules, async (schedule, tmpId) => {
+    await asyncMapSettled(schedules, async (schedule, tmpId) => {
       const { id: scheduleId } = await app.createSchedule({
         ...schedule,
         jobId,
@@ -657,7 +657,7 @@ export default class metadataBackup {
 
     await Promise.all([
       app.removeJob(id),
-      asyncMap(schedules, schedule => {
+      asyncMapSettled(schedules, schedule => {
         if (schedule.id === id) {
           return app.deleteSchedule(id)
         }

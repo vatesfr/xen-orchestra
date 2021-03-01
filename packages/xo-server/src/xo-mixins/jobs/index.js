@@ -2,7 +2,7 @@
 
 import type { Pattern } from 'value-matcher'
 
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import createLogger from '@xen-orchestra/log'
 import emitAsync from '@xen-orchestra/emit-async'
 
@@ -162,7 +162,7 @@ export default class Jobs {
     })
     // it sends a report for the interrupted backup jobs
     xo.on('plugins:registered', () =>
-      asyncMap(this._jobs.get(), job => {
+      asyncMapSettled(this._jobs.get(), job => {
         // only the interrupted backup jobs have the runId property
         if (job.runId === undefined) {
           return

@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map'
 import { some } from 'lodash'
 
 import ensureArray from '../_ensureArray'
@@ -64,7 +64,7 @@ export async function destroy({ sr }) {
   const config = xapi.xo.getData(sr, 'xosan_config')
   // we simply forget because the hosted disks are being destroyed with the VMs
   await xapi.forgetSr(sr._xapiId)
-  await asyncMap(config.nodes, node => xapi.deleteVm(node.vm.id))
+  await asyncMapSettled(config.nodes, node => xapi.deleteVm(node.vm.id))
   await xapi.deleteNetwork(config.network)
   if (sr.SR_type === 'xosan') {
     await this.unbindXosanLicense({ srId: sr.id })
