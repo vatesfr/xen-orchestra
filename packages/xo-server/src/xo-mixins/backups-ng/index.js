@@ -13,9 +13,11 @@ import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
+import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
+import { Task } from '@xen-orchestra/backups/Task'
 import {
   countBy,
   findLast,
@@ -32,7 +34,7 @@ import {
   values,
 } from 'lodash'
 import { CancelToken, ignoreErrors, timeout, using } from 'promise-toolbox'
-import Vhd, { chainVhd, checkVhdChain, createSyntheticStream as createVhdReadStream } from 'vhd-lib'
+import Vhd, { chainVhd, checkVhdChain } from 'vhd-lib'
 
 import type Logger from '../logs/loggers/abstract'
 import { type CallJob, type Executor, type Job } from '../jobs'
@@ -40,8 +42,9 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
+import { handleBackupLog } from '../../_handleBackupLog'
 import { waitAll } from '../../_waitAll'
-import { type DeltaVmExport, type DeltaVmImport, type Vdi, type Vm, type Xapi, TAG_COPY_SRC } from '../../xapi'
+import { type DeltaVmExport, type Vdi, type Vm, type Xapi, TAG_COPY_SRC } from '../../xapi'
 import { formatDateTime, getVmDisks } from '../../xapi/utils'
 import {
   resolveRelativeFromFile,
@@ -810,12 +813,12 @@ export default class BackupNg {
     const sr = xapi.getObject(srId)
 
     const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    const remote = await app.getRemoteWithCredentials(remoteId)
 
     let rootTaskId
     const logger = this._logger
     try {
-      if (proxy !== undefined) {
+      if (remote.proxy !== undefined) {
         const { allowUnauthorized, host, password, username } = await app.getXenServer(
           app.getXenServerIdByObject(sr.$id)
         )
@@ -823,8 +826,8 @@ export default class BackupNg {
         const params = {
           backupId: metadataFilename,
           remote: {
-            url,
-            options,
+            url: remote.url,
+            options: remote.options,
           },
           srUuid: sr.uuid,
           streamLogs: true,
@@ -839,71 +842,60 @@ export default class BackupNg {
         }
 
         try {
-          const logsStream = await app.callProxyMethod(proxy, 'backup.importVmBackup', params, {
+          const logsStream = await app.callProxyMethod(remote.proxy, 'backup.importVmBackup', params, {
             assertType: 'iterator',
           })
 
           const localTaskIds = { __proto__: null }
           for await (const log of logsStream) {
-            const { event, message, taskId } = log
-
-            const common = {
-              data: log.data,
-              event: 'task.' + event,
-              result: log.result,
-              status: log.status,
-            }
-
-            if (event === 'start') {
-              const { parentId } = log
-              if (parentId === undefined) {
-                rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
-                this._runningRestores.add(rootTaskId)
-              } else {
-                common.parentId = localTaskIds[parentId]
-                localTaskIds[taskId] = logger.notice(message, common)
-              }
-            } else {
-              common.taskId = localTaskIds[taskId]
-              logger.notice(message, common)
-            }
+            handleBackupLog(log, {
+              logger,
+              localTaskIds,
+              handleRootTaskId: id => {
+                this._runningRestores.add(id)
+                rootTaskId = id
+              },
+            })
           }
-
-          return
         } catch (error) {
           if (invalidParameters.is(error)) {
             delete params.streamLogs
-            return app.callProxyMethod(proxy, 'backup.importVmBackup', params)
+            return app.callProxyMethod(remote.proxy, 'backup.importVmBackup', params)
           }
           throw error
         }
+      } else {
+        await using(app.getBackupsRemoteAdapter(remote), async adapter => {
+          const metadata: Metadata = await adapter.readVmBackupMetadata(metadataFilename)
+          const localTaskIds = { __proto__: null }
+          return Task.run(
+            {
+              data: {
+                jobId: metadata.jobId,
+                srId,
+                time: metadata.timestamp,
+              },
+              name: 'restore',
+              onLog: log =>
+                handleBackupLog(log, {
+                  logger,
+                  localTaskIds,
+                  handleRootTaskId: id => {
+                    this._runningRestores.add(id)
+                    rootTaskId = id
+                  },
+                }),
+            },
+            async () =>
+              new ImportVmBackup({
+                adapter,
+                metadata,
+                srUuid: srId,
+                xapi: await app.getXapi(srId),
+              }).run()
+          )
+        })
       }
-
-      const handler = await app.getRemoteHandler(remoteId)
-      const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
-
-      const importer = importers[metadata.mode]
-      if (importer === undefined) {
-        throw new Error(`no importer for backup mode ${metadata.mode}`)
-      }
-
-      const { jobId, timestamp: time } = metadata
-      return wrapTaskFn(
-        {
-          data: {
-            jobId,
-            srId,
-            time,
-          },
-          logger,
-          message: 'restore',
-        },
-        taskId => {
-          rootTaskId = taskId
-          this._runningRestores.add(taskId)
-          return importer(handler, metadataFilename, metadata, xapi, sr, taskId, logger)
-        }
-      )()
     } finally {
       this._runningRestores.delete(rootTaskId)
     }
