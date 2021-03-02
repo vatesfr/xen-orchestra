@@ -5,9 +5,9 @@ import { fromEvent, retry } from 'promise-toolbox'
 import RemoteHandlerAbstract from './abstract'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
-  constructor(remote, { tries = 10 } = {}) {
+  constructor(remote, { triesOnEAGAIN = 10 } = {}) {
     super(remote)
-    this.tries = tries
+    this._triesOnEAGAIN = triesOnEAGAIN
   }
   get type() {
     return 'file'
@@ -96,8 +96,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _readFile(file, options) {
-    return retry(() => fs.readFile(this._getFilePath(file), options), {
-      tries: this.tries,
+    const filePath = this._getFilePath(file)
+    return retry(() => fs.readFile(filePath, options), {
+      tries: this._triesOnEAGAIN,
       when: { code: 'EAGAIN' },
     })
   }
@@ -121,8 +122,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _unlink(file) {
-    return retry(() => fs.unlink(this._getFilePath(file)), {
-      tries: this.tries,
+    const filePath = this._getFilePath(file)
+    return retry(() => fs.unlink(filePath), {
+      tries: this._triesOnEAGAIN,
       when: { code: 'EAGAIN' },
     })
   }
