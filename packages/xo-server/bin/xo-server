@@ -20,6 +20,10 @@ try {
 // less memory usage.
 global.Promise = require('bluebird')
 
+// Enable `async_hooks` because it's used by `node-zone`
+// See: http://bluebirdjs.com/docs/api/promise.config.html#async-hooks
+Promise.config({ asyncHooks: true })
+
 require('@xen-orchestra/log/configure').catchGlobalErrors(require('@xen-orchestra/log').default('xo:xo-server'))
 
 require('exec-promise')(require('../'))
