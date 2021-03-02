@@ -32,14 +32,14 @@
     "@babel/preset-env": "^7.1.6",
     "@iarna/toml": "^2.2.1",
     "@vates/parse-duration": "^0.1.0",
-    "app-conf": "^0.8.0",
+    "app-conf": "^0.9.0",
     "babel-plugin-lodash": "^3.2.11",
-    "golike-defer": "^0.4.1",
+    "golike-defer": "^0.5.1",
     "jest": "^24.8.0",
     "lodash": "^4.17.11",
-    "promise-toolbox": "^0.16.0",
+    "promise-toolbox": "^0.17.0",
     "xo-collection": "^0.4.1",
-    "xo-common": "^0.5.0",
+    "xo-common": "^0.6.0",
     "xo-lib": "^0.10.1"
   },
   "scripts": {

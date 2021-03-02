@@ -1366,14 +1366,6 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@marsaud/smb2@^0.15.0":
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.15.0.tgz#151eaa0d0a5e3fc8929d7dc872c2bed397b444dd"
-  integrity sha512-8y6Gvr8FUMNrRxoQ3luNJWB8y0JKu+8WO6NnT1kyIZaWMa94iIvFTmyKmu40wRrZ2W4bqh1gTJYp7E99NO4usQ==
-  dependencies:
-    ntlm "~0.1.1"
-    readable-stream "^3.0.6"
-
 "@marsaud/smb2@^0.17.2":
   version "0.17.2"
   resolved "https://registry.yarnpkg.com/@marsaud/smb2/-/smb2-0.17.2.tgz#5cc028f24f1fff7aa9012b221e36ffbf90a43367"
@@ -2087,27 +2079,6 @@
     "@webassemblyjs/wast-parser" "1.9.0"
     "@xtuc/long" "4.2.2"
 
-"@xen-orchestra/fs@0.12.0":
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/@xen-orchestra/fs/-/fs-0.12.0.tgz#0b925d73d202a363c7483bc62b42bedac5708f1e"
-  integrity sha512-HA0D4KD6PKDY+klzo33L4zZAdbJ9xzWnM/QsibWgpSd2GqRAz06VxpSQMxJ9OYxuIn8YzWQNOkBOsADpL/Ao1A==
-  dependencies:
-    "@marsaud/smb2" "^0.15.0"
-    "@sindresorhus/df" "^3.1.1"
-    "@xen-orchestra/async-map" "^0.0.0"
-    aws-sdk "^2.686.0"
-    decorator-synchronized "^0.5.0"
-    execa "^4.0.2"
-    fs-extra "^9.0.0"
-    get-stream "^6.0.0"
-    limit-concurrency-decorator "^0.4.0"
-    lodash "^4.17.4"
-    promise-toolbox "^0.15.0"
-    readable-stream "^3.0.6"
-    through2 "^4.0.2"
-    tmp "^0.2.1"
-    xo-remote-parser "^0.6.0"
-
 "@xmpp/jid@^0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@xmpp/jid/-/jid-0.0.2.tgz#0d528ca9d58dafc833665564ffe62f332a3167f2"
@@ -2514,30 +2485,6 @@ anymatch@^3.0.3, anymatch@~3.1.1:
   dependencies:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
-
-app-conf@^0.7.0:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/app-conf/-/app-conf-0.7.1.tgz#59bf3605e6d8fa19107408ae9f94c1c9984764b4"
-  integrity sha512-arusY8qGB4EmPFUweuLVQde4cj0zQfMBo+D7wRk285SQPfetX9Jk+4VRL+20n5dsJr4Rm4uj2y6exm78wsgCFg==
-  dependencies:
-    debug "^4.1.0"
-    glob "^7.1.3"
-    lodash "^4.17.11"
-    make-error "^1.3.5"
-    promise-toolbox "^0.14.0"
-    xdg-basedir "^3.0.0"
-
-app-conf@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/app-conf/-/app-conf-0.8.0.tgz#14c8393a68097ff03fab259e832b1be89b71dfc6"
-  integrity sha512-E0yaMWqkxrnSDXPuiN6MZMJxqcoE151Ozxxe5gB5vcHKa/zzOkUbmjCu5Ytqs56cd5/wpRv5vmiMM3fGq55oGQ==
-  dependencies:
-    debug "^4.1.0"
-    glob "^7.1.3"
-    lodash "^4.17.11"
-    make-error "^1.3.5"
-    promise-toolbox "^0.14.0"
-    xdg-basedir "^3.0.0"
 
 app-conf@^0.9.0:
   version "0.9.0"
@@ -7584,7 +7531,7 @@ execa@^2.0.1:
     signal-exit "^3.0.2"
     strip-final-newline "^2.0.0"
 
-execa@^4.0.0, execa@^4.0.2, execa@^4.1.0:
+execa@^4.0.0, execa@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-4.1.0.tgz#4e5491ad1572f2f17a77d388c6c857135b22847a"
   integrity sha512-j5W0//W7f8UxAn8hXVnwG8tLwdiUy4FJLcSupCg6maBYZDpyBvTApK7KyuI4bKj8KOh1r2YH+6ucuYtJv1bTZA==
@@ -8730,10 +8677,10 @@ glogg@^1.0.0:
   dependencies:
     sparkles "^1.0.0"
 
-golike-defer@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.4.1.tgz#7a1cd435d61e461305805d980b133a0f3db4e1cc"
-  integrity sha512-x8cq/Fvu32T8cnco3CBDRF+/M2LFmfSIysKfecX09uIK3cFdHcEKBTPlPnEO6lwrdxfjkOIU6dIw3EIlEJeS1A==
+golike-defer@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/golike-defer/-/golike-defer-0.5.1.tgz#64ead6f3ba71ca3318e9a9de2bd316debe057b8a"
+  integrity sha512-8PBDAYO7tTGWBt2BGJ25s1sSVl2orsgdrrZ9zPyHOus1BvbIuqTRZyNaczPNzyXCfH+IJLildTXPZXvUxEkvgA==
 
 good-listener@^1.2.2:
   version "1.2.2"
@@ -14963,6 +14910,13 @@ promise-toolbox@^0.16.0:
   version "0.16.0"
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.16.0.tgz#c32133f3f74f6c5bc3ac2b5bc32eb0167314fb7b"
   integrity sha512-Yk+XcOsw/UoqWW5vvKUyw/fWPxnYYxZAxtzGuQb1Eyp6LWWj0aXgMv/apn/lkbcVcFNHytUH7dhGeFXQQUT+bg==
+  dependencies:
+    make-error "^1.3.2"
+
+promise-toolbox@^0.17.0:
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.17.0.tgz#e5402705c646f42a006baa8f683e30830ab2aa17"
+  integrity sha512-JZFJh+sMsWUL3kCuAziBan/BNYV006Ymj+hSZCuWLZB3kxQgstih6iXf9eCPU6t6QdXBer5uEj2qkgbNWBG7Sw==
   dependencies:
     make-error "^1.3.2"
 

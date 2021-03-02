@@ -25,7 +25,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "xo-common": "^0.5.0"
+    "xo-common": "^0.6.0"
   },
   "scripts": {
     "postversion": "npm publish"

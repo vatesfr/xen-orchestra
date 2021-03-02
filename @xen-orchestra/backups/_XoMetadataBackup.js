@@ -1,7 +1,8 @@
-const { asyncMap } = require('./asyncMap')
+const { asyncMap } = require('@xen-orchestra/async-map')
+
 const { DIR_XO_CONFIG_BACKUPS } = require('./RemoteAdapter')
 const { formatFilenameDate } = require('./_filenameDate')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 exports.XoMetadataBackup = class XoMetadataBackup {
   constructor({ config, job, remoteAdapters, schedule, settings }) {
@@ -19,7 +20,7 @@ exports.XoMetadataBackup = class XoMetadataBackup {
     const scheduleDir = `${DIR_XO_CONFIG_BACKUPS}/${schedule.id}`
     const dir = `${scheduleDir}/${formatFilenameDate(timestamp)}`
 
-    const data = JSON.stringify(job.xoMetadata, null, 2)
+    const data = job.xoMetadata
     const fileName = `${dir}/data.json`
 
     const metadata = JSON.stringify(

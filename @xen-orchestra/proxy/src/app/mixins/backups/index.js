@@ -1,24 +1,22 @@
 import defer from 'golike-defer'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
-import mapValues from 'lodash/mapValues'
 import using from 'promise-toolbox/using'
-import { asyncMap } from '@xen-orchestra/backups/asyncMap'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { Backup } from '@xen-orchestra/backups/Backup'
 import { compose } from '@vates/compose'
-import { createLogger } from '@xen-orchestra/log/dist'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition'
 import { execFile } from 'child_process'
-import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
-import { Task } from '@xen-orchestra/backups/task'
+import { Task } from '@xen-orchestra/backups/Task'
 import { Xapi } from '@xen-orchestra/xapi'
-
 
 const noop = Function.prototype
 
@@ -48,7 +46,7 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = ({ xapis, ...rest }) =>
+    let run = ({ recordToXapi, remotes, xapis, ...rest }) =>
       new Backup({
         ...rest,
 
@@ -56,8 +54,17 @@ export default class Backups {
         config: app.config.get('backups'),
 
         // pass getAdapter in order to mutualize the adapter resources usage
-        getAdapter: this.getAdapter.bind(this),
-        getConnectedXapi: id => this.getXapi(xapis[id]),
+        getAdapter: remoteId => this.getAdapter(remotes[remoteId]),
+
+        getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
+          const xapiId = recordToXapi[uuid]
+          if (xapiId === undefined) {
+            throw new Error('no XAPI associated to ' + uuid)
+          }
+
+          const xapi = yield this.getXapi(xapis[xapiId])
+          return xapi.getRecordByUuid(type, uuid)
+        }).bind(this),
       }).run()
 
     const runningJobs = { __proto__: null }
@@ -239,9 +246,7 @@ export default class Backups {
             await asyncMap(Object.keys(remotes), async remoteId => {
               try {
                 await using(this.getAdapter(remotes[remoteId]), async adapter => {
-                  backups[remoteId] = mapValues(await adapter.listAllVmBackups(), vmBackups =>
-                    vmBackups.map(backup => formatVmBackup(backup))
-                  )
+                  backups[remoteId] = formatVmBackups(await adapter.listAllVmBackups())
                 })
               } catch (error) {
                 warn('listVmBackups', { error, remote: remotes[remoteId] })

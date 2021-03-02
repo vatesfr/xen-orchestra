@@ -124,7 +124,7 @@ declare namespace backup {
     remotes: SimpleIdPattern
     settings: Settings
     type: 'metadataBackup'
-    xoMetadata?: object
+    xoMetadata?: string
   }
 
   interface Schedule {

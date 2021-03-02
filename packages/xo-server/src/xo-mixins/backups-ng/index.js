@@ -2,7 +2,7 @@
 
 // $FlowFixMe
 import type RemoteHandler from '@xen-orchestra/fs'
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import limitConcurrency from 'limit-concurrency-decorator'
@@ -12,10 +12,12 @@ import { PassThrough } from 'stream'
 import { AssertionError } from 'assert'
 import { basename, dirname } from 'path'
 import { decorateWith } from '@vates/decorate-with'
-import { formatVmBackup } from '@xen-orchestra/backups/formatVmBackup'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
+import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
 import { isValidXva } from '@xen-orchestra/backups/isValidXva'
 import { parseDuration } from '@vates/parse-duration'
+import { Task } from '@xen-orchestra/backups/Task'
 import {
   countBy,
   findLast,
@@ -31,8 +33,8 @@ import {
   sum,
   values,
 } from 'lodash'
-import { CancelToken, ignoreErrors, timeout } from 'promise-toolbox'
-import Vhd, { chainVhd, checkVhdChain, createSyntheticStream as createVhdReadStream } from 'vhd-lib'
+import { CancelToken, ignoreErrors, timeout, using } from 'promise-toolbox'
+import Vhd, { chainVhd, checkVhdChain } from 'vhd-lib'
 
 import type Logger from '../logs/loggers/abstract'
 import { type CallJob, type Executor, type Job } from '../jobs'
@@ -40,8 +42,9 @@ import { type Schedule } from '../scheduling'
 
 import createSizeStream from '../../size-stream'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
+import { handleBackupLog } from '../../_handleBackupLog'
 import { waitAll } from '../../_waitAll'
-import { type DeltaVmExport, type DeltaVmImport, type Vdi, type Vm, type Xapi, TAG_COPY_SRC } from '../../xapi'
+import { type DeltaVmExport, type Vdi, type Vm, type Xapi, TAG_COPY_SRC } from '../../xapi'
 import { formatDateTime, getVmDisks } from '../../xapi/utils'
 import {
   resolveRelativeFromFile,
@@ -195,86 +198,6 @@ const listReplicatedVms = (xapi: Xapi, scheduleOrJobId: string, srUuid?: string,
   }
 
   return values(vms).sort(compareReplicatedVmDatetime)
-}
-
-const importers: $Dict<
-  (
-    handler: RemoteHandler,
-    metadataFilename: string,
-    metadata: Metadata,
-    xapi: Xapi,
-    sr: { $id: string },
-    taskId: string,
-    logger: Logger
-  ) => Promise<string>,
-  Mode
-> = {
-  async delta(handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
-    metadata = ((metadata: any): MetadataDelta)
-    const { vdis, vhds, vm } = metadata
-
-    const streams = {}
-    await asyncMap(vdis, async (vdi, id) => {
-      streams[`${id}.vhd`] = await createVhdReadStream(handler, resolveRelativeFromFile(metadataFilename, vhds[id]))
-    })
-
-    const delta: DeltaVmImport = {
-      streams,
-      vbds: metadata.vbds,
-      vdis,
-      version: '1.0.0',
-      vifs: metadata.vifs,
-      vm: {
-        ...vm,
-        name_label: `${vm.name_label} (${safeDateFormat(metadata.timestamp)})`,
-        tags: [...vm.tags, 'restored from backup'],
-      },
-    }
-
-    const { vm: newVm } = await wrapTask(
-      {
-        logger,
-        message: 'transfer',
-        parentId: taskId,
-        result: ({ transferSize, vm: { $id: id } }) => ({
-          size: transferSize,
-          id,
-        }),
-      },
-      xapi.importDeltaVm(delta, {
-        detectBase: false,
-        disableStartAfterImport: false,
-        srId: sr,
-        // TODO: support mapVdisSrs
-      })
-    )
-    return newVm.$id
-  },
-  async full(handler, metadataFilename, metadata, xapi, sr, taskId, logger) {
-    metadata = ((metadata: any): MetadataFull)
-
-    const xva = await handler.createReadStream(resolveRelativeFromFile(metadataFilename, metadata.xva), {
-      checksum: true,
-      ignoreMissingChecksum: true, // provide an easy way to opt-out
-    })
-
-    const vm = await wrapTask(
-      {
-        logger,
-        message: 'transfer',
-        parentId: taskId,
-        result: ({ $id: id }) => ({ size: xva.length, id }),
-      },
-      xapi.importVm(xva, { srId: sr.$id })
-    )
-    await Promise.all([
-      vm.add_tags('restored from backup'),
-      xapi.editVm(vm.$id, {
-        name_label: `${metadata.vm.name_label} (${safeDateFormat(metadata.timestamp)})`,
-      }),
-    ])
-    return vm.$id
-  },
 }
 
 const PARSE_UUID_RE = /-/g
@@ -555,7 +478,7 @@ export default class BackupNg {
           const remotes = {}
           const xapis = {}
           await waitAll([
-            asyncMap(remoteIds, async id => {
+            asyncMapSettled(remoteIds, async id => {
               const remote = await app.getRemoteWithCredentials(id)
               if (remote.proxy !== proxyId) {
                 throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
@@ -563,7 +486,7 @@ export default class BackupNg {
 
               remotes[id] = remote
             }),
-            asyncMap([...servers], async id => {
+            asyncMapSettled([...servers], async id => {
               const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
               xapis[id] = {
                 allowUnauthorized,
@@ -734,7 +657,7 @@ export default class BackupNg {
             },
           })
         }
-        await asyncMap(vms, handleVm)
+        await asyncMapSettled(vms, handleVm)
 
         remotes.forEach(({ id }) => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
       }
@@ -753,7 +676,7 @@ export default class BackupNg {
     if (schedules !== undefined) {
       const { id, settings } = job
       const tmpIds = Object.keys(schedules)
-      await asyncMap(tmpIds, async (tmpId: string) => {
+      await asyncMapSettled(tmpIds, async (tmpId: string) => {
         // $FlowFixMe don't know what is the problem (JFT)
         const schedule = schedules[tmpId]
         schedule.jobId = id
@@ -771,7 +694,7 @@ export default class BackupNg {
     const [schedules] = await Promise.all([app.getAllSchedules(), app.getJob(id, 'backup')])
     await Promise.all([
       app.removeJob(id),
-      asyncMap(schedules, schedule => {
+      asyncMapSettled(schedules, schedule => {
         if (schedule.id === id) {
           app.deleteSchedule(schedule.id)
         }
@@ -782,27 +705,17 @@ export default class BackupNg {
   async deleteVmBackupNg(id: string): Promise<void> {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-    if (proxy !== undefined) {
-      await app.callProxyMethod(proxy, 'backup.deleteVmBackup', {
+    const remote = await app.getRemoteWithCredentials(remoteId)
+    if (remote.proxy !== undefined) {
+      await app.callProxyMethod(remote.proxy, 'backup.deleteVmBackup', {
         filename: metadataFilename,
         remote: {
-          url,
-          options,
+          url: remote.url,
+          options: remote.options,
         },
       })
     } else {
-      const handler = await app.getRemoteHandler(remoteId)
-      const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
-      metadata._filename = metadataFilename
-
-      if (metadata.mode === 'delta') {
-        await this._deleteDeltaVmBackups(handler, [metadata])
-      } else if (metadata.mode === 'full') {
-        await this._deleteFullVmBackups(handler, [metadata])
-      } else {
-        throw new Error(`no deleter for backup mode ${metadata.mode}`)
-      }
+      await using(app.getBackupsRemoteAdapter(remoteId), adapter => adapter.deleteVmBackup(metadataFilename))
     }
 
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
@@ -820,12 +733,12 @@ export default class BackupNg {
     const sr = xapi.getObject(srId)
 
     const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
+    const remote = await app.getRemoteWithCredentials(remoteId)
 
     let rootTaskId
     const logger = this._logger
     try {
-      if (proxy !== undefined) {
+      if (remote.proxy !== undefined) {
         const { allowUnauthorized, host, password, username } = await app.getXenServer(
           app.getXenServerIdByObject(sr.$id)
         )
@@ -833,8 +746,8 @@ export default class BackupNg {
         const params = {
           backupId: metadataFilename,
           remote: {
-            url,
-            options,
+            url: remote.url,
+            options: remote.options,
           },
           srUuid: sr.uuid,
           streamLogs: true,
@@ -849,71 +762,60 @@ export default class BackupNg {
         }
 
         try {
-          const logsStream = await app.callProxyMethod(proxy, 'backup.importVmBackup', params, {
+          const logsStream = await app.callProxyMethod(remote.proxy, 'backup.importVmBackup', params, {
             assertType: 'iterator',
           })
 
           const localTaskIds = { __proto__: null }
           for await (const log of logsStream) {
-            const { event, message, taskId } = log
-
-            const common = {
-              data: log.data,
-              event: 'task.' + event,
-              result: log.result,
-              status: log.status,
-            }
-
-            if (event === 'start') {
-              const { parentId } = log
-              if (parentId === undefined) {
-                rootTaskId = localTaskIds[taskId] = logger.notice(message, common)
-                this._runningRestores.add(rootTaskId)
-              } else {
-                common.parentId = localTaskIds[parentId]
-                localTaskIds[taskId] = logger.notice(message, common)
-              }
-            } else {
-              common.taskId = localTaskIds[taskId]
-              logger.notice(message, common)
-            }
+            handleBackupLog(log, {
+              logger,
+              localTaskIds,
+              handleRootTaskId: id => {
+                this._runningRestores.add(id)
+                rootTaskId = id
+              },
+            })
           }
-
-          return
         } catch (error) {
           if (invalidParameters.is(error)) {
             delete params.streamLogs
-            return app.callProxyMethod(proxy, 'backup.importVmBackup', params)
+            return app.callProxyMethod(remote.proxy, 'backup.importVmBackup', params)
           }
           throw error
         }
+      } else {
+        await using(app.getBackupsRemoteAdapter(remote), async adapter => {
+          const metadata: Metadata = await adapter.readVmBackupMetadata(metadataFilename)
+          const localTaskIds = { __proto__: null }
+          return Task.run(
+            {
+              data: {
+                jobId: metadata.jobId,
+                srId,
+                time: metadata.timestamp,
+              },
+              name: 'restore',
+              onLog: log =>
+                handleBackupLog(log, {
+                  logger,
+                  localTaskIds,
+                  handleRootTaskId: id => {
+                    this._runningRestores.add(id)
+                    rootTaskId = id
+                  },
+                }),
+            },
+            async () =>
+              new ImportVmBackup({
+                adapter,
+                metadata,
+                srUuid: srId,
+                xapi: await app.getXapi(srId),
+              }).run()
+          )
+        })
       }
-
-      const handler = await app.getRemoteHandler(remoteId)
-      const metadata: Metadata = JSON.parse(String(await handler.readFile(metadataFilename)))
-
-      const importer = importers[metadata.mode]
-      if (importer === undefined) {
-        throw new Error(`no importer for backup mode ${metadata.mode}`)
-      }
-
-      const { jobId, timestamp: time } = metadata
-      return wrapTaskFn(
-        {
-          data: {
-            jobId,
-            srId,
-            time,
-          },
-          logger,
-          message: 'restore',
-        },
-        taskId => {
-          rootTaskId = taskId
-          this._runningRestores.add(taskId)
-          return importer(handler, metadataFilename, metadata, xapi, sr, taskId, logger)
-        }
-      )()
     } finally {
       this._runningRestores.delete(rootTaskId)
     }
@@ -930,55 +832,35 @@ export default class BackupNg {
   )
   async _listVmBackupsOnRemote(remoteId: string) {
     const app = this._app
-    const backupsByVm = {}
     try {
-      const { proxy, url, options } = await app.getRemoteWithCredentials(remoteId)
-      if (proxy !== undefined) {
-        const { [remoteId]: backupsByVm } = await app.callProxyMethod(proxy, 'backup.listVmBackups', {
+      const remote = await app.getRemoteWithCredentials(remoteId)
+
+      let backupsByVm
+      if (remote.proxy !== undefined) {
+        ;({ [remoteId]: backupsByVm } = await app.callProxyMethod(remote.proxy, 'backup.listVmBackups', {
           remotes: {
             [remoteId]: {
-              url,
-              options,
+              url: remote.url,
+              options: remote.options,
             },
           },
-        })
-
-        // inject the remote id on the backup which is needed for importVmBackupNg()
-        forOwn(backupsByVm, backups =>
-          backups.forEach(backup => {
-            backup.id = `${remoteId}${backup.id}`
-          })
+        }))
+      } else {
+        backupsByVm = await using(app.getBackupsRemoteAdapter(remote), async adapter =>
+          formatVmBackups(await adapter.listAllVmBackups())
         )
-        return backupsByVm
       }
 
-      const handler = await app.getRemoteHandler(remoteId)
-
-      const entries = (
-        await handler.list(BACKUP_DIR).catch(error => {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-          return []
-        })
-      ).filter(name => name !== 'index.json')
-
-      await Promise.all(
-        entries.map(async vmUuid => {
-          // $FlowFixMe don't know what is the problem (JFT)
-          const backups = await this._listVmBackups(handler, remoteId, vmUuid)
-
-          if (backups.length === 0) {
-            return
-          }
-
-          backupsByVm[vmUuid] = backups.map(backup => formatVmBackup(backup))
+      // inject the remote id on the backup which is needed for importVmBackupNg()
+      forOwn(backupsByVm, backups =>
+        backups.forEach(backup => {
+          backup.id = `${remoteId}${backup.id}`
         })
       )
+      return backupsByVm
     } catch (error) {
       log.warn(`listVmBackups for remote ${remoteId}:`, { error })
     }
-    return backupsByVm
   }
 
   async listVmBackupsNg(remotes: string[], _forceRefresh = false) {
@@ -1003,28 +885,28 @@ export default class BackupNg {
   }
 
   // High:
-  // - [ ] in case of merge failure
-  //       1. delete (or isolate) the tainted VHD
-  //       2. next run should be a full
   // - [ ] add a lock on the job/VDI during merge which should prevent other merges and restoration
   // - [ ] in case of failure, correctly clean VHDs for all VDIs
   //
   // Low:
-  // - [ ] display queued VMs
   // - [ ] snapshots and files of an old job should be detected and removed
   // - [ ] delta import should support mapVdisSrs
   // - [ ] size of the path? (base64url(parseUuid(uuid)))
   // - [ ] what does mean the vmTimeout with the new concurrency? a VM can take
   //       a very long time to finish if there are other VMs before…
-  // - [ ] detect and gc uncomplete replications
-  // - [ ] attach VDIs ASAP to be able to clean them in case of interruption
   // - [ ] orphan VDIs on the source side
   //
   // Triage:
-  // - [ ] logs
   //
   // Done:
   //
+  // - [x] display queued VMs
+  // - [x] detect and gc uncomplete replications
+  // - x ] attach VDIs ASAP to be able to clean them in case of interruption
+  // - [x] logs
+  // - [x] in case of merge failure
+  //       1. delete (or isolate) the tainted VHD
+  //       2. next run should be a full
   // - [x] files (.tmp) should be renamed at the end of job
   // - [x] detect full remote
   // - [x] can the snapshot and export retention be different? → Yes
@@ -1209,7 +1091,7 @@ export default class BackupNg {
       )
 
       // delete unused snapshots
-      await asyncMap(snapshotsToDelete, vm => {
+      await asyncMapSettled(snapshotsToDelete, vm => {
         // snapshot and baseSnapshot should not be deleted right now
         if (vm !== exported && vm !== baseSnapshot) {
           return xapi.deleteVm(vm)
@@ -1316,7 +1198,7 @@ export default class BackupNg {
               const fork = forkExport()
 
               // remove incomplete XVAs
-              await asyncMap(
+              await asyncMapSettled(
                 handler.list(vmDir, {
                   filter: filename => isHiddenFile(filename) && isXva(filename),
                   prependDir: true,
@@ -1494,13 +1376,13 @@ export default class BackupNg {
           })
         }
 
-        await asyncMap(remotes, ({ handler }) => {
-          return asyncMap(vdis, async vdi => {
+        await asyncMapSettled(remotes, ({ handler }) => {
+          return asyncMapSettled(vdis, async vdi => {
             const snapshotOf = vdi.$snapshot_of
             const dir = `${vmDir}/vdis/${jobId}/${snapshotOf.uuid}`
             const files = await handler.list(dir, { filter: isVhd }).catch(_ => [])
             let full = true
-            await asyncMap(files, async file => {
+            await asyncMapSettled(files, async file => {
               if (file[0] !== '.') {
                 try {
                   const path = `${dir}/${file}`
@@ -1665,7 +1547,7 @@ export default class BackupNg {
                   parentId: taskId,
                   result: size => ({ size }),
                 },
-                asyncMap(
+                asyncMapSettled(
                   fork.vdis,
                   defer(async ($defer, vdi, id) => {
                     const path = `${vmDir}/${metadata.vhds[id]}`
@@ -1815,12 +1697,12 @@ export default class BackupNg {
   }
 
   async _deleteDeltaVmBackups(handler: RemoteHandler, backups: MetadataDelta[]): Promise<number> {
-    return asyncMap(backups, async backup => {
+    return asyncMapSettled(backups, async backup => {
       const filename = ((backup._filename: any): string)
 
       await handler.unlink(filename)
 
-      return asyncMap(backup.vhds, _ =>
+      return asyncMapSettled(backup.vhds, _ =>
         // $FlowFixMe injected $defer param
         this._deleteVhd(handler, resolveRelativeFromFile(filename, _))
       ).then(sum)
@@ -1828,7 +1710,7 @@ export default class BackupNg {
   }
 
   async _deleteFullVmBackups(handler: RemoteHandler, backups: MetadataFull[]): Promise<void> {
-    await asyncMap(backups, ({ _filename, xva }) => {
+    await asyncMapSettled(backups, ({ _filename, xva }) => {
       _filename = ((_filename: any): string)
       return Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     })
@@ -1837,22 +1719,25 @@ export default class BackupNg {
   // FIXME: synchronize by job/VDI, otherwise it can cause issues with the merge
   @defer
   async _deleteVhd($defer: any, handler: RemoteHandler, path: string): Promise<number> {
-    const vhds = await asyncMap(await handler.list(dirname(path), { filter: isVhd, prependDir: true }), async path => {
-      try {
-        const vhd = new Vhd(handler, path)
-        await vhd.readHeaderAndFooter()
-        return {
-          footer: vhd.footer,
-          header: vhd.header,
-          path,
+    const vhds = await asyncMapSettled(
+      await handler.list(dirname(path), { filter: isVhd, prependDir: true }),
+      async path => {
+        try {
+          const vhd = new Vhd(handler, path)
+          await vhd.readHeaderAndFooter()
+          return {
+            footer: vhd.footer,
+            header: vhd.header,
+            path,
+          }
+        } catch (error) {
+          // Do not fail on corrupted VHDs (usually uncleaned temporary files),
+          // they are probably inconsequent to the backup process and should not
+          // fail it.
+          log.warn(`BackupNg#_deleteVhd ${path}`, { error })
         }
-      } catch (error) {
-        // Do not fail on corrupted VHDs (usually uncleaned temporary files),
-        // they are probably inconsequent to the backup process and should not
-        // fail it.
-        log.warn(`BackupNg#_deleteVhd ${path}`, { error })
       }
-    })
+    )
     const base = basename(path)
     const child = vhds.find(_ => _ !== undefined && _.header.parentUnicodeName === base)
     if (child === undefined) {
@@ -1869,7 +1754,7 @@ export default class BackupNg {
   }
 
   async _deleteVms(xapi: Xapi, vms: Vm[]): Promise<void> {
-    await asyncMap(vms, vm => xapi.deleteVm(vm))
+    await asyncMapSettled(vms, vm => xapi.deleteVm(vm))
   }
 
   async _listVmBackups(

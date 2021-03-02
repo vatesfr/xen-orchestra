@@ -1,8 +1,8 @@
 const groupBy = require('lodash/groupBy')
+const { asyncMap } = require('@xen-orchestra/async-map')
 const { createHash } = require('crypto')
 const { dirname, resolve } = require('path')
 
-const asyncMap = require('../_asyncMap')
 const { readdir2, readFile, getSize } = require('../_fs')
 
 const sha512 = str => createHash('sha512').update(str).digest('hex')

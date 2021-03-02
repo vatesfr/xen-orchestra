@@ -2,7 +2,7 @@ const { formatFilenameDate } = require('./_filenameDate')
 const { getOldEntries } = require('./_getOldEntries')
 const { getVmBackupDir } = require('./_getVmBackupDir')
 const { isValidXva } = require('./isValidXva')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 exports.FullBackupWriter = class FullBackupWriter {
   constructor(backup, remoteId, settings) {

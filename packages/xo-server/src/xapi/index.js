@@ -1,6 +1,6 @@
 /* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import concurrency from 'limit-concurrency-decorator'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
@@ -14,7 +14,8 @@ import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'pro
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
-import { Xapi as XapiBase, NULL_REF } from 'xen-api'
+import { NULL_REF } from 'xen-api'
+import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import {
   every,
   filter,
@@ -349,7 +350,7 @@ export default class Xapi extends XapiBase {
     // from host to another. It only works when a shared SR is present
     // in the host. For this reason we chose to show a warning instead.
     const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
-    await asyncMap(pluggedPbds, async pbd => {
+    await asyncMapSettled(pluggedPbds, async pbd => {
       const ref = pbd.$ref
       await this.unplugPbd(ref)
       $defer(() => this.plugPbd(ref))
@@ -623,12 +624,12 @@ export default class Xapi extends XapiBase {
     await this.callAsync('VM.destroy', $ref)
 
     return Promise.all([
-      asyncMap(vm.$snapshots, snapshot => this._deleteVm(snapshot))::ignoreErrors(),
+      asyncMapSettled(vm.$snapshots, snapshot => this._deleteVm(snapshot))::ignoreErrors(),
 
       vm.power_state === 'Suspended' && vm.suspend_VDI !== NULL_REF && this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
 
       deleteDisks &&
-        asyncMap(disks, ({ $ref: vdiRef }) => {
+        asyncMapSettled(disks, ({ $ref: vdiRef }) => {
           let onFailure = () => {
             onFailure = vdi => {
               log.error(`cannot delete VDI ${vdi.name_label} (from VM ${vm.name_label})`)
@@ -975,7 +976,7 @@ export default class Xapi extends XapiBase {
     $defer.onFailure(() => this._deleteVm(vm))
 
     // 2. Delete all VBDs which may have been created by the import.
-    await asyncMap(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
+    await asyncMapSettled(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
 
     // 3. Create VDIs & VBDs.
     //
@@ -1011,7 +1012,7 @@ export default class Xapi extends XapiBase {
         $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
       }
 
-      await asyncMap(vbds[vdiRef], vbd =>
+      await asyncMapSettled(vbds[vdiRef], vbd =>
         this.createVbd({
           ...vbd,
           vdi: newVdi,
@@ -1042,7 +1043,7 @@ export default class Xapi extends XapiBase {
 
     await Promise.all([
       // Import VDI contents.
-      asyncMap(newVdis, async (vdi, id) => {
+      asyncMapSettled(newVdis, async (vdi, id) => {
         for (let stream of ensureArray(streams[`${id}.vhd`])) {
           if (typeof stream === 'function') {
             stream = await stream()
@@ -1057,10 +1058,10 @@ export default class Xapi extends XapiBase {
       }),
 
       // Wait for VDI export tasks (if any) termination.
-      asyncMap(streams, stream => stream.task),
+      asyncMapSettled(streams, stream => stream.task),
 
       // Create VIFs.
-      asyncMap(delta.vifs, vif => {
+      asyncMapSettled(delta.vifs, vif => {
         let network = vif.$network$uuid && this.getObject(vif.$network$uuid, undefined)
 
         if (network === undefined) {
@@ -1106,7 +1107,7 @@ export default class Xapi extends XapiBase {
     {
       migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
       sr,
-      mapVdisSrs,
+      mapVdisSrs = {},
       mapVifsNetworks,
       force = false,
     }
@@ -1122,14 +1123,40 @@ export default class Xapi extends XapiBase {
       return defaultSr.$ref
     })
 
+    const hostPbds = new Set(host.PBDs)
+    const connectedSrs = new Map()
+    const isSrConnected = sr => {
+      let isConnected = connectedSrs.get(sr.$ref)
+      if (isConnected === undefined) {
+        isConnected = sr.PBDs.some(ref => hostPbds.has(ref))
+        connectedSrs.set(sr.$ref, isConnected)
+      }
+      return isConnected
+    }
+
     // VDIs/SRs mapping
+    // For VDI:
+    // - If SR was explicitly passed: use it
+    // - Else if VDI SR is reachable from the destination host: use it
+    // - Else: use the migration main SR or the pool's default SR (error if none of them is defined)
+    // For VDI-snapshot:
+    // - If VDI-snapshot is an orphan snapshot: same logic as a VDI
+    // - Else: don't add it to the map (VDI -> SR). It will be managed by the XAPI (snapshot will be migrated to the same SR as its parent active VDI)
     const vdis = {}
     const vbds = flatMap(vm.$snapshots, '$VBDs').concat(vm.$VBDs)
     for (const vbd of vbds) {
-      const vdi = vbd.$VDI
       if (vbd.type === 'Disk') {
+        const vdi = vbd.$VDI
+        // Ignore VDI snapshots which have a parent
+        if (vdi.$snapshot_of !== undefined) {
+          continue
+        }
         vdis[vdi.$ref] =
-          mapVdisSrs && mapVdisSrs[vdi.$id] ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref : getDefaultSrRef()
+          mapVdisSrs[vdi.$id] !== undefined
+            ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
+            : isSrConnected(vdi.$SR)
+            ? vdi.$SR.$ref
+            : getDefaultSrRef()
       }
     }
 
@@ -1715,7 +1742,7 @@ export default class Xapi extends XapiBase {
         throw error
       }
       const newVdi = await this.barrier(await this.callAsync('VDI.copy', vdi.$ref, sr.$ref).then(extractOpaqueRef))
-      await asyncMap(vdi.$VBDs, async vbd => {
+      await asyncMapSettled(vdi.$VBDs, async vbd => {
         await this.call('VBD.destroy', vbd.$ref)
         await this.createVbd({
           ...vbd,
@@ -2050,7 +2077,7 @@ export default class Xapi extends XapiBase {
       })
     })
 
-    await asyncMap(pifsByHost, pifs => this.call('Bond.create', network.$ref, pifs, '', bondMode))
+    await asyncMapSettled(pifsByHost, pifs => this.call('Bond.create', network.$ref, pifs, '', bondMode))
 
     return network
   }
