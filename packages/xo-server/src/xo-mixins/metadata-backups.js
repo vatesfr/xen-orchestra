@@ -1,8 +1,8 @@
 // @flow
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
+import using from 'promise-toolbox/using'
 import { Backup } from '@xen-orchestra/backups/Backup'
-import { using } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
