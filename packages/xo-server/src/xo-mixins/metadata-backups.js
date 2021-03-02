@@ -204,7 +204,7 @@ export default class metadataBackup {
         const remotes = {}
         const xapis = {}
         await waitAll([
-          asyncMap(remoteIds, async id => {
+          asyncMapSettled(remoteIds, async id => {
             const remote = await app.getRemoteWithCredentials(id)
             if (remote.proxy !== proxyId) {
               throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
@@ -212,7 +212,7 @@ export default class metadataBackup {
 
             remotes[id] = remote
           }),
-          asyncMap([...servers], async id => {
+          asyncMapSettled([...servers], async id => {
             const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
             xapis[id] = {
               allowUnauthorized,
