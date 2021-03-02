@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import execa from 'execa'
@@ -303,12 +303,12 @@ export default class {
 
     const backups = []
 
-    await asyncMap(handler.list('.'), entry => {
+    await asyncMapSettled(handler.list('.'), entry => {
       if (entry.endsWith('.xva')) {
         backups.push(parseVmBackupPath(entry))
       } else if (entry.startsWith('vm_delta_')) {
         return handler.list(entry).then(children =>
-          asyncMap(children, child => {
+          asyncMapSettled(children, child => {
             if (child.endsWith('.json')) {
               const path = `${entry}/${child}`
 
@@ -407,7 +407,7 @@ export default class {
       }
 
       if (toRemove !== undefined) {
-        promise.then(() => asyncMap(toRemove, _ => targetXapi.deleteVm(_.$id)))::ignoreErrors()
+        promise.then(() => asyncMapSettled(toRemove, _ => targetXapi.deleteVm(_.$id)))::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.
@@ -435,7 +435,7 @@ export default class {
 
     const getPath = (file, dir) => (dir ? `${dir}/${file}` : file)
 
-    await asyncMap(backups.slice(0, n), backup => handler.unlink(getPath(backup, dir)))
+    await asyncMapSettled(backups.slice(0, n), backup => handler.unlink(getPath(backup, dir)))
   }
 
   // -----------------------------------------------------------------
@@ -489,7 +489,7 @@ export default class {
     const fullBackupId = j
 
     // Remove old backups before the most recent full.
-    await asyncMap(range(0, j), i => handler.unlink(`${dir}/${backups[i]}`))
+    await asyncMapSettled(range(0, j), i => handler.unlink(`${dir}/${backups[i]}`))
 
     const parent = `${dir}/${backups[fullBackupId]}`
 
@@ -572,7 +572,7 @@ export default class {
     const nOldBackups = backups.length - retention
 
     if (nOldBackups > 0) {
-      await asyncMap(backups.slice(0, nOldBackups), backup =>
+      await asyncMapSettled(backups.slice(0, nOldBackups), backup =>
         // Remove json file.
         handler.unlink(`${dir}/${backup}`)
       )
@@ -664,7 +664,7 @@ export default class {
     }
 
     $defer.onFailure(() =>
-      asyncMap(fulFilledVdiBackups, vdiBackup => handler.unlink(`${dir}/${vdiBackup.value()}`)::ignoreErrors())
+      asyncMapSettled(fulFilledVdiBackups, vdiBackup => handler.unlink(`${dir}/${vdiBackup.value()}`)::ignoreErrors())
     )
 
     if (error) {

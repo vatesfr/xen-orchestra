@@ -2,7 +2,7 @@ const assert = require('assert')
 
 const { formatFilenameDate } = require('./_filenameDate')
 const { importDeltaVm } = require('./_deltaVm')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 
 exports.ImportVmBackup = class ImportVmBackup {
   constructor({ adapter, metadata, srUuid, xapi }) {

@@ -6,6 +6,7 @@ let merge, remove
 // -----------------------------------------------------------------------------
 
 const assert = require('assert')
+const asyncMap = require('lodash/curryRight')(require('@xen-orchestra/async-map').asyncMap)
 const flatten = require('lodash/flatten')
 const getopts = require('getopts')
 const limitConcurrency = require('limit-concurrency-decorator').default
@@ -16,7 +17,6 @@ const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
 const { isValidXva } = require('@xen-orchestra/backups/isValidXva')
 
-const asyncMap = require('../_asyncMap')
 const fs = require('../_fs')
 
 const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })

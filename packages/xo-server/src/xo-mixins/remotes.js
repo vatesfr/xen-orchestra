@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'
@@ -120,7 +120,7 @@ export default class {
 
   async getAllRemotesInfo() {
     const remotesInfo = this._remotesInfo
-    await asyncMap(this._remotes.get(), async remote => {
+    await asyncMapSettled(this._remotes.get(), async remote => {
       if (!remote.enabled) {
         return
       }

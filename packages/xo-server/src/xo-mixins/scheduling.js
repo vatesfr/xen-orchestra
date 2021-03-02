@@ -1,6 +1,6 @@
 // @flow
 
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { createSchedule } from '@xen-orchestra/cron'
 import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
@@ -75,7 +75,7 @@ export default class Scheduling {
         'schedules',
         () => db.get(),
         schedules =>
-          asyncMap(schedules, async schedule => {
+          asyncMapSettled(schedules, async schedule => {
             await db.update(normalize(schedule))
             this._start(schedule.id)
           }),

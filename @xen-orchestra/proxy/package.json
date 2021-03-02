@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@xen-orchestra/proxy",
-  "version": "0.10.0",
+  "version": "0.11.1",
   "license": "AGPL-3.0-or-later",
   "description": "",
   "keywords": [
@@ -34,11 +34,11 @@
     "@iarna/toml": "^2.2.0",
     "@vates/compose": "^2.0.0",
     "@vates/decorate-with": "^0.0.1",
-    "@vates/disposable": "^0.0.0",
+    "@vates/disposable": "^0.1.0",
     "@vates/parse-duration": "^0.1.0",
-    "@xen-orchestra/backups": "^0.4.0",
+    "@xen-orchestra/backups": "^0.6.0",
     "@xen-orchestra/emit-async": "^0.0.0",
-    "@xen-orchestra/fs": "0.12.0",
+    "@xen-orchestra/fs": "^0.13.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/self-signed": "^0.1.0",
     "@xen-orchestra/xapi": "^0.4.1",
@@ -49,7 +49,7 @@
     "fs-extra": "^8.1.0",
     "get-stream": "^5.1.0",
     "getopts": "^2.2.3",
-    "golike-defer": "^0.4.1",
+    "golike-defer": "^0.5.1",
     "http-server-plus": "^0.11.0",
     "json-rpc-protocol": "^0.13.1",
     "jsonrpc-websocket-client": "^0.5.0",
@@ -61,11 +61,12 @@
     "ms": "^2.1.2",
     "node-zone": "^0.4.0",
     "parse-pairs": "^1.0.0",
-    "promise-toolbox": "^0.16.0",
+    "promise-toolbox": "^0.17.0",
     "source-map-support": "^0.5.16",
     "stoppable": "^1.0.6",
     "xdg-basedir": "^4.0.0",
-    "xo-common": "^0.5.0"
+    "xen-api": "^0.29.1",
+    "xo-common": "^0.6.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

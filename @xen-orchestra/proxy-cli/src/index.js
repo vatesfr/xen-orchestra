@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from 'assert'
+import colors from 'ansi-colors'
 import contentType from 'content-type'
 import CSON from 'cson-parser'
 import fromCallback from 'promise-toolbox/fromCallback'
@@ -64,25 +65,32 @@ ${pkg.name} v${pkg.version}`
     )
   }
 
-  const call = async (method, params) => {
-    const request = {
-      body: format.request(0, method, params),
-      headers: {
-        'content-type': 'application/json',
-        cookie: `authenticationToken=${token}`,
-      },
-      pathname: '/api/v1',
-      protocol: 'https:',
-      rejectUnauthorized: false,
-    }
-    if (host !== '') {
-      request.host = host
-    } else {
-      request.hostname = hostname
-      request.port = port
+  // sequence path of the current call
+  const callPath = []
+
+  const baseRequest = {
+    headers: {
+      'content-type': 'application/json',
+      cookie: `authenticationToken=${token}`,
+    },
+    pathname: '/api/v1',
+    protocol: 'https:',
+    rejectUnauthorized: false,
+  }
+  if (host !== '') {
+    baseRequest.host = host
+  } else {
+    baseRequest.hostname = hostname
+    baseRequest.port = port
+  }
+  const call = async ({ method, params }) => {
+    if (callPath.length !== 0) {
+      process.stderr.write(`\n${colors.bold(`--- call #${callPath.join('.')}`)} ---\n\n`)
     }
 
-    const response = await hrp.post(request)
+    const response = await hrp.post(baseRequest, {
+      body: format.request(0, method, params),
+    })
 
     const { stdout } = process
 
@@ -132,24 +140,30 @@ ${pkg.name} v${pkg.version}`
     }
   }
 
+  const seq = async seq => {
+    const j = callPath.length
+    for (let i = 0, n = seq.length; i < n; ++i) {
+      callPath[j] = i + 1
+      await visit(seq[i])
+    }
+    callPath.pop()
+  }
+
+  const visit = node => {
+    if (Array.isArray(node)) {
+      return seq(node)
+    }
+    return call(node)
+  }
+
   if (file !== '') {
-    let data = fs.readFileSync(file, 'utf8')
+    const data = fs.readFileSync(file, 'utf8')
     const ext = extname(file).slice(1).toLowerCase()
     const parse = FORMATS[ext]
     if (parse === undefined) {
       throw new Error(`unsupported file: ${file}`)
     }
-    data = parse(data)
-    if (!Array.isArray(data)) {
-      data = [data]
-    }
-
-    for (let i = 0, n = data.length; i < n; ++i) {
-      process.stderr.write(`\n${i}-th call...\n`)
-
-      const { method, params } = data[i]
-      await call(method, params)
-    }
+    await visit(parse(data))
   } else {
     const method = args[0]
     const params = {}
@@ -162,7 +176,7 @@ ${pkg.name} v${pkg.version}`
       params[param.slice(0, j)] = parseValue(param.slice(j + 1))
     }
 
-    await call(method, params)
+    await call({ method, params })
   }
 }
 main(process.argv.slice(2)).then(

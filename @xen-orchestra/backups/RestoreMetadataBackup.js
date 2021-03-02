@@ -18,7 +18,7 @@ exports.RestoreMetadataBackup = class RestoreMetadataBackup {
         task: xapi.createTask('Import pool metadata'),
       })
     } else {
-      return JSON.parse(String(await handler.readFile(`${backupId}/data.json`)))
+      return String(await handler.readFile(`${backupId}/data.json`))
     }
   }
 }

@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
 import { filter, isEmpty, map, mapValues } from 'lodash'
@@ -55,7 +55,7 @@ export default async function executeJobCall({ app, job, logger, runJobId, sched
     timezone: schedule !== undefined ? schedule.timezone : undefined,
   }
 
-  await asyncMap(paramsFlatVector, params => {
+  await asyncMapSettled(paramsFlatVector, params => {
     const runCallId = logger.notice(`Starting ${job.method} call. (${job.id})`, {
       event: 'jobCall.start',
       runJobId,

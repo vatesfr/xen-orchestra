@@ -1,14 +1,13 @@
-const asyncMapSettled = require('@xen-orchestra/async-map').default
+const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const limitConcurrency = require('limit-concurrency-decorator').default
 const using = require('promise-toolbox/using')
 const { compileTemplate } = require('@xen-orchestra/template')
 
-const { asyncMap } = require('./asyncMap')
 const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern')
 const { PoolMetadataBackup } = require('./_PoolMetadataBackup')
-const { Task } = require('./task')
+const { Task } = require('./Task')
 const { VmBackup } = require('./_VmBackup')
 const { XoMetadataBackup } = require('./_XoMetadataBackup')
 
@@ -25,26 +24,15 @@ const getAdaptersByRemote = adapters => {
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
 exports.Backup = class Backup {
-  constructor({
-    config,
-    getAdapter,
-    getConnectedXapi,
-    job,
-
-    recordToXapi,
-    remotes,
-    schedule,
-  }) {
+  constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
-    this._getConnectedXapi = getConnectedXapi
+    this._getRecord = getConnectedRecord
     this._job = job
-    this._recordToXapi = recordToXapi
-    this._remotes = remotes
     this._schedule = schedule
 
     this._getAdapter = Disposable.factory(function* (remoteId) {
       return {
-        adapter: yield getAdapter(remotes[remoteId]),
+        adapter: yield getAdapter(remoteId),
         remoteId,
       }
     })
@@ -217,16 +205,5 @@ exports.Backup = class Backup {
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )
-  }
-
-  _getRecord = Disposable.factory(this._getRecord)
-  async *_getRecord(type, uuid) {
-    const xapiId = this._recordToXapi[uuid]
-    if (xapiId === undefined) {
-      throw new Error('no XAPI associated to ' + uuid)
-    }
-
-    const xapi = yield this._getConnectedXapi(xapiId)
-    return xapi.getRecordByUuid(type, uuid)
   }
 }

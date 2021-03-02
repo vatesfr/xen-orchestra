@@ -1,5 +1,5 @@
 import assert from 'assert'
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import execa from 'execa'
@@ -146,7 +146,7 @@ function createVolumeInfoTypes() {
     }
 
     const topTypes = ['open', 'read', 'write', 'opendir', 'readdir']
-    return asyncMap(topTypes, async type => ({
+    return asyncMapSettled(topTypes, async type => ({
       type,
       result: await this::sshInfoType(`top xosan ${type}`, parseTop)(sr),
     }))
@@ -397,10 +397,10 @@ const createNetworkAndInsertHosts = defer(async function ($defer, xapi, pif, vla
     pif,
     address: networkPrefix + hostIpLastNumber++,
   }))
-  await asyncMap(addresses, addressAndPif => reconfigurePifIP(xapi, addressAndPif.pif, addressAndPif.address))
+  await asyncMapSettled(addresses, addressAndPif => reconfigurePifIP(xapi, addressAndPif.pif, addressAndPif.address))
   const master = xapi.pool.$master
   const otherAddresses = addresses.filter(addr => addr.pif.$host !== master)
-  await asyncMap(otherAddresses, async address => {
+  await asyncMapSettled(otherAddresses, async address => {
     const result = await callPlugin(xapi, master, 'run_ping', {
       address: address.address,
     })
@@ -437,7 +437,7 @@ async function getOrCreateSshKey(xapi) {
 }
 
 const _probePoolAndWaitForPresence = defer(async function ($defer, glusterEndpoint, addresses) {
-  await asyncMap(addresses, async address => {
+  await asyncMapSettled(addresses, async address => {
     await glusterCmd(glusterEndpoint, 'peer probe ' + address)
     $defer.onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + address, true))
   })
@@ -587,7 +587,7 @@ export const createSR = defer(async function (
     const firstVM = await this::_importGlusterVM(xapi, template, firstSr)
     $defer.onFailure(() => xapi.deleteVm(firstVM, true))
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 2 }
-    const copiedVms = await asyncMap(srsObjects.slice(1), sr =>
+    const copiedVms = await asyncMapSettled(srsObjects.slice(1), sr =>
       copyVm(xapi, firstVM, sr)::tap(({ vm }) => $defer.onFailure(() => xapi.deleteVm(vm)))
     )
     const vmsAndSrs = [
@@ -610,7 +610,7 @@ export const createSR = defer(async function (
       })
       arbiter.arbiter = true
     }
-    const ipAndHosts = await asyncMap(vmsAndSrs, vmAndSr =>
+    const ipAndHosts = await asyncMapSettled(vmsAndSrs, vmAndSr =>
       _prepareGlusterVm(xapi, vmAndSr.sr, vmAndSr.vm, xosanNetwork, networkPrefix + vmIpLastNumber++, {
         maxDiskSize: brickSize,
         memorySize,
@@ -1119,11 +1119,11 @@ export const removeBricks = defer(async function ($defer, { xosansr, bricks }) {
     const dict = _getIPToVMDict(xapi, xosansr.id)
     const brickVMs = map(bricks, b => dict[b])
     await glusterCmd(glusterEndpoint, `volume remove-brick xosan ${bricks.join(' ')} force`)
-    await asyncMap(ips, ip => glusterCmd(glusterEndpoint, 'peer detach ' + ip, true))
+    await asyncMapSettled(ips, ip => glusterCmd(glusterEndpoint, 'peer detach ' + ip, true))
     remove(data.nodes, node => ips.includes(node.vm.ip))
     await xapi.xo.setData(xosansr.id, 'xosan_config', data)
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr._xapiId).$ref)
-    await asyncMap(brickVMs, vm => xapi.deleteVm(vm.vm, true))
+    await asyncMapSettled(brickVMs, vm => xapi.deleteVm(vm.vm, true))
   } finally {
     delete CURRENT_POOL_OPERATIONS[xapi.pool.$id]
   }
