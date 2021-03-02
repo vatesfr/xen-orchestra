@@ -4,10 +4,8 @@
 
 global.Promise = require('bluebird')
 
-
 process.on('unhandledRejection', function (reason) {
-  console.warn('[Warn] Possibly unhandled rejection:', reason && reason.stack || reason)
+  console.warn('[Warn] Possibly unhandled rejection:', (reason && reason.stack) || reason)
 })
 
-
-require("exec-promise")(require("../dist/vhd-test").default)
+require('exec-promise')(require('../dist/vhd-test').default)
