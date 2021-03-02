@@ -20,7 +20,8 @@ try {
 // less memory usage.
 const Bluebird = require('bluebird')
 
-// Enable `async_hooks` because it's used by `node-zone`
+// Enable `async_hooks` because it's used by `@xen-orchestra/backups/Task` via `node-zone`
+//
 // See: http://bluebirdjs.com/docs/api/promise.config.html#async-hooks
 Bluebird.config({ asyncHooks: true })
 
