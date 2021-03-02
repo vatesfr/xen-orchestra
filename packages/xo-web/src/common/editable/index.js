@@ -294,18 +294,22 @@ export class Number extends Component {
     return +this.refs.input.value
   }
 
-  _onChange = (value, params) => {
-    if (value === '') {
-      if (this.props.nullable) {
-        value = null
+  _onChange = async (value, params) => {
+    try {
+      if (value === '') {
+        if (this.props.nullable) {
+          value = null
+        } else {
+          return
+        }
       } else {
-        return
+        value = +value
       }
-    } else {
-      value = +value
-    }
 
-    this.props.onChange(value, params)
+      await this.props.onChange(value, params)
+    } catch (error) {
+      throw error
+    }
   }
 
   render() {
