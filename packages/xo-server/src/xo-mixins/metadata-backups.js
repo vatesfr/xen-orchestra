@@ -39,42 +39,6 @@ type MetadataBackupJob = {
   xoMetadata?: boolean,
 }
 
-const handleLog = (log, { runJobId, logger, localTaskIds, handleRootTaskId }) => {
-  const { event, message, parentId, taskId } = log
-
-  const common = {
-    data: log.data,
-    event: 'task.' + event,
-    result: log.result,
-    status: log.status,
-  }
-
-  // ignore root task (already handled by runJob)
-  if (runJobId !== undefined) {
-    if (event === 'start' && parentId === undefined) {
-      localTaskIds[taskId] = runJobId
-      return
-    } else if (event === 'end' && localTaskIds[taskId] === runJobId) {
-      if (log.status === 'failure') {
-        throw log.result
-      }
-      return log.result
-    }
-  }
-
-  if (event === 'start') {
-    if (parentId === undefined) {
-      handleRootTaskId((localTaskIds[taskId] = logger.notice(message, common)))
-    } else {
-      common.parentId = localTaskIds[parentId]
-      localTaskIds[taskId] = logger.notice(message, common)
-    }
-  } else {
-    common.taskId = localTaskIds[taskId]
-    logger.notice(message, common)
-  }
-}
-
 // metadata.json
 //
 // {
@@ -242,7 +206,7 @@ export default class metadataBackup {
 
         let result
         for await (const log of logsStream) {
-          result = handleLog(log, {
+          result = handleBackupLog(log, {
             runJobId,
             logger,
             localTaskIds,
@@ -257,7 +221,7 @@ export default class metadataBackup {
           {
             name: 'backup run',
             onLog: log =>
-              handleLog(log, {
+              handleBackupLog(log, {
                 runJobId,
                 logger,
                 localTaskIds,
