@@ -38,7 +38,7 @@ exports.asyncMapSettled = function asyncMapSettled(iterable, mapFn, thisArg = it
         result = undefined
       }
       if (--n === 0) {
-        this.reject(error)
+        reject(error)
       }
     }
     const onValue = (i, value) => {

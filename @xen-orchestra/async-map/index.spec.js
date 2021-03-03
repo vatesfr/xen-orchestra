@@ -63,4 +63,9 @@ describe('asyncMapSettled', () => {
     expect(hasSettled).toBe(true)
     await expect(promise).rejects.toBe(error)
   })
+
+  it('issues when latest promise rejects', async () => {
+    const error = new Error()
+    await expect(asyncMapSettled([1], () => Promise.reject(error))).rejects.toBe(error)
+  })
 })
