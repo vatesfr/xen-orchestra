@@ -295,21 +295,17 @@ export class Number extends Component {
   }
 
   _onChange = async (value, params) => {
-    try {
-      if (value === '') {
-        if (this.props.nullable) {
-          value = null
-        } else {
-          return
-        }
+    if (value === '') {
+      if (this.props.nullable) {
+        value = null
       } else {
-        value = +value
+        return
       }
-
-      await this.props.onChange(value, params)
-    } catch (error) {
-      throw error
+    } else {
+      value = +value
     }
+
+    await this.props.onChange(value, params)
   }
 
   render() {
