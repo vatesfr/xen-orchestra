@@ -530,7 +530,7 @@ exports.RemoteAdapter = class RemoteAdapter {
     const dir = dirname(metadata._filename)
 
     const streams = {}
-    await asyncMapSettled(vdis, async (vdi, id) => {
+    await asyncMapSettled(Object.entries(vdis), async ([id, vdi]) => {
       streams[`${id}.vhd`] = await createSyntheticStream(handler, join(dir, vhds[id]))
     })
 
