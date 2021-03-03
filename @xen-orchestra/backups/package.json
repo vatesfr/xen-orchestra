@@ -18,7 +18,7 @@
   "dependencies": {
     "@vates/disposable": "^0.1.0",
     "@vates/multi-key-map": "^0.1.0",
-    "@xen-orchestra/async-map": "^0.0.0",
+    "@xen-orchestra/async-map": "^0.1.1",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/template": "^0.1.0",
     "@xen-orchestra/xapi": "^0.4.2",

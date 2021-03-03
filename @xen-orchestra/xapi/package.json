@@ -37,7 +37,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "@xen-orchestra/async-map": "^0.0.0",
+    "@xen-orchestra/async-map": "^0.1.1",
     "@xen-orchestra/log": "^0.2.0",
     "d3-time-format": "^2.2.3",
     "golike-defer": "^0.5.1",

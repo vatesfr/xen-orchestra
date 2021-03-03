@@ -1,4 +1,10 @@
-const wrapCall = require('promise-toolbox/wrapCall')
+const wrapCall = (fn, arg, thisArg) => {
+  try {
+    return Promise.resolve(fn.call(thisArg, arg))
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}
 
 /**
  * Similar to Promise.all + Array#map but supports all iterables and does not trigger ESLint array-callback-return
