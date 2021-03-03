@@ -61,6 +61,6 @@ describe('asyncMapSettled', () => {
     await new Promise(resolve => setImmediate(resolve))
 
     expect(hasSettled).toBe(true)
-    expect(promise).rejects.toBe(error)
+    await expect(promise).rejects.toBe(error)
   })
 })
