@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/async-map",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "ISC",
   "description": "Promise.all + map for all iterables",
   "keywords": [
