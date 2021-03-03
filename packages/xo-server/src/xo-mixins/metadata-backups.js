@@ -227,10 +227,12 @@ export default class metadataBackup {
                 runJobId,
               }),
           },
-          async () =>
+          () =>
             new Backup({
               config: this._backupOptions,
               getAdapter: async remoteId => app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
+
+              // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
               getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
               job,
               schedule,
