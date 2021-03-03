@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Editable number] When you are trying to edit a number and it's failing, display an error (PR [#5634](https://github.com/vatesfr/xen-orchestra/pull/5634))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -29,3 +31,4 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server minor
+- xo-web patch
