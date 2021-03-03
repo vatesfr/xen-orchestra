@@ -207,9 +207,9 @@ export default class metadataBackup {
         let result
         for await (const log of logsStream) {
           result = handleBackupLog(log, {
-            runJobId,
-            logger,
             localTaskIds,
+            logger,
+            runJobId,
           })
         }
         return result
@@ -222,9 +222,9 @@ export default class metadataBackup {
             name: 'backup run',
             onLog: log =>
               handleBackupLog(log, {
-                runJobId,
-                logger,
                 localTaskIds,
+                logger,
+                runJobId,
               }),
           },
           async () =>
