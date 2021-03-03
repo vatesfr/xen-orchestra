@@ -104,13 +104,7 @@ const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
           console.debug('API call', method, params, result)
         },
         error => {
-          console.error('XO error', {
-            method,
-            params,
-            code: error.code,
-            message: error.message,
-            data: error.data,
-          })
+          console.error('API call error', method, params, error)
         }
       )
     }
