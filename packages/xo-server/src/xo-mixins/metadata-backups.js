@@ -233,7 +233,13 @@ export default class metadataBackup {
           () =>
             new Backup({
               config: this._backupOptions,
-              getAdapter: async remoteId => app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
+              getAdapter: async remoteId => {
+                const remote = await app.getRemoteWithCredentials(remoteId)
+                if (remote.proxy !== undefined) {
+                  throw new Error(`The remote ${remote.name} must not be linked to a proxy`)
+                }
+                return app.getBackupsRemoteAdapter(remote)
+              },
 
               // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
               getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
