@@ -66,9 +66,25 @@ exports.Backup = class Backup {
       ...job.settings[schedule.id],
     }
 
+    const poolIds = extractIdsFromSimplePattern(job.pools)
+    const isEmptyPools = poolIds.length === 0
+    if (job.xoMetadata === undefined && isEmptyPools) {
+      throw new Error('no metadata mode found')
+    }
+
+    const { retentionPoolMetadata, retentionXoMetadata } = settings
+
+    if (
+      (retentionPoolMetadata === 0 && retentionXoMetadata === 0) ||
+      (!job.xoMetadata && retentionPoolMetadata === 0) ||
+      (isEmptyPools && retentionXoMetadata === 0)
+    ) {
+      throw new Error('no retentions corresponding to the metadata modes found')
+    }
+
     await using(
       Disposable.all(
-        extractIdsFromSimplePattern(job.pools).map(id =>
+        poolIds.map(id =>
           this._getRecord('pool', id).catch(error => {
             // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
             runTask(

@@ -111,24 +111,6 @@ reportWhen = 'failure'
 retentionPoolMetadata = 0
 retentionXoMetadata = 0
 
-[backups.vm.defaultSettings]
-bypassVdiChainsCheck = false
-checkpointSnapshot = false
-concurrency = 2
-deleteFirst = false
-exportRetention = 0
-fullInterval = 0
-offlineBackup = false
-offlineSnapshot = false
-snapshotRetention = 0
-timeout = 0
-vmTimeout = 0
-
-# This is a work-around.
-#
-# See https://github.com/vatesfr/xen-orchestra/pull/4674
-maxMergedDeltasPerRun = 2
-
 # https://github.com/naugtur/blocked-at#params-and-return-value
 [blockedAtOptions]
 enabled = false

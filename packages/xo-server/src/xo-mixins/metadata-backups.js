@@ -1,5 +1,6 @@
 // @flow
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import cloneDeep from 'lodash/cloneDeep'
 import createLogger from '@xen-orchestra/log'
 import using from 'promise-toolbox/using'
 import { Backup } from '@xen-orchestra/backups/Backup'
@@ -115,46 +116,25 @@ export default class metadataBackup {
       throw new Error('backup job cannot run without a schedule')
     }
 
-    let job: MetadataBackupJob = (job_: any)
+    const job: MetadataBackupJob = cloneDeep((job_: any))
     const remoteIds = unboxIdsFromPattern(job.remotes)
     if (remoteIds.length === 0) {
       throw new Error('metadata backup job cannot run without remotes')
     }
 
-    const poolIds = unboxIdsFromPattern(job.pools)
-    const isEmptyPools = poolIds.length === 0
-    if (!job.xoMetadata && isEmptyPools) {
-      throw new Error('no metadata mode found')
-    }
-
-    let { retentionXoMetadata, retentionPoolMetadata } = job.settings[schedule.id] || {}
-
-    const metadataDefaultSettings = this._backupOptions.metadata.defaultSettings
+    const scheduleSettings = job.settings[schedule.id]
 
     // it also replaces null retentions introduced by the commit
     // https://github.com/vatesfr/xen-orchestra/commit/fea5117ed83b58d3a57715b32d63d46e3004a094#diff-c02703199db2a4c217943cf8e02b91deR40
-    if (retentionXoMetadata == null) {
-      retentionXoMetadata = metadataDefaultSettings.retentionXoMetadata
+    if (scheduleSettings?.retentionXoMetadata == null) {
+      delete scheduleSettings.retentionXoMetadata
     }
-    if (retentionPoolMetadata == null) {
-      retentionPoolMetadata = metadataDefaultSettings.retentionPoolMetadata
-    }
-
-    if (
-      (retentionPoolMetadata === 0 && retentionXoMetadata === 0) ||
-      (!job.xoMetadata && retentionPoolMetadata === 0) ||
-      (isEmptyPools && retentionXoMetadata === 0)
-    ) {
-      throw new Error('no retentions corresponding to the metadata modes found')
+    if (scheduleSettings?.retentionPoolMetadata == null) {
+      delete scheduleSettings.retentionPoolMetadata
     }
 
     const app = this._app
-    if (job.xoMetadata) {
-      job = {
-        ...job,
-        xoMetadata: await app.exportConfig(),
-      }
-    }
+    job.xoMetadata = job.xoMetadata ? await app.exportConfig() : undefined
 
     const proxyId = job.proxy
     try {
@@ -166,7 +146,7 @@ export default class metadataBackup {
           recordToXapi[uuid] = serverId
           servers.add(serverId)
         }
-        poolIds.forEach(handleRecord)
+        unboxIdsFromPattern(job.pools).forEach(handleRecord)
 
         const remotes = {}
         const xapis = {}
