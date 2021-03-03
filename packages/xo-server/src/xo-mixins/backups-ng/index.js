@@ -479,12 +479,7 @@ export default class BackupNg {
           const xapis = {}
           await waitAll([
             asyncMapSettled(remoteIds, async id => {
-              const remote = await app.getRemoteWithCredentials(id)
-              if (remote.proxy !== proxyId) {
-                throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
-              }
-
-              remotes[id] = remote
+              remotes[id] = await app.getRemoteWithCredentials(id, { proxyId })
             }),
             asyncMapSettled([...servers], async id => {
               const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
@@ -568,17 +563,10 @@ export default class BackupNg {
 
         const srs = srIds.map(id => app.getXapiObject(id, 'SR'))
         const remotes = await Promise.all(
-          remoteIds.map(async id => {
-            const remote = await app.getRemoteWithCredentials(id)
-            if (remote.proxy !== undefined) {
-              throw new Error(`The remote ${remote.name} must not be linked to a proxy`)
-            }
-
-            return {
-              id,
-              handler: await app.getRemoteHandler(remote),
-            }
-          })
+          remoteIds.map(async id => ({
+            id,
+            handler: await app.getRemoteHandler(await app.getRemoteWithCredentials(id, { proxyId })),
+          }))
         )
 
         const settings = merge(job.settings, data?.settings)

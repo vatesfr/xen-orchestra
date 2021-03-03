@@ -1,3 +1,4 @@
+import assert from 'assert'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
@@ -156,8 +157,13 @@ export default class {
     return remote.properties
   }
 
-  async getRemoteWithCredentials(id) {
+  async getRemoteWithCredentials(id, options = {}) {
     const remote = await this._getRemote(id)
+
+    if ('proxyId' in options) {
+      assert.strictEqual(remote.proxy, options.proxyId)
+    }
+
     if (!remote.enabled) {
       throw new Error('remote is disabled')
     }
