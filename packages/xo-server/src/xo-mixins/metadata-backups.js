@@ -115,7 +115,7 @@ export default class metadataBackup {
       throw new Error('backup job cannot run without a schedule')
     }
 
-    const job: MetadataBackupJob = (job_: any)
+    let job: MetadataBackupJob = (job_: any)
     const remoteIds = unboxIdsFromPattern(job.remotes)
     if (remoteIds.length === 0) {
       throw new Error('metadata backup job cannot run without remotes')
@@ -150,7 +150,10 @@ export default class metadataBackup {
 
     const app = this._app
     if (job.xoMetadata) {
-      job.xoMetadata = await app.exportConfig()
+      job = {
+        ...job,
+        xoMetadata: await app.exportConfig(),
+      }
     }
 
     const proxyId = job.proxy
