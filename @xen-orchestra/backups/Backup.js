@@ -76,7 +76,7 @@ exports.Backup = class Backup {
 
     const poolIds = extractIdsFromSimplePattern(job.pools)
     const isEmptyPools = poolIds.length === 0
-    const isXoMetadata = job.xoMetadata === undefined
+    const isXoMetadata = job.xoMetadata !== undefined
     if (isXoMetadata && isEmptyPools) {
       throw new Error('no metadata mode found')
     }
