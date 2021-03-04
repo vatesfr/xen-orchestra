@@ -59,6 +59,15 @@ exports.Backup = class Backup {
     const job = this._job
     const schedule = this._schedule
 
+    if (schedule === undefined) {
+      throw new Error('backup job cannot run without a schedule')
+    }
+
+    const remoteIds = extractIdsFromSimplePattern(job.remotes)
+    if (remoteIds.length === 0) {
+      throw new Error('metadata backup job cannot run without remotes')
+    }
+
     const settings = {
       ...config.defaultSettings,
       ...config.metadata.defaultSettings,
@@ -98,7 +107,7 @@ exports.Backup = class Backup {
         )
       ),
       Disposable.all(
-        extractIdsFromSimplePattern(job.remotes).map(id =>
+        remoteIds.map(id =>
           this._getAdapter(id).catch(error => {
             // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
             runTask(

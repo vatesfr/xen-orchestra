@@ -112,16 +112,7 @@ export default class metadataBackup {
   }
 
   async _executor({ cancelToken, job: job_, logger, runJobId, schedule }): Executor {
-    if (schedule === undefined) {
-      throw new Error('backup job cannot run without a schedule')
-    }
-
     const job: MetadataBackupJob = cloneDeep((job_: any))
-    const remoteIds = unboxIdsFromPattern(job.remotes)
-    if (remoteIds.length === 0) {
-      throw new Error('metadata backup job cannot run without remotes')
-    }
-
     const scheduleSettings = job.settings[schedule.id]
 
     // it also replaces null retentions introduced by the commit
@@ -136,6 +127,7 @@ export default class metadataBackup {
     const app = this._app
     job.xoMetadata = job.xoMetadata ? await app.exportConfig() : undefined
 
+    const remoteIds = unboxIdsFromPattern(job.remotes)
     const proxyId = job.proxy
     try {
       if (proxyId !== undefined) {
