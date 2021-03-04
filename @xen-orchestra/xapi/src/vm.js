@@ -268,27 +268,34 @@ module.exports = class Vm {
 
   async destroy(vmRef, { deleteDisks = true, force = false, forceDeleteDefaultTemplate = false } = {}) {
     const vm = await this.getRecord('VM', vmRef)
+
     if (!force && 'destroy' in vm.blocked_operations) {
       throw new Error('destroy is blocked')
     }
+
     if (!forceDeleteDefaultTemplate && vm.other_config.default_template === 'true') {
       throw new Error('VM is default template')
     }
+
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
       await this.call('VM.hard_shutdown', vmRef)
     }
+
     await Promise.all([
       vm.set_is_a_template(false),
       vm.update_blocked_operations('destroy', null),
       vm.update_other_config('default_template', null),
     ])
+
     // must be done before destroying the VM
     const disks = await this.VM_getDisks(vmRef, vm.VBDs)
+
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
     await this.call('VM.destroy', vmRef)
+
     return Promise.all([
       ignoreErrors.call(asyncMap(vm.snapshots, _ => this.VM_destroy(_))),
       deleteDisks &&
