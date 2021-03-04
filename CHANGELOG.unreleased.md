@@ -7,11 +7,11 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VIF] To edit MAC address on a VIF, user has to be operator of the VIF and administrator of its network [#4700](https://github.com/vatesfr/xen-orchestra/issues/4700) (PR [#5631](https://github.com/vatesfr/xen-orchestra/pull/5631))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [VIF] To edit MAC address on a VIF, user have to be operator on this VIF and administrator and this network [#4700](https://github.com/vatesfr/xen-orchestra/issues/4700)([#5631](https://github.com/vatesfr/xen-orchestra/pull/5631))
 
 ### Packages to release
 
@@ -30,4 +30,4 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server patch
+- xo-server minor
