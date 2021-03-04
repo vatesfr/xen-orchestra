@@ -710,12 +710,7 @@ const COLUMNS = [
       <VifNetwork vif={vif} network={networks[vif.$network]} resourceSet={resourceSet} />
     ),
     name: _('vifNetworkLabel'),
-    sortCriteria: (vif, userData) => {
-      if (isEmpty(userData.ip)) {
-        return
-      }
-      return userData.networks[vif.$network].name_label
-    },
+    sortCriteria: (vif, userData) => get(() => userData.networks[vif.$network].name_label),
   },
   {
     itemRenderer: ({ id, rateLimit }) => (
