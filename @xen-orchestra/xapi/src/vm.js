@@ -285,14 +285,7 @@ module.exports = class Vm {
       vm.update_other_config('default_template', null),
     ])
     // must be done before destroying the VM
-    const disks = (
-      await asyncMap(await this.getRecords('VBD', vm.VBDs), async vbd => {
-        let vdiRef
-        if (vbd.type === 'Disk' && isValidRef((vdiRef = vbd.VDI))) {
-          return vdiRef
-        }
-      })
-    ).filter(_ => _ !== undefined)
+    const disks = await this.VM_getDisks(vmRef, vm.VBDs)
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
     await this.call('VM.destroy', vmRef)
@@ -362,9 +355,13 @@ module.exports = class Vm {
     // return promise
   }
 
-  async getDisks(vmRef) {
+  async getDisks(vmRef, vbdRefs) {
+    if (vbdRefs === undefined) {
+      vbdRefs = await this.getField('VM', vmRef, 'VBDs')
+    }
+
     const disks = { __proto__: null }
-    ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(vbd => {
+    ;(await this.getRecords('VBD', vbdRefs)).forEach(vbd => {
       if (vbd.type === 'Disk' && isValidRef(vbd.VDI)) {
         disks[vbd.VDI] = true
       }
