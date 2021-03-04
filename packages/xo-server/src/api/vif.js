@@ -89,6 +89,9 @@ export async function set({
 
   if (isNetworkChanged || mac) {
     const networkId = network?.id
+    if (mac !== undefined && this.user.permission !== 'admin') {
+      await this.checkPermissions(this.user.id, [[networkId ?? vif.$network, 'administrate']])
+    }
     if (networkId !== undefined && this.user.permission !== 'admin') {
       if (resourceSet !== undefined) {
         await this.checkResourceSetConstraints(resourceSet, this.user.id, [networkId])
@@ -174,6 +177,6 @@ set.params = {
 }
 
 set.resolve = {
-  vif: ['id', 'VIF', 'administrate'],
+  vif: ['id', 'VIF', 'operate'],
   network: ['network', 'network', false],
 }
