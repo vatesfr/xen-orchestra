@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import deferrable from 'golike-defer'
 import synchronized from 'decorator-synchronized'
 import { difference, every, forEach, isObject, keyBy, map as mapToArray, remove, some } from 'lodash'

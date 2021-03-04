@@ -1,5 +1,5 @@
 import * as multiparty from 'multiparty'
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import defer from 'golike-defer'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'

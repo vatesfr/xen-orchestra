@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@xen-orchestra/proxy",
-  "version": "0.11.1",
+  "version": "0.11.3",
   "license": "AGPL-3.0-or-later",
   "description": "",
   "keywords": [
@@ -36,12 +36,12 @@
     "@vates/decorate-with": "^0.0.1",
     "@vates/disposable": "^0.1.0",
     "@vates/parse-duration": "^0.1.0",
-    "@xen-orchestra/backups": "^0.6.0",
+    "@xen-orchestra/backups": "^0.6.1",
     "@xen-orchestra/emit-async": "^0.0.0",
     "@xen-orchestra/fs": "^0.13.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/self-signed": "^0.1.0",
-    "@xen-orchestra/xapi": "^0.4.1",
+    "@xen-orchestra/xapi": "^0.4.3",
     "ajv": "^6.10.0",
     "app-conf": "^0.9.0",
     "async-iterator-to-stream": "^1.1.0",

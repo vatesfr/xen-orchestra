@@ -1,4 +1,5 @@
-const { asyncMap } = require('./asyncMap')
+const { asyncMap } = require('@xen-orchestra/async-map')
+
 const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
 const { formatFilenameDate } = require('./_filenameDate')

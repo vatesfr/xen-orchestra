@@ -1,4 +1,4 @@
-const { asyncMap } = require('./asyncMap')
+const { asyncMap } = require('@xen-orchestra/async-map')
 
 exports.DurablePartition = class DurablePartition {
   // private resource API is used exceptionally to be able to separate resource creation and release

@@ -37,7 +37,6 @@
     "bind-property-descriptor": "^1.0.0",
     "blocked": "^1.2.1",
     "debug": "^4.0.1",
-    "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
     "http-request-plus": "^0.8.0",
     "jest-diff": "^26.4.2",

@@ -1,8 +1,7 @@
-const asyncMapSettled = require('@xen-orchestra/async-map')
+const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { asyncMap } = require('./asyncMap')
 const { formatFilenameDate } = require('./_filenameDate')
 const { getOldEntries } = require('./_getOldEntries')
 const { importDeltaVm, TAG_COPY_SRC } = require('./_deltaVm')

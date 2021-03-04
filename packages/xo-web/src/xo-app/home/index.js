@@ -1187,7 +1187,7 @@ export default class Home extends Component {
             <Button onClick={this._expandAll}>
               <Icon icon='nav' />
             </Button>{' '}
-            <DropdownButton bsStyle='info' title={homeItemsPerPage}>
+            <DropdownButton bsStyle='info' id='itemsPerPage' title={homeItemsPerPage}>
               {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
                 <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
                   {nItems}

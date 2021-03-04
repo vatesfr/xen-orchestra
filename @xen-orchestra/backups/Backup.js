@@ -1,11 +1,10 @@
-const asyncMapSettled = require('@xen-orchestra/async-map')
+const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const limitConcurrency = require('limit-concurrency-decorator').default
 const using = require('promise-toolbox/using')
 const { compileTemplate } = require('@xen-orchestra/template')
 
-const { asyncMap } = require('./asyncMap')
 const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern')
 const { PoolMetadataBackup } = require('./_PoolMetadataBackup')
 const { Task } = require('./Task')

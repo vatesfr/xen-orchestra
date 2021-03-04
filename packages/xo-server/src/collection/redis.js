@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { createClient as createRedisClient } from 'redis'
 import { difference, filter, forEach, isEmpty, keys as getKeys, map } from 'lodash'
 import { ignoreErrors, promisifyAll } from 'promise-toolbox'

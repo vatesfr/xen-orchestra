@@ -1,6 +1,6 @@
 // @flow
 
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { createSchedule } from '@xen-orchestra/cron'
 import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'

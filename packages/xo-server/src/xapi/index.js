@@ -1,6 +1,6 @@
 /* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import concurrency from 'limit-concurrency-decorator'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
@@ -14,7 +14,8 @@ import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'pro
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
-import { Xapi as XapiBase, NULL_REF } from 'xen-api'
+import { NULL_REF } from 'xen-api'
+import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import {
   every,
   filter,

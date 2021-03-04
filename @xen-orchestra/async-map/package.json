@@ -1,10 +1,17 @@
 {
   "private": false,
   "name": "@xen-orchestra/async-map",
-  "version": "0.0.0",
+  "version": "0.1.2",
   "license": "ISC",
-  "description": "Similar to Promise.all + lodash.map but wait for all promises to be settled",
-  "keywords": [],
+  "description": "Promise.all + map for all iterables",
+  "keywords": [
+    "array",
+    "async",
+    "iterable",
+    "map",
+    "settled",
+    "typescript"
+  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/async-map",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -19,10 +26,8 @@
   "preferGlobal": false,
   "bin": {},
   "files": [
-    "*.js"
-  ],
-  "browserslist": [
-    ">2%"
+    "index.js",
+    "legacy.js"
   ],
   "engines": {
     "node": ">=6"

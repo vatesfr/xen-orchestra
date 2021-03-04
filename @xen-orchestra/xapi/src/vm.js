@@ -1,10 +1,10 @@
-const asyncMap = require('@xen-orchestra/async-map')
 const cancelable = require('promise-toolbox/cancelable')
 const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pRetry = require('promise-toolbox/retry')
+const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { NULL_REF } = require('xen-api')
 
@@ -268,34 +268,34 @@ module.exports = class Vm {
 
   async destroy(vmRef, { deleteDisks = true, force = false, forceDeleteDefaultTemplate = false } = {}) {
     const vm = await this.getRecord('VM', vmRef)
+
     if (!force && 'destroy' in vm.blocked_operations) {
       throw new Error('destroy is blocked')
     }
+
     if (!forceDeleteDefaultTemplate && vm.other_config.default_template === 'true') {
       throw new Error('VM is default template')
     }
+
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
       await this.call('VM.hard_shutdown', vmRef)
     }
+
     await Promise.all([
       vm.set_is_a_template(false),
       vm.update_blocked_operations('destroy', null),
       vm.update_other_config('default_template', null),
     ])
+
     // must be done before destroying the VM
-    const disks = (
-      await asyncMap(this.getRecords('VBD', vm.VBDs), async vbd => {
-        let vdiRef
-        if (vbd.type === 'Disk' && isValidRef((vdiRef = vbd.VDI))) {
-          return vdiRef
-        }
-      })
-    ).filter(_ => _ !== undefined)
+    const disks = await this.VM_getDisks(vmRef, vm.VBDs)
+
     // this cannot be done in parallel, otherwise disks and snapshots will be
     // destroyed even if this fails
     await this.call('VM.destroy', vmRef)
+
     return Promise.all([
       ignoreErrors.call(asyncMap(vm.snapshots, _ => this.VM_destroy(_))),
       deleteDisks &&
@@ -304,7 +304,7 @@ module.exports = class Vm {
             pRetry(
               async () => {
                 // list VMs connected to this VDI
-                const vmRefs = await asyncMap(this.getField('VDI', vdiRef, 'VBDs'), vbdRef =>
+                const vmRefs = await asyncMap(await this.getField('VDI', vdiRef, 'VBDs'), vbdRef =>
                   this.getField('VBD', vbdRef, 'VM')
                 )
                 if (vmRefs.every(_ => _ === vmRef)) {
@@ -362,9 +362,13 @@ module.exports = class Vm {
     // return promise
   }
 
-  async getDisks(vmRef) {
+  async getDisks(vmRef, vbdRefs) {
+    if (vbdRefs === undefined) {
+      vbdRefs = await this.getField('VM', vmRef, 'VBDs')
+    }
+
     const disks = { __proto__: null }
-    ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).map(async vbd => {
+    ;(await this.getRecords('VBD', vbdRefs)).forEach(vbd => {
       if (vbd.type === 'Disk' && isValidRef(vbd.VDI)) {
         disks[vbd.VDI] = true
       }

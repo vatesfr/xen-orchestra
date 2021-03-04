@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
 import { filter, isEmpty, map, mapValues } from 'lodash'

@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import execa from 'execa'

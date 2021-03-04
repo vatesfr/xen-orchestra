@@ -6,8 +6,6 @@ Creates a new function that wraps `fn` and instead of creating a new disposables
 
 Those copies contains the same value and can be disposed independently, the source disposable will only be disposed when all copies are disposed.
 
-`fn` should return a promise containing a disposable.
-
 `keyFn` is called with the same context and arguments as the wrapping function and must returns an array of keys which will be used to identify which disposables should be grouped together.
 
 ```js

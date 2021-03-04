@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { some } from 'lodash'
 
 import ensureArray from '../_ensureArray'
