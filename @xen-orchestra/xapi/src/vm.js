@@ -364,7 +364,7 @@ module.exports = class Vm {
 
   async getDisks(vmRef) {
     const disks = { __proto__: null }
-    ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).map(async vbd => {
+    ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(vbd => {
       if (vbd.type === 'Disk' && isValidRef(vbd.VDI)) {
         disks[vbd.VDI] = true
       }
