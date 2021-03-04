@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VIF] Only ACL administrator can edit a VIF [#4700](https://github.com/vatesfr/xen-orchestra/issues/4700)([#5631](https://github.com/vatesfr/xen-orchestra/pull/5631))
+- [VIF] To edit MAC address on a VIF, user have to be operator on this VIF and administrator and this network [#4700](https://github.com/vatesfr/xen-orchestra/issues/4700)([#5631](https://github.com/vatesfr/xen-orchestra/pull/5631))
 
 ### Packages to release
 
