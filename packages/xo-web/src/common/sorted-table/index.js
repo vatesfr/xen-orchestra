@@ -744,6 +744,7 @@ class SortedTable extends Component {
       onSelect,
       paginationContainer,
       shortcutsTarget,
+      stateUrlParam,
     } = props
     const { all, itemsPerPage } = state
     const groupedActions = this._getGroupedActions()
@@ -769,7 +770,7 @@ class SortedTable extends Component {
     )
 
     const dropdownItemsPerPage = (
-      <DropdownButton bsStyle='info' id='itemsPerPage' title={itemsPerPage}>
+      <DropdownButton bsStyle='info' id={stateUrlParam} title={itemsPerPage}>
         {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
           <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
             {nItems}
