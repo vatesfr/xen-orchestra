@@ -76,7 +76,8 @@ exports.Backup = class Backup {
 
     const poolIds = extractIdsFromSimplePattern(job.pools)
     const isEmptyPools = poolIds.length === 0
-    if (job.xoMetadata === undefined && isEmptyPools) {
+    const isXoMetadata = job.xoMetadata === undefined
+    if (isXoMetadata && isEmptyPools) {
       throw new Error('no metadata mode found')
     }
 
@@ -84,7 +85,7 @@ exports.Backup = class Backup {
 
     if (
       (retentionPoolMetadata === 0 && retentionXoMetadata === 0) ||
-      (!job.xoMetadata && retentionPoolMetadata === 0) ||
+      (isXoMetadata && retentionPoolMetadata === 0) ||
       (isEmptyPools && retentionXoMetadata === 0)
     ) {
       throw new Error('no retentions corresponding to the metadata modes found')
