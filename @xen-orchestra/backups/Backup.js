@@ -56,10 +56,6 @@ exports.Backup = class Backup {
 
   async _runMetadataBackup() {
     const schedule = this._schedule
-    if (schedule === undefined) {
-      throw new Error('backup job cannot run without a schedule')
-    }
-
     const job = this._job
     const remoteIds = extractIdsFromSimplePattern(job.remotes)
     if (remoteIds.length === 0) {
