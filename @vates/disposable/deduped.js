@@ -29,7 +29,6 @@ exports.deduped = (factory, keyFn = (...args) => args) =>
           }
 
           return () => {
-            ++state.users
             return wrapper
           }
         }
@@ -47,6 +46,7 @@ exports.deduped = (factory, keyFn = (...args) => args) =>
         states.set(keys, state)
       }
 
+      ++state.users
       return state.factory()
     }
   })()

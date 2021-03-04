@@ -60,4 +60,17 @@ describe('deduped()', () => {
 
     expect(dispose).toHaveBeenCalledTimes(1)
   })
+
+  it('no race condition on dispose before async acquisition', async () => {
+    const dispose = jest.fn()
+    const dedupedGetResource = deduped(async () => ({ value: 42, dispose }))
+
+    const d1 = await dedupedGetResource()
+
+    dedupedGetResource()
+
+    d1.dispose()
+
+    expect(dispose).not.toHaveBeenCalled()
+  })
 })
