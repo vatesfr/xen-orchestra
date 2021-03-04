@@ -85,7 +85,7 @@ exports.Backup = class Backup {
 
     if (
       (retentionPoolMetadata === 0 && retentionXoMetadata === 0) ||
-      (isXoMetadata && retentionPoolMetadata === 0) ||
+      (!isXoMetadata && retentionPoolMetadata === 0) ||
       (isEmptyPools && retentionXoMetadata === 0)
     ) {
       throw new Error('no retentions corresponding to the metadata modes found')
