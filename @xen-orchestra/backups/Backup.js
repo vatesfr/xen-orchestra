@@ -218,6 +218,9 @@ exports.Backup = class Backup {
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
 
+        // remove VMs that failed (already handled)
+        vms = vms.filter(_ => _ !== undefined)
+
         const handleVm = vm =>
           runTask({ name: 'backup VM', data: { type: 'VM', id: vm.uuid } }, () =>
             new VmBackup({
