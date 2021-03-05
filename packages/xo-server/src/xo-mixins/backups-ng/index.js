@@ -1024,7 +1024,7 @@ export default class BackupNg {
 
       const bypassVdiChainsCheck: boolean = getSetting(settings, 'bypassVdiChainsCheck', [vmUuid, ''])
       if (!bypassVdiChainsCheck) {
-        xapi._assertHealthyVdiChains(vm)
+        await xapi.VM_assertHealthyVdiChains(vm.$ref)
       }
 
       const offlineSnapshot: boolean = getSetting(settings, 'offlineSnapshot', [vmUuid, ''])
