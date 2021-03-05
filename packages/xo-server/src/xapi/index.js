@@ -726,7 +726,7 @@ export default class Xapi extends XapiBase {
     const exportedNameLabel = vm.name_label
     if (!vm.is_a_snapshot) {
       if (!bypassVdiChainsCheck) {
-        await this.assertHealthyVdiChains(vm.$ref)
+        await this.VM_assertHealthyVdiChains(vm.$ref)
       }
 
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
