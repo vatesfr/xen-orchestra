@@ -824,7 +824,7 @@ export default class {
     const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
-    xapi._assertHealthyVdiChains(vm)
+    xapi.assertHealthyVdiChains(vm.$ref)
 
     const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeRegExp(tag) + '_')
     const snapshots = sortBy(

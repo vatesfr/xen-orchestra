@@ -701,59 +701,6 @@ export default class Xapi extends XapiBase {
     return promise
   }
 
-  _assertHealthyVdiChain(vdi, cache, tolerance) {
-    if (vdi == null) {
-      return
-    }
-
-    if (!vdi.managed) {
-      const { SR } = vdi
-      let childrenMap = cache[SR]
-      if (childrenMap === undefined) {
-        const xapi = vdi.$xapi
-        childrenMap = cache[SR] = groupBy(
-          vdi.$SR.VDIs,
-
-          // if for any reasons, the VDI is undefined, simply ignores it instead
-          // of failing
-          ref => {
-            try {
-              return xapi.getObjectByRef(ref).sm_config['vhd-parent']
-            } catch (error) {
-              log.warn('missing VDI in _assertHealthyVdiChain', { error })
-            }
-          }
-        )
-      }
-
-      // an unmanaged VDI should not have exactly one child: they
-      // should coalesce
-      const children = childrenMap[vdi.uuid]
-      if (
-        children.length === 1 &&
-        !children[0].managed && // some SRs do not coalesce the leaf
-        tolerance-- <= 0
-      ) {
-        throw new Error('unhealthy VDI chain')
-      }
-    }
-
-    this._assertHealthyVdiChain(this.getObjectByUuid(vdi.sm_config['vhd-parent'], null), cache, tolerance)
-  }
-
-  _assertHealthyVdiChains(vm, tolerance = this._maxUncoalescedVdis) {
-    const cache = { __proto__: null }
-    forEach(vm.$VBDs, ({ $VDI }) => {
-      try {
-        this._assertHealthyVdiChain($VDI, cache, tolerance)
-      } catch (error) {
-        error.VDI = $VDI
-        error.VM = vm
-        throw error
-      }
-    })
-  }
-
   // Create a snapshot (if necessary) of the VM and returns a delta export
   // object.
   @cancelable
@@ -779,7 +726,7 @@ export default class Xapi extends XapiBase {
     const exportedNameLabel = vm.name_label
     if (!vm.is_a_snapshot) {
       if (!bypassVdiChainsCheck) {
-        this._assertHealthyVdiChains(vm)
+        this.assertHealthyVdiChains(vm.$ref)
       }
 
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
