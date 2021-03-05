@@ -308,12 +308,7 @@ module.exports = class Vm {
               }
             }
 
-            return pRetry(() => this.VDI_destroy(vdiRef), {
-              // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet.
-              delay: 5e3,
-              retries: 5,
-              when: { code: 'VDI_IN_USE' },
-            })
+            await this.VDI_destroy(vdiRef)
           })
         ),
     ])
