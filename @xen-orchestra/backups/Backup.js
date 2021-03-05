@@ -219,7 +219,7 @@ exports.Backup = class Backup {
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
 
         const handleVm = vm =>
-          runTask({ name: 'backup VM', data: { type: 'VM', id: vm.$id } }, () =>
+          runTask({ name: 'backup VM', data: { type: 'VM', id: vm.uuid } }, () =>
             new VmBackup({
               config,
               getSnapshotNameLabel,
