@@ -3,6 +3,7 @@ const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
@@ -485,9 +486,14 @@ module.exports = class Vm {
       ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
     } while (false)
 
-    // Don't set `is_a_template = false` like done in xo-server, it does not
-    // appear necessary and can trigger license issues, see
-    // https://bugs.xenserver.org/browse/XSO-766
+    // required in order to ensure that the full backup will not be imported as a template
+    await pCatch.call(
+      this.setField('VM', ref, 'is_a_template', false),
+
+      // see https://bugs.xenserver.org/browse/XSO-766
+      { code: 'LICENSE_RESTRICTION' },
+      Function.prototype
+    )
 
     return ref
   }
