@@ -49,6 +49,8 @@ async function safeGetRecord(xapi, type, ref) {
   }
 }
 
+const noop = Function.prototype
+
 module.exports = class Vm {
   async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
     let vdi = cache[vdiRefOrUuid]
@@ -495,7 +497,7 @@ module.exports = class Vm {
       //
       // see https://bugs.xenserver.org/browse/XSO-766
       { code: 'LICENSE_RESTRICTION' },
-      Function.prototype
+      noop
     )
 
     return ref
