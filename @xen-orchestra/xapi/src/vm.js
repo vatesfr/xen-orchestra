@@ -8,7 +8,6 @@ const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { NULL_REF } = require('xen-api')
 
-const AttachedVdiError = require('./_AttachedVdiError')
 const extractOpaqueRef = require('./_extractOpaqueRef')
 const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
@@ -300,25 +299,22 @@ module.exports = class Vm {
       ignoreErrors.call(asyncMap(vm.snapshots, _ => this.VM_destroy(_))),
       deleteDisks &&
         ignoreErrors.call(
-          asyncMap(disks, vdiRef =>
-            pRetry(
-              async () => {
-                // list VMs connected to this VDI
-                const vmRefs = await asyncMap(await this.getField('VDI', vdiRef, 'VBDs'), vbdRef =>
-                  this.getField('VBD', vbdRef, 'VM')
-                )
-                if (vmRefs.every(_ => _ === vmRef)) {
-                  return this.callAsync('VDI.destroy', vdiRef)
-                }
-                throw new AttachedVdiError()
-              },
-              {
-                delay: 5e3,
-                tries: 2,
-                when: AttachedVdiError,
+          asyncMap(disks, async vdiRef => {
+            // Dont destroy if attached to other (non control domain) VMs
+            for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
+              const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
+              if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef, 'is_control_domain'))) {
+                return
               }
-            )
-          )
+            }
+
+            return pRetry(() => this.VDI_destroy(vdiRef), {
+              // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet.
+              delay: 5e3,
+              retries: 5,
+              when: { code: 'VDI_IN_USE' },
+            })
+          })
         ),
     ])
   }
