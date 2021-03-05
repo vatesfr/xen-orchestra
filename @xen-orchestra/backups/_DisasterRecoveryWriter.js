@@ -1,5 +1,5 @@
-const asyncMapSettled = require('@xen-orchestra/async-map')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { asyncMapSettled } = require('@xen-orchestra/async-map')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
 const { formatFilenameDate } = require('./_filenameDate')
