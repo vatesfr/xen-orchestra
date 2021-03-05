@@ -3,6 +3,7 @@ const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
@@ -47,6 +48,8 @@ async function safeGetRecord(xapi, type, ref) {
     return ref
   }
 }
+
+const noop = Function.prototype
 
 module.exports = class Vm {
   async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
@@ -485,9 +488,17 @@ module.exports = class Vm {
       ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
     } while (false)
 
-    // Don't set `is_a_template = false` like done in xo-server, it does not
-    // appear necessary and can trigger license issues, see
-    // https://bugs.xenserver.org/browse/XSO-766
+    // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
+    // which will import them as templates and not VM snapshots or plain VMs
+    await pCatch.call(
+      this.setField('VM', ref, 'is_a_template', false),
+
+      // Ignore if this fails due to license restriction 
+      //
+      // see https://bugs.xenserver.org/browse/XSO-766
+      { code: 'LICENSE_RESTRICTION' },
+      noop
+    )
 
     return ref
   }
