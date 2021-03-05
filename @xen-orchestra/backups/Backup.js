@@ -227,7 +227,7 @@ exports.Backup = class Backup {
               // remotes,
               remoteAdapters,
               schedule,
-              settings: { ...scheduleSettings, ...settings[vm.$id] },
+              settings: { ...scheduleSettings, ...settings[vm.uuid] },
               srs,
               vm,
             }).run()
