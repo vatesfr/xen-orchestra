@@ -486,7 +486,8 @@ module.exports = class Vm {
       ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
     } while (false)
 
-    // required in order to ensure that the full backup will not be imported as a template
+    // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
+    // which will import them as templates and not VM snapshots or plain VMs
     await pCatch.call(
       this.setField('VM', ref, 'is_a_template', false),
 
