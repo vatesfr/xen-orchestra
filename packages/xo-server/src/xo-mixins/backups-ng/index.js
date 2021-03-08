@@ -323,7 +323,7 @@ export default class BackupNg {
             }
           } else {
             const localTaskIds = { __proto__: null }
-            return Task.run(
+            return await Task.run(
               {
                 name: 'backup run',
                 onLog: log =>
