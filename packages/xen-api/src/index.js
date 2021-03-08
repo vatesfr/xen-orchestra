@@ -288,6 +288,7 @@ export class Xapi extends EventEmitter {
 
   setFields(type, ref, fields) {
     return Promise.all(
+      // eslint-disable-next-line array-callback-return
       getKeys(fields).map(field => {
         const value = fields[field]
         if (value !== undefined) {
@@ -299,6 +300,7 @@ export class Xapi extends EventEmitter {
 
   setFieldEntries(type, ref, field, entries) {
     return Promise.all(
+      // eslint-disable-next-line array-callback-return
       getKeys(entries).map(entry => {
         const value = entries[entry]
         if (value !== undefined) {
