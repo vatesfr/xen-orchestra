@@ -268,7 +268,8 @@ const deployProxy = async ({ proxy } = {}) => {
       title,
     }).catch(noop)
     if (choice !== value) {
-      return
+      // throw undefined to interrupt the deployment process and let the ActionButton properly ignore this error
+      throw undefined
     }
 
     try {
