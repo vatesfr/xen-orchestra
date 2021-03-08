@@ -3,7 +3,7 @@ import camelCase from 'lodash/camelCase'
 import isEqual from 'lodash/isEqual'
 import isPlainObject from 'lodash/isPlainObject'
 import pickBy from 'lodash/pickBy'
-import { utcFormat, utcParse } from 'd3-time-format'
+import { utcParse } from 'd3-time-format'
 import { satisfies as versionSatisfies } from 'semver'
 
 import { camelToSnakeCase, forEach, isInteger, map, mapFilter, mapToArray, noop } from '../utils'
@@ -75,10 +75,6 @@ export const getVmDisks = vm => {
 }
 
 // -------------------------------------------------------------------
-
-// Format a date (pseudo ISO 8601) from one XenServer get by
-// xapi.call('host.get_servertime', host.$ref) for example
-export const formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
 
 const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
 

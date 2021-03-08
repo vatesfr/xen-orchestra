@@ -129,7 +129,6 @@
     "split2": "^3.1.1",
     "stack-chain": "^2.0.0",
     "stoppable": "^1.0.5",
-    "strict-timeout": "^1.0.0",
     "struct-fu": "^1.2.0",
     "subleveldown": "^5.0.1",
     "tar-stream": "^2.0.1",
