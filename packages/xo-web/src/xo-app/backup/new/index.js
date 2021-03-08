@@ -422,10 +422,10 @@ const New = decorate([
         }
       },
       showScheduleModal: ({ saveSchedule }, storedSchedule = DEFAULT_SCHEDULE) => async (
-        { copyMode, exportMode, deltaMode, propSettings, settings = propSettings, snapshotMode },
+        { copyMode, exportMode, deltaMode, isDelta, propSettings, settings = propSettings, snapshotMode },
         { intl: { formatMessage } }
       ) => {
-        const modes = { copyMode, deltaMode, exportMode, snapshotMode }
+        const modes = { copyMode, isDelta, exportMode, snapshotMode }
         const schedule = await form({
           defaultValue: storedSchedule,
           render: props => (
