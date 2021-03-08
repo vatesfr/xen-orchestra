@@ -16,21 +16,7 @@ import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
 import { NULL_REF } from 'xen-api'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
-import {
-  every,
-  filter,
-  find,
-  flatMap,
-  flatten,
-  groupBy,
-  identity,
-  includes,
-  isEmpty,
-  noop,
-  omit,
-  once,
-  uniq,
-} from 'lodash'
+import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
@@ -629,30 +615,18 @@ export default class Xapi extends XapiBase {
       vm.power_state === 'Suspended' && vm.suspend_VDI !== NULL_REF && this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
 
       deleteDisks &&
-        asyncMapSettled(disks, ({ $ref: vdiRef }) => {
-          let onFailure = () => {
-            onFailure = vdi => {
-              log.error(`cannot delete VDI ${vdi.name_label} (from VM ${vm.name_label})`)
-              forEach(vdi.$VBDs, vbd => {
-                if (vbd.VM !== $ref) {
-                  const vm = vbd.$VM
-                  log.error(`- ${vm.name_label} (${vm.uuid})`)
-                }
-              })
-            }
+        asyncMapSettled(disks, async vdi => {
+          // Dont destroy if attached to other (non control domain) VMs
+          if (vdi.$VBDs.some(vbd => vbd !== undefined && vbd.VM !== $ref && !vbd.$VM.is_control_domain)) {
+            return
+          }
 
-            // maybe the control domain has not yet unmounted the VDI,
-            // check and retry after 5 seconds
-            return pDelay(5e3).then(test)
-          }
-          const test = () => {
-            const vdi = this.getObjectByRef(vdiRef)
-            return (
-              // Only remove VBDs not attached to other VMs.
-              vdi.VBDs.length < 2 || every(vdi.$VBDs, vbd => vbd.VM === $ref) ? this._deleteVdi(vdiRef) : onFailure(vdi)
-            )
-          }
-          return test()
+          return pRetry(() => vdi.$callAsync('destroy'), {
+            // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet.
+            delay: 5e3,
+            retries: 5,
+            when: { code: 'VDI_IN_USE' },
+          })
         })::ignoreErrors(),
     ])
   }

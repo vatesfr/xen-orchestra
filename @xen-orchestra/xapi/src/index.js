@@ -32,12 +32,17 @@ const hasProps = o => {
 }
 
 class Xapi extends Base {
-  constructor({ ignoreNobakVdis, maxUncoalescedVdis, ...opts }) {
+  constructor({ ignoreNobakVdis, maxUncoalescedVdis, vdiDestroyRetryWhenInUse, ...opts }) {
     assert.notStrictEqual(ignoreNobakVdis, undefined)
 
     super(opts)
     this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
+    this._vdiDestroyRetryWhenInUse = {
+      ...vdiDestroyRetryWhenInUse,
+      delay: 5e3,
+      retries: 10,
+    }
 
     const genericWatchers = (this._genericWatchers = new Set())
     const objectWatchers = (this._objectWatchers = { __proto__: null })

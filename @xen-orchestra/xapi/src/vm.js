@@ -3,12 +3,12 @@ const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { NULL_REF } = require('xen-api')
 
-const AttachedVdiError = require('./_AttachedVdiError')
 const extractOpaqueRef = require('./_extractOpaqueRef')
 const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
@@ -47,6 +47,8 @@ async function safeGetRecord(xapi, type, ref) {
     return ref
   }
 }
+
+const noop = Function.prototype
 
 module.exports = class Vm {
   async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
@@ -300,25 +302,17 @@ module.exports = class Vm {
       ignoreErrors.call(asyncMap(vm.snapshots, _ => this.VM_destroy(_))),
       deleteDisks &&
         ignoreErrors.call(
-          asyncMap(disks, vdiRef =>
-            pRetry(
-              async () => {
-                // list VMs connected to this VDI
-                const vmRefs = await asyncMap(await this.getField('VDI', vdiRef, 'VBDs'), vbdRef =>
-                  this.getField('VBD', vbdRef, 'VM')
-                )
-                if (vmRefs.every(_ => _ === vmRef)) {
-                  return this.callAsync('VDI.destroy', vdiRef)
-                }
-                throw new AttachedVdiError()
-              },
-              {
-                delay: 5e3,
-                tries: 2,
-                when: AttachedVdiError,
+          asyncMap(disks, async vdiRef => {
+            // Dont destroy if attached to other (non control domain) VMs
+            for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
+              const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
+              if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef, 'is_control_domain'))) {
+                return
               }
-            )
-          )
+            }
+
+            await this.VDI_destroy(vdiRef)
+          })
         ),
     ])
   }
@@ -485,9 +479,17 @@ module.exports = class Vm {
       ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
     } while (false)
 
-    // Don't set `is_a_template = false` like done in xo-server, it does not
-    // appear necessary and can trigger license issues, see
-    // https://bugs.xenserver.org/browse/XSO-766
+    // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
+    // which will import them as templates and not VM snapshots or plain VMs
+    await pCatch.call(
+      this.setField('VM', ref, 'is_a_template', false),
+
+      // Ignore if this fails due to license restriction
+      //
+      // see https://bugs.xenserver.org/browse/XSO-766
+      { code: 'LICENSE_RESTRICTION' },
+      noop
+    )
 
     return ref
   }
