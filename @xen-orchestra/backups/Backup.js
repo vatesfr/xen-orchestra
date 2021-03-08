@@ -208,29 +208,18 @@ exports.Backup = class Backup {
 
         const handleVm = vmUuid =>
           runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
-            using(
-              this._getRecord('VM', vmUuid).catch(error => {
-                runTask(
-                  {
-                    name: 'get VM record',
-                    data: { type: 'VM', id: vmUuid },
-                  },
-                  () => Promise.reject(error)
-                )
-              }),
-              vm =>
-                vm !== undefined &&
-                new VmBackup({
-                  config,
-                  getSnapshotNameLabel,
-                  job,
-                  // remotes,
-                  remoteAdapters,
-                  schedule,
-                  settings: { ...scheduleSettings, ...settings[vmUuid] },
-                  srs,
-                  vm,
-                }).run()
+            using(this._getRecord('VM', vmUuid), vm =>
+              new VmBackup({
+                config,
+                getSnapshotNameLabel,
+                job,
+                // remotes,
+                remoteAdapters,
+                schedule,
+                settings: { ...scheduleSettings, ...settings[vmUuid] },
+                srs,
+                vm,
+              }).run()
             )
           )
         const { concurrency } = scheduleSettings
