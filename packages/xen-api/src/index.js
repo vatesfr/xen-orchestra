@@ -29,7 +29,6 @@ const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
-export { default as isEmptyRef } from './_isEmptyRef'
 export { Ref }
 
 // -------------------------------------------------------------------
@@ -1120,10 +1119,7 @@ export class Xapi extends EventEmitter {
               ? xapi.setFieldEntry(this.$type, this.$ref, field, entries, value)
               : xapi.setFieldEntries(this.$type, this.$ref, field, entries)
           }
-        } else if (value === '' || Ref.is(value)) {
-          // 2019-02-07 - JFT: even if `value` should not be an empty string for
-          // a ref property, an user had the case on XenServer 7.0 on the CD VBD
-          // of a VM created by XenCenter
+        } else if (Ref.is(value)) {
           getters[$field] = function () {
             return xapi._objectsByRef[this[field]]
           }

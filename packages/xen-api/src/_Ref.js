@@ -11,7 +11,7 @@ export default {
   },
 
   // Whether this value looks like a reference
-  isRef(val) {
+  is(val) {
     return (
       typeof val === 'string' &&
       (val.startsWith(PREFIX) ||
