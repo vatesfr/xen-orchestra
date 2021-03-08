@@ -16,6 +16,7 @@
 - [Editable number] When you are trying to edit a number and it's failing, display an error (PR [#5634](https://github.com/vatesfr/xen-orchestra/pull/5634))
 - [VM/Network] Fix `an error has occurred` when trying to sort the table by the network's name (PR [#5639](https://github.com/vatesfr/xen-orchestra/pull/5639))
 - [Backup] Try harder to avoid orphan VDI snapshots, especially with iSCSI SRs [#4926](https://github.com/vatesfr/xen-orchestra/issues/4926)
+- [Backup] Continue the backup on the other targets if one target(remote/SR) fails [#5353](https://github.com/vatesfr/xen-orchestra/issues/5353) (PR [#5651](https://github.com/vatesfr/xen-orchestra/pull/5651))
 
 ### Packages to release
 
