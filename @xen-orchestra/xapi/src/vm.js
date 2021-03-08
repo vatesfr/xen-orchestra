@@ -484,7 +484,7 @@ module.exports = class Vm {
     await pCatch.call(
       this.setField('VM', ref, 'is_a_template', false),
 
-      // Ignore if this fails due to license restriction
+      // Ignore if this fails due to license restriction 
       //
       // see https://bugs.xenserver.org/browse/XSO-766
       { code: 'LICENSE_RESTRICTION' },
