@@ -126,6 +126,11 @@ export default class PerformancePlan extends Plan {
         continue
       }
 
+      if (!vm.xenTools) {
+        debug(`VM (${vm.id}) of Host (${exceededHost.id}) does not support pool migration.`)
+        continue
+      }
+
       for (const tag of vm.tags) {
         // TODO: Improve this piece of code. We could compute variance to check if the VM
         // is migratable. But the code must be rewritten:
