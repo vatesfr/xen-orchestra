@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VIF] To edit MAC address on a VIF, user has to be operator of the VIF and administrator of its network [#4700](https://github.com/vatesfr/xen-orchestra/issues/4700) (PR [#5631](https://github.com/vatesfr/xen-orchestra/pull/5631))
+- [Backup/CR] Ability to set a specific schedule to always run full backups [#5541](https://github.com/vatesfr/xen-orchestra/issues/5541) (PR [#5648](https://github.com/vatesfr/xen-orchestra/pull/5648))
 
 ### Bug fixes
 
@@ -37,4 +38,4 @@
 - @xen-orchestra/xapi patch
 - @xen-orchestra/backups minor
 - xo-server minor
-- xo-web patch
+- xo-web minor
