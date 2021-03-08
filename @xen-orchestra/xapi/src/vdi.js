@@ -1,4 +1,5 @@
 const CancelToken = require('promise-toolbox/CancelToken')
+const pRetry = require('promise-toolbox/retry')
 
 const extractOpaqueRef = require('./_extractOpaqueRef')
 
@@ -8,7 +9,11 @@ module.exports = class Vdi {
   }
 
   async destroy(vdiRef) {
-    await this.callAsync('VDI.destroy', vdiRef)
+    // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
+    await pRetry(() => this.callAsync('VDI.destroy', vdiRef), {
+      ...this._vdiDestroyRetry,
+      when: { code: 'VDI_IN_USE' },
+    })
   }
 
   async create(
