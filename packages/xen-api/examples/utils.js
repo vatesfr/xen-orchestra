@@ -4,7 +4,7 @@ const { PassThrough, pipeline } = require('readable-stream')
 const humanFormat = require('human-format')
 const Throttle = require('throttle')
 
-const isOpaqueRef = require('../dist/_isOpaqueRef').default
+const Ref = require('../dist/_Ref').default
 
 exports.createInputStream = path => {
   if (path === undefined || path === '-') {
@@ -55,7 +55,7 @@ exports.pipeline = (...streams) => {
 }
 
 const resolveRef = (xapi, type, refOrUuidOrNameLabel) =>
-  isOpaqueRef(refOrUuidOrNameLabel)
+  Ref.is(refOrUuidOrNameLabel)
     ? refOrUuidOrNameLabel
     : xapi.call(`${type}.get_by_uuid`, refOrUuidOrNameLabel).catch(() =>
         xapi.call(`${type}.get_by_name_label`, refOrUuidOrNameLabel).then(refs => {

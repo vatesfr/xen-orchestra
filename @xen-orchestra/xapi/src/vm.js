@@ -7,7 +7,7 @@ const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
-const { NULL_REF } = require('xen-api')
+const { Ref } = require('xen-api')
 
 const extractOpaqueRef = require('./_extractOpaqueRef')
 const isValidRef = require('./_isValidRef')
@@ -145,7 +145,7 @@ module.exports = class Vm {
       actions_after_crash = 'reboot',
       actions_after_reboot = 'reboot',
       actions_after_shutdown = 'destroy',
-      affinity = NULL_REF,
+      affinity = Ref.EMPTY,
       appliance,
       blocked_operations,
       domain_type,

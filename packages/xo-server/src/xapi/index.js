@@ -14,9 +14,9 @@ import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'pro
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
-import { NULL_REF } from 'xen-api'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
+import { Ref } from 'xen-api'
 import { satisfies as versionSatisfies } from 'semver'
 
 import createSizeStream from '../size-stream'
@@ -523,7 +523,7 @@ export default class Xapi extends XapiBase {
         actions_after_crash,
         actions_after_reboot,
         actions_after_shutdown,
-        affinity: affinity == null ? NULL_REF : affinity,
+        affinity: affinity == null ? Ref.EMPTY : affinity,
         HVM_boot_params,
         HVM_boot_policy,
         is_a_template: asBoolean(is_a_template),
@@ -612,7 +612,9 @@ export default class Xapi extends XapiBase {
     return Promise.all([
       asyncMapSettled(vm.$snapshots, snapshot => this._deleteVm(snapshot))::ignoreErrors(),
 
-      vm.power_state === 'Suspended' && vm.suspend_VDI !== NULL_REF && this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
+      vm.power_state === 'Suspended' &&
+        Ref.isNotEmpty(vm.suspend_VDI) &&
+        this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
 
       deleteDisks &&
         asyncMapSettled(disks, async vdi => {
@@ -1612,7 +1614,7 @@ export default class Xapi extends XapiBase {
       xenstore_data,
 
       size,
-      sr = SR !== undefined && SR !== NULL_REF ? SR : this.pool.default_SR,
+      sr = Ref.isNotEmpty(SR) ? SR : this.pool.default_SR,
     },
     {
       // blindly copying `sm_config` from another VDI can create problems,
@@ -1972,7 +1974,7 @@ export default class Xapi extends XapiBase {
     })
 
     const vlans = uniq(mapToArray(pifs, pif => pif.VLAN_master_of))
-    await Promise.all(mapToArray(vlans, vlan => vlan !== NULL_REF && this.callAsync('VLAN.destroy', vlan)))
+    await Promise.all(mapToArray(vlans, vlan => Ref.isNotEmpty(vlan) && this.callAsync('VLAN.destroy', vlan)))
 
     const newPifs = await this.call('pool.create_VLAN_from_PIF', physPif.$ref, pif.network, asInteger(vlan))
     await Promise.all(
@@ -2008,7 +2010,7 @@ export default class Xapi extends XapiBase {
     const pifs = network.$PIFs
 
     const vlans = uniq(mapToArray(pifs, pif => pif.VLAN_master_of))
-    await Promise.all(mapToArray(vlans, vlan => vlan !== NULL_REF && this.callAsync('VLAN.destroy', vlan)))
+    await Promise.all(mapToArray(vlans, vlan => Ref.isNotEmpty(vlan) && this.callAsync('VLAN.destroy', vlan)))
 
     const bonds = uniq(flatten(mapToArray(pifs, pif => pif.bond_master_of)))
     await Promise.all(mapToArray(bonds, bond => this.call('Bond.destroy', bond)))

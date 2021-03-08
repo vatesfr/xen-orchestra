@@ -12,10 +12,10 @@ import coalesceCalls from './_coalesceCalls'
 import debug from './_debug'
 import getTaskResult from './_getTaskResult'
 import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
-import isOpaqueRef from './_isOpaqueRef'
 import isReadOnlyCall from './_isReadOnlyCall'
 import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
+import Ref from './_Ref'
 import replaceSensitiveValues from './_replaceSensitiveValues'
 
 // ===================================================================
@@ -29,9 +29,8 @@ const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
-export const NULL_REF = 'OpaqueRef:NULL'
-
-export { isOpaqueRef }
+export { default as isEmptyRef } from './_isEmptyRef'
+export { Ref }
 
 // -------------------------------------------------------------------
 
@@ -1094,7 +1093,7 @@ export class Xapi extends EventEmitter {
 
         const value = data[field]
         if (Array.isArray(value)) {
-          if (value.length === 0 || isOpaqueRef(value[0])) {
+          if (value.length === 0 || Ref.is(value[0])) {
             getters[$field] = function () {
               const value = this[field]
               return value.length === 0 ? value : value.map(getObjectByRef)
@@ -1121,7 +1120,7 @@ export class Xapi extends EventEmitter {
               ? xapi.setFieldEntry(this.$type, this.$ref, field, entries, value)
               : xapi.setFieldEntries(this.$type, this.$ref, field, entries)
           }
-        } else if (value === '' || isOpaqueRef(value)) {
+        } else if (value === '' || Ref.is(value)) {
           // 2019-02-07 - JFT: even if `value` should not be an empty string for
           // a ref property, an user had the case on XenServer 7.0 on the CD VBD
           // of a VM created by XenCenter
