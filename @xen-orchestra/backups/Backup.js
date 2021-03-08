@@ -196,47 +196,45 @@ exports.Backup = class Backup {
       ...settings[schedule.id],
     }
 
-    const vmIds = extractIdsFromSimplePattern(job.vms)
     await using(
-      Disposable.all(
-        vmIds.map(id =>
-          this._getRecord('VM', id).catch(error => {
-            runTask(
-              {
-                name: 'get VM record',
-                data: { type: 'VM', id },
-              },
-              () => Promise.reject(error)
-            )
-          })
-        )
-      ),
       Disposable.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _))),
       Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
-      async (vms, srs, remoteAdapters) => {
+      async (srs, remoteAdapters) => {
+        const vmIds = extractIdsFromSimplePattern(job.vms)
+
         Task.info('vms', { vms: vmIds })
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
 
-        // remove VMs that failed (already handled)
-        vms = vms.filter(_ => _ !== undefined)
-
-        const handleVm = vm =>
-          runTask({ name: 'backup VM', data: { type: 'VM', id: vm.uuid } }, () =>
-            new VmBackup({
-              config,
-              getSnapshotNameLabel,
-              job,
-              // remotes,
-              remoteAdapters,
-              schedule,
-              settings: { ...scheduleSettings, ...settings[vm.uuid] },
-              srs,
-              vm,
-            }).run()
+        const handleVm = vmUuid =>
+          runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
+            using(
+              this._getRecord('VM', vmUuid).catch(error => {
+                runTask(
+                  {
+                    name: 'get VM record',
+                    data: { type: 'VM', id: vmUuid },
+                  },
+                  () => Promise.reject(error)
+                )
+              }),
+              vm =>
+                vm !== undefined &&
+                new VmBackup({
+                  config,
+                  getSnapshotNameLabel,
+                  job,
+                  // remotes,
+                  remoteAdapters,
+                  schedule,
+                  settings: { ...scheduleSettings, ...settings[vmUuid] },
+                  srs,
+                  vm,
+                }).run()
+            )
           )
         const { concurrency } = scheduleSettings
-        await asyncMapSettled(vms, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
+        await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )
   }
