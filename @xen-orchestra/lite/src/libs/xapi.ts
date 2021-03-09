@@ -134,7 +134,7 @@ export default class XapiConnection {
 
   call(method: string, ...args: string[]): void {
     const { _xapi, connected } = this
-    if (!connected || _xapi === undefined) {
+    if (!connected) {
       throw new Error('Not connected to XAPI')
     }
 
