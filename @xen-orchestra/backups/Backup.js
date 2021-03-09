@@ -230,7 +230,7 @@ exports.Backup = class Backup {
         // remove srs that failed (already handled)
         srs = srs.filter(_ => _ !== undefined)
 
-        if (remoteAdapters.length === 0 && srs.length === 0) {
+        if (remoteAdapters.length === 0 && srs.length === 0 && scheduleSettings.snapshotRetention === 0) {
           return
         }
 
