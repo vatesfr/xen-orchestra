@@ -1,7 +1,7 @@
 const identity = require('lodash/identity')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { Ref } = require('xen-api')
 
-const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
 
 const noop = Function.prototype
@@ -20,7 +20,7 @@ module.exports = class Vbd {
     VDI,
     VM,
 
-    empty = !isValidRef(VDI),
+    empty = !Ref.isNotEmpty(VDI),
     mode = type === 'Disk' ? 'RW' : 'RO',
   }) {
     if (userdevice == null) {
