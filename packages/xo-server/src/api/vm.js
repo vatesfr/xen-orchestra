@@ -1027,14 +1027,15 @@ rollingDrCopy.description =
 
 // -------------------------------------------------------------------
 
-export function start({ vm, force, host }) {
-  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force)
+export function start({ vm, force, host, ignoreMacAddressesCheck }) {
+  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force, ignoreMacAddressesCheck)
 }
 
 start.params = {
   force: { type: 'boolean', optional: true },
   host: { type: 'string', optional: true },
   id: { type: 'string' },
+  ignoreMacAddressesCheck: { type: 'boolean', optional: true },
 }
 
 start.resolve = {

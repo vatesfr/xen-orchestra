@@ -15,7 +15,7 @@ import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'pro
 import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
-import { forbiddenOperation } from 'xo-common/api-errors'
+import { forbiddenOperation, operationFailed } from 'xo-common/api-errors'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
 import { Ref } from 'xen-api'
@@ -1363,7 +1363,21 @@ export default class Xapi extends XapiBase {
     return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
-  async _startVm(vm, host, force) {
+  async _startVm(vm, host, force, ignoreMacAddressesCheck = false) {
+    if (!ignoreMacAddressesCheck) {
+      const vmMacAddresses = vm.$VIFs.map(vif => vif.MAC)
+      if (new Set(vmMacAddresses).size !== vmMacAddresses.length) {
+        throw operationFailed({ objectId: vm.id, code: 'DUPLICATED_MAC_ADDRESS' })
+      }
+
+      const existingMacAddresses = new Set(
+        filter(this.objects.all, { $type: 'VM', power_state: 'Running' }).flatMap(vm => vm.$VIFs.map(vif => vif.MAC))
+      )
+      if (vmMacAddresses.some(mac => existingMacAddresses.has(mac))) {
+        throw operationFailed({ objectId: vm.id, code: 'DUPLICATED_MAC_ADDRESS' })
+      }
+    }
+
     log.debug(`Starting VM ${vm.name_label}`)
 
     if (force) {
@@ -1380,9 +1394,9 @@ export default class Xapi extends XapiBase {
       : this.callAsync('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
-  async startVm(vmId, hostId, force) {
+  async startVm(vmId, hostId, force, ignoreMacAddressesCheck) {
     try {
-      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), force)
+      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), force, ignoreMacAddressesCheck)
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])

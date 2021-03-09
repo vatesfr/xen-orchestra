@@ -5,6 +5,8 @@
 
 ### Enhancements
 
+- [Home/VM, VM] Start: show confirmation modal when the VMs contain duplicate MAC addresses or have the same MAC addresses as other running VMs [#5601](https://github.com/vatesfr/xen-orchestra/issues/5601) (PR [#5655](https://github.com/vatesfr/xen-orchestra/pull/5655))
+
 ### Bug fixes
 
 ### Packages to release

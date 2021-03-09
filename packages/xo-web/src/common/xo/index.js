@@ -12,6 +12,7 @@ import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
 import { forbiddenOperation, incorrectState, noHostsAvailable } from 'xo-common/api-errors'
 
+
 import _ from '../intl'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
@@ -950,6 +951,9 @@ const chooseActionToUnblockForbiddenStartVm = props =>
 
 const cloneAndStartVm = async (vm, host) => _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
+const _startVm = (id, host, force = false, ignoreMacAddressesCheck) =>
+  _call('vm.start', { id, host, force, ignoreMacAddressesCheck })
+
 export const startVm = async (vm, host) => {
   if (host === true) {
     host = await confirm({
@@ -965,14 +969,25 @@ export const startVm = async (vm, host) => {
 
   const id = resolveId(vm)
   const hostId = resolveId(host)
-  return _call('vm.start', {
-    id,
-    host: hostId,
-  }).catch(async reason => {
-    if (!forbiddenOperation.is(reason)) {
+  return _startVm(id, hostId).catch(async reason => {
+    if (!forbiddenOperation.is(reason) && reason.data.code !== 'DUPLICATED_MAC_ADDRESS') {
       throw reason
     }
 
+    if (reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
+      // Retry without checking MAC addresses
+      try {
+        await confirm({
+          title: _('forceStartVm'),
+          body: _('vmWithDuplicatedMacAddressesMessage'),
+        })
+      } catch (error) {
+        return
+      }
+      return _startVm(id, hostId, true, true)
+    }
+
+    // Clone or retry with force
     const choice = await chooseActionToUnblockForbiddenStartVm({
       body: _('blockedStartVmModalMessage'),
       title: _('forceStartVmModalTitle'),
@@ -982,11 +997,7 @@ export const startVm = async (vm, host) => {
       return cloneAndStartVm(vm, host)
     }
 
-    return _call('vm.start', {
-      id,
-      force: true,
-      host: hostId,
-    })
+    return _startVm(id, hostId, true, true)
   })
 }
 
@@ -995,13 +1006,16 @@ export const startVms = vms =>
     title: _('startVmsModalTitle', { vms: vms.length }),
     body: _('startVmsModalMessage', { vms: vms.length }),
   }).then(async () => {
+    const vmsWithduplicatedMacAddresses = []
     const forbiddenStart = []
     let nErrors = 0
 
     await Promise.all(
       map(vms, id =>
-        _call('vm.start', { id }).catch(reason => {
-          if (forbiddenOperation.is(reason)) {
+        _startVm(id).catch(reason => {
+          if (reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
+            vmsWithduplicatedMacAddresses.push(id)
+          } else if (forbiddenOperation.is(reason)) {
             forbiddenStart.push(id)
           } else {
             nErrors++
@@ -1010,12 +1024,30 @@ export const startVms = vms =>
       )
     )
 
-    if (forbiddenStart.length === 0) {
+    if (forbiddenStart.length === 0 && vmsWithduplicatedMacAddresses.length === 0) {
       if (nErrors === 0) {
         return
       }
 
       return error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
+    }
+
+    if (vmsWithduplicatedMacAddresses.length > 0) {
+      // Retry without checking MAC addresses
+      try {
+        await confirm({
+          title: _('forceStartVm'),
+          body: _('vmsWithDuplicatedMacAddressesMessage', { nVms: vmsWithduplicatedMacAddresses.length }),
+        })
+        await Promise.all(map(vmsWithduplicatedMacAddresses, id => _startVm(id, undefined, true, true)))
+      } catch (error) {
+        // Nothing to do
+      }
+    }
+
+    // Clone or retry with force
+    if (forbiddenStart.length === 0) {
+      return
     }
 
     const choice = await chooseActionToUnblockForbiddenStartVm({
@@ -1032,7 +1064,7 @@ export const startVms = vms =>
     }
 
     if (choice === 'force') {
-      return Promise.all(map(forbiddenStart, id => _call('vm.start', { id, force: true })))
+      return Promise.all(map(forbiddenStart, id => _startVm(id, undefined, true, true)))
     }
   }, noop)
 
