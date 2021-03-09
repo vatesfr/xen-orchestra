@@ -248,7 +248,7 @@ const deployProxy = async ({ proxy } = {}) => {
 
   const title = isRedeployMode ? _('redeployProxy') : _('deployProxy')
   if (license === undefined) {
-    // it rejects with undefined when the start trial option isn't chose
+    // it rejects with undefined when the start trial option isn't chosen
     await chooseAction({
       body: (
         <div className='text-muted'>
