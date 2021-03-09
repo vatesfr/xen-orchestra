@@ -10,7 +10,6 @@ const { createLogger } = require('@xen-orchestra/log')
 const { Ref } = require('xen-api')
 
 const extractOpaqueRef = require('./_extractOpaqueRef')
-const isValidRef = require('./_isValidRef')
 const isVmRunning = require('./_isVmRunning')
 
 const { warn } = createLogger('xo:xapi:vm')
@@ -113,7 +112,7 @@ module.exports = class Vm {
   async assertHealthyVdiChains(vmRef, tolerance = this._maxUncoalescedVdis) {
     const vdiRefs = {}
     ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(({ VDI: ref }) => {
-      if (isValidRef(ref)) {
+      if (Ref.isNotEmpty(ref)) {
         vdiRefs[ref] = true
       }
     })
@@ -363,7 +362,7 @@ module.exports = class Vm {
 
     const disks = { __proto__: null }
     ;(await this.getRecords('VBD', vbdRefs)).forEach(vbd => {
-      if (vbd.type === 'Disk' && isValidRef(vbd.VDI)) {
+      if (vbd.type === 'Disk' && Ref.isNotEmpty(vbd.VDI)) {
         disks[vbd.VDI] = true
       }
     })
@@ -410,7 +409,7 @@ module.exports = class Vm {
         const vbd = await this.getRecord('VBD', vbdRef)
         if (
           vbd.type === 'Disk' &&
-          isValidRef(vbd.VDI) &&
+          Ref.isNotEmpty(vbd.VDI) &&
           (await this.getField('VDI', vbd.VDI, 'name_label')).startsWith('[NOBAK]')
         ) {
           await this.VBD_destroy(vbdRef)
