@@ -197,9 +197,43 @@ exports.Backup = class Backup {
     }
 
     await using(
-      Disposable.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _))),
-      Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
+      Disposable.all(
+        extractIdsFromSimplePattern(job.srs).map(id =>
+          this._getRecord('SR', id).catch(error => {
+            runTask(
+              {
+                name: 'get SR record',
+                data: { type: 'SR', id },
+              },
+              () => Promise.reject(error)
+            )
+          })
+        )
+      ),
+      Disposable.all(
+        extractIdsFromSimplePattern(job.remotes).map(id =>
+          this._getAdapter(id).catch(error => {
+            runTask(
+              {
+                name: 'get remote adapter',
+                data: { type: 'remote', id },
+              },
+              () => Promise.reject(error)
+            )
+          })
+        )
+      ),
       async (srs, remoteAdapters) => {
+        // remove adapters that failed (already handled)
+        remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
+
+        // remove srs that failed (already handled)
+        srs = srs.filter(_ => _ !== undefined)
+
+        if (remoteAdapters.length === 0 && srs.length === 0) {
+          return
+        }
+
         const vmIds = extractIdsFromSimplePattern(job.vms)
 
         Task.info('vms', { vms: vmIds })
