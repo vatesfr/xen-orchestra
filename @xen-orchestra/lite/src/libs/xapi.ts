@@ -113,4 +113,15 @@ export default class XapiConnection {
       console.error(err)
     }
   }
+
+  call(method: string, ...args: string[]): void {
+    const { _xapi, connected } = this
+    if (!connected) {
+      throw new Error('Not connected to XAPI')
+    }
+
+    console.log('args:', args)
+    console.log('method:', method)
+    return _xapi.call(method, ...args)
+  }
 }

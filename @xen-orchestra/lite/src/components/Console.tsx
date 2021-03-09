@@ -12,17 +12,26 @@ const Console = [
       container: React.createRef(),
     }),
     effects: {
-      initialize: function (this: EffectContext) {
+      initialize: async function (this: EffectContext) {
+        const { vmId } = this.props
+        const { objectsByType, xapi } = this.state
+        const consoles = objectsByType
+          .get('VM')
+          .get(vmId)
+          .$consoles.filter((vmConsole: { protocol: string }) => vmConsole.protocol === 'rfb')
+
+        if (consoles.length === 0) {
+          throw new Error('Could not find VM console')
+        }
+
+        const url = new URL(consoles[0].location)
+        url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+        url.searchParams.set('session_id', xapi.sessionId)
+
         // eslint-disable-next-line no-new
-        new RFB(
-          this.state.container.current,
-          `ws://${this.state.xapiHostname}/console?uuid=${this.props.vmId}&session_id=${
-            this.state.xapi.sessionId
-          }`,
-          {
-            wsProtocols: ['binary'],
-          }
-        )
+        new RFB(this.state.container.current, url, {
+          wsProtocols: ['binary'],
+        })
       },
     },
   }),
