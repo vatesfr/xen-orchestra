@@ -103,7 +103,7 @@ const New = decorate([
             <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
           </FormGroup>
         )}
-        {modes.deltaMode && (
+        {modes.isDelta && (
           <FormGroup>
             <label>
               <strong>{_('forceFullBackup')}</strong>{' '}
