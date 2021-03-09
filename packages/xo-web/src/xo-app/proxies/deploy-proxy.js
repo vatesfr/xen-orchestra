@@ -1,7 +1,6 @@
 import _, { messages } from 'intl'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
-import noop from 'lodash/noop'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import Tooltip from 'tooltip'
@@ -249,8 +248,8 @@ const deployProxy = async ({ proxy } = {}) => {
 
   const title = isRedeployMode ? _('redeployProxy') : _('deployProxy')
   if (license === undefined) {
-    const value = 'trial'
-    const choice = await chooseAction({
+    // it rejects with undefined when the start trial option isn't chose
+    await chooseAction({
       body: (
         <div className='text-muted'>
           <Icon icon='info' /> {_('noLicenseAvailable')}
@@ -261,16 +260,11 @@ const deployProxy = async ({ proxy } = {}) => {
           btnStyle: 'success',
           icon: 'trial',
           label: _('trialStartButton'),
-          value,
         },
       ],
       icon: 'proxy',
       title,
-    }).catch(noop)
-    if (choice !== value) {
-      // throw undefined to interrupt the deployment process and let the ActionButton properly ignore this error
-      throw undefined
-    }
+    })
 
     try {
       license = await createProxyTrialLicense()
