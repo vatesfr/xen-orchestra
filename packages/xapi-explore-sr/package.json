@@ -42,7 +42,7 @@
     "human-format": "^0.11.0",
     "lodash": "^4.17.4",
     "pw": "^0.0.4",
-    "xen-api": "^0.29.1"
+    "xen-api": "^0.30.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",
