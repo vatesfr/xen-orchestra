@@ -5,7 +5,14 @@ require('./_composeCommands')({
     get main() {
       return require('./commands/clean-vms')
     },
-    usage: '[--force] [--merge] xo-vm-backups/*',
+    usage: `[--merge] [--remove] xo-vm-backups/*
+
+      Detects and repair issues with VM backups.
+
+      Options:
+        -m, --merge     Merge (or continue merging) VHD files that are unused
+        -r, --remove    Remove unused, incomplete, orphan, or corrupted files
+`,
   },
   'create-symlink-index': {
     get main() {

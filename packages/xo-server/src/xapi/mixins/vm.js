@@ -1,7 +1,7 @@
 import deferrable from 'golike-defer'
 import { find, gte, includes, isEmpty, lte, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
-import { NULL_REF } from 'xen-api'
+import { Ref } from 'xen-api'
 
 import { forEach, mapToArray, parseSize } from '../../utils'
 
@@ -250,7 +250,7 @@ export default {
   _editVm: makeEditObject({
     affinityHost: {
       get: 'affinity',
-      set: (value, vm) => vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : NULL_REF),
+      set: (value, vm) => vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : Ref.EMPTY),
     },
 
     autoPoweron: {

@@ -10,7 +10,7 @@ import pick from 'lodash/pick'
 import tmp from 'tmp'
 import { createLogger } from '@xen-orchestra/log'
 import { randomBytes } from 'crypto'
-import { dirname, resolve } from 'path'
+import { resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
@@ -102,6 +102,8 @@ export const parseXml = (function () {
   const opts = {
     attributeNamePrefix: '',
     ignoreAttributes: false,
+    parseNodeValue: false,
+    parseAttributeValue: false,
   }
 
   return xml => {
@@ -203,11 +205,6 @@ export const popProperty = obj => {
     }
   }
 }
-
-// -------------------------------------------------------------------
-
-// resolve a relative path from a file
-export const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 // -------------------------------------------------------------------
 

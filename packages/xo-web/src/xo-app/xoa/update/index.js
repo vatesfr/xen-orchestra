@@ -173,7 +173,7 @@ const Updates = decorate([
           ? confirm({
               title: _('upgradeWarningTitle'),
               body: <p>{_('upgradeWarningMessage')}</p>,
-            }).then(() => xoaUpdater.upgrade())
+            }).then(() => xoaUpdater.upgrade().then(() => this.effects.forceRefreshXoaStatus()))
           : xoaUpdater.upgrade()
       },
     },

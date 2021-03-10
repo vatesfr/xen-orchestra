@@ -3,7 +3,7 @@
 // $FlowFixMe
 import getStream from 'get-stream'
 
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
@@ -209,12 +209,12 @@ export default class RemoteHandlerAbstract {
 
   // write a stream to a file using a temporary file
   async outputStream(
-    input: Readable | Promise<Readable>,
     path: string,
+    input: Readable | Promise<Readable>,
     { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
     path = normalizePath(path)
-    return this._outputStream(await input, normalizePath(path), {
+    return this._outputStream(normalizePath(path), await input, {
       checksum,
       dirMode,
     })
@@ -477,7 +477,7 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(input: Readable, path: string, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
+  async _outputStream(path: string, input: Readable, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, {
       checksum,
@@ -522,7 +522,7 @@ export default class RemoteHandlerAbstract {
     }
 
     const files = await this._list(dir)
-    await asyncMap(files, file =>
+    await asyncMapSettled(files, file =>
       this._unlink(`${dir}/${file}`).catch(error => {
         if (error.code === 'EISDIR') {
           return this._rmtree(`${dir}/${file}`)

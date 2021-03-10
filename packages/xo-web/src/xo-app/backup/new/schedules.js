@@ -78,7 +78,7 @@ export default decorate([
           },
         ]
 
-        if (state.deltaMode) {
+        if (state.isDelta) {
           columns.push({
             itemRenderer: schedule => (schedule.fullInterval === 1 ? _('stateEnabled') : _('stateDisabled')),
             sortCriteria: 'fullInterval',

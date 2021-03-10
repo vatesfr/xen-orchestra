@@ -35,7 +35,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/async-map": "^0.0.0",
+    "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.2.0",
     "csv-stringify": "^5.5.0",
@@ -43,7 +43,7 @@
     "html-minifier": "^4.0.0",
     "human-format": "^0.11.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.16.0"
+    "promise-toolbox": "^0.17.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

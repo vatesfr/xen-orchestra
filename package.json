@@ -24,7 +24,7 @@
     "lint-staged": "^10.2.7",
     "lodash": "^4.17.4",
     "prettier": "^2.0.5",
-    "promise-toolbox": "^0.16.0",
+    "promise-toolbox": "^0.17.0",
     "sorted-object": "^2.0.1",
     "vuepress": "^1.4.1"
   },
@@ -39,12 +39,21 @@
   "jest": {
     "collectCoverage": true,
     "moduleNameMapper": {
-      "^(@vates/[^/]+)": "$1/src",
-      "^(@xen-orchestra/[^/]+)": "$1/src",
+      "^(@vates/[^/]+)": [
+        "$1/src",
+        "$1"
+      ],
+      "^(@xen-orchestra/[^/]+)": [
+        "$1/src",
+        "$1"
+      ],
       "^(value-matcher)": "$1/src",
       "^(vhd-cli)": "$1/src",
       "^(vhd-lib)": "$1/src",
-      "^(xo-[^/]+)": "$1/src"
+      "^(xo-[^/]+)": [
+        "$1/src",
+        "$1"
+      ]
     },
     "projects": [
       "<rootDir>"

@@ -272,6 +272,7 @@ class SortedTable extends Component {
     ),
     groupedActions: actionsShape,
     individualActions: actionsShape,
+    itemsPerPageContainer: PropTypes.func,
     onSelect: PropTypes.func,
     paginationContainer: PropTypes.func,
     rowAction: PropTypes.func,
@@ -735,7 +736,16 @@ class SortedTable extends Component {
 
   render() {
     const { props, state } = this
-    const { actions, filterContainer, individualActions, onSelect, paginationContainer, shortcutsTarget } = props
+    const {
+      actions,
+      filterContainer,
+      individualActions,
+      itemsPerPageContainer,
+      onSelect,
+      paginationContainer,
+      shortcutsTarget,
+      stateUrlParam,
+    } = props
     const { all, itemsPerPage } = state
     const groupedActions = this._getGroupedActions()
 
@@ -757,6 +767,16 @@ class SortedTable extends Component {
 
     const filterInstance = (
       <TableFilter filters={props.filters} onChange={this._setFilter} ref='filterInput' value={this._getFilter()} />
+    )
+
+    const dropdownItemsPerPage = (
+      <DropdownButton bsStyle='info' id={stateUrlParam} title={itemsPerPage}>
+        {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
+          <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
+            {nItems}
+          </MenuItem>
+        ))}
+      </DropdownButton>
     )
 
     const userData = this._getUserData()
@@ -871,13 +891,11 @@ class SortedTable extends Component {
               {filterContainer ? <Portal container={() => filterContainer()}>{filterInstance}</Portal> : filterInstance}
             </Col>
             <Col mediumSize={1} className='pull-right'>
-              <DropdownButton bsStyle='info' title={itemsPerPage}>
-                {ITEMS_PER_PAGE_OPTIONS.map(nItems => (
-                  <MenuItem key={nItems} onClick={() => this._setNItemsPerPage(nItems)}>
-                    {nItems}
-                  </MenuItem>
-                ))}
-              </DropdownButton>
+              {itemsPerPageContainer !== undefined ? (
+                <Portal container={() => itemsPerPageContainer()}>{dropdownItemsPerPage}</Portal>
+              ) : (
+                dropdownItemsPerPage
+              )}
             </Col>
           </SingleLineRow>
         </Container>

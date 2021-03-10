@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { createClient as createRedisClient } from 'redis'
 import { difference, filter, forEach, isEmpty, keys as getKeys, map } from 'lodash'
 import { ignoreErrors, promisifyAll } from 'promise-toolbox'
@@ -63,14 +63,14 @@ export default class Redis extends Collection {
     }
 
     const idsIndex = `${prefix}_ids`
-    return asyncMap(indexes, index =>
+    return asyncMapSettled(indexes, index =>
       redis.keys(`${prefix}_${index}:*`).then(keys => keys.length !== 0 && redis.del(keys))
     ).then(() =>
-      asyncMap(redis.smembers(idsIndex), id =>
+      asyncMapSettled(redis.smembers(idsIndex), id =>
         redis.hgetall(`${prefix}:${id}`).then(values =>
           values == null
             ? redis.srem(idsIndex, id) // entry no longer exists
-            : asyncMap(indexes, index => {
+            : asyncMapSettled(indexes, index => {
                 const value = values[index]
                 if (value !== undefined) {
                   return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
@@ -127,7 +127,7 @@ export default class Redis extends Collection {
           // remove the previous values from indexes
           if (indexes.length !== 0) {
             const previous = await redis.hgetall(`${prefix}:${id}`)
-            await asyncMap(indexes, index => {
+            await asyncMapSettled(indexes, index => {
               const value = previous[index]
               if (value !== undefined) {
                 return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
@@ -211,11 +211,11 @@ export default class Redis extends Collection {
     if (indexes.length !== 0) {
       promise = Promise.all([
         promise,
-        asyncMap(ids, id =>
+        asyncMapSettled(ids, id =>
           redis.hgetall(`${prefix}:${id}`).then(
             values =>
               values != null &&
-              asyncMap(indexes, index => {
+              asyncMapSettled(indexes, index => {
                 const value = values[index]
                 if (value !== undefined) {
                   return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)

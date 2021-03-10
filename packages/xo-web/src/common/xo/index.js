@@ -97,17 +97,16 @@ const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
   ? async (method, params) => {
       await _signIn
-      // eslint-disable-next-line no-console
-      console.debug('API call', method, params)
-      return tap.call(xo.call(method, params), null, error => {
-        console.error('XO error', {
-          method,
-          params,
-          code: error.code,
-          message: error.message,
-          data: error.data,
-        })
-      })
+      return tap.call(
+        xo.call(method, params),
+        result => {
+          // eslint-disable-next-line no-console
+          console.debug('API call', method, params, result)
+        },
+        error => {
+          console.error('API call error', method, params, error)
+        }
+      )
     }
   : (method, params) => _signIn.then(() => xo.call(method, params))
 
@@ -1247,8 +1246,16 @@ export const migrateVm = async (vm, host) => {
     return
   }
 
-  if (!params.targetHost) {
+  const { migrationNetwork, sr, targetHost } = params
+
+  if (!targetHost) {
     return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
+  }
+
+  // Workaround to prevent VM's VDIs from unexpectedly migrating to the default SR
+  // if migration network is defined, the SR is required.
+  if (migrationNetwork !== undefined && sr === undefined) {
+    return error(_('migrateVmNoSr'), _('migrateVmNoSrMessage'))
   }
 
   try {
@@ -1284,13 +1291,14 @@ export const migrateVms = vms =>
       return error(_('migrateVmNoTargetHost'), _('migrateVmNoTargetHostMessage'))
     }
 
-    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, targetHost, vms } = params
+    const { mapVmsMapVdisSrs, mapVmsMapVifsNetworks, migrationNetwork, sr, targetHost, vms } = params
     Promise.all(
       map(vms, ({ id }) =>
         _call('vm.migrate', {
           mapVdisSrs: mapVmsMapVdisSrs[id],
           mapVifsNetworks: mapVmsMapVifsNetworks[id],
           migrationNetwork,
+          sr,
           targetHost,
           vm: id,
         })
@@ -2836,6 +2844,8 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
 // Support --------------------------------------------------------------------
+
+export const clearXoaCheckCache = () => _call('xoa.clearCheckCache')
 
 export const checkXoa = () => _call('xoa.check')
 

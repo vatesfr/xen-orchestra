@@ -294,7 +294,7 @@ export class Number extends Component {
     return +this.refs.input.value
   }
 
-  _onChange = (value, params) => {
+  _onChange = async (value, params) => {
     if (value === '') {
       if (this.props.nullable) {
         value = null
@@ -305,7 +305,7 @@ export class Number extends Component {
       value = +value
     }
 
-    this.props.onChange(value, params)
+    await this.props.onChange(value, params)
   }
 
   render() {
