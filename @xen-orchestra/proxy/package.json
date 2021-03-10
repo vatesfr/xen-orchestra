@@ -41,7 +41,7 @@
     "@xen-orchestra/fs": "^0.13.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/self-signed": "^0.1.0",
-    "@xen-orchestra/xapi": "^0.4.3",
+    "@xen-orchestra/xapi": "^0.4.4",
     "ajv": "^6.10.0",
     "app-conf": "^0.9.0",
     "async-iterator-to-stream": "^1.1.0",
