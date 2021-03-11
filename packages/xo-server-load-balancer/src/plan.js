@@ -47,7 +47,7 @@ function computeAverage(values, nPoints) {
   return sum / tot
 }
 
-function computeRessourcesAverage(objects, objectsStats, nPoints) {
+function computeResourcesAverage(objects, objectsStats, nPoints) {
   const averages = {}
 
   for (const object of objects) {
@@ -65,7 +65,7 @@ function computeRessourcesAverage(objects, objectsStats, nPoints) {
   return averages
 }
 
-function computeRessourcesAverageWithWeight(averages1, averages2, ratio) {
+function computeResourcesAverageWithWeight(averages1, averages2, ratio) {
   const averages = {}
 
   for (const id in averages1) {
@@ -134,23 +134,23 @@ export default class Plan {
     const hosts = this._getHosts()
     const hostsStats = await this._getHostsStats(hosts, 'minutes')
 
-    // Check if a ressource's utilization exceeds threshold.
-    const avgNow = computeRessourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
-    let toOptimize = this._checkRessourcesThresholds(hosts, avgNow)
+    // Check if a resource's utilization exceeds threshold.
+    const avgNow = computeResourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
+    let toOptimize = this._checkResourcesThresholds(hosts, avgNow)
 
-    // No ressource's utilization problem.
+    // No resource's utilization problem.
     if (toOptimize.length === 0) {
       debug('No hosts to optimize.')
       return
     }
 
     // Check in the last 30 min interval with ratio.
-    const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
-    const avgWithRatio = computeRessourcesAverageWithWeight(avgNow, avgBefore, 0.75)
+    const avgBefore = computeResourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
+    const avgWithRatio = computeResourcesAverageWithWeight(avgNow, avgBefore, 0.75)
 
-    toOptimize = this._checkRessourcesThresholds(toOptimize, avgWithRatio)
+    toOptimize = this._checkResourcesThresholds(toOptimize, avgWithRatio)
 
-    // No ressource's utilization problem.
+    // No resource's utilization problem.
     if (toOptimize.length === 0) {
       debug('No hosts to optimize.')
       return
@@ -163,7 +163,7 @@ export default class Plan {
     }
   }
 
-  _checkRessourcesThresholds() {
+  _checkResourcesThresholds() {
     throw new Error('Not implemented')
   }
 
@@ -246,9 +246,9 @@ export default class Plan {
 
   async _getVmsAverages(vms, host) {
     const vmsStats = await this._getVmsStats(vms, 'minutes')
-    const vmsAverages = computeRessourcesAverageWithWeight(
-      computeRessourcesAverage(vms, vmsStats, EXECUTION_DELAY),
-      computeRessourcesAverage(vms, vmsStats, MINUTES_OF_HISTORICAL_DATA),
+    const vmsAverages = computeResourcesAverageWithWeight(
+      computeResourcesAverage(vms, vmsStats, EXECUTION_DELAY),
+      computeResourcesAverage(vms, vmsStats, MINUTES_OF_HISTORICAL_DATA),
       0.75
     )
 

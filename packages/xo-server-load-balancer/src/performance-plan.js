@@ -19,7 +19,7 @@ function searchBestObject(objects, fun) {
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
-  _checkRessourcesThresholds(objects, averages) {
+  _checkResourcesThresholds(objects, averages) {
     return filter(objects, object => {
       const objectAverages = averages[object.id]
 
