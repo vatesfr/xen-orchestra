@@ -5,6 +5,7 @@ import concurrency from 'limit-concurrency-decorator'
 import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
+import mapToArray from 'lodash/map'
 import mixin from '@xen-orchestra/mixin'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
@@ -22,18 +23,7 @@ import { satisfies as versionSatisfies } from 'semver'
 import createSizeStream from '../size-stream'
 import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import {
-  camelToSnakeCase,
-  forEach,
-  map,
-  mapToArray,
-  pAll,
-  parseSize,
-  pDelay,
-  pFinally,
-  promisifyAll,
-  pSettle,
-} from '../utils'
+import { camelToSnakeCase, forEach, map, pAll, parseSize, pDelay, pFinally, promisifyAll, pSettle } from '../utils'
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
@@ -75,7 +65,7 @@ export const IPV6_CONFIG_MODES = ['None', 'DHCP', 'Static', 'Autoconf']
 
 // ===================================================================
 
-@mixin(mapToArray(mixins))
+@mixin(Object.values(mixins))
 export default class Xapi extends XapiBase {
   constructor({
     guessVhdSizeOnImport,
@@ -261,7 +251,8 @@ export default class Xapi extends XapiBase {
     const vms = host.$resident_VMs
     log.debug(`Emergency shutdown: ${host.name_label}`)
     await pSettle(
-      mapToArray(vms, vm => {
+      // eslint-disable-next-line array-callback-return
+      vms.map(vm => {
         if (!vm.is_control_domain) {
           return this.callAsync('VM.suspend', vm.$ref)
         }
@@ -1089,7 +1080,7 @@ export default class Xapi extends XapiBase {
       const defaultNetworkRef = find(host.$PIFs, pif => pif.management).$network.$ref
       // Add snapshots' VIFs which VM has no VIFs on these devices
       const vmVifs = vm.$VIFs
-      const vifDevices = new Set(mapToArray(vmVifs, 'device'))
+      const vifDevices = new Set(vmVifs.map(_ => _.device))
       const vifs = flatMap(vm.$snapshots, '$VIFs')
         .filter(vif => !vifDevices.has(vif.device))
         .concat(vmVifs)
@@ -1182,14 +1173,16 @@ export default class Xapi extends XapiBase {
 
     // No shared SR available: find an available local SR on each host
     return Promise.all(
-      mapToArray(
-        hosts,
+      hosts.map(
         deferrable(async ($defer, host) => {
           // pipe stream synchronously to several PassThroughs to be able to pipe them asynchronously later
           const pt = stream.pipe(new PassThrough())
           pt.length = stream.length
 
-          const sr = find(mapToArray(host.$PBDs, '$SR'), isSrAvailable)
+          const sr = find(
+            host.$PBDs.map(_ => _.$SR),
+            isSrAvailable
+          )
 
           if (!sr) {
             throw new Error('no SR available to store installation file')
@@ -1774,7 +1767,7 @@ export default class Xapi extends XapiBase {
   // TODO: remove when no longer used.
   async destroyVbdsFromVm(vmId) {
     await Promise.all(
-      mapToArray(this.getObject(vmId).$VBDs, async vbd => {
+      this.getObject(vmId).$VBDs.map(async vbd => {
         await this.disconnectVbd(vbd.$ref)::ignoreErrors()
         return this.call('VBD.destroy', vbd.$ref)
       })
@@ -1973,13 +1966,12 @@ export default class Xapi extends XapiBase {
       wasAttached[pif.host] = pif.currently_attached
     })
 
-    const vlans = uniq(mapToArray(pifs, pif => pif.VLAN_master_of))
-    await Promise.all(mapToArray(vlans, vlan => Ref.isNotEmpty(vlan) && this.callAsync('VLAN.destroy', vlan)))
+    const vlans = uniq(pifs.map(pif => pif.VLAN_master_of))
+    await Promise.all(vlans.map(vlan => Ref.isNotEmpty(vlan) && this.callAsync('VLAN.destroy', vlan)))
 
     const newPifs = await this.call('pool.create_VLAN_from_PIF', physPif.$ref, pif.network, asInteger(vlan))
     await Promise.all(
-      mapToArray(
-        newPifs,
+      newPifs.map(
         pifRef => !wasAttached[this.getObject(pifRef).host] && this.callAsync('PIF.unplug', pifRef)::ignoreErrors()
       )
     )
@@ -2009,15 +2001,15 @@ export default class Xapi extends XapiBase {
     const network = this.getObject(networkId)
     const pifs = network.$PIFs
 
-    const vlans = uniq(mapToArray(pifs, pif => pif.VLAN_master_of))
-    await Promise.all(mapToArray(vlans, vlan => Ref.isNotEmpty(vlan) && this.callAsync('VLAN.destroy', vlan)))
+    const vlans = uniq(pifs.map(pif => pif.VLAN_master_of))
+    await Promise.all(vlans.map(vlan => Ref.isNotEmpty(vlan) && this.callAsync('VLAN.destroy', vlan)))
 
-    const bonds = uniq(flatten(mapToArray(pifs, pif => pif.bond_master_of)))
-    await Promise.all(mapToArray(bonds, bond => this.call('Bond.destroy', bond)))
+    const bonds = uniq(flatten(pifs.map(pif => pif.bond_master_of)))
+    await Promise.all(bonds.map(bond => this.call('Bond.destroy', bond)))
 
     const tunnels = filter(this.objects.all, { $type: 'tunnel' })
     await Promise.all(
-      map(pifs, async pif => {
+      pifs.map(async pif => {
         const tunnel = find(tunnels, { access_PIF: pif.$ref })
         if (tunnel != null) {
           await this.callAsync('tunnel.destroy', tunnel.$ref)

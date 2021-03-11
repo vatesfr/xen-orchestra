@@ -13,7 +13,6 @@
   },
   "preferGlobal": true,
   "main": "dist/",
-  "bin": {},
   "files": [
     "dist/"
   ],

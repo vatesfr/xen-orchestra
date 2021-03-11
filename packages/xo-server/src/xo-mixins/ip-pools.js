@@ -7,6 +7,7 @@ import highland from 'highland'
 import includes from 'lodash/includes'
 import isObject from 'lodash/isObject'
 import keys from 'lodash/keys'
+import mapToArray from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import pick from 'lodash/pick'
 import remove from 'lodash/remove'
@@ -14,7 +15,7 @@ import synchronized from 'decorator-synchronized'
 import { noSuchObject } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 
-import { forEach, generateUnsecureToken, isEmpty, lightSet, mapToArray, streamToArray, throwFn } from '../utils'
+import { forEach, generateUnsecureToken, isEmpty, lightSet, streamToArray, throwFn } from '../utils'
 
 // ===================================================================
 
@@ -44,7 +45,7 @@ export default class IpPools {
       xo.addConfigManager(
         'ipPools',
         () => this.getAllIpPools(),
-        ipPools => Promise.all(mapToArray(ipPools, ipPool => this._save(ipPool)))
+        ipPools => Promise.all(ipPools.map(ipPool => this._save(ipPool)))
       )
     })
   }
@@ -67,7 +68,7 @@ export default class IpPools {
 
     if (await store.has(id)) {
       await Promise.all(
-        mapToArray(await this._xo.getAllResourceSets(), async set => {
+        (await this._xo.getAllResourceSets()).map(async set => {
           await this._xo.removeLimitFromResourceSet(`ipPool:${id}`, set.id)
           return this._xo.removeIpPoolFromResourceSet(id, set.id)
         })
@@ -93,7 +94,7 @@ export default class IpPools {
       const user = await this._xo.getUser(userId)
       if (user.permission !== 'admin') {
         const resourceSets = await this._xo.getAllResourceSets(userId)
-        const ipPools = lightSet(flatten(mapToArray(resourceSets, 'ipPools')))
+        const ipPools = lightSet(flatten(resourceSets.map(_ => _.ipPools)))
         filter = ({ id }) => ipPools.has(id)
       }
     }
