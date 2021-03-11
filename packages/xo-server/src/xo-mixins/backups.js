@@ -10,7 +10,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import { basename, dirname } from 'path'
-import { escapeRegExp, filter, find, includes, once, range, sortBy } from 'lodash'
+import { escapeRegExp, filter, find, includes, map as mapToArray, once, range, sortBy } from 'lodash'
 import { chainVhd, createSyntheticStream as createVhdReadStream, mergeVhd } from 'vhd-lib'
 
 import createSizeStream from '../size-stream'
@@ -21,7 +21,6 @@ import {
   forEach,
   getFirstPropertyName,
   mapFilter,
-  mapToArray,
   pFinally,
   pFromCallback,
   pSettle,
@@ -286,7 +285,7 @@ export default class {
       const deltaBackups = filter(files, isDeltaBackup)
 
       backups.push(
-        ...mapToArray(deltaBackups, deltaBackup => {
+        ...deltaBackups.map(deltaBackup => {
           return `${deltaDir}/${getDeltaBackupNameWithoutExt(deltaBackup)}`
         })
       )
@@ -602,7 +601,7 @@ export default class {
     const fullVdisRequired = []
 
     await Promise.all(
-      mapToArray(vm.$VBDs, async vbd => {
+      vm.$VBDs.map(async vbd => {
         if (!vbd.VDI || vbd.type !== 'Disk') {
           return
         }
@@ -686,7 +685,7 @@ export default class {
 
     // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
-      mapToArray(vdiBackups, vdiBackup => {
+      vdiBackups.map(vdiBackup => {
         const backupName = vdiBackup.value().path
         const backupDirectory = backupName.slice(0, backupName.lastIndexOf('/'))
         const backupDir = `${dir}/${backupDirectory}`
@@ -996,7 +995,7 @@ export default class {
 
     const entriesMap = {}
     await Promise.all(
-      mapToArray(entries, async name => {
+      entries.map(async name => {
         const stats = await pFromCallback(cb => stat(`${path}/${name}`, cb))::ignoreErrors()
         if (stats) {
           entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
@@ -1015,7 +1014,7 @@ export default class {
         partition.unmount()
       }
     }
-    return mapToArray(paths, path => {
+    return paths.map(path => {
       ++i
       return createReadStream(resolveSubpath(partition.path, path)).once('end', onEnd)
     })
