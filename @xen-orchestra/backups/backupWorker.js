@@ -1,15 +1,15 @@
-import Disposable from 'promise-toolbox/Disposable'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
-import { Backup } from '@xen-orchestra/backups/Backup'
-import { compose } from '@vates/compose'
-import { createDebounceResource } from '@vates/disposable/debounceResource'
-import { decorateWith } from '@vates/decorate-with'
-import { deduped } from '@vates/disposable/deduped'
-import { getHandler } from '@xen-orchestra/fs'
-import { parseDuration } from '@vates/parse-duration'
-import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
-import { Task } from '@xen-orchestra/backups/Task'
-import { Xapi } from '@xen-orchestra/xapi'
+const Disposable = require('promise-toolbox/Disposable')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { compose } = require('@vates/compose')
+const { createDebounceResource } = require('@vates/disposable/debounceResource')
+const { deduped } = require('@vates/disposable/deduped')
+const { getHandler } = require('@xen-orchestra/fs')
+const { parseDuration } = require('@vates/parse-duration')
+const { Xapi } = require('@xen-orchestra/xapi')
+
+const { RemoteAdapter } = require('./RemoteAdapter')
+const { Backup } = require('./Backup')
+const { Task } = require('./Task')
 
 class BackupWorker {
   constructor({ config, job, recordToXapi, remotes, schedule, xapis }) {
@@ -43,11 +43,11 @@ class BackupWorker {
     }).run()
   }
 
-  @decorateWith(compose, function (resource) {
+  getAdapter = Disposable.factory(this.getAdapter)
+  getAdapter = deduped(this.getAdapter, remote => [remote.url])
+  getAdapter = compose(this.getAdapter, function (resource) {
     return this.debounceResource(resource)
   })
-  @decorateWith(deduped, remote => [remote.url])
-  @decorateWith(Disposable.factory)
   async *getAdapter(remote) {
     const config = this._config
     const handler = getHandler(remote, config.remoteOptions)
@@ -62,11 +62,11 @@ class BackupWorker {
     }
   }
 
-  @decorateWith(compose, function (resource) {
+  getXapi = Disposable.factory(this.getXapi)
+  getXapi = deduped(this.getXapi, ({ url }) => [url])
+  getXapi = compose(this.getXapi, function (resource) {
     return this.debounceResource(resource)
   })
-  @decorateWith(deduped, ({ url }) => [url])
-  @decorateWith(Disposable.factory)
   async *getXapi({ credentials: { username: user, password }, ...opts }) {
     const xapi = new Xapi({
       ...this._config.xapiOptions,
@@ -89,17 +89,34 @@ class BackupWorker {
 }
 
 const noop = Function.prototype
-process.on('message', async args => {
-  const backupWorker = new BackupWorker(args)
-  await Task.run(
-    {
-      name: 'backup run',
-      onLog: log => process.send(log),
-    },
-    () => backupWorker.run()
-  ).catch(noop) // errors are handled by logs
+process.on('message', async ({ runWithLogs = true, ...params }) => {
+  const backupWorker = new BackupWorker(params)
 
-  ignoreErrors.call(backupWorker.debounceResource.flushAll())
+  if (runWithLogs) {
+    await Task.run(
+      {
+        name: 'backup run',
+        onLog: log => process.send(log),
+      },
+      () => backupWorker.run()
+    ).catch(noop) // errors are handled by logs
 
-  process.send('end')
+    await ignoreErrors.call(backupWorker.debounceResource.flushAll())
+
+    process.send('end')
+  } else {
+    let result, error
+    try {
+      result = await backupWorker.run()
+    } catch (err) {
+      error = err
+    }
+
+    await ignoreErrors.call(backupWorker.debounceResource.flushAll())
+
+    process.send({
+      result,
+      error,
+    })
+  }
 })

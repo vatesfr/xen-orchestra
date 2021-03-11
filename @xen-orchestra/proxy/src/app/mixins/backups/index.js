@@ -1,15 +1,16 @@
 import defer from 'golike-defer'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
+import path from 'path'
+import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { Backup } from '@xen-orchestra/backups/Backup'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition'
-import { execFile } from 'child_process'
+import { execFile, fork } from 'child_process'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
@@ -36,7 +37,7 @@ const runWithLogs = (runner, args) =>
   })
 
 export default class Backups {
-  constructor(app) {
+  constructor(app, { config }) {
     this._app = app
 
     // clean any LVM volumes that might have not been properly
@@ -46,26 +47,26 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = ({ recordToXapi, remotes, xapis, ...rest }) =>
-      new Backup({
+    let run = ({ onError, onLog, onEnd, ...rest }) => {
+      const worker = fork(path.resolve(__dirname, require.resolve('@xen-orchestra/backups/backupWorker')))
+
+      worker.on('exit', code => onError(new Error(`worker exited with code ${code}`)))
+      worker.on('error', onError)
+
+      worker.on('message', log => {
+        if (log === 'end' || onLog === undefined) {
+          worker.disconnect()
+          onEnd(log)
+        } else {
+          onLog(log)
+        }
+      })
+
+      worker.send({
         ...rest,
-
-        // don't change config during backup execution
-        config: app.config.get('backups'),
-
-        // pass getAdapter in order to mutualize the adapter resources usage
-        getAdapter: remoteId => this.getAdapter(remotes[remoteId]),
-
-        getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
-          const xapiId = recordToXapi[uuid]
-          if (xapiId === undefined) {
-            throw new Error('no XAPI associated to ' + uuid)
-          }
-
-          const xapi = yield this.getXapi(xapis[xapiId])
-          return xapi.getRecordByUuid(type, uuid)
-        }).bind(this),
-      }).run()
+        config,
+      })
+    }
 
     const runningJobs = { __proto__: null }
     run = (run => {
@@ -97,29 +98,31 @@ export default class Backups {
         }
         return run.apply(this, arguments)
       })(run)
-    run = (run => async (params, onLog) => {
-      if (onLog === undefined) {
-        return run(params)
-      }
 
-      const { job, schedule } = params
-      try {
-        await Task.run(
-          {
-            name: 'backup run',
-            data: {
-              jobId: job.id,
-              jobName: job.name,
-              mode: job.mode,
-              reportWhen: job.settings['']?.reportWhen,
-              scheduleId: schedule.id,
-            },
-            onLog,
+    run = (run => async ({ streamLogs = false, ...rest }) => {
+      if (streamLogs) {
+        return new Readable({
+          objectMode: true,
+          read() {
+            this._read = noop
+
+            run({
+              onError: error => this.emit('error', error),
+              onEnd: () => this.push(null),
+              onLog: log => this.push(log),
+              ...rest,
+            })
           },
-          () => run(params)
-        )
-      } catch (error) {
-        // do not rethrow, everything is handled via logging
+        })
+      } else {
+        const { promise, resolve, reject } = pDefer()
+        run({
+          onError: reject,
+          onEnd: ({ error, result }) => (error !== undefined ? reject(error) : resolve(result)),
+          runWithLogs: false,
+          ...rest,
+        })
+        return promise
       }
     })(run)
 
@@ -324,7 +327,7 @@ export default class Backups {
           },
         ],
         run: [
-          ({ streamLogs = false, ...rest }) => (streamLogs ? runWithLogs(run, rest) : run(rest)),
+          run,
           {
             description: 'run a backup job',
             params: {
