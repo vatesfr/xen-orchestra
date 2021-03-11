@@ -12,13 +12,20 @@ const { Backup } = require('./Backup')
 const { Task } = require('./Task')
 
 class BackupWorker {
+  #config
+  #job
+  #recordToXapi
+  #remotes
+  #schedule
+  #xapis
+
   constructor({ config, job, recordToXapi, remotes, schedule, xapis }) {
-    this._config = config
-    this._job = job
-    this._recordToXapi = recordToXapi
-    this._remotes = remotes
-    this._schedule = schedule
-    this._xapis = xapis
+    this.#config = config
+    this.#job = job
+    this.#recordToXapi = recordToXapi
+    this.#remotes = remotes
+    this.#schedule = schedule
+    this.#xapis = xapis
 
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
@@ -27,19 +34,19 @@ class BackupWorker {
 
   run() {
     return new Backup({
-      config: this._config.backups,
-      getAdapter: remoteId => this.getAdapter(this._remotes[remoteId]),
+      config: this.#config.backups,
+      getAdapter: remoteId => this.getAdapter(this.#remotes[remoteId]),
       getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
-        const xapiId = this._recordToXapi[uuid]
+        const xapiId = this.#recordToXapi[uuid]
         if (xapiId === undefined) {
           throw new Error('no XAPI associated to ' + uuid)
         }
 
-        const xapi = yield this.getXapi(this._xapis[xapiId])
+        const xapi = yield this.getXapi(this.#xapis[xapiId])
         return xapi.getRecordByUuid(type, uuid)
       }).bind(this),
-      job: this._job,
-      schedule: this._schedule,
+      job: this.#job,
+      schedule: this.#schedule,
     }).run()
   }
 
@@ -49,7 +56,7 @@ class BackupWorker {
     return this.debounceResource(resource)
   })
   async *getAdapter(remote) {
-    const config = this._config
+    const config = this.#config
     const handler = getHandler(remote, config.remoteOptions)
     await handler.sync()
     try {
@@ -69,7 +76,7 @@ class BackupWorker {
   })
   async *getXapi({ credentials: { username: user, password }, ...opts }) {
     const xapi = new Xapi({
-      ...this._config.xapiOptions,
+      ...this.#config.xapiOptions,
       ...opts,
       auth: {
         user,
