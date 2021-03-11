@@ -212,7 +212,7 @@ export default class Plan {
     const hostsStats = {}
 
     await Promise.all(
-      mapToArray(hosts, host =>
+      hosts.map(host =>
         this.xo.getXapiHostStats(host, granularity).then(hostStats => {
           hostsStats[host.id] = {
             nPoints: hostStats.stats.cpus[0].length,
@@ -230,7 +230,7 @@ export default class Plan {
     const vmsStats = {}
 
     await Promise.all(
-      mapToArray(vms, vm =>
+      vms.map(vm =>
         this.xo.getXapiVmStats(vm, granularity).then(vmStats => {
           vmsStats[vm.id] = {
             nPoints: vmStats.stats.cpus[0].length,

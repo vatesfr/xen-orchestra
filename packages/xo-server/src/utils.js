@@ -223,7 +223,6 @@ export { default as forEach } from 'lodash/forEach'
 export { default as isEmpty } from 'lodash/isEmpty'
 export { default as isInteger } from 'lodash/isInteger'
 export { default as isObject } from 'lodash/isObject'
-export { default as mapToArray } from 'lodash/map'
 
 // -------------------------------------------------------------------
 

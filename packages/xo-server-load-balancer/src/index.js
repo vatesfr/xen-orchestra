@@ -1,5 +1,5 @@
 import { createSchedule } from '@xen-orchestra/cron'
-import { intersection, map as mapToArray, uniq } from 'lodash'
+import { intersection, uniq } from 'lodash'
 
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
@@ -140,7 +140,7 @@ class LoadBalancerPlugin {
   _executePlans() {
     debug('Execute plans!')
 
-    return Promise.all(mapToArray(this._plans, plan => plan.execute()))
+    return Promise.all(this._plans.map(plan => plan.execute()))
   }
 }
 

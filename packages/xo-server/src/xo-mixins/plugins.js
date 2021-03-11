@@ -1,10 +1,10 @@
 import Ajv from 'ajv'
 import createLogger from '@xen-orchestra/log'
+import mapToArray from 'lodash/map'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
 import { PluginsMetadata } from '../models/plugin-metadata'
-import { mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -26,7 +26,7 @@ export default class {
       xo.addConfigManager(
         'plugins',
         () => this._pluginsMetadata.get(),
-        plugins => Promise.all(mapToArray(plugins, plugin => this._pluginsMetadata.save(plugin)))
+        plugins => Promise.all(plugins.map(plugin => this._pluginsMetadata.save(plugin)))
       )
     })
   }

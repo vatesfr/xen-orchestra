@@ -1,7 +1,7 @@
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
-import { extractProperty, forEach, isEmpty, mapFilter, mapToArray, parseXml } from './utils'
+import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils'
 import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
 import { useUpdateSystem } from './xapi/utils'
 
@@ -44,7 +44,7 @@ function link(obj, prop, idField = '$id') {
   }
 
   if (Array.isArray(dynamicValue)) {
-    return mapToArray(dynamicValue, idField)
+    return dynamicValue.map(_ => _[idField])
   }
 
   return dynamicValue[idField]
