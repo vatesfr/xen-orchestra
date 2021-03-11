@@ -335,7 +335,6 @@ export default class BackupNg {
               throw error
             }
           } else {
-            params.config = config
             const { promise, resolve, reject } = pDefer()
 
             const worker = fork(path.resolve(__dirname, require.resolve('@xen-orchestra/backups/backupWorker')))
@@ -367,7 +366,10 @@ export default class BackupNg {
               }
             })
 
-            worker.send(params)
+            worker.send({
+              config,
+              ...params,
+            })
             return await promise
           }
         } finally {
