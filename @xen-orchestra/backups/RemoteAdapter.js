@@ -24,7 +24,7 @@ exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 
-const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
+const { warn } = createLogger('xo:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
