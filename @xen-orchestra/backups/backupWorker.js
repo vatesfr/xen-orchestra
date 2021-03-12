@@ -1,15 +1,53 @@
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const path = require('path')
+const pDefer = require('promise-toolbox/defer')
 const { compose } = require('@vates/compose')
 const { createDebounceResource } = require('@vates/disposable/debounceResource')
+const { createLogger } = require('@xen-orchestra/log')
 const { deduped } = require('@vates/disposable/deduped')
+const { fork } = require('child_process')
 const { getHandler } = require('@xen-orchestra/fs')
 const { parseDuration } = require('@vates/parse-duration')
 const { Xapi } = require('@xen-orchestra/xapi')
 
-const { RemoteAdapter } = require('./RemoteAdapter')
 const { Backup } = require('./Backup')
+const { RemoteAdapter } = require('./RemoteAdapter')
 const { Task } = require('./Task')
+
+const { warn } = createLogger('xo:backups:backupWorker')
+
+exports.runBackupWorker = function runBackupWorker(params, onLog) {
+  const { promise, resolve, reject } = pDefer()
+
+  const worker = fork(path.resolve(__dirname, 'backupWorker.js'))
+
+  worker.on('exit', code => reject(new Error(`worker exited with code ${code}`)))
+  worker.on('error', reject)
+
+  worker.on('message', log => {
+    try {
+      if (log.workerEnd) {
+        if (log.error !== undefined) {
+          reject(log.error)
+        } else {
+          resolve(log.result)
+        }
+      } else {
+        onLog(log)
+      }
+    } catch (error) {
+      warn(error)
+    }
+  })
+
+  worker.send({
+    runWithLogs: onLog !== undefined,
+    ...params,
+  })
+
+  return promise
+}
 
 class BackupWorker {
   #config
