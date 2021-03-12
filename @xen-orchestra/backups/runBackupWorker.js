@@ -16,8 +16,6 @@ exports.runBackupWorker = function runBackupWorker(params, onLog) {
   worker.on('message', log => {
     try {
       if (log.workerEnd) {
-        worker.disconnect()
-
         if (log.error !== undefined) {
           reject(log.error)
         } else {
