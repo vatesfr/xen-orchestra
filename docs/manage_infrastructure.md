@@ -529,3 +529,72 @@ A heatmap allows its reader to understand when your VMs or hosts are stressed. V
 This is the place to compare metrics on comparable objects (VMs to VMs, hosts to hosts).
 
 [![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
+
+## Docker support
+
+This allows you to enjoy Docker containers displayed directly in Xen Orchestra.
+
+### Prerequisites
+
+- XenServer 6.5 or higher
+- Plugin installation (for Citrix Hypervisor, it's included in XCP-ng)
+
+### Docker plugin installation
+
+This first step is needed until Docker is supported natively in the XenServer API (XAPI).
+
+:::tip
+The plugin should be installed on every host you will be using, even if they are on the same pool.
+:::
+
+#### For XenServer 6.5
+
+1. SSH to your XenServer
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-6.5.0-SP1-xscontainer.iso`
+
+#### For XenServer 7.0
+
+1. SSH to your XenServer
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-7.0.0-xscontainer.iso`
+
+#### For XenServer 7.1
+
+1. SSH to your XenServer
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11993/XenServer-7.1.0-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-7.1.0-xscontainer.iso`
+
+#### For XenServer 7.2
+
+1. SSH to your XenServer
+1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/12641/XenServer-7.2.0-xscontainer.iso`
+1. Install it: `xe-install-supplemental-pack XenServer-7.2.0-xscontainer.iso`
+
+That's it! You can now enjoy Docker support!
+
+### Docker managed VMs
+
+You can also use the XSContainer plugin to "transform" an existing VM into a "Docker" managed VM.
+
+You need to have the following installed inside the VM:
+
+- Docker
+- openssh-server
+- ncat
+
+For Debian/Ubuntu like distro: `apt-get install docker.io openssh-server nmap`. For RHEL and derived (CentOS...): `yum install docker openssh-server nmap-ncat`.
+
+To run Docker as non-root, please add the user you want inside the "Docker" group.
+
+Now you need to access your host (Dom0) and use the following command:
+
+```
+xscontainer-prepare-vm -v <VM_UUID> -u <username>
+```
+
+:::tip
+Because "prepare-vm" is not exposed outside of the Dom0 (yet?), we can't use Xen Orchestra to give you a one-click solution as of now.
+:::
+
+[![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
