@@ -1,6 +1,9 @@
 const path = require('path')
 const pDefer = require('promise-toolbox/defer')
+const { createLogger } = require('@xen-orchestra/log')
 const { fork } = require('child_process')
+
+const { warn } = createLogger('xo:backups:runBackupWorker')
 
 exports.runBackupWorker = function runBackupWorker(params, onLog) {
   const { promise, resolve, reject } = pDefer()
@@ -11,16 +14,20 @@ exports.runBackupWorker = function runBackupWorker(params, onLog) {
   worker.on('error', reject)
 
   worker.on('message', log => {
-    if (log.workerEnd) {
-      worker.disconnect()
+    try {
+      if (log.workerEnd) {
+        worker.disconnect()
 
-      if (log.error !== undefined) {
-        reject(log.error)
+        if (log.error !== undefined) {
+          reject(log.error)
+        } else {
+          resolve(log.result)
+        }
       } else {
-        resolve(log.result)
+        onLog(log)
       }
-    } else {
-      onLog(log)
+    } catch (error) {
+      warn(error)
     }
   })
 

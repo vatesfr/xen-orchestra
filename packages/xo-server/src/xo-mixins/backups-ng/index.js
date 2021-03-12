@@ -339,15 +339,12 @@ export default class BackupNg {
                 config,
                 ...params,
               },
-              log => {
-                try {
-                  handleBackupLog(log, {
-                    logger,
-                    localTaskIds,
-                    runJobId,
-                  })
-                } catch {} // already handled by runBackupWorker
-              }
+              log =>
+                handleBackupLog(log, {
+                  logger,
+                  localTaskIds,
+                  runJobId,
+                })
             )
           }
         } finally {
