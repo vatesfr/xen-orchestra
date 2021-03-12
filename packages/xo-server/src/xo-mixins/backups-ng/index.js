@@ -3,17 +3,15 @@
 // $FlowFixMe
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
-import path from 'path'
-import pDefer from 'promise-toolbox/defer'
 import type RemoteHandler from '@xen-orchestra/fs'
 import using from 'promise-toolbox/using'
 import { decorateWith } from '@vates/decorate-with'
-import { fork } from 'child_process'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { forOwn, merge } from 'lodash'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
 import { parseDuration } from '@vates/parse-duration'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { type Pattern, createPredicate } from 'value-matcher'
 
@@ -335,42 +333,22 @@ export default class BackupNg {
               throw error
             }
           } else {
-            const { promise, resolve, reject } = pDefer()
-
-            const worker = fork(path.resolve(__dirname, require.resolve('@xen-orchestra/backups/backupWorker')))
-            worker.on('exit', code => {
-              reject(new Error(`worker exited with code ${code}`))
-            })
-            worker.on('error', error => {
-              reject(error)
-            })
-
             const localTaskIds = { __proto__: null }
-
-            let result
-            worker.on('message', log => {
-              if (log === 'end') {
-                worker.disconnect()
-                resolve(result)
-              } else {
+            return await runBackupWorker(
+              {
+                config,
+                ...params,
+              },
+              log => {
                 try {
-                  result = handleBackupLog(log, {
+                  handleBackupLog(log, {
                     logger,
                     localTaskIds,
                     runJobId,
                   })
-                } catch (error) {
-                  worker.disconnect()
-                  reject(error)
-                }
+                } catch {} // already handled by runBackupWorker
               }
-            })
-
-            worker.send({
-              config,
-              ...params,
-            })
-            return await promise
+            )
           }
         } finally {
           remoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))

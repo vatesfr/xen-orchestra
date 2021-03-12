@@ -24,7 +24,6 @@
     "@xen-orchestra/fs": "^0.13.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/template": "^0.1.0",
-    "@xen-orchestra/xapi": "^0.4.4",
     "compare-versions": "^3.6.0",
     "d3-time-format": "^3.0.0",
     "end-of-stream": "^1.4.4",

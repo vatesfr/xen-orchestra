@@ -95,35 +95,33 @@ class BackupWorker {
   }
 }
 
-const noop = Function.prototype
-process.on('message', async ({ runWithLogs = true, ...params }) => {
-  const backupWorker = new BackupWorker(params)
+process.on('message', async ({ runWithLogs, ...rest }) => {
+  const backupWorker = new BackupWorker(rest)
 
-  if (runWithLogs) {
-    await Task.run(
-      {
-        name: 'backup run',
-        onLog: log => process.send(log),
-      },
-      () => backupWorker.run()
-    ).catch(noop) // errors are handled by logs
+  const promise = runWithLogs
+    ? Task.run(
+        {
+          name: 'backup run',
+          onLog: log => process.send(log),
+        },
+        () => backupWorker.run()
+      )
+    : backupWorker.run()
 
-    await ignoreErrors.call(backupWorker.debounceResource.flushAll())
+  await ignoreErrors.call(backupWorker.debounceResource.flushAll())
 
-    process.send('end')
-  } else {
-    let result, error
-    try {
-      result = await backupWorker.run()
-    } catch (err) {
-      error = err
-    }
-
-    await ignoreErrors.call(backupWorker.debounceResource.flushAll())
-
-    process.send({
-      result,
-      error,
-    })
-  }
+  promise.then(
+    result =>
+      process.send({
+        workerEnd: true,
+        result,
+      }),
+    error =>
+      process.send({
+        workerEnd: true,
+        error,
+      })
+  )
 })
+
+process.on('disconnect', () => process.kill())

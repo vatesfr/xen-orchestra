@@ -1,8 +1,6 @@
 import defer from 'golike-defer'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
-import path from 'path'
-import pDefer from 'promise-toolbox/defer'
 import using from 'promise-toolbox/using'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { compose } from '@vates/compose'
@@ -10,12 +8,13 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition'
-import { execFile, fork } from 'child_process'
+import { execFile } from 'child_process'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { Xapi } from '@xen-orchestra/xapi'
 
@@ -47,26 +46,14 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = ({ onError, onLog, onEnd, ...rest }) => {
-      const worker = fork(path.resolve(__dirname, require.resolve('@xen-orchestra/backups/backupWorker')))
-
-      worker.on('exit', code => onError(new Error(`worker exited with code ${code}`)))
-      worker.on('error', onError)
-
-      worker.on('message', log => {
-        if (log === 'end' || onLog === undefined) {
-          worker.disconnect()
-          onEnd(log)
-        } else {
-          onLog(log)
-        }
-      })
-
-      worker.send({
-        ...rest,
-        config,
-      })
-    }
+    let run = (params, onLog) =>
+      runBackupWorker(
+        {
+          config,
+          ...params,
+        },
+        onLog
+      )
 
     const runningJobs = { __proto__: null }
     run = (run => {
@@ -98,33 +85,6 @@ export default class Backups {
         }
         return run.apply(this, arguments)
       })(run)
-
-    run = (run => async ({ streamLogs = false, ...rest }) => {
-      if (streamLogs) {
-        return new Readable({
-          objectMode: true,
-          read() {
-            this._read = noop
-
-            run({
-              onError: error => this.emit('error', error),
-              onEnd: () => this.push(null),
-              onLog: log => this.push(log),
-              ...rest,
-            })
-          },
-        })
-      } else {
-        const { promise, resolve, reject } = pDefer()
-        run({
-          onError: reject,
-          onEnd: ({ error, result }) => (error !== undefined ? reject(error) : resolve(result)),
-          runWithLogs: false,
-          ...rest,
-        })
-        return promise
-      }
-    })(run)
 
     app.api.addMethods({
       backup: {
@@ -327,7 +287,7 @@ export default class Backups {
           },
         ],
         run: [
-          run,
+          ({ streamLogs = false, ...rest }) => (streamLogs ? runWithLogs(run, rest) : run(rest)),
           {
             description: 'run a backup job',
             params: {
