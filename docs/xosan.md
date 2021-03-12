@@ -27,11 +27,11 @@ The objectives are to:
 
 To deploy XOSAN, please follow the rest of the documentation:
 
-- [XOSAN Requirements]([xosan_requirements.md](https://xen-orchestra.com/docs/xosan.html#requirements))
-- [Types of XOSAN](https://xen-orchestra.com/docs/xosan.html#xosan-types)
-- [How to create a new XOSAN Storage]([xosan_create.md](https://xen-orchestra.com/docs/xosan.html#creation))
-- [XOSAN management](https://xen-orchestra.com/docs/xosan.html#advanced-options)
-- [Get a free XOSAN trial](https://xen-orchestra.com/docs/xosan.html#try-it)
+- [XOSAN Requirements](xosan.md#requirements))
+- [Types of XOSAN](xosan.md#xosan-types)
+- [How to create a new XOSAN Storage](xosan.md#creation))
+- [XOSAN management](xosan.md#advanced-options)
+- [Get a free XOSAN trial](xosan.md#try-it)
 
 ## Requirements
 

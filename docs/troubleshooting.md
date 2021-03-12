@@ -176,7 +176,7 @@ The system logs are visible by using this command:
 $ tail -f /var/log/syslog
 ```
 
-You can read more about logs [in the dedicated logs chapter](https://xen-orchestra.com/docs/troubleshooting.html#logs).
+You can read more about logs [in the dedicated logs chapter](troubleshooting.md#logs).
 
 ### Ghost tasks
 

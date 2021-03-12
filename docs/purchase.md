@@ -111,7 +111,7 @@ Once you have bound the plan to your end user account, you cannot change it. Dou
 The Xen Orchestra partner program is designed to offer you the opportunity to become a reseller of Xen Orchestra and deliver a full stack solution to your customers.
 
 :::tip
-Becoming a reseller will grant you a standard discount. However, **the reseller status is designed for companies that want to actively prospect for new Xen Orchestra users**. That's why we are asking our partners to **resell Xen Orchestra at least two times a year**. If you are acting as a third party purchaser answering to a specific request from one of your customers, you don't need to apply to the reseller program - you can follow [this process](https://xen-orchestra.com/docs/purchase.html#purchase-xoas) instead.
+Becoming a reseller will grant you a standard discount. However, **the reseller status is designed for companies that want to actively prospect for new Xen Orchestra users**. That's why we are asking our partners to **resell Xen Orchestra at least two times a year**. If you are acting as a third party purchaser answering to a specific request from one of your customers, you don't need to apply to the reseller program - you can follow [this process](purchase.md#purchase-xoas) instead.
 :::
 
 ### Apply to the program

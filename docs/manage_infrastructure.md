@@ -285,7 +285,7 @@ These templates will use PV configuration in order to boot: either from the righ
 
 Because there is already disks installed, you shouldn't have "Install settings" _per se_. But you can use our `config drive` setup if your template already has CloudInit installed!
 
-Please refer to the [XenServer CloudInit section](https://xen-orchestra.com/docs/advanced.html#cloud-init) for more.
+Please refer to the [XCP-ng CloudInit section](advanced.md#cloud-init) for more.
 
 #### Interfaces
 
@@ -318,7 +318,7 @@ In the advanced tab, you have extra options:
 
 You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/en-us/citrix-hypervisor/system-requirements/configuration-limits.html).
 :::tip
-XCP-ng do not limit VMs to 32 vCPU
+XCP-ng doesn't limit VMs to 32 vCPU
 :::
 ### VDI live migration
 
@@ -351,7 +351,7 @@ If you pool supports HA (must have shared storage), you can activate "HA". Read 
 #### Docker management
 
 :::tip
-Please [read the dedicated section](https://xen-orchestra.com/docs/manage_infrastructure.html#docker-support) to install a Docker Ready VM.
+Please [read the dedicated section](manage_infrastructure.md#docker-support) to install a Docker Ready VM.
 :::
 
 ### VM CPU priority
@@ -596,5 +596,3 @@ xscontainer-prepare-vm -v <VM_UUID> -u <username>
 :::tip
 Because "prepare-vm" is not exposed outside of the Dom0 (yet?), we can't use Xen Orchestra to give you a one-click solution as of now.
 :::
-
-[![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
