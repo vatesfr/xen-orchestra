@@ -98,30 +98,28 @@ class BackupWorker {
 process.on('message', async ({ runWithLogs, ...rest }) => {
   const backupWorker = new BackupWorker(rest)
 
-  const promise = runWithLogs
-    ? Task.run(
-        {
-          name: 'backup run',
-          onLog: log => process.send(log),
-        },
-        () => backupWorker.run()
-      )
-    : backupWorker.run()
+  let result, error
+  try {
+    result = runWithLogs
+      ? await Task.run(
+          {
+            name: 'backup run',
+            onLog: log => process.send(log),
+          },
+          () => backupWorker.run()
+        )
+      : await backupWorker.run()
+  } catch (err) {
+    error = err
+  }
 
   await ignoreErrors.call(backupWorker.debounceResource.flushAll())
 
-  promise.then(
-    result =>
-      process.send({
-        workerEnd: true,
-        result,
-      }),
-    error =>
-      process.send({
-        workerEnd: true,
-        error,
-      })
-  )
+  process.send({
+    error,
+    result,
+    workerEnd: true,
+  })
 })
 
 process.on('disconnect', () => process.kill())
