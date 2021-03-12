@@ -38,7 +38,7 @@ Let's take a quick tour:
 You can edit a VM name, description and even current host by long clicking on the field
 :::
 
-## Bulk actions
+### Bulk actions
 
 You can select multiple objects (eg VMs) at once to perform a bulk action. The master checkbox will select all, or you can select anything yourself.
 
@@ -285,7 +285,7 @@ These templates will use PV configuration in order to boot: either from the righ
 
 Because there is already disks installed, you shouldn't have "Install settings" _per se_. But you can use our `config drive` setup if your template already has CloudInit installed!
 
-Please refer to the [XenServer CloudInit section](cloudinit.md) for more.
+Please refer to the [XenServer CloudInit section](https://xen-orchestra.com/docs/advanced.html#cloud-init) for more.
 
 #### Interfaces
 
@@ -316,8 +316,10 @@ In the advanced tab, you have extra options:
 - Each VM has a maximum vCPU number. This value can't be changed while the VM is running. You can reduce the number of vCPUs, but you can't assign more than the set max. In XO, while your VM is halted, set the max vCPUs you would need, then boot it. Now you can reduce it and then expand it later to this maximum.
 - The same limitation applies to static RAM.
 
-You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/de-de/xencenter/6-5/xs-xc-vms-configuring/xs-xc-vms-memory/xs-xc-dmc-about.html).
-
+You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/en-us/citrix-hypervisor/system-requirements/configuration-limits.html).
+:::tip
+XCP-ng do not limit VMs to 32 vCPU
+:::
 ### VDI live migration
 
 Thanks to Xen Storage Motion, it's easy to move a VM disk from one storage location to another, while the VM is running! This feature can help you migrate from your local storage to a SAN, or just upgrade your SAN without any downtime.
@@ -349,7 +351,7 @@ If you pool supports HA (must have shared storage), you can activate "HA". Read 
 #### Docker management
 
 :::tip
-Please [read the dedicated section](docker_support.md) to install a Docker Ready VM.
+Please [read the dedicated section](https://xen-orchestra.com/docs/manage_infrastructure.html#docker-support) to install a Docker Ready VM.
 :::
 
 ### VM CPU priority
@@ -527,70 +529,3 @@ A heatmap allows its reader to understand when your VMs or hosts are stressed. V
 This is the place to compare metrics on comparable objects (VMs to VMs, hosts to hosts).
 
 [![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
-
-## Docker support
-
-This allows you to enjoy Docker containers displayed directly in Xen Orchestra.
-
-### Prerequisites
-
-- XenServer 6.5 or higher
-- Plugin installation (for Citrix Hypervisor, it's included in XCP-ng)
-
-### Docker plugin installation
-
-This first step is needed until Docker is supported natively in the XenServer API (XAPI).
-
-:::tip
-The plugin should be installed on every host you will be using, even if they are on the same pool.
-:::
-
-#### For XenServer 6.5
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-6.5.0-SP1-xscontainer.iso`
-
-#### For XenServer 7.0
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.0.0-xscontainer.iso`
-
-#### For XenServer 7.1
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11993/XenServer-7.1.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.1.0-xscontainer.iso`
-
-#### For XenServer 7.2
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/12641/XenServer-7.2.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.2.0-xscontainer.iso`
-
-That's it! You can now enjoy Docker support!
-
-### Docker managed VMs
-
-You can also use the XSContainer plugin to "transform" an existing VM into a "Docker" managed VM.
-
-You need to have the following installed inside the VM:
-
-- Docker
-- openssh-server
-- ncat
-
-For Debian/Ubuntu like distro: `apt-get install docker.io openssh-server nmap`. For RHEL and derived (CentOS...): `yum install docker openssh-server nmap-ncat`.
-
-To run Docker as non-root, please add the user you want inside the "Docker" group.
-
-Now you need to access your host (Dom0) and use the following command:
-
-```
-xscontainer-prepare-vm -v <VM_UUID> -u <username>
-```
-
-:::tip
-Because "prepare-vm" is not exposed outside of the Dom0 (yet?), we can't use Xen Orchestra to give you a one-click solution as of now.
-:::
