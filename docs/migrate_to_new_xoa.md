@@ -20,6 +20,12 @@ Go to the **Settings** -> **Config** page of your new appliance. Here you have a
 
 When your configuration is loaded, click to import. A new modal will appear to ask you the passphrase to decrypt your configuration. If you didn't set a passphrase when you exported your configuration, leave it empty.
 
+Once imported, restart `xo-server` from the CLI:
+
+```
+systemctl restart xo-server.service
+```
+
 ### Advanced users
 
 If you made custom adjustments to the `/etc/xo-server` config file on your previous appliance, unfortunately you will have to recreate these modifications on the new appliance.
