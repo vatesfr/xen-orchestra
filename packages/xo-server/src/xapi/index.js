@@ -600,10 +600,7 @@ export default class Xapi extends XapiBase {
       throw forbiddenOperation('destroy', vm.blocked_operations.destroy.reason)
     }
 
-    if (
-      !forceDeleteDefaultTemplate &&
-      (vm.other_config.default_template === 'true' || vm.is_default_template === true)
-    ) {
+    if (!forceDeleteDefaultTemplate && (vm.other_config.default_template === 'true' || vm.is_default_template)) {
       throw forbiddenOperation('destroy', 'VM is default template')
     }
 
