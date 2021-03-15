@@ -358,9 +358,9 @@ export default decorate([
               <div className='input-group '>
                 <input
                   className='form-control'
-                  name='protocol'
+                  name='region'
                   onChange={effects.linkState}
-                  pattern='(?!^(\d{1,3}\.){3}\d{1,3}$)(^[a-z0-9]([a-z0-9-]*(\.[a-z0-9])?)*$)'
+                  pattern='[a-z0-9-]'
                   placeholder='Region, leave blank for default'
                   type='text'
                   value={region}
