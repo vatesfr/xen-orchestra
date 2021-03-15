@@ -14,7 +14,7 @@ import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
-import { runBackupWorker } from '@xen-orchestra/backups/backupWorker'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { Xapi } from '@xen-orchestra/xapi'
 

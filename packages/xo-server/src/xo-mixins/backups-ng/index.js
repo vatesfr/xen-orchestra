@@ -11,7 +11,7 @@ import { forOwn, merge } from 'lodash'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
 import { parseDuration } from '@vates/parse-duration'
-import { runBackupWorker } from '@xen-orchestra/backups/backupWorker'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { type Pattern, createPredicate } from 'value-matcher'
 
