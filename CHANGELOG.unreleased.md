@@ -13,7 +13,7 @@
 
 - [Editable number] When you are trying to edit a number and it's failing, display an error (PR [#5634](https://github.com/vatesfr/xen-orchestra/pull/5634))
 - [VM/Network] Fix `an error has occurred` when trying to sort the table by the network's name (PR [#5639](https://github.com/vatesfr/xen-orchestra/pull/5639))
-- [Default template] When trying to delete `default template`, the modal for force the delete appear correctly (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
+- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
 
 ### Packages to release
 
