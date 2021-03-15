@@ -39,9 +39,9 @@ class Xapi extends Base {
     this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._vdiDestroyRetryWhenInUse = {
-      ...vdiDestroyRetryWhenInUse,
       delay: 5e3,
       retries: 10,
+      ...vdiDestroyRetryWhenInUse,
     }
 
     const genericWatchers = (this._genericWatchers = new Set())
