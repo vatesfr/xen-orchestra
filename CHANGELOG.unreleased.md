@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Pool] Fix `an error has occurred` when using the "Disconnect" button from the pool page [#5669](https://github.com/vatesfr/xen-orchestra/issues/5669) (PR [#5671](https://github.com/vatesfr/xen-orchestra/pull/5671))
+- [Configuration] Automatically connect enabled servers after import [#5660](https://github.com/vatesfr/xen-orchestra/issues/5660) (PR [#5672](https://github.com/vatesfr/xen-orchestra/pull/5672))
 
 ### Packages to release
 
@@ -30,4 +31,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server patch
 - xo-web patch
