@@ -371,6 +371,7 @@ const TRANSFORMS = {
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
+      is_default_template: obj.is_default_template,
 
       memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min
@@ -447,7 +448,7 @@ const TRANSFORMS = {
     } else if (obj.is_a_template) {
       vm.type += '-template'
 
-      if (obj.other_config.default_template === 'true') {
+      if (obj.other_config.default_template === 'true' || obj.is_default_template) {
         vm.id = obj.$ref // use refs for templates as they
       }
 

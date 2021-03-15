@@ -10,7 +10,7 @@ import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
-import { forbiddenOperation, noHostsAvailable, vmIsTemplate } from 'xo-common/api-errors'
+import { forbiddenOperation, noHostsAvailable } from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -1141,7 +1141,11 @@ export const deleteTemplates = templates =>
     await Promise.all(
       map(resolveIds(templates), id =>
         _call('vm.delete', { id }).catch(reason => {
-          if (vmIsTemplate.is(reason)) {
+          const template = getObject(store.getState(), id)
+          if (
+            forbiddenOperation.is(reason) &&
+            (template.other.default_template === 'true' || template.is_default_template)
+          ) {
             defaultTemplates.push(id)
           } else {
             nErrors++
