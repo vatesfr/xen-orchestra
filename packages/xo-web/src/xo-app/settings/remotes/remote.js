@@ -340,7 +340,7 @@ export default decorate([
             <fieldset className='form-group form-group'>
               <div className='input-group '>
                 <span className='input-group-addon'>
-                  <Tooltip content='Check if you want HTTP instead of HTTPS'>
+                  <Tooltip content={formatMessage(messages.remoteS3TooltipProtocol)}>
                     <Toggle onChange={effects.setInsecure} value={protocol === 'http'} />
                   </Tooltip>
                 </span>
@@ -361,7 +361,7 @@ export default decorate([
                   name='region'
                   onChange={effects.linkState}
                   pattern='[a-z0-9-]'
-                  placeholder='Region, leave blank for default'
+                  placeholder={formatMessage(messages.remoteS3Region)}
                   type='text'
                   value={region}
                 />
