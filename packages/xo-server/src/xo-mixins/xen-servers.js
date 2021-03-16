@@ -55,7 +55,7 @@ export default class {
 
     xo.on('clean', () => serversDb.rebuildIndexes())
     xo.on('start', async () => {
-      async function connectServers() {
+      const connectServers = async () => {
         // Connects to existing servers.
         for (const server of await serversDb.get()) {
           if (server.enabled) {
