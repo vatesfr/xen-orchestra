@@ -1,5 +1,6 @@
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
+import isDefaultTemplate from './xapi/isDefaultTemplate'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils'
 import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
@@ -371,7 +372,7 @@ const TRANSFORMS = {
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
-      is_default_template: obj.is_default_template,
+      isDefaultTemplate: isDefaultTemplate(obj),
 
       memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min
