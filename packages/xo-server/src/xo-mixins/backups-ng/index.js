@@ -5,6 +5,7 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import type RemoteHandler from '@xen-orchestra/fs'
 import using from 'promise-toolbox/using'
+import { Backup } from '@xen-orchestra/backups/Backup'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { forOwn, merge } from 'lodash'
@@ -26,6 +27,7 @@ import { type DeltaVmExport, type Xapi } from '../../xapi'
 import { type SimpleIdPattern, unboxIdsFromPattern } from '../../utils'
 
 import { translateLegacyJob } from './migration'
+import { config } from 'bluebird'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
 
@@ -255,6 +257,32 @@ export default class BackupNg {
         const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
+          if (proxyId === undefined && config.backups.disableWorkers) {
+            const localTaskIds = { __proto__: null }
+            return await Task.run(
+              {
+                name: 'backup run',
+                onLog: log =>
+                  handleBackupLog(log, {
+                    localTaskIds,
+                    logger,
+                    runJobId,
+                  }),
+              },
+              () =>
+                new Backup({
+                  config: config.backups,
+                  getAdapter: async remoteId =>
+                    app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
+
+                  // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
+                  getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
+                  job,
+                  schedule,
+                }).run()
+            )
+          }
+
           const recordToXapi = {}
           const servers = new Set()
           const handleRecord = uuid => {

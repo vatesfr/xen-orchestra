@@ -3,6 +3,7 @@ import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import using from 'promise-toolbox/using'
 import { asyncMap } from '@xen-orchestra/async-map'
+import { Backup } from '@xen-orchestra/backups/Backup'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
@@ -46,18 +47,43 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = (params, onLog) =>
-      runBackupWorker(
-        {
+    let run = (params, onLog) => {
+      // don't change config during backup execution
+      const config = app.config.get('backups')
+      if (config.disableWorkers) {
+        const { recordToXapi, remotes, xapis, ...rest } = params
+        return new Backup({
+          ...rest,
+
           // don't change config during backup execution
-          config: app.config.get('backups'),
-          remoteOptions: app.config.get('remoteOptions'),
-          resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
-          xapiOptions: app.config.get('xapiOptions'),
-          ...params,
-        },
-        onLog
-      )
+          config,
+
+          // pass getAdapter in order to mutualize the adapter resources usage
+          getAdapter: remoteId => this.getAdapter(remotes[remoteId]),
+
+          getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
+            const xapiId = recordToXapi[uuid]
+            if (xapiId === undefined) {
+              throw new Error('no XAPI associated to ' + uuid)
+            }
+
+            const xapi = yield this.getXapi(xapis[xapiId])
+            return xapi.getRecordByUuid(type, uuid)
+          }).bind(this),
+        }).run()
+      } else {
+        return runBackupWorker(
+          {
+            config,
+            remoteOptions: app.config.get('remoteOptions'),
+            resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
+            xapiOptions: app.config.get('xapiOptions'),
+            ...params,
+          },
+          onLog
+        )
+      }
+    }
 
     const runningJobs = { __proto__: null }
     run = (run => {
@@ -89,6 +115,32 @@ export default class Backups {
         }
         return run.apply(this, arguments)
       })(run)
+
+    run = (run => async (params, onLog) => {
+      if (onLog === undefined || !app.config.get('backups').disableWorkers) {
+        return run(params, onLog)
+      }
+
+      const { job, schedule } = params
+      try {
+        await Task.run(
+          {
+            name: 'backup run',
+            data: {
+              jobId: job.id,
+              jobName: job.name,
+              mode: job.mode,
+              reportWhen: job.settings['']?.reportWhen,
+              scheduleId: schedule.id,
+            },
+            onLog,
+          },
+          () => run(params)
+        )
+      } catch (error) {
+        // do not rethrow, everything is handled via logging
+      }
+    })(run)
 
     app.api.addMethods({
       backup: {
