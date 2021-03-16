@@ -49,6 +49,7 @@ import {
   pSettle,
 } from '../utils'
 
+import isDefaultTemplate from './isDefaultTemplate'
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
 import { type DeltaVmExport } from './'
@@ -600,7 +601,7 @@ export default class Xapi extends XapiBase {
       throw forbiddenOperation('destroy', vm.blocked_operations.destroy.reason)
     }
 
-    if (!forceDeleteDefaultTemplate && (vm.other_config.default_template === 'true' || vm.is_default_template)) {
+    if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
       throw forbiddenOperation('destroy', 'VM is default template')
     }
 
