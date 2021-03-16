@@ -18,6 +18,8 @@ module.exports = {
   ],
   rules: {
     'eslint-comments/disable-enable-pair': 'off',
+    // Necessary to pass empty Effects/State to Reaclette
+    '@typescript-eslint/no-empty-interface': 'off',
     // https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-use-before-define.md#how-to-use
     '@typescript-eslint/no-use-before-define': ['error'],
     'no-use-before-define': 'off'

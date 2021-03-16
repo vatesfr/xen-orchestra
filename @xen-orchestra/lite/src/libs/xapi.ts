@@ -3,11 +3,20 @@ import { EventEmitter } from 'events'
 import { Map } from 'immutable'
 
 export interface XapiObject {
-  $type: string
+  $type: keyof types
   $id: string
 }
 
+// Dictionary of XAPI types and their corresponding TypeScript types
+interface types {
+  VM: Vm
+  host: Host
+}
+
+// Types ---
+
 export interface Vm extends XapiObject {
+  $consoles: Array<{ protocol: string, location: string }>
   is_a_snapshot: boolean
   is_a_template: boolean
   is_control_domain: boolean
@@ -16,7 +25,16 @@ export interface Vm extends XapiObject {
   power_state: string
 }
 
-export type ObjectsByType = Map<string, Map<string, XapiObject>>
+export interface Host extends XapiObject {
+  name_label: string
+}
+
+// --------
+
+export interface ObjectsByType extends Map<string, Map<string, XapiObject>> {
+  get<NSV, T extends keyof types>(key: T, notSetValue: NSV): Map<string, types[T]> | NSV
+  get<T extends keyof types>(key: T): Map<string, types[T]> | undefined
+}
 
 export default class XapiConnection {
   areObjectsFetched: Promise<void>
@@ -39,7 +57,7 @@ export default class XapiConnection {
   }
 
   constructor() {
-    this.objectsByType = Map()
+    this.objectsByType = Map() as ObjectsByType
     this.connected = false
     this.areObjectsFetched = new Promise(resolve => {
       this._resolveObjectsFetched = resolve
@@ -116,7 +134,7 @@ export default class XapiConnection {
 
   call(method: string, ...args: string[]): void {
     const { _xapi, connected } = this
-    if (!connected) {
+    if (!connected || _xapi === undefined) {
       throw new Error('Not connected to XAPI')
     }
 

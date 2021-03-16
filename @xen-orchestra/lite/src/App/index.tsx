@@ -1,17 +1,40 @@
 import React from 'react'
-import { injectState, provideState } from 'reaclette'
+import { withState } from 'reaclette'
 import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import { IntlProvider } from 'react-intl'
+import { Map } from 'immutable'
 
 import './style.css'
 import messagesEn from '../lang/en.json'
 import Signin from './Signin/index'
 import Console from '../components/Console'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
-import { EffectContext, RenderParams, State } from '../../types/reaclette'
 
-const App = [
-  provideState({
+interface ParentState {
+  objectsByType: ObjectsByType
+  xapi: XapiConnection
+}
+
+interface State {
+  connected: boolean
+  xapiHostname: string
+}
+
+interface Props {}
+
+interface ParentEffects {}
+
+interface Effects {
+  connectToXapi: (password: string) => void
+}
+
+interface Computed {
+  objectsFetched: boolean
+  vms?: Map<string, Vm>
+}
+
+const App = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {
     initialState: () => ({
       connected: false,
       objectsByType: undefined,
@@ -19,7 +42,7 @@ const App = [
       xapi: undefined,
     }),
     effects: {
-      connectToXapi: function (this: EffectContext, password: string) {
+      connectToXapi: function (password) {
         const xapi = new XapiConnection()
         this.state.xapi = xapi
 
@@ -40,14 +63,16 @@ const App = [
       },
     },
     computed: {
-      objectsFetched: (state: State) => state.objectsByType !== undefined,
-      vms: (state: State) =>
-        state.objectsFetched &&
-        state.objectsByType.get('VM').filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template),
+      objectsFetched: state => state.objectsByType !== undefined,
+      vms: state =>
+        state.objectsFetched
+          ? state.objectsByType
+              ?.get('VM')
+              ?.filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template)
+          : undefined,
     },
-  }),
-  injectState,
-  ({ state }: RenderParams) => (
+  },
+  ({ state }) => (
     <IntlProvider messages={messagesEn} locale='en'>
       {!state.connected || !state.objectsFetched ? (
         <Signin />
@@ -56,7 +81,7 @@ const App = [
           <Switch>
             <Route path='/about'>About page</Route>
             <Route exact path='/'>
-              <p>There are {state.objectsByType.size || 0} types!</p>
+              <p>There are {state.objectsByType?.size || 0} types!</p>
               {state.vms !== undefined && (
                 <>
                   <p>There are {state.vms.size} VMs!</p>
@@ -77,7 +102,7 @@ const App = [
         </Router>
       )}
     </IntlProvider>
-  ),
-].reduceRight((value, fn) => fn(value))
+  )
+)
 
 export default App

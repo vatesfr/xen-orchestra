@@ -1,27 +1,48 @@
-import PropTypes from 'prop-types'
 import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
-import { injectState, provideState } from 'reaclette'
+import { withState } from 'reaclette'
 
-import { EffectContext, RenderParams } from '../../types/reaclette'
+import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+
+interface ParentState {
+  objectsByType: ObjectsByType
+  xapi: XapiConnection
+}
+
+interface State {
+  container: React.RefObject<HTMLDivElement>
+}
+
+interface Props {
+  vmId: string
+}
+
+interface ParentEffects {}
+
+interface Effects {}
+
+interface Computed {}
 
 // https://github.com/novnc/noVNC/blob/master/docs/API.md
-const Console = [
-  provideState({
+const Console = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {
     initialState: () => ({
       container: React.createRef(),
     }),
     effects: {
-      initialize: async function (this: EffectContext) {
+      initialize: async function () {
         const { vmId } = this.props
         const { objectsByType, xapi } = this.state
-        const consoles = objectsByType
-          .get('VM')
-          .get(vmId)
-          .$consoles.filter((vmConsole: { protocol: string }) => vmConsole.protocol === 'rfb')
+        const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
+          vmConsole => vmConsole.protocol === 'rfb'
+        )
 
-        if (consoles.length === 0) {
+        if (consoles === undefined || consoles.length === 0) {
           throw new Error('Could not find VM console')
+        }
+
+        if (xapi.sessionId === undefined) {
+          throw new Error('Not connected to XAPI')
         }
 
         const url = new URL(consoles[0].location)
@@ -34,13 +55,8 @@ const Console = [
         })
       },
     },
-  }),
-  injectState,
-  ({ state }: RenderParams) => <div ref={state.container} />,
-].reduceRight((value, fn) => fn(value))
-
-Console.propTypes = {
-  vmId: PropTypes.string,
-}
+  },
+  ({ state }) => <div ref={state.container} />
+)
 
 export default Console
