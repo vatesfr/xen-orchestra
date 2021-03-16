@@ -114,11 +114,11 @@ class BackupWorker {
 //   status?: 'success' | 'failure'
 //   result?: any
 // }
-process.on('message', async ({ action, data, runWithLogs }) => {
-  if (action === 'run') {
-    const backupWorker = new BackupWorker(data)
+process.on('message', async message => {
+  if (message.action === 'run') {
+    const backupWorker = new BackupWorker(message.data)
     try {
-      const result = runWithLogs
+      const result = message.runWithLogs
         ? await Task.run(
             {
               name: 'backup run',
