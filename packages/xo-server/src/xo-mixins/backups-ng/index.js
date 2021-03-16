@@ -27,7 +27,6 @@ import { type DeltaVmExport, type Xapi } from '../../xapi'
 import { type SimpleIdPattern, unboxIdsFromPattern } from '../../utils'
 
 import { translateLegacyJob } from './migration'
-import { config } from 'bluebird'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
 
