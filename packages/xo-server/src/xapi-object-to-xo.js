@@ -449,7 +449,7 @@ const TRANSFORMS = {
     } else if (obj.is_a_template) {
       vm.type += '-template'
 
-      if (obj.other_config.default_template === 'true' || obj.is_default_template) {
+      if (isDefaultTemplate(obj)) {
         vm.id = obj.$ref // use refs for templates as they
       }
 
