@@ -97,7 +97,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _readFile(file, options) {
     const filePath = this._getFilePath(file)
-    return await retry(() => fs.readFile(filePath, options), {
+    return retry(() => fs.readFile(filePath, options), {
       retries: this._triesOnEagain,
       when: { code: 'EAGAIN' },
     })
@@ -123,7 +123,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _unlink(file) {
     const filePath = this._getFilePath(file)
-    return await retry(() => fs.unlink(filePath), {
+    return retry(() => fs.unlink(filePath), {
       retries: this._triesOnEagain,
       when: { code: 'EAGAIN' },
     })
