@@ -55,7 +55,6 @@ export default class Backups {
         return new Backup({
           ...rest,
 
-          // don't change config during backup execution
           config,
 
           // pass getAdapter in order to mutualize the adapter resources usage
