@@ -115,7 +115,6 @@ export default class Backups {
         }
         return run.apply(this, arguments)
       })(run)
-
     run = (run => async (params, onLog) => {
       if (onLog === undefined || !app.config.get('backups').disableWorkers) {
         return run(params, onLog)
