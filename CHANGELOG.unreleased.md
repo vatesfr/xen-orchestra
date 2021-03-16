@@ -13,6 +13,7 @@
 
 - [Pool] Fix `an error has occurred` when using the "Disconnect" button from the pool page [#5669](https://github.com/vatesfr/xen-orchestra/issues/5669) (PR [#5671](https://github.com/vatesfr/xen-orchestra/pull/5671))
 - [Configuration] Automatically connect enabled servers after import [#5660](https://github.com/vatesfr/xen-orchestra/issues/5660) (PR [#5672](https://github.com/vatesfr/xen-orchestra/pull/5672))
+- Work-around some `ECONNRESET` errors when connecting to XEN-API (PR [#5674](https://github.com/vatesfr/xen-orchestra/pull/5674))
 
 ### Packages to release
 
@@ -31,5 +32,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xen-api minor
 - xo-server patch
 - xo-web patch
