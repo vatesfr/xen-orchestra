@@ -372,7 +372,6 @@ const TRANSFORMS = {
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
-      isDefaultTemplate: isDefaultTemplate(obj),
 
       memory: (function () {
         const dynamicMin = +obj.memory_dynamic_min
@@ -454,6 +453,7 @@ const TRANSFORMS = {
       }
 
       vm.CPUs.number = +obj.VCPUs_at_startup
+      vm.isDefaultTemplate = isDefaultTemplate(obj)
       vm.template_info = {
         arch: otherConfig['install-arch'],
         disks: (function () {
