@@ -15,26 +15,30 @@ class BackupWorker {
   #config
   #job
   #recordToXapi
+  #remoteOptions
   #remotes
   #schedule
+  #xapiOptions
   #xapis
 
-  constructor({ config, job, recordToXapi, remotes, schedule, xapis }) {
+  constructor({ config, job, recordToXapi, remoteOptions, remotes, resourceCacheDelay, schedule, xapiOptions, xapis }) {
     this.#config = config
     this.#job = job
     this.#recordToXapi = recordToXapi
+    this.#remoteOptions = remoteOptions
     this.#remotes = remotes
     this.#schedule = schedule
+    this.#xapiOptions = xapiOptions
     this.#xapis = xapis
 
     const debounceResource = createDebounceResource()
-    debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
+    debounceResource.defaultDelay = parseDuration(resourceCacheDelay)
     this.debounceResource = debounceResource
   }
 
   run() {
     return new Backup({
-      config: this.#config.backups,
+      config: this.#config,
       getAdapter: remoteId => this.getAdapter(this.#remotes[remoteId]),
       getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
         const xapiId = this.#recordToXapi[uuid]
@@ -56,13 +60,12 @@ class BackupWorker {
     return this.debounceResource(resource)
   })
   async *getAdapter(remote) {
-    const config = this.#config
-    const handler = getHandler(remote, config.remoteOptions)
+    const handler = getHandler(remote, this.#remoteOptions)
     await handler.sync()
     try {
       yield new RemoteAdapter(handler, {
         debounceResource: this.debounceResource,
-        dirMode: config.backups.dirMode,
+        dirMode: this.#config.dirMode,
       })
     } finally {
       await handler.forget()
@@ -76,7 +79,7 @@ class BackupWorker {
   })
   async *getXapi({ credentials: { username: user, password }, ...opts }) {
     const xapi = new Xapi({
-      ...this.#config.xapiOptions,
+      ...this.#xapiOptions,
       ...opts,
       auth: {
         user,

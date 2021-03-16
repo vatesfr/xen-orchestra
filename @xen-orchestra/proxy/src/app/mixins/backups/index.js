@@ -36,7 +36,7 @@ const runWithLogs = (runner, args) =>
   })
 
 export default class Backups {
-  constructor(app, { config }) {
+  constructor(app) {
     this._app = app
 
     // clean any LVM volumes that might have not been properly
@@ -49,7 +49,11 @@ export default class Backups {
     let run = (params, onLog) =>
       runBackupWorker(
         {
-          config,
+          // don't change config during backup execution
+          config: app.config.get('backups'),
+          remoteOptions: app.config.get('remoteOptions'),
+          resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
+          xapiOptions: app.config.get('xapiOptions'),
           ...params,
         },
         onLog

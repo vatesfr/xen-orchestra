@@ -336,7 +336,10 @@ export default class BackupNg {
             const localTaskIds = { __proto__: null }
             return await runBackupWorker(
               {
-                config,
+                config: config.backups,
+                remoteOptions: config.remoteOptions,
+                resourceCacheDelay: parseDuration(config.resourceCacheDelay),
+                xapiOptions: config.xapiOptions,
                 ...params,
               },
               log =>
