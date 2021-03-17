@@ -8,7 +8,6 @@ import emitAsync from '@xen-orchestra/emit-async'
 
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { defer } from 'golike-defer'
-import { map as mapToArray } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
@@ -156,7 +155,7 @@ export default class Jobs {
       xo.addConfigManager(
         'jobs',
         () => jobsDb.get(),
-        jobs => Promise.all(mapToArray(jobs, job => jobsDb.save(job))),
+        jobs => Promise.all(jobs.map(job => jobsDb.save(job))),
         ['users']
       )
     })
@@ -395,7 +394,7 @@ export default class Jobs {
   }
 
   async runJobSequence(idSequence: Array<string>, schedule?: Schedule, data?: any) {
-    const jobs = await Promise.all(mapToArray(idSequence, id => this.getJob(id)))
+    const jobs = await Promise.all(idSequence.map(id => this.getJob(id)))
 
     for (const job of jobs) {
       await this._runJob(job, schedule, data)

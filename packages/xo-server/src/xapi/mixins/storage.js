@@ -2,13 +2,11 @@ import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import { filter, forEach, groupBy } from 'lodash'
 
-import { mapToArray } from '../../utils'
-
 const log = createLogger('xo:storage')
 
 export default {
   _connectAllSrPbds(sr) {
-    return Promise.all(mapToArray(sr.$PBDs, pbd => this._plugPbd(pbd)))
+    return Promise.all(sr.$PBDs.map(pbd => this._plugPbd(pbd)))
   },
 
   async connectAllSrPbds(id) {
@@ -16,7 +14,7 @@ export default {
   },
 
   _disconnectAllSrPbds(sr) {
-    return Promise.all(mapToArray(sr.$PBDs, pbd => this._unplugPbd(pbd)))
+    return Promise.all(sr.$PBDs.map(pbd => this._unplugPbd(pbd)))
   },
 
   async disconnectAllSrPbds(id) {

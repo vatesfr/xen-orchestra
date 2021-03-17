@@ -11152,7 +11152,7 @@ jest-worker@^24.6.0, jest-worker@^24.9.0:
     merge-stream "^2.0.0"
     supports-color "^6.1.0"
 
-jest-worker@^26.3.0, jest-worker@^26.6.2:
+jest-worker@^26.6.2:
   version "26.6.2"
   resolved "https://registry.yarnpkg.com/jest-worker/-/jest-worker-26.6.2.tgz#7f72cbc4d643c365e27b9fd775f9d0eaa9c7a8ed"
   integrity sha512-KWYVV1c4i+jbMpaBC+U++4Va0cp8OisU185o73T1vo99hqi7w8tSJfUXYswwqqrjzwxa6KpRK54WhPvwf5w6PQ==
@@ -17300,11 +17300,6 @@ strict-event-emitter-types@~2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/strict-event-emitter-types/-/strict-event-emitter-types-2.0.0.tgz#05e15549cb4da1694478a53543e4e2f4abcf277f"
   integrity sha512-Nk/brWYpD85WlOgzw5h173aci0Teyv8YdIAEtV+N88nDB0dLlazZyJMIsN6eo1/AR61l+p6CJTG1JIyFaoNEEA==
-
-strict-timeout@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/strict-timeout/-/strict-timeout-1.0.0.tgz#f77c6dedec379a3b9d8d922bee0398ae5b1415ee"
-  integrity sha512-CW2XC7sLJ2Qvc69sv9jFal48c6+hupGzFF04nJOsThriJcPfHO9iAtVnr6jvHWyvDj1XlOOFJkljZneex97STg==
 
 strict-uri-encode@^1.0.0:
   version "1.1.0"

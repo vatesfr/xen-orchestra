@@ -12,10 +12,10 @@ import coalesceCalls from './_coalesceCalls'
 import debug from './_debug'
 import getTaskResult from './_getTaskResult'
 import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
-import isOpaqueRef from './_isOpaqueRef'
 import isReadOnlyCall from './_isReadOnlyCall'
 import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
+import Ref from './_Ref'
 import replaceSensitiveValues from './_replaceSensitiveValues'
 
 // ===================================================================
@@ -29,9 +29,7 @@ const { defineProperties, defineProperty, freeze, keys: getKeys } = Object
 
 // -------------------------------------------------------------------
 
-export const NULL_REF = 'OpaqueRef:NULL'
-
-export { isOpaqueRef }
+export { Ref }
 
 // -------------------------------------------------------------------
 
@@ -87,6 +85,13 @@ export class Xapi extends EventEmitter {
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
+
+    this._roCallRetryOptions = {
+      delay: 1e3,
+      tries: 10,
+      ...opts.roCallRetryOptions,
+      when: { code: 'ECONNRESET' },
+    }
 
     this._auth = opts.auth
     const url = parseUrl(opts.url)
@@ -233,7 +238,9 @@ export class Xapi extends EventEmitter {
 
   // this should be used for instantaneous calls, otherwise use `callAsync`
   call(method, ...args) {
-    return this._readOnly && !isReadOnlyCall(method, args)
+    return isReadOnlyCall(method, args)
+      ? this._roCall(method, args)
+      : this._readOnly
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(method, args)
   }
@@ -263,15 +270,15 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   async getAllRecords(type) {
-    return map(await this._sessionCall(`${type}.get_all_records`), (record, ref) => this._wrapRecord(type, ref, record))
+    return map(await this._roCall(`${type}.get_all_records`), (record, ref) => this._wrapRecord(type, ref, record))
   }
 
   async getRecord(type, ref) {
-    return this._wrapRecord(type, ref, await this._sessionCall(`${type}.get_record`, [ref]))
+    return this._wrapRecord(type, ref, await this._roCall(`${type}.get_record`, [ref]))
   }
 
   async getRecordByUuid(type, uuid) {
-    return this.getRecord(type, await this._sessionCall(`${type}.get_by_uuid`, [uuid]))
+    return this.getRecord(type, await this._roCall(`${type}.get_by_uuid`, [uuid]))
   }
 
   getRecords(type, refs) {
@@ -279,7 +286,7 @@ export class Xapi extends EventEmitter {
   }
 
   getField(type, ref, field) {
-    return this._sessionCall(`${type}.get_${field}`, [ref])
+    return this._roCall(`${type}.get_${field}`, [ref])
   }
 
   setField(type, ref, field, value) {
@@ -288,6 +295,7 @@ export class Xapi extends EventEmitter {
 
   setFields(type, ref, fields) {
     return Promise.all(
+      // eslint-disable-next-line array-callback-return
       getKeys(fields).map(field => {
         const value = fields[field]
         if (value !== undefined) {
@@ -299,6 +307,7 @@ export class Xapi extends EventEmitter {
 
   setFieldEntries(type, ref, field, entries) {
     return Promise.all(
+      // eslint-disable-next-line array-callback-return
       getKeys(entries).map(entry => {
         const value = entries[entry]
         if (value !== undefined) {
@@ -849,7 +858,7 @@ export class Xapi extends EventEmitter {
       types.map(async type => {
         try {
           const toRemove = toRemoveByType[type]
-          const records = await this._sessionCall(`${type}.get_all_records`)
+          const records = await this._roCall(`${type}.get_all_records`)
           const refs = getKeys(records)
           refs.forEach(ref => {
             toRemove.delete(ref)
@@ -898,6 +907,11 @@ export class Xapi extends EventEmitter {
       taskWatcher.reject(error)
       delete taskWatchers[ref]
     }
+  }
+
+  // read-only call, automatically retry in case of connection issues
+  _roCall(method, args) {
+    return pRetry(() => this._sessionCall(method, args), this._roCallRetryOptions)
   }
 
   _watchEvents = coalesceCalls(this._watchEvents)
@@ -1015,7 +1029,7 @@ export class Xapi extends EventEmitter {
 
       try {
         await this._connected
-        this._processEvents(await this._sessionCall('event.next', undefined, EVENT_TIMEOUT * 1e3))
+        this._processEvents(await this._roCall('event.next', undefined, EVENT_TIMEOUT * 1e3))
       } catch (error) {
         if (error?.code === 'EVENTS_LOST') {
           await ignoreErrors.call(this._sessionCall('event.unregister', [types]))
@@ -1092,7 +1106,7 @@ export class Xapi extends EventEmitter {
 
         const value = data[field]
         if (Array.isArray(value)) {
-          if (value.length === 0 || isOpaqueRef(value[0])) {
+          if (value.length === 0 || Ref.is(value[0])) {
             getters[$field] = function () {
               const value = this[field]
               return value.length === 0 ? value : value.map(getObjectByRef)
@@ -1119,10 +1133,7 @@ export class Xapi extends EventEmitter {
               ? xapi.setFieldEntry(this.$type, this.$ref, field, entries, value)
               : xapi.setFieldEntries(this.$type, this.$ref, field, entries)
           }
-        } else if (value === '' || isOpaqueRef(value)) {
-          // 2019-02-07 - JFT: even if `value` should not be an empty string for
-          // a ref property, an user had the case on XenServer 7.0 on the CD VBD
-          // of a VM created by XenCenter
+        } else if (Ref.is(value)) {
           getters[$field] = function () {
             return xapi._objectsByRef[this[field]]
           }

@@ -6,9 +6,9 @@ import execa from 'execa'
 import fs from 'fs-extra'
 import map from 'lodash/map'
 import { tap, delay } from 'promise-toolbox'
-import { NULL_REF } from 'xen-api'
 import { invalidParameters } from 'xo-common/api-errors'
 import { includes, remove, filter, find, range } from 'lodash'
+import { Ref } from 'xen-api'
 
 import ensureArray from '../_ensureArray'
 import { parseXml } from '../utils'
@@ -937,7 +937,7 @@ async function _prepareGlusterVm(
   log.debug(`waiting for boot of ${ip}`)
   // wait until we find the assigned IP in the networks, we are just checking the boot is complete
   // fix #3688
-  const vm = await xapi._waitObjectState(newVM.$id, _ => _.guest_metrics !== NULL_REF)
+  const vm = await xapi._waitObjectState(newVM.$id, _ => Ref.isNotEmpty(_.guest_metrics))
   await xapi._waitObjectState(vm.guest_metrics, _ => includes(_.networks, ip))
   log.debug(`booted ${ip}`)
   const localEndpoint = { xapi: xapi, hosts: [host], addresses: [ip] }
