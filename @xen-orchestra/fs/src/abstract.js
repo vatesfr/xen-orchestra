@@ -75,6 +75,7 @@ class PrefixWrapper {
 export default class RemoteHandlerAbstract {
   _remote: Object
   _timeout: number
+  _highWaterMark: number
 
   constructor(remote: any, options: Object = {}) {
     if (remote.url === 'test://') {
@@ -85,7 +86,7 @@ export default class RemoteHandlerAbstract {
         throw new Error('Incorrect remote type')
       }
     }
-    ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
+    ;({ highWaterMark: this._highWaterMark, timeout: this._timeout = DEFAULT_TIMEOUT } = options)
 
     const sharedLimit = limit(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
@@ -164,24 +165,26 @@ export default class RemoteHandlerAbstract {
       file = normalizePath(file)
     }
     const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout.call(this._createReadStream(file, options), this._timeout).then(stream => {
-      // detect early errors
-      let promise = fromEvent(stream, 'readable')
+    const streamP = timeout
+      .call(this._createReadStream(file, { ...options, highWaterMark: this._highWaterMark }), this._timeout)
+      .then(stream => {
+        // detect early errors
+        let promise = fromEvent(stream, 'readable')
 
-      // try to add the length prop if missing and not a range stream
-      if (stream.length === undefined && options.end === undefined && options.start === undefined) {
-        promise = Promise.all([
-          promise,
-          ignoreErrors.call(
-            this._getSize(file).then(size => {
-              stream.length = size
-            })
-          ),
-        ])
-      }
+        // try to add the length prop if missing and not a range stream
+        if (stream.length === undefined && options.end === undefined && options.start === undefined) {
+          promise = Promise.all([
+            promise,
+            ignoreErrors.call(
+              this._getSize(file).then(size => {
+                stream.length = size
+              })
+            ),
+          ])
+        }
 
-      return promise.then(() => stream)
-    })
+        return promise.then(() => stream)
+      })
 
     if (!checksum) {
       return streamP
@@ -414,7 +417,7 @@ export default class RemoteHandlerAbstract {
 
   async _createOutputStream(file: File, { dirMode, ...options }: Object = {}): Promise<LaxWritable> {
     try {
-      return await this._createWriteStream(file, options)
+      return await this._createWriteStream(file, { ...options, highWaterMark: this._highWaterMark })
     } catch (error) {
       if (typeof file !== 'string' || error.code !== 'ENOENT') {
         throw error
@@ -429,6 +432,8 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  // createWriteStream takes highWaterMark as option even if it's not documented.
+  // Source: https://stackoverflow.com/questions/55026306/how-to-set-writeable-highwatermark
   async _createWriteStream(file: File, options: Object): Promise<LaxWritable> {
     throw new Error('Not implemented')
   }
@@ -510,7 +515,7 @@ export default class RemoteHandlerAbstract {
   }
 
   _readFile(file: string, options?: Object): Promise<Buffer> {
-    return this._createReadStream(file, options).then(getStream.buffer)
+    return this._createReadStream(file, { ...options, highWaterMark: this._highWaterMark }).then(getStream.buffer)
   }
 
   async _rename(oldPath: string, newPath: string) {
