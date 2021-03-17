@@ -32,5 +32,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server minor
-- xo-web minor
+- xen-api minor
+- xo-server patch
+- xo-web patch
