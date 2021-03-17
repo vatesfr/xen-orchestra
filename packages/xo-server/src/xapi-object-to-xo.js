@@ -446,14 +446,14 @@ const TRANSFORMS = {
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
     } else if (obj.is_a_template) {
+      const defaultTemplate = isDefaultTemplate(obj)
       vm.type += '-template'
-
-      if (isDefaultTemplate(obj)) {
+      if (defaultTemplate) {
         vm.id = obj.$ref // use refs for templates as they
       }
 
       vm.CPUs.number = +obj.VCPUs_at_startup
-      vm.isDefaultTemplate = isDefaultTemplate(obj)
+      vm.isDefaultTemplate = defaultTemplate
       vm.template_info = {
         arch: otherConfig['install-arch'],
         disks: (function () {
