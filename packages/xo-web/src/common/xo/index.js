@@ -1142,7 +1142,11 @@ export const deleteTemplates = templates =>
       map(resolveIds(templates), id =>
         _call('vm.delete', { id }).catch(reason => {
           const template = getObject(store.getState(), id)
-          if (forbiddenOperation.is(reason) && template.isDefaultTemplate) {
+          if (
+            forbiddenOperation.is(reason) &&
+            template.isDefaultTemplate &&
+            !('destroy' in template.blockedOperations)
+          ) {
             defaultTemplates.push(id)
           } else {
             nErrors++
