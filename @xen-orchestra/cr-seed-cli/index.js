@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const defer = require('golike-defer').default
-const { NULL_REF, Xapi } = require('xen-api')
+const { Ref, Xapi } = require('xen-api')
 
 const pkg = require('./package.json')
 
@@ -11,7 +11,7 @@ Xapi.prototype.getVmDisks = async function (vm) {
     ...vm.VBDs.map(async vbdRef => {
       const vbd = await this.getRecord('VBD', vbdRef)
       let vdiRef
-      if (vbd.type === 'Disk' && (vdiRef = vbd.VDI) !== NULL_REF) {
+      if (vbd.type === 'Disk' && Ref.isNotEmpty((vdiRef = vbd.VDI))) {
         disks[vbd.userdevice] = await this.getRecord('VDI', vdiRef)
       }
     }),

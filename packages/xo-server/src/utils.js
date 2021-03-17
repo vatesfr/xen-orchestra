@@ -10,7 +10,7 @@ import pick from 'lodash/pick'
 import tmp from 'tmp'
 import { createLogger } from '@xen-orchestra/log'
 import { randomBytes } from 'crypto'
-import { dirname, resolve } from 'path'
+import { resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
 
@@ -208,11 +208,6 @@ export const popProperty = obj => {
 
 // -------------------------------------------------------------------
 
-// resolve a relative path from a file
-export const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
-
-// -------------------------------------------------------------------
-
 // Format a date in ISO 8601 in a safe way to be used in filenames
 // (even on Windows).
 export const safeDateFormat = utcFormat('%Y%m%dT%H%M%SZ')
@@ -228,7 +223,6 @@ export { default as forEach } from 'lodash/forEach'
 export { default as isEmpty } from 'lodash/isEmpty'
 export { default as isInteger } from 'lodash/isInteger'
 export { default as isObject } from 'lodash/isObject'
-export { default as mapToArray } from 'lodash/map'
 
 // -------------------------------------------------------------------
 

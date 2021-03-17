@@ -25,7 +25,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "bin": {},
   "files": [
     "dist/",
     "images/",
@@ -35,7 +34,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/async-map": "^0.0.0",
+    "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.2.0",
     "csv-stringify": "^5.5.0",

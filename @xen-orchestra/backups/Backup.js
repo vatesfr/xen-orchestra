@@ -55,10 +55,14 @@ exports.Backup = class Backup {
   }
 
   async _runMetadataBackup() {
-    const config = this._config
-    const job = this._job
     const schedule = this._schedule
+    const job = this._job
+    const remoteIds = extractIdsFromSimplePattern(job.remotes)
+    if (remoteIds.length === 0) {
+      throw new Error('metadata backup job cannot run without remotes')
+    }
 
+    const config = this._config
     const settings = {
       ...config.defaultSettings,
       ...config.metadata.defaultSettings,
@@ -66,9 +70,26 @@ exports.Backup = class Backup {
       ...job.settings[schedule.id],
     }
 
+    const poolIds = extractIdsFromSimplePattern(job.pools)
+    const isEmptyPools = poolIds.length === 0
+    const isXoMetadata = job.xoMetadata !== undefined
+    if (!isXoMetadata && isEmptyPools) {
+      throw new Error('no metadata mode found')
+    }
+
+    const { retentionPoolMetadata, retentionXoMetadata } = settings
+
+    if (
+      (retentionPoolMetadata === 0 && retentionXoMetadata === 0) ||
+      (!isXoMetadata && retentionPoolMetadata === 0) ||
+      (isEmptyPools && retentionXoMetadata === 0)
+    ) {
+      throw new Error('no retentions corresponding to the metadata modes found')
+    }
+
     await using(
       Disposable.all(
-        extractIdsFromSimplePattern(job.pools).map(id =>
+        poolIds.map(id =>
           this._getRecord('pool', id).catch(error => {
             // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
             runTask(
@@ -82,7 +103,7 @@ exports.Backup = class Backup {
         )
       ),
       Disposable.all(
-        extractIdsFromSimplePattern(job.remotes).map(id =>
+        remoteIds.map(id =>
           this._getAdapter(id).catch(error => {
             // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
             runTask(
@@ -176,9 +197,43 @@ exports.Backup = class Backup {
     }
 
     await using(
-      Disposable.all(extractIdsFromSimplePattern(job.srs).map(_ => this._getRecord('SR', _))),
-      Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
+      Disposable.all(
+        extractIdsFromSimplePattern(job.srs).map(id =>
+          this._getRecord('SR', id).catch(error => {
+            runTask(
+              {
+                name: 'get SR record',
+                data: { type: 'SR', id },
+              },
+              () => Promise.reject(error)
+            )
+          })
+        )
+      ),
+      Disposable.all(
+        extractIdsFromSimplePattern(job.remotes).map(id =>
+          this._getAdapter(id).catch(error => {
+            runTask(
+              {
+                name: 'get remote adapter',
+                data: { type: 'remote', id },
+              },
+              () => Promise.reject(error)
+            )
+          })
+        )
+      ),
       async (srs, remoteAdapters) => {
+        // remove adapters that failed (already handled)
+        remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
+
+        // remove srs that failed (already handled)
+        srs = srs.filter(_ => _ !== undefined)
+
+        if (remoteAdapters.length === 0 && srs.length === 0 && scheduleSettings.snapshotRetention === 0) {
+          return
+        }
+
         const vmIds = extractIdsFromSimplePattern(job.vms)
 
         Task.info('vms', { vms: vmIds })

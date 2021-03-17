@@ -70,7 +70,7 @@ export default class {
       xo.addConfigManager(
         'resourceSets',
         () => this.getAllResourceSets(),
-        resourceSets => Promise.all(mapToArray(resourceSets, resourceSet => this._save(resourceSet))),
+        resourceSets => Promise.all(resourceSets.map(resourceSet => this._save(resourceSet))),
         ['groups', 'users']
       )
 

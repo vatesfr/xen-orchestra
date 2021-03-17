@@ -1,6 +1,6 @@
 import { forbiddenOperation, invalidParameters } from 'xo-common/api-errors'
 import { isEmpty } from 'lodash'
-import { getUserPublicProperties, mapToArray } from '../utils'
+import { getUserPublicProperties } from '../utils'
 
 // ===================================================================
 
@@ -49,7 +49,7 @@ export async function getAll() {
   const users = await this.getAllUsers()
 
   // Filters out private properties.
-  return mapToArray(users, getUserPublicProperties)
+  return users.map(getUserPublicProperties)
 }
 
 getAll.description = 'returns all the existing users'

@@ -1,4 +1,4 @@
-import { NULL_REF } from 'xen-api'
+import { Ref } from 'xen-api'
 
 const OTHER_CONFIG_TEMPLATE = {
   actions_after_crash: 'restart',
@@ -34,7 +34,7 @@ const OTHER_CONFIG_TEMPLATE = {
     hpet: 'true',
     viridian: 'true',
   },
-  protection_policy: NULL_REF,
+  protection_policy: Ref.EMPTY,
   PV_args: '',
   PV_bootloader: '',
   PV_bootloader_args: '',

@@ -17,7 +17,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "bin": {},
   "files": [
     "dist/"
   ],

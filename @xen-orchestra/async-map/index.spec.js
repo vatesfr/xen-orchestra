@@ -61,6 +61,11 @@ describe('asyncMapSettled', () => {
     await new Promise(resolve => setImmediate(resolve))
 
     expect(hasSettled).toBe(true)
-    expect(promise).rejects.toBe(error)
+    await expect(promise).rejects.toBe(error)
+  })
+
+  it('issues when latest promise rejects', async () => {
+    const error = new Error()
+    await expect(asyncMapSettled([1], () => Promise.reject(error))).rejects.toBe(error)
   })
 })

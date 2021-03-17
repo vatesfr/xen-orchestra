@@ -40,4 +40,37 @@ describe('deduped()', () => {
 
     expect(dispose).toHaveBeenCalledTimes(1)
   })
+
+  it('works with sync factory', () => {
+    const value = {}
+    const dispose = jest.fn()
+    const dedupedGetResource = deduped(() => ({ value, dispose }))
+
+    const d1 = dedupedGetResource()
+    expect(d1.value).toBe(value)
+
+    const d2 = dedupedGetResource()
+    expect(d2.value).toBe(value)
+
+    d1.dispose()
+
+    expect(dispose).not.toHaveBeenCalled()
+
+    d2.dispose()
+
+    expect(dispose).toHaveBeenCalledTimes(1)
+  })
+
+  it('no race condition on dispose before async acquisition', async () => {
+    const dispose = jest.fn()
+    const dedupedGetResource = deduped(async () => ({ value: 42, dispose }))
+
+    const d1 = await dedupedGetResource()
+
+    dedupedGetResource()
+
+    d1.dispose()
+
+    expect(dispose).not.toHaveBeenCalled()
+  })
 })

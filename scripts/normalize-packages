@@ -5,6 +5,12 @@ const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
 const { getPackages, readFile, writeFile, unlink } = require('./utils')
 
+const deleteIfEmpty = (object, property) => {
+  if (isEmpty(object[property])) {
+    delete object[property]
+  }
+}
+
 const deleteProperties = (object, property, properties) => {
   const nestedObject = object[property]
   if (nestedObject === undefined) {
@@ -13,9 +19,7 @@ const deleteProperties = (object, property, properties) => {
   properties.forEach(property => {
     delete nestedObject[property]
   })
-  if (isEmpty(object[property])) {
-    delete object[property]
-  }
+  deleteIfEmpty(object, property)
 }
 
 const generateReadme = require('handlebars').compile(require('fs').readFileSync(`${__dirname}/README.md.tpl`, 'utf8'))
@@ -57,6 +61,7 @@ require('exec-promise')(() =>
     delete pkg.standard
     delete pkg['lint-staged']
 
+    deleteIfEmpty(pkg, 'bin')
     deleteProperties(pkg, 'config', ['commitizen'])
     deleteProperties(pkg, 'devDependencies', [
       'babel-7-jest',

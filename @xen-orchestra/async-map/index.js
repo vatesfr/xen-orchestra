@@ -1,4 +1,10 @@
-const wrapCall = require('promise-toolbox/wrapCall')
+const wrapCall = (fn, arg, thisArg) => {
+  try {
+    return Promise.resolve(fn.call(thisArg, arg))
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}
 
 /**
  * Similar to Promise.all + Array#map but supports all iterables and does not trigger ESLint array-callback-return
@@ -6,7 +12,7 @@ const wrapCall = require('promise-toolbox/wrapCall')
  * WARNING: Does not handle plain objects
  *
  * @template Item,This
- * @param {Iterable<Item>} arrayLike
+ * @param {Iterable<Item>} iterable
  * @param {(this: This, item: Item) => (Item | PromiseLike<Item>)} mapFn
  * @param {This} [thisArg]
  * @returns {Promise<Item[]>}
@@ -32,7 +38,7 @@ exports.asyncMapSettled = function asyncMapSettled(iterable, mapFn, thisArg = it
         result = undefined
       }
       if (--n === 0) {
-        this.reject(error)
+        reject(error)
       }
     }
     const onValue = (i, value) => {

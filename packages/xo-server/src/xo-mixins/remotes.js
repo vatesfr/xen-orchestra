@@ -7,7 +7,6 @@ import { noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
 import patch from '../patch'
-import { mapToArray } from '../utils'
 import { Remotes } from '../models/remote'
 
 // ===================================================================
@@ -34,7 +33,7 @@ export default class {
       xo.addConfigManager(
         'remotes',
         () => this._remotes.get(),
-        remotes => Promise.all(mapToArray(remotes, remote => this._remotes.update(remote)))
+        remotes => Promise.all(remotes.map(remote => this._remotes.update(remote)))
       )
 
       const remotes = await this._remotes.get()
