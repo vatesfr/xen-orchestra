@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -24,7 +24,7 @@
     "rimraf": "^3.0.0"
   },
   "peerDependencies": {
-    "xen-api": "^0.29.1"
+    "xen-api": "^0.30.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

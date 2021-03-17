@@ -5,7 +5,6 @@ import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
 import { getHandler } from '@xen-orchestra/fs'
 
-
 export default class Remotes {
   constructor(app) {
     this._app = app

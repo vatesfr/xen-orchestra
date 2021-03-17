@@ -1,4 +1,4 @@
-import { filter, find, map as mapToArray } from 'lodash'
+import { filter, find } from 'lodash'
 
 import Plan from './plan'
 import { debug } from './utils'
@@ -19,7 +19,7 @@ function searchBestObject(objects, fun) {
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
-  _checkRessourcesThresholds(objects, averages) {
+  _checkResourcesThresholds(objects, averages) {
     return filter(objects, object => {
       const objectAverages = averages[object.id]
 
@@ -33,13 +33,10 @@ export default class PerformancePlan extends Plan {
     // Try to power on a hosts set.
     try {
       await Promise.all(
-        mapToArray(
-          filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== ''),
-          host => {
-            const { id } = host
-            return this.xo.getXapi(id).powerOnHost(id)
-          }
-        )
+        filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== '').map(host => {
+          const { id } = host
+          return this.xo.getXapi(id).powerOnHost(id)
+        })
       )
     } catch (error) {
       console.error(error)

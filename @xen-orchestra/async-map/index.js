@@ -12,7 +12,7 @@ const wrapCall = (fn, arg, thisArg) => {
  * WARNING: Does not handle plain objects
  *
  * @template Item,This
- * @param {Iterable<Item>} arrayLike
+ * @param {Iterable<Item>} iterable
  * @param {(this: This, item: Item) => (Item | PromiseLike<Item>)} mapFn
  * @param {This} [thisArg]
  * @returns {Promise<Item[]>}

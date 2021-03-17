@@ -16,7 +16,7 @@ const { getOldEntries } = require('./_getOldEntries')
 const { Task } = require('./Task')
 const { watchStreamSize } = require('./_watchStreamSize')
 
-const { debug, warn } = createLogger('xo:proxy:backups:VmBackup')
+const { debug, warn } = createLogger('xo:backups:VmBackup')
 
 const forkDeltaExport = deltaExport =>
   Object.create(deltaExport, {

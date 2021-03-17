@@ -6,7 +6,7 @@ import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource'
 import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
-import { forEach, includes, isEmpty, iteratee, map as mapToArray, stubTrue } from 'lodash'
+import { forEach, includes, isEmpty, iteratee, stubTrue } from 'lodash'
 import { parseDuration } from '@vates/parse-duration'
 
 import mixins from './xo-mixins'
@@ -17,7 +17,7 @@ import { generateToken, noop } from './utils'
 
 const log = createLogger('xo:xo')
 
-@mixin(mapToArray(mixins))
+@mixin(Object.values(mixins))
 export default class Xo extends EventEmitter {
   constructor(config) {
     super()

@@ -3,7 +3,7 @@ const { createLogger } = require('@xen-orchestra/log')
 const { createParser } = require('parse-pairs')
 const { execFile } = require('child_process')
 
-const { debug } = createLogger('xo:proxy:api')
+const { debug } = createLogger('xo:backups:listPartitions')
 
 const IGNORED_PARTITION_TYPES = {
   // https://github.com/jhermsmeier/node-mbr/blob/master/lib/partition.js#L38
