@@ -35,4 +35,4 @@
 
 - xen-api minor
 - xo-server minor
-- xo-web patch
+- xo-web minor
