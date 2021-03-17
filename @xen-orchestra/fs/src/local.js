@@ -1,10 +1,21 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
-import { fromEvent } from 'promise-toolbox'
+import { fromEvent, retry } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
+  constructor(remote, opts) {
+    super(remote)
+    this._retriesOnEagain = {
+      delay: 1e3,
+      retries: 9,
+      ...opts.retriesOnEagain,
+      when: {
+        code: 'EAGAIN',
+      },
+    }
+  }
   get type() {
     return 'file'
   }
@@ -92,7 +103,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _readFile(file, options) {
-    return fs.readFile(this._getFilePath(file), options)
+    const filePath = this._getFilePath(file)
+    return await retry(() => fs.readFile(filePath, options), this._retriesOnEagain)
   }
 
   async _rename(oldPath, newPath) {
@@ -114,7 +126,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _unlink(file) {
-    return fs.unlink(this._getFilePath(file))
+    const filePath = this._getFilePath(file)
+    return await retry(() => fs.unlink(filePath), this._retriesOnEagain)
   }
 
   _writeFd(file, buffer, position) {
