@@ -489,33 +489,31 @@ If you are behind a proxy, please update your `xo-server` configuration to add a
 ## Pool Management
 
 ::: danger
-As specified on the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't regroup hosts from different CPU vendor.
+As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't consist of hosts from different CPU vendors.
 :::
 ::: warning
-- Even from the same vendor XCP-ng will scale the pool CPU ability with the CPU having the less possibilities. 
-- All the hosts on a pool must have the same XCP-ng version.
+- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions. 
+- All the hosts in a pool must run the same XCP-ng version.
 :::
 ### Creating a pool
 
-First you should add your new host to XOA by going to New > Server as describe on [the relevant chapter](manage_infrastructure.md#add-a-host).
+First you should add your new host to XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
 
-When you add your host to XOA a pool will automatically being created for him, taking the host name as default pool name. The pool name can be edited to match your need.
+When you add your host to XOA a pool will automatically be created for it, taking the host name as the default pool name. The pool name can be edited to match your needs.
 
 To edit the name of your pool go to Home > Pools and long click on the pool name to edit it.
 
 ### Adding a host to an existing pool
 
-If you need to add a new host to a pool, first you need to add your host to your XOA by going to New > Server as describe on [the relevant chapter](manage_infrastructure.md#add-a-host).
+If you need to add a new host to a pool, first you need to add your new host to your XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
 
-Then you need to edit the pool name of your new host to match your master host pool name, the new host will be added to the pool.
-
-To edit the name of your pool go to Home > Pools and long click on the pool name to edit it.
+Then you need to add the new host to the desired pool. Navigate to Home > Pools, and click on the desired pool. Then in the top right, click the Add Hosts button and select your new host.
 
 ### Adding an existing pool
 
-If your hosts already are in a pool you only need to add your pool master host to XOA, the slaves will be added automatically.
+If your hosts are already in a pool you only need to add your pool master host to XOA, the slaves will be added automatically.
 ::: danger
-Don't add slave host of an existing pool to your XOA.
+Don't add pool slaves to your XOA server list! XOA will automatically find them from the master you add.
 :::
 
 ## Visualizations
