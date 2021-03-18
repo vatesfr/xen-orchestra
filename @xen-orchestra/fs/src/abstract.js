@@ -73,9 +73,9 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
+  _highWaterMark: number
   _remote: Object
   _timeout: number
-  _highWaterMark: number
 
   constructor(remote: any, options: Object = {}) {
     if (remote.url === 'test://') {
