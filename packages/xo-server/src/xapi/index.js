@@ -14,7 +14,7 @@ import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
-import { forbiddenOperation } from 'xo-common/api-errors'
+import { forbiddenOperation, incorrectState } from 'xo-common/api-errors'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
 import { Ref } from 'xen-api'
@@ -579,7 +579,12 @@ export default class Xapi extends XapiBase {
     }
 
     if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
-      throw forbiddenOperation('destroy', 'VM is default template')
+      throw incorrectState({
+        actual: true,
+        expected: false,
+        object: vm.$id,
+        property: 'isDefaultTemplate',
+      })
     }
 
     // It is necessary for suspended VMs to be shut down
