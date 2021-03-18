@@ -38,7 +38,7 @@ Let's take a quick tour:
 You can edit a VM name, description and even current host by long clicking on the field
 :::
 
-## Bulk actions
+### Bulk actions
 
 You can select multiple objects (eg VMs) at once to perform a bulk action. The master checkbox will select all, or you can select anything yourself.
 
@@ -285,7 +285,7 @@ These templates will use PV configuration in order to boot: either from the righ
 
 Because there is already disks installed, you shouldn't have "Install settings" _per se_. But you can use our `config drive` setup if your template already has CloudInit installed!
 
-Please refer to the [XenServer CloudInit section](cloudinit.md) for more.
+Please refer to the [XCP-ng CloudInit section](advanced.md#cloud-init) for more.
 
 #### Interfaces
 
@@ -316,8 +316,10 @@ In the advanced tab, you have extra options:
 - Each VM has a maximum vCPU number. This value can't be changed while the VM is running. You can reduce the number of vCPUs, but you can't assign more than the set max. In XO, while your VM is halted, set the max vCPUs you would need, then boot it. Now you can reduce it and then expand it later to this maximum.
 - The same limitation applies to static RAM.
 
-You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/de-de/xencenter/6-5/xs-xc-vms-configuring/xs-xc-vms-memory/xs-xc-dmc-about.html).
-
+You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/en-us/citrix-hypervisor/system-requirements/configuration-limits.html).
+:::tip
+XCP-ng doesn't limit VMs to 32 vCPU
+:::
 ### VDI live migration
 
 Thanks to Xen Storage Motion, it's easy to move a VM disk from one storage location to another, while the VM is running! This feature can help you migrate from your local storage to a SAN, or just upgrade your SAN without any downtime.
@@ -349,7 +351,7 @@ If you pool supports HA (must have shared storage), you can activate "HA". Read 
 #### Docker management
 
 :::tip
-Please [read the dedicated section](docker_support.md) to install a Docker Ready VM.
+Please [read the dedicated section](manage_infrastructure.md#docker-support) to install a Docker Ready VM.
 :::
 
 ### VM CPU priority
