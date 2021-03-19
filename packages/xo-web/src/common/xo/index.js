@@ -1143,10 +1143,8 @@ export const deleteTemplates = templates =>
         _call('vm.delete', { id }).catch(reason => {
           if (
             incorrectState.is(reason, {
-              data: {
-                expected: false,
-                property: 'isDefaultTemplate',
-              },
+              expected: false,
+              property: 'isDefaultTemplate',
             })
           ) {
             defaultTemplates.push(id)
