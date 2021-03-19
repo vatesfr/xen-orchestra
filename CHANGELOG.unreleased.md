@@ -17,7 +17,7 @@
 - [Backup] Retry automatically on `resource temporarily unavailable` error (PR [#5612](https://github.com/vatesfr/xen-orchestra/pull/5612))
 - [Backup Restore] Don't break in case of malformed logs
 - [Backup Restore] Fix `MESSAGE_METHOD_UNKNOWN(VM.set_bios_strings)` with XenServer < 7.3
-- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683]https://github.com/vatesfr/xen-orchestra/pull/5683)
+- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683](https://github.com/vatesfr/xen-orchestra/pull/5683))
 
 ### Packages to release
 
