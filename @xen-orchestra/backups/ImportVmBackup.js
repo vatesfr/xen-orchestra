@@ -54,6 +54,6 @@ exports.ImportVmBackup = class ImportVmBackup {
           id: await xapi.getField('VM', vmRef, 'uuid'),
         }
       }
-    ).catch(() => {}) // errors are handled by logs
+    )
   }
 }

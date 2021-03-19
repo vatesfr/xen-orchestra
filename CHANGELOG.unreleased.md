@@ -36,5 +36,6 @@
 - xo-common minor
 - @xen-orchestra/fs patch
 - xen-api minor
+- @xen-orchestra/backups patch
 - xo-server patch
 - xo-web patch
