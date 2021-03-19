@@ -1141,7 +1141,14 @@ export const deleteTemplates = templates =>
     await Promise.all(
       map(resolveIds(templates), id =>
         _call('vm.delete', { id }).catch(reason => {
-          if (incorrectState.is(reason)) {
+          if (
+            incorrectState.is(reason, {
+              data: {
+                expected: false,
+                property: 'isDefaultTemplate',
+              },
+            })
+          ) {
             defaultTemplates.push(id)
           } else {
             nErrors++
