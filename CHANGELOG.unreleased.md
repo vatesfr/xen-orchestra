@@ -16,6 +16,7 @@
 - Work-around some `ECONNRESET` errors when connecting to XEN-API (PR [#5674](https://github.com/vatesfr/xen-orchestra/pull/5674))
 - [Backup] Retry automatically on `resource temporarily unavailable` error (PR [#5612](https://github.com/vatesfr/xen-orchestra/pull/5612))
 - [Backup Restore] Don't break in case of malformed logs
+- [Backup Restore] Fix `MESSAGE_METHOD_UNKNOWN(VM.set_bios_strings)` with XenServer < 7.3
 
 ### Packages to release
 
