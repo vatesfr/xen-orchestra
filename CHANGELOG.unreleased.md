@@ -33,6 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-common minor
 - @xen-orchestra/fs patch
 - xen-api minor
 - xo-server patch
