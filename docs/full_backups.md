@@ -12,7 +12,7 @@ Full backups are space consuming! But they allow a very simple restoration witho
 
 In some cases you will need to do a backup without doing a snapshot.
  
-The most common use case for this is a large Vm on a small local SR where you just don't have the space to do a snapshot before backup.  
+The most common use case for this is a large VM on a small local SR where you just don't have the space to do a snapshot before backup.  
 So for that you need to open the advanced settings of your backup job, and check the offline backup check box:  
 
 ![](./assets/backupnosnap.png)
