@@ -15,6 +15,8 @@
 - [Configuration] Automatically connect enabled servers after import [#5660](https://github.com/vatesfr/xen-orchestra/issues/5660) (PR [#5672](https://github.com/vatesfr/xen-orchestra/pull/5672))
 - Work-around some `ECONNRESET` errors when connecting to XEN-API (PR [#5674](https://github.com/vatesfr/xen-orchestra/pull/5674))
 - [Backup] Retry automatically on `resource temporarily unavailable` error (PR [#5612](https://github.com/vatesfr/xen-orchestra/pull/5612))
+- [Backup Restore] Don't break in case of malformed logs
+- [Backup Restore] Fix `MESSAGE_METHOD_UNKNOWN(VM.set_bios_strings)` with XenServer < 7.3
 - [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683]https://github.com/vatesfr/xen-orchestra/pull/5683)
 
 ### Packages to release
@@ -34,7 +36,10 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-common minor
 - @xen-orchestra/fs patch
 - xen-api minor
+- @xen-orchestra/xapi patch
+- @xen-orchestra/backups patch
 - xo-server patch
 - xo-web patch

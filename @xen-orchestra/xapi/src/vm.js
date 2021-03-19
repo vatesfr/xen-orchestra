@@ -261,7 +261,8 @@ module.exports = class Vm {
 
     bios_strings = cleanBiosStrings(bios_strings)
     if (bios_strings !== undefined) {
-      await this.call('VM.set_bios_strings', ref, bios_strings)
+      // Only available on XS >= 7.3
+      await pCatch.call(this.call('VM.set_bios_strings', ref, bios_strings), { code: 'MESSAGE_METHOD_UNKNOWN' }, noop)
     }
 
     return ref

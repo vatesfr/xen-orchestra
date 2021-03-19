@@ -486,6 +486,36 @@ If you are behind a proxy, please update your `xo-server` configuration to add a
 
 ![](./assets/xo5patching.png)
 
+## Pool Management
+
+::: danger
+As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't consist of hosts from different CPU vendors.
+:::
+::: warning
+- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions. 
+- All the hosts in a pool must run the same XCP-ng version.
+:::
+### Creating a pool
+
+First you should add your new host to XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
+
+When you add your host to XOA a pool will automatically be created for it, taking the host name as the default pool name. The pool name can be edited to match your needs.
+
+To edit the name of your pool go to Home > Pools and long click on the pool name to edit it.
+
+### Adding a host to an existing pool
+
+If you need to add a new host to a pool, first you need to add your new host to your XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
+
+Then you need to add the new host to the desired pool. Navigate to Home > Pools, and click on the desired pool. Then in the top right, click the Add Hosts button and select your new host.
+
+### Adding an existing pool
+
+If your hosts are already in a pool you only need to add your pool master host to XOA, the slaves will be added automatically.
+::: danger
+Don't add pool slaves to your XOA server list! XOA will automatically find them from the master you add.
+:::
+
 ## Visualizations
 
 Visualizations can help you to understand your XenServer infrastructure, as well as correlate events and detect bottlenecks.
