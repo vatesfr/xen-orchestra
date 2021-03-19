@@ -128,7 +128,8 @@ export const testSchema = {
 // ===================================================================
 
 class TransportEmailPlugin {
-  constructor({ xo }) {
+  constructor({ staticConfig, xo }) {
+    this._debug = staticConfig.debug
     this._xo = xo
     this._unset = null
 
@@ -155,6 +156,11 @@ class TransportEmailPlugin {
       case 'required':
         transportConf.requireTLS = true
         break
+    }
+
+    if (this._debug) {
+      transportConf.logger = true
+      transportConf.debug = true
     }
 
     const transport = createTransport(transportConf, { from })
