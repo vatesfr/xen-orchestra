@@ -12,7 +12,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { randomBytes } from 'crypto'
 import { resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
-import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
+import { fromCallback, promisify } from 'promise-toolbox'
 
 import { type SimpleIdPattern } from './utils'
 
@@ -156,20 +156,6 @@ export const lightSet = collection => {
 //
 // It is often used to swallow promise's errors.
 export const noop = () => {}
-
-// -------------------------------------------------------------------
-
-// Given a collection (array or object) which contains promises,
-// return a promise that is fulfilled when all the items in the
-// collection are either fulfilled or rejected.
-//
-// This promise will be fulfilled with a collection (of the same type,
-// array or object) containing promise inspections.
-//
-// Usage: pSettle(promises) or promises::pSettle()
-export function pSettle(promises) {
-  return (this || promises)::pAll(p => Promise.resolve(p)::pReflect())
-}
 
 // -------------------------------------------------------------------
 
