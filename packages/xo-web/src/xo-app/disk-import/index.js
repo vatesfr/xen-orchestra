@@ -69,7 +69,7 @@ const DiskImport = decorate([
             }
           })
         )
-        return { disks, loadingDisks: false }
+        return { disks: disks.filter(disk => disk !== undefined), loadingDisks: false }
       },
       import: () => async ({ disks, mapDescriptions, mapNames, sr }) => {
         await importDisks(
