@@ -15,6 +15,7 @@
 - [Configuration] Automatically connect enabled servers after import [#5660](https://github.com/vatesfr/xen-orchestra/issues/5660) (PR [#5672](https://github.com/vatesfr/xen-orchestra/pull/5672))
 - Work-around some `ECONNRESET` errors when connecting to XEN-API (PR [#5674](https://github.com/vatesfr/xen-orchestra/pull/5674))
 - [Backup] Retry automatically on `resource temporarily unavailable` error (PR [#5612](https://github.com/vatesfr/xen-orchestra/pull/5612))
+- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683]https://github.com/vatesfr/xen-orchestra/pull/5683)
 
 ### Packages to release
 
