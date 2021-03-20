@@ -24,7 +24,8 @@ import { satisfies as versionSatisfies } from 'semver'
 import createSizeStream from '../size-stream'
 import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import { camelToSnakeCase, forEach, map, pAll, parseSize, pDelay, pFinally, promisifyAll } from '../utils'
+import { asyncMapValues } from '../_asyncMapValues'
+import { camelToSnakeCase, forEach, map, parseSize, pDelay, pFinally, promisifyAll } from '../utils'
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
@@ -894,7 +895,7 @@ export default class Xapi extends XapiBase {
     //
     // TODO: move all VDIs creation before the VM and simplify the code
     const vbds = groupBy(delta.vbds, 'VDI')
-    const newVdis = await map(delta.vdis, async (vdi, vdiRef) => {
+    const newVdis = await asyncMapValues(delta.vdis, async (vdi, vdiRef) => {
       let newVdi
 
       const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
@@ -933,7 +934,7 @@ export default class Xapi extends XapiBase {
       )
 
       return newVdi
-    })::pAll()
+    })
 
     const networksByNameLabelByVlan = {}
     let defaultNetwork
