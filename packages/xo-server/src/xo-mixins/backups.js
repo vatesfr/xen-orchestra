@@ -21,7 +21,6 @@ import {
   forEach,
   getFirstPropertyName,
   mapFilter,
-  pFinally,
   pFromCallback,
   resolveSubpath,
   safeDateFormat,
@@ -159,7 +158,7 @@ const listPartitions2 = device =>
                 })
               })
             })
-            promise::pFinally(device.unmount)
+            promise.finally(device.unmount)
             return promise
           })
         )

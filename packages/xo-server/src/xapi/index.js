@@ -25,7 +25,7 @@ import createSizeStream from '../size-stream'
 import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import { asyncMapValues } from '../_asyncMapValues'
-import { camelToSnakeCase, forEach, map, parseSize, pDelay, pFinally, promisifyAll } from '../utils'
+import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils'
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
@@ -661,7 +661,7 @@ export default class Xapi extends XapiBase {
 
     if (useSnapshot) {
       const destroySnapshot = () => this.deleteVm(exportedVm)::ignoreErrors()
-      promise.then(_ => _.task::pFinally(destroySnapshot), destroySnapshot)
+      promise.then(_ => _.task.finally(destroySnapshot), destroySnapshot)
     }
 
     return promise
