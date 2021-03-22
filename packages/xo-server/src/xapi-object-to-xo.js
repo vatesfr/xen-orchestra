@@ -1,10 +1,11 @@
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
-import isDefaultTemplate from './xapi/isDefaultTemplate'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils'
 import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
 import { useUpdateSystem } from './xapi/utils'
+
+const isDefaultTemplate = require('@xen-orchestra/xapi/src/isDefaultTemplate')
 
 // ===================================================================
 

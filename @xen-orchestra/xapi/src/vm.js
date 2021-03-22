@@ -10,7 +10,10 @@ const { createLogger } = require('@xen-orchestra/log')
 const { Ref } = require('xen-api')
 
 const extractOpaqueRef = require('./_extractOpaqueRef')
+const isDefaultTemplate = require('./isDefaultTemplate')
 const isVmRunning = require('./_isVmRunning')
+
+const { incorrectState } = require('../../../packages/xo-common/api-errors')
 
 const { warn } = createLogger('xo:xapi:vm')
 
@@ -274,8 +277,13 @@ module.exports = class Vm {
       throw new Error('destroy is blocked')
     }
 
-    if (!forceDeleteDefaultTemplate && vm.other_config.default_template === 'true') {
-      throw new Error('VM is default template')
+    if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
+      throw incorrectState({
+        actual: true,
+        expected: false,
+        object: vm.$id,
+        property: 'isDefaultTemplate',
+      })
     }
 
     // It is necessary for suspended VMs to be shut down

@@ -14,7 +14,7 @@ import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
-import { forbiddenOperation, incorrectState } from 'xo-common/api-errors'
+import { forbiddenOperation } from 'xo-common/api-errors'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
 import { Ref } from 'xen-api'
@@ -25,7 +25,6 @@ import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
 import { camelToSnakeCase, forEach, map, pAll, parseSize, pDelay, pFinally, promisifyAll, pSettle } from '../utils'
 
-import isDefaultTemplate from './isDefaultTemplate'
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
 import { type DeltaVmExport } from './'
@@ -34,7 +33,6 @@ import {
   asInteger,
   extractOpaqueRef,
   filterUndefineds,
-  getVmDisks,
   canSrHaveNewVdiOfSize,
   isVmHvm,
   isVmRunning,
@@ -568,66 +566,7 @@ export default class Xapi extends XapiBase {
 
   async _deleteVm(vmOrRef, deleteDisks = true, force = false, forceDeleteDefaultTemplate = false) {
     const $ref = typeof vmOrRef === 'string' ? vmOrRef : vmOrRef.$ref
-
-    // ensure the vm record is up-to-date
-    const vm = await this.barrier($ref)
-
-    log.debug(`Deleting VM ${vm.name_label}`)
-
-    if (!force && 'destroy' in vm.blocked_operations) {
-      throw forbiddenOperation('destroy', vm.blocked_operations.destroy.reason)
-    }
-
-    if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
-      throw incorrectState({
-        actual: true,
-        expected: false,
-        object: vm.$id,
-        property: 'isDefaultTemplate',
-      })
-    }
-
-    // It is necessary for suspended VMs to be shut down
-    // to be able to delete their VDIs.
-    if (vm.power_state !== 'Halted') {
-      await this.callAsync('VM.hard_shutdown', $ref)
-    }
-
-    await Promise.all([
-      vm.set_is_a_template(false),
-      vm.update_blocked_operations('destroy', null),
-      vm.update_other_config('default_template', null),
-    ])
-
-    // must be done before destroying the VM
-    const disks = getVmDisks(vm)
-
-    // this cannot be done in parallel, otherwise disks and snapshots will be
-    // destroyed even if this fails
-    await this.callAsync('VM.destroy', $ref)
-
-    return Promise.all([
-      asyncMapSettled(vm.$snapshots, snapshot => this._deleteVm(snapshot))::ignoreErrors(),
-
-      vm.power_state === 'Suspended' &&
-        Ref.isNotEmpty(vm.suspend_VDI) &&
-        this._deleteVdi(vm.suspend_VDI)::ignoreErrors(),
-
-      deleteDisks &&
-        asyncMapSettled(disks, async vdi => {
-          // Dont destroy if attached to other (non control domain) VMs
-          if (vdi.$VBDs.some(vbd => vbd !== undefined && vbd.VM !== $ref && !vbd.$VM.is_control_domain)) {
-            return
-          }
-
-          return pRetry(() => vdi.$callAsync('destroy'), {
-            // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet.
-            delay: 5e3,
-            retries: 5,
-            when: { code: 'VDI_IN_USE' },
-          })
-        })::ignoreErrors(),
-    ])
+    await this.VM_destroy($ref, { deleteDisks, force, forceDeleteDefaultTemplate })
   }
 
   async deleteVm(vmId, deleteDisks, force, forceDeleteDefaultTemplate) {
