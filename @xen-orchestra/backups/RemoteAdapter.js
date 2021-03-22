@@ -73,7 +73,7 @@ const debounceResourceFactory = factory =>
   }
 
 exports.RemoteAdapter = class RemoteAdapter {
-  constructor(handler, { debounceResource, dirMode }) {
+  constructor(handler, { debounceResource = res => res, dirMode } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler

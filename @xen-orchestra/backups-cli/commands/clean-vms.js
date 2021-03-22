@@ -13,7 +13,6 @@ const { resolve } = require('path')
 
 const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
 
-// TODO: pass debounceResource on using an other method than `cleanVm`
 const adapter = new RemoteAdapter(handler)
 
 module.exports = async function main(args) {
