@@ -36,12 +36,12 @@
     "@vates/decorate-with": "^0.0.1",
     "@vates/disposable": "^0.1.0",
     "@vates/parse-duration": "^0.1.0",
-    "@xen-orchestra/backups": "^0.7.0",
+    "@xen-orchestra/backups": "^0.7.1",
     "@xen-orchestra/emit-async": "^0.0.0",
-    "@xen-orchestra/fs": "^0.13.0",
+    "@xen-orchestra/fs": "^0.13.1",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/self-signed": "^0.1.0",
-    "@xen-orchestra/xapi": "^0.4.4",
+    "@xen-orchestra/xapi": "^0.4.5",
     "ajv": "^6.10.0",
     "app-conf": "^0.9.0",
     "async-iterator-to-stream": "^1.1.0",
@@ -65,8 +65,8 @@
     "source-map-support": "^0.5.16",
     "stoppable": "^1.0.6",
     "xdg-basedir": "^4.0.0",
-    "xen-api": "^0.30.0",
-    "xo-common": "^0.6.0"
+    "xen-api": "^0.31.0",
+    "xo-common": "^0.7.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
