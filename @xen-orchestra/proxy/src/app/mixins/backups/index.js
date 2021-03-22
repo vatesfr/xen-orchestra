@@ -1,7 +1,6 @@
 import defer from 'golike-defer'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
-import using from 'promise-toolbox/using'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { Backup } from '@xen-orchestra/backups/Backup'
 import { compose } from '@vates/compose'
@@ -126,7 +125,8 @@ export default class Backups {
     app.api.addMethods({
       backup: {
         deleteMetadataBackup: [
-          ({ backupId, remote }) => using(this.getAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId)),
+          ({ backupId, remote }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId)),
           {
             description: 'delete Metadata backup',
             params: {
@@ -136,7 +136,8 @@ export default class Backups {
           },
         ],
         deleteVmBackup: [
-          ({ filename, remote }) => using(this.getAdapter(remote), adapter => adapter.deleteVmBackup(filename)),
+          ({ filename, remote }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackup(filename)),
           {
             description: 'delete VM backup',
             params: {
@@ -147,7 +148,7 @@ export default class Backups {
         ],
         fetchPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, paths }) =>
-            using(this.getAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths)),
+            Disposable.use(this.getAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths)),
           {
             description: 'fetch files from partition',
             params: {
@@ -160,7 +161,7 @@ export default class Backups {
         ],
         importVmBackup: [
           defer(($defer, { backupId, remote, srUuid, streamLogs = false, xapi: xapiOpts }) =>
-            using(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) => {
+            Disposable.use(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) => {
               const metadata = await adapter.readVmBackupMetadata(backupId)
               const run = () => new ImportVmBackup({ adapter, metadata, srUuid, xapi }).run()
               return streamLogs
@@ -194,7 +195,8 @@ export default class Backups {
           },
         ],
         listDiskPartitions: [
-          ({ disk: diskId, remote }) => using(this.getAdapter(remote), adapter => adapter.listPartitions(diskId)),
+          ({ disk: diskId, remote }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.listPartitions(diskId)),
           {
             description: 'list disk partitions',
             params: {
@@ -205,7 +207,7 @@ export default class Backups {
         ],
         listPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, path }) =>
-            using(this.getAdapter(remote), adapter => adapter.listPartitionFiles(diskId, partitionId, path)),
+            Disposable.use(this.getAdapter(remote), adapter => adapter.listPartitionFiles(diskId, partitionId, path)),
           {
             description: 'list partition files',
             params: {
@@ -221,7 +223,7 @@ export default class Backups {
             const backupsByRemote = {}
             await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
               try {
-                await using(this.getAdapter(remote), async adapter => {
+                await Disposable.use(this.getAdapter(remote), async adapter => {
                   backupsByRemote[remoteId] = await adapter.listPoolMetadataBackups()
                 })
               } catch (error) {
@@ -245,7 +247,7 @@ export default class Backups {
             const backups = {}
             await asyncMap(Object.keys(remotes), async remoteId => {
               try {
-                await using(this.getAdapter(remotes[remoteId]), async adapter => {
+                await Disposable.use(this.getAdapter(remotes[remoteId]), async adapter => {
                   backups[remoteId] = formatVmBackups(await adapter.listAllVmBackups())
                 })
               } catch (error) {
@@ -275,7 +277,7 @@ export default class Backups {
             const backupsByRemote = {}
             await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
               try {
-                await using(this.getAdapter(remote), async adapter => {
+                await Disposable.use(this.getAdapter(remote), async adapter => {
                   backupsByRemote[remoteId] = await adapter.listXoMetadataBackups()
                 })
               } catch (error) {
@@ -296,7 +298,7 @@ export default class Backups {
         ],
         restoreMetadataBackup: [
           ({ backupId, remote, xapi: xapiOptions }) =>
-            using(app.remotes.getHandler(remote), xapiOptions && this.getXapi(xapiOptions), (handler, xapi) =>
+            Disposable.use(app.remotes.getHandler(remote), xapiOptions && this.getXapi(xapiOptions), (handler, xapi) =>
               runWithLogs(
                 async (args, onLog) =>
                   Task.run(
@@ -347,7 +349,7 @@ export default class Backups {
       backup: {
         mountPartition: [
           async ({ disk, partition, remote }) =>
-            using(this.getAdapter(remote), adapter => durablePartition.mount(adapter, disk, partition)),
+            Disposable.use(this.getAdapter(remote), adapter => durablePartition.mount(adapter, disk, partition)),
           {
             description: 'mount a partition',
             params: {
