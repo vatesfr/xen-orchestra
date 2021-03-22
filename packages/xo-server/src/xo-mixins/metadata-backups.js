@@ -2,7 +2,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import cloneDeep from 'lodash/cloneDeep'
 import createLogger from '@xen-orchestra/log'
-import using from 'promise-toolbox/using'
+import Disposable from 'promise-toolbox/Disposable'
 import { Backup } from '@xen-orchestra/backups/Backup'
 import { parseDuration } from '@vates/parse-duration'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
@@ -289,7 +289,7 @@ export default class metadataBackup {
         },
       }))
     } else {
-      backups = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listXoMetadataBackups())
+      backups = await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.listXoMetadataBackups())
     }
 
     // inject the remote id on the backup which is needed for restoreMetadataBackup()
@@ -328,7 +328,9 @@ export default class metadataBackup {
         },
       }))
     } else {
-      backupsByPool = await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPoolMetadataBackups())
+      backupsByPool = await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
+        adapter.listPoolMetadataBackups()
+      )
     }
 
     // inject the remote id on the backup which is needed for restoreMetadataBackup()
@@ -480,7 +482,7 @@ export default class metadataBackup {
         remote: { url: remote.url, options: remote.options },
       })
     } else {
-      await using(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId))
+      await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteMetadataBackup(backupId))
     }
 
     if (parseMetadataBackupId(backupId).type === 'xoConfig') {

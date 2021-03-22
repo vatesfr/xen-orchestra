@@ -4,7 +4,6 @@ const fromCallback = require('promise-toolbox/fromCallback')
 const fromEvent = require('promise-toolbox/fromEvent')
 const pDefer = require('promise-toolbox/defer')
 const pump = require('pump')
-const using = require('promise-toolbox/using')
 const { basename, dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
 const { createSyntheticStream, mergeVhd, default: Vhd } = require('vhd-lib')
@@ -204,7 +203,7 @@ exports.RemoteAdapter = class RemoteAdapter {
   }
 
   _listLvmLogicalVolumes(devicePath, partition, results = []) {
-    return using(this._getLvmPhysicalVolume(devicePath, partition), async path => {
+    return Disposable.use(this._getLvmPhysicalVolume(devicePath, partition), async path => {
       const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
       const partitionId = partition !== undefined ? partition.id : ''
       lvs.forEach((lv, i) => {
@@ -235,7 +234,7 @@ exports.RemoteAdapter = class RemoteAdapter {
 
   fetchPartitionFiles(diskId, partitionId, paths) {
     const { promise, reject, resolve } = pDefer()
-    using(
+    Disposable.use(
       async function* () {
         const files = yield this._usePartitionFiles(diskId, partitionId, paths)
         const zip = new ZipFile()
@@ -375,7 +374,7 @@ exports.RemoteAdapter = class RemoteAdapter {
   }
 
   listPartitionFiles(diskId, partitionId, path) {
-    return using(this.getPartition(diskId, partitionId), async rootPath => {
+    return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
       path = resolveSubpath(rootPath, path)
 
       const entriesMap = {}
@@ -395,7 +394,7 @@ exports.RemoteAdapter = class RemoteAdapter {
   }
 
   listPartitions(diskId) {
-    return using(this.getDisk(diskId), async devicePath => {
+    return Disposable.use(this.getDisk(diskId), async devicePath => {
       const partitions = await listPartitions(devicePath)
 
       if (partitions.length === 0) {
