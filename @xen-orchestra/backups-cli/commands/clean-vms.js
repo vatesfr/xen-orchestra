@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// assigned when options are parsed by the main function
-let merge, remove
-
 // -----------------------------------------------------------------------------
 
 const asyncMap = require('lodash/curryRight')(require('@xen-orchestra/async-map').asyncMap)
@@ -10,12 +7,10 @@ const getopts = require('getopts')
 const { RemoteAdapter } = require('@xen-orchestra/backups/RemoteAdapter')
 const { resolve } = require('path')
 
-const handler = require('@xen-orchestra/fs').getHandler({ url: 'file://' })
-
-const adapter = new RemoteAdapter(handler)
+const adapter = new RemoteAdapter(require('@xen-orchestra/fs').getHandler({ url: 'file://' }))
 
 module.exports = async function main(args) {
-  const opts = getopts(args, {
+  const { _, remove, merge } = getopts(args, {
     alias: {
       remove: 'r',
       merge: 'm',
@@ -27,8 +22,7 @@ module.exports = async function main(args) {
     },
   })
 
-  ;({ remove, merge } = opts)
-  await asyncMap(opts._, async vmDir => {
+  await asyncMap(_, async vmDir => {
     vmDir = resolve(vmDir)
     try {
       await adapter.cleanVm(vmDir, { remove, merge, onLog: log => console.warn(log) })
