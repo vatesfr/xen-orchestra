@@ -404,7 +404,7 @@ export default class Xapi extends XapiBase {
       return await this.call('VM.copy', snapshot ? snapshot.$ref : vm.$ref, nameLabel, sr ? sr.$ref : '')
     } finally {
       if (snapshot) {
-        await this._deleteVm(snapshot)
+        await this.deleteVm(snapshot)
       }
     }
   }
@@ -564,13 +564,10 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _deleteVm(vmOrRef, deleteDisks = true, force = false, forceDeleteDefaultTemplate = false) {
-    const $ref = typeof vmOrRef === 'string' ? vmOrRef : vmOrRef.$ref
-    await this.VM_destroy($ref, { deleteDisks, force, forceDeleteDefaultTemplate })
-  }
+  async deleteVm(vmOrId, deleteDisks = true, force = false, forceDeleteDefaultTemplate = false) {
+    const $ref = typeof vmOrId === 'string' ? this.getObject(vmOrId).$ref : vmOrId.$ref
 
-  async deleteVm(vmId, deleteDisks, force, forceDeleteDefaultTemplate) {
-    return /* await */ this._deleteVm(this.getObject(vmId), deleteDisks, force, forceDeleteDefaultTemplate)
+    return this.VM_destroy($ref, { deleteDisks, force, forceDeleteDefaultTemplate })
   }
 
   getVmConsole(vmId) {
@@ -642,7 +639,7 @@ export default class Xapi extends XapiBase {
       }
 
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
-      $defer.onFailure(() => this._deleteVm(vm))
+      $defer.onFailure(() => this.deleteVm(vm))
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -832,7 +829,7 @@ export default class Xapi extends XapiBase {
         { suspend_VDI: suspendVdi?.$ref }
       )
     )
-    $defer.onFailure(() => this._deleteVm(vm))
+    $defer.onFailure(() => this.deleteVm(vm))
 
     // 2. Delete all VBDs which may have been created by the import.
     await asyncMapSettled(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
@@ -943,7 +940,7 @@ export default class Xapi extends XapiBase {
     ])
 
     if (deleteBase && baseVm) {
-      this._deleteVm(baseVm)::ignoreErrors()
+      this.deleteVm(baseVm)::ignoreErrors()
     }
 
     await Promise.all([
@@ -1192,7 +1189,7 @@ export default class Xapi extends XapiBase {
         VCPUs_max: nCpus,
       })
     )
-    $defer.onFailure(() => this._deleteVm(vm))
+    $defer.onFailure(() => this.deleteVm(vm))
     // Disable start and change the VM name label during import.
     await Promise.all([
       vm.update_blocked_operations('start', 'OVA import in progress...'),
@@ -1335,7 +1332,7 @@ export default class Xapi extends XapiBase {
         vm.snapshots.map(async ref => {
           const nameLabel = await this.getField('VM', ref, 'name_label')
           if (nameLabel.startsWith(snapshotNameLabelPrefix)) {
-            return this._deleteVm(ref)
+            return this.deleteVm(ref)
           }
         })
       )
