@@ -1,5 +1,6 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
+import lockfile from 'proper-lockfile'
 import { fromEvent, retry } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
@@ -76,6 +77,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   async _getSize(file) {
     const stats = await fs.stat(this._getFilePath(typeof file === 'string' ? file : file.path))
     return stats.size
+  }
+
+  _lock(path) {
+    return lockfile.lock(path)
   }
 
   async _list(dir) {
