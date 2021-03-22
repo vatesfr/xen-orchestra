@@ -616,7 +616,7 @@ exports.RemoteAdapter = class RemoteAdapter {
     await Promise.all([
       remove && handler.rename(parent, child),
       asyncMap(children.slice(0, -1), child => {
-        onLog(` the VHD ${child} is unused`)
+        onLog(`the VHD ${child} is unused`)
         return remove && handler.unlink(child)
       }),
     ])
