@@ -42,12 +42,14 @@ const ACTIONS = [
     icon: 'forget',
     label: _('forgetProxies'),
     level: 'danger',
+    collapsed: true,
   },
   {
     handler: destroyProxyAppliances,
     icon: 'destroy',
     label: _('destroyProxies'),
     level: 'danger',
+    collapsed: true,
   },
 ]
 
@@ -60,6 +62,7 @@ const INDIVIDUAL_ACTIONS = [
     icon: 'refresh',
     label: _('redeployProxyAction'),
     level: 'warning',
+    collapsed: true,
   },
   {
     handler: checkProxyHealth,

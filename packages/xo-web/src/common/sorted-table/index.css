@@ -15,3 +15,18 @@
   outline: 2px solid #366e98;
   outline-offset: -2px;
 }
+
+/* Menu item variant */
+.danger{
+    background-color: #990822;
+}
+.primary{
+  background-color: #366e98;
+}
+.success{
+  background-color: #28a745;
+}
+.warning{
+  background-color: #eca649;
+}
+
