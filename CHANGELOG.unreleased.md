@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Proxy] _Force upgrade_ no longer fails on broken proxy
+- [Proxy] _Redeploy_ now works when the bound VM is missing
 
 ### Packages to release
 
@@ -30,4 +31,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server patch
 - xo-web patch
