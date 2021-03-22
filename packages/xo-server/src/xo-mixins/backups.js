@@ -3,7 +3,7 @@ import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import execa from 'execa'
 import splitLines from 'split-lines'
-import { CancelToken, fromEvent, ignoreErrors } from 'promise-toolbox'
+import { CancelToken, fromEvent, ignoreErrors, pReflect } from 'promise-toolbox'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { decorateWith } from '@vates/decorate-with'
@@ -23,7 +23,6 @@ import {
   mapFilter,
   pFinally,
   pFromCallback,
-  pSettle,
   resolveSubpath,
   safeDateFormat,
   safeDateParse,
@@ -627,18 +626,20 @@ export default class {
     $defer.onFailure(cancel)
 
     // Save vdis.
-    const vdiBackups = await pSettle(
-      mapToArray(delta.vdis, async (vdi, key) => {
-        const vdiParent = xapi.getObject(vdi.snapshot_of)
+    const vdiBackups = await Promise.all(
+      Object.keys(delta.vdis)
+        .map(async ([key, vdi]) => {
+          const vdiParent = xapi.getObject(vdi.snapshot_of)
 
-        return this._saveDeltaVdiBackup(xapi, {
-          vdiParent,
-          isFull: !baseVm || find(fullVdisRequired, id => vdiParent.$id === id),
-          handler,
-          stream: delta.streams[`${key}.vhd`],
-          dir,
-          retention,
-        }).then(data => {
+          const data = await this._saveDeltaVdiBackup(xapi, {
+            vdiParent,
+            isFull: !baseVm || find(fullVdisRequired, id => vdiParent.$id === id),
+            handler,
+            stream: delta.streams[`${key}.vhd`],
+            dir,
+            retention,
+          })
+
           delta.vdis[key] = {
             ...delta.vdis[key],
             xoPath: data.path,
@@ -646,7 +647,7 @@ export default class {
 
           return data
         })
-      })
+        .map(promise => pReflect.call(promise))
     )
 
     const fulFilledVdiBackups = []
