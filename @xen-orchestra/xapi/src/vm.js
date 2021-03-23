@@ -292,6 +292,7 @@ module.exports = class Vm {
     }
 
     await Promise.all([
+      vm.set_is_default_template(false),
       vm.set_is_a_template(false),
       vm.update_blocked_operations('destroy', null),
       vm.update_other_config('default_template', null),
