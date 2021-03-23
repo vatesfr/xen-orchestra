@@ -213,7 +213,6 @@ export default class RemoteHandlerAbstract {
     input: Readable | Promise<Readable>,
     { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
-    path = normalizePath(path)
     return this._outputStream(normalizePath(path), await input, {
       checksum,
       dirMode,
