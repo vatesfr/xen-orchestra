@@ -58,24 +58,6 @@ export const extractOpaqueRef = str => {
 
 // -------------------------------------------------------------------
 
-export const getVmDisks = vm => {
-  const disks = { __proto__: null }
-  forEach(vm.$VBDs, vbd => {
-    let vdi
-    if (
-      // Do not remove CDs and Floppies.
-      vbd.type === 'Disk' &&
-      // Ignore VBD without VDI.
-      (vdi = vbd.$VDI)
-    ) {
-      disks[vdi.$id] = vdi
-    }
-  })
-  return disks
-}
-
-// -------------------------------------------------------------------
-
 const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
 
 export function parseDateTime(str, defaultValue) {

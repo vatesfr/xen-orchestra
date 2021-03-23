@@ -13,6 +13,7 @@
 
 - [Proxy] _Force upgrade_ no longer fails on broken proxy
 - [Proxy] _Redeploy_ now works when the bound VM is missing
+- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
 
 ### Packages to release
 
@@ -33,5 +34,6 @@
 
 - xo-server-transport-email minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/xapi minor
 - xo-server patch
 - xo-web patch
