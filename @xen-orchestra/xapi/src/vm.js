@@ -271,6 +271,7 @@ module.exports = class Vm {
 
   async destroy(vmRef, { deleteDisks = true, force = false, forceDeleteDefaultTemplate = false } = {}) {
     const vm = await this.getRecord('VM', vmRef)
+
     if (!force && 'destroy' in vm.blocked_operations) {
       throw new Error('destroy is blocked')
     }
