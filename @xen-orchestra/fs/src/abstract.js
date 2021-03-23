@@ -441,7 +441,6 @@ export default class RemoteHandlerAbstract {
   }
 
   async _lock(path: string): Promise<Function> {
-    // it returns a function in order to not break handlers with no lock implementation
     return () => {}
   }
 
