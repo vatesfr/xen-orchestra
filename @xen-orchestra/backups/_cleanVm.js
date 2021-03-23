@@ -1,7 +1,7 @@
 const assert = require('assert')
 const limitConcurrency = require('limit-concurrency-decorator').default
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { mergeVhd, default: Vhd } = require('vhd-lib')
+const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType')
