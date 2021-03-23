@@ -441,7 +441,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _lock(path: string): Promise<Function> {
-    return () => {}
+    return () => Promise.resolve()
   }
 
   async _getSize(file: File): Promise<number> {
