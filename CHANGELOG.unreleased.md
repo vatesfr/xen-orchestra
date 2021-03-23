@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Vm] Display the full driver version in the general and advanced tab instead of `major.minor`
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,5 @@
 
 - xo-server-transport-email minor
 - @xen-orchestra/fs minor
-- xo-server patch
+- xo-server minor
 - xo-web patch
