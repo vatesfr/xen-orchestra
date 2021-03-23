@@ -551,11 +551,8 @@ class RemoteAdapter {
   }
 }
 
-// TODO: implement a lock for the passed dir which will be synchronized with running backups
-const lockDir = dir => () => {}
-
 RemoteAdapter.prototype.cleanVm = async function (vmDir) {
-  const release = lockDir(vmDir)
+  const release = await this.handler.lock(vmDir)
   try {
     await cleanVm.apply(this, arguments)
   } finally {
