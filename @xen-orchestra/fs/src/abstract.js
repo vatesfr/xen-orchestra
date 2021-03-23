@@ -259,6 +259,11 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
+  lock(path: string): Promise<Function> {
+    path = normalizePath(path)
+    return this._lock(path)
+  }
+
   async mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
     await this.__mkdir(normalizePath(dir), { mode })
   }
@@ -432,6 +437,10 @@ export default class RemoteHandlerAbstract {
 
   async _getInfo(): Promise<Object> {
     return {}
+  }
+
+  async _lock(path: string): Promise<Function> {
+    return () => Promise.resolve()
   }
 
   async _getSize(file: File): Promise<number> {

@@ -1,5 +1,6 @@
 import df from '@sindresorhus/df'
 import fs from 'fs-extra'
+import lockfile from 'proper-lockfile'
 import { fromEvent, retry } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
@@ -80,6 +81,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _list(dir) {
     return fs.readdir(this._getFilePath(dir))
+  }
+
+  _lock(path) {
+    return lockfile.lock(path)
   }
 
   _mkdir(dir, { mode }) {
