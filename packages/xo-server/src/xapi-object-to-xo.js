@@ -81,7 +81,7 @@ const getVmGuestToolsProps = vm => {
     return {}
   }
 
-  const { major, minor } = guestMetrics.PV_drivers_version
+  const { build, major, micro, minor } = guestMetrics.PV_drivers_version
   const hasPvVersion = major !== undefined && minor !== undefined
 
   // "PV_drivers_detected" field doesn't exist on XS < 7
@@ -91,7 +91,7 @@ const getVmGuestToolsProps = vm => {
     // Linux VMs don't have the flag "feature-static-ip-setting"
     managementAgentDetected: hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
     pvDriversDetected,
-    pvDriversVersion: hasPvVersion ? `${major}.${minor}` : undefined,
+    pvDriversVersion: hasPvVersion ? `${major}.${minor}.${micro}-${build}` : undefined,
     pvDriversUpToDate: pvDriversDetected ? guestMetrics.PV_drivers_up_to_date : undefined,
   }
 }
