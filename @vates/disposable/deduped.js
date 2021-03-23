@@ -17,15 +17,15 @@ exports.deduped = (factory, keyFn = (...args) => args) =>
       if (state === undefined) {
         const result = factory.apply(this, arguments)
 
-        const createFactory = ({ value, dispose }) => {
+        const createFactory = disposable => {
           const wrapper = {
             dispose() {
               if (--state.users === 0) {
                 states.delete(keys)
-                return dispose()
+                return disposable.dispose()
               }
             },
-            value,
+            value: disposable.value,
           }
 
           return () => {
