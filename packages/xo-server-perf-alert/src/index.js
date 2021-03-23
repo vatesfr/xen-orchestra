@@ -210,7 +210,7 @@ export const configurationSchema = {
           all: {
             title: 'All VMs',
             type: 'boolean',
-            description: "If the 'All VMs' option is enabled, the VM selector will be ignored.",
+            description: "All VMs will be considered for the alert when 'All VMs' option is enabled.",
             default: 'false',
           },
           uuids: {
@@ -260,7 +260,7 @@ export const configurationSchema = {
           all: {
             title: 'All SRs',
             type: 'boolean',
-            description: "If the 'All SRs' option is enabled, the SR selector will be ignored.",
+            description: "All SRs will be considered for the alert when 'All SRs' option is enabled.",
             default: 'false',
           },
           uuids: {
