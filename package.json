@@ -39,18 +39,18 @@
   "jest": {
     "collectCoverage": true,
     "moduleNameMapper": {
-      "^(@vates/[^/]+)": [
+      "^(@vates/[^/]+)$": [
         "$1/src",
         "$1"
       ],
-      "^(@xen-orchestra/[^/]+)": [
+      "^(@xen-orchestra/[^/]+)$": [
         "$1/src",
         "$1"
       ],
-      "^(value-matcher)": "$1/src",
-      "^(vhd-cli)": "$1/src",
-      "^(vhd-lib)": "$1/src",
-      "^(xo-[^/]+)": [
+      "^(value-matcher)$": "$1/src",
+      "^(vhd-cli)$": "$1/src",
+      "^(vhd-lib)$": "$1/src",
+      "^(xo-[^/]+)$": [
         "$1/src",
         "$1"
       ]

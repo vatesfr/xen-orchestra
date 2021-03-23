@@ -128,7 +128,8 @@ export const testSchema = {
 // ===================================================================
 
 class TransportEmailPlugin {
-  constructor({ xo }) {
+  constructor({ staticConfig, xo }) {
+    this._staticConfig = staticConfig
     this._xo = xo
     this._unset = null
 
@@ -157,7 +158,7 @@ class TransportEmailPlugin {
         break
     }
 
-    const transport = createTransport(transportConf, { from })
+    const transport = createTransport({ ...transportConf, ...this._staticConfig.transport }, { from })
     transport.use('compile', markdownCompiler)
 
     this._send = promisify(transport.sendMail, transport)

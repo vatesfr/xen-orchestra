@@ -267,7 +267,13 @@ export default class Proxy {
     if (redeploy) {
       const { vmUuid } = await this._getProxy(proxyId)
       if (vmUuid !== undefined) {
-        await app.getXapi(vmUuid).deleteVm(vmUuid)
+        try {
+          await app.getXapi(vmUuid).deleteVm(vmUuid)
+        } catch (error) {
+          if (!noSuchObject.is(error)) {
+            throw error
+          }
+        }
         await Promise.all([
           app
             .unbindLicense({
