@@ -261,6 +261,7 @@ export default class RemoteHandlerAbstract {
   }
 
   lock(path: string): Promise<Function> {
+    path = normalizePath(path)
     return this._lock(path)
   }
 
@@ -440,7 +441,8 @@ export default class RemoteHandlerAbstract {
   }
 
   async _lock(path: string): Promise<Function> {
-    throw new Error('Not implemented')
+    // it returns a function in order to not break handlers with no lock implementation
+    return () => {}
   }
 
   async _getSize(file: File): Promise<number> {

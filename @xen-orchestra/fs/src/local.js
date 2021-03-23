@@ -79,12 +79,12 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return stats.size
   }
 
-  _lock(path) {
-    return lockfile.lock(path)
-  }
-
   async _list(dir) {
     return fs.readdir(this._getFilePath(dir))
+  }
+
+  _lock(path) {
+    return lockfile.lock(path)
   }
 
   _mkdir(dir, { mode }) {
