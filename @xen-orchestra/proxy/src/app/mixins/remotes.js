@@ -1,5 +1,4 @@
 import Disposable from 'promise-toolbox/Disposable'
-import using from 'promise-toolbox/using'
 import { compose } from '@vates/compose'
 import { decorateWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped'
@@ -12,7 +11,7 @@ export default class Remotes {
     app.api.addMethods({
       remote: {
         getInfo: [
-          ({ remote }) => using(this.getHandler(remote), handler => handler.getInfo()),
+          ({ remote }) => Disposable.use(this.getHandler(remote), handler => handler.getInfo()),
           {
             params: {
               remote: { type: 'object' },
@@ -22,7 +21,7 @@ export default class Remotes {
 
         test: [
           ({ remote }) =>
-            using(this.getHandler(remote), handler => handler.test()).catch(error => ({
+            Disposable.use(this.getHandler(remote), handler => handler.test()).catch(error => ({
               success: false,
               error: error.message ?? String(error),
             })),

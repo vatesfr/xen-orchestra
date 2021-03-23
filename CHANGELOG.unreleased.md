@@ -11,10 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Pool] Fix `an error has occurred` when using the "Disconnect" button from the pool page [#5669](https://github.com/vatesfr/xen-orchestra/issues/5669) (PR [#5671](https://github.com/vatesfr/xen-orchestra/pull/5671))
-- [Configuration] Automatically connect enabled servers after import [#5660](https://github.com/vatesfr/xen-orchestra/issues/5660) (PR [#5672](https://github.com/vatesfr/xen-orchestra/pull/5672))
-- Work-around some `ECONNRESET` errors when connecting to XEN-API (PR [#5674](https://github.com/vatesfr/xen-orchestra/pull/5674))
-- [Backup] Retry automatically on `resource temporarily unavailable` error (PR [#5612](https://github.com/vatesfr/xen-orchestra/pull/5612))
+- [Proxy] _Force upgrade_ no longer fails on broken proxy
+- [Proxy] _Redeploy_ now works when the bound VM is missing
 
 ### Packages to release
 
@@ -34,7 +32,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-transport-email minor
-- @xen-orchestra/fs patch
-- xen-api minor
+- @xen-orchestra/fs minor
 - xo-server patch
 - xo-web patch

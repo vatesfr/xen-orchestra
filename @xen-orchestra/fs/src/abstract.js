@@ -213,7 +213,6 @@ export default class RemoteHandlerAbstract {
     input: Readable | Promise<Readable>,
     { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
-    path = normalizePath(path)
     return this._outputStream(normalizePath(path), await input, {
       checksum,
       dirMode,
@@ -258,6 +257,11 @@ export default class RemoteHandlerAbstract {
     }
 
     return entries
+  }
+
+  lock(path: string): Promise<Function> {
+    path = normalizePath(path)
+    return this._lock(path)
   }
 
   async mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
@@ -433,6 +437,10 @@ export default class RemoteHandlerAbstract {
 
   async _getInfo(): Promise<Object> {
     return {}
+  }
+
+  async _lock(path: string): Promise<Function> {
+    return () => Promise.resolve()
   }
 
   async _getSize(file: File): Promise<number> {

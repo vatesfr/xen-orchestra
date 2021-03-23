@@ -10,6 +10,7 @@ import mixin from '@xen-orchestra/mixin'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
@@ -23,7 +24,8 @@ import { satisfies as versionSatisfies } from 'semver'
 import createSizeStream from '../size-stream'
 import ensureArray from '../_ensureArray'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import { camelToSnakeCase, forEach, map, pAll, parseSize, pDelay, pFinally, promisifyAll, pSettle } from '../utils'
+import { asyncMapValues } from '../_asyncMapValues'
+import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils'
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
@@ -250,14 +252,11 @@ export default class Xapi extends XapiBase {
     const host = this.getObject(hostId)
     const vms = host.$resident_VMs
     log.debug(`Emergency shutdown: ${host.name_label}`)
-    await pSettle(
-      // eslint-disable-next-line array-callback-return
-      vms.map(vm => {
-        if (!vm.is_control_domain) {
-          return this.callAsync('VM.suspend', vm.$ref)
-        }
-      })
-    )
+    await asyncMap(vms, vm => {
+      if (!vm.is_control_domain) {
+        return ignoreErrors.call(this.callAsync('VM.suspend', vm.$ref))
+      }
+    })
     await this.call('host.disable', host.$ref)
     await this.callAsync('host.shutdown', host.$ref)
   }
@@ -662,7 +661,7 @@ export default class Xapi extends XapiBase {
 
     if (useSnapshot) {
       const destroySnapshot = () => this.deleteVm(exportedVm)::ignoreErrors()
-      promise.then(_ => _.task::pFinally(destroySnapshot), destroySnapshot)
+      promise.then(_ => _.task.finally(destroySnapshot), destroySnapshot)
     }
 
     return promise
@@ -896,7 +895,7 @@ export default class Xapi extends XapiBase {
     //
     // TODO: move all VDIs creation before the VM and simplify the code
     const vbds = groupBy(delta.vbds, 'VDI')
-    const newVdis = await map(delta.vdis, async (vdi, vdiRef) => {
+    const newVdis = await asyncMapValues(delta.vdis, async (vdi, vdiRef) => {
       let newVdi
 
       const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
@@ -935,7 +934,7 @@ export default class Xapi extends XapiBase {
       )
 
       return newVdi
-    })::pAll()
+    })
 
     const networksByNameLabelByVlan = {}
     let defaultNetwork
