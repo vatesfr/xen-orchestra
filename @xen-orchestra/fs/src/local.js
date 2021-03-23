@@ -5,7 +5,7 @@ import { fromEvent, retry } from 'promise-toolbox'
 import RemoteHandlerAbstract from './abstract'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
-  constructor(remote, opts) {
+  constructor(remote, opts = {}) {
     super(remote)
     this._retriesOnEagain = {
       delay: 1e3,
