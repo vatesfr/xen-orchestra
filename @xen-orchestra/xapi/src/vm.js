@@ -8,12 +8,11 @@ const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { Ref } = require('xen-api')
+const { incorrectState } = require('xo-common/api-errors')
 
 const extractOpaqueRef = require('./_extractOpaqueRef')
 const isDefaultTemplate = require('./isDefaultTemplate')
 const isVmRunning = require('./_isVmRunning')
-
-const { incorrectState } = require('../../../packages/xo-common/api-errors')
 
 const { warn } = createLogger('xo:xapi:vm')
 
@@ -272,7 +271,6 @@ module.exports = class Vm {
 
   async destroy(vmRef, { deleteDisks = true, force = false, forceDeleteDefaultTemplate = false } = {}) {
     const vm = await this.getRecord('VM', vmRef)
-
     if (!force && 'destroy' in vm.blocked_operations) {
       throw new Error('destroy is blocked')
     }
