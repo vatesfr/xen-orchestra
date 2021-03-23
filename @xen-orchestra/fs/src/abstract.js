@@ -18,6 +18,7 @@ import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 const { dirname } = path.posix
 
 type Data = Buffer | Readable | string
+type Disposable<T> = {| dispose: () => void | Promise<void>, value?: T |}
 type FileDescriptor = {| fd: mixed, path: string |}
 type LaxReadable = Readable & Object
 type LaxWritable = Writable & Object
@@ -259,9 +260,9 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  lock(path: string): Promise<Function> {
+  async lock(path: string): Promise<Disposable> {
     path = normalizePath(path)
-    return this._lock(path)
+    return { dispose: await this._lock(path) }
   }
 
   async mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
