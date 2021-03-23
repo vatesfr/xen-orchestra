@@ -404,7 +404,7 @@ export default class Xapi extends XapiBase {
       return await this.call('VM.copy', snapshot ? snapshot.$ref : vm.$ref, nameLabel, sr ? sr.$ref : '')
     } finally {
       if (snapshot) {
-        await this.deleteVm(snapshot)
+        await this.VM_destroy(snapshot.$ref)
       }
     }
   }
@@ -603,7 +603,7 @@ export default class Xapi extends XapiBase {
     })
 
     if (useSnapshot) {
-      const destroySnapshot = () => this.deleteVm(exportedVm)::ignoreErrors()
+      const destroySnapshot = () => this.VM_destroy(exportedVm.$ref)::ignoreErrors()
       promise.then(_ => _.task::pFinally(destroySnapshot), destroySnapshot)
     }
 
@@ -639,7 +639,7 @@ export default class Xapi extends XapiBase {
       }
 
       vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
-      $defer.onFailure(() => this.deleteVm(vm))
+      $defer.onFailure(() => this.VM_destroy(vm.$ref))
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -829,7 +829,7 @@ export default class Xapi extends XapiBase {
         { suspend_VDI: suspendVdi?.$ref }
       )
     )
-    $defer.onFailure(() => this.deleteVm(vm))
+    $defer.onFailure(() => this.VM_destroy(vm.$ref))
 
     // 2. Delete all VBDs which may have been created by the import.
     await asyncMapSettled(vm.$VBDs, vbd => this._deleteVbd(vbd))::ignoreErrors()
@@ -940,7 +940,7 @@ export default class Xapi extends XapiBase {
     ])
 
     if (deleteBase && baseVm) {
-      this.deleteVm(baseVm)::ignoreErrors()
+      this.VM_destroy(baseVm.$ref)::ignoreErrors()
     }
 
     await Promise.all([
@@ -1189,7 +1189,7 @@ export default class Xapi extends XapiBase {
         VCPUs_max: nCpus,
       })
     )
-    $defer.onFailure(() => this.deleteVm(vm))
+    $defer.onFailure(() => this.VM_destroy(vm.$ref))
     // Disable start and change the VM name label during import.
     await Promise.all([
       vm.update_blocked_operations('start', 'OVA import in progress...'),
@@ -1332,7 +1332,7 @@ export default class Xapi extends XapiBase {
         vm.snapshots.map(async ref => {
           const nameLabel = await this.getField('VM', ref, 'name_label')
           if (nameLabel.startsWith(snapshotNameLabelPrefix)) {
-            return this.deleteVm(ref)
+            return this.VM_destroy(ref)
           }
         })
       )
