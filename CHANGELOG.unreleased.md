@@ -34,5 +34,6 @@
 
 - xo-server-transport-email minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/xapi minor
 - xo-server patch
 - xo-web patch
