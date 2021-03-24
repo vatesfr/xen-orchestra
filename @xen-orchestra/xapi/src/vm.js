@@ -337,17 +337,28 @@ module.exports = class Vm {
     if (useSnapshot === undefined) {
       useSnapshot = isVmRunning(vm)
     }
-    const exportedVmRef = useSnapshot
-      ? await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
-      : vmRef
+    let exportedVmRef, destroySnapshot
+    if (useSnapshot) {
+      exportedVmRef = await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
+      destroySnapshot = () => ignoreErrors.call(this.VM_destroy(exportedVmRef))
+      $defer.onFailure(destroySnapshot)
+    } else {
+      exportedVmRef = vmRef
+    }
     try {
-      return await this.getResource(cancelToken, '/export/', {
+      const stream = await this.getResource(cancelToken, '/export/', {
         query: {
           ref: exportedVmRef,
           use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
         },
         task: taskRef,
       })
+
+      if (useSnapshot) {
+        stream.once('end', destroySnapshot).once('error', destroySnapshot)
+      }
+
+      return stream
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, exportedVm] = await Promise.all([
@@ -357,14 +368,7 @@ module.exports = class Vm {
       error.pool_master = poolMaster
       error.VM = exportedVm
       throw error
-    } finally {
     }
-    // if (useSnapshot) {
-    //   const destroySnapshot = () => this.deleteVm(exportedVm)::ignoreErrors()
-    //   promise.then(_ => _.task::pFinally(destroySnapshot), destroySnapshot)
-    // }
-    //
-    // return promise
   }
 
   async getDisks(vmRef, vbdRefs) {
