@@ -35,7 +35,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @xen-orchestra/disposable patch
+- @vates/disposable patch
 - xo-server-transport-email minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/xapi minor
