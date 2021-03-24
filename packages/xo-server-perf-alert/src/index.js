@@ -160,7 +160,7 @@ export const configurationSchema = {
           all: {
             title: 'All hosts',
             type: 'boolean',
-            description: "All hosts will be considered for the alert when 'All hosts' option is enabled.",
+            description: 'When enabled, all hosts will be considered for the alert.',
             default: 'false',
           },
           uuids: {
@@ -211,7 +211,7 @@ export const configurationSchema = {
           all: {
             title: 'All VMs',
             type: 'boolean',
-            description: "All VMs will be considered for the alert when 'All VMs' option is enabled.",
+            description: 'When enabled, all VMs will be considered for the alert.',
             default: 'false',
           },
           uuids: {
@@ -262,7 +262,7 @@ export const configurationSchema = {
           all: {
             title: 'All SRs',
             type: 'boolean',
-            description: "All SRs will be considered for the alert when 'All SRs' option is enabled.",
+            description: 'When enabled, all SRs will be considered for the alert.',
             default: 'false',
           },
           uuids: {
