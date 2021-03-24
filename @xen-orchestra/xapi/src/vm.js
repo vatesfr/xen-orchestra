@@ -1,4 +1,4 @@
-const cancelable = require('promise-toolbox/cancelable')
+const CancelToken = require('promise-toolbox/CancelToken')
 const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
@@ -124,16 +124,15 @@ module.exports = class Vm {
     }
   }
 
-  @cancelable
-  async checkpoint($cancelToken, vmRef, nameLabel) {
-    if (nameLabel === undefined) {
-      nameLabel = await this.getField('VM', vmRef, 'name_label')
+  async checkpoint(vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
+    if (name_label === undefined) {
+      name_label = await this.getField('VM', vmRef, 'name_label')
     }
     try {
-      return await this.callAsync($cancelToken, 'VM.checkpoint', vmRef, nameLabel).then(extractOpaqueRef)
+      return await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
-        return this.VM_snapshot($cancelToken, vmRef, nameLabel)
+        return this.VM_snapshot(vmRef, { cancelToken, name_label })
       }
       throw error
     }
@@ -330,9 +329,8 @@ module.exports = class Vm {
     ])
   }
 
-  @cancelable
   @defer
-  async export($defer, $cancelToken, vmRef, { compress = false, useSnapshot } = {}) {
+  async export($defer, vmRef, { cancelToken = CancelToken.none, compress = false, useSnapshot } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     const taskRef = await this.task_create('VM export', vm.name_label)
     $defer.onFailure.call(this, 'task_destroy', taskRef)
@@ -340,10 +338,10 @@ module.exports = class Vm {
       useSnapshot = isVmRunning(vm)
     }
     const exportedVmRef = useSnapshot
-      ? await this.VM_snapshot($cancelToken, vmRef, `[XO Export] ${vm.name_label}`)
+      ? await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
       : vmRef
     try {
-      return await this.getResource($cancelToken, '/export/', {
+      return await this.getResource(cancelToken, '/export/', {
         query: {
           ref: exportedVmRef,
           use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
@@ -414,8 +412,7 @@ module.exports = class Vm {
   }
 
   @defer
-  @cancelable
-  async snapshot($cancelToken, $defer, vmRef, nameLabel) {
+  async snapshot($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     // cannot unplug VBDs on Running, Paused and Suspended VMs
     if (vm.power_state === 'Halted' && this._ignoreNobakVdis) {
@@ -432,8 +429,8 @@ module.exports = class Vm {
       })
     }
 
-    if (nameLabel === undefined) {
-      nameLabel = vm.name_label
+    if (name_label === undefined) {
+      name_label = vm.name_label
     }
     let ref
     do {
@@ -442,7 +439,7 @@ module.exports = class Vm {
           ref = await pRetry(
             async bail => {
               try {
-                return await this.callAsync($cancelToken, 'VM.snapshot_with_quiesce', vmRef, nameLabel)
+                return await this.callAsync(cancelToken, 'VM.snapshot_with_quiesce', vmRef, name_label)
               } catch (error) {
                 if (error == null || error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
                   throw bail(error)
@@ -489,7 +486,7 @@ module.exports = class Vm {
           }
         }
       }
-      ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
+      ref = await this.callAsync(cancelToken, 'VM.snapshot', vmRef, name_label).then(extractOpaqueRef)
     } while (false)
 
     // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
