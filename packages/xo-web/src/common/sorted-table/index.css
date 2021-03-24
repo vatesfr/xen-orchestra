@@ -18,15 +18,18 @@
 
 /* Menu item variant */
 .danger{
-    background-color: #990822;
-}
+    background-color: red;
+    font-weight: bold;
+  }
 .primary{
-  background-color: #366e98;
+  font-weight: bold;
 }
 .success{
-  background-color: #28a745;
+  background-color: green;
+  font-weight: bold;
 }
 .warning{
-  background-color: #eca649;
+  background-color: orange;
+  font-weight: bold;
 }
 
