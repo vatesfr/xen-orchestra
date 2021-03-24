@@ -35,13 +35,9 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-<<<<<<< HEAD
+- xo-server-perf-alert minor
 - @xen-orchestra/disposable patch
 - xo-server-transport-email minor
-||||||| constructed merge base
-=======
-- - xo-server-perf-alert minor
->>>>>>> changelog
 - @xen-orchestra/fs minor
 - @xen-orchestra/xapi minor
 - @xen-orchestra/backups minor
