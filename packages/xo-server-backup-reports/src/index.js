@@ -403,15 +403,16 @@ class BackupReportsXoPlugin {
           if (type === 'SR') {
             const { name_label: name, uuid } = xo.getObject(id)
             failedVmsText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
-            nagiosText.push(`[(${type} Failed) ${name} : ${taskLog.result.message} ]`)
+            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
           } else {
             const { name } = await xo.getRemote(id)
             failedVmsText.push(`### ${name}`, '', `- **UUID**: ${id}`)
-            nagiosText.push(`[(${type} Failed) ${name} : ${taskLog.result.message} ]`)
+            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
           }
         } catch (error) {
           logger.warn(error)
           failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
+          nagiosText.push(`[(${type} failed) ${UNKNOWN_ITEM} : ${taskLog.result.message} ]`)
         }
 
         failedVmsText.push(
