@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
+- [Plugins/perf-alert] Ability to choose all hosts, VMs and SRs [#2987](https://github.com/vatesfr/xen-orchestra/issues/2987) (PR [#5692](https://github.com/vatesfr/xen-orchestra/pull/5692))
 
 ### Bug fixes
 
@@ -34,8 +35,13 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+<<<<<<< HEAD
 - @xen-orchestra/disposable patch
 - xo-server-transport-email minor
+||||||| constructed merge base
+=======
+- - xo-server-perf-alert minor
+>>>>>>> changelog
 - @xen-orchestra/fs minor
 - @xen-orchestra/xapi minor
 - @xen-orchestra/backups minor
