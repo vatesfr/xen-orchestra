@@ -391,17 +391,54 @@ class BackupReportsXoPlugin {
         continue
       }
 
-      const vmId = taskLog.data.id
+      const { type, id } = taskLog.data ?? {}
+      if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
+        failedVmsText.push(
+          // It will ensure that it will never be in a nested list
+          ''
+        )
+
+        if (type === 'SR') {
+          try {
+            const sr = xo.getObject(id)
+            failedVmsText.push(`### ${sr.name_label}`, '', `- **UUID**: ${sr.uuid}`)
+          } catch (error) {
+            logger.warn(error)
+            failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
+          }
+        } else {
+          try {
+            const remote = await xo.getRemote(id)
+            failedVmsText.push(`### ${remote.name}`, '', `- **UUID**: ${id}`)
+          } catch (error) {
+            logger.warn(error)
+            failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
+          }
+        }
+
+        failedVmsText.push(
+          `- **Type**: ${type}`,
+          ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
+          ...getWarningsMarkdown(taskLog.warnings),
+          `- **Error**: ${taskLog.result.message}`
+        )
+        continue
+      }
+
+      if (type !== 'VM') {
+        continue
+      }
+
       let vm
       try {
-        vm = xo.getObject(vmId)
+        vm = xo.getObject(id)
       } catch (e) {}
       const text = [
         // It will ensure that it will never be in a nested list
         '',
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
-        `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
+        `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
         ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
         ...getWarningsMarkdown(taskLog.warnings),
       ]
