@@ -3,6 +3,8 @@ const defer = require('promise-toolbox/defer')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 
+exports.isDefaultTemplate = require('./isDefaultTemplate')
+
 // VDI formats. (Raw is not available for delta vdi.)
 exports.VDI_FORMAT_RAW = 'raw'
 exports.VDI_FORMAT_VHD = 'vhd'

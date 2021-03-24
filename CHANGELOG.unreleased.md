@@ -7,12 +7,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Proxy] _Force upgrade_ no longer fails on broken proxy
 - [Proxy] _Redeploy_ now works when the bound VM is missing
+- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
 
 ### Packages to release
 
@@ -31,8 +34,11 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/disposable patch
+- xo-server-transport-email minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/xapi minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/backups-cli minor
-- xo-server patch
+- xo-server minor
 - xo-web patch

@@ -12,6 +12,7 @@ import { forOwn, merge } from 'lodash'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
 import { parseDuration } from '@vates/parse-duration'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { type Pattern, createPredicate } from 'value-matcher'
 
@@ -214,11 +215,11 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any, { backups }) {
+  constructor(app: any, config) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
-    this._backupOptions = backups
+    this._backupOptions = config.backups
 
     app.on('start', async () => {
       this._logger = await app.getLogger('restore')
@@ -252,76 +253,10 @@ export default class BackupNg {
           settings: merge(job.settings, data?.settings),
         }
 
+        const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
-          const proxyId = job.proxy
-          if (proxyId !== undefined) {
-            const recordToXapi = {}
-            const servers = new Set()
-            const handleRecord = uuid => {
-              const serverId = app.getXenServerIdByObject(uuid)
-              recordToXapi[uuid] = serverId
-              servers.add(serverId)
-            }
-            vmIds.forEach(handleRecord)
-            unboxIdsFromPattern(job.srs).forEach(handleRecord)
-
-            const remotes = {}
-            const xapis = {}
-            await waitAll([
-              asyncMapSettled(remoteIds, async id => {
-                const remote = await app.getRemoteWithCredentials(id)
-                if (remote.proxy !== proxyId) {
-                  throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
-                }
-
-                remotes[id] = remote
-              }),
-              asyncMapSettled([...servers], async id => {
-                const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
-                xapis[id] = {
-                  allowUnauthorized,
-                  credentials: {
-                    username,
-                    password,
-                  },
-                  url: host,
-                }
-              }),
-            ])
-
-            const params = {
-              job,
-              recordToXapi,
-              remotes,
-              schedule,
-              streamLogs: true,
-              xapis,
-            }
-
-            try {
-              const logsStream = await app.callProxyMethod(proxyId, 'backup.run', params, {
-                assertType: 'iterator',
-              })
-
-              const localTaskIds = { __proto__: null }
-              let result
-              for await (const log of logsStream) {
-                result = handleBackupLog(log, {
-                  logger,
-                  localTaskIds,
-                  runJobId,
-                })
-              }
-              return result
-            } catch (error) {
-              if (invalidParameters.is(error)) {
-                delete params.streamLogs
-                return app.callProxyMethod(proxyId, 'backup.run', params)
-              }
-              throw error
-            }
-          } else {
+          if (proxyId === undefined && config.backups.disableWorkers) {
             const localTaskIds = { __proto__: null }
             return await Task.run(
               {
@@ -335,7 +270,7 @@ export default class BackupNg {
               },
               () =>
                 new Backup({
-                  config: this._backupOptions,
+                  config: config.backups,
                   getAdapter: async remoteId =>
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
@@ -344,6 +279,102 @@ export default class BackupNg {
                   job,
                   schedule,
                 }).run()
+            )
+          }
+
+          const recordToXapi = {}
+          const servers = new Set()
+          const handleRecord = uuid => {
+            const serverId = app.getXenServerIdByObject(uuid)
+            recordToXapi[uuid] = serverId
+            servers.add(serverId)
+          }
+          vmIds.forEach(handleRecord)
+          unboxIdsFromPattern(job.srs).forEach(handleRecord)
+
+          const remotes = {}
+          const xapis = {}
+          await waitAll([
+            asyncMapSettled(remoteIds, async id => {
+              const remote = await app.getRemoteWithCredentials(id)
+              if (remote.proxy !== proxyId) {
+                throw new Error(
+                  proxyId === undefined
+                    ? 'The remote must not be linked to a proxy'
+                    : `The remote ${remote.name} must be linked to the proxy ${proxyId}`
+                )
+              }
+
+              remotes[id] = remote
+            }),
+            asyncMapSettled([...servers], async id => {
+              const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
+              xapis[id] = {
+                allowUnauthorized,
+                credentials: {
+                  username,
+                  password,
+                },
+                url: host,
+              }
+            }),
+          ])
+
+          const params = {
+            job,
+            recordToXapi,
+            remotes,
+            schedule,
+            xapis,
+          }
+
+          if (proxyId !== undefined) {
+            try {
+              const logsStream = await app.callProxyMethod(
+                proxyId,
+                'backup.run',
+                {
+                  ...params,
+                  streamLogs: true,
+                },
+                {
+                  assertType: 'iterator',
+                }
+              )
+
+              const localTaskIds = { __proto__: null }
+              let result
+              for await (const log of logsStream) {
+                result = handleBackupLog(log, {
+                  logger,
+                  localTaskIds,
+                  runJobId,
+                })
+              }
+              return result
+            } catch (error) {
+              if (invalidParameters.is(error)) {
+                // wait for the result to properly reset backup listing cache in `finally`
+                return await app.callProxyMethod(proxyId, 'backup.run', params)
+              }
+              throw error
+            }
+          } else {
+            const localTaskIds = { __proto__: null }
+            return await runBackupWorker(
+              {
+                config: config.backups,
+                remoteOptions: config.remoteOptions,
+                resourceCacheDelay: parseDuration(config.resourceCacheDelay),
+                xapiOptions: config.xapiOptions,
+                ...params,
+              },
+              log =>
+                handleBackupLog(log, {
+                  logger,
+                  localTaskIds,
+                  runJobId,
+                })
             )
           }
         } finally {
