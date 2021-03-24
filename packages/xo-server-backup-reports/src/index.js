@@ -398,22 +398,17 @@ class BackupReportsXoPlugin {
           ''
         )
 
-        if (type === 'SR') {
-          try {
+        try {
+          if (type === 'SR') {
             const sr = xo.getObject(id)
             failedVmsText.push(`### ${sr.name_label}`, '', `- **UUID**: ${sr.uuid}`)
-          } catch (error) {
-            logger.warn(error)
-            failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
-          }
-        } else {
-          try {
+          } else {
             const remote = await xo.getRemote(id)
             failedVmsText.push(`### ${remote.name}`, '', `- **UUID**: ${id}`)
-          } catch (error) {
-            logger.warn(error)
-            failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
           }
+        } catch (error) {
+          logger.warn(error)
+          failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
         }
 
         failedVmsText.push(
