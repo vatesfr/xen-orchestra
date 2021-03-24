@@ -19533,6 +19533,14 @@ xmlrpc@^1.3.2:
     sax "1.2.x"
     xmlbuilder "8.2.x"
 
+xo-common@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/xo-common/-/xo-common-0.6.0.tgz#0c4278ce091e87843034ec0eed0fe5ec819e5e99"
+  integrity sha512-M8VV0mn+JnFyWcv/7e5Fjd0CVlEvoFItwVpqlzCY1l8H+MXDJz2GbTyn+4dLJ2ahc1xIDjt3BHH5gdT0rybhEQ==
+  dependencies:
+    lodash "^4.16.6"
+    make-error "^1.2.1"
+
 xok@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/xok/-/xok-1.0.0.tgz#1b4e1a2dc8e593bd8907dc4cfd6a1fe6e4254899"
