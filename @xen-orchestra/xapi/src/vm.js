@@ -293,10 +293,10 @@ module.exports = class Vm {
     }
 
     await Promise.all([
-      vm.set_is_default_template(false),
+      forceDeleteDefaultTemplate && vm.set_is_default_template(false),
+      forceDeleteDefaultTemplate && vm.update_other_config('default_template', null),
       vm.set_is_a_template(false),
       vm.update_blocked_operations('destroy', null),
-      vm.update_other_config('default_template', null),
     ])
 
     // must be done before destroying the VM
