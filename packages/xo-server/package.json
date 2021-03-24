@@ -29,7 +29,7 @@
     "bin": "bin"
   },
   "engines": {
-    "node": ">=11.15"
+    "node": ">=11"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.1",
