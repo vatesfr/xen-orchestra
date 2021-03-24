@@ -301,7 +301,7 @@ module.exports = class Vm {
         pCatch.call(vm.set_is_default_template(false), { code: 'MESSAGE_METHOD_UNKNOWN' }, noop),
       forceDeleteDefaultTemplate && vm.update_other_config('default_template', null),
       vm.set_is_a_template(false),
-      vm.update_blocked_operations('destroy', null),
+      bypassBlockedOperation && vm.update_blocked_operations('destroy', null),
     ])
 
     // must be done before destroying the VM
