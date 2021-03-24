@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,5 +38,6 @@
 - xo-server-transport-email minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/xapi minor
-- xo-server patch
+- @xen-orchestra/backups minor
+- xo-server minor
 - xo-web patch
