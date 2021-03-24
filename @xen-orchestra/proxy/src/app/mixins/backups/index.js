@@ -14,6 +14,7 @@ import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { Xapi } from '@xen-orchestra/xapi'
 
@@ -45,26 +46,42 @@ export default class Backups {
       await fromCallback(execFile, 'pvscan', ['--cache'])
     })
 
-    let run = ({ recordToXapi, remotes, xapis, ...rest }) =>
-      new Backup({
-        ...rest,
+    let run = (params, onLog) => {
+      // don't change config during backup execution
+      const config = app.config.get('backups')
+      if (config.disableWorkers) {
+        const { recordToXapi, remotes, xapis, ...rest } = params
+        return new Backup({
+          ...rest,
 
-        // don't change config during backup execution
-        config: app.config.get('backups'),
+          config,
 
-        // pass getAdapter in order to mutualize the adapter resources usage
-        getAdapter: remoteId => this.getAdapter(remotes[remoteId]),
+          // pass getAdapter in order to mutualize the adapter resources usage
+          getAdapter: remoteId => this.getAdapter(remotes[remoteId]),
 
-        getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
-          const xapiId = recordToXapi[uuid]
-          if (xapiId === undefined) {
-            throw new Error('no XAPI associated to ' + uuid)
-          }
+          getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {
+            const xapiId = recordToXapi[uuid]
+            if (xapiId === undefined) {
+              throw new Error('no XAPI associated to ' + uuid)
+            }
 
-          const xapi = yield this.getXapi(xapis[xapiId])
-          return xapi.getRecordByUuid(type, uuid)
-        }).bind(this),
-      }).run()
+            const xapi = yield this.getXapi(xapis[xapiId])
+            return xapi.getRecordByUuid(type, uuid)
+          }).bind(this),
+        }).run()
+      } else {
+        return runBackupWorker(
+          {
+            config,
+            remoteOptions: app.config.get('remoteOptions'),
+            resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
+            xapiOptions: app.config.get('xapiOptions'),
+            ...params,
+          },
+          onLog
+        )
+      }
+    }
 
     const runningJobs = { __proto__: null }
     run = (run => {
@@ -97,8 +114,8 @@ export default class Backups {
         return run.apply(this, arguments)
       })(run)
     run = (run => async (params, onLog) => {
-      if (onLog === undefined) {
-        return run(params)
+      if (onLog === undefined || !app.config.get('backups').disableWorkers) {
+        return run(params, onLog)
       }
 
       const { job, schedule } = params

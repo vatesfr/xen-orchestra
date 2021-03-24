@@ -7,6 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
 - [VM] Display the full driver version in the general and advanced tab instead of `major.minor` [#5680](https://github.com/vatesfr/xen-orchestra/issues/5680) (PR [#5691](https://github.com/vatesfr/xen-orchestra/pull/5691))
 
 ### Bug fixes
@@ -15,6 +16,7 @@
 
 - [Proxy] _Force upgrade_ no longer fails on broken proxy
 - [Proxy] _Redeploy_ now works when the bound VM is missing
+- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
 
 ### Packages to release
 
@@ -33,7 +35,11 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/disposable patch
 - xo-server-transport-email minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/xapi minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli minor
 - xo-server minor
 - xo-web patch

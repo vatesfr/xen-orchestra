@@ -13,7 +13,9 @@ const { readdir, stat } = require('fs-extra')
 const { ZipFile } = require('yazl')
 
 const { BACKUP_DIR } = require('./_getVmBackupDir')
+const { cleanVm } = require('./_cleanVm')
 const { getTmpDir } = require('./_getTmpDir')
+const { isMetadataFile, isVhdFile } = require('./_backupType')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')
 const { lvs, pvs } = require('./_lvm')
 
@@ -26,9 +28,6 @@ exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 const { warn } = createLogger('xo:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
-
-const isMetadataFile = filename => filename.endsWith('.json')
-const isVhdFile = filename => filename.endsWith('.vhd')
 
 const noop = Function.prototype
 
@@ -66,8 +65,8 @@ const debounceResourceFactory = factory =>
     return this._debounceResource(factory.apply(this, arguments))
   }
 
-exports.RemoteAdapter = class RemoteAdapter {
-  constructor(handler, { debounceResource, dirMode }) {
+class RemoteAdapter {
+  constructor(handler, { debounceResource = res => res, dirMode } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
@@ -551,3 +550,9 @@ exports.RemoteAdapter = class RemoteAdapter {
     return Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
   }
 }
+
+RemoteAdapter.prototype.cleanVm = function (vmDir) {
+  return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+}
+
+exports.RemoteAdapter = RemoteAdapter

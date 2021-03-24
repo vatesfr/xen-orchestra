@@ -187,6 +187,18 @@ You can access the VM console through XenCenter or using VNC through a SSH tunne
 
 If you want to go back in DHCP, just run `xoa network dhcp`
 
+### Other interfaces
+
+If you need to configure other interfaces than `eth0`, you can use the same commands with the name of the interface to configure as supplementary argument:
+
+```
+$ xoa network static eth1
+? Static IP for this machine 192.168.100.120
+? Network mask (eg 255.255.255.0) 255.255.255.0
+
+$ xoa network dhcp eth1
+```
+
 ## Firewall
 
 By default XOA is firewalled, with only ports 22, 80 and 443 opened. You can see the current status of the firewall using the `sudo ufw status verbose` command:
