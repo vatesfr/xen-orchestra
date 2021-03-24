@@ -552,7 +552,7 @@ class RemoteAdapter {
 }
 
 RemoteAdapter.prototype.cleanVm = function (vmDir) {
-  return Disposable.use(this.handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+  return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
 }
 
 exports.RemoteAdapter = RemoteAdapter
