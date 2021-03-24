@@ -393,6 +393,7 @@ class BackupReportsXoPlugin {
 
       const { type, id } = taskLog.data ?? {}
       if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
+        ++nFailures
         failedVmsText.push(
           // It will ensure that it will never be in a nested list
           ''
@@ -400,11 +401,13 @@ class BackupReportsXoPlugin {
 
         try {
           if (type === 'SR') {
-            const sr = xo.getObject(id)
-            failedVmsText.push(`### ${sr.name_label}`, '', `- **UUID**: ${sr.uuid}`)
+            const { name_label: name, uuid } = xo.getObject(id)
+            failedVmsText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
+            nagiosText.push(`[(${type} Failed) ${name} : ${taskLog.result.message} ]`)
           } else {
-            const remote = await xo.getRemote(id)
-            failedVmsText.push(`### ${remote.name}`, '', `- **UUID**: ${id}`)
+            const { name } = await xo.getRemote(id)
+            failedVmsText.push(`### ${name}`, '', `- **UUID**: ${id}`)
+            nagiosText.push(`[(${type} Failed) ${name} : ${taskLog.result.message} ]`)
           }
         } catch (error) {
           logger.warn(error)
