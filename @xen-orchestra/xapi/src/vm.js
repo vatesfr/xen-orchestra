@@ -293,7 +293,9 @@ module.exports = class Vm {
     }
 
     await Promise.all([
-      forceDeleteDefaultTemplate && vm.set_is_default_template(false),
+      forceDeleteDefaultTemplate &&
+        // Only available on XS >= 7.2
+        pCatch.call(vm.set_is_default_template(false), { code: 'MESSAGE_METHOD_UNKNOWN' }, noop),
       forceDeleteDefaultTemplate && vm.update_other_config('default_template', null),
       vm.set_is_a_template(false),
       vm.update_blocked_operations('destroy', null),
