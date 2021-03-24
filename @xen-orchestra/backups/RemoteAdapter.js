@@ -551,13 +551,8 @@ class RemoteAdapter {
   }
 }
 
-RemoteAdapter.prototype.cleanVm = async function (vmDir) {
-  const release = await this.handler.lock(vmDir)
-  try {
-    await cleanVm.apply(this, arguments)
-  } finally {
-    await release()
-  }
+RemoteAdapter.prototype.cleanVm = function (vmDir) {
+  return Disposable.use(this.handler.lock(vmDir), () => cleanVm.apply(this, arguments))
 }
 
 exports.RemoteAdapter = RemoteAdapter

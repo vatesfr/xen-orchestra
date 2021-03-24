@@ -70,7 +70,9 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
   ])
 })
 
-exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = Function.prototype }) {
+const noop = Function.prototype
+
+exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop }) {
   const handler = this._handler
 
   const vhds = new Set()
