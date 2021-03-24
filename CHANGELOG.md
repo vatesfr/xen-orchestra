@@ -1,6 +1,29 @@
 # ChangeLog
 
-## _next_
+## **5.56.2** (2021-03-22)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Pool] Fix `an error has occurred` when using the "Disconnect" button from the pool page [#5669](https://github.com/vatesfr/xen-orchestra/issues/5669) (PR [#5671](https://github.com/vatesfr/xen-orchestra/pull/5671))
+- [Configuration] Automatically connect enabled servers after import [#5660](https://github.com/vatesfr/xen-orchestra/issues/5660) (PR [#5672](https://github.com/vatesfr/xen-orchestra/pull/5672))
+- Work-around some `ECONNRESET` errors when connecting to XEN-API (PR [#5674](https://github.com/vatesfr/xen-orchestra/pull/5674))
+- [Backup] Retry automatically on `resource temporarily unavailable` error (PR [#5612](https://github.com/vatesfr/xen-orchestra/pull/5612))
+- [Backup Restore] Don't break in case of malformed logs
+- [Backup Restore] Fix `MESSAGE_METHOD_UNKNOWN(VM.set_bios_strings)` with XenServer < 7.3
+
+### Released packages
+
+- xo-common 0.7.0
+- xen-api 0.31.0
+- @xen-orchestra/xapi 0.4.5
+- @xen-orchestra/fs 0.13.1
+- @xen-orchestra/backups 0.7.1
+- xo-server 5.77.1
+- xo-web 5.79.1
+
+## **5.56.1** (2021-03-10)
 
 ### Enhancements
 
@@ -23,8 +46,6 @@
 - xo-web 5.79.0
 
 ## **5.56.0** (2021-02-26)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 

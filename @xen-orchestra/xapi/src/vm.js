@@ -7,9 +7,11 @@ const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { incorrectState } = require('xo-common/api-errors')
 const { Ref } = require('xen-api')
 
 const extractOpaqueRef = require('./_extractOpaqueRef')
+const isDefaultTemplate = require('./isDefaultTemplate')
 const isVmRunning = require('./_isVmRunning')
 
 const { warn } = createLogger('xo:xapi:vm')
@@ -261,7 +263,8 @@ module.exports = class Vm {
 
     bios_strings = cleanBiosStrings(bios_strings)
     if (bios_strings !== undefined) {
-      await this.call('VM.set_bios_strings', ref, bios_strings)
+      // Only available on XS >= 7.3
+      await pCatch.call(this.call('VM.set_bios_strings', ref, bios_strings), { code: 'MESSAGE_METHOD_UNKNOWN' }, noop)
     }
 
     return ref
@@ -274,8 +277,13 @@ module.exports = class Vm {
       throw new Error('destroy is blocked')
     }
 
-    if (!forceDeleteDefaultTemplate && vm.other_config.default_template === 'true') {
-      throw new Error('VM is default template')
+    if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
+      throw incorrectState({
+        actual: true,
+        expected: false,
+        object: vm.$id,
+        property: 'isDefaultTemplate',
+      })
     }
 
     // It is necessary for suspended VMs to be shut down
@@ -285,6 +293,7 @@ module.exports = class Vm {
     }
 
     await Promise.all([
+      vm.set_is_default_template(false),
       vm.set_is_a_template(false),
       vm.update_blocked_operations('destroy', null),
       vm.update_other_config('default_template', null),

@@ -6,7 +6,7 @@ import pickBy from 'lodash/pickBy'
 import { utcParse } from 'd3-time-format'
 import { satisfies as versionSatisfies } from 'semver'
 
-import { camelToSnakeCase, forEach, isInteger, map, mapFilter, mapToArray, noop } from '../utils'
+import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils'
 
 // ===================================================================
 
@@ -54,24 +54,6 @@ export const extractOpaqueRef = str => {
     throw new Error('no opaque ref found')
   }
   return matches[0]
-}
-
-// -------------------------------------------------------------------
-
-export const getVmDisks = vm => {
-  const disks = { __proto__: null }
-  forEach(vm.$VBDs, vbd => {
-    let vdi
-    if (
-      // Do not remove CDs and Floppies.
-      vbd.type === 'Disk' &&
-      // Ignore VBD without VDI.
-      (vdi = vbd.$VDI)
-    ) {
-      disks[vdi.$id] = vdi
-    }
-  })
-  return disks
 }
 
 // -------------------------------------------------------------------
@@ -168,7 +150,7 @@ export const makeEditObject = specs => {
       throw new Error('must be an array, a function or a string')
     }
 
-    set = mapToArray(set, normalizeSet)
+    set = set.map(normalizeSet)
 
     const { length } = set
     if (!length) {
@@ -180,7 +162,7 @@ export const makeEditObject = specs => {
     }
 
     return function (value, object) {
-      return Promise.all(mapToArray(set, set => set.call(this, value, object)))
+      return Promise.all(set.map(set => set.call(this, value, object)))
     }
   }
 
@@ -296,7 +278,7 @@ export const makeEditObject = specs => {
         })
 
         if (cbs.length) {
-          return () => Promise.all(mapToArray(cbs, cb => cb())).then(cb)
+          return () => Promise.all(cbs.map(cb => cb())).then(cb)
         }
       }
 
@@ -309,7 +291,7 @@ export const makeEditObject = specs => {
       await checkLimits(limits, object)
     }
 
-    return Promise.all(mapToArray(cbs, cb => cb())).then(noop)
+    return Promise.all(cbs.map(cb => cb())).then(noop)
   }
 }
 

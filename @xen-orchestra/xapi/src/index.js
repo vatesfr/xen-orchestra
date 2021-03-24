@@ -3,6 +3,8 @@ const defer = require('promise-toolbox/defer')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 
+exports.isDefaultTemplate = require('./isDefaultTemplate')
+
 // VDI formats. (Raw is not available for delta vdi.)
 exports.VDI_FORMAT_RAW = 'raw'
 exports.VDI_FORMAT_VHD = 'vhd'
@@ -39,9 +41,9 @@ class Xapi extends Base {
     this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._vdiDestroyRetryWhenInUse = {
-      ...vdiDestroyRetryWhenInUse,
       delay: 5e3,
       retries: 10,
+      ...vdiDestroyRetryWhenInUse,
     }
 
     const genericWatchers = (this._genericWatchers = new Set())

@@ -4,7 +4,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import createLogger from '@xen-orchestra/log'
 import type RemoteHandler from '@xen-orchestra/fs'
-import using from 'promise-toolbox/using'
+import Disposable from 'promise-toolbox/Disposable'
 import { Backup } from '@xen-orchestra/backups/Backup'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
@@ -435,7 +435,7 @@ export default class BackupNg {
         },
       })
     } else {
-      await using(app.getBackupsRemoteAdapter(remoteId), adapter => adapter.deleteVmBackup(metadataFilename))
+      await Disposable.use(app.getBackupsRemoteAdapter(remoteId), adapter => adapter.deleteVmBackup(metadataFilename))
     }
 
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
@@ -505,7 +505,7 @@ export default class BackupNg {
           throw error
         }
       } else {
-        await using(app.getBackupsRemoteAdapter(remote), async adapter => {
+        await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata: Metadata = await adapter.readVmBackupMetadata(metadataFilename)
           const localTaskIds = { __proto__: null }
           return Task.run(
@@ -566,7 +566,7 @@ export default class BackupNg {
           },
         }))
       } else {
-        backupsByVm = await using(app.getBackupsRemoteAdapter(remote), async adapter =>
+        backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter =>
           formatVmBackups(await adapter.listAllVmBackups())
         )
       }

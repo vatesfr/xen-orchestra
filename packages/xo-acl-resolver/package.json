@@ -17,7 +17,6 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "bin": {},
   "files": [
     "index.js"
   ],
@@ -25,7 +24,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "xo-common": "^0.6.0"
+    "xo-common": "^0.7.0"
   },
   "scripts": {
     "postversion": "npm publish"

@@ -14,7 +14,7 @@ const { getVmBackupDir } = require('./_getVmBackupDir')
 const { packUuid } = require('./_packUuid')
 const { Task } = require('./Task')
 
-const { warn } = createLogger('xo:proxy:backups:DeltaBackupWriter')
+const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 exports.DeltaBackupWriter = class DeltaBackupWriter {
   constructor(backup, remoteId, settings) {

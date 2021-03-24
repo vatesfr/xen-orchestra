@@ -18,7 +18,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "bin": {},
   "files": [
     "dist/"
   ],
@@ -39,7 +38,7 @@
     "lodash": "^4.17.11",
     "promise-toolbox": "^0.17.0",
     "xo-collection": "^0.4.1",
-    "xo-common": "^0.6.0",
+    "xo-common": "^0.7.0",
     "xo-lib": "^0.10.1"
   },
   "scripts": {

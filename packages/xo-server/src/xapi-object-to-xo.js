@@ -1,7 +1,9 @@
+import { isDefaultTemplate } from '@xen-orchestra/xapi'
+
 import * as sensitiveValues from './sensitive-values'
 import ensureArray from './_ensureArray'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
-import { extractProperty, forEach, isEmpty, mapFilter, mapToArray, parseXml } from './utils'
+import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils'
 import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
 import { useUpdateSystem } from './xapi/utils'
 
@@ -44,7 +46,7 @@ function link(obj, prop, idField = '$id') {
   }
 
   if (Array.isArray(dynamicValue)) {
-    return mapToArray(dynamicValue, idField)
+    return dynamicValue.map(_ => _[idField])
   }
 
   return dynamicValue[idField]
@@ -445,13 +447,14 @@ const TRANSFORMS = {
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
     } else if (obj.is_a_template) {
+      const defaultTemplate = isDefaultTemplate(obj)
       vm.type += '-template'
-
-      if (obj.other_config.default_template === 'true') {
+      if (defaultTemplate) {
         vm.id = obj.$ref // use refs for templates as they
       }
 
       vm.CPUs.number = +obj.VCPUs_at_startup
+      vm.isDefaultTemplate = defaultTemplate
       vm.template_info = {
         arch: otherConfig['install-arch'],
         disks: (function () {

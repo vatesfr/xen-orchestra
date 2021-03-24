@@ -3,14 +3,14 @@ import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import execa from 'execa'
 import splitLines from 'split-lines'
-import { CancelToken, fromEvent, ignoreErrors } from 'promise-toolbox'
+import { CancelToken, fromEvent, ignoreErrors, pReflect } from 'promise-toolbox'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { decorateWith } from '@vates/decorate-with'
 import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import { basename, dirname } from 'path'
-import { escapeRegExp, filter, find, includes, once, range, sortBy } from 'lodash'
+import { escapeRegExp, filter, find, includes, map as mapToArray, once, range, sortBy } from 'lodash'
 import { chainVhd, createSyntheticStream as createVhdReadStream, mergeVhd } from 'vhd-lib'
 
 import createSizeStream from '../size-stream'
@@ -21,10 +21,7 @@ import {
   forEach,
   getFirstPropertyName,
   mapFilter,
-  mapToArray,
-  pFinally,
   pFromCallback,
-  pSettle,
   resolveSubpath,
   safeDateFormat,
   safeDateParse,
@@ -161,7 +158,7 @@ const listPartitions2 = device =>
                 })
               })
             })
-            promise::pFinally(device.unmount)
+            promise.finally(device.unmount)
             return promise
           })
         )
@@ -286,7 +283,7 @@ export default class {
       const deltaBackups = filter(files, isDeltaBackup)
 
       backups.push(
-        ...mapToArray(deltaBackups, deltaBackup => {
+        ...deltaBackups.map(deltaBackup => {
           return `${deltaDir}/${getDeltaBackupNameWithoutExt(deltaBackup)}`
         })
       )
@@ -602,7 +599,7 @@ export default class {
     const fullVdisRequired = []
 
     await Promise.all(
-      mapToArray(vm.$VBDs, async vbd => {
+      vm.$VBDs.map(async vbd => {
         if (!vbd.VDI || vbd.type !== 'Disk') {
           return
         }
@@ -628,18 +625,20 @@ export default class {
     $defer.onFailure(cancel)
 
     // Save vdis.
-    const vdiBackups = await pSettle(
-      mapToArray(delta.vdis, async (vdi, key) => {
-        const vdiParent = xapi.getObject(vdi.snapshot_of)
+    const vdiBackups = await Promise.all(
+      Object.keys(delta.vdis)
+        .map(async ([key, vdi]) => {
+          const vdiParent = xapi.getObject(vdi.snapshot_of)
 
-        return this._saveDeltaVdiBackup(xapi, {
-          vdiParent,
-          isFull: !baseVm || find(fullVdisRequired, id => vdiParent.$id === id),
-          handler,
-          stream: delta.streams[`${key}.vhd`],
-          dir,
-          retention,
-        }).then(data => {
+          const data = await this._saveDeltaVdiBackup(xapi, {
+            vdiParent,
+            isFull: !baseVm || find(fullVdisRequired, id => vdiParent.$id === id),
+            handler,
+            stream: delta.streams[`${key}.vhd`],
+            dir,
+            retention,
+          })
+
           delta.vdis[key] = {
             ...delta.vdis[key],
             xoPath: data.path,
@@ -647,7 +646,7 @@ export default class {
 
           return data
         })
-      })
+        .map(promise => pReflect.call(promise))
     )
 
     const fulFilledVdiBackups = []
@@ -686,7 +685,7 @@ export default class {
 
     // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
-      mapToArray(vdiBackups, vdiBackup => {
+      vdiBackups.map(vdiBackup => {
         const backupName = vdiBackup.value().path
         const backupDirectory = backupName.slice(0, backupName.lastIndexOf('/'))
         const backupDir = `${dir}/${backupDirectory}`
@@ -996,7 +995,7 @@ export default class {
 
     const entriesMap = {}
     await Promise.all(
-      mapToArray(entries, async name => {
+      entries.map(async name => {
         const stats = await pFromCallback(cb => stat(`${path}/${name}`, cb))::ignoreErrors()
         if (stats) {
           entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
@@ -1015,7 +1014,7 @@ export default class {
         partition.unmount()
       }
     }
-    return mapToArray(paths, path => {
+    return paths.map(path => {
       ++i
       return createReadStream(resolveSubpath(partition.path, path)).once('end', onEnd)
     })

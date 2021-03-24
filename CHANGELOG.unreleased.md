@@ -13,6 +13,10 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Proxy] _Force upgrade_ no longer fails on broken proxy
+- [Proxy] _Redeploy_ now works when the bound VM is missing
+- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -30,5 +34,10 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/disposable patch
+- xo-server-transport-email minor
+- @xen-orchestra/fs minor
+- @xen-orchestra/xapi minor
 - @xen-orchestra/backups minor
 - xo-server minor
+- xo-web patch

@@ -1,6 +1,6 @@
 import Collection from '../collection/redis'
 import Model from '../model'
-import { forEach, mapToArray, multiKeyHash } from '../utils'
+import { forEach, multiKeyHash } from '../utils'
 
 // ===================================================================
 
@@ -54,11 +54,11 @@ export class Acls extends Collection {
     })
     if (toUpdate.length) {
       // Removes all existing entries.
-      await this.remove(mapToArray(toUpdate, 'id'))
+      await this.remove(toUpdate.map(_ => _.id))
 
       // Compute the new ids (new hashes).
       await Promise.all(
-        mapToArray(toUpdate, acl =>
+        toUpdate.map(acl =>
           multiKeyHash(acl.subject, acl.object, acl.action).then(id => {
             acl.id = id
           })
