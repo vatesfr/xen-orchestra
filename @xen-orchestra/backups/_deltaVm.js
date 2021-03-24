@@ -325,11 +325,16 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       }
 
       if (network) {
-        return xapi.VIF_create({
-          ...vif,
-          network: network.$ref,
-          VM: vmRef,
-        })
+        return xapi.VIF_create(
+          {
+            ...vif,
+            network: network.$ref,
+            VM: vmRef,
+          },
+          {
+            MAC: vif.MAC,
+          }
+        )
       }
     }),
   ])
