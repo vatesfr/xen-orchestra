@@ -2019,6 +2019,7 @@ export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remote
 
 export const restoreBackup = (backup, generateNewMacAddresses, sr, startOnRestore) => {
   const promise = _call('backupNg.importVmBackup', {
+    generateNewMacAddresses,
     id: resolveId(backup),
     sr: resolveId(sr),
   })
