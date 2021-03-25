@@ -1606,6 +1606,7 @@ const messages = {
     'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',
   oldest: 'oldest',
   latest: 'latest',
+  restoreVmBackupsMacAddress: 'Generate new mac addresses',
   restoreVmBackupsStart: 'Start VM{nVms, plural, one {} other {s}} after restore',
   restoreVmBackupsBulkErrorTitle: 'Multi-restore error',
   restoreMetadataBackupTitle: 'Restore {item}',

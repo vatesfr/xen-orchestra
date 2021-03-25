@@ -186,13 +186,13 @@ export default class Restore extends Component {
       body: <RestoreBackupsModalBody data={data} />,
       icon: 'restore',
     })
-      .then(({ backup, sr, start }) => {
+      .then(({ backup, generateNewMacAddresses, sr, start }) => {
         if (backup == null || sr == null) {
           error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
           return
         }
 
-        return restoreBackup(backup, sr, start)
+        return restoreBackup(backup, generateNewMacAddresses, sr, start)
       }, noop)
       .then(() => this._refreshBackupList())
 
@@ -211,14 +211,14 @@ export default class Restore extends Component {
       body: <RestoreBackupsBulkModalBody datas={datas} />,
       icon: 'restore',
     })
-      .then(({ sr, latest, start }) => {
+      .then(({ sr, generateNewMacAddresses, latest, start }) => {
         if (sr == null) {
           error(_('restoreVmBackupsBulkErrorTitle', 'restoreVmBackupsBulkErrorMessage'))
           return
         }
 
         const prop = latest ? 'last' : 'first'
-        return Promise.all(map(datas, data => restoreBackup(data[prop], sr, start)))
+        return Promise.all(map(datas, data => restoreBackup(data[prop], generateNewMacAddresses, sr, start)))
       }, noop)
       .then(() => this._refreshBackupList())
 
