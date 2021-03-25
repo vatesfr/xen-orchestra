@@ -412,7 +412,7 @@ class BackupReportsXoPlugin {
         } catch (error) {
           logger.warn(error)
           failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
-          nagiosText.push(`[(${type} failed) ${UNKNOWN_ITEM} : ${taskLog.result.message} ]`)
+          nagiosText.push(`[(${type} failed) ${id} : ${taskLog.result.message} ]`)
         }
 
         failedVmsText.push(
