@@ -5,8 +5,11 @@
 
 ### Enhancements
 
-- [Host/Load-balancer] Add a new anti-affinity mode (PR [#5652](https://github.com/vatesfr/xen-orchestra/pull/5652))
-- [Plugins/perf-alert] Ability to choose all hosts, VMs and SRs [#2987](https://github.com/vatesfr/xen-orchestra/issues/2987) (PR [#5692](https://github.com/vatesfr/xen-orchestra/pull/5692))
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
+- [VM] Display the full driver version in the general and advanced tab instead of `major.minor` [#5680](https://github.com/vatesfr/xen-orchestra/issues/5680) (PR [#5691](https://github.com/vatesfr/xen-orchestra/pull/5691))
+- [Restore] Handle the possibility to generate new mac addresses (PR [#5697](https://github.com/vatesfr/xen-orchestra/pull/5697))
 
 ### Bug fixes
 
@@ -29,7 +32,6 @@
 
 - @xen-orchestra/xapi minor
 - @xen-orchestra/backups minor
-- xo-server-load-balancer minor
-- xo-server-perf-alert minor
-- xo-server patch
+- @xen-orchestra/backups-cli minor
+- xo-server minor
 - xo-web minor
