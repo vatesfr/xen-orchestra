@@ -1363,7 +1363,10 @@ export default class Xapi extends XapiBase {
     return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
-  async _startVm(vm, host, force, ignoreMacAddressesCheck = false) {
+  async _startVm(vm, host, {
+    force = false,
+    bypassMacAddressesCheck = force,
+  } = {}) {
     if (!ignoreMacAddressesCheck) {
       const vmMacAddresses = vm.$VIFs.map(vif => vif.MAC)
       if (new Set(vmMacAddresses).size !== vmMacAddresses.length) {
