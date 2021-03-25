@@ -157,7 +157,7 @@ export const configurationSchema = {
       items: {
         type: 'object',
         properties: {
-          all: {
+          smartMode: {
             title: 'All hosts',
             type: 'boolean',
             description: 'When enabled, all hosts will be considered for the alert.',
@@ -196,7 +196,7 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [{ required: 'uuids' }, { all: true }],
+        oneOf: [{ required: 'uuids' }, { smartMode: true }],
       },
     },
     vmMonitors: {
@@ -208,7 +208,7 @@ export const configurationSchema = {
       items: {
         type: 'object',
         properties: {
-          all: {
+          smartMode: {
             title: 'All VMs',
             type: 'boolean',
             description: 'When enabled, all VMs will be considered for the alert.',
@@ -247,7 +247,7 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [{ required: 'uuids' }, { all: true }],
+        oneOf: [{ required: 'uuids' }, { smartMode: true }],
       },
     },
     srMonitors: {
@@ -259,7 +259,7 @@ export const configurationSchema = {
       items: {
         type: 'object',
         properties: {
-          all: {
+          smartMode: {
             title: 'All SRs',
             type: 'boolean',
             description: 'When enabled, all SRs will be considered for the alert.',
@@ -290,7 +290,7 @@ export const configurationSchema = {
             default: 80,
           },
         },
-        oneOf: [{ required: 'uuids' }, { all: true }],
+        oneOf: [{ required: 'uuids' }, { smartMode: true }],
       },
     },
     toEmails: {
@@ -442,7 +442,7 @@ ${monitorBodies.join('\n')}`
       snapshot: async () => {
         return Promise.all(
           map(
-            definition.all
+            definition.smartMode
               ? map(this._xo.getObjects({ filter: { type: definition.objectType } }), obj => obj.uuid)
               : definition.uuids,
             async uuid => {
