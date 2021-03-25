@@ -18,18 +18,12 @@
 
 /* Menu item variant */
 .danger{
-    background-color: red;
-    font-weight: bold;
+    color: red;
   }
-.primary{
-  font-weight: bold;
-}
 .success{
-  background-color: green;
-  font-weight: bold;
+  color: green;
 }
 .warning{
-  background-color: orange;
-  font-weight: bold;
+  color: orange;
 }
 
