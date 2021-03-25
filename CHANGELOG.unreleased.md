@@ -9,6 +9,7 @@
 
 - [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
 - [VM] Display the full driver version in the general and advanced tab instead of `major.minor` [#5680](https://github.com/vatesfr/xen-orchestra/issues/5680) (PR [#5691](https://github.com/vatesfr/xen-orchestra/pull/5691))
+- [Usage report] Add VM IP addresses to the report
 
 ### Bug fixes
 
@@ -35,6 +36,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-usage-report minor
 - @vates/disposable patch
 - xo-server-transport-email minor
 - @xen-orchestra/fs minor
