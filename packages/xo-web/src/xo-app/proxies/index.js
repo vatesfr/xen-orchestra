@@ -55,6 +55,7 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
+    collapsed: true,
     handler: (proxy, { deployProxy }) =>
       deployProxy({
         proxy,
@@ -62,7 +63,6 @@ const INDIVIDUAL_ACTIONS = [
     icon: 'refresh',
     label: _('redeployProxyAction'),
     level: 'warning',
-    collapsed: true,
   },
   {
     handler: checkProxyHealth,

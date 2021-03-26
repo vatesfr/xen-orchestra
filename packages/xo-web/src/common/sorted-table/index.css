@@ -15,15 +15,3 @@
   outline: 2px solid #366e98;
   outline-offset: -2px;
 }
-
-/* Menu item variant */
-.danger{
-    color: red;
-  }
-.success{
-  color: green;
-}
-.warning{
-  color: orange;
-}
-
