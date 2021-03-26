@@ -191,8 +191,7 @@ export default class Restore extends Component {
           error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
           return
         }
-
-        return restoreBackup(backup, generateNewMacAddresses, sr, start)
+        return restoreBackup(backup, sr, { generateNewMacAddresses, startOnRestore: start })
       }, noop)
       .then(() => this._refreshBackupList())
 
@@ -218,7 +217,9 @@ export default class Restore extends Component {
         }
 
         const prop = latest ? 'last' : 'first'
-        return Promise.all(map(datas, data => restoreBackup(data[prop], generateNewMacAddresses, sr, start)))
+        return Promise.all(
+          map(datas, data => restoreBackup(data[prop], sr, { generateNewMacAddresses, startOnRestore: start }))
+        )
       }, noop)
       .then(() => this._refreshBackupList())
 
