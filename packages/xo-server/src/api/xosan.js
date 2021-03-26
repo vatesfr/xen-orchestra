@@ -1070,7 +1070,7 @@ export const addBricks = defer(async function ($defer, { xosansr, lvmsrs, brickS
       data.type = 'replica'
       await xapi.xo.setData(xosansr, 'xosan_config', data)
       await glusterCmd(glusterEndpoint, 'peer detach ' + arbiterNode.vm.ip, true)
-      await xapi.VM_destroy(arbiterNode.vm.$ref, true)
+      await xapi.VM_destroy(await xapi.call('VM.get_by_uuid', arbiterNode.vm.id), true)
     }
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 1 }
     await glusterCmd(glusterEndpoint, `volume add-brick xosan ${newNodes.map(n => n.brickName).join(' ')}`)
