@@ -79,7 +79,7 @@ export default {
 
     // Clones the template.
     const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
-    $defer.onFailure(() => this.deleteVm(vmRef))
+    $defer.onFailure(() => this.VM_destroy(vmRef))
 
     // Copy BIOS strings
     // https://support.citrix.com/article/CTX230618
