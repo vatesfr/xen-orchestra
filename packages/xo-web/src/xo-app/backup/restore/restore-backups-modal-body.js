@@ -35,9 +35,9 @@ export default class RestoreBackupsModalBody extends Component {
           <Toggle
             iconSize={1}
             value={this.state.generateNewMacAddresses}
-            onChange={this.linkState('generateNewMacAddresses')}
+            onChange={this.toggleState('generateNewMacAddresses')}
           />{' '}
-          {_('restoreVmBackupsMacAddress')}
+          {_('generateNewMacAddress')}
         </div>
       </div>
     )
@@ -79,9 +79,9 @@ export class RestoreBackupsBulkModalBody extends Component {
           <Toggle
             iconSize={1}
             value={this.state.generateNewMacAddresses}
-            onChange={this.linkState('generateNewMacAddresses')}
+            onChange={this.toggleState('generateNewMacAddresses')}
           />{' '}
-          {_('restoreVmBackupsMacAddress')}
+          {_('generateNewMacAddress')}
         </div>
       </div>
     )
