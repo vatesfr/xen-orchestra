@@ -2017,7 +2017,13 @@ export const runBackupNgJob = ({ force, ...params }) => {
 
 export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
-export const restoreBackup = (backup, generateNewMacAddresses, sr, startOnRestore) => {
+export const restoreBackup = (backup, sr, options) => {
+  const _options = {
+    generateNewMacAddresses: false,
+    startOnRestore: false,
+    ...options,
+  }
+  const { generateNewMacAddresses, startOnRestore } = _options
   const promise = _call('backupNg.importVmBackup', {
     generateNewMacAddresses,
     id: resolveId(backup),
