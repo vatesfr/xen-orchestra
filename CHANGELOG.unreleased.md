@@ -18,6 +18,7 @@
 - [Proxy] _Redeploy_ now works when the bound VM is missing
 - [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
 - [OVA VM Import] Fix imported VMs all having the same MAC addresses
+- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683](https://github.com/vatesfr/xen-orchestra/pull/5683))
 
 ### Packages to release
 
