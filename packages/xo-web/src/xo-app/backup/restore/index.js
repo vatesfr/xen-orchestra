@@ -191,6 +191,7 @@ export default class Restore extends Component {
           error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
           return
         }
+
         return restoreBackup(backup, sr, { generateNewMacAddresses, startOnRestore: start })
       }, noop)
       .then(() => this._refreshBackupList())
