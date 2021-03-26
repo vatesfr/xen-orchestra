@@ -107,7 +107,7 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       try {
-        await this._app.getXapi(vmUuid).VM_destroy(await this._app.getXapiObject(vmUuid).$ref)
+        await this._app.getXapiObject(vmUuid).$destroy()
       } catch (error) {
         if (!noSuchObject.is(error)) {
           throw error
