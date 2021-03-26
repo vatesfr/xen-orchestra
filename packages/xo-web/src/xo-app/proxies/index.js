@@ -38,18 +38,18 @@ const HEADER = (
 
 const ACTIONS = [
   {
+    collapsed: true,
     handler: forgetProxyAppliances,
     icon: 'forget',
     label: _('forgetProxies'),
     level: 'danger',
-    collapsed: true,
   },
   {
+    collapsed: true,
     handler: destroyProxyAppliances,
     icon: 'destroy',
     label: _('destroyProxies'),
     level: 'danger',
-    collapsed: true,
   },
 ]
 
