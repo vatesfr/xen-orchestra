@@ -360,11 +360,9 @@ export default class {
 
     // 1. Find the local base for this SR (if any).
     const TAG_LAST_BASE_DELTA = `xo:base_delta:${targetSr.uuid}`
-    let localBaseRef
     const localBaseUuid = (id => {
       if (id != null) {
         const base = srcXapi.getObject(id, null)
-        localBaseRef = base.$ref
         return base && base.uuid
       }
     })(srcVm.other_config[TAG_LAST_BASE_DELTA])
@@ -376,7 +374,7 @@ export default class {
         bypassVdiChainsCheck: force,
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`,
       })
-      $defer.onFailure(() => srcXapi.VM_destroy(delta.vm.$ref))
+      $defer.onFailure(() => this._xo.getXapiObject(delta.vm.uuid).$destroy())
       $defer.onFailure(cancel)
 
       const date = safeDateFormat(Date.now())
@@ -401,8 +399,8 @@ export default class {
 
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
-      if (localBaseRef) {
-        promise.then(() => srcXapi.VM_destroy(localBaseRef))::ignoreErrors()
+      if (localBaseUuid) {
+        promise.then(() => this._xo.getXapiObject(localBaseUuid).$destroy())
       }
 
       if (toRemove !== undefined) {
@@ -623,7 +621,8 @@ export default class {
       fullVdisRequired,
       disableBaseTags: true,
     })
-    $defer.onFailure(() => xapi.VM_destroy(delta.vm.$ref))
+    const exportedVmRef = await xapi.call('VM.get_by_uuid', delta.vm.uuid)
+    $defer.onFailure(() => xapi.VM_destroy(exportedVmRef))
     $defer.onFailure(cancel)
 
     // Save vdis.
