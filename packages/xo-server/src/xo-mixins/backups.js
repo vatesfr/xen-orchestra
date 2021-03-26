@@ -400,7 +400,7 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        promise.then(() => this._xo.getXapiObject(localBaseUuid).$destroy())
+        promise.then(() => this._xo.getXapiObject(localBaseUuid).$destroy())::ignoreErrors()
       }
 
       if (toRemove !== undefined) {
