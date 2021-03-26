@@ -563,15 +563,6 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  /**
-   * @deprecated Use VM_destroy instead
-   */
-  async deleteVm(vmOrId, deleteDisks = true, force = false, forceDeleteDefaultTemplate = false) {
-    const $ref = typeof vmOrId === 'string' ? this.getObject(vmOrId).$ref : vmOrId.$ref
-
-    return this.VM_destroy($ref, { deleteDisks, force, forceDeleteDefaultTemplate })
-  }
-
   getVmConsole(vmId) {
     const vm = this.getObject(vmId)
 
