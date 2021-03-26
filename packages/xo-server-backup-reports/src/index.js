@@ -375,7 +375,7 @@ class BackupReportsXoPlugin {
       })
     }
 
-    const failedVmsText = []
+    const failedTasksText = []
     const skippedVmsText = []
     const successfulVmsText = []
     const interruptedVmsText = []
@@ -391,17 +391,53 @@ class BackupReportsXoPlugin {
         continue
       }
 
-      const vmId = taskLog.data.id
+      const { type, id } = taskLog.data ?? {}
+      if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
+        ++nFailures
+        failedTasksText.push(
+          // It will ensure that it will never be in a nested list
+          ''
+        )
+
+        try {
+          if (type === 'SR') {
+            const { name_label: name, uuid } = xo.getObject(id)
+            failedTasksText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
+            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
+          } else {
+            const { name } = await xo.getRemote(id)
+            failedTasksText.push(`### ${name}`, '', `- **UUID**: ${id}`)
+            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
+          }
+        } catch (error) {
+          logger.warn(error)
+          failedTasksText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
+          nagiosText.push(`[(${type} failed) ${id} : ${taskLog.result.message} ]`)
+        }
+
+        failedTasksText.push(
+          `- **Type**: ${type}`,
+          ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
+          ...getWarningsMarkdown(taskLog.warnings),
+          `- **Error**: ${taskLog.result.message}`
+        )
+        continue
+      }
+
+      if (type !== 'VM') {
+        continue
+      }
+
       let vm
       try {
-        vm = xo.getObject(vmId)
+        vm = xo.getObject(id)
       } catch (e) {}
       const text = [
         // It will ensure that it will never be in a nested list
         '',
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
-        `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
+        `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
         ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
         ...getWarningsMarkdown(taskLog.warnings),
       ]
@@ -512,14 +548,14 @@ class BackupReportsXoPlugin {
           nagiosText.push(`[(Skipped) ${vm !== undefined ? vm.name_label : 'undefined'} : ${taskLog.result.message} ]`)
         } else {
           ++nFailures
-          failedVmsText.push(...text, `- **Error**: ${taskLog.result.message}`)
+          failedTasksText.push(...text, `- **Error**: ${taskLog.result.message}`)
 
           nagiosText.push(`[(Failed) ${vm !== undefined ? vm.name_label : 'undefined'} : ${taskLog.result.message} ]`)
         }
       } else {
         if (taskLog.status === 'failure') {
           ++nFailures
-          failedVmsText.push(...text, ...subText)
+          failedTasksText.push(...text, ...subText)
           nagiosText.push(`[${vm !== undefined ? vm.name_label : 'undefined'}: (failed)[${failedSubTasks.toString()}]]`)
         } else if (taskLog.status === 'interrupted') {
           ++nInterrupted
@@ -531,8 +567,8 @@ class BackupReportsXoPlugin {
       }
     }
 
-    const nVms = log.tasks.length
-    const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
+    const nTasks = log.tasks.length
+    const nSuccesses = nTasks - nFailures - nSkipped - nInterrupted
     const markdown = [
       `##  Global status: ${log.status}`,
       '',
@@ -540,7 +576,7 @@ class BackupReportsXoPlugin {
       `- **Run ID**: ${log.id}`,
       `- **mode**: ${mode}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-      `- **Successes**: ${nSuccesses} / ${nVms}`,
+      `- **Successes**: ${nSuccesses} / ${nTasks}`,
       globalTransferSize !== 0 && `- **Transfer size**: ${formatSize(globalTransferSize)}`,
       globalMergeSize !== 0 && `- **Merge size**: ${formatSize(globalMergeSize)}`,
       ...getWarningsMarkdown(log.warnings),
@@ -548,7 +584,7 @@ class BackupReportsXoPlugin {
     ]
 
     if (nFailures !== 0) {
-      markdown.push('---', '', `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`, '', ...failedVmsText)
+      markdown.push('---', '', `## ${nFailures} Failure${nFailures === 1 ? '' : 's'}`, '', ...failedTasksText)
     }
 
     if (nSkipped !== 0) {
