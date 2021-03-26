@@ -1,3 +1,9 @@
 {
-  "connect": "Connect"
+  "badCredentials": "Bad credentials",
+  "connect": "Connect",
+  "disconnect": "Disconnect",
+  "loading": "Loading…",
+  "login": "Login",
+  "password": "Password",
+  "rememberMe": "Remember me"
 }
