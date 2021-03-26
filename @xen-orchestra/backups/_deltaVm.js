@@ -143,7 +143,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   $defer,
   deltaVm,
   sr,
-  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, restoreMacAddresses = true } = {}
+  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, newMacAddresses = false } = {}
 ) {
   const { version } = deltaVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -213,6 +213,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     },
     {
       bios_strings: vmRecord.bios_strings,
+      generateMacSeed: newMacAddresses,
       suspend_VDI: suspendVdi?.$ref,
     }
   )
@@ -332,7 +333,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
             VM: vmRef,
           },
           {
-            MAC: restoreMacAddresses ? vif.MAC : undefined,
+            MAC: newMacAddresses ? vif.MAC : undefined,
           }
         )
       }
