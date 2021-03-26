@@ -392,9 +392,9 @@ ${monitorBodies.join('\n')}`
   }
 
   _parseDefinition(definition) {
-    const objectType = definition.objectType.toLowerCase()
-    const alarmId = `${objectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
-    const typeFunction = TYPE_FUNCTION_MAP[objectType][definition.variableName]
+    const lcObjectType = definition.objectType.toLowerCase()
+    const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
+    const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
     const parseData = (result, uuid) => {
       const parsedLegend = result.meta.legend.map((l, index) => {
         const [operation, type, uuid, name] = l.split(':')
@@ -456,7 +456,7 @@ ${monitorBodies.join('\n')}`
                   throw new Error('object not found')
                 }
 
-                result.objectLink = `[${result.object.name_label}](${this._generateUrl(objectType, result.object)})`
+                result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
 
                 if (typeFunction.createGetter === undefined) {
                   // Stats via RRD
