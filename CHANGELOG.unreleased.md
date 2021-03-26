@@ -7,8 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Proxies] Move proxy actions to dropdown (PR [#5688](https://github.com/vatesfr/xen-orchestra/pull/5688))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
