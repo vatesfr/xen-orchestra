@@ -55,7 +55,7 @@
     "lodash": "^4.17.19",
     "promise-toolbox": "^0.17.0",
     "readable-stream": "^3.5.0",
-    "xo-common": "^0.6.0"
+    "xo-common": "^0.7.0"
   },
   "private": true
 }

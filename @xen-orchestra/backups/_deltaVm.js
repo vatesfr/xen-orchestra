@@ -143,7 +143,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   $defer,
   deltaVm,
   sr,
-  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {} } = {}
+  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, restoreMacAddresses = true } = {}
 ) {
   const { version } = deltaVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -325,11 +325,16 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       }
 
       if (network) {
-        return xapi.VIF_create({
-          ...vif,
-          network: network.$ref,
-          VM: vmRef,
-        })
+        return xapi.VIF_create(
+          {
+            ...vif,
+            network: network.$ref,
+            VM: vmRef,
+          },
+          {
+            MAC: restoreMacAddresses ? vif.MAC : undefined,
+          }
+        )
       }
     }),
   ])

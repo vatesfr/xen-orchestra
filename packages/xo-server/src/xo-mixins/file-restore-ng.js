@@ -1,5 +1,5 @@
+import Disposable from 'promise-toolbox/Disposable'
 import execa from 'execa'
-import { using } from 'promise-toolbox'
 
 // - [x] list partitions
 // - [x] list files in a partition
@@ -52,7 +52,9 @@ export default class BackupNgFileRestore {
           },
           { assertType: 'stream' }
         )
-      : using(app.getBackupsRemoteAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths))
+      : Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
+          adapter.fetchPartitionFiles(diskId, partitionId, paths)
+        )
   }
 
   async listBackupNgDiskPartitions(remoteId, diskId) {
@@ -78,7 +80,7 @@ export default class BackupNgFileRestore {
       }
       return partitions
     } else {
-      return using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPartitions(diskId))
+      return Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPartitions(diskId))
     }
   }
 
@@ -95,6 +97,8 @@ export default class BackupNgFileRestore {
           partition: partitionId,
           path,
         })
-      : using(app.getBackupsRemoteAdapter(remote), adapter => adapter.listPartitionFiles(diskId, partitionId, path))
+      : Disposable.use(app.getBackupsRemoteAdapter(remote), adapter =>
+          adapter.listPartitionFiles(diskId, partitionId, path)
+        )
   }
 }
