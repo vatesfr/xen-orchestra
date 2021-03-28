@@ -354,7 +354,7 @@ export default {
     })
 
     const patchRef = await this.putResource(stream, '/pool_patch_upload', {
-      task: this.createTask('Patch upload', patchInfo.name),
+      task: this.task_create('Patch upload', patchInfo.name),
     }).then(extractOpaqueRef)
 
     return this._getOrWaitObject(patchRef)
