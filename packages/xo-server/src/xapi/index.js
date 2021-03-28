@@ -140,10 +140,6 @@ export default class Xapi extends XapiBase {
     return loop()
   }
 
-  createTask(name = 'untitled task', description) {
-    return super.createTask(`[XO] ${name}`, description)
-  }
-
   // =================================================================
 
   _registerGenericWatcher(fn) {
@@ -586,7 +582,7 @@ export default class Xapi extends XapiBase {
         ref: exportedVm.$ref,
         use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
       },
-      task: this.createTask('VM export', vm.name_label),
+      task: this.task_create('VM export', vm.name_label),
     }).catch(error => {
       // augment the error with as much relevant info as possible
       error.pool_master = this.pool.$master
@@ -1139,7 +1135,7 @@ export default class Xapi extends XapiBase {
 
   @cancelable
   async _importVm($cancelToken, stream, sr, onVmCreation = undefined) {
-    const taskRef = await this.createTask('VM import')
+    const taskRef = await this.task_create('VM import')
     const query = {}
 
     if (sr != null) {
@@ -1753,7 +1749,7 @@ export default class Xapi extends XapiBase {
 
     return this.getResource($cancelToken, '/export_raw_vdi/', {
       query,
-      task: this.createTask('VDI Export', vdi.name_label),
+      task: this.task_create('VDI Export', vdi.name_label),
     }).catch(error => {
       // augment the error with as much relevant info as possible
       error.pool_master = vdi.$pool.$master
@@ -1788,7 +1784,7 @@ export default class Xapi extends XapiBase {
           format,
           vdi: vdi.$ref,
         },
-        task: this.createTask('VDI Content Import', vdi.name_label),
+        task: this.task_create('VDI Content Import', vdi.name_label),
       }),
     ]).catch(error => {
       // augment the error with as much relevant info as possible

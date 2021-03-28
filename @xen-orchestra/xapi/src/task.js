@@ -2,9 +2,7 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 
 module.exports = class Task {
   create(name = 'untitled task', description) {
-    // don't call `this.createTask` which might be overriden by
-    // child class and already has the [XO] prefix
-    return super.createTask(`[XO] ${name}`, description)
+    return this.createTask(`[XO] ${name}`, description)
   }
 
   destroy(ref) {
