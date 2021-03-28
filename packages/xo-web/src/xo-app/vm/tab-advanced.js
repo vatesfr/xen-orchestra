@@ -374,7 +374,7 @@ const Acls = decorate([
 
 const NIC_TYPE_OPTIONS = [
   {
-    label: 'Realtek RTL819',
+    label: 'Realtek RTL8139',
     value: '',
   },
   {
