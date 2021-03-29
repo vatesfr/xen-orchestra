@@ -1,5 +1,5 @@
-import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
+import { createLogger } from '@xen-orchestra/log'
 import { filter, forEach, groupBy } from 'lodash'
 
 const log = createLogger('xo:storage')

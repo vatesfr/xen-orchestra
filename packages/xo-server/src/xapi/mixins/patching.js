@@ -1,6 +1,6 @@
-import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import unzip from 'unzipper'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { filter, find, groupBy, mapValues, pickBy, some } from 'lodash'
 import { timeout } from 'promise-toolbox'
