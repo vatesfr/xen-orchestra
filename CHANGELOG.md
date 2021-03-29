@@ -1,5 +1,34 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
+- [VM] Display the full driver version in the general and advanced tab instead of `major.minor` [#5680](https://github.com/vatesfr/xen-orchestra/issues/5680) (PR [#5691](https://github.com/vatesfr/xen-orchestra/pull/5691))
+- [Usage report] Add VM IP addresses to the report (PR [#5696](https://github.com/vatesfr/xen-orchestra/pull/5696))
+
+### Bug fixes
+
+- [Proxy] _Force upgrade_ no longer fails on broken proxy
+- [Proxy] _Redeploy_ now works when the bound VM is missing
+- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
+- [OVA VM Import] Fix imported VMs all having the same MAC addresses
+- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683](https://github.com/vatesfr/xen-orchestra/pull/5683))
+
+### Released packages
+
+- xo-server-usage-report 0.10.0
+- xo-server-backup-reports 0.16.9
+- @vates/disposable 0.1.1
+- xo-server-transport-email 0.6.0
+- @xen-orchestra/fs 0.14.0
+- @xen-orchestra/xapi 0.5.0
+- @xen-orchestra/backups 0.8.0
+- @xen-orchestra/backups-cli 0.5.0
+- xo-server 5.78.0
+- xo-web 5.79.2
+
 ## **5.56.2** (2021-03-22)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
