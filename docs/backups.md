@@ -302,18 +302,25 @@ By default the _parallel strategy_ is, on paper, the most logical one. But we ne
 Xen Orchestra can be connected to multiple pools at once. So the concurrency number applies **per pool**.
 :::
 
-Each step need to be considere to fit choose the concurrency value:
+Each step need to be considere to choose the concurrency value:
 
-- **snapshot process** needs to be performed with the lowest concurrency possible. 2 is a good compromise: one snapshot is fast, but a stuck snapshot will block the whole job. That's why a concurrency of 2 is not too bad on your storage. Basically, at 3 AM, we'll do all the VM snapshots needed, 2 at a time.
+- **snapshot process** needs to be performed with the lowest concurrency possible. 2 is a good compromise: one snapshot is fast, but a stuck snapshot will block the whole job. That's why a concurrency of 2 is not too bad on your storage. Basically, at 3 AM, we'll do a number of VM snapshots equal to the set concurrency, the next snapshot will start when the first export job ended.
 - **disk export process** is bottlenecked by XCP-ng/XenServer - so to get the most of it, you can use up to 12 in parallel. As soon a snapshot is done, the export process will start, until reaching 12 at once. Then as soon as one in those 12 is finished, another one will appear until there is nothing more to export.
 - **VM export process:** the 12 disk export limit mentioned above applies to VDI exports, which happen during delta exports. For full VM exports (for example, for full backup job types), there is a built in limit of 2. This means if you have a full backup job of 6 VMs, only 2 will be exported at once.
 - **snapshot deletion** can't happen all at once because the previous step durations are random.
 
 :::tip
-Default concurrency value is 2 if left empty .
+Default concurrency value is 2 if left empty.
 :::
 
-If you job contains 50 VMs for example, you could specify a concurrency with a limit of "25 at once" (enter 25 in the concurrency field). This means at 3 AM, we'll do 25 snapshots (2 at a time), then exports. As soon as the first VM backup is completely finished (snapshot removed), then we'll start the 26th and so on, to always keep a max of 25x VM backups going in parallel.
+So the process will be the following if you put concurrency at 6 and you have 20 Vms to backup:
+- First we snapshot the 6 VMs.
+- We start the 6 export job.
+- When the first export job as ended we will snapshot the 7th VM.
+- We start exporting the 7th VM, in the same time we will delete the snapshot for the 1th Vm.
+- We repeat the last 2 steps until the 20 VMs are backuped, keeping 6 jobs running.
+
+Removing the snapshot will trigger the coalesce process for the first VM, this is an automated action not triggered directly by the backup job.
 
 ## Backup modifier tags
 
