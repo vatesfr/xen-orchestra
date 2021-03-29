@@ -951,7 +951,7 @@ const chooseActionToUnblockForbiddenStartVm = props =>
 
 const cloneAndStartVm = async (vm, host) => _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
-const _startVm = (id, host, { force = false, bypassMacAddressesCheck = force }) =>
+const _startVm = (id, host, { force = false, bypassMacAddressesCheck = force } = {}) =>
   _call('vm.start', { id, host, force, bypassMacAddressesCheck })
 
 export const startVm = async (vm, host) => {
