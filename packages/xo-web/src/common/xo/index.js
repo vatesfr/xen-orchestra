@@ -12,7 +12,6 @@ import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
 import { forbiddenOperation, incorrectState, noHostsAvailable } from 'xo-common/api-errors'
 
-
 import _ from '../intl'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
