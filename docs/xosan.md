@@ -27,11 +27,11 @@ The objectives are to:
 
 To deploy XOSAN, please follow the rest of the documentation:
 
-- [XOSAN Requirements](xosan_requirements.md)
-- [Types of XOSAN](xosan_types.md)
-- [How to create a new XOSAN Storage](xosan_create.md)
-- [XOSAN management](xosan_management.md)
-- [Get a free XOSAN trial](xosan_trial.md)
+- [XOSAN Requirements](xosan.md#requirements))
+- [Types of XOSAN](xosan.md#xosan-types)
+- [How to create a new XOSAN Storage](xosan.md#creation))
+- [XOSAN management](xosan.md#advanced-options)
+- [Get a free XOSAN trial](xosan.md#try-it)
 
 ## Requirements
 

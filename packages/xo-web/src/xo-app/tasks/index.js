@@ -277,6 +277,10 @@ export default class Tasks extends Component {
     )
   )
 
+  _getItemsPerPageContainer = () => this.state.itemsPerPageContainer
+
+  _setItemsPerPageContainer = itemsPerPageContainer => this.setState({ itemsPerPageContainer })
+
   render() {
     const { props } = this
     const { intl, nTasks, pools } = props
@@ -286,11 +290,14 @@ export default class Tasks extends Component {
       <Page header={HEADER} title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}>
         <Container>
           <Row className='mb-1'>
-            <Col mediumSize={8}>
+            <Col mediumSize={7}>
               <SelectPool multi onChange={this.linkState('pools')} />
             </Col>
             <Col mediumSize={4}>
               <div ref={container => this.setState({ container })} />
+            </Col>
+            <Col mediumSize={1}>
+              <div ref={this._setItemsPerPageContainer} />
             </Col>
           </Row>
           <Row>
@@ -299,6 +306,7 @@ export default class Tasks extends Component {
                 collection={this._getTasks()}
                 columns={COLUMNS}
                 filterContainer={() => this.state.container}
+                itemsPerPageContainer={this._getItemsPerPageContainer}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'

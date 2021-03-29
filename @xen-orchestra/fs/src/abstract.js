@@ -3,7 +3,7 @@
 // $FlowFixMe
 import getStream from 'get-stream'
 
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
@@ -18,6 +18,7 @@ import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 const { dirname } = path.posix
 
 type Data = Buffer | Readable | string
+type Disposable<T> = {| dispose: () => void | Promise<void>, value?: T |}
 type FileDescriptor = {| fd: mixed, path: string |}
 type LaxReadable = Readable & Object
 type LaxWritable = Writable & Object
@@ -209,12 +210,11 @@ export default class RemoteHandlerAbstract {
 
   // write a stream to a file using a temporary file
   async outputStream(
-    input: Readable | Promise<Readable>,
     path: string,
+    input: Readable | Promise<Readable>,
     { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
-    path = normalizePath(path)
-    return this._outputStream(await input, normalizePath(path), {
+    return this._outputStream(normalizePath(path), await input, {
       checksum,
       dirMode,
     })
@@ -258,6 +258,11 @@ export default class RemoteHandlerAbstract {
     }
 
     return entries
+  }
+
+  async lock(path: string): Promise<Disposable> {
+    path = normalizePath(path)
+    return { dispose: await this._lock(path) }
   }
 
   async mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
@@ -435,6 +440,10 @@ export default class RemoteHandlerAbstract {
     return {}
   }
 
+  async _lock(path: string): Promise<Function> {
+    return () => Promise.resolve()
+  }
+
   async _getSize(file: File): Promise<number> {
     throw new Error('Not implemented')
   }
@@ -477,7 +486,7 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(input: Readable, path: string, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
+  async _outputStream(path: string, input: Readable, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, {
       checksum,
@@ -522,7 +531,7 @@ export default class RemoteHandlerAbstract {
     }
 
     const files = await this._list(dir)
-    await asyncMap(files, file =>
+    await asyncMapSettled(files, file =>
       this._unlink(`${dir}/${file}`).catch(error => {
         if (error.code === 'EISDIR') {
           return this._rmtree(`${dir}/${file}`)

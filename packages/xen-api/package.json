@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "0.29.0",
+  "version": "0.31.0",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -37,7 +37,6 @@
     "bind-property-descriptor": "^1.0.0",
     "blocked": "^1.2.1",
     "debug": "^4.0.1",
-    "event-to-promise": "^0.8.0",
     "exec-promise": "^0.7.0",
     "http-request-plus": "^0.8.0",
     "jest-diff": "^26.4.2",
@@ -47,7 +46,7 @@
     "make-error": "^1.3.0",
     "minimist": "^1.2.0",
     "ms": "^2.1.1",
-    "promise-toolbox": "^0.16.0",
+    "promise-toolbox": "^0.17.0",
     "pw": "0.0.4",
     "xmlrpc": "^1.3.2",
     "xo-collection": "^0.4.1"

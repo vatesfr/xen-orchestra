@@ -7,7 +7,7 @@ import { addSubscriptions, adminOnly, getXoaPlan } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Row, Col } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { checkXoa, closeTunnel, openTunnel, subscribeTunnelState } from 'xo'
+import { closeTunnel, openTunnel, subscribeTunnelState } from 'xo'
 import { reportOnSupportPanel } from 'report-bug-button'
 
 const ansiUp = new AnsiUp()
@@ -19,13 +19,6 @@ const Support = decorate([
     tunnelState: subscribeTunnelState,
   }),
   provideState({
-    initialState: () => ({ stdoutCheckXoa: '' }),
-    effects: {
-      initialize: async () => ({
-        stdoutCheckXoa: COMMUNITY ? '' : await checkXoa(),
-      }),
-      checkXoa: async () => ({ stdoutCheckXoa: await checkXoa() }),
-    },
     computed: {
       stdoutSupportTunnel: (_, { tunnelState }) =>
         tunnelState === undefined ? undefined : { __html: ansiUp.ansi_to_html(tunnelState.stdout) },
@@ -34,7 +27,7 @@ const Support = decorate([
   injectState,
   ({
     effects,
-    state: { stdoutCheckXoa, stdoutSupportTunnel },
+    state: { stdoutSupportTunnel, xoaStatus },
     tunnelState: { open, stdout } = { open: false, stdout: '' },
   }) => (
     <Container>
@@ -57,13 +50,18 @@ const Support = decorate([
           <Card>
             <CardHeader>{_('xoaCheck')}</CardHeader>
             <CardBlock>
-              <ActionButton btnStyle='success' disabled={COMMUNITY} handler={effects.checkXoa} icon='diagnosis'>
+              <ActionButton
+                btnStyle='success'
+                disabled={COMMUNITY}
+                handler={effects.forceRefreshXoaStatus}
+                icon='diagnosis'
+              >
                 {_('checkXoa')}
               </ActionButton>
               <hr />
               <pre
                 dangerouslySetInnerHTML={{
-                  __html: ansiUp.ansi_to_html(stdoutCheckXoa),
+                  __html: ansiUp.ansi_to_html(xoaStatus),
                 }}
               />
             </CardBlock>

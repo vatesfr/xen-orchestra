@@ -10,6 +10,7 @@ const SELECT_STYLE = {
 }
 const MENU_STYLE = {
   overflow: 'hidden',
+  whiteSpace: 'normal',
 }
 
 @uncontrollableInput()

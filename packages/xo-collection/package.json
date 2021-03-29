@@ -18,7 +18,6 @@
   },
   "preferGlobal": false,
   "main": "dist/collection",
-  "bin": {},
   "files": [
     "dist/",
     "*.js"

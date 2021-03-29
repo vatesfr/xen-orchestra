@@ -27,7 +27,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
 
         break
       } catch (error) {
-        if (!noSuchObject.is(error, { data: { id: resourceSet } })) {
+        if (!noSuchObject.is(error, { id: resourceSet })) {
           throw error
         }
       }

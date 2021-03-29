@@ -7,7 +7,7 @@ import { timeout } from 'promise-toolbox'
 
 import ensureArray from '../../_ensureArray'
 import { debounceWithKey } from '../../_pDebounceWithKey'
-import { forEach, mapFilter, mapToArray, parseXml } from '../../utils'
+import { forEach, mapFilter, parseXml } from '../../utils'
 
 import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils'
 
@@ -76,8 +76,8 @@ export default {
         url: patch['patch-url'],
         id: patch.uuid,
         uuid: patch.uuid,
-        conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => patch.conflictingpatch.uuid),
-        requirements: mapToArray(ensureArray(patch.requiredpatches), patch => patch.requiredpatch.uuid),
+        conflicts: ensureArray(patch.conflictingpatches).map(patch => patch.conflictingpatch.uuid),
+        requirements: ensureArray(patch.requiredpatches).map(patch => patch.requiredpatch.uuid),
         paid: patch['update-stream'] === 'premium',
         upgrade: /^(XS|CH)\d{2,}$/.test(patch['name-label']),
         // TODO: what does it mean, should we handle it?
@@ -354,7 +354,7 @@ export default {
     })
 
     const patchRef = await this.putResource(stream, '/pool_patch_upload', {
-      task: this.createTask('Patch upload', patchInfo.name),
+      task: this.task_create('Patch upload', patchInfo.name),
     }).then(extractOpaqueRef)
 
     return this._getOrWaitObject(patchRef)

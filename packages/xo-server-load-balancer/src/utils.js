@@ -2,7 +2,7 @@ const noop = () => {}
 
 const LOAD_BALANCER_DEBUG = 1
 
-// Delay between each ressources evaluation in minutes.
+// Delay between each resources evaluation in minutes.
 // Must be less than MINUTES_OF_HISTORICAL_DATA.
 export const EXECUTION_DELAY = 1
 

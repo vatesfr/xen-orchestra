@@ -10,9 +10,9 @@ import pick from 'lodash/pick'
 import tmp from 'tmp'
 import { createLogger } from '@xen-orchestra/log'
 import { randomBytes } from 'crypto'
-import { dirname, resolve } from 'path'
+import { resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
-import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
+import { fromCallback, promisify } from 'promise-toolbox'
 
 import { type SimpleIdPattern } from './utils'
 
@@ -102,6 +102,8 @@ export const parseXml = (function () {
   const opts = {
     attributeNamePrefix: '',
     ignoreAttributes: false,
+    parseNodeValue: false,
+    parseAttributeValue: false,
   }
 
   return xml => {
@@ -157,21 +159,7 @@ export const noop = () => {}
 
 // -------------------------------------------------------------------
 
-// Given a collection (array or object) which contains promises,
-// return a promise that is fulfilled when all the items in the
-// collection are either fulfilled or rejected.
-//
-// This promise will be fulfilled with a collection (of the same type,
-// array or object) containing promise inspections.
-//
-// Usage: pSettle(promises) or promises::pSettle()
-export function pSettle(promises) {
-  return (this || promises)::pAll(p => Promise.resolve(p)::pReflect())
-}
-
-// -------------------------------------------------------------------
-
-export { pAll, pDelay, pFinally, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
+export { pDelay, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
 
 // -------------------------------------------------------------------
 
@@ -206,11 +194,6 @@ export const popProperty = obj => {
 
 // -------------------------------------------------------------------
 
-// resolve a relative path from a file
-export const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
-
-// -------------------------------------------------------------------
-
 // Format a date in ISO 8601 in a safe way to be used in filenames
 // (even on Windows).
 export const safeDateFormat = utcFormat('%Y%m%dT%H%M%SZ')
@@ -226,7 +209,6 @@ export { default as forEach } from 'lodash/forEach'
 export { default as isEmpty } from 'lodash/isEmpty'
 export { default as isInteger } from 'lodash/isInteger'
 export { default as isObject } from 'lodash/isObject'
-export { default as mapToArray } from 'lodash/map'
 
 // -------------------------------------------------------------------
 
