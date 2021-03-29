@@ -57,15 +57,6 @@ if (process.stdout !== undefined && process.stdout.isTTY && process.stderr !== u
     for (let i = 0, n = namespace.length; i < n; ++i) {
       hash = ((hash << 5) - hash + namespace.charCodeAt(i)) | 0
     }
-    // // select a hue (HSV)
-    // const h = (Math.abs(hash) % 20) * 18
-    // // convert to RGB
-    // const f = (n, k = (n + h / 60) % 6) =>
-    //   Math.round(255 * (1 - Math.max(Math.min(k, 4 - k, 1), 0)))
-    // const r = f(5)
-    // const g = f(3)
-    // const b = f(1)
-    // return ansi(`38;2;${r};${g};${b}`, namespace)
     return ansi(`1;38;5;${NAMESPACE_COLORS[Math.abs(hash) % NAMESPACE_COLORS.length]}`, namespace)
   }
 } else {
