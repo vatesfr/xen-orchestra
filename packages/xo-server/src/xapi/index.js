@@ -1363,11 +1363,8 @@ export default class Xapi extends XapiBase {
     return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
-  async _startVm(vm, host, {
-    force = false,
-    bypassMacAddressesCheck = force,
-  } = {}) {
-    if (!ignoreMacAddressesCheck) {
+  async _startVm(vm, host, { force = false, bypassMacAddressesCheck = force } = {}) {
+    if (!bypassMacAddressesCheck) {
       const vmMacAddresses = vm.$VIFs.map(vif => vif.MAC)
       if (new Set(vmMacAddresses).size !== vmMacAddresses.length) {
         throw operationFailed({ objectId: vm.id, code: 'DUPLICATED_MAC_ADDRESS' })
@@ -1397,9 +1394,9 @@ export default class Xapi extends XapiBase {
       : this.callAsync('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
-  async startVm(vmId, hostId, force, ignoreMacAddressesCheck) {
+  async startVm(vmId, hostId, { force, bypassMacAddressesCheck }) {
     try {
-      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), force, ignoreMacAddressesCheck)
+      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), { force, bypassMacAddressesCheck })
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
