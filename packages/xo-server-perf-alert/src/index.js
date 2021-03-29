@@ -196,7 +196,6 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [{ required: 'uuids' }, { smartMode: true }],
       },
     },
     vmMonitors: {
@@ -247,7 +246,6 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [{ required: 'uuids' }, { smartMode: true }],
       },
     },
     srMonitors: {
@@ -290,7 +288,6 @@ export const configurationSchema = {
             default: 80,
           },
         },
-        oneOf: [{ required: 'uuids' }, { smartMode: true }],
       },
     },
     toEmails: {
