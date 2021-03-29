@@ -1,4 +1,4 @@
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('xo:web-hooks')
 

@@ -1,7 +1,7 @@
 import assert from 'assert'
-import createLogger from '@xen-orchestra/log'
 import NodeOpenssl from 'node-openssl-cert'
 import { access, constants, readFile, writeFile } from 'fs'
+import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { filter, find, forOwn, map, omitBy } from 'lodash'
 import { fromCallback, promisify } from 'promise-toolbox'
