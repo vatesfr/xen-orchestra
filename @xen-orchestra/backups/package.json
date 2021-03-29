@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@vates/compose": "^2.0.0",
-    "@vates/disposable": "^0.1.0",
+    "@vates/disposable": "^0.1.1",
     "@vates/multi-key-map": "^0.1.0",
     "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
