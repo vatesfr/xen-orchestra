@@ -10,7 +10,7 @@ import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
-import { forbiddenOperation, incorrectState, noHostsAvailable } from 'xo-common/api-errors'
+import { forbiddenOperation, incorrectState, noHostsAvailable, operationFailed } from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -969,7 +969,7 @@ export const startVm = async (vm, host) => {
   const id = resolveId(vm)
   const hostId = resolveId(host)
   return _startVm(id, hostId).catch(async reason => {
-    if (!forbiddenOperation.is(reason) && reason.data.code !== 'DUPLICATED_MAC_ADDRESS') {
+    if (!forbiddenOperation.is(reason) && !operationFailed.is(reason)) {
       throw reason
     }
 
@@ -982,13 +982,9 @@ export const startVm = async (vm, host) => {
         })
         await _startVm(id, hostId, { bypassMacAddressesCheck: true })
       } catch (error) {
-        if (error === undefined) {
-          return
-        }
-        if (!forbiddenOperation.is(error)) {
+        if (error === undefined || !forbiddenOperation.is(error)) {
           throw error
         }
-
         reason = error
       }
     }
@@ -1059,7 +1055,7 @@ export const startVms = vms =>
           )
         )
       } catch (error) {
-        // Nothing to do
+        throw error
       }
     }
 
