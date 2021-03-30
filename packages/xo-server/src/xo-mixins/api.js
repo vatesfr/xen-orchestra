@@ -1,5 +1,5 @@
-import createLogger from '@xen-orchestra/log'
 import emitAsync from '@xen-orchestra/emit-async'
+import { createLogger } from '@xen-orchestra/log'
 
 import kindOf from 'kindof'
 import ms from 'ms'

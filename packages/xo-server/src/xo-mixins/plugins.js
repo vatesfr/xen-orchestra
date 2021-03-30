@@ -1,6 +1,6 @@
 import Ajv from 'ajv'
-import createLogger from '@xen-orchestra/log'
 import mapToArray from 'lodash/map'
+import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'

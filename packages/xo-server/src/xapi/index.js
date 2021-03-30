@@ -2,7 +2,6 @@
 /* eslint-disable camelcase */
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import concurrency from 'limit-concurrency-decorator'
-import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import mapToArray from 'lodash/map'
@@ -13,6 +12,7 @@ import tarStream from 'tar-stream'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation } from 'xo-common/api-errors'
@@ -124,24 +124,6 @@ export default class Xapi extends XapiBase {
     }
     this.objects.on('add', onAddOrUpdate)
     this.objects.on('update', onAddOrUpdate)
-  }
-
-  call(...args) {
-    const fn = super.call
-
-    const loop = () =>
-      fn.apply(this, args)::pCatch(
-        {
-          code: 'TOO_MANY_PENDING_TASKS',
-        },
-        () => pDelay(5e3).then(loop)
-      )
-
-    return loop()
-  }
-
-  createTask(name = 'untitled task', description) {
-    return super.createTask(`[XO] ${name}`, description)
   }
 
   // =================================================================
@@ -563,15 +545,6 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  /**
-   * @deprecated Use VM_destroy instead
-   */
-  async deleteVm(vmOrId, deleteDisks = true, force = false, forceDeleteDefaultTemplate = false) {
-    const $ref = typeof vmOrId === 'string' ? this.getObject(vmOrId).$ref : vmOrId.$ref
-
-    return this.VM_destroy($ref, { deleteDisks, force, forceDeleteDefaultTemplate })
-  }
-
   getVmConsole(vmId) {
     const vm = this.getObject(vmId)
 
@@ -595,7 +568,7 @@ export default class Xapi extends XapiBase {
         ref: exportedVm.$ref,
         use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
       },
-      task: this.createTask('VM export', vm.name_label),
+      task: this.task_create('VM export', vm.name_label),
     }).catch(error => {
       // augment the error with as much relevant info as possible
       error.pool_master = this.pool.$master
@@ -677,7 +650,7 @@ export default class Xapi extends XapiBase {
         //
         // The snapshot must not exist otherwise it could break the
         // next export.
-        this._deleteVdi(vdi.$ref)::ignoreErrors()
+        vdi.$destroy()::ignoreErrors()
         return
       }
 
@@ -807,7 +780,7 @@ export default class Xapi extends XapiBase {
         },
         sr: mapVdisSrs[vdi.uuid] || srId,
       })
-      $defer.onFailure.call(this, '_deleteVdi', suspendVdi.$ref)
+      $defer.onFailure.call(this, 'VDI_destroy', suspendVdi.$ref)
     }
 
     // 1. Create the VMs.
@@ -851,7 +824,7 @@ export default class Xapi extends XapiBase {
         }
 
         newVdi = await this._getOrWaitObject(await this._cloneVdi(baseVdi))
-        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
+        $defer.onFailure(() => newVdi.$destroy())
 
         await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
       } else if (vdiRef === delta.vm.suspend_VDI) {
@@ -867,7 +840,7 @@ export default class Xapi extends XapiBase {
           },
           sr: mapVdisSrs[vdi.uuid] || srId,
         })
-        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
+        $defer.onFailure(() => newVdi.$destroy())
       }
 
       await asyncMapSettled(vbds[vdiRef], vbd =>
@@ -1079,7 +1052,7 @@ export default class Xapi extends XapiBase {
       '[XO] Supplemental pack ISO',
       'small temporary VDI to store a supplemental pack ISO'
     )
-    $defer(() => this._deleteVdi(vdi.$ref))
+    $defer(() => vdi.$destroy())
 
     await this._callInstallationPlugin(this.getObject(hostId).$ref, vdi.uuid)
   }
@@ -1105,7 +1078,7 @@ export default class Xapi extends XapiBase {
         '[XO] Supplemental pack ISO',
         'small temporary VDI to store a supplemental pack ISO'
       )
-      $defer(() => this._deleteVdi(vdi.$ref))
+      $defer(() => vdi.$destroy())
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
       for (const host of hosts) {
@@ -1138,7 +1111,7 @@ export default class Xapi extends XapiBase {
             '[XO] Supplemental pack ISO',
             'small temporary VDI to store a supplemental pack ISO'
           )
-          $defer(() => this._deleteVdi(vdi.$ref))
+          $defer(() => vdi.$destroy())
 
           await this._callInstallationPlugin(host.$ref, vdi.uuid)
         })
@@ -1148,7 +1121,7 @@ export default class Xapi extends XapiBase {
 
   @cancelable
   async _importVm($cancelToken, stream, sr, onVmCreation = undefined) {
-    const taskRef = await this.createTask('VM import')
+    const taskRef = await this.task_create('VM import')
     const query = {}
 
     if (sr != null) {
@@ -1210,7 +1183,7 @@ export default class Xapi extends XapiBase {
           size: disk.capacity,
           sr: sr.$ref,
         }))
-        $defer.onFailure(() => this._deleteVdi(vdi.$ref))
+        $defer.onFailure(() => vdi.$destroy())
         compression[disk.path] = disk.compression
         return this.createVbd({
           userdevice: String(disk.position),
@@ -1609,22 +1582,9 @@ export default class Xapi extends XapiBase {
           vdi: newVdi,
         })
       })
-      await this._deleteVdi(vdi.$ref)
+      await vdi.$destroy()
 
       return newVdi
-    }
-  }
-
-  // TODO: check whether the VDI is attached.
-  async _deleteVdi(vdiRef) {
-    log.debug(`Deleting VDI ${vdiRef}`)
-
-    try {
-      await this.callAsync('VDI.destroy', vdiRef)
-    } catch (error) {
-      if (error?.code !== 'HANDLE_INVALID') {
-        throw error
-      }
     }
   }
 
@@ -1718,10 +1678,6 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async deleteVdi(vdiId) {
-    await this._deleteVdi(this.getObject(vdiId).$ref)
-  }
-
   async resizeVdi(vdiId, size) {
     await this._resizeVdi(this.getObject(vdiId), size)
   }
@@ -1762,7 +1718,7 @@ export default class Xapi extends XapiBase {
 
     return this.getResource($cancelToken, '/export_raw_vdi/', {
       query,
-      task: this.createTask('VDI Export', vdi.name_label),
+      task: this.task_create('VDI Export', vdi.name_label),
     }).catch(error => {
       // augment the error with as much relevant info as possible
       error.pool_master = vdi.$pool.$master
@@ -1797,7 +1753,7 @@ export default class Xapi extends XapiBase {
           format,
           vdi: vdi.$ref,
         },
-        task: this.createTask('VDI Content Import', vdi.name_label),
+        task: this.task_create('VDI Content Import', vdi.name_label),
       }),
     ]).catch(error => {
       // augment the error with as much relevant info as possible
@@ -2041,7 +1997,7 @@ export default class Xapi extends XapiBase {
       size: buffer.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
+    $defer.onFailure(() => vdi.$destroy())
 
     // Then, generate a FAT fs
     const { mkdir, writeFile } = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
@@ -2084,7 +2040,7 @@ export default class Xapi extends XapiBase {
       size: stream.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
+    $defer.onFailure(() => vdi.$destroy())
 
     await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
 

@@ -1,5 +1,5 @@
 import assert from 'assert'
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, sample } from 'lodash'
 
 // =============================================================================
