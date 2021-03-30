@@ -196,7 +196,13 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [{ required: ['uuids'] }, { properties: { smartMode: { const: true } }, required: ['smartMode'] }],
+        oneOf: [
+          { required: ['uuids'] },
+          {
+            properties: { smartMode: { const: true } },
+            required: ['smartMode'],
+          },
+        ],
       },
     },
     vmMonitors: {
@@ -247,7 +253,13 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [{ required: ['uuids'] }, { properties: { smartMode: { const: true } }, required: ['smartMode'] }],
+        oneOf: [
+          { required: ['uuids'] },
+          {
+            properties: { smartMode: { const: true } },
+            required: ['smartMode'],
+          },
+        ],
       },
     },
     srMonitors: {
@@ -290,7 +302,13 @@ export const configurationSchema = {
             default: 80,
           },
         },
-        oneOf: [{ required: ['uuids'] }, { properties: { smartMode: { const: true } }, required: ['smartMode'] }],
+        oneOf: [
+          { required: ['uuids'] },
+          {
+            properties: { smartMode: { const: true } },
+            required: ['smartMode'],
+          },
+        ],
       },
     },
     toEmails: {
