@@ -1038,7 +1038,13 @@ export const startVms = vms =>
         })
         await Promise.all(
           map(vmsWithduplicatedMacAddresses, id =>
-            _startVm(id, undefined, { force: true, bypassMacAddressesCheck: true })
+            _startVm(id, undefined, { bypassMacAddressesCheck: true, force: false }).catch(reason => {
+              if (forbiddenOperation.is(reason)) {
+                forbiddenStart.push(id)
+              } else {
+                nErrors++
+              }
+            })
           )
         )
       } catch (error) {
