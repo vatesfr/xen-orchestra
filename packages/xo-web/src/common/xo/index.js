@@ -951,7 +951,7 @@ const chooseActionToUnblockForbiddenStartVm = props =>
 const cloneAndStartVm = async (vm, host) => _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
 const _startVm = (id, host, { force = false, bypassMacAddressesCheck = force } = {}) =>
-  _call('vm.start', { id, host, force, bypassMacAddressesCheck })
+  _call('vm.start', { id, bypassMacAddressesCheck, force, host })
 
 export const startVm = async (vm, host) => {
   if (host === true) {
@@ -975,11 +975,22 @@ export const startVm = async (vm, host) => {
 
     if (reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
       // Retry without checking MAC addresses
-      await confirm({
-        title: _('forceStartVm'),
-        body: _('vmWithDuplicatedMacAddressesMessage'),
-      })
-      return _startVm(id, hostId, { force: true, bypassMacAddressesCheck: true })
+      try {
+        await confirm({
+          title: _('forceStartVm'),
+          body: _('vmWithDuplicatedMacAddressesMessage'),
+        })
+        await _startVm(id, hostId, { bypassMacAddressesCheck: true })
+      } catch (error) {
+        if (error === undefined) {
+          return
+        }
+        if (!forbiddenOperation.is(error)) {
+          throw error
+        }
+
+        reason = error
+      }
     }
 
     if (forbiddenOperation.is(reason)) {
@@ -1038,7 +1049,7 @@ export const startVms = vms =>
         })
         await Promise.all(
           map(vmsWithduplicatedMacAddresses, id =>
-            _startVm(id, undefined, { bypassMacAddressesCheck: true, force: false }).catch(reason => {
+            _startVm(id, undefined, { bypassMacAddressesCheck: true }).catch(reason => {
               if (forbiddenOperation.is(reason)) {
                 forbiddenStart.push(id)
               } else {

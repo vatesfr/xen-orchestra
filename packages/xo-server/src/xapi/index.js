@@ -1394,9 +1394,9 @@ export default class Xapi extends XapiBase {
       : this.callAsync('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
-  async startVm(vmId, hostId, { force, bypassMacAddressesCheck }) {
+  async startVm(vmId, hostId, { bypassMacAddressesCheck, force }) {
     try {
-      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), { force, bypassMacAddressesCheck })
+      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), { bypassMacAddressesCheck, force })
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
