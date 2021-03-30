@@ -121,9 +121,9 @@ exports.VmBackup = class VmBackup {
           await vm.$assertHealthyVdiChains()
         }
 
-        const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot'](
-          this._getSnapshotNameLabel(vm)
-        )
+        const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
+          name_label: this._getSnapshotNameLabel(vm),
+        })
         this.timestamp = Date.now()
 
         await xapi.setFieldEntries('VM', snapshotRef, 'other_config', {
@@ -147,6 +147,8 @@ exports.VmBackup = class VmBackup {
     const { exportedVm } = this
     const baseVm = this._baseVm
 
+    await asyncMap(this._writers, writer => writer.prepare && writer.prepare())
+
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
       fullVdisRequired: this._fullVdisRequired,
     })
@@ -156,7 +158,7 @@ exports.VmBackup = class VmBackup {
 
     await asyncMap(this._writers, async writer => {
       try {
-        await writer.run({
+        await writer.transfer({
           deltaExport: forkDeltaExport(deltaExport),
           sizeContainers,
           timestamp,
@@ -192,6 +194,8 @@ exports.VmBackup = class VmBackup {
       speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,
       size,
     })
+
+    await asyncMap(this._writers, writer => writer.cleanup && writer.cleanup())
   }
 
   async _copyFull() {

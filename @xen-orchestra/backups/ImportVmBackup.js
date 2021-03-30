@@ -5,8 +5,9 @@ const { importDeltaVm } = require('./_deltaVm')
 const { Task } = require('./Task')
 
 exports.ImportVmBackup = class ImportVmBackup {
-  constructor({ adapter, metadata, srUuid, xapi }) {
+  constructor({ adapter, metadata, srUuid, xapi, settings: { newMacAddresses } = {} }) {
     this._adapter = adapter
+    this._importDeltaVmSettings = { newMacAddresses }
     this._metadata = metadata
     this._srUuid = srUuid
     this._xapi = xapi
@@ -37,6 +38,7 @@ exports.ImportVmBackup = class ImportVmBackup {
         const vmRef = isFull
           ? await xapi.VM_import(backup, srRef)
           : await importDeltaVm(backup, await xapi.getRecord('SR', srRef), {
+              ...this._importDeltaVmSettings,
               detectBase: false,
             })
 

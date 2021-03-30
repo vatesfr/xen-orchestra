@@ -1,7 +1,7 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import createLogger from '@xen-orchestra/log'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
 import { createGzip } from 'zlib'
+import { createLogger } from '@xen-orchestra/log'
 import { createSchedule } from '@xen-orchestra/cron'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'

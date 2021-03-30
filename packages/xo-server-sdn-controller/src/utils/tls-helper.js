@@ -1,6 +1,6 @@
 import fromEvent from 'promise-toolbox/fromEvent'
-import createLogger from '@xen-orchestra/log'
 import { connect } from 'tls'
+import { createLogger } from '@xen-orchestra/log'
 
 // =============================================================================
 

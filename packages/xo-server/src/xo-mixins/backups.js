@@ -1,9 +1,9 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import execa from 'execa'
 import splitLines from 'split-lines'
 import { CancelToken, fromEvent, ignoreErrors, pReflect } from 'promise-toolbox'
+import { createLogger } from '@xen-orchestra/log'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { decorateWith } from '@vates/decorate-with'
@@ -21,7 +21,6 @@ import {
   forEach,
   getFirstPropertyName,
   mapFilter,
-  pFinally,
   pFromCallback,
   resolveSubpath,
   safeDateFormat,
@@ -159,7 +158,7 @@ const listPartitions2 = device =>
                 })
               })
             })
-            promise::pFinally(device.unmount)
+            promise.finally(device.unmount)
             return promise
           })
         )
@@ -375,7 +374,7 @@ export default class {
         bypassVdiChainsCheck: force,
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`,
       })
-      $defer.onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
+      $defer.onFailure(() => this._xo.getXapiObject(delta.vm.uuid).$destroy())
       $defer.onFailure(cancel)
 
       const date = safeDateFormat(Date.now())
@@ -401,11 +400,11 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
+        promise.then(() => this._xo.getXapiObject(localBaseUuid).$destroy())::ignoreErrors()
       }
 
       if (toRemove !== undefined) {
-        promise.then(() => asyncMapSettled(toRemove, _ => targetXapi.deleteVm(_.$id)))::ignoreErrors()
+        promise.then(() => asyncMapSettled(toRemove, _ => targetXapi.VM_destroy(_.$ref)))::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.
@@ -535,8 +534,8 @@ export default class {
       }),
       base => base.snapshot_time
     )
-    forEach(bases, base => {
-      xapi.deleteVdi(base.$id)::ignoreErrors()
+    forEach(bases, baseVdi => {
+      baseVdi.$destroy()::ignoreErrors()
     })
 
     // Export full or delta backup.
@@ -592,7 +591,7 @@ export default class {
     )
     const baseVm = bases.pop()
     forEach(bases, base => {
-      xapi.deleteVm(base.$id)::ignoreErrors()
+      xapi.VM_destroy(base.$ref)::ignoreErrors()
     })
 
     // Check backup dirs.
@@ -622,7 +621,8 @@ export default class {
       fullVdisRequired,
       disableBaseTags: true,
     })
-    $defer.onFailure(() => xapi.deleteVm(delta.vm.uuid))
+    const exportedVmRef = await xapi.call('VM.get_by_uuid', delta.vm.uuid)
+    $defer.onFailure(() => xapi.VM_destroy(exportedVmRef))
     $defer.onFailure(cancel)
 
     // Save vdis.
@@ -712,7 +712,7 @@ export default class {
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
 
     if (baseVm) {
-      xapi.deleteVm(baseVm.$id)::ignoreErrors()
+      xapi.VM_destroy(baseVm.$ref)::ignoreErrors()
     }
 
     return {
@@ -838,7 +838,7 @@ export default class {
     const promises = []
     for (let surplus = snapshots.length - (retention - 1); surplus > 0; surplus--) {
       const oldSnap = snapshots.shift()
-      promises.push(xapi.deleteVm(oldSnap.uuid))
+      promises.push(xapi.VM_destroy(oldSnap.$ref))
     }
     await Promise.all(promises)
   }
@@ -847,7 +847,7 @@ export default class {
     return Promise.all(
       mapToArray(vms, vm =>
         // Do not consider a failure to delete an old copy as a fatal error.
-        xapi.deleteVm(vm.$id)::ignoreErrors()
+        xapi.VM_destroy(vm.$ref)::ignoreErrors()
       )
     )
   }

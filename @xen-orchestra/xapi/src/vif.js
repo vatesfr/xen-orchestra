@@ -1,20 +1,26 @@
 const isVmRunning = require('./_isVmRunning')
 
 module.exports = class Vif {
-  async create({
-    currently_attached = true,
-    device,
-    ipv4_allowed,
-    ipv6_allowed,
-    locking_mode,
-    MAC,
-    MTU,
-    network,
-    other_config = {},
-    qos_algorithm_params = {},
-    qos_algorithm_type = '',
-    VM,
-  }) {
+  async create(
+    {
+      currently_attached = true,
+      device,
+      ipv4_allowed,
+      ipv6_allowed,
+      locking_mode,
+      MTU,
+      network,
+      other_config = {},
+      qos_algorithm_params = {},
+      qos_algorithm_type = '',
+      VM,
+    },
+    {
+      // duplicated MAC addresses can lead to issues,
+      // therefore it should be passed explicitely
+      MAC = '',
+    } = {}
+  ) {
     const [powerState, ...rest] = await Promise.all([
       this.getField('VM', VM, 'power_state'),
       device ?? (await this.call('VM.get_allowed_VIF_devices', VM))[0],

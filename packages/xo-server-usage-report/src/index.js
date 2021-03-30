@@ -1,8 +1,8 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import createLogger from '@xen-orchestra/log'
 import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
 import stringify from 'csv-stringify'
+import { createLogger } from '@xen-orchestra/log'
 import { createSchedule } from '@xen-orchestra/cron'
 import { minify } from 'html-minifier'
 import {
@@ -135,6 +135,10 @@ Handlebars.registerHelper('math', function (lvalue, operator, rvalue, options) {
 })
 
 Handlebars.registerHelper('shortUUID', shortUuid)
+
+Handlebars.registerHelper('formatAddresses', addresses =>
+  addresses.length === 0 ? 'No IP record' : addresses.join(', ')
+)
 
 Handlebars.registerHelper('normaliseValue', normaliseValue)
 
@@ -285,6 +289,7 @@ async function getVmsStats({ runningVms, xo }) {
         return {
           uuid: vm.uuid,
           name: vm.name_label,
+          addresses: Object.values(vm.addresses),
           cpu: METRICS_MEAN.cpu(stats.cpus),
           ram: METRICS_MEAN.ram(stats),
           diskRead: METRICS_MEAN.disk(get(stats.xvds, 'r')),
@@ -640,6 +645,7 @@ const CSV_CAST = {
 }
 
 const CSV_COLUMNS = {
+  addresses: { key: 'addresses', header: 'IP addresses' },
   cpu: { key: 'cpu', header: 'CPU (%)' },
   cpuEvolution: { key: 'evolution.cpu', header: 'CPU evolution (%)' },
   diskRead: { key: 'diskRead', header: 'Disk read (MiB)' },
@@ -771,6 +777,7 @@ class UsageReportPlugin {
             columns: [
               CSV_COLUMNS.uuid,
               CSV_COLUMNS.name,
+              CSV_COLUMNS.addresses,
               CSV_COLUMNS.cpu,
               CSV_COLUMNS.cpuEvolution,
               CSV_COLUMNS.ram,

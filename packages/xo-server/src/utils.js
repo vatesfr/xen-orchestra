@@ -159,7 +159,7 @@ export const noop = () => {}
 
 // -------------------------------------------------------------------
 
-export { pAll, pDelay, pFinally, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
+export { pDelay, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
 
 // -------------------------------------------------------------------
 

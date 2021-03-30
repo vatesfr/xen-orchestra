@@ -107,7 +107,7 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       try {
-        await this._app.getXapi(vmUuid).deleteVm(vmUuid)
+        await this._app.getXapiObject(vmUuid).$destroy()
       } catch (error) {
         if (!noSuchObject.is(error)) {
           throw error
@@ -208,7 +208,7 @@ export default class Proxy {
       }),
       { srId }
     )
-    $defer.onFailure(() => xapi._deleteVm(vm))
+    $defer.onFailure(() => xapi.VM_destroy(vm.$ref))
 
     const arg = { licenseId, boundObjectId: vm.uuid }
     await app.bindLicense(arg)
@@ -267,7 +267,13 @@ export default class Proxy {
     if (redeploy) {
       const { vmUuid } = await this._getProxy(proxyId)
       if (vmUuid !== undefined) {
-        await app.getXapi(vmUuid).deleteVm(vmUuid)
+        try {
+          await app.getXapiObject(vmUuid).$destroy()
+        } catch (error) {
+          if (!noSuchObject.is(error)) {
+            throw error
+          }
+        }
         await Promise.all([
           app
             .unbindLicense({

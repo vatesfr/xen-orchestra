@@ -6,7 +6,7 @@ export default {
   @cancelable
   exportPoolMetadata($cancelToken) {
     return this.getResource($cancelToken, PATH_DB_DUMP, {
-      task: this.createTask('Export pool metadata'),
+      task: this.task_create('Export pool metadata'),
     })
   },
 
@@ -19,7 +19,7 @@ export default {
       query: {
         dry_run: String(!force),
       },
-      task: this.createTask('Import pool metadata'),
+      task: this.task_create('Import pool metadata'),
     })
   },
 }
