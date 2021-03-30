@@ -43,10 +43,9 @@ ${name} v${version}
   })
 
   let httpServer = new (require('http-server-plus'))({
-    createSecureServer:
-      require('compare-versions')(process.version, '10.10.0') >= 0
-        ? (({ createSecureServer }) => opts => createSecureServer({ ...opts, allowHTTP1: true }))(require('http2'))
-        : undefined,
+    createSecureServer: (({ createSecureServer }) => opts => createSecureServer({ ...opts, allowHTTP1: true }))(
+      require('http2')
+    ),
   })
 
   const { readFileSync, outputFileSync, unlinkSync } = require('fs-extra')
