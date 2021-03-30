@@ -205,7 +205,7 @@ export default class Backups {
             params: {
               backupId: { type: 'string' },
               remote: { type: 'object' },
-              settings: { type: 'object' },
+              settings: { type: 'object', optional: true },
               srUuid: { type: 'string' },
               streamLogs: { type: 'boolean', optional: true },
               xapi: { type: 'object' },
