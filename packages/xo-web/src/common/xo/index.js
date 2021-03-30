@@ -10,7 +10,7 @@ import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
-import { forbiddenOperation, incorrectState, noHostsAvailable, operationFailed } from 'xo-common/api-errors'
+import { forbiddenOperation, incorrectState, noHostsAvailable } from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -969,11 +969,12 @@ export const startVm = async (vm, host) => {
   const id = resolveId(vm)
   const hostId = resolveId(host)
   return _startVm(id, hostId).catch(async reason => {
-    if (!forbiddenOperation.is(reason) && !operationFailed.is(reason)) {
+    const isDuplicatedMacAddressError = reason.data !== undefined && reason.data.code === 'DUPLICATED_MAC_ADDRESS'
+    if (!isDuplicatedMacAddressError && !forbiddenOperation.is(reason)) {
       throw reason
     }
 
-    if (reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
+    if (isDuplicatedMacAddressError) {
       // Retry without checking MAC addresses
       await confirm({
         title: _('forceStartVm'),
@@ -1038,25 +1039,21 @@ export const startVms = vms =>
 
     if (vmsWithduplicatedMacAddresses.length > 0) {
       // Retry without checking MAC addresses
-      try {
-        await confirm({
-          title: _('forceStartVm'),
-          body: _('vmsWithDuplicatedMacAddressesMessage', { nVms: vmsWithduplicatedMacAddresses.length }),
-        })
-        await Promise.all(
-          map(vmsWithduplicatedMacAddresses, id =>
-            _startVm(id, undefined, { bypassMacAddressesCheck: true }).catch(reason => {
-              if (forbiddenOperation.is(reason)) {
-                forbiddenStart.push(id)
-              } else {
-                nErrors++
-              }
-            })
-          )
+      await confirm({
+        title: _('forceStartVm'),
+        body: _('vmsWithDuplicatedMacAddressesMessage', { nVms: vmsWithduplicatedMacAddresses.length }),
+      })
+      await Promise.all(
+        map(vmsWithduplicatedMacAddresses, id =>
+          _startVm(id, undefined, { bypassMacAddressesCheck: true }).catch(reason => {
+            if (forbiddenOperation.is(reason)) {
+              forbiddenStart.push(id)
+            } else {
+              nErrors++
+            }
+          })
         )
-      } catch (error) {
-        throw error
-      }
+      )
     }
 
     if (forbiddenStart.length > 0) {
