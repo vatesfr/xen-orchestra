@@ -5,6 +5,8 @@
 
 ### Enhancements
 
+- [Host/Load-balancer] Add a new anti-affinity mode (PR [#5652](https://github.com/vatesfr/xen-orchestra/pull/5652))
+
 ### Bug fixes
 
 ### Packages to release
@@ -26,5 +28,6 @@
 
 - @xen-orchestra/xapi minor
 - @xen-orchestra/backups minor
+- xo-server-load-balancer minor
 - xo-server patch
 - xo-web minor
