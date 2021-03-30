@@ -142,7 +142,7 @@ exports.Xapi = Xapi
 function pRetryWrap(fn, options) {
   const getOptions = typeof options !== 'function' ? () => options : options
   return function () {
-    return pRetry.call(() => fn.apply(this, arguments), getOptions.apply(this, arguments))
+    return pRetry(() => fn.apply(this, arguments), getOptions.apply(this, arguments))
   }
 }
 
