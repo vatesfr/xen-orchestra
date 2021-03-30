@@ -44,7 +44,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
     size,
     sr: sr._xapiId,
   })
-  $defer.onFailure(() => xapi.deleteVdi(vdi.$id))
+  $defer.onFailure(() => vdi.$destroy())
 
   if (attach) {
     await xapi.createVbd({
@@ -195,7 +195,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
           await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
           res.end(format.response(0, vdi.$id))
         } catch (e) {
-          await xapi.deleteVdi(vdi)
+          await vdi.$destroy()
           throw e
         }
         resolve()

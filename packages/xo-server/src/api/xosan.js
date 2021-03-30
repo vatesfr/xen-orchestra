@@ -810,7 +810,7 @@ async function replaceBrickOnSameVM(xosansr, previousBrick, newLvmSr, brickSize)
     await umountDisk(localEndpoint, previousBrickRoot)
     const previousVBD = previousVM.$VBDs.find(vbd => vbd.device === previousBrickDevice)
     await xapi.disconnectVbd(previousVBD)
-    await xapi.deleteVdi(previousVBD.VDI)
+    await xapi.VDI_destroy(previousVBD.VDI)
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 4 }
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr).$ref)
   } finally {

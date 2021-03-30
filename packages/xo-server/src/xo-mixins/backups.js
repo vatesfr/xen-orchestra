@@ -534,8 +534,8 @@ export default class {
       }),
       base => base.snapshot_time
     )
-    forEach(bases, base => {
-      xapi.deleteVdi(base.$id)::ignoreErrors()
+    forEach(bases, baseVdi => {
+      baseVdi.$destroy()::ignoreErrors()
     })
 
     // Export full or delta backup.
