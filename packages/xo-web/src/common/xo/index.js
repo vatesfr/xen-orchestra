@@ -975,14 +975,14 @@ export const startVm = async (vm, host) => {
 
     if (reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
       // Retry without checking MAC addresses
+      await confirm({
+        title: _('forceStartVm'),
+        body: _('vmWithDuplicatedMacAddressesMessage'),
+      })
       try {
-        await confirm({
-          title: _('forceStartVm'),
-          body: _('vmWithDuplicatedMacAddressesMessage'),
-        })
         await _startVm(id, hostId, { bypassMacAddressesCheck: true })
       } catch (error) {
-        if (error === undefined || !forbiddenOperation.is(error)) {
+        if (!forbiddenOperation.is(error)) {
           throw error
         }
         reason = error
