@@ -392,7 +392,7 @@ export default {
       '[XO] Patch ISO',
       'small temporary VDI to store a patch ISO'
     )
-    $defer(() => this._deleteVdi(vdi.$ref))
+    $defer(() => vdi.$destroy())
 
     return vdi
   },
