@@ -206,7 +206,7 @@ const CollapsedActions = decorate([
       <DropdownMenu className='dropdown-menu-right'>
         {state.actions.map((action, key) => (
           <MenuItem
-            className={`text-${action.level}`}
+            className={action.level !== undefined ? `text-${action.level}` : ''}
             disabled={action.disabled}
             key={key}
             onClick={() => effects.execute(action)}
