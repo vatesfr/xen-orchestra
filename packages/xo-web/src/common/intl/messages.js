@@ -12,6 +12,7 @@ const messages = {
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'No such item',
   errorUnknownItem: 'Unknown {type}',
+  generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
