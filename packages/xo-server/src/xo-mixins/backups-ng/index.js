@@ -447,7 +447,7 @@ export default class BackupNg {
   // ├─ task.start(message: 'transfer')
   // │  └─ task.end(result: { id: string, size: number })
   // └─ task.end
-  async importVmBackupNg(id: string, srId: string): Promise<string> {
+  async importVmBackupNg(id: string, srId: string, settings): Promise<string> {
     const app = this._app
     const xapi = app.getXapi(srId)
     const sr = xapi.getObject(srId)
@@ -469,6 +469,7 @@ export default class BackupNg {
             url: remote.url,
             options: remote.options,
           },
+          settings,
           srUuid: sr.uuid,
           streamLogs: true,
           xapi: {
@@ -530,6 +531,7 @@ export default class BackupNg {
               new ImportVmBackup({
                 adapter,
                 metadata,
+                settings,
                 srUuid: srId,
                 xapi: await app.getXapi(srId),
               }).run()
