@@ -1,10 +1,10 @@
 import assert from 'assert'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import execa from 'execa'
 import fs from 'fs-extra'
 import map from 'lodash/map'
+import { createLogger } from '@xen-orchestra/log'
 import { tap, delay } from 'promise-toolbox'
 import { invalidParameters } from 'xo-common/api-errors'
 import { includes, remove, filter, find, range } from 'lodash'
@@ -585,10 +585,10 @@ export const createSR = defer(async function (
     const firstSr = srsObjects[0]
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 1 }
     const firstVM = await this::_importGlusterVM(xapi, template, firstSr)
-    $defer.onFailure(() => xapi.deleteVm(firstVM, true))
+    $defer.onFailure(() => xapi.VM_destroy(firstVM.$ref, true))
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 2 }
     const copiedVms = await asyncMapSettled(srsObjects.slice(1), sr =>
-      copyVm(xapi, firstVM, sr)::tap(({ vm }) => $defer.onFailure(() => xapi.deleteVm(vm)))
+      copyVm(xapi, firstVM, sr)::tap(({ vm }) => $defer.onFailure(() => xapi.VM_destroy(vm.$ref)))
     )
     const vmsAndSrs = [
       {
@@ -602,7 +602,7 @@ export const createSR = defer(async function (
       const sr = firstSr
       const arbiterIP = networkPrefix + vmIpLastNumber++
       const arbiterVm = await xapi.copyVm(firstVM, sr)
-      $defer.onFailure(() => xapi.deleteVm(arbiterVm, true))
+      $defer.onFailure(() => xapi.VM_destroy(arbiterVm.$ref, true))
       arbiter = await _prepareGlusterVm(xapi, sr, arbiterVm, xosanNetwork, arbiterIP, {
         labelSuffix: '_arbiter',
         increaseDataDisk: false,
@@ -810,7 +810,7 @@ async function replaceBrickOnSameVM(xosansr, previousBrick, newLvmSr, brickSize)
     await umountDisk(localEndpoint, previousBrickRoot)
     const previousVBD = previousVM.$VBDs.find(vbd => vbd.device === previousBrickDevice)
     await xapi.disconnectVbd(previousVBD)
-    await xapi.deleteVdi(previousVBD.VDI)
+    await xapi.VDI_destroy(previousVBD.VDI)
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 4 }
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr).$ref)
   } finally {
@@ -870,7 +870,7 @@ export async function replaceBrick({ xosansr, previousBrick, newLvmSr, brickSize
     await xapi.xo.setData(xosansr, 'xosan_config', data)
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 2 }
     if (previousVMEntry) {
-      await xapi.deleteVm(previousVMEntry.vm, true)
+      await xapi.VM_destroy(previousVMEntry.vm.$ref, true)
     }
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 3 }
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr).$ref)
@@ -1013,7 +1013,7 @@ const insertNewGlusterVm = defer(async function (
   const srObject = xapi.getObject(lvmsrId)
   // can't really copy an existing VM, because existing gluster VMs disks might too large to be copied.
   const newVM = await this::_importGlusterVM(xapi, data.template, lvmsrId)
-  $defer.onFailure(() => xapi.deleteVm(newVM, true))
+  $defer.onFailure(() => xapi.VM_destroy(newVM.$ref, true))
   const addressAndHost = await _prepareGlusterVm(xapi, srObject, newVM, xosanNetwork, ipAddress, {
     labelSuffix,
     increaseDataDisk,
@@ -1051,7 +1051,7 @@ export const addBricks = defer(async function ($defer, { xosansr, lvmsrs, brickS
       newAddresses.push(ipAddress)
       const { newVM, addressAndHost } = await this::insertNewGlusterVm(xapi, xosansr, newSr, { ipAddress, brickSize })
       $defer.onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + ipAddress, true))
-      $defer.onFailure(() => xapi.deleteVm(newVM, true))
+      $defer.onFailure(() => xapi.VM_destroy(newVM.$ref, true))
       const brickName = addressAndHost.brickName
       newNodes.push({
         brickName,
@@ -1070,7 +1070,7 @@ export const addBricks = defer(async function ($defer, { xosansr, lvmsrs, brickS
       data.type = 'replica'
       await xapi.xo.setData(xosansr, 'xosan_config', data)
       await glusterCmd(glusterEndpoint, 'peer detach ' + arbiterNode.vm.ip, true)
-      await xapi.deleteVm(arbiterNode.vm.id, true)
+      await xapi.VM_destroy(await xapi.call('VM.get_by_uuid', arbiterNode.vm.id), true)
     }
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 1 }
     await glusterCmd(glusterEndpoint, `volume add-brick xosan ${newNodes.map(n => n.brickName).join(' ')}`)
@@ -1123,7 +1123,7 @@ export const removeBricks = defer(async function ($defer, { xosansr, bricks }) {
     remove(data.nodes, node => ips.includes(node.vm.ip))
     await xapi.xo.setData(xosansr.id, 'xosan_config', data)
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr._xapiId).$ref)
-    await asyncMapSettled(brickVMs, vm => xapi.deleteVm(vm.vm, true))
+    await asyncMapSettled(brickVMs, vm => xapi.VM_destroy(vm.vm.$ref, true))
   } finally {
     delete CURRENT_POOL_OPERATIONS[xapi.pool.$id]
   }

@@ -14,7 +14,7 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     this._settings = settings
     this._sr = sr
 
-    this.run = Task.wrapFn(
+    this.transfer = Task.wrapFn(
       {
         name: 'export',
         data: ({ deltaExport }) => ({
@@ -23,8 +23,10 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
           type: 'SR',
         }),
       },
-      this.run
+      this.transfer
     )
+
+    this[settings.deleteFirst ? 'prepare' : 'cleanup'] = this._deleteOld
   }
 
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
@@ -51,9 +53,17 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     }
   }
 
-  async run({ timestamp, deltaExport, sizeContainers }) {
+  async _deleteOld() {
+    const { uuid: srUuid, $xapi: xapi } = this._sr
+    const { scheduleId, vm } = this._backup
+
+    const oldVms = getOldEntries(this._settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
+
+    return asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
+  }
+
+  async transfer({ timestamp, deltaExport, sizeContainers }) {
     const sr = this._sr
-    const settings = this._settings
     const { job, scheduleId, vm } = this._backup
 
     const { uuid: srUuid, $xapi: xapi } = sr
@@ -62,14 +72,6 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     ignoreErrors.call(
       asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref))
     )
-
-    const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
-
-    const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
-    const { deleteFirst } = settings
-    if (deleteFirst) {
-      await deleteOldBackups()
-    }
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
@@ -108,9 +110,5 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
         'xo:backup:vm': vm.uuid,
       }),
     ])
-
-    if (!deleteFirst) {
-      await deleteOldBackups()
-    }
   }
 }

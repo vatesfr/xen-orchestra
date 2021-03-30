@@ -1,9 +1,9 @@
 // @flow
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import cloneDeep from 'lodash/cloneDeep'
-import createLogger from '@xen-orchestra/log'
 import Disposable from 'promise-toolbox/Disposable'
 import { Backup } from '@xen-orchestra/backups/Backup'
+import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'

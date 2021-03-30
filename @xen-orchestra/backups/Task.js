@@ -164,7 +164,14 @@ const Task = {
     }
   },
 
-  wrapFn({ name, data, onLog }, fn) {
+  wrapFn(opts, fn) {
+    // compatibility with @decorateWith
+    if (typeof fn !== 'function') {
+      ;[fn, opts] = [opts, fn]
+    }
+
+    const { name, data, onLog } = opts
+
     return function () {
       const evaluate = v => (typeof v === 'function' ? v.apply(this, arguments) : v)
       return Task.run({ name: evaluate(name), data: evaluate(data), onLog }, () => fn.apply(this, arguments))
