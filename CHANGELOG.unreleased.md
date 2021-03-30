@@ -27,3 +27,4 @@
 - @xen-orchestra/xapi minor
 - @xen-orchestra/backups minor
 - xo-server patch
+- xo-web minor
