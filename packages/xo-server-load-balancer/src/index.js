@@ -3,6 +3,7 @@ import { intersection, uniq } from 'lodash'
 
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
+import SimplePlan from './simple-plan'
 import { DEFAULT_CRITICAL_THRESHOLD_CPU, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE } from './plan'
 import { EXECUTION_DELAY, debug } from './utils'
 
@@ -33,7 +34,7 @@ export const configurationSchema = {
           },
 
           mode: {
-            enum: ['Performance mode', 'Density mode'],
+            enum: ['Performance mode', 'Density mode', 'Simple mode'],
             title: 'Mode',
           },
 
@@ -73,6 +74,17 @@ export const configurationSchema = {
             items: {
               type: 'string',
               $type: 'Host',
+            },
+          },
+
+          antiAffinityTags: {
+            type: 'array',
+            title: 'Anti-affinity tags',
+            description: 'list of VM tags to force place VMs on different hosts',
+
+            items: {
+              type: 'string',
+              $type: 'Tag',
             },
           },
         },
@@ -130,11 +142,15 @@ class LoadBalancerPlugin {
     }
 
     this._poolIds = this._poolIds.concat(pools)
-    this._plans.push(
-      mode === PERFORMANCE_MODE
-        ? new PerformancePlan(this.xo, name, pools, options)
-        : new DensityPlan(this.xo, name, pools, options)
-    )
+    let plan
+    if (mode === PERFORMANCE_MODE) {
+      plan = new PerformancePlan(this.xo, name, pools, options)
+    } else if (mode === DENSITY_MODE) {
+      plan = new DensityPlan(this.xo, name, pools, options)
+    } else {
+      plan = new SimplePlan(this.xo, name, pools, options)
+    }
+    this._plans.push(plan)
   }
 
   _executePlans() {

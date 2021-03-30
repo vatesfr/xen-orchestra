@@ -38,12 +38,14 @@ const HEADER = (
 
 const ACTIONS = [
   {
+    collapsed: true,
     handler: forgetProxyAppliances,
     icon: 'forget',
     label: _('forgetProxies'),
     level: 'danger',
   },
   {
+    collapsed: true,
     handler: destroyProxyAppliances,
     icon: 'destroy',
     label: _('destroyProxies'),
@@ -53,6 +55,7 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
+    collapsed: true,
     handler: (proxy, { deployProxy }) =>
       deployProxy({
         proxy,
