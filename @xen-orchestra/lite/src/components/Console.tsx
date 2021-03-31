@@ -2,11 +2,13 @@ import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
 import { withState } from 'reaclette'
 
-import RangeInput from './RangeInput'
-
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
+  consoleSize: {
+    height: number
+    width: number
+  }
   objectsByType: ObjectsByType
   xapi: XapiConnection
 }
@@ -59,36 +61,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       },
     },
   },
-  ({ state }) => {
-    const [consoleSize, setConsoleSize] = React.useState({
-      height: 768,
-      width: 1024,
-    })
-
-    const resizeEvent = React.useMemo(() => new UIEvent('resize'), [])
-
-    const _scaleConsole = React.useCallback((value: number) => {
-      setConsoleSize({
-        height: 768 * value,
-        width: 1024 * value,
-      })
-
-      // With "scaleViewport", the canvas occupies all
-      // available space of his container.
-      // But when the size of the container is changed,
-      // the canvas size aren't updated
-      // Issue https://github.com/novnc/noVNC/issues/1364
-      // PR https://github.com/novnc/noVNC/pull/1365
-      window.dispatchEvent(resizeEvent)
-    }, [])
-
-    return (
-      <>
-        <RangeInput defaultValue={1} max={3} min={0.1} onChange={_scaleConsole} step={0.1} />
-        <div ref={state.container} style={consoleSize} />
-      </>
-    )
-  }
+  ({ state }) => <div ref={state.container} style={state.consoleSize} />
 )
 
 export default Console
