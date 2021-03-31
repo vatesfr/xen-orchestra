@@ -7,6 +7,10 @@
 - [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
 - [VM] Display the full driver version in the general and advanced tab instead of `major.minor` [#5680](https://github.com/vatesfr/xen-orchestra/issues/5680) (PR [#5691](https://github.com/vatesfr/xen-orchestra/pull/5691))
 - [Usage report] Add VM IP addresses to the report (PR [#5696](https://github.com/vatesfr/xen-orchestra/pull/5696))
+- [Host/Load-balancer] Add a new anti-affinity mode (PR [#5652](https://github.com/vatesfr/xen-orchestra/pull/5652))
+- [Plugins/perf-alert] Ability to choose all hosts, VMs and SRs [#2987](https://github.com/vatesfr/xen-orchestra/issues/2987) (PR [#5692](https://github.com/vatesfr/xen-orchestra/pull/5692))
+- [Backup restore] Ability to generate new MAC addresses (PR [#5697](https://github.com/vatesfr/xen-orchestra/pull/5697))
+- [Home/VM, VM] Start: show confirmation modal when the VMs contain duplicate MAC addresses or have the same MAC addresses as other running VMs [#5601](https://github.com/vatesfr/xen-orchestra/issues/5601) (PR [#5655](https://github.com/vatesfr/xen-orchestra/pull/5655))
 
 ### Bug fixes
 
@@ -18,16 +22,18 @@
 
 ### Released packages
 
+- xo-server-load-balancer 0.4.0
+- xo-server-perf-alert 0.3.0
 - xo-server-usage-report 0.10.0
 - xo-server-backup-reports 0.16.9
 - @vates/disposable 0.1.1
 - xo-server-transport-email 0.6.0
 - @xen-orchestra/fs 0.14.0
-- @xen-orchestra/xapi 0.5.0
-- @xen-orchestra/backups 0.8.0
+- @xen-orchestra/xapi 0.6.0
+- @xen-orchestra/backups 0.9.0
 - @xen-orchestra/backups-cli 0.5.0
-- xo-server 5.78.0
-- xo-web 5.79.2
+- xo-server 5.78.1
+- xo-web 5.80.0
 
 ## **5.56.2** (2021-03-22)
 
