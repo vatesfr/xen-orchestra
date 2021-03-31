@@ -4,8 +4,6 @@ import { withState } from 'reaclette'
 import Console from './Console'
 import RangeInput from './RangeInput'
 
-const RESIZEEVENT = new UIEvent('resize')
-
 interface ParentState {}
 
 interface State {
@@ -34,7 +32,6 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         height: 768,
         width: 1024,
       },
-      resizeEvent: new UIEvent('resize'),
     }),
     effects: {
       _scaleConsole: function (value) {
@@ -48,7 +45,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         // the canvas size aren't updated
         // Issue https://github.com/novnc/noVNC/issues/1364
         // PR https://github.com/novnc/noVNC/pull/1365
-        window.dispatchEvent(RESIZEEVENT)
+        window.dispatchEvent(new UIEvent('resize'))
       },
     },
   },
